@@ -13,5 +13,5 @@
 import { redirect } from 'next/navigation';
 
 export default function Nx00RootPage() {
-  redirect('/dashboard/nx00/users');
+  redirect('/home');
 }
