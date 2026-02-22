@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-LIST-UI-001：Users List UI（render only）
+ * - NX00-USERS-LIST-UI-001：Users List UI（render-only）
  *
  * Notes:
  * - 本檔案只負責畫面，不直接呼叫 API
@@ -16,9 +16,9 @@ import { cx } from '@/shared/lib/cx';
 import { useUsersList } from '@/features/nx00/users/hooks/useUsersList';
 
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-UI-001-F01
+ * @COMPONENT_CODE nxui_nx00_users_list_view_001
  * 說明：
- * - UsersListView：把 UI 與資料邏輯分離
+ * - UsersListView：render-only
  * - UI 只讀 state、呼叫 actions
  */
 export function UsersListView() {
@@ -26,6 +26,9 @@ export function UsersListView() {
   const { page, pageSize, q } = query;
   const { items, total, loading, err, qInput, totalPages } = state;
   const { setQInput, go, goNew, goEdit, toggleActive } = actions;
+
+  const canPrev = page > 1;
+  const canNext = page < totalPages;
 
   return (
     <div className="min-h-[calc(100vh-80px)] px-6 py-6 text-white">
@@ -36,14 +39,12 @@ export function UsersListView() {
           <div className="text-xs text-white/35">W03-UI-001 · list / search / pagination</div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={goNew}
-            className="rounded-xl border border-[#39ff14]/40 bg-[#39ff14] px-4 py-2 text-sm font-medium text-black hover:bg-[#39ff14]/90"
-          >
-            + New
-          </button>
-        </div>
+        <button
+          onClick={goNew}
+          className="rounded-xl border border-[#39ff14]/40 bg-[#39ff14] px-4 py-2 text-sm font-medium text-black hover:bg-[#39ff14]/90"
+        >
+          + New
+        </button>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_25px_90px_rgba(0,0,0,0.6)]">
@@ -57,6 +58,7 @@ export function UsersListView() {
             />
 
             <button
+              type="button"
               onClick={() => go({ q: qInput })}
               className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80 hover:bg-white/10"
             >
@@ -65,6 +67,7 @@ export function UsersListView() {
 
             {q ? (
               <button
+                type="button"
                 onClick={() => {
                   setQInput('');
                   go({ q: '' });
@@ -141,6 +144,7 @@ export function UsersListView() {
                     <td className="p-3 text-right">
                       <div className="inline-flex gap-2">
                         <button
+                          type="button"
                           onClick={() => goEdit(u.id)}
                           className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10"
                         >
@@ -148,6 +152,7 @@ export function UsersListView() {
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => toggleActive(u)}
                           className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/70 hover:bg-white/10"
                         >
@@ -172,13 +177,14 @@ export function UsersListView() {
 
         <div className="flex items-center justify-between p-4">
           <button
-            disabled={page <= 1}
+            type="button"
+            disabled={!canPrev}
             onClick={() => go({ page: page - 1 })}
             className={cx(
               'rounded-xl border px-3 py-2 text-sm',
-              page <= 1
-                ? 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
-                : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+              canPrev
+                ? 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+                : 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
             )}
           >
             Prev
@@ -187,13 +193,14 @@ export function UsersListView() {
           <div className="text-xs text-white/35">Total: {total}</div>
 
           <button
-            disabled={page >= totalPages}
+            type="button"
+            disabled={!canNext}
             onClick={() => go({ page: page + 1 })}
             className={cx(
               'rounded-xl border px-3 py-2 text-sm',
-              page >= totalPages
-                ? 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
-                : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+              canNext
+                ? 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+                : 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
             )}
           >
             Next

@@ -6,22 +6,16 @@
  * - NX00-RBAC-UI-002：角色成員面板（Role Members Panel）
  *
  * Notes:
- * - 本元件只負責 UI 呈現與互動（render-only）
- * - 成員資料、搜尋狀態、事件 handler 由上層（View / Hook）注入
+ * - render-only：只負責 UI 呈現與互動
+ * - 資料、搜尋狀態、事件 handler 由上層（View / Hook）注入
  * - 風格對齊 Dashboard Shell：暗黑 + 玻璃卡 + 螢光綠強調
- * - 支援「草稿模式」：Add/Remove 先改 UI，按 Save 才寫入後端
+ * - 支援草稿模式：Add/Remove 先改 UI，按 Save 才寫入後端
  */
 
 'use client';
 
-import React from 'react';
 import { cx } from '@/shared/lib/cx';
-
-export type UserChip = {
-  id: string;
-  username: string;
-  displayName?: string | null;
-};
+import type { UserLite } from '@/features/nx00/rbac/types';
 
 type Props = {
   title?: string;
@@ -34,7 +28,7 @@ type Props = {
   onChangeQuery: (v: string) => void;
 
   /** 候選使用者（搜尋結果） */
-  candidates?: UserChip[];
+  candidates?: UserLite[];
   selectedCandidateId?: string | null;
   onSelectCandidate?: (userId: string) => void;
 
@@ -42,7 +36,7 @@ type Props = {
   onAddMember?: () => void;
 
   /** 草稿 members（畫面顯示用） */
-  members: UserChip[];
+  members: UserLite[];
 
   /** 點 chip 的 x 移除（移除草稿） */
   onRemoveMember?: (userId: string) => void;
@@ -58,6 +52,11 @@ type Props = {
   onReset?: () => void;
 };
 
+/**
+ * @FUNCTION_CODE NX00-RBAC-UI-002-F01
+ * 說明：
+ * - RoleMembersPanel：角色成員面板（草稿模式）
+ */
 export function RoleMembersPanel({
   title = 'Role Members',
   roleName,
@@ -74,18 +73,19 @@ export function RoleMembersPanel({
   saving = false,
   onReset,
 }: Props) {
-  const canAdd = !!onAddMember && !!selectedCandidateId;
+  const canAdd = !!onAddMember && !!selectedCandidateId && !saving;
   const canSave = !!onSave && dirty && !saving;
   const canReset = !!onReset && dirty && !saving;
 
   return (
     <section className="relative rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_25px_90px_rgba(0,0,0,0.6)]">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
         <div className="min-w-0">
           <div className="text-xs tracking-wider text-white/55">RBAC</div>
           <div className="mt-0.5 text-sm text-white/85">{title}</div>
-          <div className="mt-1 text-xs text-white/35 truncate">
+
+          <div className="mt-1 truncate text-xs text-white/35">
             {roleName ? (
               <>
                 role: <span className="text-white/70">{roleName}</span>
@@ -115,7 +115,7 @@ export function RoleMembersPanel({
               'rounded-xl border px-3 py-2 text-xs transition',
               canReset
                 ? 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10'
-                : 'border-white/10 bg-white/5 text-white/30 cursor-not-allowed'
+                : 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
             )}
             title="Reset changes"
           >
@@ -130,7 +130,7 @@ export function RoleMembersPanel({
               'rounded-xl border px-3 py-2 text-xs transition',
               canSave
                 ? 'border-[#39ff14]/35 bg-[#39ff14]/10 text-[#39ff14] hover:bg-[#39ff14]/15'
-                : 'border-white/10 bg-white/5 text-white/30 cursor-not-allowed'
+                : 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
             )}
             title="Save changes"
           >
@@ -140,14 +140,14 @@ export function RoleMembersPanel({
           <button
             type="button"
             onClick={onAddMember}
-            disabled={!canAdd || saving}
+            disabled={!canAdd}
             aria-label="Add member"
             title={canAdd ? 'Add member (to draft)' : 'Select a user to add'}
             className={cx(
-              'h-9 w-9 rounded-full border flex items-center justify-center transition',
-              canAdd && !saving
+              'flex h-9 w-9 items-center justify-center rounded-full border transition',
+              canAdd
                 ? 'border-[#39ff14]/35 bg-[#39ff14]/10 text-[#39ff14] hover:bg-[#39ff14]/15'
-                : 'border-white/10 bg-white/5 text-white/35 cursor-not-allowed'
+                : 'cursor-not-allowed border-white/10 bg-white/5 text-white/35'
             )}
           >
             <span className="text-lg leading-none">+</span>
@@ -165,7 +165,7 @@ export function RoleMembersPanel({
         />
 
         {candidates.length > 0 ? (
-          <div className="mt-3 rounded-xl border border-white/10 bg-black/20 overflow-hidden">
+          <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-black/20">
             {candidates.map((u) => {
               const active = u.id === selectedCandidateId;
 
@@ -175,23 +175,29 @@ export function RoleMembersPanel({
                   type="button"
                   onClick={() => onSelectCandidate?.(u.id)}
                   className={cx(
-                    'w-full text-left px-4 py-2.5 border-b border-white/10 last:border-b-0 transition',
+                    'w-full border-b border-white/10 px-4 py-2.5 text-left transition last:border-b-0',
                     active ? 'bg-[#39ff14]/10' : 'hover:bg-white/[0.03]'
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className={cx('text-sm truncate', active ? 'text-[#39ff14]' : 'text-white/85')}>
+                      <div
+                        className={cx(
+                          'truncate text-sm',
+                          active ? 'text-[#39ff14]' : 'text-white/85'
+                        )}
+                      >
                         {u.username}
                       </div>
+
                       {u.displayName ? (
-                        <div className="text-xs text-white/35 truncate">{u.displayName}</div>
+                        <div className="truncate text-xs text-white/35">{u.displayName}</div>
                       ) : null}
                     </div>
 
                     <span
                       className={cx(
-                        'text-[10px] rounded-full border px-2 py-1',
+                        'rounded-full border px-2 py-1 text-[10px]',
                         active
                           ? 'border-[#39ff14]/35 bg-[#39ff14]/10 text-[#39ff14]'
                           : 'border-white/10 bg-white/5 text-white/45'
@@ -238,7 +244,7 @@ export function RoleMembersPanel({
                     className={cx(
                       'ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border transition',
                       saving
-                        ? 'border-white/10 bg-white/5 text-white/30 cursor-not-allowed'
+                        ? 'cursor-not-allowed border-white/10 bg-white/5 text-white/30'
                         : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
                     )}
                     aria-label={`Remove ${u.username}`}

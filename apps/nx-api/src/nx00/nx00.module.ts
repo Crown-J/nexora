@@ -14,24 +14,15 @@ import { Module } from '@nestjs/common';
 
 import { UsersModule } from './users/users.module';
 import { RbacModule } from './rbac/rbac.module';
-
-import { Nx00PartsController } from './parts/parts.controller';
-import { Nx00PartsService } from './parts/parts.service';
-import { Nx00LookupsController } from './lookups/lookups.controller';
-import { Nx00LookupsService } from './lookups/lookups.service';
+import { PartsModule } from './parts/parts.module';
+import { LookupsModule } from './lookups/lookups.module';
 
 @Module({
   imports: [
-    UsersModule, // ✅ 你本來就有 users.module.ts（現在集中由 nx00.module 統一掛載）
-    RbacModule,      // ✅ 新增 RBAC 管理 API
-  ],
-  controllers: [
-    Nx00PartsController,
-    Nx00LookupsController,
-  ],
-  providers: [
-    Nx00PartsService,
-    Nx00LookupsService,
+    UsersModule,
+    RbacModule,
+    PartsModule,
+    LookupsModule,
   ],
 })
 export class Nx00Module {}

@@ -1,8 +1,9 @@
 /**
  * File: apps/nx-ui/src/features/auth/constants.ts
  * Project: NEXORA (Monorepo)
- * Purpose: NX00-AUTH 共用常數（統一 token key）
+ *
+ * Purpose:
+ * - NX00-AUTH-001：Auth 共用常數（storage keys）
  */
 
-// ✅ 統一：不要兩套 key
-export const NX00_TOKEN_KEY = 'nx00_access_token';
+export const AUTH_ACCESS_TOKEN_KEY = 'nx00_access_token';

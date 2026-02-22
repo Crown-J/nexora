@@ -7,43 +7,16 @@
  *
  * Notes:
  * - Dashboard 下所有頁面都會套用：Top Tabs + Side Menu + Content Frame
+ * - ✅ App Router 的 layout 預設是 Server Component：
+ *   - 不要加 'use client'（避免整個 dashboard 變成 client boundary）
+ * - ✅ 在 layout 內不要用 usePathname / hooks
+ *   - 改用 Segment/Path 由 client component（DashboardShell）自己判斷
+ *   - 或者在這裡單純包殼，把右側 title 交給 children/page 自己提供（之後可做 config/breadcrumb）
  */
 
-'use client';
-
-import { ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
-import { DashboardShell } from '@/features/shell/ui/DashboardShell';
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-
-/**
- * @FUNCTION_CODE NX00-UI-SHELL-006-F01
- * 說明：
- * - 依路徑提供右側標題（先簡單做，之後可接 breadcrumb/config）
- */
-function getTitleByPath(pathname: string): string {
-  if (pathname === '/dashboard') return 'HOME';
-  if (pathname.startsWith('/dashboard/nx00/users')) return 'NX00 / 使用者基本資料';
-  if (pathname.startsWith('/dashboard/nx00/parts')) return 'NX00 / 零件主檔';
-  if (pathname.startsWith('/dashboard/nx01')) return 'NX01 / 採購與進貨管理';
-  if (pathname.startsWith('/dashboard/nx02')) return 'NX02 / 庫存管理';
-  if (pathname.startsWith('/dashboard/nx03')) return 'NX03 / 銷售管理';
-  if (pathname.startsWith('/dashboard/nx04')) return 'NX04 / 報表分析';
-  return 'NEXORA';
-}
+import type { ReactNode } from 'react';
+import { DashboardShell } from '@/features/layout/ui/DashboardShell';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-
-  const { me, displayName, logout } = useSessionMe();
-
-  return (
-    <DashboardShell
-      rightTitle={getTitleByPath(pathname)}
-      userLabel={me?.username ? `${displayName}（${me.username}）` : '—'}
-      onLogout={logout}
-    >
-      {children}
-    </DashboardShell>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }

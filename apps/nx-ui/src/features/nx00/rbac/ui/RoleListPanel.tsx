@@ -6,33 +6,30 @@
  * - NX00-RBAC-UI-001：角色清單面板（Role List Panel）
  *
  * Notes:
- * - 本元件只負責 UI 呈現與使用者互動（render-only）
- * - 角色資料、選取狀態、事件 handler 由上層（View / Hook）注入
+ * - render-only：只負責 UI 呈現與互動
+ * - 資料與 handler 由上層注入
  * - 風格對齊 Dashboard Shell：暗黑 + 玻璃卡 + 螢光綠強調
  */
 
 'use client';
 
-import React, { useMemo } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { useMemo, useState } from 'react';
 
-export type RoleListItem = {
-  id: string;
-  name: string;
-  desc?: string | null;
-  isActive?: boolean;
-};
+import { cx } from '@/shared/lib/cx';
+import type { RoleListItem } from '@/features/nx00/rbac/types';
 
 type Props = {
   title?: string;
+
   roles: RoleListItem[];
   selectedRoleId: string | null;
+
   onSelectRole: (roleId: string) => void;
 
-  /** 右上角 + 按鈕（先做 UI hook 點） */
+  /** 右上角 + 按鈕 */
   onCreateRole?: () => void;
 
-  /** 可選：顯示簡易搜尋框（先保留，不開也可以） */
+  /** 可選：顯示簡易搜尋框（純前端 filter） */
   enableSearch?: boolean;
 };
 
@@ -40,11 +37,7 @@ type Props = {
  * @FUNCTION_CODE NX00-RBAC-UI-001-F01
  * 說明：
  * - RoleListPanel：角色清單面板
- * - 功能：
- *   1) 顯示角色列表（可點選）
- *   2) 顯示選取狀態（active 高亮）
- *   3) 顯示右上角新增按鈕（+）
- *   4)（可選）顯示搜尋框（純前端 filter，不改動上層資料來源）
+ * - 支援：選取高亮 + 新增按鈕 +（可選）前端搜尋
  */
 export function RoleListPanel({
   title = 'Roles',
@@ -54,20 +47,8 @@ export function RoleListPanel({
   onCreateRole,
   enableSearch = true,
 }: Props) {
-  /**
-   * @FUNCTION_CODE NX00-RBAC-UI-001-F02
-   * 說明：
-   * - 面板內建搜尋（純 UI）
-   * - 不強制，先做在面板內：後續若你要改成 query/URL/全域搜尋，直接關掉 enableSearch 即可
-   */
-  const [q, setQ] = React.useState('');
+  const [q, setQ] = useState('');
 
-  /**
-   * @FUNCTION_CODE NX00-RBAC-UI-001-F03
-   * 說明：
-   * - 依搜尋字串做前端過濾（case-insensitive）
-   * - 僅針對 name/desc
-   */
   const filtered = useMemo(() => {
     const keyword = q.trim().toLowerCase();
     if (!keyword) return roles;
@@ -82,7 +63,7 @@ export function RoleListPanel({
   return (
     <section className="relative rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_25px_90px_rgba(0,0,0,0.6)]">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
         <div>
           <div className="text-xs tracking-wider text-white/55">RBAC</div>
           <div className="mt-0.5 text-sm text-white/85">{title}</div>
@@ -92,10 +73,10 @@ export function RoleListPanel({
           type="button"
           onClick={onCreateRole}
           className={cx(
-            'h-9 w-9 rounded-full border flex items-center justify-center',
+            'flex h-9 w-9 items-center justify-center rounded-full border',
             'border-[#39ff14]/35 bg-[#39ff14]/10 text-[#39ff14]',
-            'hover:bg-[#39ff14]/15 transition',
-            !onCreateRole && 'opacity-50 cursor-not-allowed'
+            'transition hover:bg-[#39ff14]/15',
+            !onCreateRole && 'cursor-not-allowed opacity-50'
           )}
           disabled={!onCreateRole}
           aria-label="Create role"
@@ -120,21 +101,10 @@ export function RoleListPanel({
       {/* List */}
       <div className="p-5">
         {filtered.length === 0 ? (
-          /**
-           * @FUNCTION_CODE NX00-RBAC-UI-001-F04
-           * 說明：
-           * - 空狀態：當 roles 為空或搜尋無結果
-           */
           <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white/45">
             No roles
           </div>
         ) : (
-          /**
-           * @FUNCTION_CODE NX00-RBAC-UI-001-F05
-           * 說明：
-           * - 角色清單渲染
-           * - 選取角色會高亮（綠色邊框 + 文字強調）
-           */
           <div className="space-y-2">
             {filtered.map((r) => {
               const active = r.id === selectedRoleId;
@@ -145,7 +115,7 @@ export function RoleListPanel({
                   type="button"
                   onClick={() => onSelectRole(r.id)}
                   className={cx(
-                    'w-full text-left rounded-xl border px-4 py-3 transition',
+                    'w-full rounded-xl border px-4 py-3 text-left transition',
                     active
                       ? 'border-[#39ff14]/40 bg-[#39ff14]/10'
                       : 'border-white/10 bg-black/20 hover:bg-black/30'
@@ -153,11 +123,19 @@ export function RoleListPanel({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className={cx('text-sm font-semibold truncate', active ? 'text-[#39ff14]' : 'text-white/90')}>
+                      <div
+                        className={cx(
+                          'truncate text-sm font-semibold',
+                          active ? 'text-[#39ff14]' : 'text-white/90'
+                        )}
+                      >
                         {r.name}
                       </div>
+
                       {r.desc ? (
-                        <div className="mt-1 text-xs text-white/40 line-clamp-2">{r.desc}</div>
+                        <div className="mt-1 line-clamp-2 text-xs text-white/40">
+                          {r.desc}
+                        </div>
                       ) : null}
                     </div>
 

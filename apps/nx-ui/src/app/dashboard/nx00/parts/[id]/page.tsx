@@ -1,62 +1,100 @@
 /**
  * File: apps/nx-ui/src/app/dashboard/nx00/parts/[id]/page.tsx
- * Purpose: NX00-UI-004 part_form（修改）
+ * Project: NEXORA (Monorepo)
+ *
+ * Purpose:
+ * - NX00-UI-004：Parts Edit Page（修改）
+ *
+ * Notes:
+ * - 本頁只負責「頁面層」：取 route param、載入資料、呼叫 API、導頁
+ * - Form UI 交由 features/nx00/parts/ui/PartForm
+ * - API client 走 shared/api（apiFetch + assertOk）
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 
-import PartForm from '@/features/nx00/components/PartForm';
-import { getPart, updatePart, type CreatePartBody } from '@/features/nx00/api/parts';
-import type { PartRow } from '@/features/nx00/types';
+import PartForm from '@/features/nx00/parts/ui/PartForm';
+import { getPart, updatePart, type CreatePartBody } from '@/features/nx00/parts/api/parts';
+import type { PartRow } from '@/features/nx00/parts/types';
 
+type RouteParams = { id: string };
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'Unknown error';
+}
+
+/**
+ * @PAGE_CODE nxui_nx00_parts_edit_page_001
+ */
 export default function PartEditPage() {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const params = useParams<RouteParams>();
+
+  const id = useMemo(() => params.id, [params.id]);
 
   const [row, setRow] = useState<PartRow | null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    async function boot() {
-      if (!id) return;
+  /**
+   * @CODE nxui_nx00_parts_edit_load_001
+   * 說明：
+   * - 依 id 載入 Part
+   */
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
 
-      setLoading(true);
-      setErr(null);
-      try {
-        const r = await getPart(id);
-        if (!alive) return;
-        setRow(r);
-      } catch (e: any) {
-        if (!alive) return;
-        setErr(e?.message || 'Load failed');
-      } finally {
-        if (alive) setLoading(false);
-      }
+    try {
+      const r = await getPart(id);
+      setRow(r);
+    } catch (e: unknown) {
+      setErr(getErrorMessage(e) || 'Load failed');
+      setRow(null);
+    } finally {
+      setLoading(false);
     }
-    boot();
-    return () => {
-      alive = false;
-    };
   }, [id]);
 
-  async function onSubmit(body: CreatePartBody) {
-    if (!id) return;
-    setSaving(true);
-    try {
-      const updated = await updatePart(id, body);
-      setRow(updated);
-      // 留在原頁即可（也可以 router.replace 同頁）
-    } finally {
-      setSaving(false);
-    }
-  }
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  /**
+   * @CODE nxui_nx00_parts_edit_submit_001
+   * 說明：
+   * - submit：更新後留在原頁（同步更新 row）
+   */
+  const onSubmit = useCallback(
+    async (body: CreatePartBody) => {
+      setSaving(true);
+      setErr(null);
+
+      try {
+        const updated = await updatePart(id, body);
+        setRow(updated);
+      } catch (e: unknown) {
+        setErr(getErrorMessage(e) || 'Save failed');
+        throw e; // 讓 PartForm 也能顯示錯誤（若你在 PartForm 有 catch）
+      } finally {
+        setSaving(false);
+      }
+    },
+    [id]
+  );
+
+  /**
+   * @CODE nxui_nx00_parts_edit_back_001
+   */
+  const backToList = useCallback(() => {
+    router.push('/dashboard/nx00/parts');
+  }, [router]);
 
   if (loading) {
     return (
@@ -73,12 +111,22 @@ export default function PartEditPage() {
       <div className="min-h-[calc(100vh-80px)] px-6 py-6 text-white">
         <div className="rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl p-6">
           <div className="text-sm text-red-200">{err}</div>
+
           <div className="mt-4 flex gap-2">
             <button
-              onClick={() => router.push('/dashboard/nx00/parts')}
+              type="button"
+              onClick={backToList}
               className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10"
             >
               Back to list
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10"
+            >
+              Retry
             </button>
           </div>
         </div>
@@ -92,7 +140,7 @@ export default function PartEditPage() {
         mode="edit"
         initial={row}
         submitting={saving}
-        onCancel={() => router.push('/dashboard/nx00/parts')}
+        onCancel={backToList}
         onSubmit={onSubmit}
       />
     </div>

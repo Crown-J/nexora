@@ -11,9 +11,9 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 
-import { Roles } from './auth/roles.decorator';
-import { RolesGuard } from './auth/roles.guard';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { Roles } from './shared/decorators/roles.decorator';
+import { RolesGuard } from './shared/guards/roles.guard';
+import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
 
 @Controller()
 export class AppController {

@@ -4,19 +4,31 @@
  *
  * Purpose:
  * - NX00-RBAC-UI-004：Create Role Modal（render-only）
+ *
+ * Notes:
+ * - 僅負責 UI 與輸入收集
+ * - submit 後呼叫 onSubmit（由上層 hook/service 負責打 API）
  */
 
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import type { ReactNode, FormEvent } from 'react';
+import { useMemo, useState } from 'react';
+
 import { cx } from '@/shared/lib/cx';
-import type { CreateRoleInput } from '@/features/nx00/rbac/api/rbac';
+import type { CreateRoleInput } from '@/features/nx00/rbac/types';
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onSubmit: (input: CreateRoleInput) => Promise<void> | void;
 };
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'Unknown error';
+}
 
 /**
  * @FUNCTION_CODE NX00-RBAC-UI-004-F01
@@ -36,7 +48,7 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
   });
 
   const canSubmit = useMemo(() => {
-    return !!form.code.trim() && !!form.name.trim() && !saving;
+    return form.code.trim().length > 0 && form.name.trim().length > 0 && !saving;
   }, [form.code, form.name, saving]);
 
   /**
@@ -56,12 +68,18 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
    * 說明：
    * - submit：基本驗證 + 呼叫 onSubmit
    */
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
 
-    if (!form.code.trim()) return setErr('Role code is required');
-    if (!form.name.trim()) return setErr('Role name is required');
+    if (!form.code.trim()) {
+      setErr('Role code is required');
+      return;
+    }
+    if (!form.name.trim()) {
+      setErr('Role name is required');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -71,9 +89,10 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
         desc: form.desc.trim() ? form.desc.trim() : null,
         isActive: form.isActive,
       });
+
       resetAndClose();
-    } catch (e: any) {
-      setErr(e?.message || 'Create failed');
+    } catch (e: unknown) {
+      setErr(getErrorMessage(e) || 'Create failed');
     } finally {
       setSaving(false);
     }
@@ -93,7 +112,7 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
 
       {/* modal */}
       <div className="relative w-[560px] max-w-[calc(100vw-32px)] rounded-2xl border border-white/10 bg-[#0b0f14]/90 backdrop-blur-xl shadow-[0_25px_90px_rgba(0,0,0,0.7)]">
-        <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
             <div className="text-xs tracking-wider text-white/55">RBAC</div>
             <div className="mt-0.5 text-sm text-white/85">Create Role</div>
@@ -108,7 +127,7 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-5">
           <Field label="Role Code (unique)">
             <input
               value={form.code}
@@ -157,11 +176,12 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
               </button>
 
               <button
+                type="submit"
                 disabled={!canSubmit}
                 className={cx(
                   'rounded-xl border px-4 py-2 text-sm font-medium',
                   'border-[#39ff14]/40 bg-[#39ff14] text-black hover:bg-[#39ff14]/90',
-                  !canSubmit && 'opacity-60 cursor-not-allowed'
+                  !canSubmit && 'cursor-not-allowed opacity-60'
                 )}
               >
                 {saving ? 'Creating…' : 'Create'}
@@ -185,7 +205,7 @@ export function CreateRoleModal({ open, onClose, onSubmit }: Props) {
  * 說明：
  * - Field：簡單欄位容器（modal 專用）
  */
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <div className="mb-2 text-xs tracking-wider text-white/55">{label.toUpperCase()}</div>

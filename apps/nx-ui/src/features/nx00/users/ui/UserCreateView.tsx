@@ -3,7 +3,11 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-CREATE-UI-001：User Create UI（render only）
+ * - NX00-USERS-CREATE-UI-001：User Create UI（render-only）
+ *
+ * Notes:
+ * - 本元件只負責 render
+ * - submit/back/form state 由 useUserCreate() 提供
  */
 
 'use client';
@@ -12,9 +16,9 @@ import { Field } from '@/features/nx00/users/ui/Field';
 import { useUserCreate } from '@/features/nx00/users/hooks/useUserCreate';
 
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-CREATE-UI-001-F01
+ * @COMPONENT_CODE nxui_nx00_users_create_view_001
  * 說明：
- * - UserCreateView：只負責 render
+ * - UserCreateView：render-only
  * - submit/back/form state 由 useUserCreate() 提供
  */
 export function UserCreateView() {
@@ -27,23 +31,25 @@ export function UserCreateView() {
       <div className="mb-5">
         <div className="text-sm tracking-[0.35em] text-white/70">NX00</div>
         <h1 className="text-xl font-semibold">Create User</h1>
-        <div className="text-xs text-white/35">W03-UI-002 · create</div>
+        <div className="text-xs text-white/35">NX00-USERS · create</div>
       </div>
 
       <div className="max-w-xl rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl p-6">
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Username">
+          <Field label="Username" required>
             <input
               value={form.username}
               onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
+              autoComplete="username"
               className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none focus:border-[#39ff14]/40 focus:ring-4 focus:ring-[#39ff14]/10"
             />
           </Field>
 
-          <Field label="Display name">
+          <Field label="Display name" required>
             <input
               value={form.displayName}
               onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))}
+              autoComplete="name"
               className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none focus:border-[#39ff14]/40 focus:ring-4 focus:ring-[#39ff14]/10"
             />
           </Field>
@@ -53,6 +59,7 @@ export function UserCreateView() {
               <input
                 value={form.email}
                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                autoComplete="email"
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none"
               />
             </Field>
@@ -61,16 +68,18 @@ export function UserCreateView() {
               <input
                 value={form.phone}
                 onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                autoComplete="tel"
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none"
               />
             </Field>
           </div>
 
-          <Field label="Password (optional)">
+          <Field label="Password" hint="optional">
             <input
               type="password"
               value={form.password}
               onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+              autoComplete="new-password"
               className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none"
             />
           </Field>
@@ -91,6 +100,7 @@ export function UserCreateView() {
             </button>
 
             <button
+              type="submit"
               disabled={saving}
               className="rounded-xl border border-[#39ff14]/40 bg-[#39ff14] px-4 py-2 text-sm font-medium text-black hover:bg-[#39ff14]/90 disabled:opacity-60"
             >

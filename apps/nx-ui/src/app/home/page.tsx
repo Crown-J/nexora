@@ -1,27 +1,21 @@
 /**
  * File: apps/nx-ui/src/app/home/page.tsx
  * Project: NEXORA (Monorepo)
- * Purpose: NX00-UI-002 登入後首頁（Landing / Home）
+ * Purpose:
+ * - NX00-UI-002：登入後首頁（Landing / Home）
+ *
  * Notes:
  * - 黑底 + 霧面玻璃 + Nexora 綠點綴
- * - 先用 Client Guard（localStorage token）保護
- * - 之後可改成 /auth/me 驗證與全域 AuthProvider
+ * - ✅ 改用 useSessionMe 做驗證（與 /dashboard layout 對齊）
+ * - 未登入 → useSessionMe 內部會 redirect /login
+ * - logout → 統一走 useSessionMe.logout
  */
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-
-const TOKEN_KEY = 'nx00_token';
-
-function getToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 
 type QuickAction = {
   title: string;
@@ -32,52 +26,42 @@ type QuickAction = {
 
 export default function HomePage() {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+
+  // ✅ 對齊 useSessionMe 回傳：沒有 loading/err，改用 view.loading / view.errorMsg
+  const { me, displayName, logout, view, hasToken } = useSessionMe();
 
   /**
-   * @CODE nxui_nx00_home_guard_001
+   * @CODE nxui_nx00_home_guard_session_001
    * 說明：
-   * - 進入 /home 時檢查 token
-   * - 沒 token → 導回 /login
+   * - useSessionMe 內部已處理：
+   *   - 無 token -> /login
+   *   - token 無效 -> clearToken -> /login
+   * - 這裡只補：若已檢查完成但 me 仍為 null（理論上會被 redirect），就保險導回 /login
    */
   useEffect(() => {
-    const t = getToken();
-    if (!t) {
+    if (!view.loading && !me) {
       router.replace('/login');
-      return;
     }
-    setToken(t);
-  }, [router]);
+  }, [me, router, view.loading]);
 
   /**
-   * @CODE nxui_nx00_home_data_001
+   * @CODE nxui_nx00_home_actions_001
    * 說明：
-   * - 首頁先用靜態資料（後面再接 API）
-   * - actions 之後會變成「模組捷徑」
+   * - 首頁先用靜態資料（後面可接模組/權限）
+   * - href 目前先用你既有路由（可再調整）
    */
   const actions: QuickAction[] = useMemo(
     () => [
-      { title: '零件主檔', desc: '建立/查詢零件資料（NX12）', href: '/nx12/parts', tag: 'NX12' },
-      { title: '庫存查詢', desc: '查庫位、數量、批次（NX01）', href: '/nx01/stock', tag: 'NX01' },
-      { title: '調撥/出貨', desc: '建立調撥與出貨單（NX02）', href: '/nx02/orders', tag: 'NX02' },
-      { title: '系統設定', desc: '使用者、權限、公司資料（CORE）', href: '/core/settings', tag: 'CORE' },
+      { title: 'NX00 / Users', desc: '使用者基本資料（list / create / edit）', href: '/dashboard/nx00/users', tag: 'NX00' },
+      { title: 'NX00 / Parts', desc: '零件主檔（list / create / edit）', href: '/dashboard/nx00/parts', tag: 'NX00' },
+      { title: 'RBAC Roles', desc: '角色/成員管理（草稿 Save）', href: '/dashboard/nx00/roles', tag: 'RBAC' },
+      { title: 'Dashboard', desc: '回到主控台（Shell）', href: '/dashboard', tag: 'SHELL' },
     ],
-    [],
+    []
   );
 
-  /**
-   * @CODE nxui_nx00_home_logout_001
-   * 說明：
-   * - 先用最簡單 logout：清 token → 回 /login
-   */
-  function handleLogout() {
-    try {
-      localStorage.removeItem(TOKEN_KEY);
-    } catch {}
-    router.replace('/login');
-  }
-
-  if (!token) {
+  // Loading 狀態（避免畫面閃爍）
+  if (view.loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-sm text-white/60">Loading…</div>
@@ -85,6 +69,38 @@ export default function HomePage() {
     );
   }
 
+  // 若 API 有錯（但你也可能希望強制登出）
+  if (view.errorMsg) {
+    return (
+      <div className="min-h-screen bg-[#05070b] text-white flex items-center justify-center px-6">
+        <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-xl p-6 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+          <div className="text-xs tracking-[0.35em] text-white/60">NEXORA</div>
+          <div className="mt-2 text-lg font-semibold text-white/90">Session error</div>
+          <div className="mt-2 text-sm text-white/60 leading-relaxed">{view.errorMsg}</div>
+
+          <div className="mt-5 flex gap-2">
+            <button
+              onClick={() => router.replace('/login')}
+              className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-xs text-white/80 hover:bg-white/[0.10] transition"
+            >
+              Go to Login
+            </button>
+
+            <button
+              onClick={logout}
+              className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs text-emerald-200 hover:bg-emerald-400/15 transition"
+            >
+              Logout
+            </button>
+          </div>
+
+          <div className="mt-4 text-xs text-white/35">checkedAt: {view.checkedAt || '-'}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 正常狀態（me 應該存在）
   return (
     <div className="min-h-screen bg-[#05070b] text-white">
       {/* 背景光暈 */}
@@ -110,7 +126,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs text-white/70">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.65)]" />
-              Auth OK
+              {hasToken ? 'Auth OK' : 'No Token'}
             </div>
 
             <button
@@ -121,7 +137,7 @@ export default function HomePage() {
             </button>
 
             <button
-              onClick={handleLogout}
+              onClick={logout}
               className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs text-emerald-200 hover:bg-emerald-400/15 transition"
             >
               Logout
@@ -142,49 +158,35 @@ export default function HomePage() {
               </div>
 
               <h1 className="mt-4 text-2xl md:text-3xl font-semibold tracking-tight">
-                Welcome back, <span className="text-emerald-200">admin</span>
+                Welcome back, <span className="text-emerald-200">{displayName || me?.username || '—'}</span>
               </h1>
+
               <p className="mt-2 text-sm md:text-base text-white/55 leading-relaxed">
-                這裡是 Nexora 登入後首頁。接下來你可以直接進入各模組，或查看系統狀態。
+                這裡是 Nexora 登入後首頁。你可以直接進入 NX00 模組，或進入 RBAC 管理角色與成員。
               </p>
             </div>
 
             <div className="flex gap-3">
               <button
-                onClick={() => router.push('/nx01/stock')}
+                onClick={() => router.push('/dashboard/nx00/users')}
                 className="rounded-2xl bg-emerald-400 px-5 py-3 text-sm font-semibold text-black hover:brightness-110 transition shadow-[0_18px_45px_rgba(52,211,153,0.25)]"
               >
-                Quick: Stock
+                Quick: Users
               </button>
               <button
-                onClick={() => router.push('/core/settings')}
+                onClick={() => router.push('/dashboard/nx00/roles')}
                 className="rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white/85 hover:bg-white/[0.10] transition"
               >
-                Settings
+                RBAC Roles
               </button>
             </div>
           </div>
 
           {/* Status cards */}
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <StatCard
-              title="API"
-              value="Online"
-              hint="http://localhost:3001"
-              badge="OK"
-            />
-            <StatCard
-              title="Database"
-              value="Connected"
-              hint="PostgreSQL / Prisma"
-              badge="OK"
-            />
-            <StatCard
-              title="Module"
-              value="NX00 Ready"
-              hint="Auth / UI baseline"
-              badge="W02"
-            />
+            <StatCard title="API" value="Online" hint="shared/api/client" badge="OK" />
+            <StatCard title="Session" value="Verified" hint={me?.username || '-'} badge="OK" />
+            <StatCard title="Module" value="NX00 Ready" hint="Users / Parts / RBAC" badge="W03" />
           </div>
         </section>
 
@@ -196,11 +198,8 @@ export default function HomePage() {
               <p className="mt-1 text-sm text-white/50">常用入口（後續會接真實模組與權限）</p>
             </div>
 
-            <button
-              onClick={() => router.push('/core/settings')}
-              className="text-xs text-white/70 hover:text-white transition"
-            >
-              Manage →
+            <button onClick={() => router.push('/dashboard')} className="text-xs text-white/70 hover:text-white transition">
+              Open dashboard →
             </button>
           </div>
 
@@ -224,18 +223,14 @@ export default function HomePage() {
                   ) : null}
                 </div>
 
-                <div className="mt-4 text-xs text-white/45 group-hover:text-white/70 transition">
-                  Open →
-                </div>
+                <div className="mt-4 text-xs text-white/45 group-hover:text-white/70 transition">Open →</div>
               </button>
             ))}
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="mt-12 text-center text-xs text-white/35">
-          © 2026 Nexora — Secure Access
-        </footer>
+        <footer className="mt-12 text-center text-xs text-white/35">© 2026 Nexora — Secure Access</footer>
       </main>
     </div>
   );

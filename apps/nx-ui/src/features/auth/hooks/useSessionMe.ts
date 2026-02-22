@@ -10,13 +10,18 @@
  * - 避免 hydration mismatch：不要在 render 期間讀 localStorage
  * - 若沒有 token：導回 /login
  * - 若 token 無效(401)：清 token → 導回 /login
+ * - ✅ 改用 shared/api/client（自動帶 token / baseUrl）
+ * - ✅ 錯誤處理用 assertOk（但 401 先特判）
  */
 
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiFetch } from '@/features/auth/apiFetch';
+
+import { apiFetch } from '@/shared/api/client';
+import { assertOk } from '@/shared/api/http';
+
 import { clearToken, getToken } from '@/features/auth/token';
 
 export type MeDto = {
@@ -49,7 +54,7 @@ export type ViewState = {
   checkedAt: string | null;
 };
 
-type UseSessionMeResult = {
+export type UseSessionMeResult = {
   me: MeDto | null;
   view: ViewState;
   hasToken: boolean | null;
@@ -63,11 +68,16 @@ type UseSessionMeResult = {
   logout: () => void;
 };
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'Unknown error';
+}
+
 /**
  * @FUNCTION_CODE NX00-UI-AUTH-001-F01
  * 說明：
  * - 封裝 Dashboard/各模組頁面共用的「登入狀態檢查」流程
- * - 目的：讓 app/page.tsx 不用再寫一大段 useEffect boot()
  *
  * 行為：
  * 1) client mount 後讀 token（避免 hydration mismatch）
@@ -108,7 +118,7 @@ export function useSessionMe(): UseSessionMeResult {
    * @FUNCTION_CODE NX00-UI-AUTH-001-F04
    * 說明：
    * - 進入頁面後執行 session boot：
-   *   - token 존재性檢查
+   *   - token 存在性檢查
    *   - /auth/me 驗證
    */
   useEffect(() => {
@@ -117,6 +127,9 @@ export function useSessionMe(): UseSessionMeResult {
     async function boot() {
       const token = getToken();
       if (!token) {
+        // 沒 token：直接去登入
+        setMe(null);
+        setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
         router.replace('/login');
         return;
       }
@@ -126,33 +139,39 @@ export function useSessionMe(): UseSessionMeResult {
       try {
         const res = await apiFetch('/auth/me', { method: 'GET' });
 
+        // ✅ 401 先特判：清 token → 轉登入
         if (res.status === 401) {
           clearToken();
+          if (!alive) return;
+          setMe(null);
+          setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
           router.replace('/login');
           return;
         }
 
-        if (!res.ok) {
-          const t = await res.text().catch(() => '');
-          throw new Error(`me failed: ${res.status} ${t}`);
-        }
+        // 其他狀況統一用 assertOk
+        await assertOk(res, 'nxui_auth_session_me_001');
 
         const data = (await res.json()) as MeDto;
 
         if (!alive) return;
         setMe(data);
         setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
-      } catch {
+      } catch (e: unknown) {
         if (!alive) return;
+
+        // 這裡不直接 redirect，讓頁面顯示錯誤（你也可以改成強制 logout）
+        setMe(null);
         setView({
           loading: false,
-          errorMsg: '讀取使用者資訊失敗（API 無回應 / 設定錯誤）',
+          errorMsg: getErrorMessage(e) || '讀取使用者資訊失敗（API 無回應 / 設定錯誤）',
           checkedAt: new Date().toISOString(),
         });
       }
     }
 
-    boot();
+    void boot();
+
     return () => {
       alive = false;
     };
@@ -175,13 +194,22 @@ export function useSessionMe(): UseSessionMeResult {
    * - 將 snake_case / camelCase 兼容欄位統一成前端好用的格式
    * - 避免頁面到處寫 me.xxx ?? me.yyy
    */
-  const displayName = useMemo(() => (me ? me.display_name ?? me.displayName ?? me.username : ''), [me]);
+  const normalizedDisplayName = useMemo(
+    () => (me ? me.display_name ?? me.displayName ?? me.username : ''),
+    [me]
+  );
 
-  const statusCode = useMemo(() => (me ? me.uu_sta ?? me.statusCode ?? '' : ''), [me]);
+  const normalizedStatusCode = useMemo(
+    () => (me ? me.uu_sta ?? me.statusCode ?? '' : ''),
+    [me]
+  );
 
-  const lastLoginAt = useMemo(() => (me ? me.last_login_at ?? me.lastLoginAt ?? null : null), [me]);
+  const normalizedLastLoginAt = useMemo(
+    () => (me ? me.last_login_at ?? me.lastLoginAt ?? null : null),
+    [me]
+  );
 
-  const isActive = useMemo(() => {
+  const normalizedIsActive = useMemo(() => {
     if (!me) return null;
     const v = me.is_active ?? me.isActive;
     return typeof v === 'boolean' ? v : null;
@@ -191,10 +219,12 @@ export function useSessionMe(): UseSessionMeResult {
     me,
     view,
     hasToken,
-    displayName,
-    statusCode,
-    lastLoginAt,
-    isActive,
+
+    displayName: normalizedDisplayName,
+    statusCode: normalizedStatusCode,
+    lastLoginAt: normalizedLastLoginAt,
+    isActive: normalizedIsActive,
+
     logout,
   };
 }

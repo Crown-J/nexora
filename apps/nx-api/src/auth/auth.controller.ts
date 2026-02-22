@@ -6,9 +6,9 @@ import type { Request } from '@nestjs/common'; // ✅ 這行其實不用也行�
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import type { JwtPayload } from './jwt.strategy';
-import { User } from './user.decorator';
+import { JwtAuthGuard } from '../shared/guards/jwt-auth.guard';
+import type { JwtPayload } from './strategies/jwt.strategy';
+import { User } from '../shared/decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {

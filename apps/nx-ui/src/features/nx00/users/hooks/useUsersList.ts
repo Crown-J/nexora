@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-LIST-001：Users List 資料載入、分頁、搜尋、toggle active
+ * - NX00-USERS-LIST-001：Users List 資料載入、分頁、搜尋、toggle active
  *
  * Notes:
  * - page/pageSize/q 由 URL query 驅動（單一真實來源）
@@ -14,8 +14,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+
 import { listUsers, setUserActive, type UserRow } from '@/features/nx00/users/api/users';
-import { buildNextUsersListSearchParams, parseUsersListQuery } from '@/features/nx00/users/lib/query';
+import {
+  buildNextUsersListSearchParams,
+  parseUsersListQuery,
+} from '@/features/nx00/users/lib/query';
 
 export type UsersListState = {
   items: UserRow[];
@@ -28,25 +32,37 @@ export type UsersListState = {
 
 export type UsersListActions = {
   setQInput: (v: string) => void;
+
   go: (params: { page?: number; pageSize?: number; q?: string }) => void;
   goNew: () => void;
   goEdit: (id: string) => void;
+
   reload: () => Promise<void>;
   toggleActive: (u: UserRow) => Promise<void>;
 };
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'Unknown error';
+}
+
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F01
+ * @HOOK_CODE NX00-USERS-LIST-001
  * 說明：
  * - 封裝 Users List 的所有狀態與操作
  * - 讓 UI component 只管 render，不需要知道 API / router 細節
  */
-export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>; state: UsersListState; actions: UsersListActions } {
+export function useUsersList(): {
+  query: ReturnType<typeof parseUsersListQuery>;
+  state: UsersListState;
+  actions: UsersListActions;
+} {
   const router = useRouter();
   const sp = useSearchParams();
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F02
+   * @CODE nxui_nx00_users_list_query_001
    * 說明：
    * - 由 URL query 派生狀態（單一真實來源）
    */
@@ -59,33 +75,33 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
   const [err, setErr] = useState<string | null>(null);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F03
+   * @CODE nxui_nx00_users_list_q_input_001
    * 說明：
    * - 搜尋框狀態（與 URL q 解耦）
    */
   const [qInput, setQInput] = useState(q);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F04
+   * @CODE nxui_nx00_users_list_sync_q_001
    * 說明：
-   * - 當 URL q 改變時同步輸入框（例如按 Clear 或回上一頁）
+   * - 當 URL q 改變時同步輸入框（例如按 Clear / 回上一頁 / 點頁碼）
    */
   useEffect(() => {
     setQInput(q);
   }, [q]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F05
+   * @CODE nxui_nx00_users_list_total_pages_001
    * 說明：
    * - 計算總頁數（至少 1）
    */
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F06
+   * @CODE nxui_nx00_users_list_go_001
    * 說明：
    * - 以 query 參數導頁（replace）
-   * - 將 URLSearchParams 的組裝規則集中在 lib/query.ts
+   * - URLSearchParams 組裝規則集中在 lib/query.ts
    */
   const go = useCallback(
     (params: { page?: number; pageSize?: number; q?: string }) => {
@@ -96,7 +112,7 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
   );
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F07
+   * @CODE nxui_nx00_users_list_go_new_001
    * 說明：
    * - 導向新增頁
    */
@@ -105,7 +121,7 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
   }, [router]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F08
+   * @CODE nxui_nx00_users_list_go_edit_001
    * 說明：
    * - 導向編輯頁
    */
@@ -117,7 +133,7 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
   );
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F09
+   * @CODE nxui_nx00_users_list_reload_001
    * 說明：
    * - 重新載入列表（listUsers）
    * - 依 page/pageSize/q 呼叫 API
@@ -130,15 +146,15 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
       const r = await listUsers({ page, pageSize, q: q || undefined });
       setItems(r.items);
       setTotal(r.total);
-    } catch (e: any) {
-      setErr(e?.message || 'Load failed');
+    } catch (e: unknown) {
+      setErr(getErrorMessage(e) || 'Load failed');
     } finally {
       setLoading(false);
     }
   }, [page, pageSize, q]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F10
+   * @CODE nxui_nx00_users_list_reload_on_query_001
    * 說明：
    * - page/pageSize/q 變更時重新載入
    */
@@ -147,10 +163,10 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
   }, [reload]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-LIST-001-F11
+   * @CODE nxui_nx00_users_list_toggle_active_001
    * 說明：
    * - 切換啟用狀態（optimistic + rollback）
-   * - 失敗暫用 alert（之後你要換成 toast 也只需改這裡）
+   * - 失敗暫用 alert（後續要換 toast 也只需改這裡）
    */
   const toggleActive = useCallback(async (u: UserRow) => {
     const next = !u.isActive;
@@ -160,10 +176,10 @@ export function useUsersList(): { query: ReturnType<typeof parseUsersListQuery>;
 
     try {
       await setUserActive(u.id, next);
-    } catch (e: any) {
+    } catch (e: unknown) {
       // rollback
       setItems((prev) => prev.map((x) => (x.id === u.id ? { ...x, isActive: !next } : x)));
-      alert(e?.message || 'Update failed');
+      alert(getErrorMessage(e) || 'Update failed');
     }
   }, []);
 

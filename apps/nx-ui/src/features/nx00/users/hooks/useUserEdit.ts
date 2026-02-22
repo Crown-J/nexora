@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-EDIT-001：User Edit（資料載入/儲存/啟用切換/改密碼）集中封裝
+ * - NX00-USERS-EDIT-001：User Edit（資料載入/儲存/啟用切換/改密碼）集中封裝
  *
  * Notes:
  * - 讓 UI component 只負責 render
@@ -12,8 +12,10 @@
 
 'use client';
 
+import type { FormEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+
 import {
   changeUserPassword,
   getUser,
@@ -52,8 +54,14 @@ export type UserEditActions = {
 
 type RouteParams = { id: string };
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'Unknown error';
+}
+
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F01
+ * @HOOK_CODE NX00-USERS-EDIT-001
  * 說明：
  * - 封裝 User Edit 頁面所有狀態與操作
  * - 內含：
@@ -68,7 +76,7 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
   const params = useParams<RouteParams>();
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F02
+   * @CODE nxui_nx00_users_edit_id_001
    * 說明：
    * - 讀取 route param：/dashboard/nx00/users/:id
    * - 用 useMemo 固定 id，避免不必要 re-render 觸發
@@ -80,11 +88,15 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
   const [err, setErr] = useState<string | null>(null);
 
   const [user, setUser] = useState<UserRow | null>(null);
-  const [form, _setForm] = useState<UserEditFormState>({ displayName: '', email: '', phone: '' });
+  const [form, _setForm] = useState<UserEditFormState>({
+    displayName: '',
+    email: '',
+    phone: '',
+  });
   const [pw, setPw] = useState('');
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F03
+   * @CODE nxui_nx00_users_edit_set_form_001
    * 說明：
    * - 提供 setForm(updater) 形式，避免 UI 直接接觸內部 _setForm
    */
@@ -93,16 +105,16 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
   }, []);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F04
+   * @CODE nxui_nx00_users_edit_back_to_list_001
    * 說明：
-   * - 返回列表（對齊你現在 nx00 路由）
+   * - 返回列表（對齊 nx00 路由）
    */
   const backToList = useCallback(() => {
     router.push('/dashboard/nx00/users');
   }, [router]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F05
+   * @CODE nxui_nx00_users_edit_reload_001
    * 說明：
    * - 載入使用者資料（getUser）
    * - 成功後初始化：
@@ -115,17 +127,22 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
 
     try {
       const u = await getUser(id);
+
       setUser(u);
-      _setForm({ displayName: u.displayName || '', email: u.email || '', phone: u.phone || '' });
-    } catch (e: any) {
-      setErr(e?.message || 'Load failed');
+      _setForm({
+        displayName: u.displayName ?? '',
+        email: u.email ?? '',
+        phone: u.phone ?? '',
+      });
+    } catch (e: unknown) {
+      setErr(getErrorMessage(e) || 'Load failed');
     } finally {
       setLoading(false);
     }
   }, [id]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F06
+   * @CODE nxui_nx00_users_edit_reload_on_id_001
    * 說明：
    * - id 變更時重新載入
    */
@@ -134,7 +151,7 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
   }, [reload]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F07
+   * @CODE nxui_nx00_users_edit_save_001
    * 說明：
    * - 儲存更新（updateUser）
    * - 流程：
@@ -143,15 +160,15 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
    *   3) 呼叫 API
    *   4) 更新 user state
    *
-   * 註：
-   * - 成功提示目前仍用 alert（後續你要換 toast 可集中改）
+   * Notes:
+   * - 成功提示目前仍用 alert（後續可改 toast）
    */
   const save = useCallback(async () => {
     if (!user) return;
 
-    const v = validateUserEditForm(form);
-    if (v) {
-      setErr(v);
+    const msg = validateUserEditForm(form);
+    if (msg) {
+      setErr(msg);
       return;
     }
 
@@ -160,18 +177,18 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
 
     try {
       const payload = toUpdatePayload(form);
-      const u = await updateUser(user.id, payload);
-      setUser(u);
+      const updated = await updateUser(user.id, payload);
+      setUser(updated);
       alert('Saved');
-    } catch (e: any) {
-      setErr(e?.message || 'Save failed');
+    } catch (e: unknown) {
+      setErr(getErrorMessage(e) || 'Save failed');
     } finally {
       setSaving(false);
     }
   }, [form, user]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F08
+   * @CODE nxui_nx00_users_edit_toggle_active_001
    * 說明：
    * - 切換啟用狀態（setUserActive）
    * - 使用 optimistic + rollback
@@ -185,34 +202,38 @@ export function useUserEdit(): { state: UserEditState; actions: UserEditActions 
     setUser({ ...user, isActive: next });
 
     try {
-      const u = await setUserActive(user.id, next);
-      setUser(u);
-    } catch (e: any) {
+      const updated = await setUserActive(user.id, next);
+      setUser(updated);
+    } catch (e: unknown) {
+      // rollback
       setUser({ ...user, isActive: !next });
-      alert(e?.message || 'Update failed');
+      alert(getErrorMessage(e) || 'Update failed');
     }
   }, [user]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-001-F09
+   * @CODE nxui_nx00_users_edit_change_password_001
    * 說明：
    * - 變更密碼（changeUserPassword）
    * - 規則：
-   *   - 先驗證（目前只擋空）
+   *   - 先驗證（validatePassword）
    *   - 成功後清空 pw input
    */
   const changePassword = useCallback(async () => {
     if (!user) return;
 
-    const v = validatePassword(pw);
-    if (v) return alert(v);
+    const msg = validatePassword(pw);
+    if (msg) {
+      alert(msg);
+      return;
+    }
 
     try {
       await changeUserPassword(user.id, pw);
       setPw('');
       alert('Password updated');
-    } catch (e: any) {
-      alert(e?.message || 'Change password failed');
+    } catch (e: unknown) {
+      alert(getErrorMessage(e) || 'Change password failed');
     }
   }, [pw, user]);
 

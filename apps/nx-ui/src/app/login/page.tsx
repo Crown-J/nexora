@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { callLoginApi } from '@/features/auth/api/login';
 import { setToken } from '@/features/auth/token';
@@ -27,6 +27,12 @@ type LoginViewState = {
   isSubmitting: boolean;
   errorMsg: string | null;
 };
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return '帳號或密碼錯誤 / 或 API 無回應';
+}
 
 /**
  * @CODE nxui_nx00_ui_login_validate_001
@@ -95,7 +101,7 @@ export default function LoginPage() {
    * @CODE nxui_nx00_auth_login_flow_001
    * 說明：驗證 → call api → 存 token → redirect
    */
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
 
     // 動作 001：清除舊錯誤
@@ -129,9 +135,9 @@ export default function LoginPage() {
 
       // 動作 007：導向登入後頁
       router.replace('/dashboard');
-    } catch {
-      // 動作 008：錯誤顯示
-      setView((prev) => ({ ...prev, errorMsg: '帳號或密碼錯誤 / 或 API 無回應' }));
+    } catch (e: unknown) {
+      // 動作 008：錯誤顯示（優先用後端/拋出的訊息）
+      setView((prev) => ({ ...prev, errorMsg: getErrorMessage(e) }));
     } finally {
       // 動作 009：解除 submitting
       setView((prev) => ({ ...prev, isSubmitting: false }));
@@ -165,9 +171,7 @@ export default function LoginPage() {
                 <span className="text-xs font-semibold tracking-[0.25em] text-white/90">NX</span>
               </div>
               <div>
-                <div className="text-sm tracking-[0.35em] font-semibold text-white/90">
-                  NEXORA
-                </div>
+                <div className="text-sm tracking-[0.35em] font-semibold text-white/90">NEXORA</div>
                 <div className="text-xs text-white/40">ERP Console — NX00</div>
               </div>
             </div>
@@ -180,12 +184,8 @@ export default function LoginPage() {
               {/* @CODE nxui_nx00_ui_login_header_003 */}
               <div className="flex items-start justify-between">
                 <div>
-                  <h1 className="text-xl font-semibold tracking-wide text-white/95">
-                    Sign in
-                  </h1>
-                  <p className="mt-1 text-sm text-white/45">
-                    Use your Nexora account to continue.
-                  </p>
+                  <h1 className="text-xl font-semibold tracking-wide text-white/95">Sign in</h1>
+                  <p className="mt-1 text-sm text-white/45">Use your Nexora account to continue.</p>
                 </div>
 
                 {/* @CODE nxui_nx00_ui_login_accent_pill_001 */}
@@ -201,9 +201,7 @@ export default function LoginPage() {
             <form onSubmit={onSubmit} className="px-8 pb-8 pt-6 space-y-5">
               {/* @CODE nxui_nx00_ui_login_input_account_003 */}
               <div>
-                <label className="block text-xs tracking-wider text-white/55 mb-2">
-                  ACCOUNT
-                </label>
+                <label className="block text-xs tracking-wider text-white/55 mb-2">ACCOUNT</label>
                 <input
                   type="text"
                   value={form.account}
@@ -221,9 +219,7 @@ export default function LoginPage() {
 
               {/* @CODE nxui_nx00_ui_login_input_password_003 */}
               <div>
-                <label className="block text-xs tracking-wider text-white/55 mb-2">
-                  PASSWORD
-                </label>
+                <label className="block text-xs tracking-wider text-white/55 mb-2">PASSWORD</label>
                 <input
                   type="password"
                   value={form.password}
@@ -275,9 +271,7 @@ export default function LoginPage() {
           </div>
 
           {/* @CODE nxui_nx00_ui_login_bottom_hint_002 */}
-          <div className="mt-6 text-center text-xs text-white/25">
-            Tip: Press Enter to submit
-          </div>
+          <div className="mt-6 text-center text-xs text-white/25">Tip: Press Enter to submit</div>
         </div>
       </div>
     </div>

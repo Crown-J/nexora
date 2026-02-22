@@ -3,19 +3,22 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-EDIT-UI-001：User Edit UI（render only）
+ * - NX00-USERS-EDIT-UI-001：User Edit UI（render-only）
+ *
+ * Notes:
+ * - 本元件只負責 render
+ * - 所有 state/actions 由 useUserEdit() 提供
  */
 
 'use client';
 
-import React from 'react';
 import { useUserEdit } from '@/features/nx00/users/hooks/useUserEdit';
 import { Field } from '@/features/nx00/users/ui/Field';
 
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-UI-001-F01
+ * @COMPONENT_CODE nxui_nx00_users_edit_view_001
  * 說明：
- * - UserEditView：只負責 render
+ * - UserEditView：render-only
  * - 所有 state/actions 由 useUserEdit() 提供
  */
 export function UserEditView() {
@@ -32,14 +35,12 @@ export function UserEditView() {
           <div className="text-xs text-white/35">{id}</div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={backToList}
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10"
-          >
-            Back to list
-          </button>
-        </div>
+        <button
+          onClick={backToList}
+          className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:bg-white/10"
+        >
+          Back to list
+        </button>
       </div>
 
       {loading ? (
@@ -50,17 +51,21 @@ export function UserEditView() {
         </div>
       ) : user ? (
         <div className="grid gap-4 md:grid-cols-2">
+          {/* Profile */}
           <div className="rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl p-6">
             <div className="mb-4 text-sm text-white/70">Profile</div>
 
             <div className="mb-4 text-xs text-white/40">
-              username: <span className="text-white/80">{user.username}</span>
+              username:{' '}
+              <span className="text-white/80">{user.username}</span>
             </div>
 
-            <Field label="Display name">
+            <Field label="Display name" required>
               <input
                 value={form.displayName}
-                onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, displayName: e.target.value }))
+                }
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none focus:border-[#39ff14]/40 focus:ring-4 focus:ring-[#39ff14]/10"
               />
             </Field>
@@ -69,7 +74,9 @@ export function UserEditView() {
               <Field label="Email">
                 <input
                   value={form.email}
-                  onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, email: e.target.value }))
+                  }
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none"
                 />
               </Field>
@@ -77,7 +84,9 @@ export function UserEditView() {
               <Field label="Phone">
                 <input
                   value={form.phone}
-                  onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, phone: e.target.value }))
+                  }
                   className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none"
                 />
               </Field>
@@ -101,6 +110,7 @@ export function UserEditView() {
             </div>
           </div>
 
+          {/* Security */}
           <div className="rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl p-6">
             <div className="mb-4 text-sm text-white/70">Security</div>
 
@@ -110,6 +120,7 @@ export function UserEditView() {
                 value={pw}
                 onChange={(e) => setPw(e.target.value)}
                 placeholder="new password"
+                autoComplete="new-password"
                 className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm outline-none"
               />
             </Field>

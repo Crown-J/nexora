@@ -15,7 +15,7 @@
 import { RoleUserAssignView } from '@/features/nx00/rbac/ui/RoleUserAssignView';
 
 /**
- * @FUNCTION_CODE NX00-RBAC-ENTRY-001-F01
+ * @CODE nxui_nx00_rbac_roles_page_entry_001
  * 說明：
  * - App Router page entry
  * - UI/logic 已抽到 features/nx00/rbac

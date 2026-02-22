@@ -8,8 +8,8 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { RbacController } from './rbac.controller';
-import { RbacService } from './rbac.service';
+import { RbacController } from './controllers/rbac.controller';
+import { RbacService } from '../rbac/services/rbac.service';
 
 @Module({
   imports: [PrismaModule],

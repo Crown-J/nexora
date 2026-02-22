@@ -3,13 +3,19 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-CREATE-001：User Create（表單狀態 + submit + 導頁）封裝
+ * - NX00-USERS-CREATE-001：User Create（表單狀態 + submit + 導頁）封裝
+ *
+ * Notes:
+ * - 使用 users/api/users.createUser
+ * - 表單驗證與 payload 正規化集中在 lib/userCreateForm
  */
 
 'use client';
 
+import type { FormEvent } from 'react';
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
+
 import { createUser } from '@/features/nx00/users/api/users';
 import {
   toCreatePayload,
@@ -26,11 +32,17 @@ export type UserCreateState = {
 export type UserCreateActions = {
   setForm: (updater: (prev: UserCreateFormState) => UserCreateFormState) => void;
   back: () => void;
-  submit: (e: React.FormEvent) => Promise<void>;
+  submit: (e: FormEvent<HTMLFormElement>) => Promise<void>;
 };
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  return 'Unknown error';
+}
+
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-CREATE-001-F01
+ * @HOOK_CODE NX00-USERS-CREATE-001
  * 說明：
  * - useUserCreate：封裝 Create 頁面的狀態與送出流程
  * - 流程：
@@ -55,7 +67,7 @@ export function useUserCreate(): { state: UserCreateState; actions: UserCreateAc
   });
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-CREATE-001-F02
+   * @CODE nxui_nx00_users_create_set_form_001
    * 說明：
    * - 提供 updater 形式的 setForm，避免 UI 直接處理物件複製細節
    */
@@ -64,38 +76,41 @@ export function useUserCreate(): { state: UserCreateState; actions: UserCreateAc
   }, []);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-CREATE-001-F03
+   * @CODE nxui_nx00_users_create_back_001
    * 說明：
    * - 返回上一頁（暫用 router.back）
-   * - 若你想固定回列表，可改成 router.push('/dashboard/nx00/users')
+   * - 若要固定回列表，可改成 router.push('/dashboard/nx00/users')
    */
   const back = useCallback(() => {
     router.back();
   }, [router]);
 
   /**
-   * @FUNCTION_CODE NX00-UI-NX00-USERS-CREATE-001-F04
+   * @CODE nxui_nx00_users_create_submit_001
    * 說明：
    * - submit：Create 表單送出
    * - 失敗會寫入 err，給 UI 顯示
    */
   const submit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setErr(null);
 
-      const v = validateUserCreateForm(form);
-      if (v) return setErr(v);
+      const msg = validateUserCreateForm(form);
+      if (msg) {
+        setErr(msg);
+        return;
+      }
 
       setSaving(true);
       try {
         const payload = toCreatePayload(form);
-        const r = await createUser(payload);
+        const created = await createUser(payload);
 
-        // ✅ 對齊新路由：導向 /dashboard/nx00/users/:id
-        router.replace(`/dashboard/nx00/users/${r.id}`);
-      } catch (e: any) {
-        setErr(e?.message || 'Create failed');
+        // ✅ 對齊路由：/dashboard/nx00/users/:id
+        router.replace(`/dashboard/nx00/users/${created.id}`);
+      } catch (e: unknown) {
+        setErr(getErrorMessage(e) || 'Create failed');
       } finally {
         setSaving(false);
       }
@@ -103,5 +118,8 @@ export function useUserCreate(): { state: UserCreateState; actions: UserCreateAc
     [form, router]
   );
 
-  return { state: { saving, err, form }, actions: { setForm, back, submit } };
+  return {
+    state: { saving, err, form },
+    actions: { setForm, back, submit },
+  };
 }
