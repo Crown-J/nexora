@@ -1,0 +1,19 @@
+# C:\nexora\infra\docker\docker-compose.yml
+# 啟動本機 PostgreSQL（nexora_core），提供 Prisma 連線使用
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: nexora-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexora
+      POSTGRES_PASSWORD: nexora123
+      POSTGRES_DB: nexora_core
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexora_pgdata:/var/lib/postgresql/data
+
+volumes:
+  nexora_pgdata:

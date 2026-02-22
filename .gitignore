@@ -1,0 +1,24 @@
+# Node
+node_modules/
+dist/
+build/
+coverage/
+
+# Nx / Turbo caches
+.nx/
+.turbo/
+.cache/
+.tmp/
+
+# Env
+.env
+.env.local
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
