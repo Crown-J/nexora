@@ -10,11 +10,11 @@
 
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
-import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import { Roles } from '../../auth/roles.decorator';
-import { RolesGuard } from '../../auth/roles.guard';
+import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
+import { Roles } from '../../../shared/decorators/roles.decorator';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
 
-import { Nx00LookupsService } from './lookups.service';
+import { Nx00LookupsService } from '../services/lookups.service';
 
 function parseBoolean(value: any): boolean | undefined {
   /**

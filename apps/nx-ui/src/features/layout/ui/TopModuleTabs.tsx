@@ -10,7 +10,7 @@
 
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { getModuleTabs } from '@/features/shell/config/modules';
+import { getModuleTabs } from '@/features/layout/config/modules';
 import { cx } from '@/shared/lib/cx';
 
 /**
