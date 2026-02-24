@@ -34,26 +34,32 @@ export function getNx00SideMenu(): SideMenuGroup[] {
       group: '使用者與權限管理',
       items: [
         { key: 'nx00.users', label: '使用者基本資料', href: '/dashboard/nx00/users' },
-        { key: 'nx00.roles', label: '權限與角色資料', href: '/dashboard/nx00/roles' },
-        { key: 'nx00.rbac', label: '使用者權限設定', href: '/dashboard/nx00/rbac', disabled: true },
+        { key: 'nx00.roles', label: '職位基本資料', href: '/dashboard/nx00/roles' },
+        { key: 'nx00.userroles', label: '使用者職位設定', href: '/dashboard/nx00/userroles', disabled: true },
+        { key: 'nx00.permission', label: '權限基本資料', href: '/dashboard/nx00/permissions' },
+        { key: 'nx00.rolepermission', label: '職位權限設定', href: '/dashboard/nx00/rolepermission', disabled: true },
       ],
     },
     {
       group: '產品管理',
-      items: [{ key: 'nx00.parts', label: '零件主檔', href: '/dashboard/nx00/parts' }],
+      items: [
+        { key: 'nx00.parts', label: '零件基本資料', href: '/dashboard/nx00/parts' },
+        { key: 'nx00.brands', label: '廠牌基本資料', href: '/dashboard/nx00/brands', disabled: true },
+        { key: 'nx00.functiongroups', label: '零件功能族群基本資料', href: '/dashboard/nx00/functiongroups', disabled: true },
+        { key: 'nx00.partstatus', label: '零件狀態基本資料', href: '/dashboard/nx00/partstatus', disabled: true },
+      ],
     },
     {
       group: '倉庫與庫位管理',
       items: [
-        { key: 'nx00.warehouse', label: '倉庫主檔', href: '/dashboard/nx00/warehouses', disabled: true },
-        { key: 'nx00.bin', label: '庫位主檔', href: '/dashboard/nx00/bins', disabled: true },
+        { key: 'nx00.warehouses', label: '倉庫基本資料', href: '/dashboard/nx00/warehouses', disabled: true },
+        { key: 'nx00.locations', label: '庫位基本資料', href: '/dashboard/nx00/locations', disabled: true },
       ],
     },
     {
       group: '供應商與客戶管理',
       items: [
-        { key: 'nx00.suppliers', label: '供應商主檔', href: '/dashboard/nx00/suppliers', disabled: true },
-        { key: 'nx00.customers', label: '客戶主檔', href: '/dashboard/nx00/customers', disabled: true },
+        { key: 'nx00.businessPartners', label: '往來客戶基本資料', href: '/dashboard/nx00/businessPartners', disabled: true },
       ],
     },
     {

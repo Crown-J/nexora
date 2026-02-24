@@ -3,19 +3,20 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-CREATE-ENTRY-001：User Create Page Entry（路由入口）
+ * - NX00-UI-NX00-USERS-REDIRECT-NEW-001：舊 /new 路由相容（redirect）
+ *
+ * Notes:
+ * - 舊路由：/dashboard/nx00/users/new
+ * - 新路由：/dashboard/nx00/users?mode=new
  */
 
-'use client';
-
-import { UserCreateView } from '@/features/nx00/users/ui/UserCreateView';
+import { redirect } from 'next/navigation';
 
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-CREATE-ENTRY-001-F01
+ * @FUNCTION_CODE NX00-UI-NX00-USERS-REDIRECT-NEW-001-F01
  * 說明：
- * - App Router page entry
- * - UI/logic 已抽到 features/nx00/users
+ * - redirect 舊 /new → ?mode=new
  */
-export default function UserCreatePage() {
-  return <UserCreateView />;
+export default function UsersNewRedirectPage() {
+  redirect('/dashboard/nx00/users?mode=new');
 }

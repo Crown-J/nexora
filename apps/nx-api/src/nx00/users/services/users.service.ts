@@ -1,13 +1,16 @@
 /**
  * File: apps/nx-api/src/users/users.service.ts
- * Purpose: NX00-API-001 Users CRUD service (safe DTO + create/update/active/password)
+ * Project: NEXORA (Monorepo)
+ *
+ * Purpose:
+ * - NX00-API-USERS-SVC-001：Users CRUD service（safe output + audit user displayName）
+ *
+ * Notes:
+ * - nx00_user.id 為 VARCHAR(15) NOT NULL：若 DB 沒有 DEFAULT/trigger，需由後端產生
+ * - 產生方式採 pg_advisory_xact_lock + transaction，避免併發重複 ID
  */
 
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../../../prisma/prisma.service';
 
@@ -27,7 +30,26 @@ function getPrismaCode(err: unknown): string | null {
   return typeof anyErr.code === 'string' ? anyErr.code : null;
 }
 
-function toSafeDto(row: any): UserSafeDto {
+type UserRowWithAudit = {
+  id: string;
+  username: string;
+  displayName: string;
+  email: string | null;
+  phone: string | null;
+  isActive: boolean;
+  statusCode: string;
+  lastLoginAt: Date | null;
+
+  createdAt: Date;
+  createdBy: string | null;
+  updatedAt: Date | null;
+  updatedBy: string | null;
+
+  createdByUser?: { displayName: string } | null;
+  updatedByUser?: { displayName: string } | null;
+};
+
+function toSafeDto(row: UserRowWithAudit): UserSafeDto {
   return {
     id: row.id,
     username: row.username,
@@ -36,41 +58,68 @@ function toSafeDto(row: any): UserSafeDto {
     phone: row.phone ?? null,
     isActive: !!row.isActive,
     statusCode: row.statusCode ?? 'A',
-    lastLoginAt: row.lastLoginAt ? new Date(row.lastLoginAt).toISOString() : null,
-    createdAt: new Date(row.createdAt).toISOString(),
-    updatedAt: row.updatedAt ? new Date(row.updatedAt).toISOString() : null,
+    lastLoginAt: row.lastLoginAt ? row.lastLoginAt.toISOString() : null,
+
+    createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy ?? null,
+    createdByName: row.createdByUser?.displayName ?? null,
+
+    updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
+    updatedBy: row.updatedBy ?? null,
+    updatedByName: row.updatedByUser?.displayName ?? null,
   };
 }
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
-   * @CODE nxapi_nx00_users_gen_id_001
-   * 說明：先用後端產生 ID（NX00USER + 7碼流水號）
-   * - 之後你若改 DB trigger，再替換此函式即可
+   * @CODE nxapi_nx00_users_gen_id_002
+   * 說明：後端產生 ID（併發安全）
+   * - prefix: NX00USER
+   * - 尾碼長度：若已有資料則沿用既有尾碼長度（避免 7/8 混用），否則預設 8（7+8=15）
    */
-  private async genUserId(): Promise<string> {
-    const last = await this.prisma.nx00User.findFirst({
+  private async genUserIdTx(tx: any): Promise<string> {
+    const prefix = 'NX00USER';
+
+    await tx.$executeRawUnsafe(`SELECT pg_advisory_xact_lock(hashtext($1))`, prefix);
+
+    const last = await tx.nx00User.findFirst({
+      where: { id: { startsWith: prefix } },
       orderBy: { id: 'desc' },
       select: { id: true },
     });
 
-    const prefix = 'NX00USER';
-    const lastSeq =
-      last?.id?.startsWith(prefix) ? Number(last.id.slice(prefix.length)) : 0;
-    const nextSeq = (Number.isFinite(lastSeq) ? lastSeq : 0) + 1;
+    let suffixLen = 8;
+    if (last?.id?.startsWith(prefix)) {
+      const tail = last.id.slice(prefix.length);
+      if (/^\d+$/.test(tail) && tail.length > 0) suffixLen = tail.length;
+    }
 
-    return `${prefix}${String(nextSeq).padStart(7, '0')}`;
+    let nextNum = 1;
+    if (last?.id?.startsWith(prefix)) {
+      const tail = last.id.slice(prefix.length);
+      if (/^\d+$/.test(tail)) {
+        const n = Number(tail);
+        if (Number.isFinite(n) && n >= 0) nextNum = n + 1;
+      }
+    }
+
+    const nextTail = String(nextNum).padStart(suffixLen, '0');
+    const nextId = `${prefix}${nextTail}`;
+
+    if (nextId.length > 15) {
+      throw new BadRequestException(`ID overflow: ${nextId} (len=${nextId.length})`);
+    }
+
+    return nextId;
   }
 
   /**
-   * @CODE nxapi_nx00_users_list_001
+   * @CODE nxapi_nx00_users_list_002
    * GET /users
-   * - q: 搜尋 username/displayName
-   * - page/pageSize: 分頁
-   * - isActive/statusCode: 篩選
+   * - 回傳 audit name（createdByName/updatedByName）
    */
   async list(query: ListUsersQuery): Promise<ListUsersResponse> {
     const page = Math.max(1, Number(query.page ?? 1));
@@ -87,9 +136,7 @@ export class UsersService {
       ];
     }
     if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
-    if (query.statusCode && query.statusCode.trim()) {
-      where.statusCode = query.statusCode.trim();
-    }
+    if (query.statusCode && query.statusCode.trim()) where.statusCode = query.statusCode.trim();
 
     const [total, rows] = await Promise.all([
       this.prisma.nx00User.count({ where }),
@@ -98,95 +145,81 @@ export class UsersService {
         orderBy: { createdAt: 'desc' },
         skip,
         take: pageSize,
-        // ✅ 永遠不回 passwordHash
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          email: true,
-          phone: true,
-          isActive: true,
-          statusCode: true,
-          lastLoginAt: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          createdByUser: { select: { displayName: true } },
+          updatedByUser: { select: { displayName: true } },
         },
       }),
     ]);
 
-    return { items: rows.map(toSafeDto), page, pageSize, total };
+    return {
+      items: (rows as unknown as UserRowWithAudit[]).map(toSafeDto),
+      page,
+      pageSize,
+      total,
+    };
   }
 
   /**
-   * @CODE nxapi_nx00_users_get_001
+   * @CODE nxapi_nx00_users_get_002
    * GET /users/:id
+   * - 回傳 audit name（createdByName/updatedByName）
    */
   async get(id: string): Promise<UserSafeDto> {
     const row = await this.prisma.nx00User.findUnique({
       where: { id },
-      select: {
-        id: true,
-        username: true,
-        displayName: true,
-        email: true,
-        phone: true,
-        isActive: true,
-        statusCode: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        createdByUser: { select: { displayName: true } },
+        updatedByUser: { select: { displayName: true } },
       },
     });
+
     if (!row) throw new NotFoundException('User not found');
-    return toSafeDto(row);
+    return toSafeDto(row as unknown as UserRowWithAudit);
   }
 
   /**
-   * @CODE nxapi_nx00_users_create_001
+   * @CODE nxapi_nx00_users_create_003
    * POST /users
-   * - password default changeme
-   * - bcrypt hash
+   * - password: 若未提供或空字串 → default changeme
+   * - 回傳 audit name（createdByName/updatedByName）
    */
   async create(body: CreateUserBody, actorUserId?: string): Promise<UserSafeDto> {
     const username = (body.username ?? '').trim();
     const displayName = (body.displayName ?? '').trim();
-    const rawPassword = (body.password ?? 'changeme').toString();
 
     if (!username) throw new BadRequestException('username required');
     if (!displayName) throw new BadRequestException('displayName required');
-    if (!rawPassword) throw new BadRequestException('password required');
 
-    const id = await this.genUserId();
+    const pwd = typeof body.password === 'string' ? body.password.trim() : '';
+    const rawPassword = pwd ? pwd : 'changeme';
     const passwordHash = await bcrypt.hash(rawPassword, 10);
 
     try {
-      const row = await this.prisma.nx00User.create({
-        data: {
-          id,
-          username,
-          displayName,
-          passwordHash,
-          email: body.email ?? null,
-          phone: body.phone ?? null,
-          isActive: body.isActive ?? true,
-          statusCode: (body.statusCode ?? 'A').trim() || 'A',
-          createdBy: actorUserId ?? null,
-        },
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          email: true,
-          phone: true,
-          isActive: true,
-          statusCode: true,
-          lastLoginAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+      const row = await this.prisma.$transaction(async (tx) => {
+        const id = await this.genUserIdTx(tx);
+
+        return tx.nx00User.create({
+          data: {
+            id,
+            username,
+            displayName,
+            passwordHash,
+            email: body.email ?? null,
+            phone: body.phone ?? null,
+            isActive: body.isActive ?? true,
+            statusCode: (body.statusCode ?? 'A').trim() || 'A',
+            remark: (body as any).remark ?? null,
+            createdBy: actorUserId ?? null,
+          },
+          include: {
+            createdByUser: { select: { displayName: true } },
+            updatedByUser: { select: { displayName: true } },
+          },
+        });
       });
 
-      return toSafeDto(row);
+      return toSafeDto(row as unknown as UserRowWithAudit);
     } catch (err) {
       const code = getPrismaCode(err);
       if (code === 'P2002') throw new BadRequestException('username already exists');
@@ -195,10 +228,9 @@ export class UsersService {
   }
 
   /**
-   * @CODE nxapi_nx00_users_update_001
+   * @CODE nxapi_nx00_users_update_002
    * PUT /users/:id
-   * - partial update
-   * - 若 body.password 有填才更新 passwordHash（可改用 /password 專用）
+   * - 回傳 audit name（createdByName/updatedByName）
    */
   async update(id: string, body: UpdateUserBody, actorUserId?: string): Promise<UserSafeDto> {
     const patch: any = {
@@ -216,33 +248,27 @@ export class UsersService {
     if ('phone' in body) patch.phone = body.phone ?? null;
     if (typeof body.isActive === 'boolean') patch.isActive = body.isActive;
     if (typeof body.statusCode === 'string') patch.statusCode = body.statusCode.trim() || 'A';
+    if ('remark' in body) patch.remark = (body as any).remark ?? null;
 
-    if (typeof body.password === 'string' && body.password.length > 0) {
-      patch.passwordHash = await bcrypt.hash(body.password, 10);
+    if (typeof body.password === 'string' && body.password.trim().length > 0) {
+      patch.passwordHash = await bcrypt.hash(body.password.trim(), 10);
     }
 
     try {
       const row = await this.prisma.nx00User.update({
         where: { id },
         data: patch,
-        select: {
-          id: true,
-          username: true,
-          displayName: true,
-          email: true,
-          phone: true,
-          isActive: true,
-          statusCode: true,
-          lastLoginAt: true,
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          createdByUser: { select: { displayName: true } },
+          updatedByUser: { select: { displayName: true } },
         },
       });
 
-      return toSafeDto(row);
+      return toSafeDto(row as unknown as UserRowWithAudit);
     } catch (err) {
       const code = getPrismaCode(err);
       if (code === 'P2025') throw new NotFoundException('User not found');
+      if (code === 'P2002') throw new BadRequestException('username already exists');
       throw err;
     }
   }
@@ -255,16 +281,15 @@ export class UsersService {
     if (typeof body?.isActive !== 'boolean') {
       throw new BadRequestException('isActive must be boolean');
     }
-    return this.update(id, { isActive: body.isActive }, actorUserId);
+    return this.update(id, { isActive: body.isActive } as any, actorUserId);
   }
 
   /**
    * @CODE nxapi_nx00_users_change_password_001
    * PATCH /users/:id/password
-   * - 專用改密碼 endpoint（建議 UI 用這個）
    */
   async changePassword(id: string, body: ChangePasswordBody, actorUserId?: string) {
-    const pwd = (body?.password ?? '').toString();
+    const pwd = (body?.password ?? '').toString().trim();
     if (!pwd) throw new BadRequestException('password required');
 
     const passwordHash = await bcrypt.hash(pwd, 10);
@@ -280,7 +305,6 @@ export class UsersService {
         select: { id: true },
       });
 
-      // 不回 user，避免 UI 誤拿到敏感資訊
       return { ok: true };
     } catch (err) {
       const code = getPrismaCode(err);

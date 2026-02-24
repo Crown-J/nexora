@@ -1,10 +1,8 @@
 // C:\nexora\packages\db-core\prisma\schema.prisma
 // NEXORA / db-core schema
-// - NX00 基礎：nx00_user / nx00_role / nx00_user_role
-// - NX00 主檔：nx00_brand / nx00_function_group / nx00_part_status / nx00_part
-// - 命名規則：Prisma 欄位 camelCase；DB 欄位 snake_case 用 @map 對應
-// - ID 規則：id 由 DB trigger/sequence 產生 15 碼（例：NX00USER0000001 / NX00ROLE0000001 / NX00USRO0000001 / NX00PART0000001）
-// - Prisma v7：連線資訊由 prisma.config.ts 管理，因此 schema datasource 不可寫 url
+// - Prisma 欄位 camelCase；DB 欄位 snake_case 用 @map 對應
+// - ID 規則：VARCHAR(15) 由 DB DEFAULT gen_xxx_id() 產生
+// - Prisma v7：連線資訊由 prisma.config.ts 管理，因此 datasource 不可寫 url
 
 generator client {
   provider = "prisma-client-js"
@@ -18,72 +16,43 @@ datasource db {
 /// =======================================================
 /// NX00 - User
 /// Table: nx00_user
-/// Purpose:
-/// - 驗證帳密（password_hash）
-/// - 使用者資訊（display_name/email/phone）
-/// - 稽核欄位（created_by/updated_by）
-/// - RBAC 關聯（nx00_user_role）
 /// =======================================================
-
 model Nx00User {
-  // [1] id（PK / NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
+  id           String    @id @default(dbgenerated("gen_nx00_user_id()")) @db.VarChar(15)
+  username     String    @unique @db.VarChar(50)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  displayName  String    @map("display_name") @db.VarChar(50)
+  email        String?   @db.VarChar(100)
+  phone        String?   @db.VarChar(30)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  statusCode   String    @default("A") @map("uu_sta") @db.VarChar(10)
+  remark       String?   @map("uu_rmk")
 
-  // [2] username（UQ / NN）
-  username String @unique @db.VarChar(50)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  createdBy    String?   @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime? @map("updated_at")
+  updatedBy    String?   @map("updated_by") @db.VarChar(15)
 
-  // [3] password_hash（NN）
-  passwordHash String @map("password_hash") @db.VarChar(255)
-
-  // [4] display_name（NN）
-  displayName String @map("display_name") @db.VarChar(50)
-
-  // [5] email（nullable）
-  email String? @db.VarChar(100)
-
-  // [6] phone（nullable）
-  phone String? @db.VarChar(30)
-
-  // [7] is_active（NN default TRUE）
-  isActive Boolean @default(true) @map("is_active")
-
-  // [8] last_login_at（nullable）
-  lastLoginAt DateTime? @map("last_login_at")
-
-  // [9] uu_sta（NN default 'A'）→ 用 statusCode 表達
-  statusCode String @default("A") @map("uu_sta") @db.VarChar(10)
-
-  // [10] uu_rmk（nullable）
-  remark String? @map("uu_rmk")
-
-  // [11] created_at（NN default now）
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // [12] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // [13] updated_at（nullable）
-  updatedAt DateTime? @map("updated_at")
-
-  // [14] updated_by（FK -> nx00_user.id, nullable）
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  // ========= 自關聯（建立人/更新人） =========
+  // self audit relations
   createdByUser Nx00User? @relation("Nx00UserCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00UserUpdatedBy", fields: [updatedBy], references: [id])
 
-  createdUsers Nx00User[] @relation("Nx00UserCreatedBy")
-  updatedUsers Nx00User[] @relation("Nx00UserUpdatedBy")
+  createdUsers  Nx00User[] @relation("Nx00UserCreatedBy")
+  updatedUsers  Nx00User[] @relation("Nx00UserUpdatedBy")
 
-  // ========= RBAC 反向關聯 =========
+  // RBAC
   userRoles Nx00UserRole[]
 
-  // ========= Audit（Role / UserRole created_by updated_by 的反向） =========
-  rolesCreated     Nx00Role[]     @relation("Nx00RoleCreatedBy")
-  rolesUpdated     Nx00Role[]     @relation("Nx00RoleUpdatedBy")
-  userRolesCreated Nx00UserRole[] @relation("Nx00UserRoleCreatedBy")
+  // audit reverse relations
+  rolesCreated         Nx00Role[]           @relation("Nx00RoleCreatedBy")
+  rolesUpdated         Nx00Role[]           @relation("Nx00RoleUpdatedBy")
+  userRolesCreated     Nx00UserRole[]       @relation("Nx00UserRoleCreatedBy")
 
-  // ========= Audit（Brand / FunctionGroup / PartStatus / Part 的反向） =========
+  permissionsCreated   Nx00Permission[]     @relation("Nx00PermissionCreatedBy")
+  permissionsUpdated   Nx00Permission[]     @relation("Nx00PermissionUpdatedBy")
+  rolePermsCreated     Nx00RolePermission[] @relation("Nx00RolePermissionCreatedBy")
+
   brandsCreated         Nx00Brand[]         @relation("Nx00BrandCreatedBy")
   brandsUpdated         Nx00Brand[]         @relation("Nx00BrandUpdatedBy")
   functionGroupsCreated Nx00FunctionGroup[] @relation("Nx00FunctionGroupCreatedBy")
@@ -93,6 +62,16 @@ model Nx00User {
   partsCreated          Nx00Part[]          @relation("Nx00PartCreatedBy")
   partsUpdated          Nx00Part[]          @relation("Nx00PartUpdatedBy")
 
+  warehousesCreated     Nx00Warehouse[]     @relation("Nx00WarehouseCreatedBy")
+  warehousesUpdated     Nx00Warehouse[]     @relation("Nx00WarehouseUpdatedBy")
+  locationsCreated      Nx00Location[]      @relation("Nx00LocationCreatedBy")
+  locationsUpdated      Nx00Location[]      @relation("Nx00LocationUpdatedBy")
+
+  partnersCreated       Nx00BusinessPartner[] @relation("Nx00BusinessPartnerCreatedBy")
+  partnersUpdated       Nx00BusinessPartner[] @relation("Nx00BusinessPartnerUpdatedBy")
+
+  auditLogs             Nx00AuditLog[]
+
   @@map("nx00_user")
 }
 
@@ -100,40 +79,23 @@ model Nx00User {
 /// NX00 - Role
 /// Table: nx00_role
 /// =======================================================
-
 model Nx00Role {
-  // [1] id（PK/UQ/NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
+  id          String    @id @default(dbgenerated("gen_nx00_role_id()")) @db.VarChar(15)
+  code        String    @unique @db.VarChar(30)
+  name        String    @db.VarChar(50)
+  description String?   @db.VarChar(255)
+  isActive    Boolean   @default(true) @map("is_active")
 
-  // [2] code（UQ/NN）例：ADMIN / WAREHOUSE
-  code String @unique @db.VarChar(30)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime? @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.VarChar(15)
 
-  // [3] name（NN）顯示用
-  name String @db.VarChar(50)
-
-  // [4] description（nullable）
-  description String? @db.VarChar(255)
-
-  // [5] is_active（NN default TRUE）
-  isActive Boolean @default(true) @map("is_active")
-
-  // [6] created_at（NN default now）
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // [7] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // [8] updated_at（nullable）
-  updatedAt DateTime? @map("updated_at")
-
-  // [9] updated_by（FK -> nx00_user.id, nullable）
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  // ========= relations =========
   createdByUser Nx00User? @relation("Nx00RoleCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00RoleUpdatedBy", fields: [updatedBy], references: [id])
 
-  userRoles Nx00UserRole[]
+  userRoles     Nx00UserRole[]
+  rolePerms     Nx00RolePermission[]
 
   @@map("nx00_role")
 }
@@ -141,30 +103,16 @@ model Nx00Role {
 /// =======================================================
 /// NX00 - UserRole
 /// Table: nx00_user_role
-/// Note:
-/// - 增加 @@unique([userId, roleId]) 避免重複授權
 /// =======================================================
-
 model Nx00UserRole {
-  // [1] id（PK/UQ/NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
-
-  // [2] user_id（NN FK -> nx00_user.id）
-  userId String @map("user_id") @db.VarChar(15)
-
-  // [3] role_id（NN FK -> nx00_role.id）
-  roleId String @map("role_id") @db.VarChar(15)
-
-  // [4] created_at（NN default now）
+  id        String   @id @default(dbgenerated("gen_nx00_user_role_id()")) @db.VarChar(15)
+  userId    String   @map("user_id") @db.VarChar(15)
+  roleId    String   @map("role_id") @db.VarChar(15)
   createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by") @db.VarChar(15)
 
-  // [5] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // ========= relations =========
-  user Nx00User @relation(fields: [userId], references: [id])
-  role Nx00Role @relation(fields: [roleId], references: [id])
-
+  user       Nx00User @relation(fields: [userId], references: [id])
+  role       Nx00Role @relation(fields: [roleId], references: [id])
   createdByUser Nx00User? @relation("Nx00UserRoleCreatedBy", fields: [createdBy], references: [id])
 
   @@unique([userId, roleId])
@@ -174,47 +122,77 @@ model Nx00UserRole {
 }
 
 /// =======================================================
+/// NX00 - Permission
+/// Table: nx00_permission
+/// =======================================================
+model Nx00Permission {
+  id         String   @id @default(dbgenerated("gen_nx00_permission_id()")) @db.VarChar(15)
+  code       String   @unique @db.VarChar(80)
+  name       String   @db.VarChar(80)
+  moduleCode String   @map("module_code") @db.VarChar(10)
+  action     String   @db.VarChar(20)
+  isActive   Boolean  @default(true) @map("is_active")
+  sortNo     Int?     @map("sort_no")
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  createdBy  String?   @map("created_by") @db.VarChar(15)
+  updatedAt  DateTime? @map("updated_at")
+  updatedBy  String?   @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx00PermissionCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser Nx00User? @relation("Nx00PermissionUpdatedBy", fields: [updatedBy], references: [id])
+
+  rolePerms Nx00RolePermission[]
+
+  @@index([isActive])
+  @@index([moduleCode])
+  @@map("nx00_permission")
+}
+
+/// =======================================================
+/// NX00 - RolePermission
+/// Table: nx00_role_permission
+/// =======================================================
+model Nx00RolePermission {
+  id           String   @id @default(dbgenerated("gen_nx00_role_permission_id()")) @db.VarChar(15)
+  roleId       String   @map("role_id") @db.VarChar(15)
+  permissionId String   @map("permission_id") @db.VarChar(15)
+  createdAt    DateTime @default(now()) @map("created_at")
+  createdBy    String?  @map("created_by") @db.VarChar(15)
+
+  role         Nx00Role       @relation(fields: [roleId], references: [id])
+  permission   Nx00Permission @relation(fields: [permissionId], references: [id])
+  createdByUser Nx00User?     @relation("Nx00RolePermissionCreatedBy", fields: [createdBy], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("nx00_role_permission")
+}
+
+/// =======================================================
 /// NX00 - Brand
 /// Table: nx00_brand
 /// =======================================================
-
 model Nx00Brand {
-  // [1] id（PK/UQ/NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
+  id        String   @id @default(dbgenerated("gen_nx00_brand_id()")) @db.VarChar(15)
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(50)
+  nameEn    String?  @map("name_en") @db.VarChar(50)
+  isActive  Boolean  @default(true) @map("is_active")
+  remark    String?  @db.VarChar(255)
 
-  // [2] code（UQ/NN）例：VDO / BOSCH
-  code String @unique @db.VarChar(30)
-
-  // [3] name（NN）
-  name String @db.VarChar(50)
-
-  // [4] name_en（nullable）
-  nameEn String? @map("name_en") @db.VarChar(50)
-
-  // [5] is_active（NN default TRUE）
-  isActive Boolean @default(true) @map("is_active")
-
-  // [6] remark（nullable）
-  remark String? @db.VarChar(255)
-
-  // [7] created_at（NN default now）
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // [8] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // [9] updated_at（nullable）
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String?   @map("created_by") @db.VarChar(15)
   updatedAt DateTime? @map("updated_at")
+  updatedBy String?   @map("updated_by") @db.VarChar(15)
 
-  // [10] updated_by（FK -> nx00_user.id, nullable）
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  // ========= relations =========
   createdByUser Nx00User? @relation("Nx00BrandCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00BrandUpdatedBy", fields: [updatedBy], references: [id])
 
   parts Nx00Part[]
 
+  @@index([isActive])
   @@map("nx00_brand")
 }
 
@@ -222,44 +200,25 @@ model Nx00Brand {
 /// NX00 - FunctionGroup
 /// Table: nx00_function_group
 /// =======================================================
-
 model Nx00FunctionGroup {
-  // [1] id（PK/UQ/NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
+  id          String   @id @default(dbgenerated("gen_nx00_function_group_id()")) @db.VarChar(15)
+  code        String   @unique @db.VarChar(30)
+  name        String   @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  sortNo      Int?     @map("sort_no")
 
-  // [2] code（UQ/NN）
-  code String @unique @db.VarChar(30)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime? @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.VarChar(15)
 
-  // [3] name（NN）
-  name String @db.VarChar(50)
-
-  // [4] description（nullable）
-  description String? @db.VarChar(255)
-
-  // [5] is_active（NN default TRUE）
-  isActive Boolean @default(true) @map("is_active")
-
-  // [6] sort_no（nullable）
-  sortNo Int? @map("sort_no")
-
-  // [7] created_at（NN default now）
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // [8] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // [9] updated_at（nullable）
-  updatedAt DateTime? @map("updated_at")
-
-  // [10] updated_by（FK -> nx00_user.id, nullable）
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  // ========= relations =========
   createdByUser Nx00User? @relation("Nx00FunctionGroupCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00FunctionGroupUpdatedBy", fields: [updatedBy], references: [id])
 
   parts Nx00Part[]
 
+  @@index([isActive])
   @@map("nx00_function_group")
 }
 
@@ -267,47 +226,26 @@ model Nx00FunctionGroup {
 /// NX00 - PartStatus
 /// Table: nx00_part_status
 /// =======================================================
-
 model Nx00PartStatus {
-  // [1] id（PK/UQ/NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
+  id          String   @id @default(dbgenerated("gen_nx00_part_status_id()")) @db.VarChar(15)
+  code        String   @unique @db.VarChar(10)
+  name        String   @db.VarChar(50)
+  canSell     Boolean  @default(true) @map("can_sell")
+  canPurchase Boolean  @default(true) @map("can_purchase")
+  isActive    Boolean  @default(true) @map("is_active")
+  remark      String?  @db.VarChar(255)
 
-  // [2] code（UQ/NN）例：N / Z / X
-  code String @unique @db.VarChar(10)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime? @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.VarChar(15)
 
-  // [3] name（NN）
-  name String @db.VarChar(50)
-
-  // [4] can_sell（NN default TRUE）
-  canSell Boolean @default(true) @map("can_sell")
-
-  // [5] can_purchase（NN default TRUE）
-  canPurchase Boolean @default(true) @map("can_purchase")
-
-  // [6] is_active（NN default TRUE）
-  isActive Boolean @default(true) @map("is_active")
-
-  // [7] remark（nullable）
-  remark String? @db.VarChar(255)
-
-  // [8] created_at（NN default now）
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // [9] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // [10] updated_at（nullable）
-  updatedAt DateTime? @map("updated_at")
-
-  // [11] updated_by（FK -> nx00_user.id, nullable）
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  // ========= relations =========
   createdByUser Nx00User? @relation("Nx00PartStatusCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartStatusUpdatedBy", fields: [updatedBy], references: [id])
 
   parts Nx00Part[]
 
+  @@index([isActive])
   @@map("nx00_part_status")
 }
 
@@ -315,60 +253,28 @@ model Nx00PartStatus {
 /// NX00 - Part
 /// Table: nx00_part
 /// =======================================================
-
 model Nx00Part {
-  // [1] id（PK/UQ/NN） - DB generated
-  id String @id @default(dbgenerated("gen")) @db.VarChar(15)
+  id              String   @id @default(dbgenerated("gen_nx00_part_id()")) @db.VarChar(15)
+  partNo          String   @unique @map("part_no") @db.VarChar(50)
+  oldPartNo       String?  @map("old_part_no") @db.VarChar(50)
+  displayNo       String?  @map("display_no") @db.VarChar(50)
+  nameZh          String   @map("name_zh") @db.VarChar(100)
+  nameEn          String?  @map("name_en") @db.VarChar(100)
+  brandId         String   @map("brand_id") @db.VarChar(15)
+  functionGroupId String?  @map("function_group_id") @db.VarChar(15)
+  statusId        String   @map("status_id") @db.VarChar(15)
+  barcode         String?  @db.VarChar(100)
+  isActive        Boolean  @default(true) @map("is_active")
+  remark          String?  @db.VarChar(255)
 
-  // [2] part_no（UQ/NN）
-  partNo String @unique @map("part_no") @db.VarChar(50)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  createdBy       String?   @map("created_by") @db.VarChar(15)
+  updatedAt       DateTime? @map("updated_at")
+  updatedBy       String?   @map("updated_by") @db.VarChar(15)
 
-  // [3] old_part_no（nullable）
-  oldPartNo String? @map("old_part_no") @db.VarChar(50)
-
-  // [4] display_no（nullable）
-  displayNo String? @map("display_no") @db.VarChar(50)
-
-  // [5] name_zh（NN）
-  nameZh String @map("name_zh") @db.VarChar(100)
-
-  // [6] name_en（nullable）
-  nameEn String? @map("name_en") @db.VarChar(100)
-
-  // [7] brand_id（NN FK -> nx00_brand.id）
-  brandId String @map("brand_id") @db.VarChar(15)
-
-  // [8] function_group_id（nullable FK -> nx00_function_group.id）
-  functionGroupId String? @map("function_group_id") @db.VarChar(15)
-
-  // [9] status_id（NN FK -> nx00_part_status.id）
-  statusId String @map("status_id") @db.VarChar(15)
-
-  // [10] barcode（nullable）
-  barcode String? @db.VarChar(100)
-
-  // [11] is_active（NN default TRUE）
-  isActive Boolean @default(true) @map("is_active")
-
-  // [12] remark（nullable）
-  remark String? @db.VarChar(255)
-
-  // [13] created_at（NN default now）
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // [14] created_by（FK -> nx00_user.id, nullable）
-  createdBy String? @map("created_by") @db.VarChar(15)
-
-  // [15] updated_at（nullable）
-  updatedAt DateTime? @map("updated_at")
-
-  // [16] updated_by（FK -> nx00_user.id, nullable）
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  // ========= relations =========
-  brand Nx00Brand @relation(fields: [brandId], references: [id])
+  brand         Nx00Brand         @relation(fields: [brandId], references: [id])
   functionGroup Nx00FunctionGroup? @relation(fields: [functionGroupId], references: [id])
-  status Nx00PartStatus @relation(fields: [statusId], references: [id])
+  status        Nx00PartStatus    @relation(fields: [statusId], references: [id])
 
   createdByUser Nx00User? @relation("Nx00PartCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartUpdatedBy", fields: [updatedBy], references: [id])
@@ -378,4 +284,117 @@ model Nx00Part {
   @@index([statusId])
   @@index([isActive])
   @@map("nx00_part")
+}
+
+/// =======================================================
+/// NX00 - Warehouse
+/// Table: nx00_warehouse
+/// =======================================================
+model Nx00Warehouse {
+  id        String   @id @default(dbgenerated("gen_nx00_warehouse_id()")) @db.VarChar(15)
+  code      String   @unique @db.VarChar(10)
+  name      String   @db.VarChar(50)
+  isActive  Boolean  @default(true) @map("is_active")
+  remark    String?  @db.VarChar(255)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  createdBy String?   @map("created_by") @db.VarChar(15)
+  updatedAt DateTime? @map("updated_at")
+  updatedBy String?   @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx00WarehouseCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser Nx00User? @relation("Nx00WarehouseUpdatedBy", fields: [updatedBy], references: [id])
+
+  locations Nx00Location[]
+
+  @@index([isActive])
+  @@map("nx00_warehouse")
+}
+
+/// =======================================================
+/// NX00 - Location
+/// Table: nx00_location
+/// =======================================================
+model Nx00Location {
+  id          String   @id @default(dbgenerated("gen_nx00_location_id()")) @db.VarChar(15)
+  warehouseId String   @map("warehouse_id") @db.VarChar(15)
+  code        String   @unique @db.VarChar(10)
+  name        String?  @db.VarChar(50)
+  isActive    Boolean  @default(true) @map("is_active")
+  remark      String?  @db.VarChar(255)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime? @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.VarChar(15)
+
+  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
+
+  createdByUser Nx00User? @relation("Nx00LocationCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser Nx00User? @relation("Nx00LocationUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([warehouseId])
+  @@index([isActive])
+  @@map("nx00_location")
+}
+
+/// =======================================================
+/// NX00 - BusinessPartner
+/// Table: nx00_business_partner
+/// =======================================================
+model Nx00BusinessPartner {
+  id         String  @id @default(dbgenerated("gen_nx00_business_partner_id()")) @db.VarChar(15)
+  code       String  @unique @db.VarChar(10)
+  name       String  @db.VarChar(50)
+  taxId      String? @map("tax_id") @db.VarChar(20)
+  phone      String? @db.VarChar(30)
+  email      String? @db.VarChar(100)
+  address    String? @db.VarChar(255)
+
+  isCustomer Boolean @default(false) @map("is_customer")
+  isVendor   Boolean @default(false) @map("is_vendor")
+  isActive   Boolean @default(true) @map("is_active")
+  remark     String? @db.VarChar(255)
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  createdBy  String?   @map("created_by") @db.VarChar(15)
+  updatedAt  DateTime? @map("updated_at")
+  updatedBy  String?   @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx00BusinessPartnerCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser Nx00User? @relation("Nx00BusinessPartnerUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([isActive])
+  @@index([isCustomer])
+  @@index([isVendor])
+  @@map("nx00_business_partner")
+}
+
+/// =======================================================
+/// NX00 - AuditLog
+/// Table: nx00_audit_log
+/// =======================================================
+model Nx00AuditLog {
+  id        String   @id @default(dbgenerated("gen_nx00_audit_log_id()")) @db.VarChar(15)
+  userId    String   @map("user_id") @db.VarChar(15)
+
+  moduleCode String  @map("module_code") @db.VarChar(10)
+  action     String  @db.VarChar(20)
+  entity     String  @db.VarChar(50)
+
+  entityId   String? @map("entity_id") @db.VarChar(15)
+  docNo      String? @map("doc_no") @db.VarChar(50)
+  ipAddress  String? @map("ip_address") @db.VarChar(45)
+  userAgent  String? @map("user_agent") @db.VarChar(255)
+
+  payload    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user Nx00User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([moduleCode])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("nx00_audit_log")
 }

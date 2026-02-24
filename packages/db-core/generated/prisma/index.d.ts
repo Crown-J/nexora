@@ -15,39 +15,108 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 /**
  * Model Nx00User
- * 
+ * =======================================================
+ * NX00 - User
+ * Table: nx00_user
+ * =======================================================
  */
 export type Nx00User = $Result.DefaultSelection<Prisma.$Nx00UserPayload>
 /**
  * Model Nx00Role
- * 
+ * =======================================================
+ * NX00 - Role
+ * Table: nx00_role
+ * =======================================================
  */
 export type Nx00Role = $Result.DefaultSelection<Prisma.$Nx00RolePayload>
 /**
  * Model Nx00UserRole
- * 
+ * =======================================================
+ * NX00 - UserRole
+ * Table: nx00_user_role
+ * =======================================================
  */
 export type Nx00UserRole = $Result.DefaultSelection<Prisma.$Nx00UserRolePayload>
 /**
+ * Model Nx00Permission
+ * =======================================================
+ * NX00 - Permission
+ * Table: nx00_permission
+ * =======================================================
+ */
+export type Nx00Permission = $Result.DefaultSelection<Prisma.$Nx00PermissionPayload>
+/**
+ * Model Nx00RolePermission
+ * =======================================================
+ * NX00 - RolePermission
+ * Table: nx00_role_permission
+ * =======================================================
+ */
+export type Nx00RolePermission = $Result.DefaultSelection<Prisma.$Nx00RolePermissionPayload>
+/**
  * Model Nx00Brand
- * 
+ * =======================================================
+ * NX00 - Brand
+ * Table: nx00_brand
+ * =======================================================
  */
 export type Nx00Brand = $Result.DefaultSelection<Prisma.$Nx00BrandPayload>
 /**
  * Model Nx00FunctionGroup
- * 
+ * =======================================================
+ * NX00 - FunctionGroup
+ * Table: nx00_function_group
+ * =======================================================
  */
 export type Nx00FunctionGroup = $Result.DefaultSelection<Prisma.$Nx00FunctionGroupPayload>
 /**
  * Model Nx00PartStatus
- * 
+ * =======================================================
+ * NX00 - PartStatus
+ * Table: nx00_part_status
+ * =======================================================
  */
 export type Nx00PartStatus = $Result.DefaultSelection<Prisma.$Nx00PartStatusPayload>
 /**
  * Model Nx00Part
- * 
+ * =======================================================
+ * NX00 - Part
+ * Table: nx00_part
+ * =======================================================
  */
 export type Nx00Part = $Result.DefaultSelection<Prisma.$Nx00PartPayload>
+/**
+ * Model Nx00Warehouse
+ * =======================================================
+ * NX00 - Warehouse
+ * Table: nx00_warehouse
+ * =======================================================
+ */
+export type Nx00Warehouse = $Result.DefaultSelection<Prisma.$Nx00WarehousePayload>
+/**
+ * Model Nx00Location
+ * =======================================================
+ * NX00 - Location
+ * Table: nx00_location
+ * =======================================================
+ */
+export type Nx00Location = $Result.DefaultSelection<Prisma.$Nx00LocationPayload>
+/**
+ * Model Nx00BusinessPartner
+ * =======================================================
+ * NX00 - BusinessPartner
+ * Table: nx00_business_partner
+ * =======================================================
+ */
+export type Nx00BusinessPartner = $Result.DefaultSelection<Prisma.$Nx00BusinessPartnerPayload>
+/**
+ * Model Nx00AuditLog
+ * =======================================================
+ * NX00 - AuditLog
+ * Table: nx00_audit_log
+ * =======================================================
+ */
+export type Nx00AuditLog = $Result.DefaultSelection<Prisma.$Nx00AuditLogPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -197,6 +266,26 @@ export class PrismaClient<
   get nx00UserRole(): Prisma.Nx00UserRoleDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.nx00Permission`: Exposes CRUD operations for the **Nx00Permission** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx00Permissions
+    * const nx00Permissions = await prisma.nx00Permission.findMany()
+    * ```
+    */
+  get nx00Permission(): Prisma.Nx00PermissionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nx00RolePermission`: Exposes CRUD operations for the **Nx00RolePermission** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx00RolePermissions
+    * const nx00RolePermissions = await prisma.nx00RolePermission.findMany()
+    * ```
+    */
+  get nx00RolePermission(): Prisma.Nx00RolePermissionDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.nx00Brand`: Exposes CRUD operations for the **Nx00Brand** model.
     * Example usage:
     * ```ts
@@ -235,6 +324,46 @@ export class PrismaClient<
     * ```
     */
   get nx00Part(): Prisma.Nx00PartDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nx00Warehouse`: Exposes CRUD operations for the **Nx00Warehouse** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx00Warehouses
+    * const nx00Warehouses = await prisma.nx00Warehouse.findMany()
+    * ```
+    */
+  get nx00Warehouse(): Prisma.Nx00WarehouseDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nx00Location`: Exposes CRUD operations for the **Nx00Location** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx00Locations
+    * const nx00Locations = await prisma.nx00Location.findMany()
+    * ```
+    */
+  get nx00Location(): Prisma.Nx00LocationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nx00BusinessPartner`: Exposes CRUD operations for the **Nx00BusinessPartner** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx00BusinessPartners
+    * const nx00BusinessPartners = await prisma.nx00BusinessPartner.findMany()
+    * ```
+    */
+  get nx00BusinessPartner(): Prisma.Nx00BusinessPartnerDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nx00AuditLog`: Exposes CRUD operations for the **Nx00AuditLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx00AuditLogs
+    * const nx00AuditLogs = await prisma.nx00AuditLog.findMany()
+    * ```
+    */
+  get nx00AuditLog(): Prisma.Nx00AuditLogDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -672,10 +801,16 @@ export namespace Prisma {
     Nx00User: 'Nx00User',
     Nx00Role: 'Nx00Role',
     Nx00UserRole: 'Nx00UserRole',
+    Nx00Permission: 'Nx00Permission',
+    Nx00RolePermission: 'Nx00RolePermission',
     Nx00Brand: 'Nx00Brand',
     Nx00FunctionGroup: 'Nx00FunctionGroup',
     Nx00PartStatus: 'Nx00PartStatus',
-    Nx00Part: 'Nx00Part'
+    Nx00Part: 'Nx00Part',
+    Nx00Warehouse: 'Nx00Warehouse',
+    Nx00Location: 'Nx00Location',
+    Nx00BusinessPartner: 'Nx00BusinessPartner',
+    Nx00AuditLog: 'Nx00AuditLog'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -691,7 +826,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "nx00User" | "nx00Role" | "nx00UserRole" | "nx00Brand" | "nx00FunctionGroup" | "nx00PartStatus" | "nx00Part"
+      modelProps: "nx00User" | "nx00Role" | "nx00UserRole" | "nx00Permission" | "nx00RolePermission" | "nx00Brand" | "nx00FunctionGroup" | "nx00PartStatus" | "nx00Part" | "nx00Warehouse" | "nx00Location" | "nx00BusinessPartner" | "nx00AuditLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -914,6 +1049,154 @@ export namespace Prisma {
           count: {
             args: Prisma.Nx00UserRoleCountArgs<ExtArgs>
             result: $Utils.Optional<Nx00UserRoleCountAggregateOutputType> | number
+          }
+        }
+      }
+      Nx00Permission: {
+        payload: Prisma.$Nx00PermissionPayload<ExtArgs>
+        fields: Prisma.Nx00PermissionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx00PermissionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx00PermissionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>
+          }
+          findFirst: {
+            args: Prisma.Nx00PermissionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx00PermissionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>
+          }
+          findMany: {
+            args: Prisma.Nx00PermissionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>[]
+          }
+          create: {
+            args: Prisma.Nx00PermissionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>
+          }
+          createMany: {
+            args: Prisma.Nx00PermissionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx00PermissionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>[]
+          }
+          delete: {
+            args: Prisma.Nx00PermissionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>
+          }
+          update: {
+            args: Prisma.Nx00PermissionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx00PermissionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx00PermissionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx00PermissionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx00PermissionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00PermissionPayload>
+          }
+          aggregate: {
+            args: Prisma.Nx00PermissionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00Permission>
+          }
+          groupBy: {
+            args: Prisma.Nx00PermissionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00PermissionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx00PermissionCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00PermissionCountAggregateOutputType> | number
+          }
+        }
+      }
+      Nx00RolePermission: {
+        payload: Prisma.$Nx00RolePermissionPayload<ExtArgs>
+        fields: Prisma.Nx00RolePermissionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx00RolePermissionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx00RolePermissionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>
+          }
+          findFirst: {
+            args: Prisma.Nx00RolePermissionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx00RolePermissionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>
+          }
+          findMany: {
+            args: Prisma.Nx00RolePermissionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>[]
+          }
+          create: {
+            args: Prisma.Nx00RolePermissionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>
+          }
+          createMany: {
+            args: Prisma.Nx00RolePermissionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx00RolePermissionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>[]
+          }
+          delete: {
+            args: Prisma.Nx00RolePermissionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>
+          }
+          update: {
+            args: Prisma.Nx00RolePermissionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx00RolePermissionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx00RolePermissionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx00RolePermissionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx00RolePermissionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00RolePermissionPayload>
+          }
+          aggregate: {
+            args: Prisma.Nx00RolePermissionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00RolePermission>
+          }
+          groupBy: {
+            args: Prisma.Nx00RolePermissionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00RolePermissionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx00RolePermissionCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00RolePermissionCountAggregateOutputType> | number
           }
         }
       }
@@ -1213,6 +1496,302 @@ export namespace Prisma {
           }
         }
       }
+      Nx00Warehouse: {
+        payload: Prisma.$Nx00WarehousePayload<ExtArgs>
+        fields: Prisma.Nx00WarehouseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx00WarehouseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx00WarehouseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>
+          }
+          findFirst: {
+            args: Prisma.Nx00WarehouseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx00WarehouseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>
+          }
+          findMany: {
+            args: Prisma.Nx00WarehouseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>[]
+          }
+          create: {
+            args: Prisma.Nx00WarehouseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>
+          }
+          createMany: {
+            args: Prisma.Nx00WarehouseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx00WarehouseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>[]
+          }
+          delete: {
+            args: Prisma.Nx00WarehouseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>
+          }
+          update: {
+            args: Prisma.Nx00WarehouseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx00WarehouseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx00WarehouseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx00WarehouseUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx00WarehouseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00WarehousePayload>
+          }
+          aggregate: {
+            args: Prisma.Nx00WarehouseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00Warehouse>
+          }
+          groupBy: {
+            args: Prisma.Nx00WarehouseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00WarehouseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx00WarehouseCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00WarehouseCountAggregateOutputType> | number
+          }
+        }
+      }
+      Nx00Location: {
+        payload: Prisma.$Nx00LocationPayload<ExtArgs>
+        fields: Prisma.Nx00LocationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx00LocationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx00LocationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>
+          }
+          findFirst: {
+            args: Prisma.Nx00LocationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx00LocationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>
+          }
+          findMany: {
+            args: Prisma.Nx00LocationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>[]
+          }
+          create: {
+            args: Prisma.Nx00LocationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>
+          }
+          createMany: {
+            args: Prisma.Nx00LocationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx00LocationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>[]
+          }
+          delete: {
+            args: Prisma.Nx00LocationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>
+          }
+          update: {
+            args: Prisma.Nx00LocationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx00LocationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx00LocationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx00LocationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx00LocationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00LocationPayload>
+          }
+          aggregate: {
+            args: Prisma.Nx00LocationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00Location>
+          }
+          groupBy: {
+            args: Prisma.Nx00LocationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00LocationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx00LocationCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00LocationCountAggregateOutputType> | number
+          }
+        }
+      }
+      Nx00BusinessPartner: {
+        payload: Prisma.$Nx00BusinessPartnerPayload<ExtArgs>
+        fields: Prisma.Nx00BusinessPartnerFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx00BusinessPartnerFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx00BusinessPartnerFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>
+          }
+          findFirst: {
+            args: Prisma.Nx00BusinessPartnerFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx00BusinessPartnerFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>
+          }
+          findMany: {
+            args: Prisma.Nx00BusinessPartnerFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>[]
+          }
+          create: {
+            args: Prisma.Nx00BusinessPartnerCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>
+          }
+          createMany: {
+            args: Prisma.Nx00BusinessPartnerCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx00BusinessPartnerCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>[]
+          }
+          delete: {
+            args: Prisma.Nx00BusinessPartnerDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>
+          }
+          update: {
+            args: Prisma.Nx00BusinessPartnerUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx00BusinessPartnerDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx00BusinessPartnerUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx00BusinessPartnerUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx00BusinessPartnerUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BusinessPartnerPayload>
+          }
+          aggregate: {
+            args: Prisma.Nx00BusinessPartnerAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00BusinessPartner>
+          }
+          groupBy: {
+            args: Prisma.Nx00BusinessPartnerGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00BusinessPartnerGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx00BusinessPartnerCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00BusinessPartnerCountAggregateOutputType> | number
+          }
+        }
+      }
+      Nx00AuditLog: {
+        payload: Prisma.$Nx00AuditLogPayload<ExtArgs>
+        fields: Prisma.Nx00AuditLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx00AuditLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx00AuditLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>
+          }
+          findFirst: {
+            args: Prisma.Nx00AuditLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx00AuditLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>
+          }
+          findMany: {
+            args: Prisma.Nx00AuditLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>[]
+          }
+          create: {
+            args: Prisma.Nx00AuditLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>
+          }
+          createMany: {
+            args: Prisma.Nx00AuditLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx00AuditLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>[]
+          }
+          delete: {
+            args: Prisma.Nx00AuditLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>
+          }
+          update: {
+            args: Prisma.Nx00AuditLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx00AuditLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx00AuditLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx00AuditLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx00AuditLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00AuditLogPayload>
+          }
+          aggregate: {
+            args: Prisma.Nx00AuditLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00AuditLog>
+          }
+          groupBy: {
+            args: Prisma.Nx00AuditLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00AuditLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx00AuditLogCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00AuditLogCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1324,10 +1903,16 @@ export namespace Prisma {
     nx00User?: Nx00UserOmit
     nx00Role?: Nx00RoleOmit
     nx00UserRole?: Nx00UserRoleOmit
+    nx00Permission?: Nx00PermissionOmit
+    nx00RolePermission?: Nx00RolePermissionOmit
     nx00Brand?: Nx00BrandOmit
     nx00FunctionGroup?: Nx00FunctionGroupOmit
     nx00PartStatus?: Nx00PartStatusOmit
     nx00Part?: Nx00PartOmit
+    nx00Warehouse?: Nx00WarehouseOmit
+    nx00Location?: Nx00LocationOmit
+    nx00BusinessPartner?: Nx00BusinessPartnerOmit
+    nx00AuditLog?: Nx00AuditLogOmit
   }
 
   /* Types for Logging */
@@ -1414,6 +1999,9 @@ export namespace Prisma {
     rolesCreated: number
     rolesUpdated: number
     userRolesCreated: number
+    permissionsCreated: number
+    permissionsUpdated: number
+    rolePermsCreated: number
     brandsCreated: number
     brandsUpdated: number
     functionGroupsCreated: number
@@ -1422,6 +2010,13 @@ export namespace Prisma {
     partStatusesUpdated: number
     partsCreated: number
     partsUpdated: number
+    warehousesCreated: number
+    warehousesUpdated: number
+    locationsCreated: number
+    locationsUpdated: number
+    partnersCreated: number
+    partnersUpdated: number
+    auditLogs: number
   }
 
   export type Nx00UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1431,6 +2026,9 @@ export namespace Prisma {
     rolesCreated?: boolean | Nx00UserCountOutputTypeCountRolesCreatedArgs
     rolesUpdated?: boolean | Nx00UserCountOutputTypeCountRolesUpdatedArgs
     userRolesCreated?: boolean | Nx00UserCountOutputTypeCountUserRolesCreatedArgs
+    permissionsCreated?: boolean | Nx00UserCountOutputTypeCountPermissionsCreatedArgs
+    permissionsUpdated?: boolean | Nx00UserCountOutputTypeCountPermissionsUpdatedArgs
+    rolePermsCreated?: boolean | Nx00UserCountOutputTypeCountRolePermsCreatedArgs
     brandsCreated?: boolean | Nx00UserCountOutputTypeCountBrandsCreatedArgs
     brandsUpdated?: boolean | Nx00UserCountOutputTypeCountBrandsUpdatedArgs
     functionGroupsCreated?: boolean | Nx00UserCountOutputTypeCountFunctionGroupsCreatedArgs
@@ -1439,6 +2037,13 @@ export namespace Prisma {
     partStatusesUpdated?: boolean | Nx00UserCountOutputTypeCountPartStatusesUpdatedArgs
     partsCreated?: boolean | Nx00UserCountOutputTypeCountPartsCreatedArgs
     partsUpdated?: boolean | Nx00UserCountOutputTypeCountPartsUpdatedArgs
+    warehousesCreated?: boolean | Nx00UserCountOutputTypeCountWarehousesCreatedArgs
+    warehousesUpdated?: boolean | Nx00UserCountOutputTypeCountWarehousesUpdatedArgs
+    locationsCreated?: boolean | Nx00UserCountOutputTypeCountLocationsCreatedArgs
+    locationsUpdated?: boolean | Nx00UserCountOutputTypeCountLocationsUpdatedArgs
+    partnersCreated?: boolean | Nx00UserCountOutputTypeCountPartnersCreatedArgs
+    partnersUpdated?: boolean | Nx00UserCountOutputTypeCountPartnersUpdatedArgs
+    auditLogs?: boolean | Nx00UserCountOutputTypeCountAuditLogsArgs
   }
 
   // Custom InputTypes
@@ -1497,6 +2102,27 @@ export namespace Prisma {
   /**
    * Nx00UserCountOutputType without action
    */
+  export type Nx00UserCountOutputTypeCountPermissionsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00PermissionWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountPermissionsUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00PermissionWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountRolePermsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00RolePermissionWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
   export type Nx00UserCountOutputTypeCountBrandsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx00BrandWhereInput
   }
@@ -1550,6 +2176,55 @@ export namespace Prisma {
     where?: Nx00PartWhereInput
   }
 
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountWarehousesCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00WarehouseWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountWarehousesUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00WarehouseWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountLocationsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00LocationWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountLocationsUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00LocationWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountPartnersCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BusinessPartnerWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountPartnersUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BusinessPartnerWhereInput
+  }
+
+  /**
+   * Nx00UserCountOutputType without action
+   */
+  export type Nx00UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00AuditLogWhereInput
+  }
+
 
   /**
    * Count Type Nx00RoleCountOutputType
@@ -1557,10 +2232,12 @@ export namespace Prisma {
 
   export type Nx00RoleCountOutputType = {
     userRoles: number
+    rolePerms: number
   }
 
   export type Nx00RoleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     userRoles?: boolean | Nx00RoleCountOutputTypeCountUserRolesArgs
+    rolePerms?: boolean | Nx00RoleCountOutputTypeCountRolePermsArgs
   }
 
   // Custom InputTypes
@@ -1579,6 +2256,44 @@ export namespace Prisma {
    */
   export type Nx00RoleCountOutputTypeCountUserRolesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx00UserRoleWhereInput
+  }
+
+  /**
+   * Nx00RoleCountOutputType without action
+   */
+  export type Nx00RoleCountOutputTypeCountRolePermsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00RolePermissionWhereInput
+  }
+
+
+  /**
+   * Count Type Nx00PermissionCountOutputType
+   */
+
+  export type Nx00PermissionCountOutputType = {
+    rolePerms: number
+  }
+
+  export type Nx00PermissionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    rolePerms?: boolean | Nx00PermissionCountOutputTypeCountRolePermsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * Nx00PermissionCountOutputType without action
+   */
+  export type Nx00PermissionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00PermissionCountOutputType
+     */
+    select?: Nx00PermissionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * Nx00PermissionCountOutputType without action
+   */
+  export type Nx00PermissionCountOutputTypeCountRolePermsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00RolePermissionWhereInput
   }
 
 
@@ -1672,6 +2387,37 @@ export namespace Prisma {
    */
   export type Nx00PartStatusCountOutputTypeCountPartsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx00PartWhereInput
+  }
+
+
+  /**
+   * Count Type Nx00WarehouseCountOutputType
+   */
+
+  export type Nx00WarehouseCountOutputType = {
+    locations: number
+  }
+
+  export type Nx00WarehouseCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    locations?: boolean | Nx00WarehouseCountOutputTypeCountLocationsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * Nx00WarehouseCountOutputType without action
+   */
+  export type Nx00WarehouseCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00WarehouseCountOutputType
+     */
+    select?: Nx00WarehouseCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * Nx00WarehouseCountOutputType without action
+   */
+  export type Nx00WarehouseCountOutputTypeCountLocationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00LocationWhereInput
   }
 
 
@@ -1923,6 +2669,9 @@ export namespace Prisma {
     rolesCreated?: boolean | Nx00User$rolesCreatedArgs<ExtArgs>
     rolesUpdated?: boolean | Nx00User$rolesUpdatedArgs<ExtArgs>
     userRolesCreated?: boolean | Nx00User$userRolesCreatedArgs<ExtArgs>
+    permissionsCreated?: boolean | Nx00User$permissionsCreatedArgs<ExtArgs>
+    permissionsUpdated?: boolean | Nx00User$permissionsUpdatedArgs<ExtArgs>
+    rolePermsCreated?: boolean | Nx00User$rolePermsCreatedArgs<ExtArgs>
     brandsCreated?: boolean | Nx00User$brandsCreatedArgs<ExtArgs>
     brandsUpdated?: boolean | Nx00User$brandsUpdatedArgs<ExtArgs>
     functionGroupsCreated?: boolean | Nx00User$functionGroupsCreatedArgs<ExtArgs>
@@ -1931,6 +2680,13 @@ export namespace Prisma {
     partStatusesUpdated?: boolean | Nx00User$partStatusesUpdatedArgs<ExtArgs>
     partsCreated?: boolean | Nx00User$partsCreatedArgs<ExtArgs>
     partsUpdated?: boolean | Nx00User$partsUpdatedArgs<ExtArgs>
+    warehousesCreated?: boolean | Nx00User$warehousesCreatedArgs<ExtArgs>
+    warehousesUpdated?: boolean | Nx00User$warehousesUpdatedArgs<ExtArgs>
+    locationsCreated?: boolean | Nx00User$locationsCreatedArgs<ExtArgs>
+    locationsUpdated?: boolean | Nx00User$locationsUpdatedArgs<ExtArgs>
+    partnersCreated?: boolean | Nx00User$partnersCreatedArgs<ExtArgs>
+    partnersUpdated?: boolean | Nx00User$partnersUpdatedArgs<ExtArgs>
+    auditLogs?: boolean | Nx00User$auditLogsArgs<ExtArgs>
     _count?: boolean | Nx00UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["nx00User"]>
 
@@ -1999,6 +2755,9 @@ export namespace Prisma {
     rolesCreated?: boolean | Nx00User$rolesCreatedArgs<ExtArgs>
     rolesUpdated?: boolean | Nx00User$rolesUpdatedArgs<ExtArgs>
     userRolesCreated?: boolean | Nx00User$userRolesCreatedArgs<ExtArgs>
+    permissionsCreated?: boolean | Nx00User$permissionsCreatedArgs<ExtArgs>
+    permissionsUpdated?: boolean | Nx00User$permissionsUpdatedArgs<ExtArgs>
+    rolePermsCreated?: boolean | Nx00User$rolePermsCreatedArgs<ExtArgs>
     brandsCreated?: boolean | Nx00User$brandsCreatedArgs<ExtArgs>
     brandsUpdated?: boolean | Nx00User$brandsUpdatedArgs<ExtArgs>
     functionGroupsCreated?: boolean | Nx00User$functionGroupsCreatedArgs<ExtArgs>
@@ -2007,6 +2766,13 @@ export namespace Prisma {
     partStatusesUpdated?: boolean | Nx00User$partStatusesUpdatedArgs<ExtArgs>
     partsCreated?: boolean | Nx00User$partsCreatedArgs<ExtArgs>
     partsUpdated?: boolean | Nx00User$partsUpdatedArgs<ExtArgs>
+    warehousesCreated?: boolean | Nx00User$warehousesCreatedArgs<ExtArgs>
+    warehousesUpdated?: boolean | Nx00User$warehousesUpdatedArgs<ExtArgs>
+    locationsCreated?: boolean | Nx00User$locationsCreatedArgs<ExtArgs>
+    locationsUpdated?: boolean | Nx00User$locationsUpdatedArgs<ExtArgs>
+    partnersCreated?: boolean | Nx00User$partnersCreatedArgs<ExtArgs>
+    partnersUpdated?: boolean | Nx00User$partnersUpdatedArgs<ExtArgs>
+    auditLogs?: boolean | Nx00User$auditLogsArgs<ExtArgs>
     _count?: boolean | Nx00UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type Nx00UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2029,6 +2795,9 @@ export namespace Prisma {
       rolesCreated: Prisma.$Nx00RolePayload<ExtArgs>[]
       rolesUpdated: Prisma.$Nx00RolePayload<ExtArgs>[]
       userRolesCreated: Prisma.$Nx00UserRolePayload<ExtArgs>[]
+      permissionsCreated: Prisma.$Nx00PermissionPayload<ExtArgs>[]
+      permissionsUpdated: Prisma.$Nx00PermissionPayload<ExtArgs>[]
+      rolePermsCreated: Prisma.$Nx00RolePermissionPayload<ExtArgs>[]
       brandsCreated: Prisma.$Nx00BrandPayload<ExtArgs>[]
       brandsUpdated: Prisma.$Nx00BrandPayload<ExtArgs>[]
       functionGroupsCreated: Prisma.$Nx00FunctionGroupPayload<ExtArgs>[]
@@ -2037,6 +2806,13 @@ export namespace Prisma {
       partStatusesUpdated: Prisma.$Nx00PartStatusPayload<ExtArgs>[]
       partsCreated: Prisma.$Nx00PartPayload<ExtArgs>[]
       partsUpdated: Prisma.$Nx00PartPayload<ExtArgs>[]
+      warehousesCreated: Prisma.$Nx00WarehousePayload<ExtArgs>[]
+      warehousesUpdated: Prisma.$Nx00WarehousePayload<ExtArgs>[]
+      locationsCreated: Prisma.$Nx00LocationPayload<ExtArgs>[]
+      locationsUpdated: Prisma.$Nx00LocationPayload<ExtArgs>[]
+      partnersCreated: Prisma.$Nx00BusinessPartnerPayload<ExtArgs>[]
+      partnersUpdated: Prisma.$Nx00BusinessPartnerPayload<ExtArgs>[]
+      auditLogs: Prisma.$Nx00AuditLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2455,6 +3231,9 @@ export namespace Prisma {
     rolesCreated<T extends Nx00User$rolesCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$rolesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rolesUpdated<T extends Nx00User$rolesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$rolesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     userRolesCreated<T extends Nx00User$userRolesCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$userRolesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00UserRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    permissionsCreated<T extends Nx00User$permissionsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$permissionsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    permissionsUpdated<T extends Nx00User$permissionsUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$permissionsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rolePermsCreated<T extends Nx00User$rolePermsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$rolePermsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     brandsCreated<T extends Nx00User$brandsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$brandsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     brandsUpdated<T extends Nx00User$brandsUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$brandsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     functionGroupsCreated<T extends Nx00User$functionGroupsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$functionGroupsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00FunctionGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2463,6 +3242,13 @@ export namespace Prisma {
     partStatusesUpdated<T extends Nx00User$partStatusesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partStatusesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartStatusPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     partsCreated<T extends Nx00User$partsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     partsUpdated<T extends Nx00User$partsUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    warehousesCreated<T extends Nx00User$warehousesCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$warehousesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    warehousesUpdated<T extends Nx00User$warehousesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$warehousesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    locationsCreated<T extends Nx00User$locationsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$locationsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    locationsUpdated<T extends Nx00User$locationsUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$locationsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    partnersCreated<T extends Nx00User$partnersCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partnersCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    partnersUpdated<T extends Nx00User$partnersUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partnersUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    auditLogs<T extends Nx00User$auditLogsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3084,6 +3870,78 @@ export namespace Prisma {
   }
 
   /**
+   * Nx00User.permissionsCreated
+   */
+  export type Nx00User$permissionsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    where?: Nx00PermissionWhereInput
+    orderBy?: Nx00PermissionOrderByWithRelationInput | Nx00PermissionOrderByWithRelationInput[]
+    cursor?: Nx00PermissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00PermissionScalarFieldEnum | Nx00PermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.permissionsUpdated
+   */
+  export type Nx00User$permissionsUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    where?: Nx00PermissionWhereInput
+    orderBy?: Nx00PermissionOrderByWithRelationInput | Nx00PermissionOrderByWithRelationInput[]
+    cursor?: Nx00PermissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00PermissionScalarFieldEnum | Nx00PermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.rolePermsCreated
+   */
+  export type Nx00User$rolePermsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    where?: Nx00RolePermissionWhereInput
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00RolePermissionScalarFieldEnum | Nx00RolePermissionScalarFieldEnum[]
+  }
+
+  /**
    * Nx00User.brandsCreated
    */
   export type Nx00User$brandsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3273,6 +4131,174 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Nx00PartScalarFieldEnum | Nx00PartScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.warehousesCreated
+   */
+  export type Nx00User$warehousesCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    where?: Nx00WarehouseWhereInput
+    orderBy?: Nx00WarehouseOrderByWithRelationInput | Nx00WarehouseOrderByWithRelationInput[]
+    cursor?: Nx00WarehouseWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00WarehouseScalarFieldEnum | Nx00WarehouseScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.warehousesUpdated
+   */
+  export type Nx00User$warehousesUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    where?: Nx00WarehouseWhereInput
+    orderBy?: Nx00WarehouseOrderByWithRelationInput | Nx00WarehouseOrderByWithRelationInput[]
+    cursor?: Nx00WarehouseWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00WarehouseScalarFieldEnum | Nx00WarehouseScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.locationsCreated
+   */
+  export type Nx00User$locationsCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    where?: Nx00LocationWhereInput
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    cursor?: Nx00LocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00LocationScalarFieldEnum | Nx00LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.locationsUpdated
+   */
+  export type Nx00User$locationsUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    where?: Nx00LocationWhereInput
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    cursor?: Nx00LocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00LocationScalarFieldEnum | Nx00LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.partnersCreated
+   */
+  export type Nx00User$partnersCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    where?: Nx00BusinessPartnerWhereInput
+    orderBy?: Nx00BusinessPartnerOrderByWithRelationInput | Nx00BusinessPartnerOrderByWithRelationInput[]
+    cursor?: Nx00BusinessPartnerWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00BusinessPartnerScalarFieldEnum | Nx00BusinessPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.partnersUpdated
+   */
+  export type Nx00User$partnersUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    where?: Nx00BusinessPartnerWhereInput
+    orderBy?: Nx00BusinessPartnerOrderByWithRelationInput | Nx00BusinessPartnerOrderByWithRelationInput[]
+    cursor?: Nx00BusinessPartnerWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00BusinessPartnerScalarFieldEnum | Nx00BusinessPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00User.auditLogs
+   */
+  export type Nx00User$auditLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    where?: Nx00AuditLogWhereInput
+    orderBy?: Nx00AuditLogOrderByWithRelationInput | Nx00AuditLogOrderByWithRelationInput[]
+    cursor?: Nx00AuditLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00AuditLogScalarFieldEnum | Nx00AuditLogScalarFieldEnum[]
   }
 
   /**
@@ -3493,6 +4519,7 @@ export namespace Prisma {
     createdByUser?: boolean | Nx00Role$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Role$updatedByUserArgs<ExtArgs>
     userRoles?: boolean | Nx00Role$userRolesArgs<ExtArgs>
+    rolePerms?: boolean | Nx00Role$rolePermsArgs<ExtArgs>
     _count?: boolean | Nx00RoleCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["nx00Role"]>
 
@@ -3541,6 +4568,7 @@ export namespace Prisma {
     createdByUser?: boolean | Nx00Role$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Role$updatedByUserArgs<ExtArgs>
     userRoles?: boolean | Nx00Role$userRolesArgs<ExtArgs>
+    rolePerms?: boolean | Nx00Role$rolePermsArgs<ExtArgs>
     _count?: boolean | Nx00RoleCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type Nx00RoleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3558,6 +4586,7 @@ export namespace Prisma {
       createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       userRoles: Prisma.$Nx00UserRolePayload<ExtArgs>[]
+      rolePerms: Prisma.$Nx00RolePermissionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3966,6 +4995,7 @@ export namespace Prisma {
     createdByUser<T extends Nx00Role$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Role$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     updatedByUser<T extends Nx00Role$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Role$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     userRoles<T extends Nx00Role$userRolesArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Role$userRolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00UserRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rolePerms<T extends Nx00Role$rolePermsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Role$rolePermsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4459,6 +5489,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Nx00UserRoleScalarFieldEnum | Nx00UserRoleScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Role.rolePerms
+   */
+  export type Nx00Role$rolePermsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    where?: Nx00RolePermissionWhereInput
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00RolePermissionScalarFieldEnum | Nx00RolePermissionScalarFieldEnum[]
   }
 
   /**
@@ -5570,6 +6624,2345 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: Nx00UserRoleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Nx00Permission
+   */
+
+  export type AggregateNx00Permission = {
+    _count: Nx00PermissionCountAggregateOutputType | null
+    _avg: Nx00PermissionAvgAggregateOutputType | null
+    _sum: Nx00PermissionSumAggregateOutputType | null
+    _min: Nx00PermissionMinAggregateOutputType | null
+    _max: Nx00PermissionMaxAggregateOutputType | null
+  }
+
+  export type Nx00PermissionAvgAggregateOutputType = {
+    sortNo: number | null
+  }
+
+  export type Nx00PermissionSumAggregateOutputType = {
+    sortNo: number | null
+  }
+
+  export type Nx00PermissionMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    moduleCode: string | null
+    action: string | null
+    isActive: boolean | null
+    sortNo: number | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00PermissionMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    moduleCode: string | null
+    action: string | null
+    isActive: boolean | null
+    sortNo: number | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00PermissionCountAggregateOutputType = {
+    id: number
+    code: number
+    name: number
+    moduleCode: number
+    action: number
+    isActive: number
+    sortNo: number
+    createdAt: number
+    createdBy: number
+    updatedAt: number
+    updatedBy: number
+    _all: number
+  }
+
+
+  export type Nx00PermissionAvgAggregateInputType = {
+    sortNo?: true
+  }
+
+  export type Nx00PermissionSumAggregateInputType = {
+    sortNo?: true
+  }
+
+  export type Nx00PermissionMinAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    moduleCode?: true
+    action?: true
+    isActive?: true
+    sortNo?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00PermissionMaxAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    moduleCode?: true
+    action?: true
+    isActive?: true
+    sortNo?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00PermissionCountAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    moduleCode?: true
+    action?: true
+    isActive?: true
+    sortNo?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+    _all?: true
+  }
+
+  export type Nx00PermissionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00Permission to aggregate.
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Permissions to fetch.
+     */
+    orderBy?: Nx00PermissionOrderByWithRelationInput | Nx00PermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx00PermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Permissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Permissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx00Permissions
+    **/
+    _count?: true | Nx00PermissionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Nx00PermissionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Nx00PermissionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx00PermissionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx00PermissionMaxAggregateInputType
+  }
+
+  export type GetNx00PermissionAggregateType<T extends Nx00PermissionAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00Permission]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx00Permission[P]>
+      : GetScalarType<T[P], AggregateNx00Permission[P]>
+  }
+
+
+
+
+  export type Nx00PermissionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00PermissionWhereInput
+    orderBy?: Nx00PermissionOrderByWithAggregationInput | Nx00PermissionOrderByWithAggregationInput[]
+    by: Nx00PermissionScalarFieldEnum[] | Nx00PermissionScalarFieldEnum
+    having?: Nx00PermissionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx00PermissionCountAggregateInputType | true
+    _avg?: Nx00PermissionAvgAggregateInputType
+    _sum?: Nx00PermissionSumAggregateInputType
+    _min?: Nx00PermissionMinAggregateInputType
+    _max?: Nx00PermissionMaxAggregateInputType
+  }
+
+  export type Nx00PermissionGroupByOutputType = {
+    id: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive: boolean
+    sortNo: number | null
+    createdAt: Date
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+    _count: Nx00PermissionCountAggregateOutputType | null
+    _avg: Nx00PermissionAvgAggregateOutputType | null
+    _sum: Nx00PermissionSumAggregateOutputType | null
+    _min: Nx00PermissionMinAggregateOutputType | null
+    _max: Nx00PermissionMaxAggregateOutputType | null
+  }
+
+  type GetNx00PermissionGroupByPayload<T extends Nx00PermissionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx00PermissionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx00PermissionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx00PermissionGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00PermissionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx00PermissionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    isActive?: boolean
+    sortNo?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00Permission$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Permission$updatedByUserArgs<ExtArgs>
+    rolePerms?: boolean | Nx00Permission$rolePermsArgs<ExtArgs>
+    _count?: boolean | Nx00PermissionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Permission"]>
+
+  export type Nx00PermissionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    isActive?: boolean
+    sortNo?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00Permission$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Permission$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Permission"]>
+
+  export type Nx00PermissionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    isActive?: boolean
+    sortNo?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00Permission$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Permission$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Permission"]>
+
+  export type Nx00PermissionSelectScalar = {
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    isActive?: boolean
+    sortNo?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+  }
+
+  export type Nx00PermissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "name" | "moduleCode" | "action" | "isActive" | "sortNo" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00Permission"]>
+  export type Nx00PermissionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00Permission$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Permission$updatedByUserArgs<ExtArgs>
+    rolePerms?: boolean | Nx00Permission$rolePermsArgs<ExtArgs>
+    _count?: boolean | Nx00PermissionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type Nx00PermissionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00Permission$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Permission$updatedByUserArgs<ExtArgs>
+  }
+  export type Nx00PermissionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00Permission$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Permission$updatedByUserArgs<ExtArgs>
+  }
+
+  export type $Nx00PermissionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00Permission"
+    objects: {
+      createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      rolePerms: Prisma.$Nx00RolePermissionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      name: string
+      moduleCode: string
+      action: string
+      isActive: boolean
+      sortNo: number | null
+      createdAt: Date
+      createdBy: string | null
+      updatedAt: Date | null
+      updatedBy: string | null
+    }, ExtArgs["result"]["nx00Permission"]>
+    composites: {}
+  }
+
+  type Nx00PermissionGetPayload<S extends boolean | null | undefined | Nx00PermissionDefaultArgs> = $Result.GetResult<Prisma.$Nx00PermissionPayload, S>
+
+  type Nx00PermissionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00PermissionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00PermissionCountAggregateInputType | true
+    }
+
+  export interface Nx00PermissionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00Permission'], meta: { name: 'Nx00Permission' } }
+    /**
+     * Find zero or one Nx00Permission that matches the filter.
+     * @param {Nx00PermissionFindUniqueArgs} args - Arguments to find a Nx00Permission
+     * @example
+     * // Get one Nx00Permission
+     * const nx00Permission = await prisma.nx00Permission.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx00PermissionFindUniqueArgs>(args: SelectSubset<T, Nx00PermissionFindUniqueArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx00Permission that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx00PermissionFindUniqueOrThrowArgs} args - Arguments to find a Nx00Permission
+     * @example
+     * // Get one Nx00Permission
+     * const nx00Permission = await prisma.nx00Permission.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx00PermissionFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00PermissionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00Permission that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionFindFirstArgs} args - Arguments to find a Nx00Permission
+     * @example
+     * // Get one Nx00Permission
+     * const nx00Permission = await prisma.nx00Permission.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx00PermissionFindFirstArgs>(args?: SelectSubset<T, Nx00PermissionFindFirstArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00Permission that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionFindFirstOrThrowArgs} args - Arguments to find a Nx00Permission
+     * @example
+     * // Get one Nx00Permission
+     * const nx00Permission = await prisma.nx00Permission.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx00PermissionFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00PermissionFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx00Permissions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx00Permissions
+     * const nx00Permissions = await prisma.nx00Permission.findMany()
+     * 
+     * // Get first 10 Nx00Permissions
+     * const nx00Permissions = await prisma.nx00Permission.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx00PermissionWithIdOnly = await prisma.nx00Permission.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx00PermissionFindManyArgs>(args?: SelectSubset<T, Nx00PermissionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx00Permission.
+     * @param {Nx00PermissionCreateArgs} args - Arguments to create a Nx00Permission.
+     * @example
+     * // Create one Nx00Permission
+     * const Nx00Permission = await prisma.nx00Permission.create({
+     *   data: {
+     *     // ... data to create a Nx00Permission
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx00PermissionCreateArgs>(args: SelectSubset<T, Nx00PermissionCreateArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx00Permissions.
+     * @param {Nx00PermissionCreateManyArgs} args - Arguments to create many Nx00Permissions.
+     * @example
+     * // Create many Nx00Permissions
+     * const nx00Permission = await prisma.nx00Permission.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx00PermissionCreateManyArgs>(args?: SelectSubset<T, Nx00PermissionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx00Permissions and returns the data saved in the database.
+     * @param {Nx00PermissionCreateManyAndReturnArgs} args - Arguments to create many Nx00Permissions.
+     * @example
+     * // Create many Nx00Permissions
+     * const nx00Permission = await prisma.nx00Permission.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx00Permissions and only return the `id`
+     * const nx00PermissionWithIdOnly = await prisma.nx00Permission.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx00PermissionCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00PermissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx00Permission.
+     * @param {Nx00PermissionDeleteArgs} args - Arguments to delete one Nx00Permission.
+     * @example
+     * // Delete one Nx00Permission
+     * const Nx00Permission = await prisma.nx00Permission.delete({
+     *   where: {
+     *     // ... filter to delete one Nx00Permission
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx00PermissionDeleteArgs>(args: SelectSubset<T, Nx00PermissionDeleteArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx00Permission.
+     * @param {Nx00PermissionUpdateArgs} args - Arguments to update one Nx00Permission.
+     * @example
+     * // Update one Nx00Permission
+     * const nx00Permission = await prisma.nx00Permission.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx00PermissionUpdateArgs>(args: SelectSubset<T, Nx00PermissionUpdateArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx00Permissions.
+     * @param {Nx00PermissionDeleteManyArgs} args - Arguments to filter Nx00Permissions to delete.
+     * @example
+     * // Delete a few Nx00Permissions
+     * const { count } = await prisma.nx00Permission.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx00PermissionDeleteManyArgs>(args?: SelectSubset<T, Nx00PermissionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00Permissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx00Permissions
+     * const nx00Permission = await prisma.nx00Permission.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx00PermissionUpdateManyArgs>(args: SelectSubset<T, Nx00PermissionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00Permissions and returns the data updated in the database.
+     * @param {Nx00PermissionUpdateManyAndReturnArgs} args - Arguments to update many Nx00Permissions.
+     * @example
+     * // Update many Nx00Permissions
+     * const nx00Permission = await prisma.nx00Permission.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx00Permissions and only return the `id`
+     * const nx00PermissionWithIdOnly = await prisma.nx00Permission.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx00PermissionUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00PermissionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx00Permission.
+     * @param {Nx00PermissionUpsertArgs} args - Arguments to update or create a Nx00Permission.
+     * @example
+     * // Update or create a Nx00Permission
+     * const nx00Permission = await prisma.nx00Permission.upsert({
+     *   create: {
+     *     // ... data to create a Nx00Permission
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx00Permission we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx00PermissionUpsertArgs>(args: SelectSubset<T, Nx00PermissionUpsertArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx00Permissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionCountArgs} args - Arguments to filter Nx00Permissions to count.
+     * @example
+     * // Count the number of Nx00Permissions
+     * const count = await prisma.nx00Permission.count({
+     *   where: {
+     *     // ... the filter for the Nx00Permissions we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx00PermissionCountArgs>(
+      args?: Subset<T, Nx00PermissionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx00PermissionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx00Permission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx00PermissionAggregateArgs>(args: Subset<T, Nx00PermissionAggregateArgs>): Prisma.PrismaPromise<GetNx00PermissionAggregateType<T>>
+
+    /**
+     * Group by Nx00Permission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00PermissionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx00PermissionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx00PermissionGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00PermissionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx00PermissionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00PermissionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx00Permission model
+   */
+  readonly fields: Nx00PermissionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx00Permission.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx00PermissionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    createdByUser<T extends Nx00Permission$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Permission$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    updatedByUser<T extends Nx00Permission$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Permission$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    rolePerms<T extends Nx00Permission$rolePermsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Permission$rolePermsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx00Permission model
+   */
+  interface Nx00PermissionFieldRefs {
+    readonly id: FieldRef<"Nx00Permission", 'String'>
+    readonly code: FieldRef<"Nx00Permission", 'String'>
+    readonly name: FieldRef<"Nx00Permission", 'String'>
+    readonly moduleCode: FieldRef<"Nx00Permission", 'String'>
+    readonly action: FieldRef<"Nx00Permission", 'String'>
+    readonly isActive: FieldRef<"Nx00Permission", 'Boolean'>
+    readonly sortNo: FieldRef<"Nx00Permission", 'Int'>
+    readonly createdAt: FieldRef<"Nx00Permission", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx00Permission", 'String'>
+    readonly updatedAt: FieldRef<"Nx00Permission", 'DateTime'>
+    readonly updatedBy: FieldRef<"Nx00Permission", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx00Permission findUnique
+   */
+  export type Nx00PermissionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Permission to fetch.
+     */
+    where: Nx00PermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00Permission findUniqueOrThrow
+   */
+  export type Nx00PermissionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Permission to fetch.
+     */
+    where: Nx00PermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00Permission findFirst
+   */
+  export type Nx00PermissionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Permission to fetch.
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Permissions to fetch.
+     */
+    orderBy?: Nx00PermissionOrderByWithRelationInput | Nx00PermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00Permissions.
+     */
+    cursor?: Nx00PermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Permissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Permissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00Permissions.
+     */
+    distinct?: Nx00PermissionScalarFieldEnum | Nx00PermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Permission findFirstOrThrow
+   */
+  export type Nx00PermissionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Permission to fetch.
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Permissions to fetch.
+     */
+    orderBy?: Nx00PermissionOrderByWithRelationInput | Nx00PermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00Permissions.
+     */
+    cursor?: Nx00PermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Permissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Permissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00Permissions.
+     */
+    distinct?: Nx00PermissionScalarFieldEnum | Nx00PermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Permission findMany
+   */
+  export type Nx00PermissionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Permissions to fetch.
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Permissions to fetch.
+     */
+    orderBy?: Nx00PermissionOrderByWithRelationInput | Nx00PermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx00Permissions.
+     */
+    cursor?: Nx00PermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Permissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Permissions.
+     */
+    skip?: number
+    distinct?: Nx00PermissionScalarFieldEnum | Nx00PermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Permission create
+   */
+  export type Nx00PermissionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx00Permission.
+     */
+    data: XOR<Nx00PermissionCreateInput, Nx00PermissionUncheckedCreateInput>
+  }
+
+  /**
+   * Nx00Permission createMany
+   */
+  export type Nx00PermissionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx00Permissions.
+     */
+    data: Nx00PermissionCreateManyInput | Nx00PermissionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx00Permission createManyAndReturn
+   */
+  export type Nx00PermissionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx00Permissions.
+     */
+    data: Nx00PermissionCreateManyInput | Nx00PermissionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00Permission update
+   */
+  export type Nx00PermissionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx00Permission.
+     */
+    data: XOR<Nx00PermissionUpdateInput, Nx00PermissionUncheckedUpdateInput>
+    /**
+     * Choose, which Nx00Permission to update.
+     */
+    where: Nx00PermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00Permission updateMany
+   */
+  export type Nx00PermissionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx00Permissions.
+     */
+    data: XOR<Nx00PermissionUpdateManyMutationInput, Nx00PermissionUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00Permissions to update
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * Limit how many Nx00Permissions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00Permission updateManyAndReturn
+   */
+  export type Nx00PermissionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx00Permissions.
+     */
+    data: XOR<Nx00PermissionUpdateManyMutationInput, Nx00PermissionUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00Permissions to update
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * Limit how many Nx00Permissions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00Permission upsert
+   */
+  export type Nx00PermissionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx00Permission to update in case it exists.
+     */
+    where: Nx00PermissionWhereUniqueInput
+    /**
+     * In case the Nx00Permission found by the `where` argument doesn't exist, create a new Nx00Permission with this data.
+     */
+    create: XOR<Nx00PermissionCreateInput, Nx00PermissionUncheckedCreateInput>
+    /**
+     * In case the Nx00Permission was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx00PermissionUpdateInput, Nx00PermissionUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx00Permission delete
+   */
+  export type Nx00PermissionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+    /**
+     * Filter which Nx00Permission to delete.
+     */
+    where: Nx00PermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00Permission deleteMany
+   */
+  export type Nx00PermissionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00Permissions to delete
+     */
+    where?: Nx00PermissionWhereInput
+    /**
+     * Limit how many Nx00Permissions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00Permission.createdByUser
+   */
+  export type Nx00Permission$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00Permission.updatedByUser
+   */
+  export type Nx00Permission$updatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00Permission.rolePerms
+   */
+  export type Nx00Permission$rolePermsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    where?: Nx00RolePermissionWhereInput
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00RolePermissionScalarFieldEnum | Nx00RolePermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Permission without action
+   */
+  export type Nx00PermissionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Permission
+     */
+    select?: Nx00PermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Permission
+     */
+    omit?: Nx00PermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PermissionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Nx00RolePermission
+   */
+
+  export type AggregateNx00RolePermission = {
+    _count: Nx00RolePermissionCountAggregateOutputType | null
+    _min: Nx00RolePermissionMinAggregateOutputType | null
+    _max: Nx00RolePermissionMaxAggregateOutputType | null
+  }
+
+  export type Nx00RolePermissionMinAggregateOutputType = {
+    id: string | null
+    roleId: string | null
+    permissionId: string | null
+    createdAt: Date | null
+    createdBy: string | null
+  }
+
+  export type Nx00RolePermissionMaxAggregateOutputType = {
+    id: string | null
+    roleId: string | null
+    permissionId: string | null
+    createdAt: Date | null
+    createdBy: string | null
+  }
+
+  export type Nx00RolePermissionCountAggregateOutputType = {
+    id: number
+    roleId: number
+    permissionId: number
+    createdAt: number
+    createdBy: number
+    _all: number
+  }
+
+
+  export type Nx00RolePermissionMinAggregateInputType = {
+    id?: true
+    roleId?: true
+    permissionId?: true
+    createdAt?: true
+    createdBy?: true
+  }
+
+  export type Nx00RolePermissionMaxAggregateInputType = {
+    id?: true
+    roleId?: true
+    permissionId?: true
+    createdAt?: true
+    createdBy?: true
+  }
+
+  export type Nx00RolePermissionCountAggregateInputType = {
+    id?: true
+    roleId?: true
+    permissionId?: true
+    createdAt?: true
+    createdBy?: true
+    _all?: true
+  }
+
+  export type Nx00RolePermissionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00RolePermission to aggregate.
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00RolePermissions to fetch.
+     */
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00RolePermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00RolePermissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx00RolePermissions
+    **/
+    _count?: true | Nx00RolePermissionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx00RolePermissionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx00RolePermissionMaxAggregateInputType
+  }
+
+  export type GetNx00RolePermissionAggregateType<T extends Nx00RolePermissionAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00RolePermission]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx00RolePermission[P]>
+      : GetScalarType<T[P], AggregateNx00RolePermission[P]>
+  }
+
+
+
+
+  export type Nx00RolePermissionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00RolePermissionWhereInput
+    orderBy?: Nx00RolePermissionOrderByWithAggregationInput | Nx00RolePermissionOrderByWithAggregationInput[]
+    by: Nx00RolePermissionScalarFieldEnum[] | Nx00RolePermissionScalarFieldEnum
+    having?: Nx00RolePermissionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx00RolePermissionCountAggregateInputType | true
+    _min?: Nx00RolePermissionMinAggregateInputType
+    _max?: Nx00RolePermissionMaxAggregateInputType
+  }
+
+  export type Nx00RolePermissionGroupByOutputType = {
+    id: string
+    roleId: string
+    permissionId: string
+    createdAt: Date
+    createdBy: string | null
+    _count: Nx00RolePermissionCountAggregateOutputType | null
+    _min: Nx00RolePermissionMinAggregateOutputType | null
+    _max: Nx00RolePermissionMaxAggregateOutputType | null
+  }
+
+  type GetNx00RolePermissionGroupByPayload<T extends Nx00RolePermissionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx00RolePermissionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx00RolePermissionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx00RolePermissionGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00RolePermissionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx00RolePermissionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    roleId?: boolean
+    permissionId?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
+    permission?: boolean | Nx00PermissionDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00RolePermission$createdByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00RolePermission"]>
+
+  export type Nx00RolePermissionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    roleId?: boolean
+    permissionId?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
+    permission?: boolean | Nx00PermissionDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00RolePermission$createdByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00RolePermission"]>
+
+  export type Nx00RolePermissionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    roleId?: boolean
+    permissionId?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
+    permission?: boolean | Nx00PermissionDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00RolePermission$createdByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00RolePermission"]>
+
+  export type Nx00RolePermissionSelectScalar = {
+    id?: boolean
+    roleId?: boolean
+    permissionId?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+  }
+
+  export type Nx00RolePermissionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "roleId" | "permissionId" | "createdAt" | "createdBy", ExtArgs["result"]["nx00RolePermission"]>
+  export type Nx00RolePermissionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
+    permission?: boolean | Nx00PermissionDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00RolePermission$createdByUserArgs<ExtArgs>
+  }
+  export type Nx00RolePermissionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
+    permission?: boolean | Nx00PermissionDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00RolePermission$createdByUserArgs<ExtArgs>
+  }
+  export type Nx00RolePermissionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
+    permission?: boolean | Nx00PermissionDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00RolePermission$createdByUserArgs<ExtArgs>
+  }
+
+  export type $Nx00RolePermissionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00RolePermission"
+    objects: {
+      role: Prisma.$Nx00RolePayload<ExtArgs>
+      permission: Prisma.$Nx00PermissionPayload<ExtArgs>
+      createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      roleId: string
+      permissionId: string
+      createdAt: Date
+      createdBy: string | null
+    }, ExtArgs["result"]["nx00RolePermission"]>
+    composites: {}
+  }
+
+  type Nx00RolePermissionGetPayload<S extends boolean | null | undefined | Nx00RolePermissionDefaultArgs> = $Result.GetResult<Prisma.$Nx00RolePermissionPayload, S>
+
+  type Nx00RolePermissionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00RolePermissionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00RolePermissionCountAggregateInputType | true
+    }
+
+  export interface Nx00RolePermissionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00RolePermission'], meta: { name: 'Nx00RolePermission' } }
+    /**
+     * Find zero or one Nx00RolePermission that matches the filter.
+     * @param {Nx00RolePermissionFindUniqueArgs} args - Arguments to find a Nx00RolePermission
+     * @example
+     * // Get one Nx00RolePermission
+     * const nx00RolePermission = await prisma.nx00RolePermission.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx00RolePermissionFindUniqueArgs>(args: SelectSubset<T, Nx00RolePermissionFindUniqueArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx00RolePermission that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx00RolePermissionFindUniqueOrThrowArgs} args - Arguments to find a Nx00RolePermission
+     * @example
+     * // Get one Nx00RolePermission
+     * const nx00RolePermission = await prisma.nx00RolePermission.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx00RolePermissionFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00RolePermissionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00RolePermission that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionFindFirstArgs} args - Arguments to find a Nx00RolePermission
+     * @example
+     * // Get one Nx00RolePermission
+     * const nx00RolePermission = await prisma.nx00RolePermission.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx00RolePermissionFindFirstArgs>(args?: SelectSubset<T, Nx00RolePermissionFindFirstArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00RolePermission that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionFindFirstOrThrowArgs} args - Arguments to find a Nx00RolePermission
+     * @example
+     * // Get one Nx00RolePermission
+     * const nx00RolePermission = await prisma.nx00RolePermission.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx00RolePermissionFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00RolePermissionFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx00RolePermissions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx00RolePermissions
+     * const nx00RolePermissions = await prisma.nx00RolePermission.findMany()
+     * 
+     * // Get first 10 Nx00RolePermissions
+     * const nx00RolePermissions = await prisma.nx00RolePermission.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx00RolePermissionWithIdOnly = await prisma.nx00RolePermission.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx00RolePermissionFindManyArgs>(args?: SelectSubset<T, Nx00RolePermissionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx00RolePermission.
+     * @param {Nx00RolePermissionCreateArgs} args - Arguments to create a Nx00RolePermission.
+     * @example
+     * // Create one Nx00RolePermission
+     * const Nx00RolePermission = await prisma.nx00RolePermission.create({
+     *   data: {
+     *     // ... data to create a Nx00RolePermission
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx00RolePermissionCreateArgs>(args: SelectSubset<T, Nx00RolePermissionCreateArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx00RolePermissions.
+     * @param {Nx00RolePermissionCreateManyArgs} args - Arguments to create many Nx00RolePermissions.
+     * @example
+     * // Create many Nx00RolePermissions
+     * const nx00RolePermission = await prisma.nx00RolePermission.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx00RolePermissionCreateManyArgs>(args?: SelectSubset<T, Nx00RolePermissionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx00RolePermissions and returns the data saved in the database.
+     * @param {Nx00RolePermissionCreateManyAndReturnArgs} args - Arguments to create many Nx00RolePermissions.
+     * @example
+     * // Create many Nx00RolePermissions
+     * const nx00RolePermission = await prisma.nx00RolePermission.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx00RolePermissions and only return the `id`
+     * const nx00RolePermissionWithIdOnly = await prisma.nx00RolePermission.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx00RolePermissionCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00RolePermissionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx00RolePermission.
+     * @param {Nx00RolePermissionDeleteArgs} args - Arguments to delete one Nx00RolePermission.
+     * @example
+     * // Delete one Nx00RolePermission
+     * const Nx00RolePermission = await prisma.nx00RolePermission.delete({
+     *   where: {
+     *     // ... filter to delete one Nx00RolePermission
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx00RolePermissionDeleteArgs>(args: SelectSubset<T, Nx00RolePermissionDeleteArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx00RolePermission.
+     * @param {Nx00RolePermissionUpdateArgs} args - Arguments to update one Nx00RolePermission.
+     * @example
+     * // Update one Nx00RolePermission
+     * const nx00RolePermission = await prisma.nx00RolePermission.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx00RolePermissionUpdateArgs>(args: SelectSubset<T, Nx00RolePermissionUpdateArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx00RolePermissions.
+     * @param {Nx00RolePermissionDeleteManyArgs} args - Arguments to filter Nx00RolePermissions to delete.
+     * @example
+     * // Delete a few Nx00RolePermissions
+     * const { count } = await prisma.nx00RolePermission.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx00RolePermissionDeleteManyArgs>(args?: SelectSubset<T, Nx00RolePermissionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00RolePermissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx00RolePermissions
+     * const nx00RolePermission = await prisma.nx00RolePermission.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx00RolePermissionUpdateManyArgs>(args: SelectSubset<T, Nx00RolePermissionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00RolePermissions and returns the data updated in the database.
+     * @param {Nx00RolePermissionUpdateManyAndReturnArgs} args - Arguments to update many Nx00RolePermissions.
+     * @example
+     * // Update many Nx00RolePermissions
+     * const nx00RolePermission = await prisma.nx00RolePermission.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx00RolePermissions and only return the `id`
+     * const nx00RolePermissionWithIdOnly = await prisma.nx00RolePermission.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx00RolePermissionUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00RolePermissionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx00RolePermission.
+     * @param {Nx00RolePermissionUpsertArgs} args - Arguments to update or create a Nx00RolePermission.
+     * @example
+     * // Update or create a Nx00RolePermission
+     * const nx00RolePermission = await prisma.nx00RolePermission.upsert({
+     *   create: {
+     *     // ... data to create a Nx00RolePermission
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx00RolePermission we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx00RolePermissionUpsertArgs>(args: SelectSubset<T, Nx00RolePermissionUpsertArgs<ExtArgs>>): Prisma__Nx00RolePermissionClient<$Result.GetResult<Prisma.$Nx00RolePermissionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx00RolePermissions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionCountArgs} args - Arguments to filter Nx00RolePermissions to count.
+     * @example
+     * // Count the number of Nx00RolePermissions
+     * const count = await prisma.nx00RolePermission.count({
+     *   where: {
+     *     // ... the filter for the Nx00RolePermissions we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx00RolePermissionCountArgs>(
+      args?: Subset<T, Nx00RolePermissionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx00RolePermissionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx00RolePermission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx00RolePermissionAggregateArgs>(args: Subset<T, Nx00RolePermissionAggregateArgs>): Prisma.PrismaPromise<GetNx00RolePermissionAggregateType<T>>
+
+    /**
+     * Group by Nx00RolePermission.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00RolePermissionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx00RolePermissionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx00RolePermissionGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00RolePermissionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx00RolePermissionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00RolePermissionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx00RolePermission model
+   */
+  readonly fields: Nx00RolePermissionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx00RolePermission.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx00RolePermissionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    role<T extends Nx00RoleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00RoleDefaultArgs<ExtArgs>>): Prisma__Nx00RoleClient<$Result.GetResult<Prisma.$Nx00RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    permission<T extends Nx00PermissionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PermissionDefaultArgs<ExtArgs>>): Prisma__Nx00PermissionClient<$Result.GetResult<Prisma.$Nx00PermissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    createdByUser<T extends Nx00RolePermission$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00RolePermission$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx00RolePermission model
+   */
+  interface Nx00RolePermissionFieldRefs {
+    readonly id: FieldRef<"Nx00RolePermission", 'String'>
+    readonly roleId: FieldRef<"Nx00RolePermission", 'String'>
+    readonly permissionId: FieldRef<"Nx00RolePermission", 'String'>
+    readonly createdAt: FieldRef<"Nx00RolePermission", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx00RolePermission", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx00RolePermission findUnique
+   */
+  export type Nx00RolePermissionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00RolePermission to fetch.
+     */
+    where: Nx00RolePermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00RolePermission findUniqueOrThrow
+   */
+  export type Nx00RolePermissionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00RolePermission to fetch.
+     */
+    where: Nx00RolePermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00RolePermission findFirst
+   */
+  export type Nx00RolePermissionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00RolePermission to fetch.
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00RolePermissions to fetch.
+     */
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00RolePermissions.
+     */
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00RolePermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00RolePermissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00RolePermissions.
+     */
+    distinct?: Nx00RolePermissionScalarFieldEnum | Nx00RolePermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00RolePermission findFirstOrThrow
+   */
+  export type Nx00RolePermissionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00RolePermission to fetch.
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00RolePermissions to fetch.
+     */
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00RolePermissions.
+     */
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00RolePermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00RolePermissions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00RolePermissions.
+     */
+    distinct?: Nx00RolePermissionScalarFieldEnum | Nx00RolePermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00RolePermission findMany
+   */
+  export type Nx00RolePermissionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00RolePermissions to fetch.
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00RolePermissions to fetch.
+     */
+    orderBy?: Nx00RolePermissionOrderByWithRelationInput | Nx00RolePermissionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx00RolePermissions.
+     */
+    cursor?: Nx00RolePermissionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00RolePermissions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00RolePermissions.
+     */
+    skip?: number
+    distinct?: Nx00RolePermissionScalarFieldEnum | Nx00RolePermissionScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00RolePermission create
+   */
+  export type Nx00RolePermissionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx00RolePermission.
+     */
+    data: XOR<Nx00RolePermissionCreateInput, Nx00RolePermissionUncheckedCreateInput>
+  }
+
+  /**
+   * Nx00RolePermission createMany
+   */
+  export type Nx00RolePermissionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx00RolePermissions.
+     */
+    data: Nx00RolePermissionCreateManyInput | Nx00RolePermissionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx00RolePermission createManyAndReturn
+   */
+  export type Nx00RolePermissionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx00RolePermissions.
+     */
+    data: Nx00RolePermissionCreateManyInput | Nx00RolePermissionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00RolePermission update
+   */
+  export type Nx00RolePermissionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx00RolePermission.
+     */
+    data: XOR<Nx00RolePermissionUpdateInput, Nx00RolePermissionUncheckedUpdateInput>
+    /**
+     * Choose, which Nx00RolePermission to update.
+     */
+    where: Nx00RolePermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00RolePermission updateMany
+   */
+  export type Nx00RolePermissionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx00RolePermissions.
+     */
+    data: XOR<Nx00RolePermissionUpdateManyMutationInput, Nx00RolePermissionUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00RolePermissions to update
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * Limit how many Nx00RolePermissions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00RolePermission updateManyAndReturn
+   */
+  export type Nx00RolePermissionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx00RolePermissions.
+     */
+    data: XOR<Nx00RolePermissionUpdateManyMutationInput, Nx00RolePermissionUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00RolePermissions to update
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * Limit how many Nx00RolePermissions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00RolePermission upsert
+   */
+  export type Nx00RolePermissionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx00RolePermission to update in case it exists.
+     */
+    where: Nx00RolePermissionWhereUniqueInput
+    /**
+     * In case the Nx00RolePermission found by the `where` argument doesn't exist, create a new Nx00RolePermission with this data.
+     */
+    create: XOR<Nx00RolePermissionCreateInput, Nx00RolePermissionUncheckedCreateInput>
+    /**
+     * In case the Nx00RolePermission was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx00RolePermissionUpdateInput, Nx00RolePermissionUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx00RolePermission delete
+   */
+  export type Nx00RolePermissionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
+    /**
+     * Filter which Nx00RolePermission to delete.
+     */
+    where: Nx00RolePermissionWhereUniqueInput
+  }
+
+  /**
+   * Nx00RolePermission deleteMany
+   */
+  export type Nx00RolePermissionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00RolePermissions to delete
+     */
+    where?: Nx00RolePermissionWhereInput
+    /**
+     * Limit how many Nx00RolePermissions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00RolePermission.createdByUser
+   */
+  export type Nx00RolePermission$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00RolePermission without action
+   */
+  export type Nx00RolePermissionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00RolePermission
+     */
+    select?: Nx00RolePermissionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00RolePermission
+     */
+    omit?: Nx00RolePermissionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00RolePermissionInclude<ExtArgs> | null
   }
 
 
@@ -10508,6 +13901,4735 @@ export namespace Prisma {
 
 
   /**
+   * Model Nx00Warehouse
+   */
+
+  export type AggregateNx00Warehouse = {
+    _count: Nx00WarehouseCountAggregateOutputType | null
+    _min: Nx00WarehouseMinAggregateOutputType | null
+    _max: Nx00WarehouseMaxAggregateOutputType | null
+  }
+
+  export type Nx00WarehouseMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    isActive: boolean | null
+    remark: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00WarehouseMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    isActive: boolean | null
+    remark: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00WarehouseCountAggregateOutputType = {
+    id: number
+    code: number
+    name: number
+    isActive: number
+    remark: number
+    createdAt: number
+    createdBy: number
+    updatedAt: number
+    updatedBy: number
+    _all: number
+  }
+
+
+  export type Nx00WarehouseMinAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00WarehouseMaxAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00WarehouseCountAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+    _all?: true
+  }
+
+  export type Nx00WarehouseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00Warehouse to aggregate.
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Warehouses to fetch.
+     */
+    orderBy?: Nx00WarehouseOrderByWithRelationInput | Nx00WarehouseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx00WarehouseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Warehouses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Warehouses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx00Warehouses
+    **/
+    _count?: true | Nx00WarehouseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx00WarehouseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx00WarehouseMaxAggregateInputType
+  }
+
+  export type GetNx00WarehouseAggregateType<T extends Nx00WarehouseAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00Warehouse]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx00Warehouse[P]>
+      : GetScalarType<T[P], AggregateNx00Warehouse[P]>
+  }
+
+
+
+
+  export type Nx00WarehouseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00WarehouseWhereInput
+    orderBy?: Nx00WarehouseOrderByWithAggregationInput | Nx00WarehouseOrderByWithAggregationInput[]
+    by: Nx00WarehouseScalarFieldEnum[] | Nx00WarehouseScalarFieldEnum
+    having?: Nx00WarehouseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx00WarehouseCountAggregateInputType | true
+    _min?: Nx00WarehouseMinAggregateInputType
+    _max?: Nx00WarehouseMaxAggregateInputType
+  }
+
+  export type Nx00WarehouseGroupByOutputType = {
+    id: string
+    code: string
+    name: string
+    isActive: boolean
+    remark: string | null
+    createdAt: Date
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+    _count: Nx00WarehouseCountAggregateOutputType | null
+    _min: Nx00WarehouseMinAggregateOutputType | null
+    _max: Nx00WarehouseMaxAggregateOutputType | null
+  }
+
+  type GetNx00WarehouseGroupByPayload<T extends Nx00WarehouseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx00WarehouseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx00WarehouseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx00WarehouseGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00WarehouseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx00WarehouseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00Warehouse$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Warehouse$updatedByUserArgs<ExtArgs>
+    locations?: boolean | Nx00Warehouse$locationsArgs<ExtArgs>
+    _count?: boolean | Nx00WarehouseCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Warehouse"]>
+
+  export type Nx00WarehouseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00Warehouse$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Warehouse$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Warehouse"]>
+
+  export type Nx00WarehouseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00Warehouse$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Warehouse$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Warehouse"]>
+
+  export type Nx00WarehouseSelectScalar = {
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+  }
+
+  export type Nx00WarehouseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "name" | "isActive" | "remark" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00Warehouse"]>
+  export type Nx00WarehouseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00Warehouse$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Warehouse$updatedByUserArgs<ExtArgs>
+    locations?: boolean | Nx00Warehouse$locationsArgs<ExtArgs>
+    _count?: boolean | Nx00WarehouseCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type Nx00WarehouseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00Warehouse$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Warehouse$updatedByUserArgs<ExtArgs>
+  }
+  export type Nx00WarehouseIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00Warehouse$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Warehouse$updatedByUserArgs<ExtArgs>
+  }
+
+  export type $Nx00WarehousePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00Warehouse"
+    objects: {
+      createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      locations: Prisma.$Nx00LocationPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      name: string
+      isActive: boolean
+      remark: string | null
+      createdAt: Date
+      createdBy: string | null
+      updatedAt: Date | null
+      updatedBy: string | null
+    }, ExtArgs["result"]["nx00Warehouse"]>
+    composites: {}
+  }
+
+  type Nx00WarehouseGetPayload<S extends boolean | null | undefined | Nx00WarehouseDefaultArgs> = $Result.GetResult<Prisma.$Nx00WarehousePayload, S>
+
+  type Nx00WarehouseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00WarehouseFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00WarehouseCountAggregateInputType | true
+    }
+
+  export interface Nx00WarehouseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00Warehouse'], meta: { name: 'Nx00Warehouse' } }
+    /**
+     * Find zero or one Nx00Warehouse that matches the filter.
+     * @param {Nx00WarehouseFindUniqueArgs} args - Arguments to find a Nx00Warehouse
+     * @example
+     * // Get one Nx00Warehouse
+     * const nx00Warehouse = await prisma.nx00Warehouse.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx00WarehouseFindUniqueArgs>(args: SelectSubset<T, Nx00WarehouseFindUniqueArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx00Warehouse that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx00WarehouseFindUniqueOrThrowArgs} args - Arguments to find a Nx00Warehouse
+     * @example
+     * // Get one Nx00Warehouse
+     * const nx00Warehouse = await prisma.nx00Warehouse.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx00WarehouseFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00WarehouseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00Warehouse that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseFindFirstArgs} args - Arguments to find a Nx00Warehouse
+     * @example
+     * // Get one Nx00Warehouse
+     * const nx00Warehouse = await prisma.nx00Warehouse.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx00WarehouseFindFirstArgs>(args?: SelectSubset<T, Nx00WarehouseFindFirstArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00Warehouse that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseFindFirstOrThrowArgs} args - Arguments to find a Nx00Warehouse
+     * @example
+     * // Get one Nx00Warehouse
+     * const nx00Warehouse = await prisma.nx00Warehouse.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx00WarehouseFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00WarehouseFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx00Warehouses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx00Warehouses
+     * const nx00Warehouses = await prisma.nx00Warehouse.findMany()
+     * 
+     * // Get first 10 Nx00Warehouses
+     * const nx00Warehouses = await prisma.nx00Warehouse.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx00WarehouseWithIdOnly = await prisma.nx00Warehouse.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx00WarehouseFindManyArgs>(args?: SelectSubset<T, Nx00WarehouseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx00Warehouse.
+     * @param {Nx00WarehouseCreateArgs} args - Arguments to create a Nx00Warehouse.
+     * @example
+     * // Create one Nx00Warehouse
+     * const Nx00Warehouse = await prisma.nx00Warehouse.create({
+     *   data: {
+     *     // ... data to create a Nx00Warehouse
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx00WarehouseCreateArgs>(args: SelectSubset<T, Nx00WarehouseCreateArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx00Warehouses.
+     * @param {Nx00WarehouseCreateManyArgs} args - Arguments to create many Nx00Warehouses.
+     * @example
+     * // Create many Nx00Warehouses
+     * const nx00Warehouse = await prisma.nx00Warehouse.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx00WarehouseCreateManyArgs>(args?: SelectSubset<T, Nx00WarehouseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx00Warehouses and returns the data saved in the database.
+     * @param {Nx00WarehouseCreateManyAndReturnArgs} args - Arguments to create many Nx00Warehouses.
+     * @example
+     * // Create many Nx00Warehouses
+     * const nx00Warehouse = await prisma.nx00Warehouse.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx00Warehouses and only return the `id`
+     * const nx00WarehouseWithIdOnly = await prisma.nx00Warehouse.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx00WarehouseCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00WarehouseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx00Warehouse.
+     * @param {Nx00WarehouseDeleteArgs} args - Arguments to delete one Nx00Warehouse.
+     * @example
+     * // Delete one Nx00Warehouse
+     * const Nx00Warehouse = await prisma.nx00Warehouse.delete({
+     *   where: {
+     *     // ... filter to delete one Nx00Warehouse
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx00WarehouseDeleteArgs>(args: SelectSubset<T, Nx00WarehouseDeleteArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx00Warehouse.
+     * @param {Nx00WarehouseUpdateArgs} args - Arguments to update one Nx00Warehouse.
+     * @example
+     * // Update one Nx00Warehouse
+     * const nx00Warehouse = await prisma.nx00Warehouse.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx00WarehouseUpdateArgs>(args: SelectSubset<T, Nx00WarehouseUpdateArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx00Warehouses.
+     * @param {Nx00WarehouseDeleteManyArgs} args - Arguments to filter Nx00Warehouses to delete.
+     * @example
+     * // Delete a few Nx00Warehouses
+     * const { count } = await prisma.nx00Warehouse.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx00WarehouseDeleteManyArgs>(args?: SelectSubset<T, Nx00WarehouseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00Warehouses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx00Warehouses
+     * const nx00Warehouse = await prisma.nx00Warehouse.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx00WarehouseUpdateManyArgs>(args: SelectSubset<T, Nx00WarehouseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00Warehouses and returns the data updated in the database.
+     * @param {Nx00WarehouseUpdateManyAndReturnArgs} args - Arguments to update many Nx00Warehouses.
+     * @example
+     * // Update many Nx00Warehouses
+     * const nx00Warehouse = await prisma.nx00Warehouse.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx00Warehouses and only return the `id`
+     * const nx00WarehouseWithIdOnly = await prisma.nx00Warehouse.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx00WarehouseUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00WarehouseUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx00Warehouse.
+     * @param {Nx00WarehouseUpsertArgs} args - Arguments to update or create a Nx00Warehouse.
+     * @example
+     * // Update or create a Nx00Warehouse
+     * const nx00Warehouse = await prisma.nx00Warehouse.upsert({
+     *   create: {
+     *     // ... data to create a Nx00Warehouse
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx00Warehouse we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx00WarehouseUpsertArgs>(args: SelectSubset<T, Nx00WarehouseUpsertArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx00Warehouses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseCountArgs} args - Arguments to filter Nx00Warehouses to count.
+     * @example
+     * // Count the number of Nx00Warehouses
+     * const count = await prisma.nx00Warehouse.count({
+     *   where: {
+     *     // ... the filter for the Nx00Warehouses we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx00WarehouseCountArgs>(
+      args?: Subset<T, Nx00WarehouseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx00WarehouseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx00Warehouse.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx00WarehouseAggregateArgs>(args: Subset<T, Nx00WarehouseAggregateArgs>): Prisma.PrismaPromise<GetNx00WarehouseAggregateType<T>>
+
+    /**
+     * Group by Nx00Warehouse.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00WarehouseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx00WarehouseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx00WarehouseGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00WarehouseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx00WarehouseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00WarehouseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx00Warehouse model
+   */
+  readonly fields: Nx00WarehouseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx00Warehouse.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx00WarehouseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    createdByUser<T extends Nx00Warehouse$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Warehouse$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    updatedByUser<T extends Nx00Warehouse$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Warehouse$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    locations<T extends Nx00Warehouse$locationsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Warehouse$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx00Warehouse model
+   */
+  interface Nx00WarehouseFieldRefs {
+    readonly id: FieldRef<"Nx00Warehouse", 'String'>
+    readonly code: FieldRef<"Nx00Warehouse", 'String'>
+    readonly name: FieldRef<"Nx00Warehouse", 'String'>
+    readonly isActive: FieldRef<"Nx00Warehouse", 'Boolean'>
+    readonly remark: FieldRef<"Nx00Warehouse", 'String'>
+    readonly createdAt: FieldRef<"Nx00Warehouse", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx00Warehouse", 'String'>
+    readonly updatedAt: FieldRef<"Nx00Warehouse", 'DateTime'>
+    readonly updatedBy: FieldRef<"Nx00Warehouse", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx00Warehouse findUnique
+   */
+  export type Nx00WarehouseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Warehouse to fetch.
+     */
+    where: Nx00WarehouseWhereUniqueInput
+  }
+
+  /**
+   * Nx00Warehouse findUniqueOrThrow
+   */
+  export type Nx00WarehouseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Warehouse to fetch.
+     */
+    where: Nx00WarehouseWhereUniqueInput
+  }
+
+  /**
+   * Nx00Warehouse findFirst
+   */
+  export type Nx00WarehouseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Warehouse to fetch.
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Warehouses to fetch.
+     */
+    orderBy?: Nx00WarehouseOrderByWithRelationInput | Nx00WarehouseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00Warehouses.
+     */
+    cursor?: Nx00WarehouseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Warehouses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Warehouses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00Warehouses.
+     */
+    distinct?: Nx00WarehouseScalarFieldEnum | Nx00WarehouseScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Warehouse findFirstOrThrow
+   */
+  export type Nx00WarehouseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Warehouse to fetch.
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Warehouses to fetch.
+     */
+    orderBy?: Nx00WarehouseOrderByWithRelationInput | Nx00WarehouseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00Warehouses.
+     */
+    cursor?: Nx00WarehouseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Warehouses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Warehouses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00Warehouses.
+     */
+    distinct?: Nx00WarehouseScalarFieldEnum | Nx00WarehouseScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Warehouse findMany
+   */
+  export type Nx00WarehouseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Warehouses to fetch.
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Warehouses to fetch.
+     */
+    orderBy?: Nx00WarehouseOrderByWithRelationInput | Nx00WarehouseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx00Warehouses.
+     */
+    cursor?: Nx00WarehouseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Warehouses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Warehouses.
+     */
+    skip?: number
+    distinct?: Nx00WarehouseScalarFieldEnum | Nx00WarehouseScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Warehouse create
+   */
+  export type Nx00WarehouseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx00Warehouse.
+     */
+    data: XOR<Nx00WarehouseCreateInput, Nx00WarehouseUncheckedCreateInput>
+  }
+
+  /**
+   * Nx00Warehouse createMany
+   */
+  export type Nx00WarehouseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx00Warehouses.
+     */
+    data: Nx00WarehouseCreateManyInput | Nx00WarehouseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx00Warehouse createManyAndReturn
+   */
+  export type Nx00WarehouseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx00Warehouses.
+     */
+    data: Nx00WarehouseCreateManyInput | Nx00WarehouseCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00Warehouse update
+   */
+  export type Nx00WarehouseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx00Warehouse.
+     */
+    data: XOR<Nx00WarehouseUpdateInput, Nx00WarehouseUncheckedUpdateInput>
+    /**
+     * Choose, which Nx00Warehouse to update.
+     */
+    where: Nx00WarehouseWhereUniqueInput
+  }
+
+  /**
+   * Nx00Warehouse updateMany
+   */
+  export type Nx00WarehouseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx00Warehouses.
+     */
+    data: XOR<Nx00WarehouseUpdateManyMutationInput, Nx00WarehouseUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00Warehouses to update
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * Limit how many Nx00Warehouses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00Warehouse updateManyAndReturn
+   */
+  export type Nx00WarehouseUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx00Warehouses.
+     */
+    data: XOR<Nx00WarehouseUpdateManyMutationInput, Nx00WarehouseUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00Warehouses to update
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * Limit how many Nx00Warehouses to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00Warehouse upsert
+   */
+  export type Nx00WarehouseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx00Warehouse to update in case it exists.
+     */
+    where: Nx00WarehouseWhereUniqueInput
+    /**
+     * In case the Nx00Warehouse found by the `where` argument doesn't exist, create a new Nx00Warehouse with this data.
+     */
+    create: XOR<Nx00WarehouseCreateInput, Nx00WarehouseUncheckedCreateInput>
+    /**
+     * In case the Nx00Warehouse was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx00WarehouseUpdateInput, Nx00WarehouseUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx00Warehouse delete
+   */
+  export type Nx00WarehouseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+    /**
+     * Filter which Nx00Warehouse to delete.
+     */
+    where: Nx00WarehouseWhereUniqueInput
+  }
+
+  /**
+   * Nx00Warehouse deleteMany
+   */
+  export type Nx00WarehouseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00Warehouses to delete
+     */
+    where?: Nx00WarehouseWhereInput
+    /**
+     * Limit how many Nx00Warehouses to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00Warehouse.createdByUser
+   */
+  export type Nx00Warehouse$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00Warehouse.updatedByUser
+   */
+  export type Nx00Warehouse$updatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00Warehouse.locations
+   */
+  export type Nx00Warehouse$locationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    where?: Nx00LocationWhereInput
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    cursor?: Nx00LocationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00LocationScalarFieldEnum | Nx00LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Warehouse without action
+   */
+  export type Nx00WarehouseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Warehouse
+     */
+    select?: Nx00WarehouseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Warehouse
+     */
+    omit?: Nx00WarehouseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00WarehouseInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Nx00Location
+   */
+
+  export type AggregateNx00Location = {
+    _count: Nx00LocationCountAggregateOutputType | null
+    _min: Nx00LocationMinAggregateOutputType | null
+    _max: Nx00LocationMaxAggregateOutputType | null
+  }
+
+  export type Nx00LocationMinAggregateOutputType = {
+    id: string | null
+    warehouseId: string | null
+    code: string | null
+    name: string | null
+    isActive: boolean | null
+    remark: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00LocationMaxAggregateOutputType = {
+    id: string | null
+    warehouseId: string | null
+    code: string | null
+    name: string | null
+    isActive: boolean | null
+    remark: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00LocationCountAggregateOutputType = {
+    id: number
+    warehouseId: number
+    code: number
+    name: number
+    isActive: number
+    remark: number
+    createdAt: number
+    createdBy: number
+    updatedAt: number
+    updatedBy: number
+    _all: number
+  }
+
+
+  export type Nx00LocationMinAggregateInputType = {
+    id?: true
+    warehouseId?: true
+    code?: true
+    name?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00LocationMaxAggregateInputType = {
+    id?: true
+    warehouseId?: true
+    code?: true
+    name?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00LocationCountAggregateInputType = {
+    id?: true
+    warehouseId?: true
+    code?: true
+    name?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+    _all?: true
+  }
+
+  export type Nx00LocationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00Location to aggregate.
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Locations to fetch.
+     */
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx00LocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Locations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Locations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx00Locations
+    **/
+    _count?: true | Nx00LocationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx00LocationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx00LocationMaxAggregateInputType
+  }
+
+  export type GetNx00LocationAggregateType<T extends Nx00LocationAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00Location]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx00Location[P]>
+      : GetScalarType<T[P], AggregateNx00Location[P]>
+  }
+
+
+
+
+  export type Nx00LocationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00LocationWhereInput
+    orderBy?: Nx00LocationOrderByWithAggregationInput | Nx00LocationOrderByWithAggregationInput[]
+    by: Nx00LocationScalarFieldEnum[] | Nx00LocationScalarFieldEnum
+    having?: Nx00LocationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx00LocationCountAggregateInputType | true
+    _min?: Nx00LocationMinAggregateInputType
+    _max?: Nx00LocationMaxAggregateInputType
+  }
+
+  export type Nx00LocationGroupByOutputType = {
+    id: string
+    warehouseId: string
+    code: string
+    name: string | null
+    isActive: boolean
+    remark: string | null
+    createdAt: Date
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+    _count: Nx00LocationCountAggregateOutputType | null
+    _min: Nx00LocationMinAggregateOutputType | null
+    _max: Nx00LocationMaxAggregateOutputType | null
+  }
+
+  type GetNx00LocationGroupByPayload<T extends Nx00LocationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx00LocationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx00LocationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx00LocationGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00LocationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx00LocationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    warehouseId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    warehouse?: boolean | Nx00WarehouseDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00Location$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Location$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Location"]>
+
+  export type Nx00LocationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    warehouseId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    warehouse?: boolean | Nx00WarehouseDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00Location$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Location$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Location"]>
+
+  export type Nx00LocationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    warehouseId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    warehouse?: boolean | Nx00WarehouseDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00Location$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Location$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00Location"]>
+
+  export type Nx00LocationSelectScalar = {
+    id?: boolean
+    warehouseId?: boolean
+    code?: boolean
+    name?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+  }
+
+  export type Nx00LocationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "warehouseId" | "code" | "name" | "isActive" | "remark" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00Location"]>
+  export type Nx00LocationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    warehouse?: boolean | Nx00WarehouseDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00Location$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Location$updatedByUserArgs<ExtArgs>
+  }
+  export type Nx00LocationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    warehouse?: boolean | Nx00WarehouseDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00Location$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Location$updatedByUserArgs<ExtArgs>
+  }
+  export type Nx00LocationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    warehouse?: boolean | Nx00WarehouseDefaultArgs<ExtArgs>
+    createdByUser?: boolean | Nx00Location$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00Location$updatedByUserArgs<ExtArgs>
+  }
+
+  export type $Nx00LocationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00Location"
+    objects: {
+      warehouse: Prisma.$Nx00WarehousePayload<ExtArgs>
+      createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      warehouseId: string
+      code: string
+      name: string | null
+      isActive: boolean
+      remark: string | null
+      createdAt: Date
+      createdBy: string | null
+      updatedAt: Date | null
+      updatedBy: string | null
+    }, ExtArgs["result"]["nx00Location"]>
+    composites: {}
+  }
+
+  type Nx00LocationGetPayload<S extends boolean | null | undefined | Nx00LocationDefaultArgs> = $Result.GetResult<Prisma.$Nx00LocationPayload, S>
+
+  type Nx00LocationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00LocationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00LocationCountAggregateInputType | true
+    }
+
+  export interface Nx00LocationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00Location'], meta: { name: 'Nx00Location' } }
+    /**
+     * Find zero or one Nx00Location that matches the filter.
+     * @param {Nx00LocationFindUniqueArgs} args - Arguments to find a Nx00Location
+     * @example
+     * // Get one Nx00Location
+     * const nx00Location = await prisma.nx00Location.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx00LocationFindUniqueArgs>(args: SelectSubset<T, Nx00LocationFindUniqueArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx00Location that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx00LocationFindUniqueOrThrowArgs} args - Arguments to find a Nx00Location
+     * @example
+     * // Get one Nx00Location
+     * const nx00Location = await prisma.nx00Location.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx00LocationFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00LocationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00Location that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationFindFirstArgs} args - Arguments to find a Nx00Location
+     * @example
+     * // Get one Nx00Location
+     * const nx00Location = await prisma.nx00Location.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx00LocationFindFirstArgs>(args?: SelectSubset<T, Nx00LocationFindFirstArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00Location that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationFindFirstOrThrowArgs} args - Arguments to find a Nx00Location
+     * @example
+     * // Get one Nx00Location
+     * const nx00Location = await prisma.nx00Location.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx00LocationFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00LocationFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx00Locations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx00Locations
+     * const nx00Locations = await prisma.nx00Location.findMany()
+     * 
+     * // Get first 10 Nx00Locations
+     * const nx00Locations = await prisma.nx00Location.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx00LocationWithIdOnly = await prisma.nx00Location.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx00LocationFindManyArgs>(args?: SelectSubset<T, Nx00LocationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx00Location.
+     * @param {Nx00LocationCreateArgs} args - Arguments to create a Nx00Location.
+     * @example
+     * // Create one Nx00Location
+     * const Nx00Location = await prisma.nx00Location.create({
+     *   data: {
+     *     // ... data to create a Nx00Location
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx00LocationCreateArgs>(args: SelectSubset<T, Nx00LocationCreateArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx00Locations.
+     * @param {Nx00LocationCreateManyArgs} args - Arguments to create many Nx00Locations.
+     * @example
+     * // Create many Nx00Locations
+     * const nx00Location = await prisma.nx00Location.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx00LocationCreateManyArgs>(args?: SelectSubset<T, Nx00LocationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx00Locations and returns the data saved in the database.
+     * @param {Nx00LocationCreateManyAndReturnArgs} args - Arguments to create many Nx00Locations.
+     * @example
+     * // Create many Nx00Locations
+     * const nx00Location = await prisma.nx00Location.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx00Locations and only return the `id`
+     * const nx00LocationWithIdOnly = await prisma.nx00Location.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx00LocationCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00LocationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx00Location.
+     * @param {Nx00LocationDeleteArgs} args - Arguments to delete one Nx00Location.
+     * @example
+     * // Delete one Nx00Location
+     * const Nx00Location = await prisma.nx00Location.delete({
+     *   where: {
+     *     // ... filter to delete one Nx00Location
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx00LocationDeleteArgs>(args: SelectSubset<T, Nx00LocationDeleteArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx00Location.
+     * @param {Nx00LocationUpdateArgs} args - Arguments to update one Nx00Location.
+     * @example
+     * // Update one Nx00Location
+     * const nx00Location = await prisma.nx00Location.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx00LocationUpdateArgs>(args: SelectSubset<T, Nx00LocationUpdateArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx00Locations.
+     * @param {Nx00LocationDeleteManyArgs} args - Arguments to filter Nx00Locations to delete.
+     * @example
+     * // Delete a few Nx00Locations
+     * const { count } = await prisma.nx00Location.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx00LocationDeleteManyArgs>(args?: SelectSubset<T, Nx00LocationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00Locations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx00Locations
+     * const nx00Location = await prisma.nx00Location.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx00LocationUpdateManyArgs>(args: SelectSubset<T, Nx00LocationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00Locations and returns the data updated in the database.
+     * @param {Nx00LocationUpdateManyAndReturnArgs} args - Arguments to update many Nx00Locations.
+     * @example
+     * // Update many Nx00Locations
+     * const nx00Location = await prisma.nx00Location.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx00Locations and only return the `id`
+     * const nx00LocationWithIdOnly = await prisma.nx00Location.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx00LocationUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00LocationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx00Location.
+     * @param {Nx00LocationUpsertArgs} args - Arguments to update or create a Nx00Location.
+     * @example
+     * // Update or create a Nx00Location
+     * const nx00Location = await prisma.nx00Location.upsert({
+     *   create: {
+     *     // ... data to create a Nx00Location
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx00Location we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx00LocationUpsertArgs>(args: SelectSubset<T, Nx00LocationUpsertArgs<ExtArgs>>): Prisma__Nx00LocationClient<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx00Locations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationCountArgs} args - Arguments to filter Nx00Locations to count.
+     * @example
+     * // Count the number of Nx00Locations
+     * const count = await prisma.nx00Location.count({
+     *   where: {
+     *     // ... the filter for the Nx00Locations we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx00LocationCountArgs>(
+      args?: Subset<T, Nx00LocationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx00LocationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx00Location.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx00LocationAggregateArgs>(args: Subset<T, Nx00LocationAggregateArgs>): Prisma.PrismaPromise<GetNx00LocationAggregateType<T>>
+
+    /**
+     * Group by Nx00Location.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00LocationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx00LocationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx00LocationGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00LocationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx00LocationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00LocationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx00Location model
+   */
+  readonly fields: Nx00LocationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx00Location.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx00LocationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    warehouse<T extends Nx00WarehouseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00WarehouseDefaultArgs<ExtArgs>>): Prisma__Nx00WarehouseClient<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    createdByUser<T extends Nx00Location$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Location$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    updatedByUser<T extends Nx00Location$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Location$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx00Location model
+   */
+  interface Nx00LocationFieldRefs {
+    readonly id: FieldRef<"Nx00Location", 'String'>
+    readonly warehouseId: FieldRef<"Nx00Location", 'String'>
+    readonly code: FieldRef<"Nx00Location", 'String'>
+    readonly name: FieldRef<"Nx00Location", 'String'>
+    readonly isActive: FieldRef<"Nx00Location", 'Boolean'>
+    readonly remark: FieldRef<"Nx00Location", 'String'>
+    readonly createdAt: FieldRef<"Nx00Location", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx00Location", 'String'>
+    readonly updatedAt: FieldRef<"Nx00Location", 'DateTime'>
+    readonly updatedBy: FieldRef<"Nx00Location", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx00Location findUnique
+   */
+  export type Nx00LocationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Location to fetch.
+     */
+    where: Nx00LocationWhereUniqueInput
+  }
+
+  /**
+   * Nx00Location findUniqueOrThrow
+   */
+  export type Nx00LocationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Location to fetch.
+     */
+    where: Nx00LocationWhereUniqueInput
+  }
+
+  /**
+   * Nx00Location findFirst
+   */
+  export type Nx00LocationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Location to fetch.
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Locations to fetch.
+     */
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00Locations.
+     */
+    cursor?: Nx00LocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Locations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Locations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00Locations.
+     */
+    distinct?: Nx00LocationScalarFieldEnum | Nx00LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Location findFirstOrThrow
+   */
+  export type Nx00LocationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Location to fetch.
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Locations to fetch.
+     */
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00Locations.
+     */
+    cursor?: Nx00LocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Locations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Locations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00Locations.
+     */
+    distinct?: Nx00LocationScalarFieldEnum | Nx00LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Location findMany
+   */
+  export type Nx00LocationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00Locations to fetch.
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00Locations to fetch.
+     */
+    orderBy?: Nx00LocationOrderByWithRelationInput | Nx00LocationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx00Locations.
+     */
+    cursor?: Nx00LocationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00Locations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00Locations.
+     */
+    skip?: number
+    distinct?: Nx00LocationScalarFieldEnum | Nx00LocationScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00Location create
+   */
+  export type Nx00LocationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx00Location.
+     */
+    data: XOR<Nx00LocationCreateInput, Nx00LocationUncheckedCreateInput>
+  }
+
+  /**
+   * Nx00Location createMany
+   */
+  export type Nx00LocationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx00Locations.
+     */
+    data: Nx00LocationCreateManyInput | Nx00LocationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx00Location createManyAndReturn
+   */
+  export type Nx00LocationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx00Locations.
+     */
+    data: Nx00LocationCreateManyInput | Nx00LocationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00Location update
+   */
+  export type Nx00LocationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx00Location.
+     */
+    data: XOR<Nx00LocationUpdateInput, Nx00LocationUncheckedUpdateInput>
+    /**
+     * Choose, which Nx00Location to update.
+     */
+    where: Nx00LocationWhereUniqueInput
+  }
+
+  /**
+   * Nx00Location updateMany
+   */
+  export type Nx00LocationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx00Locations.
+     */
+    data: XOR<Nx00LocationUpdateManyMutationInput, Nx00LocationUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00Locations to update
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * Limit how many Nx00Locations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00Location updateManyAndReturn
+   */
+  export type Nx00LocationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx00Locations.
+     */
+    data: XOR<Nx00LocationUpdateManyMutationInput, Nx00LocationUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00Locations to update
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * Limit how many Nx00Locations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00Location upsert
+   */
+  export type Nx00LocationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx00Location to update in case it exists.
+     */
+    where: Nx00LocationWhereUniqueInput
+    /**
+     * In case the Nx00Location found by the `where` argument doesn't exist, create a new Nx00Location with this data.
+     */
+    create: XOR<Nx00LocationCreateInput, Nx00LocationUncheckedCreateInput>
+    /**
+     * In case the Nx00Location was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx00LocationUpdateInput, Nx00LocationUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx00Location delete
+   */
+  export type Nx00LocationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+    /**
+     * Filter which Nx00Location to delete.
+     */
+    where: Nx00LocationWhereUniqueInput
+  }
+
+  /**
+   * Nx00Location deleteMany
+   */
+  export type Nx00LocationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00Locations to delete
+     */
+    where?: Nx00LocationWhereInput
+    /**
+     * Limit how many Nx00Locations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00Location.createdByUser
+   */
+  export type Nx00Location$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00Location.updatedByUser
+   */
+  export type Nx00Location$updatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00Location without action
+   */
+  export type Nx00LocationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00Location
+     */
+    select?: Nx00LocationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00Location
+     */
+    omit?: Nx00LocationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00LocationInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Nx00BusinessPartner
+   */
+
+  export type AggregateNx00BusinessPartner = {
+    _count: Nx00BusinessPartnerCountAggregateOutputType | null
+    _min: Nx00BusinessPartnerMinAggregateOutputType | null
+    _max: Nx00BusinessPartnerMaxAggregateOutputType | null
+  }
+
+  export type Nx00BusinessPartnerMinAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    taxId: string | null
+    phone: string | null
+    email: string | null
+    address: string | null
+    isCustomer: boolean | null
+    isVendor: boolean | null
+    isActive: boolean | null
+    remark: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00BusinessPartnerMaxAggregateOutputType = {
+    id: string | null
+    code: string | null
+    name: string | null
+    taxId: string | null
+    phone: string | null
+    email: string | null
+    address: string | null
+    isCustomer: boolean | null
+    isVendor: boolean | null
+    isActive: boolean | null
+    remark: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx00BusinessPartnerCountAggregateOutputType = {
+    id: number
+    code: number
+    name: number
+    taxId: number
+    phone: number
+    email: number
+    address: number
+    isCustomer: number
+    isVendor: number
+    isActive: number
+    remark: number
+    createdAt: number
+    createdBy: number
+    updatedAt: number
+    updatedBy: number
+    _all: number
+  }
+
+
+  export type Nx00BusinessPartnerMinAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    taxId?: true
+    phone?: true
+    email?: true
+    address?: true
+    isCustomer?: true
+    isVendor?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00BusinessPartnerMaxAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    taxId?: true
+    phone?: true
+    email?: true
+    address?: true
+    isCustomer?: true
+    isVendor?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx00BusinessPartnerCountAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    taxId?: true
+    phone?: true
+    email?: true
+    address?: true
+    isCustomer?: true
+    isVendor?: true
+    isActive?: true
+    remark?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+    _all?: true
+  }
+
+  export type Nx00BusinessPartnerAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00BusinessPartner to aggregate.
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00BusinessPartners to fetch.
+     */
+    orderBy?: Nx00BusinessPartnerOrderByWithRelationInput | Nx00BusinessPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx00BusinessPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00BusinessPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00BusinessPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx00BusinessPartners
+    **/
+    _count?: true | Nx00BusinessPartnerCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx00BusinessPartnerMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx00BusinessPartnerMaxAggregateInputType
+  }
+
+  export type GetNx00BusinessPartnerAggregateType<T extends Nx00BusinessPartnerAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00BusinessPartner]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx00BusinessPartner[P]>
+      : GetScalarType<T[P], AggregateNx00BusinessPartner[P]>
+  }
+
+
+
+
+  export type Nx00BusinessPartnerGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BusinessPartnerWhereInput
+    orderBy?: Nx00BusinessPartnerOrderByWithAggregationInput | Nx00BusinessPartnerOrderByWithAggregationInput[]
+    by: Nx00BusinessPartnerScalarFieldEnum[] | Nx00BusinessPartnerScalarFieldEnum
+    having?: Nx00BusinessPartnerScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx00BusinessPartnerCountAggregateInputType | true
+    _min?: Nx00BusinessPartnerMinAggregateInputType
+    _max?: Nx00BusinessPartnerMaxAggregateInputType
+  }
+
+  export type Nx00BusinessPartnerGroupByOutputType = {
+    id: string
+    code: string
+    name: string
+    taxId: string | null
+    phone: string | null
+    email: string | null
+    address: string | null
+    isCustomer: boolean
+    isVendor: boolean
+    isActive: boolean
+    remark: string | null
+    createdAt: Date
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+    _count: Nx00BusinessPartnerCountAggregateOutputType | null
+    _min: Nx00BusinessPartnerMinAggregateOutputType | null
+    _max: Nx00BusinessPartnerMaxAggregateOutputType | null
+  }
+
+  type GetNx00BusinessPartnerGroupByPayload<T extends Nx00BusinessPartnerGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx00BusinessPartnerGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx00BusinessPartnerGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx00BusinessPartnerGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00BusinessPartnerGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx00BusinessPartnerSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    taxId?: boolean
+    phone?: boolean
+    email?: boolean
+    address?: boolean
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00BusinessPartner$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BusinessPartner$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00BusinessPartner"]>
+
+  export type Nx00BusinessPartnerSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    taxId?: boolean
+    phone?: boolean
+    email?: boolean
+    address?: boolean
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00BusinessPartner$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BusinessPartner$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00BusinessPartner"]>
+
+  export type Nx00BusinessPartnerSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    taxId?: boolean
+    phone?: boolean
+    email?: boolean
+    address?: boolean
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    createdByUser?: boolean | Nx00BusinessPartner$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BusinessPartner$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00BusinessPartner"]>
+
+  export type Nx00BusinessPartnerSelectScalar = {
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    taxId?: boolean
+    phone?: boolean
+    email?: boolean
+    address?: boolean
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+  }
+
+  export type Nx00BusinessPartnerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "name" | "taxId" | "phone" | "email" | "address" | "isCustomer" | "isVendor" | "isActive" | "remark" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00BusinessPartner"]>
+  export type Nx00BusinessPartnerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00BusinessPartner$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BusinessPartner$updatedByUserArgs<ExtArgs>
+  }
+  export type Nx00BusinessPartnerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00BusinessPartner$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BusinessPartner$updatedByUserArgs<ExtArgs>
+  }
+  export type Nx00BusinessPartnerIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    createdByUser?: boolean | Nx00BusinessPartner$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BusinessPartner$updatedByUserArgs<ExtArgs>
+  }
+
+  export type $Nx00BusinessPartnerPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00BusinessPartner"
+    objects: {
+      createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      code: string
+      name: string
+      taxId: string | null
+      phone: string | null
+      email: string | null
+      address: string | null
+      isCustomer: boolean
+      isVendor: boolean
+      isActive: boolean
+      remark: string | null
+      createdAt: Date
+      createdBy: string | null
+      updatedAt: Date | null
+      updatedBy: string | null
+    }, ExtArgs["result"]["nx00BusinessPartner"]>
+    composites: {}
+  }
+
+  type Nx00BusinessPartnerGetPayload<S extends boolean | null | undefined | Nx00BusinessPartnerDefaultArgs> = $Result.GetResult<Prisma.$Nx00BusinessPartnerPayload, S>
+
+  type Nx00BusinessPartnerCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00BusinessPartnerFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00BusinessPartnerCountAggregateInputType | true
+    }
+
+  export interface Nx00BusinessPartnerDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00BusinessPartner'], meta: { name: 'Nx00BusinessPartner' } }
+    /**
+     * Find zero or one Nx00BusinessPartner that matches the filter.
+     * @param {Nx00BusinessPartnerFindUniqueArgs} args - Arguments to find a Nx00BusinessPartner
+     * @example
+     * // Get one Nx00BusinessPartner
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx00BusinessPartnerFindUniqueArgs>(args: SelectSubset<T, Nx00BusinessPartnerFindUniqueArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx00BusinessPartner that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx00BusinessPartnerFindUniqueOrThrowArgs} args - Arguments to find a Nx00BusinessPartner
+     * @example
+     * // Get one Nx00BusinessPartner
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx00BusinessPartnerFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00BusinessPartnerFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00BusinessPartner that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerFindFirstArgs} args - Arguments to find a Nx00BusinessPartner
+     * @example
+     * // Get one Nx00BusinessPartner
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx00BusinessPartnerFindFirstArgs>(args?: SelectSubset<T, Nx00BusinessPartnerFindFirstArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00BusinessPartner that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerFindFirstOrThrowArgs} args - Arguments to find a Nx00BusinessPartner
+     * @example
+     * // Get one Nx00BusinessPartner
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx00BusinessPartnerFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00BusinessPartnerFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx00BusinessPartners that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx00BusinessPartners
+     * const nx00BusinessPartners = await prisma.nx00BusinessPartner.findMany()
+     * 
+     * // Get first 10 Nx00BusinessPartners
+     * const nx00BusinessPartners = await prisma.nx00BusinessPartner.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx00BusinessPartnerWithIdOnly = await prisma.nx00BusinessPartner.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx00BusinessPartnerFindManyArgs>(args?: SelectSubset<T, Nx00BusinessPartnerFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx00BusinessPartner.
+     * @param {Nx00BusinessPartnerCreateArgs} args - Arguments to create a Nx00BusinessPartner.
+     * @example
+     * // Create one Nx00BusinessPartner
+     * const Nx00BusinessPartner = await prisma.nx00BusinessPartner.create({
+     *   data: {
+     *     // ... data to create a Nx00BusinessPartner
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx00BusinessPartnerCreateArgs>(args: SelectSubset<T, Nx00BusinessPartnerCreateArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx00BusinessPartners.
+     * @param {Nx00BusinessPartnerCreateManyArgs} args - Arguments to create many Nx00BusinessPartners.
+     * @example
+     * // Create many Nx00BusinessPartners
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx00BusinessPartnerCreateManyArgs>(args?: SelectSubset<T, Nx00BusinessPartnerCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx00BusinessPartners and returns the data saved in the database.
+     * @param {Nx00BusinessPartnerCreateManyAndReturnArgs} args - Arguments to create many Nx00BusinessPartners.
+     * @example
+     * // Create many Nx00BusinessPartners
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx00BusinessPartners and only return the `id`
+     * const nx00BusinessPartnerWithIdOnly = await prisma.nx00BusinessPartner.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx00BusinessPartnerCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00BusinessPartnerCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx00BusinessPartner.
+     * @param {Nx00BusinessPartnerDeleteArgs} args - Arguments to delete one Nx00BusinessPartner.
+     * @example
+     * // Delete one Nx00BusinessPartner
+     * const Nx00BusinessPartner = await prisma.nx00BusinessPartner.delete({
+     *   where: {
+     *     // ... filter to delete one Nx00BusinessPartner
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx00BusinessPartnerDeleteArgs>(args: SelectSubset<T, Nx00BusinessPartnerDeleteArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx00BusinessPartner.
+     * @param {Nx00BusinessPartnerUpdateArgs} args - Arguments to update one Nx00BusinessPartner.
+     * @example
+     * // Update one Nx00BusinessPartner
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx00BusinessPartnerUpdateArgs>(args: SelectSubset<T, Nx00BusinessPartnerUpdateArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx00BusinessPartners.
+     * @param {Nx00BusinessPartnerDeleteManyArgs} args - Arguments to filter Nx00BusinessPartners to delete.
+     * @example
+     * // Delete a few Nx00BusinessPartners
+     * const { count } = await prisma.nx00BusinessPartner.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx00BusinessPartnerDeleteManyArgs>(args?: SelectSubset<T, Nx00BusinessPartnerDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00BusinessPartners.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx00BusinessPartners
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx00BusinessPartnerUpdateManyArgs>(args: SelectSubset<T, Nx00BusinessPartnerUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00BusinessPartners and returns the data updated in the database.
+     * @param {Nx00BusinessPartnerUpdateManyAndReturnArgs} args - Arguments to update many Nx00BusinessPartners.
+     * @example
+     * // Update many Nx00BusinessPartners
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx00BusinessPartners and only return the `id`
+     * const nx00BusinessPartnerWithIdOnly = await prisma.nx00BusinessPartner.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx00BusinessPartnerUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00BusinessPartnerUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx00BusinessPartner.
+     * @param {Nx00BusinessPartnerUpsertArgs} args - Arguments to update or create a Nx00BusinessPartner.
+     * @example
+     * // Update or create a Nx00BusinessPartner
+     * const nx00BusinessPartner = await prisma.nx00BusinessPartner.upsert({
+     *   create: {
+     *     // ... data to create a Nx00BusinessPartner
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx00BusinessPartner we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx00BusinessPartnerUpsertArgs>(args: SelectSubset<T, Nx00BusinessPartnerUpsertArgs<ExtArgs>>): Prisma__Nx00BusinessPartnerClient<$Result.GetResult<Prisma.$Nx00BusinessPartnerPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx00BusinessPartners.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerCountArgs} args - Arguments to filter Nx00BusinessPartners to count.
+     * @example
+     * // Count the number of Nx00BusinessPartners
+     * const count = await prisma.nx00BusinessPartner.count({
+     *   where: {
+     *     // ... the filter for the Nx00BusinessPartners we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx00BusinessPartnerCountArgs>(
+      args?: Subset<T, Nx00BusinessPartnerCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx00BusinessPartnerCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx00BusinessPartner.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx00BusinessPartnerAggregateArgs>(args: Subset<T, Nx00BusinessPartnerAggregateArgs>): Prisma.PrismaPromise<GetNx00BusinessPartnerAggregateType<T>>
+
+    /**
+     * Group by Nx00BusinessPartner.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00BusinessPartnerGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx00BusinessPartnerGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx00BusinessPartnerGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00BusinessPartnerGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx00BusinessPartnerGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00BusinessPartnerGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx00BusinessPartner model
+   */
+  readonly fields: Nx00BusinessPartnerFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx00BusinessPartner.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx00BusinessPartnerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    createdByUser<T extends Nx00BusinessPartner$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BusinessPartner$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    updatedByUser<T extends Nx00BusinessPartner$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BusinessPartner$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx00BusinessPartner model
+   */
+  interface Nx00BusinessPartnerFieldRefs {
+    readonly id: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly code: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly name: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly taxId: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly phone: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly email: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly address: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly isCustomer: FieldRef<"Nx00BusinessPartner", 'Boolean'>
+    readonly isVendor: FieldRef<"Nx00BusinessPartner", 'Boolean'>
+    readonly isActive: FieldRef<"Nx00BusinessPartner", 'Boolean'>
+    readonly remark: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly createdAt: FieldRef<"Nx00BusinessPartner", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx00BusinessPartner", 'String'>
+    readonly updatedAt: FieldRef<"Nx00BusinessPartner", 'DateTime'>
+    readonly updatedBy: FieldRef<"Nx00BusinessPartner", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx00BusinessPartner findUnique
+   */
+  export type Nx00BusinessPartnerFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00BusinessPartner to fetch.
+     */
+    where: Nx00BusinessPartnerWhereUniqueInput
+  }
+
+  /**
+   * Nx00BusinessPartner findUniqueOrThrow
+   */
+  export type Nx00BusinessPartnerFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00BusinessPartner to fetch.
+     */
+    where: Nx00BusinessPartnerWhereUniqueInput
+  }
+
+  /**
+   * Nx00BusinessPartner findFirst
+   */
+  export type Nx00BusinessPartnerFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00BusinessPartner to fetch.
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00BusinessPartners to fetch.
+     */
+    orderBy?: Nx00BusinessPartnerOrderByWithRelationInput | Nx00BusinessPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00BusinessPartners.
+     */
+    cursor?: Nx00BusinessPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00BusinessPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00BusinessPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00BusinessPartners.
+     */
+    distinct?: Nx00BusinessPartnerScalarFieldEnum | Nx00BusinessPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00BusinessPartner findFirstOrThrow
+   */
+  export type Nx00BusinessPartnerFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00BusinessPartner to fetch.
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00BusinessPartners to fetch.
+     */
+    orderBy?: Nx00BusinessPartnerOrderByWithRelationInput | Nx00BusinessPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00BusinessPartners.
+     */
+    cursor?: Nx00BusinessPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00BusinessPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00BusinessPartners.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00BusinessPartners.
+     */
+    distinct?: Nx00BusinessPartnerScalarFieldEnum | Nx00BusinessPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00BusinessPartner findMany
+   */
+  export type Nx00BusinessPartnerFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00BusinessPartners to fetch.
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00BusinessPartners to fetch.
+     */
+    orderBy?: Nx00BusinessPartnerOrderByWithRelationInput | Nx00BusinessPartnerOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx00BusinessPartners.
+     */
+    cursor?: Nx00BusinessPartnerWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00BusinessPartners from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00BusinessPartners.
+     */
+    skip?: number
+    distinct?: Nx00BusinessPartnerScalarFieldEnum | Nx00BusinessPartnerScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00BusinessPartner create
+   */
+  export type Nx00BusinessPartnerCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx00BusinessPartner.
+     */
+    data: XOR<Nx00BusinessPartnerCreateInput, Nx00BusinessPartnerUncheckedCreateInput>
+  }
+
+  /**
+   * Nx00BusinessPartner createMany
+   */
+  export type Nx00BusinessPartnerCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx00BusinessPartners.
+     */
+    data: Nx00BusinessPartnerCreateManyInput | Nx00BusinessPartnerCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx00BusinessPartner createManyAndReturn
+   */
+  export type Nx00BusinessPartnerCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx00BusinessPartners.
+     */
+    data: Nx00BusinessPartnerCreateManyInput | Nx00BusinessPartnerCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00BusinessPartner update
+   */
+  export type Nx00BusinessPartnerUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx00BusinessPartner.
+     */
+    data: XOR<Nx00BusinessPartnerUpdateInput, Nx00BusinessPartnerUncheckedUpdateInput>
+    /**
+     * Choose, which Nx00BusinessPartner to update.
+     */
+    where: Nx00BusinessPartnerWhereUniqueInput
+  }
+
+  /**
+   * Nx00BusinessPartner updateMany
+   */
+  export type Nx00BusinessPartnerUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx00BusinessPartners.
+     */
+    data: XOR<Nx00BusinessPartnerUpdateManyMutationInput, Nx00BusinessPartnerUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00BusinessPartners to update
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * Limit how many Nx00BusinessPartners to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00BusinessPartner updateManyAndReturn
+   */
+  export type Nx00BusinessPartnerUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx00BusinessPartners.
+     */
+    data: XOR<Nx00BusinessPartnerUpdateManyMutationInput, Nx00BusinessPartnerUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00BusinessPartners to update
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * Limit how many Nx00BusinessPartners to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00BusinessPartner upsert
+   */
+  export type Nx00BusinessPartnerUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx00BusinessPartner to update in case it exists.
+     */
+    where: Nx00BusinessPartnerWhereUniqueInput
+    /**
+     * In case the Nx00BusinessPartner found by the `where` argument doesn't exist, create a new Nx00BusinessPartner with this data.
+     */
+    create: XOR<Nx00BusinessPartnerCreateInput, Nx00BusinessPartnerUncheckedCreateInput>
+    /**
+     * In case the Nx00BusinessPartner was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx00BusinessPartnerUpdateInput, Nx00BusinessPartnerUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx00BusinessPartner delete
+   */
+  export type Nx00BusinessPartnerDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+    /**
+     * Filter which Nx00BusinessPartner to delete.
+     */
+    where: Nx00BusinessPartnerWhereUniqueInput
+  }
+
+  /**
+   * Nx00BusinessPartner deleteMany
+   */
+  export type Nx00BusinessPartnerDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00BusinessPartners to delete
+     */
+    where?: Nx00BusinessPartnerWhereInput
+    /**
+     * Limit how many Nx00BusinessPartners to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00BusinessPartner.createdByUser
+   */
+  export type Nx00BusinessPartner$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00BusinessPartner.updatedByUser
+   */
+  export type Nx00BusinessPartner$updatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00User
+     */
+    select?: Nx00UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00User
+     */
+    omit?: Nx00UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00UserInclude<ExtArgs> | null
+    where?: Nx00UserWhereInput
+  }
+
+  /**
+   * Nx00BusinessPartner without action
+   */
+  export type Nx00BusinessPartnerDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BusinessPartner
+     */
+    select?: Nx00BusinessPartnerSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BusinessPartner
+     */
+    omit?: Nx00BusinessPartnerOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BusinessPartnerInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Nx00AuditLog
+   */
+
+  export type AggregateNx00AuditLog = {
+    _count: Nx00AuditLogCountAggregateOutputType | null
+    _min: Nx00AuditLogMinAggregateOutputType | null
+    _max: Nx00AuditLogMaxAggregateOutputType | null
+  }
+
+  export type Nx00AuditLogMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    moduleCode: string | null
+    action: string | null
+    entity: string | null
+    entityId: string | null
+    docNo: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    createdAt: Date | null
+  }
+
+  export type Nx00AuditLogMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    moduleCode: string | null
+    action: string | null
+    entity: string | null
+    entityId: string | null
+    docNo: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    createdAt: Date | null
+  }
+
+  export type Nx00AuditLogCountAggregateOutputType = {
+    id: number
+    userId: number
+    moduleCode: number
+    action: number
+    entity: number
+    entityId: number
+    docNo: number
+    ipAddress: number
+    userAgent: number
+    payload: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type Nx00AuditLogMinAggregateInputType = {
+    id?: true
+    userId?: true
+    moduleCode?: true
+    action?: true
+    entity?: true
+    entityId?: true
+    docNo?: true
+    ipAddress?: true
+    userAgent?: true
+    createdAt?: true
+  }
+
+  export type Nx00AuditLogMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    moduleCode?: true
+    action?: true
+    entity?: true
+    entityId?: true
+    docNo?: true
+    ipAddress?: true
+    userAgent?: true
+    createdAt?: true
+  }
+
+  export type Nx00AuditLogCountAggregateInputType = {
+    id?: true
+    userId?: true
+    moduleCode?: true
+    action?: true
+    entity?: true
+    entityId?: true
+    docNo?: true
+    ipAddress?: true
+    userAgent?: true
+    payload?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type Nx00AuditLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00AuditLog to aggregate.
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00AuditLogs to fetch.
+     */
+    orderBy?: Nx00AuditLogOrderByWithRelationInput | Nx00AuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx00AuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00AuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00AuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx00AuditLogs
+    **/
+    _count?: true | Nx00AuditLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx00AuditLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx00AuditLogMaxAggregateInputType
+  }
+
+  export type GetNx00AuditLogAggregateType<T extends Nx00AuditLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00AuditLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx00AuditLog[P]>
+      : GetScalarType<T[P], AggregateNx00AuditLog[P]>
+  }
+
+
+
+
+  export type Nx00AuditLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00AuditLogWhereInput
+    orderBy?: Nx00AuditLogOrderByWithAggregationInput | Nx00AuditLogOrderByWithAggregationInput[]
+    by: Nx00AuditLogScalarFieldEnum[] | Nx00AuditLogScalarFieldEnum
+    having?: Nx00AuditLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx00AuditLogCountAggregateInputType | true
+    _min?: Nx00AuditLogMinAggregateInputType
+    _max?: Nx00AuditLogMaxAggregateInputType
+  }
+
+  export type Nx00AuditLogGroupByOutputType = {
+    id: string
+    userId: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId: string | null
+    docNo: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    payload: JsonValue | null
+    createdAt: Date
+    _count: Nx00AuditLogCountAggregateOutputType | null
+    _min: Nx00AuditLogMinAggregateOutputType | null
+    _max: Nx00AuditLogMaxAggregateOutputType | null
+  }
+
+  type GetNx00AuditLogGroupByPayload<T extends Nx00AuditLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx00AuditLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx00AuditLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx00AuditLogGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00AuditLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx00AuditLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    entity?: boolean
+    entityId?: boolean
+    docNo?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    user?: boolean | Nx00UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00AuditLog"]>
+
+  export type Nx00AuditLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    entity?: boolean
+    entityId?: boolean
+    docNo?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    user?: boolean | Nx00UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00AuditLog"]>
+
+  export type Nx00AuditLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    entity?: boolean
+    entityId?: boolean
+    docNo?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    payload?: boolean
+    createdAt?: boolean
+    user?: boolean | Nx00UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00AuditLog"]>
+
+  export type Nx00AuditLogSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    moduleCode?: boolean
+    action?: boolean
+    entity?: boolean
+    entityId?: boolean
+    docNo?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    payload?: boolean
+    createdAt?: boolean
+  }
+
+  export type Nx00AuditLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "moduleCode" | "action" | "entity" | "entityId" | "docNo" | "ipAddress" | "userAgent" | "payload" | "createdAt", ExtArgs["result"]["nx00AuditLog"]>
+  export type Nx00AuditLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | Nx00UserDefaultArgs<ExtArgs>
+  }
+  export type Nx00AuditLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | Nx00UserDefaultArgs<ExtArgs>
+  }
+  export type Nx00AuditLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | Nx00UserDefaultArgs<ExtArgs>
+  }
+
+  export type $Nx00AuditLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00AuditLog"
+    objects: {
+      user: Prisma.$Nx00UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      moduleCode: string
+      action: string
+      entity: string
+      entityId: string | null
+      docNo: string | null
+      ipAddress: string | null
+      userAgent: string | null
+      payload: Prisma.JsonValue | null
+      createdAt: Date
+    }, ExtArgs["result"]["nx00AuditLog"]>
+    composites: {}
+  }
+
+  type Nx00AuditLogGetPayload<S extends boolean | null | undefined | Nx00AuditLogDefaultArgs> = $Result.GetResult<Prisma.$Nx00AuditLogPayload, S>
+
+  type Nx00AuditLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00AuditLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00AuditLogCountAggregateInputType | true
+    }
+
+  export interface Nx00AuditLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00AuditLog'], meta: { name: 'Nx00AuditLog' } }
+    /**
+     * Find zero or one Nx00AuditLog that matches the filter.
+     * @param {Nx00AuditLogFindUniqueArgs} args - Arguments to find a Nx00AuditLog
+     * @example
+     * // Get one Nx00AuditLog
+     * const nx00AuditLog = await prisma.nx00AuditLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx00AuditLogFindUniqueArgs>(args: SelectSubset<T, Nx00AuditLogFindUniqueArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx00AuditLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx00AuditLogFindUniqueOrThrowArgs} args - Arguments to find a Nx00AuditLog
+     * @example
+     * // Get one Nx00AuditLog
+     * const nx00AuditLog = await prisma.nx00AuditLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx00AuditLogFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00AuditLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00AuditLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogFindFirstArgs} args - Arguments to find a Nx00AuditLog
+     * @example
+     * // Get one Nx00AuditLog
+     * const nx00AuditLog = await prisma.nx00AuditLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx00AuditLogFindFirstArgs>(args?: SelectSubset<T, Nx00AuditLogFindFirstArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx00AuditLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogFindFirstOrThrowArgs} args - Arguments to find a Nx00AuditLog
+     * @example
+     * // Get one Nx00AuditLog
+     * const nx00AuditLog = await prisma.nx00AuditLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx00AuditLogFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00AuditLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx00AuditLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx00AuditLogs
+     * const nx00AuditLogs = await prisma.nx00AuditLog.findMany()
+     * 
+     * // Get first 10 Nx00AuditLogs
+     * const nx00AuditLogs = await prisma.nx00AuditLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx00AuditLogWithIdOnly = await prisma.nx00AuditLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx00AuditLogFindManyArgs>(args?: SelectSubset<T, Nx00AuditLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx00AuditLog.
+     * @param {Nx00AuditLogCreateArgs} args - Arguments to create a Nx00AuditLog.
+     * @example
+     * // Create one Nx00AuditLog
+     * const Nx00AuditLog = await prisma.nx00AuditLog.create({
+     *   data: {
+     *     // ... data to create a Nx00AuditLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx00AuditLogCreateArgs>(args: SelectSubset<T, Nx00AuditLogCreateArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx00AuditLogs.
+     * @param {Nx00AuditLogCreateManyArgs} args - Arguments to create many Nx00AuditLogs.
+     * @example
+     * // Create many Nx00AuditLogs
+     * const nx00AuditLog = await prisma.nx00AuditLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx00AuditLogCreateManyArgs>(args?: SelectSubset<T, Nx00AuditLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx00AuditLogs and returns the data saved in the database.
+     * @param {Nx00AuditLogCreateManyAndReturnArgs} args - Arguments to create many Nx00AuditLogs.
+     * @example
+     * // Create many Nx00AuditLogs
+     * const nx00AuditLog = await prisma.nx00AuditLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx00AuditLogs and only return the `id`
+     * const nx00AuditLogWithIdOnly = await prisma.nx00AuditLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx00AuditLogCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00AuditLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx00AuditLog.
+     * @param {Nx00AuditLogDeleteArgs} args - Arguments to delete one Nx00AuditLog.
+     * @example
+     * // Delete one Nx00AuditLog
+     * const Nx00AuditLog = await prisma.nx00AuditLog.delete({
+     *   where: {
+     *     // ... filter to delete one Nx00AuditLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx00AuditLogDeleteArgs>(args: SelectSubset<T, Nx00AuditLogDeleteArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx00AuditLog.
+     * @param {Nx00AuditLogUpdateArgs} args - Arguments to update one Nx00AuditLog.
+     * @example
+     * // Update one Nx00AuditLog
+     * const nx00AuditLog = await prisma.nx00AuditLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx00AuditLogUpdateArgs>(args: SelectSubset<T, Nx00AuditLogUpdateArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx00AuditLogs.
+     * @param {Nx00AuditLogDeleteManyArgs} args - Arguments to filter Nx00AuditLogs to delete.
+     * @example
+     * // Delete a few Nx00AuditLogs
+     * const { count } = await prisma.nx00AuditLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx00AuditLogDeleteManyArgs>(args?: SelectSubset<T, Nx00AuditLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00AuditLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx00AuditLogs
+     * const nx00AuditLog = await prisma.nx00AuditLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx00AuditLogUpdateManyArgs>(args: SelectSubset<T, Nx00AuditLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx00AuditLogs and returns the data updated in the database.
+     * @param {Nx00AuditLogUpdateManyAndReturnArgs} args - Arguments to update many Nx00AuditLogs.
+     * @example
+     * // Update many Nx00AuditLogs
+     * const nx00AuditLog = await prisma.nx00AuditLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx00AuditLogs and only return the `id`
+     * const nx00AuditLogWithIdOnly = await prisma.nx00AuditLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx00AuditLogUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00AuditLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx00AuditLog.
+     * @param {Nx00AuditLogUpsertArgs} args - Arguments to update or create a Nx00AuditLog.
+     * @example
+     * // Update or create a Nx00AuditLog
+     * const nx00AuditLog = await prisma.nx00AuditLog.upsert({
+     *   create: {
+     *     // ... data to create a Nx00AuditLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx00AuditLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx00AuditLogUpsertArgs>(args: SelectSubset<T, Nx00AuditLogUpsertArgs<ExtArgs>>): Prisma__Nx00AuditLogClient<$Result.GetResult<Prisma.$Nx00AuditLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx00AuditLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogCountArgs} args - Arguments to filter Nx00AuditLogs to count.
+     * @example
+     * // Count the number of Nx00AuditLogs
+     * const count = await prisma.nx00AuditLog.count({
+     *   where: {
+     *     // ... the filter for the Nx00AuditLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx00AuditLogCountArgs>(
+      args?: Subset<T, Nx00AuditLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx00AuditLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx00AuditLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx00AuditLogAggregateArgs>(args: Subset<T, Nx00AuditLogAggregateArgs>): Prisma.PrismaPromise<GetNx00AuditLogAggregateType<T>>
+
+    /**
+     * Group by Nx00AuditLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx00AuditLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx00AuditLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx00AuditLogGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00AuditLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx00AuditLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00AuditLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx00AuditLog model
+   */
+  readonly fields: Nx00AuditLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx00AuditLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx00AuditLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends Nx00UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00UserDefaultArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx00AuditLog model
+   */
+  interface Nx00AuditLogFieldRefs {
+    readonly id: FieldRef<"Nx00AuditLog", 'String'>
+    readonly userId: FieldRef<"Nx00AuditLog", 'String'>
+    readonly moduleCode: FieldRef<"Nx00AuditLog", 'String'>
+    readonly action: FieldRef<"Nx00AuditLog", 'String'>
+    readonly entity: FieldRef<"Nx00AuditLog", 'String'>
+    readonly entityId: FieldRef<"Nx00AuditLog", 'String'>
+    readonly docNo: FieldRef<"Nx00AuditLog", 'String'>
+    readonly ipAddress: FieldRef<"Nx00AuditLog", 'String'>
+    readonly userAgent: FieldRef<"Nx00AuditLog", 'String'>
+    readonly payload: FieldRef<"Nx00AuditLog", 'Json'>
+    readonly createdAt: FieldRef<"Nx00AuditLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx00AuditLog findUnique
+   */
+  export type Nx00AuditLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00AuditLog to fetch.
+     */
+    where: Nx00AuditLogWhereUniqueInput
+  }
+
+  /**
+   * Nx00AuditLog findUniqueOrThrow
+   */
+  export type Nx00AuditLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00AuditLog to fetch.
+     */
+    where: Nx00AuditLogWhereUniqueInput
+  }
+
+  /**
+   * Nx00AuditLog findFirst
+   */
+  export type Nx00AuditLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00AuditLog to fetch.
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00AuditLogs to fetch.
+     */
+    orderBy?: Nx00AuditLogOrderByWithRelationInput | Nx00AuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00AuditLogs.
+     */
+    cursor?: Nx00AuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00AuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00AuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00AuditLogs.
+     */
+    distinct?: Nx00AuditLogScalarFieldEnum | Nx00AuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00AuditLog findFirstOrThrow
+   */
+  export type Nx00AuditLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00AuditLog to fetch.
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00AuditLogs to fetch.
+     */
+    orderBy?: Nx00AuditLogOrderByWithRelationInput | Nx00AuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx00AuditLogs.
+     */
+    cursor?: Nx00AuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00AuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00AuditLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx00AuditLogs.
+     */
+    distinct?: Nx00AuditLogScalarFieldEnum | Nx00AuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00AuditLog findMany
+   */
+  export type Nx00AuditLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx00AuditLogs to fetch.
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx00AuditLogs to fetch.
+     */
+    orderBy?: Nx00AuditLogOrderByWithRelationInput | Nx00AuditLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx00AuditLogs.
+     */
+    cursor?: Nx00AuditLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx00AuditLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx00AuditLogs.
+     */
+    skip?: number
+    distinct?: Nx00AuditLogScalarFieldEnum | Nx00AuditLogScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00AuditLog create
+   */
+  export type Nx00AuditLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx00AuditLog.
+     */
+    data: XOR<Nx00AuditLogCreateInput, Nx00AuditLogUncheckedCreateInput>
+  }
+
+  /**
+   * Nx00AuditLog createMany
+   */
+  export type Nx00AuditLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx00AuditLogs.
+     */
+    data: Nx00AuditLogCreateManyInput | Nx00AuditLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx00AuditLog createManyAndReturn
+   */
+  export type Nx00AuditLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx00AuditLogs.
+     */
+    data: Nx00AuditLogCreateManyInput | Nx00AuditLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00AuditLog update
+   */
+  export type Nx00AuditLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx00AuditLog.
+     */
+    data: XOR<Nx00AuditLogUpdateInput, Nx00AuditLogUncheckedUpdateInput>
+    /**
+     * Choose, which Nx00AuditLog to update.
+     */
+    where: Nx00AuditLogWhereUniqueInput
+  }
+
+  /**
+   * Nx00AuditLog updateMany
+   */
+  export type Nx00AuditLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx00AuditLogs.
+     */
+    data: XOR<Nx00AuditLogUpdateManyMutationInput, Nx00AuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00AuditLogs to update
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * Limit how many Nx00AuditLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00AuditLog updateManyAndReturn
+   */
+  export type Nx00AuditLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx00AuditLogs.
+     */
+    data: XOR<Nx00AuditLogUpdateManyMutationInput, Nx00AuditLogUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx00AuditLogs to update
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * Limit how many Nx00AuditLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx00AuditLog upsert
+   */
+  export type Nx00AuditLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx00AuditLog to update in case it exists.
+     */
+    where: Nx00AuditLogWhereUniqueInput
+    /**
+     * In case the Nx00AuditLog found by the `where` argument doesn't exist, create a new Nx00AuditLog with this data.
+     */
+    create: XOR<Nx00AuditLogCreateInput, Nx00AuditLogUncheckedCreateInput>
+    /**
+     * In case the Nx00AuditLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx00AuditLogUpdateInput, Nx00AuditLogUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx00AuditLog delete
+   */
+  export type Nx00AuditLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+    /**
+     * Filter which Nx00AuditLog to delete.
+     */
+    where: Nx00AuditLogWhereUniqueInput
+  }
+
+  /**
+   * Nx00AuditLog deleteMany
+   */
+  export type Nx00AuditLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx00AuditLogs to delete
+     */
+    where?: Nx00AuditLogWhereInput
+    /**
+     * Limit how many Nx00AuditLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx00AuditLog without action
+   */
+  export type Nx00AuditLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00AuditLog
+     */
+    select?: Nx00AuditLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00AuditLog
+     */
+    omit?: Nx00AuditLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00AuditLogInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -10565,6 +18687,34 @@ export namespace Prisma {
   };
 
   export type Nx00UserRoleScalarFieldEnum = (typeof Nx00UserRoleScalarFieldEnum)[keyof typeof Nx00UserRoleScalarFieldEnum]
+
+
+  export const Nx00PermissionScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    name: 'name',
+    moduleCode: 'moduleCode',
+    action: 'action',
+    isActive: 'isActive',
+    sortNo: 'sortNo',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy',
+    updatedAt: 'updatedAt',
+    updatedBy: 'updatedBy'
+  };
+
+  export type Nx00PermissionScalarFieldEnum = (typeof Nx00PermissionScalarFieldEnum)[keyof typeof Nx00PermissionScalarFieldEnum]
+
+
+  export const Nx00RolePermissionScalarFieldEnum: {
+    id: 'id',
+    roleId: 'roleId',
+    permissionId: 'permissionId',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy'
+  };
+
+  export type Nx00RolePermissionScalarFieldEnum = (typeof Nx00RolePermissionScalarFieldEnum)[keyof typeof Nx00RolePermissionScalarFieldEnum]
 
 
   export const Nx00BrandScalarFieldEnum: {
@@ -10638,12 +18788,89 @@ export namespace Prisma {
   export type Nx00PartScalarFieldEnum = (typeof Nx00PartScalarFieldEnum)[keyof typeof Nx00PartScalarFieldEnum]
 
 
+  export const Nx00WarehouseScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    name: 'name',
+    isActive: 'isActive',
+    remark: 'remark',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy',
+    updatedAt: 'updatedAt',
+    updatedBy: 'updatedBy'
+  };
+
+  export type Nx00WarehouseScalarFieldEnum = (typeof Nx00WarehouseScalarFieldEnum)[keyof typeof Nx00WarehouseScalarFieldEnum]
+
+
+  export const Nx00LocationScalarFieldEnum: {
+    id: 'id',
+    warehouseId: 'warehouseId',
+    code: 'code',
+    name: 'name',
+    isActive: 'isActive',
+    remark: 'remark',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy',
+    updatedAt: 'updatedAt',
+    updatedBy: 'updatedBy'
+  };
+
+  export type Nx00LocationScalarFieldEnum = (typeof Nx00LocationScalarFieldEnum)[keyof typeof Nx00LocationScalarFieldEnum]
+
+
+  export const Nx00BusinessPartnerScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    name: 'name',
+    taxId: 'taxId',
+    phone: 'phone',
+    email: 'email',
+    address: 'address',
+    isCustomer: 'isCustomer',
+    isVendor: 'isVendor',
+    isActive: 'isActive',
+    remark: 'remark',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy',
+    updatedAt: 'updatedAt',
+    updatedBy: 'updatedBy'
+  };
+
+  export type Nx00BusinessPartnerScalarFieldEnum = (typeof Nx00BusinessPartnerScalarFieldEnum)[keyof typeof Nx00BusinessPartnerScalarFieldEnum]
+
+
+  export const Nx00AuditLogScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    moduleCode: 'moduleCode',
+    action: 'action',
+    entity: 'entity',
+    entityId: 'entityId',
+    docNo: 'docNo',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent',
+    payload: 'payload',
+    createdAt: 'createdAt'
+  };
+
+  export type Nx00AuditLogScalarFieldEnum = (typeof Nx00AuditLogScalarFieldEnum)[keyof typeof Nx00AuditLogScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -10660,6 +18887,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -10717,6 +18953,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -10759,6 +19009,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleListRelationFilter
     rolesUpdated?: Nx00RoleListRelationFilter
     userRolesCreated?: Nx00UserRoleListRelationFilter
+    permissionsCreated?: Nx00PermissionListRelationFilter
+    permissionsUpdated?: Nx00PermissionListRelationFilter
+    rolePermsCreated?: Nx00RolePermissionListRelationFilter
     brandsCreated?: Nx00BrandListRelationFilter
     brandsUpdated?: Nx00BrandListRelationFilter
     functionGroupsCreated?: Nx00FunctionGroupListRelationFilter
@@ -10767,6 +19020,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusListRelationFilter
     partsCreated?: Nx00PartListRelationFilter
     partsUpdated?: Nx00PartListRelationFilter
+    warehousesCreated?: Nx00WarehouseListRelationFilter
+    warehousesUpdated?: Nx00WarehouseListRelationFilter
+    locationsCreated?: Nx00LocationListRelationFilter
+    locationsUpdated?: Nx00LocationListRelationFilter
+    partnersCreated?: Nx00BusinessPartnerListRelationFilter
+    partnersUpdated?: Nx00BusinessPartnerListRelationFilter
+    auditLogs?: Nx00AuditLogListRelationFilter
   }
 
   export type Nx00UserOrderByWithRelationInput = {
@@ -10792,6 +19052,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleOrderByRelationAggregateInput
     rolesUpdated?: Nx00RoleOrderByRelationAggregateInput
     userRolesCreated?: Nx00UserRoleOrderByRelationAggregateInput
+    permissionsCreated?: Nx00PermissionOrderByRelationAggregateInput
+    permissionsUpdated?: Nx00PermissionOrderByRelationAggregateInput
+    rolePermsCreated?: Nx00RolePermissionOrderByRelationAggregateInput
     brandsCreated?: Nx00BrandOrderByRelationAggregateInput
     brandsUpdated?: Nx00BrandOrderByRelationAggregateInput
     functionGroupsCreated?: Nx00FunctionGroupOrderByRelationAggregateInput
@@ -10800,6 +19063,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusOrderByRelationAggregateInput
     partsCreated?: Nx00PartOrderByRelationAggregateInput
     partsUpdated?: Nx00PartOrderByRelationAggregateInput
+    warehousesCreated?: Nx00WarehouseOrderByRelationAggregateInput
+    warehousesUpdated?: Nx00WarehouseOrderByRelationAggregateInput
+    locationsCreated?: Nx00LocationOrderByRelationAggregateInput
+    locationsUpdated?: Nx00LocationOrderByRelationAggregateInput
+    partnersCreated?: Nx00BusinessPartnerOrderByRelationAggregateInput
+    partnersUpdated?: Nx00BusinessPartnerOrderByRelationAggregateInput
+    auditLogs?: Nx00AuditLogOrderByRelationAggregateInput
   }
 
   export type Nx00UserWhereUniqueInput = Prisma.AtLeast<{
@@ -10828,6 +19098,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleListRelationFilter
     rolesUpdated?: Nx00RoleListRelationFilter
     userRolesCreated?: Nx00UserRoleListRelationFilter
+    permissionsCreated?: Nx00PermissionListRelationFilter
+    permissionsUpdated?: Nx00PermissionListRelationFilter
+    rolePermsCreated?: Nx00RolePermissionListRelationFilter
     brandsCreated?: Nx00BrandListRelationFilter
     brandsUpdated?: Nx00BrandListRelationFilter
     functionGroupsCreated?: Nx00FunctionGroupListRelationFilter
@@ -10836,6 +19109,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusListRelationFilter
     partsCreated?: Nx00PartListRelationFilter
     partsUpdated?: Nx00PartListRelationFilter
+    warehousesCreated?: Nx00WarehouseListRelationFilter
+    warehousesUpdated?: Nx00WarehouseListRelationFilter
+    locationsCreated?: Nx00LocationListRelationFilter
+    locationsUpdated?: Nx00LocationListRelationFilter
+    partnersCreated?: Nx00BusinessPartnerListRelationFilter
+    partnersUpdated?: Nx00BusinessPartnerListRelationFilter
+    auditLogs?: Nx00AuditLogListRelationFilter
   }, "id" | "username">
 
   export type Nx00UserOrderByWithAggregationInput = {
@@ -10894,6 +19174,7 @@ export namespace Prisma {
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     userRoles?: Nx00UserRoleListRelationFilter
+    rolePerms?: Nx00RolePermissionListRelationFilter
   }
 
   export type Nx00RoleOrderByWithRelationInput = {
@@ -10909,6 +19190,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserOrderByWithRelationInput
     updatedByUser?: Nx00UserOrderByWithRelationInput
     userRoles?: Nx00UserRoleOrderByRelationAggregateInput
+    rolePerms?: Nx00RolePermissionOrderByRelationAggregateInput
   }
 
   export type Nx00RoleWhereUniqueInput = Prisma.AtLeast<{
@@ -10927,6 +19209,7 @@ export namespace Prisma {
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     userRoles?: Nx00UserRoleListRelationFilter
+    rolePerms?: Nx00RolePermissionListRelationFilter
   }, "id" | "code">
 
   export type Nx00RoleOrderByWithAggregationInput = {
@@ -11019,6 +19302,161 @@ export namespace Prisma {
     roleId?: StringWithAggregatesFilter<"Nx00UserRole"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Nx00UserRole"> | Date | string
     createdBy?: StringNullableWithAggregatesFilter<"Nx00UserRole"> | string | null
+  }
+
+  export type Nx00PermissionWhereInput = {
+    AND?: Nx00PermissionWhereInput | Nx00PermissionWhereInput[]
+    OR?: Nx00PermissionWhereInput[]
+    NOT?: Nx00PermissionWhereInput | Nx00PermissionWhereInput[]
+    id?: StringFilter<"Nx00Permission"> | string
+    code?: StringFilter<"Nx00Permission"> | string
+    name?: StringFilter<"Nx00Permission"> | string
+    moduleCode?: StringFilter<"Nx00Permission"> | string
+    action?: StringFilter<"Nx00Permission"> | string
+    isActive?: BoolFilter<"Nx00Permission"> | boolean
+    sortNo?: IntNullableFilter<"Nx00Permission"> | number | null
+    createdAt?: DateTimeFilter<"Nx00Permission"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Permission"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Permission"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Permission"> | string | null
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    rolePerms?: Nx00RolePermissionListRelationFilter
+  }
+
+  export type Nx00PermissionOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    isActive?: SortOrder
+    sortNo?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdByUser?: Nx00UserOrderByWithRelationInput
+    updatedByUser?: Nx00UserOrderByWithRelationInput
+    rolePerms?: Nx00RolePermissionOrderByRelationAggregateInput
+  }
+
+  export type Nx00PermissionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: Nx00PermissionWhereInput | Nx00PermissionWhereInput[]
+    OR?: Nx00PermissionWhereInput[]
+    NOT?: Nx00PermissionWhereInput | Nx00PermissionWhereInput[]
+    name?: StringFilter<"Nx00Permission"> | string
+    moduleCode?: StringFilter<"Nx00Permission"> | string
+    action?: StringFilter<"Nx00Permission"> | string
+    isActive?: BoolFilter<"Nx00Permission"> | boolean
+    sortNo?: IntNullableFilter<"Nx00Permission"> | number | null
+    createdAt?: DateTimeFilter<"Nx00Permission"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Permission"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Permission"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Permission"> | string | null
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    rolePerms?: Nx00RolePermissionListRelationFilter
+  }, "id" | "code">
+
+  export type Nx00PermissionOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    isActive?: SortOrder
+    sortNo?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    _count?: Nx00PermissionCountOrderByAggregateInput
+    _avg?: Nx00PermissionAvgOrderByAggregateInput
+    _max?: Nx00PermissionMaxOrderByAggregateInput
+    _min?: Nx00PermissionMinOrderByAggregateInput
+    _sum?: Nx00PermissionSumOrderByAggregateInput
+  }
+
+  export type Nx00PermissionScalarWhereWithAggregatesInput = {
+    AND?: Nx00PermissionScalarWhereWithAggregatesInput | Nx00PermissionScalarWhereWithAggregatesInput[]
+    OR?: Nx00PermissionScalarWhereWithAggregatesInput[]
+    NOT?: Nx00PermissionScalarWhereWithAggregatesInput | Nx00PermissionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00Permission"> | string
+    code?: StringWithAggregatesFilter<"Nx00Permission"> | string
+    name?: StringWithAggregatesFilter<"Nx00Permission"> | string
+    moduleCode?: StringWithAggregatesFilter<"Nx00Permission"> | string
+    action?: StringWithAggregatesFilter<"Nx00Permission"> | string
+    isActive?: BoolWithAggregatesFilter<"Nx00Permission"> | boolean
+    sortNo?: IntNullableWithAggregatesFilter<"Nx00Permission"> | number | null
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00Permission"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"Nx00Permission"> | string | null
+    updatedAt?: DateTimeNullableWithAggregatesFilter<"Nx00Permission"> | Date | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"Nx00Permission"> | string | null
+  }
+
+  export type Nx00RolePermissionWhereInput = {
+    AND?: Nx00RolePermissionWhereInput | Nx00RolePermissionWhereInput[]
+    OR?: Nx00RolePermissionWhereInput[]
+    NOT?: Nx00RolePermissionWhereInput | Nx00RolePermissionWhereInput[]
+    id?: StringFilter<"Nx00RolePermission"> | string
+    roleId?: StringFilter<"Nx00RolePermission"> | string
+    permissionId?: StringFilter<"Nx00RolePermission"> | string
+    createdAt?: DateTimeFilter<"Nx00RolePermission"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00RolePermission"> | string | null
+    role?: XOR<Nx00RoleScalarRelationFilter, Nx00RoleWhereInput>
+    permission?: XOR<Nx00PermissionScalarRelationFilter, Nx00PermissionWhereInput>
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+  }
+
+  export type Nx00RolePermissionOrderByWithRelationInput = {
+    id?: SortOrder
+    roleId?: SortOrder
+    permissionId?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    role?: Nx00RoleOrderByWithRelationInput
+    permission?: Nx00PermissionOrderByWithRelationInput
+    createdByUser?: Nx00UserOrderByWithRelationInput
+  }
+
+  export type Nx00RolePermissionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    roleId_permissionId?: Nx00RolePermissionRoleIdPermissionIdCompoundUniqueInput
+    AND?: Nx00RolePermissionWhereInput | Nx00RolePermissionWhereInput[]
+    OR?: Nx00RolePermissionWhereInput[]
+    NOT?: Nx00RolePermissionWhereInput | Nx00RolePermissionWhereInput[]
+    roleId?: StringFilter<"Nx00RolePermission"> | string
+    permissionId?: StringFilter<"Nx00RolePermission"> | string
+    createdAt?: DateTimeFilter<"Nx00RolePermission"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00RolePermission"> | string | null
+    role?: XOR<Nx00RoleScalarRelationFilter, Nx00RoleWhereInput>
+    permission?: XOR<Nx00PermissionScalarRelationFilter, Nx00PermissionWhereInput>
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+  }, "id" | "roleId_permissionId">
+
+  export type Nx00RolePermissionOrderByWithAggregationInput = {
+    id?: SortOrder
+    roleId?: SortOrder
+    permissionId?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    _count?: Nx00RolePermissionCountOrderByAggregateInput
+    _max?: Nx00RolePermissionMaxOrderByAggregateInput
+    _min?: Nx00RolePermissionMinOrderByAggregateInput
+  }
+
+  export type Nx00RolePermissionScalarWhereWithAggregatesInput = {
+    AND?: Nx00RolePermissionScalarWhereWithAggregatesInput | Nx00RolePermissionScalarWhereWithAggregatesInput[]
+    OR?: Nx00RolePermissionScalarWhereWithAggregatesInput[]
+    NOT?: Nx00RolePermissionScalarWhereWithAggregatesInput | Nx00RolePermissionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00RolePermission"> | string
+    roleId?: StringWithAggregatesFilter<"Nx00RolePermission"> | string
+    permissionId?: StringWithAggregatesFilter<"Nx00RolePermission"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00RolePermission"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"Nx00RolePermission"> | string | null
   }
 
   export type Nx00BrandWhereInput = {
@@ -11408,6 +19846,366 @@ export namespace Prisma {
     updatedBy?: StringNullableWithAggregatesFilter<"Nx00Part"> | string | null
   }
 
+  export type Nx00WarehouseWhereInput = {
+    AND?: Nx00WarehouseWhereInput | Nx00WarehouseWhereInput[]
+    OR?: Nx00WarehouseWhereInput[]
+    NOT?: Nx00WarehouseWhereInput | Nx00WarehouseWhereInput[]
+    id?: StringFilter<"Nx00Warehouse"> | string
+    code?: StringFilter<"Nx00Warehouse"> | string
+    name?: StringFilter<"Nx00Warehouse"> | string
+    isActive?: BoolFilter<"Nx00Warehouse"> | boolean
+    remark?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    createdAt?: DateTimeFilter<"Nx00Warehouse"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Warehouse"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    locations?: Nx00LocationListRelationFilter
+  }
+
+  export type Nx00WarehouseOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdByUser?: Nx00UserOrderByWithRelationInput
+    updatedByUser?: Nx00UserOrderByWithRelationInput
+    locations?: Nx00LocationOrderByRelationAggregateInput
+  }
+
+  export type Nx00WarehouseWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: Nx00WarehouseWhereInput | Nx00WarehouseWhereInput[]
+    OR?: Nx00WarehouseWhereInput[]
+    NOT?: Nx00WarehouseWhereInput | Nx00WarehouseWhereInput[]
+    name?: StringFilter<"Nx00Warehouse"> | string
+    isActive?: BoolFilter<"Nx00Warehouse"> | boolean
+    remark?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    createdAt?: DateTimeFilter<"Nx00Warehouse"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Warehouse"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    locations?: Nx00LocationListRelationFilter
+  }, "id" | "code">
+
+  export type Nx00WarehouseOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    _count?: Nx00WarehouseCountOrderByAggregateInput
+    _max?: Nx00WarehouseMaxOrderByAggregateInput
+    _min?: Nx00WarehouseMinOrderByAggregateInput
+  }
+
+  export type Nx00WarehouseScalarWhereWithAggregatesInput = {
+    AND?: Nx00WarehouseScalarWhereWithAggregatesInput | Nx00WarehouseScalarWhereWithAggregatesInput[]
+    OR?: Nx00WarehouseScalarWhereWithAggregatesInput[]
+    NOT?: Nx00WarehouseScalarWhereWithAggregatesInput | Nx00WarehouseScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00Warehouse"> | string
+    code?: StringWithAggregatesFilter<"Nx00Warehouse"> | string
+    name?: StringWithAggregatesFilter<"Nx00Warehouse"> | string
+    isActive?: BoolWithAggregatesFilter<"Nx00Warehouse"> | boolean
+    remark?: StringNullableWithAggregatesFilter<"Nx00Warehouse"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00Warehouse"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"Nx00Warehouse"> | string | null
+    updatedAt?: DateTimeNullableWithAggregatesFilter<"Nx00Warehouse"> | Date | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"Nx00Warehouse"> | string | null
+  }
+
+  export type Nx00LocationWhereInput = {
+    AND?: Nx00LocationWhereInput | Nx00LocationWhereInput[]
+    OR?: Nx00LocationWhereInput[]
+    NOT?: Nx00LocationWhereInput | Nx00LocationWhereInput[]
+    id?: StringFilter<"Nx00Location"> | string
+    warehouseId?: StringFilter<"Nx00Location"> | string
+    code?: StringFilter<"Nx00Location"> | string
+    name?: StringNullableFilter<"Nx00Location"> | string | null
+    isActive?: BoolFilter<"Nx00Location"> | boolean
+    remark?: StringNullableFilter<"Nx00Location"> | string | null
+    createdAt?: DateTimeFilter<"Nx00Location"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Location"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Location"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Location"> | string | null
+    warehouse?: XOR<Nx00WarehouseScalarRelationFilter, Nx00WarehouseWhereInput>
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+  }
+
+  export type Nx00LocationOrderByWithRelationInput = {
+    id?: SortOrder
+    warehouseId?: SortOrder
+    code?: SortOrder
+    name?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    remark?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    warehouse?: Nx00WarehouseOrderByWithRelationInput
+    createdByUser?: Nx00UserOrderByWithRelationInput
+    updatedByUser?: Nx00UserOrderByWithRelationInput
+  }
+
+  export type Nx00LocationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: Nx00LocationWhereInput | Nx00LocationWhereInput[]
+    OR?: Nx00LocationWhereInput[]
+    NOT?: Nx00LocationWhereInput | Nx00LocationWhereInput[]
+    warehouseId?: StringFilter<"Nx00Location"> | string
+    name?: StringNullableFilter<"Nx00Location"> | string | null
+    isActive?: BoolFilter<"Nx00Location"> | boolean
+    remark?: StringNullableFilter<"Nx00Location"> | string | null
+    createdAt?: DateTimeFilter<"Nx00Location"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Location"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Location"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Location"> | string | null
+    warehouse?: XOR<Nx00WarehouseScalarRelationFilter, Nx00WarehouseWhereInput>
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+  }, "id" | "code">
+
+  export type Nx00LocationOrderByWithAggregationInput = {
+    id?: SortOrder
+    warehouseId?: SortOrder
+    code?: SortOrder
+    name?: SortOrderInput | SortOrder
+    isActive?: SortOrder
+    remark?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    _count?: Nx00LocationCountOrderByAggregateInput
+    _max?: Nx00LocationMaxOrderByAggregateInput
+    _min?: Nx00LocationMinOrderByAggregateInput
+  }
+
+  export type Nx00LocationScalarWhereWithAggregatesInput = {
+    AND?: Nx00LocationScalarWhereWithAggregatesInput | Nx00LocationScalarWhereWithAggregatesInput[]
+    OR?: Nx00LocationScalarWhereWithAggregatesInput[]
+    NOT?: Nx00LocationScalarWhereWithAggregatesInput | Nx00LocationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00Location"> | string
+    warehouseId?: StringWithAggregatesFilter<"Nx00Location"> | string
+    code?: StringWithAggregatesFilter<"Nx00Location"> | string
+    name?: StringNullableWithAggregatesFilter<"Nx00Location"> | string | null
+    isActive?: BoolWithAggregatesFilter<"Nx00Location"> | boolean
+    remark?: StringNullableWithAggregatesFilter<"Nx00Location"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00Location"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"Nx00Location"> | string | null
+    updatedAt?: DateTimeNullableWithAggregatesFilter<"Nx00Location"> | Date | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"Nx00Location"> | string | null
+  }
+
+  export type Nx00BusinessPartnerWhereInput = {
+    AND?: Nx00BusinessPartnerWhereInput | Nx00BusinessPartnerWhereInput[]
+    OR?: Nx00BusinessPartnerWhereInput[]
+    NOT?: Nx00BusinessPartnerWhereInput | Nx00BusinessPartnerWhereInput[]
+    id?: StringFilter<"Nx00BusinessPartner"> | string
+    code?: StringFilter<"Nx00BusinessPartner"> | string
+    name?: StringFilter<"Nx00BusinessPartner"> | string
+    taxId?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    phone?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    email?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    address?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    isCustomer?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    isVendor?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    isActive?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    remark?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    createdAt?: DateTimeFilter<"Nx00BusinessPartner"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00BusinessPartner"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+  }
+
+  export type Nx00BusinessPartnerOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    taxId?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    address?: SortOrderInput | SortOrder
+    isCustomer?: SortOrder
+    isVendor?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    createdByUser?: Nx00UserOrderByWithRelationInput
+    updatedByUser?: Nx00UserOrderByWithRelationInput
+  }
+
+  export type Nx00BusinessPartnerWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    code?: string
+    AND?: Nx00BusinessPartnerWhereInput | Nx00BusinessPartnerWhereInput[]
+    OR?: Nx00BusinessPartnerWhereInput[]
+    NOT?: Nx00BusinessPartnerWhereInput | Nx00BusinessPartnerWhereInput[]
+    name?: StringFilter<"Nx00BusinessPartner"> | string
+    taxId?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    phone?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    email?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    address?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    isCustomer?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    isVendor?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    isActive?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    remark?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    createdAt?: DateTimeFilter<"Nx00BusinessPartner"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00BusinessPartner"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+  }, "id" | "code">
+
+  export type Nx00BusinessPartnerOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    taxId?: SortOrderInput | SortOrder
+    phone?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    address?: SortOrderInput | SortOrder
+    isCustomer?: SortOrder
+    isVendor?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    _count?: Nx00BusinessPartnerCountOrderByAggregateInput
+    _max?: Nx00BusinessPartnerMaxOrderByAggregateInput
+    _min?: Nx00BusinessPartnerMinOrderByAggregateInput
+  }
+
+  export type Nx00BusinessPartnerScalarWhereWithAggregatesInput = {
+    AND?: Nx00BusinessPartnerScalarWhereWithAggregatesInput | Nx00BusinessPartnerScalarWhereWithAggregatesInput[]
+    OR?: Nx00BusinessPartnerScalarWhereWithAggregatesInput[]
+    NOT?: Nx00BusinessPartnerScalarWhereWithAggregatesInput | Nx00BusinessPartnerScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00BusinessPartner"> | string
+    code?: StringWithAggregatesFilter<"Nx00BusinessPartner"> | string
+    name?: StringWithAggregatesFilter<"Nx00BusinessPartner"> | string
+    taxId?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+    phone?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+    email?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+    address?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+    isCustomer?: BoolWithAggregatesFilter<"Nx00BusinessPartner"> | boolean
+    isVendor?: BoolWithAggregatesFilter<"Nx00BusinessPartner"> | boolean
+    isActive?: BoolWithAggregatesFilter<"Nx00BusinessPartner"> | boolean
+    remark?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00BusinessPartner"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+    updatedAt?: DateTimeNullableWithAggregatesFilter<"Nx00BusinessPartner"> | Date | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"Nx00BusinessPartner"> | string | null
+  }
+
+  export type Nx00AuditLogWhereInput = {
+    AND?: Nx00AuditLogWhereInput | Nx00AuditLogWhereInput[]
+    OR?: Nx00AuditLogWhereInput[]
+    NOT?: Nx00AuditLogWhereInput | Nx00AuditLogWhereInput[]
+    id?: StringFilter<"Nx00AuditLog"> | string
+    userId?: StringFilter<"Nx00AuditLog"> | string
+    moduleCode?: StringFilter<"Nx00AuditLog"> | string
+    action?: StringFilter<"Nx00AuditLog"> | string
+    entity?: StringFilter<"Nx00AuditLog"> | string
+    entityId?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    docNo?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    ipAddress?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    userAgent?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    payload?: JsonNullableFilter<"Nx00AuditLog">
+    createdAt?: DateTimeFilter<"Nx00AuditLog"> | Date | string
+    user?: XOR<Nx00UserScalarRelationFilter, Nx00UserWhereInput>
+  }
+
+  export type Nx00AuditLogOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    entity?: SortOrder
+    entityId?: SortOrderInput | SortOrder
+    docNo?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    payload?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    user?: Nx00UserOrderByWithRelationInput
+  }
+
+  export type Nx00AuditLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: Nx00AuditLogWhereInput | Nx00AuditLogWhereInput[]
+    OR?: Nx00AuditLogWhereInput[]
+    NOT?: Nx00AuditLogWhereInput | Nx00AuditLogWhereInput[]
+    userId?: StringFilter<"Nx00AuditLog"> | string
+    moduleCode?: StringFilter<"Nx00AuditLog"> | string
+    action?: StringFilter<"Nx00AuditLog"> | string
+    entity?: StringFilter<"Nx00AuditLog"> | string
+    entityId?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    docNo?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    ipAddress?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    userAgent?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    payload?: JsonNullableFilter<"Nx00AuditLog">
+    createdAt?: DateTimeFilter<"Nx00AuditLog"> | Date | string
+    user?: XOR<Nx00UserScalarRelationFilter, Nx00UserWhereInput>
+  }, "id">
+
+  export type Nx00AuditLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    entity?: SortOrder
+    entityId?: SortOrderInput | SortOrder
+    docNo?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    payload?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: Nx00AuditLogCountOrderByAggregateInput
+    _max?: Nx00AuditLogMaxOrderByAggregateInput
+    _min?: Nx00AuditLogMinOrderByAggregateInput
+  }
+
+  export type Nx00AuditLogScalarWhereWithAggregatesInput = {
+    AND?: Nx00AuditLogScalarWhereWithAggregatesInput | Nx00AuditLogScalarWhereWithAggregatesInput[]
+    OR?: Nx00AuditLogScalarWhereWithAggregatesInput[]
+    NOT?: Nx00AuditLogScalarWhereWithAggregatesInput | Nx00AuditLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00AuditLog"> | string
+    userId?: StringWithAggregatesFilter<"Nx00AuditLog"> | string
+    moduleCode?: StringWithAggregatesFilter<"Nx00AuditLog"> | string
+    action?: StringWithAggregatesFilter<"Nx00AuditLog"> | string
+    entity?: StringWithAggregatesFilter<"Nx00AuditLog"> | string
+    entityId?: StringNullableWithAggregatesFilter<"Nx00AuditLog"> | string | null
+    docNo?: StringNullableWithAggregatesFilter<"Nx00AuditLog"> | string | null
+    ipAddress?: StringNullableWithAggregatesFilter<"Nx00AuditLog"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"Nx00AuditLog"> | string | null
+    payload?: JsonNullableWithAggregatesFilter<"Nx00AuditLog">
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00AuditLog"> | Date | string
+  }
+
   export type Nx00UserCreateInput = {
     id?: string
     username: string
@@ -11429,6 +20227,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -11437,6 +20238,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateInput = {
@@ -11460,6 +20268,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -11468,6 +20279,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUpdateInput = {
@@ -11491,6 +20309,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -11499,6 +20320,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateInput = {
@@ -11522,6 +20350,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -11530,6 +20361,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserCreateManyInput = {
@@ -11592,6 +20430,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserCreateNestedOneWithoutRolesCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutRolesUpdatedInput
     userRoles?: Nx00UserRoleCreateNestedManyWithoutRoleInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleUncheckedCreateInput = {
@@ -11605,6 +20444,7 @@ export namespace Prisma {
     updatedAt?: Date | string | null
     updatedBy?: string | null
     userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutRoleInput
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleUpdateInput = {
@@ -11618,6 +20458,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserUpdateOneWithoutRolesCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutRolesUpdatedNestedInput
     userRoles?: Nx00UserRoleUpdateManyWithoutRoleNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleUncheckedUpdateInput = {
@@ -11631,6 +20472,7 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutRoleNestedInput
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleCreateManyInput = {
@@ -11716,6 +20558,159 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     roleId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00PermissionCreateInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutPermissionsCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPermissionsUpdatedInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutPermissionInput
+  }
+
+  export type Nx00PermissionUncheckedCreateInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutPermissionInput
+  }
+
+  export type Nx00PermissionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutPermissionsCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutPermissionsUpdatedNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutPermissionNestedInput
+  }
+
+  export type Nx00PermissionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutPermissionNestedInput
+  }
+
+  export type Nx00PermissionCreateManyInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00PermissionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00PermissionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00RolePermissionCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    role: Nx00RoleCreateNestedOneWithoutRolePermsInput
+    permission: Nx00PermissionCreateNestedOneWithoutRolePermsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutRolePermsCreatedInput
+  }
+
+  export type Nx00RolePermissionUncheckedCreateInput = {
+    id?: string
+    roleId: string
+    permissionId: string
+    createdAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type Nx00RolePermissionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: Nx00RoleUpdateOneRequiredWithoutRolePermsNestedInput
+    permission?: Nx00PermissionUpdateOneRequiredWithoutRolePermsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutRolePermsCreatedNestedInput
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    roleId?: StringFieldUpdateOperationsInput | string
+    permissionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00RolePermissionCreateManyInput = {
+    id?: string
+    roleId: string
+    permissionId: string
+    createdAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type Nx00RolePermissionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    roleId?: StringFieldUpdateOperationsInput | string
+    permissionId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -12134,6 +21129,401 @@ export namespace Prisma {
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type Nx00WarehouseCreateInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutWarehousesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutWarehousesUpdatedInput
+    locations?: Nx00LocationCreateNestedManyWithoutWarehouseInput
+  }
+
+  export type Nx00WarehouseUncheckedCreateInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    locations?: Nx00LocationUncheckedCreateNestedManyWithoutWarehouseInput
+  }
+
+  export type Nx00WarehouseUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutWarehousesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutWarehousesUpdatedNestedInput
+    locations?: Nx00LocationUpdateManyWithoutWarehouseNestedInput
+  }
+
+  export type Nx00WarehouseUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    locations?: Nx00LocationUncheckedUpdateManyWithoutWarehouseNestedInput
+  }
+
+  export type Nx00WarehouseCreateManyInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00WarehouseUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00WarehouseUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00LocationCreateInput = {
+    id?: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    warehouse: Nx00WarehouseCreateNestedOneWithoutLocationsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutLocationsCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutLocationsUpdatedInput
+  }
+
+  export type Nx00LocationUncheckedCreateInput = {
+    id?: string
+    warehouseId: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00LocationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    warehouse?: Nx00WarehouseUpdateOneRequiredWithoutLocationsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutLocationsCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutLocationsUpdatedNestedInput
+  }
+
+  export type Nx00LocationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00LocationCreateManyInput = {
+    id?: string
+    warehouseId: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00LocationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00LocationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00BusinessPartnerCreateInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutPartnersCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPartnersUpdatedInput
+  }
+
+  export type Nx00BusinessPartnerUncheckedCreateInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00BusinessPartnerUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutPartnersCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutPartnersUpdatedNestedInput
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00BusinessPartnerCreateManyInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00BusinessPartnerUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00AuditLogCreateInput = {
+    id?: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId?: string | null
+    docNo?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    user: Nx00UserCreateNestedOneWithoutAuditLogsInput
+  }
+
+  export type Nx00AuditLogUncheckedCreateInput = {
+    id?: string
+    userId: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId?: string | null
+    docNo?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type Nx00AuditLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: Nx00UserUpdateOneRequiredWithoutAuditLogsNestedInput
+  }
+
+  export type Nx00AuditLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00AuditLogCreateManyInput = {
+    id?: string
+    userId: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId?: string | null
+    docNo?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type Nx00AuditLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00AuditLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -12214,6 +21604,18 @@ export namespace Prisma {
     none?: Nx00RoleWhereInput
   }
 
+  export type Nx00PermissionListRelationFilter = {
+    every?: Nx00PermissionWhereInput
+    some?: Nx00PermissionWhereInput
+    none?: Nx00PermissionWhereInput
+  }
+
+  export type Nx00RolePermissionListRelationFilter = {
+    every?: Nx00RolePermissionWhereInput
+    some?: Nx00RolePermissionWhereInput
+    none?: Nx00RolePermissionWhereInput
+  }
+
   export type Nx00BrandListRelationFilter = {
     every?: Nx00BrandWhereInput
     some?: Nx00BrandWhereInput
@@ -12238,6 +21640,30 @@ export namespace Prisma {
     none?: Nx00PartWhereInput
   }
 
+  export type Nx00WarehouseListRelationFilter = {
+    every?: Nx00WarehouseWhereInput
+    some?: Nx00WarehouseWhereInput
+    none?: Nx00WarehouseWhereInput
+  }
+
+  export type Nx00LocationListRelationFilter = {
+    every?: Nx00LocationWhereInput
+    some?: Nx00LocationWhereInput
+    none?: Nx00LocationWhereInput
+  }
+
+  export type Nx00BusinessPartnerListRelationFilter = {
+    every?: Nx00BusinessPartnerWhereInput
+    some?: Nx00BusinessPartnerWhereInput
+    none?: Nx00BusinessPartnerWhereInput
+  }
+
+  export type Nx00AuditLogListRelationFilter = {
+    every?: Nx00AuditLogWhereInput
+    some?: Nx00AuditLogWhereInput
+    none?: Nx00AuditLogWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -12255,6 +21681,14 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type Nx00PermissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type Nx00RolePermissionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type Nx00BrandOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -12268,6 +21702,22 @@ export namespace Prisma {
   }
 
   export type Nx00PartOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type Nx00WarehouseOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type Nx00LocationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type Nx00BusinessPartnerOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type Nx00AuditLogOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -12469,6 +21919,117 @@ export namespace Prisma {
     createdBy?: SortOrder
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type Nx00PermissionCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    isActive?: SortOrder
+    sortNo?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00PermissionAvgOrderByAggregateInput = {
+    sortNo?: SortOrder
+  }
+
+  export type Nx00PermissionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    isActive?: SortOrder
+    sortNo?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00PermissionMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    isActive?: SortOrder
+    sortNo?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00PermissionSumOrderByAggregateInput = {
+    sortNo?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type Nx00PermissionScalarRelationFilter = {
+    is?: Nx00PermissionWhereInput
+    isNot?: Nx00PermissionWhereInput
+  }
+
+  export type Nx00RolePermissionRoleIdPermissionIdCompoundUniqueInput = {
+    roleId: string
+    permissionId: string
+  }
+
+  export type Nx00RolePermissionCountOrderByAggregateInput = {
+    id?: SortOrder
+    roleId?: SortOrder
+    permissionId?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type Nx00RolePermissionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    roleId?: SortOrder
+    permissionId?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
+  export type Nx00RolePermissionMinOrderByAggregateInput = {
+    id?: SortOrder
+    roleId?: SortOrder
+    permissionId?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+  }
+
   export type Nx00BrandCountOrderByAggregateInput = {
     id?: SortOrder
     code?: SortOrder
@@ -12506,17 +22067,6 @@ export namespace Prisma {
     createdBy?: SortOrder
     updatedAt?: SortOrder
     updatedBy?: SortOrder
-  }
-
-  export type IntNullableFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
   export type Nx00FunctionGroupCountOrderByAggregateInput = {
@@ -12564,22 +22114,6 @@ export namespace Prisma {
 
   export type Nx00FunctionGroupSumOrderByAggregateInput = {
     sortNo?: SortOrder
-  }
-
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type Nx00PartStatusCountOrderByAggregateInput = {
@@ -12696,6 +22230,229 @@ export namespace Prisma {
     updatedBy?: SortOrder
   }
 
+  export type Nx00WarehouseCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00WarehouseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00WarehouseMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00WarehouseScalarRelationFilter = {
+    is?: Nx00WarehouseWhereInput
+    isNot?: Nx00WarehouseWhereInput
+  }
+
+  export type Nx00LocationCountOrderByAggregateInput = {
+    id?: SortOrder
+    warehouseId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00LocationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    warehouseId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00LocationMinOrderByAggregateInput = {
+    id?: SortOrder
+    warehouseId?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00BusinessPartnerCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    taxId?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    address?: SortOrder
+    isCustomer?: SortOrder
+    isVendor?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00BusinessPartnerMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    taxId?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    address?: SortOrder
+    isCustomer?: SortOrder
+    isVendor?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx00BusinessPartnerMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    taxId?: SortOrder
+    phone?: SortOrder
+    email?: SortOrder
+    address?: SortOrder
+    isCustomer?: SortOrder
+    isVendor?: SortOrder
+    isActive?: SortOrder
+    remark?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type Nx00AuditLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    entity?: SortOrder
+    entityId?: SortOrder
+    docNo?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    payload?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type Nx00AuditLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    entity?: SortOrder
+    entityId?: SortOrder
+    docNo?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type Nx00AuditLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    moduleCode?: SortOrder
+    action?: SortOrder
+    entity?: SortOrder
+    entityId?: SortOrder
+    docNo?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    createdAt?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
   export type Nx00UserCreateNestedOneWithoutCreatedUsersInput = {
     create?: XOR<Nx00UserCreateWithoutCreatedUsersInput, Nx00UserUncheckedCreateWithoutCreatedUsersInput>
     connectOrCreate?: Nx00UserCreateOrConnectWithoutCreatedUsersInput
@@ -12748,6 +22505,27 @@ export namespace Prisma {
     connectOrCreate?: Nx00UserRoleCreateOrConnectWithoutCreatedByUserInput | Nx00UserRoleCreateOrConnectWithoutCreatedByUserInput[]
     createMany?: Nx00UserRoleCreateManyCreatedByUserInputEnvelope
     connect?: Nx00UserRoleWhereUniqueInput | Nx00UserRoleWhereUniqueInput[]
+  }
+
+  export type Nx00PermissionCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00PermissionCreateWithoutCreatedByUserInput, Nx00PermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00PermissionCreateWithoutCreatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutCreatedByUserInput | Nx00PermissionCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+  }
+
+  export type Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00PermissionCreateWithoutUpdatedByUserInput, Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput> | Nx00PermissionCreateWithoutUpdatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput | Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+  }
+
+  export type Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00RolePermissionCreateWithoutCreatedByUserInput[] | Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput | Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00RolePermissionCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
   }
 
   export type Nx00BrandCreateNestedManyWithoutCreatedByUserInput = {
@@ -12806,6 +22584,55 @@ export namespace Prisma {
     connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
   }
 
+  export type Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutCreatedByUserInput, Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput> | Nx00WarehouseCreateWithoutCreatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput | Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+  }
+
+  export type Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput> | Nx00WarehouseCreateWithoutUpdatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput | Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+  }
+
+  export type Nx00LocationCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00LocationCreateWithoutCreatedByUserInput, Nx00LocationUncheckedCreateWithoutCreatedByUserInput> | Nx00LocationCreateWithoutCreatedByUserInput[] | Nx00LocationUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutCreatedByUserInput | Nx00LocationCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00LocationCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+  }
+
+  export type Nx00LocationCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00LocationCreateWithoutUpdatedByUserInput, Nx00LocationUncheckedCreateWithoutUpdatedByUserInput> | Nx00LocationCreateWithoutUpdatedByUserInput[] | Nx00LocationUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutUpdatedByUserInput | Nx00LocationCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00LocationCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+  }
+
+  export type Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput> | Nx00BusinessPartnerCreateWithoutCreatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+  }
+
+  export type Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput> | Nx00BusinessPartnerCreateWithoutUpdatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+  }
+
+  export type Nx00AuditLogCreateNestedManyWithoutUserInput = {
+    create?: XOR<Nx00AuditLogCreateWithoutUserInput, Nx00AuditLogUncheckedCreateWithoutUserInput> | Nx00AuditLogCreateWithoutUserInput[] | Nx00AuditLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: Nx00AuditLogCreateOrConnectWithoutUserInput | Nx00AuditLogCreateOrConnectWithoutUserInput[]
+    createMany?: Nx00AuditLogCreateManyUserInputEnvelope
+    connect?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+  }
+
   export type Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput = {
     create?: XOR<Nx00UserCreateWithoutCreatedByUserInput, Nx00UserUncheckedCreateWithoutCreatedByUserInput> | Nx00UserCreateWithoutCreatedByUserInput[] | Nx00UserUncheckedCreateWithoutCreatedByUserInput[]
     connectOrCreate?: Nx00UserCreateOrConnectWithoutCreatedByUserInput | Nx00UserCreateOrConnectWithoutCreatedByUserInput[]
@@ -12846,6 +22673,27 @@ export namespace Prisma {
     connectOrCreate?: Nx00UserRoleCreateOrConnectWithoutCreatedByUserInput | Nx00UserRoleCreateOrConnectWithoutCreatedByUserInput[]
     createMany?: Nx00UserRoleCreateManyCreatedByUserInputEnvelope
     connect?: Nx00UserRoleWhereUniqueInput | Nx00UserRoleWhereUniqueInput[]
+  }
+
+  export type Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00PermissionCreateWithoutCreatedByUserInput, Nx00PermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00PermissionCreateWithoutCreatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutCreatedByUserInput | Nx00PermissionCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+  }
+
+  export type Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00PermissionCreateWithoutUpdatedByUserInput, Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput> | Nx00PermissionCreateWithoutUpdatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput | Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+  }
+
+  export type Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00RolePermissionCreateWithoutCreatedByUserInput[] | Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput | Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00RolePermissionCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
   }
 
   export type Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput = {
@@ -12902,6 +22750,55 @@ export namespace Prisma {
     connectOrCreate?: Nx00PartCreateOrConnectWithoutUpdatedByUserInput | Nx00PartCreateOrConnectWithoutUpdatedByUserInput[]
     createMany?: Nx00PartCreateManyUpdatedByUserInputEnvelope
     connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+  }
+
+  export type Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutCreatedByUserInput, Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput> | Nx00WarehouseCreateWithoutCreatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput | Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+  }
+
+  export type Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput> | Nx00WarehouseCreateWithoutUpdatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput | Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+  }
+
+  export type Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00LocationCreateWithoutCreatedByUserInput, Nx00LocationUncheckedCreateWithoutCreatedByUserInput> | Nx00LocationCreateWithoutCreatedByUserInput[] | Nx00LocationUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutCreatedByUserInput | Nx00LocationCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00LocationCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+  }
+
+  export type Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00LocationCreateWithoutUpdatedByUserInput, Nx00LocationUncheckedCreateWithoutUpdatedByUserInput> | Nx00LocationCreateWithoutUpdatedByUserInput[] | Nx00LocationUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutUpdatedByUserInput | Nx00LocationCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00LocationCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+  }
+
+  export type Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput> | Nx00BusinessPartnerCreateWithoutCreatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+  }
+
+  export type Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput> | Nx00BusinessPartnerCreateWithoutUpdatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+  }
+
+  export type Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<Nx00AuditLogCreateWithoutUserInput, Nx00AuditLogUncheckedCreateWithoutUserInput> | Nx00AuditLogCreateWithoutUserInput[] | Nx00AuditLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: Nx00AuditLogCreateOrConnectWithoutUserInput | Nx00AuditLogCreateOrConnectWithoutUserInput[]
+    createMany?: Nx00AuditLogCreateManyUserInputEnvelope
+    connect?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -13028,6 +22925,48 @@ export namespace Prisma {
     deleteMany?: Nx00UserRoleScalarWhereInput | Nx00UserRoleScalarWhereInput[]
   }
 
+  export type Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00PermissionCreateWithoutCreatedByUserInput, Nx00PermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00PermissionCreateWithoutCreatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutCreatedByUserInput | Nx00PermissionCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00PermissionUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00PermissionUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyCreatedByUserInputEnvelope
+    set?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    disconnect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    delete?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    update?: Nx00PermissionUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00PermissionUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00PermissionUpdateManyWithWhereWithoutCreatedByUserInput | Nx00PermissionUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00PermissionScalarWhereInput | Nx00PermissionScalarWhereInput[]
+  }
+
+  export type Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00PermissionCreateWithoutUpdatedByUserInput, Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput> | Nx00PermissionCreateWithoutUpdatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput | Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00PermissionUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00PermissionUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    disconnect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    delete?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    update?: Nx00PermissionUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00PermissionUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00PermissionUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00PermissionUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00PermissionScalarWhereInput | Nx00PermissionScalarWhereInput[]
+  }
+
+  export type Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00RolePermissionCreateWithoutCreatedByUserInput[] | Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput | Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00RolePermissionUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00RolePermissionUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00RolePermissionCreateManyCreatedByUserInputEnvelope
+    set?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    disconnect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    delete?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    update?: Nx00RolePermissionUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00RolePermissionUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00RolePermissionUpdateManyWithWhereWithoutCreatedByUserInput | Nx00RolePermissionUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
+  }
+
   export type Nx00BrandUpdateManyWithoutCreatedByUserNestedInput = {
     create?: XOR<Nx00BrandCreateWithoutCreatedByUserInput, Nx00BrandUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCreateWithoutCreatedByUserInput[] | Nx00BrandUncheckedCreateWithoutCreatedByUserInput[]
     connectOrCreate?: Nx00BrandCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCreateOrConnectWithoutCreatedByUserInput[]
@@ -13140,6 +23079,104 @@ export namespace Prisma {
     deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
   }
 
+  export type Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutCreatedByUserInput, Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput> | Nx00WarehouseCreateWithoutCreatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput | Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00WarehouseUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00WarehouseUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyCreatedByUserInputEnvelope
+    set?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    disconnect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    delete?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    update?: Nx00WarehouseUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00WarehouseUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00WarehouseUpdateManyWithWhereWithoutCreatedByUserInput | Nx00WarehouseUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00WarehouseScalarWhereInput | Nx00WarehouseScalarWhereInput[]
+  }
+
+  export type Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput> | Nx00WarehouseCreateWithoutUpdatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput | Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00WarehouseUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00WarehouseUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    disconnect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    delete?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    update?: Nx00WarehouseUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00WarehouseUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00WarehouseUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00WarehouseUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00WarehouseScalarWhereInput | Nx00WarehouseScalarWhereInput[]
+  }
+
+  export type Nx00LocationUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00LocationCreateWithoutCreatedByUserInput, Nx00LocationUncheckedCreateWithoutCreatedByUserInput> | Nx00LocationCreateWithoutCreatedByUserInput[] | Nx00LocationUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutCreatedByUserInput | Nx00LocationCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00LocationUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00LocationUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00LocationCreateManyCreatedByUserInputEnvelope
+    set?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    disconnect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    delete?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    update?: Nx00LocationUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00LocationUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00LocationUpdateManyWithWhereWithoutCreatedByUserInput | Nx00LocationUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+  }
+
+  export type Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00LocationCreateWithoutUpdatedByUserInput, Nx00LocationUncheckedCreateWithoutUpdatedByUserInput> | Nx00LocationCreateWithoutUpdatedByUserInput[] | Nx00LocationUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutUpdatedByUserInput | Nx00LocationCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00LocationUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00LocationUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00LocationCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    disconnect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    delete?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    update?: Nx00LocationUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00LocationUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00LocationUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00LocationUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+  }
+
+  export type Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput> | Nx00BusinessPartnerCreateWithoutCreatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00BusinessPartnerUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00BusinessPartnerUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyCreatedByUserInputEnvelope
+    set?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    disconnect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    delete?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    update?: Nx00BusinessPartnerUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00BusinessPartnerUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00BusinessPartnerUpdateManyWithWhereWithoutCreatedByUserInput | Nx00BusinessPartnerUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00BusinessPartnerScalarWhereInput | Nx00BusinessPartnerScalarWhereInput[]
+  }
+
+  export type Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput> | Nx00BusinessPartnerCreateWithoutUpdatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00BusinessPartnerUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00BusinessPartnerUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    disconnect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    delete?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    update?: Nx00BusinessPartnerUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00BusinessPartnerUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00BusinessPartnerUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00BusinessPartnerUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00BusinessPartnerScalarWhereInput | Nx00BusinessPartnerScalarWhereInput[]
+  }
+
+  export type Nx00AuditLogUpdateManyWithoutUserNestedInput = {
+    create?: XOR<Nx00AuditLogCreateWithoutUserInput, Nx00AuditLogUncheckedCreateWithoutUserInput> | Nx00AuditLogCreateWithoutUserInput[] | Nx00AuditLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: Nx00AuditLogCreateOrConnectWithoutUserInput | Nx00AuditLogCreateOrConnectWithoutUserInput[]
+    upsert?: Nx00AuditLogUpsertWithWhereUniqueWithoutUserInput | Nx00AuditLogUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: Nx00AuditLogCreateManyUserInputEnvelope
+    set?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    disconnect?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    delete?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    connect?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    update?: Nx00AuditLogUpdateWithWhereUniqueWithoutUserInput | Nx00AuditLogUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: Nx00AuditLogUpdateManyWithWhereWithoutUserInput | Nx00AuditLogUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: Nx00AuditLogScalarWhereInput | Nx00AuditLogScalarWhereInput[]
+  }
+
   export type Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
     create?: XOR<Nx00UserCreateWithoutCreatedByUserInput, Nx00UserUncheckedCreateWithoutCreatedByUserInput> | Nx00UserCreateWithoutCreatedByUserInput[] | Nx00UserUncheckedCreateWithoutCreatedByUserInput[]
     connectOrCreate?: Nx00UserCreateOrConnectWithoutCreatedByUserInput | Nx00UserCreateOrConnectWithoutCreatedByUserInput[]
@@ -13222,6 +23259,48 @@ export namespace Prisma {
     update?: Nx00UserRoleUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00UserRoleUpdateWithWhereUniqueWithoutCreatedByUserInput[]
     updateMany?: Nx00UserRoleUpdateManyWithWhereWithoutCreatedByUserInput | Nx00UserRoleUpdateManyWithWhereWithoutCreatedByUserInput[]
     deleteMany?: Nx00UserRoleScalarWhereInput | Nx00UserRoleScalarWhereInput[]
+  }
+
+  export type Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00PermissionCreateWithoutCreatedByUserInput, Nx00PermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00PermissionCreateWithoutCreatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutCreatedByUserInput | Nx00PermissionCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00PermissionUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00PermissionUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyCreatedByUserInputEnvelope
+    set?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    disconnect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    delete?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    update?: Nx00PermissionUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00PermissionUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00PermissionUpdateManyWithWhereWithoutCreatedByUserInput | Nx00PermissionUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00PermissionScalarWhereInput | Nx00PermissionScalarWhereInput[]
+  }
+
+  export type Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00PermissionCreateWithoutUpdatedByUserInput, Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput> | Nx00PermissionCreateWithoutUpdatedByUserInput[] | Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput | Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00PermissionUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00PermissionUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00PermissionCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    disconnect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    delete?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    connect?: Nx00PermissionWhereUniqueInput | Nx00PermissionWhereUniqueInput[]
+    update?: Nx00PermissionUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00PermissionUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00PermissionUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00PermissionUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00PermissionScalarWhereInput | Nx00PermissionScalarWhereInput[]
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput> | Nx00RolePermissionCreateWithoutCreatedByUserInput[] | Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput | Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00RolePermissionUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00RolePermissionUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00RolePermissionCreateManyCreatedByUserInputEnvelope
+    set?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    disconnect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    delete?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    update?: Nx00RolePermissionUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00RolePermissionUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00RolePermissionUpdateManyWithWhereWithoutCreatedByUserInput | Nx00RolePermissionUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
   }
 
   export type Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
@@ -13336,6 +23415,104 @@ export namespace Prisma {
     deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
   }
 
+  export type Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutCreatedByUserInput, Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput> | Nx00WarehouseCreateWithoutCreatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput | Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00WarehouseUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00WarehouseUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyCreatedByUserInputEnvelope
+    set?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    disconnect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    delete?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    update?: Nx00WarehouseUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00WarehouseUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00WarehouseUpdateManyWithWhereWithoutCreatedByUserInput | Nx00WarehouseUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00WarehouseScalarWhereInput | Nx00WarehouseScalarWhereInput[]
+  }
+
+  export type Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput> | Nx00WarehouseCreateWithoutUpdatedByUserInput[] | Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput | Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00WarehouseUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00WarehouseUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00WarehouseCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    disconnect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    delete?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    connect?: Nx00WarehouseWhereUniqueInput | Nx00WarehouseWhereUniqueInput[]
+    update?: Nx00WarehouseUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00WarehouseUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00WarehouseUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00WarehouseUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00WarehouseScalarWhereInput | Nx00WarehouseScalarWhereInput[]
+  }
+
+  export type Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00LocationCreateWithoutCreatedByUserInput, Nx00LocationUncheckedCreateWithoutCreatedByUserInput> | Nx00LocationCreateWithoutCreatedByUserInput[] | Nx00LocationUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutCreatedByUserInput | Nx00LocationCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00LocationUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00LocationUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00LocationCreateManyCreatedByUserInputEnvelope
+    set?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    disconnect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    delete?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    update?: Nx00LocationUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00LocationUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00LocationUpdateManyWithWhereWithoutCreatedByUserInput | Nx00LocationUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+  }
+
+  export type Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00LocationCreateWithoutUpdatedByUserInput, Nx00LocationUncheckedCreateWithoutUpdatedByUserInput> | Nx00LocationCreateWithoutUpdatedByUserInput[] | Nx00LocationUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutUpdatedByUserInput | Nx00LocationCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00LocationUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00LocationUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00LocationCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    disconnect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    delete?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    update?: Nx00LocationUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00LocationUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00LocationUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00LocationUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput> | Nx00BusinessPartnerCreateWithoutCreatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00BusinessPartnerUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00BusinessPartnerUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyCreatedByUserInputEnvelope
+    set?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    disconnect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    delete?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    update?: Nx00BusinessPartnerUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00BusinessPartnerUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00BusinessPartnerUpdateManyWithWhereWithoutCreatedByUserInput | Nx00BusinessPartnerUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00BusinessPartnerScalarWhereInput | Nx00BusinessPartnerScalarWhereInput[]
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00BusinessPartnerCreateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput> | Nx00BusinessPartnerCreateWithoutUpdatedByUserInput[] | Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput | Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00BusinessPartnerUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00BusinessPartnerUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00BusinessPartnerCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    disconnect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    delete?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    connect?: Nx00BusinessPartnerWhereUniqueInput | Nx00BusinessPartnerWhereUniqueInput[]
+    update?: Nx00BusinessPartnerUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00BusinessPartnerUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00BusinessPartnerUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00BusinessPartnerUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00BusinessPartnerScalarWhereInput | Nx00BusinessPartnerScalarWhereInput[]
+  }
+
+  export type Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<Nx00AuditLogCreateWithoutUserInput, Nx00AuditLogUncheckedCreateWithoutUserInput> | Nx00AuditLogCreateWithoutUserInput[] | Nx00AuditLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: Nx00AuditLogCreateOrConnectWithoutUserInput | Nx00AuditLogCreateOrConnectWithoutUserInput[]
+    upsert?: Nx00AuditLogUpsertWithWhereUniqueWithoutUserInput | Nx00AuditLogUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: Nx00AuditLogCreateManyUserInputEnvelope
+    set?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    disconnect?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    delete?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    connect?: Nx00AuditLogWhereUniqueInput | Nx00AuditLogWhereUniqueInput[]
+    update?: Nx00AuditLogUpdateWithWhereUniqueWithoutUserInput | Nx00AuditLogUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: Nx00AuditLogUpdateManyWithWhereWithoutUserInput | Nx00AuditLogUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: Nx00AuditLogScalarWhereInput | Nx00AuditLogScalarWhereInput[]
+  }
+
   export type Nx00UserCreateNestedOneWithoutRolesCreatedInput = {
     create?: XOR<Nx00UserCreateWithoutRolesCreatedInput, Nx00UserUncheckedCreateWithoutRolesCreatedInput>
     connectOrCreate?: Nx00UserCreateOrConnectWithoutRolesCreatedInput
@@ -13355,11 +23532,25 @@ export namespace Prisma {
     connect?: Nx00UserRoleWhereUniqueInput | Nx00UserRoleWhereUniqueInput[]
   }
 
+  export type Nx00RolePermissionCreateNestedManyWithoutRoleInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutRoleInput, Nx00RolePermissionUncheckedCreateWithoutRoleInput> | Nx00RolePermissionCreateWithoutRoleInput[] | Nx00RolePermissionUncheckedCreateWithoutRoleInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutRoleInput | Nx00RolePermissionCreateOrConnectWithoutRoleInput[]
+    createMany?: Nx00RolePermissionCreateManyRoleInputEnvelope
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+  }
+
   export type Nx00UserRoleUncheckedCreateNestedManyWithoutRoleInput = {
     create?: XOR<Nx00UserRoleCreateWithoutRoleInput, Nx00UserRoleUncheckedCreateWithoutRoleInput> | Nx00UserRoleCreateWithoutRoleInput[] | Nx00UserRoleUncheckedCreateWithoutRoleInput[]
     connectOrCreate?: Nx00UserRoleCreateOrConnectWithoutRoleInput | Nx00UserRoleCreateOrConnectWithoutRoleInput[]
     createMany?: Nx00UserRoleCreateManyRoleInputEnvelope
     connect?: Nx00UserRoleWhereUniqueInput | Nx00UserRoleWhereUniqueInput[]
+  }
+
+  export type Nx00RolePermissionUncheckedCreateNestedManyWithoutRoleInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutRoleInput, Nx00RolePermissionUncheckedCreateWithoutRoleInput> | Nx00RolePermissionCreateWithoutRoleInput[] | Nx00RolePermissionUncheckedCreateWithoutRoleInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutRoleInput | Nx00RolePermissionCreateOrConnectWithoutRoleInput[]
+    createMany?: Nx00RolePermissionCreateManyRoleInputEnvelope
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
   }
 
   export type Nx00UserUpdateOneWithoutRolesCreatedNestedInput = {
@@ -13396,6 +23587,20 @@ export namespace Prisma {
     deleteMany?: Nx00UserRoleScalarWhereInput | Nx00UserRoleScalarWhereInput[]
   }
 
+  export type Nx00RolePermissionUpdateManyWithoutRoleNestedInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutRoleInput, Nx00RolePermissionUncheckedCreateWithoutRoleInput> | Nx00RolePermissionCreateWithoutRoleInput[] | Nx00RolePermissionUncheckedCreateWithoutRoleInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutRoleInput | Nx00RolePermissionCreateOrConnectWithoutRoleInput[]
+    upsert?: Nx00RolePermissionUpsertWithWhereUniqueWithoutRoleInput | Nx00RolePermissionUpsertWithWhereUniqueWithoutRoleInput[]
+    createMany?: Nx00RolePermissionCreateManyRoleInputEnvelope
+    set?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    disconnect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    delete?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    update?: Nx00RolePermissionUpdateWithWhereUniqueWithoutRoleInput | Nx00RolePermissionUpdateWithWhereUniqueWithoutRoleInput[]
+    updateMany?: Nx00RolePermissionUpdateManyWithWhereWithoutRoleInput | Nx00RolePermissionUpdateManyWithWhereWithoutRoleInput[]
+    deleteMany?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
+  }
+
   export type Nx00UserRoleUncheckedUpdateManyWithoutRoleNestedInput = {
     create?: XOR<Nx00UserRoleCreateWithoutRoleInput, Nx00UserRoleUncheckedCreateWithoutRoleInput> | Nx00UserRoleCreateWithoutRoleInput[] | Nx00UserRoleUncheckedCreateWithoutRoleInput[]
     connectOrCreate?: Nx00UserRoleCreateOrConnectWithoutRoleInput | Nx00UserRoleCreateOrConnectWithoutRoleInput[]
@@ -13408,6 +23613,20 @@ export namespace Prisma {
     update?: Nx00UserRoleUpdateWithWhereUniqueWithoutRoleInput | Nx00UserRoleUpdateWithWhereUniqueWithoutRoleInput[]
     updateMany?: Nx00UserRoleUpdateManyWithWhereWithoutRoleInput | Nx00UserRoleUpdateManyWithWhereWithoutRoleInput[]
     deleteMany?: Nx00UserRoleScalarWhereInput | Nx00UserRoleScalarWhereInput[]
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyWithoutRoleNestedInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutRoleInput, Nx00RolePermissionUncheckedCreateWithoutRoleInput> | Nx00RolePermissionCreateWithoutRoleInput[] | Nx00RolePermissionUncheckedCreateWithoutRoleInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutRoleInput | Nx00RolePermissionCreateOrConnectWithoutRoleInput[]
+    upsert?: Nx00RolePermissionUpsertWithWhereUniqueWithoutRoleInput | Nx00RolePermissionUpsertWithWhereUniqueWithoutRoleInput[]
+    createMany?: Nx00RolePermissionCreateManyRoleInputEnvelope
+    set?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    disconnect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    delete?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    update?: Nx00RolePermissionUpdateWithWhereUniqueWithoutRoleInput | Nx00RolePermissionUpdateWithWhereUniqueWithoutRoleInput[]
+    updateMany?: Nx00RolePermissionUpdateManyWithWhereWithoutRoleInput | Nx00RolePermissionUpdateManyWithWhereWithoutRoleInput[]
+    deleteMany?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
   }
 
   export type Nx00UserCreateNestedOneWithoutUserRolesInput = {
@@ -13452,6 +23671,132 @@ export namespace Prisma {
     delete?: Nx00UserWhereInput | boolean
     connect?: Nx00UserWhereUniqueInput
     update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutUserRolesCreatedInput, Nx00UserUpdateWithoutUserRolesCreatedInput>, Nx00UserUncheckedUpdateWithoutUserRolesCreatedInput>
+  }
+
+  export type Nx00UserCreateNestedOneWithoutPermissionsCreatedInput = {
+    create?: XOR<Nx00UserCreateWithoutPermissionsCreatedInput, Nx00UserUncheckedCreateWithoutPermissionsCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPermissionsCreatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00UserCreateNestedOneWithoutPermissionsUpdatedInput = {
+    create?: XOR<Nx00UserCreateWithoutPermissionsUpdatedInput, Nx00UserUncheckedCreateWithoutPermissionsUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPermissionsUpdatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00RolePermissionCreateNestedManyWithoutPermissionInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutPermissionInput, Nx00RolePermissionUncheckedCreateWithoutPermissionInput> | Nx00RolePermissionCreateWithoutPermissionInput[] | Nx00RolePermissionUncheckedCreateWithoutPermissionInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutPermissionInput | Nx00RolePermissionCreateOrConnectWithoutPermissionInput[]
+    createMany?: Nx00RolePermissionCreateManyPermissionInputEnvelope
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+  }
+
+  export type Nx00RolePermissionUncheckedCreateNestedManyWithoutPermissionInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutPermissionInput, Nx00RolePermissionUncheckedCreateWithoutPermissionInput> | Nx00RolePermissionCreateWithoutPermissionInput[] | Nx00RolePermissionUncheckedCreateWithoutPermissionInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutPermissionInput | Nx00RolePermissionCreateOrConnectWithoutPermissionInput[]
+    createMany?: Nx00RolePermissionCreateManyPermissionInputEnvelope
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type Nx00UserUpdateOneWithoutPermissionsCreatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutPermissionsCreatedInput, Nx00UserUncheckedCreateWithoutPermissionsCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPermissionsCreatedInput
+    upsert?: Nx00UserUpsertWithoutPermissionsCreatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutPermissionsCreatedInput, Nx00UserUpdateWithoutPermissionsCreatedInput>, Nx00UserUncheckedUpdateWithoutPermissionsCreatedInput>
+  }
+
+  export type Nx00UserUpdateOneWithoutPermissionsUpdatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutPermissionsUpdatedInput, Nx00UserUncheckedCreateWithoutPermissionsUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPermissionsUpdatedInput
+    upsert?: Nx00UserUpsertWithoutPermissionsUpdatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutPermissionsUpdatedInput, Nx00UserUpdateWithoutPermissionsUpdatedInput>, Nx00UserUncheckedUpdateWithoutPermissionsUpdatedInput>
+  }
+
+  export type Nx00RolePermissionUpdateManyWithoutPermissionNestedInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutPermissionInput, Nx00RolePermissionUncheckedCreateWithoutPermissionInput> | Nx00RolePermissionCreateWithoutPermissionInput[] | Nx00RolePermissionUncheckedCreateWithoutPermissionInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutPermissionInput | Nx00RolePermissionCreateOrConnectWithoutPermissionInput[]
+    upsert?: Nx00RolePermissionUpsertWithWhereUniqueWithoutPermissionInput | Nx00RolePermissionUpsertWithWhereUniqueWithoutPermissionInput[]
+    createMany?: Nx00RolePermissionCreateManyPermissionInputEnvelope
+    set?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    disconnect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    delete?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    update?: Nx00RolePermissionUpdateWithWhereUniqueWithoutPermissionInput | Nx00RolePermissionUpdateWithWhereUniqueWithoutPermissionInput[]
+    updateMany?: Nx00RolePermissionUpdateManyWithWhereWithoutPermissionInput | Nx00RolePermissionUpdateManyWithWhereWithoutPermissionInput[]
+    deleteMany?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyWithoutPermissionNestedInput = {
+    create?: XOR<Nx00RolePermissionCreateWithoutPermissionInput, Nx00RolePermissionUncheckedCreateWithoutPermissionInput> | Nx00RolePermissionCreateWithoutPermissionInput[] | Nx00RolePermissionUncheckedCreateWithoutPermissionInput[]
+    connectOrCreate?: Nx00RolePermissionCreateOrConnectWithoutPermissionInput | Nx00RolePermissionCreateOrConnectWithoutPermissionInput[]
+    upsert?: Nx00RolePermissionUpsertWithWhereUniqueWithoutPermissionInput | Nx00RolePermissionUpsertWithWhereUniqueWithoutPermissionInput[]
+    createMany?: Nx00RolePermissionCreateManyPermissionInputEnvelope
+    set?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    disconnect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    delete?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    connect?: Nx00RolePermissionWhereUniqueInput | Nx00RolePermissionWhereUniqueInput[]
+    update?: Nx00RolePermissionUpdateWithWhereUniqueWithoutPermissionInput | Nx00RolePermissionUpdateWithWhereUniqueWithoutPermissionInput[]
+    updateMany?: Nx00RolePermissionUpdateManyWithWhereWithoutPermissionInput | Nx00RolePermissionUpdateManyWithWhereWithoutPermissionInput[]
+    deleteMany?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
+  }
+
+  export type Nx00RoleCreateNestedOneWithoutRolePermsInput = {
+    create?: XOR<Nx00RoleCreateWithoutRolePermsInput, Nx00RoleUncheckedCreateWithoutRolePermsInput>
+    connectOrCreate?: Nx00RoleCreateOrConnectWithoutRolePermsInput
+    connect?: Nx00RoleWhereUniqueInput
+  }
+
+  export type Nx00PermissionCreateNestedOneWithoutRolePermsInput = {
+    create?: XOR<Nx00PermissionCreateWithoutRolePermsInput, Nx00PermissionUncheckedCreateWithoutRolePermsInput>
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutRolePermsInput
+    connect?: Nx00PermissionWhereUniqueInput
+  }
+
+  export type Nx00UserCreateNestedOneWithoutRolePermsCreatedInput = {
+    create?: XOR<Nx00UserCreateWithoutRolePermsCreatedInput, Nx00UserUncheckedCreateWithoutRolePermsCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutRolePermsCreatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00RoleUpdateOneRequiredWithoutRolePermsNestedInput = {
+    create?: XOR<Nx00RoleCreateWithoutRolePermsInput, Nx00RoleUncheckedCreateWithoutRolePermsInput>
+    connectOrCreate?: Nx00RoleCreateOrConnectWithoutRolePermsInput
+    upsert?: Nx00RoleUpsertWithoutRolePermsInput
+    connect?: Nx00RoleWhereUniqueInput
+    update?: XOR<XOR<Nx00RoleUpdateToOneWithWhereWithoutRolePermsInput, Nx00RoleUpdateWithoutRolePermsInput>, Nx00RoleUncheckedUpdateWithoutRolePermsInput>
+  }
+
+  export type Nx00PermissionUpdateOneRequiredWithoutRolePermsNestedInput = {
+    create?: XOR<Nx00PermissionCreateWithoutRolePermsInput, Nx00PermissionUncheckedCreateWithoutRolePermsInput>
+    connectOrCreate?: Nx00PermissionCreateOrConnectWithoutRolePermsInput
+    upsert?: Nx00PermissionUpsertWithoutRolePermsInput
+    connect?: Nx00PermissionWhereUniqueInput
+    update?: XOR<XOR<Nx00PermissionUpdateToOneWithWhereWithoutRolePermsInput, Nx00PermissionUpdateWithoutRolePermsInput>, Nx00PermissionUncheckedUpdateWithoutRolePermsInput>
+  }
+
+  export type Nx00UserUpdateOneWithoutRolePermsCreatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutRolePermsCreatedInput, Nx00UserUncheckedCreateWithoutRolePermsCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutRolePermsCreatedInput
+    upsert?: Nx00UserUpsertWithoutRolePermsCreatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutRolePermsCreatedInput, Nx00UserUpdateWithoutRolePermsCreatedInput>, Nx00UserUncheckedUpdateWithoutRolePermsCreatedInput>
   }
 
   export type Nx00UserCreateNestedOneWithoutBrandsCreatedInput = {
@@ -13552,14 +23897,6 @@ export namespace Prisma {
     connectOrCreate?: Nx00PartCreateOrConnectWithoutFunctionGroupInput | Nx00PartCreateOrConnectWithoutFunctionGroupInput[]
     createMany?: Nx00PartCreateManyFunctionGroupInputEnvelope
     connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type Nx00UserUpdateOneWithoutFunctionGroupsCreatedNestedInput = {
@@ -13760,6 +24097,172 @@ export namespace Prisma {
     update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutPartsUpdatedInput, Nx00UserUpdateWithoutPartsUpdatedInput>, Nx00UserUncheckedUpdateWithoutPartsUpdatedInput>
   }
 
+  export type Nx00UserCreateNestedOneWithoutWarehousesCreatedInput = {
+    create?: XOR<Nx00UserCreateWithoutWarehousesCreatedInput, Nx00UserUncheckedCreateWithoutWarehousesCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutWarehousesCreatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00UserCreateNestedOneWithoutWarehousesUpdatedInput = {
+    create?: XOR<Nx00UserCreateWithoutWarehousesUpdatedInput, Nx00UserUncheckedCreateWithoutWarehousesUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutWarehousesUpdatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00LocationCreateNestedManyWithoutWarehouseInput = {
+    create?: XOR<Nx00LocationCreateWithoutWarehouseInput, Nx00LocationUncheckedCreateWithoutWarehouseInput> | Nx00LocationCreateWithoutWarehouseInput[] | Nx00LocationUncheckedCreateWithoutWarehouseInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutWarehouseInput | Nx00LocationCreateOrConnectWithoutWarehouseInput[]
+    createMany?: Nx00LocationCreateManyWarehouseInputEnvelope
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+  }
+
+  export type Nx00LocationUncheckedCreateNestedManyWithoutWarehouseInput = {
+    create?: XOR<Nx00LocationCreateWithoutWarehouseInput, Nx00LocationUncheckedCreateWithoutWarehouseInput> | Nx00LocationCreateWithoutWarehouseInput[] | Nx00LocationUncheckedCreateWithoutWarehouseInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutWarehouseInput | Nx00LocationCreateOrConnectWithoutWarehouseInput[]
+    createMany?: Nx00LocationCreateManyWarehouseInputEnvelope
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+  }
+
+  export type Nx00UserUpdateOneWithoutWarehousesCreatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutWarehousesCreatedInput, Nx00UserUncheckedCreateWithoutWarehousesCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutWarehousesCreatedInput
+    upsert?: Nx00UserUpsertWithoutWarehousesCreatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutWarehousesCreatedInput, Nx00UserUpdateWithoutWarehousesCreatedInput>, Nx00UserUncheckedUpdateWithoutWarehousesCreatedInput>
+  }
+
+  export type Nx00UserUpdateOneWithoutWarehousesUpdatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutWarehousesUpdatedInput, Nx00UserUncheckedCreateWithoutWarehousesUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutWarehousesUpdatedInput
+    upsert?: Nx00UserUpsertWithoutWarehousesUpdatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutWarehousesUpdatedInput, Nx00UserUpdateWithoutWarehousesUpdatedInput>, Nx00UserUncheckedUpdateWithoutWarehousesUpdatedInput>
+  }
+
+  export type Nx00LocationUpdateManyWithoutWarehouseNestedInput = {
+    create?: XOR<Nx00LocationCreateWithoutWarehouseInput, Nx00LocationUncheckedCreateWithoutWarehouseInput> | Nx00LocationCreateWithoutWarehouseInput[] | Nx00LocationUncheckedCreateWithoutWarehouseInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutWarehouseInput | Nx00LocationCreateOrConnectWithoutWarehouseInput[]
+    upsert?: Nx00LocationUpsertWithWhereUniqueWithoutWarehouseInput | Nx00LocationUpsertWithWhereUniqueWithoutWarehouseInput[]
+    createMany?: Nx00LocationCreateManyWarehouseInputEnvelope
+    set?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    disconnect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    delete?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    update?: Nx00LocationUpdateWithWhereUniqueWithoutWarehouseInput | Nx00LocationUpdateWithWhereUniqueWithoutWarehouseInput[]
+    updateMany?: Nx00LocationUpdateManyWithWhereWithoutWarehouseInput | Nx00LocationUpdateManyWithWhereWithoutWarehouseInput[]
+    deleteMany?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+  }
+
+  export type Nx00LocationUncheckedUpdateManyWithoutWarehouseNestedInput = {
+    create?: XOR<Nx00LocationCreateWithoutWarehouseInput, Nx00LocationUncheckedCreateWithoutWarehouseInput> | Nx00LocationCreateWithoutWarehouseInput[] | Nx00LocationUncheckedCreateWithoutWarehouseInput[]
+    connectOrCreate?: Nx00LocationCreateOrConnectWithoutWarehouseInput | Nx00LocationCreateOrConnectWithoutWarehouseInput[]
+    upsert?: Nx00LocationUpsertWithWhereUniqueWithoutWarehouseInput | Nx00LocationUpsertWithWhereUniqueWithoutWarehouseInput[]
+    createMany?: Nx00LocationCreateManyWarehouseInputEnvelope
+    set?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    disconnect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    delete?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    connect?: Nx00LocationWhereUniqueInput | Nx00LocationWhereUniqueInput[]
+    update?: Nx00LocationUpdateWithWhereUniqueWithoutWarehouseInput | Nx00LocationUpdateWithWhereUniqueWithoutWarehouseInput[]
+    updateMany?: Nx00LocationUpdateManyWithWhereWithoutWarehouseInput | Nx00LocationUpdateManyWithWhereWithoutWarehouseInput[]
+    deleteMany?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+  }
+
+  export type Nx00WarehouseCreateNestedOneWithoutLocationsInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutLocationsInput, Nx00WarehouseUncheckedCreateWithoutLocationsInput>
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutLocationsInput
+    connect?: Nx00WarehouseWhereUniqueInput
+  }
+
+  export type Nx00UserCreateNestedOneWithoutLocationsCreatedInput = {
+    create?: XOR<Nx00UserCreateWithoutLocationsCreatedInput, Nx00UserUncheckedCreateWithoutLocationsCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutLocationsCreatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00UserCreateNestedOneWithoutLocationsUpdatedInput = {
+    create?: XOR<Nx00UserCreateWithoutLocationsUpdatedInput, Nx00UserUncheckedCreateWithoutLocationsUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutLocationsUpdatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00WarehouseUpdateOneRequiredWithoutLocationsNestedInput = {
+    create?: XOR<Nx00WarehouseCreateWithoutLocationsInput, Nx00WarehouseUncheckedCreateWithoutLocationsInput>
+    connectOrCreate?: Nx00WarehouseCreateOrConnectWithoutLocationsInput
+    upsert?: Nx00WarehouseUpsertWithoutLocationsInput
+    connect?: Nx00WarehouseWhereUniqueInput
+    update?: XOR<XOR<Nx00WarehouseUpdateToOneWithWhereWithoutLocationsInput, Nx00WarehouseUpdateWithoutLocationsInput>, Nx00WarehouseUncheckedUpdateWithoutLocationsInput>
+  }
+
+  export type Nx00UserUpdateOneWithoutLocationsCreatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutLocationsCreatedInput, Nx00UserUncheckedCreateWithoutLocationsCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutLocationsCreatedInput
+    upsert?: Nx00UserUpsertWithoutLocationsCreatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutLocationsCreatedInput, Nx00UserUpdateWithoutLocationsCreatedInput>, Nx00UserUncheckedUpdateWithoutLocationsCreatedInput>
+  }
+
+  export type Nx00UserUpdateOneWithoutLocationsUpdatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutLocationsUpdatedInput, Nx00UserUncheckedCreateWithoutLocationsUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutLocationsUpdatedInput
+    upsert?: Nx00UserUpsertWithoutLocationsUpdatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutLocationsUpdatedInput, Nx00UserUpdateWithoutLocationsUpdatedInput>, Nx00UserUncheckedUpdateWithoutLocationsUpdatedInput>
+  }
+
+  export type Nx00UserCreateNestedOneWithoutPartnersCreatedInput = {
+    create?: XOR<Nx00UserCreateWithoutPartnersCreatedInput, Nx00UserUncheckedCreateWithoutPartnersCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPartnersCreatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00UserCreateNestedOneWithoutPartnersUpdatedInput = {
+    create?: XOR<Nx00UserCreateWithoutPartnersUpdatedInput, Nx00UserUncheckedCreateWithoutPartnersUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPartnersUpdatedInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00UserUpdateOneWithoutPartnersCreatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutPartnersCreatedInput, Nx00UserUncheckedCreateWithoutPartnersCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPartnersCreatedInput
+    upsert?: Nx00UserUpsertWithoutPartnersCreatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutPartnersCreatedInput, Nx00UserUpdateWithoutPartnersCreatedInput>, Nx00UserUncheckedUpdateWithoutPartnersCreatedInput>
+  }
+
+  export type Nx00UserUpdateOneWithoutPartnersUpdatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutPartnersUpdatedInput, Nx00UserUncheckedCreateWithoutPartnersUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutPartnersUpdatedInput
+    upsert?: Nx00UserUpsertWithoutPartnersUpdatedInput
+    disconnect?: Nx00UserWhereInput | boolean
+    delete?: Nx00UserWhereInput | boolean
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutPartnersUpdatedInput, Nx00UserUpdateWithoutPartnersUpdatedInput>, Nx00UserUncheckedUpdateWithoutPartnersUpdatedInput>
+  }
+
+  export type Nx00UserCreateNestedOneWithoutAuditLogsInput = {
+    create?: XOR<Nx00UserCreateWithoutAuditLogsInput, Nx00UserUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutAuditLogsInput
+    connect?: Nx00UserWhereUniqueInput
+  }
+
+  export type Nx00UserUpdateOneRequiredWithoutAuditLogsNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutAuditLogsInput, Nx00UserUncheckedCreateWithoutAuditLogsInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutAuditLogsInput
+    upsert?: Nx00UserUpsertWithoutAuditLogsInput
+    connect?: Nx00UserWhereUniqueInput
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutAuditLogsInput, Nx00UserUpdateWithoutAuditLogsInput>, Nx00UserUncheckedUpdateWithoutAuditLogsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -13933,6 +24436,29 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type Nx00UserCreateWithoutCreatedUsersInput = {
     id?: string
@@ -13954,6 +24480,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -13962,6 +24491,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutCreatedUsersInput = {
@@ -13984,6 +24520,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -13992,6 +24531,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutCreatedUsersInput = {
@@ -14019,6 +24565,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -14027,6 +24576,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutUpdatedUsersInput = {
@@ -14049,6 +24605,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -14057,6 +24616,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutUpdatedUsersInput = {
@@ -14084,6 +24650,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -14092,6 +24661,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutCreatedByUserInput = {
@@ -14114,6 +24690,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -14122,6 +24701,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutCreatedByUserInput = {
@@ -14154,6 +24740,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -14162,6 +24751,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutUpdatedByUserInput = {
@@ -14184,6 +24780,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -14192,6 +24791,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutUpdatedByUserInput = {
@@ -14238,6 +24844,7 @@ export namespace Prisma {
     updatedAt?: Date | string | null
     updatedByUser?: Nx00UserCreateNestedOneWithoutRolesUpdatedInput
     userRoles?: Nx00UserRoleCreateNestedManyWithoutRoleInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleUncheckedCreateWithoutCreatedByUserInput = {
@@ -14250,6 +24857,7 @@ export namespace Prisma {
     updatedAt?: Date | string | null
     updatedBy?: string | null
     userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutRoleInput
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleCreateOrConnectWithoutCreatedByUserInput = {
@@ -14272,6 +24880,7 @@ export namespace Prisma {
     updatedAt?: Date | string | null
     createdByUser?: Nx00UserCreateNestedOneWithoutRolesCreatedInput
     userRoles?: Nx00UserRoleCreateNestedManyWithoutRoleInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleUncheckedCreateWithoutUpdatedByUserInput = {
@@ -14284,6 +24893,7 @@ export namespace Prisma {
     createdBy?: string | null
     updatedAt?: Date | string | null
     userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutRoleInput
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleCreateOrConnectWithoutUpdatedByUserInput = {
@@ -14317,6 +24927,106 @@ export namespace Prisma {
 
   export type Nx00UserRoleCreateManyCreatedByUserInputEnvelope = {
     data: Nx00UserRoleCreateManyCreatedByUserInput | Nx00UserRoleCreateManyCreatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00PermissionCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPermissionsUpdatedInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutPermissionInput
+  }
+
+  export type Nx00PermissionUncheckedCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutPermissionInput
+  }
+
+  export type Nx00PermissionCreateOrConnectWithoutCreatedByUserInput = {
+    where: Nx00PermissionWhereUniqueInput
+    create: XOR<Nx00PermissionCreateWithoutCreatedByUserInput, Nx00PermissionUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00PermissionCreateManyCreatedByUserInputEnvelope = {
+    data: Nx00PermissionCreateManyCreatedByUserInput | Nx00PermissionCreateManyCreatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00PermissionCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutPermissionsCreatedInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutPermissionInput
+  }
+
+  export type Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutPermissionInput
+  }
+
+  export type Nx00PermissionCreateOrConnectWithoutUpdatedByUserInput = {
+    where: Nx00PermissionWhereUniqueInput
+    create: XOR<Nx00PermissionCreateWithoutUpdatedByUserInput, Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00PermissionCreateManyUpdatedByUserInputEnvelope = {
+    data: Nx00PermissionCreateManyUpdatedByUserInput | Nx00PermissionCreateManyUpdatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00RolePermissionCreateWithoutCreatedByUserInput = {
+    id?: string
+    createdAt?: Date | string
+    role: Nx00RoleCreateNestedOneWithoutRolePermsInput
+    permission: Nx00PermissionCreateNestedOneWithoutRolePermsInput
+  }
+
+  export type Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput = {
+    id?: string
+    roleId: string
+    permissionId: string
+    createdAt?: Date | string
+  }
+
+  export type Nx00RolePermissionCreateOrConnectWithoutCreatedByUserInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    create: XOR<Nx00RolePermissionCreateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00RolePermissionCreateManyCreatedByUserInputEnvelope = {
+    data: Nx00RolePermissionCreateManyCreatedByUserInput | Nx00RolePermissionCreateManyCreatedByUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -14632,6 +25342,266 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type Nx00WarehouseCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedByUser?: Nx00UserCreateNestedOneWithoutWarehousesUpdatedInput
+    locations?: Nx00LocationCreateNestedManyWithoutWarehouseInput
+  }
+
+  export type Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    locations?: Nx00LocationUncheckedCreateNestedManyWithoutWarehouseInput
+  }
+
+  export type Nx00WarehouseCreateOrConnectWithoutCreatedByUserInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    create: XOR<Nx00WarehouseCreateWithoutCreatedByUserInput, Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00WarehouseCreateManyCreatedByUserInputEnvelope = {
+    data: Nx00WarehouseCreateManyCreatedByUserInput | Nx00WarehouseCreateManyCreatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00WarehouseCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutWarehousesCreatedInput
+    locations?: Nx00LocationCreateNestedManyWithoutWarehouseInput
+  }
+
+  export type Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    locations?: Nx00LocationUncheckedCreateNestedManyWithoutWarehouseInput
+  }
+
+  export type Nx00WarehouseCreateOrConnectWithoutUpdatedByUserInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    create: XOR<Nx00WarehouseCreateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00WarehouseCreateManyUpdatedByUserInputEnvelope = {
+    data: Nx00WarehouseCreateManyUpdatedByUserInput | Nx00WarehouseCreateManyUpdatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00LocationCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    warehouse: Nx00WarehouseCreateNestedOneWithoutLocationsInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutLocationsUpdatedInput
+  }
+
+  export type Nx00LocationUncheckedCreateWithoutCreatedByUserInput = {
+    id?: string
+    warehouseId: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00LocationCreateOrConnectWithoutCreatedByUserInput = {
+    where: Nx00LocationWhereUniqueInput
+    create: XOR<Nx00LocationCreateWithoutCreatedByUserInput, Nx00LocationUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00LocationCreateManyCreatedByUserInputEnvelope = {
+    data: Nx00LocationCreateManyCreatedByUserInput | Nx00LocationCreateManyCreatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00LocationCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    warehouse: Nx00WarehouseCreateNestedOneWithoutLocationsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutLocationsCreatedInput
+  }
+
+  export type Nx00LocationUncheckedCreateWithoutUpdatedByUserInput = {
+    id?: string
+    warehouseId: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type Nx00LocationCreateOrConnectWithoutUpdatedByUserInput = {
+    where: Nx00LocationWhereUniqueInput
+    create: XOR<Nx00LocationCreateWithoutUpdatedByUserInput, Nx00LocationUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00LocationCreateManyUpdatedByUserInputEnvelope = {
+    data: Nx00LocationCreateManyUpdatedByUserInput | Nx00LocationCreateManyUpdatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00BusinessPartnerCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPartnersUpdatedInput
+  }
+
+  export type Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00BusinessPartnerCreateOrConnectWithoutCreatedByUserInput = {
+    where: Nx00BusinessPartnerWhereUniqueInput
+    create: XOR<Nx00BusinessPartnerCreateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerCreateManyCreatedByUserInputEnvelope = {
+    data: Nx00BusinessPartnerCreateManyCreatedByUserInput | Nx00BusinessPartnerCreateManyCreatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00BusinessPartnerCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutPartnersCreatedInput
+  }
+
+  export type Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type Nx00BusinessPartnerCreateOrConnectWithoutUpdatedByUserInput = {
+    where: Nx00BusinessPartnerWhereUniqueInput
+    create: XOR<Nx00BusinessPartnerCreateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerCreateManyUpdatedByUserInputEnvelope = {
+    data: Nx00BusinessPartnerCreateManyUpdatedByUserInput | Nx00BusinessPartnerCreateManyUpdatedByUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00AuditLogCreateWithoutUserInput = {
+    id?: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId?: string | null
+    docNo?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type Nx00AuditLogUncheckedCreateWithoutUserInput = {
+    id?: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId?: string | null
+    docNo?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
+  export type Nx00AuditLogCreateOrConnectWithoutUserInput = {
+    where: Nx00AuditLogWhereUniqueInput
+    create: XOR<Nx00AuditLogCreateWithoutUserInput, Nx00AuditLogUncheckedCreateWithoutUserInput>
+  }
+
+  export type Nx00AuditLogCreateManyUserInputEnvelope = {
+    data: Nx00AuditLogCreateManyUserInput | Nx00AuditLogCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type Nx00UserUpsertWithoutCreatedUsersInput = {
     update: XOR<Nx00UserUpdateWithoutCreatedUsersInput, Nx00UserUncheckedUpdateWithoutCreatedUsersInput>
     create: XOR<Nx00UserCreateWithoutCreatedUsersInput, Nx00UserUncheckedCreateWithoutCreatedUsersInput>
@@ -14663,6 +25633,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -14671,6 +25644,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutCreatedUsersInput = {
@@ -14693,6 +25673,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -14701,6 +25684,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithoutUpdatedUsersInput = {
@@ -14734,6 +25724,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -14742,6 +25735,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutUpdatedUsersInput = {
@@ -14764,6 +25764,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -14772,6 +25775,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithWhereUniqueWithoutCreatedByUserInput = {
@@ -14914,6 +25924,82 @@ export namespace Prisma {
   export type Nx00UserRoleUpdateManyWithWhereWithoutCreatedByUserInput = {
     where: Nx00UserRoleScalarWhereInput
     data: XOR<Nx00UserRoleUpdateManyMutationInput, Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type Nx00PermissionUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00PermissionWhereUniqueInput
+    update: XOR<Nx00PermissionUpdateWithoutCreatedByUserInput, Nx00PermissionUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<Nx00PermissionCreateWithoutCreatedByUserInput, Nx00PermissionUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00PermissionUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00PermissionWhereUniqueInput
+    data: XOR<Nx00PermissionUpdateWithoutCreatedByUserInput, Nx00PermissionUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00PermissionUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: Nx00PermissionScalarWhereInput
+    data: XOR<Nx00PermissionUpdateManyMutationInput, Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type Nx00PermissionScalarWhereInput = {
+    AND?: Nx00PermissionScalarWhereInput | Nx00PermissionScalarWhereInput[]
+    OR?: Nx00PermissionScalarWhereInput[]
+    NOT?: Nx00PermissionScalarWhereInput | Nx00PermissionScalarWhereInput[]
+    id?: StringFilter<"Nx00Permission"> | string
+    code?: StringFilter<"Nx00Permission"> | string
+    name?: StringFilter<"Nx00Permission"> | string
+    moduleCode?: StringFilter<"Nx00Permission"> | string
+    action?: StringFilter<"Nx00Permission"> | string
+    isActive?: BoolFilter<"Nx00Permission"> | boolean
+    sortNo?: IntNullableFilter<"Nx00Permission"> | number | null
+    createdAt?: DateTimeFilter<"Nx00Permission"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Permission"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Permission"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Permission"> | string | null
+  }
+
+  export type Nx00PermissionUpsertWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00PermissionWhereUniqueInput
+    update: XOR<Nx00PermissionUpdateWithoutUpdatedByUserInput, Nx00PermissionUncheckedUpdateWithoutUpdatedByUserInput>
+    create: XOR<Nx00PermissionCreateWithoutUpdatedByUserInput, Nx00PermissionUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00PermissionUpdateWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00PermissionWhereUniqueInput
+    data: XOR<Nx00PermissionUpdateWithoutUpdatedByUserInput, Nx00PermissionUncheckedUpdateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00PermissionUpdateManyWithWhereWithoutUpdatedByUserInput = {
+    where: Nx00PermissionScalarWhereInput
+    data: XOR<Nx00PermissionUpdateManyMutationInput, Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00RolePermissionUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    update: XOR<Nx00RolePermissionUpdateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<Nx00RolePermissionCreateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00RolePermissionUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    data: XOR<Nx00RolePermissionUpdateWithoutCreatedByUserInput, Nx00RolePermissionUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00RolePermissionUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: Nx00RolePermissionScalarWhereInput
+    data: XOR<Nx00RolePermissionUpdateManyMutationInput, Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type Nx00RolePermissionScalarWhereInput = {
+    AND?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
+    OR?: Nx00RolePermissionScalarWhereInput[]
+    NOT?: Nx00RolePermissionScalarWhereInput | Nx00RolePermissionScalarWhereInput[]
+    id?: StringFilter<"Nx00RolePermission"> | string
+    roleId?: StringFilter<"Nx00RolePermission"> | string
+    permissionId?: StringFilter<"Nx00RolePermission"> | string
+    createdAt?: DateTimeFilter<"Nx00RolePermission"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00RolePermission"> | string | null
   }
 
   export type Nx00BrandUpsertWithWhereUniqueWithoutCreatedByUserInput = {
@@ -15115,6 +26201,187 @@ export namespace Prisma {
     data: XOR<Nx00PartUpdateManyMutationInput, Nx00PartUncheckedUpdateManyWithoutUpdatedByUserInput>
   }
 
+  export type Nx00WarehouseUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    update: XOR<Nx00WarehouseUpdateWithoutCreatedByUserInput, Nx00WarehouseUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<Nx00WarehouseCreateWithoutCreatedByUserInput, Nx00WarehouseUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00WarehouseUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    data: XOR<Nx00WarehouseUpdateWithoutCreatedByUserInput, Nx00WarehouseUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00WarehouseUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: Nx00WarehouseScalarWhereInput
+    data: XOR<Nx00WarehouseUpdateManyMutationInput, Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type Nx00WarehouseScalarWhereInput = {
+    AND?: Nx00WarehouseScalarWhereInput | Nx00WarehouseScalarWhereInput[]
+    OR?: Nx00WarehouseScalarWhereInput[]
+    NOT?: Nx00WarehouseScalarWhereInput | Nx00WarehouseScalarWhereInput[]
+    id?: StringFilter<"Nx00Warehouse"> | string
+    code?: StringFilter<"Nx00Warehouse"> | string
+    name?: StringFilter<"Nx00Warehouse"> | string
+    isActive?: BoolFilter<"Nx00Warehouse"> | boolean
+    remark?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    createdAt?: DateTimeFilter<"Nx00Warehouse"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Warehouse"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Warehouse"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Warehouse"> | string | null
+  }
+
+  export type Nx00WarehouseUpsertWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    update: XOR<Nx00WarehouseUpdateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedUpdateWithoutUpdatedByUserInput>
+    create: XOR<Nx00WarehouseCreateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00WarehouseUpdateWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    data: XOR<Nx00WarehouseUpdateWithoutUpdatedByUserInput, Nx00WarehouseUncheckedUpdateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00WarehouseUpdateManyWithWhereWithoutUpdatedByUserInput = {
+    where: Nx00WarehouseScalarWhereInput
+    data: XOR<Nx00WarehouseUpdateManyMutationInput, Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00LocationUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00LocationWhereUniqueInput
+    update: XOR<Nx00LocationUpdateWithoutCreatedByUserInput, Nx00LocationUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<Nx00LocationCreateWithoutCreatedByUserInput, Nx00LocationUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00LocationUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00LocationWhereUniqueInput
+    data: XOR<Nx00LocationUpdateWithoutCreatedByUserInput, Nx00LocationUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00LocationUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: Nx00LocationScalarWhereInput
+    data: XOR<Nx00LocationUpdateManyMutationInput, Nx00LocationUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type Nx00LocationScalarWhereInput = {
+    AND?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+    OR?: Nx00LocationScalarWhereInput[]
+    NOT?: Nx00LocationScalarWhereInput | Nx00LocationScalarWhereInput[]
+    id?: StringFilter<"Nx00Location"> | string
+    warehouseId?: StringFilter<"Nx00Location"> | string
+    code?: StringFilter<"Nx00Location"> | string
+    name?: StringNullableFilter<"Nx00Location"> | string | null
+    isActive?: BoolFilter<"Nx00Location"> | boolean
+    remark?: StringNullableFilter<"Nx00Location"> | string | null
+    createdAt?: DateTimeFilter<"Nx00Location"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00Location"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00Location"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00Location"> | string | null
+  }
+
+  export type Nx00LocationUpsertWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00LocationWhereUniqueInput
+    update: XOR<Nx00LocationUpdateWithoutUpdatedByUserInput, Nx00LocationUncheckedUpdateWithoutUpdatedByUserInput>
+    create: XOR<Nx00LocationCreateWithoutUpdatedByUserInput, Nx00LocationUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00LocationUpdateWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00LocationWhereUniqueInput
+    data: XOR<Nx00LocationUpdateWithoutUpdatedByUserInput, Nx00LocationUncheckedUpdateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00LocationUpdateManyWithWhereWithoutUpdatedByUserInput = {
+    where: Nx00LocationScalarWhereInput
+    data: XOR<Nx00LocationUpdateManyMutationInput, Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00BusinessPartnerWhereUniqueInput
+    update: XOR<Nx00BusinessPartnerUpdateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<Nx00BusinessPartnerCreateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00BusinessPartnerWhereUniqueInput
+    data: XOR<Nx00BusinessPartnerUpdateWithoutCreatedByUserInput, Nx00BusinessPartnerUncheckedUpdateWithoutCreatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: Nx00BusinessPartnerScalarWhereInput
+    data: XOR<Nx00BusinessPartnerUpdateManyMutationInput, Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerScalarWhereInput = {
+    AND?: Nx00BusinessPartnerScalarWhereInput | Nx00BusinessPartnerScalarWhereInput[]
+    OR?: Nx00BusinessPartnerScalarWhereInput[]
+    NOT?: Nx00BusinessPartnerScalarWhereInput | Nx00BusinessPartnerScalarWhereInput[]
+    id?: StringFilter<"Nx00BusinessPartner"> | string
+    code?: StringFilter<"Nx00BusinessPartner"> | string
+    name?: StringFilter<"Nx00BusinessPartner"> | string
+    taxId?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    phone?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    email?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    address?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    isCustomer?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    isVendor?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    isActive?: BoolFilter<"Nx00BusinessPartner"> | boolean
+    remark?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    createdAt?: DateTimeFilter<"Nx00BusinessPartner"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+    updatedAt?: DateTimeNullableFilter<"Nx00BusinessPartner"> | Date | string | null
+    updatedBy?: StringNullableFilter<"Nx00BusinessPartner"> | string | null
+  }
+
+  export type Nx00BusinessPartnerUpsertWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00BusinessPartnerWhereUniqueInput
+    update: XOR<Nx00BusinessPartnerUpdateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedUpdateWithoutUpdatedByUserInput>
+    create: XOR<Nx00BusinessPartnerCreateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedCreateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerUpdateWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00BusinessPartnerWhereUniqueInput
+    data: XOR<Nx00BusinessPartnerUpdateWithoutUpdatedByUserInput, Nx00BusinessPartnerUncheckedUpdateWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00BusinessPartnerUpdateManyWithWhereWithoutUpdatedByUserInput = {
+    where: Nx00BusinessPartnerScalarWhereInput
+    data: XOR<Nx00BusinessPartnerUpdateManyMutationInput, Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserInput>
+  }
+
+  export type Nx00AuditLogUpsertWithWhereUniqueWithoutUserInput = {
+    where: Nx00AuditLogWhereUniqueInput
+    update: XOR<Nx00AuditLogUpdateWithoutUserInput, Nx00AuditLogUncheckedUpdateWithoutUserInput>
+    create: XOR<Nx00AuditLogCreateWithoutUserInput, Nx00AuditLogUncheckedCreateWithoutUserInput>
+  }
+
+  export type Nx00AuditLogUpdateWithWhereUniqueWithoutUserInput = {
+    where: Nx00AuditLogWhereUniqueInput
+    data: XOR<Nx00AuditLogUpdateWithoutUserInput, Nx00AuditLogUncheckedUpdateWithoutUserInput>
+  }
+
+  export type Nx00AuditLogUpdateManyWithWhereWithoutUserInput = {
+    where: Nx00AuditLogScalarWhereInput
+    data: XOR<Nx00AuditLogUpdateManyMutationInput, Nx00AuditLogUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type Nx00AuditLogScalarWhereInput = {
+    AND?: Nx00AuditLogScalarWhereInput | Nx00AuditLogScalarWhereInput[]
+    OR?: Nx00AuditLogScalarWhereInput[]
+    NOT?: Nx00AuditLogScalarWhereInput | Nx00AuditLogScalarWhereInput[]
+    id?: StringFilter<"Nx00AuditLog"> | string
+    userId?: StringFilter<"Nx00AuditLog"> | string
+    moduleCode?: StringFilter<"Nx00AuditLog"> | string
+    action?: StringFilter<"Nx00AuditLog"> | string
+    entity?: StringFilter<"Nx00AuditLog"> | string
+    entityId?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    docNo?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    ipAddress?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    userAgent?: StringNullableFilter<"Nx00AuditLog"> | string | null
+    payload?: JsonNullableFilter<"Nx00AuditLog">
+    createdAt?: DateTimeFilter<"Nx00AuditLog"> | Date | string
+  }
+
   export type Nx00UserCreateWithoutRolesCreatedInput = {
     id?: string
     username: string
@@ -15135,6 +26402,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -15143,6 +26413,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutRolesCreatedInput = {
@@ -15165,6 +26442,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -15173,6 +26453,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutRolesCreatedInput = {
@@ -15200,6 +26487,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -15208,6 +26498,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutRolesUpdatedInput = {
@@ -15230,6 +26527,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -15238,6 +26538,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutRolesUpdatedInput = {
@@ -15266,6 +26573,30 @@ export namespace Prisma {
 
   export type Nx00UserRoleCreateManyRoleInputEnvelope = {
     data: Nx00UserRoleCreateManyRoleInput | Nx00UserRoleCreateManyRoleInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00RolePermissionCreateWithoutRoleInput = {
+    id?: string
+    createdAt?: Date | string
+    permission: Nx00PermissionCreateNestedOneWithoutRolePermsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutRolePermsCreatedInput
+  }
+
+  export type Nx00RolePermissionUncheckedCreateWithoutRoleInput = {
+    id?: string
+    permissionId: string
+    createdAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type Nx00RolePermissionCreateOrConnectWithoutRoleInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    create: XOR<Nx00RolePermissionCreateWithoutRoleInput, Nx00RolePermissionUncheckedCreateWithoutRoleInput>
+  }
+
+  export type Nx00RolePermissionCreateManyRoleInputEnvelope = {
+    data: Nx00RolePermissionCreateManyRoleInput | Nx00RolePermissionCreateManyRoleInput[]
     skipDuplicates?: boolean
   }
 
@@ -15300,6 +26631,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -15308,6 +26642,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutRolesCreatedInput = {
@@ -15330,6 +26671,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -15338,6 +26682,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithoutRolesUpdatedInput = {
@@ -15371,6 +26722,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -15379,6 +26733,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutRolesUpdatedInput = {
@@ -15401,6 +26762,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -15409,6 +26773,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserRoleUpsertWithWhereUniqueWithoutRoleInput = {
@@ -15425,6 +26796,22 @@ export namespace Prisma {
   export type Nx00UserRoleUpdateManyWithWhereWithoutRoleInput = {
     where: Nx00UserRoleScalarWhereInput
     data: XOR<Nx00UserRoleUpdateManyMutationInput, Nx00UserRoleUncheckedUpdateManyWithoutRoleInput>
+  }
+
+  export type Nx00RolePermissionUpsertWithWhereUniqueWithoutRoleInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    update: XOR<Nx00RolePermissionUpdateWithoutRoleInput, Nx00RolePermissionUncheckedUpdateWithoutRoleInput>
+    create: XOR<Nx00RolePermissionCreateWithoutRoleInput, Nx00RolePermissionUncheckedCreateWithoutRoleInput>
+  }
+
+  export type Nx00RolePermissionUpdateWithWhereUniqueWithoutRoleInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    data: XOR<Nx00RolePermissionUpdateWithoutRoleInput, Nx00RolePermissionUncheckedUpdateWithoutRoleInput>
+  }
+
+  export type Nx00RolePermissionUpdateManyWithWhereWithoutRoleInput = {
+    where: Nx00RolePermissionScalarWhereInput
+    data: XOR<Nx00RolePermissionUpdateManyMutationInput, Nx00RolePermissionUncheckedUpdateManyWithoutRoleInput>
   }
 
   export type Nx00UserCreateWithoutUserRolesInput = {
@@ -15447,6 +26834,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -15455,6 +26845,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutUserRolesInput = {
@@ -15477,6 +26874,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -15485,6 +26885,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutUserRolesInput = {
@@ -15502,6 +26909,7 @@ export namespace Prisma {
     updatedAt?: Date | string | null
     createdByUser?: Nx00UserCreateNestedOneWithoutRolesCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutRolesUpdatedInput
+    rolePerms?: Nx00RolePermissionCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleUncheckedCreateWithoutUserRolesInput = {
@@ -15514,6 +26922,7 @@ export namespace Prisma {
     createdBy?: string | null
     updatedAt?: Date | string | null
     updatedBy?: string | null
+    rolePerms?: Nx00RolePermissionUncheckedCreateNestedManyWithoutRoleInput
   }
 
   export type Nx00RoleCreateOrConnectWithoutUserRolesInput = {
@@ -15541,6 +26950,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -15549,6 +26961,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutUserRolesCreatedInput = {
@@ -15571,6 +26990,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -15579,6 +27001,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutUserRolesCreatedInput = {
@@ -15617,6 +27046,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -15625,6 +27057,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutUserRolesInput = {
@@ -15647,6 +27086,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -15655,6 +27097,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00RoleUpsertWithoutUserRolesInput = {
@@ -15678,6 +27127,7 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUser?: Nx00UserUpdateOneWithoutRolesCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutRolesUpdatedNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleUncheckedUpdateWithoutUserRolesInput = {
@@ -15690,6 +27140,7 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00UserUpsertWithoutUserRolesCreatedInput = {
@@ -15723,6 +27174,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -15731,6 +27185,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutUserRolesCreatedInput = {
@@ -15753,6 +27214,9 @@ export namespace Prisma {
     userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -15761,6 +27225,721 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserCreateWithoutPermissionsCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutPermissionsCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutPermissionsCreatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutPermissionsCreatedInput, Nx00UserUncheckedCreateWithoutPermissionsCreatedInput>
+  }
+
+  export type Nx00UserCreateWithoutPermissionsUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutPermissionsUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutPermissionsUpdatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutPermissionsUpdatedInput, Nx00UserUncheckedCreateWithoutPermissionsUpdatedInput>
+  }
+
+  export type Nx00RolePermissionCreateWithoutPermissionInput = {
+    id?: string
+    createdAt?: Date | string
+    role: Nx00RoleCreateNestedOneWithoutRolePermsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutRolePermsCreatedInput
+  }
+
+  export type Nx00RolePermissionUncheckedCreateWithoutPermissionInput = {
+    id?: string
+    roleId: string
+    createdAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type Nx00RolePermissionCreateOrConnectWithoutPermissionInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    create: XOR<Nx00RolePermissionCreateWithoutPermissionInput, Nx00RolePermissionUncheckedCreateWithoutPermissionInput>
+  }
+
+  export type Nx00RolePermissionCreateManyPermissionInputEnvelope = {
+    data: Nx00RolePermissionCreateManyPermissionInput | Nx00RolePermissionCreateManyPermissionInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00UserUpsertWithoutPermissionsCreatedInput = {
+    update: XOR<Nx00UserUpdateWithoutPermissionsCreatedInput, Nx00UserUncheckedUpdateWithoutPermissionsCreatedInput>
+    create: XOR<Nx00UserCreateWithoutPermissionsCreatedInput, Nx00UserUncheckedCreateWithoutPermissionsCreatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutPermissionsCreatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutPermissionsCreatedInput, Nx00UserUncheckedUpdateWithoutPermissionsCreatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutPermissionsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutPermissionsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUpsertWithoutPermissionsUpdatedInput = {
+    update: XOR<Nx00UserUpdateWithoutPermissionsUpdatedInput, Nx00UserUncheckedUpdateWithoutPermissionsUpdatedInput>
+    create: XOR<Nx00UserCreateWithoutPermissionsUpdatedInput, Nx00UserUncheckedCreateWithoutPermissionsUpdatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutPermissionsUpdatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutPermissionsUpdatedInput, Nx00UserUncheckedUpdateWithoutPermissionsUpdatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutPermissionsUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutPermissionsUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00RolePermissionUpsertWithWhereUniqueWithoutPermissionInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    update: XOR<Nx00RolePermissionUpdateWithoutPermissionInput, Nx00RolePermissionUncheckedUpdateWithoutPermissionInput>
+    create: XOR<Nx00RolePermissionCreateWithoutPermissionInput, Nx00RolePermissionUncheckedCreateWithoutPermissionInput>
+  }
+
+  export type Nx00RolePermissionUpdateWithWhereUniqueWithoutPermissionInput = {
+    where: Nx00RolePermissionWhereUniqueInput
+    data: XOR<Nx00RolePermissionUpdateWithoutPermissionInput, Nx00RolePermissionUncheckedUpdateWithoutPermissionInput>
+  }
+
+  export type Nx00RolePermissionUpdateManyWithWhereWithoutPermissionInput = {
+    where: Nx00RolePermissionScalarWhereInput
+    data: XOR<Nx00RolePermissionUpdateManyMutationInput, Nx00RolePermissionUncheckedUpdateManyWithoutPermissionInput>
+  }
+
+  export type Nx00RoleCreateWithoutRolePermsInput = {
+    id?: string
+    code: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutRolesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutRolesUpdatedInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutRoleInput
+  }
+
+  export type Nx00RoleUncheckedCreateWithoutRolePermsInput = {
+    id?: string
+    code: string
+    name: string
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutRoleInput
+  }
+
+  export type Nx00RoleCreateOrConnectWithoutRolePermsInput = {
+    where: Nx00RoleWhereUniqueInput
+    create: XOR<Nx00RoleCreateWithoutRolePermsInput, Nx00RoleUncheckedCreateWithoutRolePermsInput>
+  }
+
+  export type Nx00PermissionCreateWithoutRolePermsInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutPermissionsCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPermissionsUpdatedInput
+  }
+
+  export type Nx00PermissionUncheckedCreateWithoutRolePermsInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00PermissionCreateOrConnectWithoutRolePermsInput = {
+    where: Nx00PermissionWhereUniqueInput
+    create: XOR<Nx00PermissionCreateWithoutRolePermsInput, Nx00PermissionUncheckedCreateWithoutRolePermsInput>
+  }
+
+  export type Nx00UserCreateWithoutRolePermsCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutRolePermsCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutRolePermsCreatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutRolePermsCreatedInput, Nx00UserUncheckedCreateWithoutRolePermsCreatedInput>
+  }
+
+  export type Nx00RoleUpsertWithoutRolePermsInput = {
+    update: XOR<Nx00RoleUpdateWithoutRolePermsInput, Nx00RoleUncheckedUpdateWithoutRolePermsInput>
+    create: XOR<Nx00RoleCreateWithoutRolePermsInput, Nx00RoleUncheckedCreateWithoutRolePermsInput>
+    where?: Nx00RoleWhereInput
+  }
+
+  export type Nx00RoleUpdateToOneWithWhereWithoutRolePermsInput = {
+    where?: Nx00RoleWhereInput
+    data: XOR<Nx00RoleUpdateWithoutRolePermsInput, Nx00RoleUncheckedUpdateWithoutRolePermsInput>
+  }
+
+  export type Nx00RoleUpdateWithoutRolePermsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutRolesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutRolesUpdatedNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutRoleNestedInput
+  }
+
+  export type Nx00RoleUncheckedUpdateWithoutRolePermsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutRoleNestedInput
+  }
+
+  export type Nx00PermissionUpsertWithoutRolePermsInput = {
+    update: XOR<Nx00PermissionUpdateWithoutRolePermsInput, Nx00PermissionUncheckedUpdateWithoutRolePermsInput>
+    create: XOR<Nx00PermissionCreateWithoutRolePermsInput, Nx00PermissionUncheckedCreateWithoutRolePermsInput>
+    where?: Nx00PermissionWhereInput
+  }
+
+  export type Nx00PermissionUpdateToOneWithWhereWithoutRolePermsInput = {
+    where?: Nx00PermissionWhereInput
+    data: XOR<Nx00PermissionUpdateWithoutRolePermsInput, Nx00PermissionUncheckedUpdateWithoutRolePermsInput>
+  }
+
+  export type Nx00PermissionUpdateWithoutRolePermsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutPermissionsCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutPermissionsUpdatedNestedInput
+  }
+
+  export type Nx00PermissionUncheckedUpdateWithoutRolePermsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00UserUpsertWithoutRolePermsCreatedInput = {
+    update: XOR<Nx00UserUpdateWithoutRolePermsCreatedInput, Nx00UserUncheckedUpdateWithoutRolePermsCreatedInput>
+    create: XOR<Nx00UserCreateWithoutRolePermsCreatedInput, Nx00UserUncheckedCreateWithoutRolePermsCreatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutRolePermsCreatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutRolePermsCreatedInput, Nx00UserUncheckedUpdateWithoutRolePermsCreatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutRolePermsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutRolePermsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserCreateWithoutBrandsCreatedInput = {
@@ -15784,6 +27963,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
     functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
@@ -15791,6 +27973,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutBrandsCreatedInput = {
@@ -15814,6 +28003,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
     functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
@@ -15821,6 +28013,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutBrandsCreatedInput = {
@@ -15849,6 +28048,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
     functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
@@ -15856,6 +28058,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutBrandsUpdatedInput = {
@@ -15879,6 +28088,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
     functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
@@ -15886,6 +28098,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutBrandsUpdatedInput = {
@@ -15971,6 +28190,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
     functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
@@ -15978,6 +28200,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutBrandsCreatedInput = {
@@ -16001,6 +28230,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
     functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
@@ -16008,6 +28240,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithoutBrandsUpdatedInput = {
@@ -16042,6 +28281,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
     functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
@@ -16049,6 +28291,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutBrandsUpdatedInput = {
@@ -16072,6 +28321,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
     functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
@@ -16079,6 +28331,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00PartUpsertWithWhereUniqueWithoutBrandInput = {
@@ -16118,6 +28377,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
@@ -16125,6 +28387,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutFunctionGroupsCreatedInput = {
@@ -16148,6 +28417,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
@@ -16155,6 +28427,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutFunctionGroupsCreatedInput = {
@@ -16183,6 +28462,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -16190,6 +28472,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutFunctionGroupsUpdatedInput = {
@@ -16213,6 +28502,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -16220,6 +28512,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutFunctionGroupsUpdatedInput = {
@@ -16305,6 +28604,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
@@ -16312,6 +28614,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutFunctionGroupsCreatedInput = {
@@ -16335,6 +28644,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
@@ -16342,6 +28654,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithoutFunctionGroupsUpdatedInput = {
@@ -16376,6 +28695,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -16383,6 +28705,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutFunctionGroupsUpdatedInput = {
@@ -16406,6 +28735,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -16413,6 +28745,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00PartUpsertWithWhereUniqueWithoutFunctionGroupInput = {
@@ -16452,6 +28791,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -16459,6 +28801,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutPartStatusesCreatedInput = {
@@ -16482,6 +28831,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -16489,6 +28841,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutPartStatusesCreatedInput = {
@@ -16517,6 +28876,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -16524,6 +28886,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutPartStatusesUpdatedInput = {
@@ -16547,6 +28916,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -16554,6 +28926,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutPartStatusesUpdatedInput = {
@@ -16639,6 +29018,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -16646,6 +29028,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutPartStatusesCreatedInput = {
@@ -16669,6 +29058,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -16676,6 +29068,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithoutPartStatusesUpdatedInput = {
@@ -16710,6 +29109,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -16717,6 +29119,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutPartStatusesUpdatedInput = {
@@ -16740,6 +29149,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -16747,6 +29159,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00PartUpsertWithWhereUniqueWithoutStatusInput = {
@@ -16881,6 +29300,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -16888,6 +29310,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutPartsCreatedInput = {
@@ -16911,6 +29340,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -16918,6 +29350,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutPartsCreatedInput = {
@@ -16946,6 +29385,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
@@ -16953,6 +29395,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
     partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserUncheckedCreateWithoutPartsUpdatedInput = {
@@ -16976,6 +29425,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
     rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
     brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
@@ -16983,6 +29435,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
     partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type Nx00UserCreateOrConnectWithoutPartsUpdatedInput = {
@@ -17135,6 +29594,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -17142,6 +29604,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutPartsCreatedInput = {
@@ -17165,6 +29634,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -17172,6 +29644,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUpsertWithoutPartsUpdatedInput = {
@@ -17206,6 +29685,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -17213,6 +29695,13 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutPartsUpdatedInput = {
@@ -17236,6 +29725,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -17243,6 +29735,1359 @@ export namespace Prisma {
     partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserCreateWithoutWarehousesCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutWarehousesCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutWarehousesCreatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutWarehousesCreatedInput, Nx00UserUncheckedCreateWithoutWarehousesCreatedInput>
+  }
+
+  export type Nx00UserCreateWithoutWarehousesUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutWarehousesUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutWarehousesUpdatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutWarehousesUpdatedInput, Nx00UserUncheckedCreateWithoutWarehousesUpdatedInput>
+  }
+
+  export type Nx00LocationCreateWithoutWarehouseInput = {
+    id?: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutLocationsCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutLocationsUpdatedInput
+  }
+
+  export type Nx00LocationUncheckedCreateWithoutWarehouseInput = {
+    id?: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00LocationCreateOrConnectWithoutWarehouseInput = {
+    where: Nx00LocationWhereUniqueInput
+    create: XOR<Nx00LocationCreateWithoutWarehouseInput, Nx00LocationUncheckedCreateWithoutWarehouseInput>
+  }
+
+  export type Nx00LocationCreateManyWarehouseInputEnvelope = {
+    data: Nx00LocationCreateManyWarehouseInput | Nx00LocationCreateManyWarehouseInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx00UserUpsertWithoutWarehousesCreatedInput = {
+    update: XOR<Nx00UserUpdateWithoutWarehousesCreatedInput, Nx00UserUncheckedUpdateWithoutWarehousesCreatedInput>
+    create: XOR<Nx00UserCreateWithoutWarehousesCreatedInput, Nx00UserUncheckedCreateWithoutWarehousesCreatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutWarehousesCreatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutWarehousesCreatedInput, Nx00UserUncheckedUpdateWithoutWarehousesCreatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutWarehousesCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutWarehousesCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUpsertWithoutWarehousesUpdatedInput = {
+    update: XOR<Nx00UserUpdateWithoutWarehousesUpdatedInput, Nx00UserUncheckedUpdateWithoutWarehousesUpdatedInput>
+    create: XOR<Nx00UserCreateWithoutWarehousesUpdatedInput, Nx00UserUncheckedCreateWithoutWarehousesUpdatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutWarehousesUpdatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutWarehousesUpdatedInput, Nx00UserUncheckedUpdateWithoutWarehousesUpdatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutWarehousesUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutWarehousesUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00LocationUpsertWithWhereUniqueWithoutWarehouseInput = {
+    where: Nx00LocationWhereUniqueInput
+    update: XOR<Nx00LocationUpdateWithoutWarehouseInput, Nx00LocationUncheckedUpdateWithoutWarehouseInput>
+    create: XOR<Nx00LocationCreateWithoutWarehouseInput, Nx00LocationUncheckedCreateWithoutWarehouseInput>
+  }
+
+  export type Nx00LocationUpdateWithWhereUniqueWithoutWarehouseInput = {
+    where: Nx00LocationWhereUniqueInput
+    data: XOR<Nx00LocationUpdateWithoutWarehouseInput, Nx00LocationUncheckedUpdateWithoutWarehouseInput>
+  }
+
+  export type Nx00LocationUpdateManyWithWhereWithoutWarehouseInput = {
+    where: Nx00LocationScalarWhereInput
+    data: XOR<Nx00LocationUpdateManyMutationInput, Nx00LocationUncheckedUpdateManyWithoutWarehouseInput>
+  }
+
+  export type Nx00WarehouseCreateWithoutLocationsInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutWarehousesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutWarehousesUpdatedInput
+  }
+
+  export type Nx00WarehouseUncheckedCreateWithoutLocationsInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00WarehouseCreateOrConnectWithoutLocationsInput = {
+    where: Nx00WarehouseWhereUniqueInput
+    create: XOR<Nx00WarehouseCreateWithoutLocationsInput, Nx00WarehouseUncheckedCreateWithoutLocationsInput>
+  }
+
+  export type Nx00UserCreateWithoutLocationsCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutLocationsCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutLocationsCreatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutLocationsCreatedInput, Nx00UserUncheckedCreateWithoutLocationsCreatedInput>
+  }
+
+  export type Nx00UserCreateWithoutLocationsUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutLocationsUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutLocationsUpdatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutLocationsUpdatedInput, Nx00UserUncheckedCreateWithoutLocationsUpdatedInput>
+  }
+
+  export type Nx00WarehouseUpsertWithoutLocationsInput = {
+    update: XOR<Nx00WarehouseUpdateWithoutLocationsInput, Nx00WarehouseUncheckedUpdateWithoutLocationsInput>
+    create: XOR<Nx00WarehouseCreateWithoutLocationsInput, Nx00WarehouseUncheckedCreateWithoutLocationsInput>
+    where?: Nx00WarehouseWhereInput
+  }
+
+  export type Nx00WarehouseUpdateToOneWithWhereWithoutLocationsInput = {
+    where?: Nx00WarehouseWhereInput
+    data: XOR<Nx00WarehouseUpdateWithoutLocationsInput, Nx00WarehouseUncheckedUpdateWithoutLocationsInput>
+  }
+
+  export type Nx00WarehouseUpdateWithoutLocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutWarehousesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutWarehousesUpdatedNestedInput
+  }
+
+  export type Nx00WarehouseUncheckedUpdateWithoutLocationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00UserUpsertWithoutLocationsCreatedInput = {
+    update: XOR<Nx00UserUpdateWithoutLocationsCreatedInput, Nx00UserUncheckedUpdateWithoutLocationsCreatedInput>
+    create: XOR<Nx00UserCreateWithoutLocationsCreatedInput, Nx00UserUncheckedCreateWithoutLocationsCreatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutLocationsCreatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutLocationsCreatedInput, Nx00UserUncheckedUpdateWithoutLocationsCreatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutLocationsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutLocationsCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUpsertWithoutLocationsUpdatedInput = {
+    update: XOR<Nx00UserUpdateWithoutLocationsUpdatedInput, Nx00UserUncheckedUpdateWithoutLocationsUpdatedInput>
+    create: XOR<Nx00UserCreateWithoutLocationsUpdatedInput, Nx00UserUncheckedCreateWithoutLocationsUpdatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutLocationsUpdatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutLocationsUpdatedInput, Nx00UserUncheckedUpdateWithoutLocationsUpdatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutLocationsUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutLocationsUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserCreateWithoutPartnersCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutPartnersCreatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutPartnersCreatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutPartnersCreatedInput, Nx00UserUncheckedCreateWithoutPartnersCreatedInput>
+  }
+
+  export type Nx00UserCreateWithoutPartnersUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    auditLogs?: Nx00AuditLogCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutPartnersUpdatedInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    auditLogs?: Nx00AuditLogUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutPartnersUpdatedInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutPartnersUpdatedInput, Nx00UserUncheckedCreateWithoutPartnersUpdatedInput>
+  }
+
+  export type Nx00UserUpsertWithoutPartnersCreatedInput = {
+    update: XOR<Nx00UserUpdateWithoutPartnersCreatedInput, Nx00UserUncheckedUpdateWithoutPartnersCreatedInput>
+    create: XOR<Nx00UserCreateWithoutPartnersCreatedInput, Nx00UserUncheckedCreateWithoutPartnersCreatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutPartnersCreatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutPartnersCreatedInput, Nx00UserUncheckedUpdateWithoutPartnersCreatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutPartnersCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutPartnersCreatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUpsertWithoutPartnersUpdatedInput = {
+    update: XOR<Nx00UserUpdateWithoutPartnersUpdatedInput, Nx00UserUncheckedUpdateWithoutPartnersUpdatedInput>
+    create: XOR<Nx00UserCreateWithoutPartnersUpdatedInput, Nx00UserUncheckedCreateWithoutPartnersUpdatedInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutPartnersUpdatedInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutPartnersUpdatedInput, Nx00UserUncheckedUpdateWithoutPartnersUpdatedInput>
+  }
+
+  export type Nx00UserUpdateWithoutPartnersUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutPartnersUpdatedInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type Nx00UserCreateWithoutAuditLogsInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    createdByUser?: Nx00UserCreateNestedOneWithoutCreatedUsersInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutUpdatedUsersInput
+    createdUsers?: Nx00UserCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerCreateNestedManyWithoutUpdatedByUserInput
+  }
+
+  export type Nx00UserUncheckedCreateWithoutAuditLogsInput = {
+    id?: string
+    username: string
+    passwordHash: string
+    displayName: string
+    email?: string | null
+    phone?: string | null
+    isActive?: boolean
+    lastLoginAt?: Date | string | null
+    statusCode?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+    createdUsers?: Nx00UserUncheckedCreateNestedManyWithoutCreatedByUserInput
+    updatedUsers?: Nx00UserUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRoles?: Nx00UserRoleUncheckedCreateNestedManyWithoutUserInput
+    rolesCreated?: Nx00RoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    rolesUpdated?: Nx00RoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    userRolesCreated?: Nx00UserRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsCreated?: Nx00PermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    permissionsUpdated?: Nx00PermissionUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsCreated?: Nx00BrandUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandsUpdated?: Nx00BrandUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutCreatedByUserInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partStatusesCreated?: Nx00PartStatusUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partsCreated?: Nx00PartUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partsUpdated?: Nx00PartUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    warehousesCreated?: Nx00WarehouseUncheckedCreateNestedManyWithoutCreatedByUserInput
+    warehousesUpdated?: Nx00WarehouseUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    locationsCreated?: Nx00LocationUncheckedCreateNestedManyWithoutCreatedByUserInput
+    locationsUpdated?: Nx00LocationUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutCreatedByUserInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedCreateNestedManyWithoutUpdatedByUserInput
+  }
+
+  export type Nx00UserCreateOrConnectWithoutAuditLogsInput = {
+    where: Nx00UserWhereUniqueInput
+    create: XOR<Nx00UserCreateWithoutAuditLogsInput, Nx00UserUncheckedCreateWithoutAuditLogsInput>
+  }
+
+  export type Nx00UserUpsertWithoutAuditLogsInput = {
+    update: XOR<Nx00UserUpdateWithoutAuditLogsInput, Nx00UserUncheckedUpdateWithoutAuditLogsInput>
+    create: XOR<Nx00UserCreateWithoutAuditLogsInput, Nx00UserUncheckedCreateWithoutAuditLogsInput>
+    where?: Nx00UserWhereInput
+  }
+
+  export type Nx00UserUpdateToOneWithWhereWithoutAuditLogsInput = {
+    where?: Nx00UserWhereInput
+    data: XOR<Nx00UserUpdateWithoutAuditLogsInput, Nx00UserUncheckedUpdateWithoutAuditLogsInput>
+  }
+
+  export type Nx00UserUpdateWithoutAuditLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutCreatedUsersNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutUpdatedUsersNestedInput
+    createdUsers?: Nx00UserUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+  }
+
+  export type Nx00UserUncheckedUpdateWithoutAuditLogsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
+    passwordHash?: StringFieldUpdateOperationsInput | string
+    displayName?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    lastLoginAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statusCode?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    createdUsers?: Nx00UserUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    updatedUsers?: Nx00UserUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutUserNestedInput
+    rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    functionGroupsUpdated?: Nx00FunctionGroupUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partStatusesCreated?: Nx00PartStatusUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
 
   export type Nx00UserCreateManyCreatedByUserInput = {
@@ -17310,6 +31155,39 @@ export namespace Prisma {
     id?: string
     userId: string
     roleId: string
+    createdAt?: Date | string
+  }
+
+  export type Nx00PermissionCreateManyCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00PermissionCreateManyUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    moduleCode: string
+    action: string
+    isActive?: boolean
+    sortNo?: number | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type Nx00RolePermissionCreateManyCreatedByUserInput = {
+    id?: string
+    roleId: string
+    permissionId: string
     createdAt?: Date | string
   }
 
@@ -17423,6 +31301,99 @@ export namespace Prisma {
     updatedAt?: Date | string | null
   }
 
+  export type Nx00WarehouseCreateManyCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00WarehouseCreateManyUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type Nx00LocationCreateManyCreatedByUserInput = {
+    id?: string
+    warehouseId: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00LocationCreateManyUpdatedByUserInput = {
+    id?: string
+    warehouseId: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type Nx00BusinessPartnerCreateManyCreatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00BusinessPartnerCreateManyUpdatedByUserInput = {
+    id?: string
+    code: string
+    name: string
+    taxId?: string | null
+    phone?: string | null
+    email?: string | null
+    address?: string | null
+    isCustomer?: boolean
+    isVendor?: boolean
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type Nx00AuditLogCreateManyUserInput = {
+    id?: string
+    moduleCode: string
+    action: string
+    entity: string
+    entityId?: string | null
+    docNo?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+  }
+
   export type Nx00UserUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     username?: StringFieldUpdateOperationsInput | string
@@ -17443,6 +31414,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -17451,6 +31425,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutCreatedByUserInput = {
@@ -17473,6 +31454,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -17481,6 +31465,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -17519,6 +31510,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUpdateManyWithoutCreatedByUserNestedInput
@@ -17527,6 +31521,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateWithoutUpdatedByUserInput = {
@@ -17549,6 +31550,9 @@ export namespace Prisma {
     rolesCreated?: Nx00RoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     rolesUpdated?: Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     userRolesCreated?: Nx00UserRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsCreated?: Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    permissionsUpdated?: Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    rolePermsCreated?: Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsCreated?: Nx00BrandUncheckedUpdateManyWithoutCreatedByUserNestedInput
     brandsUpdated?: Nx00BrandUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     functionGroupsCreated?: Nx00FunctionGroupUncheckedUpdateManyWithoutCreatedByUserNestedInput
@@ -17557,6 +31561,13 @@ export namespace Prisma {
     partStatusesUpdated?: Nx00PartStatusUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partsCreated?: Nx00PartUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partsUpdated?: Nx00PartUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    warehousesCreated?: Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    warehousesUpdated?: Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    locationsCreated?: Nx00LocationUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    locationsUpdated?: Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    partnersCreated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    partnersUpdated?: Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type Nx00UserUncheckedUpdateManyWithoutUpdatedByUserInput = {
@@ -17606,6 +31617,7 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedByUser?: Nx00UserUpdateOneWithoutRolesUpdatedNestedInput
     userRoles?: Nx00UserRoleUpdateManyWithoutRoleNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleUncheckedUpdateWithoutCreatedByUserInput = {
@@ -17618,6 +31630,7 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutRoleNestedInput
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -17641,6 +31654,7 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdByUser?: Nx00UserUpdateOneWithoutRolesCreatedNestedInput
     userRoles?: Nx00UserRoleUpdateManyWithoutRoleNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleUncheckedUpdateWithoutUpdatedByUserInput = {
@@ -17653,6 +31667,7 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     userRoles?: Nx00UserRoleUncheckedUpdateManyWithoutRoleNestedInput
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutRoleNestedInput
   }
 
   export type Nx00RoleUncheckedUpdateManyWithoutUpdatedByUserInput = {
@@ -17684,6 +31699,109 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     roleId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00PermissionUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedByUser?: Nx00UserUpdateOneWithoutPermissionsUpdatedNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutPermissionNestedInput
+  }
+
+  export type Nx00PermissionUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutPermissionNestedInput
+  }
+
+  export type Nx00PermissionUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00PermissionUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutPermissionsCreatedNestedInput
+    rolePerms?: Nx00RolePermissionUpdateManyWithoutPermissionNestedInput
+  }
+
+  export type Nx00PermissionUncheckedUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rolePerms?: Nx00RolePermissionUncheckedUpdateManyWithoutPermissionNestedInput
+  }
+
+  export type Nx00PermissionUncheckedUpdateManyWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00RolePermissionUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: Nx00RoleUpdateOneRequiredWithoutRolePermsNestedInput
+    permission?: Nx00PermissionUpdateOneRequiredWithoutRolePermsNestedInput
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    roleId?: StringFieldUpdateOperationsInput | string
+    permissionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    roleId?: StringFieldUpdateOperationsInput | string
+    permissionId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -18029,9 +32147,299 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type Nx00WarehouseUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedByUser?: Nx00UserUpdateOneWithoutWarehousesUpdatedNestedInput
+    locations?: Nx00LocationUpdateManyWithoutWarehouseNestedInput
+  }
+
+  export type Nx00WarehouseUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    locations?: Nx00LocationUncheckedUpdateManyWithoutWarehouseNestedInput
+  }
+
+  export type Nx00WarehouseUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00WarehouseUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutWarehousesCreatedNestedInput
+    locations?: Nx00LocationUpdateManyWithoutWarehouseNestedInput
+  }
+
+  export type Nx00WarehouseUncheckedUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    locations?: Nx00LocationUncheckedUpdateManyWithoutWarehouseNestedInput
+  }
+
+  export type Nx00WarehouseUncheckedUpdateManyWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00LocationUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    warehouse?: Nx00WarehouseUpdateOneRequiredWithoutLocationsNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutLocationsUpdatedNestedInput
+  }
+
+  export type Nx00LocationUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00LocationUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00LocationUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    warehouse?: Nx00WarehouseUpdateOneRequiredWithoutLocationsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutLocationsCreatedNestedInput
+  }
+
+  export type Nx00LocationUncheckedUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00LocationUncheckedUpdateManyWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00BusinessPartnerUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedByUser?: Nx00UserUpdateOneWithoutPartnersUpdatedNestedInput
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00BusinessPartnerUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutPartnersCreatedNestedInput
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00BusinessPartnerUncheckedUpdateManyWithoutUpdatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    isCustomer?: BoolFieldUpdateOperationsInput | boolean
+    isVendor?: BoolFieldUpdateOperationsInput | boolean
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type Nx00AuditLogUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00AuditLogUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type Nx00AuditLogUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    moduleCode?: StringFieldUpdateOperationsInput | string
+    action?: StringFieldUpdateOperationsInput | string
+    entity?: StringFieldUpdateOperationsInput | string
+    entityId?: NullableStringFieldUpdateOperationsInput | string | null
+    docNo?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    payload?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type Nx00UserRoleCreateManyRoleInput = {
     id?: string
     userId: string
+    createdAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type Nx00RolePermissionCreateManyRoleInput = {
+    id?: string
+    permissionId: string
     createdAt?: Date | string
     createdBy?: string | null
   }
@@ -18053,6 +32461,55 @@ export namespace Prisma {
   export type Nx00UserRoleUncheckedUpdateManyWithoutRoleInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00RolePermissionUpdateWithoutRoleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    permission?: Nx00PermissionUpdateOneRequiredWithoutRolePermsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutRolePermsCreatedNestedInput
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateWithoutRoleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permissionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyWithoutRoleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    permissionId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00RolePermissionCreateManyPermissionInput = {
+    id?: string
+    roleId: string
+    createdAt?: Date | string
+    createdBy?: string | null
+  }
+
+  export type Nx00RolePermissionUpdateWithoutPermissionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: Nx00RoleUpdateOneRequiredWithoutRolePermsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutRolePermsCreatedNestedInput
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateWithoutPermissionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    roleId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00RolePermissionUncheckedUpdateManyWithoutPermissionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    roleId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -18265,6 +32722,54 @@ export namespace Prisma {
     brandId?: StringFieldUpdateOperationsInput | string
     functionGroupId?: NullableStringFieldUpdateOperationsInput | string | null
     barcode?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00LocationCreateManyWarehouseInput = {
+    id?: string
+    code: string
+    name?: string | null
+    isActive?: boolean
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string | null
+    updatedBy?: string | null
+  }
+
+  export type Nx00LocationUpdateWithoutWarehouseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdByUser?: Nx00UserUpdateOneWithoutLocationsCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutLocationsUpdatedNestedInput
+  }
+
+  export type Nx00LocationUncheckedUpdateWithoutWarehouseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00LocationUncheckedUpdateManyWithoutWarehouseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

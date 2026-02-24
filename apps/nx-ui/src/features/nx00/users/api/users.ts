@@ -4,11 +4,6 @@
  *
  * Purpose:
  * - NX00-USERS-API-001：Users API Client（list/get/create/update/setActive/changePassword）
- *
- * Notes:
- * - 統一使用 shared/api（apiFetch + assertOk + buildQueryString）
- * - 不在此處理 token/baseUrl（由 shared/api/client 負責）
- * - query 統一用 buildQueryString，避免手刻字串
  */
 
 import { apiFetch } from '@/shared/api/client';
@@ -23,9 +18,17 @@ export type UserRow = {
   phone: string | null;
   isActive: boolean;
   statusCode: string;
+  remark: string | null;
+
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string | null;
+
+  // ✅ audit
+  createdBy: string | null;
+  createdByName: string | null;
+  updatedBy: string | null;
+  updatedByName: string | null;
 };
 
 export type PagedResult<T> = {
@@ -41,11 +44,6 @@ export type ListUsersParams = {
   q?: string;
 };
 
-/**
- * @CODE nxui_nx00_users_list_001
- * 說明：
- * - GET /users?page=&pageSize=&q=
- */
 export async function listUsers(params: ListUsersParams): Promise<PagedResult<UserRow>> {
   const query = buildQueryString({
     page: String(params.page),
@@ -58,11 +56,6 @@ export async function listUsers(params: ListUsersParams): Promise<PagedResult<Us
   return (await res.json()) as PagedResult<UserRow>;
 }
 
-/**
- * @CODE nxui_nx00_users_get_001
- * 說明：
- * - GET /users/:id
- */
 export async function getUser(id: string): Promise<UserRow> {
   const res = await apiFetch(`/users/${encodeURIComponent(id)}`, { method: 'GET' });
   await assertOk(res, 'nxui_nx00_users_get_001');
@@ -74,19 +67,14 @@ export type CreateUserBody = {
   displayName: string;
   email?: string | null;
   phone?: string | null;
+  isActive?: boolean;
+  statusCode?: string;
+  remark?: string | null;
 
-  /**
-   * Notes:
-   * - 若後端不支援建立時設定密碼，請在 UI 層移除此欄位或改成獨立的 reset flow
-   */
+  // password 交給後端預設 changeme
   password?: string;
 };
 
-/**
- * @CODE nxui_nx00_users_create_001
- * 說明：
- * - POST /users
- */
 export async function createUser(body: CreateUserBody): Promise<UserRow> {
   const res = await apiFetch('/users', {
     method: 'POST',
@@ -102,13 +90,10 @@ export type UpdateUserBody = {
   email?: string | null;
   phone?: string | null;
   statusCode?: string;
+  isActive?: boolean;
+  remark?: string | null;
 };
 
-/**
- * @CODE nxui_nx00_users_update_001
- * 說明：
- * - PUT /users/:id
- */
 export async function updateUser(id: string, body: UpdateUserBody): Promise<UserRow> {
   const res = await apiFetch(`/users/${encodeURIComponent(id)}`, {
     method: 'PUT',
@@ -119,12 +104,6 @@ export async function updateUser(id: string, body: UpdateUserBody): Promise<User
   return (await res.json()) as UserRow;
 }
 
-/**
- * @CODE nxui_nx00_users_set_active_001
- * 說明：
- * - PATCH /users/:id/active
- * - body: { isActive }
- */
 export async function setUserActive(id: string, isActive: boolean): Promise<UserRow> {
   const res = await apiFetch(`/users/${encodeURIComponent(id)}/active`, {
     method: 'PATCH',
@@ -135,12 +114,6 @@ export async function setUserActive(id: string, isActive: boolean): Promise<User
   return (await res.json()) as UserRow;
 }
 
-/**
- * @CODE nxui_nx00_users_change_password_001
- * 說明：
- * - PATCH /users/:id/password
- * - body: { password }
- */
 export async function changeUserPassword(id: string, password: string): Promise<{ ok: boolean }> {
   const res = await apiFetch(`/users/${encodeURIComponent(id)}/password`, {
     method: 'PATCH',
@@ -148,7 +121,5 @@ export async function changeUserPassword(id: string, password: string): Promise<
   });
 
   await assertOk(res, 'nxui_nx00_users_change_password_001');
-
-  // 避免後端回空 body 導致 json() 失敗
   return res.json().catch(() => ({ ok: true }));
 }

@@ -157,6 +157,28 @@ exports.Prisma.Nx00UserRoleScalarFieldEnum = {
   createdBy: 'createdBy'
 };
 
+exports.Prisma.Nx00PermissionScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  moduleCode: 'moduleCode',
+  action: 'action',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00RolePermissionScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  permissionId: 'permissionId',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
+};
+
 exports.Prisma.Nx00BrandScalarFieldEnum = {
   id: 'id',
   code: 'code',
@@ -216,9 +238,71 @@ exports.Prisma.Nx00PartScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
+exports.Prisma.Nx00WarehouseScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00LocationScalarFieldEnum = {
+  id: 'id',
+  warehouseId: 'warehouseId',
+  code: 'code',
+  name: 'name',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00BusinessPartnerScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  taxId: 'taxId',
+  phone: 'phone',
+  email: 'email',
+  address: 'address',
+  isCustomer: 'isCustomer',
+  isVendor: 'isVendor',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00AuditLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  moduleCode: 'moduleCode',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  docNo: 'docNo',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  payload: 'payload',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -231,15 +315,27 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
 
 exports.Prisma.ModelName = {
   Nx00User: 'Nx00User',
   Nx00Role: 'Nx00Role',
   Nx00UserRole: 'Nx00UserRole',
+  Nx00Permission: 'Nx00Permission',
+  Nx00RolePermission: 'Nx00RolePermission',
   Nx00Brand: 'Nx00Brand',
   Nx00FunctionGroup: 'Nx00FunctionGroup',
   Nx00PartStatus: 'Nx00PartStatus',
-  Nx00Part: 'Nx00Part'
+  Nx00Part: 'Nx00Part',
+  Nx00Warehouse: 'Nx00Warehouse',
+  Nx00Location: 'Nx00Location',
+  Nx00BusinessPartner: 'Nx00BusinessPartner',
+  Nx00AuditLog: 'Nx00AuditLog'
 };
 
 /**

@@ -3,22 +3,25 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-USERS-EDIT-ENTRY-001：User Edit Page Entry（路由入口）
+ * - NX00-UI-NX00-USERS-REDIRECT-ID-001：舊 /[id] 路由相容（redirect）
  *
  * Notes:
- * - 本檔案只負責 render UserEditView（避免 page.tsx 變肥）
+ * - 舊路由：/dashboard/nx00/users/<id>
+ * - 新路由：/dashboard/nx00/users?id=<id>
  */
 
-'use client';
+import { redirect } from 'next/navigation';
 
-import { UserEditView } from '@/features/nx00/users/ui/UserEditView';
+type PageProps = {
+  params: { id: string };
+};
 
 /**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-EDIT-ENTRY-001-F01
+ * @FUNCTION_CODE NX00-UI-NX00-USERS-REDIRECT-ID-001-F01
  * 說明：
- * - App Router page entry
- * - UI/logic 已抽到 features/nx00/users
+ * - redirect 舊 /[id] → ?id=<id>
  */
-export default function UserEditPage() {
-  return <UserEditView />;
+export default function UsersIdRedirectPage({ params }: PageProps) {
+  const id = params?.id ?? '';
+  redirect(`/dashboard/nx00/users?id=${encodeURIComponent(id)}`);
 }

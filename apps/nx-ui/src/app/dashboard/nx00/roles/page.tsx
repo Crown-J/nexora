@@ -3,23 +3,22 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-RBAC-ENTRY-001：RBAC Roles（角色/成員管理）路由入口
+ * - NX00-UI-NX00-ROLES-SPLIT-ENTRY-001：Roles Split Page Entry（路由入口）
  *
  * Notes:
- * - 本頁只負責 render RoleUserAssignView（避免 page.tsx 變肥）
- * - 版面外框由 dashboard layout / DashboardShell 提供
+ * - 本檔案只負責匯入並渲染 RolesSplitView（避免 page.tsx 變肥）
  */
 
 'use client';
 
-import { RoleUserAssignView } from '@/features/nx00/rbac/ui/RoleUserAssignView';
+import { RolesSplitView } from '@/features/nx00/roles/ui/RolesSplitView';
 
 /**
- * @CODE nxui_nx00_rbac_roles_page_entry_001
+ * @FUNCTION_CODE NX00-UI-NX00-ROLES-SPLIT-ENTRY-001-F01
  * 說明：
  * - App Router page entry
- * - UI/logic 已抽到 features/nx00/rbac
+ * - UI/logic 已抽到 features/nx00/roles
  */
-export default function RolesPage() {
-  return <RoleUserAssignView />;
+export default function RolesSplitPage() {
+  return <RolesSplitView />;
 }
