@@ -8,6 +8,7 @@
  * Notes:
  * - 舊路由：/dashboard/nx00/users/<id>
  * - 新路由：/dashboard/nx00/users?id=<id>
+ * - 若 id 空值：回到 /dashboard/nx00/users（避免產生 ?id=）
  */
 
 import { redirect } from 'next/navigation';
@@ -23,5 +24,6 @@ type PageProps = {
  */
 export default function UsersIdRedirectPage({ params }: PageProps) {
   const id = params?.id ?? '';
+  if (!id) redirect('/dashboard/nx00/users');
   redirect(`/dashboard/nx00/users?id=${encodeURIComponent(id)}`);
 }

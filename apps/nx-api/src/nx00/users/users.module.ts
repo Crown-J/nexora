@@ -1,17 +1,18 @@
 /**
  * File: apps/nx-api/src/users/users.module.ts
- * Purpose: NX00-API-001 Users module
+ * Project: NEXORA (Monorepo)
+ *
+ * Purpose:
+ * - NX00-API-USERS-MODULE-001：Users Module
  */
 
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../prisma/prisma.module';
+import { PrismaService } from '../../prisma/prisma.service';
 import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
 
 @Module({
-  imports: [PrismaModule],
   controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService],
+  providers: [UsersService, PrismaService],
 })
-export class UsersModule {}
+export class UsersModule { }

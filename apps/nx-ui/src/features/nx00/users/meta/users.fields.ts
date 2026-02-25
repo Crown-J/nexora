@@ -36,7 +36,7 @@ export const USERS_FIELDS: UsersFieldDef[] = [
     { key: 'displayName', label: '顯示名稱', type: 'text', inList: true, sortable: true, filterable: true },
     { key: 'email', label: 'Email', type: 'text', inList: true, sortable: true, filterable: true },
     { key: 'phone', label: '電話', type: 'text', inList: false, sortable: false, filterable: true },
-    { key: 'isActive', label: '啟用', type: 'bool', inList: false, sortable: true, filterable: true },
+    { key: 'isActive', label: '啟用', type: 'bool', inList: true, sortable: true, filterable: true },
     { key: 'statusCode', label: '狀態碼', type: 'text', inList: false, sortable: true, filterable: true },
     { key: 'remark', label: '備註', type: 'text', inList: false, sortable: false, filterable: true },
 

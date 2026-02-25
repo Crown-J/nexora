@@ -7,22 +7,23 @@
  *
  * Notes:
  * - 左側：list（欄位顯示選擇 / 多選 / 排序 / 自動搜尋 / 水平滾動 / 拖拉調整欄位順序 / 設定記憶）
- * - 右側：UserFormPanel
+ * - 右側：UsersFormPanel（檢視/編輯切換）
  * - List+Form 共用 UI 已抽到 shared/ui/listform
  */
 
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useUsersSplit } from '@/features/nx00/users/hooks/useUsersSplit';
-import { UserFormPanel } from '@/features/nx00/users/ui/UserFormPanel';
-import { USERS_FIELDS, type UsersFieldKey } from '@/features/nx00/users/meta/users.fields';
-import { formatDatetimeZhTw } from '@/shared/format/datetime';
 
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { DataTableShell } from '@/shared/ui/listform/DataTableShell';
 import { ColumnPickerPanel, type ColumnDef } from '@/shared/ui/listform/ColumnPickerPanel';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
+import { formatDatetimeZhTw } from '@/shared/format/datetime';
+
+import { useUsersSplit } from '@/features/nx00/users/hooks/useUsersSplit';
+import { UsersFormPanel } from '@/features/nx00/users/ui/UsersFormPanel';
+import { USERS_FIELDS, type UsersFieldKey } from '@/features/nx00/users/meta/users.fields';
 
 type SortState = { key: UsersFieldKey; dir: 'asc' | 'desc' } | null;
 
@@ -37,7 +38,7 @@ function buildDefs(): Record<UsersFieldKey, ColumnDef<UsersFieldKey>> {
         map[f.key] = {
             key: f.key,
             label: f.label,
-            locked: f.key === 'username',
+            locked: f.key === 'username', // User 最少要保留 username（避免列表空）
         };
     });
     return map;
@@ -53,7 +54,6 @@ export function UsersSplitView() {
 
     // ===== 搜尋（debounce）=====
     const [searchInput, setSearchInput] = useState(vm.q);
-
     useEffect(() => setSearchInput(vm.q), [vm.q]);
 
     useEffect(() => {
@@ -61,8 +61,7 @@ export function UsersSplitView() {
             if (searchInput !== vm.q) vm.actions.setSearch(searchInput);
         }, 350);
         return () => clearTimeout(t);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchInput, vm.q]);
+    }, [searchInput, vm.q, vm.actions]);
 
     // ===== 欄位定義 =====
     const allKeys = useMemo(() => USERS_FIELDS.map((f) => f.key), []);
@@ -70,7 +69,7 @@ export function UsersSplitView() {
     const defaultOrder = useMemo(() => USERS_FIELDS.map((f) => f.key), []);
     const defsByKey = useMemo(() => buildDefs(), []);
 
-    // ===== list 設定（localStorage / 帳號綁定）=====
+    // ===== list 設定（localStorage）=====
     const pref = useListLocalPref<UsersListConfig>('nx00.users.listConfig', 1, {
         visibleCols: defaultVisible,
         colOrder: defaultOrder,
@@ -82,7 +81,7 @@ export function UsersSplitView() {
      * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-VIEW-001-F02
      * 說明：
      * - 防守：pref.value 可能被舊 localStorage 資料污染（缺欄位/型別錯誤）
-     * - 這裡統一 normalize，確保後面永遠不會讀到 undefined
+     * - 統一 normalize，確保後面永遠不會讀到 undefined
      */
     const normalizedConfig = useMemo<UsersListConfig>(() => {
         const raw = pref.value as any;
@@ -116,7 +115,6 @@ export function UsersSplitView() {
 
     const visibleFieldDefs = useMemo(() => {
         const visible = normalizedConfig.visibleCols;
-
         const ordered = normalizedConfig.colOrder.filter((k) => visible.includes(k));
 
         return USERS_FIELDS.filter((f) => ordered.includes(f.key)).sort((a, b) => ordered.indexOf(a.key) - ordered.indexOf(b.key));
@@ -139,11 +137,11 @@ export function UsersSplitView() {
     const toggleAll = () => {
         if (allSelected) {
             setSelectedIds({});
-        } else {
-            const next: Record<string, boolean> = {};
-            allIdsOnPage.forEach((id) => (next[id] = true));
-            setSelectedIds(next);
+            return;
         }
+        const next: Record<string, boolean> = {};
+        allIdsOnPage.forEach((id) => (next[id] = true));
+        setSelectedIds(next);
     };
 
     const toggleOne = (id: string) => {
@@ -161,20 +159,26 @@ export function UsersSplitView() {
         });
     };
 
+    const fieldTypeByKey = useMemo(() => {
+        const m = new Map<UsersFieldKey, (typeof USERS_FIELDS)[number]['type']>();
+        USERS_FIELDS.forEach((f) => m.set(f.key, f.type));
+        return m;
+    }, []);
+
     const viewItems = useMemo(() => {
         const arr = [...vm.items];
         if (!sort) return arr;
 
+        const type = fieldTypeByKey.get(sort.key) ?? 'text';
+        const dir = sort.dir === 'asc' ? 1 : -1;
+
         arr.sort((a: any, b: any) => {
             const av = a[sort.key];
             const bv = b[sort.key];
-            const dir = sort.dir === 'asc' ? 1 : -1;
 
-            if (typeof av === 'boolean' || typeof bv === 'boolean') {
-                return (Number(Boolean(av)) - Number(Boolean(bv))) * dir;
-            }
+            if (type === 'bool') return (Number(Boolean(av)) - Number(Boolean(bv))) * dir;
 
-            if (sort.key.endsWith('At')) {
+            if (type === 'datetime') {
                 const at = av ? new Date(av).getTime() : 0;
                 const bt = bv ? new Date(bv).getTime() : 0;
                 return (at - bt) * dir;
@@ -184,7 +188,7 @@ export function UsersSplitView() {
         });
 
         return arr;
-    }, [vm.items, sort]);
+    }, [vm.items, sort, fieldTypeByKey]);
 
     const pageCount = useMemo(() => {
         if (vm.total <= 0) return 1;
@@ -194,9 +198,10 @@ export function UsersSplitView() {
     // ===== 欄位值渲染（含 datetime format）=====
     const renderCell = (u: any, key: UsersFieldKey) => {
         const v = u[key];
+        const type = fieldTypeByKey.get(key) ?? 'text';
 
-        if (key.endsWith('At')) return formatDatetimeZhTw(v ?? null);
-        if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+        if (type === 'datetime') return formatDatetimeZhTw(v ?? null);
+        if (type === 'bool') return v ? 'TRUE' : 'FALSE';
         if (v === null || v === undefined || v === '') return '-';
         return String(v);
     };
@@ -230,7 +235,7 @@ export function UsersSplitView() {
                         <div className="flex flex-1 items-center gap-2">
                             <input
                                 className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/20"
-                                placeholder="輸入後自動搜尋（username / displayName）"
+                                placeholder="輸入後自動搜尋（帳號 / 顯示名稱）"
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
                                 onKeyDown={(e) => {
@@ -278,7 +283,6 @@ export function UsersSplitView() {
                         <table className="w-full text-sm">
                             <thead className="sticky top-0 z-10 bg-black/60 backdrop-blur supports-[backdrop-filter]:bg-black/40">
                                 <tr className="border-b border-white/10">
-                                    {/* checkbox */}
                                     <th
                                         className="sticky left-0 z-20 w-[44px] border-r border-white/5 bg-black/60 px-2 py-2 text-left"
                                         style={{ backdropFilter: 'blur(6px)' }}
@@ -296,7 +300,6 @@ export function UsersSplitView() {
                                                     sticky ? 'sticky left-[44px] z-20 border-r border-white/5 bg-black/60' : '',
                                                 ].join(' ')}
                                                 style={sticky ? ({ backdropFilter: 'blur(6px)' } as any) : undefined}
-                                                title="表頭"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span className="tracking-wide">{f.label}</span>
@@ -337,13 +340,8 @@ export function UsersSplitView() {
                                                 activeRow ? 'bg-white/[0.10]' : '',
                                             ].join(' ')}
                                         >
-                                            {/* checkbox (sticky left) */}
                                             <td className="sticky left-0 z-10 border-r border-white/5 bg-black/20 px-2 py-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={Boolean(selectedIds[u.id])}
-                                                    onChange={() => toggleOne(u.id)}
-                                                />
+                                                <input type="checkbox" checked={Boolean(selectedIds[u.id])} onChange={() => toggleOne(u.id)} />
                                             </td>
 
                                             {visibleFieldDefs.map((f) => {
@@ -404,7 +402,7 @@ export function UsersSplitView() {
 
                 {/* RIGHT: FORM */}
                 <div className="w-[42%]">
-                    <UserFormPanel
+                    <UsersFormPanel
                         mode={vm.splitMode}
                         detail={vm.detail}
                         loading={vm.detailLoading}

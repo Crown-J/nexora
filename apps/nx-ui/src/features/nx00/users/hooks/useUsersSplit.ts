@@ -7,430 +7,254 @@
  *
  * Notes:
  * - URL 為單一真實來源（Single Source of Truth）
- * - query:
- *   - q: 搜尋字
- *   - page: 頁碼（1-based）
- *   - pageSize: 每頁筆數
- *   - id: 編輯目標
- *   - mode: 'new' | undefined
- *
- * API Mapping (nx-api UsersController):
- * - GET    /users
- * - GET    /users/:id
- * - POST   /users
- * - PUT    /users/:id
- * - PATCH  /users/:id/active
- * - PATCH  /users/:id/password
+ * - 統一使用 features/nx00/users/api/users.ts（避免 hook 內手刻 apiFetch）
+ * - 更新成功後同步更新 list/detail（避免需要重整）
  */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { apiFetch } from '@/shared/api/client';
 
-type RawAny = Record<string, any>;
+import {
+    listUsers,
+    getUser,
+    createUser,
+    updateUser,
+    setUserActive,
+    changeUserPassword,
+} from '@/features/nx00/users/api/users';
 
-export type UserVM = {
-    id: string;
-    username: string;
-    displayName: string;
-    email: string | null;
-    phone: string | null;
-    isActive: boolean;
-    lastLoginAt: string | null;
-    statusCode: string;
-    remark: string | null;
+import type { CreateUserBody, UpdateUserBody, UserDto } from '@/features/nx00/users/types';
 
-    createdAt: string | null;
-    createdBy: string | null;
-    createdByName: string | null;
+type SplitMode = 'empty' | 'new' | 'edit';
 
-    updatedAt: string | null;
-    updatedBy: string | null;
-    updatedByName: string | null;
-};
-
-type UsersListResponse = {
-    items: any[];
-    total: number;
-};
-
-export type CreateUserInput = {
-    username: string;
-    displayName: string;
-    password?: string; // ✅ optional（不送也可以）
-    email?: string | null;
-    phone?: string | null;
-    isActive?: boolean;
-    statusCode?: string;
-    remark?: string | null;
-};
-
-export type UpdateUserInput = {
-    displayName: string;
-    email?: string | null;
-    phone?: string | null;
-    isActive?: boolean;
-    statusCode?: string;
-    remark?: string | null;
-};
-
-type SplitMode = 'new' | 'edit' | 'empty';
-
-function toInt(v: string | null, fallback: number) {
+function getInt(v: string | null, fallback: number) {
+    if (!v) return fallback;
     const n = Number(v);
-    return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+    return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-function clamp(n: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, n));
-}
-
-/**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F01
- * 說明：
- * - snake/camel 兼容：把後端回傳 normalize 成 UI 需要的 UserVM
- * - ✅ 接上 createdByName / updatedByName（displayName）
- */
-function normalizeUser(raw: RawAny): UserVM {
-    const displayName = (raw.displayName ?? raw.display_name ?? '') as string;
-    const email = (raw.email ?? null) as string | null;
-    const phone = (raw.phone ?? null) as string | null;
-
-    const isActive =
-        typeof raw.isActive === 'boolean'
-            ? raw.isActive
-            : typeof raw.is_active === 'boolean'
-                ? raw.is_active
-                : true;
-
-    const lastLoginAt = (raw.lastLoginAt ?? raw.last_login_at ?? null) as string | null;
-    const statusCode = (raw.statusCode ?? raw.uu_sta ?? raw.status_code ?? 'A') as string;
-    const remark = (raw.remark ?? raw.uu_rmk ?? null) as string | null;
-
-    const createdAt = (raw.createdAt ?? raw.created_at ?? null) as string | null;
-    const createdBy = (raw.createdBy ?? raw.created_by ?? null) as string | null;
-    const updatedAt = (raw.updatedAt ?? raw.updated_at ?? null) as string | null;
-    const updatedBy = (raw.updatedBy ?? raw.updated_by ?? null) as string | null;
-
-    // ✅ 後端應回 createdByName/updatedByName（camel）
-    // 兼容 snake: created_by_name / updated_by_name
-    const createdByName = (raw.createdByName ?? raw.created_by_name ?? null) as string | null;
-    const updatedByName = (raw.updatedByName ?? raw.updated_by_name ?? null) as string | null;
-
-    return {
-        id: String(raw.id ?? ''),
-        username: String(raw.username ?? ''),
-        displayName: displayName ?? '',
-        email,
-        phone,
-        isActive,
-        lastLoginAt,
-        statusCode,
-        remark,
-        createdAt,
-        createdBy,
-        createdByName,
-        updatedAt,
-        updatedBy,
-        updatedByName,
-    };
-}
-
-/**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F02
- * 說明：
- * - 取得 query 值並提供寫回 URL 的 helper
- */
-function useQueryHelpers() {
+export function useUsersSplit() {
     const router = useRouter();
     const pathname = usePathname();
     const sp = useSearchParams();
 
-    const get = useCallback((key: string) => sp.get(key), [sp]);
+    // ===== URL state =====
+    const q = sp.get('q') ?? '';
+    const page = getInt(sp.get('page'), 1);
+    const pageSize = getInt(sp.get('pageSize'), 20);
 
-    const setMany = useCallback(
-        (patch: Record<string, string | null | undefined>, opts?: { replace?: boolean }) => {
+    const selectedId = sp.get('id') ?? '';
+    const modeParam = sp.get('mode'); // 'new' | null
+
+    const splitMode: SplitMode = useMemo(() => {
+        if (modeParam === 'new') return 'new';
+        if (selectedId) return 'edit';
+        return 'empty';
+    }, [modeParam, selectedId]);
+
+    /**
+     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F01
+     * 說明：
+     * - setQuery：以 URL 作為單一真實來源，更新 query string
+     */
+    const setQuery = useCallback(
+        (patch: Record<string, string | null | undefined>) => {
             const next = new URLSearchParams(sp.toString());
-
             Object.entries(patch).forEach(([k, v]) => {
                 if (v === null || v === undefined || v === '') next.delete(k);
-                else next.set(k, v);
+                else next.set(k, String(v));
             });
 
             const qs = next.toString();
-            const url = qs ? `${pathname}?${qs}` : pathname;
-
-            if (opts?.replace) router.replace(url);
-            else router.push(url);
+            router.replace(qs ? `${pathname}?${qs}` : pathname);
         },
-        [router, pathname, sp],
+        [sp, router, pathname],
     );
 
-    return { get, setMany };
-}
-
-/**
- * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F03
- * 說明：
- * - Users Split orchestrator hook
- */
-export function useUsersSplit() {
-    const { get, setMany } = useQueryHelpers();
-
-    const q = get('q') ?? '';
-    const page = toInt(get('page'), 1);
-    const pageSize = clamp(toInt(get('pageSize'), 20), 5, 200);
-
-    const selectedId = get('id') ?? '';
-    const mode = (get('mode') ?? '') === 'new' ? 'new' : '';
-
-    const splitMode: SplitMode = useMemo(() => {
-        if (mode === 'new') return 'new';
-        if (selectedId) return 'edit';
-        return 'empty';
-    }, [mode, selectedId]);
-
+    // ===== list state =====
+    const [items, setItems] = useState<UserDto[]>([]);
+    const [total, setTotal] = useState(0);
     const [listLoading, setListLoading] = useState(false);
     const [listError, setListError] = useState<string | null>(null);
-    const [items, setItems] = useState<UserVM[]>([]);
-    const [total, setTotal] = useState(0);
 
-    const [detailLoading, setDetailLoading] = useState(false);
-    const [detailError, setDetailError] = useState<string | null>(null);
-    const [detail, setDetail] = useState<UserVM | null>(null);
+    useEffect(() => {
+        let alive = true;
 
-    const [saving, setSaving] = useState(false);
-    const [saveError, setSaveError] = useState<string | null>(null);
-
-    /**
-     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F04
-     * 說明：
-     * - List API: GET /users
-     */
-    const loadList = useCallback(async () => {
         setListLoading(true);
         setListError(null);
 
-        try {
-            const url = `/users?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`;
-            const res = await apiFetch(url);
+        listUsers({ q: q || undefined, page, pageSize })
+            .then((res) => {
+                if (!alive) return;
+                setItems(res.items ?? []);
+                setTotal(res.total ?? 0);
+            })
+            .catch((e: any) => {
+                if (!alive) return;
+                setListError(e?.message ?? '載入失敗');
+            })
+            .finally(() => {
+                if (!alive) return;
+                setListLoading(false);
+            });
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || `List failed (${res.status})`);
-            }
-
-            const data = (await res.json()) as UsersListResponse;
-            const rawItems = Array.isArray(data.items) ? data.items : [];
-            const vmItems = rawItems.map(normalizeUser);
-
-            setItems(vmItems);
-            setTotal(Number.isFinite(data.total) ? data.total : 0);
-        } catch (err) {
-            setListError(err instanceof Error ? err.message : 'Load list failed.');
-            setItems([]);
-            setTotal(0);
-        } finally {
-            setListLoading(false);
-        }
+        return () => {
+            alive = false;
+        };
     }, [q, page, pageSize]);
 
-    /**
-     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F05
-     * 說明：
-     * - Detail API: GET /users/:id
-     */
-    const loadDetail = useCallback(async (id: string) => {
-        if (!id) {
+    // ===== detail state =====
+    const [detail, setDetail] = useState<UserDto | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [detailError, setDetailError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let alive = true;
+
+        if (splitMode !== 'edit' || !selectedId) {
             setDetail(null);
+            setDetailError(null);
+            setDetailLoading(false);
             return;
         }
 
         setDetailLoading(true);
         setDetailError(null);
 
-        try {
-            const res = await apiFetch(`/users/${encodeURIComponent(id)}`);
+        getUser(selectedId)
+            .then((res) => {
+                if (!alive) return;
+                setDetail(res);
+            })
+            .catch((e: any) => {
+                if (!alive) return;
+                setDetailError(e?.message ?? '載入失敗');
+            })
+            .finally(() => {
+                if (!alive) return;
+                setDetailLoading(false);
+            });
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text || `Detail failed (${res.status})`);
+        return () => {
+            alive = false;
+        };
+    }, [splitMode, selectedId]);
+
+    // ===== save state =====
+    const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+
+    /**
+     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F02
+     * 說明：
+     * - createOne：新增 user
+     * - 成功後：同步更新 list（若在第 1 頁則 prepend）並切到 edit（id=created.id）
+     */
+    const createOne = useCallback(
+        async (body: CreateUserBody) => {
+            setSaving(true);
+            setSaveError(null);
+
+            try {
+                const created = await createUser(body);
+
+                if (page === 1) {
+                    setItems((prev) => {
+                        if (prev.some((x) => x.id === created.id)) return prev;
+                        return [created, ...prev];
+                    });
+                }
+
+                setTotal((t) => t + 1);
+
+                // 新增成功：切到 edit（同時回第 1 頁方便看到新資料）
+                setQuery({ mode: null, id: created.id, page: '1' });
+            } catch (e: any) {
+                setSaveError(e?.message ?? '新增失敗');
+            } finally {
+                setSaving(false);
             }
+        },
+        [setQuery, page],
+    );
 
-            const data = (await res.json()) as RawAny;
-            setDetail(normalizeUser(data));
-        } catch (err) {
-            setDetailError(err instanceof Error ? err.message : 'Load detail failed.');
-            setDetail(null);
+    /**
+     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F03
+     * 說明：
+     * - updateOne：更新 user
+     * - 成功後：detail 與 list 同步更新（避免重整）
+     */
+    const updateOne = useCallback(async (id: string, body: UpdateUserBody) => {
+        setSaving(true);
+        setSaveError(null);
+
+        try {
+            const updated = await updateUser(id, body);
+
+            setDetail(updated);
+            setItems((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+        } catch (e: any) {
+            setSaveError(e?.message ?? '更新失敗');
         } finally {
-            setDetailLoading(false);
+            setSaving(false);
         }
     }, []);
 
-    useEffect(() => {
-        if (splitMode === 'new') {
-            setDetail(null);
-            return;
+    /**
+     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F04
+     * 說明：
+     * - setActiveOne：切換啟用狀態
+     * - 成功後：detail/list 同步更新
+     */
+    const setActiveOne = useCallback(async (id: string, isActive: boolean) => {
+        setSaving(true);
+        setSaveError(null);
+
+        try {
+            const updated = await setUserActive(id, isActive);
+
+            setDetail((d) => (d?.id === updated.id ? updated : d));
+            setItems((prev) => prev.map((x) => (x.id === updated.id ? { ...x, ...updated } : x)));
+        } catch (e: any) {
+            setSaveError(e?.message ?? '切換失敗');
+        } finally {
+            setSaving(false);
         }
-        if (splitMode === 'edit') void loadDetail(selectedId);
-        if (splitMode === 'empty') setDetail(null);
-    }, [splitMode, selectedId, loadDetail]);
-
-    useEffect(() => {
-        void loadList();
-    }, [loadList]);
-
-    const actions = useMemo(() => {
-        return {
-            setSearch: (nextQ: string) => setMany({ q: nextQ, page: '1' }, { replace: true }),
-            setPage: (nextPage: number) => setMany({ page: String(Math.max(1, nextPage)) }),
-            setPageSize: (nextSize: number) => setMany({ pageSize: String(clamp(nextSize, 5, 200)), page: '1' }),
-            selectUser: (id: string) => setMany({ id, mode: null }),
-            createNew: () => setMany({ mode: 'new', id: null }),
-            closeRight: () => setMany({ id: null, mode: null }),
-            reload: () => {
-                void loadList();
-                if (splitMode === 'edit' && selectedId) void loadDetail(selectedId);
-            },
-        };
-    }, [setMany, loadList, loadDetail, splitMode, selectedId]);
+    }, []);
 
     /**
-     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F06
+     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F05
      * 說明：
-     * - Create API: POST /users
+     * - changePasswordOne：修改密碼
+     * - 成功後：不強制 reload（避免 list 抖動）；有需要可在 UI 顯示 toast
      */
-    const createUser = useCallback(
-        async (input: CreateUserInput) => {
-            setSaving(true);
-            setSaveError(null);
+    const changePasswordOne = useCallback(async (id: string, password: string) => {
+        setSaving(true);
+        setSaveError(null);
 
-            try {
-                const res = await apiFetch('/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(input),
-                });
+        try {
+            await changeUserPassword(id, password);
+        } catch (e: any) {
+            setSaveError(e?.message ?? '修改密碼失敗');
+        } finally {
+            setSaving(false);
+        }
+    }, []);
 
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(text || `Create failed (${res.status})`);
-                }
+    // ===== actions =====
+    const actions = useMemo(
+        () => ({
+            setSearch: (nextQ: string) => setQuery({ q: nextQ, page: '1' }),
+            setPage: (p: number) => setQuery({ page: String(Math.max(1, p)) }),
+            setPageSize: (ps: number) => setQuery({ pageSize: String(ps), page: '1' }),
 
-                const created = (await res.json()) as { id: string };
-                if (created?.id) actions.selectUser(created.id);
-                actions.reload();
-            } catch (err) {
-                setSaveError(err instanceof Error ? err.message : 'Create failed.');
-            } finally {
-                setSaving(false);
-            }
-        },
-        [actions],
-    );
-
-    /**
-     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F07
-     * 說明：
-     * - Update API: PUT /users/:id
-     */
-    const updateUser = useCallback(
-        async (id: string, input: UpdateUserInput) => {
-            if (!id) return;
-
-            setSaving(true);
-            setSaveError(null);
-
-            try {
-                const res = await apiFetch(`/users/${encodeURIComponent(id)}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(input),
-                });
-
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(text || `Update failed (${res.status})`);
-                }
-
-                actions.reload();
-            } catch (err) {
-                setSaveError(err instanceof Error ? err.message : 'Update failed.');
-            } finally {
-                setSaving(false);
-            }
-        },
-        [actions],
-    );
-
-    /**
-     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F08
-     * 說明：
-     * - Change Password API: PATCH /users/:id/password
-     */
-    const changePassword = useCallback(
-        async (id: string, password: string) => {
-            if (!id) return;
-
-            setSaving(true);
-            setSaveError(null);
-
-            try {
-                const res = await apiFetch(`/users/${encodeURIComponent(id)}/password`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password }),
-                });
-
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(text || `Change password failed (${res.status})`);
-                }
-
-                actions.reload();
-            } catch (err) {
-                setSaveError(err instanceof Error ? err.message : 'Change password failed.');
-            } finally {
-                setSaving(false);
-            }
-        },
-        [actions],
-    );
-
-    /**
-     * @FUNCTION_CODE NX00-UI-NX00-USERS-SPLIT-HOOK-001-F09
-     * 說明：
-     * - Set Active API: PATCH /users/:id/active
-     */
-    const setActive = useCallback(
-        async (id: string, isActive: boolean) => {
-            if (!id) return;
-
-            setSaving(true);
-            setSaveError(null);
-
-            try {
-                const res = await apiFetch(`/users/${encodeURIComponent(id)}/active`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ isActive }),
-                });
-
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(text || `Set active failed (${res.status})`);
-                }
-
-                actions.reload();
-            } catch (err) {
-                setSaveError(err instanceof Error ? err.message : 'Set active failed.');
-            } finally {
-                setSaving(false);
-            }
-        },
-        [actions],
+            selectUser: (id: string) => setQuery({ id, mode: null }),
+            createNew: () => setQuery({ mode: 'new', id: null }),
+            closeRight: () => setQuery({ mode: null, id: null }),
+        }),
+        [setQuery],
     );
 
     return {
@@ -440,22 +264,22 @@ export function useUsersSplit() {
         selectedId,
         splitMode,
 
-        listLoading,
-        listError,
         items,
         total,
+        listLoading,
+        listError,
 
+        detail,
         detailLoading,
         detailError,
-        detail,
 
         saving,
         saveError,
 
-        createUser,
-        updateUser,
-        changePassword,
-        setActive,
+        createUser: createOne,
+        updateUser: updateOne,
+        setActive: setActiveOne,
+        changePassword: changePasswordOne,
 
         actions,
     };
