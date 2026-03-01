@@ -1,33 +1,44 @@
-// C:\nexora\apps\nx-api\src\prisma\prisma.service.ts
-// Nest PrismaService：Prisma v7 使用 adapter-pg 直連 PostgreSQL（讀取 DATABASE_URL）
+/**
+ * File: apps/nx-api/src/app.service.ts
+ * Project: NEXORA (Monorepo)
+ *
+ * Purpose:
+ * - CORE-API-APP-SVC-001：App Service（最小核心服務）
+ *
+ * Notes:
+ * - 僅提供 health/info 相關功能
+ * - 不直接操作 Prisma（避免與業務邏輯耦合）
+ */
 
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from 'db-core';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class PrismaService
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
-  constructor() {
-    const url = process.env.DATABASE_URL;
-    if (!url) {
-      throw new Error('DATABASE_URL is missing. Please set it in apps/nx-api/.env');
-    }
+export class AppService {
 
-    const pool = new Pool({ connectionString: url });
-    const adapter = new PrismaPg(pool);
-
-    super({ adapter });
+  /**
+   * @FUNCTION_CODE nxapi_core_health_service_001
+   *
+   * 說明：
+   * - 提供健康檢查資訊
+   */
+  health() {
+    return {
+      ok: true,
+      service: 'nx-api',
+      ts: new Date().toISOString(),
+    };
   }
 
-  async onModuleInit() {
-    await this.$connect();
-  }
-
-  async onModuleDestroy() {
-    await this.$disconnect();
+  /**
+   * @FUNCTION_CODE nxapi_core_info_service_001
+   *
+   * 說明：
+   * - 提供基本資訊（可擴充版本號）
+   */
+  info() {
+    return {
+      name: 'nx-api',
+      version: 'LITE',
+    };
   }
 }

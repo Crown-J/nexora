@@ -129,8 +129,6 @@ exports.Prisma.Nx00UserScalarFieldEnum = {
   phone: 'phone',
   isActive: 'isActive',
   lastLoginAt: 'lastLoginAt',
-  statusCode: 'statusCode',
-  remark: 'remark',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
@@ -142,7 +140,9 @@ exports.Prisma.Nx00RoleScalarFieldEnum = {
   code: 'code',
   name: 'name',
   description: 'description',
+  isSystem: 'isSystem',
   isActive: 'isActive',
+  sortNo: 'sortNo',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
@@ -153,66 +153,41 @@ exports.Prisma.Nx00UserRoleScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   roleId: 'roleId',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy'
+  isPrimary: 'isPrimary',
+  assignedAt: 'assignedAt',
+  assignedBy: 'assignedBy',
+  revokedAt: 'revokedAt',
+  isActive: 'isActive'
 };
 
-exports.Prisma.Nx00PermissionScalarFieldEnum = {
+exports.Prisma.Nx00ViewScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
   moduleCode: 'moduleCode',
-  action: 'action',
-  isActive: 'isActive',
+  path: 'path',
   sortNo: 'sortNo',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00RolePermissionScalarFieldEnum = {
+exports.Prisma.Nx00RoleViewScalarFieldEnum = {
   id: 'id',
   roleId: 'roleId',
-  permissionId: 'permissionId',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy'
-};
-
-exports.Prisma.Nx00BrandScalarFieldEnum = {
-  id: 'id',
-  code: 'code',
-  name: 'name',
-  nameEn: 'nameEn',
+  viewId: 'viewId',
+  canRead: 'canRead',
+  canCreate: 'canCreate',
+  canUpdate: 'canUpdate',
+  canDelete: 'canDelete',
+  canExport: 'canExport',
   isActive: 'isActive',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00FunctionGroupScalarFieldEnum = {
-  id: 'id',
-  code: 'code',
-  name: 'name',
-  description: 'description',
-  isActive: 'isActive',
-  sortNo: 'sortNo',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00PartStatusScalarFieldEnum = {
-  id: 'id',
-  code: 'code',
-  name: 'name',
-  canSell: 'canSell',
-  canPurchase: 'canPurchase',
-  isActive: 'isActive',
-  remark: 'remark',
+  grantedAt: 'grantedAt',
+  grantedBy: 'grantedBy',
+  revokedAt: 'revokedAt',
+  revokedBy: 'revokedBy',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
@@ -221,17 +196,26 @@ exports.Prisma.Nx00PartStatusScalarFieldEnum = {
 
 exports.Prisma.Nx00PartScalarFieldEnum = {
   id: 'id',
-  partNo: 'partNo',
-  oldPartNo: 'oldPartNo',
-  displayNo: 'displayNo',
-  nameZh: 'nameZh',
-  nameEn: 'nameEn',
+  code: 'code',
+  name: 'name',
   brandId: 'brandId',
-  functionGroupId: 'functionGroupId',
-  statusId: 'statusId',
-  barcode: 'barcode',
+  spec: 'spec',
+  uom: 'uom',
   isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00BrandScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  originCountry: 'originCountry',
   remark: 'remark',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
@@ -242,8 +226,9 @@ exports.Prisma.Nx00WarehouseScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
-  isActive: 'isActive',
   remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
@@ -255,26 +240,31 @@ exports.Prisma.Nx00LocationScalarFieldEnum = {
   warehouseId: 'warehouseId',
   code: 'code',
   name: 'name',
-  isActive: 'isActive',
+  zone: 'zone',
+  rack: 'rack',
+  levelNo: 'levelNo',
+  binNo: 'binNo',
   remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00BusinessPartnerScalarFieldEnum = {
+exports.Prisma.Nx00PartnerScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
-  taxId: 'taxId',
+  partnerType: 'partnerType',
+  contactName: 'contactName',
   phone: 'phone',
+  mobile: 'mobile',
   email: 'email',
   address: 'address',
-  isCustomer: 'isCustomer',
-  isVendor: 'isVendor',
-  isActive: 'isActive',
   remark: 'remark',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
@@ -283,16 +273,18 @@ exports.Prisma.Nx00BusinessPartnerScalarFieldEnum = {
 
 exports.Prisma.Nx00AuditLogScalarFieldEnum = {
   id: 'id',
-  userId: 'userId',
+  occurredAt: 'occurredAt',
+  actorUserId: 'actorUserId',
   moduleCode: 'moduleCode',
   action: 'action',
-  entity: 'entity',
+  entityTable: 'entityTable',
   entityId: 'entityId',
-  docNo: 'docNo',
-  ipAddress: 'ipAddress',
-  userAgent: 'userAgent',
-  payload: 'payload',
-  createdAt: 'createdAt'
+  entityCode: 'entityCode',
+  summary: 'summary',
+  beforeData: 'beforeData',
+  afterData: 'afterData',
+  ipAddr: 'ipAddr',
+  userAgent: 'userAgent'
 };
 
 exports.Prisma.SortOrder = {
@@ -326,15 +318,13 @@ exports.Prisma.ModelName = {
   Nx00User: 'Nx00User',
   Nx00Role: 'Nx00Role',
   Nx00UserRole: 'Nx00UserRole',
-  Nx00Permission: 'Nx00Permission',
-  Nx00RolePermission: 'Nx00RolePermission',
-  Nx00Brand: 'Nx00Brand',
-  Nx00FunctionGroup: 'Nx00FunctionGroup',
-  Nx00PartStatus: 'Nx00PartStatus',
+  Nx00View: 'Nx00View',
+  Nx00RoleView: 'Nx00RoleView',
   Nx00Part: 'Nx00Part',
+  Nx00Brand: 'Nx00Brand',
   Nx00Warehouse: 'Nx00Warehouse',
   Nx00Location: 'Nx00Location',
-  Nx00BusinessPartner: 'Nx00BusinessPartner',
+  Nx00Partner: 'Nx00Partner',
   Nx00AuditLog: 'Nx00AuditLog'
 };
 

@@ -10,3 +10,8 @@ export type PaginatedResult<T> = {
   items: T[];
   total: number;
 };
+
+export type PagedResult<T> = PaginatedResult<T> & {
+  page: number;
+  pageSize: number;
+};

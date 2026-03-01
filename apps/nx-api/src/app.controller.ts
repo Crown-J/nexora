@@ -1,27 +1,31 @@
 /**
  * File: apps/nx-api/src/app.controller.ts
  * Project: NEXORA (Monorepo)
+ *
  * Purpose:
- * - 保留最小測試入口（health check / RBAC debug）
+ * - CORE-API-APP-CTRL-001：最小測試入口（health check / RBAC debug）
+ *
  * Notes:
  * - ⚠️ 不要佔用正式 API 路徑（例如 /users）
- * - /users 交給 UsersController（W03-API-001）
+ * - /users 交給 UsersController
  */
 
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 
 import { Roles } from './shared/decorators/roles.decorator';
-import { RolesGuard } from './shared/guards/roles.guard';
 import { JwtAuthGuard } from './shared/guards/jwt-auth.guard';
+import { RolesGuard } from './shared/guards/roles.guard';
 
 @Controller()
 export class AppController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * @CODE nxapi_health_001
-   * 說明：最基本健康檢查（不需要登入）
+   *
+   * 說明：
+   * - 最基本健康檢查（不需要登入）
    */
   @Get('/health')
   health() {
@@ -30,6 +34,7 @@ export class AppController {
 
   /**
    * @CODE nxapi_debug_rbac_admin_ping_001
+   *
    * 說明：
    * - 必須登入（JWT）
    * - 必須具備 ADMIN 角色
@@ -44,6 +49,7 @@ export class AppController {
 
   /**
    * @CODE nxapi_debug_users_safe_preview_001
+   *
    * 說明：
    * - 僅供 debug：確認 Prisma 可連線 + 基本查詢
    * - ✅ 只 select 安全欄位（不回 passwordHash）
@@ -63,7 +69,6 @@ export class AppController {
         email: true,
         phone: true,
         isActive: true,
-        statusCode: true,
         lastLoginAt: true,
         createdAt: true,
         updatedAt: true,

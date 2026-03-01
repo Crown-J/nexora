@@ -1,15 +1,23 @@
-// C:\nexora\apps\nx-api\src\auth\auth.module.ts
-// AuthModule：提供 /auth/login、/auth/me（JWT Guard），並注入 PrismaModule
+/**
+ * File: apps/nx-api/src/auth/auth.module.ts
+ * Project: NEXORA (Monorepo)
+ *
+ * Purpose:
+ * - NX00-AUTH-MODULE-001：AuthModule（/auth/login、/auth/me）
+ *
+ * Notes:
+ * - Passport + JWT Strategy
+ * - JWT_SECRET 讀取自 apps/nx-api/.env（未設定則使用 dev fallback）
+ */
 
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
 import { PrismaModule } from '../prisma/prisma.module';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { RolesGuard } from '../shared/guards/roles.guard';
 
 @Module({
   imports: [
@@ -21,6 +29,6 @@ import { RolesGuard } from '../shared/guards/roles.guard';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RolesGuard],
+  providers: [AuthService, JwtStrategy],
 })
-export class AuthModule {}
+export class AuthModule { }
