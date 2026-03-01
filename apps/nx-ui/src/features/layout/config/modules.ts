@@ -26,10 +26,10 @@ export type ModuleTab = {
  */
 export function getModuleTabs(): ModuleTab[] {
   return [
-    { code: 'nx00', label: 'NX00', href: '/dashboard/nx00', enabled: true },
-    { code: 'nx01', label: 'NX01', href: '/dashboard/nx01', enabled: true },
-    { code: 'nx02', label: 'NX02', href: '/dashboard/nx02', enabled: true },
-    { code: 'nx03', label: 'NX03', href: '/dashboard/nx03', enabled: true },
-    { code: 'nx04', label: 'NX04', href: '/dashboard/nx04', enabled: true },
+    { code: 'nx00', label: '基本資料', href: '/dashboard/nx00', enabled: true },
+    { code: 'nx01', label: '進/退貨作業', href: '/dashboard/nx01', enabled: true },
+    { code: 'nx03', label: '銷售/退作業', href: '/dashboard/nx03', enabled: true },
+    { code: 'nx02', label: '庫存管理', href: '/dashboard/nx02', enabled: true },
+    { code: 'nx04', label: '財務管理', href: '/dashboard/nx04', enabled: true },
   ];
 }

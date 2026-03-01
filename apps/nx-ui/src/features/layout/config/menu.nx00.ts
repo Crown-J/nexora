@@ -61,9 +61,5 @@ export function getNx00SideMenu(): SideMenuGroup[] {
       group: '供應商與客戶管理',
       items: [{ key: 'nx00.partner', label: '往來客戶基本資料', href: '/dashboard/nx00/partner' }],
     },
-    {
-      group: '系統紀錄管理',
-      items: [{ key: 'nx00.audit-log', label: '操作紀錄追蹤', href: '/dashboard/nx00/audit-log' }],
-    },
   ];
 }
