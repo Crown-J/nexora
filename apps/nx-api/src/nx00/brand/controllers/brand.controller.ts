@@ -4,6 +4,9 @@
  *
  * Purpose:
  * - NX00-API-BRAND-CTRL-001：Brand CRUD endpoints (ADMIN only)
+ *
+ * Notes:
+ * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
  */
 
 import {
@@ -59,7 +62,11 @@ export class BrandController {
     @Post()
     async create(@Body() body: CreateBrandBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.brand.create(body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.brand.create(body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -68,7 +75,11 @@ export class BrandController {
     @Put(':id')
     async update(@Param('id') id: string, @Body() body: UpdateBrandBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.brand.update(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.brand.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -77,6 +88,10 @@ export class BrandController {
     @Patch(':id/active')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.brand.setActive(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.brand.setActive(id, body, { actorUserId, ipAddr, userAgent });
     }
 }

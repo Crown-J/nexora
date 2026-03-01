@@ -8,10 +8,12 @@
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_role_id()
  * - 欄位對齊 nx00_role（LITE）：is_system / is_active / sort_no / audit fields
+ * - 為寫入 AuditLog（CREATE/UPDATE/SET_ACTIVE），Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
     CreateRoleBody,
     ListRoleQuery,
@@ -64,9 +66,21 @@ function toRoleDto(row: RoleRowWithAudit): RoleDto {
     };
 }
 
+/**
+ * Role CRUD Context（用於 AuditLog）
+ */
+export type RoleActionContext = {
+    actorUserId?: string;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
+
 @Injectable()
 export class RoleService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly audit: AuditLogService,
+    ) { }
 
     async list(query: ListRoleQuery): Promise<PagedResult<RoleDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
@@ -119,7 +133,7 @@ export class RoleService {
         return toRoleDto(row as unknown as RoleRowWithAudit);
     }
 
-    async create(body: CreateRoleBody, actorUserId?: string): Promise<RoleDto> {
+    async create(body: CreateRoleBody, ctx?: RoleActionContext): Promise<RoleDto> {
         const code = body.code?.trim();
         const name = body.name?.trim();
 
@@ -138,14 +152,39 @@ export class RoleService {
                     isActive: body.isActive ?? true,
                     sortNo: body.sortNo ?? 0,
 
-                    createdBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    createdBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
                 },
             });
+
+            // AuditLog（CREATE）：若沒有 actorUserId（例如系統 seed/批次），就不寫
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'CREATE',
+                    entityTable: 'nx00_role',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Create role ${row.code}`,
+                    beforeData: null,
+                    afterData: {
+                        id: row.id,
+                        code: row.code,
+                        name: row.name,
+                        description: row.description ?? null,
+                        isSystem: Boolean(row.isSystem),
+                        isActive: Boolean(row.isActive),
+                        sortNo: Number(row.sortNo ?? 0),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
 
             return toRoleDto(row as unknown as RoleRowWithAudit);
         } catch (e: any) {
@@ -159,7 +198,7 @@ export class RoleService {
         }
     }
 
-    async update(id: string, body: UpdateRoleBody, actorUserId?: string): Promise<RoleDto> {
+    async update(id: string, body: UpdateRoleBody, ctx?: RoleActionContext): Promise<RoleDto> {
         const exists = await this.prisma.nx00Role.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('Role not found');
 
@@ -169,7 +208,7 @@ export class RoleService {
         }
 
         const data: any = {
-            updatedBy: actorUserId ?? null,
+            updatedBy: ctx?.actorUserId ?? null,
         };
 
         if (typeof body.code === 'string') data.code = body.code.trim();
@@ -191,6 +230,39 @@ export class RoleService {
                 },
             });
 
+            // AuditLog（UPDATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'UPDATE',
+                    entityTable: 'nx00_role',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Update role ${row.code}`,
+                    beforeData: {
+                        id: exists.id,
+                        code: exists.code,
+                        name: exists.name,
+                        description: exists.description ?? null,
+                        isSystem: Boolean(exists.isSystem),
+                        isActive: Boolean(exists.isActive),
+                        sortNo: Number(exists.sortNo ?? 0),
+                    },
+                    afterData: {
+                        id: row.id,
+                        code: row.code,
+                        name: row.name,
+                        description: row.description ?? null,
+                        isSystem: Boolean(row.isSystem),
+                        isActive: Boolean(row.isActive),
+                        sortNo: Number(row.sortNo ?? 0),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
             return toRoleDto(row as unknown as RoleRowWithAudit);
         } catch (e: any) {
             const pe = e as PrismaKnownError;
@@ -201,7 +273,7 @@ export class RoleService {
         }
     }
 
-    async setActive(id: string, body: SetActiveBody, actorUserId?: string): Promise<RoleDto> {
+    async setActive(id: string, body: SetActiveBody, ctx?: RoleActionContext): Promise<RoleDto> {
         const exists = await this.prisma.nx00Role.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('Role not found');
 
@@ -209,13 +281,30 @@ export class RoleService {
             where: { id },
             data: {
                 isActive: Boolean(body.isActive),
-                updatedBy: actorUserId ?? null,
+                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
             },
         });
+
+        // AuditLog（SET_ACTIVE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'SET_ACTIVE',
+                entityTable: 'nx00_role',
+                entityId: row.id,
+                entityCode: row.code,
+                summary: `Set role ${row.code} active=${Boolean(body.isActive)}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive) },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
 
         return toRoleDto(row as unknown as RoleRowWithAudit);
     }

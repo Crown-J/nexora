@@ -4,6 +4,9 @@
  *
  * Purpose:
  * - NX00-API-PARTNER-CTRL-001：Partner CRUD endpoints (ADMIN only)
+ *
+ * Notes:
+ * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
  */
 
 import {
@@ -60,7 +63,11 @@ export class PartnerController {
     @Post()
     async create(@Body() body: CreatePartnerBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.partner.create(body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.partner.create(body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -69,7 +76,11 @@ export class PartnerController {
     @Put(':id')
     async update(@Param('id') id: string, @Body() body: UpdatePartnerBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.partner.update(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.partner.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -78,6 +89,10 @@ export class PartnerController {
     @Patch(':id/active')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.partner.setActive(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.partner.setActive(id, body, { actorUserId, ipAddr, userAgent });
     }
 }

@@ -8,11 +8,13 @@
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_user_id()
  * - passwordHash 存 DB，API 只收 password（明碼）
+ * - 為寫入 AuditLog（CREATE/UPDATE/SET_ACTIVE），Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import type { CreateUserBody, ListUserQuery, PagedResult, UpdateUserBody, UserDto, SetActiveBody } from '../dto/user.dto';
+import { AuditLogService } from '../../audit-log/services/audit-log.service';
+import type { CreateUserBody, ListUserQuery, PagedResult, SetActiveBody, UpdateUserBody, UserDto } from '../dto/user.dto';
 
 // Prisma error codes (keep minimal, no extra deps)
 type PrismaKnownError = { code?: string; meta?: any; message?: string };
@@ -79,9 +81,21 @@ function verifyPasswordLite(password: string, stored: string): boolean {
     return timingSafeEqual(Buffer.from(digest, 'hex'), Buffer.from(check, 'hex'));
 }
 
+/**
+ * User CRUD Context（用於 AuditLog）
+ */
+export type UserActionContext = {
+    actorUserId?: string;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
+
 @Injectable()
 export class UserService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly audit: AuditLogService,
+    ) { }
 
     async list(query: ListUserQuery): Promise<PagedResult<UserDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
@@ -136,7 +150,7 @@ export class UserService {
         return toUserDto(row as unknown as UserRowWithAudit);
     }
 
-    async create(body: CreateUserBody, actorUserId?: string): Promise<UserDto> {
+    async create(body: CreateUserBody, ctx?: UserActionContext): Promise<UserDto> {
         const username = body.username?.trim();
         const displayName = body.displayName?.trim();
         const password = body.password;
@@ -159,14 +173,38 @@ export class UserService {
                     email: body.email ?? null,
                     phone: body.phone ?? null,
                     isActive: body.isActive ?? true,
-                    createdBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    createdBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
                 },
             });
+
+            // AuditLog（CREATE）：若沒有 actorUserId（例如系統 seed/批次），就不寫
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'CREATE',
+                    entityTable: 'nx00_user',
+                    entityId: row.id,
+                    entityCode: row.username,
+                    summary: `Create user ${row.username}`,
+                    beforeData: null,
+                    afterData: {
+                        id: row.id,
+                        username: row.username,
+                        displayName: row.displayName,
+                        email: row.email ?? null,
+                        phone: row.phone ?? null,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
 
             return toUserDto(row as unknown as UserRowWithAudit);
         } catch (e: any) {
@@ -178,12 +216,12 @@ export class UserService {
         }
     }
 
-    async update(id: string, body: UpdateUserBody, actorUserId?: string): Promise<UserDto> {
+    async update(id: string, body: UpdateUserBody, ctx?: UserActionContext): Promise<UserDto> {
         const exists = await this.prisma.nx00User.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('User not found');
 
         const data: any = {
-            updatedBy: actorUserId ?? null,
+            updatedBy: ctx?.actorUserId ?? null,
         };
 
         if (typeof body.displayName === 'string') data.displayName = body.displayName.trim();
@@ -206,6 +244,39 @@ export class UserService {
                 },
             });
 
+            // AuditLog（UPDATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'UPDATE',
+                    entityTable: 'nx00_user',
+                    entityId: row.id,
+                    entityCode: row.username,
+                    summary: `Update user ${row.username}`,
+                    beforeData: {
+                        id: exists.id,
+                        username: exists.username,
+                        displayName: exists.displayName,
+                        email: exists.email ?? null,
+                        phone: exists.phone ?? null,
+                        isActive: Boolean(exists.isActive),
+                        lastLoginAt: exists.lastLoginAt ? (exists.lastLoginAt.toISOString?.() ?? String(exists.lastLoginAt)) : null,
+                    },
+                    afterData: {
+                        id: row.id,
+                        username: row.username,
+                        displayName: row.displayName,
+                        email: row.email ?? null,
+                        phone: row.phone ?? null,
+                        isActive: Boolean(row.isActive),
+                        lastLoginAt: row.lastLoginAt ? (row.lastLoginAt.toISOString?.() ?? String(row.lastLoginAt)) : null,
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
             return toUserDto(row as unknown as UserRowWithAudit);
         } catch (e: any) {
             const pe = e as PrismaKnownError;
@@ -216,7 +287,7 @@ export class UserService {
         }
     }
 
-    async setActive(id: string, body: SetActiveBody, actorUserId?: string): Promise<UserDto> {
+    async setActive(id: string, body: SetActiveBody, ctx?: UserActionContext): Promise<UserDto> {
         const exists = await this.prisma.nx00User.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('User not found');
 
@@ -224,13 +295,30 @@ export class UserService {
             where: { id },
             data: {
                 isActive: Boolean(body.isActive),
-                updatedBy: actorUserId ?? null,
+                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
             },
         });
+
+        // AuditLog（SET_ACTIVE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'SET_ACTIVE',
+                entityTable: 'nx00_user',
+                entityId: row.id,
+                entityCode: row.username,
+                summary: `Set user ${row.username} active=${Boolean(body.isActive)}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive) },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
 
         return toUserDto(row as unknown as UserRowWithAudit);
     }

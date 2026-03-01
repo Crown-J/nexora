@@ -10,10 +10,12 @@
  * - @@unique([roleId, viewId])：同 role-view 不可重複（P2002）
  * - grant：若已存在且 inactive，重新啟用（revokedAt/By 清空 + grantedAt/By 更新）
  * - revoke：revokedAt/By + isActive=false
+ * - 為寫入 AuditLog（GRANT/UPDATE_PERMS/REVOKE/SET_ACTIVE），Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
     GrantRoleViewBody,
     ListRoleViewQuery,
@@ -25,6 +27,7 @@ import type {
     UpdateRoleViewPermsBody,
 } from '../dto/role-view.dto';
 
+// Prisma error codes (keep minimal, no extra deps)
 type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 type RoleViewRow = {
@@ -109,9 +112,21 @@ function toDto(row: RoleViewRow): RoleViewDto {
     };
 }
 
+/**
+ * RoleView Action Context（用於 AuditLog）
+ */
+export type RoleViewActionContext = {
+    actorUserId?: string;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
+
 @Injectable()
 export class RoleViewService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly audit: AuditLogService,
+    ) { }
 
     async list(query: ListRoleViewQuery): Promise<PagedResult<RoleViewDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
@@ -171,7 +186,7 @@ export class RoleViewService {
         return toDto(row as unknown as RoleViewRow);
     }
 
-    async grant(body: GrantRoleViewBody, actorUserId?: string): Promise<RoleViewDto> {
+    async grant(body: GrantRoleViewBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const roleId = body.roleId?.trim();
         const viewId = body.viewId?.trim();
         if (!roleId) throw new BadRequestException('roleId is required');
@@ -179,12 +194,11 @@ export class RoleViewService {
 
         const perms = pickPerms(body.perms);
 
-        // 交易：若存在就更新+啟用，若不存在就建立
         const row = await this.prisma.$transaction(async (tx) => {
             // 檢查 FK（避免 500）
             const [r, v] = await Promise.all([
-                tx.nx00Role.findUnique({ where: { id: roleId }, select: { id: true } }),
-                tx.nx00View.findUnique({ where: { id: viewId }, select: { id: true } }),
+                tx.nx00Role.findUnique({ where: { id: roleId }, select: { id: true, code: true } }),
+                tx.nx00View.findUnique({ where: { id: viewId }, select: { id: true, code: true, moduleCode: true } }),
             ]);
             if (!r) throw new BadRequestException('Role not found');
             if (!v) throw new BadRequestException('View not found');
@@ -194,16 +208,16 @@ export class RoleViewService {
             });
 
             if (existing) {
-                return tx.nx00RoleView.update({
+                const updated = await tx.nx00RoleView.update({
                     where: { id: existing.id },
                     data: {
                         ...perms,
                         isActive: true,
                         grantedAt: new Date(),
-                        grantedBy: actorUserId ?? null,
+                        grantedBy: ctx?.actorUserId ?? null,
                         revokedAt: null,
                         revokedBy: null,
-                        updatedBy: actorUserId ?? null,
+                        updatedBy: ctx?.actorUserId ?? null,
                     },
                     include: {
                         grantedByUser: { select: { displayName: true } },
@@ -214,17 +228,53 @@ export class RoleViewService {
                         view: { select: { code: true, name: true, path: true, moduleCode: true } },
                     },
                 });
+
+                // AuditLog（GRANT - re-enable or update perms）
+                if (ctx?.actorUserId) {
+                    await this.audit.write({
+                        actorUserId: ctx.actorUserId,
+                        moduleCode: 'NX00',
+                        action: 'GRANT',
+                        entityTable: 'nx00_role_view',
+                        entityId: updated.id,
+                        entityCode: `${roleId}:${viewId}`,
+                        summary: `Grant role-view role=${r.code} view=${v.code}`,
+                        beforeData: {
+                            id: existing.id,
+                            roleId: existing.roleId,
+                            viewId: existing.viewId,
+                            isActive: Boolean(existing.isActive),
+                        },
+                        afterData: {
+                            id: updated.id,
+                            roleId: updated.roleId,
+                            viewId: updated.viewId,
+                            isActive: Boolean(updated.isActive),
+                            perms: pickPerms({
+                                canRead: updated.canRead,
+                                canCreate: updated.canCreate,
+                                canUpdate: updated.canUpdate,
+                                canDelete: updated.canDelete,
+                                canExport: updated.canExport,
+                            }),
+                        },
+                        ipAddr: ctx.ipAddr ?? null,
+                        userAgent: ctx.userAgent ?? null,
+                    });
+                }
+
+                return updated;
             }
 
-            return tx.nx00RoleView.create({
+            const created = await tx.nx00RoleView.create({
                 data: {
                     roleId,
                     viewId,
                     ...perms,
                     isActive: true,
-                    grantedBy: actorUserId ?? null,
-                    createdBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    grantedBy: ctx?.actorUserId ?? null,
+                    createdBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
                     grantedByUser: { select: { displayName: true } },
@@ -235,17 +285,48 @@ export class RoleViewService {
                     view: { select: { code: true, name: true, path: true, moduleCode: true } },
                 },
             });
+
+            // AuditLog（GRANT - create）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'GRANT',
+                    entityTable: 'nx00_role_view',
+                    entityId: created.id,
+                    entityCode: `${roleId}:${viewId}`,
+                    summary: `Grant role-view role=${r.code} view=${v.code}`,
+                    beforeData: null,
+                    afterData: {
+                        id: created.id,
+                        roleId: created.roleId,
+                        viewId: created.viewId,
+                        isActive: Boolean(created.isActive),
+                        perms: pickPerms({
+                            canRead: created.canRead,
+                            canCreate: created.canCreate,
+                            canUpdate: created.canUpdate,
+                            canDelete: created.canDelete,
+                            canExport: created.canExport,
+                        }),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
+            return created;
         });
 
         return toDto(row as unknown as RoleViewRow);
     }
 
-    async updatePerms(id: string, body: UpdateRoleViewPermsBody, actorUserId?: string): Promise<RoleViewDto> {
+    async updatePerms(id: string, body: UpdateRoleViewPermsBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
 
         const p = body?.perms ?? {};
-        const data: any = { updatedBy: actorUserId ?? null };
+        const data: any = { updatedBy: ctx?.actorUserId ?? null };
 
         if (p.canRead !== undefined) data.canRead = Boolean(p.canRead);
         if (p.canCreate !== undefined) data.canCreate = Boolean(p.canCreate);
@@ -266,10 +347,43 @@ export class RoleViewService {
             },
         });
 
+        // AuditLog（UPDATE_PERMS）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'UPDATE_PERMS',
+                entityTable: 'nx00_role_view',
+                entityId: row.id,
+                entityCode: `${row.roleId}:${row.viewId}`,
+                summary: `Update role-view perms id=${row.id}`,
+                beforeData: {
+                    perms: {
+                        canRead: Boolean(exists.canRead),
+                        canCreate: Boolean(exists.canCreate),
+                        canUpdate: Boolean(exists.canUpdate),
+                        canDelete: Boolean(exists.canDelete),
+                        canExport: Boolean(exists.canExport),
+                    },
+                },
+                afterData: {
+                    perms: {
+                        canRead: Boolean(row.canRead),
+                        canCreate: Boolean(row.canCreate),
+                        canUpdate: Boolean(row.canUpdate),
+                        canDelete: Boolean(row.canDelete),
+                        canExport: Boolean(row.canExport),
+                    },
+                },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
+
         return toDto(row as unknown as RoleViewRow);
     }
 
-    async revoke(id: string, body: RevokeRoleViewBody, actorUserId?: string): Promise<RoleViewDto> {
+    async revoke(id: string, body: RevokeRoleViewBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
 
@@ -281,8 +395,8 @@ export class RoleViewService {
             data: {
                 isActive: false,
                 revokedAt,
-                revokedBy: actorUserId ?? null,
-                updatedBy: actorUserId ?? null,
+                revokedBy: ctx?.actorUserId ?? null,
+                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
                 grantedByUser: { select: { displayName: true } },
@@ -294,10 +408,27 @@ export class RoleViewService {
             },
         });
 
+        // AuditLog（REVOKE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'REVOKE',
+                entityTable: 'nx00_role_view',
+                entityId: row.id,
+                entityCode: `${row.roleId}:${row.viewId}`,
+                summary: `Revoke role-view id=${row.id}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive), revokedAt: row.revokedAt },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
+
         return toDto(row as unknown as RoleViewRow);
     }
 
-    async setActive(id: string, body: SetActiveBody, actorUserId?: string): Promise<RoleViewDto> {
+    async setActive(id: string, body: SetActiveBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
 
@@ -309,16 +440,16 @@ export class RoleViewService {
                 ? {
                     isActive: true,
                     grantedAt: new Date(),
-                    grantedBy: actorUserId ?? null,
+                    grantedBy: ctx?.actorUserId ?? null,
                     revokedAt: null,
                     revokedBy: null,
-                    updatedBy: actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 }
                 : {
                     isActive: false,
                     revokedAt: exists.revokedAt ?? new Date(),
-                    revokedBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    revokedBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
             include: {
                 grantedByUser: { select: { displayName: true } },
@@ -329,6 +460,23 @@ export class RoleViewService {
                 view: { select: { code: true, name: true, path: true, moduleCode: true } },
             },
         });
+
+        // AuditLog（SET_ACTIVE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'SET_ACTIVE',
+                entityTable: 'nx00_role_view',
+                entityId: row.id,
+                entityCode: `${row.roleId}:${row.viewId}`,
+                summary: `Set role-view active=${isActive} id=${row.id}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive) },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
 
         return toDto(row as unknown as RoleViewRow);
     }

@@ -3,18 +3,21 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-ROLE-MODULE-001：Role Module（LITE 統一單數命名）
+ * - NX00-API-ROLE-MODULE-001：Role Module
  *
  * Notes:
- * - 以 roles 為範本重構
- * - 舊版 roles 保留僅供參考
+ * - 匯入 AuditLogModule 以便 RoleService 寫入操作紀錄（CREATE/UPDATE/SET_ACTIVE）
  */
 
 import { Module } from '@nestjs/common';
+
 import { RoleController } from './controllers/role.controller';
 import { RoleService } from './services/role.service';
 
+import { AuditLogModule } from '../audit-log/audit-log.module';
+
 @Module({
+    imports: [AuditLogModule],
     controllers: [RoleController],
     providers: [RoleService],
 })

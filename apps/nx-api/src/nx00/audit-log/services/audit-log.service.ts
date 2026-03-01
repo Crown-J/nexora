@@ -6,13 +6,12 @@
  * - NX00-API-AUDIT-LOG-SVC-001：AuditLog Service（list/get + write）
  *
  * Notes:
- * - id 由 DB function 自動產生：gen_nx00_audit_log_id()
- * - actorUserId 必填（建議由 JWT 取得）
+ * - AuditLog 不提供使用者寫入，僅由後端服務自動寫入 write()
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import type { AuditLogDto, CreateAuditLogBody, ListAuditLogQuery, PagedResult } from '../dto/audit-log.dto';
+import type { AuditLogDto, ListAuditLogQuery, PagedResult } from '../dto/audit-log.dto';
 
 type AuditLogRow = {
     id: string;
@@ -77,7 +76,6 @@ export class AuditLogService {
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
-
         const dateFrom = parseDateOrThrow(query.dateFrom, 'dateFrom');
         const dateTo = parseDateOrThrow(query.dateTo, 'dateTo');
 
@@ -108,9 +106,7 @@ export class AuditLogService {
                 orderBy: [{ occurredAt: 'desc' }],
                 skip: (page - 1) * pageSize,
                 take: pageSize,
-                include: {
-                    actorUser: { select: { displayName: true } },
-                },
+                include: { actorUser: { select: { displayName: true } } },
             }),
         ]);
 
@@ -133,42 +129,8 @@ export class AuditLogService {
     }
 
     /**
-     * （可選）Controller POST 用：手動寫入
-     */
-    async create(body: CreateAuditLogBody, actorUserId?: string, ipAddr?: string | null, userAgent?: string | null) {
-        if (!actorUserId) throw new BadRequestException('actorUserId is required');
-
-        const moduleCode = body.moduleCode?.trim();
-        const action = body.action?.trim();
-        const entityTable = body.entityTable?.trim();
-
-        if (!moduleCode) throw new BadRequestException('moduleCode is required');
-        if (!action) throw new BadRequestException('action is required');
-        if (!entityTable) throw new BadRequestException('entityTable is required');
-
-        const row = await this.prisma.nx00AuditLog.create({
-            data: {
-                actorUserId,
-                moduleCode,
-                action,
-                entityTable,
-                entityId: body.entityId ?? null,
-                entityCode: body.entityCode ?? null,
-                summary: body.summary ?? null,
-                beforeData: body.beforeData ?? null,
-                afterData: body.afterData ?? null,
-                ipAddr: ipAddr ?? body.ipAddr ?? null,
-                userAgent: userAgent ?? body.userAgent ?? null,
-            },
-            include: { actorUser: { select: { displayName: true } } },
-        });
-
-        return toAuditLogDto(row as unknown as AuditLogRow);
-    }
-
-    /**
      * ✅ 給其他 Service 用的「寫入 helper」
-     * - 你在 Role/Brand/Part… create/update/setActive 完成後呼叫它即可
+     * - create/update/setActive 成功後呼叫即可
      */
     async write(args: {
         actorUserId: string;

@@ -7,6 +7,7 @@
  *
  * Notes:
  * - 由 roles.controller.ts 複製重構為單數命名（LITE 統一）
+ * - 寫入 AuditLog 時需要 actorUserId + ipAddr + userAgent，因此由 Controller 統一取值後傳入 Service
  */
 
 import {
@@ -61,7 +62,12 @@ export class RoleController {
     @Post()
     async create(@Body() body: CreateRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.role.create(body, actorUserId);
+
+        // audit context（若後端有 proxy/ingress，req.ip 可能是 proxy ip；之後可再統一從 x-forwarded-for 取值）
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.role.create(body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -70,7 +76,12 @@ export class RoleController {
     @Put(':id')
     async update(@Param('id') id: string, @Body() body: UpdateRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.role.update(id, body, actorUserId);
+
+        // audit context
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.role.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -79,6 +90,11 @@ export class RoleController {
     @Patch(':id/active')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.role.setActive(id, body, actorUserId);
+
+        // audit context
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.role.setActive(id, body, { actorUserId, ipAddr, userAgent });
     }
 }

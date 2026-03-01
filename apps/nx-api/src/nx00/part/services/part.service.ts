@@ -9,10 +9,12 @@
  * - id 由 DB function 自動產生：gen_nx00_part_id()
  * - code UNIQUE（P2002）
  * - brandId 可為 null
+ * - 為寫入 AuditLog，Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
     CreatePartBody,
     ListPartQuery,
@@ -69,9 +71,21 @@ function toPartDto(row: PartRowWithAudit): PartDto {
     };
 }
 
+/**
+ * Part Action Context（用於 AuditLog）
+ */
+export type PartActionContext = {
+    actorUserId?: string;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
+
 @Injectable()
 export class PartService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly audit: AuditLogService,
+    ) { }
 
     async list(query: ListPartQuery): Promise<PagedResult<PartDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
@@ -127,7 +141,7 @@ export class PartService {
         return toPartDto(row as unknown as PartRowWithAudit);
     }
 
-    async create(body: CreatePartBody, actorUserId?: string): Promise<PartDto> {
+    async create(body: CreatePartBody, ctx?: PartActionContext): Promise<PartDto> {
         const code = body.code?.trim();
         const name = body.name?.trim();
 
@@ -153,8 +167,8 @@ export class PartService {
                     uom,
                     isActive: body.isActive ?? true,
 
-                    createdBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    createdBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
                     brand: { select: { code: true, name: true } } as any,
@@ -162,6 +176,31 @@ export class PartService {
                     updatedByUser: { select: { displayName: true } },
                 },
             });
+
+            // AuditLog（CREATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'CREATE',
+                    entityTable: 'nx00_part',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Create part ${row.code}`,
+                    beforeData: null,
+                    afterData: {
+                        id: row.id,
+                        code: row.code,
+                        name: row.name,
+                        brandId: row.brandId ?? null,
+                        spec: row.spec ?? null,
+                        uom: row.uom,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
 
             return toPartDto(row as unknown as PartRowWithAudit);
         } catch (e: any) {
@@ -173,12 +212,23 @@ export class PartService {
         }
     }
 
-    async update(id: string, body: UpdatePartBody, actorUserId?: string): Promise<PartDto> {
-        const exists = await this.prisma.nx00Part.findUnique({ where: { id } });
+    async update(id: string, body: UpdatePartBody, ctx?: PartActionContext): Promise<PartDto> {
+        const exists = await this.prisma.nx00Part.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                brandId: true,
+                spec: true,
+                uom: true,
+                isActive: true,
+            },
+        });
         if (!exists) throw new NotFoundException('Part not found');
 
         const data: any = {
-            updatedBy: actorUserId ?? null,
+            updatedBy: ctx?.actorUserId ?? null,
         };
 
         if (typeof body.code === 'string') data.code = body.code.trim();
@@ -205,6 +255,39 @@ export class PartService {
                 },
             });
 
+            // AuditLog（UPDATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'UPDATE',
+                    entityTable: 'nx00_part',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Update part ${row.code}`,
+                    beforeData: {
+                        id: exists.id,
+                        code: exists.code,
+                        name: exists.name,
+                        brandId: exists.brandId ?? null,
+                        spec: exists.spec ?? null,
+                        uom: exists.uom,
+                        isActive: Boolean(exists.isActive),
+                    },
+                    afterData: {
+                        id: row.id,
+                        code: row.code,
+                        name: row.name,
+                        brandId: row.brandId ?? null,
+                        spec: row.spec ?? null,
+                        uom: row.uom,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
             return toPartDto(row as unknown as PartRowWithAudit);
         } catch (e: any) {
             const pe = e as PrismaKnownError;
@@ -215,15 +298,18 @@ export class PartService {
         }
     }
 
-    async setActive(id: string, body: SetActiveBody, actorUserId?: string): Promise<PartDto> {
-        const exists = await this.prisma.nx00Part.findUnique({ where: { id } });
+    async setActive(id: string, body: SetActiveBody, ctx?: PartActionContext): Promise<PartDto> {
+        const exists = await this.prisma.nx00Part.findUnique({
+            where: { id },
+            select: { id: true, code: true, isActive: true },
+        });
         if (!exists) throw new NotFoundException('Part not found');
 
         const row = await this.prisma.nx00Part.update({
             where: { id },
             data: {
                 isActive: Boolean(body.isActive),
-                updatedBy: actorUserId ?? null,
+                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
                 brand: { select: { code: true, name: true } } as any,
@@ -231,6 +317,23 @@ export class PartService {
                 updatedByUser: { select: { displayName: true } },
             },
         });
+
+        // AuditLog（SET_ACTIVE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'SET_ACTIVE',
+                entityTable: 'nx00_part',
+                entityId: row.id,
+                entityCode: row.code,
+                summary: `Set part ${row.code} active=${Boolean(body.isActive)}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive) },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
 
         return toPartDto(row as unknown as PartRowWithAudit);
     }

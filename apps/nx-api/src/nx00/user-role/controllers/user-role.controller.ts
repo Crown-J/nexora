@@ -9,6 +9,7 @@
  * - assign：指派角色
  * - revoke：撤銷（soft revoke：revoked_at + is_active=false）
  * - setPrimary：設為主角色（同 user 只能有一個 primary）
+ * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
  */
 
 import {
@@ -28,7 +29,12 @@ import { Roles } from '../../../shared/decorators/roles.decorator';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 
 import { UserRoleService } from '../services/user-role.service';
-import type { AssignUserRoleBody, RevokeUserRoleBody, SetActiveBody, SetPrimaryBody } from '../dto/user-role.dto';
+import type {
+    AssignUserRoleBody,
+    RevokeUserRoleBody,
+    SetActiveBody,
+    SetPrimaryBody,
+} from '../dto/user-role.dto';
 
 @Controller('user-role')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -64,7 +70,11 @@ export class UserRoleController {
     @Post()
     async assign(@Body() body: AssignUserRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.userRole.assign(body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.userRole.assign(body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -73,7 +83,11 @@ export class UserRoleController {
     @Patch(':id/revoke')
     async revoke(@Param('id') id: string, @Body() body: RevokeUserRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.userRole.revoke(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.userRole.revoke(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -82,7 +96,11 @@ export class UserRoleController {
     @Patch(':id/primary')
     async setPrimary(@Param('id') id: string, @Body() body: SetPrimaryBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.userRole.setPrimary(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.userRole.setPrimary(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -91,6 +109,10 @@ export class UserRoleController {
     @Patch(':id/active')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.userRole.setActive(id, body, actorUserId);
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.userRole.setActive(id, body, { actorUserId, ipAddr, userAgent });
     }
 }

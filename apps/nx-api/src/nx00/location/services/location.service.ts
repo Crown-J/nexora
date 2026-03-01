@@ -9,10 +9,12 @@
  * - id 由 DB function 自動產生：gen_nx00_location_id()
  * - @@unique([warehouseId, code])（P2002）
  * - warehouseId 必填，create/update 時先確認 warehouse 存在（避免 FK 500）
+ * - 為寫入 AuditLog，Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
     CreateLocationBody,
     ListLocationQuery,
@@ -79,9 +81,21 @@ function toLocationDto(row: LocationRowWithAudit): LocationDto {
     };
 }
 
+/**
+ * Location Action Context（用於 AuditLog）
+ */
+export type LocationActionContext = {
+    actorUserId?: string;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
+
 @Injectable()
 export class LocationService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly audit: AuditLogService,
+    ) { }
 
     async list(query: ListLocationQuery): Promise<PagedResult<LocationDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
@@ -139,7 +153,7 @@ export class LocationService {
         return toLocationDto(row as unknown as LocationRowWithAudit);
     }
 
-    async create(body: CreateLocationBody, actorUserId?: string): Promise<LocationDto> {
+    async create(body: CreateLocationBody, ctx?: LocationActionContext): Promise<LocationDto> {
         const warehouseId = body.warehouseId?.trim();
         const code = body.code?.trim();
 
@@ -168,8 +182,8 @@ export class LocationService {
                     sortNo,
                     isActive: body.isActive ?? true,
 
-                    createdBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    createdBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
                     warehouse: { select: { code: true, name: true } },
@@ -177,6 +191,35 @@ export class LocationService {
                     updatedByUser: { select: { displayName: true } },
                 },
             });
+
+            // AuditLog（CREATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'CREATE',
+                    entityTable: 'nx00_location',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Create location ${row.code}`,
+                    beforeData: null,
+                    afterData: {
+                        id: row.id,
+                        warehouseId: row.warehouseId,
+                        code: row.code,
+                        name: row.name ?? null,
+                        zone: row.zone ?? null,
+                        rack: row.rack ?? null,
+                        levelNo: row.levelNo ?? null,
+                        binNo: row.binNo ?? null,
+                        remark: row.remark ?? null,
+                        sortNo: row.sortNo,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
 
             return toLocationDto(row as unknown as LocationRowWithAudit);
         } catch (e: any) {
@@ -189,12 +232,27 @@ export class LocationService {
         }
     }
 
-    async update(id: string, body: UpdateLocationBody, actorUserId?: string): Promise<LocationDto> {
-        const exists = await this.prisma.nx00Location.findUnique({ where: { id } });
+    async update(id: string, body: UpdateLocationBody, ctx?: LocationActionContext): Promise<LocationDto> {
+        const exists = await this.prisma.nx00Location.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                warehouseId: true,
+                code: true,
+                name: true,
+                zone: true,
+                rack: true,
+                levelNo: true,
+                binNo: true,
+                remark: true,
+                sortNo: true,
+                isActive: true,
+            },
+        });
         if (!exists) throw new NotFoundException('Location not found');
 
         const data: any = {
-            updatedBy: actorUserId ?? null,
+            updatedBy: ctx?.actorUserId ?? null,
         };
 
         if (typeof body.warehouseId === 'string') data.warehouseId = body.warehouseId.trim();
@@ -219,7 +277,10 @@ export class LocationService {
 
         // 若 warehouseId 有更新，先確認存在
         if (data.warehouseId) {
-            const wh = await this.prisma.nx00Warehouse.findUnique({ where: { id: data.warehouseId }, select: { id: true } });
+            const wh = await this.prisma.nx00Warehouse.findUnique({
+                where: { id: data.warehouseId },
+                select: { id: true },
+            });
             if (!wh) throw new BadRequestException('Warehouse not found');
         }
 
@@ -234,6 +295,47 @@ export class LocationService {
                 },
             });
 
+            // AuditLog（UPDATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'UPDATE',
+                    entityTable: 'nx00_location',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Update location ${row.code}`,
+                    beforeData: {
+                        id: exists.id,
+                        warehouseId: exists.warehouseId,
+                        code: exists.code,
+                        name: exists.name ?? null,
+                        zone: exists.zone ?? null,
+                        rack: exists.rack ?? null,
+                        levelNo: exists.levelNo ?? null,
+                        binNo: exists.binNo ?? null,
+                        remark: exists.remark ?? null,
+                        sortNo: exists.sortNo,
+                        isActive: Boolean(exists.isActive),
+                    },
+                    afterData: {
+                        id: row.id,
+                        warehouseId: row.warehouseId,
+                        code: row.code,
+                        name: row.name ?? null,
+                        zone: row.zone ?? null,
+                        rack: row.rack ?? null,
+                        levelNo: row.levelNo ?? null,
+                        binNo: row.binNo ?? null,
+                        remark: row.remark ?? null,
+                        sortNo: row.sortNo,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
             return toLocationDto(row as unknown as LocationRowWithAudit);
         } catch (e: any) {
             const pe = e as PrismaKnownError;
@@ -244,15 +346,18 @@ export class LocationService {
         }
     }
 
-    async setActive(id: string, body: SetActiveBody, actorUserId?: string): Promise<LocationDto> {
-        const exists = await this.prisma.nx00Location.findUnique({ where: { id } });
+    async setActive(id: string, body: SetActiveBody, ctx?: LocationActionContext): Promise<LocationDto> {
+        const exists = await this.prisma.nx00Location.findUnique({
+            where: { id },
+            select: { id: true, code: true, isActive: true },
+        });
         if (!exists) throw new NotFoundException('Location not found');
 
         const row = await this.prisma.nx00Location.update({
             where: { id },
             data: {
                 isActive: Boolean(body.isActive),
-                updatedBy: actorUserId ?? null,
+                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
                 warehouse: { select: { code: true, name: true } },
@@ -260,6 +365,23 @@ export class LocationService {
                 updatedByUser: { select: { displayName: true } },
             },
         });
+
+        // AuditLog（SET_ACTIVE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'SET_ACTIVE',
+                entityTable: 'nx00_location',
+                entityId: row.id,
+                entityCode: row.code,
+                summary: `Set location ${row.code} active=${Boolean(body.isActive)}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive) },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
 
         return toLocationDto(row as unknown as LocationRowWithAudit);
     }

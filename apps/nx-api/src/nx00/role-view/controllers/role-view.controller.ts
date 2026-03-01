@@ -9,6 +9,7 @@
  * - grant：授予（建立或重新啟用）
  * - revoke：撤銷（soft revoke）
  * - perms：更新 CRUDX 權限
+ * - 寫入 AuditLog 時需要 actorUserId + ipAddr + userAgent，因此由 Controller 統一取值後傳入 Service
  */
 
 import {
@@ -70,7 +71,12 @@ export class RoleViewController {
     @Post()
     async grant(@Body() body: GrantRoleViewBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.roleView.grant(body, actorUserId);
+
+        // audit context（若後端有 proxy/ingress，req.ip 可能是 proxy ip；之後可再統一從 x-forwarded-for 取值）
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.roleView.grant(body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -79,7 +85,12 @@ export class RoleViewController {
     @Patch(':id/perms')
     async updatePerms(@Param('id') id: string, @Body() body: UpdateRoleViewPermsBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.roleView.updatePerms(id, body, actorUserId);
+
+        // audit context
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.roleView.updatePerms(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -88,7 +99,12 @@ export class RoleViewController {
     @Patch(':id/revoke')
     async revoke(@Param('id') id: string, @Body() body: RevokeRoleViewBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.roleView.revoke(id, body, actorUserId);
+
+        // audit context
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.roleView.revoke(id, body, { actorUserId, ipAddr, userAgent });
     }
 
     /**
@@ -97,6 +113,11 @@ export class RoleViewController {
     @Patch(':id/active')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
-        return this.roleView.setActive(id, body, actorUserId);
+
+        // audit context
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.roleView.setActive(id, body, { actorUserId, ipAddr, userAgent });
     }
 }

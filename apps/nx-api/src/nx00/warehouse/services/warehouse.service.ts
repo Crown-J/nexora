@@ -8,10 +8,12 @@
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_warehouse_id()
  * - code UNIQUE（P2002）
+ * - 為寫入 AuditLog，Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
     CreateWarehouseBody,
     ListWarehouseQuery,
@@ -59,9 +61,21 @@ function toWarehouseDto(row: WarehouseRowWithAudit): WarehouseDto {
     };
 }
 
+/**
+ * Warehouse Action Context（用於 AuditLog）
+ */
+export type WarehouseActionContext = {
+    actorUserId?: string;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
+
 @Injectable()
 export class WarehouseService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly audit: AuditLogService,
+    ) { }
 
     async list(query: ListWarehouseQuery): Promise<PagedResult<WarehouseDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
@@ -114,7 +128,7 @@ export class WarehouseService {
         return toWarehouseDto(row as unknown as WarehouseRowWithAudit);
     }
 
-    async create(body: CreateWarehouseBody, actorUserId?: string): Promise<WarehouseDto> {
+    async create(body: CreateWarehouseBody, ctx?: WarehouseActionContext): Promise<WarehouseDto> {
         const code = body.code?.trim();
         const name = body.name?.trim();
         if (!code) throw new BadRequestException('code is required');
@@ -131,14 +145,38 @@ export class WarehouseService {
                     sortNo,
                     isActive: body.isActive ?? true,
 
-                    createdBy: actorUserId ?? null,
-                    updatedBy: actorUserId ?? null,
+                    createdBy: ctx?.actorUserId ?? null,
+                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
                 },
             });
+
+            // AuditLog（CREATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'CREATE',
+                    entityTable: 'nx00_warehouse',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Create warehouse ${row.code}`,
+                    beforeData: null,
+                    afterData: {
+                        id: row.id,
+                        code: row.code,
+                        name: row.name,
+                        remark: row.remark ?? null,
+                        sortNo: row.sortNo,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
 
             return toWarehouseDto(row as unknown as WarehouseRowWithAudit);
         } catch (e: any) {
@@ -150,12 +188,22 @@ export class WarehouseService {
         }
     }
 
-    async update(id: string, body: UpdateWarehouseBody, actorUserId?: string): Promise<WarehouseDto> {
-        const exists = await this.prisma.nx00Warehouse.findUnique({ where: { id } });
+    async update(id: string, body: UpdateWarehouseBody, ctx?: WarehouseActionContext): Promise<WarehouseDto> {
+        const exists = await this.prisma.nx00Warehouse.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                remark: true,
+                sortNo: true,
+                isActive: true,
+            },
+        });
         if (!exists) throw new NotFoundException('Warehouse not found');
 
         const data: any = {
-            updatedBy: actorUserId ?? null,
+            updatedBy: ctx?.actorUserId ?? null,
         };
 
         if (typeof body.code === 'string') data.code = body.code.trim();
@@ -181,6 +229,37 @@ export class WarehouseService {
                 },
             });
 
+            // AuditLog（UPDATE）
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'UPDATE',
+                    entityTable: 'nx00_warehouse',
+                    entityId: row.id,
+                    entityCode: row.code,
+                    summary: `Update warehouse ${row.code}`,
+                    beforeData: {
+                        id: exists.id,
+                        code: exists.code,
+                        name: exists.name,
+                        remark: exists.remark ?? null,
+                        sortNo: exists.sortNo,
+                        isActive: Boolean(exists.isActive),
+                    },
+                    afterData: {
+                        id: row.id,
+                        code: row.code,
+                        name: row.name,
+                        remark: row.remark ?? null,
+                        sortNo: row.sortNo,
+                        isActive: Boolean(row.isActive),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
             return toWarehouseDto(row as unknown as WarehouseRowWithAudit);
         } catch (e: any) {
             const pe = e as PrismaKnownError;
@@ -191,21 +270,41 @@ export class WarehouseService {
         }
     }
 
-    async setActive(id: string, body: SetActiveBody, actorUserId?: string): Promise<WarehouseDto> {
-        const exists = await this.prisma.nx00Warehouse.findUnique({ where: { id } });
+    async setActive(id: string, body: SetActiveBody, ctx?: WarehouseActionContext): Promise<WarehouseDto> {
+        const exists = await this.prisma.nx00Warehouse.findUnique({
+            where: { id },
+            select: { id: true, code: true, isActive: true },
+        });
         if (!exists) throw new NotFoundException('Warehouse not found');
 
         const row = await this.prisma.nx00Warehouse.update({
             where: { id },
             data: {
                 isActive: Boolean(body.isActive),
-                updatedBy: actorUserId ?? null,
+                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
             },
         });
+
+        // AuditLog（SET_ACTIVE）
+        if (ctx?.actorUserId) {
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                moduleCode: 'NX00',
+                action: 'SET_ACTIVE',
+                entityTable: 'nx00_warehouse',
+                entityId: row.id,
+                entityCode: row.code,
+                summary: `Set warehouse ${row.code} active=${Boolean(body.isActive)}`,
+                beforeData: { isActive: Boolean(exists.isActive) },
+                afterData: { isActive: Boolean(row.isActive) },
+                ipAddr: ctx.ipAddr ?? null,
+                userAgent: ctx.userAgent ?? null,
+            });
+        }
 
         return toWarehouseDto(row as unknown as WarehouseRowWithAudit);
     }

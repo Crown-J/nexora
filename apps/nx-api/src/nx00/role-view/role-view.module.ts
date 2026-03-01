@@ -10,7 +10,10 @@ import { Module } from '@nestjs/common';
 import { RoleViewController } from './controllers/role-view.controller';
 import { RoleViewService } from './services/role-view.service';
 
+import { AuditLogModule } from '../audit-log/audit-log.module';
+
 @Module({
+    imports: [AuditLogModule],
     controllers: [RoleViewController],
     providers: [RoleViewService],
 })
