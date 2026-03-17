@@ -223,6 +223,9 @@ model Nx00Part {
   createdByUser Nx00User? @relation("Nx00PartCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartUpdatedBy", fields: [updatedBy], references: [id])
 
+  rfqItems Nx01RfqItem[]
+  poItems  Nx01PoItem[]
+
   @@index([brandId])
   @@index([isActive])
   @@map("nx00_part")
@@ -276,6 +279,7 @@ model Nx00Warehouse {
   updatedByUser Nx00User? @relation("Nx00WarehouseUpdatedBy", fields: [updatedBy], references: [id])
 
   locations Nx00Location[]
+  poItems   Nx01PoItem[]
 
   @@index([isActive])
   @@map("nx00_warehouse")
@@ -308,6 +312,8 @@ model Nx00Location {
   createdByUser Nx00User? @relation("Nx00LocationCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00LocationUpdatedBy", fields: [updatedBy], references: [id])
 
+  poItems Nx01PoItem[]
+
   @@unique([warehouseId, code])
   @@index([warehouseId])
   @@index([isActive])
@@ -338,6 +344,9 @@ model Nx00Partner {
 
   createdByUser Nx00User? @relation("Nx00PartnerCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartnerUpdatedBy", fields: [updatedBy], references: [id])
+
+  rfqs Nx01Rfq[]
+  pos  Nx01Po[]
 
   @@index([isActive])
   @@index([partnerType])

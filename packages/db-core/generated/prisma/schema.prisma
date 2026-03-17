@@ -32,6 +32,10 @@ model Nx00User {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   updatedBy String?  @map("updated_by") @db.VarChar(15)
 
+  // 租戶綁定（nullable，待 NX99 資料建立後補資料改為必填）
+  tenantId String?     @map("tenant_id") @db.VarChar(15)
+  tenant   Nx99Tenant? @relation(fields: [tenantId], references: [id])
+
   // self audit relations
   createdByUser Nx00User? @relation("Nx00UserCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00UserUpdatedBy", fields: [updatedBy], references: [id])
@@ -219,6 +223,9 @@ model Nx00Part {
   createdByUser Nx00User? @relation("Nx00PartCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartUpdatedBy", fields: [updatedBy], references: [id])
 
+  rfqItems Nx01RfqItem[]
+  poItems  Nx01PoItem[]
+
   @@index([brandId])
   @@index([isActive])
   @@map("nx00_part")
@@ -272,6 +279,7 @@ model Nx00Warehouse {
   updatedByUser Nx00User? @relation("Nx00WarehouseUpdatedBy", fields: [updatedBy], references: [id])
 
   locations Nx00Location[]
+  poItems   Nx01PoItem[]
 
   @@index([isActive])
   @@map("nx00_warehouse")
@@ -304,6 +312,8 @@ model Nx00Location {
   createdByUser Nx00User? @relation("Nx00LocationCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00LocationUpdatedBy", fields: [updatedBy], references: [id])
 
+  poItems Nx01PoItem[]
+
   @@unique([warehouseId, code])
   @@index([warehouseId])
   @@index([isActive])
@@ -334,6 +344,9 @@ model Nx00Partner {
 
   createdByUser Nx00User? @relation("Nx00PartnerCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartnerUpdatedBy", fields: [updatedBy], references: [id])
+
+  rfqs Nx01Rfq[]
+  pos  Nx01Po[]
 
   @@index([isActive])
   @@index([partnerType])
@@ -370,4 +383,322 @@ model Nx00AuditLog {
   @@index([moduleCode])
   @@index([entityTable])
   @@map("nx00_audit_log")
+}
+
+/// =======================================================
+/// NX99 - Tenant
+/// Table: nx99_tenant
+/// =======================================================
+model Nx99Tenant {
+  /// NX99 租戶主檔 - 每間公司一筆，作為多租戶隔離根節點
+  id        String   @id @default(dbgenerated("gen_nx99_tant_id()")) @db.VarChar(15)
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(100)
+  status    String   @db.VarChar(1)
+  remark    String?  @db.VarChar(200)
+  sortNo    Int      @map("sort_no")
+  isActive  Boolean  @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String?  @map("created_by") @db.VarChar(15)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by") @db.VarChar(15)
+
+  subscriptions Nx99Subscription[]
+  users         Nx00User[]
+  rfqs          Nx01Rfq[]
+  rfqItems      Nx01RfqItem[]
+  pos           Nx01Po[]
+  poItems       Nx01PoItem[]
+
+  @@map("nx99_tenant")
+}
+
+/// =======================================================
+/// NX01 - RFQ (Header)
+/// Table: nx01_rfq
+/// =======================================================
+model Nx01Rfq {
+  /// NX01 詢價單表頭 - 記錄供應商詢價主檔，支援後續轉進貨單
+  id           String    @id @default(dbgenerated("gen_nx01_rfqo_id()")) @db.VarChar(15)
+  tenantId     String?   @map("tenant_id") @db.VarChar(15)
+  docNo        String    @unique @map("doc_no") @db.VarChar(15)
+  /// 單號規則：[R]+[年月]+[倉別]+[5碼流水號]，EX：R-202602-Z01-00001
+  rfqDate      DateTime  @map("rfq_date") @db.Date
+  supplierId   String    @map("supplier_id") @db.VarChar(15)
+  contactName  String?   @map("contact_name") @db.VarChar(50)
+  contactPhone String?   @map("contact_phone") @db.VarChar(30)
+  currency     String    @default("TWD") @db.VarChar(10)
+  status       String    @default("D") @db.VarChar(20)
+  /// 單據狀態：(D=DRAFT, S=SENT, R=REPLIED, C=CLOSED, V=VOID)
+  remark       String?   @db.VarChar(200)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  createdBy    String?   @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  updatedBy    String?   @map("updated_by") @db.VarChar(15)
+  voidedAt     DateTime? @map("voided_at")
+  voidedBy     String?   @map("voided_by") @db.VarChar(15)
+
+  tenant   Nx99Tenant?   @relation(fields: [tenantId], references: [id])
+  supplier Nx00Partner   @relation(fields: [supplierId], references: [id])
+  items    Nx01RfqItem[]
+
+  @@map("nx01_rfq")
+}
+
+/// =======================================================
+/// NX01 - RFQ Item
+/// Table: nx01_rfq_item
+/// =======================================================
+model Nx01RfqItem {
+  /// NX01 詢價單明細 - 含料號快照與供應商回覆資訊，支援部分或完整轉單
+  id           String   @id @default(dbgenerated("gen_nx01_rfit_id()")) @db.VarChar(15)
+  tenantId     String?  @map("tenant_id") @db.VarChar(15)
+  rfqId        String   @map("rfq_id") @db.VarChar(15)
+  lineNo       Int      @map("line_no")
+  /// 明細排序號（1,2,3...）
+  partId       String   @map("part_id") @db.VarChar(15)
+  /// → nx00_part
+  partNo       String   @map("part_no") @db.VarChar(50)
+  /// 料號快照
+  partName     String   @map("part_name") @db.VarChar(200)
+  /// 零件名稱快照
+  qty          Decimal  @db.Decimal(14, 4)
+  unitPrice    Decimal? @map("unit_price") @db.Decimal(14, 4)
+  /// 供應商回覆單價（未回覆可空）
+  currency     String   @default("TWD") @db.VarChar(10)
+  leadTimeDays Int?     @map("lead_time_days")
+  /// 交期（天數，可空）
+  status       String   @default("P") @db.VarChar(20)
+  /// 狀態：(P=PENDING, R=REPLIED, S=SELECTED, C=REJECTED)
+  remark       String?  @db.VarChar(200)
+  createdAt    DateTime @default(now()) @map("created_at")
+  createdBy    String?  @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedBy    String?  @map("updated_by") @db.VarChar(15)
+
+  tenant Nx99Tenant? @relation(fields: [tenantId], references: [id])
+  rfq    Nx01Rfq     @relation(fields: [rfqId], references: [id])
+  part   Nx00Part    @relation(fields: [partId], references: [id])
+
+  @@map("nx01_rfq_item")
+}
+
+/// =======================================================
+/// NX01 - PO (Header)
+/// Table: nx01_po
+/// =======================================================
+model Nx01Po {
+  /// NX01 進貨單表頭 - 過帳後產生庫存異動與應付帳款
+  id          String    @id @default(dbgenerated("gen_nx01_poht_id()")) @db.VarChar(15)
+  tenantId    String?   @map("tenant_id") @db.VarChar(15)
+  docNo       String    @unique @map("doc_no") @db.VarChar(15)
+  /// 單號規則：[I]+[年月]+[倉別]+[5碼流水號]，EX：I-202602-Z01-00001
+  poDate      DateTime  @map("po_date") @db.Date
+  supplierId  String    @map("supplier_id") @db.VarChar(15)
+  rfqId       String?   @map("rfq_id") @db.VarChar(15)
+  currency    String    @default("TWD") @db.VarChar(10)
+  subtotal    Decimal   @default(0) @db.Decimal(14, 2)
+  taxAmount   Decimal   @default(0) @map("tax_amount") @db.Decimal(14, 2)
+  totalAmount Decimal   @default(0) @map("total_amount") @db.Decimal(14, 2)
+  status      String    @default("D") @db.VarChar(1)
+  /// 單據狀態：(D=DRAFT, P=POSTED, C=CANCELED)
+  postedAt    DateTime? @map("posted_at")
+  postedBy    String?   @map("posted_by") @db.VarChar(15)
+  remark      String?   @db.VarChar(200)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  createdBy   String?   @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  updatedBy   String?   @map("updated_by") @db.VarChar(15)
+  voidedAt    DateTime? @map("voided_at")
+  voidedBy    String?   @map("voided_by") @db.VarChar(15)
+
+  tenant   Nx99Tenant?  @relation(fields: [tenantId], references: [id])
+  supplier Nx00Partner  @relation(fields: [supplierId], references: [id])
+  items    Nx01PoItem[]
+
+  @@map("nx01_po")
+}
+
+/// =======================================================
+/// NX01 - PO Item
+/// Table: nx01_po_item
+/// =======================================================
+model Nx01PoItem {
+  /// NX01 進貨單明細 - 過帳時寫入庫存異動台帳並更新庫存餘額
+  id          String   @id @default(dbgenerated("gen_nx01_poit_id()")) @db.VarChar(15)
+  tenantId    String?  @map("tenant_id") @db.VarChar(15)
+  poId        String   @map("po_id") @db.VarChar(15)
+  lineNo      Int      @map("line_no")
+  /// 明細行號（1,2,3…）
+  partId      String   @map("part_id") @db.VarChar(15)
+  /// → nx00_part
+  partNo      String   @map("part_no") @db.VarChar(50)
+  /// 料號快照
+  partName    String   @map("part_name") @db.VarChar(200)
+  /// 零件名稱快照
+  warehouseId String   @map("warehouse_id") @db.VarChar(15)
+  /// → nx00_warehouse
+  locationId  String?  @map("location_id") @db.VarChar(15)
+  /// → nx00_location（LITE 先要求必填，此處保留 nullable）
+  qty         Decimal  @db.Decimal(14, 4)
+  unitCost    Decimal  @map("unit_cost") @db.Decimal(14, 4)
+  lineAmount  Decimal  @map("line_amount") @db.Decimal(14, 4)
+  /// qty * unit_cost
+  remark      String?  @db.VarChar(200)
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String?  @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by") @db.VarChar(15)
+
+  tenant    Nx99Tenant?   @relation(fields: [tenantId], references: [id])
+  po        Nx01Po        @relation(fields: [poId], references: [id])
+  part      Nx00Part      @relation(fields: [partId], references: [id])
+  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
+  location  Nx00Location? @relation(fields: [locationId], references: [id])
+
+  @@map("nx01_po_item")
+}
+
+/// =======================================================
+/// NX99 - Plan
+/// Table: nx99_plan
+/// =======================================================
+model Nx99Plan {
+  /// NX99 方案主檔 - 定義 LITE / PLUS / PRO 計價規則
+  id                String   @id @default(dbgenerated("gen_nx99_plan_id()")) @db.VarChar(15)
+  code              String   @unique @db.VarChar(20)
+  name              String   @db.VarChar(50)
+  levelNo           Int      @map("level_no")
+  baseFeeMonth      Int      @map("base_fee_month")
+  seatFeeMonth      Int      @map("seat_fee_month")
+  minSeats          Int      @map("min_seats")
+  maxSeats          Int      @map("max_seats")
+  billingDefault    String   @map("billing_default") @db.VarChar(10)
+  yearDiscountType  String   @map("year_discount_type") @db.VarChar(1)
+  yearDiscountValue Int      @map("year_discount_value")
+  yearPriceOverride Int?     @map("year_price_override")
+  remark            String?  @db.VarChar(200)
+  sortNo            Int?     @map("sort_no")
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  createdBy         String?  @map("created_by") @db.VarChar(15)
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  updatedBy         String?  @map("updated_by") @db.VarChar(15)
+
+  subscriptions Nx99Subscription[]
+
+  @@map("nx99_plan")
+}
+
+/// =======================================================
+/// NX99 - Subscription
+/// Table: nx99_subscription
+/// =======================================================
+model Nx99Subscription {
+  /// NX99 租戶訂閱資料 - 含費用快照，異動不影響歷史紀錄
+  id                     String   @id @default(dbgenerated("gen_nx99_subs_id()")) @db.VarChar(15)
+  tenantId               String   @map("tenant_id") @db.VarChar(15)
+  planId                 String   @map("plan_id") @db.VarChar(15)
+  status                 String   @db.VarChar(1)
+  billingCycle           String   @map("billing_cycle") @db.VarChar(1)
+  seats                  Int
+  startAt                DateTime @map("start_at")
+  endAt                  DateTime @map("end_at")
+  autoRenew              Boolean  @map("auto_renew")
+  baseFeeSnapshot        Int      @map("base_fee_snapshot")
+  seatFeeSnapshot        Int      @map("seat_fee_snapshot")
+  discountTypeSnapshot   String   @map("discount_type_snapshot") @db.VarChar(1)
+  discountValueSnapshot  Int      @map("discount_value_snapshot")
+  subtotalSnapshot       Int      @map("subtotal_snapshot")
+  discountAmountSnapshot Int      @map("discount_amount_snapshot")
+  totalSnapshot          Int      @map("total_snapshot")
+  currency               String   @default("TWD") @db.VarChar(10)
+  remark                 String?  @db.VarChar(200)
+  createdAt              DateTime @default(now()) @map("created_at")
+  createdBy              String?  @map("created_by") @db.VarChar(15)
+  updatedAt              DateTime @updatedAt @map("updated_at")
+  updatedBy              String?  @map("updated_by") @db.VarChar(15)
+
+  tenant Nx99Tenant             @relation(fields: [tenantId], references: [id])
+  plan   Nx99Plan               @relation(fields: [planId], references: [id])
+  items  Nx99SubscriptionItem[]
+
+  @@map("nx99_subscription")
+}
+
+/// =======================================================
+/// NX99 - SubscriptionItem
+/// Table: nx99_subscription_item
+/// =======================================================
+model Nx99SubscriptionItem {
+  /// NX99 訂閱項目明細 - 記錄標配/加購模組與價格快照
+  id                    String   @id @default(dbgenerated("gen_nx99_suit_id()")) @db.VarChar(15)
+  subscriptionId        String   @map("subscription_id") @db.VarChar(15)
+  itemType              String   @map("item_type") @db.VarChar(20)
+  refId                 String   @map("ref_id") @db.VarChar(15)
+  status                String   @db.VarChar(20)
+  isIncluded            Boolean  @map("is_included")
+  billingCycle          String   @map("billing_cycle") @db.VarChar(1)
+  priceSnapshot         Int      @map("price_snapshot")
+  discountTypeSnapshot  String   @map("discount_type_snapshot") @db.VarChar(1)
+  discountValueSnapshot Int      @map("discount_value_snapshot")
+  totalSnapshot         Int      @map("total_snapshot")
+  startAt               DateTime @map("start_at")
+  endAt                 DateTime @map("end_at")
+  createdAt             DateTime @default(now()) @map("created_at")
+  createdBy             String?  @map("created_by") @db.VarChar(15)
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  updatedBy             String?  @map("updated_by") @db.VarChar(15)
+
+  subscription Nx99Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@map("nx99_subscription_item")
+}
+
+/// =======================================================
+/// NX99 - ProductModule
+/// Table: nx99_product_module
+/// =======================================================
+model Nx99ProductModule {
+  /// NX99 產品模組主檔 - 定義可銷售的 SKU
+  id                 String   @id @default(dbgenerated("gen_nx99_prmo_id()")) @db.VarChar(15)
+  code               String   @unique @db.VarChar(30)
+  name               String   @db.VarChar(100)
+  moduleLevel        String   @map("module_level") @db.VarChar(1)
+  applicablePlanCode String   @map("applicable_plan_code") @db.VarChar(30)
+  billingType        String   @map("billing_type") @db.VarChar(1)
+  monthlyFee         Int      @map("monthly_fee")
+  isBundleDefault    Boolean  @map("is_bundle_default")
+  description        String?
+  sortNo             Int      @map("sort_no")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+  createdBy          String?  @map("created_by") @db.VarChar(15)
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  updatedBy          String?  @map("updated_by") @db.VarChar(15)
+
+  moduleMaps Nx99ProductModuleMap[]
+
+  @@map("nx99_product_module")
+}
+
+/// =======================================================
+/// NX99 - ProductModuleMap
+/// Table: nx99_product_module_map
+/// =======================================================
+model Nx99ProductModuleMap {
+  /// NX99 模組對照表 - 將 SKU 對應到程式碼模組 NX00~NX06
+  id              String   @id @default(dbgenerated("gen_nx99_prmm_id()")) @db.VarChar(15)
+  productModuleId String   @map("product_module_id") @db.VarChar(15)
+  appModuleCode   String   @map("app_module_code") @db.VarChar(10)
+  isRequired      Boolean  @default(true) @map("is_required")
+  remark          String?  @db.VarChar(200)
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdBy       String?  @map("created_by") @db.VarChar(15)
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  updatedBy       String?  @map("updated_by") @db.VarChar(15)
+
+  productModule Nx99ProductModule @relation(fields: [productModuleId], references: [id])
+
+  @@map("nx99_product_module_map")
 }

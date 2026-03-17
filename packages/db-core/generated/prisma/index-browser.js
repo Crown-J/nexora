@@ -132,7 +132,8 @@ exports.Prisma.Nx00UserScalarFieldEnum = {
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  updatedBy: 'updatedBy',
+  tenantId: 'tenantId'
 };
 
 exports.Prisma.Nx00RoleScalarFieldEnum = {
@@ -287,6 +288,199 @@ exports.Prisma.Nx00AuditLogScalarFieldEnum = {
   userAgent: 'userAgent'
 };
 
+exports.Prisma.Nx99TenantScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  status: 'status',
+  remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01RfqScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  rfqDate: 'rfqDate',
+  supplierId: 'supplierId',
+  contactName: 'contactName',
+  contactPhone: 'contactPhone',
+  currency: 'currency',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy'
+};
+
+exports.Prisma.Nx01RfqItemScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  rfqId: 'rfqId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  unitPrice: 'unitPrice',
+  currency: 'currency',
+  leadTimeDays: 'leadTimeDays',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01PoScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  poDate: 'poDate',
+  supplierId: 'supplierId',
+  rfqId: 'rfqId',
+  currency: 'currency',
+  subtotal: 'subtotal',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
+  status: 'status',
+  postedAt: 'postedAt',
+  postedBy: 'postedBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy'
+};
+
+exports.Prisma.Nx01PoItemScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  poId: 'poId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  warehouseId: 'warehouseId',
+  locationId: 'locationId',
+  qty: 'qty',
+  unitCost: 'unitCost',
+  lineAmount: 'lineAmount',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99PlanScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  levelNo: 'levelNo',
+  baseFeeMonth: 'baseFeeMonth',
+  seatFeeMonth: 'seatFeeMonth',
+  minSeats: 'minSeats',
+  maxSeats: 'maxSeats',
+  billingDefault: 'billingDefault',
+  yearDiscountType: 'yearDiscountType',
+  yearDiscountValue: 'yearDiscountValue',
+  yearPriceOverride: 'yearPriceOverride',
+  remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99SubscriptionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  planId: 'planId',
+  status: 'status',
+  billingCycle: 'billingCycle',
+  seats: 'seats',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  autoRenew: 'autoRenew',
+  baseFeeSnapshot: 'baseFeeSnapshot',
+  seatFeeSnapshot: 'seatFeeSnapshot',
+  discountTypeSnapshot: 'discountTypeSnapshot',
+  discountValueSnapshot: 'discountValueSnapshot',
+  subtotalSnapshot: 'subtotalSnapshot',
+  discountAmountSnapshot: 'discountAmountSnapshot',
+  totalSnapshot: 'totalSnapshot',
+  currency: 'currency',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99SubscriptionItemScalarFieldEnum = {
+  id: 'id',
+  subscriptionId: 'subscriptionId',
+  itemType: 'itemType',
+  refId: 'refId',
+  status: 'status',
+  isIncluded: 'isIncluded',
+  billingCycle: 'billingCycle',
+  priceSnapshot: 'priceSnapshot',
+  discountTypeSnapshot: 'discountTypeSnapshot',
+  discountValueSnapshot: 'discountValueSnapshot',
+  totalSnapshot: 'totalSnapshot',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99ProductModuleScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  moduleLevel: 'moduleLevel',
+  applicablePlanCode: 'applicablePlanCode',
+  billingType: 'billingType',
+  monthlyFee: 'monthlyFee',
+  isBundleDefault: 'isBundleDefault',
+  description: 'description',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99ProductModuleMapScalarFieldEnum = {
+  id: 'id',
+  productModuleId: 'productModuleId',
+  appModuleCode: 'appModuleCode',
+  isRequired: 'isRequired',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -325,7 +519,17 @@ exports.Prisma.ModelName = {
   Nx00Warehouse: 'Nx00Warehouse',
   Nx00Location: 'Nx00Location',
   Nx00Partner: 'Nx00Partner',
-  Nx00AuditLog: 'Nx00AuditLog'
+  Nx00AuditLog: 'Nx00AuditLog',
+  Nx99Tenant: 'Nx99Tenant',
+  Nx01Rfq: 'Nx01Rfq',
+  Nx01RfqItem: 'Nx01RfqItem',
+  Nx01Po: 'Nx01Po',
+  Nx01PoItem: 'Nx01PoItem',
+  Nx99Plan: 'Nx99Plan',
+  Nx99Subscription: 'Nx99Subscription',
+  Nx99SubscriptionItem: 'Nx99SubscriptionItem',
+  Nx99ProductModule: 'Nx99ProductModule',
+  Nx99ProductModuleMap: 'Nx99ProductModuleMap'
 };
 
 /**
