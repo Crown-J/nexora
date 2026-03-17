@@ -4,11 +4,13 @@
  *
  * Purpose:
  * - NX00-AUTH-002 / NX00-AUTH-003：Auth Service（login / me）
+ * - NX99-T3：登入時 JWT payload 帶入 tenantId / tenantCode / planCode
  *
  * Notes:
  * - 驗證帳密、簽發 JWT
  * - /auth/me 用 sub 查 nx00_user 回傳使用者資訊
  * - Prisma 回傳 camelCase 欄位（isActive/passwordHash/displayName...）
+ * - tenant_id 為 null 時仍可登入，payload 中租戶/方案欄位為 null
  */
 
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
@@ -26,13 +28,16 @@ export class AuthService {
 
   /**
    * @CODE nxapi_nx00_auth_login_003
+   * @FUNCTION_CODE NX99-AUTH-SVC-001-F01
    *
    * 說明：
-   * - 依 username 查 user
+   * - 依 username 查 user（含 tenant）
    * - 檢查 isActive
    * - bcryptjs compare(password, passwordHash)
-   * - 簽發 JWT 回傳 token
+   * - 查詢該租戶的 active subscription + plan
+   * - 簽發 JWT 回傳 token（payload 含 tenantId / tenantCode / planCode）
    * - 登入成功更新 lastLoginAt（稽核）
+   * - user.tenantId 為 null 時仍可登入，租戶/方案欄位帶 null
    */
   async login(username: string, password: string) {
     if (!username || !password) {
@@ -44,6 +49,7 @@ export class AuthService {
 
     const user = await this.prisma.nx00User.findUnique({
       where: { username: uname },
+      include: { tenant: true },
     });
 
     if (!user) {
@@ -63,11 +69,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    const token = await this.jwt.signAsync({
-      sub: user.id,
-      username: user.username,
-    });
+    let subscription: { plan: { code: string } } | null = null;
+    if (user.tenantId) {
+      subscription = await this.prisma.nx99Subscription.findFirst({
+        where: { tenantId: user.tenantId, status: 'A' },
+        include: { plan: true },
+      });
+    }
 
+    const token = await this.buildToken(user, subscription);
     await this.prisma.nx00User.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -81,6 +91,23 @@ export class AuthService {
         display_name: user.displayName ?? null,
       },
     };
+  }
+
+  /**
+   * @FUNCTION_CODE NX99-AUTH-SVC-001-F02
+   * 說明：組裝 JWT payload（含租戶與方案資訊）
+   */
+  private async buildToken(
+    user: { id: string; username: string; tenant?: { id: string; code: string } | null },
+    subscription: { plan: { code: string } } | null,
+  ) {
+    return this.jwt.signAsync({
+      sub: user.id,
+      username: user.username,
+      tenantId: user.tenant?.id ?? null,
+      tenantCode: user.tenant?.code ?? null,
+      planCode: subscription?.plan?.code ?? null,
+    });
   }
 
   /**
