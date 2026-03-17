@@ -65,6 +65,10 @@ function toViewDto(row: ViewRowWithAudit): ViewDto {
 export class ViewService {
     constructor(private readonly prisma: PrismaService) { }
 
+    /**
+     * @FUNCTION_CODE NX00-VIEW-SVC-001-F01
+     * 說明：依條件列出 View（支援 moduleCode / isActive / 分頁）
+     */
     async list(query: ListViewQuery): Promise<PagedResult<ViewDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =

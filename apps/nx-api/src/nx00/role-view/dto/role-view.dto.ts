@@ -80,3 +80,16 @@ export type RevokeRoleViewBody = {
 export type SetActiveBody = {
     isActive: boolean;
 };
+
+export class UpsertRoleViewItemDto {
+    viewId!: string;
+    canRead!: boolean;
+    canCreate!: boolean;
+    canUpdate!: boolean;
+    canDelete!: boolean;
+    canExport!: boolean;
+}
+
+export class UpsertRoleViewDto {
+    items!: UpsertRoleViewItemDto[];
+}

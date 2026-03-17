@@ -138,3 +138,39 @@ export async function listView(params: ListViewParams = {}): Promise<PagedResult
     await assertOk(res, 'nxui_nx00_view_list_001');
     return (await res.json()) as PagedResult<ViewDto>;
 }
+
+export type UpsertRoleViewItem = {
+    viewId: string;
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+    canExport: boolean;
+};
+
+/**
+ * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-API-001-F07
+ * 說明：
+ * - getRoleViewByRoleId：取得某角色所有畫面權限（批次 API）
+ * - GET /role-view/role/:roleId
+ */
+export async function getRoleViewByRoleId(roleId: string): Promise<RoleViewDto[]> {
+    const res = await apiFetch(`/role-view/role/${encodeURIComponent(roleId)}`, { method: 'GET' });
+    await assertOk(res, 'nxui_nx00_role_view_get_by_role_001');
+    return (await res.json()) as RoleViewDto[];
+}
+
+/**
+ * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-API-001-F08
+ * 說明：
+ * - upsertRoleView：整批更新某角色畫面權限
+ * - PUT /role-view/role/:roleId
+ */
+export async function upsertRoleView(roleId: string, items: UpsertRoleViewItem[]): Promise<RoleViewDto[]> {
+    const res = await apiFetch(`/role-view/role/${encodeURIComponent(roleId)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ items }),
+    });
+    await assertOk(res, 'nxui_nx00_role_view_upsert_by_role_001');
+    return (await res.json()) as RoleViewDto[];
+}

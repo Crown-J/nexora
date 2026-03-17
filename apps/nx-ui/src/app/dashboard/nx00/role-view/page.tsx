@@ -8,8 +8,8 @@
 
 'use client';
 
-import { RoleViewMatrixView } from '@/features/nx00/role-view/ui/RoleViewMatrixView';
+import { RoleViewSplitView } from '@/features/nx00/role-view/ui/RoleViewSplitView';
 
 export default function RoleViewMatrixPage() {
-    return <RoleViewMatrixView />;
+  return <RoleViewSplitView />;
 }

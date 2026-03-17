@@ -25,6 +25,7 @@ import type {
     RoleViewPerms,
     SetActiveBody,
     UpdateRoleViewPermsBody,
+    UpsertRoleViewItemDto,
 } from '../dto/role-view.dto';
 
 // Prisma error codes (keep minimal, no extra deps)
@@ -128,6 +129,10 @@ export class RoleViewService {
         private readonly audit: AuditLogService,
     ) { }
 
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F01
+     * 說明：list - 依條件列出 RoleView（支援 roleId/viewId/moduleCode/isActive + 分頁）
+     */
     async list(query: ListRoleViewQuery): Promise<PagedResult<RoleViewDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
@@ -169,6 +174,10 @@ export class RoleViewService {
         };
     }
 
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F02
+     * 說明：get - 以 id 取得單筆 RoleView
+     */
     async get(id: string): Promise<RoleViewDto> {
         const row = await this.prisma.nx00RoleView.findUnique({
             where: { id },
@@ -186,6 +195,10 @@ export class RoleViewService {
         return toDto(row as unknown as RoleViewRow);
     }
 
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F03
+     * 說明：grant - 授權（建立或重新啟用）
+     */
     async grant(body: GrantRoleViewBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const roleId = body.roleId?.trim();
         const viewId = body.viewId?.trim();
@@ -321,6 +334,10 @@ export class RoleViewService {
         return toDto(row as unknown as RoleViewRow);
     }
 
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F04
+     * 說明：updatePerms - 更新單筆 CRUDX 權限
+     */
     async updatePerms(id: string, body: UpdateRoleViewPermsBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
@@ -383,6 +400,10 @@ export class RoleViewService {
         return toDto(row as unknown as RoleViewRow);
     }
 
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F05
+     * 說明：revoke - 撤銷單筆 RoleView（soft revoke）
+     */
     async revoke(id: string, body: RevokeRoleViewBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
@@ -428,6 +449,10 @@ export class RoleViewService {
         return toDto(row as unknown as RoleViewRow);
     }
 
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F06
+     * 說明：setActive - 切換單筆 RoleView 啟用狀態
+     */
     async setActive(id: string, body: SetActiveBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
@@ -479,5 +504,204 @@ export class RoleViewService {
         }
 
         return toDto(row as unknown as RoleViewRow);
+    }
+
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F10
+     * 說明：getByRoleId - 取得某角色所有畫面權限（flat list）
+     */
+    async getByRoleId(roleId: string): Promise<RoleViewDto[]> {
+        const trimmed = roleId?.trim();
+        if (!trimmed) {
+            throw new BadRequestException('roleId is required');
+        }
+
+        const rows = await this.prisma.nx00RoleView.findMany({
+            where: { roleId: trimmed },
+            orderBy: [
+                { view: { moduleCode: 'asc' } },
+                { viewId: 'asc' },
+            ],
+            include: {
+                grantedByUser: { select: { displayName: true } },
+                revokedByUser: { select: { displayName: true } },
+                createdByUser: { select: { displayName: true } },
+                updatedByUser: { select: { displayName: true } },
+                role: { select: { code: true, name: true } },
+                view: { select: { code: true, name: true, path: true, moduleCode: true } },
+            },
+        });
+
+        return (rows as unknown as RoleViewRow[]).map(toDto);
+    }
+
+    /**
+     * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F11
+     * 說明：
+     * - upsertByRoleId - 整批更新某角色畫面權限（以 roleId+viewId 為唯一鍵）
+     * - 全部完成後寫一筆 AuditLog（SET_PERMISSION, entityTable=nx00_role_view, entityId=roleId）
+     */
+    async upsertByRoleId(
+        roleId: string,
+        items: UpsertRoleViewItemDto[],
+        ctx?: RoleViewActionContext,
+    ): Promise<RoleViewDto[]> {
+        const trimmedRoleId = roleId?.trim();
+        if (!trimmedRoleId) {
+            throw new BadRequestException('roleId is required');
+        }
+        if (!Array.isArray(items) || items.length === 0) {
+            // 若前端傳空陣列，視為 no-op（不自動 revoke 既有權限）
+            return this.getByRoleId(trimmedRoleId);
+        }
+
+        const resultRows = await this.prisma.$transaction(async (tx) => {
+            // 1) 驗證角色存在
+            const role = await tx.nx00Role.findUnique({
+                where: { id: trimmedRoleId },
+                select: { id: true, code: true, name: true },
+            });
+            if (!role) {
+                throw new BadRequestException('Role not found');
+            }
+
+            // 2) 收集所有 viewId 並驗證存在
+            const viewIds = Array.from(
+                new Set(
+                    items
+                        .map((i) => i.viewId?.trim())
+                        .filter((v): v is string => Boolean(v)),
+                ),
+            );
+            if (viewIds.length === 0) {
+                return [] as RoleViewRow[];
+            }
+
+            const views = await tx.nx00View.findMany({
+                where: { id: { in: viewIds } },
+                select: { id: true, code: true, moduleCode: true },
+            });
+            if (views.length !== viewIds.length) {
+                throw new BadRequestException('Some views not found');
+            }
+            const viewMap = new Map(views.map((v) => [v.id, v]));
+
+            // 3) 讀取現有 role-view 作為 before snapshot
+            const existing = await tx.nx00RoleView.findMany({
+                where: { roleId: trimmedRoleId, viewId: { in: viewIds } },
+            });
+            const existingMap = new Map(existing.map((rv) => [`${rv.roleId}:${rv.viewId}`, rv]));
+
+            const updatedRows: RoleViewRow[] = [];
+
+            for (const item of items) {
+                const viewId = item.viewId?.trim();
+                if (!viewId) continue;
+                if (!viewMap.has(viewId)) continue;
+
+                const perms: RoleViewPerms = {
+                    canRead: Boolean(item.canRead),
+                    canCreate: Boolean(item.canCreate),
+                    canUpdate: Boolean(item.canUpdate),
+                    canDelete: Boolean(item.canDelete),
+                    canExport: Boolean(item.canExport),
+                };
+
+                const key = `${trimmedRoleId}:${viewId}`;
+                const existingRow = existingMap.get(key);
+
+                if (existingRow) {
+                    const row = await tx.nx00RoleView.update({
+                        where: { id: existingRow.id },
+                        data: {
+                            ...perms,
+                            isActive: true,
+                            updatedBy: ctx?.actorUserId ?? null,
+                        },
+                        include: {
+                            grantedByUser: { select: { displayName: true } },
+                            revokedByUser: { select: { displayName: true } },
+                            createdByUser: { select: { displayName: true } },
+                            updatedByUser: { select: { displayName: true } },
+                            role: { select: { code: true, name: true } },
+                            view: { select: { code: true, name: true, path: true, moduleCode: true } },
+                        },
+                    });
+                    updatedRows.push(row as unknown as RoleViewRow);
+                } else {
+                    const row = await tx.nx00RoleView.create({
+                        data: {
+                            roleId: trimmedRoleId,
+                            viewId,
+                            ...perms,
+                            isActive: true,
+                            grantedBy: ctx?.actorUserId ?? null,
+                            createdBy: ctx?.actorUserId ?? null,
+                            updatedBy: ctx?.actorUserId ?? null,
+                        },
+                        include: {
+                            grantedByUser: { select: { displayName: true } },
+                            revokedByUser: { select: { displayName: true } },
+                            createdByUser: { select: { displayName: true } },
+                            updatedByUser: { select: { displayName: true } },
+                            role: { select: { code: true, name: true } },
+                            view: { select: { code: true, name: true, path: true, moduleCode: true } },
+                        },
+                    });
+                    updatedRows.push(row as unknown as RoleViewRow);
+                }
+            }
+
+            // 4) AuditLog（SET_PERMISSION）- 以 roleId 為 entityId
+            if (ctx?.actorUserId) {
+                await this.audit.write({
+                    actorUserId: ctx.actorUserId,
+                    moduleCode: 'NX00',
+                    action: 'SET_PERMISSION',
+                    entityTable: 'nx00_role_view',
+                    entityId: trimmedRoleId,
+                    entityCode: role.code,
+                    summary: `Set role-view permissions for role=${role.code}`,
+                    beforeData: {
+                        roleId: trimmedRoleId,
+                        items: existing.map((rv) => ({
+                            id: rv.id,
+                            roleId: rv.roleId,
+                            viewId: rv.viewId,
+                            isActive: Boolean(rv.isActive),
+                            perms: {
+                                canRead: Boolean(rv.canRead),
+                                canCreate: Boolean(rv.canCreate),
+                                canUpdate: Boolean(rv.canUpdate),
+                                canDelete: Boolean(rv.canDelete),
+                                canExport: Boolean(rv.canExport),
+                            },
+                        })),
+                    },
+                    afterData: {
+                        roleId: trimmedRoleId,
+                        items: updatedRows.map((rv) => ({
+                            id: rv.id,
+                            roleId: rv.roleId,
+                            viewId: rv.viewId,
+                            isActive: Boolean(rv.isActive),
+                            perms: {
+                                canRead: Boolean(rv.canRead),
+                                canCreate: Boolean(rv.canCreate),
+                                canUpdate: Boolean(rv.canUpdate),
+                                canDelete: Boolean(rv.canDelete),
+                                canExport: Boolean(rv.canExport),
+                            },
+                        })),
+                    },
+                    ipAddr: ctx.ipAddr ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                });
+            }
+
+            return updatedRows;
+        });
+
+        return resultRows.map(toDto);
     }
 }

@@ -19,6 +19,7 @@ import {
     Param,
     Patch,
     Post,
+    Put,
     Query,
     Req,
     UseGuards,
@@ -34,6 +35,7 @@ import type {
     RevokeRoleViewBody,
     SetActiveBody,
     UpdateRoleViewPermsBody,
+    UpsertRoleViewDto,
 } from '../dto/role-view.dto';
 
 @Controller('role-view')
@@ -55,14 +57,6 @@ export class RoleViewController {
             page: query.page ? Number(query.page) : 1,
             pageSize: query.pageSize ? Number(query.pageSize) : 20,
         });
-    }
-
-    /**
-     * @CODE nxapi_nx00_role_view_get_001
-     */
-    @Get(':id')
-    async get(@Param('id') id: string) {
-        return this.roleView.get(id);
     }
 
     /**
@@ -119,5 +113,26 @@ export class RoleViewController {
         const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
 
         return this.roleView.setActive(id, body, { actorUserId, ipAddr, userAgent });
+    }
+
+    /**
+     * @CODE nxapi_nx00_role_view_get_by_role_001
+     */
+    @Get('role/:roleId')
+    async getByRoleId(@Param('roleId') roleId: string) {
+        return this.roleView.getByRoleId(roleId);
+    }
+
+    /**
+     * @CODE nxapi_nx00_role_view_upsert_by_role_001
+     */
+    @Put('role/:roleId')
+    async upsertByRoleId(@Param('roleId') roleId: string, @Body() body: UpsertRoleViewDto, @Req() req: any) {
+        const actorUserId = req?.user?.sub as string | undefined;
+
+        const ipAddr = (req?.ip as string | undefined) ?? null;
+        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+
+        return this.roleView.upsertByRoleId(roleId, body.items ?? [], { actorUserId, ipAddr, userAgent });
     }
 }
