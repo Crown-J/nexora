@@ -11,7 +11,8 @@ services:
       POSTGRES_PASSWORD: nexora123
       POSTGRES_DB: nexora_core
     ports:
-      - "5432:5432"
+      # 公司電腦常有本機 PostgreSQL 佔用 5432，改用 5433 避免衝突
+      - "5433:5432"
     volumes:
       - nexora_pgdata:/var/lib/postgresql/data
 
