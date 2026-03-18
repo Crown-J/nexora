@@ -304,6 +304,158 @@ export function useRoleView() {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   /**
+   * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-HOOK-002-F03
+   * 說明：
+   * - 依目前 moduleFilter 計算各權限欄位的全選 / 部分選取狀態
+   */
+  const columnState = useMemo(() => {
+    const visibleRows = Object.values(draft).filter((row) =>
+      moduleFilter ? row.view.moduleCode === moduleFilter : true,
+    );
+
+    const base: Record<PermKey, { allChecked: boolean; indeterminate: boolean }> = {
+      canRead: { allChecked: false, indeterminate: false },
+      canCreate: { allChecked: false, indeterminate: false },
+      canUpdate: { allChecked: false, indeterminate: false },
+      canDelete: { allChecked: false, indeterminate: false },
+      canExport: { allChecked: false, indeterminate: false },
+    };
+
+    if (visibleRows.length === 0) return base;
+
+    for (const key of PERM_KEYS) {
+      const allChecked = visibleRows.every((r) => Boolean(r.perms[key]));
+      const anyChecked = visibleRows.some((r) => Boolean(r.perms[key]));
+      base[key] = {
+        allChecked,
+        indeterminate: anyChecked && !allChecked,
+      };
+    }
+
+    return base;
+  }, [draft, moduleFilter]);
+
+  /**
+   * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-HOOK-002-F04
+   * 說明：
+   * - 標題列或 Bulk 區塊點擊某權限欄位時，根據目前狀態切換「全選 / 全部取消」
+   */
+  const toggleColumnPerm = useCallback(
+    (key: PermKey) => {
+      const visibleRows = Object.values(draft).filter((row) =>
+        moduleFilter ? row.view.moduleCode === moduleFilter : true,
+      );
+      if (visibleRows.length === 0) return;
+
+      const allChecked = visibleRows.every((r) => Boolean(r.perms[key]));
+      const nextValue = !allChecked;
+      bulkSetPermForVisible(key, nextValue);
+    },
+    [bulkSetPermForVisible, draft, moduleFilter],
+  );
+
+  /**
+   * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-HOOK-002-F05
+   * 說明：
+   * - 全部勾選 / 全部取消所有 View 的所有權限
+   * - 全部勾選時同時將列設為啟用；全部取消時將列設為停用
+   */
+  const setAllPerms = useCallback(
+    (value: boolean) => {
+      setDraft((prev) => {
+        const next: typeof prev = {};
+        for (const row of Object.values(prev)) {
+          next[row.view.id] = {
+            ...row,
+            isActive: value,
+            perms: {
+              canRead: value,
+              canCreate: value,
+              canUpdate: value,
+              canDelete: value,
+              canExport: value,
+            },
+          };
+        }
+        return next;
+      });
+    },
+    [setDraft],
+  );
+
+  /**
+   * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-HOOK-002-F06
+   * 說明：
+   * - 單列（單一畫面）全選/全取消：切換該列所有權限與啟用狀態
+   */
+  const toggleRowAll = useCallback(
+    (viewId: string) => {
+      setDraft((prev) => {
+        const row = prev[viewId];
+        if (!row) return prev;
+
+        const allSelected = PERM_KEYS.every((k) => Boolean(row.perms[k]));
+        const nextValue = !allSelected;
+
+        return {
+          ...prev,
+          [viewId]: {
+            ...row,
+            isActive: nextValue,
+            perms: {
+              canRead: nextValue,
+              canCreate: nextValue,
+              canUpdate: nextValue,
+              canDelete: nextValue,
+              canExport: nextValue,
+            },
+          },
+        };
+      });
+    },
+    [setDraft],
+  );
+
+  /**
+   * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-HOOK-002-F07
+   * 說明：
+   * - Module 群組全選/全取消：切換該 module 下所有列的權限與啟用狀態
+   */
+  const toggleModuleAll = useCallback(
+    (moduleCode: string) => {
+      setDraft((prev) => {
+        const rowsInModule = Object.values(prev).filter(
+          (row) => (row.view.moduleCode ?? 'UNKNOWN') === moduleCode,
+        );
+        if (rowsInModule.length === 0) return prev;
+
+        const allSelected = rowsInModule.every((row) =>
+          PERM_KEYS.every((k) => Boolean(row.perms[k])) && Boolean(row.isActive),
+        );
+        const nextValue = !allSelected;
+
+        const next: typeof prev = { ...prev };
+        for (const row of rowsInModule) {
+          next[row.view.id] = {
+            ...row,
+            isActive: nextValue,
+            perms: {
+              canRead: nextValue,
+              canCreate: nextValue,
+              canUpdate: nextValue,
+              canDelete: nextValue,
+              canExport: nextValue,
+            },
+          };
+        }
+
+        return next;
+      });
+    },
+    [setDraft],
+  );
+
+  /**
    * @FUNCTION_CODE NX00-UI-NX00-ROLE-VIEW-HOOK-002-F02
    * 說明：save - 以批次 API upsert 全部 draft 狀態
    */
@@ -350,8 +502,12 @@ export function useRoleView() {
       bulkSetPermForVisible,
 
       save,
+      toggleColumnPerm,
+      setAllPerms,
+      toggleRowAll,
+      toggleModuleAll,
     }),
-    [setPerm, setRowActive, bulkSetPermForVisible, save],
+    [setPerm, setRowActive, bulkSetPermForVisible, save, toggleColumnPerm, setAllPerms, toggleRowAll, toggleModuleAll],
   );
 
   return {
@@ -378,6 +534,8 @@ export function useRoleView() {
 
     saving,
     saveError,
+
+    columnState,
 
     actions,
   };

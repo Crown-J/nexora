@@ -44,9 +44,11 @@ export type RoleViewMatrixProps = {
 
   onToggleModule(mc: string): void;
   onChangeModuleFilter(value: string): void;
-  onBulkSetPerm(key: PermKey, value: boolean): void;
   onSetPerm(viewId: string, key: PermKey, value: boolean): void;
   onSetRowActive(viewId: string, active: boolean): void;
+  onToggleAll(nextValue: boolean): void;
+  onToggleRowAll(viewId: string): void;
+  onToggleModuleAll(moduleCode: string): void;
 };
 
 /**
@@ -70,9 +72,11 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
     dirtyCount,
     onToggleModule,
     onChangeModuleFilter,
-    onBulkSetPerm,
     onSetPerm,
     onSetRowActive,
+    onToggleAll,
+    onToggleRowAll,
+    onToggleModuleAll,
   } = props;
 
   return (
@@ -94,17 +98,23 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
       )}
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        {PERM_COLS.map((c) => (
-          <button
-            key={c.key}
-            className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/80 hover:bg-white/10 disabled:opacity-40"
-            onClick={() => onBulkSetPerm(c.key, true)}
-            disabled={saving}
-            title={`將目前可見的 rows 全部設為 ${c.label}=true`}
-          >
-            {c.label}
-          </button>
-        ))}
+        <button
+          className="rounded-lg border border-emerald-400/40 bg-emerald-500/20 px-4 py-2 text-xs font-semibold text-emerald-100 hover:bg-emerald-500/30 disabled:opacity-40"
+          onClick={() => onToggleAll(true)}
+          disabled={saving}
+          title="所有畫面的所有權限與啟用狀態全部勾選"
+        >
+          全部勾選
+        </button>
+
+        <button
+          className="rounded-lg border border-red-400/40 bg-red-500/15 px-4 py-2 text-xs font-semibold text-red-100 hover:bg-red-500/25 disabled:opacity-40"
+          onClick={() => onToggleAll(false)}
+          disabled={saving}
+          title="所有畫面的所有權限與啟用狀態全部取消"
+        >
+          全部取消
+        </button>
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-white/60">Module</span>
@@ -126,7 +136,7 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
       <div className="overflow-auto rounded-xl border border-white/10 bg-black/20">
         <table className="w-full table-fixed text-sm">
           <colgroup>
-            <col className="w-[360px]" />
+            <col className="w-[420px]" />
             {PERM_COLS.map((c) => (
               <col key={c.key} className="w-[110px]" />
             ))}
@@ -135,15 +145,20 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
 
           <thead className="sticky top-0 z-10 bg-black/70 backdrop-blur supports-[backdrop-filter]:bg-black/50">
             <tr className="border-b border-white/10">
-              <th className="px-3 py-2 text-left text-[11px] font-semibold text-white/70">畫面 / 功能</th>
+              <th className="px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-white/75">
+                畫面 / 功能
+              </th>
 
               {PERM_COLS.map((c) => (
-                <th key={c.key} className="px-3 py-2 text-center text-[11px] font-semibold text-white/70">
+                <th
+                  key={c.key}
+                  className="px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-white/75"
+                >
                   {c.label}
                 </th>
               ))}
 
-              <th className="px-3 py-2 text-center text-[11px] font-semibold text-white/70">啟用</th>
+              <th className="px-3 py-2 text-center text-[11px] font-semibold tracking-wide text-white/75">啟用</th>
             </tr>
           </thead>
 
@@ -157,14 +172,25 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                 <tbody key={mc} className="text-white/85">
                   <tr className="border-b border-white/10 bg-white/[0.03]">
                     <td className="px-3 py-2">
-                      <button
-                        className="flex items-center gap-2 text-sm font-semibold text-white/85 hover:text-white"
-                        onClick={() => onToggleModule(mc)}
-                      >
-                        <span className="inline-block w-4 text-center">{open ? '▼' : '▶'}</span>
-                        <span>{mc}</span>
-                        <span className="text-xs text-white/45">({rows.length})</span>
-                      </button>
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          className="flex items-center gap-2 text-sm font-semibold text-white/85 hover:text-white"
+                          onClick={() => onToggleModule(mc)}
+                        >
+                          <span className="inline-block w-4 text-center">{open ? '▼' : '▶'}</span>
+                          <span>{mc}</span>
+                          <span className="text-xs text-white/45">({rows.length})</span>
+                        </button>
+
+                        <button
+                          className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] text-white/75 hover:bg-white/10"
+                          type="button"
+                          onClick={() => onToggleModuleAll(mc)}
+                          title="切換此模組下所有畫面的所有權限全選/全取消"
+                        >
+                          全選
+                        </button>
+                      </div>
                     </td>
                     {PERM_COLS.map((c) => (
                       <td key={c.key} className="px-3 py-2 text-center text-xs text-white/35">
@@ -202,14 +228,26 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                         ))}
 
                         <td className="px-3 py-2 text-center align-middle">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 align-middle"
-                            checked={Boolean(r.isActive)}
-                            onChange={(e) => onSetRowActive(r.view.id, e.target.checked)}
-                            disabled={saving}
-                            title="取消啟用會在儲存後視為關閉該 View 權限"
-                          />
+                          <div className="flex items-center justify-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 align-middle"
+                              checked={Boolean(r.isActive)}
+                              onChange={(e) => onSetRowActive(r.view.id, e.target.checked)}
+                              disabled={saving}
+                              title="取消啟用會在儲存後視為關閉該 View 權限"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => onToggleRowAll(r.view.id)}
+                              className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] text-white/75 hover:bg-white/12 disabled:opacity-40"
+                              disabled={saving}
+                              title="切換此畫面的所有權限全選/全取消"
+                            >
+                              全選
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
