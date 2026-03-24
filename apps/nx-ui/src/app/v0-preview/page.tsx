@@ -1,18 +1,19 @@
 /**
- * File: apps/nx-ui/src/app/home/page.tsx
+ * File: apps/nx-ui/src/app/v0-preview/page.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-002：登入後首頁（正式套用 macOS 風格版型）
+ * - NX00-UI-V0PREVIEW-002：macOS 風格 v0 預覽版（測試資料）
+ *
+ * Notes:
+ * - 左側為圖示 Dock（Home / 採購 / 庫存 / 銷售 / 財務 / 分析）
+ * - 基本資料從左側功能表改為中間卡片呈現
  */
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { ErpMobileDockNav, ErpMobileTopBar } from '@/features/layout/ui/ErpAppShell';
+import { useMemo, useState } from 'react';
 
-type ModuleId = 'home' | 'base' | 'procurement' | 'inventory' | 'sales' | 'finance' | 'analytics';
+type ModuleId = 'home' | 'procurement' | 'inventory' | 'sales' | 'finance' | 'analytics';
 
 type BasicCard = {
   code: string;
@@ -30,9 +31,41 @@ const basicCards: BasicCard[] = [
   { code: 'NX00-LOC', title: '倉庫/庫位', desc: '倉儲節點與庫位地圖', count: '386 筆' },
 ];
 
+const procurementRows = [
+  { id: 'PO-2026-001', vendor: '台北工業材料', amount: 'NT$ 182,000', status: '待審核' },
+  { id: 'PO-2026-002', vendor: '中區物流供應', amount: 'NT$ 75,500', status: '已核准' },
+  { id: 'PO-2026-003', vendor: '南科電子零件', amount: 'NT$ 226,400', status: '進行中' },
+];
+
+const inventoryRows = [
+  { wh: '台北總倉', stock: '2,450', health: '正常' },
+  { wh: '新竹倉儲', stock: '1,890', health: '高負載' },
+  { wh: '高雄倉', stock: '980', health: '低庫存' },
+];
+
+const salesRows = [
+  { id: 'SO-2026-091', customer: '北城科技', amount: 'NT$ 58,700', status: '待出貨' },
+  { id: 'SO-2026-092', customer: '久鼎機械', amount: 'NT$ 138,000', status: '處理中' },
+  { id: 'SO-2026-093', customer: '群策貿易', amount: 'NT$ 41,220', status: '已完成' },
+];
+
+const financeRows = [
+  { id: 'INV-9301', target: '北城科技', amount: 'NT$ 58,700', status: '待付款' },
+  { id: 'INV-9302', target: '久鼎機械', amount: 'NT$ 138,000', status: '已付款' },
+  { id: 'INV-9303', target: '群策貿易', amount: 'NT$ 41,220', status: '逾期' },
+];
+
+const chartRows = [
+  { label: '1 月', value: 42 },
+  { label: '2 月', value: 56 },
+  { label: '3 月', value: 49 },
+  { label: '4 月', value: 64 },
+  { label: '5 月', value: 71 },
+  { label: '6 月', value: 78 },
+];
+
 const moduleMeta: { id: ModuleId; label: string; short: string; icon: React.FC }[] = [
   { id: 'home', label: 'Home', short: '首頁', icon: IconHome },
-  { id: 'base', label: '基本資料', short: '主檔', icon: IconLayers },
   { id: 'procurement', label: '採購', short: '採購', icon: IconBox },
   { id: 'inventory', label: '庫存', short: '庫存', icon: IconWarehouse },
   { id: 'sales', label: '銷售', short: '銷售', icon: IconCart },
@@ -40,65 +73,21 @@ const moduleMeta: { id: ModuleId; label: string; short: string; icon: React.FC }
   { id: 'analytics', label: '分析', short: '分析', icon: IconChart },
 ];
 
-export default function HomePage() {
-  const router = useRouter();
-  const { me, displayName, logout, view } = useSessionMe();
+export default function V0MacStylePreviewPage() {
   const [activeModule, setActiveModule] = useState<ModuleId>('home');
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const [dockPointerSlot, setDockPointerSlot] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!view.loading && !me) router.replace('/login');
-  }, [me, router, view.loading]);
 
   const pageTitle = useMemo(
     () => moduleMeta.find((x) => x.id === activeModule)?.label ?? 'Home',
     [activeModule]
   );
 
-  if (view.loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-sm text-white/60">Loading...</div>
-      </div>
-    );
-  }
-
-  if (view.errorMsg) {
-    return (
-      <div className="min-h-screen bg-[#05070b] text-white flex items-center justify-center px-6">
-        <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-xl p-6">
-          <div className="text-xs tracking-[0.35em] text-white/60">NEXORA</div>
-          <div className="mt-2 text-lg font-semibold text-white/90">Session error</div>
-          <div className="mt-2 text-sm text-white/60">{view.errorMsg}</div>
-          <div className="mt-5 flex gap-2">
-            <button
-              onClick={() => router.replace('/login')}
-              className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2 text-xs text-white/80"
-            >
-              Go to Login
-            </button>
-            <button
-              onClick={logout}
-              className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-xs text-emerald-200"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const nameText = displayName || me?.username || '—';
-
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0b0f17] text-white">
       <BackgroundGlow />
 
-      <div className="relative min-h-screen w-full p-3 pb-24 sm:p-5 md:pb-5">
-        <ErpMobileTopBar onLogout={logout} />
-
+      <div className="relative min-h-screen w-full p-3 sm:p-5">
         <aside
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
@@ -107,7 +96,9 @@ export default function HomePage() {
           }}
           onMouseLeave={() => setDockPointerSlot(null)}
           className={`fixed bottom-4 top-4 z-40 hidden rounded-r-[28px] border border-l-0 border-white/15 bg-white/[0.08] py-3 pr-3 backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] md:flex md:flex-col md:justify-between ${
-            dockCollapsed ? 'left-0 translate-x-[-70px] shadow-none' : 'left-0 translate-x-0 shadow-[0_25px_80px_rgba(0,0,0,0.45)]'
+            dockCollapsed
+              ? 'left-0 translate-x-[-70px] shadow-none'
+              : 'left-0 translate-x-0 shadow-[0_25px_80px_rgba(0,0,0,0.45)]'
           } w-[clamp(82px,8vw,120px)]`}
         >
           <div className="space-y-2">
@@ -117,13 +108,7 @@ export default function HomePage() {
                 label={m.short}
                 active={activeModule === m.id}
                 scale={getDockScaleFromIndex(dockPointerSlot, idx)}
-                onClick={() => {
-                  if (m.id === 'base') {
-                    router.push('/dashboard/base');
-                    return;
-                  }
-                  setActiveModule(m.id);
-                }}
+                onClick={() => setActiveModule(m.id)}
               >
                 <m.icon />
               </DockButton>
@@ -149,58 +134,142 @@ export default function HomePage() {
             <header className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="text-xs tracking-[0.28em] text-emerald-200/90">NEXORA</div>
-                <h1 className="mt-1 text-2xl font-semibold tracking-tight">Home Dashboard</h1>
-                <p className="mt-1 text-sm text-white/60">
-                  你好，{nameText}。目前模組：{pageTitle}（先用測試資料展示）
-                </p>
+                <h1 className="mt-1 text-2xl font-semibold tracking-tight">macOS Style Dashboard</h1>
+                <p className="mt-1 text-sm text-white/60">目前模組：{pageTitle}（測試資料）</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => router.push('/v0-preview')}
-                  className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-xs text-cyan-100"
-                >
-                  Demo 預覽
+                <button className="rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2 text-xs text-white/80">
+                  搜尋
                 </button>
-                <button
-                  onClick={logout}
-                  className="hidden rounded-xl border border-emerald-300/30 bg-emerald-300/15 px-3 py-2 text-xs text-emerald-100 sm:block"
-                >
-                  Logout
+                <button className="rounded-xl border border-emerald-300/30 bg-emerald-300/15 px-3 py-2 text-xs text-emerald-100">
+                  新增
                 </button>
               </div>
             </header>
 
             <main className="pt-5">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold">基本資料</h2>
-                <p className="text-sm text-white/60">原先左側功能表改為中間卡片入口，這版先套在 `/home`。</p>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {basicCards.map((card) => (
-                  <article
-                    key={card.code}
-                    className="rounded-2xl border border-white/15 bg-white/[0.07] p-4 transition hover:-translate-y-0.5 hover:bg-white/[0.11]"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-medium text-white/85">{card.title}</div>
-                      <span className="rounded-full border border-emerald-300/30 bg-emerald-300/15 px-2 py-0.5 text-[10px] text-emerald-100">
-                        {card.code}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm text-white/60">{card.desc}</p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="text-xs text-white/45">資料量</span>
-                      <span className="text-sm font-semibold text-white/90">{card.count}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              {activeModule === 'home' && <HomeCardsView />}
+              {activeModule === 'procurement' && (
+                <TableView title="採購與進貨作業" headers={['單號', '供應商', '金額', '狀態']} rows={procurementRows} />
+              )}
+              {activeModule === 'inventory' && (
+                <TableView title="庫存與倉儲概況" headers={['倉別', '庫存量', '健康度']} rows={inventoryRows} />
+              )}
+              {activeModule === 'sales' && (
+                <TableView title="銷售訂單" headers={['單號', '客戶', '金額', '狀態']} rows={salesRows} />
+              )}
+              {activeModule === 'finance' && (
+                <TableView title="應收與發票" headers={['發票', '對象', '金額', '狀態']} rows={financeRows} />
+              )}
+              {activeModule === 'analytics' && <SimpleChartView />}
             </main>
           </div>
         </section>
       </div>
 
-      <ErpMobileDockNav />
+      <nav className="fixed bottom-3 left-1/2 z-40 flex w-[calc(100%-24px)] -translate-x-1/2 items-center justify-around rounded-2xl border border-white/15 bg-black/50 px-2 py-2 backdrop-blur-2xl md:hidden">
+        {moduleMeta.map((m) => (
+          <button
+            key={m.id}
+            onClick={() => setActiveModule(m.id)}
+            className={`flex min-w-[50px] flex-col items-center rounded-xl px-2 py-2 text-[10px] transition ${
+              activeModule === m.id ? 'bg-emerald-300/20 text-emerald-100' : 'text-white/70'
+            }`}
+          >
+            <m.icon />
+            <span className="mt-1">{m.short}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+function HomeCardsView() {
+  return (
+    <div>
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold">基本資料</h2>
+        <p className="text-sm text-white/60">原先左側功能表改為中間卡片入口，維持同一份測試資料。</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {basicCards.map((card) => (
+          <article
+            key={card.code}
+            className="group rounded-2xl border border-white/15 bg-white/[0.07] p-4 transition hover:-translate-y-0.5 hover:bg-white/[0.11]"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-medium text-white/85">{card.title}</div>
+              <span className="rounded-full border border-emerald-300/30 bg-emerald-300/15 px-2 py-0.5 text-[10px] text-emerald-100">
+                {card.code}
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-white/60">{card.desc}</p>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-xs text-white/45">資料量</span>
+              <span className="text-sm font-semibold text-white/90">{card.count}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TableView({
+  title,
+  headers,
+  rows,
+}: {
+  title: string;
+  headers: string[];
+  rows: Array<Record<string, string>>;
+}) {
+  return (
+    <div>
+      <h2 className="mb-4 text-lg font-semibold">{title}</h2>
+      <div className="overflow-hidden rounded-2xl border border-white/15 bg-white/[0.06]">
+        <div className="hidden grid-cols-4 border-b border-white/10 bg-white/[0.04] px-4 py-3 text-xs text-white/65 sm:grid">
+          {headers.map((h) => (
+            <div key={h}>{h}</div>
+          ))}
+        </div>
+        <div className="divide-y divide-white/10">
+          {rows.map((row, idx) => (
+            <div key={idx} className="grid gap-2 px-4 py-3 sm:grid-cols-4 sm:items-center">
+              {Object.values(row).map((value, valueIdx) => (
+                <div key={valueIdx} className="text-sm text-white/85">
+                  <span className="mr-2 text-xs text-white/45 sm:hidden">{headers[valueIdx]}:</span>
+                  {value}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SimpleChartView() {
+  const max = Math.max(...chartRows.map((x) => x.value));
+  return (
+    <div>
+      <h2 className="mb-4 text-lg font-semibold">分析報表（測試資料）</h2>
+      <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-5">
+        <div className="flex h-56 items-end gap-3">
+          {chartRows.map((row) => (
+            <div key={row.label} className="flex flex-1 flex-col items-center gap-2">
+              <div
+                className="w-full rounded-t-md bg-gradient-to-t from-emerald-500/70 to-cyan-400/70"
+                style={{ height: `${(row.value / max) * 100}%` }}
+              />
+              <div className="text-xs text-white/65">{row.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -257,16 +326,6 @@ function IconHome() {
   return (
     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" />
-    </svg>
-  );
-}
-
-function IconLayers() {
-  return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="m12 3 9 5-9 5-9-5 9-5Z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="m3 12 9 5 9-5" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="m3 16 9 5 9-5" />
     </svg>
   );
 }

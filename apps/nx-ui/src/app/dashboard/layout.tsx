@@ -6,7 +6,7 @@
  * - NX00-UI-SHELL-006：Dashboard Layout（統一套用 Shell 版面）
  *
  * Notes:
- * - Dashboard 下所有頁面都會套用：Top Tabs + Side Menu + Content Frame
+ * - Dashboard 下所有頁面都會套用：ErpAppShell（Top Bar + Dock + 手機底欄）+ Content Frame
  * - ✅ App Router 的 layout 預設是 Server Component：
  *   - 不要加 'use client'（避免整個 dashboard 變成 client boundary）
  * - ✅ 在 layout 內不要用 usePathname / hooks
