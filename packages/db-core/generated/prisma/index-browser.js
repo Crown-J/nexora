@@ -384,6 +384,179 @@ exports.Prisma.Nx01PoItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
+exports.Prisma.Nx07QuoteScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  quoteDate: 'quoteDate',
+  customerId: 'customerId',
+  rfqId: 'rfqId',
+  currency: 'currency',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07QuoteItemScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  quoteId: 'quoteId',
+  lineNo: 'lineNo',
+  rfqItemId: 'rfqItemId',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  unitCost: 'unitCost',
+  unitPrice: 'unitPrice',
+  markupType: 'markupType',
+  markupValue: 'markupValue',
+  currency: 'currency',
+  leadTimeDays: 'leadTimeDays',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx08SalesOrderScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  soDate: 'soDate',
+  customerId: 'customerId',
+  quoteId: 'quoteId',
+  currency: 'currency',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx08SalesOrderItemScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  salesOrderId: 'salesOrderId',
+  lineNo: 'lineNo',
+  quoteItemId: 'quoteItemId',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  unitPrice: 'unitPrice',
+  warehouseId: 'warehouseId',
+  locationId: 'locationId',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09StockBalanceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  partId: 'partId',
+  qty: 'qty',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09StockTxnScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  occurredAt: 'occurredAt',
+  txnType: 'txnType',
+  refType: 'refType',
+  refId: 'refId',
+  partId: 'partId',
+  warehouseId: 'warehouseId',
+  qtyDelta: 'qtyDelta',
+  beforeQty: 'beforeQty',
+  afterQty: 'afterQty',
+  remark: 'remark',
+  createdBy: 'createdBy',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx02DeptScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  deptCode: 'deptCode',
+  deptName: 'deptName',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03EmpScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  empCode: 'empCode',
+  empName: 'empName',
+  deptId: 'deptId',
+  title: 'title',
+  phone: 'phone',
+  email: 'email',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx04UnitScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  unitCode: 'unitCode',
+  unitName: 'unitName',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05CategoryScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  categoryCode: 'categoryCode',
+  categoryName: 'categoryName',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx06ProductScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  productCode: 'productCode',
+  productName: 'productName',
+  spec: 'spec',
+  unitId: 'unitId',
+  categoryId: 'categoryId',
+  price: 'price',
+  cost: 'cost',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.Nx99PlanScalarFieldEnum = {
   id: 'id',
   code: 'code',
@@ -525,6 +698,17 @@ exports.Prisma.ModelName = {
   Nx01RfqItem: 'Nx01RfqItem',
   Nx01Po: 'Nx01Po',
   Nx01PoItem: 'Nx01PoItem',
+  Nx07Quote: 'Nx07Quote',
+  Nx07QuoteItem: 'Nx07QuoteItem',
+  Nx08SalesOrder: 'Nx08SalesOrder',
+  Nx08SalesOrderItem: 'Nx08SalesOrderItem',
+  Nx09StockBalance: 'Nx09StockBalance',
+  Nx09StockTxn: 'Nx09StockTxn',
+  Nx02Dept: 'Nx02Dept',
+  Nx03Emp: 'Nx03Emp',
+  Nx04Unit: 'Nx04Unit',
+  Nx05Category: 'Nx05Category',
+  Nx06Product: 'Nx06Product',
   Nx99Plan: 'Nx99Plan',
   Nx99Subscription: 'Nx99Subscription',
   Nx99SubscriptionItem: 'Nx99SubscriptionItem',

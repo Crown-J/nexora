@@ -10,6 +10,10 @@
  */
 
 import { getNx00SideMenu, type SideMenuGroup } from '@/features/layout/config/menu.nx00';
+import { getNx01SideMenu } from '@/features/layout/config/menu.nx01';
+import { getNx02SideMenu } from '@/features/layout/config/menu.nx02';
+import { getNx03SideMenu } from '@/features/layout/config/menu.nx03';
+import { getNx04SideMenu } from '@/features/layout/config/menu.nx04';
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-004-F01
@@ -24,8 +28,15 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   switch (code) {
     case 'nx00':
       return getNx00SideMenu();
+    case 'nx01':
+      return getNx01SideMenu();
+    case 'nx02':
+      return getNx02SideMenu();
+    case 'nx03':
+      return getNx03SideMenu();
+    case 'nx04':
+      return getNx04SideMenu();
 
-    // TODO: nx01/nx02/nx03/nx04
     default:
       return [];
   }

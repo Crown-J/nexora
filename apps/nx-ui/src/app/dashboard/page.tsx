@@ -1,17 +1,16 @@
 /**
- * File: apps/nx-ui/src/app/dashboard/nx00/page.tsx
+ * File: apps/nx-ui/src/app/dashboard/page.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-ROOT-001：NX00 模組入口（預設導向）
+ * - Dashboard 根路徑：導向系統首頁 /home（NX00 主檔請用 /dashboard/nx00）
  *
  * Notes:
  * - 使用 Next.js redirect（Server Side）
- * - 不需要 'use client'
  */
 
 import { redirect } from 'next/navigation';
 
-export default function Nx00RootPage() {
+export default function DashboardRootPage() {
   redirect('/home');
 }

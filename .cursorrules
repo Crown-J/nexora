@@ -6,7 +6,7 @@ Do not make decisions about feature direction on your own — ask if unclear.
 
 # NEXORA — Cursor Rules
 # 工程師：Hank
-# 最後更新：2026-03-16
+# 最後更新：2026-03-26
 
 ---
 
@@ -339,3 +339,33 @@ git commit -m "feat(nx00): add brand CRUD"
 - 新功能：`feature/nx{nn}-{feature-name}`
 - 修復：`fix/nx{nn}-{bug-description}`
 - 重構：`refactor/nx{nn}-{description}`
+
+---
+
+## Daily Log（工作日誌）
+
+### 目的
+- 記錄每日實際進度與決策，讓 Alex（PM）與 Hank（Cursor）在**不同對話**之間仍能銜接上下文。
+
+### 位置與檔名
+- 目錄：`dailylog/`
+- 檔名：`YYYYMMDD.md`（與「工作日」對應，例如 `20260326.md`）
+- 說明入口：`dailylog/README.md`
+
+### 撰寫時機
+- 工作日結束前、或 Alex 要求補登時，更新**當日**檔案。
+- 若當日尚無檔案，可複製既有日期的區塊結構新建，**勿**把過去範例內容當成今日事實。
+
+### 內容規範（必須遵守）
+1. **真實性**：只寫當日實際完成、討論、待辦與問題；任務說明中的範例、假資料僅供格式參考，**不得**當成已發生事實寫入。
+2. **結構**：建議包含（與 `dailylog/` 內範本一致）  
+   - 專案資訊（分支等）  
+   - 今日完成事項  
+   - 討論與決策（Q&A，無則註明）  
+   - 明日待辦（checkbox）  
+   - 遇到的問題與解法（表格，可為空）
+3. **語言**：與本檔一致，註解與說明使用**繁體中文**（必要時保留程式碼與專有名詞英文）。
+
+### Agent 行為
+- 收到「建立／更新 dailylog」類任務時：依上述結構建立或補寫，並再次確認未誤植範例為實績。
+- 不擅自杜撰完成事項；規格不明時先提問 Alex。

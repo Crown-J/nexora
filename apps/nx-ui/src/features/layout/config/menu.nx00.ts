@@ -34,6 +34,7 @@ export function getNx00SideMenu(): SideMenuGroup[] {
     {
       group: '使用者與權限管理',
       items: [
+        { key: 'nx00.home', label: '模組首頁', href: '/dashboard/nx00' },
         { key: 'nx00.user', label: '使用者基本資料', href: '/dashboard/nx00/user' },
         { key: 'nx00.role', label: '權限角色基本資料', href: '/dashboard/nx00/role' },
 

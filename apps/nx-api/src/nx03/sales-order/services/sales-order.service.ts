@@ -1,0 +1,274 @@
+/**
+ * File: apps/nx-api/src/nx03/sales-order/services/sales-order.service.ts
+ * Project: NEXORA (Monorepo)
+ *
+ * Purpose:
+ * - NX03-API-SALES-ORDER-SVC-001：SO list/get/ship（MVP：只做狀態流轉）
+ */
+
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditLogService } from '../../../nx00/audit-log/services/audit-log.service';
+import type { ListSalesOrderQuery, PagedResult, SalesOrderDto } from '../dto/sales-order.dto';
+import { assertSalesOrderStatusTransition } from '../../../shared/workflows/nx01-nx03-workflow';
+
+type SoRow = {
+  id: string;
+  docNo: string;
+  soDate: Date;
+  customerId: string;
+  quoteId: string;
+  currency: string;
+  status: string;
+  remark: string | null;
+  postedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  items: {
+    id: string;
+    lineNo: number;
+    quoteItemId: string;
+    partId: string;
+    partNo: string;
+    partName: string;
+    qty: any;
+    unitPrice: any;
+    warehouseId: string;
+    locationId: string | null;
+    remark: string | null;
+  }[];
+};
+
+function toSoDto(row: SoRow): SalesOrderDto {
+  return {
+    id: row.id,
+    docNo: row.docNo,
+    soDate: row.soDate?.toISOString?.() ?? String(row.soDate),
+    customerId: row.customerId,
+    quoteId: row.quoteId,
+    currency: row.currency,
+    status: row.status,
+    remark: row.remark ?? null,
+    postedAt: null, // model 目前沒有 shipped/done date 欄位（MVP）
+    createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
+    updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
+    items: row.items.map((it) => ({
+      id: it.id,
+      lineNo: it.lineNo,
+      quoteItemId: it.quoteItemId,
+      partId: it.partId,
+      partNo: it.partNo,
+      partName: it.partName,
+      qty: it.qty?.toString?.() ?? String(it.qty),
+      unitPrice: it.unitPrice?.toString?.() ?? String(it.unitPrice),
+      warehouseId: it.warehouseId,
+      locationId: it.locationId ?? null,
+      remark: it.remark ?? null,
+    })),
+  };
+}
+
+@Injectable()
+export class SalesOrderService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditLogService,
+  ) {}
+
+  async list(query: ListSalesOrderQuery): Promise<PagedResult<SalesOrderDto>> {
+    const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
+    const pageSize =
+      Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
+
+    const where: any = {};
+    if (query.status) where.status = query.status;
+    if (query.q?.trim()) {
+      const q = query.q.trim();
+      where.OR = [{ docNo: { contains: q, mode: 'insensitive' as const } }, { customerId: { contains: q } }];
+    }
+
+    const [total, rows] = await Promise.all([
+      this.prisma.nx08SalesOrder.count({ where }),
+      this.prisma.nx08SalesOrder.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          items: {
+            orderBy: [{ lineNo: 'asc' }],
+            select: {
+              id: true,
+              lineNo: true,
+              quoteItemId: true,
+              partId: true,
+              partNo: true,
+              partName: true,
+              qty: true,
+              unitPrice: true,
+              warehouseId: true,
+              locationId: true,
+              remark: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      items: (rows as unknown as SoRow[]).map(toSoDto),
+      page,
+      pageSize,
+      total,
+    };
+  }
+
+  async get(id: string): Promise<SalesOrderDto> {
+    const row = await this.prisma.nx08SalesOrder.findUnique({
+      where: { id },
+      include: {
+        items: {
+          orderBy: [{ lineNo: 'asc' }],
+          select: {
+            id: true,
+            lineNo: true,
+            quoteItemId: true,
+            partId: true,
+            partNo: true,
+            partName: true,
+            qty: true,
+            unitPrice: true,
+            warehouseId: true,
+            locationId: true,
+            remark: true,
+          },
+        },
+      },
+    });
+
+    if (!row) throw new NotFoundException('Sales order not found');
+    return toSoDto(row as unknown as SoRow);
+  }
+
+  async ship(id: string, ctx?: { actorUserId?: string; ipAddr?: string | null; userAgent?: string | null }): Promise<SalesOrderDto> {
+    const existing = await this.prisma.nx08SalesOrder.findUnique({
+      where: { id },
+      include: {
+        items: {
+          orderBy: [{ lineNo: 'asc' }],
+          select: {
+            id: true,
+            lineNo: true,
+            quoteItemId: true,
+            partId: true,
+            partNo: true,
+            partName: true,
+            qty: true,
+            unitPrice: true,
+            warehouseId: true,
+            locationId: true,
+            remark: true,
+          },
+        },
+      },
+    });
+
+    if (!existing) throw new NotFoundException('Sales order not found');
+
+    const current = existing.status as any;
+    const next = current === 'S' ? 'X' : 'S';
+    const shouldDecrementStock = current === 'R' && next === 'S';
+
+    try {
+      assertSalesOrderStatusTransition(current, next);
+    } catch (e: any) {
+      throw new BadRequestException(e?.message ?? 'Cannot ship SO');
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const tenantId = (existing as any).tenantId as string;
+
+      if (shouldDecrementStock) {
+        // Outbound stock posting (SO 出貨 → 庫存 -)
+        for (const item of existing.items ?? []) {
+          const beforeRow = await tx.nx09StockBalance.findFirst({
+            where: { tenantId, warehouseId: item.warehouseId, partId: item.partId },
+            select: { id: true, qty: true },
+          });
+
+          const zero = item.qty.mul(0 as any);
+          const beforeQty = beforeRow?.qty ?? zero;
+
+          if (beforeQty.lt(item.qty)) {
+            throw new BadRequestException(
+              `Insufficient stock: part=${item.partId} warehouse=${item.warehouseId} need=${item.qty?.toString?.() ?? String(item.qty)}`,
+            );
+          }
+
+          const afterQty = beforeQty.sub(item.qty);
+
+          if (!beforeRow) {
+            // should not happen because beforeQty would be 0 and lt would throw
+            throw new BadRequestException('Stock balance not found');
+          }
+
+          await tx.nx09StockBalance.update({
+            where: { id: beforeRow.id },
+            data: {
+              qty: afterQty,
+              updatedBy: ctx?.actorUserId ?? null,
+            },
+          });
+
+          await tx.nx09StockTxn.create({
+            data: {
+              tenantId,
+              txnType: 'O',
+              refType: 'SO',
+              refId: existing.id,
+              partId: item.partId,
+              warehouseId: item.warehouseId,
+              qtyDelta: item.qty.mul(-1 as any),
+              beforeQty,
+              afterQty,
+              remark: item.remark ?? null,
+              createdBy: ctx?.actorUserId ?? null,
+              updatedBy: ctx?.actorUserId ?? null,
+            },
+          });
+        }
+      }
+
+      return tx.nx08SalesOrder.update({
+        where: { id },
+        data: {
+          status: next,
+          updatedBy: ctx?.actorUserId ?? null,
+        },
+        include: {
+          items: {
+            orderBy: [{ lineNo: 'asc' }],
+          },
+        },
+      });
+    });
+
+    if (ctx?.actorUserId) {
+      await this.audit.write({
+        actorUserId: ctx.actorUserId,
+        moduleCode: 'NX03',
+        action: 'SHIP',
+        entityTable: 'nx08_sales_order',
+        entityId: updated.id,
+        entityCode: updated.docNo,
+        summary: `Ship SO ${updated.docNo}`,
+        afterData: updated,
+        ipAddr: ctx.ipAddr ?? null,
+        userAgent: ctx.userAgent ?? null,
+      });
+    }
+
+    return toSoDto(updated as unknown as SoRow);
+  }
+}
+
