@@ -81,7 +81,7 @@ export default function HomePage() {
         <ParticleField className="w-full h-full opacity-55" />
       </div>
       <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-background/20 via-transparent to-background" />
-      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_15%_20%,rgba(244,176,52,0.10),transparent_38%),radial-gradient(circle_at_88%_4%,rgba(244,176,52,0.07),transparent_28%)]" />
+      <div className="home-aurora-light pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_15%_20%,rgba(244,176,52,0.10),transparent_38%),radial-gradient(circle_at_88%_4%,rgba(244,176,52,0.07),transparent_28%)]" />
       <div className="home-backdrop-vignette pointer-events-none absolute inset-0 z-0" />
 
       <div className="relative z-10">
@@ -89,7 +89,7 @@ export default function HomePage() {
         <Dock />
       </div>
 
-      <div className="lg:pl-20">
+      <div>
         <HomeTopBar
           displayName={nameText}
           roleLabel="使用者"
@@ -97,7 +97,7 @@ export default function HomePage() {
           onOpenDashboard={() => router.push('/dashboard')}
         />
 
-        <main className="p-4 lg:p-7 pb-20 lg:pb-6">
+        <main className="p-4 lg:p-7 lg:pl-24 pb-20 lg:pb-6">
           <div className="max-w-7xl mx-auto space-y-5">
             <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
               <CalendarPanel selectedDate={selectedDate} onDateSelect={setSelectedDate} />

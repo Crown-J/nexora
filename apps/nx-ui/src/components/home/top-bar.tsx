@@ -105,7 +105,7 @@ export function HomeTopBar({
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="sticky top-0 z-40 flex items-center justify-between h-16 px-4 lg:px-6 glass-card border-t-0 border-x-0 rounded-none"
+      className="sticky top-0 z-40 w-full flex items-center justify-between h-16 px-4 lg:px-6 glass-card border-t-0 border-x-0 rounded-none"
     >
       <div className="flex items-center gap-4">
         <button
