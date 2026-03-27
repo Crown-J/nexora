@@ -15,8 +15,13 @@
  */
 
 import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 import { DashboardShell } from '@/features/layout/ui/DashboardShell';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <DashboardShell>
+      <Suspense fallback={<div className="p-6 text-sm text-white/60">載入中...</div>}>{children}</Suspense>
+    </DashboardShell>
+  );
 }

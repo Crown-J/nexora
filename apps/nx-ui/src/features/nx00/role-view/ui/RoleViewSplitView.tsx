@@ -104,13 +104,10 @@ export function RoleViewSplitView() {
           roleViewLoading={vm.roleViewLoading}
           saving={vm.saving}
           dirtyCount={vm.dirtyCount}
-          columnState={vm.columnState}
           onToggleModule={vm.actions.toggleModule}
           onChangeModuleFilter={vm.actions.setModuleFilter}
-          onBulkSetPerm={vm.actions.bulkSetPermForVisible}
           onSetPerm={vm.actions.setPerm}
           onSetRowActive={vm.actions.setRowActive}
-          onToggleColumn={vm.actions.toggleColumnPerm}
           onToggleAll={vm.actions.setAllPerms}
           onToggleRowAll={vm.actions.toggleRowAll}
           onToggleModuleAll={vm.actions.toggleModuleAll}

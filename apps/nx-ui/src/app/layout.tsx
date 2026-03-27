@@ -12,8 +12,9 @@
  * - 未來可加入 AuthProvider / ThemeProvider
  */
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { PwaRegister } from '@/components/pwa-register';
 import './globals.css';
 
 const geistSans = Geist({
@@ -31,13 +32,29 @@ const geistMono = Geist_Mono({
  */
 export const metadata: Metadata = {
   title: {
-    default: 'NEXORA ERP',
+    default: 'NEXORA ERP — DAILYLOG',
     template: '%s | NEXORA',
   },
-  description: 'Nexora ERP Console — Modular Enterprise System',
+  description:
+    'Nexora ERP Console — Modular Enterprise System（純網頁 PWA；DAILYLOG 見 repo dailylog/）',
   icons: {
     icon: '/favicon.ico',
+    apple: '/pwa-icon.svg',
   },
+  appleWebApp: {
+    capable: true,
+    title: 'NEXORA ERP — DAILYLOG',
+    statusBarStyle: 'black-translucent',
+  },
+};
+
+/**
+ * @CONFIG nxui_root_viewport_001
+ * PWA / 行動裝置主題列與色彩
+ */
+export const viewport: Viewport = {
+  themeColor: '#141414',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({
@@ -52,12 +69,11 @@ export default function RootLayout({
           geistSans.variable,
           geistMono.variable,
           'antialiased',
-          'bg-[#05070b]',          // 全域深色基底
-          'text-white',            // 預設字色
+          'font-sans',
           'min-h-screen',
         ].join(' ')}
       >
-        {/* 未來可放 Global Providers */}
+        <PwaRegister />
         {children}
       </body>
     </html>

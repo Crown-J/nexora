@@ -76,19 +76,26 @@ export function useWarehouseSingle() {
         }
     }, []);
 
-    const updateOne = useCallback(async (body: UpdateWarehouseBody) => {
-        setSaving(true);
-        setSaveError(null);
-        try {
-            const updated = await updateWarehouseSingle(body);
-            setDetail(updated);
-            setMode('edit');
-        } catch (e: any) {
-            setSaveError(e?.message ?? '更新失敗');
-        } finally {
-            setSaving(false);
-        }
-    }, []);
+    const updateOne = useCallback(
+        async (body: UpdateWarehouseBody) => {
+            if (!detail?.id) {
+                setSaveError('缺少倉庫 ID');
+                return;
+            }
+            setSaving(true);
+            setSaveError(null);
+            try {
+                const updated = await updateWarehouseSingle(detail.id, body);
+                setDetail(updated);
+                setMode('edit');
+            } catch (e: any) {
+                setSaveError(e?.message ?? '更新失敗');
+            } finally {
+                setSaving(false);
+            }
+        },
+        [detail?.id],
+    );
 
     const actions = useMemo(
         () => ({

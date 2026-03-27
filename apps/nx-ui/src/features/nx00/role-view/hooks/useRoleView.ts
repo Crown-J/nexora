@@ -54,11 +54,11 @@ function buildRow(view: ViewDto, rv?: RoleViewDto | null): RoleViewDraftRow {
     isActive: has ? Boolean((rv as any).isActive ?? true) : false,
     perms: has
       ? normalizePerms({
-          canRead: (rv as any).canRead ?? rv?.perms?.canRead,
-          canCreate: (rv as any).canCreate ?? rv?.perms?.canCreate,
-          canUpdate: (rv as any).canUpdate ?? rv?.perms?.canUpdate,
-          canDelete: (rv as any).canDelete ?? rv?.perms?.canDelete,
-          canExport: (rv as any).canExport ?? rv?.perms?.canExport,
+          canRead: (rv as any).canRead ?? (rv as any)?.perms?.canRead,
+          canCreate: (rv as any).canCreate ?? (rv as any)?.perms?.canCreate,
+          canUpdate: (rv as any).canUpdate ?? (rv as any)?.perms?.canUpdate,
+          canDelete: (rv as any).canDelete ?? (rv as any)?.perms?.canDelete,
+          canExport: (rv as any).canExport ?? (rv as any)?.perms?.canExport,
         })
       : normalizePerms(null),
   };

@@ -3,25 +3,22 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-001：完成登入畫面（Dashboard Dark + Neon Accent）
- * - NX00-AUTH-003：串接前後端登入流程（call api + store token + redirect）
+ * - 登入畫面（NEXORA GRID 視覺稿）
+ * - 串接登入 API（call api + store token + redirect）
  *
  * Notes:
- * - 風格對齊：深色玻璃卡片 / 柔陰影 / 細邊框 / 單一螢光綠強調色
+ * - 後端目前僅接受單一 username；公司帳號先作為 UI 欄位保留，不參與登入 payload
  * - 成功登入後導向 /dashboard
  */
 
 'use client';
 
-import { useMemo, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { callLoginApi } from '@/features/auth/api/login';
 import { setToken } from '@/features/auth/token';
-
-type LoginFormState = {
-  account: string;
-  password: string;
-};
+import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
+import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
 
 type LoginViewState = {
   isSubmitting: boolean;
@@ -34,246 +31,206 @@ function getErrorMessage(err: unknown): string {
   return '帳號或密碼錯誤 / 或 API 無回應';
 }
 
-/**
- * @CODE nxui_nx00_ui_login_validate_001
- * 說明：登入前置驗證（極簡規則）
- */
-function validateLoginForm(form: LoginFormState): string | null {
-  if (!form.account.trim()) return '請輸入帳號';
-  if (!form.password) return '請輸入密碼';
-  return null;
+function normalizeFields(fields: LoginFormFields): LoginFormFields {
+  return {
+    companyAccount: fields.companyAccount.trim(),
+    userAccount: fields.userAccount.trim(),
+    password: fields.password,
+  };
 }
 
-/**
- * @CODE nxui_nx00_ui_login_normalize_001
- * 說明：輸入正規化（避免空白造成驗證或登入問題）
- */
-function normalizeLoginForm(form: LoginFormState): LoginFormState {
-  return {
-    account: form.account.trim(),
-    password: form.password,
-  };
+function buildUsernameForApi(fields: LoginFormFields): string {
+  const u = fields.userAccount.trim();
+  return u;
+}
+
+function validateLoginForm(fields: LoginFormFields): string | null {
+  if (!fields.userAccount.trim()) return '請輸入使用者帳號';
+  if (!fields.password) return '請輸入密碼';
+  return null;
 }
 
 export default function LoginPage() {
   const router = useRouter();
-
-  /**
-   * @CODE nxui_nx00_ui_login_state_001
-   * 說明：登入表單狀態
-   */
-  const [form, setForm] = useState<LoginFormState>({ account: '', password: '' });
-
-  /**
-   * @CODE nxui_nx00_ui_login_viewstate_001
-   * 說明：畫面狀態（loading / error）
-   */
   const [view, setView] = useState<LoginViewState>({ isSubmitting: false, errorMsg: null });
 
-  /**
-   * @CODE nxui_nx00_ui_login_can_submit_001
-   * 說明：避免空值與重複送出
-   */
-  const canSubmit = useMemo(() => {
-    if (view.isSubmitting) return false;
-    if (!form.account.trim()) return false;
-    if (!form.password) return false;
-    return true;
-  }, [form.account, form.password, view.isSubmitting]);
-
-  /**
-   * @CODE nxui_nx00_ui_login_change_account_001
-   * 說明：帳號輸入更新
-   */
-  function onChangeAccount(v: string) {
-    setForm((prev) => ({ ...prev, account: v }));
-  }
-
-  /**
-   * @CODE nxui_nx00_ui_login_change_password_001
-   * 說明：密碼輸入更新
-   */
-  function onChangePassword(v: string) {
-    setForm((prev) => ({ ...prev, password: v }));
-  }
-
-  /**
-   * @CODE nxui_nx00_auth_login_flow_001
-   * 說明：驗證 → call api → 存 token → redirect
-   */
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent, rawFields: LoginFormFields) {
     e.preventDefault();
-
-    // 動作 001：清除舊錯誤
     setView((prev) => ({ ...prev, errorMsg: null }));
 
-    // 動作 002：正規化
-    const normalized = normalizeLoginForm(form);
-
-    // 動作 003：驗證
+    const normalized = normalizeFields(rawFields);
     const err = validateLoginForm(normalized);
     if (err) {
       setView((prev) => ({ ...prev, errorMsg: err }));
       return;
     }
 
-    // 動作 004：進入 submitting（鎖按鈕）
     setView((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
-      // 動作 005：呼叫登入 API
+      const account = buildUsernameForApi(normalized);
       const result = await callLoginApi({
-        account: normalized.account,
+        account,
         password: normalized.password,
       });
 
-      // 動作 006：儲存 token
       if (!result?.token) {
         throw new Error('[nxui_nx00_auth_login_flow_001] token missing in response');
       }
       setToken(result.token);
-
-      // 動作 007：導向登入後頁
       router.replace('/dashboard');
     } catch (e: unknown) {
-      // 動作 008：錯誤顯示（優先用後端/拋出的訊息）
       setView((prev) => ({ ...prev, errorMsg: getErrorMessage(e) }));
     } finally {
-      // 動作 009：解除 submitting
       setView((prev) => ({ ...prev, isSubmitting: false }));
     }
   }
 
   return (
-    /**
-     * @CODE nxui_nx00_ui_login_layout_003
-     * 說明：
-     * - 深色儀表板背景：用漸層 + 光暈點綴營造「高級暗色 UI」
-     * - 不引入任何圖片素材，純 Tailwind 即可達成質感
-     */
-    <div className="min-h-screen bg-[#07090d] text-white relative overflow-hidden">
-      {/* @CODE nxui_nx00_ui_login_bg_glow_001 */}
-      <div className="pointer-events-none absolute inset-0">
-        {/* 左上光暈 */}
-        <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-[#39ff14]/10 blur-[80px]" />
-        {/* 右上冷光 */}
-        <div className="absolute -top-52 -right-40 h-[520px] w-[520px] rounded-full bg-white/5 blur-[90px]" />
-        {/* 中間微漸層 */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.06] via-transparent to-black/60" />
+    <main className="login-shell min-h-screen min-h-dvh bg-background relative overflow-hidden font-sans">
+      <div className="login-stars absolute inset-0 z-0">
+        <ParticleField className="w-full h-full" />
       </div>
 
-      <div className="relative min-h-screen flex items-center justify-center px-6">
-        <div className="w-full max-w-md">
-          {/* @CODE nxui_nx00_ui_login_brand_003 */}
-          <div className="mb-7 flex items-center justify-center">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl border border-white/10 bg-white/5 shadow-[0_10px_40px_rgba(0,0,0,0.55)] flex items-center justify-center">
-                <span className="text-xs font-semibold tracking-[0.25em] text-white/90">NX</span>
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-background via-transparent to-background" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
+
+      <div className="relative z-10 min-h-screen min-h-dvh flex flex-col lg:flex-row">
+        <div className="lg:hidden flex flex-col items-center pt-8 pb-4 px-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-px w-8 bg-gradient-to-r from-transparent to-accent/50" />
+            <span className="text-[10px] tracking-[0.25em] text-accent font-mono">ERP PLATFORM</span>
+            <div className="h-px w-8 bg-gradient-to-l from-transparent to-accent/50" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            NEX
+            <span className="relative inline-block">
+              O
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+              </span>
+            </span>
+            RA
+          </h1>
+          <p className="text-lg font-light tracking-[0.15em] text-foreground/80">GRID</p>
+        </div>
+
+        <div className="lg:hidden flex-1 flex items-center justify-center px-6 py-4 max-h-[35vh]">
+          <div className="w-full max-w-[280px] aspect-square">
+            <PlanetOrbit className="w-full h-full" />
+          </div>
+        </div>
+
+        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative flex-col items-center justify-center">
+          <div className="relative z-10 w-80 h-80 xl:w-[420px] xl:h-[420px]">
+            <PlanetOrbit className="w-full h-full" />
+          </div>
+
+          <div className="relative z-10 mt-8 text-center px-8">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-accent/50" />
+              <span className="text-xs tracking-[0.3em] text-accent font-mono">
+                ENTERPRISE RESOURCE PLANNING
+              </span>
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-accent/50" />
+            </div>
+            <h1 className="text-5xl xl:text-6xl font-bold tracking-tight text-foreground">
+              NEX
+              <span className="relative inline-block">
+                O
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                </span>
+              </span>
+              RA
+            </h1>
+            <p className="text-2xl xl:text-3xl font-light tracking-[0.15em] text-foreground/80 mt-1">
+              GRID
+            </p>
+            <p className="mt-4 text-sm text-muted-foreground tracking-wide">
+              汽車零件零售 ERP 企業管理平台
+            </p>
+          </div>
+
+          <div className="absolute bottom-8 left-8 right-8">
+            <div className="flex items-center justify-between text-xs text-muted-foreground/50 font-mono">
+              <span>SYS.VER 2.0.26</span>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+                <span>ONLINE</span>
               </div>
-              <div>
-                <div className="text-sm tracking-[0.35em] font-semibold text-white/90">NEXORA</div>
-                <div className="text-xs text-white/40">ERP Console — NX00</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col px-6 pb-6 lg:p-0">
+          <div className="flex-1 flex items-start lg:items-center justify-center lg:p-12">
+            <div className="w-full max-w-md space-y-6">
+              <div className="space-y-2 text-center">
+                <div className="hidden lg:flex items-center gap-3 justify-center">
+                  <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-border to-transparent" />
+                  <span className="text-xs tracking-[0.2em] text-accent font-mono">WELCOME</span>
+                  <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-border to-transparent" />
+                </div>
+                <h2 className="text-xl lg:text-2xl font-semibold tracking-tight text-foreground">
+                  系統登入
+                </h2>
+                <p className="text-xs lg:text-sm text-muted-foreground">
+                  請輸入您的帳號資訊以存取系統
+                </p>
+              </div>
+
+              <div className="login-card bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl p-5 lg:p-8 relative overflow-hidden">
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl" />
+
+                <div className="relative">
+                  <LoginForm
+                    onSubmit={onSubmit}
+                    errorMsg={view.errorMsg}
+                    isSubmitting={view.isSubmitting}
+                  />
+                </div>
+              </div>
+
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    系統正常運作
+                  </span>
+                  <span className="text-border">|</span>
+                  <span className="font-mono">v1.0.0</span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* @CODE nxui_nx00_ui_login_card_003 */}
-          <div className="rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-[0_25px_90px_rgba(0,0,0,0.6)]">
-            {/* header */}
-            <div className="px-8 pt-8">
-              {/* @CODE nxui_nx00_ui_login_header_003 */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-xl font-semibold tracking-wide text-white/95">Sign in</h1>
-                  <p className="mt-1 text-sm text-white/45">Use your Nexora account to continue.</p>
-                </div>
-
-                {/* @CODE nxui_nx00_ui_login_accent_pill_001 */}
-                <div className="rounded-full border border-[#39ff14]/30 bg-[#39ff14]/10 px-3 py-1 text-xs text-[#39ff14]">
-                  NX00
-                </div>
+          <div className="pt-4 lg:p-6 border-t border-border/20 lg:border-t-0">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>&copy; 2024 INNOVA Tech</span>
+              <div className="flex items-center gap-4">
+                <button type="button" className="login-link hover:text-accent transition-colors">
+                  服務條款
+                </button>
+                <button type="button" className="login-link hover:text-accent transition-colors">
+                  隱私政策
+                </button>
               </div>
-
-              <div className="mt-6 h-px w-full bg-white/10" />
             </div>
-
-            {/* form */}
-            <form onSubmit={onSubmit} className="px-8 pb-8 pt-6 space-y-5">
-              {/* @CODE nxui_nx00_ui_login_input_account_003 */}
-              <div>
-                <label className="block text-xs tracking-wider text-white/55 mb-2">ACCOUNT</label>
-                <input
-                  type="text"
-                  value={form.account}
-                  onChange={(e) => onChangeAccount(e.target.value)}
-                  autoComplete="username"
-                  placeholder="Enter account"
-                  className={[
-                    'w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3',
-                    'text-sm text-white placeholder:text-white/30',
-                    'outline-none transition',
-                    'focus:border-[#39ff14]/40 focus:ring-4 focus:ring-[#39ff14]/10',
-                  ].join(' ')}
-                />
-              </div>
-
-              {/* @CODE nxui_nx00_ui_login_input_password_003 */}
-              <div>
-                <label className="block text-xs tracking-wider text-white/55 mb-2">PASSWORD</label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => onChangePassword(e.target.value)}
-                  autoComplete="current-password"
-                  placeholder="Enter password"
-                  className={[
-                    'w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3',
-                    'text-sm text-white placeholder:text-white/30',
-                    'outline-none transition',
-                    'focus:border-[#39ff14]/40 focus:ring-4 focus:ring-[#39ff14]/10',
-                  ].join(' ')}
-                />
-              </div>
-
-              {/* @CODE nxui_nx00_ui_login_error_003 */}
-              {view.errorMsg ? (
-                <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3">
-                  <p className="text-sm text-white/80">※ {view.errorMsg}</p>
-                </div>
-              ) : null}
-
-              {/* @CODE nxui_nx00_ui_login_btn_003 */}
-              <button
-                type="submit"
-                disabled={!canSubmit}
-                className={[
-                  'w-full rounded-xl border px-4 py-3 text-sm font-medium tracking-wide',
-                  'transition active:scale-[0.99]',
-                  canSubmit
-                    ? [
-                        'border-[#39ff14]/40',
-                        'bg-[#39ff14] text-black',
-                        'hover:bg-[#39ff14]/90',
-                        'shadow-[0_14px_40px_rgba(57,255,20,0.12)]',
-                      ].join(' ')
-                    : 'border-white/10 bg-white/5 text-white/35 cursor-not-allowed',
-                ].join(' ')}
-              >
-                {view.isSubmitting ? 'Signing in…' : 'Sign in'}
-              </button>
-
-              {/* @CODE nxui_nx00_ui_login_footer_003 */}
-              <div className="pt-2 flex items-center justify-between text-xs text-white/35">
-                <span>© {new Date().getFullYear()} Nexora</span>
-                <span className="text-white/25">Secure Access</span>
-              </div>
-            </form>
           </div>
-
-          {/* @CODE nxui_nx00_ui_login_bottom_hint_002 */}
-          <div className="mt-6 text-center text-xs text-white/25">Tip: Press Enter to submit</div>
         </div>
       </div>
-    </div>
+
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-20 px-6 py-3 bg-background/80 backdrop-blur-sm border-t border-border/20">
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground/60 font-mono">
+          <span>SYS.VER 2.0.26</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1 h-1 bg-accent rounded-full animate-pulse" />
+            <span>NEXORA ONLINE</span>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
