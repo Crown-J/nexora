@@ -25,7 +25,7 @@ export type DockNavItem = {
 /** 與 demo/home 一致；連結對應 NEXORA 實際路由 */
 export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: Home, label: '首頁', href: '/home' },
-  { icon: Layers3, label: '主檔', href: '/dashboard/nx00' },
+  { icon: Layers3, label: '主檔', href: '/base' },
   { icon: ShoppingCart, label: '採購', href: '/dashboard/nx01' },
   { icon: Package, label: '銷售', href: '/dashboard/nx03' },
   { icon: Warehouse, label: '庫存', href: '/dashboard/nx02' },
@@ -36,6 +36,7 @@ export const HOME_DOCK_ITEMS: DockNavItem[] = [
 function isDockActive(pathname: string, href: string): boolean {
   if (href === '/home') return pathname === '/home';
   if (href === '/dashboard') return pathname === '/dashboard';
+  if (href === '/base') return pathname === '/base' || pathname.startsWith('/base/');
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

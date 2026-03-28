@@ -1,32 +1,22 @@
 /**
- * File: apps/nx-ui/src/app/home/page.tsx
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - NX00-UI-002：登入後首頁（Landing / Home）
- * - 視覺：精簡首頁（Dock + TopBar + 行事曆 + 公告 + 未完成訂單）
- *
- * Notes:
- * - useSessionMe 驗證；未登入 → redirect /login
- * - logout 統一走 useSessionMe.logout
+ * File: apps/nx-ui/src/app/base/users/page.tsx
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft } from 'lucide-react';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { HomeTopBar } from '@/components/home/top-bar';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
-import { BulletinBoard } from '@/components/home/bulletin-board';
-import { CalendarPanel } from '@/components/home/calendar-panel';
-import { CalendarDetails } from '@/components/home/calendar-details';
-import { TaskList } from '@/components/home/task-list';
+import { BaseUserMasterView } from '@/features/base/users/BaseUserMasterView';
+import { cn } from '@/lib/utils';
 
-export default function HomePage() {
+export default function BaseUsersPage() {
   const router = useRouter();
   const { me, displayName, logout, view } = useSessionMe();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date());
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -54,7 +44,7 @@ export default function HomePage() {
               onClick={() => router.replace('/login')}
               className="rounded-xl border border-border bg-secondary px-4 py-2 text-xs text-foreground hover:bg-secondary/80 transition"
             >
-              前往登入
+              重新登入
             </button>
 
             <button
@@ -72,7 +62,7 @@ export default function HomePage() {
     );
   }
 
-  const nameText = displayName || me?.username || '系統管理員';
+  const nameText = displayName || me?.username || '系統使用者';
 
   return (
     <HomeLandingChrome
@@ -85,16 +75,26 @@ export default function HomePage() {
         />
       }
     >
-      <div className="max-w-7xl mx-auto space-y-5">
-        <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
-          <CalendarPanel selectedDate={selectedDate} onDateSelect={setSelectedDate} />
-          <CalendarDetails selectedDate={selectedDate} />
-        </section>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <header className="space-y-3">
+          <Link
+            href="/base"
+            className={cn(
+              'inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors',
+              'hover:text-primary',
+            )}
+          >
+            <ChevronLeft className="size-4" aria-hidden />
+            返回主檔
+          </Link>
+          <div className="space-y-1">
+            <p className="text-xs tracking-[0.35em] text-muted-foreground">MASTER DATA</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">使用者主檔</h1>
+            <p className="text-sm text-muted-foreground max-w-2xl">維護系統使用者與職稱（目前為前端 mock，未接 API）。</p>
+          </div>
+        </header>
 
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <BulletinBoard />
-          <TaskList />
-        </section>
+        <BaseUserMasterView />
       </div>
     </HomeLandingChrome>
   );

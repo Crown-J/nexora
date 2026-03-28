@@ -32,18 +32,24 @@ const geistMono = Geist_Mono({
  */
 export const metadata: Metadata = {
   title: {
-    default: 'NEXORA ERP — DAILYLOG',
-    template: '%s | NEXORA',
+    default: 'NEXORA GRID',
+    template: '%s | NEXORA GRID',
   },
   description:
-    'Nexora ERP Console — Modular Enterprise System（純網頁 PWA；DAILYLOG 見 repo dailylog/）',
+    'NEXORA GRID — 企業資源規劃主控台（純網頁 PWA）；專案工作日誌見 repo dailylog/（DAILYLOG）。',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/pwa-icon.svg',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: {
     capable: true,
-    title: 'NEXORA ERP — DAILYLOG',
+    title: 'NEXORA GRID',
     statusBarStyle: 'black-translucent',
   },
 };
