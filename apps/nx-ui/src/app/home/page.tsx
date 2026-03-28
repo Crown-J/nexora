@@ -97,7 +97,7 @@ export default function HomePage() {
           onOpenDashboard={() => router.push('/dashboard')}
         />
 
-        <main className="p-4 lg:p-7 lg:pl-24 pb-20 lg:pb-6">
+        <main className="px-4 pt-20 pb-20 lg:px-7 lg:pb-6 lg:pl-24 lg:pt-[calc(4rem+1.75rem)]">
           <div className="max-w-7xl mx-auto space-y-5">
             <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
               <CalendarPanel selectedDate={selectedDate} onDateSelect={setSelectedDate} />

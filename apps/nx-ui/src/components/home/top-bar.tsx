@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, User, ChevronDown, Settings, LogOut, UserCircle, Moon, Sun, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,26 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useNxThemeMode } from '@/hooks/useNxThemeMode';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const HEADER_NOTIFICATION_ITEMS = [
+  { title: '新訂單通知', desc: '客戶「大同汽車」下了一筆新訂單', time: '5 分鐘前', type: 'order' as const },
+  { title: '庫存警示', desc: '「煞車來令片 B-201」庫存不足', time: '30 分鐘前', type: 'warning' as const },
+  { title: '帳款提醒', desc: '「永昌汽材」有一筆應收帳款即將到期', time: '1 小時前', type: 'payment' as const },
+];
 
 export type HomeTopBarProps = {
   displayName: string;
@@ -21,66 +41,76 @@ export type HomeTopBarProps = {
   onOpenDashboard: () => void;
 };
 
+type SettingsTab = 'personal' | 'system';
+
 export function HomeTopBar({
   displayName,
   roleLabel = '使用者',
   onLogout,
   onOpenDashboard,
 }: HomeTopBarProps) {
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
-  const [themeMode, setThemeMode] = useState<'dark' | 'light' | 'system'>('system');
+  const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
+  const { themeMode, setThemeMode, cycleThemeMode } = useNxThemeMode();
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('personal');
+
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const avatarUrlRef = useRef<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMsg, setPasswordMsg] = useState<string | null>(null);
+  const [allNotificationsOpen, setAllNotificationsOpen] = useState(false);
 
   useEffect(() => {
-    setCurrentTime(new Date());
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const media = window.matchMedia('(prefers-color-scheme: light)');
-    const saved = localStorage.getItem('nx-ui-theme-mode');
-    const mode: 'dark' | 'light' | 'system' =
-      saved === 'dark' || saved === 'light' || saved === 'system' ? saved : 'system';
-
-    const apply = (m: 'dark' | 'light' | 'system') => {
-      if (m === 'light') {
-        root.classList.add('light');
-        return;
+    return () => {
+      if (avatarUrlRef.current) {
+        URL.revokeObjectURL(avatarUrlRef.current);
       }
-      if (m === 'dark') {
-        root.classList.remove('light');
-        return;
-      }
-      root.classList.toggle('light', media.matches);
     };
-
-    setThemeMode(mode);
-    apply(mode);
   }, []);
 
-  useEffect(() => {
-    if (themeMode !== 'system') return;
-    const root = document.documentElement;
-    const media = window.matchMedia('(prefers-color-scheme: light)');
-    const onChange = () => {
-      root.classList.toggle('light', media.matches);
-    };
-    media.addEventListener('change', onChange);
-    return () => media.removeEventListener('change', onChange);
-  }, [themeMode]);
+  const onAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    if (avatarUrlRef.current) {
+      URL.revokeObjectURL(avatarUrlRef.current);
+    }
+    const url = URL.createObjectURL(file);
+    avatarUrlRef.current = url;
+    setAvatarUrl(url);
+    e.target.value = '';
+  };
 
-  const toggleThemeMode = () => {
-    const cycle: Array<'system' | 'dark' | 'light'> = ['system', 'dark', 'light'];
-    const idx = cycle.indexOf(themeMode);
-    const next = cycle[(idx + 1) % cycle.length];
-    setThemeMode(next);
-    const root = document.documentElement;
-    const media = window.matchMedia('(prefers-color-scheme: light)');
-    if (next === 'light') root.classList.add('light');
-    else if (next === 'dark') root.classList.remove('light');
-    else root.classList.toggle('light', media.matches);
-    localStorage.setItem('nx-ui-theme-mode', next);
+  const openSettings = (tab: SettingsTab) => {
+    setSettingsTab(tab);
+    setSettingsOpen(true);
+    setPasswordMsg(null);
+  };
+
+  const handleSavePersonal = () => {
+    if (!newPassword && !confirmPassword) {
+      setPasswordMsg(null);
+      setSettingsOpen(false);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg('兩次輸入的密碼不一致');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordMsg('密碼至少 6 字元（測試用規則）');
+      return;
+    }
+    setPasswordMsg(null);
+    setNewPassword('');
+    setConfirmPassword('');
+    setSettingsOpen(false);
   };
 
   const formatDate = (date: Date) => {
@@ -100,12 +130,18 @@ export function HomeTopBar({
     });
   };
 
+  const themeRadios: { value: 'light' | 'dark' | 'system'; label: string }[] = [
+    { value: 'light', label: '淺色' },
+    { value: 'dark', label: '深色' },
+    { value: 'system', label: '跟隨系統' },
+  ];
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="sticky top-0 z-40 w-full flex items-center justify-between h-16 px-4 lg:px-6 glass-card border-t-0 border-x-0 rounded-none"
+      className="fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between border-x-0 border-t-0 glass-card px-4 lg:px-6 rounded-none"
     >
       <div className="flex items-center gap-4">
         <button
@@ -146,15 +182,15 @@ export function HomeTopBar({
       <div className="flex items-center gap-3 lg:gap-4">
         <div className="hidden md:flex flex-col items-end">
           <span className="text-muted-foreground">
-            {currentTime ? formatDate(currentTime) : '載入中...'}
+            {formatDate(currentTime)}
           </span>
           <motion.span
-            key={currentTime?.getSeconds()}
+            key={currentTime.getSeconds()}
             initial={{ opacity: 0.5 }}
             animate={{ opacity: 1 }}
             className="text-sm font-semibold gradient-text tabular-nums"
           >
-            {currentTime ? formatTime(currentTime) : '--:--'}
+            {formatTime(currentTime)}
           </motion.span>
         </div>
 
@@ -184,11 +220,7 @@ export function HomeTopBar({
               </Badge>
             </DropdownMenuLabel>
             <div className="max-h-[300px] overflow-y-auto">
-              {[
-                { title: '新訂單通知', desc: '客戶「大同汽車」下了一筆新訂單', time: '5 分鐘前', type: 'order' },
-                { title: '庫存警示', desc: '「煞車來令片 B-201」庫存不足', time: '30 分鐘前', type: 'warning' },
-                { title: '帳款提醒', desc: '「永昌汽材」有一筆應收帳款即將到期', time: '1 小時前', type: 'payment' },
-              ].map((item, i) => (
+              {HEADER_NOTIFICATION_ITEMS.map((item, i) => (
                 <DropdownMenuItem
                   key={i}
                   className="flex flex-col items-start gap-1 px-4 py-3 cursor-pointer hover:bg-secondary/50 border-b border-border/30 last:border-0 rounded-none"
@@ -207,7 +239,12 @@ export function HomeTopBar({
               ))}
             </div>
             <div className="p-2 border-t border-border/50">
-              <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-foreground">
+              <Button
+                type="button"
+                size="sm"
+                className="w-full text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={() => setAllNotificationsOpen(true)}
+              >
                 查看全部通知
               </Button>
             </div>
@@ -218,7 +255,7 @@ export function HomeTopBar({
           type="button"
           variant="ghost"
           size="icon"
-          onClick={toggleThemeMode}
+          onClick={cycleThemeMode}
           className="relative text-foreground hover:bg-secondary/80 rounded-xl h-10 w-10"
           aria-label={
             themeMode === 'system'
@@ -227,13 +264,7 @@ export function HomeTopBar({
                 ? '目前：深色（點擊切換淺色）'
                 : '目前：淺色（點擊切換跟隨系統）'
           }
-          title={
-            themeMode === 'system'
-              ? '跟隨系統'
-              : themeMode === 'dark'
-                ? '深色'
-                : '淺色'
-          }
+          title={themeMode === 'system' ? '跟隨系統' : themeMode === 'dark' ? '深色' : '淺色'}
         >
           {themeMode === 'system' ? (
             <Monitor className="w-5 h-5" />
@@ -247,8 +278,13 @@ export function HomeTopBar({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 px-2 h-10 rounded-xl hover:bg-secondary/80">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
+              <div className="w-8 h-8 rounded-xl overflow-hidden bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-4 h-4 text-primary" />
+                )}
               </div>
               <div className="hidden lg:block text-left">
                 <p className="text-sm font-semibold text-foreground">{displayName}</p>
@@ -260,8 +296,13 @@ export function HomeTopBar({
           <DropdownMenuContent align="end" className="w-56 glass-card">
             <DropdownMenuLabel className="font-normal">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center">
-                  <User className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-5 h-5 text-primary" />
+                  )}
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">{displayName}</p>
@@ -270,15 +311,17 @@ export function HomeTopBar({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-border/50" />
-            <DropdownMenuItem className="gap-2 text-foreground cursor-pointer" onClick={onOpenDashboard}>
-              <UserCircle className="w-4 h-4" />
-              進入 Dashboard
-            </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-foreground cursor-pointer">
+            <DropdownMenuItem
+              className="gap-2 text-foreground cursor-pointer"
+              onClick={() => openSettings('personal')}
+            >
               <UserCircle className="w-4 h-4" />
               個人設定
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-foreground cursor-pointer">
+            <DropdownMenuItem
+              className="gap-2 text-foreground cursor-pointer"
+              onClick={() => openSettings('system')}
+            >
               <Settings className="w-4 h-4" />
               系統設定
             </DropdownMenuItem>
@@ -294,6 +337,136 @@ export function HomeTopBar({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <Dialog open={allNotificationsOpen} onOpenChange={setAllNotificationsOpen}>
+        <DialogContent className="sm:max-w-md glass-card max-h-[min(520px,85vh)] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b border-border/50 shrink-0">
+            <DialogTitle>全部通知</DialogTitle>
+            <DialogDescription className="sr-only">通知列表（測試資料）</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-1 min-h-0 max-h-[380px] px-2">
+            <ul className="px-4 pb-2 space-y-0">
+              {HEADER_NOTIFICATION_ITEMS.map((item, i) => (
+                <li
+                  key={i}
+                  className="flex flex-col gap-1 rounded-lg px-2 py-3 -mx-1 border-b border-border/30 last:border-0 transition-colors duration-150 hover:bg-secondary/55"
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 ${
+                        item.type === 'order'
+                          ? 'bg-chart-4'
+                          : item.type === 'warning'
+                            ? 'bg-destructive'
+                            : 'bg-primary'
+                      }`}
+                    />
+                    <span className="font-medium text-foreground text-sm">{item.title}</span>
+                    <span className="text-[10px] text-muted-foreground ml-auto">{item.time}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground pl-4">{item.desc}</span>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+          <DialogFooter className="px-6 py-4 border-t border-border/50 shrink-0">
+            <Button type="button" variant="secondary" className="w-full sm:w-auto" onClick={() => setAllNotificationsOpen(false)}>
+              關閉
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>設定</DialogTitle>
+            <DialogDescription>個人資料與外觀（目前為前端測試，未連接後端）。</DialogDescription>
+          </DialogHeader>
+          <Tabs
+            value={settingsTab}
+            onValueChange={(v) => setSettingsTab(v as SettingsTab)}
+            className="w-full"
+          >
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="personal">個人設定</TabsTrigger>
+              <TabsTrigger value="system">系統設定</TabsTrigger>
+            </TabsList>
+            <TabsContent value="personal" className="mt-4 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-xl overflow-hidden border border-border bg-secondary/40 flex items-center justify-center shrink-0">
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt="預覽" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-8 h-8 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="space-y-2 min-w-0">
+                  <Label htmlFor="avatar-file">個人頭像</Label>
+                  <Input id="avatar-file" type="file" accept="image/*" onChange={onAvatarChange} className="text-xs" />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="pw-new">新密碼</Label>
+                <Input
+                  id="pw-new"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="選填，測試用"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="pw-confirm">確認密碼</Label>
+                <Input
+                  id="pw-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="選填"
+                />
+              </div>
+              {passwordMsg ? <p className="text-sm text-destructive">{passwordMsg}</p> : null}
+            </TabsContent>
+            <TabsContent value="system" className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">外觀主題</p>
+              <div className="flex flex-col gap-2">
+                {themeRadios.map((r) => (
+                  <label
+                    key={r.value}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg border border-border/70 px-3 py-2.5 cursor-pointer transition-colors',
+                      themeMode === r.value ? 'border-primary/50 bg-primary/10' : 'hover:bg-secondary/50',
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="nx-theme"
+                      className="accent-primary"
+                      checked={themeMode === r.value}
+                      onChange={() => setThemeMode(r.value)}
+                    />
+                    <span className="text-sm text-foreground">{r.label}</span>
+                  </label>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setSettingsOpen(false)}>
+              關閉
+            </Button>
+            {settingsTab === 'personal' ? (
+              <Button type="button" onClick={handleSavePersonal}>
+                儲存
+              </Button>
+            ) : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.header>
   );
 }

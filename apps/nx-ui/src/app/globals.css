@@ -111,6 +111,17 @@
   --sidebar-ring: oklch(0.69 0.128 73);
 }
 
+/**
+ * 原生 <select>：專案預設為深色（無 html.light）時，下拉選單若用淺色面板會出現淺字看不清。
+ * 使用 color-scheme 讓瀏覽器以深色繪製選項；淺色模式維持 light。
+ */
+html:not(.light) select.nx-native-select {
+  color-scheme: dark;
+}
+html.light select.nx-native-select {
+  color-scheme: light;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
