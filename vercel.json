@@ -1,6 +1,5 @@
 {
-  "buildCommand": "pnpm --filter nx-ui build",
   "installCommand": "pnpm install",
-  "outputDirectory": "apps/nx-ui/.next",
-  "framework": "nextjs"
+  "buildCommand": "pnpm --filter nx-ui build",
+  "outputDirectory": "apps/nx-ui/.next"
 }
