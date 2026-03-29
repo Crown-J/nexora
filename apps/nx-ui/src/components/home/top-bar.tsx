@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, User, ChevronDown, Settings, LogOut, UserCircle, Moon, Sun, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,8 @@ export type HomeTopBarProps = {
   roleLabel?: string;
   onLogout: () => void;
   onOpenDashboard: () => void;
+  /** 置中區（例如 Dashboard 主模組 Tabs）；與 /home 相同頂欄風格 */
+  centerContent?: ReactNode;
 };
 
 type SettingsTab = 'personal' | 'system';
@@ -48,6 +50,7 @@ export function HomeTopBar({
   roleLabel = '使用者',
   onLogout,
   onOpenDashboard,
+  centerContent,
 }: HomeTopBarProps) {
   const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
   const { themeMode, setThemeMode, cycleThemeMode } = useNxThemeMode();
@@ -141,9 +144,9 @@ export function HomeTopBar({
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-between border-x-0 border-t-0 glass-card px-4 lg:px-6 rounded-none"
+      className="fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center gap-3 border-x-0 border-t-0 border-b border-border/50 glass-card px-4 lg:px-6 rounded-none"
     >
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 shrink-0 items-center gap-4">
         <button
           type="button"
           onClick={onOpenDashboard}
@@ -179,7 +182,17 @@ export function HomeTopBar({
         </span>
       </div>
 
-      <div className="flex items-center gap-3 lg:gap-4">
+      {centerContent ? (
+        <div className="flex min-w-0 flex-1 justify-center">
+          <div className="max-w-full overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {centerContent}
+          </div>
+        </div>
+      ) : (
+        <div className="min-w-0 flex-1" aria-hidden />
+      )}
+
+      <div className="flex shrink-0 items-center gap-3 lg:gap-4">
         <div className="hidden md:flex flex-col items-end">
           <span className="text-muted-foreground">
             {formatDate(currentTime)}

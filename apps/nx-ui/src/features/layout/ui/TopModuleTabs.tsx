@@ -11,7 +11,7 @@
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getModuleTabs } from '@/features/layout/config/modules';
-import { cx } from '@/shared/lib/cx';
+import { cn } from '@/lib/utils';
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-003-F01
@@ -41,15 +41,18 @@ export function TopModuleTabs() {
 
   const tabs = useMemo(() => getModuleTabs(), []);
 
+  const homeActive = pathname === '/home' || pathname === '/dashboard';
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2">
       <button
-        onClick={() => router.push('/dashboard')}
-        className={cx(
-          'px-3 py-1.5 rounded-xl text-xs border transition',
-          pathname === '/dashboard'
-            ? 'border-[#39ff14]/40 bg-[#39ff14]/15 text-[#39ff14]'
-            : 'border-white/10 bg-white/5 text-white/75 hover:bg-white/10'
+        type="button"
+        onClick={() => router.push('/home')}
+        className={cn(
+          'shrink-0 rounded-xl border px-2.5 py-1.5 text-[11px] transition sm:px-3 sm:text-xs',
+          homeActive
+            ? 'border-primary/45 bg-primary/12 text-primary'
+            : 'border-border/80 bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground',
         )}
       >
         HOME
@@ -60,14 +63,15 @@ export function TopModuleTabs() {
         return (
           <button
             key={t.code}
+            type="button"
             disabled={!t.enabled}
             onClick={() => router.push(t.href)}
-            className={cx(
-              'px-3 py-1.5 rounded-xl text-xs border transition',
-              !t.enabled && 'opacity-50 cursor-not-allowed',
+            className={cn(
+              'shrink-0 rounded-xl border px-2.5 py-1.5 text-[11px] transition sm:px-3 sm:text-xs',
+              !t.enabled && 'cursor-not-allowed opacity-50',
               isActive
-                ? 'border-[#39ff14]/40 bg-[#39ff14]/15 text-[#39ff14]'
-                : 'border-white/10 bg-white/5 text-white/75 hover:bg-white/10'
+                ? 'border-primary/45 bg-primary/12 text-primary'
+                : 'border-border/80 bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground',
             )}
           >
             {t.label}

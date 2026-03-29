@@ -4,6 +4,9 @@
  *
  * Purpose:
  * - NX00-UI-SHELL-004：左側次功能選單（依模組切換）
+ *
+ * Notes:
+ * - Dashboard 已改為 `DashboardSubNav`（橫向）+ `HomeLandingChrome`；此元件保留供參考或日後特殊版面復用。
  */
 
 'use client';
