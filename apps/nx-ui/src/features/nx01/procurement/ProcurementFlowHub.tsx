@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import {
   Check,
   ClipboardList,
@@ -10,11 +11,12 @@ import {
   Plus,
   Search,
 } from 'lucide-react';
-import { cx } from '@/shared/lib/cx';
+import { cn } from '@/lib/utils';
 
+const PAGE_KICKER = 'PROCUREMENT / NX01';
 const PAGE_TITLE = '採購與進貨作業';
 
-type StatusTone = 'amber' | 'rose' | 'emerald';
+type StatusTone = 'primary' | 'destructive' | 'success';
 
 type FlowRow = {
   id: string;
@@ -29,7 +31,6 @@ type FlowRow = {
 type StepDef = {
   id: string;
   label: string;
-  /** 流程中此階段總筆數（stepper 顯示） */
   pipelineTotal: number;
   cta: { label: string; href?: string };
   rows: FlowRow[];
@@ -48,7 +49,7 @@ const STEPS: StepDef[] = [
         sub: '台科科技有限公司',
         date: '2024-01-20',
         status: '待處理',
-        tone: 'amber',
+        tone: 'primary',
       },
       {
         id: 'RFQ-002',
@@ -56,7 +57,7 @@ const STEPS: StepDef[] = [
         sub: '新旺電子股份有限公司',
         date: '2024-01-19',
         status: '進行中',
-        tone: 'amber',
+        tone: 'primary',
       },
       {
         id: 'RFQ-003',
@@ -64,7 +65,7 @@ const STEPS: StepDef[] = [
         sub: '台北科技有限公司',
         date: '2024-01-18',
         status: '急件',
-        tone: 'rose',
+        tone: 'destructive',
       },
     ],
   },
@@ -80,7 +81,7 @@ const STEPS: StepDef[] = [
         sub: '覆核人：王大明',
         date: '2024-01-21',
         status: '待覆核',
-        tone: 'amber',
+        tone: 'primary',
       },
       {
         id: 'REV-102',
@@ -88,7 +89,7 @@ const STEPS: StepDef[] = [
         sub: '覆核人：李小華',
         date: '2024-01-20',
         status: '進行中',
-        tone: 'amber',
+        tone: 'primary',
       },
     ],
   },
@@ -104,7 +105,7 @@ const STEPS: StepDef[] = [
         sub: '供應商：台科科技有限公司',
         date: '2024-01-17',
         status: '草稿',
-        tone: 'amber',
+        tone: 'primary',
       },
     ],
   },
@@ -120,7 +121,7 @@ const STEPS: StepDef[] = [
         sub: '台科科技有限公司',
         date: '2024-01-16',
         status: '待確認',
-        tone: 'amber',
+        tone: 'primary',
       },
     ],
   },
@@ -136,7 +137,7 @@ const STEPS: StepDef[] = [
         sub: '倉別：A 倉',
         date: '2024-01-20',
         status: '待驗收',
-        tone: 'amber',
+        tone: 'primary',
       },
       {
         id: 'GR-PEND-02',
@@ -144,7 +145,7 @@ const STEPS: StepDef[] = [
         sub: '倉別：B 倉',
         date: '2024-01-19',
         status: '待驗收',
-        tone: 'amber',
+        tone: 'primary',
       },
     ],
   },
@@ -160,48 +161,35 @@ const STEPS: StepDef[] = [
         sub: '驗收人：陳小安',
         date: '2024-01-15',
         status: '已完成',
-        tone: 'emerald',
+        tone: 'success',
       },
     ],
   },
 ];
 
-const FOOTER_ACTIONS = [
-  {
-    key: 'supplier',
-    label: '供應商搜尋',
-    sub: '搜尋',
-    href: '/base/partner',
-    icon: Search,
-  },
-  {
-    key: 'import',
-    label: '批次匯入',
-    sub: '匯入',
-    icon: ClipboardList,
-  },
-  {
-    key: 'export',
-    label: '報表匯出',
-    sub: '匯出',
-    icon: Download,
-  },
-  {
-    key: 'history',
-    label: '歷史紀錄',
-    sub: '檢視',
-    icon: Clock,
-  },
+type ToolbarAction = {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  href?: string;
+  disabled?: boolean;
+};
+
+const TOOLBAR_ACTIONS: ToolbarAction[] = [
+  { key: 'supplier', label: '供應商搜尋', href: '/base/partner', icon: Search },
+  { key: 'import', label: '批次匯入', icon: ClipboardList, disabled: true },
+  { key: 'export', label: '報表匯出', icon: Download, disabled: true },
+  { key: 'history', label: '歷史紀錄', icon: Clock, disabled: true },
 ];
 
 function toneClasses(tone: StatusTone) {
   switch (tone) {
-    case 'rose':
-      return 'border-rose-400/35 bg-rose-500/15 text-rose-100';
-    case 'emerald':
-      return 'border-emerald-400/35 bg-emerald-500/15 text-emerald-100';
+    case 'destructive':
+      return 'border-destructive/35 bg-destructive/10 text-destructive-foreground';
+    case 'success':
+      return 'border-emerald-500/40 bg-emerald-500/12 text-emerald-100';
     default:
-      return 'border-amber-400/35 bg-amber-500/12 text-amber-100';
+      return 'border-primary/35 bg-primary/10 text-primary';
   }
 }
 
@@ -216,87 +204,98 @@ export function ProcurementFlowHub() {
   const pending = useMemo(() => pendingCount(step.rows), [step.rows]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 text-foreground">
       <header className="space-y-1">
-        <h1 className="text-lg font-semibold tracking-wide text-white/95">{PAGE_TITLE}</h1>
-        <p className="text-sm text-white/55">
-          依採購與進貨流程階段檢視待辦；詢價建立請走「庫存補貨流程」與後端 API。
+        <p className="text-xs tracking-[0.35em] text-muted-foreground">{PAGE_KICKER}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{PAGE_TITLE}</h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          依流程階段檢視待辦；與主檔／首頁相同語意色票。詢價建立請使用「庫存補貨流程」與後端 API。
         </p>
       </header>
 
-      {/* Stepper */}
-      <div className="relative">
-        <div
-          className="pointer-events-none absolute inset-x-4 top-[22px] z-0 hidden h-px sm:block"
-          style={{
-            background:
-              'linear-gradient(90deg, rgba(251,191,36,0.55) 0%, rgba(251,191,36,0.55) ' +
-              (active / (STEPS.length - 1)) * 100 +
-              '%, rgba(255,255,255,0.12) ' +
-              (active / (STEPS.length - 1)) * 100 +
-              '%, rgba(255,255,255,0.12) 100%)',
-          }}
-        />
-        <div className="relative z-10 flex gap-2 overflow-x-auto pb-1 sm:gap-3">
-          {STEPS.map((s, i) => {
-            const isActive = i === active;
-            const isDone = i < active;
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => setActive(i)}
-                className={cx(
-                  'glass-card flex min-w-[140px] flex-1 flex-col gap-2 rounded-xl px-3 py-3 text-left transition',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40',
-                  isActive && 'ring-2 ring-amber-400/70 glow-primary',
-                  !isActive && !isDone && 'opacity-80 hover:opacity-100',
-                  isDone && 'border-emerald-500/25'
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cx(
-                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold',
-                      isDone &&
-                        'border-emerald-400/50 bg-emerald-500/20 text-emerald-100',
-                      isActive &&
-                        !isDone &&
-                        'border-amber-400/70 bg-amber-500/20 text-amber-50',
-                      !isActive &&
-                        !isDone &&
-                        'border-white/15 bg-white/[0.06] text-white/55'
-                    )}
-                  >
-                    {isDone ? (
-                      <Check className="h-4 w-4 text-emerald-300" aria-hidden />
-                    ) : (
-                      i + 1
-                    )}
-                  </span>
-                  <span
-                    className={cx(
-                      'text-sm font-medium',
-                      isActive ? 'text-white' : 'text-white/75'
-                    )}
-                  >
-                    {s.label}
-                  </span>
-                </div>
-                <div className="text-xs text-white/45">{s.pipelineTotal} 筆</div>
-              </button>
-            );
-          })}
+      {/* 流程軸：輕量節點＋連接線，避免主檔網格式大方塊 */}
+      <section aria-label="採購流程階段" className="space-y-3">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          流程進度
+        </p>
+        <div className="overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-full min-w-[min(100%,640px)] items-start sm:min-w-0">
+            {STEPS.map((s, i) => {
+              const isActive = i === active;
+              const isDone = i < active;
+              return (
+                <Fragment key={s.id}>
+                  <div className="flex min-w-[76px] flex-1 flex-col items-center sm:min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setActive(i)}
+                      className={cn(
+                        'flex w-full flex-col items-center gap-1.5 rounded-xl px-1 py-2 transition-colors',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                        isActive && 'bg-primary/10',
+                        !isActive && 'hover:bg-muted/40'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'flex h-9 w-9 items-center justify-center rounded-full border text-xs font-semibold tabular-nums',
+                          isDone &&
+                            'border-emerald-500/45 bg-emerald-500/15 text-emerald-200',
+                          isActive &&
+                            !isDone &&
+                            'border-primary/60 bg-primary/15 text-primary',
+                          !isActive &&
+                            !isDone &&
+                            'border-border bg-secondary/40 text-muted-foreground'
+                        )}
+                      >
+                        {isDone ? (
+                          <Check className="h-4 w-4 text-emerald-300" aria-hidden />
+                        ) : (
+                          i + 1
+                        )}
+                      </span>
+                      <span
+                        className={cn(
+                          'line-clamp-2 text-center text-[11px] font-medium leading-tight sm:text-xs',
+                          isActive ? 'text-foreground' : 'text-muted-foreground'
+                        )}
+                      >
+                        {s.label}
+                      </span>
+                      <span className="text-[10px] tabular-nums text-muted-foreground">
+                        {s.pipelineTotal} 筆
+                      </span>
+                    </button>
+                  </div>
+                  {i < STEPS.length - 1 ? (
+                    <div
+                      className={cn(
+                        'mt-[22px] h-px flex-1 min-w-[6px] max-w-[40px] shrink',
+                        i < active ? 'bg-primary/55' : 'bg-border'
+                      )}
+                      aria-hidden
+                    />
+                  ) : null}
+                </Fragment>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Active step */}
-      <section className="glass-card rounded-2xl p-4 sm:p-5">
+      {/* 目前階段待辦 */}
+      <section
+        className={cn(
+          'rounded-2xl border border-border/80 bg-card/40 p-4 shadow-sm sm:p-5',
+          'backdrop-blur-sm'
+        )}
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-white/95">
+            <h2 className="text-base font-semibold text-foreground">
               {step.label}
-              <span className="ml-2 text-sm font-normal text-white/50">
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
                 （{pending} 筆待處理）
               </span>
             </h2>
@@ -304,10 +303,10 @@ export function ProcurementFlowHub() {
           {step.cta.href ? (
             <Link
               href={step.cta.href}
-              className={cx(
+              className={cn(
                 'inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium',
-                'border border-amber-400/40 bg-amber-500/20 text-amber-50',
-                'transition hover:bg-amber-500/30'
+                'border border-primary/35 bg-primary/10 text-primary',
+                'transition-colors hover:border-primary/50 hover:bg-primary/18'
               )}
             >
               <Plus className="h-4 w-4" aria-hidden />
@@ -318,9 +317,9 @@ export function ProcurementFlowHub() {
               type="button"
               disabled
               title="此階段尚未串接後端，僅展示流程"
-              className={cx(
+              className={cn(
                 'inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium',
-                'border border-white/10 bg-white/[0.04] text-white/40'
+                'border border-border bg-muted/30 text-muted-foreground'
               )}
             >
               <Plus className="h-4 w-4" aria-hidden />
@@ -329,76 +328,67 @@ export function ProcurementFlowHub() {
           )}
         </div>
 
-        <ul className="mt-4 space-y-3">
+        <ul className="mt-4 divide-y divide-border/60 rounded-xl border border-border/50 bg-background/30">
           {step.rows.map((row) => (
-            <li
-              key={row.id}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 transition hover:border-white/15"
-            >
+            <li key={row.id} className="px-4 py-3.5 transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-muted/20">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <span className="text-xs font-medium tracking-wide text-white/45">
+                <span className="text-xs font-medium tracking-wide text-muted-foreground">
                   {row.id}
                 </span>
                 <span
-                  className={cx(
-                    'rounded-lg border px-2 py-0.5 text-[11px] font-medium',
+                  className={cn(
+                    'rounded-md border px-2 py-0.5 text-[11px] font-medium',
                     toneClasses(row.tone)
                   )}
                 >
                   {row.status}
                 </span>
               </div>
-              <div className="mt-2 text-sm font-semibold text-white/95">
-                {row.title}
-              </div>
-              <div className="mt-0.5 text-xs text-white/55">{row.sub}</div>
-              <div className="mt-3 flex flex-wrap items-end justify-between gap-2 border-t border-white/10 pt-2">
+              <div className="mt-2 text-sm font-semibold text-foreground">{row.title}</div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{row.sub}</div>
+              <div className="mt-3 flex flex-wrap items-end justify-between gap-2">
                 {row.price ? (
-                  <span className="text-sm font-semibold text-amber-400">
-                    {row.price}
-                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-primary">{row.price}</span>
                 ) : (
                   <span />
                 )}
-                <span className="text-xs text-white/45">{row.date}</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{row.date}</span>
               </div>
             </li>
           ))}
         </ul>
       </section>
 
-      {/* Footer shortcuts */}
-      <footer className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {FOOTER_ACTIONS.map((a) => {
-          const Icon = a.icon;
-          const inner = (
-            <>
-              <Icon className="h-5 w-5 text-amber-400/90" aria-hidden />
-              <div className="mt-2 text-sm font-medium text-white/90">{a.label}</div>
-              <div className="text-xs text-white/45">{a.sub}</div>
-            </>
-          );
-          const className = cx(
-            'glass-card rounded-xl px-3 py-3 text-left transition',
-            'hover:border-amber-400/25 hover:bg-white/[0.06]',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/35',
-            a.href ? 'cursor-pointer' : 'cursor-default opacity-90'
-          );
-          return a.href ? (
-            <Link key={a.key} href={a.href} className={className}>
-              {inner}
-            </Link>
-          ) : (
-            <div
-              key={a.key}
-              role="note"
-              className={cx(className, 'text-white/50')}
-              title="即將開放"
-            >
-              {inner}
-            </div>
-          );
-        })}
+      {/* 工具列：橫向文字＋圖示，避免主檔 Hub 式四格大卡片 */}
+      <footer className="border-t border-border/60 pt-5">
+        <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          常用功能
+        </p>
+        <nav className="flex flex-wrap gap-x-6 gap-y-2" aria-label="採購常用功能">
+          {TOOLBAR_ACTIONS.map((a) => {
+            const Icon = a.icon;
+            const shared = cn(
+              'inline-flex items-center gap-2 text-sm transition-colors',
+              a.disabled || !a.href
+                ? 'cursor-not-allowed text-muted-foreground/70'
+                : 'text-muted-foreground hover:text-primary'
+            );
+            if (a.href && !a.disabled) {
+              return (
+                <Link key={a.key} href={a.href} className={shared}>
+                  <Icon className="h-4 w-4 shrink-0 text-primary/90" aria-hidden />
+                  {a.label}
+                </Link>
+              );
+            }
+            return (
+              <span key={a.key} className={shared} title="即將開放">
+                <Icon className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+                {a.label}
+              </span>
+            );
+          })}
+        </nav>
       </footer>
     </div>
   );
