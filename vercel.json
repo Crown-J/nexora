@@ -1,6 +1,0 @@
-{
-  "installCommand": "pnpm install",
-  "buildCommand": "cd apps/nx-ui && pnpm build",
-  "outputDirectory": "apps/nx-ui/.next",
-  "framework": "nextjs"
-}
