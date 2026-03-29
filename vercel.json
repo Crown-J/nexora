@@ -1,4 +1,5 @@
 {
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter nx-ui build"
+  "buildCommand": "cd apps/nx-ui && pnpm build",
+  "outputDirectory": ".next"
 }
