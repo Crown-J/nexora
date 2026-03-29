@@ -624,15 +624,15 @@ async function main() {
   const views = [
     { code: 'NX00_LOGIN',     name: '使用者登入',       moduleCode: 'nx00', path: '/login',                      sortNo: 1  },
     { code: 'NX00_HOME',      name: '系統首頁',          moduleCode: 'nx00', path: '/home',                       sortNo: 2  },
-    { code: 'NX00_USER',      name: '使用者基本資料',    moduleCode: 'nx00', path: '/dashboard/nx00/user',         sortNo: 3  },
-    { code: 'NX00_ROLE',      name: '權限角色基本資料',  moduleCode: 'nx00', path: '/dashboard/nx00/role',         sortNo: 4  },
-    { code: 'NX00_USER_ROLE', name: '使用者職位設定',    moduleCode: 'nx00', path: '/dashboard/nx00/user-role',    sortNo: 5  },
-    { code: 'NX00_ROLE_VIEW', name: '使用者權限設定',    moduleCode: 'nx00', path: '/dashboard/nx00/role-view',    sortNo: 6  },
-    { code: 'NX00_PART',      name: '零件基本資料',      moduleCode: 'nx00', path: '/dashboard/nx00/part',         sortNo: 7  },
-    { code: 'NX00_BRAND',     name: '廠牌基本資料',      moduleCode: 'nx00', path: '/dashboard/nx00/brand',        sortNo: 8  },
-    { code: 'NX00_WAREHOUSE', name: '倉庫基本資料',      moduleCode: 'nx00', path: '/dashboard/nx00/warehouse',    sortNo: 9  },
-    { code: 'NX00_LOCATION',  name: '庫位基本資料',      moduleCode: 'nx00', path: '/dashboard/nx00/location',     sortNo: 10 },
-    { code: 'NX00_PARTNER',   name: '往來客戶基本資料',  moduleCode: 'nx00', path: '/dashboard/nx00/partner',      sortNo: 11 },
+    { code: 'NX00_USER',      name: '使用者基本資料',    moduleCode: 'nx00', path: '/base/user',         sortNo: 3  },
+    { code: 'NX00_ROLE',      name: '權限角色基本資料',  moduleCode: 'nx00', path: '/base/role',         sortNo: 4  },
+    { code: 'NX00_USER_ROLE', name: '使用者職位設定',    moduleCode: 'nx00', path: '/base/user-role',    sortNo: 5  },
+    { code: 'NX00_ROLE_VIEW', name: '使用者權限設定',    moduleCode: 'nx00', path: '/base/role-view',    sortNo: 6  },
+    { code: 'NX00_PART',      name: '零件基本資料',      moduleCode: 'nx00', path: '/base/part',         sortNo: 7  },
+    { code: 'NX00_BRAND',     name: '廠牌基本資料',      moduleCode: 'nx00', path: '/base/brand',        sortNo: 8  },
+    { code: 'NX00_WAREHOUSE', name: '倉庫基本資料',      moduleCode: 'nx00', path: '/base/location',    sortNo: 9  },
+    { code: 'NX00_LOCATION',  name: '庫位基本資料',      moduleCode: 'nx00', path: '/base/location',     sortNo: 10 },
+    { code: 'NX00_PARTNER',   name: '往來客戶基本資料',  moduleCode: 'nx00', path: '/base/partner',      sortNo: 11 },
   ];
 
   for (const view of views) {

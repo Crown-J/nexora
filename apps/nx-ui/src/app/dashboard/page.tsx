@@ -7,11 +7,11 @@
  *
  * Notes:
  * - 使用 Next.js redirect（Server Side）
- * - 舊版入口畫面仍保留於 /home、/base（Dock「首頁」連結）
+ * - 主檔（原 NX00）已移至 `/base`；Dashboard 預設進作業模組 NX01
  */
 
 import { redirect } from 'next/navigation';
 
 export default function DashboardRootPage() {
-  redirect('/dashboard/nx00');
+  redirect('/dashboard/nx01');
 }

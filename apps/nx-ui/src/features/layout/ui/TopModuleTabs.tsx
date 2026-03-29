@@ -24,6 +24,11 @@ function getActiveModule(pathname: string): string {
   return (m?.[1] || '').toLowerCase();
 }
 
+function isModuleTabActive(pathname: string, tabCode: string): boolean {
+  if (tabCode === 'nx00' && pathname.startsWith('/base')) return true;
+  return getActiveModule(pathname) === tabCode;
+}
+
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-003-F02
  * 說明：
@@ -33,7 +38,6 @@ function getActiveModule(pathname: string): string {
 export function TopModuleTabs() {
   const router = useRouter();
   const pathname = usePathname();
-  const active = getActiveModule(pathname);
 
   const tabs = useMemo(() => getModuleTabs(), []);
 
@@ -52,7 +56,7 @@ export function TopModuleTabs() {
       </button>
 
       {tabs.map((t) => {
-        const isActive = active === t.code;
+        const isActive = isModuleTabActive(pathname, t.code);
         return (
           <button
             key={t.code}

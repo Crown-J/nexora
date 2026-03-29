@@ -1,15 +1,12 @@
 /**
  * File: apps/nx-ui/src/app/dashboard/nx00/role-view/page.tsx
- * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-ROLE-VIEW-MATRIX-ENTRY-001：RoleView Matrix Page Entry（路由入口）
+ * - 舊路徑轉址至主檔 `/base/role-view`
  */
 
-'use client';
+import { redirect } from 'next/navigation';
 
-import { RoleViewSplitView } from '@/features/nx00/role-view/ui/RoleViewSplitView';
-
-export default function RoleViewMatrixPage() {
-  return <RoleViewSplitView />;
+export default function Nx00RoleViewLegacyRedirectPage() {
+  redirect('/base/role-view');
 }

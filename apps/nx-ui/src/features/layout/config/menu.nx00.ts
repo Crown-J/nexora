@@ -26,41 +26,38 @@ export type SideMenuGroup = {
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-002-F01
  * 說明：
- * - NX00 左側次功能分群（使用者/權限、產品、倉庫庫位、夥伴、系統紀錄）
- * - 之後可以直接把群組與項目對齊你 DB 的 function_group / function codes
+ * - 原 NX00 主檔已遷至 `/base`（儀表板內 `/dashboard/nx00/*` 僅轉址）
+ * - 此選單保留給仍落在 `/dashboard/nx00` 路徑之過渡情境；連結一律指向主檔新路徑
  */
 export function getNx00SideMenu(): SideMenuGroup[] {
   return [
     {
       group: '使用者與權限管理',
       items: [
-        { key: 'nx00.home', label: '模組首頁', href: '/dashboard/nx00' },
-        { key: 'nx00.user', label: '使用者基本資料', href: '/dashboard/nx00/user' },
-        { key: 'nx00.role', label: '權限角色基本資料', href: '/dashboard/nx00/role' },
-
-        // group/matrix 類型頁（後端 controller 也是單數：user-role / role-view）
-        { key: 'nx00.user-role', label: '使用者職位設定', href: '/dashboard/nx00/user-role' },
-        { key: 'nx00.role-view', label: '使用者權限設定', href: '/dashboard/nx00/role-view' },
+        { key: 'nx00.home', label: '主檔總覽', href: '/base' },
+        { key: 'nx00.user', label: '使用者基本資料', href: '/base/user' },
+        { key: 'nx00.role', label: '權限角色基本資料', href: '/base/role' },
+        { key: 'nx00.user-role', label: '使用者職位設定', href: '/base/user-role' },
+        { key: 'nx00.role-view', label: '使用者權限設定', href: '/base/role-view' },
       ],
     },
     {
       group: '產品管理',
       items: [
-        { key: 'nx00.part', label: '零件基本資料', href: '/dashboard/nx00/part' },
-        { key: 'nx00.brand', label: '廠牌基本資料', href: '/dashboard/nx00/brand' },
+        { key: 'nx00.part', label: '零件基本資料', href: '/base/part' },
+        { key: 'nx00.brand', label: '廠牌基本資料', href: '/base/brand' },
       ],
     },
     {
       group: '倉庫與庫位管理',
       items: [
-        // Lite：單倉設定頁（之後再做）
-        { key: 'nx00.warehouse', label: '倉庫設定（Lite）', href: '/dashboard/nx00/warehouse' },
-        { key: 'nx00.location', label: '庫位基本資料', href: '/dashboard/nx00/location' },
+        { key: 'nx00.warehouse', label: '倉庫／庫位主檔', href: '/base/location' },
+        { key: 'nx00.location', label: '倉庫／庫位主檔', href: '/base/location' },
       ],
     },
     {
       group: '供應商與客戶管理',
-      items: [{ key: 'nx00.partner', label: '往來客戶基本資料', href: '/dashboard/nx00/partner' }],
+      items: [{ key: 'nx00.partner', label: '往來客戶基本資料', href: '/base/partner' }],
     },
   ];
 }
