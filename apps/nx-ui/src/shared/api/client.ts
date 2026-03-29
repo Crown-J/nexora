@@ -11,6 +11,7 @@
  * - 統一錯誤型別 ApiClientError
  */
 
+import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { getToken } from '@/features/auth/token';
 import { ApiClientError } from './errors';
 
@@ -19,6 +20,13 @@ export type ApiClientOptions = Omit<RequestInit, 'headers'> & {
 };
 
 function getBaseUrl(): string {
+  if (isNexoraDemoMode()) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+    if (baseUrl) return baseUrl;
+    // 純展示可不設 API；非 auth 的 fetch 會連線失敗（預期）
+    return 'http://127.0.0.1:9';
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!baseUrl) {
     throw new Error('[NX00-API-001] NEXT_PUBLIC_API_URL is not set');

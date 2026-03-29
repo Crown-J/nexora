@@ -16,6 +16,7 @@
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { callLoginApi } from '@/features/auth/api/login';
+import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
@@ -178,6 +179,15 @@ export default function LoginPage() {
                 <p className="text-xs lg:text-sm text-muted-foreground">
                   請輸入您的帳號資訊以存取系統
                 </p>
+                {isNexoraDemoMode() ? (
+                  <div
+                    role="status"
+                    className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200/90"
+                  >
+                    <span className="font-semibold text-amber-100">展示模式</span>
+                    ：任意帳號與密碼皆可登入，不連後端與資料庫。僅供介面展示。
+                  </div>
+                ) : null}
               </div>
 
               <div className="login-card bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl p-5 lg:p-8 relative overflow-hidden">

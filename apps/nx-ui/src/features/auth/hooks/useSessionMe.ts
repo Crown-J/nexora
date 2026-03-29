@@ -10,6 +10,7 @@
  * - 避免 hydration mismatch：不要在 render 期間讀 localStorage
  * - 若沒有 token：導回 /login
  * - 若 token 無效(401)：清 token → 導回 /login
+ * - Demo 模式且 token 為展示用固定值：不呼叫 /auth/me，使用假 me
  * - ✅ 改用 shared/api/client（自動帶 token / baseUrl）
  * - ✅ 錯誤處理用 assertOk（但 401 先特判）
  */
@@ -22,31 +23,13 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/shared/api/client';
 import { assertOk } from '@/shared/api/http';
 
+import { NEXORA_DEMO_ACCESS_TOKEN } from '@/features/auth/constants';
+import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@/features/auth/demo-session';
+import { isNexoraDemoMode } from '@/features/auth/run-mode';
+import type { MeDto } from '@/features/auth/types';
 import { clearToken, getToken } from '@/features/auth/token';
 
-export type MeDto = {
-  id: string;
-  username: string;
-
-  // 相容 snake_case / camelCase
-  display_name?: string | null;
-  displayName?: string | null;
-
-  email?: string | null;
-  phone?: string | null;
-
-  is_active?: boolean;
-  isActive?: boolean;
-
-  uu_sta?: string;
-  statusCode?: string;
-
-  uu_rmk?: string | null;
-  remark?: string | null;
-
-  last_login_at?: string | null;
-  lastLoginAt?: string | null;
-};
+export type { MeDto } from '@/features/auth/types';
 
 export type ViewState = {
   loading: boolean;
@@ -134,6 +117,13 @@ export function useSessionMe(): UseSessionMeResult {
         return;
       }
 
+      if (isNexoraDemoMode() && token === NEXORA_DEMO_ACCESS_TOKEN) {
+        if (!alive) return;
+        setMe(buildDemoMeFromStorage());
+        setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
+        return;
+      }
+
       setView({ loading: true, errorMsg: null, checkedAt: null });
 
       try {
@@ -185,6 +175,7 @@ export function useSessionMe(): UseSessionMeResult {
    */
   function logout() {
     clearToken();
+    clearDemoSessionUsername();
     router.replace('/login');
   }
 

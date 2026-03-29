@@ -7,3 +7,9 @@
  */
 
 export const AUTH_ACCESS_TOKEN_KEY = 'nx00_access_token';
+
+/** Demo 模式寫入 localStorage 的固定 token（非 JWT） */
+export const NEXORA_DEMO_ACCESS_TOKEN = '__NEXORA_DEMO_TOKEN__';
+
+/** Demo 登入後暫存使用者帳號字串，供假 /me 顯示 */
+export const NEXORA_DEMO_USERNAME_SESSION_KEY = 'nexora_demo_username';
