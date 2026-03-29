@@ -8,7 +8,7 @@
  *
  * Notes:
  * - 後端目前僅接受單一 username；公司帳號先作為 UI 欄位保留，不參與登入 payload
- * - 成功登入後導向 /dashboard
+ * - 成功登入後導向 /home（Landing + Dock；主檔總覽為 /base，作業模組為 /dashboard/nx…）
  */
 
 'use client';
@@ -79,7 +79,7 @@ export default function LoginPage() {
         throw new Error('[nxui_nx00_auth_login_flow_001] token missing in response');
       }
       setToken(result.token);
-      router.replace('/dashboard');
+      router.replace('/home');
     } catch (e: unknown) {
       setView((prev) => ({ ...prev, errorMsg: getErrorMessage(e) }));
     } finally {
