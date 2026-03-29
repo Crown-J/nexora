@@ -13,7 +13,7 @@ export function getNx01SideMenu(): SideMenuGroup[] {
     {
       group: '進／退貨作業',
       items: [
-        { key: 'nx01.home', label: '模組首頁', href: '/dashboard/nx01' },
+        { key: 'nx01.home', label: '採購作業總覽', href: '/dashboard/nx01' },
         { key: 'nx01.stock-replenishment', label: '庫存補貨流程', href: '/dashboard/nx01/stock-replenishment' },
       ],
     },
