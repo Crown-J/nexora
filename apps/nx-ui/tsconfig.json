@@ -14,8 +14,6 @@
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [{ "name": "next" }],
-
-    // ✅ 關鍵：加 baseUrl
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
