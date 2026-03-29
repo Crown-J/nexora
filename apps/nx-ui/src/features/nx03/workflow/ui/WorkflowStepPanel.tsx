@@ -14,12 +14,11 @@
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { cx } from '@/shared/lib/cx';
-import type { DocCard, SalesPath } from '@/features/nx03/workflow/types';
-import { getStepsForPath } from '@/features/nx03/workflow/mock/workflow.mock';
+import type { DocCard, WorkflowStep } from '@/features/nx03/workflow/types';
 
 export interface WorkflowStepPanelProps {
   stepId: string;
-  activePath: SalesPath;
+  steps: WorkflowStep[];
   docs: DocCard[];
 }
 
@@ -108,7 +107,7 @@ function StepCta({
       </button>
     );
   }
-  if (stepId === 'so') {
+  if (stepId === 'so' || stepId === 'sales') {
     return (
       <button
         type="button"
@@ -129,12 +128,11 @@ function StepCta({
  * @FUNCTION_CODE NX03-WKFL-UI-003-F04
  * 單一步驟面板：標題、條件式 CTA、單據列表或空狀態。
  */
-export function WorkflowStepPanel({ stepId, activePath, docs }: WorkflowStepPanelProps) {
+export function WorkflowStepPanel({ stepId, steps, docs }: WorkflowStepPanelProps) {
   const router = useRouter();
   const stepLabel = useMemo(() => {
-    const steps = getStepsForPath(activePath);
     return steps.find((s) => s.id === stepId)?.label ?? stepId;
-  }, [activePath, stepId]);
+  }, [steps, stepId]);
   const pending = countPending(docs);
 
   const push = (href: string) => {

@@ -27,7 +27,7 @@ export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: Home, label: '首頁', href: '/home' },
   { icon: Layers3, label: '主檔', href: '/base' },
   { icon: ShoppingCart, label: '採購', href: '/dashboard/nx01' },
-  { icon: Package, label: '銷售', href: '/dashboard/nx03' },
+  { icon: Package, label: '銷貨', href: '/dashboard/nx03' },
   { icon: Warehouse, label: '庫存', href: '/dashboard/nx02' },
   { icon: DollarSign, label: '財務', href: '/dashboard/nx04' },
   { icon: BarChart3, label: '報表', href: '/dashboard' },

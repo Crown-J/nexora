@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX03 銷售作業流程引導頁共用型別（路徑、步驟、單據卡片）
+ * - NX03 銷貨／流程 UI 共用型別（步驟、單據卡片）
  *
  * Notes:
  * - 與 mock 資料及 UI 元件對齊；不依賴後端 DTO
