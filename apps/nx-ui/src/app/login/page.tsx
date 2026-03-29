@@ -185,7 +185,7 @@ export default function LoginPage() {
                     className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200/90"
                   >
                     <span className="font-semibold text-amber-100">展示模式</span>
-                    ：任意帳號與密碼皆可登入，不連後端與資料庫。僅供介面展示。
+                    ：有需要請洽相關人員。
                   </div>
                 ) : null}
               </div>

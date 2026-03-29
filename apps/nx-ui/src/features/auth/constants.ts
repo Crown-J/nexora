@@ -13,3 +13,7 @@ export const NEXORA_DEMO_ACCESS_TOKEN = '__NEXORA_DEMO_TOKEN__';
 
 /** Demo 登入後暫存使用者帳號字串，供假 /me 顯示 */
 export const NEXORA_DEMO_USERNAME_SESSION_KEY = 'nexora_demo_username';
+
+/** Demo 模式固定帳密（僅擋路人；仍會出現在前端 bundle） */
+export const NEXORA_DEMO_LOGIN_USERNAME = 'demo';
+export const NEXORA_DEMO_LOGIN_PASSWORD = 'nexora2026';
