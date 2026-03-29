@@ -3,16 +3,11 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX03 銷售作業模組入口（占位頁）
+ * - NX03 銷售作業模組入口：流程式銷售與出貨總覽（mock 待辦＋導向客戶銷貨流程）
  */
 
-import { ModulePlaceholderPage } from '@/features/layout/ui/ModulePlaceholderPage';
+import { SalesFlowHub } from '@/features/nx03/sales/SalesFlowHub';
 
 export default function Nx03ModulePage() {
-  return (
-    <ModulePlaceholderPage
-      title="銷售作業"
-      description="報價、訂單、出貨與退貨等銷售流程將於此模組操作。"
-    />
-  );
+  return <SalesFlowHub />;
 }
