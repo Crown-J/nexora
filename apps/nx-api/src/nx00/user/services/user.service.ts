@@ -36,7 +36,22 @@ type UserRowWithAudit = {
 
     createdByUser?: { displayName: string } | null;
     updatedByUser?: { displayName: string } | null;
+
+    userRoles?: Array<{
+        isPrimary: boolean;
+        isActive: boolean;
+        role: { name: string; code: string } | null;
+    }>;
 };
+
+function jobTitleFromUserRoles(
+    userRoles: UserRowWithAudit['userRoles'],
+): string | null {
+    const active = (userRoles ?? []).filter((ur) => ur.isActive);
+    if (active.length === 0) return null;
+    const primary = active.find((ur) => ur.isPrimary) ?? active[0];
+    return primary?.role?.name ?? null;
+}
 
 function toUserDto(row: UserRowWithAudit): UserDto {
     return {
@@ -47,6 +62,7 @@ function toUserDto(row: UserRowWithAudit): UserDto {
         phone: row.phone ?? null,
         isActive: Boolean(row.isActive),
         lastLoginAt: row.lastLoginAt ? (row.lastLoginAt.toISOString?.() ?? String(row.lastLoginAt)) : null,
+        jobTitle: jobTitleFromUserRoles(row.userRoles),
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
@@ -119,6 +135,10 @@ export class UserService {
                 include: {
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
+                    userRoles: {
+                        where: { isActive: true },
+                        include: { role: { select: { name: true, code: true } } },
+                    },
                 },
             }),
         ]);
@@ -137,6 +157,10 @@ export class UserService {
             include: {
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
+                userRoles: {
+                    where: { isActive: true },
+                    include: { role: { select: { name: true, code: true } } },
+                },
             },
         });
 
@@ -172,6 +196,10 @@ export class UserService {
                 include: {
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
+                    userRoles: {
+                        where: { isActive: true },
+                        include: { role: { select: { name: true, code: true } } },
+                    },
                 },
             });
 
@@ -234,6 +262,10 @@ export class UserService {
                 include: {
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
+                    userRoles: {
+                        where: { isActive: true },
+                        include: { role: { select: { name: true, code: true } } },
+                    },
                 },
             });
 
@@ -293,6 +325,10 @@ export class UserService {
             include: {
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
+                userRoles: {
+                    where: { isActive: true },
+                    include: { role: { select: { name: true, code: true } } },
+                },
             },
         });
 

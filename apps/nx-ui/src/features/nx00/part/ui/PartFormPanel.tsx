@@ -6,7 +6,7 @@
  * - NX00-UI-NX00-PART-FORM-001：Part Form Panel（右側 form）
  *
  * Notes:
- * - brandId：下拉顯示 code + name，實際送出仍為 id
+ * - partBrandId：下拉顯示 code + name，實際送出仍為 id
  * - lookup 來源：features/nx00/lookup/hooks/useBrandLookup.ts
  */
 
@@ -20,6 +20,7 @@ import { AuditGrid } from '@/shared/ui/audit/AuditGrid';
 import { FormPanelShell } from '@/shared/ui/listform/FormPanelShell';
 
 import { useBrandLookup } from '@/features/nx00/lookup/hooks/useBrandLookup';
+import { useCarBrandLookup } from '@/features/nx00/lookup/hooks/useCarBrandLookup';
 
 type Props = {
     mode: 'empty' | 'new' | 'edit';
@@ -40,7 +41,10 @@ type Props = {
 type FormState = {
     code: string;
     name: string;
-    brandId: string; // 存 id
+    partBrandId: string;
+    isOem: boolean;
+    carBrandId: string;
+    partType: string;
     spec: string;
     uom: string;
     isActive: boolean;
@@ -50,7 +54,10 @@ function toFormState(d: PartDto | null): FormState {
     return {
         code: d?.code ?? '',
         name: d?.name ?? '',
-        brandId: d?.brandId ?? '',
+        partBrandId: d?.partBrandId ?? '',
+        isOem: d?.isOem ?? true,
+        carBrandId: d?.carBrandId ?? '',
+        partType: d?.partType ?? '',
         spec: d?.spec ?? '',
         uom: d?.uom ?? 'pcs',
         isActive: d?.isActive ?? true,
@@ -72,6 +79,7 @@ export function PartFormPanel(props: Props) {
     // ===== lookup: brands =====
     // 預設：只抓啟用的品牌（你若希望包含停用，改成 useBrandLookup(false) 或在 hook 內調整）
     const brandLookup = useBrandLookup(true);
+    const carBrandLookup = useCarBrandLookup(true);
 
     // 檢視/編輯切換（只在 edit mode 有意義）
     const [editing, setEditing] = useState(false);
@@ -84,7 +92,18 @@ export function PartFormPanel(props: Props) {
 
     useEffect(() => {
         if (isEdit) setForm(toFormState(detail));
-        if (isNew) setForm({ code: '', name: '', brandId: '', spec: '', uom: 'pcs', isActive: true });
+        if (isNew)
+            setForm({
+                code: '',
+                name: '',
+                partBrandId: '',
+                isOem: true,
+                carBrandId: '',
+                partType: '',
+                spec: '',
+                uom: 'pcs',
+                isActive: true,
+            });
     }, [isEdit, isNew, detail]);
 
     const readOnly = useMemo(() => {
@@ -104,12 +123,18 @@ export function PartFormPanel(props: Props) {
         'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/20';
     const inputReadOnlyClass = readOnly ? 'cursor-text select-text' : '';
 
-    // readOnly 下：brandId 不顯示 id，而是顯示「code + name」；找不到就顯示 '-'
+    // readOnly 下：partBrandId 不顯示 id，而是顯示「code + name」；找不到就顯示 '-'
     const brandText = useMemo(() => {
-        if (!form.brandId) return '-';
-        const hit = brandLookup.options?.find((o) => o.value === form.brandId);
+        if (!form.partBrandId) return '-';
+        const hit = brandLookup.options?.find((o) => o.value === form.partBrandId);
         return hit?.label ?? '-';
-    }, [form.brandId, brandLookup.options]);
+    }, [form.partBrandId, brandLookup.options]);
+
+    const carBrandText = useMemo(() => {
+        if (!form.carBrandId) return '-';
+        const hit = carBrandLookup.options?.find((o) => o.value === form.carBrandId);
+        return hit?.label ?? '-';
+    }, [form.carBrandId, carBrandLookup.options]);
 
     const submit = async () => {
         const code = form.code.trim();
@@ -119,7 +144,10 @@ export function PartFormPanel(props: Props) {
         const payload = {
             code,
             name,
-            brandId: form.brandId.trim() ? form.brandId.trim() : null,
+            partBrandId: form.partBrandId.trim() ? form.partBrandId.trim() : null,
+            isOem: form.isOem,
+            carBrandId: form.carBrandId.trim() ? form.carBrandId.trim() : null,
+            partType: form.partType.trim() ? form.partType.trim() : null,
             spec: form.spec.trim() ? form.spec.trim() : null,
             uom: form.uom.trim() ? form.uom.trim() : 'pcs',
             isActive: form.isActive,
@@ -175,7 +203,7 @@ export function PartFormPanel(props: Props) {
 
             <div className="grid grid-cols-2 gap-3">
                 <FormField
-                    label="品牌（brandId）"
+                    label="零件品牌（partBrandId）"
                     hint={
                         readOnly
                             ? '（顯示品牌代碼 + 名稱；實際儲存仍為 id）'
@@ -191,8 +219,8 @@ export function PartFormPanel(props: Props) {
                     ) : (
                         <select
                             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20 disabled:opacity-60"
-                            value={form.brandId}
-                            onChange={(e) => setForm((p) => ({ ...p, brandId: e.target.value }))}
+                            value={form.partBrandId}
+                            onChange={(e) => setForm((p) => ({ ...p, partBrandId: e.target.value }))}
                             disabled={brandLookup.loading}
                         >
                             <option value="">（未指定）</option>
@@ -205,16 +233,94 @@ export function PartFormPanel(props: Props) {
                     )}
                 </FormField>
 
-                <FormField label="單位（uom）">
-                    <input
-                        className={`${inputClass} ${inputReadOnlyClass}`}
-                        value={form.uom}
-                        readOnly={readOnly}
-                        onChange={(e) => setForm((p) => ({ ...p, uom: e.target.value }))}
-                        placeholder={readOnly ? '' : 'pcs'}
-                    />
+                <FormField
+                    label="汽車廠牌（car_brand_id）"
+                    hint={
+                        readOnly
+                            ? undefined
+                            : carBrandLookup.error
+                              ? `載入失敗：${carBrandLookup.error}`
+                              : carBrandLookup.loading
+                                ? '載入中...'
+                                : '選擇汽車品牌'
+                    }
+                >
+                    {readOnly ? (
+                        <ReadOnlyBox value={carBrandText} />
+                    ) : (
+                        <select
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20 disabled:opacity-60"
+                            value={form.carBrandId}
+                            onChange={(e) => setForm((p) => ({ ...p, carBrandId: e.target.value }))}
+                            disabled={carBrandLookup.loading}
+                        >
+                            <option value="">（未指定）</option>
+                            {(carBrandLookup.options ?? []).map((opt) => (
+                                <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </FormField>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                <FormField label="正廠零件（is_oem）">
+                    {readOnly ? (
+                        <ReadOnlyBox value={form.isOem ? '是（正廠）' : '否（副廠／副件）'} />
+                    ) : (
+                        <select
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20"
+                            value={form.isOem ? 'true' : 'false'}
+                            onChange={(e) => setForm((p) => ({ ...p, isOem: e.target.value === 'true' }))}
+                        >
+                            <option value="true">是（正廠）</option>
+                            <option value="false">否（副廠／副件）</option>
+                        </select>
+                    )}
+                </FormField>
+
+                <FormField label="零件類型（type）">
+                    {readOnly ? (
+                        <ReadOnlyBox
+                            value={
+                                form.partType === 'A'
+                                    ? 'A 專用型'
+                                    : form.partType === 'B'
+                                      ? 'B 通用型'
+                                      : form.partType === 'C'
+                                        ? 'C 組合型'
+                                        : form.partType === 'D'
+                                          ? 'D 拆解型'
+                                          : form.partType || '-'
+                            }
+                        />
+                    ) : (
+                        <select
+                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20"
+                            value={form.partType}
+                            onChange={(e) => setForm((p) => ({ ...p, partType: e.target.value }))}
+                        >
+                            <option value="">（未指定）</option>
+                            <option value="A">A 專用型</option>
+                            <option value="B">B 通用型</option>
+                            <option value="C">C 組合型</option>
+                            <option value="D">D 拆解型</option>
+                        </select>
+                    )}
+                </FormField>
+            </div>
+
+            <FormField label="單位（uom）">
+                <input
+                    className={`${inputClass} ${inputReadOnlyClass}`}
+                    value={form.uom}
+                    readOnly={readOnly}
+                    onChange={(e) => setForm((p) => ({ ...p, uom: e.target.value }))}
+                    placeholder={readOnly ? '' : 'pcs'}
+                />
+            </FormField>
 
             <FormField label="規格（spec）">
                 <input
@@ -225,28 +331,20 @@ export function PartFormPanel(props: Props) {
                 />
             </FormField>
 
-            <div className="grid grid-cols-2 gap-3">
-                <FormField label="啟用">
-                    {readOnly ? (
-                        <ReadOnlyBox value={form.isActive ? 'TRUE（啟用）' : 'FALSE（停用）'} />
-                    ) : (
-                        <select
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20"
-                            value={form.isActive ? 'true' : 'false'}
-                            onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.value === 'true' }))}
-                        >
-                            <option value="true">TRUE（啟用）</option>
-                            <option value="false">FALSE（停用）</option>
-                        </select>
-                    )}
-                </FormField>
-
-                <FormField label="（保留）">
-                    <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/40">
-                        之後可放 statusCode / 備註 等欄位
-                    </div>
-                </FormField>
-            </div>
+            <FormField label="啟用">
+                {readOnly ? (
+                    <ReadOnlyBox value={form.isActive ? 'TRUE（啟用）' : 'FALSE（停用）'} />
+                ) : (
+                    <select
+                        className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20"
+                        value={form.isActive ? 'true' : 'false'}
+                        onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.value === 'true' }))}
+                    >
+                        <option value="true">TRUE（啟用）</option>
+                        <option value="false">FALSE（停用）</option>
+                    </select>
+                )}
+            </FormField>
 
             {isEdit && detail && (
                 <AuditGrid

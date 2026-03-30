@@ -46,6 +46,21 @@ export async function listLookupBrand(params: ListLookupsParams = {}): Promise<L
 }
 
 /**
+ * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F01B
+ * 說明：
+ * - listLookupCarBrand：汽車廠牌下拉（nx00_car_brand）
+ * - GET /lookup/car-brand?isActive=true
+ */
+export async function listLookupCarBrand(params: ListLookupsParams = {}): Promise<LookupRow[]> {
+    const q = buildQueryString({
+        isActive: params.isActive === undefined ? undefined : String(params.isActive),
+        q: params.q?.trim() ? params.q.trim() : undefined,
+    });
+
+    return getJson<LookupRow[]>(`/lookup/car-brand${q}`, 'nxui_nx00_lookup_car_brand_list_001');
+}
+
+/**
  * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F02
  * 說明：
  * - listLookupFunctionGroup：功能群組下拉

@@ -6,6 +6,8 @@
 
 import type { Dispatch, SetStateAction } from 'react';
 import { useMemo, useState } from 'react';
+import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
+import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,6 +53,12 @@ function BrandPanel({
     const first = MOCK_BASE_BRANDS.find((r) => r.kind === kind);
     return first ? fromRow(first) : emptyDraft();
   });
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+
+  const brandFieldOrder = useMemo(
+    () => [`bb-c-${kind}`, `bb-n-${kind}`, `bb-o-${kind}`, `bb-active-${kind}`] as const,
+    [kind],
+  );
 
   const scoped = useMemo(() => rows.filter((r) => r.kind === kind), [rows, kind]);
 
@@ -59,6 +67,11 @@ function BrandPanel({
     if (!k) return scoped;
     return scoped.filter((r) => `${r.code} ${r.name} ${r.originCountry}`.toLowerCase().includes(k));
   }, [scoped, keyword]);
+
+  const selectedFilteredIndex = useMemo(
+    () => (selectedId ? filtered.findIndex((r) => r.id === selectedId) : -1),
+    [filtered, selectedId],
+  );
 
   const selected = useMemo(
     () => (selectedId ? rows.find((r) => r.id === selectedId && r.kind === kind) ?? null : null),
@@ -99,7 +112,7 @@ function BrandPanel({
     if (selected) setDraft(fromRow(selected));
   };
 
-  const onSave = () => {
+  const performSave = () => {
     const code = draft.code.trim().toUpperCase();
     if (!code) return;
     if (creating) {
@@ -135,9 +148,27 @@ function BrandPanel({
     setEditing(false);
   };
 
+  const focusBrandRow = (index: number) => {
+    requestAnimationFrame(() => {
+      (document.querySelector(`[data-brand-master-row="${kind}-${index}"]`) as HTMLElement | null)?.focus();
+    });
+  };
+
+  const selectRowAtFilteredIndex = (idx: number) => {
+    const r = filtered[idx];
+    if (!r) return;
+    setSelectedId(r.id);
+    setCreating(false);
+    setEditing(false);
+  };
+
+  const firstCodeId = `bb-c-${kind}`;
+  const keywordId = `bb-k-${kind}`;
+
   const readonlyCls = 'bg-muted/40 text-muted-foreground cursor-default';
 
   return (
+    <>
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,42%)_minmax(0,1fr)] lg:items-start">
       <div className="flex min-h-0 min-w-0 flex-col gap-4">
         <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
@@ -150,6 +181,18 @@ function BrandPanel({
               className="mt-2"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (saveConfirmOpen) return;
+                if (e.key === 'ArrowDown' && filtered.length > 0) {
+                  e.preventDefault();
+                  selectRowAtFilteredIndex(0);
+                  focusBrandRow(0);
+                }
+                if (e.key === 'ArrowRight') {
+                  e.preventDefault();
+                  document.getElementById(firstCodeId)?.focus();
+                }
+              }}
               placeholder="代碼、名稱、國別…"
               autoComplete="off"
             />
@@ -165,13 +208,44 @@ function BrandPanel({
           </div>
           <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
             <div className="space-y-2">
-              {filtered.map((r) => {
+              {filtered.map((r, i) => {
                 const active = r.id === selectedId && !creating;
                 return (
                   <button
                     key={r.id}
                     type="button"
+                    tabIndex={-1}
+                    data-brand-master-row={`${kind}-${i}`}
                     onClick={() => onRowClick(r.id)}
+                    onKeyDown={(e) => {
+                      if (saveConfirmOpen) return;
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (i < filtered.length - 1) {
+                          selectRowAtFilteredIndex(i + 1);
+                          focusBrandRow(i + 1);
+                        } else {
+                          document.getElementById(firstCodeId)?.focus();
+                        }
+                      }
+                      if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (i > 0) {
+                          selectRowAtFilteredIndex(i - 1);
+                          focusBrandRow(i - 1);
+                        } else {
+                          document.getElementById(keywordId)?.focus();
+                        }
+                      }
+                      if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        document.getElementById(firstCodeId)?.focus();
+                      }
+                      if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        document.getElementById(keywordId)?.focus();
+                      }
+                    }}
                     className={cn(
                       'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
                       active
@@ -193,7 +267,24 @@ function BrandPanel({
         </section>
       </div>
 
-      <aside className="glass-card min-h-[min(520px,calc(100vh-14rem))] rounded-2xl border border-border/80 p-4 shadow-sm lg:sticky lg:top-24">
+      <aside
+        className="glass-card min-h-[min(520px,calc(100vh-14rem))] rounded-2xl border border-border/80 p-4 shadow-sm lg:sticky lg:top-24"
+        onKeyDownCapture={(e) => {
+          if (saveConfirmOpen) return;
+          if (!creating && !editing) return;
+          const id = getFieldIdFromEventTarget(e.target);
+          if (e.key === 'ArrowLeft' && id === firstCodeId) {
+            e.preventDefault();
+            if (selectedFilteredIndex >= 0) focusBrandRow(selectedFilteredIndex);
+            else document.getElementById(keywordId)?.focus();
+            return;
+          }
+          handleMasterFieldKeyDown(e, brandFieldOrder, {
+            enabled: true,
+            onLastField: () => setSaveConfirmOpen(true),
+          });
+        }}
+      >
         <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
         <h2 className="mt-1 text-sm font-semibold text-foreground">廠牌明細</h2>
         <div className="mt-4 space-y-3">
@@ -227,8 +318,9 @@ function BrandPanel({
               className={!creating && !editing ? readonlyCls : undefined}
             />
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label htmlFor={`bb-active-${kind}`} className="flex items-center gap-2 text-sm">
             <input
+              id={`bb-active-${kind}`}
               type="checkbox"
               className="size-4 accent-primary"
               checked={formValues.isActive}
@@ -241,7 +333,14 @@ function BrandPanel({
         <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (
             <>
-              <Button type="button" size="sm" onClick={onSave}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  if (!draft.code.trim()) return;
+                  setSaveConfirmOpen(true);
+                }}
+              >
                 儲存
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={onCancel}>
@@ -258,6 +357,12 @@ function BrandPanel({
         </div>
       </aside>
     </div>
+    <MasterSaveConfirmDialog
+      open={saveConfirmOpen}
+      onOpenChange={setSaveConfirmOpen}
+      onConfirm={() => performSave()}
+    />
+    </>
   );
 }
 

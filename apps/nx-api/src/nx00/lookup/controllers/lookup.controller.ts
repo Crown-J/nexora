@@ -34,6 +34,16 @@ export class LookupController {
     }
 
     /**
+     * @CODE nxapi_nx00_lookup_car_brand_001
+     * GET /lookup/car-brand?isActive=true
+     */
+    @Get('car-brand')
+    async carBrand(@Query() query: any) {
+        const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
+        return this.lookup.carBrand(isActive);
+    }
+
+    /**
      * @CODE nxapi_nx00_lookup_warehouse_001
      * GET /lookup/warehouse?isActive=true
      */

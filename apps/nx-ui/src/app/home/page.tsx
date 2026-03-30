@@ -73,6 +73,7 @@ export default function HomePage() {
   }
 
   const nameText = displayName || me?.username || '系統管理員';
+  const isAdmin = Boolean(me?.roles?.includes('ADMIN'));
 
   return (
     <HomeLandingChrome
@@ -88,11 +89,11 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto space-y-5">
         <section className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
           <CalendarPanel selectedDate={selectedDate} onDateSelect={setSelectedDate} />
-          <CalendarDetails selectedDate={selectedDate} />
+          <CalendarDetails selectedDate={selectedDate} isAdmin={isAdmin} />
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <BulletinBoard />
+          <BulletinBoard isAdmin={isAdmin} />
           <TaskList />
         </section>
       </div>

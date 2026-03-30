@@ -28,6 +28,9 @@ import { WarehouseModule } from './warehouse/warehouse.module';
 import { LocationModule } from './location/location.module';
 import { PartnerModule } from './partner/partner.module';
 
+import { BulletinModule } from './bulletin/bulletin.module';
+import { CalendarEventModule } from './calendar-event/calendar-event.module';
+
 // Audit
 import { AuditLogModule } from './audit-log/audit-log.module';
 
@@ -49,6 +52,9 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     WarehouseModule,
     LocationModule,
     PartnerModule,
+
+    BulletinModule,
+    CalendarEventModule,
 
     // Audit
     AuditLogModule,

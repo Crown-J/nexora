@@ -18,6 +18,7 @@ export type ListLocationParams = {
     pageSize: number;
     q?: string;
     warehouseId?: string; // LITE 會固定傳入單倉 id；PLUS 才開放使用者選倉
+    isActive?: boolean;
 };
 
 /**
@@ -32,6 +33,7 @@ export async function listLocation(params: ListLocationParams): Promise<PagedRes
         pageSize: String(params.pageSize),
         q: params.q?.trim() ? params.q.trim() : undefined,
         warehouseId: params.warehouseId ? String(params.warehouseId) : undefined,
+        isActive: params.isActive === undefined ? undefined : String(params.isActive),
     });
 
     const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });

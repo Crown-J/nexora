@@ -97,8 +97,8 @@ export class BrandService {
         if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
 
         const [total, rows] = await Promise.all([
-            this.prisma.nx00Brand.count({ where }),
-            this.prisma.nx00Brand.findMany({
+            this.prisma.nx00PartBrand.count({ where }),
+            this.prisma.nx00PartBrand.findMany({
                 where,
                 orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
                 skip: (page - 1) * pageSize,
@@ -119,7 +119,7 @@ export class BrandService {
     }
 
     async get(id: string): Promise<BrandDto> {
-        const row = await this.prisma.nx00Brand.findUnique({
+        const row = await this.prisma.nx00PartBrand.findUnique({
             where: { id },
             include: {
                 createdByUser: { select: { displayName: true } },
@@ -140,7 +140,7 @@ export class BrandService {
         const sortNo = typeof body.sortNo === 'number' && Number.isFinite(body.sortNo) ? body.sortNo : 0;
 
         try {
-            const row = await this.prisma.nx00Brand.create({
+            const row = await this.prisma.nx00PartBrand.create({
                 data: {
                     code,
                     name,
@@ -194,7 +194,7 @@ export class BrandService {
     }
 
     async update(id: string, body: UpdateBrandBody, ctx?: BrandActionContext): Promise<BrandDto> {
-        const exists = await this.prisma.nx00Brand.findUnique({
+        const exists = await this.prisma.nx00PartBrand.findUnique({
             where: { id },
             select: {
                 id: true,
@@ -227,7 +227,7 @@ export class BrandService {
         if (typeof body.isActive === 'boolean') data.isActive = body.isActive;
 
         try {
-            const row = await this.prisma.nx00Brand.update({
+            const row = await this.prisma.nx00PartBrand.update({
                 where: { id },
                 data,
                 include: {
@@ -280,13 +280,13 @@ export class BrandService {
     }
 
     async setActive(id: string, body: SetActiveBody, ctx?: BrandActionContext): Promise<BrandDto> {
-        const exists = await this.prisma.nx00Brand.findUnique({
+        const exists = await this.prisma.nx00PartBrand.findUnique({
             where: { id },
             select: { id: true, code: true, isActive: true },
         });
         if (!exists) throw new NotFoundException('Brand not found');
 
-        const row = await this.prisma.nx00Brand.update({
+        const row = await this.prisma.nx00PartBrand.update({
             where: { id },
             data: {
                 isActive: Boolean(body.isActive),

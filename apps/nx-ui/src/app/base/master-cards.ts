@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - /base 主檔 hub 卡片測試資料與 segment 對照（不接 API）
+ * - /base 主檔 hub 卡片 metadata（摘要數字由 page 以 API total 覆寫）
  */
 
 import {
@@ -47,7 +47,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     description: '職稱與職務主檔維護',
     icon: Briefcase,
     statLabel: '職務項目',
-    statValue: '12 筆',
+    statValue: '—',
     href: '/base/role',
   },
   {
@@ -56,7 +56,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     description: '角色與畫面權限矩陣（Role ⇄ View）',
     icon: Shield,
     statLabel: '已套用規則',
-    statValue: '8 組',
+    statValue: '—',
     href: '/base/role-view',
   },
   {
@@ -65,7 +65,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     description: '料號、規格與狀態',
     icon: Package,
     statLabel: '零件筆數',
-    statValue: '1,284 筆',
+    statValue: '—',
     href: '/base/part',
   },
   {
@@ -74,7 +74,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     description: 'OEM／副廠與品牌對照',
     icon: Tags,
     statLabel: '廠牌',
-    statValue: '56 筆',
+    statValue: '—',
     href: '/base/brand',
   },
   {
@@ -83,7 +83,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     description: '族群名稱與料號匹配（廠牌 + seg1～5）',
     icon: Layers,
     statLabel: '族群',
-    statValue: '24 筆',
+    statValue: '—',
     href: '/base/part-group',
   },
   {
@@ -91,8 +91,8 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     title: '倉庫及庫位',
     description: '倉別設定與儲位結構',
     icon: Warehouse,
-    statLabel: '倉別',
-    statValue: '3 倉',
+    statLabel: '倉／庫位',
+    statValue: '—',
     href: '/base/location',
   },
   {
@@ -101,7 +101,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     description: '供應商、客戶與往來標籤',
     icon: Handshake,
     statLabel: '往來對象',
-    statValue: '318 筆',
+    statValue: '—',
     href: '/base/partner',
   },
 ];

@@ -38,6 +38,8 @@ export type MeDto = {
   phone?: string | null;
   is_active?: boolean;
   isActive?: boolean;
+  /** 角色代碼（例：ADMIN），來自 /auth/me */
+  roles?: string[];
   uu_sta?: string;
   statusCode?: string;
   uu_rmk?: string | null;

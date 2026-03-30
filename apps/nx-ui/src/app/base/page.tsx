@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
@@ -17,14 +17,62 @@ import { HomeTopBar } from '@/components/home/top-bar';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
 import { cn } from '@/lib/utils';
 import { MASTER_HUB_CARDS } from '@/app/base/master-cards';
+import { listUsers } from '@/features/base/api/user';
+import { listRoles } from '@/features/base/api/role';
+import { listPartners } from '@/features/base/api/partner';
+import { listWarehouses } from '@/features/base/api/warehouse';
+import { listPart } from '@/features/nx00/part/api/part';
+import { listBrand } from '@/features/nx00/brand/api/brand';
+import { listLocation } from '@/features/nx00/location/api/location';
+import { listRoleView } from '@/features/nx00/role-view/api/role-view';
+
+function fmtCount(n: number): string {
+  return `${n.toLocaleString('zh-TW')} 筆`;
+}
 
 export default function BaseMasterHubPage() {
   const router = useRouter();
   const { me, displayName, logout, view } = useSessionMe();
+  const [hubStats, setHubStats] = useState<Partial<Record<string, string>>>({});
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
   }, [me, router, view.loading]);
+
+  useEffect(() => {
+    if (view.loading || !me) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [u, r, rv, p, b, wh, loc, pt] = await Promise.all([
+          listUsers({ page: 1, pageSize: 1 }),
+          listRoles({ page: 1, pageSize: 1 }),
+          listRoleView({ page: 1, pageSize: 1 }),
+          listPart({ page: 1, pageSize: 1 }),
+          listBrand({ page: 1, pageSize: 1 }),
+          listWarehouses({ page: 1, pageSize: 1 }),
+          listLocation({ page: 1, pageSize: 1 }),
+          listPartners({ page: 1, pageSize: 1 }),
+        ]);
+        if (cancelled) return;
+        setHubStats({
+          user: fmtCount(u.total),
+          role: fmtCount(r.total),
+          'role-view': fmtCount(rv.total),
+          part: fmtCount(p.total),
+          brand: fmtCount(b.total),
+          'part-group': '後端未提供 API',
+          'warehouse-location': `${wh.total.toLocaleString('zh-TW')} 倉 · ${loc.total.toLocaleString('zh-TW')} 庫位`,
+          partner: fmtCount(pt.total),
+        });
+      } catch {
+        if (!cancelled) setHubStats({});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [view.loading, me]);
 
   if (view.loading) {
     return (
@@ -84,7 +132,7 @@ export default function BaseMasterHubPage() {
           <p className="text-xs tracking-[0.35em] text-muted-foreground">MASTER DATA</p>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">主檔管理</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
-            以下為測試用摘要數字；點選卡片進入各主檔維護（畫面建置中）。
+            摘要數字來自正式 API（登入後載入）；點選卡片進入各主檔維護。
           </p>
         </header>
 
@@ -116,7 +164,9 @@ export default function BaseMasterHubPage() {
                 <div className="mt-4 flex flex-wrap items-end justify-between gap-2 border-t border-border/60 pt-4">
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{card.statLabel}</p>
-                    <p className="text-lg font-semibold tabular-nums text-foreground">{card.statValue}</p>
+                    <p className="text-lg font-semibold tabular-nums text-foreground">
+                      {hubStats[card.id] ?? card.statValue}
+                    </p>
                   </div>
                   {card.links ? (
                     <div className="flex flex-wrap gap-2">

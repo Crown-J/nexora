@@ -17,7 +17,7 @@ type SoRow = {
   docNo: string;
   soDate: Date;
   customerId: string;
-  quoteId: string;
+  sourceQuoteId: string | null;
   currency: string;
   status: string;
   remark: string | null;
@@ -27,7 +27,7 @@ type SoRow = {
   items: {
     id: string;
     lineNo: number;
-    quoteItemId: string;
+    sourceQuoteItemId: string | null;
     partId: string;
     partNo: string;
     partName: string;
@@ -45,7 +45,7 @@ function toSoDto(row: SoRow): SalesOrderDto {
     docNo: row.docNo,
     soDate: row.soDate?.toISOString?.() ?? String(row.soDate),
     customerId: row.customerId,
-    quoteId: row.quoteId,
+    quoteId: row.sourceQuoteId ?? '',
     currency: row.currency,
     status: row.status,
     remark: row.remark ?? null,
@@ -55,7 +55,7 @@ function toSoDto(row: SoRow): SalesOrderDto {
     items: row.items.map((it) => ({
       id: it.id,
       lineNo: it.lineNo,
-      quoteItemId: it.quoteItemId,
+      quoteItemId: it.sourceQuoteItemId ?? '',
       partId: it.partId,
       partNo: it.partNo,
       partName: it.partName,
@@ -88,8 +88,8 @@ export class SalesOrderService {
     }
 
     const [total, rows] = await Promise.all([
-      this.prisma.nx08SalesOrder.count({ where }),
-      this.prisma.nx08SalesOrder.findMany({
+      this.prisma.nx03So.count({ where }),
+      this.prisma.nx03So.findMany({
         where,
         orderBy: [{ createdAt: 'desc' }],
         skip: (page - 1) * pageSize,
@@ -100,7 +100,7 @@ export class SalesOrderService {
             select: {
               id: true,
               lineNo: true,
-              quoteItemId: true,
+              sourceQuoteItemId: true,
               partId: true,
               partNo: true,
               partName: true,
@@ -124,7 +124,7 @@ export class SalesOrderService {
   }
 
   async get(id: string): Promise<SalesOrderDto> {
-    const row = await this.prisma.nx08SalesOrder.findUnique({
+    const row = await this.prisma.nx03So.findUnique({
       where: { id },
       include: {
         items: {
@@ -132,7 +132,7 @@ export class SalesOrderService {
           select: {
             id: true,
             lineNo: true,
-            quoteItemId: true,
+            sourceQuoteItemId: true,
             partId: true,
             partNo: true,
             partName: true,
@@ -151,7 +151,7 @@ export class SalesOrderService {
   }
 
   async ship(id: string, ctx?: { actorUserId?: string; ipAddr?: string | null; userAgent?: string | null }): Promise<SalesOrderDto> {
-    const existing = await this.prisma.nx08SalesOrder.findUnique({
+    const existing = await this.prisma.nx03So.findUnique({
       where: { id },
       include: {
         items: {
@@ -159,7 +159,7 @@ export class SalesOrderService {
           select: {
             id: true,
             lineNo: true,
-            quoteItemId: true,
+            sourceQuoteItemId: true,
             partId: true,
             partNo: true,
             partName: true,
@@ -190,14 +190,14 @@ export class SalesOrderService {
 
       if (shouldDecrementStock) {
         // Outbound stock posting (SO 出貨 → 庫存 -)
-        for (const item of existing.items ?? []) {
-          const beforeRow = await tx.nx09StockBalance.findFirst({
+        for (const item of (existing as { items: SoRow['items'] }).items) {
+          const beforeRow = await tx.nx02StockBalance.findFirst({
             where: { tenantId, warehouseId: item.warehouseId, partId: item.partId },
-            select: { id: true, qty: true },
+            select: { id: true, onHandQty: true },
           });
 
           const zero = item.qty.mul(0 as any);
-          const beforeQty = beforeRow?.qty ?? zero;
+          const beforeQty = beforeRow?.onHandQty ?? zero;
 
           if (beforeQty.lt(item.qty)) {
             throw new BadRequestException(
@@ -212,17 +212,19 @@ export class SalesOrderService {
             throw new BadRequestException('Stock balance not found');
           }
 
-          await tx.nx09StockBalance.update({
+          await tx.nx02StockBalance.update({
             where: { id: beforeRow.id },
             data: {
-              qty: afterQty,
+              onHandQty: afterQty,
               updatedBy: ctx?.actorUserId ?? null,
             },
           });
 
-          await tx.nx09StockTxn.create({
+          await tx.nx02StockLedger.create({
             data: {
               tenantId,
+              movementDate: new Date(),
+              occurredAt: new Date(),
               txnType: 'O',
               refType: 'SO',
               refId: existing.id,
@@ -231,6 +233,13 @@ export class SalesOrderService {
               qtyDelta: item.qty.mul(-1 as any),
               beforeQty,
               afterQty,
+              movementType: 'O',
+              qtyIn: zero,
+              qtyOut: item.qty,
+              sourceModule: 'NX03',
+              sourceDocType: 'S',
+              sourceDocId: existing.id,
+              sourceItemId: item.id,
               remark: item.remark ?? null,
               createdBy: ctx?.actorUserId ?? null,
               updatedBy: ctx?.actorUserId ?? null,
@@ -239,7 +248,7 @@ export class SalesOrderService {
         }
       }
 
-      return tx.nx08SalesOrder.update({
+      return tx.nx03So.update({
         where: { id },
         data: {
           status: next,
@@ -258,7 +267,7 @@ export class SalesOrderService {
         actorUserId: ctx.actorUserId,
         moduleCode: 'NX03',
         action: 'SHIP',
-        entityTable: 'nx08_sales_order',
+        entityTable: 'nx03_so',
         entityId: updated.id,
         entityCode: updated.docNo,
         summary: `Ship SO ${updated.docNo}`,

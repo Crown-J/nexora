@@ -1,10 +1,10 @@
 /**
- * 倉庫主檔：左側倉庫列表、右上明細、右下庫位（mock，對齊 base/role 版型）
+ * 倉庫主檔：GET/POST/PUT /warehouse，庫位 GET/POST/PATCH /location
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,58 +12,104 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import {
-  MOCK_BASE_WAREHOUSES,
-  MOCK_BIN_SUGGESTIONS,
-  MOCK_BINS_BY_WAREHOUSE,
-  type BaseStorageBinRow,
-  type BaseWarehouseRow,
-} from './mock-data';
+import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
+import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
+import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@/features/base/api/warehouse';
+import { createLocation, listLocation, setLocationActive } from '@/features/nx00/location/api/location';
+import type { LocationDto } from '@/features/nx00/location/types';
 
-type WhDraft = { code: string; name: string; address: string; isActive: boolean };
+type WhDraft = { code: string; name: string; remark: string; isActive: boolean };
 
 function emptyWh(): WhDraft {
-  return { code: '', name: '', address: '', isActive: true };
+  return { code: '', name: '', remark: '', isActive: true };
 }
 
-function fromWh(w: BaseWarehouseRow): WhDraft {
-  return { code: w.code, name: w.name, address: w.address, isActive: w.isActive };
+function fromDto(w: WarehouseDto): WhDraft {
+  return {
+    code: w.code,
+    name: w.name,
+    remark: w.remark ?? '',
+    isActive: w.isActive,
+  };
 }
 
-function newId(p: string): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return `${p}-${crypto.randomUUID()}`;
-  return `${p}-${Date.now()}`;
-}
+/** 庫位快速帶入（僅前端預填，寫入仍走 API） */
+const BIN_SUGGESTIONS: { code: string; zone: string }[] = [
+  { code: 'A-01-01', zone: 'A 區' },
+  { code: 'A-01-02', zone: 'A 區' },
+  { code: 'B-02-01', zone: 'B 區' },
+  { code: 'RCV-01', zone: '收貨' },
+];
 
 export function BaseWarehouseLocationView() {
-  const [warehouses, setWarehouses] = useState<BaseWarehouseRow[]>(() => [...MOCK_BASE_WAREHOUSES]);
-  const [whSearch, setWhSearch] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(() => MOCK_BASE_WAREHOUSES[0]?.id ?? null);
-  const [creating, setCreating] = useState(false);
-  const [detailDraft, setDetailDraft] = useState<WhDraft>(() =>
-    MOCK_BASE_WAREHOUSES[0] ? fromWh(MOCK_BASE_WAREHOUSES[0]) : emptyWh(),
-  );
-  const [baselineDetail, setBaselineDetail] = useState<WhDraft>(() =>
-    MOCK_BASE_WAREHOUSES[0] ? fromWh(MOCK_BASE_WAREHOUSES[0]) : emptyWh(),
-  );
+  const [warehouses, setWarehouses] = useState<WarehouseDto[]>([]);
+  const [locations, setLocations] = useState<LocationDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [locLoading, setLocLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [savingWh, setSavingWh] = useState(false);
+  const [binSaving, setBinSaving] = useState(false);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
-  const [binsByWh, setBinsByWh] = useState<Record<string, BaseStorageBinRow[]>>(() => {
-    const c: Record<string, BaseStorageBinRow[]> = {};
-    for (const k of Object.keys(MOCK_BINS_BY_WAREHOUSE)) {
-      c[k] = MOCK_BINS_BY_WAREHOUSE[k]!.map((b) => ({ ...b }));
-    }
-    return c;
-  });
-  const [baselineBins, setBaselineBins] = useState<BaseStorageBinRow[]>(() => {
-    const id = MOCK_BASE_WAREHOUSES[0]?.id;
-    if (!id) return [];
-    return (MOCK_BINS_BY_WAREHOUSE[id] ?? []).map((b) => ({ ...b }));
-  });
+  const WH_FIELD_ORDER: readonly string[] = ['wh-code', 'wh-name', 'wh-remark', 'wh-active'];
+
+  const [whSearch, setWhSearch] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [detailDraft, setDetailDraft] = useState<WhDraft>(emptyWh);
+  const [baselineDetail, setBaselineDetail] = useState<WhDraft>(emptyWh);
 
   const [binCode, setBinCode] = useState('');
   const [binZone, setBinZone] = useState('');
   const [binNote, setBinNote] = useState('');
   const [binFilter, setBinFilter] = useState('');
+
+  const reloadWarehouses = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await listWarehouses({ page: 1, pageSize: 500 });
+      setWarehouses(r.items);
+      return r.items;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '載入倉庫失敗');
+      setWarehouses([]);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadLocations = useCallback(async (warehouseId: string) => {
+    setLocLoading(true);
+    setError(null);
+    try {
+      const r = await listLocation({
+        page: 1,
+        pageSize: 500,
+        warehouseId,
+        isActive: true,
+      });
+      setLocations(r.items);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '載入庫位失敗');
+      setLocations([]);
+    } finally {
+      setLocLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reloadWarehouses();
+  }, [reloadWarehouses]);
+
+  useEffect(() => {
+    if (creating || !selectedId) {
+      setLocations([]);
+      return;
+    }
+    void loadLocations(selectedId);
+  }, [creating, selectedId, loadLocations]);
 
   const selectedWh = useMemo(
     () => (selectedId ? warehouses.find((w) => w.id === selectedId) ?? null : null),
@@ -76,37 +122,31 @@ export function BaseWarehouseLocationView() {
     return warehouses.filter((w) => `${w.code} ${w.name}`.toLowerCase().includes(q));
   }, [warehouses, whSearch]);
 
-  const bins = useMemo(() => {
-    if (creating || !selectedId) return [];
-    return binsByWh[selectedId] ?? [];
-  }, [binsByWh, creating, selectedId]);
+  const selectedWhIndex = useMemo(
+    () => (selectedId ? filteredWh.findIndex((w) => w.id === selectedId) : -1),
+    [filteredWh, selectedId],
+  );
 
   const binsShown = useMemo(() => {
     const k = binFilter.trim().toLowerCase();
-    if (!k) return bins;
-    return bins.filter((b) => `${b.code} ${b.zone} ${b.note}`.toLowerCase().includes(k));
-  }, [bins, binFilter]);
+    const list = locations;
+    if (!k) return list;
+    return list.filter((b) =>
+      `${b.code} ${b.zone ?? ''} ${b.remark ?? ''}`.toLowerCase().includes(k),
+    );
+  }, [locations, binFilter]);
 
   const detailDirty = useMemo(() => {
-    if (creating) return detailDraft.code.trim() !== '' || detailDraft.name.trim() !== '' || detailDraft.address.trim() !== '';
+    if (creating) return detailDraft.code.trim() !== '' || detailDraft.name.trim() !== '' || detailDraft.remark.trim() !== '';
     return JSON.stringify(detailDraft) !== JSON.stringify(baselineDetail);
   }, [baselineDetail, creating, detailDraft]);
 
-  const binsDirty = useMemo(() => {
-    if (creating || !selectedId) return false;
-    return JSON.stringify(bins) !== JSON.stringify(baselineBins);
-  }, [baselineBins, bins, creating, selectedId]);
-
-  const dirty = detailDirty || binsDirty;
-
-  const onSelectWh = (w: BaseWarehouseRow) => {
+  const onSelectWh = (w: WarehouseDto) => {
     setCreating(false);
     setSelectedId(w.id);
-    const d = fromWh(w);
+    const d = fromDto(w);
     setDetailDraft(d);
     setBaselineDetail(d);
-    const mem = binsByWh[w.id] ?? [];
-    setBaselineBins(mem.map((b) => ({ ...b })));
     setBinCode('');
     setBinZone('');
     setBinNote('');
@@ -116,9 +156,9 @@ export function BaseWarehouseLocationView() {
   const onAddWh = () => {
     setCreating(true);
     setSelectedId(null);
+    setLocations([]);
     setDetailDraft(emptyWh());
     setBaselineDetail(emptyWh());
-    setBaselineBins([]);
     setBinCode('');
     setBinZone('');
     setBinNote('');
@@ -131,80 +171,99 @@ export function BaseWarehouseLocationView() {
     }
     if (selectedWh) {
       setDetailDraft({ ...baselineDetail });
-      setBinsByWh((prev) => ({
-        ...prev,
-        [selectedWh.id]: baselineBins.map((b) => ({ ...b })),
-      }));
     }
   };
 
-  const onSave = () => {
+  const performSaveWh = async () => {
     const code = detailDraft.code.trim().toUpperCase();
     const name = detailDraft.name.trim();
     if (!code || !name) return;
-    if (creating) {
-      const id = newId('wh');
-      const row: BaseWarehouseRow = {
-        id,
+    setSavingWh(true);
+    setError(null);
+    try {
+      const remark = detailDraft.remark.trim() || null;
+      if (creating) {
+        const dto = await createWarehouse({
+          code,
+          name,
+          remark,
+          isActive: detailDraft.isActive,
+        });
+        setWarehouses((prev) => [...prev, dto].sort((a, b) => a.code.localeCompare(b.code)));
+        setCreating(false);
+        setSelectedId(dto.id);
+        const d = fromDto(dto);
+        setDetailDraft(d);
+        setBaselineDetail(d);
+        return;
+      }
+      if (!selectedId || !selectedWh) return;
+      const dto = await updateWarehouse(selectedId, {
         code,
         name,
-        address: detailDraft.address.trim(),
+        remark,
         isActive: detailDraft.isActive,
-      };
-      setWarehouses((prev) => [...prev, row].sort((a, b) => a.code.localeCompare(b.code)));
-      setBinsByWh((prev) => ({ ...prev, [id]: [] }));
-      setCreating(false);
-      setSelectedId(id);
-      setDetailDraft(fromWh(row));
-      setBaselineDetail(fromWh(row));
-      setBaselineBins([]);
-      return;
+      });
+      setWarehouses((prev) => prev.map((w) => (w.id === selectedId ? dto : w)));
+      const d = fromDto(dto);
+      setDetailDraft(d);
+      setBaselineDetail(d);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '儲存倉庫失敗');
+    } finally {
+      setSavingWh(false);
     }
-    if (!selectedId || !selectedWh) return;
-    setWarehouses((prev) =>
-      prev.map((w) =>
-        w.id === selectedId
-          ? {
-              ...w,
-              code,
-              name,
-              address: detailDraft.address.trim(),
-              isActive: detailDraft.isActive,
-            }
-          : w,
-      ),
-    );
-    setBaselineDetail({ ...detailDraft });
-    setBaselineBins(bins.map((b) => ({ ...b })));
   };
 
-  const addBin = () => {
+  const focusWhRow = (index: number) => {
+    requestAnimationFrame(() => {
+      (document.querySelector(`[data-wh-master-row="${index}"]`) as HTMLElement | null)?.focus();
+    });
+  };
+
+  const selectWhAtFilteredIndex = (idx: number) => {
+    const w = filteredWh[idx];
+    if (!w) return;
+    onSelectWh(w);
+  };
+
+  const addBin = async () => {
     if (creating || !selectedId) return;
     const code = binCode.trim().toUpperCase();
     if (!code) return;
-    setBinsByWh((prev) => {
-      const list = [...(prev[selectedId] ?? [])];
-      if (list.some((b) => b.code === code)) return prev;
-      list.push({
-        id: newId('bin'),
+    setBinSaving(true);
+    setError(null);
+    try {
+      await createLocation({
         warehouseId: selectedId,
         code,
-        zone: binZone.trim() || '—',
-        note: binNote.trim(),
+        zone: binZone.trim() || null,
+        remark: binNote.trim() || null,
+        name: null,
         isActive: true,
       });
-      return { ...prev, [selectedId]: list };
-    });
-    setBinCode('');
-    setBinNote('');
+      await loadLocations(selectedId);
+      setBinCode('');
+      setBinNote('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '新增庫位失敗');
+    } finally {
+      setBinSaving(false);
+    }
   };
 
-  const removeBin = (binId: string) => {
+  const removeBin = async (binId: string) => {
     if (creating || !selectedId) return;
-    setBinsByWh((prev) => ({
-      ...prev,
-      [selectedId]: (prev[selectedId] ?? []).filter((b) => b.id !== binId),
-    }));
+    setBinSaving(true);
+    setError(null);
+    try {
+      await setLocationActive(binId, false);
+      await loadLocations(selectedId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '停用庫位失敗');
+    } finally {
+      setBinSaving(false);
+    }
   };
 
   const applySuggestion = (s: { code: string; zone: string }) => {
@@ -215,19 +274,32 @@ export function BaseWarehouseLocationView() {
   const leftTitle = selectedWh && !creating ? `倉庫列表（已選：${selectedWh.name}）` : '倉庫列表';
 
   return (
+    <>
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-stretch">
+      {error ? (
+        <div className="lg:col-span-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
+
       <section className="glass-card flex max-h-[min(720px,calc(100vh-220px))] min-h-[420px] flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
             <p className="text-xs tracking-[0.35em] text-muted-foreground">WAREHOUSE</p>
             <h2 className="mt-1 text-sm font-semibold text-foreground">{leftTitle}</h2>
           </div>
-          <Button type="button" size="sm" className="shrink-0 gap-1" onClick={onAddWh}>
-            <Plus className="size-4" aria-hidden />
-            新增
-          </Button>
+          <div className="flex shrink-0 gap-1">
+            <Button type="button" size="sm" variant="ghost" onClick={() => void reloadWarehouses()} disabled={loading}>
+              重新載入
+            </Button>
+            <Button type="button" size="sm" className="gap-1" onClick={onAddWh} disabled={loading || savingWh}>
+              <Plus className="size-4" aria-hidden />
+              新增
+            </Button>
+          </div>
         </div>
         <Input
+          id="wh-search"
           value={whSearch}
           onChange={(e) => setWhSearch(e.target.value)}
           placeholder="搜尋倉庫（代碼／名稱）"
@@ -235,29 +307,77 @@ export function BaseWarehouseLocationView() {
           autoComplete="off"
           onKeyDown={(e) => {
             if (e.key === 'Escape') setWhSearch('');
+            if (saveConfirmOpen) return;
+            if (e.key === 'ArrowDown' && filteredWh.length > 0) {
+              e.preventDefault();
+              selectWhAtFilteredIndex(0);
+              focusWhRow(0);
+            }
+            if (e.key === 'ArrowRight' && (creating || selectedWh)) {
+              e.preventDefault();
+              document.getElementById('wh-code')?.focus();
+            }
           }}
         />
         <ScrollArea className="min-h-0 flex-1 pr-2">
           <div className="space-y-2 pb-1">
-            {filteredWh.map((w) => {
-              const active = !creating && selectedId === w.id;
-              return (
-                <button
-                  key={w.id}
-                  type="button"
-                  onClick={() => onSelectWh(w)}
-                  className={cn(
-                    'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
-                    active
-                      ? 'border-primary/40 border-l-4 border-l-primary bg-primary/10 pl-2.5 shadow-sm ring-1 ring-primary/20'
-                      : 'border-border/80 bg-muted/15 hover:bg-muted/30',
-                  )}
-                >
-                  <div className="font-semibold leading-snug">{w.name}</div>
-                  <div className="text-xs text-muted-foreground">{w.code}</div>
-                </button>
-              );
-            })}
+            {loading ? (
+              <p className="text-sm text-muted-foreground">載入中…</p>
+            ) : (
+              filteredWh.map((w, i) => {
+                const active = !creating && selectedId === w.id;
+                return (
+                  <button
+                    key={w.id}
+                    type="button"
+                    tabIndex={-1}
+                    data-wh-master-row={i}
+                    onClick={() => onSelectWh(w)}
+                    onKeyDown={(e) => {
+                      if (saveConfirmOpen) return;
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (i < filteredWh.length - 1) {
+                          selectWhAtFilteredIndex(i + 1);
+                          focusWhRow(i + 1);
+                        } else if (creating || selectedWh) {
+                          document.getElementById('wh-code')?.focus();
+                        }
+                      }
+                      if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (i > 0) {
+                          selectWhAtFilteredIndex(i - 1);
+                          focusWhRow(i - 1);
+                        } else {
+                          document.getElementById('wh-search')?.focus();
+                        }
+                      }
+                      if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        if (creating || selectedWh) document.getElementById('wh-code')?.focus();
+                      }
+                      if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        document.getElementById('wh-search')?.focus();
+                      }
+                    }}
+                    className={cn(
+                      'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
+                      active
+                        ? 'border-primary/40 border-l-4 border-l-primary bg-primary/10 pl-2.5 shadow-sm ring-1 ring-primary/20'
+                        : 'border-border/80 bg-muted/15 hover:bg-muted/30',
+                    )}
+                  >
+                    <div className="font-semibold leading-snug">{w.name}</div>
+                    <div className="text-xs text-muted-foreground">{w.code}</div>
+                  </button>
+                );
+              })
+            )}
+            {!loading && filteredWh.length === 0 ? (
+              <p className="text-sm text-muted-foreground">尚無倉庫資料，請按「新增」或確認 API／權限。</p>
+            ) : null}
           </div>
         </ScrollArea>
       </section>
@@ -278,14 +398,19 @@ export function BaseWarehouseLocationView() {
               <Button
                 type="button"
                 size="sm"
-                onClick={onSave}
+                onClick={() => {
+                  if (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedWh || !detailDirty)
+                    return;
+                  setSaveConfirmOpen(true);
+                }}
                 disabled={
-                  creating
+                  savingWh ||
+                  (creating
                     ? !detailDraft.code.trim() || !detailDraft.name.trim()
-                    : !selectedWh || !dirty
+                    : !selectedWh || !detailDirty)
                 }
               >
-                儲存
+                {savingWh ? '儲存中…' : '儲存'}
               </Button>
             </div>
           </div>
@@ -293,7 +418,24 @@ export function BaseWarehouseLocationView() {
           {!creating && !selectedWh ? (
             <p className="text-sm text-muted-foreground">請從左側選擇倉庫，或點「新增」。</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className="grid gap-4 sm:grid-cols-2"
+              onKeyDownCapture={(e) => {
+                if (saveConfirmOpen) return;
+                const id = getFieldIdFromEventTarget(e.target);
+                if (e.key === 'ArrowLeft' && id === 'wh-code') {
+                  e.preventDefault();
+                  if (selectedWhIndex >= 0) focusWhRow(selectedWhIndex);
+                  else document.getElementById('wh-search')?.focus();
+                  return;
+                }
+                handleMasterFieldKeyDown(e, WH_FIELD_ORDER, {
+                  enabled: true,
+                  onLastField: () => setSaveConfirmOpen(true),
+                  multilineFieldIds: new Set(['wh-remark']),
+                });
+              }}
+            >
               <div className="space-y-2">
                 <Label htmlFor="wh-code">倉庫代碼</Label>
                 <Input
@@ -312,9 +454,21 @@ export function BaseWarehouseLocationView() {
                   autoComplete="off"
                 />
               </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="wh-remark">備註</Label>
+                <Textarea
+                  id="wh-remark"
+                  value={detailDraft.remark}
+                  onChange={(e) => setDetailDraft((d) => ({ ...d, remark: e.target.value }))}
+                  rows={3}
+                  className="min-h-[80px] resize-y"
+                  placeholder="選填"
+                />
+              </div>
               <div className="flex items-end gap-2 pb-2 sm:col-span-2">
-                <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                <label htmlFor="wh-active" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
                   <input
+                    id="wh-active"
                     type="checkbox"
                     className="size-4 accent-primary"
                     checked={detailDraft.isActive}
@@ -322,16 +476,6 @@ export function BaseWarehouseLocationView() {
                   />
                   啟用
                 </label>
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="wh-addr">地址</Label>
-                <Textarea
-                  id="wh-addr"
-                  value={detailDraft.address}
-                  onChange={(e) => setDetailDraft((d) => ({ ...d, address: e.target.value }))}
-                  rows={3}
-                  className="min-h-[80px] resize-y"
-                />
               </div>
             </div>
           )}
@@ -341,7 +485,9 @@ export function BaseWarehouseLocationView() {
           <div className="mb-3 border-b border-border/60 pb-3">
             <p className="text-xs tracking-[0.35em] text-muted-foreground">BINS</p>
             <h2 className="mt-1 text-sm font-semibold text-foreground">此倉庫庫位</h2>
-            <p className="mt-1 text-xs text-muted-foreground">輸入代碼後加入；可點選下方範本帶入（mock）。</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              輸入代碼後加入；可點選下方範本帶入（寫入 nx00_location）。
+            </p>
           </div>
 
           {creating || !selectedId ? (
@@ -349,7 +495,7 @@ export function BaseWarehouseLocationView() {
           ) : (
             <>
               <div className="mb-3 flex flex-wrap gap-2">
-                {MOCK_BIN_SUGGESTIONS.map((s) => (
+                {BIN_SUGGESTIONS.map((s) => (
                   <button
                     key={s.code}
                     type="button"
@@ -391,17 +537,24 @@ export function BaseWarehouseLocationView() {
                     autoComplete="off"
                   />
                 </div>
-                <Button type="button" size="sm" className="w-full sm:col-span-2 lg:col-span-1 lg:w-auto" onClick={addBin}>
-                  加入庫位
+                <Button
+                  type="button"
+                  size="sm"
+                  className="w-full sm:col-span-2 lg:col-span-1 lg:w-auto"
+                  onClick={() => void addBin()}
+                  disabled={binSaving || locLoading}
+                >
+                  {binSaving ? '處理中…' : '加入庫位'}
                 </Button>
               </div>
-              <div className="mb-2">
+              <div className="mb-2 flex items-center gap-2">
                 <Input
                   value={binFilter}
                   onChange={(e) => setBinFilter(e.target.value)}
                   placeholder="在庫位清單內搜尋…"
                   className="max-w-sm"
                 />
+                {locLoading ? <span className="text-xs text-muted-foreground">庫位載入中…</span> : null}
               </div>
               <ScrollArea className="min-h-0 flex-1 pr-2">
                 <div className="flex flex-wrap gap-2 rounded-xl border border-border/60 bg-muted/10 p-3">
@@ -411,19 +564,20 @@ export function BaseWarehouseLocationView() {
                       className="flex max-w-full items-center gap-2 rounded-full border border-border/80 bg-card/60 px-3 py-1 text-sm"
                     >
                       <span className="font-mono text-xs">{b.code}</span>
-                      <span className="text-xs text-muted-foreground">{b.zone}</span>
-                      {b.note ? <span className="text-xs text-muted-foreground">· {b.note}</span> : null}
+                      <span className="text-xs text-muted-foreground">{b.zone ?? '—'}</span>
+                      {b.remark ? <span className="text-xs text-muted-foreground">· {b.remark}</span> : null}
                       <button
                         type="button"
                         className="text-xs text-muted-foreground hover:text-destructive"
-                        onClick={() => removeBin(b.id)}
+                        onClick={() => void removeBin(b.id)}
+                        disabled={binSaving}
                       >
                         ×
                       </button>
                     </div>
                   ))}
-                  {binsShown.length === 0 ? (
-                    <span className="text-xs text-muted-foreground">尚無庫位，請於上方新增。</span>
+                  {binsShown.length === 0 && !locLoading ? (
+                    <span className="text-xs text-muted-foreground">尚無啟用庫位，請於上方新增。</span>
                   ) : null}
                 </div>
               </ScrollArea>
@@ -432,5 +586,11 @@ export function BaseWarehouseLocationView() {
         </section>
       </div>
     </div>
+    <MasterSaveConfirmDialog
+      open={saveConfirmOpen}
+      onOpenChange={setSaveConfirmOpen}
+      onConfirm={() => void performSaveWh()}
+    />
+    </>
   );
 }

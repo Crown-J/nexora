@@ -5,6 +5,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
+import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -87,6 +89,19 @@ export function BasePartGroupMasterView() {
   const [draft, setDraft] = useState<Draft>(() =>
     MOCK_BASE_PART_GROUPS[0] ? fromRow(MOCK_BASE_PART_GROUPS[0]) : emptyDraft(defaultBrandId),
   );
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+
+  const PG_FIELD_ORDER: readonly string[] = [
+    'pg-name',
+    'pg-car-brand',
+    'pg-seg1',
+    'pg-seg2',
+    'pg-seg3',
+    'pg-seg4',
+    'pg-seg5',
+    'pg-sort',
+    'pg-active',
+  ];
 
   const brandName = (id: string) => carBrands.find((b) => b.id === id)?.name ?? id;
 
@@ -109,6 +124,17 @@ export function BasePartGroupMasterView() {
       return blob.includes(k);
     });
   }, [rows, keyword, brandPick, carBrands]);
+
+  const sortedFiltered = useMemo(
+    () =>
+      [...filtered].sort((a, b) => a.sortNo - b.sortNo || a.name.localeCompare(b.name, 'zh-Hant')),
+    [filtered],
+  );
+
+  const selectedFilteredIndex = useMemo(
+    () => (selectedId ? sortedFiltered.findIndex((r) => r.id === selectedId) : -1),
+    [sortedFiltered, selectedId],
+  );
 
   const selected = useMemo(
     () => (selectedId ? rows.find((r) => r.id === selectedId) ?? null : null),
@@ -157,7 +183,7 @@ export function BasePartGroupMasterView() {
     if (selected) setDraft(fromRow(selected));
   };
 
-  const onSave = () => {
+  const performSave = () => {
     const name = draft.name.trim();
     if (!name) return;
     if (!draft.carBrandId) return;
@@ -214,9 +240,24 @@ export function BasePartGroupMasterView() {
     setEditing(false);
   };
 
+  const focusPgRow = (index: number) => {
+    requestAnimationFrame(() => {
+      (document.querySelector(`[data-pg-master-row="${index}"]`) as HTMLElement | null)?.focus();
+    });
+  };
+
+  const selectRowAtSortedIndex = (idx: number) => {
+    const r = sortedFiltered[idx];
+    if (!r) return;
+    setSelectedId(r.id);
+    setCreating(false);
+    setEditing(false);
+  };
+
   const auditSource = selected;
 
   return (
+    <>
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,42%)_minmax(0,1fr)] lg:items-start">
       <div className="flex min-h-0 min-w-0 flex-col gap-4">
         <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
@@ -230,6 +271,18 @@ export function BasePartGroupMasterView() {
                 className="mt-0"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (saveConfirmOpen) return;
+                  if (e.key === 'ArrowDown' && sortedFiltered.length > 0) {
+                    e.preventDefault();
+                    selectRowAtSortedIndex(0);
+                    focusPgRow(0);
+                  }
+                  if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    document.getElementById('pg-name')?.focus();
+                  }
+                }}
                 placeholder="族群名稱、廠牌、seg1～5…"
                 autoComplete="off"
               />
@@ -258,20 +311,48 @@ export function BasePartGroupMasterView() {
             <Button type="button" size="sm" onClick={onAdd}>
               新增
             </Button>
-            <span className="ml-auto text-xs text-muted-foreground tabular-nums">共 {filtered.length} 筆</span>
+            <span className="ml-auto text-xs text-muted-foreground tabular-nums">共 {sortedFiltered.length} 筆</span>
           </div>
           <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
             <div className="space-y-2">
-              {filtered
-                .slice()
-                .sort((a, b) => a.sortNo - b.sortNo || a.name.localeCompare(b.name, 'zh-Hant'))
-                .map((r) => {
+              {sortedFiltered.map((r, i) => {
                   const active = r.id === selectedId && !creating;
                   return (
                     <button
                       key={r.id}
                       type="button"
+                      tabIndex={-1}
+                      data-pg-master-row={i}
                       onClick={() => onRowClick(r.id)}
+                      onKeyDown={(e) => {
+                        if (saveConfirmOpen) return;
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          if (i < sortedFiltered.length - 1) {
+                            selectRowAtSortedIndex(i + 1);
+                            focusPgRow(i + 1);
+                          } else {
+                            document.getElementById('pg-name')?.focus();
+                          }
+                        }
+                        if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          if (i > 0) {
+                            selectRowAtSortedIndex(i - 1);
+                            focusPgRow(i - 1);
+                          } else {
+                            document.getElementById('pg-k')?.focus();
+                          }
+                        }
+                        if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          document.getElementById('pg-name')?.focus();
+                        }
+                        if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          document.getElementById('pg-k')?.focus();
+                        }
+                      }}
                       className={cn(
                         'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
                         active
@@ -288,7 +369,7 @@ export function BasePartGroupMasterView() {
                     </button>
                   );
                 })}
-              {filtered.length === 0 ? (
+              {sortedFiltered.length === 0 ? (
                 <p className="text-sm text-muted-foreground">無符合資料。</p>
               ) : null}
             </div>
@@ -296,7 +377,24 @@ export function BasePartGroupMasterView() {
         </section>
       </div>
 
-      <aside className="glass-card min-h-[min(520px,calc(100vh-14rem))] rounded-2xl border border-border/80 p-4 shadow-sm lg:sticky lg:top-24">
+      <aside
+        className="glass-card min-h-[min(520px,calc(100vh-14rem))] rounded-2xl border border-border/80 p-4 shadow-sm lg:sticky lg:top-24"
+        onKeyDownCapture={(e) => {
+          if (saveConfirmOpen) return;
+          if (!creating && !editing) return;
+          const id = getFieldIdFromEventTarget(e.target);
+          if (e.key === 'ArrowLeft' && id === 'pg-name') {
+            e.preventDefault();
+            if (selectedFilteredIndex >= 0) focusPgRow(selectedFilteredIndex);
+            else document.getElementById('pg-k')?.focus();
+            return;
+          }
+          handleMasterFieldKeyDown(e, PG_FIELD_ORDER, {
+            enabled: true,
+            onLastField: () => setSaveConfirmOpen(true),
+          });
+        }}
+      >
         <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
         <h2 className="mt-1 text-sm font-semibold text-foreground">族群明細</h2>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
@@ -362,8 +460,9 @@ export function BasePartGroupMasterView() {
               className={!creating && !editing ? readonlyCls : undefined}
             />
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label htmlFor="pg-active" className="flex items-center gap-2 text-sm">
             <input
+              id="pg-active"
               type="checkbox"
               className="size-4 accent-primary"
               checked={formValues.isActive}
@@ -416,7 +515,14 @@ export function BasePartGroupMasterView() {
         <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (
             <>
-              <Button type="button" size="sm" onClick={onSave}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  if (!draft.name.trim() || !draft.carBrandId) return;
+                  setSaveConfirmOpen(true);
+                }}
+              >
                 儲存
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={onCancel}>
@@ -433,5 +539,11 @@ export function BasePartGroupMasterView() {
         </div>
       </aside>
     </div>
+    <MasterSaveConfirmDialog
+      open={saveConfirmOpen}
+      onOpenChange={setSaveConfirmOpen}
+      onConfirm={() => performSave()}
+    />
+    </>
   );
 }

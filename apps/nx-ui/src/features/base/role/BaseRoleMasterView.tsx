@@ -2,12 +2,12 @@
  * File: apps/nx-ui/src/features/base/role/BaseRoleMasterView.tsx
  *
  * Purpose:
- * - 職務主檔：左側列表（含新增）、右側上詳細資訊／下匯入使用者（mock，未接 API）
+ * - 職務主檔：連線 /role、/user、/user-role
  */
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,13 +16,26 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
-import { MOCK_BASE_USERS, type BaseUserRow } from '@/features/base/users/mock-data';
-import {
-  MOCK_BASE_ROLES,
-  MOCK_ROLE_MEMBERS_BY_ROLE,
-  type BaseRoleMemberRow,
-  type BaseRoleRow,
-} from './mock-data';
+import type { BaseUserRow } from '@/features/base/users/mock-data';
+import { assignUserRole, listUserRoles, revokeUserRole, setUserRolePrimary } from '@/features/base/api/user-role';
+import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
+import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
+import { createRole, listRoles, updateRole, type RoleDto } from '@/features/base/api/role';
+import { listUsers } from '@/features/base/api/user';
+import type { BaseRoleMemberRow, BaseRoleRow } from './mock-data';
+
+function roleDtoToRow(r: RoleDto): BaseRoleRow {
+  return {
+    id: r.id,
+    code: r.code,
+    name: r.name,
+    description: r.description ?? '',
+    sortOrder: r.sortNo,
+    isActive: r.isActive,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+  };
+}
 
 type DetailDraft = {
   code: string;
@@ -52,40 +65,78 @@ function draftFromRole(r: BaseRoleRow): DetailDraft {
   };
 }
 
-function newId(prefix: string): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return `${prefix}-${crypto.randomUUID()}`;
-  return `${prefix}-${Date.now()}`;
-}
-
 export function BaseRoleMasterView() {
-  const [roles, setRoles] = useState<BaseRoleRow[]>(() => [...MOCK_BASE_ROLES]);
+  const [roles, setRoles] = useState<BaseRoleRow[]>([]);
   const [roleSearch, setRoleSearch] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(() => MOCK_BASE_ROLES[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [detailDraft, setDetailDraft] = useState<DetailDraft>(() =>
-    MOCK_BASE_ROLES[0] ? draftFromRole(MOCK_BASE_ROLES[0]) : emptyDraft(),
-  );
-  const [baselineDetail, setBaselineDetail] = useState<DetailDraft>(() =>
-    MOCK_BASE_ROLES[0] ? draftFromRole(MOCK_BASE_ROLES[0]) : emptyDraft(),
-  );
+  const [detailDraft, setDetailDraft] = useState<DetailDraft>(() => emptyDraft());
+  const [baselineDetail, setBaselineDetail] = useState<DetailDraft>(() => emptyDraft());
 
-  const [membersByRole, setMembersByRole] = useState<Record<string, BaseRoleMemberRow[]>>(() => {
-    const copy: Record<string, BaseRoleMemberRow[]> = {};
-    for (const k of Object.keys(MOCK_ROLE_MEMBERS_BY_ROLE)) {
-      copy[k] = MOCK_ROLE_MEMBERS_BY_ROLE[k]!.map((m) => ({ ...m }));
-    }
-    return copy;
-  });
-  const [baselineMembers, setBaselineMembers] = useState<BaseRoleMemberRow[]>(() => {
-    const firstId = MOCK_BASE_ROLES[0]?.id;
-    if (!firstId) return [];
-    const list = MOCK_ROLE_MEMBERS_BY_ROLE[firstId] ?? [];
-    return list.map((m) => ({ ...m }));
-  });
+  const [membersByRole, setMembersByRole] = useState<Record<string, BaseRoleMemberRow[]>>({});
+  const [baselineMembers, setBaselineMembers] = useState<BaseRoleMemberRow[]>([]);
+
+  const [pickerUsers, setPickerUsers] = useState<BaseUserRow[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+
+  const ROLE_FIELD_ORDER: readonly string[] = ['br-code', 'br-name', 'br-sort', 'br-desc', 'br-active'];
 
   const [userQuery, setUserQuery] = useState('');
   const [userOpen, setUserOpen] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+
+  const reloadAll = useCallback(async () => {
+    setLoadError(null);
+    try {
+      const [rr, ur] = await Promise.all([
+        listRoles({ page: 1, pageSize: 200 }),
+        listUsers({ page: 1, pageSize: 500 }),
+      ]);
+      const rows = rr.items.map(roleDtoToRow).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
+      setRoles(rows);
+      setPickerUsers(
+        ur.items.map((u) => ({
+          id: u.id,
+          username: u.username,
+          displayName: u.displayName,
+          jobTitle: u.jobTitle ?? '—',
+          email: u.email ?? '',
+          phone: u.phone ?? '',
+          isActive: u.isActive,
+          lastLoginAt: u.lastLoginAt,
+          createdAt: u.createdAt,
+          createdByName: u.createdByName ?? '—',
+          updatedAt: u.updatedAt,
+          updatedByName: u.updatedByName ?? '—',
+        })),
+      );
+      setSelectedId((cur) => {
+        if (cur && rows.some((r) => r.id === cur)) return cur;
+        return rows[0]?.id ?? null;
+      });
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : '載入失敗');
+      setRoles([]);
+      setPickerUsers([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reloadAll();
+  }, [reloadAll]);
+
+  const loadMembers = useCallback(async (roleId: string, syncBaseline: boolean) => {
+    const res = await listUserRoles({ roleId, isActive: true, page: 1, pageSize: 500 });
+    const list: BaseRoleMemberRow[] = res.items.map((x) => ({
+      id: x.id,
+      userId: x.userId,
+      isPrimary: x.isPrimary,
+    }));
+    setMembersByRole((prev) => ({ ...prev, [roleId]: list }));
+    if (syncBaseline) setBaselineMembers(list.map((m) => ({ ...m })));
+  }, []);
 
   const selectedRole = useMemo(
     () => (selectedId ? roles.find((r) => r.id === selectedId) ?? null : null),
@@ -101,6 +152,11 @@ export function BaseRoleMasterView() {
     });
   }, [roles, roleSearch]);
 
+  const selectedRoleIndex = useMemo(
+    () => (selectedId ? filteredRoles.findIndex((r) => r.id === selectedId) : -1),
+    [filteredRoles, selectedId],
+  );
+
   const currentMembers = useMemo(() => {
     if (creating || !selectedId) return [];
     return membersByRole[selectedId] ?? [];
@@ -108,9 +164,9 @@ export function BaseRoleMasterView() {
 
   const userById = useMemo(() => {
     const m = new Map<string, BaseUserRow>();
-    MOCK_BASE_USERS.forEach((u) => m.set(u.id, u));
+    pickerUsers.forEach((u) => m.set(u.id, u));
     return m;
-  }, []);
+  }, [pickerUsers]);
 
   const memberRowsForDisplay = useMemo(() => {
     const ms = currentMembers;
@@ -128,14 +184,14 @@ export function BaseRoleMasterView() {
 
   const userOptions = useMemo(() => {
     const q = userQuery.trim().toLowerCase();
-    return MOCK_BASE_USERS.filter((u) => {
+    return pickerUsers.filter((u) => {
       if (!u.isActive) return false;
       if (assignedUserIds.has(u.id)) return false;
       if (!q) return true;
       const blob = `${u.username} ${u.displayName} ${u.email}`.toLowerCase();
       return blob.includes(q);
     }).slice(0, 12);
-  }, [assignedUserIds, userQuery]);
+  }, [assignedUserIds, userQuery, pickerUsers]);
 
   const detailDirty = useMemo(() => {
     if (creating) {
@@ -150,12 +206,7 @@ export function BaseRoleMasterView() {
     return JSON.stringify(detailDraft) !== JSON.stringify(baselineDetail);
   }, [baselineDetail, creating, detailDraft]);
 
-  const membersDirty = useMemo(() => {
-    if (creating || !selectedId) return false;
-    return JSON.stringify(currentMembers) !== JSON.stringify(baselineMembers);
-  }, [baselineMembers, creating, currentMembers, selectedId]);
-
-  const dirty = detailDirty || membersDirty;
+  const dirty = detailDirty;
 
   const onSelectRole = (r: BaseRoleRow) => {
     setCreating(false);
@@ -166,9 +217,12 @@ export function BaseRoleMasterView() {
     const d = draftFromRole(r);
     setDetailDraft(d);
     setBaselineDetail(d);
-    const mem = membersByRole[r.id] ?? [];
-    setBaselineMembers(mem.map((m) => ({ ...m })));
   };
+
+  useEffect(() => {
+    if (!selectedId || creating) return;
+    void loadMembers(selectedId, true);
+  }, [selectedId, creating, loadMembers]);
 
   const onAddRole = () => {
     setCreating(true);
@@ -195,97 +249,107 @@ export function BaseRoleMasterView() {
     }
   };
 
-  const onSave = () => {
+  const performSave = async () => {
     const code = detailDraft.code.trim().toUpperCase();
     const name = detailDraft.name.trim();
     if (!code || !name) return;
     const sort = Number.parseInt(detailDraft.sortOrder, 10);
     const sortOrder = Number.isFinite(sort) ? sort : 0;
-    const now = new Date().toISOString();
+    setSaving(true);
+    setLoadError(null);
+    try {
+      if (creating) {
+        const dto = await createRole({
+          code,
+          name,
+          description: detailDraft.description.trim() || null,
+          isSystem: false,
+          isActive: detailDraft.isActive,
+          sortNo: sortOrder,
+        });
+        const row = roleDtoToRow(dto);
+        setRoles((prev) => [...prev, row].sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
+        setCreating(false);
+        setSelectedId(row.id);
+        setDetailDraft(draftFromRole(row));
+        setBaselineDetail(draftFromRole(row));
+        setBaselineMembers([]);
+        return;
+      }
 
-    if (creating) {
-      const id = newId('role');
-      const row: BaseRoleRow = {
-        id,
+      if (!selectedId || !selectedRole) return;
+      const dto = await updateRole(selectedId, {
         code,
         name,
-        description: detailDraft.description.trim(),
-        sortOrder,
+        description: detailDraft.description.trim() || null,
         isActive: detailDraft.isActive,
-        createdAt: now,
-        updatedAt: null,
-      };
-      setRoles((prev) => [...prev, row].sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
-      setMembersByRole((prev) => ({ ...prev, [id]: [] }));
-      setCreating(false);
-      setSelectedId(id);
-      setDetailDraft(draftFromRole(row));
-      setBaselineDetail(draftFromRole(row));
-      setBaselineMembers([]);
-      return;
+        sortNo: sortOrder,
+      });
+      const row = roleDtoToRow(dto);
+      setRoles((prev) => prev.map((r) => (r.id === selectedId ? row : r)));
+      setBaselineDetail({ ...detailDraft });
+      await loadMembers(selectedId, true);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : '儲存失敗');
+    } finally {
+      setSaving(false);
     }
-
-    if (!selectedId || !selectedRole) return;
-    setRoles((prev) =>
-      prev.map((r) =>
-        r.id === selectedId
-          ? {
-              ...r,
-              code,
-              name,
-              description: detailDraft.description.trim(),
-              sortOrder,
-              isActive: detailDraft.isActive,
-              updatedAt: now,
-            }
-          : r,
-      ),
-    );
-    setBaselineDetail({ ...detailDraft });
-    setBaselineMembers(currentMembers.map((m) => ({ ...m })));
   };
 
-  const assignUser = (userId: string) => {
+  const focusRoleRow = (index: number) => {
+    requestAnimationFrame(() => {
+      (document.querySelector(`[data-role-master-row="${index}"]`) as HTMLElement | null)?.focus();
+    });
+  };
+
+  const selectRoleAtFilteredIndex = (idx: number) => {
+    const r = filteredRoles[idx];
+    if (!r) return;
+    onSelectRole(r);
+  };
+
+  const assignUser = async (userId: string) => {
     if (creating || !selectedId) return;
     setUserQuery('');
     setUserOpen(false);
-    setMembersByRole((prev) => {
-      const list = [...(prev[selectedId] ?? [])];
-      if (list.some((m) => m.userId === userId)) return prev;
-      const isFirst = list.length === 0;
-      list.push({ id: newId('rm'), userId, isPrimary: isFirst });
-      return { ...prev, [selectedId]: list };
-    });
-  };
-
-  const removeMember = (memberId: string) => {
-    if (creating || !selectedId) return;
-    setMembersByRole((prev) => {
-      const list = (prev[selectedId] ?? []).filter((m) => m.id !== memberId);
-      if (list.length && !list.some((m) => m.isPrimary)) {
-        list[0] = { ...list[0]!, isPrimary: true };
-      }
-      return { ...prev, [selectedId]: list };
-    });
-  };
-
-  const togglePrimary = (memberId: string) => {
-    if (creating || !selectedId) return;
-    setMembersByRole((prev) => {
-      const raw = [...(prev[selectedId] ?? [])];
-      const target = raw.find((m) => m.id === memberId);
-      if (!target) return prev;
-      const nextPrimary = !target.isPrimary;
-      const list = raw.map((m) => {
-        if (m.id === memberId) return { ...m, isPrimary: nextPrimary };
-        if (nextPrimary && m.isPrimary) return { ...m, isPrimary: false };
-        return m;
+    setLoadError(null);
+    try {
+      const list = membersByRole[selectedId] ?? [];
+      await assignUserRole({
+        userId,
+        roleId: selectedId,
+        isPrimary: list.length === 0,
       });
-      if (list.length > 0 && !list.some((m) => m.isPrimary)) {
-        list[0] = { ...list[0]!, isPrimary: true };
-      }
-      return { ...prev, [selectedId]: list };
-    });
+      await loadMembers(selectedId, true);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : '指派失敗');
+    }
+  };
+
+  const removeMember = async (memberId: string) => {
+    if (creating || !selectedId) return;
+    setLoadError(null);
+    try {
+      await revokeUserRole(memberId);
+      await loadMembers(selectedId, true);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : '移除失敗');
+    }
+  };
+
+  const togglePrimary = async (memberId: string) => {
+    if (creating || !selectedId) return;
+    const raw = [...(membersByRole[selectedId] ?? [])];
+    const target = raw.find((m) => m.id === memberId);
+    if (!target) return;
+    const nextPrimary = !target.isPrimary;
+    setLoadError(null);
+    try {
+      await setUserRolePrimary(memberId, nextPrimary);
+      await loadMembers(selectedId, true);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : '更新失敗');
+    }
   };
 
   const leftTitle = selectedRole && !creating ? `職務列表（已選：${selectedRole.name}）` : '職務列表';
@@ -296,7 +360,14 @@ export function BaseRoleMasterView() {
     'border-border bg-popover/95 text-popover-foreground backdrop-blur-md shadow-lg top-[42px]';
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-stretch">
+    <>
+    <div className="space-y-4">
+      {loadError ? (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {loadError}
+        </div>
+      ) : null}
+      <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-stretch">
       <section className="glass-card flex max-h-[min(720px,calc(100vh-220px))] min-h-[420px] flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
@@ -309,6 +380,7 @@ export function BaseRoleMasterView() {
           </Button>
         </div>
         <Input
+          id="role-search"
           value={roleSearch}
           onChange={(e) => setRoleSearch(e.target.value)}
           placeholder="搜尋職務（代碼／名稱）"
@@ -316,17 +388,58 @@ export function BaseRoleMasterView() {
           autoComplete="off"
           onKeyDown={(e) => {
             if (e.key === 'Escape') setRoleSearch('');
+            if (saveConfirmOpen) return;
+            if (e.key === 'ArrowDown' && filteredRoles.length > 0) {
+              e.preventDefault();
+              selectRoleAtFilteredIndex(0);
+              focusRoleRow(0);
+            }
+            if (e.key === 'ArrowRight' && (creating || selectedRole)) {
+              e.preventDefault();
+              document.getElementById('br-code')?.focus();
+            }
           }}
         />
         <ScrollArea className="min-h-0 flex-1 pr-2">
           <div className="space-y-2 pb-1">
-            {filteredRoles.map((r) => {
+            {filteredRoles.map((r, i) => {
               const active = !creating && selectedId === r.id;
               return (
                 <button
                   key={r.id}
                   type="button"
+                  tabIndex={-1}
+                  data-role-master-row={i}
                   onClick={() => onSelectRole(r)}
+                  onKeyDown={(e) => {
+                    if (saveConfirmOpen) return;
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      if (i < filteredRoles.length - 1) {
+                        selectRoleAtFilteredIndex(i + 1);
+                        focusRoleRow(i + 1);
+                      } else if (creating || selectedRole) {
+                        document.getElementById('br-code')?.focus();
+                      }
+                    }
+                    if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      if (i > 0) {
+                        selectRoleAtFilteredIndex(i - 1);
+                        focusRoleRow(i - 1);
+                      } else {
+                        document.getElementById('role-search')?.focus();
+                      }
+                    }
+                    if (e.key === 'ArrowRight') {
+                      e.preventDefault();
+                      if (creating || selectedRole) document.getElementById('br-code')?.focus();
+                    }
+                    if (e.key === 'ArrowLeft') {
+                      e.preventDefault();
+                      document.getElementById('role-search')?.focus();
+                    }
+                  }}
                   className={cn(
                     'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
                     active
@@ -364,7 +477,11 @@ export function BaseRoleMasterView() {
               <Button
                 type="button"
                 size="sm"
-                onClick={onSave}
+                onClick={() => {
+                  if (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedRole || !dirty)
+                    return;
+                  setSaveConfirmOpen(true);
+                }}
                 disabled={
                   creating
                     ? !detailDraft.code.trim() || !detailDraft.name.trim()
@@ -379,7 +496,24 @@ export function BaseRoleMasterView() {
           {!creating && !selectedRole ? (
             <p className="text-sm text-muted-foreground">請從左側選擇職務，或點「新增」。</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className="grid gap-4 sm:grid-cols-2"
+              onKeyDownCapture={(e) => {
+                if (saveConfirmOpen) return;
+                const id = getFieldIdFromEventTarget(e.target);
+                if (e.key === 'ArrowLeft' && id === 'br-code') {
+                  e.preventDefault();
+                  if (selectedRoleIndex >= 0) focusRoleRow(selectedRoleIndex);
+                  else document.getElementById('role-search')?.focus();
+                  return;
+                }
+                handleMasterFieldKeyDown(e, ROLE_FIELD_ORDER, {
+                  enabled: true,
+                  onLastField: () => setSaveConfirmOpen(true),
+                  multilineFieldIds: new Set(['br-desc']),
+                });
+              }}
+            >
               <div className="space-y-2">
                 <Label htmlFor="br-code">代碼</Label>
                 <Input
@@ -410,17 +544,6 @@ export function BaseRoleMasterView() {
                   placeholder="數字越小越前面"
                 />
               </div>
-              <div className="flex items-end gap-2 pb-2">
-                <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    className="size-4 rounded border border-input accent-primary"
-                    checked={detailDraft.isActive}
-                    onChange={(e) => setDetailDraft((d) => ({ ...d, isActive: e.target.checked }))}
-                  />
-                  啟用
-                </label>
-              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="br-desc">說明</Label>
                 <Textarea
@@ -432,6 +555,18 @@ export function BaseRoleMasterView() {
                   className="min-h-[88px] resize-y"
                 />
               </div>
+              <div className="flex items-end gap-2 pb-2 sm:col-span-2">
+                <label htmlFor="br-active" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                  <input
+                    id="br-active"
+                    type="checkbox"
+                    className="size-4 rounded border border-input accent-primary"
+                    checked={detailDraft.isActive}
+                    onChange={(e) => setDetailDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                  />
+                  啟用
+                </label>
+              </div>
             </div>
           )}
         </section>
@@ -440,7 +575,7 @@ export function BaseRoleMasterView() {
           <div className="mb-3 border-b border-border/60 pb-3">
             <p className="text-xs tracking-[0.35em] text-muted-foreground">MEMBERS</p>
             <h2 className="mt-1 text-sm font-semibold text-foreground">匯入使用者</h2>
-            <p className="mt-1 text-xs text-muted-foreground">由使用者主檔 mock 清單選入；僅示意，未接 API。</p>
+            <p className="mt-1 text-xs text-muted-foreground">由使用者主檔（啟用中）選入，即時寫入 nx00_user_role。</p>
           </div>
 
           {creating || !selectedId ? (
@@ -536,6 +671,13 @@ export function BaseRoleMasterView() {
           )}
         </section>
       </div>
+      </div>
     </div>
+    <MasterSaveConfirmDialog
+      open={saveConfirmOpen}
+      onOpenChange={setSaveConfirmOpen}
+      onConfirm={() => void performSave()}
+    />
+    </>
   );
 }

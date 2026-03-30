@@ -134,12 +134,18 @@ export class AuthService {
         createdAt: true,
         updatedAt: true,
         lastLoginAt: true,
+        userRoles: {
+          where: { isActive: true },
+          select: { role: { select: { code: true } } },
+        },
       },
     });
 
     if (!user) {
       throw new UnauthorizedException('Token user not found');
     }
+
+    const roles = user.userRoles.map((ur) => ur.role.code);
 
     return {
       id: user.id,
@@ -151,6 +157,7 @@ export class AuthService {
       created_at: user.createdAt,
       updated_at: user.updatedAt,
       last_login_at: user.lastLoginAt ?? null,
+      roles,
     };
   }
 }

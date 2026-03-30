@@ -14,6 +14,8 @@ export type UserDto = {
     phone: string | null;
     isActive: boolean;
     lastLoginAt: string | null;
+    /** 主檔 UI：由 nx00_user_role（is_active=true）中 is_primary 或第一筆對應之 role.name */
+    jobTitle: string | null;
 
     createdAt: string;
     createdBy: string | null;

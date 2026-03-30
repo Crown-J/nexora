@@ -130,10 +130,24 @@ export function PartSplitView() {
     }, [vm.total, vm.pageSize]);
 
     const renderCell = (row: PartDto, key: PartFieldKey) => {
+        if (key === 'partType') {
+            const m: Record<string, string> = {
+                A: 'A 專用型',
+                B: 'B 通用型',
+                C: 'C 組合型',
+                D: 'D 拆解型',
+            };
+            const p = row.partType;
+            return p ? m[p] ?? p : '-';
+        }
+        if (key === 'carBrandName') {
+            return row.carBrandName || row.carBrandCode || '-';
+        }
+
         const v = (row as any)[key];
 
         if (key.endsWith('At')) return v ? formatDatetimeZhTw(v) : '-';
-        if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+        if (typeof v === 'boolean') return v ? '是' : '否';
         if (v === null || v === undefined || v === '') return '-';
         return String(v);
     };

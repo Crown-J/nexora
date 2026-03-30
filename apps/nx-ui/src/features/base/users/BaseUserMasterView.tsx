@@ -3,48 +3,49 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - Base user master-detail view with search, filters, sorting, pagination, and mock data (no API).
+ * - Base user master-detail：連線 nx-api GET/POST/PUT/PATCH /user，職務顯示來自角色主檔（user.jobTitle）
  */
 
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import {
-  MOCK_BASE_USERS,
-  MOCK_CURRENT_OPERATOR_NAME,
-  MOCK_JOB_TITLES,
-  type BaseUserRow,
-} from './mock-data';
+import type { BaseUserRow } from './mock-data';
+import { assignUserRole, listUserRoles } from '@/features/base/api/user-role';
+import { listRoles, type RoleDto } from '@/features/base/api/role';
+import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 
 type SortKey = 'username' | 'displayName' | 'jobTitle' | 'isActive' | 'lastLoginAt';
 type SortDir = 'asc' | 'desc';
 
-/** 可透過表單編輯的欄位（帳號僅新增時可填） */
 type EditableDraft = {
   username: string;
   displayName: string;
-  jobTitle: string;
   email: string;
   phone: string;
   isActive: boolean;
+  password: string;
+  newPassword: string;
+  primaryRoleId: string;
 };
 
 const PAGE_SIZE = 10;
 
-function emptyDraft(): EditableDraft {
+function emptyDraft(defaultRoleId: string): EditableDraft {
   return {
     username: '',
     displayName: '',
-    jobTitle: MOCK_JOB_TITLES[0] ?? '',
     email: '',
     phone: '',
     isActive: true,
+    password: '',
+    newPassword: '',
+    primaryRoleId: defaultRoleId,
   };
 }
 
@@ -52,10 +53,29 @@ function rowFromUser(u: BaseUserRow): EditableDraft {
   return {
     username: u.username,
     displayName: u.displayName,
-    jobTitle: u.jobTitle,
     email: u.email,
     phone: u.phone,
     isActive: u.isActive,
+    password: '',
+    newPassword: '',
+    primaryRoleId: '',
+  };
+}
+
+function dtoToRow(u: UserDto): BaseUserRow {
+  return {
+    id: u.id,
+    username: u.username,
+    displayName: u.displayName,
+    jobTitle: u.jobTitle ?? '—',
+    email: u.email ?? '',
+    phone: u.phone ?? '',
+    isActive: u.isActive,
+    lastLoginAt: u.lastLoginAt,
+    createdAt: u.createdAt,
+    createdByName: u.createdByName ?? '—',
+    updatedAt: u.updatedAt,
+    updatedByName: u.updatedByName ?? '—',
   };
 }
 
@@ -67,7 +87,8 @@ function formatDt(iso: string | null | undefined): string {
 }
 
 export function BaseUserMasterView() {
-  const [users, setUsers] = useState<BaseUserRow[]>(() => [...MOCK_BASE_USERS]);
+  const [users, setUsers] = useState<BaseUserRow[]>([]);
+  const [roles, setRoles] = useState<RoleDto[]>([]);
   const [keyword, setKeyword] = useState('');
   const [jobPick, setJobPick] = useState<string>('');
   const [fUsername, setFUsername] = useState('');
@@ -75,13 +96,54 @@ export function BaseUserMasterView() {
   const [fJobTitle, setFJobTitle] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'username', dir: 'asc' });
   const [checked, setChecked] = useState<Set<string>>(() => new Set());
-  const [selectedId, setSelectedId] = useState<string | null>(() => MOCK_BASE_USERS[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft());
+  const defaultRoleId = roles[0]?.id ?? '';
+  const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft(''));
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [ur, rr] = await Promise.all([
+        listUsers({ page: 1, pageSize: 500 }),
+        listRoles({ page: 1, pageSize: 200 }),
+      ]);
+      setUsers(ur.items.map(dtoToRow));
+      setRoles(rr.items.filter((r) => r.isActive));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '載入失敗');
+      setUsers([]);
+      setRoles([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  useEffect(() => {
+    if (roles[0]?.id && !draft.primaryRoleId && creating) {
+      setDraft((d) => ({ ...d, primaryRoleId: roles[0]!.id }));
+    }
+  }, [roles, creating, draft.primaryRoleId]);
+
+  const jobTitleOptions = useMemo(() => {
+    const s = new Set<string>();
+    for (const u of users) {
+      if (u.jobTitle && u.jobTitle !== '—') s.add(u.jobTitle);
+    }
+    return [...s].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+  }, [users]);
 
   const toggleSort = (key: SortKey) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
@@ -162,8 +224,8 @@ export function BaseUserMasterView() {
   const formValues = useMemo(() => {
     if (editing || creating) return draft;
     if (selected) return rowFromUser(selected);
-    return emptyDraft();
-  }, [editing, creating, draft, selected]);
+    return emptyDraft(defaultRoleId);
+  }, [editing, creating, draft, selected, defaultRoleId]);
 
   const pageRowIds = useMemo(() => pageRows.map((r) => r.id), [pageRows]);
 
@@ -203,25 +265,25 @@ export function BaseUserMasterView() {
     setSelectedId(null);
     setCreating(true);
     setEditing(true);
-    setDraft(emptyDraft());
+    setDraft(emptyDraft(roles[0]?.id ?? ''));
   };
 
-  const onBulkActive = (active: boolean) => {
+  const onBulkActive = async (active: boolean) => {
     if (checked.size === 0) return;
-    const now = new Date().toISOString();
-    setUsers((prev) =>
-      prev.map((u) =>
-        checked.has(u.id)
-          ? {
-              ...u,
-              isActive: active,
-              updatedAt: now,
-              updatedByName: MOCK_CURRENT_OPERATOR_NAME,
-            }
-          : u,
-      ),
-    );
-    setChecked(new Set());
+    setSaving(true);
+    setError(null);
+    try {
+      for (const id of checked) {
+        const dto = await setUserActive(id, active);
+        const row = dtoToRow(dto);
+        setUsers((prev) => prev.map((u) => (u.id === id ? row : u)));
+      }
+      setChecked(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '批次更新失敗');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const onEdit = () => {
@@ -239,54 +301,74 @@ export function BaseUserMasterView() {
     setEditing(false);
   };
 
-  const onSave = () => {
+  const onSave = async () => {
     if (creating) {
       const uname = draft.username.trim();
       if (!uname) return;
-      const id =
-        typeof crypto !== 'undefined' && 'randomUUID' in crypto
-          ? 'u-' + crypto.randomUUID()
-          : 'u-' + String(Date.now());
-      const now = new Date().toISOString();
-      const row: BaseUserRow = {
-        id,
-        username: uname,
-        displayName: draft.displayName.trim() || uname,
-        jobTitle: draft.jobTitle,
-        email: draft.email.trim(),
-        phone: draft.phone.trim(),
-        isActive: draft.isActive,
-        lastLoginAt: null,
-        createdAt: now,
-        createdByName: MOCK_CURRENT_OPERATOR_NAME,
-        updatedAt: now,
-        updatedByName: MOCK_CURRENT_OPERATOR_NAME,
-      };
-      setUsers((prev) => [...prev, row]);
-      setSelectedId(id);
-      setCreating(false);
-      setEditing(false);
+      const pw = draft.password.trim();
+      if (pw.length < 6) {
+        setError('密碼至少 6 碼');
+        return;
+      }
+      setSaving(true);
+      setError(null);
+      try {
+        const created = await createUser({
+          username: uname,
+          password: pw,
+          displayName: draft.displayName.trim() || uname,
+          email: draft.email.trim() || null,
+          phone: draft.phone.trim() || null,
+          isActive: draft.isActive,
+        });
+        if (draft.primaryRoleId) {
+          const existing = await listUserRoles({
+            userId: created.id,
+            roleId: draft.primaryRoleId,
+            isActive: true,
+            pageSize: 5,
+          });
+          if (existing.total === 0) {
+            await assignUserRole({
+              userId: created.id,
+              roleId: draft.primaryRoleId,
+              isPrimary: true,
+            });
+          }
+        }
+        const refreshed = await listUsers({ page: 1, pageSize: 500 });
+        setUsers(refreshed.items.map(dtoToRow));
+        setSelectedId(created.id);
+        setCreating(false);
+        setEditing(false);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '建立失敗');
+      } finally {
+        setSaving(false);
+      }
       return;
     }
     if (!selectedId || !selected) return;
-    const now = new Date().toISOString();
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === selectedId
-          ? {
-              ...u,
-              displayName: draft.displayName.trim() || u.displayName,
-              jobTitle: draft.jobTitle,
-              email: draft.email.trim(),
-              phone: draft.phone.trim(),
-              isActive: draft.isActive,
-              updatedAt: now,
-              updatedByName: MOCK_CURRENT_OPERATOR_NAME,
-            }
-          : u,
-      ),
-    );
-    setEditing(false);
+    setSaving(true);
+    setError(null);
+    try {
+      const body: Parameters<typeof updateUser>[1] = {
+        displayName: draft.displayName.trim() || selected.displayName,
+        email: draft.email.trim() || null,
+        phone: draft.phone.trim() || null,
+        isActive: draft.isActive,
+      };
+      if (draft.newPassword.trim().length >= 6) {
+        body.password = draft.newPassword.trim();
+      }
+      const dto = await updateUser(selectedId, body);
+      setUsers((prev) => prev.map((u) => (u.id === selectedId ? dtoToRow(dto) : u)));
+      setEditing(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '更新失敗');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const sortIcon = (key: SortKey) => {
@@ -313,6 +395,12 @@ export function BaseUserMasterView() {
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,42%)_minmax(0,1fr)] lg:items-start">
       <div className="flex min-h-0 min-w-0 flex-col gap-4">
+        {error ? (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
+
         <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
           <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
@@ -328,7 +416,7 @@ export function BaseUserMasterView() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bu-job">職務</Label>
+              <Label htmlFor="bu-job">職務（主角色）</Label>
               <select
                 id="bu-job"
                 className={selectCls}
@@ -336,7 +424,7 @@ export function BaseUserMasterView() {
                 onChange={(e) => setJobPick(e.target.value)}
               >
                 <option value="">全部</option>
-                {MOCK_JOB_TITLES.map((j) => (
+                {jobTitleOptions.map((j) => (
                   <option key={j} value={j}>
                     {j}
                   </option>
@@ -348,14 +436,29 @@ export function BaseUserMasterView() {
 
         <section className="glass-card flex min-h-[420px] min-w-0 flex-1 flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
-            <Button type="button" size="sm" variant="default" onClick={onAdd}>
+            <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
               新增
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => onBulkActive(false)} disabled={checked.size === 0}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void onBulkActive(false)}
+              disabled={checked.size === 0 || saving}
+            >
               停用
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => onBulkActive(true)} disabled={checked.size === 0}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void onBulkActive(true)}
+              disabled={checked.size === 0 || saving}
+            >
               啟用
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
+              重新載入
             </Button>
             <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
               <Button
@@ -387,7 +490,7 @@ export function BaseUserMasterView() {
               </Button>
             </div>
             <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-              共 {sortedRows.length} 筆 · 本頁 {pageRows.length} 筆
+              {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
             </span>
           </div>
 
@@ -567,22 +670,58 @@ export function BaseUserMasterView() {
               className={!editing && !creating ? readonlyFieldCls : undefined}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="bu-d-job">職務</Label>
-            <select
-              id="bu-d-job"
-              className={selectCls}
-              value={formValues.jobTitle}
-              disabled={!editing && !creating}
-              onChange={(e) => setDraft((d) => ({ ...d, jobTitle: e.target.value }))}
-            >
-              {MOCK_JOB_TITLES.map((j) => (
-                <option key={j} value={j}>
-                  {j}
-                </option>
-              ))}
-            </select>
-          </div>
+          {creating ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="bu-d-pw">初始密碼（至少 6 碼）</Label>
+                <Input
+                  id="bu-d-pw"
+                  type="password"
+                  value={formValues.password}
+                  onChange={(e) => setDraft((d) => ({ ...d, password: e.target.value }))}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bu-d-prole">指派主角色</Label>
+                <select
+                  id="bu-d-prole"
+                  className={selectCls}
+                  value={formValues.primaryRoleId}
+                  onChange={(e) => setDraft((d) => ({ ...d, primaryRoleId: e.target.value }))}
+                >
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}（{r.code}）
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="bu-d-job-ro">職務（主角色名稱）</Label>
+              <Input
+                id="bu-d-job-ro"
+                readOnly
+                value={auditSource?.jobTitle ?? '—'}
+                className={readonlyFieldCls}
+              />
+              <p className="text-[11px] text-muted-foreground">調整角色請至「職務」主檔指派成員。</p>
+            </div>
+          )}
+          {editing && !creating ? (
+            <div className="space-y-2">
+              <Label htmlFor="bu-d-npw">新密碼（選填，至少 6 碼）</Label>
+              <Input
+                id="bu-d-npw"
+                type="password"
+                value={formValues.newPassword}
+                onChange={(e) => setDraft((d) => ({ ...d, newPassword: e.target.value }))}
+                autoComplete="new-password"
+              />
+            </div>
+          ) : null}
           <div className="flex items-center gap-2 pt-1">
             <input
               id="bu-d-active"
@@ -671,10 +810,10 @@ export function BaseUserMasterView() {
         <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (
             <>
-              <Button type="button" size="sm" onClick={onSave}>
-                儲存
+              <Button type="button" size="sm" onClick={() => void onSave()} disabled={saving}>
+                {saving ? '儲存中…' : '儲存'}
               </Button>
-              <Button type="button" size="sm" variant="outline" onClick={onCancel}>
+              <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
                 取消
               </Button>
             </>

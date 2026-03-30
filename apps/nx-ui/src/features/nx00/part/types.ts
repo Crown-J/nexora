@@ -8,7 +8,7 @@
  * Notes:
  * - 本檔案為 part 前端型別單一真實來源（API/HOOK/UI 皆使用）
  * - createdByName/updatedByName 若後端有回傳，可直接顯示；未回傳則 fallback id
- * - brandName/brandCode 為 UI 便利欄位：後端若未回傳，可在 UI 用 brandId fallback
+ * - brandName/brandCode 為 UI 便利欄位：後端若未回傳，可在 UI 用 partBrandId fallback
  */
 
 export type PartDto = {
@@ -16,9 +16,17 @@ export type PartDto = {
     code: string;
     name: string;
 
-    brandId: string | null;
+    partBrandId: string | null;
     brandCode?: string | null;
     brandName?: string | null;
+
+    /** 是否正廠件 */
+    isOem: boolean;
+    carBrandId: string | null;
+    carBrandCode?: string | null;
+    carBrandName?: string | null;
+    /** A/B/C/D */
+    partType: string | null;
 
     spec: string | null;
     uom: string;
@@ -49,7 +57,10 @@ export type PartsListQuery = {
 export type CreatePartBody = {
     code: string;
     name: string;
-    brandId?: string | null;
+    partBrandId?: string | null;
+    isOem?: boolean;
+    carBrandId?: string | null;
+    partType?: string | null;
     spec?: string | null;
     uom?: string;
     isActive?: boolean;
@@ -61,7 +72,10 @@ export type CreatePartBody = {
 export type UpdatePartBody = {
     code?: string;
     name?: string;
-    brandId?: string | null;
+    partBrandId?: string | null;
+    isOem?: boolean;
+    carBrandId?: string | null;
+    partType?: string | null;
     spec?: string | null;
     uom?: string;
     isActive?: boolean;

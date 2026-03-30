@@ -9,6 +9,16 @@ export type BasePartRow = {
   spec: string;
   unit: string;
   isActive: boolean;
+  /** nx00_part_brand.id */
+  partBrandId: string | null;
+  brandCode: string | null;
+  brandName: string | null;
+  isOem: boolean;
+  carBrandId: string | null;
+  carBrandCode: string | null;
+  carBrandName: string | null;
+  /** A/B/C/D */
+  partType: string | null;
 };
 
 export const MOCK_BASE_PARTS: BasePartRow[] = [
@@ -19,6 +29,14 @@ export const MOCK_BASE_PARTS: BasePartRow[] = [
     spec: '陶瓷／適用 CAMRY 18-',
     unit: '組',
     isActive: true,
+    partBrandId: null,
+    brandCode: null,
+    brandName: null,
+    isOem: true,
+    carBrandId: null,
+    carBrandCode: null,
+    carBrandName: null,
+    partType: null,
   },
   {
     id: 'p2',
@@ -27,6 +45,14 @@ export const MOCK_BASE_PARTS: BasePartRow[] = [
     spec: '4L／全合成',
     unit: '桶',
     isActive: true,
+    partBrandId: null,
+    brandCode: null,
+    brandName: null,
+    isOem: true,
+    carBrandId: null,
+    carBrandCode: null,
+    carBrandName: null,
+    partType: null,
   },
   {
     id: 'p3',
@@ -35,5 +61,13 @@ export const MOCK_BASE_PARTS: BasePartRow[] = [
     spec: 'MANN CU 2939',
     unit: '片',
     isActive: false,
+    partBrandId: null,
+    brandCode: null,
+    brandName: null,
+    isOem: true,
+    carBrandId: null,
+    carBrandCode: null,
+    carBrandName: null,
+    partType: null,
   },
 ];

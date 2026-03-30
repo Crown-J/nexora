@@ -7,7 +7,7 @@ export default function BaseLocationPage() {
   return (
     <BaseMasterSubPageLayout
       title="倉庫主檔"
-      description="倉別與旗下庫位（目前為前端 mock，未接 API）。"
+      description="倉別（GET/POST/PUT /warehouse）與庫位（GET/POST/PATCH /location），資料與資料庫 nx00_warehouse／nx00_location 一致。"
     >
       <BaseWarehouseLocationView />
     </BaseMasterSubPageLayout>

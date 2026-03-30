@@ -208,39 +208,42 @@ export class PoService {
 
       // Inbound stock posting (PO過帳 → 庫存 +)
       for (const item of existing.items ?? []) {
-        const beforeRow = await tx.nx09StockBalance.findFirst({
+        const beforeRow = await tx.nx02StockBalance.findFirst({
           where: { tenantId, warehouseId: item.warehouseId, partId: item.partId },
-          select: { id: true, qty: true },
+          select: { id: true, onHandQty: true },
         });
 
         const zero = item.qty.mul(0 as any);
-        const beforeQty = beforeRow?.qty ?? zero;
+        const beforeQty = beforeRow?.onHandQty ?? zero;
         const afterQty = beforeQty.add(item.qty);
 
         if (beforeRow) {
-          await tx.nx09StockBalance.update({
+          await tx.nx02StockBalance.update({
             where: { id: beforeRow.id },
             data: {
-              qty: afterQty,
+              onHandQty: afterQty,
               updatedBy: ctx?.actorUserId ?? null,
             },
           });
         } else {
-          await tx.nx09StockBalance.create({
+          await tx.nx02StockBalance.create({
             data: {
               tenantId,
               warehouseId: item.warehouseId,
               partId: item.partId,
-              qty: item.qty,
+              locationId: item.locationId,
+              onHandQty: item.qty,
               createdBy: ctx?.actorUserId ?? null,
               updatedBy: ctx?.actorUserId ?? null,
             },
           });
         }
 
-        await tx.nx09StockTxn.create({
+        await tx.nx02StockLedger.create({
           data: {
             tenantId,
+            movementDate: new Date(),
+            occurredAt: new Date(),
             txnType: 'I',
             refType: 'PO',
             refId: updatedPo.id,
@@ -249,6 +252,13 @@ export class PoService {
             qtyDelta: item.qty,
             beforeQty,
             afterQty,
+            movementType: 'I',
+            qtyIn: item.qty,
+            qtyOut: zero,
+            sourceModule: 'NX01',
+            sourceDocType: 'P',
+            sourceDocId: updatedPo.id,
+            sourceItemId: item.id,
             remark: item.remark ?? null,
             createdBy: ctx?.actorUserId ?? null,
             updatedBy: ctx?.actorUserId ?? null,

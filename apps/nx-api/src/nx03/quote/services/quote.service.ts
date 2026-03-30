@@ -23,13 +23,13 @@ import { assertQuoteStatusTransition, assertRfqStatusTransition } from '../../..
 type QuoteItemRow = {
   id: string;
   lineNo: number;
-  rfqItemId: string;
+  rfqItemId: string | null;
   partId: string;
   partNo: string;
   partName: string;
   qty: any;
-  unitCost: any;
-  unitPrice: any;
+  unitCostSnapshot: any;
+  unitPriceSnapshot: any;
   markupType: string | null;
   markupValue: any | null;
   currency: string;
@@ -61,13 +61,13 @@ function toQuoteItemDto(item: QuoteItemRow): QuoteItemDto {
   return {
     id: item.id,
     lineNo: item.lineNo,
-    rfqItemId: item.rfqItemId,
+    rfqItemId: item.rfqItemId ?? '',
     partId: item.partId,
     partNo: item.partNo,
     partName: item.partName,
     qty: item.qty?.toString?.() ?? String(item.qty),
-    unitCost: item.unitCost?.toString?.() ?? String(item.unitCost),
-    unitPrice: item.unitPrice?.toString?.() ?? String(item.unitPrice),
+    unitCost: item.unitCostSnapshot?.toString?.() ?? String(item.unitCostSnapshot),
+    unitPrice: item.unitPriceSnapshot?.toString?.() ?? String(item.unitPriceSnapshot),
     markupType: item.markupType ?? null,
     markupValue: item.markupValue?.toString?.() ?? null,
     currency: item.currency,
@@ -115,8 +115,8 @@ export class QuoteService {
     }
 
     const [total, rows] = await Promise.all([
-      this.prisma.nx07Quote.count({ where }),
-      this.prisma.nx07Quote.findMany({
+      this.prisma.nx03Quote.count({ where }),
+      this.prisma.nx03Quote.findMany({
         where,
         orderBy: [{ createdAt: 'desc' }],
         skip: (page - 1) * pageSize,
@@ -132,8 +132,8 @@ export class QuoteService {
               partNo: true,
               partName: true,
               qty: true,
-              unitCost: true,
-              unitPrice: true,
+              unitCostSnapshot: true,
+              unitPriceSnapshot: true,
               markupType: true,
               markupValue: true,
               currency: true,
@@ -154,7 +154,7 @@ export class QuoteService {
   }
 
   async get(id: string): Promise<QuoteDto> {
-    const row = await this.prisma.nx07Quote.findUnique({
+    const row = await this.prisma.nx03Quote.findUnique({
       where: { id },
       include: {
         items: {
@@ -167,8 +167,8 @@ export class QuoteService {
             partNo: true,
             partName: true,
             qty: true,
-            unitCost: true,
-            unitPrice: true,
+            unitCostSnapshot: true,
+            unitPriceSnapshot: true,
             markupType: true,
             markupValue: true,
             currency: true,
@@ -255,7 +255,7 @@ export class QuoteService {
       };
     });
 
-    const createdQuote = await this.prisma.nx07Quote.create({
+    const createdQuote = await this.prisma.nx03Quote.create({
       data: {
         tenantId,
         docNo,
@@ -270,7 +270,7 @@ export class QuoteService {
       },
     });
 
-    await this.prisma.nx07QuoteItem.createMany({
+    await this.prisma.nx03QuoteItem.createMany({
       data: quoteItems.map((it) => ({
         tenantId,
         quoteId: createdQuote.id,
@@ -280,8 +280,10 @@ export class QuoteService {
         partNo: it.partNo,
         partName: it.partName,
         qty: it.qty as any,
-        unitCost: it.unitCost as any,
+        unitCostSnapshot: it.unitCost as any,
+        unitPriceSnapshot: it.unitPrice as any,
         unitPrice: it.unitPrice as any,
+        estUnitCost: it.unitCost as any,
         markupType: it.markupType,
         markupValue: it.markupValue as any,
         currency: it.currency,
@@ -290,7 +292,7 @@ export class QuoteService {
       })),
     });
 
-    const created = await this.prisma.nx07Quote.findUnique({
+    const created = await this.prisma.nx03Quote.findUnique({
       where: { id: createdQuote.id },
       include: {
         items: {
@@ -303,8 +305,8 @@ export class QuoteService {
             partNo: true,
             partName: true,
             qty: true,
-            unitCost: true,
-            unitPrice: true,
+            unitCostSnapshot: true,
+            unitPriceSnapshot: true,
             markupType: true,
             markupValue: true,
             currency: true,
@@ -322,7 +324,7 @@ export class QuoteService {
         actorUserId: ctx.actorUserId,
         moduleCode: 'NX03',
         action: 'CREATE',
-        entityTable: 'nx07_quote',
+        entityTable: 'nx03_quote',
         entityId: createdQuote.id,
         entityCode: createdQuote.docNo,
         summary: `Create QUOTE ${createdQuote.docNo}`,
@@ -340,7 +342,7 @@ export class QuoteService {
     body: AcceptQuoteBody,
     ctx?: { actorUserId?: string; ipAddr?: string | null; userAgent?: string | null },
   ): Promise<{ quoteId: string; poId: string; salesOrderId: string; poDocNo: string; soDocNo: string }> {
-    const quote = await this.prisma.nx07Quote.findUnique({
+    const quote = await this.prisma.nx03Quote.findUnique({
       where: { id: quoteId },
       include: {
         items: true,
@@ -384,10 +386,12 @@ export class QuoteService {
 
     const result = await this.prisma.$transaction(async (tx) => {
       // PO
+      const first = items[0];
+      if (!first) throw new BadRequestException('Quote has no items');
       const subtotal = items.reduce((acc: any, it: any, idx: number) => {
-        const amt = it.unitCost.mul(it.qty);
+        const amt = it.unitCostSnapshot!.mul(it.qty);
         return idx === 0 ? amt : acc.add(amt);
-      }, items[0].unitCost.mul(items[0].qty));
+      }, first.unitCostSnapshot!.mul(first.qty));
 
       const po = await tx.nx01Po.create({
         data: {
@@ -418,8 +422,8 @@ export class QuoteService {
           warehouseId,
           locationId,
           qty: it.qty,
-          unitCost: it.unitCost,
-          lineAmount: it.unitCost.mul(it.qty),
+          unitCost: it.unitCostSnapshot,
+          lineAmount: it.unitCostSnapshot.mul(it.qty),
           remark: null,
           createdBy,
           updatedBy: createdBy,
@@ -427,32 +431,44 @@ export class QuoteService {
       });
 
       // SO
-      const so = await tx.nx08SalesOrder.create({
+      const firstSo = items[0];
+      if (!firstSo) throw new BadRequestException('Quote has no items');
+      const soSubtotal = items.reduce((acc: any, it: any, idx: number) => {
+        const amt = it.unitPriceSnapshot!.mul(it.qty);
+        return idx === 0 ? amt : acc.add(amt);
+      }, firstSo.unitPriceSnapshot!.mul(firstSo.qty));
+
+      const so = await tx.nx03So.create({
         data: {
           docNo: body.soDocNo.trim(),
           tenantId: tenantId,
           soDate,
           customerId: quote.customerId,
-          quoteId: quote.id,
+          warehouseId,
+          sourceQuoteId: quote.id,
           currency: quote.currency,
           status: 'R',
+          subtotal: soSubtotal,
+          taxAmount: '0' as any,
+          totalAmount: soSubtotal,
           remark: body.soRemark ?? null,
           createdBy,
           updatedBy: createdBy,
         },
       });
 
-      await tx.nx08SalesOrderItem.createMany({
+      await tx.nx03SoItem.createMany({
         data: items.map((it: any, idx: number) => ({
           tenantId: tenantId,
-          salesOrderId: so.id,
+          soId: so.id,
           lineNo: idx + 1,
-          quoteItemId: it.id,
+          sourceQuoteItemId: it.id,
+          sourceQuoteId: quote.id,
           partId: it.partId,
           partNo: it.partNo,
           partName: it.partName,
           qty: it.qty,
-          unitPrice: it.unitPrice,
+          unitPrice: it.unitPriceSnapshot,
           warehouseId,
           locationId,
           remark: null,
@@ -462,7 +478,7 @@ export class QuoteService {
       });
 
       // update quote + rfq
-      await tx.nx07Quote.update({
+      await tx.nx03Quote.update({
         where: { id: quote.id },
         data: {
           status: 'A',
@@ -486,7 +502,7 @@ export class QuoteService {
         actorUserId: ctx.actorUserId,
         moduleCode: 'NX03',
         action: 'ACCEPT',
-        entityTable: 'nx07_quote',
+        entityTable: 'nx03_quote',
         entityId: quote.id,
         entityCode: quote.docNo,
         summary: `Accept QUOTE ${quote.docNo} -> create PO + SO`,
@@ -512,7 +528,7 @@ export class QuoteService {
         actorUserId: ctx.actorUserId,
         moduleCode: 'NX03',
         action: 'CREATE',
-        entityTable: 'nx08_sales_order',
+        entityTable: 'nx03_so',
         entityId: result.so.id,
         entityCode: result.so.docNo,
         summary: `Create SO ${result.so.docNo} from QUOTE ${quote.docNo}`,

@@ -17,45 +17,7 @@ interface Task {
   completed: boolean
 }
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    orderNumber: "SO-2026032701",
-    customer: "大同汽車",
-    items: "煞車來令片 x5, 機油濾芯 x10",
-    dueDate: "2026-03-28",
-    status: "urgent",
-    completed: false,
-  },
-  {
-    id: "2",
-    orderNumber: "SO-2026032702",
-    customer: "永昌汽材",
-    items: "雨刷片 x20, 空氣濾芯 x15",
-    dueDate: "2026-03-29",
-    status: "shipping",
-    completed: false,
-  },
-  {
-    id: "3",
-    orderNumber: "SO-2026032703",
-    customer: "金龍汽修",
-    items: "火星塞 x8, 正時皮帶 x2",
-    dueDate: "2026-03-30",
-    status: "quote",
-    completed: false,
-  },
-  {
-    id: "4",
-    orderNumber: "SO-2026032601",
-    customer: "順發汽車",
-    items: "避震器 x4",
-    dueDate: "2026-03-27",
-    status: "invoice",
-    completed: false,
-  },
-]
-
+/** 未完成訂單：待接銷貨／流程 API 後再顯示；目前不展示假資料 */
 const statusConfig = {
   quote: {
     label: "待報價",
@@ -80,7 +42,7 @@ const statusConfig = {
 }
 
 export function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [tasks, setTasks] = useState<Task[]>([])
 
   const toggleComplete = (id: string) => {
     setTasks(
@@ -110,6 +72,11 @@ export function TaskList() {
       <CardContent>
         <ScrollArea className="h-[320px] pr-1">
           <div className="space-y-2">
+            {sortedTasks.length === 0 && (
+              <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 text-center text-sm text-muted-foreground leading-relaxed">
+                尚無未完成訂單。此區塊將於串接銷貨／訂單流程後顯示實際資料。
+              </div>
+            )}
             {sortedTasks.map((task) => {
               const statusMeta = statusConfig[task.status]
               const StatusIcon = statusMeta.icon

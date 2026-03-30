@@ -42,7 +42,8 @@ export class PartController {
     async list(@Query() query: any) {
         return this.part.list({
             q: typeof query.q === 'string' ? query.q : undefined,
-            brandId: typeof query.brandId === 'string' ? query.brandId : undefined,
+            partBrandId: typeof query.partBrandId === 'string' ? query.partBrandId : undefined,
+            carBrandId: typeof query.carBrandId === 'string' ? query.carBrandId : undefined,
             isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
             page: query.page ? Number(query.page) : 1,
             pageSize: query.pageSize ? Number(query.pageSize) : 20,

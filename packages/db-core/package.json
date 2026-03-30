@@ -9,7 +9,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset --force",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "import:parts2": "tsx scripts/import-parts2-csv.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",
@@ -20,8 +21,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "csv-parse": "5.6.0",
     "dotenv": "^17.3.1",
     "prisma": "^7.4.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   }
 }

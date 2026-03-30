@@ -662,7 +662,7 @@ async function main() {
   ] as const;
 
   for (const b of brands) {
-    await prisma.nx00Brand.upsert({
+    await prisma.nx00PartBrand.upsert({
       where: { code: b.code },
       update: {
         name: b.name,
@@ -679,13 +679,13 @@ async function main() {
       },
     });
   }
-  console.log(`✅ nx00_brand seed 完成，共 ${brands.length} 筆`);
+  console.log(`✅ nx00_part_brand seed 完成，共 ${brands.length} 筆`);
 
   /**
    * @FUNCTION_CODE NX00-PART-SVC-SEED-F01
-   * 說明：seed 測試用零件資料（brand_id 對應上方廠牌）
+   * 說明：seed 測試用零件資料（part_brand_id 對應上方零件品牌）
    */
-  const brandRows = await prisma.nx00Brand.findMany({
+  const brandRows = await prisma.nx00PartBrand.findMany({
     where: { code: { in: brands.map((b) => b.code) } },
     select: { id: true, code: true },
   });
@@ -698,25 +698,28 @@ async function main() {
   ] as const;
 
   for (const p of parts) {
-    const brandId = brandIdByCode.get(p.brandCode) ?? null;
-    await prisma.nx00Part.upsert({
-      where: { code: p.code },
-      update: {
-        name: p.name,
-        brandId,
-        uom: p.uom,
-        spec: p.spec,
-        isActive: true,
-      },
-      create: {
-        code: p.code,
-        name: p.name,
-        brandId,
-        uom: p.uom,
-        spec: p.spec,
-        isActive: true,
-      },
+    const partBrandId = brandIdByCode.get(p.brandCode) ?? null;
+    const existing = await prisma.nx00Part.findFirst({
+      where: { code: p.code, carBrandId: null },
     });
+    const data = {
+      name: p.name,
+      partBrandId,
+      uom: p.uom,
+      spec: p.spec,
+      isActive: true,
+    };
+    if (existing) {
+      await prisma.nx00Part.update({ where: { id: existing.id }, data });
+    } else {
+      await prisma.nx00Part.create({
+        data: {
+          code: p.code,
+          ...data,
+          carBrandId: null,
+        },
+      });
+    }
   }
   console.log(`✅ nx00_part seed 完成，共 ${parts.length} 筆`);
 
@@ -825,145 +828,17 @@ async function main() {
   console.log(`✅ nx00_partner seed 完成，共 ${partners.length} 筆`);
 
   /**
-   * @FUNCTION_CODE NX02-NX06-SVC-SEED-F01 / NX01-SVC-SEED-F01
-   * 說明：DEV-INNOVA 下 nx04→nx05→nx02→nx03→nx06；以及 nx01 詢價／進貨單（含明細）測試資料
+   * @FUNCTION_CODE NX01-SVC-SEED-F01
+   * 說明：DEV-INNOVA 下 nx01 詢價／進貨單（含明細）測試資料（表結構依 docs/field_list.csv）
    */
   if (devTenant && adminUser) {
     const tenantId = devTenant.id;
     const uid = adminUser.id;
     const d0 = new Date('2026-03-01T00:00:00.000Z');
 
-    const unitPcs = await prisma.nx04Unit.upsert({
-      where: { tenantId_unitCode: { tenantId, unitCode: 'PCS' } },
-      update: { unitName: '件', remark: 'seed', updatedBy: uid },
-      create: {
-        tenantId,
-        unitCode: 'PCS',
-        unitName: '件',
-        remark: 'seed',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    const unitBox = await prisma.nx04Unit.upsert({
-      where: { tenantId_unitCode: { tenantId, unitCode: 'BOX' } },
-      update: { unitName: '箱', updatedBy: uid },
-      create: {
-        tenantId,
-        unitCode: 'BOX',
-        unitName: '箱',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    const catFilter = await prisma.nx05Category.upsert({
-      where: { tenantId_categoryCode: { tenantId, categoryCode: 'CAT-FILTER' } },
-      update: { categoryName: '濾清類', updatedBy: uid },
-      create: {
-        tenantId,
-        categoryCode: 'CAT-FILTER',
-        categoryName: '濾清類',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    const catBrake = await prisma.nx05Category.upsert({
-      where: { tenantId_categoryCode: { tenantId, categoryCode: 'CAT-BRAKE' } },
-      update: { categoryName: '煞車類', updatedBy: uid },
-      create: {
-        tenantId,
-        categoryCode: 'CAT-BRAKE',
-        categoryName: '煞車類',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    const dept = await prisma.nx02Dept.upsert({
-      where: { tenantId_deptCode: { tenantId, deptCode: 'DEPT-OPS' } },
-      update: { deptName: '營運部', updatedBy: uid },
-      create: {
-        tenantId,
-        deptCode: 'DEPT-OPS',
-        deptName: '營運部',
-        remark: 'seed',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    await prisma.nx03Emp.upsert({
-      where: { tenantId_empCode: { tenantId, empCode: 'E001' } },
-      update: { empName: '林大同', title: '倉管', deptId: dept.id, updatedBy: uid },
-      create: {
-        tenantId,
-        empCode: 'E001',
-        empName: '林大同',
-        deptId: dept.id,
-        title: '倉管',
-        phone: '02-20000000',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    await prisma.nx06Product.upsert({
-      where: { tenantId_productCode: { tenantId, productCode: 'P-OC001' } },
-      update: {
-        productName: '機油濾芯（樣品）',
-        spec: 'MANN W712/75',
-        unitId: unitPcs.id,
-        categoryId: catFilter.id,
-        price: new Prisma.Decimal('280.0000'),
-        cost: new Prisma.Decimal('180.0000'),
-        updatedBy: uid,
-      },
-      create: {
-        tenantId,
-        productCode: 'P-OC001',
-        productName: '機油濾芯（樣品）',
-        spec: 'MANN W712/75',
-        unitId: unitPcs.id,
-        categoryId: catFilter.id,
-        price: new Prisma.Decimal('280.0000'),
-        cost: new Prisma.Decimal('180.0000'),
-        remark: 'seed',
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    await prisma.nx06Product.upsert({
-      where: { tenantId_productCode: { tenantId, productCode: 'P-BP001' } },
-      update: {
-        productName: '煞車來令（樣品）',
-        unitId: unitBox.id,
-        categoryId: catBrake.id,
-        price: new Prisma.Decimal('1200.0000'),
-        cost: new Prisma.Decimal('800.0000'),
-        updatedBy: uid,
-      },
-      create: {
-        tenantId,
-        productCode: 'P-BP001',
-        productName: '煞車來令（樣品）',
-        unitId: unitBox.id,
-        categoryId: catBrake.id,
-        price: new Prisma.Decimal('1200.0000'),
-        cost: new Prisma.Decimal('800.0000'),
-        createdBy: uid,
-        updatedBy: uid,
-      },
-    });
-
-    console.log('✅ nx02_dept / nx03_emp / nx04_unit / nx05_category / nx06_product seed 完成（DEV-INNOVA）');
-
     const supplier = await prisma.nx00Partner.findUnique({ where: { code: 'S0001' } });
-    const partOc = await prisma.nx00Part.findUnique({ where: { code: 'OC-001' } });
-    const partAf = await prisma.nx00Part.findUnique({ where: { code: 'AF-001' } });
+    const partOc = await prisma.nx00Part.findFirst({ where: { code: 'OC-001', carBrandId: null } });
+    const partAf = await prisma.nx00Part.findFirst({ where: { code: 'AF-001', carBrandId: null } });
     const whZ01 = await prisma.nx00Warehouse.findUnique({ where: { code: 'Z01' } });
     const locA0101 = whZ01
       ? await prisma.nx00Location.findFirst({
@@ -1121,6 +996,136 @@ async function main() {
     });
   }
   console.log(`✅ nx00_role seed (SALES/WH) 完成，共 ${extraRoles.length} 筆`);
+
+  /**
+   * 與 `apps/nx-ui/.../mock-data.ts` MOCK_BASE_USERS u1～u7 對齊之七位使用者（預設密碼 changeme）
+   */
+  if (devTenant) {
+    const adminRole = await prisma.nx00Role.findUnique({ where: { code: 'ADMIN' } });
+    const salesRole = await prisma.nx00Role.findUnique({ where: { code: 'SALES' } });
+    const whRole = await prisma.nx00Role.findUnique({ where: { code: 'WH' } });
+    const teamUsers = [
+      { username: 'admin', displayName: '系統管理員', isActive: true, role: adminRole },
+      { username: 'chen.wh', displayName: '陳倉管', isActive: true, role: whRole },
+      { username: 'liu.po', displayName: '劉採購', isActive: true, role: salesRole },
+      { username: 'lin.sales', displayName: '林業務', isActive: false, role: salesRole },
+      { username: 'huang.fin', displayName: '黃財務', isActive: true, role: salesRole },
+      { username: 'wu.cs', displayName: '吳客服', isActive: true, role: salesRole },
+      { username: 'zheng.wh2', displayName: '鄭倉管', isActive: true, role: whRole },
+    ] as const;
+    for (const u of teamUsers) {
+      if (!u.role) continue;
+      const userRow = await prisma.nx00User.upsert({
+        where: { username: u.username },
+        update: {
+          displayName: u.displayName,
+          passwordHash: ADMIN_DEFAULT_PASSWORD_HASH,
+          isActive: u.isActive,
+          tenantId: devTenant.id,
+        },
+        create: {
+          username: u.username,
+          displayName: u.displayName,
+          passwordHash: ADMIN_DEFAULT_PASSWORD_HASH,
+          isActive: u.isActive,
+          tenantId: devTenant.id,
+        },
+      });
+      await prisma.nx00UserRole.upsert({
+        where: {
+          userId_roleId: { userId: userRow.id, roleId: u.role.id },
+        },
+        update: { isPrimary: u.username === 'admin', isActive: true },
+        create: {
+          userId: userRow.id,
+          roleId: u.role.id,
+          isPrimary: u.username === 'admin',
+          assignedAt: new Date(),
+          isActive: true,
+        },
+      });
+    }
+    console.log(
+      '✅ MOCK 七位使用者 seed 完成（admin／chen.wh／liu.po／lin.sales／huang.fin／wu.cs／zheng.wh2，密碼=changeme）',
+    );
+  }
+
+  /**
+   * 首頁：公告 / 行事曆（DEV-INNOVA，僅空表時寫入）
+   */
+  const devTenantForHome = await prisma.nx99Tenant.findUnique({
+    where: { code: 'DEV-INNOVA' },
+  });
+  const adminForHome = await prisma.nx00User.findUnique({
+    where: { username: 'admin' },
+    select: { id: true },
+  });
+  if (devTenantForHome && adminForHome) {
+    const nBulletin = await prisma.nx00Bulletin.count({
+      where: { tenantId: devTenantForHome.id },
+    });
+    if (nBulletin === 0) {
+      await prisma.nx00Bulletin.create({
+        data: {
+          tenantId: devTenantForHome.id,
+          title: '系統維護公告',
+          subtitle: '週六凌晨維護時段',
+          content: '本週六凌晨 2:00-4:00 進行系統維護，届時系統將暫停服務。',
+          scopeType: 'S',
+          isPinned: true,
+          displayBadge: 'important',
+          isActive: true,
+          createdBy: adminForHome.id,
+          updatedBy: adminForHome.id,
+        },
+      });
+      await prisma.nx00Bulletin.create({
+        data: {
+          tenantId: devTenantForHome.id,
+          title: '新版本更新 v1.2.0',
+          subtitle: '庫存與報表優化',
+          content: '新增庫存預警功能、優化報表匯出速度。',
+          scopeType: 'S',
+          isPinned: false,
+          displayBadge: 'update',
+          isActive: true,
+          createdBy: adminForHome.id,
+          updatedBy: adminForHome.id,
+        },
+      });
+      console.log('✅ nx00_bulletin seed 完成，共 2 筆');
+    }
+    const nCal = await prisma.nx00CalendarEvent.count({
+      where: { tenantId: devTenantForHome.id },
+    });
+    if (nCal === 0) {
+      // API 以 YYYY-MM-DD 轉 UTC 日界線篩選；用 UTC 當月中午避免與伺服器本地時區錯位導致「本月看不到」
+      const now = new Date();
+      const y = now.getUTCFullYear();
+      const m = now.getUTCMonth();
+      const day = Math.min(15, new Date(Date.UTC(y, m + 1, 0)).getUTCDate());
+      const ds = new Date(Date.UTC(y, m, day, 1, 0, 0));
+      const de = new Date(Date.UTC(y, m, day, 2, 0, 0));
+      await prisma.nx00CalendarEvent.create({
+        data: {
+          tenantId: devTenantForHome.id,
+          title: '供應商會議',
+          subtitle: '季度檢討',
+          content: '與主要供應商討論下一季交期與價格條件。',
+          scopeType: 'C',
+          eventKind: 'meeting',
+          dateStart: ds,
+          dateEnd: de,
+          isAllDay: false,
+          location: '會議室 A',
+          isActive: true,
+          createdBy: adminForHome.id,
+          updatedBy: adminForHome.id,
+        },
+      });
+      console.log('✅ nx00_calendar_event seed 完成，共 1 筆');
+    }
+  }
 
   /**
    * @FUNCTION_CODE NX00-USER-SVC-SEED-F02

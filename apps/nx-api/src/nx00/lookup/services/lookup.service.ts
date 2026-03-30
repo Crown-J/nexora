@@ -27,7 +27,16 @@ export class LookupService {
     constructor(private readonly prisma: PrismaService) { }
 
     async brand(isActive?: boolean): Promise<LookupItem[]> {
-        return this.prisma.nx00Brand.findMany({
+        return this.prisma.nx00PartBrand.findMany({
+            where: isActive === undefined ? {} : { isActive },
+            orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
+            select: { id: true, code: true, name: true, isActive: true },
+        });
+    }
+
+    /** 汽車廠牌（nx00_car_brand）— 供零件主檔 car_brand_id 下拉 */
+    async carBrand(isActive?: boolean): Promise<LookupItem[]> {
+        return this.prisma.nx00CarBrand.findMany({
             where: isActive === undefined ? {} : { isActive },
             orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
             select: { id: true, code: true, name: true, isActive: true },

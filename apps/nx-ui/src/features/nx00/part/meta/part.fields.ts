@@ -9,9 +9,12 @@
 export type PartFieldKey =
     | 'code'
     | 'name'
-    | 'brandId'
+    | 'partBrandId'
     | 'brandCode'
     | 'brandName'
+    | 'isOem'
+    | 'carBrandName'
+    | 'partType'
     | 'spec'
     | 'uom'
     | 'isActive'
@@ -34,12 +37,15 @@ export const PART_FIELDS: PartFieldDef[] = [
     { key: 'code', label: '料號', inList: true, sortable: true, filterable: true },
     { key: 'name', label: '品名', inList: true, sortable: true, filterable: true },
 
-    { key: 'brandName', label: '品牌', inList: true, sortable: true, filterable: true },
+    { key: 'brandName', label: '零件品牌', inList: true, sortable: true, filterable: true },
+    { key: 'isOem', label: '正廠', inList: true, sortable: true, filterable: true },
+    { key: 'carBrandName', label: '汽車廠牌', inList: true, sortable: true, filterable: true },
+    { key: 'partType', label: '類型', inList: true, sortable: true, filterable: true },
     { key: 'spec', label: '規格', inList: true, sortable: true, filterable: true },
     { key: 'uom', label: '單位', inList: true, sortable: true, filterable: true },
     { key: 'isActive', label: '啟用', inList: true, sortable: true, filterable: true },
 
-    { key: 'brandId', label: '品牌ID', inList: false, sortable: true },
+    { key: 'partBrandId', label: '零件品牌ID', inList: false, sortable: true },
     { key: 'brandCode', label: '品牌代碼', inList: false, sortable: true },
 
     { key: 'createdAt', label: '建立時間', inList: false, sortable: true },
