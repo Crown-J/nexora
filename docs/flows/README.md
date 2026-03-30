@@ -10,6 +10,7 @@
 - [03-inbound-receipt.md](./03-inbound-receipt.md)
 - [04-purchase-return.md](./04-purchase-return.md)
 - [05-sales-quote-so.md](./05-sales-quote-so.md)
+- [10-sales-quote-workbench-ui.md](./10-sales-quote-workbench-ui.md)（銷貨即時報價工作台：單屏整合＋鍵盤規格）
 - [06-sales-return.md](./06-sales-return.md)
 - [07-stocktaking.md](./07-stocktaking.md)
 - [08-transfer.md](./08-transfer.md)

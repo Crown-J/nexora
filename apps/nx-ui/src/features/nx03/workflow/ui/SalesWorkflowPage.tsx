@@ -100,7 +100,11 @@ export function SalesWorkflowPage() {
       </nav>
 
       {mainTab === 'operation' ? (
-        <SalesOperationWorkspace searchInputRef={searchInputRef} searchInputId={PART_SEARCH_INPUT_ID} />
+        <SalesOperationWorkspace
+          searchInputRef={searchInputRef}
+          searchInputId={PART_SEARCH_INPUT_ID}
+          searchFocusNonce={focusSearchNonce}
+        />
       ) : (
         <SalesDocumentsBrowse />
       )}
