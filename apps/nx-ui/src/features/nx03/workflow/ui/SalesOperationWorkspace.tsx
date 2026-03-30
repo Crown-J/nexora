@@ -10,7 +10,6 @@
 
 import type { RefObject } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +44,19 @@ function scrollToBlock(n: 1 | 2 | 3 | 4) {
 
 function pickDefaultVariantId(family: PartFamilyGroup): string {
   return family.variants[0]!.id;
+}
+
+/** 與 datalist 選取一致：輸入值完整等於某筆料號時鎖定該筆 */
+function findExactVariantByPartNo(
+  trimmed: string,
+  fams: PartFamilyGroup[]
+): { fid: string; vid: string } | null {
+  for (const fam of fams) {
+    for (const v of fam.variants) {
+      if (v.partNo.trim() === trimmed) return { fid: fam.id, vid: v.id };
+    }
+  }
+  return null;
 }
 
 function formatTwd(n: number): string {
@@ -156,10 +168,17 @@ export function SalesOperationWorkspace({
   searchFocusNonce = 0,
 }: SalesOperationWorkspaceProps) {
   const [query, setQuery] = useState('');
-  const [hasSearched, setHasSearched] = useState(false);
-  const [families, setFamilies] = useState<PartFamilyGroup[]>([]);
+  const families = useMemo((): PartFamilyGroup[] => {
+    const q = query.trim();
+    if (!q) return [];
+    return searchPartFamilies(q);
+  }, [query]);
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [variantId, setVariantId] = useState<string | null>(null);
+  const familyIdRef = useRef<string | null>(null);
+  const variantIdRef = useRef<string | null>(null);
+  familyIdRef.current = familyId;
+  variantIdRef.current = variantId;
 
   const [filterSales, setFilterSales] = useState(true);
   const [filterQuote, setFilterQuote] = useState(true);
@@ -336,12 +355,39 @@ export function SalesOperationWorkspace({
     return () => window.removeEventListener('keydown', onKey);
   }, [confirmOpen, shortcutTargetOk, syncQuoteFromBlock3]);
 
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setFamilyId(null);
+      setVariantId(null);
+      return;
+    }
+    const next = searchPartFamilies(q);
+    if (next.length === 0) {
+      setFamilyId(null);
+      setVariantId(null);
+      return;
+    }
+    const exact = findExactVariantByPartNo(q, next);
+    if (exact) {
+      setFamilyId(exact.fid);
+      setVariantId(exact.vid);
+      return;
+    }
+    const prevF = familyIdRef.current;
+    const prevV = variantIdRef.current;
+    const fam = prevF ? next.find((f) => f.id === prevF) : undefined;
+    const targetFam = fam ?? next[0]!;
+    const vOk = prevV && targetFam.variants.some((v) => v.id === prevV);
+    const targetVid = vOk ? prevV! : pickDefaultVariantId(targetFam);
+    setFamilyId(targetFam.id);
+    setVariantId(targetVid);
+  }, [query]);
+
   const runSearch = useCallback(() => {
     const q = query.trim();
     if (!q) return;
-    setHasSearched(true);
     const next = searchPartFamilies(q);
-    setFamilies(next);
     if (next.length === 0) {
       setFamilyId(null);
       setVariantId(null);
@@ -358,27 +404,12 @@ export function SalesOperationWorkspace({
     });
   }, [query]);
 
-  const applyPartPick = useCallback((value: string) => {
-    const sep = value.indexOf(':');
-    if (sep < 0) return;
-    const fid = value.slice(0, sep);
-    const vid = value.slice(sep + 1);
-    setFamilyId(fid);
-    setVariantId(vid);
-    setPendingListFocus({ variantId: vid });
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => scrollToBlock(2));
-    });
-  }, []);
-
   const selectFamily = useCallback((fam: PartFamilyGroup) => {
     const vid = pickDefaultVariantId(fam);
     setFamilyId(fam.id);
     setVariantId(vid);
     setPendingListFocus({ variantId: vid });
   }, []);
-
-  const partPickValue = familyId && variantId ? `${familyId}:${variantId}` : '';
 
   const onCustomerSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Enter') return;
@@ -446,6 +477,10 @@ export function SalesOperationWorkspace({
     'scroll-mt-4 rounded-2xl border border-border/80 bg-card/40 p-5 shadow-sm backdrop-blur-sm',
     'min-h-[min(70vh,720px)] flex flex-col'
   );
+  const blockClassSearch = cx(
+    'scroll-mt-4 rounded-2xl border border-border/80 bg-card/40 p-5 shadow-sm backdrop-blur-sm',
+    'flex flex-col'
+  );
 
   return (
     <div className="space-y-6 pb-24">
@@ -461,7 +496,7 @@ export function SalesOperationWorkspace({
       {/* 第一區：搜尋 */}
       <section
         id="nx03-wb-block-1"
-        className={blockClass}
+        className={blockClassSearch}
         aria-labelledby="nx03-wb-h1"
       >
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b border-border/50 pb-4">
@@ -471,7 +506,7 @@ export function SalesOperationWorkspace({
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
               <kbd className="rounded border border-border px-1 font-mono text-[10px]">F2</kbd> 捲到此區並聚焦｜Enter
-              查詢；有結果自動捲至庫存區
+              查詢；與客戶欄相同，輸入即出現下拉選單
             </p>
           </div>
           <div className="text-right text-xs text-muted-foreground">
@@ -482,17 +517,16 @@ export function SalesOperationWorkspace({
           </div>
         </div>
 
-        <div className="relative mt-2 min-w-0 flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
+        <div className="mt-2 min-w-0">
+          <label htmlFor={searchInputId} className="text-sm font-medium text-foreground">
+            料號
+          </label>
           <input
             id={searchInputId}
             ref={(el) => {
               if (searchInputRef) searchInputRef.current = el;
             }}
-            type="search"
+            type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -501,15 +535,37 @@ export function SalesOperationWorkspace({
                 runSearch();
               }
             }}
-            placeholder="料號、品名或關鍵字…"
+            list="nx03-wb-part-dl"
+            placeholder="輸入後 Enter 查詢或選擇料號"
             className={cx(
-              'w-full rounded-xl border border-border/70 bg-background/80 py-3 pl-10 pr-4 text-base',
+              'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 font-mono text-sm',
               'placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
             )}
             aria-label="零件關鍵字搜尋"
             autoComplete="off"
           />
+          <datalist id="nx03-wb-part-dl">
+            {families.flatMap((fam) =>
+              fam.variants.map((v) => (
+                <option key={v.id} value={v.partNo}>
+                  {v.partName}
+                </option>
+              ))
+            )}
+          </datalist>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {activeVariant ? (
+              <>
+                <span className="font-mono text-amber-200/90">{activeVariant.partNo}</span>
+                <span className="text-amber-200/90"> · </span>
+                <span>{activeVariant.partName}</span>
+              </>
+            ) : (
+              '（選擇料號後顯示品名）'
+            )}
+          </p>
         </div>
+
         <button
           type="button"
           onClick={runSearch}
@@ -521,42 +577,8 @@ export function SalesOperationWorkspace({
           查詢
         </button>
 
-        {hasSearched && families.length > 0 ? (
-          <div className="mt-6">
-            <label htmlFor="nx03-wb-part-pick" className="text-sm font-medium text-foreground">
-              快速選擇料號
-            </label>
-            <p className="mt-1 text-xs text-muted-foreground">
-              搜尋結果內可切換料號；選取後會捲至庫存區並聚焦該列。
-            </p>
-            <select
-              id="nx03-wb-part-pick"
-              value={partPickValue}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v) applyPartPick(v);
-              }}
-              className={cx(
-                'mt-2 w-full max-w-xl rounded-xl border border-border/70 bg-background/80 px-3 py-2.5 text-sm',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
-              )}
-            >
-              <option value="">— 請選擇料號 —</option>
-              {families.map((fam) => (
-                <optgroup key={fam.id} label={fam.title}>
-                  {fam.variants.map((v) => (
-                    <option key={v.id} value={`${fam.id}:${v.id}`}>
-                      {v.partNo} — {v.partName}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-        ) : null}
-
-        {!hasSearched ? (
-          <p className="mt-6 text-sm text-muted-foreground">輸入關鍵字後按 Enter 或查詢。試：水泵、06H、煞車、Bosch。</p>
+        {!query.trim() ? (
+          <p className="mt-6 text-sm text-muted-foreground">輸入關鍵字即出現可選料號（與客戶欄相同）；Enter 或查詢會捲至庫存區。試：水泵、06H、煞車、Bosch。</p>
         ) : families.length === 0 ? (
           <p className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-sm text-amber-100">
             沒有此料號（mock：找不到符合的零件資料）。
@@ -574,8 +596,8 @@ export function SalesOperationWorkspace({
           選通用件，右側為各倉數量
         </p>
 
-        {!hasSearched || families.length === 0 ? (
-          <p className="mt-8 flex-1 text-sm text-muted-foreground">請先於第一區完成搜尋。</p>
+        {families.length === 0 ? (
+          <p className="mt-8 flex-1 text-sm text-muted-foreground">請先於第一區輸入關鍵字並出現可選料號。</p>
         ) : (
           <div className="mt-6 grid flex-1 gap-6 lg:grid-cols-2 lg:gap-8">
             <div>
