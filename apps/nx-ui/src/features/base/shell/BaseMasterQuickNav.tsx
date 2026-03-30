@@ -39,7 +39,7 @@ export function BaseMasterQuickNav() {
               'inline-flex size-9 items-center justify-center rounded-lg border transition-colors',
               active
                 ? 'border-primary/50 bg-primary/15 text-primary'
-                : 'border-border/80 bg-card/40 text-muted-foreground hover:border-primary/30 hover:bg-primary/10 hover:text-foreground',
+                : 'border-border bg-card/55 text-muted-foreground hover:border-primary/30 hover:bg-primary/10 hover:text-foreground',
             )}
           >
             <Icon className="size-[18px] shrink-0" aria-hidden />

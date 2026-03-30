@@ -36,7 +36,7 @@ export function SalesDocumentsBrowse() {
   return (
     <div
       className={cx(
-        'rounded-2xl border border-border/80 bg-card/45 p-4 shadow-sm sm:p-6',
+        'rounded-2xl border border-border bg-card/60 p-4 shadow-sm sm:p-6',
         'backdrop-blur-sm'
       )}
     >

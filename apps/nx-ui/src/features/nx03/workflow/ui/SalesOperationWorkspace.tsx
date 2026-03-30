@@ -34,6 +34,7 @@ import {
   type WorkbenchComparisonRow,
   type WorkbenchDerived,
 } from '@/features/nx03/workflow/mock/workbench.mock';
+import type { QuoteSnapshot } from '@/features/nx03/workflow/types';
 
 const BLOCK_IDS = ['nx03-wb-block-1', 'nx03-wb-block-2', 'nx03-wb-block-3', 'nx03-wb-block-4'] as const;
 
@@ -64,91 +65,17 @@ function formatTwd(n: number): string {
   return `NT$ ${n.toLocaleString('zh-TW', { maximumFractionDigits: 0 })}`;
 }
 
-/** 第二區右側：倉別／儲位一律展開（不收合） */
-function Block2WarehousePanel({ wb }: { wb: WorkbenchDerived }) {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-amber-200/90">本倉可出</p>
-          <p className="mt-1 text-3xl font-semibold tabular-nums text-amber-50">{wb.localAvailable}</p>
-          <p className="mt-2 text-[11px] text-muted-foreground">{WB_LOGIN_WAREHOUSE}</p>
-        </div>
-        <div className="rounded-xl border border-border/50 bg-background/25 p-4">
-          <p className="text-[11px] text-muted-foreground">本倉總量</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">{wb.localTotal}</p>
-        </div>
-        <div className="rounded-xl border border-border/50 bg-background/25 p-4">
-          <p className="text-[11px] text-muted-foreground">庫存總量</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">{wb.totalInventory}</p>
-        </div>
-      </div>
-
-      {wb.localAvailable === 0 ? (
-        <div
-          className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100"
-          role="status"
-        >
-          本倉可出為 0，請參考下方各倉分布。
-        </div>
-      ) : null}
-
-      <div>
-        <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">倉別摘要</h4>
-        <div className="overflow-x-auto rounded-xl border border-border/50">
-          <table className="w-full min-w-[400px] text-left text-sm">
-            <thead className="border-b border-border/50 bg-muted/20 text-[11px] text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2 font-medium">倉編號</th>
-                <th className="px-3 py-2 font-medium">倉別</th>
-                <th className="px-3 py-2 font-medium text-right">數量</th>
-                <th className="px-3 py-2 font-medium text-right">可出</th>
-              </tr>
-            </thead>
-            <tbody>
-              {wb.rollup.map((r) => (
-                <tr key={r.code} className="border-b border-border/40 last:border-0">
-                  <td className="px-3 py-2 font-mono text-xs">{r.code}</td>
-                  <td className="px-3 py-2">{r.name}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.qty}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.available}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div>
-        <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">儲位明細</h4>
-        <div className="space-y-3">
-          {wb.binsByWarehouse.map((bw) => (
-            <div key={bw.warehouse} className="rounded-xl border border-border/50 bg-background/20 p-3">
-              <p className="text-sm font-medium">{bw.warehouse}</p>
-              <table className="mt-2 w-full text-left text-sm">
-                <thead className="text-[11px] text-muted-foreground">
-                  <tr>
-                    <th className="py-1 font-medium">儲位</th>
-                    <th className="py-1 font-medium">名稱</th>
-                    <th className="py-1 font-medium text-right">數量</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bw.bins.map((b) => (
-                    <tr key={b.id} className="border-t border-border/30">
-                      <td className="py-1.5 font-mono text-xs">{b.id}</td>
-                      <td className="py-1.5">{b.name}</td>
-                      <td className="py-1.5 text-right tabular-nums">{b.qty}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+/** 第二區右側：固定 Z00～Z04 顯示數量 + 調貨（mock：數量依 rollup 列依序對應） */
+function buildBlock2OutboundRows(wb: WorkbenchDerived) {
+  const r = wb.rollup;
+  const q = (i: number) => r[i]?.qty ?? 0;
+  return [
+    { key: 'Z00', code: 'Z00', name: '總倉', qty: q(0) },
+    { key: 'Z01', code: 'Z01', name: '台北倉', qty: q(1) },
+    { key: 'Z02', code: 'Z02', name: '新莊倉', qty: q(2) },
+    { key: 'Z04', code: 'Z04', name: '林口倉', qty: q(3) },
+    { key: 'TRANSFER', code: '—', name: '調貨', qty: null as null },
+  ];
 }
 
 export type SalesOperationWorkspaceProps = {
@@ -156,6 +83,8 @@ export type SalesOperationWorkspaceProps = {
   searchInputId?: string;
   /** 父層 F2 遞增時捲動至第一區 */
   searchFocusNonce?: number;
+  /** 報價完成：進入「建立銷貨單」階段 */
+  onQuoteComplete?: (snapshot: QuoteSnapshot) => void;
 };
 
 /**
@@ -166,6 +95,7 @@ export function SalesOperationWorkspace({
   searchInputRef,
   searchInputId = 'nx03-part-search-input',
   searchFocusNonce = 0,
+  onQuoteComplete,
 }: SalesOperationWorkspaceProps) {
   const [query, setQuery] = useState('');
   const families = useMemo((): PartFamilyGroup[] => {
@@ -180,9 +110,6 @@ export function SalesOperationWorkspace({
   familyIdRef.current = familyId;
   variantIdRef.current = variantId;
 
-  const [filterSales, setFilterSales] = useState(true);
-  const [filterQuote, setFilterQuote] = useState(true);
-
   const [customerCode, setCustomerCode] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [appliedCustomerCode, setAppliedCustomerCode] = useState<string | null>(null);
@@ -193,6 +120,18 @@ export function SalesOperationWorkspace({
   const [quoteUnitPrice, setQuoteUnitPrice] = useState('');
   const [quoteCustomerCode, setQuoteCustomerCode] = useState('');
   const [quoteCustomerName, setQuoteCustomerName] = useState('');
+  const [quoteRemark, setQuoteRemark] = useState('');
+
+  const quoteLineTotals = useMemo(() => {
+    const u = Number(String(quoteUnitPrice).replace(/,/g, '').trim());
+    const q = Number(String(quoteQty).replace(/,/g, '').trim());
+    if (!Number.isFinite(u) || !Number.isFinite(q) || q < 0) {
+      return { excl: null as number | null, incl: null as number | null };
+    }
+    const incl = u * q;
+    const excl = incl / 1.05;
+    return { excl: Math.round(excl), incl: Math.round(incl) };
+  }, [quoteUnitPrice, quoteQty]);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cheatOpen, setCheatOpen] = useState(false);
@@ -206,10 +145,15 @@ export function SalesOperationWorkspace({
   const historyGridRef = useRef<HTMLDivElement>(null);
   const block2ListFocusRef = useRef<HTMLButtonElement>(null);
   const quoteCustomerCodeRef = useRef<HTMLInputElement>(null);
+  const quoteCustomerNameRef = useRef<HTMLInputElement>(null);
   const quotePriceRef = useRef<HTMLInputElement>(null);
   const quoteQtyRef = useRef<HTMLInputElement>(null);
-  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const quoteRemarkRef = useRef<HTMLTextAreaElement>(null);
+  const confirmDialogCancelRef = useRef<HTMLButtonElement>(null);
   const variantBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  /** 第二區右側：出貨倉／調貨列（Enter 後進入第三區） */
+  const block2WarehouseBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [outboundSlotKey, setOutboundSlotKey] = useState<string | null>(null);
 
   const activeFamily = useMemo(
     () => families.find((f) => f.id === familyId) ?? null,
@@ -226,41 +170,76 @@ export function SalesOperationWorkspace({
     return buildWorkbenchDerived(activeVariant);
   }, [activeVariant]);
 
-  const filteredHistory = useMemo((): WorkbenchComparisonRow[] => {
-    if (!wb) return [];
-    let rows = wb.comparisonRows.filter((r) => {
-      if (r.category === '銷貨' && !filterSales) return false;
-      if (r.category === '報價' && !filterQuote) return false;
-      return true;
-    });
-    if (appliedCustomerCode && appliedCustomerCode.length > 0) {
-      const code = appliedCustomerCode.toUpperCase();
-      const cust = findMockCustomerByCode(code);
-      rows = rows.filter(
-        (r) =>
-          r.customerId.replace(/—/g, '').toUpperCase() === code ||
-          (cust && r.customerName === cust.name)
-      );
-    }
-    return rows;
-  }, [wb, filterSales, filterQuote, appliedCustomerCode]);
+  const block2OutboundRows = useMemo(() => (wb ? buildBlock2OutboundRows(wb) : []), [wb]);
 
-  const histDisplayIdx = useMemo(() => {
-    if (filteredHistory.length === 0) return 0;
-    return Math.min(Math.max(0, histFocusIdx), filteredHistory.length - 1);
-  }, [histFocusIdx, filteredHistory.length]);
+  useEffect(() => {
+    setOutboundSlotKey(null);
+  }, [variantId]);
+
+  const goToBlock3FromWarehouse = useCallback(
+    (slotKey: string) => {
+      const row = block2OutboundRows.find((r) => r.key === slotKey);
+      if (row && row.qty !== null && row.qty === 0) {
+        setToast('目前此倉庫沒有貨');
+        window.setTimeout(() => setToast(null), 4000);
+      }
+      const tag =
+        row?.key === 'TRANSFER' ? '由調貨出貨' : row ? `由${row.code}${row.name}出貨` : '';
+      if (tag) {
+        setQuoteRemark((prev) => {
+          const cleaned = prev.replace(/^由[^；\n]+出貨[；\s]*/u, '').trim();
+          return cleaned ? `${tag}；${cleaned}` : tag;
+        });
+      }
+      setOutboundSlotKey(slotKey);
+      scrollToBlock(3);
+      requestAnimationFrame(() => customerSearchRef.current?.focus());
+    },
+    [block2OutboundRows]
+  );
+
+  /** 已篩選客戶時：最近一次報價、最近一次銷貨（成交） */
+  const compactHistory = useMemo(() => {
+    if (!wb || !appliedCustomerCode) return null;
+    const code = appliedCustomerCode.toUpperCase();
+    const cust = findMockCustomerByCode(code);
+    const rows = wb.comparisonRows.filter(
+      (r) =>
+        r.customerId.replace(/—/g, '').toUpperCase() === code ||
+        (cust && r.customerName === cust.name)
+    );
+    const quotes = rows
+      .filter((r) => r.category === '報價')
+      .sort((a, b) => b.date.localeCompare(a.date));
+    const sales = rows
+      .filter((r) => r.category === '銷貨')
+      .sort((a, b) => b.date.localeCompare(a.date));
+    return { latestQuote: quotes[0] ?? null, latestSales: sales[0] ?? null };
+  }, [wb, appliedCustomerCode]);
 
   const syncQuoteFromBlock3 = useCallback(() => {
     const code = customerCode.trim().toUpperCase();
     setQuoteCustomerCode(code);
     const found = findMockCustomerByCode(code);
     setQuoteCustomerName((found?.name ?? customerName).trim());
-    const row = filteredHistory[histDisplayIdx] ?? null;
-    if (row) {
-      const n = parseTwdToNumber(row.unitPrice);
-      if (n) setQuoteUnitPrice(String(Math.round(n)));
+    if (!compactHistory) return;
+    const idx = Math.min(2, Math.max(0, histFocusIdx));
+    if (idx === 2) {
+      setQuoteUnitPrice('');
+      return;
     }
-  }, [customerCode, customerName, filteredHistory, histDisplayIdx]);
+    if (idx === 0 && compactHistory.latestQuote) {
+      const n = parseTwdToNumber(compactHistory.latestQuote.unitPrice);
+      if (n) setQuoteUnitPrice(String(Math.round(n)));
+      return;
+    }
+    if (idx === 1 && compactHistory.latestSales) {
+      const n = parseTwdToNumber(compactHistory.latestSales.unitPrice);
+      if (n) setQuoteUnitPrice(String(Math.round(n)));
+      return;
+    }
+    setQuoteUnitPrice('');
+  }, [customerCode, customerName, compactHistory, histFocusIdx]);
 
   useEffect(() => {
     if (searchFocusNonce === 0) return;
@@ -286,18 +265,10 @@ export function SalesOperationWorkspace({
     return () => cancelAnimationFrame(id);
   }, [pendingListFocus, variantId, familyId, families]);
 
+  /** 從第三區 Enter 或 Alt+A 進入第四區時，永遠先鎖定客戶編號 */
   useLayoutEffect(() => {
     if (focusBlock4Nonce === 0) return;
-    const custEmpty = !quoteCustomerCode.trim();
-    const priceEmpty = !quoteUnitPrice.trim();
-    if (custEmpty) {
-      quoteCustomerCodeRef.current?.focus();
-    } else if (priceEmpty) {
-      quotePriceRef.current?.focus();
-    } else {
-      quoteQtyRef.current?.focus();
-    }
-    // 僅在 Alt+A（nonce 變更）時對焦，避免輸入客戶／單價時重跑
+    quoteCustomerCodeRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 刻意只依 nonce
   }, [focusBlock4Nonce]);
 
@@ -422,13 +393,24 @@ export function SalesOperationWorkspace({
   };
 
   const onHistKeyDown = (e: React.KeyboardEvent) => {
-    if (filteredHistory.length === 0) return;
-    if (e.key === 'ArrowDown') {
+    if (!wb) return;
+    if (compactHistory) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHistFocusIdx((i) => Math.min(2, i + 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHistFocusIdx((i) => Math.max(0, i - 1));
+        return;
+      }
+    }
+    if (e.key === 'Enter') {
       e.preventDefault();
-      setHistFocusIdx((i) => Math.min(filteredHistory.length - 1, i + 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHistFocusIdx((i) => Math.max(0, i - 1));
+      syncQuoteFromBlock3();
+      scrollToBlock(4);
+      setFocusBlock4Nonce((n) => n + 1);
     }
   };
 
@@ -450,35 +432,49 @@ export function SalesOperationWorkspace({
       return;
     }
     setConfirmOpen(true);
-    requestAnimationFrame(() => confirmBtnRef.current?.focus());
+    requestAnimationFrame(() => confirmDialogCancelRef.current?.focus());
   }, [quoteQty, quoteCustomerCode, quoteUnitPrice]);
 
-  const finalizeQuote = useCallback(() => {
+  const handleConfirmCancel = useCallback(() => {
     setConfirmOpen(false);
-    setToast(
-      `（mock）建檔成功：客戶 ${quoteCustomerName || quoteCustomerCode}｜料號 ${activeVariant?.partNo ?? '—'}｜數量 ${quoteQty}｜單價 ${quoteUnitPrice}`
-    );
-    window.setTimeout(() => setToast(null), 5000);
-  }, [quoteCustomerCode, quoteCustomerName, quoteQty, quoteUnitPrice, activeVariant?.partNo]);
+    requestAnimationFrame(() => quoteCustomerCodeRef.current?.focus());
+  }, []);
 
-  useEffect(() => {
-    if (!confirmOpen) return;
-    const onDocKey = (ev: KeyboardEvent) => {
-      if (ev.key === 'Enter' && document.activeElement === confirmBtnRef.current) {
-        ev.preventDefault();
-        finalizeQuote();
-      }
+  const handleContinueQuote = useCallback(() => {
+    setConfirmOpen(false);
+    scrollToBlock(1);
+    requestAnimationFrame(() => searchInputRef?.current?.focus());
+  }, [searchInputRef]);
+
+  const handleQuoteComplete = useCallback(() => {
+    const snapshot: QuoteSnapshot = {
+      customerCode: quoteCustomerCode.trim(),
+      customerName: quoteCustomerName.trim(),
+      partNo: activeVariant?.partNo ?? '',
+      qty: quoteQty,
+      unitPrice: quoteUnitPrice,
+      remark: quoteRemark.trim(),
     };
-    document.addEventListener('keydown', onDocKey);
-    return () => document.removeEventListener('keydown', onDocKey);
-  }, [confirmOpen, finalizeQuote]);
+    setConfirmOpen(false);
+    setToast('報價完成（mock），請於「建立銷貨單」繼續流程');
+    window.setTimeout(() => setToast(null), 4000);
+    onQuoteComplete?.(snapshot);
+  }, [
+    quoteCustomerCode,
+    quoteCustomerName,
+    quoteQty,
+    quoteUnitPrice,
+    quoteRemark,
+    activeVariant?.partNo,
+    onQuoteComplete,
+  ]);
 
   const blockClass = cx(
-    'scroll-mt-4 rounded-2xl border border-border/80 bg-card/40 p-5 shadow-sm backdrop-blur-sm',
+    'scroll-mt-4 rounded-2xl border border-border bg-card/60 p-5 shadow-sm backdrop-blur-sm',
     'min-h-[min(70vh,720px)] flex flex-col'
   );
   const blockClassSearch = cx(
-    'scroll-mt-4 rounded-2xl border border-border/80 bg-card/40 p-5 shadow-sm backdrop-blur-sm',
+    'scroll-mt-4 rounded-2xl border border-border bg-card/60 p-5 shadow-sm backdrop-blur-sm',
     'flex flex-col'
   );
 
@@ -593,7 +589,8 @@ export function SalesOperationWorkspace({
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
           <kbd className="rounded border border-border px-1 font-mono text-[10px]">Alt+1</kbd> 捲到此區｜左側 ↑↓
-          選通用件，右側為各倉數量
+          選通用件；<strong className="font-medium text-foreground">Enter</strong> 至右側選出貨倉；再{' '}
+          <strong className="font-medium text-foreground">Enter</strong> 進入第三區
         </p>
 
         {families.length === 0 ? (
@@ -649,6 +646,10 @@ export function SalesOperationWorkspace({
                         const ni = Math.max(0, idx - 1);
                         setVariantId(activeFamily.variants[ni]!.id);
                         variantBtnRefs.current[ni]?.focus();
+                      } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setOutboundSlotKey('Z00');
+                        requestAnimationFrame(() => block2WarehouseBtnRefs.current[0]?.focus());
                       }
                     }}
                     className={cx(
@@ -667,11 +668,52 @@ export function SalesOperationWorkspace({
             <div>
               <h3 className="text-sm font-medium text-foreground">各倉數量</h3>
               {wb ? (
-                <div className="mt-4">
-                  <Block2WarehousePanel key={variantId} wb={wb} />
+                <div className="mt-4 space-y-1" role="listbox" aria-label="出貨倉位">
+                  {block2OutboundRows.map((row, idx) => (
+                    <button
+                      key={row.key}
+                      type="button"
+                      role="option"
+                      aria-selected={outboundSlotKey === row.key}
+                      ref={(el) => {
+                        block2WarehouseBtnRefs.current[idx] = el;
+                      }}
+                      onFocus={() => setOutboundSlotKey(row.key)}
+                      onClick={() => goToBlock3FromWarehouse(row.key)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          goToBlock3FromWarehouse(row.key);
+                          return;
+                        }
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          block2WarehouseBtnRefs.current[
+                            Math.min(idx + 1, block2OutboundRows.length - 1)
+                          ]?.focus();
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          block2WarehouseBtnRefs.current[Math.max(0, idx - 1)]?.focus();
+                        }
+                      }}
+                      className={cx(
+                        'grid w-full grid-cols-[4rem_1fr_4rem] items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45',
+                        outboundSlotKey === row.key
+                          ? 'border-amber-500/50 bg-amber-500/12'
+                          : 'border-border/50 hover:bg-muted/15'
+                      )}
+                    >
+                      <span className="font-mono text-xs text-muted-foreground">{row.code}</span>
+                      <span className="min-w-0">{row.name}</span>
+                      <span className="text-right tabular-nums text-foreground">
+                        {row.qty === null ? '—' : row.qty}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-muted-foreground">選擇左側料號以顯示庫存。</p>
+                <p className="mt-4 text-sm text-muted-foreground">選擇左側料號以顯示各倉數量。</p>
               )}
             </div>
           </div>
@@ -685,8 +727,8 @@ export function SalesOperationWorkspace({
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
           <kbd className="rounded border border-border px-1 font-mono text-[10px]">Alt+2</kbd> 聚焦客戶框｜Enter
-          篩選並移至下方紀錄；<kbd className="rounded border border-border px-1 font-mono text-[10px]">Alt+A</kbd>{' '}
-          至報價區
+          篩選並移至下方紀錄；於紀錄表再按 <strong className="font-medium text-foreground">Enter</strong> 至第四區報價（或{' '}
+          <kbd className="rounded border border-border px-1 font-mono text-[10px]">Alt+A</kbd>）
         </p>
 
         {!wb ? (
@@ -754,32 +796,11 @@ export function SalesOperationWorkspace({
                 <p className="mt-1 text-xs text-muted-foreground">{customerName || '（名稱於 blur／Enter 帶入）'}</p>
               </div>
 
-              <div className="flex flex-wrap gap-3 text-sm">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filterSales}
-                    onChange={(e) => {
-                      setHistFocusIdx(0);
-                      setFilterSales(e.target.checked);
-                    }}
-                    className="accent-amber-500"
-                  />
-                  銷貨
-                </label>
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filterQuote}
-                    onChange={(e) => {
-                      setHistFocusIdx(0);
-                      setFilterQuote(e.target.checked);
-                    }}
-                    className="accent-amber-500"
-                  />
-                  報價
-                </label>
-              </div>
+              <p className="text-xs text-muted-foreground">
+                已篩選客戶時僅顯示<strong className="text-foreground/90">最近一次報價</strong>、
+                <strong className="text-foreground/90">最近一次成交</strong>，以及
+                <strong className="text-foreground/90">自訂報價</strong>（第四區自行輸入單價）。
+              </p>
 
               <div
                 ref={historyGridRef}
@@ -792,40 +813,69 @@ export function SalesOperationWorkspace({
                 <table className="w-full min-w-[480px] text-left text-sm">
                   <thead className="sticky top-0 z-[1] border-b border-border/50 bg-muted/95 text-[11px] text-muted-foreground backdrop-blur-sm">
                     <tr>
+                      <th className="px-2 py-2 font-medium">類型</th>
                       <th className="px-2 py-2 font-medium">單號</th>
-                      <th className="px-2 py-2 font-medium">類別</th>
                       <th className="px-2 py-2 font-medium">日期</th>
-                      <th className="px-2 py-2 font-medium">客戶</th>
                       <th className="px-2 py-2 font-medium text-right">單價</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredHistory.length === 0 ? (
+                    {!appliedCustomerCode ? (
                       <tr>
-                        <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
-                          {appliedCustomerCode ? '此客戶無符合紀錄' : '請輸入客戶編號後 Enter 篩選，或檢視全部'}
+                        <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground">
+                          請輸入客戶編號後 Enter 篩選
+                        </td>
+                      </tr>
+                    ) : !compactHistory ? (
+                      <tr>
+                        <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground">
+                          —
                         </td>
                       </tr>
                     ) : (
-                      filteredHistory.map((r, i) => (
-                        <tr
-                          key={`${r.docNo}-${i}`}
-                          className={cx(
-                            'cursor-pointer border-b border-border/30',
-                            i === histDisplayIdx ? 'bg-amber-500/20' : 'hover:bg-muted/15'
-                          )}
-                          onClick={() => {
-                            setHistFocusIdx(i);
-                            historyGridRef.current?.focus();
-                          }}
-                        >
-                          <td className="px-2 py-2 font-mono text-xs">{r.docNo}</td>
-                          <td className="px-2 py-2">{r.category}</td>
-                          <td className="px-2 py-2 tabular-nums text-muted-foreground">{r.date}</td>
-                          <td className="px-2 py-2 text-xs">{r.customerName}</td>
-                          <td className="px-2 py-2 text-right tabular-nums">{r.unitPrice}</td>
-                        </tr>
-                      ))
+                      (
+                        [
+                          {
+                            key: 'q',
+                            label: '最近報價',
+                            row: compactHistory.latestQuote,
+                          },
+                          {
+                            key: 's',
+                            label: '最近成交',
+                            row: compactHistory.latestSales,
+                          },
+                          { key: 'c', label: '自訂報價', row: null as WorkbenchComparisonRow | null },
+                        ] as const
+                      ).map((item, i) => {
+                        const active = Math.min(2, Math.max(0, histFocusIdx)) === i;
+                        return (
+                          <tr
+                            key={item.key}
+                            className={cx(
+                              'cursor-pointer border-b border-border/30',
+                              active ? 'bg-amber-500/20' : 'hover:bg-muted/15'
+                            )}
+                            onClick={() => {
+                              setHistFocusIdx(i);
+                              historyGridRef.current?.focus();
+                            }}
+                          >
+                            <td className="px-2 py-2 font-medium">{item.label}</td>
+                            <td className="px-2 py-2 font-mono text-xs">
+                              {item.row?.docNo ?? (item.key === 'c' ? '—' : '—')}
+                            </td>
+                            <td className="px-2 py-2 tabular-nums text-muted-foreground">
+                              {item.row?.date ?? '—'}
+                            </td>
+                            <td className="px-2 py-2 text-right tabular-nums">
+                              {item.key === 'c'
+                                ? '（第四區輸入）'
+                                : (item.row?.unitPrice ?? '—')}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -841,116 +891,160 @@ export function SalesOperationWorkspace({
           ④ 報價
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          <kbd className="rounded border border-border px-1 font-mono text-[10px]">Alt+A</kbd>{' '}
-          依客戶／單價是否空白決定起始欄位；<strong className="font-medium text-foreground">Enter</strong> 依序：客戶編號
-          → 單價 → 數量 → 確認窗（客戶與單價皆已填時，從數量開始）。
+          進入本區後<strong className="font-medium text-foreground"> 永遠先鎖定客戶編號</strong>。
+          <strong className="font-medium text-foreground"> Enter</strong> 依序：客戶編號 → 客戶名稱 → 單價（含稅）→ 數量 → 備註 →
+          確認窗（<kbd className="rounded border border-border px-1 font-mono text-[10px]">Alt+A</kbd> 亦會帶入並聚焦本區）。左側可編輯，右側為試算。
         </p>
 
-        <div className="mt-6 grid max-w-lg flex-1 gap-4">
-          <div>
-            <label htmlFor="nx03-wb-quote-cust-code" className="text-sm font-medium">
-              客戶編號
-            </label>
-            <input
-              id="nx03-wb-quote-cust-code"
-              ref={quoteCustomerCodeRef}
-              value={quoteCustomerCode}
-              onChange={(e) => setQuoteCustomerCode(e.target.value.toUpperCase())}
-              onBlur={() => {
-                const found = findMockCustomerByCode(quoteCustomerCode);
-                if (found) setQuoteCustomerName(found.name);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  quotePriceRef.current?.focus();
-                }
-              }}
-              list="nx03-wb-quote-cust-dl"
-              placeholder="可編輯；Enter 前往單價"
-              className={cx(
-                'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 font-mono text-sm',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
-              )}
-              autoComplete="off"
-            />
-            <datalist id="nx03-wb-quote-cust-dl">
-              {WB_MOCK_CUSTOMERS.map((c) => (
-                <option key={c.id} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </datalist>
+        <div className="mt-6 grid max-w-2xl flex-1 gap-4">
+          <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
+            <div>
+              <label htmlFor="nx03-wb-quote-cust-code" className="text-sm font-medium">
+                客戶編號
+              </label>
+              <input
+                id="nx03-wb-quote-cust-code"
+                ref={quoteCustomerCodeRef}
+                value={quoteCustomerCode}
+                onChange={(e) => setQuoteCustomerCode(e.target.value.toUpperCase())}
+                onBlur={() => {
+                  const found = findMockCustomerByCode(quoteCustomerCode);
+                  if (found) setQuoteCustomerName(found.name);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    quoteCustomerNameRef.current?.focus();
+                  }
+                }}
+                list="nx03-wb-quote-cust-dl"
+                placeholder="Enter 前往客戶名稱"
+                className={cx(
+                  'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 font-mono text-sm',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
+                )}
+                autoComplete="off"
+              />
+              <datalist id="nx03-wb-quote-cust-dl">
+                {WB_MOCK_CUSTOMERS.map((c) => (
+                  <option key={c.id} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <label htmlFor="nx03-wb-quote-cust-name" className="text-sm font-medium">
+                客戶名稱
+              </label>
+              <input
+                id="nx03-wb-quote-cust-name"
+                ref={quoteCustomerNameRef}
+                value={quoteCustomerName}
+                onChange={(e) => setQuoteCustomerName(e.target.value)}
+                onBlur={() => {
+                  const found = findMockCustomerByCode(quoteCustomerCode);
+                  if (found && !quoteCustomerName.trim()) setQuoteCustomerName(found.name);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    quotePriceRef.current?.focus();
+                  }
+                }}
+                placeholder="Enter 前往單價（含稅）"
+                className={cx(
+                  'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
+                )}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
+            <div>
+              <label htmlFor="nx03-wb-quote-price" className="text-sm font-medium">
+                單價（含稅價）
+              </label>
+              <input
+                id="nx03-wb-quote-price"
+                ref={quotePriceRef}
+                value={quoteUnitPrice}
+                onChange={(e) => setQuoteUnitPrice(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    quoteQtyRef.current?.focus();
+                  }
+                }}
+                placeholder="Enter 前往數量"
+                className={cx(
+                  'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
+                )}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">未稅總價</label>
+              <div className="mt-2 rounded-lg border border-border/50 bg-muted/25 px-3 py-2.5 text-sm tabular-nums text-foreground">
+                {quoteLineTotals.excl != null ? formatTwd(quoteLineTotals.excl) : '—'}
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">含稅單價×數量÷1.05（試算）</p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
+            <div>
+              <label htmlFor="nx03-wb-quote-qty" className="text-sm font-medium">
+                數量
+              </label>
+              <input
+                id="nx03-wb-quote-qty"
+                ref={quoteQtyRef}
+                value={quoteQty}
+                onChange={(e) => setQuoteQty(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    quoteRemarkRef.current?.focus();
+                  }
+                }}
+                placeholder="Enter 前往備註"
+                className={cx(
+                  'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm tabular-nums',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
+                )}
+                inputMode="numeric"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">含稅總價（5%）</label>
+              <div className="mt-2 rounded-lg border border-border/50 bg-muted/25 px-3 py-2.5 text-sm tabular-nums text-foreground">
+                {quoteLineTotals.incl != null ? formatTwd(quoteLineTotals.incl) : '—'}
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">含稅單價×數量（試算）</p>
+            </div>
           </div>
           <div>
-            <label htmlFor="nx03-wb-quote-cust-name" className="text-sm font-medium">
-              客戶名稱
+            <label htmlFor="nx03-wb-quote-remark" className="text-sm font-medium">
+              備註
             </label>
-            <input
-              id="nx03-wb-quote-cust-name"
-              value={quoteCustomerName}
-              onChange={(e) => setQuoteCustomerName(e.target.value)}
-              onBlur={() => {
-                const found = findMockCustomerByCode(quoteCustomerCode);
-                if (found && !quoteCustomerName.trim()) setQuoteCustomerName(found.name);
-              }}
+            <textarea
+              id="nx03-wb-quote-remark"
+              ref={quoteRemarkRef}
+              value={quoteRemark}
+              onChange={(e) => setQuoteRemark(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  quotePriceRef.current?.focus();
-                }
-              }}
-              placeholder="可編輯；blur 可依編號帶入；Enter 前往單價"
-              className={cx(
-                'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
-              )}
-              autoComplete="off"
-            />
-          </div>
-          <div>
-            <label htmlFor="nx03-wb-quote-price" className="text-sm font-medium">
-              單價
-            </label>
-            <input
-              id="nx03-wb-quote-price"
-              ref={quotePriceRef}
-              value={quoteUnitPrice}
-              onChange={(e) => setQuoteUnitPrice(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  quoteQtyRef.current?.focus();
-                }
-              }}
-              placeholder="Enter 前往數量"
-              className={cx(
-                'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
-              )}
-            />
-          </div>
-          <div>
-            <label htmlFor="nx03-wb-quote-qty" className="text-sm font-medium">
-              數量
-            </label>
-            <input
-              id="nx03-wb-quote-qty"
-              ref={quoteQtyRef}
-              value={quoteQty}
-              onChange={(e) => setQuoteQty(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   openConfirm();
                 }
               }}
-              placeholder="Enter 開啟確認"
+              rows={3}
+              placeholder="Enter 開啟確認（Shift+Enter 換行）"
               className={cx(
-                'mt-2 w-full rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm tabular-nums',
+                'mt-2 w-full resize-y rounded-lg border border-border/70 bg-background/80 px-3 py-2.5 text-sm',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/45'
               )}
-              inputMode="numeric"
             />
           </div>
           <button
@@ -958,18 +1052,23 @@ export function SalesOperationWorkspace({
             onClick={openConfirm}
             className="rounded-xl border border-amber-500/45 bg-amber-500/20 py-3 text-sm font-semibold text-amber-50 hover:bg-amber-500/30"
           >
-            確認報價（Enter）
+            開啟確認
           </button>
         </div>
       </section>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="max-w-md" onOpenAutoFocus={(ev) => ev.preventDefault()}>
+        <DialogContent
+          draggable
+          className="max-w-md"
+          onOpenAutoFocus={(ev) => {
+            ev.preventDefault();
+            requestAnimationFrame(() => confirmDialogCancelRef.current?.focus());
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>確認建檔</DialogTitle>
-            <DialogDescription>
-              請與業務再次確認以下內容後建檔（mock）。
-            </DialogDescription>
+            <DialogTitle>確認報價</DialogTitle>
+            <DialogDescription>請選擇下一步（mock）。</DialogDescription>
           </DialogHeader>
           <div className="space-y-2 text-sm">
             <p>
@@ -979,31 +1078,43 @@ export function SalesOperationWorkspace({
               料號：<span className="font-mono">{activeVariant?.partNo ?? '—'}</span>
             </p>
             <p>
-              數量 {quoteQty} × 單價 {quoteUnitPrice}
+              數量 {quoteQty} × 單價（含稅）{quoteUnitPrice}
             </p>
+            {quoteRemark.trim() ? (
+              <p>
+                備註：<span className="text-muted-foreground">{quoteRemark}</span>
+              </p>
+            ) : null}
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
+              ref={confirmDialogCancelRef}
               className="rounded-lg border border-border px-4 py-2 text-sm"
-              onClick={() => setConfirmOpen(false)}
+              onClick={handleConfirmCancel}
             >
               取消
             </button>
             <button
               type="button"
-              ref={confirmBtnRef}
-              className="rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-400"
-              onClick={finalizeQuote}
+              className="rounded-lg border border-amber-500/40 bg-amber-500/15 px-4 py-2 text-sm text-amber-50 hover:bg-amber-500/25"
+              onClick={handleContinueQuote}
             >
-              確認建檔（Enter）
+              繼續報價
+            </button>
+            <button
+              type="button"
+              className="rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-amber-950 hover:bg-amber-400"
+              onClick={handleQuoteComplete}
+            >
+              報價完成
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={cheatOpen} onOpenChange={setCheatOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent draggable className="max-w-md">
           <DialogHeader>
             <DialogTitle>快捷鍵</DialogTitle>
             <DialogDescription className="sr-only">銷貨工作台</DialogDescription>
@@ -1013,13 +1124,14 @@ export function SalesOperationWorkspace({
               <kbd className="rounded border px-1 font-mono text-xs">F2</kbd> 第一區搜尋（捲動 + 聚焦）
             </li>
             <li>
-              <kbd className="rounded border px-1 font-mono text-xs">Alt+1</kbd> 第二區庫存
+              <kbd className="rounded border px-1 font-mono text-xs">Alt+1</kbd> 第二區庫存（左 Enter → 右；再 Enter
+              → 第三區）
             </li>
             <li>
               <kbd className="rounded border px-1 font-mono text-xs">Alt+2</kbd> 第三區客戶框
             </li>
             <li>
-              <kbd className="rounded border px-1 font-mono text-xs">Alt+A</kbd> 第四區報價
+              <kbd className="rounded border px-1 font-mono text-xs">Alt+A</kbd> 第四區報價（等同第三區紀錄表 Enter）
             </li>
             <li>
               <kbd className="rounded border px-1 font-mono text-xs">?</kbd> 本說明（不在文字欄內）

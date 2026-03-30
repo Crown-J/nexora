@@ -287,7 +287,7 @@ export function ProcurementFlowHub() {
       {/* 目前階段待辦 */}
       <section
         className={cn(
-          'rounded-2xl border border-border/80 bg-card/40 p-4 shadow-sm sm:p-5',
+          'rounded-2xl border border-border bg-card/60 p-4 shadow-sm sm:p-5',
           'backdrop-blur-sm'
         )}
       >

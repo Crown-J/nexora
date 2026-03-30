@@ -33,3 +33,13 @@ export interface DocCard {
   statusVariant: 'pending' | 'replied' | 'confirmed' | 'done';
   date: string;
 }
+
+/** 報價完成後帶入「建立銷貨單」階段（mock） */
+export interface QuoteSnapshot {
+  customerCode: string;
+  customerName: string;
+  partNo: string;
+  qty: string;
+  unitPrice: string;
+  remark: string;
+}
