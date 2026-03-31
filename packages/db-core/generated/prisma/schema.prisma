@@ -8,7 +8,7 @@ generator client {
   output   = "../generated/prisma"
 }
 
-/// Supabase：執行期用 `DATABASE_URL`（Transaction Pooler）；`prisma migrate`／`db push`／`seed` 須走直連，由 `prisma.config.ts` 讀取 `DIRECT_URL`。
+/// Supabase：`DATABASE_URL` 為 Transaction pooler（6543，`postgres.[project-ref]` + `?pgbouncer=true`）；`prisma migrate`／`db push`／`seed` 由 `prisma.config.ts` 讀取 `DIRECT_URL`（常為同 pooler 主機 :5432 或 `db.*.supabase.co`）。
 /// Prisma ORM 7 不支援於此區塊宣告 `url`／`directUrl`（見 prisma.config.ts 與 `.env.example`）。
 datasource db {
   provider = "postgresql"
