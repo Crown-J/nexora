@@ -9,6 +9,7 @@
 import {
   Users,
   Briefcase,
+  UserCog,
   Shield,
   Package,
   Tags,
@@ -43,12 +44,21 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   },
   {
     id: 'role',
-    title: '職務',
-    description: '職稱與職務主檔維護',
+    title: '職務主檔',
+    description: '職務代碼、名稱與啟用狀態',
     icon: Briefcase,
     statLabel: '職務項目',
     statValue: '—',
     href: '/base/role',
+  },
+  {
+    id: 'user-role',
+    title: '使用者職務設定',
+    description: '依職務匯入或移除隸屬使用者',
+    icon: UserCog,
+    statLabel: '關聯筆數',
+    statValue: '—',
+    href: '/base/user-role',
   },
   {
     id: 'role-view',
@@ -110,7 +120,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
 export const BASE_SEGMENT_TITLES: Record<string, string> = {
   user: '使用者',
   users: '使用者',
-  'user-role': '使用者職位設定',
+  'user-role': '使用者職務設定',
   role: '職務',
   positions: '職務',
   'role-view': '權限設定',

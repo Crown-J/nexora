@@ -1,8 +1,8 @@
 /**
- * File: apps/nx-ui/src/app/base/role/page.tsx
+ * File: apps/nx-ui/src/app/base/user-role/page.tsx
  *
  * Purpose:
- * - 職務主檔（/base/role）：與 /base/user 相同外殼與導覽
+ * - 使用者職務設定（/base/user-role）：左側職務列表 + 右側成員關聯管理
  */
 
 'use client';
@@ -12,10 +12,10 @@ import { useRouter } from 'next/navigation';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { HomeTopBar } from '@/components/home/top-bar';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
-import { BaseRoleMasterView } from '@/features/base/role/BaseRoleMasterView';
+import { BaseUserRoleView } from '@/features/base/user-role/BaseUserRoleView';
 import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
 
-export default function BaseRolePage() {
+export default function BaseUserRolePage() {
   const router = useRouter();
   const { me, displayName, logout, view } = useSessionMe();
 
@@ -38,7 +38,6 @@ export default function BaseRolePage() {
           <div className="text-xs tracking-[0.35em] text-muted-foreground">NEXORA</div>
           <div className="mt-2 text-lg font-semibold text-foreground">Session error</div>
           <div className="mt-2 text-sm text-muted-foreground leading-relaxed">{view.errorMsg}</div>
-
           <div className="mt-5 flex gap-2">
             <button
               type="button"
@@ -47,7 +46,6 @@ export default function BaseRolePage() {
             >
               重新登入
             </button>
-
             <button
               type="button"
               onClick={logout}
@@ -56,8 +54,6 @@ export default function BaseRolePage() {
               登出
             </button>
           </div>
-
-          <div className="mt-4 text-xs text-muted-foreground">checkedAt: {view.checkedAt || '—'}</div>
         </div>
       </div>
     );
@@ -78,11 +74,11 @@ export default function BaseRolePage() {
     >
       <div className="max-w-7xl mx-auto space-y-6">
         <BaseMasterPageHeader
-          title="職務主檔"
-          description="維護職務代碼、名稱、排序與啟用狀態。若要指派使用者至職務，請至「使用者職務設定」。"
+          title="使用者職務設定"
+          description="依職務管理隸屬使用者（新增／移除／主要職務）。職務代碼與名稱請至「職務主檔」維護。"
         />
 
-        <BaseRoleMasterView />
+        <BaseUserRoleView />
       </div>
     </HomeLandingChrome>
   );

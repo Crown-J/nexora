@@ -14,6 +14,8 @@ export type BaseRoleRow = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string | null;
+  createdByName?: string;
+  updatedByName?: string | null;
 };
 
 /** 某職務底下的使用者指派（mock） */

@@ -1,36 +1,69 @@
 /**
- * 零件主檔：連線 GET/POST/PUT /part；零件廠牌 GET /brand；汽車廠牌 GET /lookup/car-brand
+ * 零件主檔：LIST + SLIDE（與 /base/user 相同互動）；GET/POST/PUT /part
  */
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Columns3,
+  Pencil,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { arrayMove } from '@/shared/lib/arrayMove';
+import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { listBrand } from '@/features/nx00/brand/api/brand';
 import type { BrandDto } from '@/features/nx00/brand/types';
 import { listLookupCarBrand } from '@/features/nx00/lookup/api/lookup';
 import { createPart, listPart, updatePart } from '@/features/nx00/part/api/part';
 import type { PartDto } from '@/features/nx00/part/types';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
-import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
+import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
 import type { BasePartRow } from './mock-data';
 
-/** 明細欄位 Tab／鍵盤順序（最後一欄 Enter／→ 觸發儲存確認） */
-const PART_DETAIL_FIELD_ORDER: readonly string[] = [
-  'bp-sku',
-  'bp-brand',
-  'bp-oem',
-  'bp-car-brand',
-  'bp-ptype',
-  'bp-name',
-  'bp-spec',
-  'bp-unit',
-  'bp-active',
-];
+const PAGE_SIZE = 10;
+const LIST_COL_PREF_KEY = 'base.part.listcols';
+const LIST_COL_PREF_VERSION = 1;
+
+type ListColKey = 'sku' | 'name' | 'brandName' | 'isOem' | 'partType' | 'isActive';
+type SortKey = ListColKey;
+type SortDir = 'asc' | 'desc';
+
+const ALL_LIST_COLS: ListColKey[] = ['sku', 'name', 'brandName', 'isOem', 'partType', 'isActive'];
+const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
+  sku: { label: '料號', locked: true },
+  name: { label: '品名' },
+  brandName: { label: '零件廠牌' },
+  isOem: { label: '正副廠' },
+  partType: { label: '類型' },
+  isActive: { label: '狀態' },
+};
+
+type PartListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
+const DEFAULT_COL_PREF: PartListColPref = {
+  visibleCols: [...ALL_LIST_COLS],
+  colOrder: [...ALL_LIST_COLS],
+};
+
+function normalizeColPref(raw: PartListColPref): PartListColPref {
+  const order = ALL_LIST_COLS.filter((k) => raw.colOrder.includes(k));
+  for (const k of ALL_LIST_COLS) {
+    if (!order.includes(k)) order.push(k);
+  }
+  let vis = raw.visibleCols.filter((k) => ALL_LIST_COLS.includes(k));
+  if (!vis.includes('sku')) vis = ['sku', ...vis];
+  return { colOrder: order, visibleCols: vis };
+}
 
 const PART_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: '（未指定）' },
@@ -106,12 +139,7 @@ function dtoToRow(p: PartDto): BasePartRow {
 }
 
 function brandLabel(r: BasePartRow): string {
-  const t = r.brandName || r.brandCode;
-  return t ?? '';
-}
-
-function carBrandLabel(r: BasePartRow): string {
-  return r.carBrandName || r.carBrandCode || '';
+  return r.brandName || r.brandCode || '';
 }
 
 export function BasePartMasterView() {
@@ -119,24 +147,38 @@ export function BasePartMasterView() {
   const [brands, setBrands] = useState<BrandDto[]>([]);
   const [carBrands, setCarBrands] = useState<Array<{ id: string; code: string; name: string }>>([]);
   const [keyword, setKeyword] = useState('');
+  const [oemPick, setOemPick] = useState<'all' | 'oem' | 'aftermarket'>('all');
+  const [fSku, setFSku] = useState('');
+  const [fName, setFName] = useState('');
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'sku', dir: 'asc' });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft>(() => emptyDraft());
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [carBrandsLoading, setCarBrandsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [colPickerOpen, setColPickerOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState('main');
+  const [detailFullscreen, setDetailFullscreen] = useState(false);
+  const colPickerWrapRef = useRef<HTMLDivElement>(null);
+
+  const { value: colPref, setValue: setColPref } = useListLocalPref<PartListColPref>(
+    LIST_COL_PREF_KEY,
+    LIST_COL_PREF_VERSION,
+    DEFAULT_COL_PREF,
+  );
+  const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
 
   const loadBrands = useCallback(async () => {
     setBrandsLoading(true);
     try {
       const r = await listBrand({ page: 1, pageSize: 2000 });
-      setBrands(
-        [...r.items].sort((a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code, 'en')),
-      );
+      setBrands([...r.items].sort((a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code, 'en')));
     } catch {
       setBrands([]);
     } finally {
@@ -148,9 +190,7 @@ export function BasePartMasterView() {
     setCarBrandsLoading(true);
     try {
       const items = await listLookupCarBrand({ isActive: true });
-      setCarBrands(
-        [...items].sort((a, b) => a.code.localeCompare(b.code, 'en')),
-      );
+      setCarBrands([...items].sort((a, b) => a.code.localeCompare(b.code, 'en')));
     } catch {
       setCarBrands([]);
     } finally {
@@ -181,29 +221,141 @@ export function BasePartMasterView() {
     void reload();
   }, [reload]);
 
+  useEffect(() => {
+    if (!colPickerOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      const el = colPickerWrapRef.current;
+      if (el && !el.contains(e.target as Node)) setColPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [colPickerOpen]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
+  };
+
   const filtered = useMemo(() => {
     const k = keyword.trim().toLowerCase();
-    if (!k) return rows;
-    return rows.filter((r) =>
-      `${r.sku} ${r.name} ${r.spec} ${brandLabel(r)} ${carBrandLabel(r)} ${partTypeLabel(r.partType)} ${r.isOem ? '正廠' : '副廠'}`
-        .toLowerCase()
-        .includes(k),
-    );
-  }, [rows, keyword]);
+    return rows.filter((r) => {
+      if (oemPick === 'oem' && !r.isOem) return false;
+      if (oemPick === 'aftermarket' && r.isOem) return false;
+      if (k) {
+        const blob = `${r.sku} ${r.name} ${r.spec} ${brandLabel(r)} ${r.carBrandName ?? ''} ${partTypeLabel(r.partType)}`.toLowerCase();
+        if (!blob.includes(k)) return false;
+      }
+      if (fSku.trim() && !r.sku.toLowerCase().includes(fSku.trim().toLowerCase())) return false;
+      if (fName.trim() && !r.name.includes(fName.trim())) return false;
+      return true;
+    });
+  }, [rows, keyword, oemPick, fSku, fName]);
 
-  const selectedFilteredIndex = useMemo(
-    () => (selectedId ? filtered.findIndex((r) => r.id === selectedId) : -1),
-    [filtered, selectedId],
-  );
+  const sortedRows = useMemo(() => {
+    const mult = sort.dir === 'asc' ? 1 : -1;
+    const sk = sort.key;
+    const out = [...filtered];
+    out.sort((a, b) => {
+      switch (sk) {
+        case 'sku':
+          return mult * a.sku.localeCompare(b.sku, 'zh-Hant');
+        case 'name':
+          return mult * a.name.localeCompare(b.name, 'zh-Hant');
+        case 'brandName':
+          return mult * brandLabel(a).localeCompare(brandLabel(b), 'zh-Hant');
+        case 'isOem':
+          return mult * ((a.isOem ? 1 : 0) - (b.isOem ? 1 : 0));
+        case 'partType':
+          return mult * (partTypeLabel(a.partType).localeCompare(partTypeLabel(b.partType), 'zh-Hant'));
+        case 'isActive':
+          return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
+        default:
+          return 0;
+      }
+    });
+    return out;
+  }, [filtered, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const safePage = Math.max(1, Math.min(page, totalPages));
+  const pageRows = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return sortedRows.slice(start, start + PAGE_SIZE);
+  }, [sortedRows, safePage]);
+
+  const filterKey = `${keyword}|${oemPick}|${fSku}|${fName}`;
+  const prevFilterKeyRef = useRef('');
+  useEffect(() => {
+    if (prevFilterKeyRef.current !== filterKey) {
+      prevFilterKeyRef.current = filterKey;
+      setPage(1);
+      return;
+    }
+    setPage((p) => Math.min(p, totalPages));
+  }, [filterKey, totalPages]);
 
   const selected = useMemo(
     () => (selectedId ? rows.find((r) => r.id === selectedId) ?? null : null),
     [rows, selectedId],
   );
 
+  const panelOpen = creating || selectedId != null;
+  const orderedVisibleCols = useMemo(
+    () => listCols.colOrder.filter((k) => listCols.visibleCols.includes(k)),
+    [listCols.colOrder, listCols.visibleCols],
+  );
+
+  const selectedIdxSorted = useMemo(
+    () => (selectedId ? sortedRows.findIndex((r) => r.id === selectedId) : -1),
+    [sortedRows, selectedId],
+  );
+
+  const closeDetailFull = useCallback(() => {
+    setCreating(false);
+    setEditing(false);
+    setSelectedId(null);
+    setDetailTab('main');
+    setDetailFullscreen(false);
+    setSaveConfirmOpen(false);
+  }, []);
+
+  useMasterSlideDetailEffects(panelOpen, closeDetailFull, detailFullscreen, setDetailFullscreen, [selectedId, creating]);
+
+  const goDetailPrev = useCallback(() => {
+    if (creating || selectedIdxSorted <= 0) return;
+    const prev = sortedRows[selectedIdxSorted - 1];
+    if (!prev) return;
+    setSelectedId(prev.id);
+    setCreating(false);
+    setEditing(false);
+  }, [creating, selectedIdxSorted, sortedRows]);
+
+  const goDetailNext = useCallback(() => {
+    if (creating || selectedIdxSorted < 0 || selectedIdxSorted >= sortedRows.length - 1) return;
+    const next = sortedRows[selectedIdxSorted + 1];
+    if (!next) return;
+    setSelectedId(next.id);
+    setCreating(false);
+    setEditing(false);
+  }, [creating, selectedIdxSorted, sortedRows]);
+
+  useEffect(() => {
+    if (creating) {
+      setDraft(emptyDraft());
+      return;
+    }
+    if (selected) setDraft(fromRow(selected));
+  }, [creating, selectedId, selected]);
+
   const formValues = creating || editing ? draft : selected ? fromRow(selected) : emptyDraft();
+  const readonlyFieldCls = 'bg-muted/40 text-muted-foreground cursor-default';
+  const selectCls =
+    'nx-native-select flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
   const onRowClick = (id: string) => {
+    if (id === selectedId && !creating) {
+      closeDetailFull();
+      return;
+    }
     setSelectedId(id);
     setCreating(false);
     setEditing(false);
@@ -224,8 +376,7 @@ export function BasePartMasterView() {
 
   const onCancel = () => {
     if (creating) {
-      setCreating(false);
-      setEditing(false);
+      closeDetailFull();
       return;
     }
     setEditing(false);
@@ -236,6 +387,7 @@ export function BasePartMasterView() {
     if (!sku) return;
     setSaving(true);
     setError(null);
+    setSaveConfirmOpen(false);
     try {
       const body = {
         code: sku,
@@ -252,9 +404,9 @@ export function BasePartMasterView() {
         const dto = await createPart(body);
         const row = dtoToRow(dto);
         setRows((prev) => [...prev, row]);
-        setSelectedId(row.id);
         setCreating(false);
         setEditing(false);
+        setSelectedId(row.id);
         return;
       }
       if (!selectedId) return;
@@ -269,333 +421,549 @@ export function BasePartMasterView() {
     }
   };
 
-  const focusPartRow = (index: number) => {
-    requestAnimationFrame(() => {
-      (document.querySelector(`[data-part-master-row="${index}"]`) as HTMLElement | null)?.focus();
-    });
+  const sortIcon = (key: SortKey) => {
+    if (sort.key !== key) return <ArrowUpDown className="size-3.5 opacity-50" aria-hidden />;
+    return sort.dir === 'asc' ? (
+      <ArrowUp className="size-3.5" aria-hidden />
+    ) : (
+      <ArrowDown className="size-3.5" aria-hidden />
+    );
   };
 
-  const selectRowAtFilteredIndex = (idx: number) => {
-    const r = filtered[idx];
-    if (!r) return;
-    setSelectedId(r.id);
-    setCreating(false);
-    setEditing(false);
+  const renderBodyCell = (row: BasePartRow, key: ListColKey) => {
+    switch (key) {
+      case 'sku':
+        return (
+          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 font-mono text-xs text-foreground">
+            {row.sku}
+          </td>
+        );
+      case 'name':
+        return (
+          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-foreground">
+            {row.name}
+          </td>
+        );
+      case 'brandName':
+        return (
+          <td key={key} className="max-w-[140px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {brandLabel(row) || '—'}
+          </td>
+        );
+      case 'isOem':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
+            {row.isOem ? '正廠' : '副廠'}
+          </td>
+        );
+      case 'partType':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {partTypeLabel(row.partType) || '—'}
+          </td>
+        );
+      case 'isActive':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5">
+            <span
+              className={cn(
+                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
+                row.isActive ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-destructive/15 text-destructive',
+              )}
+            >
+              {row.isActive ? '✓' : '×'}
+            </span>
+          </td>
+        );
+      default:
+        return null;
+    }
   };
 
-  const readonlyCls = 'bg-muted/40 text-muted-foreground cursor-default';
-  const selectCls =
-    'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background';
+  const filterTh = (key: ListColKey) => {
+    if (key === 'sku') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fSku}
+            onChange={(e) => setFSku(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
+    }
+    if (key === 'name') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fName}
+            onChange={(e) => setFName(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
+    }
+    return <th key={`f-${key}`} className="p-2" />;
+  };
+
+  const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 96 + 40);
 
   return (
     <>
-    <div className="grid gap-4 lg:grid-cols-[minmax(280px,42%)_minmax(0,1fr)] lg:items-start">
-      <div className="flex min-h-0 min-w-0 flex-col gap-4">
+      <div className="relative flex flex-col gap-4">
         {error ? (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         ) : null}
+
         <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
-          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋</h2>
-          <div className="mt-4">
+          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
+          <div className="mt-4 max-w-md">
             <Label htmlFor="bp-keyword">關鍵字</Label>
             <Input
               id="bp-keyword"
               className="mt-2"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              onKeyDown={(e) => {
-                if (saveConfirmOpen) return;
-                if (e.key === 'ArrowDown' && filtered.length > 0) {
-                  e.preventDefault();
-                  selectRowAtFilteredIndex(0);
-                  focusPartRow(0);
-                }
-                if (e.key === 'ArrowRight') {
-                  e.preventDefault();
-                  document.getElementById('bp-sku')?.focus();
-                }
-              }}
-              placeholder="料號、品名、規格、廠牌、汽車廠牌、類型…"
+              placeholder="料號、品名、規格、廠牌…"
               autoComplete="off"
             />
           </div>
         </section>
 
-        <section className="glass-card flex min-h-[420px] min-w-0 flex-1 flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
-            <Button type="button" size="sm" onClick={onAdd} disabled={loading || saving}>
-              新增
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
-              重新載入
-            </Button>
-            <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-              {loading ? '載入中…' : `共 ${filtered.length} 筆（本頁最多 500 筆）`}
-            </span>
-          </div>
-          <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-            <div className="space-y-2">
-              {filtered.map((r, i) => {
-                const active = r.id === selectedId && !creating;
-                const bl = brandLabel(r);
-                const cbl = carBrandLabel(r);
-                const ptl = partTypeLabel(r.partType);
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    tabIndex={-1}
-                    data-part-master-row={i}
-                    onClick={() => onRowClick(r.id)}
-                    onKeyDown={(e) => {
-                      if (saveConfirmOpen) return;
-                      if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        if (i < filtered.length - 1) {
-                          selectRowAtFilteredIndex(i + 1);
-                          focusPartRow(i + 1);
-                        } else {
-                          document.getElementById('bp-sku')?.focus();
-                        }
-                      }
-                      if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        if (i > 0) {
-                          selectRowAtFilteredIndex(i - 1);
-                          focusPartRow(i - 1);
-                        } else {
-                          document.getElementById('bp-keyword')?.focus();
-                        }
-                      }
-                      if (e.key === 'ArrowRight') {
-                        e.preventDefault();
-                        document.getElementById('bp-sku')?.focus();
-                      }
-                      if (e.key === 'ArrowLeft') {
-                        e.preventDefault();
-                        document.getElementById('bp-keyword')?.focus();
-                      }
-                    }}
-                    className={cn(
-                      'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
-                      active
-                        ? 'border-primary/40 border-l-4 border-l-primary bg-primary/10 pl-2.5 ring-1 ring-primary/20'
-                        : 'border-border/80 bg-muted/15 hover:bg-muted/30',
-                    )}
-                  >
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <div className="font-mono text-xs text-muted-foreground">{r.sku}</div>
-                      <span className="rounded bg-muted px-1.5 text-[10px] text-muted-foreground">
-                        {r.isOem ? '正廠' : '副廠'}
-                      </span>
-                      {ptl ? (
-                        <span className="rounded border border-border/80 px-1.5 text-[10px] text-muted-foreground">
-                          {ptl}
-                        </span>
-                      ) : null}
+        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+            <nav
+              className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
+              aria-label="正副廠篩選"
+            >
+              {(
+                [
+                  { k: 'all' as const, label: '全部' },
+                  { k: 'oem' as const, label: '正廠' },
+                  { k: 'aftermarket' as const, label: '副廠' },
+                ] as const
+              ).map(({ k, label }) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setOemPick(k)}
+                  className={cn(
+                    'rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                    oemPick === k ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+              <div className="mb-3 lg:hidden">
+                <select
+                  className="nx-native-select h-9 w-full max-w-xs rounded-md border border-input bg-transparent px-3 text-sm"
+                  value={oemPick}
+                  onChange={(e) => setOemPick(e.target.value as typeof oemPick)}
+                  aria-label="正副廠"
+                >
+                  <option value="all">全部</option>
+                  <option value="oem">正廠</option>
+                  <option value="aftermarket">副廠</option>
+                </select>
+              </div>
+
+              <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
+                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                  新增
+                </Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
+                  重新載入
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 px-2"
+                  onClick={() => setColPickerOpen((o) => !o)}
+                  aria-expanded={colPickerOpen}
+                >
+                  <Columns3 className="size-4" aria-hidden />
+                  欄位
+                </Button>
+
+                {colPickerOpen ? (
+                  <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setColPref({ visibleCols: [...ALL_LIST_COLS], colOrder: [...ALL_LIST_COLS] })}
+                      >
+                        重置
+                      </Button>
                     </div>
-                    <div className="font-semibold">{r.name}</div>
-                    {bl ? <div className="text-xs text-primary/90">零件 {bl}</div> : null}
-                    {cbl ? <div className="text-xs text-muted-foreground">汽車 {cbl}</div> : null}
-                    <div className="text-xs text-muted-foreground line-clamp-2">{r.spec}</div>
-                  </button>
-                );
-              })}
-              {filtered.length === 0 ? (
-                <p className="text-sm text-muted-foreground">無符合資料。</p>
-              ) : null}
+                    <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                      {listCols.colOrder.map((key) => {
+                        const def = COL_DEF[key];
+                        const checked = listCols.visibleCols.includes(key);
+                        const locked = Boolean(def.locked);
+                        return (
+                          <div
+                            key={key}
+                            draggable
+                            className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', key);
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const from = e.dataTransfer.getData('text/plain') as ListColKey;
+                              if (!ALL_LIST_COLS.includes(from)) return;
+                              setColPref((p) => {
+                                const norm = normalizeColPref(p);
+                                const fromIdx = norm.colOrder.indexOf(from);
+                                const toIdx = norm.colOrder.indexOf(key);
+                                if (fromIdx < 0 || toIdx < 0) return norm;
+                                return { ...norm, colOrder: arrayMove(norm.colOrder, fromIdx, toIdx) };
+                              });
+                            }}
+                          >
+                            <label className="flex flex-1 cursor-pointer items-center gap-2">
+                              <input
+                                type="checkbox"
+                                className="size-3.5 rounded border border-input accent-primary"
+                                checked={locked ? true : checked}
+                                disabled={locked}
+                                onChange={() => {
+                                  if (locked) return;
+                                  setColPref((p) => {
+                                    const norm = normalizeColPref(p);
+                                    const has = norm.visibleCols.includes(key);
+                                    const nextVis = has
+                                      ? norm.visibleCols.filter((k) => k !== key)
+                                      : [...norm.visibleCols, key];
+                                    return normalizeColPref({ ...norm, visibleCols: nextVis });
+                                  });
+                                }}
+                              />
+                              <span>{def.label}</span>
+                            </label>
+                            <span className="text-muted-foreground" aria-hidden>
+                              ⠿
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft className="size-4" aria-hidden />
+                    上一頁
+                  </Button>
+                  <span className="px-2 text-xs text-muted-foreground tabular-nums">
+                    第 {safePage} / {totalPages} 頁
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    下一頁
+                    <ChevronRight className="size-4" aria-hidden />
+                  </Button>
+                </div>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                  {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+                </span>
+              </div>
+
+              <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
+                        {orderedVisibleCols.map((key) => (
+                          <th key={key} className="px-2 py-2.5">
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                              onClick={() => toggleSort(key)}
+                            >
+                              {COL_DEF[key].label}
+                              {sortIcon(key)}
+                            </button>
+                          </th>
+                        ))}
+                        <th className="w-10 px-1 py-2.5" aria-hidden />
+                      </tr>
+                      <tr className="border-b border-border/60 bg-secondary/20">
+                        {orderedVisibleCols.map((key) => filterTh(key))}
+                        <th className="p-2" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border/50">
+                        <td
+                          className="bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground"
+                          colSpan={orderedVisibleCols.length + 1}
+                        >
+                          零件
+                        </td>
+                      </tr>
+                      {pageRows.map((row) => {
+                        const isSel = row.id === selectedId;
+                        return (
+                          <tr
+                            key={row.id}
+                            role="button"
+                            tabIndex={0}
+                            className={cn(
+                              'cursor-pointer border-b border-border/40 transition-colors',
+                              isSel ? 'bg-primary/10' : 'hover:bg-secondary/40',
+                            )}
+                            onClick={() => onRowClick(row.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onRowClick(row.id);
+                              }
+                            }}
+                          >
+                            {orderedVisibleCols.map((k) => renderBodyCell(row, k))}
+                            <td className="px-1 py-2.5 text-muted-foreground">
+                              <ChevronRight className="mx-auto size-4 opacity-50" aria-hidden />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </ScrollArea>
             </div>
-          </ScrollArea>
+          </div>
         </section>
       </div>
 
-      <aside
-        className="glass-card min-h-[min(520px,calc(100vh-14rem))] rounded-2xl border border-border/80 p-4 shadow-sm lg:sticky lg:top-24"
-        onKeyDownCapture={(e) => {
-          if (saveConfirmOpen) return;
-          if (!creating && !editing) return;
-          const id = getFieldIdFromEventTarget(e.target);
-          if (e.key === 'ArrowLeft' && id === 'bp-sku') {
-            e.preventDefault();
-            if (selectedFilteredIndex >= 0) focusPartRow(selectedFilteredIndex);
-            else document.getElementById('bp-keyword')?.focus();
-            return;
-          }
-          handleMasterFieldKeyDown(e, PART_DETAIL_FIELD_ORDER, {
-            enabled: true,
-            onLastField: () => setSaveConfirmOpen(true),
-          });
-        }}
+      <BaseMasterSlideAside
+        open={panelOpen}
+        detailFullscreen={detailFullscreen}
+        onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
+        onClose={closeDetailFull}
+        titleId="bp-detail-title"
+        title={creating ? '新增零件' : selected?.sku ?? '零件明細'}
+        subtitle={!creating && selected ? selected.name : undefined}
+        navPrev={
+          !creating && selectedIdxSorted >= 0
+            ? { onClick: goDetailPrev, disabled: selectedIdxSorted <= 0 }
+            : undefined
+        }
+        navNext={
+          !creating && selectedIdxSorted >= 0
+            ? { onClick: goDetailNext, disabled: selectedIdxSorted >= sortedRows.length - 1 }
+            : undefined
+        }
+        footer={
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+            {creating || editing ? (
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    if (!draft.sku.trim()) return;
+                    setSaveConfirmOpen(true);
+                  }}
+                  disabled={saving}
+                >
+                  {saving ? '儲存中…' : '儲存'}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
+                  取消
+                </Button>
+              </>
+            ) : selected ? (
+              <Button type="button" size="sm" variant="secondary" onClick={onEdit}>
+                編輯
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">填寫資料後儲存。</p>
+            )}
+          </div>
+        }
       >
-        <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
-        <h2 className="mt-1 text-sm font-semibold text-foreground">零件明細</h2>
-        <div className="mt-4 space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="bp-sku">料號</Label>
-            <Input
-              id="bp-sku"
-              value={formValues.sku}
-              onChange={(e) => setDraft((d) => ({ ...d, sku: e.target.value }))}
-              readOnly={!creating && !editing}
-              className={!creating && !editing ? readonlyCls : undefined}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bp-brand">零件廠牌</Label>
-            <select
-              id="bp-brand"
-              className={cn(selectCls, !creating && !editing && readonlyCls)}
-              value={formValues.partBrandId ?? ''}
-              disabled={!creating && !editing || brandsLoading}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  partBrandId: e.target.value === '' ? null : e.target.value,
-                }))
-              }
-            >
-              <option value="">（未指定）</option>
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.code} — {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <label htmlFor="bp-oem" className="flex items-center gap-2 text-sm">
-            <input
-              id="bp-oem"
-              type="checkbox"
-              className="size-4 accent-primary"
-              checked={formValues.isOem}
-              disabled={!creating && !editing}
-              onChange={(e) => setDraft((d) => ({ ...d, isOem: e.target.checked }))}
-            />
-            正廠零件
-          </label>
-          <div className="space-y-2">
-            <Label htmlFor="bp-car-brand">汽車廠牌</Label>
-            <select
-              id="bp-car-brand"
-              className={cn(selectCls, !creating && !editing && readonlyCls)}
-              value={formValues.carBrandId ?? ''}
-              disabled={!creating && !editing || carBrandsLoading}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  carBrandId: e.target.value === '' ? null : e.target.value,
-                }))
-              }
-            >
-              <option value="">（未指定）</option>
-              {carBrands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.code} — {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bp-ptype">零件類型</Label>
-            <select
-              id="bp-ptype"
-              className={cn(selectCls, !creating && !editing && readonlyCls)}
-              value={formValues.partType ?? ''}
-              disabled={!creating && !editing}
-              onChange={(e) =>
-                setDraft((d) => ({
-                  ...d,
-                  partType: e.target.value === '' ? null : e.target.value,
-                }))
-              }
-            >
-              {PART_TYPE_OPTIONS.map((o) => (
-                <option key={o.value || 'empty'} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-muted-foreground">A=專用型／B=通用型／C=組合型／D=拆解型</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bp-name">品名</Label>
-            <Input
-              id="bp-name"
-              value={formValues.name}
-              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-              readOnly={!creating && !editing}
-              className={!creating && !editing ? readonlyCls : undefined}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bp-spec">規格</Label>
-            <Input
-              id="bp-spec"
-              value={formValues.spec}
-              onChange={(e) => setDraft((d) => ({ ...d, spec: e.target.value }))}
-              readOnly={!creating && !editing}
-              className={!creating && !editing ? readonlyCls : undefined}
-            />
-            <p className="text-xs text-muted-foreground">可填副廠料號、技術說明</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bp-unit">單位</Label>
-            <Input
-              id="bp-unit"
-              value={formValues.unit}
-              onChange={(e) => setDraft((d) => ({ ...d, unit: e.target.value }))}
-              readOnly={!creating && !editing}
-              className={!creating && !editing ? readonlyCls : undefined}
-            />
-          </div>
-          <label htmlFor="bp-active" className="flex items-center gap-2 text-sm">
-            <input
-              id="bp-active"
-              type="checkbox"
-              className="size-4 accent-primary"
-              checked={formValues.isActive}
-              disabled={!creating && !editing}
-              onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
-            />
-            啟用
-          </label>
-        </div>
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
-          {creating || editing ? (
-            <>
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  if (!draft.sku.trim()) return;
-                  setSaveConfirmOpen(true);
-                }}
-                disabled={saving}
-              >
-                {saving ? '儲存中…' : '儲存'}
-              </Button>
-              <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
-                取消
-              </Button>
-            </>
-          ) : selected ? (
-            <Button type="button" size="sm" variant="secondary" onClick={onEdit}>
-              編輯
-            </Button>
-          ) : (
-            <p className="text-xs text-muted-foreground">點選左側一筆以檢視，或按「新增」。</p>
-          )}
-        </div>
-      </aside>
-    </div>
-    <MasterSaveConfirmDialog
-      open={saveConfirmOpen}
-      onOpenChange={setSaveConfirmOpen}
-      onConfirm={() => void performSave()}
-    />
+        <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
+          <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
+            <TabsTrigger value="main" className="flex-none">
+              基本資料
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="main" className="mt-3 outline-none">
+            <div className="space-y-3 pb-28 lg:pb-6">
+              <div className="space-y-2">
+                <Label htmlFor="bp-sku">料號</Label>
+                <Input
+                  id="bp-sku"
+                  value={formValues.sku}
+                  onChange={(e) => setDraft((d) => ({ ...d, sku: e.target.value }))}
+                  readOnly={!creating && !editing}
+                  className={!creating && !editing ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-brand">零件廠牌</Label>
+                <select
+                  id="bp-brand"
+                  className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                  value={formValues.partBrandId ?? ''}
+                  disabled={!creating && !editing || brandsLoading}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, partBrandId: e.target.value === '' ? null : e.target.value }))
+                  }
+                >
+                  <option value="">（未指定）</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.code} — {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <label htmlFor="bp-oem" className="flex items-center gap-2 text-sm">
+                <input
+                  id="bp-oem"
+                  type="checkbox"
+                  className="size-4 accent-primary"
+                  checked={formValues.isOem}
+                  disabled={!creating && !editing}
+                  onChange={(e) => setDraft((d) => ({ ...d, isOem: e.target.checked }))}
+                />
+                正廠零件
+              </label>
+              <div className="space-y-2">
+                <Label htmlFor="bp-car-brand">汽車廠牌</Label>
+                <select
+                  id="bp-car-brand"
+                  className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                  value={formValues.carBrandId ?? ''}
+                  disabled={!creating && !editing || carBrandsLoading}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, carBrandId: e.target.value === '' ? null : e.target.value }))
+                  }
+                >
+                  <option value="">（未指定）</option>
+                  {carBrands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.code} — {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-ptype">零件類型</Label>
+                <select
+                  id="bp-ptype"
+                  className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                  value={formValues.partType ?? ''}
+                  disabled={!creating && !editing}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, partType: e.target.value === '' ? null : e.target.value }))
+                  }
+                >
+                  {PART_TYPE_OPTIONS.map((o) => (
+                    <option key={o.value || 'empty'} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-name">品名</Label>
+                <Input
+                  id="bp-name"
+                  value={formValues.name}
+                  onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                  readOnly={!creating && !editing}
+                  className={!creating && !editing ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-spec">規格</Label>
+                <Input
+                  id="bp-spec"
+                  value={formValues.spec}
+                  onChange={(e) => setDraft((d) => ({ ...d, spec: e.target.value }))}
+                  readOnly={!creating && !editing}
+                  className={!creating && !editing ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-unit">單位</Label>
+                <Input
+                  id="bp-unit"
+                  value={formValues.unit}
+                  onChange={(e) => setDraft((d) => ({ ...d, unit: e.target.value }))}
+                  readOnly={!creating && !editing}
+                  className={!creating && !editing ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <label htmlFor="bp-active" className="flex items-center gap-2 text-sm">
+                <input
+                  id="bp-active"
+                  type="checkbox"
+                  className="size-4 accent-primary"
+                  checked={formValues.isActive}
+                  disabled={!creating && !editing}
+                  onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                />
+                啟用
+              </label>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {!creating && !editing && selected ? (
+          <Button
+            type="button"
+            size="icon"
+            className="fixed bottom-6 right-5 z-[60] size-14 rounded-full shadow-lg lg:hidden"
+            aria-label="編輯"
+            onClick={onEdit}
+          >
+            <Pencil className="size-6" />
+          </Button>
+        ) : null}
+      </BaseMasterSlideAside>
+
+      <MasterSaveConfirmDialog
+        open={saveConfirmOpen}
+        onOpenChange={setSaveConfirmOpen}
+        onConfirm={() => void performSave()}
+      />
     </>
   );
 }

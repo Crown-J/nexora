@@ -2,40 +2,41 @@
  * File: apps/nx-ui/src/features/base/role/BaseRoleMasterView.tsx
  *
  * Purpose:
- * - 職務主檔：連線 /role、/user、/user-role
+ * - 職務主檔：LIST + SLIDE（與使用者主檔相同互動）；僅維護職務欄位，成員指派請至「使用者職務設定」
  */
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Columns3,
+  Maximize2,
+  Minimize2,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import type { BaseUserRow } from '@/features/base/users/mock-data';
-import { assignUserRole, listUserRoles, revokeUserRole, setUserRolePrimary } from '@/features/base/api/user-role';
+import { arrayMove } from '@/shared/lib/arrayMove';
+import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
-import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
 import { createRole, listRoles, updateRole, type RoleDto } from '@/features/base/api/role';
-import { listUsers } from '@/features/base/api/user';
-import type { BaseRoleMemberRow, BaseRoleRow } from './mock-data';
+import type { BaseRoleRow } from './mock-data';
 
-function roleDtoToRow(r: RoleDto): BaseRoleRow {
-  return {
-    id: r.id,
-    code: r.code,
-    name: r.name,
-    description: r.description ?? '',
-    sortOrder: r.sortNo,
-    isActive: r.isActive,
-    createdAt: r.createdAt,
-    updatedAt: r.updatedAt,
-  };
-}
+type ListColKey = 'code' | 'name' | 'sortOrder' | 'isActive' | 'description';
+type SortKey = ListColKey;
+type SortDir = 'asc' | 'desc';
 
 type DetailDraft = {
   code: string;
@@ -45,14 +46,36 @@ type DetailDraft = {
   isActive: boolean;
 };
 
+const PAGE_SIZE = 10;
+const LIST_COL_PREF_VERSION = 1;
+const LIST_COL_PREF_KEY = 'base.role.listcols';
+const ALL_LIST_COLS: ListColKey[] = ['code', 'name', 'sortOrder', 'isActive', 'description'];
+const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
+  code: { label: '代碼', locked: true },
+  name: { label: '名稱' },
+  sortOrder: { label: '排序' },
+  isActive: { label: '狀態' },
+  description: { label: '說明' },
+};
+
+type RoleListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
+const DEFAULT_COL_PREF: RoleListColPref = {
+  visibleCols: [...ALL_LIST_COLS],
+  colOrder: [...ALL_LIST_COLS],
+};
+
+function normalizeColPref(raw: RoleListColPref): RoleListColPref {
+  const order = ALL_LIST_COLS.filter((k) => raw.colOrder.includes(k));
+  for (const k of ALL_LIST_COLS) {
+    if (!order.includes(k)) order.push(k);
+  }
+  let vis = raw.visibleCols.filter((k) => ALL_LIST_COLS.includes(k));
+  if (!vis.includes('code')) vis = ['code', ...vis];
+  return { colOrder: order, visibleCols: vis };
+}
+
 function emptyDraft(): DetailDraft {
-  return {
-    code: '',
-    name: '',
-    description: '',
-    sortOrder: '100',
-    isActive: true,
-  };
+  return { code: '', name: '', description: '', sortOrder: '100', isActive: true };
 }
 
 function draftFromRole(r: BaseRoleRow): DetailDraft {
@@ -65,133 +88,212 @@ function draftFromRole(r: BaseRoleRow): DetailDraft {
   };
 }
 
+function roleDtoToRow(r: RoleDto): BaseRoleRow {
+  return {
+    id: r.id,
+    code: r.code,
+    name: r.name,
+    description: r.description ?? '',
+    sortOrder: r.sortNo,
+    isActive: r.isActive,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    createdByName: r.createdByName ?? '—',
+    updatedByName: r.updatedByName ?? '—',
+  };
+}
+
+function formatDt(iso: string | null | undefined): string {
+  if (iso == null || iso === '') return '\u2014';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' });
+}
+
 export function BaseRoleMasterView() {
   const [roles, setRoles] = useState<BaseRoleRow[]>([]);
-  const [roleSearch, setRoleSearch] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [activePick, setActivePick] = useState<'all' | 'active' | 'inactive'>('all');
+  const [fCode, setFCode] = useState('');
+  const [fName, setFName] = useState('');
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'sortOrder', dir: 'asc' });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [detailDraft, setDetailDraft] = useState<DetailDraft>(() => emptyDraft());
   const [baselineDetail, setBaselineDetail] = useState<DetailDraft>(() => emptyDraft());
-
-  const [membersByRole, setMembersByRole] = useState<Record<string, BaseRoleMemberRow[]>>({});
-  const [baselineMembers, setBaselineMembers] = useState<BaseRoleMemberRow[]>([]);
-
-  const [pickerUsers, setPickerUsers] = useState<BaseUserRow[]>([]);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [colPickerOpen, setColPickerOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState('main');
+  const [detailFullscreen, setDetailFullscreen] = useState(false);
+  const colPickerWrapRef = useRef<HTMLDivElement>(null);
 
-  const ROLE_FIELD_ORDER: readonly string[] = ['br-code', 'br-name', 'br-sort', 'br-desc', 'br-active'];
+  const { value: colPref, setValue: setColPref } = useListLocalPref<RoleListColPref>(
+    LIST_COL_PREF_KEY,
+    LIST_COL_PREF_VERSION,
+    DEFAULT_COL_PREF,
+  );
+  const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
 
-  const [userQuery, setUserQuery] = useState('');
-  const [userOpen, setUserOpen] = useState(false);
-  const [memberSearch, setMemberSearch] = useState('');
-
-  const reloadAll = useCallback(async () => {
-    setLoadError(null);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const [rr, ur] = await Promise.all([
-        listRoles({ page: 1, pageSize: 200 }),
-        listUsers({ page: 1, pageSize: 500 }),
-      ]);
-      const rows = rr.items.map(roleDtoToRow).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
-      setRoles(rows);
-      setPickerUsers(
-        ur.items.map((u) => ({
-          id: u.id,
-          username: u.username,
-          displayName: u.displayName,
-          jobTitle: u.jobTitle ?? '—',
-          email: u.email ?? '',
-          phone: u.phone ?? '',
-          isActive: u.isActive,
-          lastLoginAt: u.lastLoginAt,
-          createdAt: u.createdAt,
-          createdByName: u.createdByName ?? '—',
-          updatedAt: u.updatedAt,
-          updatedByName: u.updatedByName ?? '—',
-        })),
-      );
-      setSelectedId((cur) => {
-        if (cur && rows.some((r) => r.id === cur)) return cur;
-        return rows[0]?.id ?? null;
-      });
+      const rr = await listRoles({ page: 1, pageSize: 200 });
+      setRoles(rr.items.map(roleDtoToRow).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '載入失敗');
+      setError(e instanceof Error ? e.message : '載入失敗');
       setRoles([]);
-      setPickerUsers([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void reloadAll();
-  }, [reloadAll]);
+    void reload();
+  }, [reload]);
 
-  const loadMembers = useCallback(async (roleId: string, syncBaseline: boolean) => {
-    const res = await listUserRoles({ roleId, isActive: true, page: 1, pageSize: 500 });
-    const list: BaseRoleMemberRow[] = res.items.map((x) => ({
-      id: x.id,
-      userId: x.userId,
-      isPrimary: x.isPrimary,
-    }));
-    setMembersByRole((prev) => ({ ...prev, [roleId]: list }));
-    if (syncBaseline) setBaselineMembers(list.map((m) => ({ ...m })));
-  }, []);
+  useEffect(() => {
+    if (!colPickerOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      const el = colPickerWrapRef.current;
+      if (el && !el.contains(e.target as Node)) setColPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [colPickerOpen]);
+
+  const toggleSort = (key: SortKey) => {
+    setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
+  };
+
+  const filtered = useMemo(() => {
+    const k = keyword.trim().toLowerCase();
+    return roles.filter((r) => {
+      if (activePick === 'active' && !r.isActive) return false;
+      if (activePick === 'inactive' && r.isActive) return false;
+      if (k) {
+        const blob = `${r.code} ${r.name} ${r.description}`.toLowerCase();
+        if (!blob.includes(k)) return false;
+      }
+      if (fCode.trim() && !r.code.toLowerCase().includes(fCode.trim().toLowerCase())) return false;
+      if (fName.trim() && !r.name.includes(fName.trim())) return false;
+      return true;
+    });
+  }, [roles, keyword, activePick, fCode, fName]);
+
+  const sortedRows = useMemo(() => {
+    const mult = sort.dir === 'asc' ? 1 : -1;
+    const sk = sort.key;
+    const out = [...filtered];
+    out.sort((a, b) => {
+      switch (sk) {
+        case 'code':
+          return mult * a.code.localeCompare(b.code, 'zh-Hant');
+        case 'name':
+          return mult * a.name.localeCompare(b.name, 'zh-Hant');
+        case 'sortOrder':
+          return mult * (a.sortOrder - b.sortOrder);
+        case 'isActive':
+          return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
+        case 'description':
+          return mult * a.description.localeCompare(b.description, 'zh-Hant');
+        default:
+          return 0;
+      }
+    });
+    return out;
+  }, [filtered, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const safePage = Math.max(1, Math.min(page, totalPages));
+  const pageRows = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE;
+    return sortedRows.slice(start, start + PAGE_SIZE);
+  }, [sortedRows, safePage]);
+
+  const filterKey = `${keyword}|${activePick}|${fCode}|${fName}`;
+  const prevFilterKeyRef = useRef('');
+  useEffect(() => {
+    if (prevFilterKeyRef.current !== filterKey) {
+      prevFilterKeyRef.current = filterKey;
+      setPage(1);
+      return;
+    }
+    setPage((p) => Math.min(p, totalPages));
+  }, [filterKey, totalPages]);
 
   const selectedRole = useMemo(
     () => (selectedId ? roles.find((r) => r.id === selectedId) ?? null : null),
     [roles, selectedId],
   );
 
-  const filteredRoles = useMemo(() => {
-    const q = roleSearch.trim().toLowerCase();
-    if (!q) return roles;
-    return roles.filter((r) => {
-      const blob = `${r.code} ${r.name}`.toLowerCase();
-      return blob.includes(q);
-    });
-  }, [roles, roleSearch]);
+  const panelOpen = creating || selectedId != null;
 
-  const selectedRoleIndex = useMemo(
-    () => (selectedId ? filteredRoles.findIndex((r) => r.id === selectedId) : -1),
-    [filteredRoles, selectedId],
+  const orderedVisibleCols = useMemo(
+    () => listCols.colOrder.filter((k) => listCols.visibleCols.includes(k)),
+    [listCols.colOrder, listCols.visibleCols],
   );
 
-  const currentMembers = useMemo(() => {
-    if (creating || !selectedId) return [];
-    return membersByRole[selectedId] ?? [];
-  }, [creating, membersByRole, selectedId]);
+  const selectedIdxSorted = useMemo(
+    () => (selectedId ? sortedRows.findIndex((r) => r.id === selectedId) : -1),
+    [sortedRows, selectedId],
+  );
 
-  const userById = useMemo(() => {
-    const m = new Map<string, BaseUserRow>();
-    pickerUsers.forEach((u) => m.set(u.id, u));
-    return m;
-  }, [pickerUsers]);
+  const closeDetailFull = useCallback(() => {
+    setCreating(false);
+    setSelectedId(null);
+    setDetailTab('main');
+    setDetailFullscreen(false);
+    setSaveConfirmOpen(false);
+  }, []);
 
-  const memberRowsForDisplay = useMemo(() => {
-    const ms = currentMembers;
-    const k = memberSearch.trim().toLowerCase();
-    if (!k) return ms;
-    return ms.filter((row) => {
-      const u = userById.get(row.userId);
-      if (!u) return false;
-      const blob = `${u.username} ${u.displayName}`.toLowerCase();
-      return blob.includes(k);
-    });
-  }, [currentMembers, memberSearch, userById]);
+  useEffect(() => {
+    if (!panelOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      closeDetailFull();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [panelOpen, closeDetailFull]);
 
-  const assignedUserIds = useMemo(() => new Set(currentMembers.map((m) => m.userId)), [currentMembers]);
+  useEffect(() => {
+    setDetailFullscreen(false);
+  }, [selectedId, creating]);
 
-  const userOptions = useMemo(() => {
-    const q = userQuery.trim().toLowerCase();
-    return pickerUsers.filter((u) => {
-      if (!u.isActive) return false;
-      if (assignedUserIds.has(u.id)) return false;
-      if (!q) return true;
-      const blob = `${u.username} ${u.displayName} ${u.email}`.toLowerCase();
-      return blob.includes(q);
-    }).slice(0, 12);
-  }, [assignedUserIds, userQuery, pickerUsers]);
+  const goDetailPrev = useCallback(() => {
+    if (creating || selectedIdxSorted <= 0) return;
+    const prev = sortedRows[selectedIdxSorted - 1];
+    if (!prev) return;
+    setSelectedId(prev.id);
+    setCreating(false);
+  }, [creating, selectedIdxSorted, sortedRows]);
+
+  const goDetailNext = useCallback(() => {
+    if (creating || selectedIdxSorted < 0 || selectedIdxSorted >= sortedRows.length - 1) return;
+    const next = sortedRows[selectedIdxSorted + 1];
+    if (!next) return;
+    setSelectedId(next.id);
+    setCreating(false);
+  }, [creating, selectedIdxSorted, sortedRows]);
+
+  useEffect(() => {
+    if (creating) {
+      setDetailDraft(emptyDraft());
+      setBaselineDetail(emptyDraft());
+      return;
+    }
+    if (selectedRole) {
+      const d = draftFromRole(selectedRole);
+      setDetailDraft(d);
+      setBaselineDetail(d);
+    }
+  }, [creating, selectedId, selectedRole]);
 
   const detailDirty = useMemo(() => {
     if (creating) {
@@ -206,33 +308,18 @@ export function BaseRoleMasterView() {
     return JSON.stringify(detailDraft) !== JSON.stringify(baselineDetail);
   }, [baselineDetail, creating, detailDraft]);
 
-  const dirty = detailDirty;
-
-  const onSelectRole = (r: BaseRoleRow) => {
+  const onRowClick = (id: string) => {
+    if (id === selectedId && !creating) {
+      closeDetailFull();
+      return;
+    }
+    setSelectedId(id);
     setCreating(false);
-    setSelectedId(r.id);
-    setUserQuery('');
-    setUserOpen(false);
-    setMemberSearch('');
-    const d = draftFromRole(r);
-    setDetailDraft(d);
-    setBaselineDetail(d);
   };
 
-  useEffect(() => {
-    if (!selectedId || creating) return;
-    void loadMembers(selectedId, true);
-  }, [selectedId, creating, loadMembers]);
-
-  const onAddRole = () => {
-    setCreating(true);
+  const onAdd = () => {
     setSelectedId(null);
-    setUserQuery('');
-    setUserOpen(false);
-    setMemberSearch('');
-    setDetailDraft(emptyDraft());
-    setBaselineDetail(emptyDraft());
-    setBaselineMembers([]);
+    setCreating(true);
   };
 
   const onReset = () => {
@@ -240,23 +327,18 @@ export function BaseRoleMasterView() {
       setDetailDraft(emptyDraft());
       return;
     }
-    if (selectedRole) {
-      setDetailDraft({ ...baselineDetail });
-      setMembersByRole((prev) => ({
-        ...prev,
-        [selectedRole.id]: baselineMembers.map((m) => ({ ...m })),
-      }));
-    }
+    setDetailDraft({ ...baselineDetail });
   };
 
   const performSave = async () => {
     const code = detailDraft.code.trim().toUpperCase();
     const name = detailDraft.name.trim();
     if (!code || !name) return;
-    const sort = Number.parseInt(detailDraft.sortOrder, 10);
-    const sortOrder = Number.isFinite(sort) ? sort : 0;
+    const sortN = Number.parseInt(detailDraft.sortOrder, 10);
+    const sortOrder = Number.isFinite(sortN) ? sortN : 0;
     setSaving(true);
-    setLoadError(null);
+    setError(null);
+    setSaveConfirmOpen(false);
     try {
       if (creating) {
         const dto = await createRole({
@@ -271,12 +353,11 @@ export function BaseRoleMasterView() {
         setRoles((prev) => [...prev, row].sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
         setCreating(false);
         setSelectedId(row.id);
-        setDetailDraft(draftFromRole(row));
-        setBaselineDetail(draftFromRole(row));
-        setBaselineMembers([]);
+        const d = draftFromRole(row);
+        setDetailDraft(d);
+        setBaselineDetail(d);
         return;
       }
-
       if (!selectedId || !selectedRole) return;
       const dto = await updateRole(selectedId, {
         code,
@@ -288,396 +369,595 @@ export function BaseRoleMasterView() {
       const row = roleDtoToRow(dto);
       setRoles((prev) => prev.map((r) => (r.id === selectedId ? row : r)));
       setBaselineDetail({ ...detailDraft });
-      await loadMembers(selectedId, true);
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '儲存失敗');
+      setError(e instanceof Error ? e.message : '儲存失敗');
     } finally {
       setSaving(false);
     }
   };
 
-  const focusRoleRow = (index: number) => {
-    requestAnimationFrame(() => {
-      (document.querySelector(`[data-role-master-row="${index}"]`) as HTMLElement | null)?.focus();
-    });
+  const sortIcon = (key: SortKey) => {
+    if (sort.key !== key) return <ArrowUpDown className="size-3.5 opacity-50" aria-hidden />;
+    return sort.dir === 'asc' ? (
+      <ArrowUp className="size-3.5" aria-hidden />
+    ) : (
+      <ArrowDown className="size-3.5" aria-hidden />
+    );
   };
 
-  const selectRoleAtFilteredIndex = (idx: number) => {
-    const r = filteredRoles[idx];
-    if (!r) return;
-    onSelectRole(r);
-  };
+  const readonlyFieldCls = 'bg-muted/40 text-muted-foreground cursor-default';
 
-  const assignUser = async (userId: string) => {
-    if (creating || !selectedId) return;
-    setUserQuery('');
-    setUserOpen(false);
-    setLoadError(null);
-    try {
-      const list = membersByRole[selectedId] ?? [];
-      await assignUserRole({
-        userId,
-        roleId: selectedId,
-        isPrimary: list.length === 0,
-      });
-      await loadMembers(selectedId, true);
-    } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '指派失敗');
+  const renderBodyCell = (row: BaseRoleRow, key: ListColKey) => {
+    switch (key) {
+      case 'code':
+        return (
+          <td key={key} className="max-w-[140px] truncate px-2 py-2.5 font-mono text-xs text-foreground">
+            {row.code}
+          </td>
+        );
+      case 'name':
+        return (
+          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-foreground">
+            {row.name}
+          </td>
+        );
+      case 'sortOrder':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 tabular-nums text-muted-foreground">
+            {row.sortOrder}
+          </td>
+        );
+      case 'isActive':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5">
+            <span
+              className={cn(
+                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
+                row.isActive ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-destructive/15 text-destructive',
+              )}
+            >
+              {row.isActive ? '✓' : '×'}
+            </span>
+          </td>
+        );
+      case 'description':
+        return (
+          <td key={key} className="max-w-[240px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.description || '—'}
+          </td>
+        );
+      default:
+        return null;
     }
   };
 
-  const removeMember = async (memberId: string) => {
-    if (creating || !selectedId) return;
-    setLoadError(null);
-    try {
-      await revokeUserRole(memberId);
-      await loadMembers(selectedId, true);
-    } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '移除失敗');
+  const filterTh = (key: ListColKey) => {
+    if (key === 'code') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fCode}
+            onChange={(e) => setFCode(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
     }
+    if (key === 'name') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fName}
+            onChange={(e) => setFName(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
+    }
+    return <th key={`f-${key}`} className="p-2" />;
   };
 
-  const togglePrimary = async (memberId: string) => {
-    if (creating || !selectedId) return;
-    const raw = [...(membersByRole[selectedId] ?? [])];
-    const target = raw.find((m) => m.id === memberId);
-    if (!target) return;
-    const nextPrimary = !target.isPrimary;
-    setLoadError(null);
-    try {
-      await setUserRolePrimary(memberId, nextPrimary);
-      await loadMembers(selectedId, true);
-    } catch (e) {
-      setLoadError(e instanceof Error ? e.message : '更新失敗');
-    }
-  };
-
-  const leftTitle = selectedRole && !creating ? `職務列表（已選：${selectedRole.name}）` : '職務列表';
-
-  const lookupInputCls =
-    'border-border bg-background/80 text-foreground placeholder:text-muted-foreground shadow-xs focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
-  const lookupPanelCls =
-    'border-border bg-popover/95 text-popover-foreground backdrop-blur-md shadow-lg top-[42px]';
+  const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 100 + 40);
+  const auditSource = creating ? null : selectedRole;
 
   return (
     <>
-    <div className="space-y-4">
-      {loadError ? (
-        <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {loadError}
+      <div className="relative flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+          <span>
+            若要為職務指派／移除使用者，請至{' '}
+            <Link href="/base/user-role" className="font-medium text-primary underline-offset-4 hover:underline">
+              使用者職務設定
+            </Link>
+            。
+          </span>
         </div>
-      ) : null}
-      <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:items-stretch">
-      <section className="glass-card flex max-h-[min(720px,calc(100vh-220px))] min-h-[420px] flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
-        <div className="mb-3 flex items-start justify-between gap-2">
-          <div>
-            <p className="text-xs tracking-[0.35em] text-muted-foreground">ROLES</p>
-            <h2 className="mt-1 text-sm font-semibold text-foreground">{leftTitle}</h2>
+
+        {error ? (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
           </div>
-          <Button type="button" size="sm" className="shrink-0 gap-1" onClick={onAddRole}>
-            <Plus className="size-4" aria-hidden />
-            新增
-          </Button>
-        </div>
-        <Input
-          id="role-search"
-          value={roleSearch}
-          onChange={(e) => setRoleSearch(e.target.value)}
-          placeholder="搜尋職務（代碼／名稱）"
-          className="mb-3"
-          autoComplete="off"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setRoleSearch('');
-            if (saveConfirmOpen) return;
-            if (e.key === 'ArrowDown' && filteredRoles.length > 0) {
-              e.preventDefault();
-              selectRoleAtFilteredIndex(0);
-              focusRoleRow(0);
-            }
-            if (e.key === 'ArrowRight' && (creating || selectedRole)) {
-              e.preventDefault();
-              document.getElementById('br-code')?.focus();
-            }
-          }}
-        />
-        <ScrollArea className="min-h-0 flex-1 pr-2">
-          <div className="space-y-2 pb-1">
-            {filteredRoles.map((r, i) => {
-              const active = !creating && selectedId === r.id;
-              return (
+        ) : null}
+
+        <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
+          <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
+          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
+          <div className="mt-4">
+            <Label htmlFor="br-keyword">關鍵字</Label>
+            <Input
+              id="br-keyword"
+              className="mt-2 max-w-md"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="代碼、名稱、說明…"
+              autoComplete="off"
+            />
+          </div>
+        </section>
+
+        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+            <nav
+              className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
+              aria-label="依啟用狀態篩選"
+            >
+              {(
+                [
+                  { k: 'all' as const, label: '全部' },
+                  { k: 'active' as const, label: '啟用' },
+                  { k: 'inactive' as const, label: '停用' },
+                ] as const
+              ).map(({ k, label }) => (
                 <button
-                  key={r.id}
+                  key={k}
                   type="button"
-                  tabIndex={-1}
-                  data-role-master-row={i}
-                  onClick={() => onSelectRole(r)}
-                  onKeyDown={(e) => {
-                    if (saveConfirmOpen) return;
-                    if (e.key === 'ArrowDown') {
-                      e.preventDefault();
-                      if (i < filteredRoles.length - 1) {
-                        selectRoleAtFilteredIndex(i + 1);
-                        focusRoleRow(i + 1);
-                      } else if (creating || selectedRole) {
-                        document.getElementById('br-code')?.focus();
-                      }
-                    }
-                    if (e.key === 'ArrowUp') {
-                      e.preventDefault();
-                      if (i > 0) {
-                        selectRoleAtFilteredIndex(i - 1);
-                        focusRoleRow(i - 1);
-                      } else {
-                        document.getElementById('role-search')?.focus();
-                      }
-                    }
-                    if (e.key === 'ArrowRight') {
-                      e.preventDefault();
-                      if (creating || selectedRole) document.getElementById('br-code')?.focus();
-                    }
-                    if (e.key === 'ArrowLeft') {
-                      e.preventDefault();
-                      document.getElementById('role-search')?.focus();
-                    }
-                  }}
+                  onClick={() => setActivePick(k)}
                   className={cn(
-                    'w-full rounded-xl border px-3 py-2.5 text-left text-sm transition-colors',
-                    active
-                      ? 'border-primary/40 border-l-4 border-l-primary bg-primary/10 pl-2.5 text-foreground shadow-sm ring-1 ring-primary/20'
-                      : 'border-border/80 bg-muted/15 text-foreground hover:bg-muted/30',
+                    'rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                    activePick === k ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
                   )}
                 >
-                  <div className="font-semibold leading-snug">{r.name}</div>
-                  <div className="text-xs text-muted-foreground">{r.code}</div>
+                  {label}
                 </button>
-              );
-            })}
-            {filteredRoles.length === 0 ? (
-              <div className="rounded-xl border border-border/60 bg-muted/10 p-4 text-sm text-muted-foreground">
-                無符合的職務。可點「新增」建立一筆。
-              </div>
-            ) : null}
-          </div>
-        </ScrollArea>
-      </section>
+              ))}
+            </nav>
 
-      <div className="flex min-h-[min(720px,calc(100vh-220px))] min-h-0 flex-col gap-4">
-        <section className="glass-card flex shrink-0 flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
-            <div>
-              <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
-              <h2 className="mt-1 text-sm font-semibold text-foreground">
-                {creating ? '新增職務 — 詳細資訊' : selectedRole ? `職務詳細 — ${selectedRole.name}` : '職務詳細資訊'}
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button type="button" size="sm" variant="outline" onClick={onReset} disabled={!creating && !selectedRole}>
-                還原
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  if (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedRole || !dirty)
-                    return;
-                  setSaveConfirmOpen(true);
-                }}
-                disabled={
-                  creating
-                    ? !detailDraft.code.trim() || !detailDraft.name.trim()
-                    : !selectedRole || !dirty
-                }
-              >
-                儲存
-              </Button>
-            </div>
-          </div>
-
-          {!creating && !selectedRole ? (
-            <p className="text-sm text-muted-foreground">請從左側選擇職務，或點「新增」。</p>
-          ) : (
-            <div
-              className="grid gap-4 sm:grid-cols-2"
-              onKeyDownCapture={(e) => {
-                if (saveConfirmOpen) return;
-                const id = getFieldIdFromEventTarget(e.target);
-                if (e.key === 'ArrowLeft' && id === 'br-code') {
-                  e.preventDefault();
-                  if (selectedRoleIndex >= 0) focusRoleRow(selectedRoleIndex);
-                  else document.getElementById('role-search')?.focus();
-                  return;
-                }
-                handleMasterFieldKeyDown(e, ROLE_FIELD_ORDER, {
-                  enabled: true,
-                  onLastField: () => setSaveConfirmOpen(true),
-                  multilineFieldIds: new Set(['br-desc']),
-                });
-              }}
-            >
-              <div className="space-y-2">
-                <Label htmlFor="br-code">代碼</Label>
-                <Input
-                  id="br-code"
-                  value={detailDraft.code}
-                  onChange={(e) => setDetailDraft((d) => ({ ...d, code: e.target.value }))}
-                  placeholder="例：ADMIN"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="br-name">名稱</Label>
-                <Input
-                  id="br-name"
-                  value={detailDraft.name}
-                  onChange={(e) => setDetailDraft((d) => ({ ...d, name: e.target.value }))}
-                  placeholder="職務顯示名稱"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="br-sort">排序</Label>
-                <Input
-                  id="br-sort"
-                  inputMode="numeric"
-                  value={detailDraft.sortOrder}
-                  onChange={(e) => setDetailDraft((d) => ({ ...d, sortOrder: e.target.value }))}
-                  placeholder="數字越小越前面"
-                />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="br-desc">說明</Label>
-                <Textarea
-                  id="br-desc"
-                  value={detailDraft.description}
-                  onChange={(e) => setDetailDraft((d) => ({ ...d, description: e.target.value }))}
-                  placeholder="職務職責摘要（選填）"
-                  rows={3}
-                  className="min-h-[88px] resize-y"
-                />
-              </div>
-              <div className="flex items-end gap-2 pb-2 sm:col-span-2">
-                <label htmlFor="br-active" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                  <input
-                    id="br-active"
-                    type="checkbox"
-                    className="size-4 rounded border border-input accent-primary"
-                    checked={detailDraft.isActive}
-                    onChange={(e) => setDetailDraft((d) => ({ ...d, isActive: e.target.checked }))}
-                  />
-                  啟用
-                </label>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="glass-card flex min-h-[280px] flex-1 flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
-          <div className="mb-3 border-b border-border/60 pb-3">
-            <p className="text-xs tracking-[0.35em] text-muted-foreground">MEMBERS</p>
-            <h2 className="mt-1 text-sm font-semibold text-foreground">匯入使用者</h2>
-            <p className="mt-1 text-xs text-muted-foreground">由使用者主檔（啟用中）選入，即時寫入 nx00_user_role。</p>
-          </div>
-
-          {creating || !selectedId ? (
-            <p className="text-sm text-muted-foreground">請先建立或選取職務後，再指派使用者。</p>
-          ) : (
-            <>
-              <div className="mb-3">
-                <LookupAutocomplete<BaseUserRow>
-                  value={userQuery}
-                  onChange={setUserQuery}
-                  options={userOptions}
-                  open={userOpen}
-                  onOpenChange={setUserOpen}
-                  placeholder="搜尋使用者（帳號／顯示名稱）"
-                  emptyText="沒有符合或未啟用的使用者"
-                  getKey={(u) => u.id}
-                  inputClassName={lookupInputCls}
-                  panelClassName={lookupPanelCls}
-                  renderOption={(u) => (
-                    <>
-                      <div>
-                        <div className="font-semibold text-foreground">{u.username}</div>
-                        <div className="text-xs text-muted-foreground">{u.displayName}</div>
-                      </div>
-                      <div className="text-xs text-muted-foreground">{u.isActive ? '啟用' : '停用'}</div>
-                    </>
-                  )}
-                  onPick={(u) => assignUser(u.id)}
-                />
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+              <div className="mb-3 flex flex-wrap gap-2 lg:hidden">
+                <select
+                  className="nx-native-select h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                  value={activePick}
+                  onChange={(e) => setActivePick(e.target.value as 'all' | 'active' | 'inactive')}
+                  aria-label="狀態篩選"
+                >
+                  <option value="all">全部</option>
+                  <option value="active">啟用</option>
+                  <option value="inactive">停用</option>
+                </select>
               </div>
 
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <Input
-                  value={memberSearch}
-                  onChange={(e) => setMemberSearch(e.target.value)}
-                  placeholder="在已匯入名單內搜尋（帳號／顯示名稱）"
-                  className="max-w-md"
-                  autoComplete="off"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') setMemberSearch('');
-                  }}
-                />
-                <span className="text-xs tabular-nums text-muted-foreground">共 {memberRowsForDisplay.length} 人</span>
-              </div>
+              <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
+                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                  新增
+                </Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
+                  重新載入
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 px-2"
+                  onClick={() => setColPickerOpen((o) => !o)}
+                  aria-expanded={colPickerOpen}
+                  aria-label="列表欄位設定"
+                >
+                  <Columns3 className="size-4" aria-hidden />
+                  欄位
+                </Button>
 
-              <ScrollArea className="min-h-0 flex-1 pr-2">
-                <div className="flex flex-wrap gap-2 rounded-xl border border-border/60 bg-muted/10 p-3">
-                  {memberRowsForDisplay.map((row) => {
-                    const u = userById.get(row.userId);
-                    const label = u ? `${u.username} · ${u.displayName}` : row.userId;
-                    return (
-                      <div
-                        key={row.id}
-                        className={cn(
-                          'flex max-w-full items-center gap-2 rounded-full border px-3 py-1 text-sm',
-                          row.isPrimary
-                            ? 'border-primary/35 bg-primary/10 text-foreground'
-                            : 'border-border/80 bg-card/60 text-foreground',
-                        )}
-                        title={label}
+                {colPickerOpen ? (
+                  <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() =>
+                          setColPref({
+                            visibleCols: [...ALL_LIST_COLS],
+                            colOrder: [...ALL_LIST_COLS],
+                          })
+                        }
                       >
-                        <span className="max-w-[220px] truncate">{label}</span>
-                        <button
-                          type="button"
-                          className={cn(
-                            'rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors disabled:opacity-40',
-                            row.isPrimary
-                              ? 'bg-primary/20 text-primary hover:bg-primary/25'
-                              : 'bg-muted/50 text-muted-foreground hover:bg-muted',
-                          )}
-                          onClick={() => togglePrimary(row.id)}
-                          title="切換主要職務"
+                        重置
+                      </Button>
+                    </div>
+                    <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                      {listCols.colOrder.map((key) => {
+                        const def = COL_DEF[key];
+                        const checked = listCols.visibleCols.includes(key);
+                        const locked = Boolean(def.locked);
+                        return (
+                          <div
+                            key={key}
+                            draggable
+                            className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', key);
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const from = e.dataTransfer.getData('text/plain') as ListColKey;
+                              if (!ALL_LIST_COLS.includes(from)) return;
+                              setColPref((p) => {
+                                const norm = normalizeColPref(p);
+                                const fromIdx = norm.colOrder.indexOf(from);
+                                const toIdx = norm.colOrder.indexOf(key);
+                                if (fromIdx < 0 || toIdx < 0) return norm;
+                                return { ...norm, colOrder: arrayMove(norm.colOrder, fromIdx, toIdx) };
+                              });
+                            }}
+                          >
+                            <label className="flex flex-1 cursor-pointer items-center gap-2">
+                              <input
+                                type="checkbox"
+                                className="size-3.5 rounded border border-input accent-primary"
+                                checked={locked ? true : checked}
+                                disabled={locked}
+                                onChange={() => {
+                                  if (locked) return;
+                                  setColPref((p) => {
+                                    const norm = normalizeColPref(p);
+                                    const has = norm.visibleCols.includes(key);
+                                    const nextVis = has
+                                      ? norm.visibleCols.filter((k) => k !== key)
+                                      : [...norm.visibleCols, key];
+                                    return normalizeColPref({ ...norm, visibleCols: nextVis });
+                                  });
+                                }}
+                              />
+                              <span>{def.label}</span>
+                            </label>
+                            <span className="text-muted-foreground" aria-hidden>
+                              ⠿
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft className="size-4" aria-hidden />
+                    上一頁
+                  </Button>
+                  <span className="px-2 text-xs text-muted-foreground tabular-nums">
+                    第 {safePage} / {totalPages} 頁
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    下一頁
+                    <ChevronRight className="size-4" aria-hidden />
+                  </Button>
+                </div>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                  {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+                </span>
+              </div>
+
+              <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
+                        {orderedVisibleCols.map((key) => (
+                          <th key={key} className="px-2 py-2.5">
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                              onClick={() => toggleSort(key)}
+                            >
+                              {COL_DEF[key].label}
+                              {sortIcon(key)}
+                            </button>
+                          </th>
+                        ))}
+                        <th className="w-10 px-1 py-2.5" aria-hidden />
+                      </tr>
+                      <tr className="border-b border-border/60 bg-secondary/20">
+                        {orderedVisibleCols.map((key) => filterTh(key))}
+                        <th className="p-2" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border/50">
+                        <td
+                          className="bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground"
+                          colSpan={orderedVisibleCols.length + 1}
                         >
-                          {row.isPrimary ? 'PRIMARY' : '設為主要'}
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                          onClick={() => removeMember(row.id)}
-                          title="移除"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    );
-                  })}
-                  {memberRowsForDisplay.length === 0 ? (
-                    <span className="text-xs text-muted-foreground">尚無成員，請用上方搜尋加入。</span>
-                  ) : null}
+                          職務
+                        </td>
+                      </tr>
+                      {pageRows.map((row) => {
+                        const isSel = row.id === selectedId;
+                        return (
+                          <tr
+                            key={row.id}
+                            role="button"
+                            tabIndex={0}
+                            className={cn(
+                              'cursor-pointer border-b border-border/40 transition-colors',
+                              isSel ? 'bg-primary/10' : 'hover:bg-secondary/40',
+                            )}
+                            onClick={() => onRowClick(row.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onRowClick(row.id);
+                              }
+                            }}
+                          >
+                            {orderedVisibleCols.map((k) => renderBodyCell(row, k))}
+                            <td className="px-1 py-2.5 text-muted-foreground">
+                              <ChevronRight className="mx-auto size-4 opacity-50" aria-hidden />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </ScrollArea>
-            </>
-          )}
+            </div>
+          </div>
         </section>
       </div>
-      </div>
-    </div>
-    <MasterSaveConfirmDialog
-      open={saveConfirmOpen}
-      onOpenChange={setSaveConfirmOpen}
-      onConfirm={() => void performSave()}
-    />
+
+      {panelOpen ? (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-background/55 backdrop-blur-[2px] dark:bg-background/70"
+            aria-hidden
+            onClick={closeDetailFull}
+            role="button"
+            tabIndex={-1}
+          />
+
+          <aside
+            className={cn(
+              'glass-card flex flex-col overflow-y-auto overscroll-contain border-border/80 bg-background shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out',
+              detailFullscreen
+                ? 'fixed left-1/2 top-1/2 z-50 w-[min(92vw,42rem)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border shadow-2xl max-h-[min(85dvh,calc(100dvh-3.5rem-6.5rem))] sm:w-[min(90vw,48rem)]'
+                : 'fixed inset-0 z-50 max-h-[100dvh] rounded-none border-0 max-lg:border-0 lg:inset-auto lg:right-4 lg:top-24 lg:bottom-4 lg:left-auto lg:h-auto lg:max-h-[calc(100vh-7rem)] lg:w-[min(440px,calc(100vw-2rem))] lg:rounded-2xl lg:border lg:shadow-2xl',
+            )}
+            aria-modal="true"
+            role="dialog"
+            aria-labelledby="br-detail-title"
+          >
+            <div
+              className={cn(
+                'flex min-w-0 flex-col',
+                'min-h-0 flex-1 p-4 pt-[max(0.75rem,env(safe-area-inset-top))] lg:pt-4',
+                detailFullscreen &&
+                  'w-full max-w-none px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6',
+              )}
+            >
+              <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 pb-3 lg:border-0 lg:pb-0">
+                <div className="flex min-w-0 flex-1 items-start gap-2">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="shrink-0 lg:hidden"
+                    aria-label="返回列表"
+                    onClick={closeDetailFull}
+                  >
+                    <ArrowLeft className="size-5" />
+                  </Button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
+                    <h2 id="br-detail-title" className="mt-0.5 truncate text-base font-semibold text-foreground lg:text-sm">
+                      {creating ? '新增職務' : auditSource?.name ?? '職務明細'}
+                    </h2>
+                    {!creating && auditSource ? (
+                      <p className="truncate text-xs text-muted-foreground font-mono">{auditSource.code}</p>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  {!creating && selectedIdxSorted >= 0 ? (
+                    <>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="hidden size-8 lg:inline-flex"
+                        aria-label="上一筆"
+                        disabled={selectedIdxSorted <= 0}
+                        onClick={goDetailPrev}
+                      >
+                        <ChevronLeft className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="hidden size-8 lg:inline-flex"
+                        aria-label="下一筆"
+                        disabled={selectedIdxSorted >= sortedRows.length - 1}
+                        onClick={goDetailNext}
+                      >
+                        <ChevronRight className="size-4" />
+                      </Button>
+                    </>
+                  ) : null}
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="inline-flex size-8"
+                    aria-label={detailFullscreen ? '結束全螢幕' : '全螢幕明細'}
+                    onClick={() => setDetailFullscreen((v) => !v)}
+                  >
+                    {detailFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+                  </Button>
+                  <Button type="button" size="icon" variant="ghost" className="size-8" aria-label="關閉" onClick={closeDetailFull}>
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
+                <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
+                  <TabsTrigger value="main" className="flex-none">
+                    基本資料
+                  </TabsTrigger>
+                  <TabsTrigger value="audit" className="flex-none">
+                    稽核
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="main" className="mt-3 outline-none">
+                  <div className="space-y-3 pb-28 lg:pb-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="br-d-code">代碼</Label>
+                        <Input
+                          id="br-d-code"
+                          value={detailDraft.code}
+                          onChange={(e) => setDetailDraft((d) => ({ ...d, code: e.target.value }))}
+                          placeholder="例：ADMIN"
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="br-d-name">名稱</Label>
+                        <Input
+                          id="br-d-name"
+                          value={detailDraft.name}
+                          onChange={(e) => setDetailDraft((d) => ({ ...d, name: e.target.value }))}
+                          placeholder="職務顯示名稱"
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="br-d-sort">排序</Label>
+                        <Input
+                          id="br-d-sort"
+                          inputMode="numeric"
+                          value={detailDraft.sortOrder}
+                          onChange={(e) => setDetailDraft((d) => ({ ...d, sortOrder: e.target.value }))}
+                          placeholder="數字越小越前面"
+                        />
+                      </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="br-d-desc">說明</Label>
+                        <Textarea
+                          id="br-d-desc"
+                          value={detailDraft.description}
+                          onChange={(e) => setDetailDraft((d) => ({ ...d, description: e.target.value }))}
+                          placeholder="職務職責摘要（選填）"
+                          rows={3}
+                          className="min-h-[88px] resize-y"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 pb-2 sm:col-span-2">
+                        <input
+                          id="br-d-active"
+                          type="checkbox"
+                          className="size-4 rounded border border-input accent-primary"
+                          checked={detailDraft.isActive}
+                          onChange={(e) => setDetailDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                        />
+                        <Label htmlFor="br-d-active" className="font-normal">
+                          啟用
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="audit" className="mt-3 outline-none">
+                  <div className="space-y-3 pb-28 lg:pb-6">
+                    <div className="space-y-2">
+                      <Label>建立時間</Label>
+                      <Input readOnly value={auditSource ? formatDt(auditSource.createdAt) : '—'} className={readonlyFieldCls} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>建立人員</Label>
+                      <Input readOnly value={auditSource?.createdByName ?? '—'} className={readonlyFieldCls} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>最後修改時間</Label>
+                      <Input readOnly value={auditSource ? formatDt(auditSource.updatedAt) : '—'} className={readonlyFieldCls} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>最後修改人員</Label>
+                      <Input readOnly value={auditSource?.updatedByName ?? '—'} className={readonlyFieldCls} />
+                    </div>
+                    {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示完整稽核欄位。</p> : null}
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onReset}
+                  disabled={!creating && !selectedRole}
+                >
+                  還原
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    if (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedRole || !detailDirty) return;
+                    setSaveConfirmOpen(true);
+                  }}
+                  disabled={
+                    saving || (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedRole || !detailDirty)
+                  }
+                >
+                  {saving ? '儲存中…' : '儲存'}
+                </Button>
+              </div>
+            </div>
+          </aside>
+        </>
+      ) : null}
+
+      <MasterSaveConfirmDialog
+        open={saveConfirmOpen}
+        onOpenChange={setSaveConfirmOpen}
+        onConfirm={() => void performSave()}
+      />
     </>
   );
 }

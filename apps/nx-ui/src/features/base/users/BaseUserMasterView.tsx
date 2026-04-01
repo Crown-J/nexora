@@ -4,23 +4,40 @@
  *
  * Purpose:
  * - Base user master-detail：連線 nx-api GET/POST/PUT/PATCH /user，職務顯示來自角色主檔（user.jobTitle）
+ * - 版型：LIST + SLIDE（明細 fixed 覆蓋列表＋可全螢幕；手機全幅詳情）；欄位顯示可記憶於本機
  */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Columns3,
+  Maximize2,
+  Minimize2,
+  Pencil,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { arrayMove } from '@/shared/lib/arrayMove';
+import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import type { BaseUserRow } from './mock-data';
 import { assignUserRole, listUserRoles } from '@/features/base/api/user-role';
 import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 
-type SortKey = 'username' | 'displayName' | 'jobTitle' | 'isActive' | 'lastLoginAt';
+type ListColKey = 'username' | 'displayName' | 'jobTitle' | 'isActive' | 'lastLoginAt';
+type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
 type EditableDraft = {
@@ -35,6 +52,36 @@ type EditableDraft = {
 };
 
 const PAGE_SIZE = 10;
+
+const LIST_COL_PREF_VERSION = 1;
+const LIST_COL_PREF_KEY = 'base.user.listcols';
+
+const ALL_LIST_COLS: ListColKey[] = ['username', 'displayName', 'jobTitle', 'isActive', 'lastLoginAt'];
+
+const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
+  username: { label: '帳號', locked: true },
+  displayName: { label: '姓名' },
+  jobTitle: { label: '職務' },
+  isActive: { label: '狀態' },
+  lastLoginAt: { label: '最後登入' },
+};
+
+type UserListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
+
+const DEFAULT_COL_PREF: UserListColPref = {
+  visibleCols: [...ALL_LIST_COLS],
+  colOrder: [...ALL_LIST_COLS],
+};
+
+function normalizeColPref(raw: UserListColPref): UserListColPref {
+  const order = ALL_LIST_COLS.filter((k) => raw.colOrder.includes(k));
+  for (const k of ALL_LIST_COLS) {
+    if (!order.includes(k)) order.push(k);
+  }
+  let vis = raw.visibleCols.filter((k) => ALL_LIST_COLS.includes(k));
+  if (!vis.includes('username')) vis = ['username', ...vis];
+  return { colOrder: order, visibleCols: vis };
+}
 
 function emptyDraft(defaultRoleId: string): EditableDraft {
   return {
@@ -105,6 +152,17 @@ export function BaseUserMasterView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [colPickerOpen, setColPickerOpen] = useState(false);
+  const [detailTab, setDetailTab] = useState('main');
+  const [detailFullscreen, setDetailFullscreen] = useState(false);
+  const colPickerWrapRef = useRef<HTMLDivElement>(null);
+
+  const { value: colPref, setValue: setColPref } = useListLocalPref<UserListColPref>(
+    LIST_COL_PREF_KEY,
+    LIST_COL_PREF_VERSION,
+    DEFAULT_COL_PREF,
+  );
+  const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
@@ -130,6 +188,16 @@ export function BaseUserMasterView() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (!colPickerOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      const el = colPickerWrapRef.current;
+      if (el && !el.contains(e.target as Node)) setColPickerOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [colPickerOpen]);
 
   useEffect(() => {
     if (roles[0]?.id && !draft.primaryRoleId && creating) {
@@ -221,6 +289,59 @@ export function BaseUserMasterView() {
     [users, selectedId],
   );
 
+  const panelOpen = creating || selectedId != null;
+
+  const orderedVisibleCols = useMemo(
+    () => listCols.colOrder.filter((k) => listCols.visibleCols.includes(k)),
+    [listCols.colOrder, listCols.visibleCols],
+  );
+
+  const selectedIdxSorted = useMemo(
+    () => (selectedId ? sortedRows.findIndex((r) => r.id === selectedId) : -1),
+    [sortedRows, selectedId],
+  );
+
+  const closeDetailFull = useCallback(() => {
+    setCreating(false);
+    setEditing(false);
+    setSelectedId(null);
+    setDetailTab('main');
+    setDetailFullscreen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!panelOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      closeDetailFull();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [panelOpen, closeDetailFull]);
+
+  useEffect(() => {
+    setDetailFullscreen(false);
+  }, [selectedId, creating]);
+
+  const goDetailPrev = useCallback(() => {
+    if (creating || selectedIdxSorted <= 0) return;
+    const prev = sortedRows[selectedIdxSorted - 1];
+    if (!prev) return;
+    setSelectedId(prev.id);
+    setEditing(false);
+    setCreating(false);
+  }, [creating, selectedIdxSorted, sortedRows]);
+
+  const goDetailNext = useCallback(() => {
+    if (creating || selectedIdxSorted < 0 || selectedIdxSorted >= sortedRows.length - 1) return;
+    const next = sortedRows[selectedIdxSorted + 1];
+    if (!next) return;
+    setSelectedId(next.id);
+    setEditing(false);
+    setCreating(false);
+  }, [creating, selectedIdxSorted, sortedRows]);
+
   const formValues = useMemo(() => {
     if (editing || creating) return draft;
     if (selected) return rowFromUser(selected);
@@ -256,6 +377,10 @@ export function BaseUserMasterView() {
   };
 
   const onRowClick = (id: string) => {
+    if (id === selectedId && !creating) {
+      closeDetailFull();
+      return;
+    }
     setSelectedId(id);
     setCreating(false);
     setEditing(false);
@@ -392,8 +517,98 @@ export function BaseUserMasterView() {
   const usernameEditable = creating;
   const auditSource = creating ? null : selected;
 
+  const renderBodyCell = (row: BaseUserRow, key: ListColKey) => {
+    switch (key) {
+      case 'username':
+        return (
+          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 font-mono text-xs text-foreground">
+            {row.username}
+          </td>
+        );
+      case 'displayName':
+        return (
+          <td key={key} className="max-w-[220px] truncate px-2 py-2.5 text-foreground">
+            {row.displayName}
+          </td>
+        );
+      case 'jobTitle':
+        return (
+          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-muted-foreground">
+            {row.jobTitle}
+          </td>
+        );
+      case 'isActive':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5">
+            <span
+              className={cn(
+                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
+                row.isActive ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-destructive/15 text-destructive',
+              )}
+              title={row.isActive ? '啟用' : '停用'}
+            >
+              {row.isActive ? '✓' : '×'}
+            </span>
+          </td>
+        );
+      case 'lastLoginAt':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground tabular-nums">
+            {formatDt(row.lastLoginAt)}
+          </td>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const filterTh = (key: ListColKey) => {
+    if (key === 'username') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fUsername}
+            onChange={(e) => setFUsername(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
+    }
+    if (key === 'displayName') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fDisplayName}
+            onChange={(e) => setFDisplayName(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
+    }
+    if (key === 'jobTitle') {
+      return (
+        <th key={`f-${key}`} className="p-2">
+          <Input
+            value={fJobTitle}
+            onChange={(e) => setFJobTitle(e.target.value)}
+            placeholder="篩選"
+            className="h-8 text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </th>
+      );
+    }
+    return <th key={`f-${key}`} className="p-2" />;
+  };
+
+  const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(280px,42%)_minmax(0,1fr)] lg:items-start">
+    <div className="relative flex flex-col gap-4">
       <div className="flex min-h-0 min-w-0 flex-col gap-4">
         {error ? (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -405,7 +620,7 @@ export function BaseUserMasterView() {
           <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
           <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
               <Label htmlFor="bu-keyword">關鍵字</Label>
               <Input
                 id="bu-keyword"
@@ -415,7 +630,7 @@ export function BaseUserMasterView() {
                 autoComplete="off"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 lg:hidden">
               <Label htmlFor="bu-job">職務（主角色）</Label>
               <select
                 id="bu-job"
@@ -434,398 +649,601 @@ export function BaseUserMasterView() {
           </div>
         </section>
 
-        <section className="glass-card flex min-h-[420px] min-w-0 flex-1 flex-col rounded-2xl border border-border/80 p-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
-            <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
-              新增
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => void onBulkActive(false)}
-              disabled={checked.size === 0 || saving}
+        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+            <nav
+              className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
+              aria-label="依職務篩選"
             >
-              停用
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => void onBulkActive(true)}
-              disabled={checked.size === 0 || saving}
-            >
-              啟用
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
-              重新載入
-            </Button>
-            <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
-              <Button
+              <button
                 type="button"
-                size="sm"
-                variant="outline"
-                className="gap-1 px-2"
-                disabled={safePage <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-label="上一頁"
+                onClick={() => setJobPick('')}
+                className={cn(
+                  'rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                  jobPick === '' ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
+                )}
               >
-                <ChevronLeft className="size-4" aria-hidden />
-                上一頁
-              </Button>
-              <span className="px-2 text-xs text-muted-foreground tabular-nums">
-                第 {safePage} / {totalPages} 頁
-              </span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="gap-1 px-2"
-                disabled={safePage >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                aria-label="下一頁"
-              >
-                下一頁
-                <ChevronRight className="size-4" aria-hidden />
-              </Button>
-            </div>
-            <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-              {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
-            </span>
-          </div>
+                全部
+              </button>
+              {jobTitleOptions.map((j) => (
+                <button
+                  key={j}
+                  type="button"
+                  onClick={() => setJobPick(j)}
+                  className={cn(
+                    'rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                    jobPick === j ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
+                  )}
+                >
+                  {j}
+                </button>
+              ))}
+            </nav>
 
-          <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-            <div className="w-full overflow-x-auto">
-              <table className="w-full min-w-[720px] border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-border/60 text-left text-muted-foreground">
-                    <th className="w-10 px-2 py-2">
-                      <input
-                        ref={headerCheckboxRef}
-                        type="checkbox"
-                        className="size-4 rounded border border-input accent-primary"
-                        aria-label="全選本頁列"
-                        onChange={(e) => toggleAllVisible(e.target.checked)}
-                      />
-                    </th>
-                    <th className="px-2 py-2">
-                      <button
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+              <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
+                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                  新增
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void onBulkActive(false)}
+                  disabled={checked.size === 0 || saving}
+                >
+                  停用
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void onBulkActive(true)}
+                  disabled={checked.size === 0 || saving}
+                >
+                  啟用
+                </Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
+                  重新載入
+                </Button>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="gap-1 px-2"
+                  onClick={() => setColPickerOpen((o) => !o)}
+                  aria-expanded={colPickerOpen}
+                  aria-label="列表欄位設定"
+                >
+                  <Columns3 className="size-4" aria-hidden />
+                  欄位
+                </Button>
+
+                {colPickerOpen ? (
+                  <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
+                      <Button
                         type="button"
-                        className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
-                        onClick={() => toggleSort('username')}
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() =>
+                          setColPref({
+                            visibleCols: [...ALL_LIST_COLS],
+                            colOrder: [...ALL_LIST_COLS],
+                          })
+                        }
                       >
-                        帳號
-                        {sortIcon('username')}
-                      </button>
-                    </th>
-                    <th className="px-2 py-2">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
-                        onClick={() => toggleSort('displayName')}
-                      >
-                        姓名
-                        {sortIcon('displayName')}
-                      </button>
-                    </th>
-                    <th className="px-2 py-2">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
-                        onClick={() => toggleSort('jobTitle')}
-                      >
-                        職務
-                        {sortIcon('jobTitle')}
-                      </button>
-                    </th>
-                    <th className="px-2 py-2">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
-                        onClick={() => toggleSort('isActive')}
-                      >
-                        狀態
-                        {sortIcon('isActive')}
-                      </button>
-                    </th>
-                    <th className="px-2 py-2">
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
-                        onClick={() => toggleSort('lastLoginAt')}
-                      >
-                        最後登入
-                        {sortIcon('lastLoginAt')}
-                      </button>
-                    </th>
-                  </tr>
-                  <tr className="border-b border-border/60 bg-secondary/20">
-                    <th className="p-2" />
-                    <th className="p-2">
-                      <Input
-                        value={fUsername}
-                        onChange={(e) => setFUsername(e.target.value)}
-                        placeholder="篩選"
-                        className="h-8 text-xs"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </th>
-                    <th className="p-2">
-                      <Input
-                        value={fDisplayName}
-                        onChange={(e) => setFDisplayName(e.target.value)}
-                        placeholder="篩選"
-                        className="h-8 text-xs"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </th>
-                    <th className="p-2">
-                      <Input
-                        value={fJobTitle}
-                        onChange={(e) => setFJobTitle(e.target.value)}
-                        placeholder="篩選"
-                        className="h-8 text-xs"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </th>
-                    <th className="p-2" colSpan={2} />
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageRows.map((row) => {
-                    const isSel = row.id === selectedId;
-                    return (
-                      <tr
-                        key={row.id}
-                        role="button"
-                        tabIndex={0}
-                        className={cn(
-                          'cursor-pointer border-b border-border/40 transition-colors',
-                          isSel ? 'bg-primary/10' : 'hover:bg-secondary/40',
-                        )}
-                        onClick={() => onRowClick(row.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onRowClick(row.id);
-                          }
-                        }}
-                      >
-                        <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
+                        重置
+                      </Button>
+                    </div>
+                    <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                      {listCols.colOrder.map((key) => {
+                        const def = COL_DEF[key];
+                        const checked = listCols.visibleCols.includes(key);
+                        const locked = Boolean(def.locked);
+                        return (
+                          <div
+                            key={key}
+                            draggable
+                            className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', key);
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const from = e.dataTransfer.getData('text/plain') as ListColKey;
+                              if (!ALL_LIST_COLS.includes(from)) return;
+                              setColPref((p) => {
+                                const norm = normalizeColPref(p);
+                                const fromIdx = norm.colOrder.indexOf(from);
+                                const toIdx = norm.colOrder.indexOf(key);
+                                if (fromIdx < 0 || toIdx < 0) return norm;
+                                return {
+                                  ...norm,
+                                  colOrder: arrayMove(norm.colOrder, fromIdx, toIdx),
+                                };
+                              });
+                            }}
+                          >
+                            <label className="flex flex-1 cursor-pointer items-center gap-2">
+                              <input
+                                type="checkbox"
+                                className="size-3.5 rounded border border-input accent-primary"
+                                checked={locked ? true : checked}
+                                disabled={locked}
+                                onChange={() => {
+                                  if (locked) return;
+                                  setColPref((p) => {
+                                    const norm = normalizeColPref(p);
+                                    const has = norm.visibleCols.includes(key);
+                                    const nextVis = has
+                                      ? norm.visibleCols.filter((k) => k !== key)
+                                      : [...norm.visibleCols, key];
+                                    return normalizeColPref({ ...norm, visibleCols: nextVis });
+                                  });
+                                }}
+                              />
+                              <span>{def.label}</span>
+                            </label>
+                            <span className="text-muted-foreground" aria-hidden>
+                              ⠿
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    disabled={safePage <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    aria-label="上一頁"
+                  >
+                    <ChevronLeft className="size-4" aria-hidden />
+                    上一頁
+                  </Button>
+                  <span className="px-2 text-xs text-muted-foreground tabular-nums">
+                    第 {safePage} / {totalPages} 頁
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="gap-1 px-2"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    aria-label="下一頁"
+                  >
+                    下一頁
+                    <ChevronRight className="size-4" aria-hidden />
+                  </Button>
+                </div>
+                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+                  {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+                </span>
+              </div>
+
+              <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
+                <div className="w-full overflow-x-auto">
+                  <table
+                    className="w-full border-collapse text-sm"
+                    style={{ minWidth: tableMinW }}
+                  >
+                    <thead>
+                      <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
+                        <th className="w-10 px-2 py-2.5">
                           <input
+                            ref={headerCheckboxRef}
                             type="checkbox"
                             className="size-4 rounded border border-input accent-primary"
-                            checked={checked.has(row.id)}
-                            onChange={(e) => toggleOne(row.id, e.target.checked)}
-                            aria-label={'選取 ' + row.username}
+                            aria-label="全選本頁列"
+                            onChange={(e) => toggleAllVisible(e.target.checked)}
                           />
-                        </td>
-                        <td className="px-2 py-2 font-mono text-xs">{row.username}</td>
-                        <td className="px-2 py-2">{row.displayName}</td>
-                        <td className="px-2 py-2 text-muted-foreground">{row.jobTitle}</td>
-                        <td className="px-2 py-2">
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-xs font-medium',
-                              row.isActive ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
-                            )}
-                          >
-                            {row.isActive ? '啟用' : '停用'}
-                          </span>
-                        </td>
-                        <td className="px-2 py-2 text-xs text-muted-foreground tabular-nums">{formatDt(row.lastLoginAt)}</td>
+                        </th>
+                        {orderedVisibleCols.map((key) => (
+                          <th key={key} className="px-2 py-2.5">
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                              onClick={() => toggleSort(key)}
+                            >
+                              {COL_DEF[key].label}
+                              {sortIcon(key)}
+                            </button>
+                          </th>
+                        ))}
+                        <th className="w-10 px-1 py-2.5" aria-hidden />
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                      <tr className="border-b border-border/60 bg-secondary/20">
+                        <th className="p-2" />
+                        {orderedVisibleCols.map((key) => filterTh(key))}
+                        <th className="p-2" />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border/50">
+                        <td
+                          className="bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground"
+                          colSpan={2 + orderedVisibleCols.length}
+                        >
+                          使用者
+                        </td>
+                      </tr>
+                      {pageRows.map((row) => {
+                        const isSel = row.id === selectedId;
+                        return (
+                          <tr
+                            key={row.id}
+                            role="button"
+                            tabIndex={0}
+                            className={cn(
+                              'cursor-pointer border-b border-border/40 transition-colors',
+                              isSel ? 'bg-primary/10' : 'hover:bg-secondary/40',
+                            )}
+                            onClick={() => onRowClick(row.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onRowClick(row.id);
+                              }
+                            }}
+                          >
+                            <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                className="size-4 rounded border border-input accent-primary"
+                                checked={checked.has(row.id)}
+                                onChange={(e) => toggleOne(row.id, e.target.checked)}
+                                aria-label={'選取 ' + row.username}
+                              />
+                            </td>
+                            {orderedVisibleCols.map((k) => renderBodyCell(row, k))}
+                            <td className="px-1 py-2.5 text-muted-foreground">
+                              <ChevronRight className="mx-auto size-4 opacity-50" aria-hidden />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </ScrollArea>
             </div>
-          </ScrollArea>
+          </div>
         </section>
       </div>
 
-      <aside className="glass-card min-h-[min(520px,calc(100vh-14rem))] rounded-2xl border border-border/80 p-4 shadow-sm lg:sticky lg:top-24">
-        <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
-        <h2 className="mt-1 text-sm font-semibold text-foreground">使用者明細</h2>
+      {panelOpen ? (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-background/55 backdrop-blur-[2px] dark:bg-background/70"
+            aria-hidden
+            onClick={closeDetailFull}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                closeDetailFull();
+              }
+            }}
+            role="button"
+            tabIndex={-1}
+          />
 
-        <div className="mt-4 space-y-3">
-          <div className="space-y-2">
-            <Label htmlFor="bu-d-username">帳號</Label>
-            <Input
-              id="bu-d-username"
-              value={usernameEditable ? formValues.username : auditSource?.username ?? ''}
-              onChange={(e) => setDraft((d) => ({ ...d, username: e.target.value }))}
-              readOnly={!usernameEditable}
-              className={!usernameEditable ? readonlyFieldCls : undefined}
-              autoComplete="off"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bu-d-display">姓名</Label>
-            <Input
-              id="bu-d-display"
-              value={formValues.displayName}
-              onChange={(e) => setDraft((d) => ({ ...d, displayName: e.target.value }))}
-              readOnly={!editing && !creating}
-              className={!editing && !creating ? readonlyFieldCls : undefined}
-            />
-          </div>
-          {creating ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="bu-d-pw">初始密碼（至少 6 碼）</Label>
-                <Input
-                  id="bu-d-pw"
-                  type="password"
-                  value={formValues.password}
-                  onChange={(e) => setDraft((d) => ({ ...d, password: e.target.value }))}
-                  autoComplete="new-password"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bu-d-prole">指派主角色</Label>
-                <select
-                  id="bu-d-prole"
-                  className={selectCls}
-                  value={formValues.primaryRoleId}
-                  onChange={(e) => setDraft((d) => ({ ...d, primaryRoleId: e.target.value }))}
+          <aside
+            className={cn(
+              'glass-card flex flex-col overflow-y-auto overscroll-contain border-border/80 bg-background shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out',
+              detailFullscreen
+                ? 'fixed left-1/2 top-1/2 z-50 w-[min(92vw,42rem)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border shadow-2xl max-h-[min(85dvh,calc(100dvh-3.5rem-6.5rem))] sm:w-[min(90vw,48rem)]'
+                : 'fixed inset-0 z-50 max-h-[100dvh] rounded-none border-0 max-lg:border-0 lg:inset-auto lg:right-4 lg:top-24 lg:bottom-4 lg:left-auto lg:h-auto lg:max-h-[calc(100vh-7rem)] lg:w-[min(440px,calc(100vw-2rem))] lg:rounded-2xl lg:border lg:shadow-2xl',
+            )}
+            aria-modal="true"
+            role="dialog"
+            aria-labelledby="bu-detail-title"
+          >
+        <div
+          className={cn(
+            'flex min-w-0 flex-col',
+            'min-h-0 flex-1 p-4 pt-[max(0.75rem,env(safe-area-inset-top))] lg:pt-4',
+            detailFullscreen &&
+              'w-full max-w-none px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6',
+          )}
+        >
+          <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 pb-3 lg:border-0 lg:pb-0">
+            <div className="flex min-w-0 flex-1 items-start gap-2">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="shrink-0 lg:hidden"
+                aria-label="返回列表"
+                onClick={closeDetailFull}
+              >
+                <ArrowLeft className="size-5" />
+              </Button>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
+                <h2
+                  id="bu-detail-title"
+                  className="mt-0.5 truncate text-base font-semibold text-foreground lg:text-sm"
                 >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}（{r.code}）
-                    </option>
-                  ))}
-                </select>
+                  {creating ? '新增使用者' : auditSource?.username ?? '使用者明細'}
+                </h2>
+                {!creating && auditSource ? (
+                  <p className="truncate text-xs text-muted-foreground">{auditSource.displayName}</p>
+                ) : null}
               </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-job-ro">職務（主角色名稱）</Label>
-              <Input
-                id="bu-d-job-ro"
-                readOnly
-                value={auditSource?.jobTitle ?? '—'}
-                className={readonlyFieldCls}
-              />
-              <p className="text-[11px] text-muted-foreground">調整角色請至「職務」主檔指派成員。</p>
             </div>
-          )}
-          {editing && !creating ? (
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-npw">新密碼（選填，至少 6 碼）</Label>
-              <Input
-                id="bu-d-npw"
-                type="password"
-                value={formValues.newPassword}
-                onChange={(e) => setDraft((d) => ({ ...d, newPassword: e.target.value }))}
-                autoComplete="new-password"
-              />
+            <div className="flex shrink-0 items-center gap-1">
+              {!creating && selectedIdxSorted >= 0 ? (
+                <>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="hidden size-8 lg:inline-flex"
+                    aria-label="上一筆"
+                    disabled={selectedIdxSorted <= 0}
+                    onClick={goDetailPrev}
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="hidden size-8 lg:inline-flex"
+                    aria-label="下一筆"
+                    disabled={selectedIdxSorted >= sortedRows.length - 1}
+                    onClick={goDetailNext}
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </>
+              ) : null}
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="inline-flex size-8"
+                aria-label={detailFullscreen ? '結束全螢幕' : '全螢幕明細'}
+                onClick={() => setDetailFullscreen((v) => !v)}
+              >
+                {detailFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8"
+                aria-label="關閉詳情"
+                onClick={closeDetailFull}
+              >
+                <X className="size-4" />
+              </Button>
             </div>
-          ) : null}
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              id="bu-d-active"
-              type="checkbox"
-              className="size-4 rounded border border-input accent-primary"
-              checked={formValues.isActive}
-              disabled={!editing && !creating}
-              onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
-            />
-            <Label htmlFor="bu-d-active" className="font-normal">
-              啟用
-            </Label>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bu-d-email">Email</Label>
-            <Input
-              id="bu-d-email"
-              type="email"
-              value={formValues.email}
-              onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
-              readOnly={!editing && !creating}
-              className={!editing && !creating ? readonlyFieldCls : undefined}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="bu-d-phone">電話</Label>
-            <Input
-              id="bu-d-phone"
-              value={formValues.phone}
-              onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))}
-              readOnly={!editing && !creating}
-              className={!editing && !creating ? readonlyFieldCls : undefined}
-            />
           </div>
 
-          <div className="border-t border-border/60 pt-3 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">登入與稽核</p>
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-lastlogin">最後登入時間</Label>
-              <Input
-                id="bu-d-lastlogin"
-                readOnly
-                value={formatDt(auditSource?.lastLoginAt ?? null)}
-                className={readonlyFieldCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-created-by">建立人員</Label>
-              <Input
-                id="bu-d-created-by"
-                readOnly
-                value={auditSource?.createdByName ?? '\u2014'}
-                className={readonlyFieldCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-created-at">建立時間</Label>
-              <Input
-                id="bu-d-created-at"
-                readOnly
-                value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
-                className={readonlyFieldCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-updated-at">最後修改時間</Label>
-              <Input
-                id="bu-d-updated-at"
-                readOnly
-                value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
-                className={readonlyFieldCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bu-d-updated-by">最後修改人員</Label>
-              <Input
-                id="bu-d-updated-by"
-                readOnly
-                value={auditSource?.updatedByName ?? '\u2014'}
-                className={readonlyFieldCls}
-              />
-            </div>
-          </div>
-        </div>
+          <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
+            <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
+              <TabsTrigger value="main" className="flex-none">
+                基本資料
+              </TabsTrigger>
+              <TabsTrigger value="audit" className="flex-none">
+                稽核
+              </TabsTrigger>
+            </TabsList>
 
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
-          {creating || editing ? (
-            <>
-              <Button type="button" size="sm" onClick={() => void onSave()} disabled={saving}>
-                {saving ? '儲存中…' : '儲存'}
+            <TabsContent value="main" className="mt-3 outline-none">
+              <div className="space-y-3 pb-28 lg:pb-6">
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-username">帳號</Label>
+                  <Input
+                    id="bu-d-username"
+                    value={usernameEditable ? formValues.username : auditSource?.username ?? ''}
+                    onChange={(e) => setDraft((d) => ({ ...d, username: e.target.value }))}
+                    readOnly={!usernameEditable}
+                    className={!usernameEditable ? readonlyFieldCls : undefined}
+                    autoComplete="off"
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-display">姓名</Label>
+                  <Input
+                    id="bu-d-display"
+                    value={formValues.displayName}
+                    onChange={(e) => setDraft((d) => ({ ...d, displayName: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={!editing && !creating ? readonlyFieldCls : undefined}
+                  />
+                  </div>
+                {creating ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="bu-d-pw">初始密碼（至少 6 碼）</Label>
+                      <Input
+                        id="bu-d-pw"
+                        type="password"
+                        value={formValues.password}
+                        onChange={(e) => setDraft((d) => ({ ...d, password: e.target.value }))}
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bu-d-prole">指派主角色</Label>
+                      <select
+                        id="bu-d-prole"
+                        className={selectCls}
+                        value={formValues.primaryRoleId}
+                        onChange={(e) => setDraft((d) => ({ ...d, primaryRoleId: e.target.value }))}
+                      >
+                        {roles.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}（{r.code}）
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="bu-d-job-ro">職務（主角色名稱）</Label>
+                    <Input
+                      id="bu-d-job-ro"
+                      readOnly
+                      value={auditSource?.jobTitle ?? '—'}
+                      className={readonlyFieldCls}
+                    />
+                    <p className="text-[11px] text-muted-foreground">調整角色請至「職務」主檔指派成員。</p>
+                  </div>
+                )}
+                  {editing && !creating ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="bu-d-npw">新密碼（選填，至少 6 碼）</Label>
+                    <Input
+                      id="bu-d-npw"
+                      type="password"
+                      value={formValues.newPassword}
+                      onChange={(e) => setDraft((d) => ({ ...d, newPassword: e.target.value }))}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                ) : null}
+                  <div className="flex items-center gap-2 pt-1">
+                  <input
+                    id="bu-d-active"
+                    type="checkbox"
+                    className="size-4 rounded border border-input accent-primary"
+                    checked={formValues.isActive}
+                    disabled={!editing && !creating}
+                    onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                  />
+                  <Label htmlFor="bu-d-active" className="font-normal">
+                    啟用
+                  </Label>
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-email">Email</Label>
+                  <Input
+                    id="bu-d-email"
+                    type="email"
+                    value={formValues.email}
+                    onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={!editing && !creating ? readonlyFieldCls : undefined}
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-phone">電話</Label>
+                  <Input
+                    id="bu-d-phone"
+                    value={formValues.phone}
+                    onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={!editing && !creating ? readonlyFieldCls : undefined}
+                  />
+                  </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="audit" className="mt-3 outline-none">
+              <div className="space-y-3 pb-28 lg:pb-6">
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-lastlogin">最後登入時間</Label>
+                  <Input
+                    id="bu-d-lastlogin"
+                    readOnly
+                    value={formatDt(auditSource?.lastLoginAt ?? null)}
+                    className={readonlyFieldCls}
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-created-by">建立人員</Label>
+                  <Input
+                    id="bu-d-created-by"
+                    readOnly
+                    value={auditSource?.createdByName ?? '\u2014'}
+                    className={readonlyFieldCls}
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-created-at">建立時間</Label>
+                  <Input
+                    id="bu-d-created-at"
+                    readOnly
+                    value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
+                    className={readonlyFieldCls}
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-updated-at">最後修改時間</Label>
+                  <Input
+                    id="bu-d-updated-at"
+                    readOnly
+                    value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
+                    className={readonlyFieldCls}
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-updated-by">最後修改人員</Label>
+                  <Input
+                    id="bu-d-updated-by"
+                    readOnly
+                    value={auditSource?.updatedByName ?? '\u2014'}
+                    className={readonlyFieldCls}
+                  />
+                  </div>
+                {creating ? (
+                  <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p>
+                ) : null}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+            {creating || editing ? (
+              <>
+                <Button type="button" size="sm" onClick={() => void onSave()} disabled={saving}>
+                  {saving ? '儲存中…' : '儲存'}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
+                  取消
+                </Button>
+              </>
+            ) : selected ? (
+              <Button type="button" size="sm" variant="secondary" onClick={onEdit}>
+                編輯
               </Button>
-              <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
-                取消
-              </Button>
-            </>
-          ) : selected ? (
-            <Button type="button" size="sm" variant="secondary" onClick={onEdit}>
-              編輯
+            ) : (
+              <p className="text-xs text-muted-foreground">填寫資料後儲存。</p>
+            )}
+          </div>
+
+          {!creating && !editing && selected ? (
+            <Button
+              type="button"
+              size="icon"
+              className="fixed bottom-6 right-5 z-[60] size-14 rounded-full shadow-lg lg:hidden"
+              aria-label="編輯"
+              onClick={onEdit}
+            >
+              <Pencil className="size-6" />
             </Button>
-          ) : (
-            <p className="text-xs text-muted-foreground">點選左側一列以檢視，或按「新增」。</p>
-          )}
+          ) : null}
         </div>
-      </aside>
+          </aside>
+        </>
+      ) : null}
     </div>
   );
 }
