@@ -27,9 +27,12 @@ function roleDtoToRow(r: RoleDto): BaseRoleRow {
     description: r.description ?? '',
     sortOrder: r.sortNo,
     isActive: r.isActive,
+    isSystem: r.isSystem,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
+    createdBy: r.createdBy ?? null,
     createdByName: r.createdByName ?? undefined,
+    updatedBy: r.updatedBy ?? null,
     updatedByName: r.updatedByName ?? undefined,
   };
 }

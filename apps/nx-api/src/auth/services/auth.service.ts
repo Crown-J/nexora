@@ -134,6 +134,7 @@ export class AuthService {
         createdAt: true,
         updatedAt: true,
         lastLoginAt: true,
+        tenant: { select: { name: true, nameEn: true } },
         userRoles: {
           where: { isActive: true },
           select: { role: { select: { code: true } } },
@@ -157,6 +158,8 @@ export class AuthService {
       created_at: user.createdAt,
       updated_at: user.updatedAt,
       last_login_at: user.lastLoginAt ?? null,
+      tenant_name: user.tenant?.name ?? null,
+      tenant_name_en: user.tenant?.nameEn ?? null,
       roles,
     };
   }

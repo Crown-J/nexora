@@ -12,9 +12,12 @@ export type BaseRoleRow = {
   description: string;
   sortOrder: number;
   isActive: boolean;
+  isSystem: boolean;
   createdAt: string;
   updatedAt: string | null;
+  createdBy?: string | null;
   createdByName?: string;
+  updatedBy?: string | null;
   updatedByName?: string | null;
 };
 
@@ -33,6 +36,7 @@ export const MOCK_BASE_ROLES: BaseRoleRow[] = [
     description: '全系統設定與主檔維護',
     sortOrder: 10,
     isActive: true,
+    isSystem: true,
     createdAt: '2025-01-05T10:00:00',
     updatedAt: '2026-03-01T09:00:00',
   },
@@ -43,6 +47,7 @@ export const MOCK_BASE_ROLES: BaseRoleRow[] = [
     description: '帳務、稅務與財務報表',
     sortOrder: 20,
     isActive: true,
+    isSystem: false,
     createdAt: '2025-01-05T10:00:00',
     updatedAt: null,
   },
@@ -53,6 +58,7 @@ export const MOCK_BASE_ROLES: BaseRoleRow[] = [
     description: '報價、訂單與客戶聯繫',
     sortOrder: 30,
     isActive: true,
+    isSystem: false,
     createdAt: '2025-01-05T10:00:00',
     updatedAt: null,
   },
@@ -63,6 +69,7 @@ export const MOCK_BASE_ROLES: BaseRoleRow[] = [
     description: '入出庫與庫存異動',
     sortOrder: 40,
     isActive: true,
+    isSystem: false,
     createdAt: '2025-01-05T10:00:00',
     updatedAt: null,
   },

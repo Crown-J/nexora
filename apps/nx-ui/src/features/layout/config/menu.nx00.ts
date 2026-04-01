@@ -38,7 +38,7 @@ export function getNx00SideMenu(): SideMenuGroup[] {
         { key: 'nx00.user', label: '使用者基本資料', href: '/base/user' },
         { key: 'nx00.role', label: '職務主檔', href: '/base/role' },
         { key: 'nx00.user-role', label: '使用者職務設定', href: '/base/user-role' },
-        { key: 'nx00.role-view', label: '使用者權限設定', href: '/base/role-view' },
+        { key: 'nx00.role-view', label: '職務權限設定', href: '/base/role-view' },
       ],
     },
     {

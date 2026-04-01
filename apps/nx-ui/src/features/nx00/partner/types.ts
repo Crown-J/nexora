@@ -6,7 +6,8 @@
  * - NX00-UI-NX00-PARTNER-TYPES-001：Partner Types（SSOT）
  */
 
-export type PartnerType = 'CUST' | 'SUPP' | 'BOTH';
+/** 對齊 docs/nx00_field.csv */
+export type PartnerType = 'CUST' | 'SUP' | 'BOTH';
 
 export type PartnerDto = {
     id: string;

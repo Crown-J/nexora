@@ -3,12 +3,12 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - 登入後「Landing」系畫面共用外殼：星空背景 + Dock + main 預留 + MobileDock
+ * - 登入後「Landing」系畫面共用外殼：星空背景 + 頂欄星球模組選單 + main 預留 + MobileDock（小螢幕底欄）
  * - 與 /home、/base 等頁一致，避免 TopBar／背景／間距漂移
  */
 
 import type { ReactNode } from 'react';
-import { Dock, MobileDock } from '@/components/home/dock';
+import { MobileDock } from '@/components/home/dock';
 import { ParticleField } from '@/components/login/planet-orbit';
 
 export type HomeLandingChromeProps = {
@@ -27,13 +27,9 @@ export function HomeLandingChrome({ topBar, children }: HomeLandingChromeProps) 
       <div className="home-backdrop-vignette pointer-events-none absolute inset-0 z-0" />
 
       <div className="relative z-10">
-        <div className="hidden lg:block">
-          <Dock />
-        </div>
-
         <div>
           {topBar}
-          <main className="px-4 pt-20 pb-20 lg:px-7 lg:pb-6 lg:pl-24 lg:pt-[calc(4rem+1.75rem)]">{children}</main>
+          <main className="px-4 pb-20 pt-20 lg:px-7 lg:pb-6 lg:pt-20">{children}</main>
         </div>
 
         <MobileDock />

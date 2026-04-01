@@ -25,6 +25,8 @@ export type MeResponse = {
   username: string;
   display_name?: string | null;
   displayName?: string | null;
+  tenant_name?: string | null;
+  tenant_name_en?: string | null;
   roles?: string[];
 };
 
@@ -46,4 +48,8 @@ export type MeDto = {
   remark?: string | null;
   last_login_at?: string | null;
   lastLoginAt?: string | null;
+  /** 租戶中文名（nx99_tenant.name） */
+  tenant_name?: string | null;
+  /** 租戶英文名（nx99_tenant.name_en） */
+  tenant_name_en?: string | null;
 };

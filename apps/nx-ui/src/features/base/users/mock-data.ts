@@ -19,8 +19,10 @@ export type BaseUserRow = {
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  createdBy?: string | null;
   createdByName: string;
   updatedAt: string | null;
+  updatedBy?: string | null;
   updatedByName: string | null;
 };
 

@@ -15,6 +15,9 @@ export type BrandDto = {
 
     code: string;
     name: string;
+    /** 國家主檔 id（nx00_country） */
+    countryId: string | null;
+    /** 國家代碼（等同 nx00_country.code；後端保留欄位名） */
     originCountry: string | null;
     remark: string | null;
     isActive: boolean;
@@ -45,6 +48,7 @@ export type BrandsListQuery = {
 export type CreateBrandBody = {
     code: string;
     name: string;
+    countryId?: string | null;
     originCountry?: string | null;
     remark?: string | null;
     isActive?: boolean;
@@ -57,6 +61,7 @@ export type CreateBrandBody = {
 export type UpdateBrandBody = {
     code?: string;
     name?: string;
+    countryId?: string | null;
     originCountry?: string | null;
     remark?: string | null;
     isActive?: boolean;

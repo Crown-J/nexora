@@ -1,10 +1,9 @@
 /**
- * 廠牌主檔：Tab（汽車／零件）+ LIST+SLIDE（與 /base/user、零件主檔一致；mock）
+ * 廠牌主檔：汽車廠牌（nx00_car_brand）／零件廠牌（nx00_part_brand），接 API；國家為外鍵下拉。
  */
 
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDown,
@@ -18,43 +17,48 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
+import { apiFetch } from '@/shared/api/client';
+import { buildQueryString } from '@/shared/api/query';
+import { assertOk } from '@/shared/api/http';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
-import { MOCK_BASE_BRANDS, type BaseBrandRow, type BrandKind } from './mock-data';
+import { listBrand, createBrand, updateBrand } from '@/features/nx00/brand/api/brand';
+import type { BrandDto } from '@/features/nx00/brand/types';
+import { listCarBrand, createCarBrand, updateCarBrand } from '@/features/nx00/car-brand/api/car-brand';
+import type { CarBrandDto } from '@/features/nx00/car-brand/types';
 
 const PAGE_SIZE = 10;
-
-function newId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return `brand-${crypto.randomUUID()}`;
-  return `brand-${Date.now()}`;
-}
-
-type Draft = { code: string; name: string; originCountry: string; isActive: boolean };
-
-function emptyDraft(): Draft {
-  return { code: '', name: '', originCountry: 'TW', isActive: true };
-}
-
-function fromRow(r: BaseBrandRow): Draft {
-  return { code: r.code, name: r.name, originCountry: r.originCountry, isActive: r.isActive };
-}
-
 const LIST_COL_PREF_KEY = 'base.brand.listcols';
-const LIST_COL_PREF_VERSION = 1;
-type ListColKey = 'code' | 'name' | 'originCountry' | 'isActive';
+const LIST_COL_PREF_VERSION = 2;
+
+type PanelMode = 'part' | 'vehicle';
+
+type BrandTableRow = {
+  id: string;
+  code: string;
+  name: string;
+  countryId: string | null;
+  countryDisplay: string;
+  remark: string | null;
+  sortNo: number;
+  isActive: boolean;
+};
+
+type ListColKey = 'code' | 'name' | 'countryDisplay' | 'remark' | 'sortNo' | 'isActive';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
-const ALL_LIST_COLS: ListColKey[] = ['code', 'name', 'originCountry', 'isActive'];
+const ALL_LIST_COLS: ListColKey[] = ['code', 'name', 'countryDisplay', 'remark', 'sortNo', 'isActive'];
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   code: { label: '代碼', locked: true },
   name: { label: '名稱' },
-  originCountry: { label: '國別' },
+  countryDisplay: { label: '國家' },
+  remark: { label: '備註' },
+  sortNo: { label: '排序' },
   isActive: { label: '狀態' },
 };
 
@@ -74,18 +78,76 @@ function normalizeColPref(raw: BrandListColPref): BrandListColPref {
   return { colOrder: order, visibleCols: vis };
 }
 
-function BrandPanel({
-  kind,
-  tabLabel,
-  rows,
-  setRows,
-}: {
-  kind: BrandKind;
-  tabLabel: string;
-  rows: BaseBrandRow[];
-  setRows: Dispatch<SetStateAction<BaseBrandRow[]>>;
-}) {
-  const prefKey = `${LIST_COL_PREF_KEY}.${kind}`;
+type Draft = {
+  code: string;
+  name: string;
+  countryId: string;
+  remark: string;
+  sortNo: string;
+  isActive: boolean;
+};
+
+function emptyDraft(): Draft {
+  return { code: '', name: '', countryId: '', remark: '', sortNo: '0', isActive: true };
+}
+
+function fromRow(r: BrandTableRow): Draft {
+  return {
+    code: r.code,
+    name: r.name,
+    countryId: r.countryId ?? '',
+    remark: r.remark ?? '',
+    sortNo: String(r.sortNo ?? 0),
+    isActive: r.isActive,
+  };
+}
+
+function countryLabel(id: string | null, map: Map<string, { code: string; name: string }>): string {
+  if (!id) return '—';
+  const c = map.get(id);
+  return c ? `${c.code} — ${c.name}` : '—';
+}
+
+function partDtoToRow(b: BrandDto, map: Map<string, { code: string; name: string }>): BrandTableRow {
+  return {
+    id: b.id,
+    code: b.code,
+    name: b.name,
+    countryId: b.countryId ?? null,
+    countryDisplay: countryLabel(b.countryId ?? null, map),
+    remark: b.remark ?? null,
+    sortNo: b.sortNo,
+    isActive: b.isActive,
+  };
+}
+
+function carDtoToRow(b: CarBrandDto, map: Map<string, { code: string; name: string }>): BrandTableRow {
+  return {
+    id: b.id,
+    code: b.code,
+    name: b.name,
+    countryId: b.countryId ?? null,
+    countryDisplay: countryLabel(b.countryId ?? null, map),
+    remark: b.remark ?? null,
+    sortNo: b.sortNo,
+    isActive: b.isActive,
+  };
+}
+
+async function fetchCountries(): Promise<Array<{ id: string; code: string; name: string }>> {
+  const qs = buildQueryString({ page: '1', pageSize: '500' });
+  const res = await apiFetch(`/country${qs}`, { method: 'GET' });
+  await assertOk(res, 'nxui_brand_master_country');
+  const data = (await res.json()) as { items: Array<{ id: string; code: string; name: string }> };
+  return [...(data.items ?? [])].sort((a, b) => a.code.localeCompare(b.code, 'en'));
+}
+
+function BrandPanel({ mode, tabLabel }: { mode: PanelMode; tabLabel: string }) {
+  const prefKey = `${LIST_COL_PREF_KEY}.${mode}`;
+  const [rows, setRows] = useState<BrandTableRow[]>([]);
+  const [countries, setCountries] = useState<Array<{ id: string; code: string; name: string }>>([]);
+  const countryMap = useMemo(() => new Map(countries.map((c) => [c.id, c])), [countries]);
+
   const [keyword, setKeyword] = useState('');
   const [fCode, setFCode] = useState('');
   const [fName, setFName] = useState('');
@@ -96,6 +158,9 @@ function BrandPanel({
   const [draft, setDraft] = useState<Draft>(() => emptyDraft());
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [panelError, setPanelError] = useState<string | null>(null);
   const [colPickerOpen, setColPickerOpen] = useState(false);
   const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
@@ -108,20 +173,48 @@ function BrandPanel({
   );
   const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
 
-  const scoped = useMemo(() => rows.filter((r) => r.kind === kind), [rows, kind]);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setPanelError(null);
+    try {
+      const [cList, brandRes, carRes] = await Promise.all([
+        fetchCountries(),
+        mode === 'part' ? listBrand({ page: 1, pageSize: 2000 }) : Promise.resolve(null),
+        mode === 'vehicle' ? listCarBrand({ page: 1, pageSize: 2000 }) : Promise.resolve(null),
+      ]);
+      setCountries(cList);
+      const cmap = new Map(cList.map((c) => [c.id, c]));
+      if (mode === 'part' && brandRes) {
+        setRows((brandRes.items ?? []).map((b) => partDtoToRow(b, cmap)));
+      } else if (mode === 'vehicle' && carRes) {
+        setRows((carRes.items ?? []).map((b) => carDtoToRow(b, cmap)));
+      } else {
+        setRows([]);
+      }
+    } catch (e) {
+      setPanelError(e instanceof Error ? e.message : '載入失敗');
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const filtered = useMemo(() => {
     const k = keyword.trim().toLowerCase();
-    return scoped.filter((r) => {
+    return rows.filter((r) => {
       if (k) {
-        const blob = `${r.code} ${r.name} ${r.originCountry}`.toLowerCase();
+        const blob = `${r.code} ${r.name} ${r.countryDisplay} ${r.remark ?? ''}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
       if (fCode.trim() && !r.code.toLowerCase().includes(fCode.trim().toLowerCase())) return false;
       if (fName.trim() && !r.name.includes(fName.trim())) return false;
       return true;
     });
-  }, [scoped, keyword, fCode, fName]);
+  }, [rows, keyword, fCode, fName]);
 
   const toggleSort = (key: SortKey) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
@@ -137,8 +230,12 @@ function BrandPanel({
           return mult * a.code.localeCompare(b.code, 'en');
         case 'name':
           return mult * a.name.localeCompare(b.name, 'zh-Hant');
-        case 'originCountry':
-          return mult * a.originCountry.localeCompare(b.originCountry, 'en');
+        case 'countryDisplay':
+          return mult * a.countryDisplay.localeCompare(b.countryDisplay, 'zh-Hant');
+        case 'remark':
+          return mult * (a.remark ?? '').localeCompare(b.remark ?? '', 'zh-Hant');
+        case 'sortNo':
+          return mult * (a.sortNo - b.sortNo);
         case 'isActive':
           return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         default:
@@ -167,8 +264,8 @@ function BrandPanel({
   }, [filterKey, totalPages]);
 
   const selected = useMemo(
-    () => (selectedId ? rows.find((r) => r.id === selectedId && r.kind === kind) ?? null : null),
-    [rows, selectedId, kind],
+    () => (selectedId ? rows.find((r) => r.id === selectedId) ?? null : null),
+    [rows, selectedId],
   );
 
   const panelOpen = creating || selectedId != null;
@@ -214,6 +311,7 @@ function BrandPanel({
   useEffect(() => {
     if (creating) {
       setDraft(emptyDraft());
+      setDetailTab('main');
       return;
     }
     if (selected) setDraft(fromRow(selected));
@@ -221,6 +319,8 @@ function BrandPanel({
 
   const formValues = creating || editing ? draft : selected ? fromRow(selected) : emptyDraft();
   const readonlyFieldCls = 'bg-muted/40 text-muted-foreground cursor-default';
+  const selectCls =
+    'nx-native-select flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
 
   const onRowClick = (id: string) => {
     if (id === selectedId && !creating) {
@@ -253,40 +353,81 @@ function BrandPanel({
     setEditing(false);
   };
 
-  const performSave = () => {
+  const performSave = async () => {
     const code = draft.code.trim().toUpperCase();
     if (!code) return;
-    if (creating) {
-      const id = newId();
-      const row: BaseBrandRow = {
-        id,
+    const sortNo = Number.parseInt(draft.sortNo.trim(), 10);
+    const sn = Number.isFinite(sortNo) ? sortNo : 0;
+    setSaving(true);
+    setPanelError(null);
+    setSaveConfirmOpen(false);
+    try {
+      const countryId = draft.countryId.trim() === '' ? null : draft.countryId.trim();
+      const remark = draft.remark.trim() === '' ? null : draft.remark.trim();
+      if (mode === 'part') {
+        if (creating) {
+          const dto = await createBrand({
+            code,
+            name: draft.name.trim() || code,
+            countryId,
+            remark,
+            sortNo: sn,
+            isActive: draft.isActive,
+          });
+          const row = partDtoToRow(dto, countryMap);
+          setRows((prev) => [...prev, row]);
+          setCreating(false);
+          setEditing(false);
+          setSelectedId(row.id);
+          return;
+        }
+        if (!selectedId) return;
+        const dto = await updateBrand(selectedId, {
+          code,
+          name: draft.name.trim() || code,
+          countryId,
+          remark,
+          sortNo: sn,
+          isActive: draft.isActive,
+        });
+        const row = partDtoToRow(dto, countryMap);
+        setRows((prev) => prev.map((r) => (r.id === selectedId ? row : r)));
+        setEditing(false);
+        return;
+      }
+      if (creating) {
+        const dto = await createCarBrand({
+          code,
+          name: draft.name.trim() || code,
+          countryId,
+          remark,
+          sortNo: sn,
+          isActive: draft.isActive,
+        });
+        const row = carDtoToRow(dto, countryMap);
+        setRows((prev) => [...prev, row]);
+        setCreating(false);
+        setEditing(false);
+        setSelectedId(row.id);
+        return;
+      }
+      if (!selectedId) return;
+      const dto = await updateCarBrand(selectedId, {
         code,
         name: draft.name.trim() || code,
-        originCountry: draft.originCountry.trim() || 'TW',
-        kind,
+        countryId,
+        remark,
+        sortNo: sn,
         isActive: draft.isActive,
-      };
-      setRows((prev) => [...prev, row]);
-      setSelectedId(id);
-      setCreating(false);
+      });
+      const row = carDtoToRow(dto, countryMap);
+      setRows((prev) => prev.map((r) => (r.id === selectedId ? row : r)));
       setEditing(false);
-      return;
+    } catch (e) {
+      setPanelError(e instanceof Error ? e.message : '儲存失敗');
+    } finally {
+      setSaving(false);
     }
-    if (!selectedId) return;
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === selectedId && r.kind === kind
-          ? {
-              ...r,
-              code,
-              name: draft.name.trim() || code,
-              originCountry: draft.originCountry.trim() || 'TW',
-              isActive: draft.isActive,
-            }
-          : r,
-      ),
-    );
-    setEditing(false);
   };
 
   useEffect(() => {
@@ -308,7 +449,7 @@ function BrandPanel({
     );
   };
 
-  const renderBodyCell = (row: BaseBrandRow, key: ListColKey) => {
+  const renderBodyCell = (row: BrandTableRow, key: ListColKey) => {
     switch (key) {
       case 'code':
         return (
@@ -322,10 +463,22 @@ function BrandPanel({
             {row.name}
           </td>
         );
-      case 'originCountry':
+      case 'countryDisplay':
         return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
-            {row.originCountry}
+          <td key={key} className="max-w-[160px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.countryDisplay}
+          </td>
+        );
+      case 'remark':
+        return (
+          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.remark || '—'}
+          </td>
+        );
+      case 'sortNo':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs tabular-nums text-muted-foreground">
+            {row.sortNo}
           </td>
         );
       case 'isActive':
@@ -376,23 +529,29 @@ function BrandPanel({
     return <th key={`f-${key}`} className="p-2" />;
   };
 
-  const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 96 + 40);
-  const titleId = `bb-detail-${kind}`;
+  const tableMinW = Math.max(520, 32 + orderedVisibleCols.length * 100 + 40);
+  const titleId = `bb-detail-${mode}`;
 
   return (
     <>
       <div className="relative flex flex-col gap-4">
+        {panelError ? (
+          <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {panelError}
+          </div>
+        ) : null}
+
         <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER · {tabLabel}</p>
           <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋</h2>
           <div className="mt-4 max-w-md">
-            <Label htmlFor={`bb-k-${kind}`}>關鍵字</Label>
+            <Label htmlFor={`bb-k-${mode}`}>關鍵字</Label>
             <Input
-              id={`bb-k-${kind}`}
+              id={`bb-k-${mode}`}
               className="mt-2"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="代碼、名稱、國別…"
+              placeholder="代碼、名稱、國家、備註…"
               autoComplete="off"
             />
           </div>
@@ -401,8 +560,11 @@ function BrandPanel({
         <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
             <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
-              <Button type="button" size="sm" variant="default" onClick={onAdd}>
+              <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
                 新增
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
+                重新載入
               </Button>
               <Button
                 type="button"
@@ -516,17 +678,16 @@ function BrandPanel({
                 </Button>
               </div>
               <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                共 {sortedRows.length} 筆 · 本頁 {pageRows.length} 筆
+                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
               </span>
             </div>
 
-            <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+            <div className="mt-3 min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+              <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                   <thead>
                     <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
                       {orderedVisibleCols.map((key) => (
-                        <th key={key} className="px-2 py-2.5">
+                        <th key={key} className="whitespace-nowrap px-2 py-2.5">
                           <button
                             type="button"
                             className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
@@ -572,9 +733,8 @@ function BrandPanel({
                       );
                     })}
                   </tbody>
-                </table>
-              </div>
-            </ScrollArea>
+              </table>
+            </div>
           </div>
         </section>
       </div>
@@ -608,10 +768,11 @@ function BrandPanel({
                     if (!draft.code.trim()) return;
                     setSaveConfirmOpen(true);
                   }}
+                  disabled={saving}
                 >
-                  儲存
+                  {saving ? '儲存中…' : '儲存'}
                 </Button>
-                <Button type="button" size="sm" variant="outline" onClick={onCancel}>
+                <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
                   取消
                 </Button>
               </>
@@ -634,9 +795,9 @@ function BrandPanel({
           <TabsContent value="main" className="mt-3 outline-none">
             <div className="space-y-3 pb-28 lg:pb-6">
               <div className="space-y-2">
-                <Label htmlFor={`bb-c-${kind}`}>代碼</Label>
+                <Label htmlFor={`bb-c-${mode}`}>代碼</Label>
                 <Input
-                  id={`bb-c-${kind}`}
+                  id={`bb-c-${mode}`}
                   value={formValues.code}
                   onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value }))}
                   readOnly={!creating && !editing}
@@ -644,9 +805,9 @@ function BrandPanel({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`bb-n-${kind}`}>名稱</Label>
+                <Label htmlFor={`bb-n-${mode}`}>名稱</Label>
                 <Input
-                  id={`bb-n-${kind}`}
+                  id={`bb-n-${mode}`}
                   value={formValues.name}
                   onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
                   readOnly={!creating && !editing}
@@ -654,18 +815,46 @@ function BrandPanel({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor={`bb-o-${kind}`}>國別</Label>
+                <Label htmlFor={`bb-country-${mode}`}>國家（外鍵）</Label>
+                <select
+                  id={`bb-country-${mode}`}
+                  className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                  value={formValues.countryId}
+                  disabled={!creating && !editing || loading}
+                  onChange={(e) => setDraft((d) => ({ ...d, countryId: e.target.value }))}
+                >
+                  <option value="">（未指定）</option>
+                  {countries.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`bb-r-${mode}`}>備註</Label>
                 <Input
-                  id={`bb-o-${kind}`}
-                  value={formValues.originCountry}
-                  onChange={(e) => setDraft((d) => ({ ...d, originCountry: e.target.value }))}
+                  id={`bb-r-${mode}`}
+                  value={formValues.remark}
+                  onChange={(e) => setDraft((d) => ({ ...d, remark: e.target.value }))}
                   readOnly={!creating && !editing}
                   className={!creating && !editing ? readonlyFieldCls : undefined}
                 />
               </div>
-              <label htmlFor={`bb-active-${kind}`} className="flex items-center gap-2 text-sm">
+              <div className="space-y-2">
+                <Label htmlFor={`bb-sn-${mode}`}>排序</Label>
+                <Input
+                  id={`bb-sn-${mode}`}
+                  type="number"
+                  value={formValues.sortNo}
+                  onChange={(e) => setDraft((d) => ({ ...d, sortNo: e.target.value }))}
+                  readOnly={!creating && !editing}
+                  className={!creating && !editing ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <label htmlFor={`bb-active-${mode}`} className="flex items-center gap-2 text-sm">
                 <input
-                  id={`bb-active-${kind}`}
+                  id={`bb-active-${mode}`}
                   type="checkbox"
                   className="size-4 accent-primary"
                   checked={formValues.isActive}
@@ -694,15 +883,13 @@ function BrandPanel({
       <MasterSaveConfirmDialog
         open={saveConfirmOpen}
         onOpenChange={setSaveConfirmOpen}
-        onConfirm={() => performSave()}
+        onConfirm={() => void performSave()}
       />
     </>
   );
 }
 
 export function BaseBrandMasterView() {
-  const [rows, setRows] = useState<BaseBrandRow[]>(() => [...MOCK_BASE_BRANDS]);
-
   return (
     <Tabs defaultValue="vehicle" className="w-full gap-4">
       <TabsList className="w-full max-w-md">
@@ -714,10 +901,10 @@ export function BaseBrandMasterView() {
         </TabsTrigger>
       </TabsList>
       <TabsContent value="vehicle" className="mt-0 outline-none">
-        <BrandPanel kind="vehicle" tabLabel="汽車" rows={rows} setRows={setRows} />
+        <BrandPanel mode="vehicle" tabLabel="汽車" />
       </TabsContent>
       <TabsContent value="part" className="mt-0 outline-none">
-        <BrandPanel kind="part" tabLabel="零件" rows={rows} setRows={setRows} />
+        <BrandPanel mode="part" tabLabel="零件" />
       </TabsContent>
     </Tabs>
   );

@@ -19,25 +19,43 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  const ADMIN_DEFAULT_PASSWORD_HASH =
+    '$2b$10$kgqkOwTo/kEKquFZFebJfucnCaEve7IaD7.Cawir5827AARvxk8.S'; // bcrypt hash for 'changeme'
+
+  /** 租戶需先於使用者（nx00_field.csv：tenant_id NN） */
+  const devTenant = await prisma.nx99Tenant.upsert({
+    where: { code: 'DEV-INNOVA' },
+    update: {
+      nameEn: 'Innova Information Technology',
+    },
+    create: {
+      code: 'DEV-INNOVA',
+      name: '伊諾瓦資訊科技有限公司（開發測試）',
+      nameEn: 'Innova Information Technology',
+      status: 'A',
+      sortNo: 1,
+      isActive: true,
+    },
+  });
+
   /**
    * @FUNCTION_CODE NX00-USER-SVC-SEED-F01
    * 說明：建立或更新 admin 帳號（預設密碼為 changeme 的 bcrypt hash）
    */
-  const ADMIN_DEFAULT_PASSWORD_HASH =
-    '$2b$10$kgqkOwTo/kEKquFZFebJfucnCaEve7IaD7.Cawir5827AARvxk8.S'; // bcrypt hash for 'changeme'
-
   await prisma.nx00User.upsert({
     where: { username: 'admin' },
     update: {
       passwordHash: ADMIN_DEFAULT_PASSWORD_HASH,
       displayName: '系統管理員',
       isActive: true,
+      tenantId: devTenant.id,
     },
     create: {
       username: 'admin',
       passwordHash: ADMIN_DEFAULT_PASSWORD_HASH,
       displayName: '系統管理員',
       isActive: true,
+      tenantId: devTenant.id,
     },
   });
   console.log('✅ admin seed 完成（username=admin, 預設密碼=changeme）');
@@ -101,36 +119,19 @@ async function main() {
   }
 
   /**
-   * @FUNCTION_CODE NX99-TENANT-SVC-SEED-F01
-   * 說明：DEV 測試用租戶 seed，確保開發環境有基礎租戶資料
-   */
-  await prisma.nx99Tenant.upsert({
-    where: { code: 'DEV-INNOVA' },
-    update: {},
-    create: {
-      code: 'DEV-INNOVA',
-      name: '伊諾瓦資訊科技有限公司（開發測試）',
-      status: 'A',
-      sortNo: 1,
-      isActive: true,
-    },
-  });
-
-  /**
    * @FUNCTION_CODE NX99-TENANT-SVC-SEED-F02
    * 說明：將現有 nx00_user 全部綁定至 DEV-INNOVA 開發測試租戶
    */
-  const devTenant = await prisma.nx99Tenant.findUnique({
+  const devTenantRef = await prisma.nx99Tenant.findUnique({
     where: { code: 'DEV-INNOVA' },
   });
-
-  if (devTenant) {
+  if (devTenantRef) {
     const result = await prisma.nx00User.updateMany({
       where: { tenantId: null },
-      data: { tenantId: devTenant.id },
+      data: { tenantId: devTenantRef.id },
     });
     console.log(
-      `✅ 所有 nx00_user 已綁定至 DEV-INNOVA（tenantId: ${devTenant.id}，更新 ${result.count} 筆）`
+      `✅ 所有 nx00_user 已綁定至 DEV-INNOVA（tenantId: ${devTenantRef.id}，更新 ${result.count} 筆）`,
     );
   }
 
@@ -653,12 +654,25 @@ async function main() {
 
   /**
    * @FUNCTION_CODE NX00-BRAND-SVC-SEED-F01
-   * 說明：seed 測試用廠牌資料
+   * 說明：seed 測試用廠牌資料（→ nx00_country.country_id，對齊 nx00_field.csv）
    */
+  for (const c of [
+    { code: 'DEU' as const, name: '德國', sortNo: 1 },
+    { code: 'TWN' as const, name: '台灣', sortNo: 2 },
+  ]) {
+    await prisma.nx00Country.upsert({
+      where: { code: c.code },
+      update: { name: c.name, sortNo: c.sortNo, isActive: true },
+      create: { code: c.code, name: c.name, sortNo: c.sortNo, isActive: true },
+    });
+  }
+  const countryDe = await prisma.nx00Country.findUnique({ where: { code: 'DEU' } });
+  const countryTw = await prisma.nx00Country.findUnique({ where: { code: 'TWN' } });
+
   const brands = [
-    { code: 'MANN',   name: 'MANN',     originCountry: 'DE', sortNo: 1 },
-    { code: 'BOSCH',  name: 'BOSCH',    originCountry: 'DE', sortNo: 2 },
-    { code: 'TW-OEM', name: '台灣副廠',  originCountry: 'TW', sortNo: 3 },
+    { code: 'MANN',   name: 'MANN',     countryId: countryDe?.id ?? null, sortNo: 1 },
+    { code: 'BOSCH',  name: 'BOSCH',    countryId: countryDe?.id ?? null, sortNo: 2 },
+    { code: 'TW-OEM', name: '台灣副廠', countryId: countryTw?.id ?? null, sortNo: 3 },
   ] as const;
 
   for (const b of brands) {
@@ -666,14 +680,14 @@ async function main() {
       where: { code: b.code },
       update: {
         name: b.name,
-        originCountry: b.originCountry,
+        countryId: b.countryId,
         sortNo: b.sortNo,
         isActive: true,
       },
       create: {
         code: b.code,
         name: b.name,
-        originCountry: b.originCountry,
+        countryId: b.countryId,
         sortNo: b.sortNo,
         isActive: true,
       },
@@ -1133,18 +1147,27 @@ async function main() {
    */
   const TEST_USER_PASSWORD_HASH = ADMIN_DEFAULT_PASSWORD_HASH;
 
+  const tenantForTest = await prisma.nx99Tenant.findUnique({
+    where: { code: 'DEV-INNOVA' },
+    select: { id: true },
+  });
+  if (!tenantForTest) {
+    throw new Error('seed: DEV-INNOVA tenant required for test_user');
+  }
   await prisma.nx00User.upsert({
     where: { username: 'test_user' },
     update: {
       displayName: '測試人員',
       passwordHash: TEST_USER_PASSWORD_HASH,
       isActive: true,
+      tenantId: tenantForTest.id,
     },
     create: {
       username: 'test_user',
       displayName: '測試人員',
       passwordHash: TEST_USER_PASSWORD_HASH,
       isActive: true,
+      tenantId: tenantForTest.id,
     },
   });
   console.log('✅ test_user seed 完成（username=test_user, 預設密碼=changeme）');

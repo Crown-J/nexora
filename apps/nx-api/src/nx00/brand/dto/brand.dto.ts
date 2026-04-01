@@ -3,13 +3,16 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-BRAND-DTO-001：Brand DTO（LITE 對齊 nx00_brand）
+ * - NX00-API-BRAND-DTO-001：Brand DTO（零件品牌 nx00_part_brand；國家→country_id，對齊 docs/nx00_field.csv）
  */
 
 export type BrandDto = {
     id: string;
     code: string;
     name: string;
+    /** → nx00_country.id */
+    countryId: string | null;
+    /** 等同 nx00_country.code（保留舊欄位名供前端） */
     originCountry: string | null;
     remark: string | null;
     isActive: boolean;
@@ -41,6 +44,8 @@ export type ListBrandQuery = {
 export type CreateBrandBody = {
     code: string;
     name: string;
+    countryId?: string | null;
+    /** 若未傳 countryId，可依 3 碼國家代碼對應 nx00_country（如 DEU、TWN） */
     originCountry?: string | null;
     remark?: string | null;
     sortNo?: number;
@@ -50,6 +55,7 @@ export type CreateBrandBody = {
 export type UpdateBrandBody = {
     code?: string;
     name?: string;
+    countryId?: string | null;
     originCountry?: string | null;
     remark?: string | null;
     sortNo?: number;

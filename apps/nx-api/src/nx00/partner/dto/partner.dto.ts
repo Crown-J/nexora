@@ -6,7 +6,8 @@
  * - NX00-API-PARTNER-DTO-001：Partner DTO（LITE 對齊 nx00_partner）
  */
 
-export type PartnerType = 'BOTH' | 'CUSTOMER' | 'SUPPLIER';
+/** docs/nx00_field.csv：CUST／SUP／BOTH */
+export type PartnerType = 'BOTH' | 'CUST' | 'SUP';
 
 export type PartnerDto = {
     id: string;

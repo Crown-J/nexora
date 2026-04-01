@@ -25,4 +25,4 @@ export type LookupLocationItem = {
     isActive: boolean;
 };
 
-export type PartnerType = 'BOTH' | 'CUSTOMER' | 'SUPPLIER';
+export type PartnerType = 'BOTH' | 'CUST' | 'SUP';

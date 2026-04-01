@@ -96,6 +96,7 @@ function verifyPasswordLite(password: string, stored: string): boolean {
  */
 export type UserActionContext = {
     actorUserId?: string;
+    tenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -176,6 +177,16 @@ export class UserService {
         if (!username) throw new BadRequestException('username is required');
         if (!displayName) throw new BadRequestException('displayName is required');
 
+        const tid =
+            (typeof body.tenantId === 'string' && body.tenantId.trim() !== ''
+                ? body.tenantId.trim()
+                : null) ?? ctx?.tenantId ?? null;
+        if (!tid) {
+            throw new BadRequestException('tenantId is required (pass in body or use a JWT with tenantId)');
+        }
+        const tenantOk = await this.prisma.nx99Tenant.findUnique({ where: { id: tid }, select: { id: true } });
+        if (!tenantOk) throw new BadRequestException('Tenant not found');
+
         const effectivePassword =
             typeof password === 'string' && password.length >= 6 ? password : 'changeme';
         const passwordHash = hashPasswordLite(effectivePassword);
@@ -184,6 +195,7 @@ export class UserService {
             const row = await this.prisma.nx00User.create({
                 data: {
                     // id 交給 DB default：gen_nx00_user_id()
+                    tenantId: tid,
                     username,
                     passwordHash,
                     displayName,

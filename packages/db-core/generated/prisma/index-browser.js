@@ -122,6 +122,8 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.Nx00UserScalarFieldEnum = {
   id: 'id',
+  tenantId: 'tenantId',
+  employeeId: 'employeeId',
   username: 'username',
   passwordHash: 'passwordHash',
   displayName: 'displayName',
@@ -129,12 +131,10 @@ exports.Prisma.Nx00UserScalarFieldEnum = {
   phone: 'phone',
   isActive: 'isActive',
   lastLoginAt: 'lastLoginAt',
-  employeeId: 'employeeId',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy',
-  tenantId: 'tenantId'
+  updatedBy: 'updatedBy'
 };
 
 exports.Prisma.Nx00RoleScalarFieldEnum = {
@@ -196,14 +196,48 @@ exports.Prisma.Nx00RoleViewScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
+exports.Prisma.Nx00CountryScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00CurrencyScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  symbol: 'symbol',
+  decimalPlaces: 'decimalPlaces',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.Nx00PartScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
   isOem: 'isOem',
+  secCode: 'secCode',
+  seg1: 'seg1',
+  seg2: 'seg2',
+  seg3: 'seg3',
+  seg4: 'seg4',
+  seg5: 'seg5',
+  countryId: 'countryId',
   partBrandId: 'partBrandId',
   carBrandId: 'carBrandId',
   partType: 'partType',
+  partGroupId: 'partGroupId',
   spec: 'spec',
   uom: 'uom',
   isActive: 'isActive',
@@ -217,7 +251,7 @@ exports.Prisma.Nx00PartBrandScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
-  originCountry: 'originCountry',
+  countryId: 'countryId',
   remark: 'remark',
   isActive: 'isActive',
   sortNo: 'sortNo',
@@ -231,8 +265,7 @@ exports.Prisma.Nx00CarBrandScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
-  originCountry: 'originCountry',
-  partBrandId: 'partBrandId',
+  countryId: 'countryId',
   remark: 'remark',
   isActive: 'isActive',
   sortNo: 'sortNo',
@@ -246,12 +279,6 @@ exports.Prisma.Nx00PartGroupScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
-  carBrandId: 'carBrandId',
-  seg1: 'seg1',
-  seg2: 'seg2',
-  seg3: 'seg3',
-  seg4: 'seg4',
-  seg5: 'seg5',
   sortNo: 'sortNo',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -260,12 +287,35 @@ exports.Prisma.Nx00PartGroupScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00PartGroupMapScalarFieldEnum = {
+exports.Prisma.Nx00BrandCodeRoleScalarFieldEnum = {
   id: 'id',
-  partId: 'partId',
-  groupId: 'groupId',
+  partBrandId: 'partBrandId',
+  seg1Limit: 'seg1Limit',
+  seg2Limit: 'seg2Limit',
+  seg3Limit: 'seg3Limit',
+  seg4Limit: 'seg4Limit',
+  seg5Limit: 'seg5Limit',
+  codeFormat: 'codeFormat',
+  brandSort: 'brandSort',
+  isActive: 'isActive',
   createdAt: 'createdAt',
-  createdBy: 'createdBy'
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx00PartRelationScalarFieldEnum = {
+  id: 'id',
+  partIdFrom: 'partIdFrom',
+  partIdTo: 'partIdTo',
+  relationType: 'relationType',
+  remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
 };
 
 exports.Prisma.Nx00WarehouseScalarFieldEnum = {
@@ -375,6 +425,7 @@ exports.Prisma.Nx99TenantScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
+  nameEn: 'nameEn',
   status: 'status',
   remark: 'remark',
   sortNo: 'sortNo',
@@ -898,11 +949,14 @@ exports.Prisma.ModelName = {
   Nx00UserRole: 'Nx00UserRole',
   Nx00View: 'Nx00View',
   Nx00RoleView: 'Nx00RoleView',
+  Nx00Country: 'Nx00Country',
+  Nx00Currency: 'Nx00Currency',
   Nx00Part: 'Nx00Part',
   Nx00PartBrand: 'Nx00PartBrand',
   Nx00CarBrand: 'Nx00CarBrand',
   Nx00PartGroup: 'Nx00PartGroup',
-  Nx00PartGroupMap: 'Nx00PartGroupMap',
+  Nx00BrandCodeRole: 'Nx00BrandCodeRole',
+  Nx00PartRelation: 'Nx00PartRelation',
   Nx00Warehouse: 'Nx00Warehouse',
   Nx00Location: 'Nx00Location',
   Nx00Partner: 'Nx00Partner',

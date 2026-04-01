@@ -49,5 +49,7 @@ export function buildDemoMeFromStorage(): MeDto {
     isActive: true,
     last_login_at: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
+    tenant_name: '伊諾瓦資訊科技有限公司',
+    tenant_name_en: 'Innova Information Technology',
   };
 }

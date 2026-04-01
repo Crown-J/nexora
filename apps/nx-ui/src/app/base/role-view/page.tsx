@@ -2,7 +2,7 @@
  * File: apps/nx-ui/src/app/base/role-view/page.tsx
  *
  * Purpose:
- * - 主檔「權限設定」Role ⇄ View（與 /base/user、/base/role 相同外殼）
+ * - 主檔「職務權限設定」Role ⇄ View（與 /base/user、/base/role 相同外殼）
  */
 
 'use client';
@@ -17,7 +17,7 @@ import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader
 
 export default function BaseRoleViewPage() {
   const router = useRouter();
-  const { me, displayName, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -73,13 +73,15 @@ export default function BaseRoleViewPage() {
           roleLabel="使用者"
           onLogout={logout}
           onOpenDashboard={() => router.push('/dashboard')}
+          tenantNameZh={tenantNameZh || null}
+          tenantNameEn={tenantNameEn || null}
         />
       }
     >
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <BaseMasterPageHeader
-          title="使用者權限設定（Role ⇄ View）"
-          description="依角色設定各畫面的讀寫與啟用狀態（資料來自 API，與 Dashboard NX00 權限矩陣相同邏輯）。"
+          title="職務權限設定（Role ⇄ View）"
+          description="依職務（角色）設定各畫面的讀寫與啟用狀態。登入與系統首頁為全員必備，不在此矩陣中設定。"
         />
 
         <BaseRoleViewSplitView />

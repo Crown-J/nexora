@@ -13,11 +13,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { LookupItem, LookupLocationItem, PartnerType } from '../dto/lookup.dto';
 
-const ALLOWED_PARTNER_TYPES: PartnerType[] = ['BOTH', 'CUSTOMER', 'SUPPLIER'];
+const ALLOWED_PARTNER_TYPES: PartnerType[] = ['BOTH', 'CUST', 'SUP'];
 
 function normalizePartnerType(v: any): PartnerType | undefined {
     if (v === undefined || v === null || String(v).trim() === '') return undefined;
-    const s = String(v).trim().toUpperCase();
+    let s = String(v).trim().toUpperCase();
+    if (s === 'CUSTOMER') s = 'CUST';
+    if (s === 'SUPPLIER') s = 'SUP';
     if ((ALLOWED_PARTNER_TYPES as string[]).includes(s)) return s as PartnerType;
     throw new BadRequestException(`partnerType must be one of: ${ALLOWED_PARTNER_TYPES.join(', ')}`);
 }

@@ -16,6 +16,8 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Columns3,
   Maximize2,
   Minimize2,
@@ -24,7 +26,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -34,7 +35,19 @@ import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConf
 import { createRole, listRoles, updateRole, type RoleDto } from '@/features/base/api/role';
 import type { BaseRoleRow } from './mock-data';
 
-type ListColKey = 'code' | 'name' | 'sortOrder' | 'isActive' | 'description';
+type ListColKey =
+  | 'code'
+  | 'name'
+  | 'sortOrder'
+  | 'isActive'
+  | 'isSystem'
+  | 'description'
+  | 'createdAt'
+  | 'createdBy'
+  | 'createdByName'
+  | 'updatedAt'
+  | 'updatedBy'
+  | 'updatedByName';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
@@ -44,18 +57,39 @@ type DetailDraft = {
   description: string;
   sortOrder: string;
   isActive: boolean;
+  isSystem: boolean;
 };
 
 const PAGE_SIZE = 10;
-const LIST_COL_PREF_VERSION = 1;
+const LIST_COL_PREF_VERSION = 2;
 const LIST_COL_PREF_KEY = 'base.role.listcols';
-const ALL_LIST_COLS: ListColKey[] = ['code', 'name', 'sortOrder', 'isActive', 'description'];
+const ALL_LIST_COLS: ListColKey[] = [
+  'code',
+  'name',
+  'sortOrder',
+  'isActive',
+  'isSystem',
+  'description',
+  'createdAt',
+  'createdBy',
+  'createdByName',
+  'updatedAt',
+  'updatedBy',
+  'updatedByName',
+];
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   code: { label: '代碼', locked: true },
   name: { label: '名稱' },
   sortOrder: { label: '排序' },
   isActive: { label: '狀態' },
+  isSystem: { label: '系統內建' },
   description: { label: '說明' },
+  createdAt: { label: '建立時間' },
+  createdBy: { label: '建立人ID' },
+  createdByName: { label: '建立人' },
+  updatedAt: { label: '修改時間' },
+  updatedBy: { label: '修改人ID' },
+  updatedByName: { label: '修改人' },
 };
 
 type RoleListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
@@ -75,7 +109,7 @@ function normalizeColPref(raw: RoleListColPref): RoleListColPref {
 }
 
 function emptyDraft(): DetailDraft {
-  return { code: '', name: '', description: '', sortOrder: '100', isActive: true };
+  return { code: '', name: '', description: '', sortOrder: '100', isActive: true, isSystem: false };
 }
 
 function draftFromRole(r: BaseRoleRow): DetailDraft {
@@ -85,6 +119,7 @@ function draftFromRole(r: BaseRoleRow): DetailDraft {
     description: r.description,
     sortOrder: String(r.sortOrder),
     isActive: r.isActive,
+    isSystem: Boolean(r.isSystem),
   };
 }
 
@@ -96,9 +131,12 @@ function roleDtoToRow(r: RoleDto): BaseRoleRow {
     description: r.description ?? '',
     sortOrder: r.sortNo,
     isActive: r.isActive,
+    isSystem: r.isSystem,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
+    createdBy: r.createdBy ?? null,
     createdByName: r.createdByName ?? '—',
+    updatedBy: r.updatedBy ?? null,
     updatedByName: r.updatedByName ?? '—',
   };
 }
@@ -114,8 +152,6 @@ export function BaseRoleMasterView() {
   const [roles, setRoles] = useState<BaseRoleRow[]>([]);
   const [keyword, setKeyword] = useState('');
   const [activePick, setActivePick] = useState<'all' | 'active' | 'inactive'>('all');
-  const [fCode, setFCode] = useState('');
-  const [fName, setFName] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'sortOrder', dir: 'asc' });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -179,11 +215,9 @@ export function BaseRoleMasterView() {
         const blob = `${r.code} ${r.name} ${r.description}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
-      if (fCode.trim() && !r.code.toLowerCase().includes(fCode.trim().toLowerCase())) return false;
-      if (fName.trim() && !r.name.includes(fName.trim())) return false;
       return true;
     });
-  }, [roles, keyword, activePick, fCode, fName]);
+  }, [roles, keyword, activePick]);
 
   const sortedRows = useMemo(() => {
     const mult = sort.dir === 'asc' ? 1 : -1;
@@ -201,6 +235,20 @@ export function BaseRoleMasterView() {
           return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         case 'description':
           return mult * a.description.localeCompare(b.description, 'zh-Hant');
+        case 'isSystem':
+          return mult * ((a.isSystem ? 1 : 0) - (b.isSystem ? 1 : 0));
+        case 'createdAt':
+          return mult * String(a.createdAt).localeCompare(String(b.createdAt));
+        case 'updatedAt':
+          return mult * String(a.updatedAt ?? '').localeCompare(String(b.updatedAt ?? ''));
+        case 'createdBy':
+          return mult * (a.createdBy ?? '').localeCompare(b.createdBy ?? '');
+        case 'createdByName':
+          return mult * (a.createdByName ?? '').localeCompare(b.createdByName ?? '', 'zh-Hant');
+        case 'updatedBy':
+          return mult * (a.updatedBy ?? '').localeCompare(b.updatedBy ?? '');
+        case 'updatedByName':
+          return mult * (a.updatedByName ?? '').localeCompare(b.updatedByName ?? '', 'zh-Hant');
         default:
           return 0;
       }
@@ -215,7 +263,7 @@ export function BaseRoleMasterView() {
     return sortedRows.slice(start, start + PAGE_SIZE);
   }, [sortedRows, safePage]);
 
-  const filterKey = `${keyword}|${activePick}|${fCode}|${fName}`;
+  const filterKey = `${keyword}|${activePick}`;
   const prevFilterKeyRef = useRef('');
   useEffect(() => {
     if (prevFilterKeyRef.current !== filterKey) {
@@ -426,39 +474,38 @@ export function BaseRoleMasterView() {
             {row.description || '—'}
           </td>
         );
+      case 'isSystem':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5">
+            <span
+              className={cn(
+                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
+                row.isSystem ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300' : 'bg-muted text-muted-foreground',
+              )}
+            >
+              {row.isSystem ? 'S' : '—'}
+            </span>
+          </td>
+        );
+      case 'createdAt':
+      case 'updatedAt':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
+            {formatDt(row[key] as string | null)}
+          </td>
+        );
+      case 'createdBy':
+      case 'updatedBy':
+      case 'createdByName':
+      case 'updatedByName':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            {(row[key] as string | null | undefined) ?? '—'}
+          </td>
+        );
       default:
         return null;
     }
-  };
-
-  const filterTh = (key: ListColKey) => {
-    if (key === 'code') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fCode}
-            onChange={(e) => setFCode(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    if (key === 'name') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fName}
-            onChange={(e) => setFName(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    return <th key={`f-${key}`} className="p-2" />;
   };
 
   const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 100 + 40);
@@ -483,195 +530,213 @@ export function BaseRoleMasterView() {
           </div>
         ) : null}
 
-        <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
-          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
-          <div className="mt-4">
-            <Label htmlFor="br-keyword">關鍵字</Label>
-            <Input
-              id="br-keyword"
-              className="mt-2 max-w-md"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="代碼、名稱、說明…"
-              autoComplete="off"
-            />
+        <section className="glass-card rounded-2xl border border-border/80 p-3 shadow-sm sm:p-4">
+          <div className="relative flex flex-col gap-3" ref={colPickerWrapRef}>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <Input
+                id="br-keyword"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="代碼、名稱、說明…"
+                autoComplete="off"
+                className="h-9 min-w-[min(100%,12rem)] flex-1 basis-full sm:basis-[18rem] sm:max-w-xl"
+              />
+              <div
+                className="flex flex-1 flex-wrap items-center gap-1 basis-full sm:basis-auto"
+                role="group"
+                aria-label="依啟用狀態篩選"
+              >
+                {(
+                  [
+                    { k: 'all' as const, label: '全部' },
+                    { k: 'active' as const, label: '啟用' },
+                    { k: 'inactive' as const, label: '停用' },
+                  ] as const
+                ).map(({ k, label }) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setActivePick(k)}
+                    className={cn(
+                      'rounded-lg border border-transparent px-2.5 py-1.5 text-xs transition-colors sm:text-sm',
+                      activePick === k
+                        ? 'border-primary/35 bg-primary/10 font-medium text-primary'
+                        : 'text-foreground hover:bg-secondary/60',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-wrap items-center gap-2 border-t border-border/50 pt-3">
+              <div
+                className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
+                role="navigation"
+                aria-label="分頁"
+              >
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage <= 1 || loading}
+                  onClick={() => setPage(1)}
+                  aria-label="第一頁"
+                  title="第一頁"
+                >
+                  <ChevronsLeft className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-label="上一頁"
+                  title="上一頁"
+                >
+                  <ChevronLeft className="size-4" aria-hidden />
+                </Button>
+                <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
+                  {safePage}/{totalPages}
+                </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage >= totalPages || loading}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  aria-label="下一頁"
+                  title="下一頁"
+                >
+                  <ChevronRight className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage >= totalPages || loading}
+                  onClick={() => setPage(totalPages)}
+                  aria-label="最後一頁"
+                  title="最後一頁"
+                >
+                  <ChevronsRight className="size-4" aria-hidden />
+                </Button>
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="gap-1 px-2"
+                onClick={() => setColPickerOpen((o) => !o)}
+                aria-expanded={colPickerOpen}
+                aria-label="列表欄位設定"
+              >
+                <Columns3 className="size-4" aria-hidden />
+                欄位
+              </Button>
+
+              <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                新增
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
+                重新載入
+              </Button>
+
+              <span className="ms-auto text-xs text-muted-foreground tabular-nums">
+                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+              </span>
+
+              {colPickerOpen ? (
+                <div className="absolute left-0 right-0 top-full z-30 mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs"
+                      onClick={() =>
+                        setColPref({
+                          visibleCols: [...ALL_LIST_COLS],
+                          colOrder: [...ALL_LIST_COLS],
+                        })
+                      }
+                    >
+                      重置
+                    </Button>
+                  </div>
+                  <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                    {listCols.colOrder.map((key) => {
+                      const def = COL_DEF[key];
+                      const checked = listCols.visibleCols.includes(key);
+                      const locked = Boolean(def.locked);
+                      return (
+                        <div
+                          key={key}
+                          draggable
+                          className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', key);
+                            e.dataTransfer.effectAllowed = 'move';
+                          }}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const from = e.dataTransfer.getData('text/plain') as ListColKey;
+                            if (!ALL_LIST_COLS.includes(from)) return;
+                            setColPref((p) => {
+                              const norm = normalizeColPref(p);
+                              const fromIdx = norm.colOrder.indexOf(from);
+                              const toIdx = norm.colOrder.indexOf(key);
+                              if (fromIdx < 0 || toIdx < 0) return norm;
+                              return { ...norm, colOrder: arrayMove(norm.colOrder, fromIdx, toIdx) };
+                            });
+                          }}
+                        >
+                          <label className="flex flex-1 cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="size-3.5 rounded border border-input accent-primary"
+                              checked={locked ? true : checked}
+                              disabled={locked}
+                              onChange={() => {
+                                if (locked) return;
+                                setColPref((p) => {
+                                  const norm = normalizeColPref(p);
+                                  const has = norm.visibleCols.includes(key);
+                                  const nextVis = has
+                                    ? norm.visibleCols.filter((k) => k !== key)
+                                    : [...norm.visibleCols, key];
+                                  return normalizeColPref({ ...norm, visibleCols: nextVis });
+                                });
+                              }}
+                            />
+                            <span>{def.label}</span>
+                          </label>
+                          <span className="text-muted-foreground" aria-hidden>
+                            ⠿
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
         </section>
 
         <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
-            <nav
-              className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
-              aria-label="依啟用狀態篩選"
-            >
-              {(
-                [
-                  { k: 'all' as const, label: '全部' },
-                  { k: 'active' as const, label: '啟用' },
-                  { k: 'inactive' as const, label: '停用' },
-                ] as const
-              ).map(({ k, label }) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setActivePick(k)}
-                  className={cn(
-                    'rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                    activePick === k ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </nav>
-
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
-              <div className="mb-3 flex flex-wrap gap-2 lg:hidden">
-                <select
-                  className="nx-native-select h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                  value={activePick}
-                  onChange={(e) => setActivePick(e.target.value as 'all' | 'active' | 'inactive')}
-                  aria-label="狀態篩選"
-                >
-                  <option value="all">全部</option>
-                  <option value="active">啟用</option>
-                  <option value="inactive">停用</option>
-                </select>
-              </div>
-
-              <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
-                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
-                  新增
-                </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
-                  重新載入
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 px-2"
-                  onClick={() => setColPickerOpen((o) => !o)}
-                  aria-expanded={colPickerOpen}
-                  aria-label="列表欄位設定"
-                >
-                  <Columns3 className="size-4" aria-hidden />
-                  欄位
-                </Button>
-
-                {colPickerOpen ? (
-                  <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        onClick={() =>
-                          setColPref({
-                            visibleCols: [...ALL_LIST_COLS],
-                            colOrder: [...ALL_LIST_COLS],
-                          })
-                        }
-                      >
-                        重置
-                      </Button>
-                    </div>
-                    <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
-                      {listCols.colOrder.map((key) => {
-                        const def = COL_DEF[key];
-                        const checked = listCols.visibleCols.includes(key);
-                        const locked = Boolean(def.locked);
-                        return (
-                          <div
-                            key={key}
-                            draggable
-                            className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
-                            onDragStart={(e) => {
-                              e.dataTransfer.setData('text/plain', key);
-                              e.dataTransfer.effectAllowed = 'move';
-                            }}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const from = e.dataTransfer.getData('text/plain') as ListColKey;
-                              if (!ALL_LIST_COLS.includes(from)) return;
-                              setColPref((p) => {
-                                const norm = normalizeColPref(p);
-                                const fromIdx = norm.colOrder.indexOf(from);
-                                const toIdx = norm.colOrder.indexOf(key);
-                                if (fromIdx < 0 || toIdx < 0) return norm;
-                                return { ...norm, colOrder: arrayMove(norm.colOrder, fromIdx, toIdx) };
-                              });
-                            }}
-                          >
-                            <label className="flex flex-1 cursor-pointer items-center gap-2">
-                              <input
-                                type="checkbox"
-                                className="size-3.5 rounded border border-input accent-primary"
-                                checked={locked ? true : checked}
-                                disabled={locked}
-                                onChange={() => {
-                                  if (locked) return;
-                                  setColPref((p) => {
-                                    const norm = normalizeColPref(p);
-                                    const has = norm.visibleCols.includes(key);
-                                    const nextVis = has
-                                      ? norm.visibleCols.filter((k) => k !== key)
-                                      : [...norm.visibleCols, key];
-                                    return normalizeColPref({ ...norm, visibleCols: nextVis });
-                                  });
-                                }}
-                              />
-                              <span>{def.label}</span>
-                            </label>
-                            <span className="text-muted-foreground" aria-hidden>
-                              ⠿
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="gap-1 px-2"
-                    disabled={safePage <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    <ChevronLeft className="size-4" aria-hidden />
-                    上一頁
-                  </Button>
-                  <span className="px-2 text-xs text-muted-foreground tabular-nums">
-                    第 {safePage} / {totalPages} 頁
-                  </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="gap-1 px-2"
-                    disabled={safePage >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    下一頁
-                    <ChevronRight className="size-4" aria-hidden />
-                  </Button>
-                </div>
-                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                  {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
-                </span>
-              </div>
-
-              <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-                <div className="w-full overflow-x-auto">
-                  <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+              <div className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                     <thead>
                       <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
                         {orderedVisibleCols.map((key) => (
@@ -688,20 +753,8 @@ export function BaseRoleMasterView() {
                         ))}
                         <th className="w-10 px-1 py-2.5" aria-hidden />
                       </tr>
-                      <tr className="border-b border-border/60 bg-secondary/20">
-                        {orderedVisibleCols.map((key) => filterTh(key))}
-                        <th className="p-2" />
-                      </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-border/50">
-                        <td
-                          className="bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground"
-                          colSpan={orderedVisibleCols.length + 1}
-                        >
-                          職務
-                        </td>
-                      </tr>
                       {pageRows.map((row) => {
                         const isSel = row.id === selectedId;
                         return (
@@ -729,11 +782,9 @@ export function BaseRoleMasterView() {
                         );
                       })}
                     </tbody>
-                  </table>
-                </div>
-              </ScrollArea>
+                </table>
+              </div>
             </div>
-          </div>
         </section>
       </div>
 
@@ -897,6 +948,19 @@ export function BaseRoleMasterView() {
                           啟用
                         </Label>
                       </div>
+                      <div className="flex items-center gap-2 pb-2 sm:col-span-2">
+                        <input
+                          id="br-d-sys"
+                          type="checkbox"
+                          className="size-4 rounded border border-input accent-primary"
+                          checked={detailDraft.isSystem}
+                          disabled
+                          readOnly
+                        />
+                        <Label htmlFor="br-d-sys" className="font-normal text-muted-foreground">
+                          系統內建（僅顯示；新增一律為否）
+                        </Label>
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
@@ -908,7 +972,11 @@ export function BaseRoleMasterView() {
                       <Input readOnly value={auditSource ? formatDt(auditSource.createdAt) : '—'} className={readonlyFieldCls} />
                     </div>
                     <div className="space-y-2">
-                      <Label>建立人員</Label>
+                      <Label>建立人員（ID）</Label>
+                      <Input readOnly value={auditSource?.createdBy ?? '—'} className={readonlyFieldCls} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>建立人員（姓名）</Label>
                       <Input readOnly value={auditSource?.createdByName ?? '—'} className={readonlyFieldCls} />
                     </div>
                     <div className="space-y-2">
@@ -916,7 +984,11 @@ export function BaseRoleMasterView() {
                       <Input readOnly value={auditSource ? formatDt(auditSource.updatedAt) : '—'} className={readonlyFieldCls} />
                     </div>
                     <div className="space-y-2">
-                      <Label>最後修改人員</Label>
+                      <Label>最後修改人員（ID）</Label>
+                      <Input readOnly value={auditSource?.updatedBy ?? '—'} className={readonlyFieldCls} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>最後修改人員（姓名）</Label>
                       <Input readOnly value={auditSource?.updatedByName ?? '—'} className={readonlyFieldCls} />
                     </div>
                     {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示完整稽核欄位。</p> : null}

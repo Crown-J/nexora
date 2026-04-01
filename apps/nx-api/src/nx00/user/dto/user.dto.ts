@@ -43,6 +43,8 @@ export type CreateUserBody = {
     username: string;
     password: string; // 明碼只允許從 API input 進來，DB 存 passwordHash
     displayName: string;
+    /** 未傳時使用操作者 JWT 之 tenantId（nx00_user.tenant_id 必填） */
+    tenantId?: string | null;
     email?: string | null;
     phone?: string | null;
     isActive?: boolean;

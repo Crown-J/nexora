@@ -7,7 +7,7 @@ export type PartnerDto = {
   id: string;
   code: string;
   name: string;
-  partnerType: 'BOTH' | 'CUSTOMER' | 'SUPPLIER';
+  partnerType: 'BOTH' | 'CUST' | 'SUP';
   contactName: string | null;
   phone: string | null;
   mobile: string | null;

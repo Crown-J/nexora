@@ -70,7 +70,7 @@ function pickAuditText(detail: PartnerDto, which: 'created' | 'updated'): string
 
 function typeLabel(t: PartnerType) {
     if (t === 'CUST') return 'CUST（客戶）';
-    if (t === 'SUPP') return 'SUPP（供應商）';
+    if (t === 'SUP') return 'SUP（供應商）';
     return 'BOTH（兼具）';
 }
 
@@ -195,7 +195,7 @@ export function PartnerFormPanel(props: Props) {
                         >
                             <option value="BOTH">{typeLabel('BOTH')}</option>
                             <option value="CUST">{typeLabel('CUST')}</option>
-                            <option value="SUPP">{typeLabel('SUPP')}</option>
+                            <option value="SUP">{typeLabel('SUP')}</option>
                         </select>
                     )}
                 </FormField>

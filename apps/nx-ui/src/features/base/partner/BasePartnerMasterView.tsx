@@ -12,13 +12,14 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Columns3,
   Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
@@ -36,17 +37,17 @@ import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/ba
 type TabKey = 'vendor' | 'customer';
 
 function matchesTab(row: PartnerDto, tab: TabKey): boolean {
-  if (tab === 'vendor') return row.partnerType === 'SUPPLIER' || row.partnerType === 'BOTH';
-  return row.partnerType === 'CUSTOMER' || row.partnerType === 'BOTH';
+  if (tab === 'vendor') return row.partnerType === 'SUP' || row.partnerType === 'BOTH';
+  return row.partnerType === 'CUST' || row.partnerType === 'BOTH';
 }
 
 function defaultPartnerType(tab: TabKey): PartnerType {
-  return tab === 'vendor' ? 'SUPPLIER' : 'CUSTOMER';
+  return tab === 'vendor' ? 'SUP' : 'CUST';
 }
 
 const PARTNER_TYPE_OPTIONS: { value: PartnerType; label: string }[] = [
-  { value: 'SUPPLIER', label: '供應商' },
-  { value: 'CUSTOMER', label: '客戶' },
+  { value: 'SUP', label: '供應商' },
+  { value: 'CUST', label: '客戶' },
   { value: 'BOTH', label: '供應商＋客戶' },
 ];
 
@@ -95,18 +96,62 @@ function fromDto(d: PartnerDto): Draft {
 
 const PAGE_SIZE = 10;
 const LIST_COL_PREF_KEY = 'base.partner.listcols';
-const LIST_COL_PREF_VERSION = 1;
-type ListColKey = 'code' | 'name' | 'partnerType' | 'phone' | 'isActive';
+const LIST_COL_PREF_VERSION = 2;
+type ListColKey =
+  | 'code'
+  | 'name'
+  | 'partnerType'
+  | 'contactName'
+  | 'phone'
+  | 'mobile'
+  | 'email'
+  | 'address'
+  | 'remark'
+  | 'isActive'
+  | 'createdAt'
+  | 'createdBy'
+  | 'createdByName'
+  | 'updatedAt'
+  | 'updatedBy'
+  | 'updatedByName';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
-const ALL_LIST_COLS: ListColKey[] = ['code', 'name', 'partnerType', 'phone', 'isActive'];
+const ALL_LIST_COLS: ListColKey[] = [
+  'code',
+  'name',
+  'partnerType',
+  'contactName',
+  'phone',
+  'mobile',
+  'email',
+  'address',
+  'remark',
+  'isActive',
+  'createdAt',
+  'createdBy',
+  'createdByName',
+  'updatedAt',
+  'updatedBy',
+  'updatedByName',
+];
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   code: { label: '代碼', locked: true },
   name: { label: '名稱' },
   partnerType: { label: '類型' },
+  contactName: { label: '聯絡人' },
   phone: { label: '電話' },
+  mobile: { label: '手機' },
+  email: { label: 'Email' },
+  address: { label: '地址' },
+  remark: { label: '備註' },
   isActive: { label: '狀態' },
+  createdAt: { label: '建立時間' },
+  createdBy: { label: '建立人ID' },
+  createdByName: { label: '建立人' },
+  updatedAt: { label: '修改時間' },
+  updatedBy: { label: '修改人ID' },
+  updatedByName: { label: '修改人' },
 };
 
 type PartnerListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
@@ -129,6 +174,13 @@ function typeLabel(t: PartnerType): string {
   return PARTNER_TYPE_OPTIONS.find((o) => o.value === t)?.label ?? t;
 }
 
+function formatDt(iso: string | null | undefined): string {
+  if (iso == null || iso === '') return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' });
+}
+
 function PartnerPanel({
   tab,
   tabLabel,
@@ -148,8 +200,6 @@ function PartnerPanel({
 }) {
   const prefKey = `${LIST_COL_PREF_KEY}.${tab}`;
   const [keyword, setKeyword] = useState('');
-  const [fCode, setFCode] = useState('');
-  const [fName, setFName] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'code', dir: 'asc' });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -177,14 +227,12 @@ function PartnerPanel({
     const k = keyword.trim().toLowerCase();
     return scoped.filter((r) => {
       if (k) {
-        const blob = `${r.code} ${r.name} ${r.phone ?? ''} ${r.remark ?? ''} ${r.contactName ?? ''}`.toLowerCase();
+        const blob = `${r.code} ${r.name} ${r.phone ?? ''} ${r.mobile ?? ''} ${r.email ?? ''} ${r.address ?? ''} ${r.remark ?? ''} ${r.contactName ?? ''}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
-      if (fCode.trim() && !r.code.toLowerCase().includes(fCode.trim().toLowerCase())) return false;
-      if (fName.trim() && !r.name.includes(fName.trim())) return false;
       return true;
     });
-  }, [scoped, keyword, fCode, fName]);
+  }, [scoped, keyword]);
 
   const toggleSort = (key: SortKey) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
@@ -204,6 +252,28 @@ function PartnerPanel({
           return mult * typeLabel(a.partnerType).localeCompare(typeLabel(b.partnerType), 'zh-Hant');
         case 'phone':
           return mult * (a.phone ?? '').localeCompare(b.phone ?? '', 'zh-Hant');
+        case 'contactName':
+          return mult * (a.contactName ?? '').localeCompare(b.contactName ?? '', 'zh-Hant');
+        case 'mobile':
+          return mult * (a.mobile ?? '').localeCompare(b.mobile ?? '', 'zh-Hant');
+        case 'email':
+          return mult * (a.email ?? '').localeCompare(b.email ?? '', 'zh-Hant');
+        case 'address':
+          return mult * (a.address ?? '').localeCompare(b.address ?? '', 'zh-Hant');
+        case 'remark':
+          return mult * (a.remark ?? '').localeCompare(b.remark ?? '', 'zh-Hant');
+        case 'createdAt':
+          return mult * String(a.createdAt).localeCompare(String(b.createdAt));
+        case 'updatedAt':
+          return mult * String(a.updatedAt).localeCompare(String(b.updatedAt));
+        case 'createdBy':
+          return mult * (a.createdBy ?? '').localeCompare(b.createdBy ?? '');
+        case 'createdByName':
+          return mult * (a.createdByName ?? '').localeCompare(b.createdByName ?? '', 'zh-Hant');
+        case 'updatedBy':
+          return mult * (a.updatedBy ?? '').localeCompare(b.updatedBy ?? '');
+        case 'updatedByName':
+          return mult * (a.updatedByName ?? '').localeCompare(b.updatedByName ?? '', 'zh-Hant');
         case 'isActive':
           return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         default:
@@ -220,7 +290,7 @@ function PartnerPanel({
     return sortedRows.slice(start, start + PAGE_SIZE);
   }, [sortedRows, safePage]);
 
-  const filterKey = `${keyword}|${fCode}|${fName}`;
+  const filterKey = keyword;
   const prevFilterKeyRef = useRef('');
   useEffect(() => {
     if (prevFilterKeyRef.current !== filterKey) {
@@ -409,6 +479,52 @@ function PartnerPanel({
             {row.phone ?? '—'}
           </td>
         );
+      case 'contactName':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.contactName ?? '—'}
+          </td>
+        );
+      case 'mobile':
+        return (
+          <td key={key} className="max-w-[110px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.mobile ?? '—'}
+          </td>
+        );
+      case 'email':
+        return (
+          <td key={key} className="max-w-[160px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.email ?? '—'}
+          </td>
+        );
+      case 'address':
+        return (
+          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.address ?? '—'}
+          </td>
+        );
+      case 'remark':
+        return (
+          <td key={key} className="max-w-[160px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.remark ?? '—'}
+          </td>
+        );
+      case 'createdAt':
+      case 'updatedAt':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
+            {formatDt(row[key] as string)}
+          </td>
+        );
+      case 'createdBy':
+      case 'updatedBy':
+      case 'createdByName':
+      case 'updatedByName':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            {(row[key] as string | null) ?? '—'}
+          </td>
+        );
       case 'isActive':
         return (
           <td key={key} className="whitespace-nowrap px-2 py-2.5">
@@ -427,36 +543,6 @@ function PartnerPanel({
     }
   };
 
-  const filterTh = (key: ListColKey) => {
-    if (key === 'code') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fCode}
-            onChange={(e) => setFCode(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    if (key === 'name') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fName}
-            onChange={(e) => setFName(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    return <th key={`f-${key}`} className="p-2" />;
-  };
-
   const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 88 + 40);
   const titleId = `pt-detail-${tab}`;
 
@@ -469,31 +555,81 @@ function PartnerPanel({
           </div>
         ) : null}
 
-        <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER · {tabLabel}</p>
-          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋</h2>
-          <div className="mt-4 max-w-md">
-            <Label htmlFor={`pt-k-${tab}`}>關鍵字</Label>
-            <Input
-              id={`pt-k-${tab}`}
-              className="mt-2"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="代碼、名稱、電話、備註…"
-              autoComplete="off"
-            />
-          </div>
-        </section>
+        <section className="glass-card rounded-2xl border border-border/80 p-3 shadow-sm sm:p-4">
+          <div className="relative flex flex-col gap-3" ref={colPickerWrapRef}>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <span className="shrink-0 rounded-md border border-border/60 bg-muted/30 px-2 py-1 text-[11px] font-medium text-muted-foreground">
+                {tabLabel}
+              </span>
+              <Input
+                id={`pt-k-${tab}`}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="代碼、名稱、電話、備註…"
+                autoComplete="off"
+                className="h-9 min-w-[min(100%,12rem)] flex-1 basis-full sm:basis-[18rem] sm:max-w-xl"
+              />
+            </div>
 
-        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
-            <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
-              <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
-                新增
-              </Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => void reloadAll()} disabled={loading}>
-                重新載入
-              </Button>
+            <div className="flex min-w-0 flex-wrap items-center gap-2 border-t border-border/50 pt-3">
+              <div
+                className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
+                role="navigation"
+                aria-label="分頁"
+              >
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage <= 1 || loading}
+                  onClick={() => setPage(1)}
+                  aria-label="第一頁"
+                  title="第一頁"
+                >
+                  <ChevronsLeft className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-label="上一頁"
+                  title="上一頁"
+                >
+                  <ChevronLeft className="size-4" aria-hidden />
+                </Button>
+                <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
+                  {safePage}/{totalPages}
+                </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage >= totalPages || loading}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  aria-label="下一頁"
+                  title="下一頁"
+                >
+                  <ChevronRight className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage >= totalPages || loading}
+                  onClick={() => setPage(totalPages)}
+                  aria-label="最後一頁"
+                  title="最後一頁"
+                >
+                  <ChevronsRight className="size-4" aria-hidden />
+                </Button>
+              </div>
+
               <Button
                 type="button"
                 size="sm"
@@ -501,13 +637,25 @@ function PartnerPanel({
                 className="gap-1 px-2"
                 onClick={() => setColPickerOpen((o) => !o)}
                 aria-expanded={colPickerOpen}
+                aria-label="列表欄位設定"
               >
                 <Columns3 className="size-4" aria-hidden />
                 欄位
               </Button>
 
+              <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                新增
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => void reloadAll()} disabled={loading}>
+                重新載入
+              </Button>
+
+              <span className="ms-auto text-xs text-muted-foreground tabular-nums">
+                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+              </span>
+
               {colPickerOpen ? (
-                <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
+                <div className="absolute left-0 right-0 top-full z-30 mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
                     <Button
@@ -577,42 +725,14 @@ function PartnerPanel({
                   </div>
                 </div>
               ) : null}
-
-              <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 px-2"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <ChevronLeft className="size-4" aria-hidden />
-                  上一頁
-                </Button>
-                <span className="px-2 text-xs text-muted-foreground tabular-nums">
-                  第 {safePage} / {totalPages} 頁
-                </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 px-2"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  下一頁
-                  <ChevronRight className="size-4" aria-hidden />
-                </Button>
-              </div>
-              <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
-              </span>
             </div>
+          </div>
+        </section>
 
-            <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+            <div className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+              <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                   <thead>
                     <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
                       {orderedVisibleCols.map((key) => (
@@ -628,10 +748,6 @@ function PartnerPanel({
                         </th>
                       ))}
                       <th className="w-10 px-1 py-2.5" aria-hidden />
-                    </tr>
-                    <tr className="border-b border-border/60 bg-secondary/20">
-                      {orderedVisibleCols.map((key) => filterTh(key))}
-                      <th className="p-2" />
                     </tr>
                   </thead>
                   <tbody>
@@ -662,9 +778,8 @@ function PartnerPanel({
                       );
                     })}
                   </tbody>
-                </table>
-              </div>
-            </ScrollArea>
+              </table>
+            </div>
           </div>
         </section>
       </div>

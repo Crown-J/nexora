@@ -238,7 +238,7 @@ export function RoleViewMatrixView() {
 
     return (
         <>
-            <PageHeader title="使用者權限設定（Role ⇄ View）" />
+            <PageHeader title="職務權限設定（Role ⇄ View）" />
             <GroupSplitShell left={left} right={right} leftWidthClassName="w-[360px]" />
         </>
     );

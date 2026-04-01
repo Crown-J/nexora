@@ -134,7 +134,10 @@ export function useRoleView() {
         if (!alive) return;
 
         const items = res?.items ?? [];
-        const sorted = items.slice().sort((a, b) => {
+        /** 登入／首頁為全員必備，不納入職務權限矩陣 */
+        const HIDDEN_VIEW_CODES = new Set(['NX00_LOGIN', 'NX00_HOME']);
+        const filtered = items.filter((v) => !HIDDEN_VIEW_CODES.has(String(v.code ?? '')));
+        const sorted = filtered.slice().sort((a, b) => {
           const mc = String(a.moduleCode ?? '').localeCompare(String(b.moduleCode ?? ''), 'zh-Hant');
           if (mc !== 0) return mc;
           const sn = (a.sortNo ?? 0) - (b.sortNo ?? 0);

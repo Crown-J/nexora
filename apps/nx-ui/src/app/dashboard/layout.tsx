@@ -6,7 +6,7 @@
  * - NX00-UI-SHELL-006：Dashboard Layout（統一套用 Shell 版面）
  *
  * Notes:
- * - Dashboard 下所有頁面都會套用：HomeLandingChrome（Dock + 星空背景）+ HomeTopBar（含主模組 Tabs）+ 橫向次選單 + 內容框
+ * - Dashboard 下所有頁面都會套用：HomeLandingChrome（星空背景）+ HomeTopBar（星球模組選單、主模組 Tabs）+ 橫向次選單 + 內容框
  * - ✅ App Router 的 layout 預設是 Server Component：
  *   - 不要加 'use client'（避免整個 dashboard 變成 client boundary）
  * - ✅ 在 layout 內不要用 usePathname / hooks

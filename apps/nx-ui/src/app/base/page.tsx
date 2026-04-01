@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { HomeTopBar } from '@/components/home/top-bar';
@@ -32,12 +32,25 @@ function fmtCount(n: number): string {
 
 export default function BaseMasterHubPage() {
   const router = useRouter();
-  const { me, displayName, logout, view } = useSessionMe();
+  const pathname = usePathname();
+  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
   const [hubStats, setHubStats] = useState<Partial<Record<string, string>>>({});
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
   }, [me, router, view.loading]);
+
+  /** Esc：主檔 hub（/base）返回首頁 /home；子頁由各自 MasterView 處理至 /base */
+  useEffect(() => {
+    if (pathname !== '/base') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      router.push('/home');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [pathname, router]);
 
   useEffect(() => {
     if (view.loading || !me) return;
@@ -124,10 +137,12 @@ export default function BaseMasterHubPage() {
           roleLabel="使用者"
           onLogout={logout}
           onOpenDashboard={() => router.push('/dashboard')}
+          tenantNameZh={tenantNameZh || null}
+          tenantNameEn={tenantNameEn || null}
         />
       }
     >
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <header className="space-y-1">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">MASTER DATA</p>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">主檔管理</h1>
@@ -136,7 +151,7 @@ export default function BaseMasterHubPage() {
           </p>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
           {MASTER_HUB_CARDS.map((card) => {
             const Icon = card.icon;
             const inner = (

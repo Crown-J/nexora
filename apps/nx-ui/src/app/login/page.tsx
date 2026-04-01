@@ -8,7 +8,7 @@
  *
  * Notes:
  * - 後端目前僅接受單一 username；公司帳號先作為 UI 欄位保留，不參與登入 payload
- * - 成功登入後導向 /home（Landing + Dock；主檔總覽為 /base，作業模組為 /dashboard/nx…）
+ * - 成功登入後導向 /home（Landing + 頂欄模組選單；主檔總覽為 /base，作業模組為 /dashboard/nx…）
  */
 
 'use client';

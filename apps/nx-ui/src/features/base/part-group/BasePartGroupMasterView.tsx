@@ -10,7 +10,6 @@ import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { MOCK_CURRENT_OPERATOR_NAME } from '@/features/base/users/mock-data';
 import {
@@ -313,7 +312,7 @@ export function BasePartGroupMasterView() {
             </Button>
             <span className="ml-auto text-xs text-muted-foreground tabular-nums">共 {sortedFiltered.length} 筆</span>
           </div>
-          <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
+          <div className="mt-3 min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
             <div className="space-y-2">
               {sortedFiltered.map((r, i) => {
                   const active = r.id === selectedId && !creating;
@@ -373,7 +372,7 @@ export function BasePartGroupMasterView() {
                 <p className="text-sm text-muted-foreground">無符合資料。</p>
               ) : null}
             </div>
-          </ScrollArea>
+          </div>
         </section>
       </div>
 

@@ -17,7 +17,7 @@ import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader
 
 export default function BaseUserPage() {
   const router = useRouter();
-  const { me, displayName, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -73,10 +73,12 @@ export default function BaseUserPage() {
           roleLabel="使用者"
           onLogout={logout}
           onOpenDashboard={() => router.push('/dashboard')}
+          tenantNameZh={tenantNameZh || null}
+          tenantNameEn={tenantNameEn || null}
         />
       }
     >
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full min-w-0 space-y-6">
         <BaseMasterPageHeader
           title="使用者主檔"
           description="維護系統使用者與職稱（目前為前端 mock，未接 API）。"

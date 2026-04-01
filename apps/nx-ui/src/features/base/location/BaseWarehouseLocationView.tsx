@@ -20,7 +20,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -597,9 +596,8 @@ function WarehouseTab({
               </span>
             </div>
 
-            <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+            <div className="mt-3 min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+              <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                   <thead>
                     <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
                       {orderedVisibleCols.map((key) => (
@@ -649,9 +647,8 @@ function WarehouseTab({
                       );
                     })}
                   </tbody>
-                </table>
-              </div>
-            </ScrollArea>
+              </table>
+            </div>
           </div>
         </section>
       </div>
@@ -1287,9 +1284,8 @@ function LocationTab({
               </span>
             </div>
 
-            <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-              <div className="w-full overflow-x-auto">
-                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+            <div className="mt-3 min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+              <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                   <thead>
                     <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
                       {orderedVisibleCols.map((key) => (
@@ -1339,9 +1335,8 @@ function LocationTab({
                       );
                     })}
                   </tbody>
-                </table>
-              </div>
-            </ScrollArea>
+              </table>
+            </div>
           </div>
         </section>
       </div>

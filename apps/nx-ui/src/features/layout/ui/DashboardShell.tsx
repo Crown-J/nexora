@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - Dashboard 版面殼：與 /home、/base 相同 Landing 外殼（Dock、星空背景、HomeTopBar）
+ * - Dashboard 版面殼：與 /home、/base 相同 Landing 外殼（頂欄星球模組選單、星空背景、HomeTopBar）
  * - 頂欄中央為主模組 Tabs；次功能為橫向 DashboardSubNav（取代舊版側欄）
  */
 
@@ -54,7 +54,7 @@ function ContentFrame({
  */
 export function DashboardShell({ children, title }: DashboardShellProps) {
   const router = useRouter();
-  const { me, displayName, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -106,6 +106,8 @@ export function DashboardShell({ children, title }: DashboardShellProps) {
           roleLabel="使用者"
           onLogout={logout}
           onOpenDashboard={() => router.push('/home')}
+          tenantNameZh={tenantNameZh || null}
+          tenantNameEn={tenantNameEn || null}
           centerContent={<TopModuleTabs />}
         />
       }

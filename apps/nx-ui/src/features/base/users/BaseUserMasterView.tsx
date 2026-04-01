@@ -4,29 +4,40 @@
  *
  * Purpose:
  * - Base user master-detail：連線 nx-api GET/POST/PUT/PATCH /user，職務顯示來自角色主檔（user.jobTitle）
- * - 版型：LIST + SLIDE（明細 fixed 覆蓋列表＋可全螢幕；手機全幅詳情）；欄位顯示可記憶於本機
+ * - 版型：LIST + 置中彈窗明細；單擊列僅選取變色、雙擊開啟明細；↑↓／Enter、Esc 階層返回（明細→/base→由 hub 頁至 /home）
  */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowUp,
   ArrowUpDown,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Columns3,
   Maximize2,
   Minimize2,
   Pencil,
+  RefreshCw,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
@@ -36,7 +47,19 @@ import { assignUserRole, listUserRoles } from '@/features/base/api/user-role';
 import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 
-type ListColKey = 'username' | 'displayName' | 'jobTitle' | 'isActive' | 'lastLoginAt';
+type ListColKey =
+  | 'username'
+  | 'displayName'
+  | 'email'
+  | 'phone'
+  | 'isActive'
+  | 'lastLoginAt'
+  | 'createdAt'
+  | 'createdBy'
+  | 'createdByName'
+  | 'updatedAt'
+  | 'updatedBy'
+  | 'updatedByName';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
@@ -53,17 +76,37 @@ type EditableDraft = {
 
 const PAGE_SIZE = 10;
 
-const LIST_COL_PREF_VERSION = 1;
+const LIST_COL_PREF_VERSION = 3;
 const LIST_COL_PREF_KEY = 'base.user.listcols';
 
-const ALL_LIST_COLS: ListColKey[] = ['username', 'displayName', 'jobTitle', 'isActive', 'lastLoginAt'];
+const ALL_LIST_COLS: ListColKey[] = [
+  'username',
+  'displayName',
+  'email',
+  'phone',
+  'isActive',
+  'lastLoginAt',
+  'createdAt',
+  'createdBy',
+  'createdByName',
+  'updatedAt',
+  'updatedBy',
+  'updatedByName',
+];
 
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   username: { label: '帳號', locked: true },
   displayName: { label: '姓名' },
-  jobTitle: { label: '職務' },
+  email: { label: 'Email' },
+  phone: { label: '電話' },
   isActive: { label: '狀態' },
   lastLoginAt: { label: '最後登入' },
+  createdAt: { label: '建立時間' },
+  createdBy: { label: '建立人ID' },
+  createdByName: { label: '建立人' },
+  updatedAt: { label: '修改時間' },
+  updatedBy: { label: '修改人ID' },
+  updatedByName: { label: '修改人' },
 };
 
 type UserListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
@@ -120,10 +163,33 @@ function dtoToRow(u: UserDto): BaseUserRow {
     isActive: u.isActive,
     lastLoginAt: u.lastLoginAt,
     createdAt: u.createdAt,
+    createdBy: u.createdBy ?? null,
     createdByName: u.createdByName ?? '—',
     updatedAt: u.updatedAt,
+    updatedBy: u.updatedBy ?? null,
     updatedByName: u.updatedByName ?? '—',
   };
+}
+
+function isListKeyboardBlocked(
+  target: EventTarget | null,
+  detailEl: HTMLElement | null,
+  panelOpen: boolean,
+): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (target.isContentEditable) return true;
+  if (panelOpen && detailEl?.contains(target)) return true;
+  return false;
+}
+
+/** 僅在 Radix 下拉內容仍為 open 時讓選單独占鍵盤；關閉後不再擋，避免焦點留在觸發鈕時無法選列 */
+function isRadixJobFilterMenuOpen(): boolean {
+  if (typeof document === 'undefined') return false;
+  return !!document.querySelector(
+    '[data-slot="dropdown-menu-content"][data-state="open"], [data-slot="dropdown-menu-sub-content"][data-state="open"]',
+  );
 }
 
 function formatDt(iso: string | null | undefined): string {
@@ -134,15 +200,16 @@ function formatDt(iso: string | null | undefined): string {
 }
 
 export function BaseUserMasterView() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [users, setUsers] = useState<BaseUserRow[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [keyword, setKeyword] = useState('');
   const [jobPick, setJobPick] = useState<string>('');
-  const [fUsername, setFUsername] = useState('');
-  const [fDisplayName, setFDisplayName] = useState('');
-  const [fJobTitle, setFJobTitle] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'username', dir: 'asc' });
   const [checked, setChecked] = useState<Set<string>>(() => new Set());
+  /** 列表鍵盤／單擊選取列（變色），開啟明細另用 selectedId */
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -156,6 +223,14 @@ export function BaseUserMasterView() {
   const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
+  const detailPanelRef = useRef<HTMLElement | null>(null);
+  const listKeyboardRootRef = useRef<HTMLDivElement>(null);
+
+  const focusListKeyboardRegion = useCallback(() => {
+    requestAnimationFrame(() => {
+      listKeyboardRootRef.current?.focus({ preventScroll: true });
+    });
+  }, []);
 
   const { value: colPref, setValue: setColPref } = useListLocalPref<UserListColPref>(
     LIST_COL_PREF_KEY,
@@ -222,15 +297,12 @@ export function BaseUserMasterView() {
     return users.filter((u) => {
       if (jobPick && u.jobTitle !== jobPick) return false;
       if (k) {
-        const blob = (u.username + ' ' + u.displayName + ' ' + u.email + ' ' + u.phone).toLowerCase();
+        const blob = (u.username + ' ' + u.displayName + ' ' + u.jobTitle + ' ' + u.email + ' ' + u.phone).toLowerCase();
         if (!blob.includes(k)) return false;
       }
-      if (fUsername.trim() && !u.username.toLowerCase().includes(fUsername.trim().toLowerCase())) return false;
-      if (fDisplayName.trim() && !u.displayName.includes(fDisplayName.trim())) return false;
-      if (fJobTitle.trim() && !u.jobTitle.includes(fJobTitle.trim())) return false;
       return true;
     });
-  }, [users, keyword, jobPick, fUsername, fDisplayName, fJobTitle]);
+  }, [users, keyword, jobPick]);
 
   const sortedRows = useMemo(() => {
     const mult = sort.dir === 'asc' ? 1 : -1;
@@ -248,8 +320,6 @@ export function BaseUserMasterView() {
           return mult * a.username.localeCompare(b.username, 'zh-Hant');
         case 'displayName':
           return mult * a.displayName.localeCompare(b.displayName, 'zh-Hant');
-        case 'jobTitle':
-          return mult * a.jobTitle.localeCompare(b.jobTitle, 'zh-Hant');
         case 'isActive': {
           const av = a.isActive ? 1 : 0;
           const bv = b.isActive ? 1 : 0;
@@ -257,6 +327,22 @@ export function BaseUserMasterView() {
         }
         case 'lastLoginAt':
           return cmpNullLast(a.lastLoginAt, b.lastLoginAt, () => mult * (a.lastLoginAt ?? '').localeCompare(b.lastLoginAt ?? ''));
+        case 'email':
+          return mult * a.email.localeCompare(b.email, 'zh-Hant');
+        case 'phone':
+          return mult * a.phone.localeCompare(b.phone, 'zh-Hant');
+        case 'createdAt':
+          return mult * String(a.createdAt).localeCompare(String(b.createdAt));
+        case 'updatedAt':
+          return cmpNullLast(a.updatedAt, b.updatedAt, () => mult * String(a.updatedAt ?? '').localeCompare(String(b.updatedAt ?? '')));
+        case 'createdBy':
+          return mult * (a.createdBy ?? '').localeCompare(b.createdBy ?? '');
+        case 'createdByName':
+          return mult * a.createdByName.localeCompare(b.createdByName, 'zh-Hant');
+        case 'updatedBy':
+          return mult * (a.updatedBy ?? '').localeCompare(b.updatedBy ?? '');
+        case 'updatedByName':
+          return mult * (a.updatedByName ?? '').localeCompare(b.updatedByName ?? '', 'zh-Hant');
         default:
           return 0;
       }
@@ -272,7 +358,7 @@ export function BaseUserMasterView() {
     return sortedRows.slice(start, start + PAGE_SIZE);
   }, [sortedRows, safePage]);
 
-  const filterKey = `${keyword}|${jobPick}|${fUsername}|${fDisplayName}|${fJobTitle}`;
+  const filterKey = `${keyword}|${jobPick}`;
   const prevFilterKeyRef = useRef('');
 
   useEffect(() => {
@@ -309,16 +395,94 @@ export function BaseUserMasterView() {
     setDetailFullscreen(false);
   }, []);
 
+  const openDetail = useCallback((id: string) => {
+    setSelectedId(id);
+    setFocusedRowId(id);
+    setCreating(false);
+    setEditing(false);
+  }, []);
+
+  const moveFocusedRow = useCallback(
+    (delta: number) => {
+      if (sortedRows.length === 0) return;
+      const cur = focusedRowId ? sortedRows.findIndex((r) => r.id === focusedRowId) : -1;
+      let nextIdx: number;
+      if (cur < 0) nextIdx = delta > 0 ? 0 : sortedRows.length - 1;
+      else nextIdx = Math.max(0, Math.min(sortedRows.length - 1, cur + delta));
+      const row = sortedRows[nextIdx];
+      if (!row) return;
+      setFocusedRowId(row.id);
+      setPage(Math.floor(nextIdx / PAGE_SIZE) + 1);
+    },
+    [sortedRows, focusedRowId],
+  );
+
+  /** 預設選取第一列（鍵盤可立即使用）；篩選後若原列仍在清單則保留選取。新增模式不覆寫（維持 null）。 */
   useEffect(() => {
-    if (!panelOpen) return;
+    if (creating) return;
+    if (sortedRows.length === 0) {
+      setFocusedRowId(null);
+      return;
+    }
+    setFocusedRowId((prev) => {
+      if (prev != null && sortedRows.some((r) => r.id === prev)) return prev;
+      return sortedRows[0]!.id;
+    });
+  }, [sortedRows, creating]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      closeDetailFull();
+      if (e.key === 'Escape') {
+        if (colPickerOpen) {
+          e.preventDefault();
+          setColPickerOpen(false);
+          return;
+        }
+        if (panelOpen) {
+          e.preventDefault();
+          closeDetailFull();
+          return;
+        }
+        const onBaseSubPage = pathname != null && pathname.startsWith('/base/');
+        if (onBaseSubPage) {
+          e.preventDefault();
+          router.push('/base');
+        }
+        return;
+      }
+
+      if (colPickerOpen || panelOpen) return;
+      if (isListKeyboardBlocked(e.target, detailPanelRef.current, panelOpen)) return;
+      if (isRadixJobFilterMenuOpen()) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        moveFocusedRow(1);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveFocusedRow(-1);
+        return;
+      }
+      if (e.key === 'Enter') {
+        if (!focusedRowId) return;
+        e.preventDefault();
+        openDetail(focusedRowId);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [panelOpen, closeDetailFull]);
+  }, [
+    colPickerOpen,
+    panelOpen,
+    closeDetailFull,
+    pathname,
+    router,
+    moveFocusedRow,
+    focusedRowId,
+    openDetail,
+  ]);
 
   useEffect(() => {
     setDetailFullscreen(false);
@@ -329,6 +493,7 @@ export function BaseUserMasterView() {
     const prev = sortedRows[selectedIdxSorted - 1];
     if (!prev) return;
     setSelectedId(prev.id);
+    setFocusedRowId(prev.id);
     setEditing(false);
     setCreating(false);
   }, [creating, selectedIdxSorted, sortedRows]);
@@ -338,6 +503,7 @@ export function BaseUserMasterView() {
     const next = sortedRows[selectedIdxSorted + 1];
     if (!next) return;
     setSelectedId(next.id);
+    setFocusedRowId(next.id);
     setEditing(false);
     setCreating(false);
   }, [creating, selectedIdxSorted, sortedRows]);
@@ -376,18 +542,17 @@ export function BaseUserMasterView() {
     });
   };
 
-  const onRowClick = (id: string) => {
-    if (id === selectedId && !creating) {
-      closeDetailFull();
-      return;
-    }
-    setSelectedId(id);
-    setCreating(false);
-    setEditing(false);
+  const onRowSingleClick = (id: string) => {
+    setFocusedRowId(id);
+  };
+
+  const onRowDoubleClick = (id: string) => {
+    openDetail(id);
   };
 
   const onAdd = () => {
     setSelectedId(null);
+    setFocusedRowId(null);
     setCreating(true);
     setEditing(true);
     setDraft(emptyDraft(roles[0]?.id ?? ''));
@@ -464,6 +629,7 @@ export function BaseUserMasterView() {
         const refreshed = await listUsers({ page: 1, pageSize: 500 });
         setUsers(refreshed.items.map(dtoToRow));
         setSelectedId(created.id);
+        setFocusedRowId(created.id);
         setCreating(false);
         setEditing(false);
       } catch (e) {
@@ -531,12 +697,6 @@ export function BaseUserMasterView() {
             {row.displayName}
           </td>
         );
-      case 'jobTitle':
-        return (
-          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-muted-foreground">
-            {row.jobTitle}
-          </td>
-        );
       case 'isActive':
         return (
           <td key={key} className="whitespace-nowrap px-2 py-2.5">
@@ -557,55 +717,42 @@ export function BaseUserMasterView() {
             {formatDt(row.lastLoginAt)}
           </td>
         );
+      case 'email':
+        return (
+          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.email || '—'}
+          </td>
+        );
+      case 'phone':
+        return (
+          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.phone || '—'}
+          </td>
+        );
+      case 'createdAt':
+      case 'updatedAt':
+        return (
+          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
+            {formatDt(row[key] as string | null)}
+          </td>
+        );
+      case 'createdBy':
+      case 'updatedBy':
+      case 'createdByName':
+      case 'updatedByName':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            {(row[key] as string | null | undefined) ?? '—'}
+          </td>
+        );
       default:
         return null;
     }
   };
 
-  const filterTh = (key: ListColKey) => {
-    if (key === 'username') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fUsername}
-            onChange={(e) => setFUsername(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    if (key === 'displayName') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fDisplayName}
-            onChange={(e) => setFDisplayName(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    if (key === 'jobTitle') {
-      return (
-        <th key={`f-${key}`} className="p-2">
-          <Input
-            value={fJobTitle}
-            onChange={(e) => setFJobTitle(e.target.value)}
-            placeholder="篩選"
-            className="h-8 text-xs"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </th>
-      );
-    }
-    return <th key={`f-${key}`} className="p-2" />;
-  };
-
   const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
+  const hasListSelection = checked.size > 0;
+  const jobFilterValue = jobPick === '' ? '__all__' : jobPick;
 
   return (
     <div className="relative flex flex-col gap-4">
@@ -616,232 +763,265 @@ export function BaseUserMasterView() {
           </div>
         ) : null}
 
-        <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
-          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-              <Label htmlFor="bu-keyword">關鍵字</Label>
+        <section className="glass-card nx-glass-raised rounded-2xl border border-border/80 p-3 sm:p-4">
+          <div className="relative flex min-w-0 flex-wrap items-center gap-2" ref={colPickerWrapRef}>
+              <div
+                className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
+                role="navigation"
+                aria-label="分頁"
+              >
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage <= 1 || loading}
+                  onClick={() => setPage(1)}
+                  aria-label="第一頁"
+                  title="第一頁"
+                >
+                  <ChevronsLeft className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-label="上一頁"
+                  title="上一頁"
+                >
+                  <ChevronLeft className="size-4" aria-hidden />
+                </Button>
+                <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
+                  {safePage}/{totalPages}
+                </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage >= totalPages || loading}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  aria-label="下一頁"
+                  title="下一頁"
+                >
+                  <ChevronRight className="size-4" aria-hidden />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-8 shrink-0"
+                  disabled={safePage >= totalPages || loading}
+                  onClick={() => setPage(totalPages)}
+                  aria-label="最後一頁"
+                  title="最後一頁"
+                >
+                  <ChevronsRight className="size-4" aria-hidden />
+                </Button>
+              </div>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="gap-1 px-2"
+                onClick={() => setColPickerOpen((o) => !o)}
+                aria-expanded={colPickerOpen}
+                aria-label="列表欄位設定"
+              >
+                <Columns3 className="size-4" aria-hidden />
+                欄位
+              </Button>
+
+              {!hasListSelection ? (
+                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                  新增
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void onBulkActive(true)}
+                    disabled={saving}
+                  >
+                    啟用
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void onBulkActive(false)}
+                    disabled={saving}
+                  >
+                    停用
+                  </Button>
+                </>
+              )}
+
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-9 shrink-0"
+                onClick={() => void reload()}
+                disabled={loading}
+                aria-label="重新載入"
+                title="重新載入"
+              >
+                <RefreshCw className={cn('size-4', loading && 'animate-spin')} aria-hidden />
+              </Button>
+
               <Input
                 id="bu-keyword"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="帳號、姓名、Email、電話…"
                 autoComplete="off"
+                className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
               />
-            </div>
-            <div className="space-y-2 lg:hidden">
-              <Label htmlFor="bu-job">職務（主角色）</Label>
-              <select
-                id="bu-job"
-                className={selectCls}
-                value={jobPick}
-                onChange={(e) => setJobPick(e.target.value)}
-              >
-                <option value="">全部</option>
-                {jobTitleOptions.map((j) => (
-                  <option key={j} value={j}>
-                    {j}
-                  </option>
-                ))}
-              </select>
-            </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 w-[min(100%,11rem)] shrink-0 justify-between gap-1 px-2.5 font-normal sm:w-40"
+                    aria-label="依職務篩選"
+                  >
+                    <span className="truncate">{jobPick === '' ? '職務：全部' : jobPick}</span>
+                    <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-48"
+                  onCloseAutoFocus={(e) => {
+                    e.preventDefault();
+                    focusListKeyboardRegion();
+                  }}
+                >
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">依職務篩選</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={jobFilterValue}
+                    onValueChange={(v) => setJobPick(v === '__all__' ? '' : v)}
+                  >
+                    <DropdownMenuRadioItem value="__all__">全部</DropdownMenuRadioItem>
+                    {jobTitleOptions.map((j) => (
+                      <DropdownMenuRadioItem key={j} value={j}>
+                        {j}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
+                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+              </span>
+
+              {colPickerOpen ? (
+                <div className="absolute left-0 right-0 top-full z-30 mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs"
+                      onClick={() =>
+                        setColPref({
+                          visibleCols: [...ALL_LIST_COLS],
+                          colOrder: [...ALL_LIST_COLS],
+                        })
+                      }
+                    >
+                      重置
+                    </Button>
+                  </div>
+                  <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                    {listCols.colOrder.map((key) => {
+                      const def = COL_DEF[key];
+                      const checked = listCols.visibleCols.includes(key);
+                      const locked = Boolean(def.locked);
+                      return (
+                        <div
+                          key={key}
+                          draggable
+                          className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', key);
+                            e.dataTransfer.effectAllowed = 'move';
+                          }}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const from = e.dataTransfer.getData('text/plain') as ListColKey;
+                            if (!ALL_LIST_COLS.includes(from)) return;
+                            setColPref((p) => {
+                              const norm = normalizeColPref(p);
+                              const fromIdx = norm.colOrder.indexOf(from);
+                              const toIdx = norm.colOrder.indexOf(key);
+                              if (fromIdx < 0 || toIdx < 0) return norm;
+                              return {
+                                ...norm,
+                                colOrder: arrayMove(norm.colOrder, fromIdx, toIdx),
+                              };
+                            });
+                          }}
+                        >
+                          <label className="flex flex-1 cursor-pointer items-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="size-3.5 rounded border border-input accent-primary"
+                              checked={locked ? true : checked}
+                              disabled={locked}
+                              onChange={() => {
+                                if (locked) return;
+                                setColPref((p) => {
+                                  const norm = normalizeColPref(p);
+                                  const has = norm.visibleCols.includes(key);
+                                  const nextVis = has
+                                    ? norm.visibleCols.filter((k) => k !== key)
+                                    : [...norm.visibleCols, key];
+                                  return normalizeColPref({ ...norm, visibleCols: nextVis });
+                                });
+                              }}
+                            />
+                            <span>{def.label}</span>
+                          </label>
+                          <span className="text-muted-foreground" aria-hidden>
+                            ⠿
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
           </div>
         </section>
 
-        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
-            <nav
-              className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
-              aria-label="依職務篩選"
-            >
-              <button
-                type="button"
-                onClick={() => setJobPick('')}
-                className={cn(
-                  'rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                  jobPick === '' ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
-                )}
+        <section className="glass-card nx-glass-raised flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+              <div
+                ref={listKeyboardRootRef}
+                tabIndex={-1}
+                role="region"
+                aria-label="使用者列表，方向鍵選取列，Enter 開啟明細，雙擊開啟明細"
+                className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain rounded-md pr-2 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40"
               >
-                全部
-              </button>
-              {jobTitleOptions.map((j) => (
-                <button
-                  key={j}
-                  type="button"
-                  onClick={() => setJobPick(j)}
-                  className={cn(
-                    'rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                    jobPick === j ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
-                  )}
+                <table
+                  className="nx-master-table w-full border-collapse text-sm"
+                  style={{ minWidth: tableMinW }}
                 >
-                  {j}
-                </button>
-              ))}
-            </nav>
-
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
-              <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
-                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
-                  新增
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void onBulkActive(false)}
-                  disabled={checked.size === 0 || saving}
-                >
-                  停用
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void onBulkActive(true)}
-                  disabled={checked.size === 0 || saving}
-                >
-                  啟用
-                </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
-                  重新載入
-                </Button>
-
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1 px-2"
-                  onClick={() => setColPickerOpen((o) => !o)}
-                  aria-expanded={colPickerOpen}
-                  aria-label="列表欄位設定"
-                >
-                  <Columns3 className="size-4" aria-hidden />
-                  欄位
-                </Button>
-
-                {colPickerOpen ? (
-                  <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs"
-                        onClick={() =>
-                          setColPref({
-                            visibleCols: [...ALL_LIST_COLS],
-                            colOrder: [...ALL_LIST_COLS],
-                          })
-                        }
-                      >
-                        重置
-                      </Button>
-                    </div>
-                    <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
-                      {listCols.colOrder.map((key) => {
-                        const def = COL_DEF[key];
-                        const checked = listCols.visibleCols.includes(key);
-                        const locked = Boolean(def.locked);
-                        return (
-                          <div
-                            key={key}
-                            draggable
-                            className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
-                            onDragStart={(e) => {
-                              e.dataTransfer.setData('text/plain', key);
-                              e.dataTransfer.effectAllowed = 'move';
-                            }}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const from = e.dataTransfer.getData('text/plain') as ListColKey;
-                              if (!ALL_LIST_COLS.includes(from)) return;
-                              setColPref((p) => {
-                                const norm = normalizeColPref(p);
-                                const fromIdx = norm.colOrder.indexOf(from);
-                                const toIdx = norm.colOrder.indexOf(key);
-                                if (fromIdx < 0 || toIdx < 0) return norm;
-                                return {
-                                  ...norm,
-                                  colOrder: arrayMove(norm.colOrder, fromIdx, toIdx),
-                                };
-                              });
-                            }}
-                          >
-                            <label className="flex flex-1 cursor-pointer items-center gap-2">
-                              <input
-                                type="checkbox"
-                                className="size-3.5 rounded border border-input accent-primary"
-                                checked={locked ? true : checked}
-                                disabled={locked}
-                                onChange={() => {
-                                  if (locked) return;
-                                  setColPref((p) => {
-                                    const norm = normalizeColPref(p);
-                                    const has = norm.visibleCols.includes(key);
-                                    const nextVis = has
-                                      ? norm.visibleCols.filter((k) => k !== key)
-                                      : [...norm.visibleCols, key];
-                                    return normalizeColPref({ ...norm, visibleCols: nextVis });
-                                  });
-                                }}
-                              />
-                              <span>{def.label}</span>
-                            </label>
-                            <span className="text-muted-foreground" aria-hidden>
-                              ⠿
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="flex flex-wrap items-center gap-1 border-l border-border/60 pl-2 ml-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="gap-1 px-2"
-                    disabled={safePage <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    aria-label="上一頁"
-                  >
-                    <ChevronLeft className="size-4" aria-hidden />
-                    上一頁
-                  </Button>
-                  <span className="px-2 text-xs text-muted-foreground tabular-nums">
-                    第 {safePage} / {totalPages} 頁
-                  </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="gap-1 px-2"
-                    disabled={safePage >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    aria-label="下一頁"
-                  >
-                    下一頁
-                    <ChevronRight className="size-4" aria-hidden />
-                  </Button>
-                </div>
-                <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                  {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
-                </span>
-              </div>
-
-              <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-                <div className="w-full overflow-x-auto">
-                  <table
-                    className="w-full border-collapse text-sm"
-                    style={{ minWidth: tableMinW }}
-                  >
                     <thead>
-                      <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
+                      <tr className="border-b border-primary/15 bg-black/[0.55] text-left text-muted-foreground shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.07)]">
                         <th className="w-10 px-2 py-2.5">
                           <input
                             ref={headerCheckboxRef}
@@ -865,38 +1045,32 @@ export function BaseUserMasterView() {
                         ))}
                         <th className="w-10 px-1 py-2.5" aria-hidden />
                       </tr>
-                      <tr className="border-b border-border/60 bg-secondary/20">
-                        <th className="p-2" />
-                        {orderedVisibleCols.map((key) => filterTh(key))}
-                        <th className="p-2" />
-                      </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-border/50">
-                        <td
-                          className="bg-background px-2 py-1.5 text-xs font-medium text-muted-foreground"
-                          colSpan={2 + orderedVisibleCols.length}
-                        >
-                          使用者
-                        </td>
-                      </tr>
-                      {pageRows.map((row) => {
-                        const isSel = row.id === selectedId;
+                      {pageRows.map((row, rowIndex) => {
+                        const isFocused = row.id === focusedRowId;
+                        const isOpenDetail = !creating && panelOpen && row.id === selectedId;
+                        const isHighlighted = isFocused || isOpenDetail;
+                        const stripeLight = rowIndex % 2 === 0;
                         return (
                           <tr
                             key={row.id}
-                            role="button"
-                            tabIndex={0}
                             className={cn(
-                              'cursor-pointer border-b border-border/40 transition-colors',
-                              isSel ? 'bg-primary/10' : 'hover:bg-secondary/40',
+                              'cursor-pointer border-b border-white/[0.06] transition-colors duration-150',
+                              isHighlighted && 'nx-row-selected',
+                              isHighlighted
+                                ? 'bg-primary/20 ring-1 ring-inset ring-primary/40 shadow-[inset_0_1px_0_0_rgba(244,180,0,0.14)]'
+                                : cn(
+                                    stripeLight
+                                      ? 'bg-white/[0.04]'
+                                      : 'bg-black/[0.42]',
+                                    'hover:bg-primary/12 hover:shadow-[inset_0_0_0_1px_rgba(244,180,0,0.2)]',
+                                  ),
                             )}
-                            onClick={() => onRowClick(row.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                onRowClick(row.id);
-                              }
+                            onClick={() => onRowSingleClick(row.id)}
+                            onDoubleClick={(e) => {
+                              e.preventDefault();
+                              onRowDoubleClick(row.id);
                             }}
                           >
                             <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
@@ -916,11 +1090,9 @@ export function BaseUserMasterView() {
                         );
                       })}
                     </tbody>
-                  </table>
-                </div>
-              </ScrollArea>
+                </table>
+              </div>
             </div>
-          </div>
         </section>
       </div>
 
@@ -941,11 +1113,12 @@ export function BaseUserMasterView() {
           />
 
           <aside
+            ref={detailPanelRef}
             className={cn(
-              'glass-card flex flex-col overflow-y-auto overscroll-contain border-border/80 bg-background shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out',
+              'glass-card nx-glass-raised fixed left-1/2 top-1/2 z-50 flex -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-2xl transition-[width,max-height] duration-200 ease-out',
               detailFullscreen
-                ? 'fixed left-1/2 top-1/2 z-50 w-[min(92vw,42rem)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border shadow-2xl max-h-[min(85dvh,calc(100dvh-3.5rem-6.5rem))] sm:w-[min(90vw,48rem)]'
-                : 'fixed inset-0 z-50 max-h-[100dvh] rounded-none border-0 max-lg:border-0 lg:inset-auto lg:right-4 lg:top-24 lg:bottom-4 lg:left-auto lg:h-auto lg:max-h-[calc(100vh-7rem)] lg:w-[min(440px,calc(100vw-2rem))] lg:rounded-2xl lg:border lg:shadow-2xl',
+                ? 'h-[min(90dvh,calc(100dvh-1.5rem))] w-[min(92vw,calc(100vw-1rem))]'
+                : 'max-h-[min(85dvh,calc(100dvh-2rem))] w-[min(80vw,calc(100vw-1.5rem))]',
             )}
             aria-modal="true"
             role="dialog"
@@ -953,29 +1126,16 @@ export function BaseUserMasterView() {
           >
         <div
           className={cn(
-            'flex min-w-0 flex-col',
-            'min-h-0 flex-1 p-4 pt-[max(0.75rem,env(safe-area-inset-top))] lg:pt-4',
-            detailFullscreen &&
-              'w-full max-w-none px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6',
+            'flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-6',
           )}
         >
-          <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 pb-3 lg:border-0 lg:pb-0">
+          <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 pb-3">
             <div className="flex min-w-0 flex-1 items-start gap-2">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="shrink-0 lg:hidden"
-                aria-label="返回列表"
-                onClick={closeDetailFull}
-              >
-                <ArrowLeft className="size-5" />
-              </Button>
               <div className="min-w-0 flex-1">
                 <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
                 <h2
                   id="bu-detail-title"
-                  className="mt-0.5 truncate text-base font-semibold text-foreground lg:text-sm"
+                  className="mt-0.5 truncate text-base font-semibold text-foreground"
                 >
                   {creating ? '新增使用者' : auditSource?.username ?? '使用者明細'}
                 </h2>
@@ -991,7 +1151,7 @@ export function BaseUserMasterView() {
                     type="button"
                     size="icon"
                     variant="ghost"
-                    className="hidden size-8 lg:inline-flex"
+                    className="inline-flex size-8"
                     aria-label="上一筆"
                     disabled={selectedIdxSorted <= 0}
                     onClick={goDetailPrev}
@@ -1002,7 +1162,7 @@ export function BaseUserMasterView() {
                     type="button"
                     size="icon"
                     variant="ghost"
-                    className="hidden size-8 lg:inline-flex"
+                    className="inline-flex size-8"
                     aria-label="下一筆"
                     disabled={selectedIdxSorted >= sortedRows.length - 1}
                     onClick={goDetailNext}
@@ -1016,7 +1176,8 @@ export function BaseUserMasterView() {
                 size="icon"
                 variant="ghost"
                 className="inline-flex size-8"
-                aria-label={detailFullscreen ? '結束全螢幕' : '全螢幕明細'}
+                aria-label={detailFullscreen ? '恢復預設視窗大小' : '放大視窗'}
+                title={detailFullscreen ? '恢復預設視窗大小' : '放大視窗'}
                 onClick={() => setDetailFullscreen((v) => !v)}
               >
                 {detailFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
@@ -1045,7 +1206,7 @@ export function BaseUserMasterView() {
             </TabsList>
 
             <TabsContent value="main" className="mt-3 outline-none">
-              <div className="space-y-3 pb-28 lg:pb-6">
+              <div className="space-y-3 pb-2">
                   <div className="space-y-2">
                   <Label htmlFor="bu-d-username">帳號</Label>
                   <Input
@@ -1157,7 +1318,7 @@ export function BaseUserMasterView() {
             </TabsContent>
 
             <TabsContent value="audit" className="mt-3 outline-none">
-              <div className="space-y-3 pb-28 lg:pb-6">
+              <div className="space-y-3 pb-2">
                   <div className="space-y-2">
                   <Label htmlFor="bu-d-lastlogin">最後登入時間</Label>
                   <Input
@@ -1168,7 +1329,16 @@ export function BaseUserMasterView() {
                   />
                   </div>
                   <div className="space-y-2">
-                  <Label htmlFor="bu-d-created-by">建立人員</Label>
+                    <Label htmlFor="bu-d-created-by-id">建立人員（ID）</Label>
+                    <Input
+                      id="bu-d-created-by-id"
+                      readOnly
+                      value={auditSource?.createdBy ?? '\u2014'}
+                      className={readonlyFieldCls}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-created-by">建立人員（姓名）</Label>
                   <Input
                     id="bu-d-created-by"
                     readOnly
@@ -1195,7 +1365,16 @@ export function BaseUserMasterView() {
                   />
                   </div>
                   <div className="space-y-2">
-                  <Label htmlFor="bu-d-updated-by">最後修改人員</Label>
+                    <Label htmlFor="bu-d-updated-by-id">最後修改人員（ID）</Label>
+                    <Input
+                      id="bu-d-updated-by-id"
+                      readOnly
+                      value={auditSource?.updatedBy ?? '\u2014'}
+                      className={readonlyFieldCls}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-updated-by">最後修改人員（姓名）</Label>
                   <Input
                     id="bu-d-updated-by"
                     readOnly

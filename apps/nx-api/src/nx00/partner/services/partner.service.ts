@@ -34,12 +34,14 @@ export type AuditActor = {
     userAgent?: string | null;
 };
 
-const ALLOWED_PARTNER_TYPES: PartnerType[] = ['BOTH', 'CUSTOMER', 'SUPPLIER'];
+const ALLOWED_PARTNER_TYPES: PartnerType[] = ['BOTH', 'CUST', 'SUP'];
 
 function normalizePartnerType(v: any): PartnerType {
     const s = String(v ?? '').trim().toUpperCase();
+    if (s === 'CUSTOMER') return 'CUST';
+    if (s === 'SUPPLIER') return 'SUP';
     if ((ALLOWED_PARTNER_TYPES as string[]).includes(s)) return s as PartnerType;
-    throw new BadRequestException(`partnerType must be one of: ${ALLOWED_PARTNER_TYPES.join(', ')}`);
+    throw new BadRequestException(`partnerType must be one of: ${ALLOWED_PARTNER_TYPES.join(', ')} (legacy CUSTOMER/SUPPLIER accepted)`);
 }
 
 type PartnerRowWithAudit = {

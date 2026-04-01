@@ -47,6 +47,10 @@ export type UseSessionMeResult = {
   statusCode: string;
   lastLoginAt: string | null;
   isActive: boolean | null;
+  /** 租戶中文名；無則空字串 */
+  tenantNameZh: string;
+  /** 租戶英文名；無則空字串 */
+  tenantNameEn: string;
 
   logout: () => void;
 };
@@ -206,6 +210,16 @@ export function useSessionMe(): UseSessionMeResult {
     return typeof v === 'boolean' ? v : null;
   }, [me]);
 
+  const normalizedTenantNameZh = useMemo(
+    () => (me?.tenant_name != null && String(me.tenant_name).trim() !== '' ? String(me.tenant_name).trim() : ''),
+    [me],
+  );
+
+  const normalizedTenantNameEn = useMemo(
+    () => (me?.tenant_name_en != null && String(me.tenant_name_en).trim() !== '' ? String(me.tenant_name_en).trim() : ''),
+    [me],
+  );
+
   return {
     me,
     view,
@@ -215,6 +229,8 @@ export function useSessionMe(): UseSessionMeResult {
     statusCode: normalizedStatusCode,
     lastLoginAt: normalizedLastLoginAt,
     isActive: normalizedIsActive,
+    tenantNameZh: normalizedTenantNameZh,
+    tenantNameEn: normalizedTenantNameEn,
 
     logout,
   };

@@ -27,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { useNxThemeMode } from '@/hooks/useNxThemeMode';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { NavPlanetMenu } from '@/components/home/dock';
 
 const HEADER_NOTIFICATION_ITEMS = [
   { title: '新訂單通知', desc: '客戶「大同汽車」下了一筆新訂單', time: '5 分鐘前', type: 'order' as const },
@@ -39,6 +40,10 @@ export type HomeTopBarProps = {
   roleLabel?: string;
   onLogout: () => void;
   onOpenDashboard: () => void;
+  /** 租戶中文名（nx99_tenant.name）；無則顯示預設 ERP 標語 */
+  tenantNameZh?: string | null;
+  /** 租戶英文名（nx99_tenant.name_en） */
+  tenantNameEn?: string | null;
   /** 置中區（例如 Dashboard 主模組 Tabs）；與 /home 相同頂欄風格 */
   centerContent?: ReactNode;
 };
@@ -50,6 +55,8 @@ export function HomeTopBar({
   roleLabel = '使用者',
   onLogout,
   onOpenDashboard,
+  tenantNameZh,
+  tenantNameEn,
   centerContent,
 }: HomeTopBarProps) {
   const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
@@ -139,47 +146,114 @@ export function HomeTopBar({
     { value: 'system', label: '跟隨系統' },
   ];
 
+  const zh = tenantNameZh?.trim() ?? '';
+  const en = tenantNameEn?.trim() ?? '';
+  const hasZh = zh.length > 0;
+  const hasEn = en.length > 0;
+  const showTenantBlock = hasZh || hasEn;
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center gap-3 border-x-0 border-t-0 border-b border-border/50 glass-card px-4 lg:px-6 rounded-none"
+      className="fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center gap-3 border-x-0 border-t-0 border-b border-border/50 glass-card nx-glass-raised px-4 lg:px-6 rounded-none"
     >
-      <div className="flex min-w-0 shrink-0 items-center gap-4">
-        <button
+      <div className="flex min-w-0 shrink-0 items-center gap-3 sm:gap-4">
+        <NavPlanetMenu />
+
+        <motion.button
           type="button"
           onClick={onOpenDashboard}
-          className="flex items-center gap-3 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          title="回到首頁"
+          aria-label="回到首頁"
+          whileHover={{
+            y: -2,
+            transition: { type: 'spring', stiffness: 420, damping: 28, mass: 0.85 },
+          }}
+          whileTap={{
+            y: 0,
+            scale: 0.985,
+            transition: { type: 'spring', stiffness: 550, damping: 35 },
+          }}
+          className={cn(
+            'group/brand relative -my-0.5 overflow-hidden rounded-xl border border-transparent px-2.5 py-1.5 text-left',
+            'transition-[border-color,background-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            'hover:border-border/35 hover:bg-gradient-to-br hover:from-white/[0.06] hover:via-white/[0.02] hover:to-transparent',
+            'hover:shadow-[0_12px_36px_-14px_rgba(0,0,0,0.55),inset_0_1px_0_0_rgba(255,255,255,0.07)]',
+            'dark:hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.75),inset_0_1px_0_0_rgba(255,255,255,0.06)]',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          )}
         >
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-primary via-primary to-primary/70 shadow-lg glow-primary" />
-            </div>
-            <div className="absolute inset-1 border border-primary/40 rounded-full animate-orbit">
-              <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary/80" />
-            </div>
-            <div className="absolute inset-0 border border-primary/20 rounded-full rotate-60 animate-orbit-reverse">
-              <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/60" />
-            </div>
-            <div
-              className="absolute -inset-0.5 border border-primary/10 rounded-full rotate-[-30deg] animate-orbit"
-              style={{ animationDuration: '16s' }}
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-out',
+              'bg-gradient-to-br from-primary/[0.08] via-transparent to-transparent',
+              'group-hover/brand:opacity-100',
+            )}
+          />
+          <span
+            aria-hidden
+            className={cn(
+              'pointer-events-none absolute inset-y-0 -left-2/3 w-[55%] skew-x-[-14deg]',
+              'bg-gradient-to-r from-transparent via-white/20 to-transparent',
+              'translate-x-0 opacity-0 transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              'group-hover/brand:translate-x-[190%] group-hover/brand:opacity-100',
+            )}
+          />
+          <div className="relative hidden sm:block">
+            <h1
+              className={cn(
+                'gradient-text text-base font-bold tracking-[0.2em]',
+                'transition-[letter-spacing,filter] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                'group-hover/brand:tracking-[0.24em] group-hover/brand:brightness-110 group-hover/brand:saturate-110',
+              )}
             >
-              <div className="absolute top-1/2 -right-0.5 -translate-y-1/2 w-1 h-1 rounded-full bg-primary/50" />
-            </div>
+              NEXORA
+            </h1>
+            <p
+              className={cn(
+                'mt-0.5 text-[10px] font-medium tracking-[0.3em] text-muted-foreground',
+                'transition-[letter-spacing,color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                'group-hover/brand:tracking-[0.36em] group-hover/brand:text-primary/65',
+              )}
+            >
+              GRID
+            </p>
           </div>
-
-          <div className="hidden sm:block text-left">
-            <h1 className="text-base font-bold tracking-[0.2em] gradient-text">NEXORA</h1>
-            <p className="text-[10px] tracking-[0.3em] text-muted-foreground font-medium">GRID</p>
-          </div>
-        </button>
+          <span
+            className={cn(
+              'relative gradient-text text-xs font-bold tracking-[0.15em] transition-[letter-spacing,filter] duration-500 sm:hidden',
+              'ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/brand:tracking-[0.2em] group-hover/brand:brightness-110',
+            )}
+          >
+            NEXORA
+          </span>
+        </motion.button>
 
         <div className="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-border to-transparent" />
-        <span className="hidden lg:inline-block text-[10px] tracking-widest text-primary/70 font-medium uppercase">
-          Enterprise Resource Planning
-        </span>
+        {showTenantBlock ? (
+          <div className="hidden lg:flex min-w-0 max-w-[min(28rem,40vw)] flex-col text-left leading-tight">
+            {hasZh ? (
+              <span className="truncate text-[11px] font-medium tracking-wide text-primary/90">{zh}</span>
+            ) : null}
+            {hasEn ? (
+              <span
+                className={cn(
+                  'truncate text-muted-foreground',
+                  hasZh ? 'mt-0.5 text-[10px] tracking-wide' : 'text-[11px] font-medium tracking-wide text-primary/90',
+                )}
+              >
+                {en}
+              </span>
+            ) : null}
+          </div>
+        ) : (
+          <span className="hidden lg:inline-block text-[10px] font-medium uppercase tracking-widest text-primary/70">
+            Enterprise Resource Planning
+          </span>
+        )}
       </div>
 
       {centerContent ? (

@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
@@ -29,23 +28,54 @@ import { createPart, listPart, updatePart } from '@/features/nx00/part/api/part'
 import type { PartDto } from '@/features/nx00/part/types';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
+import { apiFetch } from '@/shared/api/client';
+import { buildQueryString } from '@/shared/api/query';
+import { assertOk } from '@/shared/api/http';
 import type { BasePartRow } from './mock-data';
 
 const PAGE_SIZE = 10;
 const LIST_COL_PREF_KEY = 'base.part.listcols';
-const LIST_COL_PREF_VERSION = 1;
+const LIST_COL_PREF_VERSION = 2;
 
-type ListColKey = 'sku' | 'name' | 'brandName' | 'isOem' | 'partType' | 'isActive';
+type ListColKey =
+  | 'sku'
+  | 'name'
+  | 'brandName'
+  | 'carBrandName'
+  | 'isOem'
+  | 'partType'
+  | 'secCode'
+  | 'countryDisplay'
+  | 'partGroupDisplay'
+  | 'spec'
+  | 'isActive';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
-const ALL_LIST_COLS: ListColKey[] = ['sku', 'name', 'brandName', 'isOem', 'partType', 'isActive'];
+const ALL_LIST_COLS: ListColKey[] = [
+  'sku',
+  'name',
+  'brandName',
+  'carBrandName',
+  'isOem',
+  'partType',
+  'secCode',
+  'countryDisplay',
+  'partGroupDisplay',
+  'spec',
+  'isActive',
+];
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   sku: { label: '料號', locked: true },
   name: { label: '品名' },
   brandName: { label: '零件廠牌' },
+  carBrandName: { label: '汽車廠牌' },
   isOem: { label: '正副廠' },
   partType: { label: '類型' },
+  secCode: { label: '副廠料號' },
+  countryDisplay: { label: '產地' },
+  partGroupDisplay: { label: '零件族群' },
+  spec: { label: '規格' },
   isActive: { label: '狀態' },
 };
 
@@ -89,6 +119,14 @@ type Draft = {
   isOem: boolean;
   carBrandId: string | null;
   partType: string | null;
+  secCode: string;
+  seg1: string;
+  seg2: string;
+  seg3: string;
+  seg4: string;
+  seg5: string;
+  countryId: string | null;
+  partGroupId: string | null;
 };
 
 function emptyDraft(): Draft {
@@ -102,6 +140,14 @@ function emptyDraft(): Draft {
     isOem: true,
     carBrandId: null,
     partType: null,
+    secCode: '',
+    seg1: '',
+    seg2: '',
+    seg3: '',
+    seg4: '',
+    seg5: '',
+    countryId: null,
+    partGroupId: null,
   };
 }
 
@@ -116,6 +162,14 @@ function fromRow(r: BasePartRow): Draft {
     isOem: r.isOem,
     carBrandId: r.carBrandId,
     partType: r.partType,
+    secCode: r.secCode ?? '',
+    seg1: r.seg1 ?? '',
+    seg2: r.seg2 ?? '',
+    seg3: r.seg3 ?? '',
+    seg4: r.seg4 ?? '',
+    seg5: r.seg5 ?? '',
+    countryId: r.countryId,
+    partGroupId: r.partGroupId,
   };
 }
 
@@ -135,11 +189,38 @@ function dtoToRow(p: PartDto): BasePartRow {
     carBrandCode: p.carBrandCode ?? null,
     carBrandName: p.carBrandName ?? null,
     partType: p.partType ?? null,
+    secCode: p.secCode ?? null,
+    seg1: p.seg1 ?? null,
+    seg2: p.seg2 ?? null,
+    seg3: p.seg3 ?? null,
+    seg4: p.seg4 ?? null,
+    seg5: p.seg5 ?? null,
+    countryId: p.countryId ?? null,
+    countryCode: p.countryCode ?? null,
+    countryName: p.countryName ?? null,
+    partGroupId: p.partGroupId ?? null,
+    partGroupCode: p.partGroupCode ?? null,
+    partGroupName: p.partGroupName ?? null,
+    createdAt: p.createdAt,
+    createdBy: p.createdBy ?? null,
+    createdByName: p.createdByName ?? null,
+    updatedAt: p.updatedAt,
+    updatedBy: p.updatedBy ?? null,
+    updatedByName: p.updatedByName ?? null,
   };
 }
 
 function brandLabel(r: BasePartRow): string {
   return r.brandName || r.brandCode || '';
+}
+
+function countryDisplay(r: BasePartRow): string {
+  const a = [r.countryCode, r.countryName].filter(Boolean);
+  return a.length ? a.join(' ') : '';
+}
+
+function partGroupDisplay(r: BasePartRow): string {
+  return r.partGroupCode || r.partGroupName || '';
 }
 
 export function BasePartMasterView() {
@@ -159,6 +240,9 @@ export function BasePartMasterView() {
   const [loading, setLoading] = useState(true);
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [carBrandsLoading, setCarBrandsLoading] = useState(true);
+  const [countries, setCountries] = useState<Array<{ id: string; code: string; name: string }>>([]);
+  const [partGroups, setPartGroups] = useState<Array<{ id: string; code: string; name: string }>>([]);
+  const [lookupsLoading, setLookupsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
@@ -198,6 +282,29 @@ export function BasePartMasterView() {
     }
   }, []);
 
+  const loadLookups = useCallback(async () => {
+    setLookupsLoading(true);
+    try {
+      const cQs = buildQueryString({ page: '1', pageSize: '500' });
+      const gQs = buildQueryString({ page: '1', pageSize: '500' });
+      const [cRes, gRes] = await Promise.all([
+        apiFetch(`/country${cQs}`, { method: 'GET' }),
+        apiFetch(`/part-group${gQs}`, { method: 'GET' }),
+      ]);
+      await assertOk(cRes, 'nxui_part_master_country');
+      await assertOk(gRes, 'nxui_part_master_part_group');
+      const cj = (await cRes.json()) as { items: Array<{ id: string; code: string; name: string }> };
+      const gj = (await gRes.json()) as { items: Array<{ id: string; code: string; name: string }> };
+      setCountries([...(cj.items ?? [])].sort((a, b) => a.code.localeCompare(b.code, 'en')));
+      setPartGroups([...(gj.items ?? [])].sort((a, b) => a.code.localeCompare(b.code, 'en')));
+    } catch {
+      setCountries([]);
+      setPartGroups([]);
+    } finally {
+      setLookupsLoading(false);
+    }
+  }, []);
+
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -215,7 +322,8 @@ export function BasePartMasterView() {
   useEffect(() => {
     void loadBrands();
     void loadCarBrands();
-  }, [loadBrands, loadCarBrands]);
+    void loadLookups();
+  }, [loadBrands, loadCarBrands, loadLookups]);
 
   useEffect(() => {
     void reload();
@@ -241,7 +349,8 @@ export function BasePartMasterView() {
       if (oemPick === 'oem' && !r.isOem) return false;
       if (oemPick === 'aftermarket' && r.isOem) return false;
       if (k) {
-        const blob = `${r.sku} ${r.name} ${r.spec} ${brandLabel(r)} ${r.carBrandName ?? ''} ${partTypeLabel(r.partType)}`.toLowerCase();
+        const blob =
+          `${r.sku} ${r.name} ${r.spec} ${brandLabel(r)} ${r.carBrandName ?? ''} ${partTypeLabel(r.partType)} ${r.secCode ?? ''} ${countryDisplay(r)} ${partGroupDisplay(r)}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
       if (fSku.trim() && !r.sku.toLowerCase().includes(fSku.trim().toLowerCase())) return false;
@@ -262,10 +371,20 @@ export function BasePartMasterView() {
           return mult * a.name.localeCompare(b.name, 'zh-Hant');
         case 'brandName':
           return mult * brandLabel(a).localeCompare(brandLabel(b), 'zh-Hant');
+        case 'carBrandName':
+          return mult * (a.carBrandName ?? '').localeCompare(b.carBrandName ?? '', 'zh-Hant');
         case 'isOem':
           return mult * ((a.isOem ? 1 : 0) - (b.isOem ? 1 : 0));
         case 'partType':
           return mult * (partTypeLabel(a.partType).localeCompare(partTypeLabel(b.partType), 'zh-Hant'));
+        case 'secCode':
+          return mult * (a.secCode ?? '').localeCompare(b.secCode ?? '', 'en');
+        case 'countryDisplay':
+          return mult * countryDisplay(a).localeCompare(countryDisplay(b), 'zh-Hant');
+        case 'partGroupDisplay':
+          return mult * partGroupDisplay(a).localeCompare(partGroupDisplay(b), 'zh-Hant');
+        case 'spec':
+          return mult * (a.spec ?? '').localeCompare(b.spec ?? '', 'zh-Hant');
         case 'isActive':
           return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         default:
@@ -341,6 +460,7 @@ export function BasePartMasterView() {
   useEffect(() => {
     if (creating) {
       setDraft(emptyDraft());
+      setDetailTab('main');
       return;
     }
     if (selected) setDraft(fromRow(selected));
@@ -389,6 +509,10 @@ export function BasePartMasterView() {
     setError(null);
     setSaveConfirmOpen(false);
     try {
+      const trimOrNull = (s: string) => {
+        const t = s.trim();
+        return t === '' ? null : t;
+      };
       const body = {
         code: sku,
         name: draft.name.trim() || sku,
@@ -399,6 +523,14 @@ export function BasePartMasterView() {
         isOem: draft.isOem,
         carBrandId: draft.carBrandId,
         partType: draft.partType,
+        secCode: trimOrNull(draft.secCode),
+        seg1: trimOrNull(draft.seg1),
+        seg2: trimOrNull(draft.seg2),
+        seg3: trimOrNull(draft.seg3),
+        seg4: trimOrNull(draft.seg4),
+        seg5: trimOrNull(draft.seg5),
+        countryId: draft.countryId,
+        partGroupId: draft.partGroupId,
       };
       if (creating) {
         const dto = await createPart(body);
@@ -450,6 +582,12 @@ export function BasePartMasterView() {
             {brandLabel(row) || '—'}
           </td>
         );
+      case 'carBrandName':
+        return (
+          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.carBrandName || row.carBrandCode || '—'}
+          </td>
+        );
       case 'isOem':
         return (
           <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
@@ -460,6 +598,30 @@ export function BasePartMasterView() {
         return (
           <td key={key} className="max-w-[100px] truncate px-2 py-2.5 text-xs text-muted-foreground">
             {partTypeLabel(row.partType) || '—'}
+          </td>
+        );
+      case 'secCode':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            {row.secCode || '—'}
+          </td>
+        );
+      case 'countryDisplay':
+        return (
+          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {countryDisplay(row) || '—'}
+          </td>
+        );
+      case 'partGroupDisplay':
+        return (
+          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {partGroupDisplay(row) || '—'}
+          </td>
+        );
+      case 'spec':
+        return (
+          <td key={key} className="max-w-[160px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.spec || '—'}
           </td>
         );
       case 'isActive':
@@ -510,7 +672,7 @@ export function BasePartMasterView() {
     return <th key={`f-${key}`} className="p-2" />;
   };
 
-  const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 96 + 40);
+  const tableMinW = Math.max(480, 32 + orderedVisibleCols.length * 104 + 40);
 
   return (
     <>
@@ -579,7 +741,7 @@ export function BasePartMasterView() {
               </div>
 
               <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
-                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
+                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving || lookupsLoading}>
                   新增
                 </Button>
                 <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
@@ -701,9 +863,8 @@ export function BasePartMasterView() {
                 </span>
               </div>
 
-              <ScrollArea className="mt-3 min-h-0 flex-1 pr-2">
-                <div className="w-full overflow-x-auto">
-                  <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+              <div className="mt-3 min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                     <thead>
                       <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
                         {orderedVisibleCols.map((key) => (
@@ -761,9 +922,8 @@ export function BasePartMasterView() {
                         );
                       })}
                     </tbody>
-                  </table>
-                </div>
-              </ScrollArea>
+                </table>
+              </div>
             </div>
           </div>
         </section>
@@ -820,6 +980,9 @@ export function BasePartMasterView() {
           <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
             <TabsTrigger value="main" className="flex-none">
               基本資料
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="flex-none" disabled={creating}>
+              稽核
             </TabsTrigger>
           </TabsList>
           <TabsContent value="main" className="mt-3 outline-none">
@@ -942,7 +1105,94 @@ export function BasePartMasterView() {
                 />
                 啟用
               </label>
+              <div className="space-y-2">
+                <Label htmlFor="bp-seccode">副廠料號（sec_code）</Label>
+                <Input
+                  id="bp-seccode"
+                  value={formValues.secCode}
+                  onChange={(e) => setDraft((d) => ({ ...d, secCode: e.target.value }))}
+                  readOnly={!creating && !editing}
+                  className={!creating && !editing ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-5">
+                {(['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const).map((k, i) => (
+                  <div key={k} className="space-y-2">
+                    <Label htmlFor={`bp-${k}`}>分段 {i + 1}</Label>
+                    <Input
+                      id={`bp-${k}`}
+                      value={formValues[k]}
+                      onChange={(e) => setDraft((d) => ({ ...d, [k]: e.target.value }))}
+                      readOnly={!creating && !editing}
+                      className={cn(!creating && !editing && readonlyFieldCls, 'font-mono text-xs')}
+                      maxLength={10}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-country">產地（國家）</Label>
+                <select
+                  id="bp-country"
+                  className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                  value={formValues.countryId ?? ''}
+                  disabled={!creating && !editing || lookupsLoading}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, countryId: e.target.value === '' ? null : e.target.value }))
+                  }
+                >
+                  <option value="">（未指定）</option>
+                  {countries.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bp-pg">零件族群</Label>
+                <select
+                  id="bp-pg"
+                  className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                  value={formValues.partGroupId ?? ''}
+                  disabled={!creating && !editing || lookupsLoading}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, partGroupId: e.target.value === '' ? null : e.target.value }))
+                  }
+                >
+                  <option value="">（未指定）</option>
+                  {partGroups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.code} — {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+          </TabsContent>
+          <TabsContent value="audit" className="mt-3 space-y-2 text-sm outline-none">
+            {selected && !creating ? (
+              <>
+                <div className="flex justify-between gap-4 border-b border-border/40 py-2">
+                  <span className="text-muted-foreground">建立時間</span>
+                  <span className="text-right text-xs">{selected.createdAt || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-4 border-b border-border/40 py-2">
+                  <span className="text-muted-foreground">建立人</span>
+                  <span className="text-right text-xs">{selected.createdByName || selected.createdBy || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-4 border-b border-border/40 py-2">
+                  <span className="text-muted-foreground">修改時間</span>
+                  <span className="text-right text-xs">{selected.updatedAt || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-4 border-b border-border/40 py-2">
+                  <span className="text-muted-foreground">修改人</span>
+                  <span className="text-right text-xs">{selected.updatedByName || selected.updatedBy || '—'}</span>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">請選擇一筆資料以檢視稽核欄位。</p>
+            )}
           </TabsContent>
         </Tabs>
 

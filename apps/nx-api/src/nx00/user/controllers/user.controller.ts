@@ -66,7 +66,8 @@ export class UserController {
         const ipAddr = (req?.ip as string | undefined) ?? null;
         const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
 
-        return this.user.create(body, { actorUserId, ipAddr, userAgent });
+        const tenantId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.user.create(body, { actorUserId, tenantId, ipAddr, userAgent });
     }
 
     /**

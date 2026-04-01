@@ -44,7 +44,7 @@ function buildDefs(): Record<PartnerFieldKey, ColumnDef<PartnerFieldKey>> {
 
 function typeText(t: PartnerType) {
     if (t === 'CUST') return 'CUST';
-    if (t === 'SUPP') return 'SUPP';
+    if (t === 'SUP') return 'SUP';
     return 'BOTH';
 }
 

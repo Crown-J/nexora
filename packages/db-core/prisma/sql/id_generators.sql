@@ -289,3 +289,30 @@ CREATE OR REPLACE FUNCTION gen_nx00_caev_id()
 RETURNS VARCHAR AS $$
   SELECT 'NX00CAEV' || LPAD(nextval('seq_nx00_caev_id')::text, 7, '0');
 $$ LANGUAGE sql;
+
+-- =======================================================
+-- NX00 docs/nx00_field.csv：國家／幣別／料號規則／零件關聯
+-- =======================================================
+CREATE SEQUENCE IF NOT EXISTS seq_nx00_coun_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx00_coun_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX00COUN' || LPAD(nextval('seq_nx00_coun_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx00_curr_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx00_curr_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX00CURR' || LPAD(nextval('seq_nx00_curr_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx00_bcor_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx00_bcor_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX00BCOR' || LPAD(nextval('seq_nx00_bcor_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx00_pare_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx00_pare_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX00PARE' || LPAD(nextval('seq_nx00_pare_id')::text, 7, '0');
+$$ LANGUAGE sql;

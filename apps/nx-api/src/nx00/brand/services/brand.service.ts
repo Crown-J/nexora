@@ -29,7 +29,8 @@ type BrandRowWithAudit = {
     id: string;
     code: string;
     name: string;
-    originCountry: string | null;
+    countryId: string | null;
+    country?: { code: string; name: string } | null;
     remark: string | null;
     isActive: boolean;
     sortNo: number;
@@ -48,7 +49,8 @@ function toBrandDto(row: BrandRowWithAudit): BrandDto {
         id: row.id,
         code: row.code,
         name: row.name,
-        originCountry: row.originCountry ?? null,
+        countryId: row.countryId ?? null,
+        originCountry: row.country?.code ?? null,
         remark: row.remark ?? null,
         isActive: Boolean(row.isActive),
         sortNo: Number.isFinite(row.sortNo as any) ? Number(row.sortNo) : 0,
@@ -79,6 +81,28 @@ export class BrandService {
         private readonly audit: AuditLogService,
     ) { }
 
+    /** 寫入 nx00_part_brand.country_id；可傳 countryId 或舊欄位 originCountry（3 碼國碼） */
+    private async resolvePartBrandCountryId(
+        countryId: string | null | undefined,
+        originCountry: string | null | undefined,
+    ): Promise<string | null> {
+        if (countryId !== undefined && countryId !== null && String(countryId).trim() !== '') {
+            const id = String(countryId).trim();
+            const ok = await this.prisma.nx00Country.findUnique({ where: { id }, select: { id: true } });
+            if (!ok) throw new BadRequestException('Country not found');
+            return id;
+        }
+        if (countryId === null) return null;
+        const o = originCountry?.trim();
+        if (!o) return null;
+        let code = o.toUpperCase();
+        if (code === 'DE') code = 'DEU';
+        if (code === 'TW') code = 'TWN';
+        const c = await this.prisma.nx00Country.findUnique({ where: { code }, select: { id: true } });
+        if (!c) throw new BadRequestException(`Country code not in master: ${code}`);
+        return c.id;
+    }
+
     async list(query: ListBrandQuery): Promise<PagedResult<BrandDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
@@ -91,7 +115,8 @@ export class BrandService {
             where.OR = [
                 { code: { contains: q, mode: 'insensitive' as const } },
                 { name: { contains: q, mode: 'insensitive' as const } },
-                { originCountry: { contains: q, mode: 'insensitive' as const } },
+                { country: { code: { contains: q, mode: 'insensitive' as const } } },
+                { country: { name: { contains: q, mode: 'insensitive' as const } } },
             ];
         }
         if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
@@ -104,6 +129,7 @@ export class BrandService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
+                    country: { select: { code: true, name: true } },
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
                 },
@@ -122,6 +148,7 @@ export class BrandService {
         const row = await this.prisma.nx00PartBrand.findUnique({
             where: { id },
             include: {
+                country: { select: { code: true, name: true } },
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
             },
@@ -139,12 +166,14 @@ export class BrandService {
 
         const sortNo = typeof body.sortNo === 'number' && Number.isFinite(body.sortNo) ? body.sortNo : 0;
 
+        const cid = await this.resolvePartBrandCountryId(body.countryId ?? undefined, body.originCountry ?? undefined);
+
         try {
             const row = await this.prisma.nx00PartBrand.create({
                 data: {
                     code,
                     name,
-                    originCountry: body.originCountry ?? null,
+                    countryId: cid,
                     remark: body.remark ?? null,
                     sortNo,
                     isActive: body.isActive ?? true,
@@ -153,6 +182,7 @@ export class BrandService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
+                    country: { select: { code: true, name: true } },
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
                 },
@@ -173,7 +203,7 @@ export class BrandService {
                         id: row.id,
                         code: row.code,
                         name: row.name,
-                        originCountry: row.originCountry ?? null,
+                        countryId: row.countryId ?? null,
                         remark: row.remark ?? null,
                         sortNo: row.sortNo,
                         isActive: Boolean(row.isActive),
@@ -200,7 +230,7 @@ export class BrandService {
                 id: true,
                 code: true,
                 name: true,
-                originCountry: true,
+                countryId: true,
                 remark: true,
                 isActive: true,
                 sortNo: true,
@@ -214,7 +244,12 @@ export class BrandService {
 
         if (typeof body.code === 'string') data.code = body.code.trim();
         if (typeof body.name === 'string') data.name = body.name.trim();
-        if (body.originCountry !== undefined) data.originCountry = body.originCountry ?? null;
+        if (body.countryId !== undefined || body.originCountry !== undefined) {
+            data.countryId = await this.resolvePartBrandCountryId(
+                body.countryId,
+                body.originCountry !== undefined ? body.originCountry : undefined,
+            );
+        }
         if (body.remark !== undefined) data.remark = body.remark ?? null;
 
         if (body.sortNo !== undefined) {
@@ -231,6 +266,7 @@ export class BrandService {
                 where: { id },
                 data,
                 include: {
+                    country: { select: { code: true, name: true } },
                     createdByUser: { select: { displayName: true } },
                     updatedByUser: { select: { displayName: true } },
                 },
@@ -250,7 +286,7 @@ export class BrandService {
                         id: exists.id,
                         code: exists.code,
                         name: exists.name,
-                        originCountry: exists.originCountry ?? null,
+                        countryId: exists.countryId ?? null,
                         remark: exists.remark ?? null,
                         sortNo: exists.sortNo,
                         isActive: Boolean(exists.isActive),
@@ -259,7 +295,7 @@ export class BrandService {
                         id: row.id,
                         code: row.code,
                         name: row.name,
-                        originCountry: row.originCountry ?? null,
+                        countryId: row.countryId ?? null,
                         remark: row.remark ?? null,
                         sortNo: row.sortNo,
                         isActive: Boolean(row.isActive),
@@ -293,6 +329,7 @@ export class BrandService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
+                country: { select: { code: true, name: true } },
                 createdByUser: { select: { displayName: true } },
                 updatedByUser: { select: { displayName: true } },
             },

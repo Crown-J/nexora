@@ -27,6 +27,12 @@ import { PartModule } from './part/part.module';
 import { WarehouseModule } from './warehouse/warehouse.module';
 import { LocationModule } from './location/location.module';
 import { PartnerModule } from './partner/partner.module';
+import { CountryModule } from './country/country.module';
+import { CurrencyModule } from './currency/currency.module';
+import { PartGroupModule } from './part-group/part-group.module';
+import { CarBrandModule } from './car-brand/car-brand.module';
+import { BrandCodeRoleModule } from './brand-code-role/brand-code-role.module';
+import { PartRelationModule } from './part-relation/part-relation.module';
 
 import { BulletinModule } from './bulletin/bulletin.module';
 import { CalendarEventModule } from './calendar-event/calendar-event.module';
@@ -52,6 +58,12 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     WarehouseModule,
     LocationModule,
     PartnerModule,
+    CountryModule,
+    CurrencyModule,
+    PartGroupModule,
+    CarBrandModule,
+    BrandCodeRoleModule,
+    PartRelationModule,
 
     BulletinModule,
     CalendarEventModule,

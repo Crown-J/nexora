@@ -2,7 +2,7 @@
  * File: apps/nx-ui/src/features/base/role-view/BaseRoleViewSplitView.tsx
  *
  * Purpose:
- * - 主檔「權限設定」：左側角色列表 + 右側 Role⇄View 矩陣（沿用 useRoleView API，新風格外殼）
+ * - 主檔「職務權限設定」：左側角色列表 + 右側 Role⇄View 矩陣（沿用 useRoleView API，新風格外殼）
  */
 
 'use client';

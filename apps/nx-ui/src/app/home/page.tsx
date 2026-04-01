@@ -4,7 +4,7 @@
  *
  * Purpose:
  * - NX00-UI-002：登入後首頁（Landing / Home）
- * - 視覺：精簡首頁（Dock + TopBar + 行事曆 + 公告 + 未完成訂單）
+ * - 視覺：精簡首頁（頂欄星球模組選單 + TopBar + 行事曆 + 公告 + 未完成訂單）
  *
  * Notes:
  * - useSessionMe 驗證；未登入 → redirect /login
@@ -25,7 +25,7 @@ import { TaskList } from '@/components/home/task-list';
 
 export default function HomePage() {
   const router = useRouter();
-  const { me, displayName, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => new Date());
 
   useEffect(() => {
@@ -83,6 +83,8 @@ export default function HomePage() {
           roleLabel="使用者"
           onLogout={logout}
           onOpenDashboard={() => router.push('/dashboard')}
+          tenantNameZh={tenantNameZh || null}
+          tenantNameEn={tenantNameEn || null}
         />
       }
     >

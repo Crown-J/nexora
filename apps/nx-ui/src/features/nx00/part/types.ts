@@ -3,12 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-PART-TYPES-001：Part Types（SSOT）
- *
- * Notes:
- * - 本檔案為 part 前端型別單一真實來源（API/HOOK/UI 皆使用）
- * - createdByName/updatedByName 若後端有回傳，可直接顯示；未回傳則 fallback id
- * - brandName/brandCode 為 UI 便利欄位：後端若未回傳，可在 UI 用 partBrandId fallback
+ * - NX00-UI-NX00-PART-TYPES-001：Part Types（SSOT，對齊 nx-api PartDto / nx00_part）
  */
 
 export type PartDto = {
@@ -20,13 +15,28 @@ export type PartDto = {
     brandCode?: string | null;
     brandName?: string | null;
 
-    /** 是否正廠件 */
     isOem: boolean;
     carBrandId: string | null;
     carBrandCode?: string | null;
     carBrandName?: string | null;
+
     /** A/B/C/D */
     partType: string | null;
+
+    secCode: string | null;
+    seg1: string | null;
+    seg2: string | null;
+    seg3: string | null;
+    seg4: string | null;
+    seg5: string | null;
+
+    countryId: string | null;
+    countryCode?: string | null;
+    countryName?: string | null;
+
+    partGroupId: string | null;
+    partGroupCode?: string | null;
+    partGroupName?: string | null;
 
     spec: string | null;
     uom: string;
@@ -36,7 +46,7 @@ export type PartDto = {
     createdBy: string | null;
     createdByName?: string | null;
 
-    updatedAt: string | null;
+    updatedAt: string;
     updatedBy: string | null;
     updatedByName?: string | null;
 };
@@ -61,12 +71,17 @@ export type CreatePartBody = {
     isOem?: boolean;
     carBrandId?: string | null;
     partType?: string | null;
+    secCode?: string | null;
+    seg1?: string | null;
+    seg2?: string | null;
+    seg3?: string | null;
+    seg4?: string | null;
+    seg5?: string | null;
+    countryId?: string | null;
+    partGroupId?: string | null;
     spec?: string | null;
     uom?: string;
     isActive?: boolean;
-
-    statusCode?: string;
-    remark?: string | null;
 };
 
 export type UpdatePartBody = {
@@ -76,10 +91,15 @@ export type UpdatePartBody = {
     isOem?: boolean;
     carBrandId?: string | null;
     partType?: string | null;
+    secCode?: string | null;
+    seg1?: string | null;
+    seg2?: string | null;
+    seg3?: string | null;
+    seg4?: string | null;
+    seg5?: string | null;
+    countryId?: string | null;
+    partGroupId?: string | null;
     spec?: string | null;
     uom?: string;
     isActive?: boolean;
-
-    statusCode?: string;
-    remark?: string | null;
 };

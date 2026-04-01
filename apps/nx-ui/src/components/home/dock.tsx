@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import {
   Home,
   Layers3,
@@ -14,6 +13,14 @@ import {
   BarChart3,
   type LucideIcon,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 export type DockNavItem = {
@@ -46,7 +53,7 @@ const DOCK_LETTER_TO_HREF: Record<string, string> = {
 
 const DOCK_ITEM_ALT_HINT: (string | null)[] = ['H', 'B', 'P', 'S', 'W', 'M', 'R'];
 
-function isDockActive(pathname: string, href: string): boolean {
+export function isDockActive(pathname: string, href: string): boolean {
   if (href === '/home') return pathname === '/home';
   if (href === '/dashboard') return pathname === '/dashboard';
   if (href === '/base') return pathname === '/base' || pathname.startsWith('/base/');
@@ -58,109 +65,76 @@ function isEditableTarget(el: EventTarget | null): boolean {
   return el.closest('input, textarea, select, [contenteditable="true"]') !== null;
 }
 
-function DockIcon({
-  item,
-  mouseAxis,
-  active,
-  altHint,
-}: {
-  item: DockNavItem;
-  mouseAxis: ReturnType<typeof useMotionValue<number>>;
-  active: boolean;
-  altHint: string | null;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const distance = useTransform(mouseAxis, (val) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { y: 0, height: 40 };
-    return val - bounds.y - bounds.height / 2;
-  });
-
-  const widthSync = useTransform(distance, [-120, 0, 120], [42, 62, 42]);
-  const width = useSpring(widthSync, { mass: 0.22, stiffness: 210, damping: 18 });
-
-  const title =
-    altHint != null ? `${item.label}（Alt+X 後按 ${altHint}）` : `${item.label}（僅點擊）`;
-
+/** 頂欄星球本體（軌道動畫與 NEXORA 品牌一致） */
+export function PlanetOrbTrigger({ className }: { className?: string }) {
   return (
-    <Link
-      href={item.href}
-      className="group/docklink flex items-center gap-2"
-      title={title}
-      aria-label={altHint ? `${item.label}，快捷鍵 ${altHint}` : item.label}
-    >
-      <motion.div
-        ref={ref}
-        style={{ width, height: width }}
-        className={cn(
-          'flex shrink-0 items-center justify-center rounded-2xl transition-colors cursor-pointer relative',
-          active
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-secondary/80 text-muted-foreground hover:bg-secondary hover:text-foreground',
-        )}
+    <div className={cn('pointer-events-none relative h-10 w-10', className)} aria-hidden>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-br from-primary via-primary to-primary/70 shadow-lg glow-primary" />
+      </div>
+      <div className="absolute inset-1 rounded-full border border-primary/40 animate-orbit">
+        <div className="absolute -top-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-primary/80" />
+      </div>
+      <div className="absolute inset-0 rotate-60 rounded-full border border-primary/20 animate-orbit-reverse">
+        <div className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary/60" />
+      </div>
+      <div
+        className="absolute -inset-0.5 rotate-[-30deg] rounded-full border border-primary/10 animate-orbit"
+        style={{ animationDuration: '16s' }}
       >
-        <item.icon className="w-1/2 h-1/2" />
-        <div className="absolute left-full ml-3 px-2 py-1 bg-card border border-border rounded-md text-xs whitespace-nowrap opacity-0 group-hover/docklink:opacity-100 transition-opacity pointer-events-none z-50 text-foreground">
-          {item.label}
-        </div>
-      </motion.div>
-      {altHint ? (
-        <span
-          className={cn(
-            'w-5 text-center font-mono text-[11px] font-bold tabular-nums leading-none',
-            active ? 'text-primary' : 'text-muted-foreground',
-          )}
-          aria-hidden
-        >
-          {altHint}
-        </span>
-      ) : null}
-    </Link>
+        <div className="absolute top-1/2 -right-0.5 h-1 w-1 -translate-y-1/2 rounded-full bg-primary/50" />
+      </div>
+    </div>
   );
 }
 
-export function Dock() {
+/**
+ * 頂欄左側：星球開啟「往下展開」模組選單（原左側 Dock 項目）。
+ *
+ * 星球按鈕效果（摘要）：
+ * - 軌道動畫：`animate-orbit`／`animate-orbit-reverse`（CSS）
+ * - Hover：`scale-105`、金色邊框與外光 `box-shadow`
+ * - 選單開啟：`data-[state=open]` 與上述類似加亮（與 Radix 狀態同步）
+ * - 快捷鍵：Alt+X 切換；開啟時 H／B／P／S／W／M／R 單鍵跳轉
+ *
+ * 關閉選單後會對 trigger `blur()`，避免 `:focus` 殘留看起來仍「發亮」。
+ */
+export function NavPlanetMenu() {
   const pathname = usePathname() ?? '';
   const router = useRouter();
-  const mouseY = useMotionValue(Infinity);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const isOpenRef = useRef(false);
+  const [open, setOpen] = useState(false);
+  const openRef = useRef(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    isOpenRef.current = isOpen;
-  }, [isOpen]);
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
 
-      // Alt+X：切換 DOCK（不在可編輯欄位內觸發，避免與輸入衝突）
       if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'x') {
         if (isEditableTarget(e.target)) return;
         e.preventDefault();
-        setIsOpen((o) => !o);
+        setOpen((o) => !o);
         return;
       }
 
-      if (!isOpenRef.current) return;
-
+      if (!openRef.current) return;
       if (isEditableTarget(e.target)) return;
 
       if (e.key === 'Escape') {
         e.preventDefault();
-        setIsOpen(false);
+        setOpen(false);
         return;
       }
 
       if (e.key === 'Tab') return;
 
-      // 單鍵導覽：不與 Alt／Ctrl／Meta 併用（併用時僅關閉面板）
       if (e.altKey || e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        setIsOpen(false);
+        setOpen(false);
         return;
       }
 
@@ -168,7 +142,7 @@ export function Dock() {
       const href = letter ? DOCK_LETTER_TO_HREF[letter] : undefined;
       if (href) {
         e.preventDefault();
-        setIsOpen(false);
+        setOpen(false);
         router.push(href);
         return;
       }
@@ -176,7 +150,7 @@ export function Dock() {
       if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
 
       e.preventDefault();
-      setIsOpen(false);
+      setOpen(false);
     };
 
     window.addEventListener('keydown', onKeyDown);
@@ -184,96 +158,107 @@ export function Dock() {
   }, [router]);
 
   useEffect(() => {
-    const onGlobalPointerDown = (e: PointerEvent) => {
-      if (!isOpen) return;
-      const t = e.target as Node | null;
-      if (!t) return;
-      if (triggerRef.current?.contains(t)) return;
-      if (panelRef.current?.contains(t)) return;
-      setIsOpen(false);
-    };
-    document.addEventListener('pointerdown', onGlobalPointerDown);
-    return () => document.removeEventListener('pointerdown', onGlobalPointerDown);
-  }, [isOpen]);
-
-  useEffect(() => {
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setIsOpen(false);
-    });
-    return () => {
-      cancelled = true;
-    };
+    setOpen(false);
   }, [pathname]);
 
-  return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none hidden lg:block">
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-label={isOpen ? '關閉側邊導覽' : '開啟側邊導覽（Alt+X）'}
-        onClick={() =>
-          setIsOpen((prev) => {
-            const next = !prev;
-            return next;
-          })
-        }
-        className={cn(
-          'pointer-events-auto fixed left-[22px] top-1/2 -translate-y-1/2 h-14 w-14 rounded-full',
-          'border border-primary/35 bg-[radial-gradient(circle_at_40%_35%,rgba(244,180,0,0.22)_0%,rgba(244,180,0,0.06)_58%,rgba(0,0,0,0.25)_100%)]',
-          'backdrop-blur-md transition-all duration-300',
-          'shadow-[0_12px_34px_rgba(0,0,0,0.42)]',
-          'hover:shadow-[0_0_22px_rgba(244,180,0,0.45),0_0_42px_rgba(244,180,0,0.22)] hover:border-primary/60',
-          'cursor-pointer',
-        )}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-primary via-primary to-primary/70 shadow-lg glow-primary" />
-        </div>
-        <div className="absolute inset-1 border border-primary/40 rounded-full animate-orbit">
-          <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-primary/80" />
-        </div>
-        <div className="absolute inset-0 border border-primary/20 rounded-full rotate-60 animate-orbit-reverse">
-          <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary/60" />
-        </div>
-        <div
-          className="absolute -inset-0.5 border border-primary/10 rounded-full rotate-[-30deg] animate-orbit"
-          style={{ animationDuration: '16s' }}
-        >
-          <div className="absolute top-1/2 -right-0.5 -translate-y-1/2 w-1 h-1 rounded-full bg-primary/50" />
-        </div>
-      </button>
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      queueMicrotask(() => triggerRef.current?.blur());
+    }
+  };
 
-      <motion.div
-        ref={panelRef}
-        initial={false}
-        animate={{
-          x: isOpen ? 0 : -18,
-          opacity: isOpen ? 1 : 0,
-          scale: isOpen ? 1 : 0.98,
-          pointerEvents: isOpen ? 'auto' : 'none',
-        }}
-        transition={{ type: 'spring', stiffness: 280, damping: 24, mass: 0.78 }}
-        onMouseMove={(e) => mouseY.set(e.clientY)}
-        onMouseLeave={() => mouseY.set(Infinity)}
+  return (
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
+        <button
+          ref={triggerRef}
+          type="button"
+          className={cn(
+            'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
+            'border border-primary/35 bg-[radial-gradient(circle_at_40%_35%,rgba(244,180,0,0.2)_0%,rgba(244,180,0,0.06)_55%,rgba(0,0,0,0.22)_100%)]',
+            'shadow-[0_8px_28px_rgba(0,0,0,0.38)] backdrop-blur-md',
+            'transition-[transform,box-shadow,border-color] duration-300 ease-out',
+            'hover:scale-105 hover:border-primary/65',
+            'hover:shadow-[0_0_20px_rgba(244,180,0,0.42),0_0_40px_rgba(244,180,0,0.18),0_10px_32px_rgba(0,0,0,0.35)]',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            /* 用 Radix data-state，避免與 React open 不同步；勿依 :focus 做「發亮」以免關閉選單後殘影 */
+            'data-[state=open]:scale-105 data-[state=open]:border-primary/70',
+            'data-[state=open]:shadow-[0_0_24px_rgba(244,180,0,0.38),0_8px_28px_rgba(0,0,0,0.38)]',
+          )}
+          aria-label={open ? '關閉模組選單' : '開啟模組選單（Alt+X）'}
+          aria-expanded={open}
+          aria-haspopup="menu"
+        >
+          <PlanetOrbTrigger />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="bottom"
+        align="start"
+        sideOffset={10}
         className={cn(
-          'pointer-events-auto fixed left-[92px] top-1/2 -translate-y-1/2 flex flex-col items-stretch gap-2.5 p-3 pr-3.5 rounded-3xl',
-          'bg-sidebar/92 backdrop-blur-xl border border-sidebar-border',
-          'shadow-[0_14px_55px_rgba(0,0,0,0.42)]',
+          'w-[min(calc(100vw-2rem),20rem)] border-border/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-xl',
         )}
       >
-        {HOME_DOCK_ITEMS.map((item, i) => (
-          <DockIcon
-            key={item.href}
-            item={item}
-            mouseAxis={mouseY}
-            active={isDockActive(pathname, item.href)}
-            altHint={DOCK_ITEM_ALT_HINT[i] ?? null}
-          />
-        ))}
-      </motion.div>
-    </div>
+        <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-normal tracking-widest text-muted-foreground">
+          模組導覽
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-border/60" />
+        <div className="grid max-h-[min(70vh,24rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
+          {HOME_DOCK_ITEMS.map((item, i) => {
+            const active = isDockActive(pathname, item.href);
+            const hint = DOCK_ITEM_ALT_HINT[i];
+            return (
+              <DropdownMenuItem
+                key={item.href}
+                asChild
+                className={cn(
+                  'cursor-pointer rounded-lg p-0 outline-none',
+                  /* 覆寫 shadcn 預設 accent（深色底會變成黑字，像消失）→ 金色主題 */
+                  'focus:bg-primary/15 focus:text-primary',
+                  'data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary',
+                )}
+              >
+                <Link
+                  href={item.href}
+                  className={cn(
+                    'group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm transition-colors',
+                    'text-foreground',
+                    'data-[highlighted]:text-primary',
+                    active && 'bg-primary/15 text-primary',
+                    !active && 'data-[highlighted]:bg-transparent',
+                  )}
+                  title={hint != null ? `${item.label}（Alt+X 後 ${hint}）` : item.label}
+                >
+                  <span
+                    className={cn(
+                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground',
+                      'group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:bg-primary/10 group-data-[highlighted]/dockrow:text-primary',
+                      active && 'border-primary/40 bg-primary/10 text-primary',
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 font-medium group-data-[highlighted]/dockrow:text-primary">
+                    {item.label}
+                  </span>
+                  {hint ? (
+                    <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:text-primary sm:inline-block">
+                      {hint}
+                    </kbd>
+                  ) : null}
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
+        </div>
+        <DropdownMenuSeparator className="bg-border/60" />
+        <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+          Alt+X 開關選單 · 開啟時可單鍵 H B P S W M R
+        </p>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
