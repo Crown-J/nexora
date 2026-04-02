@@ -13,9 +13,11 @@ export type RoleDto = {
   sortNo: number;
   createdAt: string;
   createdBy: string | null;
+  createdByUsername: string | null;
   createdByName: string | null;
   updatedAt: string;
   updatedBy: string | null;
+  updatedByUsername: string | null;
   updatedByName: string | null;
 };
 
@@ -65,5 +67,14 @@ export async function updateRole(
     body: JSON.stringify(body),
   });
   await assertOk(res, 'nxui_base_role_update');
+  return res.json() as Promise<RoleDto>;
+}
+
+export async function setRoleActive(id: string, isActive: boolean): Promise<RoleDto> {
+  const res = await apiFetch(`/role/${encodeURIComponent(id)}/active`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isActive }),
+  });
+  await assertOk(res, 'nxui_base_role_set_active');
   return res.json() as Promise<RoleDto>;
 }

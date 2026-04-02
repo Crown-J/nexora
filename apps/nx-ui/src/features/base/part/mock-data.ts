@@ -13,9 +13,6 @@ export type BasePartRow = {
   brandCode: string | null;
   brandName: string | null;
   isOem: boolean;
-  carBrandId: string | null;
-  carBrandCode: string | null;
-  carBrandName: string | null;
   partType: string | null;
   secCode: string | null;
   seg1: string | null;
@@ -31,45 +28,14 @@ export type BasePartRow = {
   partGroupName: string | null;
   createdAt: string;
   createdBy: string | null;
+  createdByUsername: string | null;
   createdByName: string | null;
+  createdByPerson: string;
   updatedAt: string;
   updatedBy: string | null;
+  updatedByUsername: string | null;
   updatedByName: string | null;
+  updatedByPerson: string;
 };
 
-export const MOCK_BASE_PARTS: BasePartRow[] = [
-  {
-    id: 'p1',
-    sku: 'BRK-201',
-    name: '前來令片組',
-    spec: '陶瓷／適用 CAMRY 18-',
-    unit: '組',
-    isActive: true,
-    partBrandId: null,
-    brandCode: null,
-    brandName: null,
-    isOem: true,
-    carBrandId: null,
-    carBrandCode: null,
-    carBrandName: null,
-    partType: null,
-    secCode: null,
-    seg1: null,
-    seg2: null,
-    seg3: null,
-    seg4: null,
-    seg5: null,
-    countryId: null,
-    countryCode: null,
-    countryName: null,
-    partGroupId: null,
-    partGroupCode: null,
-    partGroupName: null,
-    createdAt: '',
-    createdBy: null,
-    createdByName: null,
-    updatedAt: '',
-    updatedBy: null,
-    updatedByName: null,
-  },
-];
+export const MOCK_BASE_PARTS: BasePartRow[] = [];

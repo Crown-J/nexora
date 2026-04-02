@@ -43,9 +43,18 @@ function buildDefs(): Record<PartnerFieldKey, ColumnDef<PartnerFieldKey>> {
 }
 
 function typeText(t: PartnerType) {
-    if (t === 'CUST') return 'CUST';
-    if (t === 'SUP') return 'SUP';
-    return 'BOTH';
+    const u = String(t).toUpperCase();
+    const map: Record<string, string> = {
+        C: 'C 客戶',
+        S: 'S 零件供應商',
+        T: 'T 外包物流',
+        V: 'V 一般廠商',
+        B: 'B 銀行',
+        CUST: 'CUST',
+        SUP: 'SUP',
+        BOTH: 'BOTH',
+    };
+    return map[u] ?? u;
 }
 
 export function PartnerSplitView() {

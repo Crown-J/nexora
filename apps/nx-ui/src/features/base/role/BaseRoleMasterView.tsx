@@ -2,28 +2,36 @@
  * File: apps/nx-ui/src/features/base/role/BaseRoleMasterView.tsx
  *
  * Purpose:
- * - 職務主檔：LIST + SLIDE（與使用者主檔相同互動）；僅維護職務欄位，成員指派請至「使用者職務設定」
+ * - 職務主檔：LIST + 置中彈窗明細（與使用者主檔相同互動）；單擊選列、雙擊開明細、↑↓／Enter、Esc 階層返回
  */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowUp,
   ArrowUpDown,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   Columns3,
-  Maximize2,
-  Minimize2,
-  X,
+  Pencil,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,27 +39,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
-import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
-import { createRole, listRoles, updateRole, type RoleDto } from '@/features/base/api/role';
+import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
+import { createRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@/features/base/api/role';
 import type { BaseRoleRow } from './mock-data';
+import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
+import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
+import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
+import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
+import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
+import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
 
 type ListColKey =
   | 'code'
   | 'name'
-  | 'sortOrder'
-  | 'isActive'
-  | 'isSystem'
   | 'description'
+  | 'isActive'
   | 'createdAt'
-  | 'createdBy'
-  | 'createdByName'
+  | 'createdByPerson'
   | 'updatedAt'
-  | 'updatedBy'
-  | 'updatedByName';
+  | 'updatedByPerson';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
+type ActiveFilter = 'all' | 'active' | 'inactive';
 
-type DetailDraft = {
+type EditableDraft = {
   code: string;
   name: string;
   description: string;
@@ -61,35 +72,29 @@ type DetailDraft = {
 };
 
 const PAGE_SIZE = 10;
-const LIST_COL_PREF_VERSION = 2;
+const LIST_COL_PREF_VERSION = 3;
 const LIST_COL_PREF_KEY = 'base.role.listcols';
+
 const ALL_LIST_COLS: ListColKey[] = [
   'code',
   'name',
-  'sortOrder',
-  'isActive',
-  'isSystem',
   'description',
+  'isActive',
   'createdAt',
-  'createdBy',
-  'createdByName',
+  'createdByPerson',
   'updatedAt',
-  'updatedBy',
-  'updatedByName',
+  'updatedByPerson',
 ];
+
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
-  code: { label: '代碼', locked: true },
-  name: { label: '名稱' },
-  sortOrder: { label: '排序' },
-  isActive: { label: '狀態' },
-  isSystem: { label: '系統內建' },
-  description: { label: '說明' },
+  code: { label: '職務代碼', locked: true },
+  name: { label: '職務名稱' },
+  description: { label: '職務說明' },
+  isActive: { label: '啟用' },
   createdAt: { label: '建立時間' },
-  createdBy: { label: '建立人ID' },
-  createdByName: { label: '建立人' },
+  createdByPerson: { label: '建立人員' },
   updatedAt: { label: '修改時間' },
-  updatedBy: { label: '修改人ID' },
-  updatedByName: { label: '修改人' },
+  updatedByPerson: { label: '修改人員' },
 };
 
 type RoleListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
@@ -98,21 +103,45 @@ const DEFAULT_COL_PREF: RoleListColPref = {
   colOrder: [...ALL_LIST_COLS],
 };
 
+function mapLegacyListColKey(k: string): ListColKey | null {
+  if (k === 'sortOrder' || k === 'isSystem') return null;
+  if (k === 'createdBy' || k === 'createdByName') return 'createdByPerson';
+  if (k === 'updatedBy' || k === 'updatedByName') return 'updatedByPerson';
+  return ALL_LIST_COLS.includes(k as ListColKey) ? (k as ListColKey) : null;
+}
+
+function dedupePreserveCols(keys: ListColKey[]): ListColKey[] {
+  const seen = new Set<ListColKey>();
+  const out: ListColKey[] = [];
+  for (const k of keys) {
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(k);
+  }
+  return out;
+}
+
 function normalizeColPref(raw: RoleListColPref): RoleListColPref {
-  const order = ALL_LIST_COLS.filter((k) => raw.colOrder.includes(k));
+  const mappedOrder = dedupePreserveCols(
+    raw.colOrder.map(mapLegacyListColKey).filter((k): k is ListColKey => k != null),
+  );
+  const order = ALL_LIST_COLS.filter((k) => mappedOrder.includes(k));
   for (const k of ALL_LIST_COLS) {
     if (!order.includes(k)) order.push(k);
   }
-  let vis = raw.visibleCols.filter((k) => ALL_LIST_COLS.includes(k));
+  let vis = dedupePreserveCols(
+    raw.visibleCols.map(mapLegacyListColKey).filter((k): k is ListColKey => k != null),
+  );
+  vis = vis.filter((k) => ALL_LIST_COLS.includes(k));
   if (!vis.includes('code')) vis = ['code', ...vis];
   return { colOrder: order, visibleCols: vis };
 }
 
-function emptyDraft(): DetailDraft {
+function emptyDraft(): EditableDraft {
   return { code: '', name: '', description: '', sortOrder: '100', isActive: true, isSystem: false };
 }
 
-function draftFromRole(r: BaseRoleRow): DetailDraft {
+function draftFromRole(r: BaseRoleRow): EditableDraft {
   return {
     code: r.code,
     name: r.name,
@@ -124,6 +153,8 @@ function draftFromRole(r: BaseRoleRow): DetailDraft {
 }
 
 function roleDtoToRow(r: RoleDto): BaseRoleRow {
+  const cbName = r.createdByName ?? null;
+  const ubName = r.updatedByName ?? null;
   return {
     id: r.id,
     code: r.code,
@@ -135,9 +166,13 @@ function roleDtoToRow(r: RoleDto): BaseRoleRow {
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     createdBy: r.createdBy ?? null,
-    createdByName: r.createdByName ?? '—',
+    createdByUsername: r.createdByUsername ?? null,
+    createdByName: cbName ?? '—',
+    createdByPerson: formatAuditPersonLabel(r.createdByUsername, cbName),
     updatedBy: r.updatedBy ?? null,
-    updatedByName: r.updatedByName ?? '—',
+    updatedByUsername: r.updatedByUsername ?? null,
+    updatedByName: ubName ?? '—',
+    updatedByPerson: formatAuditPersonLabel(r.updatedByUsername, ubName),
   };
 }
 
@@ -148,24 +183,41 @@ function formatDt(iso: string | null | undefined): string {
   return d.toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' });
 }
 
+function isRadixFilterMenuOpen(): boolean {
+  if (typeof document === 'undefined') return false;
+  return !!document.querySelector(
+    '[data-slot="dropdown-menu-content"][data-state="open"], [data-slot="dropdown-menu-sub-content"][data-state="open"]',
+  );
+}
+
 export function BaseRoleMasterView() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [roles, setRoles] = useState<BaseRoleRow[]>([]);
   const [keyword, setKeyword] = useState('');
-  const [activePick, setActivePick] = useState<'all' | 'active' | 'inactive'>('all');
-  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'sortOrder', dir: 'asc' });
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'code', dir: 'asc' });
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [detailDraft, setDetailDraft] = useState<DetailDraft>(() => emptyDraft());
-  const [baselineDetail, setBaselineDetail] = useState<DetailDraft>(() => emptyDraft());
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft());
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
   const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
+  const detailPanelRef = useRef<HTMLElement | null>(null);
+  const listKeyboardRootRef = useRef<HTMLDivElement>(null);
+
+  const focusListKeyboardRegion = useCallback(() => {
+    requestAnimationFrame(() => {
+      listKeyboardRootRef.current?.focus({ preventScroll: true });
+    });
+  }, []);
 
   const { value: colPref, setValue: setColPref } = useListLocalPref<RoleListColPref>(
     LIST_COL_PREF_KEY,
@@ -209,15 +261,15 @@ export function BaseRoleMasterView() {
   const filtered = useMemo(() => {
     const k = keyword.trim().toLowerCase();
     return roles.filter((r) => {
-      if (activePick === 'active' && !r.isActive) return false;
-      if (activePick === 'inactive' && r.isActive) return false;
+      if (activeFilter === 'active' && !r.isActive) return false;
+      if (activeFilter === 'inactive' && r.isActive) return false;
       if (k) {
         const blob = `${r.code} ${r.name} ${r.description}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
       return true;
     });
-  }, [roles, keyword, activePick]);
+  }, [roles, keyword, activeFilter]);
 
   const sortedRows = useMemo(() => {
     const mult = sort.dir === 'asc' ? 1 : -1;
@@ -229,26 +281,18 @@ export function BaseRoleMasterView() {
           return mult * a.code.localeCompare(b.code, 'zh-Hant');
         case 'name':
           return mult * a.name.localeCompare(b.name, 'zh-Hant');
-        case 'sortOrder':
-          return mult * (a.sortOrder - b.sortOrder);
-        case 'isActive':
-          return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         case 'description':
           return mult * a.description.localeCompare(b.description, 'zh-Hant');
-        case 'isSystem':
-          return mult * ((a.isSystem ? 1 : 0) - (b.isSystem ? 1 : 0));
+        case 'isActive':
+          return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         case 'createdAt':
           return mult * String(a.createdAt).localeCompare(String(b.createdAt));
         case 'updatedAt':
           return mult * String(a.updatedAt ?? '').localeCompare(String(b.updatedAt ?? ''));
-        case 'createdBy':
-          return mult * (a.createdBy ?? '').localeCompare(b.createdBy ?? '');
-        case 'createdByName':
-          return mult * (a.createdByName ?? '').localeCompare(b.createdByName ?? '', 'zh-Hant');
-        case 'updatedBy':
-          return mult * (a.updatedBy ?? '').localeCompare(b.updatedBy ?? '');
-        case 'updatedByName':
-          return mult * (a.updatedByName ?? '').localeCompare(b.updatedByName ?? '', 'zh-Hant');
+        case 'createdByPerson':
+          return mult * (a.createdByPerson ?? '').localeCompare(b.createdByPerson ?? '', 'zh-Hant');
+        case 'updatedByPerson':
+          return mult * (a.updatedByPerson ?? '').localeCompare(b.updatedByPerson ?? '', 'zh-Hant');
         default:
           return 0;
       }
@@ -263,7 +307,17 @@ export function BaseRoleMasterView() {
     return sortedRows.slice(start, start + PAGE_SIZE);
   }, [sortedRows, safePage]);
 
-  const filterKey = `${keyword}|${activePick}`;
+  const pageRowIds = useMemo(() => pageRows.map((r) => r.id), [pageRows]);
+  const {
+    checked,
+    setChecked,
+    headerCheckboxRef,
+    toggleOne,
+    toggleAllVisible,
+    hasSelection: hasListSelection,
+  } = useMasterListRowSelection(pageRowIds);
+
+  const filterKey = `${keyword}|${activeFilter}`;
   const prevFilterKeyRef = useRef('');
   useEffect(() => {
     if (prevFilterKeyRef.current !== filterKey) {
@@ -293,22 +347,99 @@ export function BaseRoleMasterView() {
 
   const closeDetailFull = useCallback(() => {
     setCreating(false);
+    setEditing(false);
     setSelectedId(null);
     setDetailTab('main');
     setDetailFullscreen(false);
-    setSaveConfirmOpen(false);
   }, []);
 
+  const openDetail = useCallback((id: string) => {
+    setSelectedId(id);
+    setFocusedRowId(id);
+    setCreating(false);
+    setEditing(false);
+  }, []);
+
+  const moveFocusedRow = useCallback(
+    (delta: number) => {
+      if (sortedRows.length === 0) return;
+      const cur = focusedRowId ? sortedRows.findIndex((r) => r.id === focusedRowId) : -1;
+      let nextIdx: number;
+      if (cur < 0) nextIdx = delta > 0 ? 0 : sortedRows.length - 1;
+      else nextIdx = Math.max(0, Math.min(sortedRows.length - 1, cur + delta));
+      const row = sortedRows[nextIdx];
+      if (!row) return;
+      setFocusedRowId(row.id);
+      setPage(Math.floor(nextIdx / PAGE_SIZE) + 1);
+    },
+    [sortedRows, focusedRowId],
+  );
+
   useEffect(() => {
-    if (!panelOpen) return;
+    if (creating) return;
+    if (sortedRows.length === 0) {
+      setFocusedRowId(null);
+      return;
+    }
+    setFocusedRowId((prev) => {
+      if (prev != null && sortedRows.some((r) => r.id === prev)) return prev;
+      return sortedRows[0]!.id;
+    });
+  }, [sortedRows, creating]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      closeDetailFull();
+      if (e.key === 'Escape') {
+        if (colPickerOpen) {
+          e.preventDefault();
+          setColPickerOpen(false);
+          return;
+        }
+        if (panelOpen) {
+          e.preventDefault();
+          closeDetailFull();
+          return;
+        }
+        const onBaseSubPage = pathname != null && pathname.startsWith('/base/');
+        if (onBaseSubPage) {
+          e.preventDefault();
+          router.push('/base');
+        }
+        return;
+      }
+
+      if (colPickerOpen || panelOpen) return;
+      if (isMasterListKeyboardBlocked(e.target, detailPanelRef.current, panelOpen)) return;
+      if (isRadixFilterMenuOpen()) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        moveFocusedRow(1);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveFocusedRow(-1);
+        return;
+      }
+      if (e.key === 'Enter') {
+        if (!focusedRowId) return;
+        e.preventDefault();
+        openDetail(focusedRowId);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [panelOpen, closeDetailFull]);
+  }, [
+    colPickerOpen,
+    panelOpen,
+    closeDetailFull,
+    pathname,
+    router,
+    moveFocusedRow,
+    focusedRowId,
+    openDetail,
+  ]);
 
   useEffect(() => {
     setDetailFullscreen(false);
@@ -319,6 +450,8 @@ export function BaseRoleMasterView() {
     const prev = sortedRows[selectedIdxSorted - 1];
     if (!prev) return;
     setSelectedId(prev.id);
+    setFocusedRowId(prev.id);
+    setEditing(false);
     setCreating(false);
   }, [creating, selectedIdxSorted, sortedRows]);
 
@@ -327,96 +460,105 @@ export function BaseRoleMasterView() {
     const next = sortedRows[selectedIdxSorted + 1];
     if (!next) return;
     setSelectedId(next.id);
+    setFocusedRowId(next.id);
+    setEditing(false);
     setCreating(false);
   }, [creating, selectedIdxSorted, sortedRows]);
 
-  useEffect(() => {
-    if (creating) {
-      setDetailDraft(emptyDraft());
-      setBaselineDetail(emptyDraft());
-      return;
-    }
-    if (selectedRole) {
-      const d = draftFromRole(selectedRole);
-      setDetailDraft(d);
-      setBaselineDetail(d);
-    }
-  }, [creating, selectedId, selectedRole]);
+  const formValues = useMemo(() => {
+    if (editing || creating) return draft;
+    if (selectedRole) return draftFromRole(selectedRole);
+    return emptyDraft();
+  }, [editing, creating, draft, selectedRole]);
 
-  const detailDirty = useMemo(() => {
-    if (creating) {
-      return (
-        detailDraft.code.trim() !== '' ||
-        detailDraft.name.trim() !== '' ||
-        detailDraft.description.trim() !== '' ||
-        detailDraft.sortOrder !== '100' ||
-        !detailDraft.isActive
-      );
-    }
-    return JSON.stringify(detailDraft) !== JSON.stringify(baselineDetail);
-  }, [baselineDetail, creating, detailDraft]);
+  const onRowSingleClick = (id: string) => {
+    setFocusedRowId(id);
+  };
 
-  const onRowClick = (id: string) => {
-    if (id === selectedId && !creating) {
-      closeDetailFull();
-      return;
-    }
-    setSelectedId(id);
-    setCreating(false);
+  const onRowDoubleClick = (id: string) => {
+    openDetail(id);
   };
 
   const onAdd = () => {
     setSelectedId(null);
+    setFocusedRowId(null);
     setCreating(true);
+    setEditing(true);
+    setDraft(emptyDraft());
   };
 
-  const onReset = () => {
+  const onBulkActive = async (active: boolean) => {
+    if (checked.size === 0) return;
+    setSaving(true);
+    setError(null);
+    try {
+      for (const id of checked) {
+        const dto = await setRoleActive(id, active);
+        const row = roleDtoToRow(dto);
+        setRoles((prev) => prev.map((r) => (r.id === id ? row : r)));
+      }
+      setChecked(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '批次更新失敗');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onEdit = () => {
+    if (!selectedRole) return;
+    setEditing(true);
+    setDraft(draftFromRole(selectedRole));
+  };
+
+  const onCancel = () => {
     if (creating) {
-      setDetailDraft(emptyDraft());
+      setCreating(false);
+      setEditing(false);
       return;
     }
-    setDetailDraft({ ...baselineDetail });
+    setEditing(false);
   };
 
-  const performSave = async () => {
-    const code = detailDraft.code.trim().toUpperCase();
-    const name = detailDraft.name.trim();
+  const onSave = async () => {
+    const code = draft.code.trim().toUpperCase();
+    const name = draft.name.trim();
     if (!code || !name) return;
-    const sortN = Number.parseInt(detailDraft.sortOrder, 10);
+    const sortN = Number.parseInt(draft.sortOrder, 10);
     const sortOrder = Number.isFinite(sortN) ? sortN : 0;
     setSaving(true);
     setError(null);
-    setSaveConfirmOpen(false);
     try {
       if (creating) {
         const dto = await createRole({
           code,
           name,
-          description: detailDraft.description.trim() || null,
+          description: draft.description.trim() || null,
           isSystem: false,
-          isActive: detailDraft.isActive,
+          isActive: draft.isActive,
           sortNo: sortOrder,
         });
         const row = roleDtoToRow(dto);
         setRoles((prev) => [...prev, row].sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
         setCreating(false);
+        setEditing(false);
         setSelectedId(row.id);
-        const d = draftFromRole(row);
-        setDetailDraft(d);
-        setBaselineDetail(d);
+        setFocusedRowId(row.id);
+        setDraft(draftFromRole(row));
         return;
       }
       if (!selectedId || !selectedRole) return;
       const dto = await updateRole(selectedId, {
-        code,
+        code: selectedRole.isSystem ? undefined : code,
         name,
-        description: detailDraft.description.trim() || null,
-        isActive: detailDraft.isActive,
+        description: draft.description.trim() || null,
+        isActive: draft.isActive,
         sortNo: sortOrder,
       });
       const row = roleDtoToRow(dto);
       setRoles((prev) => prev.map((r) => (r.id === selectedId ? row : r)));
-      setBaselineDetail({ ...detailDraft });
+      setEditing(false);
+      setDraft(draftFromRole(row));
     } catch (e) {
       setError(e instanceof Error ? e.message : '儲存失敗');
     } finally {
@@ -435,6 +577,9 @@ export function BaseRoleMasterView() {
 
   const readonlyFieldCls = 'bg-muted/40 text-muted-foreground cursor-default';
 
+  const codeEditable = creating || (Boolean(editing && selectedRole && !selectedRole.isSystem));
+  const auditSource = creating ? null : selectedRole;
+
   const renderBodyCell = (row: BaseRoleRow, key: ListColKey) => {
     switch (key) {
       case 'code':
@@ -449,42 +594,12 @@ export function BaseRoleMasterView() {
             {row.name}
           </td>
         );
-      case 'sortOrder':
-        return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5 tabular-nums text-muted-foreground">
-            {row.sortOrder}
-          </td>
-        );
       case 'isActive':
-        return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5">
-            <span
-              className={cn(
-                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
-                row.isActive ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-destructive/15 text-destructive',
-              )}
-            >
-              {row.isActive ? '✓' : '×'}
-            </span>
-          </td>
-        );
+        return <MasterActiveListCell key={key} isActive={row.isActive} />;
       case 'description':
         return (
           <td key={key} className="max-w-[240px] truncate px-2 py-2.5 text-xs text-muted-foreground">
             {row.description || '—'}
-          </td>
-        );
-      case 'isSystem':
-        return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5">
-            <span
-              className={cn(
-                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
-                row.isSystem ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300' : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {row.isSystem ? 'S' : '—'}
-            </span>
           </td>
         );
       case 'createdAt':
@@ -494,13 +609,11 @@ export function BaseRoleMasterView() {
             {formatDt(row[key] as string | null)}
           </td>
         );
-      case 'createdBy':
-      case 'updatedBy':
-      case 'createdByName':
-      case 'updatedByName':
+      case 'createdByPerson':
+      case 'updatedByPerson':
         return (
-          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
-            {(row[key] as string | null | undefined) ?? '—'}
+          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row[key] ?? '\u2014'}
           </td>
         );
       default:
@@ -508,21 +621,20 @@ export function BaseRoleMasterView() {
     }
   };
 
-  const tableMinW = Math.max(360, 32 + orderedVisibleCols.length * 100 + 40);
-  const auditSource = creating ? null : selectedRole;
+  const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
+  const activeFilterSummary =
+    activeFilter === 'all' ? '狀態：全部' : activeFilter === 'active' ? '狀態：啟用' : '狀態：停用';
 
   return (
-    <>
-      <div className="relative flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-          <span>
-            若要為職務指派／移除使用者，請至{' '}
-            <Link href="/base/user-role" className="font-medium text-primary underline-offset-4 hover:underline">
-              使用者職務設定
-            </Link>
-            。
-          </span>
-        </div>
+    <div className="relative flex flex-col gap-4">
+      <div className="flex min-h-0 min-w-0 flex-col gap-4">
+        <p className="text-xs text-muted-foreground">
+          若要為職務指派／移除使用者，請至{' '}
+          <Link href="/base/user-role" className="font-medium text-primary underline-offset-4 hover:underline">
+            使用者職務設定
+          </Link>
+          。
+        </p>
 
         {error ? (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -530,358 +642,322 @@ export function BaseRoleMasterView() {
           </div>
         ) : null}
 
-        <section className="glass-card rounded-2xl border border-border/80 p-3 shadow-sm sm:p-4">
-          <div className="relative flex flex-col gap-3" ref={colPickerWrapRef}>
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <Input
-                id="br-keyword"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="代碼、名稱、說明…"
-                autoComplete="off"
-                className="h-9 min-w-[min(100%,12rem)] flex-1 basis-full sm:basis-[18rem] sm:max-w-xl"
-              />
-              <div
-                className="flex flex-1 flex-wrap items-center gap-1 basis-full sm:basis-auto"
-                role="group"
-                aria-label="依啟用狀態篩選"
-              >
-                {(
-                  [
-                    { k: 'all' as const, label: '全部' },
-                    { k: 'active' as const, label: '啟用' },
-                    { k: 'inactive' as const, label: '停用' },
-                  ] as const
-                ).map(({ k, label }) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setActivePick(k)}
-                    className={cn(
-                      'rounded-lg border border-transparent px-2.5 py-1.5 text-xs transition-colors sm:text-sm',
-                      activePick === k
-                        ? 'border-primary/35 bg-primary/10 font-medium text-primary'
-                        : 'text-foreground hover:bg-secondary/60',
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex min-w-0 flex-wrap items-center gap-2 border-t border-border/50 pt-3">
-              <div
-                className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
-                role="navigation"
-                aria-label="分頁"
-              >
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="size-8 shrink-0"
-                  disabled={safePage <= 1 || loading}
-                  onClick={() => setPage(1)}
-                  aria-label="第一頁"
-                  title="第一頁"
-                >
-                  <ChevronsLeft className="size-4" aria-hidden />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="size-8 shrink-0"
-                  disabled={safePage <= 1 || loading}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  aria-label="上一頁"
-                  title="上一頁"
-                >
-                  <ChevronLeft className="size-4" aria-hidden />
-                </Button>
-                <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
-                  {safePage}/{totalPages}
-                </span>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="size-8 shrink-0"
-                  disabled={safePage >= totalPages || loading}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  aria-label="下一頁"
-                  title="下一頁"
-                >
-                  <ChevronRight className="size-4" aria-hidden />
-                </Button>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="size-8 shrink-0"
-                  disabled={safePage >= totalPages || loading}
-                  onClick={() => setPage(totalPages)}
-                  aria-label="最後一頁"
-                  title="最後一頁"
-                >
-                  <ChevronsRight className="size-4" aria-hidden />
-                </Button>
-              </div>
-
+        <section className="glass-card nx-glass-raised rounded-2xl border border-border/80 p-3 sm:p-4">
+          <div className="relative flex min-w-0 flex-wrap items-center gap-2" ref={colPickerWrapRef}>
+            <div
+              className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
+              role="navigation"
+              aria-label="分頁"
+            >
               <Button
                 type="button"
-                size="sm"
-                variant="outline"
-                className="gap-1 px-2"
-                onClick={() => setColPickerOpen((o) => !o)}
-                aria-expanded={colPickerOpen}
-                aria-label="列表欄位設定"
+                size="icon"
+                variant="ghost"
+                className="size-8 shrink-0"
+                disabled={safePage <= 1 || loading}
+                onClick={() => setPage(1)}
+                aria-label="第一頁"
+                title="第一頁"
               >
-                <Columns3 className="size-4" aria-hidden />
-                欄位
+                <ChevronsLeft className="size-4" aria-hidden />
               </Button>
-
-              <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
-                新增
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8 shrink-0"
+                disabled={safePage <= 1 || loading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label="上一頁"
+                title="上一頁"
+              >
+                <ChevronLeft className="size-4" aria-hidden />
               </Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
-                重新載入
-              </Button>
-
-              <span className="ms-auto text-xs text-muted-foreground tabular-nums">
-                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+              <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
+                {safePage}/{totalPages}
               </span>
-
-              {colPickerOpen ? (
-                <div className="absolute left-0 right-0 top-full z-30 mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs"
-                      onClick={() =>
-                        setColPref({
-                          visibleCols: [...ALL_LIST_COLS],
-                          colOrder: [...ALL_LIST_COLS],
-                        })
-                      }
-                    >
-                      重置
-                    </Button>
-                  </div>
-                  <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
-                    {listCols.colOrder.map((key) => {
-                      const def = COL_DEF[key];
-                      const checked = listCols.visibleCols.includes(key);
-                      const locked = Boolean(def.locked);
-                      return (
-                        <div
-                          key={key}
-                          draggable
-                          className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData('text/plain', key);
-                            e.dataTransfer.effectAllowed = 'move';
-                          }}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const from = e.dataTransfer.getData('text/plain') as ListColKey;
-                            if (!ALL_LIST_COLS.includes(from)) return;
-                            setColPref((p) => {
-                              const norm = normalizeColPref(p);
-                              const fromIdx = norm.colOrder.indexOf(from);
-                              const toIdx = norm.colOrder.indexOf(key);
-                              if (fromIdx < 0 || toIdx < 0) return norm;
-                              return { ...norm, colOrder: arrayMove(norm.colOrder, fromIdx, toIdx) };
-                            });
-                          }}
-                        >
-                          <label className="flex flex-1 cursor-pointer items-center gap-2">
-                            <input
-                              type="checkbox"
-                              className="size-3.5 rounded border border-input accent-primary"
-                              checked={locked ? true : checked}
-                              disabled={locked}
-                              onChange={() => {
-                                if (locked) return;
-                                setColPref((p) => {
-                                  const norm = normalizeColPref(p);
-                                  const has = norm.visibleCols.includes(key);
-                                  const nextVis = has
-                                    ? norm.visibleCols.filter((k) => k !== key)
-                                    : [...norm.visibleCols, key];
-                                  return normalizeColPref({ ...norm, visibleCols: nextVis });
-                                });
-                              }}
-                            />
-                            <span>{def.label}</span>
-                          </label>
-                          <span className="text-muted-foreground" aria-hidden>
-                            ⠿
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : null}
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8 shrink-0"
+                disabled={safePage >= totalPages || loading}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                aria-label="下一頁"
+                title="下一頁"
+              >
+                <ChevronRight className="size-4" aria-hidden />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="size-8 shrink-0"
+                disabled={safePage >= totalPages || loading}
+                onClick={() => setPage(totalPages)}
+                aria-label="最後一頁"
+                title="最後一頁"
+              >
+                <ChevronsRight className="size-4" aria-hidden />
+              </Button>
             </div>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="gap-1 px-2"
+              onClick={() => setColPickerOpen((o) => !o)}
+              aria-expanded={colPickerOpen}
+              aria-label="列表欄位設定"
+            >
+              <Columns3 className="size-4" aria-hidden />
+              欄位
+            </Button>
+
+            <MasterToolbarAddOrBulkActive
+              hasSelection={hasListSelection}
+              loading={loading}
+              saving={saving}
+              onAdd={onAdd}
+              onBulkEnable={() => onBulkActive(true)}
+              onBulkDisable={() => onBulkActive(false)}
+            />
+
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="size-9 shrink-0"
+              onClick={() => void reload()}
+              disabled={loading}
+              aria-label="重新載入"
+              title="重新載入"
+            >
+              <RefreshCw className={cn('size-4', loading && 'animate-spin')} aria-hidden />
+            </Button>
+
+            <Input
+              id="br-keyword"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="職務代碼、名稱、說明…"
+              autoComplete="off"
+              className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
+            />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-36"
+                  aria-label="依啟用狀態篩選"
+                >
+                  <span className="truncate">{activeFilterSummary}</span>
+                  <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-48"
+                onCloseAutoFocus={(e) => {
+                  e.preventDefault();
+                  focusListKeyboardRegion();
+                }}
+              >
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">啟用與停用</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  value={activeFilter}
+                  onValueChange={(v) => setActiveFilter(v as ActiveFilter)}
+                >
+                  <DropdownMenuRadioItem value="all">全部</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="active">僅啟用</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="inactive">僅停用</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
+              {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+            </span>
+
+            {colPickerOpen ? (
+              <div className="absolute left-0 right-0 top-full z-30 mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs"
+                    onClick={() =>
+                      setColPref({
+                        visibleCols: [...ALL_LIST_COLS],
+                        colOrder: [...ALL_LIST_COLS],
+                      })
+                    }
+                  >
+                    重置
+                  </Button>
+                </div>
+                <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+                  {listCols.colOrder.map((key) => {
+                    const def = COL_DEF[key];
+                    const checked = listCols.visibleCols.includes(key);
+                    const locked = Boolean(def.locked);
+                    return (
+                      <div
+                        key={key}
+                        draggable
+                        className="flex items-center justify-between gap-2 rounded-lg border border-border/80 bg-card px-2 py-2 text-xs"
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', key);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const from = e.dataTransfer.getData('text/plain') as ListColKey;
+                          if (!ALL_LIST_COLS.includes(from)) return;
+                          setColPref((p) => {
+                            const norm = normalizeColPref(p);
+                            const fromIdx = norm.colOrder.indexOf(from);
+                            const toIdx = norm.colOrder.indexOf(key);
+                            if (fromIdx < 0 || toIdx < 0) return norm;
+                            return { ...norm, colOrder: arrayMove(norm.colOrder, fromIdx, toIdx) };
+                          });
+                        }}
+                      >
+                        <label className="flex flex-1 cursor-pointer items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="size-3.5 rounded border border-input accent-primary"
+                            checked={locked ? true : checked}
+                            disabled={locked}
+                            onChange={() => {
+                              if (locked) return;
+                              setColPref((p) => {
+                                const norm = normalizeColPref(p);
+                                const has = norm.visibleCols.includes(key);
+                                const nextVis = has
+                                  ? norm.visibleCols.filter((k) => k !== key)
+                                  : [...norm.visibleCols, key];
+                                return normalizeColPref({ ...norm, visibleCols: nextVis });
+                              });
+                            }}
+                          />
+                          <span>{def.label}</span>
+                        </label>
+                        <span className="text-muted-foreground" aria-hidden>
+                          ⠿
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
 
-        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
+        <section className="glass-card nx-glass-raised flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 lg:min-h-[420px]">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
-              <div className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
-                <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
-                    <thead>
-                      <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
-                        {orderedVisibleCols.map((key) => (
-                          <th key={key} className="px-2 py-2.5">
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
-                              onClick={() => toggleSort(key)}
-                            >
-                              {COL_DEF[key].label}
-                              {sortIcon(key)}
-                            </button>
-                          </th>
-                        ))}
-                        <th className="w-10 px-1 py-2.5" aria-hidden />
+            <MasterListScrollRegion
+              scrollRef={listKeyboardRootRef}
+              ariaLabel="職務列表，方向鍵選取列，Enter 開啟明細，雙擊開啟明細"
+            >
+              <table className="nx-master-table w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
+                <thead>
+                  <tr className="nx-master-thead-row text-left text-muted-foreground">
+                    <th className="w-10 px-2 py-2.5">
+                      <input
+                        ref={headerCheckboxRef}
+                        type="checkbox"
+                        className="nx-master-row-checkbox"
+                        aria-label="全選本頁列"
+                        onChange={(e) => toggleAllVisible(e.target.checked)}
+                      />
+                    </th>
+                    {orderedVisibleCols.map((key) => (
+                      <th key={key} className="px-2 py-2.5">
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                          onClick={() => toggleSort(key)}
+                        >
+                          {COL_DEF[key].label}
+                          {sortIcon(key)}
+                        </button>
+                      </th>
+                    ))}
+                    <th className="w-10 px-1 py-2.5" aria-hidden />
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageRows.map((row) => {
+                    const isFocused = row.id === focusedRowId;
+                    const isOpenDetail = !creating && panelOpen && row.id === selectedId;
+                    const isHighlighted = isFocused || isOpenDetail;
+                    return (
+                      <tr
+                        key={row.id}
+                        className={cn(
+                          'nx-master-tbody-row cursor-pointer transition-colors duration-150',
+                          isHighlighted && 'nx-row-selected',
+                          isHighlighted
+                            ? 'bg-primary/20 ring-1 ring-inset ring-primary/40 shadow-[inset_0_1px_0_0_rgba(244,180,0,0.14)]'
+                            : 'hover:bg-primary/12 hover:shadow-[inset_0_0_0_1px_rgba(244,180,0,0.2)]',
+                        )}
+                        onClick={() => onRowSingleClick(row.id)}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          onRowDoubleClick(row.id);
+                        }}
+                      >
+                        <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="nx-master-row-checkbox"
+                            checked={checked.has(row.id)}
+                            onChange={(e) => toggleOne(row.id, e.target.checked)}
+                            aria-label={'選取 ' + row.code}
+                          />
+                        </td>
+                        {orderedVisibleCols.map((k) => renderBodyCell(row, k))}
+                        <td className="px-1 py-2.5 text-muted-foreground">
+                          <ChevronRight className="mx-auto size-4 opacity-50" aria-hidden />
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {pageRows.map((row) => {
-                        const isSel = row.id === selectedId;
-                        return (
-                          <tr
-                            key={row.id}
-                            role="button"
-                            tabIndex={0}
-                            className={cn(
-                              'cursor-pointer border-b border-border/40 transition-colors',
-                              isSel ? 'bg-primary/10' : 'hover:bg-secondary/40',
-                            )}
-                            onClick={() => onRowClick(row.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                onRowClick(row.id);
-                              }
-                            }}
-                          >
-                            {orderedVisibleCols.map((k) => renderBodyCell(row, k))}
-                            <td className="px-1 py-2.5 text-muted-foreground">
-                              <ChevronRight className="mx-auto size-4 opacity-50" aria-hidden />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                </table>
-              </div>
-            </div>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </MasterListScrollRegion>
+          </div>
         </section>
       </div>
 
-      {panelOpen ? (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-background/55 backdrop-blur-[2px] dark:bg-background/70"
-            aria-hidden
-            onClick={closeDetailFull}
-            role="button"
-            tabIndex={-1}
-          />
-
-          <aside
-            className={cn(
-              'glass-card flex flex-col overflow-y-auto overscroll-contain border-border/80 bg-background shadow-2xl transition-[transform,opacity,box-shadow] duration-300 ease-out',
-              detailFullscreen
-                ? 'fixed left-1/2 top-1/2 z-50 w-[min(92vw,42rem)] max-w-[calc(100vw-1.5rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border shadow-2xl max-h-[min(85dvh,calc(100dvh-3.5rem-6.5rem))] sm:w-[min(90vw,48rem)]'
-                : 'fixed inset-0 z-50 max-h-[100dvh] rounded-none border-0 max-lg:border-0 lg:inset-auto lg:right-4 lg:top-24 lg:bottom-4 lg:left-auto lg:h-auto lg:max-h-[calc(100vh-7rem)] lg:w-[min(440px,calc(100vw-2rem))] lg:rounded-2xl lg:border lg:shadow-2xl',
-            )}
-            aria-modal="true"
-            role="dialog"
-            aria-labelledby="br-detail-title"
-          >
-            <div
-              className={cn(
-                'flex min-w-0 flex-col',
-                'min-h-0 flex-1 p-4 pt-[max(0.75rem,env(safe-area-inset-top))] lg:pt-4',
-                detailFullscreen &&
-                  'w-full max-w-none px-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6',
-              )}
-            >
-              <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 pb-3 lg:border-0 lg:pb-0">
-                <div className="flex min-w-0 flex-1 items-start gap-2">
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="shrink-0 lg:hidden"
-                    aria-label="返回列表"
-                    onClick={closeDetailFull}
-                  >
-                    <ArrowLeft className="size-5" />
-                  </Button>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
-                    <h2 id="br-detail-title" className="mt-0.5 truncate text-base font-semibold text-foreground lg:text-sm">
-                      {creating ? '新增職務' : auditSource?.name ?? '職務明細'}
-                    </h2>
-                    {!creating && auditSource ? (
-                      <p className="truncate text-xs text-muted-foreground font-mono">{auditSource.code}</p>
-                    ) : null}
-                  </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {!creating && selectedIdxSorted >= 0 ? (
-                    <>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="hidden size-8 lg:inline-flex"
-                        aria-label="上一筆"
-                        disabled={selectedIdxSorted <= 0}
-                        onClick={goDetailPrev}
-                      >
-                        <ChevronLeft className="size-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="hidden size-8 lg:inline-flex"
-                        aria-label="下一筆"
-                        disabled={selectedIdxSorted >= sortedRows.length - 1}
-                        onClick={goDetailNext}
-                      >
-                        <ChevronRight className="size-4" />
-                      </Button>
-                    </>
-                  ) : null}
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="inline-flex size-8"
-                    aria-label={detailFullscreen ? '結束全螢幕' : '全螢幕明細'}
-                    onClick={() => setDetailFullscreen((v) => !v)}
-                  >
-                    {detailFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-                  </Button>
-                  <Button type="button" size="icon" variant="ghost" className="size-8" aria-label="關閉" onClick={closeDetailFull}>
-                    <X className="size-4" />
-                  </Button>
-                </div>
-              </div>
-
+      <BaseMasterModalFrame
+        open={panelOpen}
+        detailPanelRef={detailPanelRef}
+        detailFullscreen={detailFullscreen}
+        onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
+        onClose={closeDetailFull}
+        titleId="br-detail-title"
+        title={creating ? '新增職務' : auditSource?.name ?? '職務明細'}
+        subtitle={
+          !creating && auditSource ? (
+            <span className="block truncate font-mono text-xs text-muted-foreground">{auditSource.code}</span>
+          ) : null
+        }
+        showPrevNext={!creating && selectedIdxSorted >= 0}
+        onPrev={goDetailPrev}
+        onNext={goDetailNext}
+        disablePrev={selectedIdxSorted <= 0}
+        disableNext={selectedIdxSorted >= sortedRows.length - 1}
+      >
               <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
                 <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
                   <TabsTrigger value="main" className="flex-none">
@@ -893,47 +969,54 @@ export function BaseRoleMasterView() {
                 </TabsList>
 
                 <TabsContent value="main" className="mt-3 outline-none">
-                  <div className="space-y-3 pb-28 lg:pb-6">
+                  <div className="space-y-3 pb-2">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="br-d-code">代碼</Label>
+                        <Label htmlFor="br-d-code">職務代碼</Label>
                         <Input
                           id="br-d-code"
-                          value={detailDraft.code}
-                          onChange={(e) => setDetailDraft((d) => ({ ...d, code: e.target.value }))}
+                          value={formValues.code}
+                          onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value }))}
+                          readOnly={!codeEditable}
+                          className={!codeEditable ? readonlyFieldCls : undefined}
                           placeholder="例：ADMIN"
                           autoComplete="off"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="br-d-name">名稱</Label>
+                        <Label htmlFor="br-d-name">職務名稱</Label>
                         <Input
                           id="br-d-name"
-                          value={detailDraft.name}
-                          onChange={(e) => setDetailDraft((d) => ({ ...d, name: e.target.value }))}
+                          value={formValues.name}
+                          onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                          readOnly={!editing && !creating}
+                          className={!editing && !creating ? readonlyFieldCls : undefined}
                           placeholder="職務顯示名稱"
                           autoComplete="off"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="br-d-sort">排序</Label>
+                        <Label htmlFor="br-d-sort">順序</Label>
                         <Input
                           id="br-d-sort"
                           inputMode="numeric"
-                          value={detailDraft.sortOrder}
-                          onChange={(e) => setDetailDraft((d) => ({ ...d, sortOrder: e.target.value }))}
+                          value={formValues.sortOrder}
+                          onChange={(e) => setDraft((d) => ({ ...d, sortOrder: e.target.value }))}
+                          readOnly={!editing && !creating}
+                          className={!editing && !creating ? readonlyFieldCls : undefined}
                           placeholder="數字越小越前面"
                         />
                       </div>
                       <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="br-d-desc">說明</Label>
+                        <Label htmlFor="br-d-desc">職務說明</Label>
                         <Textarea
                           id="br-d-desc"
-                          value={detailDraft.description}
-                          onChange={(e) => setDetailDraft((d) => ({ ...d, description: e.target.value }))}
+                          value={formValues.description}
+                          onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+                          readOnly={!editing && !creating}
+                          className={cn('min-h-[88px] resize-y', !editing && !creating && readonlyFieldCls)}
                           placeholder="職務職責摘要（選填）"
                           rows={3}
-                          className="min-h-[88px] resize-y"
                         />
                       </div>
                       <div className="flex items-center gap-2 pb-2 sm:col-span-2">
@@ -941,8 +1024,9 @@ export function BaseRoleMasterView() {
                           id="br-d-active"
                           type="checkbox"
                           className="size-4 rounded border border-input accent-primary"
-                          checked={detailDraft.isActive}
-                          onChange={(e) => setDetailDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                          checked={formValues.isActive}
+                          disabled={!editing && !creating}
+                          onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
                         />
                         <Label htmlFor="br-d-active" className="font-normal">
                           啟用
@@ -953,7 +1037,7 @@ export function BaseRoleMasterView() {
                           id="br-d-sys"
                           type="checkbox"
                           className="size-4 rounded border border-input accent-primary"
-                          checked={detailDraft.isSystem}
+                          checked={formValues.isSystem}
                           disabled
                           readOnly
                         />
@@ -966,70 +1050,81 @@ export function BaseRoleMasterView() {
                 </TabsContent>
 
                 <TabsContent value="audit" className="mt-3 outline-none">
-                  <div className="space-y-3 pb-28 lg:pb-6">
+                  <div className="space-y-3 pb-2">
                     <div className="space-y-2">
-                      <Label>建立時間</Label>
-                      <Input readOnly value={auditSource ? formatDt(auditSource.createdAt) : '—'} className={readonlyFieldCls} />
+                      <Label htmlFor="br-d-created-at">建立時間</Label>
+                      <Input
+                        id="br-d-created-at"
+                        readOnly
+                        value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
+                        className={readonlyFieldCls}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>建立人員（ID）</Label>
-                      <Input readOnly value={auditSource?.createdBy ?? '—'} className={readonlyFieldCls} />
+                      <Label htmlFor="br-d-created-by">建立人員</Label>
+                      <Input
+                        id="br-d-created-by"
+                        readOnly
+                        value={auditSource?.createdByPerson ?? '\u2014'}
+                        className={readonlyFieldCls}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>建立人員（姓名）</Label>
-                      <Input readOnly value={auditSource?.createdByName ?? '—'} className={readonlyFieldCls} />
+                      <Label htmlFor="br-d-updated-at">修改時間</Label>
+                      <Input
+                        id="br-d-updated-at"
+                        readOnly
+                        value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
+                        className={readonlyFieldCls}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>最後修改時間</Label>
-                      <Input readOnly value={auditSource ? formatDt(auditSource.updatedAt) : '—'} className={readonlyFieldCls} />
+                      <Label htmlFor="br-d-updated-by">修改人員</Label>
+                      <Input
+                        id="br-d-updated-by"
+                        readOnly
+                        value={auditSource?.updatedByPerson ?? '\u2014'}
+                        className={readonlyFieldCls}
+                      />
                     </div>
-                    <div className="space-y-2">
-                      <Label>最後修改人員（ID）</Label>
-                      <Input readOnly value={auditSource?.updatedBy ?? '—'} className={readonlyFieldCls} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>最後修改人員（姓名）</Label>
-                      <Input readOnly value={auditSource?.updatedByName ?? '—'} className={readonlyFieldCls} />
-                    </div>
-                    {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示完整稽核欄位。</p> : null}
+                    {creating ? (
+                      <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p>
+                    ) : null}
                   </div>
                 </TabsContent>
               </Tabs>
 
               <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={onReset}
-                  disabled={!creating && !selectedRole}
-                >
-                  還原
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    if (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedRole || !detailDirty) return;
-                    setSaveConfirmOpen(true);
-                  }}
-                  disabled={
-                    saving || (creating ? !detailDraft.code.trim() || !detailDraft.name.trim() : !selectedRole || !detailDirty)
-                  }
-                >
-                  {saving ? '儲存中…' : '儲存'}
-                </Button>
+                {creating || editing ? (
+                  <>
+                    <Button type="button" size="sm" onClick={() => void onSave()} disabled={saving}>
+                      {saving ? '儲存中…' : '儲存'}
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
+                      取消
+                    </Button>
+                  </>
+                ) : selectedRole ? (
+                  <Button type="button" size="sm" variant="secondary" onClick={onEdit}>
+                    編輯
+                  </Button>
+                ) : (
+                  <p className="text-xs text-muted-foreground">填寫資料後儲存。</p>
+                )}
               </div>
-            </div>
-          </aside>
-        </>
-      ) : null}
 
-      <MasterSaveConfirmDialog
-        open={saveConfirmOpen}
-        onOpenChange={setSaveConfirmOpen}
-        onConfirm={() => void performSave()}
-      />
-    </>
+              {!creating && !editing && selectedRole ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  className="fixed bottom-6 right-5 z-[60] size-14 rounded-full shadow-lg lg:hidden"
+                  aria-label="編輯"
+                  onClick={onEdit}
+                >
+                  <Pencil className="size-6" />
+                </Button>
+              ) : null}
+      </BaseMasterModalFrame>
+    </div>
   );
 }

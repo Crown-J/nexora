@@ -25,4 +25,5 @@ export type LookupLocationItem = {
     isActive: boolean;
 };
 
-export type PartnerType = 'BOTH' | 'CUST' | 'SUP';
+/** 與 partner 主檔一致（含新制單碼） */
+export type PartnerType = 'C' | 'S' | 'T' | 'V' | 'B' | 'BOTH' | 'CUST' | 'SUP';

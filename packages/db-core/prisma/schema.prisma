@@ -9,8 +9,8 @@ generator client {
   output   = "../generated/prisma"
 }
 
-/// Supabase：`DATABASE_URL` 為 Transaction pooler（6543，`postgres.[project-ref]` + `?pgbouncer=true`）；`prisma migrate`／`db push`／`seed` 由 `prisma.config.ts` 讀取 `DIRECT_URL`（常為同 pooler 主機 :5432 或 `db.*.supabase.co`）。
-/// Prisma ORM 7 不支援於此區塊宣告 `url`／`directUrl`（見 prisma.config.ts 與 `.env.example`）。
+/// 連線由執行環境之 `DATABASE_URL`／`DIRECT_URL` 提供（見 `prisma.config.ts` 與 `packages/db-core/.env.example`）；本機預設為 Docker PostgreSQL（`infra/docker/docker-compose.yml`）。
+/// Prisma ORM 7 不支援於此區塊宣告 `url`／`directUrl`。
 datasource db {
   provider = "postgresql"
 }
@@ -50,6 +50,10 @@ model Nx00User {
 
   // RBAC (UserRole / RoleView)
   userRoles Nx00UserRole[]
+
+  /// 使用者可進出之倉庫／據點（nx00_user_warehouse）
+  userWarehouses         Nx00UserWarehouse[]
+  userWarehousesAssigned Nx00UserWarehouse[] @relation("Nx00UserWarehouseAssignedBy")
 
   // reverse relations (created/updated)
   rolesCreated       Nx00Role[]      @relation("Nx00RoleCreatedBy")
@@ -151,6 +155,31 @@ model Nx00UserRole {
   @@index([roleId])
   @@index([isActive])
   @@map("nx00_user_role")
+}
+
+/// =======================================================
+/// NX00 - UserWarehouse（使用者據點對應）
+/// Table: nx00_user_warehouse
+/// =======================================================
+model Nx00UserWarehouse {
+  id          String    @id @default(dbgenerated("gen_nx00_user_warehouse_id()")) @db.VarChar(15)
+  userId      String    @map("user_id") @db.VarChar(15)
+  warehouseId String    @map("warehouse_id") @db.VarChar(15)
+
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+  assignedBy String?   @map("assigned_by") @db.VarChar(15)
+  revokedAt  DateTime? @map("revoked_at")
+  isActive   Boolean   @default(true) @map("is_active")
+
+  user           Nx00User      @relation(fields: [userId], references: [id])
+  warehouse      Nx00Warehouse @relation(fields: [warehouseId], references: [id])
+  assignedByUser Nx00User?     @relation("Nx00UserWarehouseAssignedBy", fields: [assignedBy], references: [id])
+
+  @@unique([userId, warehouseId])
+  @@index([userId])
+  @@index([warehouseId])
+  @@index([isActive])
+  @@map("nx00_user_warehouse")
 }
 
 /// =======================================================
@@ -301,7 +330,6 @@ model Nx00Part {
   countryId String? @map("country_id") @db.VarChar(15)
   country   Nx00Country? @relation(fields: [countryId], references: [id])
   partBrandId String? @map("part_brand_id") @db.VarChar(15)
-  carBrandId  String? @map("car_brand_id") @db.VarChar(15)
   /// A=專用型 / B=通用型 / C=組合型 / D=拆解型（預設 A）
   partType String  @default("A") @map("type") @db.VarChar(1)
   /// 零件種類
@@ -317,7 +345,6 @@ model Nx00Part {
   updatedBy String?  @map("updated_by") @db.VarChar(15)
 
   partBrand Nx00PartBrand? @relation(fields: [partBrandId], references: [id])
-  carBrand  Nx00CarBrand?  @relation(fields: [carBrandId], references: [id])
 
   createdByUser Nx00User? @relation("Nx00PartCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartUpdatedBy", fields: [updatedBy], references: [id])
@@ -332,9 +359,8 @@ model Nx00Part {
   stockLedgers  Nx02StockLedger[]
   stockTakeItems Nx02StockTakeItem[]
 
-  @@unique([code, carBrandId])
+  @@unique([code])
   @@index([partBrandId])
-  @@index([carBrandId])
   @@index([countryId])
   @@index([partGroupId])
   @@index([isActive])
@@ -396,8 +422,6 @@ model Nx00CarBrand {
 
   createdByUser Nx00User? @relation("Nx00CarBrandCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00CarBrandUpdatedBy", fields: [updatedBy], references: [id])
-
-  parts Nx00Part[]
 
   @@index([countryId])
   @@index([isActive])
@@ -512,6 +536,7 @@ model Nx00Warehouse {
   updatedByUser Nx00User? @relation("Nx00WarehouseUpdatedBy", fields: [updatedBy], references: [id])
 
   locations Nx00Location[]
+  userWarehouses Nx00UserWarehouse[]
   poItems   Nx01PoItem[]
   soItems   Nx03SoItem[]
   stockBalances Nx02StockBalance[]

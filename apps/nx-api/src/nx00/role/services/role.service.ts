@@ -41,8 +41,8 @@ type RoleRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { username: string; displayName: string } | null;
+    updatedByUser?: { username: string; displayName: string } | null;
 };
 
 function toRoleDto(row: RoleRowWithAudit): RoleDto {
@@ -58,10 +58,12 @@ function toRoleDto(row: RoleRowWithAudit): RoleDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
+        createdByUsername: row.createdByUser?.username ?? null,
         createdByName: row.createdByUser?.displayName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
+        updatedByUsername: row.updatedByUser?.username ?? null,
         updatedByName: row.updatedByUser?.displayName ?? null,
     };
 }
@@ -106,8 +108,8 @@ export class RoleService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             }),
         ]);
@@ -124,8 +126,8 @@ export class RoleService {
         const row = await this.prisma.nx00Role.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
 
@@ -156,8 +158,8 @@ export class RoleService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -225,8 +227,8 @@ export class RoleService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -284,8 +286,8 @@ export class RoleService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
 

@@ -34,8 +34,10 @@ type UserRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { username: string; displayName: string } | null;
+    updatedByUser?: { username: string; displayName: string } | null;
+
+    userWarehouses?: Array<{ warehouse: { code: string; name: string } | null }>;
 
     userRoles?: Array<{
         isPrimary: boolean;
@@ -43,6 +45,27 @@ type UserRowWithAudit = {
         role: { name: string; code: string } | null;
     }>;
 };
+
+function warehouseSummaryFromUserWarehouses(
+    rows: UserRowWithAudit['userWarehouses'],
+): string | null {
+    if (!rows?.length) return null;
+    const sorted = [...rows].sort((a, b) => {
+        const ca = (a.warehouse?.code ?? '').toLowerCase();
+        const cb = (b.warehouse?.code ?? '').toLowerCase();
+        return ca.localeCompare(cb, 'zh-Hant', { numeric: true, sensitivity: 'base' });
+    });
+    const parts: string[] = [];
+    for (const r of sorted) {
+        const w = r.warehouse;
+        if (!w) continue;
+        const c = (w.code ?? '').trim();
+        const n = (w.name ?? '').trim();
+        if (c && n) parts.push(`${c} ${n}`);
+        else if (c || n) parts.push(c || n);
+    }
+    return parts.length ? parts.join('、') : null;
+}
 
 function jobTitleFromUserRoles(
     userRoles: UserRowWithAudit['userRoles'],
@@ -64,12 +87,16 @@ function toUserDto(row: UserRowWithAudit): UserDto {
         lastLoginAt: row.lastLoginAt ? (row.lastLoginAt.toISOString?.() ?? String(row.lastLoginAt)) : null,
         jobTitle: jobTitleFromUserRoles(row.userRoles),
 
+        warehouseSummary: warehouseSummaryFromUserWarehouses(row.userWarehouses),
+
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
+        createdByUsername: row.createdByUser?.username ?? null,
         createdByName: row.createdByUser?.displayName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
+        updatedByUsername: row.updatedByUser?.username ?? null,
         updatedByName: row.updatedByUser?.displayName ?? null,
     };
 }
@@ -134,8 +161,12 @@ export class UserService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
+                    userWarehouses: {
+                        where: { isActive: true },
+                        select: { warehouse: { select: { code: true, name: true } } },
+                    },
                     userRoles: {
                         where: { isActive: true },
                         include: { role: { select: { name: true, code: true } } },
@@ -156,8 +187,12 @@ export class UserService {
         const row = await this.prisma.nx00User.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
+                userWarehouses: {
+                    where: { isActive: true },
+                    select: { warehouse: { select: { code: true, name: true } } },
+                },
                 userRoles: {
                     where: { isActive: true },
                     include: { role: { select: { name: true, code: true } } },
@@ -206,8 +241,12 @@ export class UserService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
+                    userWarehouses: {
+                        where: { isActive: true },
+                        select: { warehouse: { select: { code: true, name: true } } },
+                    },
                     userRoles: {
                         where: { isActive: true },
                         include: { role: { select: { name: true, code: true } } },
@@ -272,8 +311,12 @@ export class UserService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
+                    userWarehouses: {
+                        where: { isActive: true },
+                        select: { warehouse: { select: { code: true, name: true } } },
+                    },
                     userRoles: {
                         where: { isActive: true },
                         include: { role: { select: { name: true, code: true } } },
@@ -335,8 +378,12 @@ export class UserService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
+                userWarehouses: {
+                    where: { isActive: true },
+                    select: { warehouse: { select: { code: true, name: true } } },
+                },
                 userRoles: {
                     where: { isActive: true },
                     include: { role: { select: { name: true, code: true } } },

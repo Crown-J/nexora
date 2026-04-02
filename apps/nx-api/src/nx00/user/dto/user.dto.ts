@@ -17,12 +17,18 @@ export type UserDto = {
     /** 主檔 UI：由 nx00_user_role（is_active=true）中 is_primary 或第一筆對應之 role.name */
     jobTitle: string | null;
 
+    /** 隸屬倉庫摘要：由 nx00_user_warehouse（is_active=true）彙整，多筆以「、」分隔 */
+    warehouseSummary: string | null;
+
     createdAt: string;
     createdBy: string | null;
+    /** 建立者帳號（與 createdByName 併用可組「帳號 姓名」） */
+    createdByUsername: string | null;
     createdByName: string | null;
 
     updatedAt: string;
     updatedBy: string | null;
+    updatedByUsername: string | null;
     updatedByName: string | null;
 };
 

@@ -61,7 +61,7 @@ export function PartSplitView() {
     const defsByKey = useMemo(() => buildDefs(), []);
 
     // ===== list 設定（localStorage）=====
-    const pref = useListLocalPref<PartListConfig>('nx00.part.listConfig', 1, {
+    const pref = useListLocalPref<PartListConfig>('nx00.part.listConfig', 2, {
         visibleCols: defaultVisible,
         colOrder: defaultOrder,
     });
@@ -140,10 +140,6 @@ export function PartSplitView() {
             const p = row.partType;
             return p ? m[p] ?? p : '-';
         }
-        if (key === 'carBrandName') {
-            return row.carBrandName || row.carBrandCode || '-';
-        }
-
         const v = (row as any)[key];
 
         if (key.endsWith('At')) return v ? formatDatetimeZhTw(v) : '-';

@@ -49,7 +49,13 @@ export class AuthService {
 
     const user = await this.prisma.nx00User.findUnique({
       where: { username: uname },
-      include: { tenant: true },
+      include: {
+        tenant: true,
+        userRoles: {
+          where: { isActive: true },
+          include: { role: { select: { code: true } } },
+        },
+      },
     });
 
     if (!user) {
@@ -69,15 +75,17 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    const isPlatformAdmin = user.userRoles.some((ur) => ur.role.code === 'ADMIN');
+
     let subscription: { plan: { code: string } } | null = null;
-    if (user.tenantId) {
+    if (!isPlatformAdmin && user.tenantId) {
       subscription = await this.prisma.nx99Subscription.findFirst({
         where: { tenantId: user.tenantId, status: 'A' },
         include: { plan: true },
       });
     }
 
-    const token = await this.buildToken(user, subscription);
+    const token = await this.buildToken(user, subscription, isPlatformAdmin);
     await this.prisma.nx00User.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -100,7 +108,17 @@ export class AuthService {
   private async buildToken(
     user: { id: string; username: string; tenant?: { id: string; code: string } | null },
     subscription: { plan: { code: string } } | null,
+    isPlatformAdmin: boolean,
   ) {
+    if (isPlatformAdmin) {
+      return this.jwt.signAsync({
+        sub: user.id,
+        username: user.username,
+        tenantId: null,
+        tenantCode: null,
+        planCode: null,
+      });
+    }
     return this.jwt.signAsync({
       sub: user.id,
       username: user.username,

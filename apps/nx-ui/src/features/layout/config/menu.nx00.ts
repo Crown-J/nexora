@@ -38,6 +38,7 @@ export function getNx00SideMenu(): SideMenuGroup[] {
         { key: 'nx00.user', label: '使用者基本資料', href: '/base/user' },
         { key: 'nx00.role', label: '職務主檔', href: '/base/role' },
         { key: 'nx00.user-role', label: '使用者職務設定', href: '/base/user-role' },
+        { key: 'nx00.user-warehouse', label: '使用者據點設定', href: '/base/user-warehouse' },
         { key: 'nx00.role-view', label: '職務權限設定', href: '/base/role-view' },
       ],
     },
@@ -45,19 +46,20 @@ export function getNx00SideMenu(): SideMenuGroup[] {
       group: '產品管理',
       items: [
         { key: 'nx00.part', label: '零件基本資料', href: '/base/part' },
-        { key: 'nx00.brand', label: '廠牌基本資料', href: '/base/brand' },
+        { key: 'nx00.car-brand', label: '汽車廠牌主檔', href: '/base/car-brand' },
+        { key: 'nx00.part-brand', label: '零件廠牌主檔', href: '/base/part-brand' },
       ],
     },
     {
       group: '倉庫與庫位管理',
       items: [
-        { key: 'nx00.warehouse', label: '倉庫／庫位主檔', href: '/base/location' },
-        { key: 'nx00.location', label: '倉庫／庫位主檔', href: '/base/location' },
+        { key: 'nx00.warehouse', label: '倉庫主檔', href: '/base/warehouse' },
+        { key: 'nx00.location', label: '庫位主檔', href: '/base/location' },
       ],
     },
     {
       group: '供應商與客戶管理',
-      items: [{ key: 'nx00.partner', label: '往來客戶基本資料', href: '/base/partner' }],
+      items: [{ key: 'nx00.partner', label: '客戶主檔', href: '/base/partner' }],
     },
   ];
 }

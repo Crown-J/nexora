@@ -38,8 +38,8 @@ type WarehouseRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { username: string; displayName: string } | null;
+    updatedByUser?: { username: string; displayName: string } | null;
 };
 
 function toWarehouseDto(row: WarehouseRowWithAudit): WarehouseDto {
@@ -53,10 +53,12 @@ function toWarehouseDto(row: WarehouseRowWithAudit): WarehouseDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
+        createdByUsername: row.createdByUser?.username ?? null,
         createdByName: row.createdByUser?.displayName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
+        updatedByUsername: row.updatedByUser?.username ?? null,
         updatedByName: row.updatedByUser?.displayName ?? null,
     };
 }
@@ -102,8 +104,8 @@ export class WarehouseService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             }),
         ]);
@@ -120,8 +122,8 @@ export class WarehouseService {
         const row = await this.prisma.nx00Warehouse.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
         if (!row) throw new NotFoundException('Warehouse not found');
@@ -149,8 +151,8 @@ export class WarehouseService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -224,8 +226,8 @@ export class WarehouseService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -284,8 +286,8 @@ export class WarehouseService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
 

@@ -17,6 +17,8 @@ export type BrandDto = {
     name: string;
     /** 國家主檔 id（nx00_country） */
     countryId: string | null;
+    countryCode?: string | null;
+    countryName?: string | null;
     /** 國家代碼（等同 nx00_country.code；後端保留欄位名） */
     originCountry: string | null;
     remark: string | null;
@@ -25,10 +27,12 @@ export type BrandDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername?: string | null;
     createdByName?: string | null;
 
     updatedAt: string | null;
     updatedBy: string | null;
+    updatedByUsername?: string | null;
     updatedByName?: string | null;
 };
 

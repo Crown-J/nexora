@@ -1,5 +1,5 @@
 /**
- * Car brand lookup（nx00_car_brand）— 零件主檔 car_brand_id 下拉
+ * Car brand lookup（nx00_car_brand）— 表單下拉用
  */
 
 'use client';

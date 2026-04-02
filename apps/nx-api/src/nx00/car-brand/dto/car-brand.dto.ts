@@ -7,6 +7,11 @@ export type CarBrandDto = {
     code: string;
     name: string;
     countryId: string | null;
+    /** nx00_country.code */
+    countryCode: string | null;
+    /** nx00_country.name */
+    countryName: string | null;
+    /** 同 countryCode，保留舊欄位名 */
     originCountry: string | null;
     remark: string | null;
     isActive: boolean;
@@ -14,10 +19,12 @@ export type CarBrandDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername: string | null;
     createdByName: string | null;
 
     updatedAt: string;
     updatedBy: string | null;
+    updatedByUsername: string | null;
     updatedByName: string | null;
 };
 

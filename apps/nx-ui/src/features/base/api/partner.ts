@@ -3,11 +3,13 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import type { PagedResult } from './types';
 
+export type PartnerType = 'C' | 'S' | 'T' | 'V' | 'B' | 'BOTH' | 'CUST' | 'SUP';
+
 export type PartnerDto = {
   id: string;
   code: string;
   name: string;
-  partnerType: 'BOTH' | 'CUST' | 'SUP';
+  partnerType: PartnerType;
   contactName: string | null;
   phone: string | null;
   mobile: string | null;
@@ -17,13 +19,13 @@ export type PartnerDto = {
   isActive: boolean;
   createdAt: string;
   createdBy: string | null;
+  createdByUsername: string | null;
   createdByName: string | null;
   updatedAt: string;
   updatedBy: string | null;
+  updatedByUsername: string | null;
   updatedByName: string | null;
 };
-
-export type PartnerType = PartnerDto['partnerType'];
 
 export type CreatePartnerBody = {
   code: string;
@@ -53,7 +55,7 @@ export type UpdatePartnerBody = {
 
 export async function listPartners(params: {
   q?: string;
-  partnerType?: PartnerDto['partnerType'];
+  partnerType?: PartnerType;
   page?: number;
   pageSize?: number;
 }): Promise<PagedResult<PartnerDto>> {

@@ -20,7 +20,7 @@ import { AuditGrid } from '@/shared/ui/audit/AuditGrid';
 import { FormPanelShell } from '@/shared/ui/listform/FormPanelShell';
 
 import { useBrandLookup } from '@/features/nx00/lookup/hooks/useBrandLookup';
-import { useCarBrandLookup } from '@/features/nx00/lookup/hooks/useCarBrandLookup';
+import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 
 type Props = {
     mode: 'empty' | 'new' | 'edit';
@@ -43,7 +43,6 @@ type FormState = {
     name: string;
     partBrandId: string;
     isOem: boolean;
-    carBrandId: string;
     partType: string;
     spec: string;
     uom: string;
@@ -56,7 +55,6 @@ function toFormState(d: PartDto | null): FormState {
         name: d?.name ?? '',
         partBrandId: d?.partBrandId ?? '',
         isOem: d?.isOem ?? true,
-        carBrandId: d?.carBrandId ?? '',
         partType: d?.partType ?? '',
         spec: d?.spec ?? '',
         uom: d?.uom ?? 'pcs',
@@ -65,8 +63,10 @@ function toFormState(d: PartDto | null): FormState {
 }
 
 function pickAuditText(detail: PartDto, which: 'created' | 'updated'): string {
-    if (which === 'created') return String(detail.createdByName ?? detail.createdBy ?? '-');
-    return String(detail.updatedByName ?? detail.updatedBy ?? '-');
+    if (which === 'created') {
+        return formatAuditPersonLabel(detail.createdByUsername ?? null, detail.createdByName ?? null);
+    }
+    return formatAuditPersonLabel(detail.updatedByUsername ?? null, detail.updatedByName ?? null);
 }
 
 export function PartFormPanel(props: Props) {
@@ -79,7 +79,6 @@ export function PartFormPanel(props: Props) {
     // ===== lookup: brands =====
     // 預設：只抓啟用的品牌（你若希望包含停用，改成 useBrandLookup(false) 或在 hook 內調整）
     const brandLookup = useBrandLookup(true);
-    const carBrandLookup = useCarBrandLookup(true);
 
     // 檢視/編輯切換（只在 edit mode 有意義）
     const [editing, setEditing] = useState(false);
@@ -98,7 +97,6 @@ export function PartFormPanel(props: Props) {
                 name: '',
                 partBrandId: '',
                 isOem: true,
-                carBrandId: '',
                 partType: '',
                 spec: '',
                 uom: 'pcs',
@@ -130,12 +128,6 @@ export function PartFormPanel(props: Props) {
         return hit?.label ?? '-';
     }, [form.partBrandId, brandLookup.options]);
 
-    const carBrandText = useMemo(() => {
-        if (!form.carBrandId) return '-';
-        const hit = carBrandLookup.options?.find((o) => o.value === form.carBrandId);
-        return hit?.label ?? '-';
-    }, [form.carBrandId, carBrandLookup.options]);
-
     const submit = async () => {
         const code = form.code.trim();
         const name = form.name.trim();
@@ -146,7 +138,6 @@ export function PartFormPanel(props: Props) {
             name,
             partBrandId: form.partBrandId.trim() ? form.partBrandId.trim() : null,
             isOem: form.isOem,
-            carBrandId: form.carBrandId.trim() ? form.carBrandId.trim() : null,
             partType: form.partType.trim() ? form.partType.trim() : null,
             spec: form.spec.trim() ? form.spec.trim() : null,
             uom: form.uom.trim() ? form.uom.trim() : 'pcs',
@@ -201,69 +192,36 @@ export function PartFormPanel(props: Props) {
                 />
             </FormField>
 
-            <div className="grid grid-cols-2 gap-3">
-                <FormField
-                    label="零件品牌（partBrandId）"
-                    hint={
-                        readOnly
-                            ? '（顯示品牌代碼 + 名稱；實際儲存仍為 id）'
-                            : brandLookup.error
-                                ? `品牌清單載入失敗：${brandLookup.error}`
-                                : brandLookup.loading
-                                    ? '品牌清單載入中...'
-                                    : '下拉顯示：代碼 + 名稱（可用代碼或名稱快速找）'
-                    }
-                >
-                    {readOnly ? (
-                        <ReadOnlyBox value={brandText} />
-                    ) : (
-                        <select
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20 disabled:opacity-60"
-                            value={form.partBrandId}
-                            onChange={(e) => setForm((p) => ({ ...p, partBrandId: e.target.value }))}
-                            disabled={brandLookup.loading}
-                        >
-                            <option value="">（未指定）</option>
-                            {(brandLookup.options ?? []).map((opt) => (
-                                <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                </FormField>
-
-                <FormField
-                    label="汽車廠牌（car_brand_id）"
-                    hint={
-                        readOnly
-                            ? undefined
-                            : carBrandLookup.error
-                              ? `載入失敗：${carBrandLookup.error}`
-                              : carBrandLookup.loading
-                                ? '載入中...'
-                                : '選擇汽車品牌'
-                    }
-                >
-                    {readOnly ? (
-                        <ReadOnlyBox value={carBrandText} />
-                    ) : (
-                        <select
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20 disabled:opacity-60"
-                            value={form.carBrandId}
-                            onChange={(e) => setForm((p) => ({ ...p, carBrandId: e.target.value }))}
-                            disabled={carBrandLookup.loading}
-                        >
-                            <option value="">（未指定）</option>
-                            {(carBrandLookup.options ?? []).map((opt) => (
-                                <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-                </FormField>
-            </div>
+            <FormField
+                label="零件品牌（partBrandId）"
+                hint={
+                    readOnly
+                        ? '（顯示品牌代碼 + 名稱；實際儲存仍為 id）'
+                        : brandLookup.error
+                          ? `品牌清單載入失敗：${brandLookup.error}`
+                          : brandLookup.loading
+                            ? '品牌清單載入中...'
+                            : '下拉顯示：代碼 + 名稱（可用代碼或名稱快速找）'
+                }
+            >
+                {readOnly ? (
+                    <ReadOnlyBox value={brandText} />
+                ) : (
+                    <select
+                        className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20 disabled:opacity-60"
+                        value={form.partBrandId}
+                        onChange={(e) => setForm((p) => ({ ...p, partBrandId: e.target.value }))}
+                        disabled={brandLookup.loading}
+                    >
+                        <option value="">（未指定）</option>
+                        {(brandLookup.options ?? []).map((opt) => (
+                            <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+                )}
+            </FormField>
 
             <div className="grid grid-cols-2 gap-3">
                 <FormField label="正廠零件（is_oem）">

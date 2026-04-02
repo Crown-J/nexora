@@ -22,6 +22,12 @@ RETURNS VARCHAR AS $$
   SELECT 'NX00USRO' || LPAD(nextval('seq_nx00_user_role_id')::text, 7, '0');
 $$ LANGUAGE sql;
 
+CREATE SEQUENCE IF NOT EXISTS seq_nx00_user_warehouse_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx00_user_warehouse_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX00USWA' || LPAD(nextval('seq_nx00_user_warehouse_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
 CREATE SEQUENCE IF NOT EXISTS seq_nx00_view_id START 1;
 CREATE OR REPLACE FUNCTION gen_nx00_view_id()
 RETURNS VARCHAR AS $$

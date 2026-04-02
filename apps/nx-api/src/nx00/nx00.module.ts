@@ -18,6 +18,7 @@ import { LookupModule } from './lookup/lookup.module';
 import { UserModule } from './user/user.module';
 import { RoleModule } from './role/role.module';
 import { UserRoleModule } from './user-role/user-role.module';
+import { UserWarehouseModule } from './user-warehouse/user-warehouse.module';
 import { ViewModule } from './view/view.module';
 import { RoleViewModule } from './role-view/role-view.module';
 
@@ -49,6 +50,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     UserModule,
     RoleModule,
     UserRoleModule,
+    UserWarehouseModule,
     ViewModule,
     RoleViewModule,
 

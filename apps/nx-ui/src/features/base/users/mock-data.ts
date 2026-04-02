@@ -9,26 +9,63 @@
 /** 模擬「目前登入者」建立／修改資料時寫入的名稱 */
 export const MOCK_CURRENT_OPERATOR_NAME = '王管理';
 
+/** 建立／修改人員顯示：`帳號 姓名`（缺其一則只顯示有的欄） */
+export function formatAuditPersonLabel(
+  username: string | null | undefined,
+  displayName: string | null | undefined,
+): string {
+  const u = (username ?? '').trim();
+  const n = (displayName ?? '').trim();
+  if (!u && !n) return '\u2014';
+  if (u && n) return `${u} ${n}`;
+  return u || n;
+}
+
+/** 倉庫顯示：`代碼 名稱`（缺其一則只顯示有的欄） */
+export function formatWarehouseLabel(
+  code: string | null | undefined,
+  name: string | null | undefined,
+): string {
+  const c = (code ?? '').trim();
+  const n = (name ?? '').trim();
+  if (!c && !n) return '\u2014';
+  if (c && n) return `${c} ${n}`;
+  return c || n;
+}
+
 export type BaseUserRow = {
   id: string;
   username: string;
   displayName: string;
   jobTitle: string;
+  /** 列表／明細「隸屬倉庫」顯示文字（多據點由 nx00_user_warehouse 彙整） */
+  warehouseLabel: string;
   email: string;
   phone: string;
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
   createdBy?: string | null;
+  createdByUsername?: string | null;
   createdByName: string;
+  /** 列表／明細「建立人員」 */
+  createdByPerson: string;
   updatedAt: string | null;
   updatedBy?: string | null;
+  updatedByUsername?: string | null;
   updatedByName: string | null;
+  /** 列表／明細「修改人員」 */
+  updatedByPerson: string;
 };
 
 export const MOCK_JOB_TITLES = ['系統管理員', '倉管', '採購', '業務', '財務', '客服'] as const;
 
-export const MOCK_BASE_USERS: BaseUserRow[] = [
+type MockUserSeed = Omit<BaseUserRow, 'createdByPerson' | 'updatedByPerson' | 'warehouseLabel'> & {
+  warehouseCode?: string;
+  warehouseName?: string;
+};
+
+const MOCK_BASE_USERS_SEED: MockUserSeed[] = [
   {
     id: 'u1',
     username: 'admin',
@@ -254,3 +291,10 @@ export const MOCK_BASE_USERS: BaseUserRow[] = [
     updatedByName: null,
   },
 ];
+
+export const MOCK_BASE_USERS: BaseUserRow[] = MOCK_BASE_USERS_SEED.map((u) => ({
+  ...u,
+  warehouseLabel: formatWarehouseLabel(u.warehouseCode, u.warehouseName),
+  createdByPerson: formatAuditPersonLabel(u.createdByUsername ?? u.createdBy, u.createdByName),
+  updatedByPerson: formatAuditPersonLabel(u.updatedByUsername ?? u.updatedBy, u.updatedByName),
+}));

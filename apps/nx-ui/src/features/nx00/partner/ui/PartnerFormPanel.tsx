@@ -69,9 +69,18 @@ function pickAuditText(detail: PartnerDto, which: 'created' | 'updated'): string
 }
 
 function typeLabel(t: PartnerType) {
-    if (t === 'CUST') return 'CUST（客戶）';
-    if (t === 'SUP') return 'SUP（供應商）';
-    return 'BOTH（兼具）';
+    const u = String(t).toUpperCase() as PartnerType;
+    const map: Record<string, string> = {
+        C: 'C（客戶）',
+        S: 'S（零件供應商）',
+        T: 'T（外包物流）',
+        V: 'V（一般廠商）',
+        B: 'B（銀行）',
+        CUST: 'CUST（客戶）',
+        SUP: 'SUP（供應商）',
+        BOTH: 'BOTH（兼具）',
+    };
+    return map[u] ?? String(t);
 }
 
 export function PartnerFormPanel(props: Props) {
@@ -193,6 +202,11 @@ export function PartnerFormPanel(props: Props) {
                             value={form.partnerType}
                             onChange={(e) => setForm((p) => ({ ...p, partnerType: e.target.value as PartnerType }))}
                         >
+                            <option value="C">{typeLabel('C')}</option>
+                            <option value="S">{typeLabel('S')}</option>
+                            <option value="T">{typeLabel('T')}</option>
+                            <option value="V">{typeLabel('V')}</option>
+                            <option value="B">{typeLabel('B')}</option>
                             <option value="BOTH">{typeLabel('BOTH')}</option>
                             <option value="CUST">{typeLabel('CUST')}</option>
                             <option value="SUP">{typeLabel('SUP')}</option>

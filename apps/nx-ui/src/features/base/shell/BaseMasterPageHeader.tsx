@@ -14,7 +14,8 @@ import { BaseMasterQuickNav } from '@/features/base/shell/BaseMasterQuickNav';
 
 export type BaseMasterPageHeaderProps = {
   title: string;
-  description: string;
+  /** 省略時不顯示說明段落 */
+  description?: string;
 };
 
 export function BaseMasterPageHeader({ title, description }: BaseMasterPageHeaderProps) {
@@ -34,7 +35,9 @@ export function BaseMasterPageHeader({ title, description }: BaseMasterPageHeade
         <div className="min-w-0 flex-1 space-y-1">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">MASTER DATA</p>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">{description}</p>
+          {description ? (
+            <p className="text-sm text-muted-foreground max-w-2xl">{description}</p>
+          ) : null}
         </div>
         <div className="shrink-0 lg:pt-1">
           <BaseMasterQuickNav />

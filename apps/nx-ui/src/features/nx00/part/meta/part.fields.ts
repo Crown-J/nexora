@@ -13,16 +13,18 @@ export type PartFieldKey =
     | 'brandCode'
     | 'brandName'
     | 'isOem'
-    | 'carBrandName'
     | 'partType'
+    | 'secCode'
     | 'spec'
     | 'uom'
     | 'isActive'
     | 'createdAt'
     | 'createdBy'
+    | 'createdByUsername'
     | 'createdByName'
     | 'updatedAt'
     | 'updatedBy'
+    | 'updatedByUsername'
     | 'updatedByName';
 
 export type PartFieldDef = {
@@ -34,13 +36,13 @@ export type PartFieldDef = {
 };
 
 export const PART_FIELDS: PartFieldDef[] = [
-    { key: 'code', label: '料號', inList: true, sortable: true, filterable: true },
+    { key: 'code', label: '基準料號', inList: true, sortable: true, filterable: true },
     { key: 'name', label: '品名', inList: true, sortable: true, filterable: true },
 
-    { key: 'brandName', label: '零件品牌', inList: true, sortable: true, filterable: true },
-    { key: 'isOem', label: '正廠', inList: true, sortable: true, filterable: true },
-    { key: 'carBrandName', label: '汽車廠牌', inList: true, sortable: true, filterable: true },
-    { key: 'partType', label: '類型', inList: true, sortable: true, filterable: true },
+    { key: 'brandName', label: '廠牌', inList: true, sortable: true, filterable: true },
+    { key: 'isOem', label: '正廠件', inList: true, sortable: true, filterable: true },
+    { key: 'partType', label: '零件類型', inList: true, sortable: true, filterable: true },
+    { key: 'secCode', label: '廠牌料號', inList: true, sortable: true, filterable: true },
     { key: 'spec', label: '規格', inList: true, sortable: true, filterable: true },
     { key: 'uom', label: '單位', inList: true, sortable: true, filterable: true },
     { key: 'isActive', label: '啟用', inList: true, sortable: true, filterable: true },
@@ -50,9 +52,11 @@ export const PART_FIELDS: PartFieldDef[] = [
 
     { key: 'createdAt', label: '建立時間', inList: false, sortable: true },
     { key: 'createdBy', label: '建立人ID', inList: false, sortable: true },
-    { key: 'createdByName', label: '建立人', inList: false, sortable: true },
+    { key: 'createdByUsername', label: '建立人帳號', inList: false, sortable: true },
+    { key: 'createdByName', label: '建立人姓名', inList: false, sortable: true },
 
     { key: 'updatedAt', label: '更新時間', inList: false, sortable: true },
     { key: 'updatedBy', label: '更新人ID', inList: false, sortable: true },
-    { key: 'updatedByName', label: '更新人', inList: false, sortable: true },
+    { key: 'updatedByUsername', label: '更新人帳號', inList: false, sortable: true },
+    { key: 'updatedByName', label: '更新人姓名', inList: false, sortable: true },
 ];

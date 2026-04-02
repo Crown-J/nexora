@@ -16,10 +16,12 @@ export type WarehouseDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername: string | null;
     createdByName: string | null;
 
     updatedAt: string;
     updatedBy: string | null;
+    updatedByUsername: string | null;
     updatedByName: string | null;
 };
 

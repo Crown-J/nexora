@@ -12,11 +12,17 @@ export type UserDto = {
   isActive: boolean;
   lastLoginAt: string | null;
   jobTitle: string | null;
+  warehouseSummary: string | null;
+  /** 舊版 API 相容（已改為多據點 summary 後可能仍短暫存在） */
+  warehouseCode?: string | null;
+  warehouseName?: string | null;
   createdAt: string;
   createdBy: string | null;
+  createdByUsername: string | null;
   createdByName: string | null;
   updatedAt: string;
   updatedBy: string | null;
+  updatedByUsername: string | null;
   updatedByName: string | null;
 };
 

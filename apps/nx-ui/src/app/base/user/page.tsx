@@ -79,10 +79,7 @@ export default function BaseUserPage() {
       }
     >
       <div className="w-full min-w-0 space-y-6">
-        <BaseMasterPageHeader
-          title="使用者主檔"
-          description="維護系統使用者與職稱（目前為前端 mock，未接 API）。"
-        />
+        <BaseMasterPageHeader title="使用者主檔" />
 
         <BaseUserMasterView />
       </div>

@@ -16,9 +16,6 @@ export type PartDto = {
     brandName?: string | null;
 
     isOem: boolean;
-    carBrandId: string | null;
-    carBrandCode?: string | null;
-    carBrandName?: string | null;
 
     /** A/B/C/D */
     partType: string | null;
@@ -44,10 +41,12 @@ export type PartDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername?: string | null;
     createdByName?: string | null;
 
     updatedAt: string;
     updatedBy: string | null;
+    updatedByUsername?: string | null;
     updatedByName?: string | null;
 };
 
@@ -69,7 +68,6 @@ export type CreatePartBody = {
     name: string;
     partBrandId?: string | null;
     isOem?: boolean;
-    carBrandId?: string | null;
     partType?: string | null;
     secCode?: string | null;
     seg1?: string | null;
@@ -89,7 +87,6 @@ export type UpdatePartBody = {
     name?: string;
     partBrandId?: string | null;
     isOem?: boolean;
-    carBrandId?: string | null;
     partType?: string | null;
     secCode?: string | null;
     seg1?: string | null;

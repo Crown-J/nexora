@@ -34,7 +34,7 @@ export type AuditActor = {
     userAgent?: string | null;
 };
 
-const ALLOWED_PARTNER_TYPES: PartnerType[] = ['BOTH', 'CUST', 'SUP'];
+const ALLOWED_PARTNER_TYPES: PartnerType[] = ['C', 'S', 'T', 'V', 'B', 'BOTH', 'CUST', 'SUP'];
 
 function normalizePartnerType(v: any): PartnerType {
     const s = String(v ?? '').trim().toUpperCase();
@@ -64,8 +64,8 @@ type PartnerRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { username: string; displayName: string } | null;
+    updatedByUser?: { username: string; displayName: string } | null;
 };
 
 function toPartnerDto(row: PartnerRowWithAudit): PartnerDto {
@@ -86,10 +86,12 @@ function toPartnerDto(row: PartnerRowWithAudit): PartnerDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
+        createdByUsername: row.createdByUser?.username ?? null,
         createdByName: row.createdByUser?.displayName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
+        updatedByUsername: row.updatedByUser?.username ?? null,
         updatedByName: row.updatedByUser?.displayName ?? null,
     };
 }
@@ -130,8 +132,8 @@ export class PartnerService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             }),
         ]);
@@ -148,8 +150,8 @@ export class PartnerService {
         const row = await this.prisma.nx00Partner.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
         if (!row) throw new NotFoundException('Partner not found');
@@ -163,7 +165,7 @@ export class PartnerService {
         if (!code) throw new BadRequestException('code is required');
         if (!name) throw new BadRequestException('name is required');
 
-        const partnerType = body.partnerType ? normalizePartnerType(body.partnerType) : ('BOTH' as PartnerType);
+        const partnerType = body.partnerType ? normalizePartnerType(body.partnerType) : ('C' as PartnerType);
 
         try {
             const row = await this.prisma.nx00Partner.create({
@@ -185,8 +187,8 @@ export class PartnerService {
                     updatedBy: actor?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -255,8 +257,8 @@ export class PartnerService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -324,8 +326,8 @@ export class PartnerService {
                 updatedBy: actor?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
 

@@ -17,6 +17,7 @@ export type ListBrandParams = {
     page: number;
     pageSize: number;
     q?: string;
+    isActive?: boolean;
 };
 
 /**
@@ -30,6 +31,7 @@ export async function listBrand(params: ListBrandParams): Promise<PagedResult<Br
         page: String(params.page),
         pageSize: String(params.pageSize),
         q: params.q?.trim() ? params.q.trim() : undefined,
+        isActive: params.isActive === undefined ? undefined : String(params.isActive),
     });
 
     const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });

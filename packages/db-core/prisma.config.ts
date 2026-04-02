@@ -1,5 +1,5 @@
 // C:\nexora\packages\db-core\prisma.config.ts
-// Prisma CLI：migrate / introspect 等需 PostgreSQL 直連；Supabase 請優先使用 DIRECT_URL（:5432），未設定時退回 DATABASE_URL。
+// Prisma CLI：migrate / introspect 等讀取 DIRECT_URL，未設定時退回 DATABASE_URL（本機 Docker 兩者可設成同一 URI）。
 
 import 'dotenv/config';
 import { defineConfig } from 'prisma/config';

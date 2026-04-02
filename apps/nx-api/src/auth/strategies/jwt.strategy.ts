@@ -5,6 +5,7 @@
  * Purpose:
  * - JWT 驗證 + 注入 roles 到 req.user
  * - NX99-T3：validate 回傳 tenantId / tenantCode / planCode 供 API 識別租戶與方案
+ * - 角色含 **ADMIN** 時：上述租戶／方案欄位強制為 **null**（跨租戶平台管理）
  *
  * Notes:
  * - validate 回傳物件會掛到 req.user
@@ -64,14 +65,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     const roles = rows.map((r) => r.role.code);
+    const isPlatformAdmin = roles.includes('ADMIN');
 
     return {
       sub: payload.sub,
       username: payload.username,
       roles,
-      tenantId: payload.tenantId ?? null,
-      tenantCode: payload.tenantCode ?? null,
-      planCode: payload.planCode ?? null,
+      tenantId: isPlatformAdmin ? null : (payload.tenantId ?? null),
+      tenantCode: isPlatformAdmin ? null : (payload.tenantCode ?? null),
+      planCode: isPlatformAdmin ? null : (payload.planCode ?? null),
     };
   }
 }

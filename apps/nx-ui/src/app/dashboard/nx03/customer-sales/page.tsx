@@ -413,7 +413,7 @@ export default function CustomerSalesPage() {
                     setSupplierSearch(next);
                     setSupplierId(null);
                   }}
-                  allowedTypes={['SUP', 'BOTH']}
+                  allowedTypes={['SUP', 'S', 'BOTH']}
                   onPick={(row) => {
                     setSupplierId(row.id);
                     setSupplierSearch(`${row.code} ${row.name}`);
@@ -563,7 +563,7 @@ export default function CustomerSalesPage() {
                       setCustomerSearch(next);
                       setCustomerId(null);
                     }}
-                    allowedTypes={['CUST', 'BOTH']}
+                    allowedTypes={['CUST', 'C', 'BOTH']}
                     onPick={(row) => {
                       setCustomerId(row.id);
                       setCustomerSearch(`${row.code} ${row.name}`);

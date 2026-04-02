@@ -1,38 +1,9 @@
-export type CarBrandDto = {
-    id: string;
-    code: string;
-    name: string;
-    countryId: string | null;
-    originCountry: string | null;
-    remark: string | null;
-    isActive: boolean;
-    sortNo: number;
-    createdAt: string;
-    createdBy: string | null;
-    createdByName?: string | null;
-    updatedAt: string;
-    updatedBy: string | null;
-    updatedByName?: string | null;
-};
-
-export type PagedResult<T> = { items: T[]; page: number; pageSize: number; total: number };
-
-export type CreateCarBrandBody = {
-    code: string;
-    name: string;
-    countryId?: string | null;
-    originCountry?: string | null;
-    remark?: string | null;
-    sortNo?: number;
-    isActive?: boolean;
-};
-
-export type UpdateCarBrandBody = {
-    code?: string;
-    name?: string;
-    countryId?: string | null;
-    originCountry?: string | null;
-    remark?: string | null;
-    sortNo?: number;
-    isActive?: boolean;
-};
+/**
+ * 汽車廠牌 API 回傳與零件廠牌（BrandDto）欄位對齊，僅別名供舊元件使用。
+ */
+export type {
+  BrandDto as CarBrandDto,
+  CreateBrandBody as CreateCarBrandBody,
+  PagedResult,
+  UpdateBrandBody as UpdateCarBrandBody,
+} from '@/features/nx00/brand/types';

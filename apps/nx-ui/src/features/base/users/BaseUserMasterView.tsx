@@ -10,6 +10,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -21,19 +22,19 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Columns3,
-  Maximize2,
-  Minimize2,
   Pencil,
   RefreshCw,
-  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -42,7 +43,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
-import type { BaseUserRow } from './mock-data';
+import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from './mock-data';
+import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
+import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
+import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
+import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
+import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
+import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
 import { assignUserRole, listUserRoles } from '@/features/base/api/user-role';
 import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
@@ -52,16 +59,17 @@ type ListColKey =
   | 'displayName'
   | 'email'
   | 'phone'
+  | 'warehouseLabel'
   | 'isActive'
   | 'lastLoginAt'
   | 'createdAt'
-  | 'createdBy'
-  | 'createdByName'
+  | 'createdByPerson'
   | 'updatedAt'
-  | 'updatedBy'
-  | 'updatedByName';
+  | 'updatedByPerson';
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
+
+type ActiveFilter = 'all' | 'active' | 'inactive';
 
 type EditableDraft = {
   username: string;
@@ -76,7 +84,7 @@ type EditableDraft = {
 
 const PAGE_SIZE = 10;
 
-const LIST_COL_PREF_VERSION = 3;
+const LIST_COL_PREF_VERSION = 6;
 const LIST_COL_PREF_KEY = 'base.user.listcols';
 
 const ALL_LIST_COLS: ListColKey[] = [
@@ -84,29 +92,27 @@ const ALL_LIST_COLS: ListColKey[] = [
   'displayName',
   'email',
   'phone',
+  'warehouseLabel',
   'isActive',
   'lastLoginAt',
   'createdAt',
-  'createdBy',
-  'createdByName',
+  'createdByPerson',
   'updatedAt',
-  'updatedBy',
-  'updatedByName',
+  'updatedByPerson',
 ];
 
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   username: { label: '帳號', locked: true },
   displayName: { label: '姓名' },
-  email: { label: 'Email' },
+  email: { label: '信箱' },
   phone: { label: '電話' },
-  isActive: { label: '狀態' },
-  lastLoginAt: { label: '最後登入' },
+  warehouseLabel: { label: '隸屬倉庫' },
+  isActive: { label: '啟用' },
+  lastLoginAt: { label: '最後一次登入' },
   createdAt: { label: '建立時間' },
-  createdBy: { label: '建立人ID' },
-  createdByName: { label: '建立人' },
+  createdByPerson: { label: '建立人員' },
   updatedAt: { label: '修改時間' },
-  updatedBy: { label: '修改人ID' },
-  updatedByName: { label: '修改人' },
+  updatedByPerson: { label: '修改人員' },
 };
 
 type UserListColPref = { visibleCols: ListColKey[]; colOrder: ListColKey[] };
@@ -116,12 +122,36 @@ const DEFAULT_COL_PREF: UserListColPref = {
   colOrder: [...ALL_LIST_COLS],
 };
 
+/** 舊版欄位 key（v3）→ 合併後之建立／修改人員欄 */
+function mapLegacyListColKey(k: string): ListColKey | null {
+  if (k === 'createdBy' || k === 'createdByName') return 'createdByPerson';
+  if (k === 'updatedBy' || k === 'updatedByName') return 'updatedByPerson';
+  return ALL_LIST_COLS.includes(k as ListColKey) ? (k as ListColKey) : null;
+}
+
+function dedupePreserveCols(keys: ListColKey[]): ListColKey[] {
+  const seen = new Set<ListColKey>();
+  const out: ListColKey[] = [];
+  for (const k of keys) {
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(k);
+  }
+  return out;
+}
+
 function normalizeColPref(raw: UserListColPref): UserListColPref {
-  const order = ALL_LIST_COLS.filter((k) => raw.colOrder.includes(k));
+  const mappedOrder = dedupePreserveCols(
+    raw.colOrder.map(mapLegacyListColKey).filter((k): k is ListColKey => k != null),
+  );
+  const order = ALL_LIST_COLS.filter((k) => mappedOrder.includes(k));
   for (const k of ALL_LIST_COLS) {
     if (!order.includes(k)) order.push(k);
   }
-  let vis = raw.visibleCols.filter((k) => ALL_LIST_COLS.includes(k));
+  let vis = dedupePreserveCols(
+    raw.visibleCols.map(mapLegacyListColKey).filter((k): k is ListColKey => k != null),
+  );
+  vis = vis.filter((k) => ALL_LIST_COLS.includes(k));
   if (!vis.includes('username')) vis = ['username', ...vis];
   return { colOrder: order, visibleCols: vis };
 }
@@ -153,35 +183,34 @@ function rowFromUser(u: BaseUserRow): EditableDraft {
 }
 
 function dtoToRow(u: UserDto): BaseUserRow {
+  const cbName = u.createdByName ?? null;
+  const ubName = u.updatedByName ?? null;
   return {
     id: u.id,
     username: u.username,
     displayName: u.displayName,
     jobTitle: u.jobTitle ?? '—',
+    warehouseLabel: (() => {
+      const s = (u.warehouseSummary ?? '').trim();
+      if (s) return s;
+      const leg = formatWarehouseLabel(u.warehouseCode, u.warehouseName);
+      return leg !== '\u2014' ? leg : '\u2014';
+    })(),
     email: u.email ?? '',
     phone: u.phone ?? '',
     isActive: u.isActive,
     lastLoginAt: u.lastLoginAt,
     createdAt: u.createdAt,
     createdBy: u.createdBy ?? null,
-    createdByName: u.createdByName ?? '—',
+    createdByUsername: u.createdByUsername ?? null,
+    createdByName: cbName ?? '—',
+    createdByPerson: formatAuditPersonLabel(u.createdByUsername, cbName),
     updatedAt: u.updatedAt,
     updatedBy: u.updatedBy ?? null,
-    updatedByName: u.updatedByName ?? '—',
+    updatedByUsername: u.updatedByUsername ?? null,
+    updatedByName: ubName,
+    updatedByPerson: formatAuditPersonLabel(u.updatedByUsername, ubName),
   };
-}
-
-function isListKeyboardBlocked(
-  target: EventTarget | null,
-  detailEl: HTMLElement | null,
-  panelOpen: boolean,
-): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
-  if (target.isContentEditable) return true;
-  if (panelOpen && detailEl?.contains(target)) return true;
-  return false;
 }
 
 /** 僅在 Radix 下拉內容仍為 open 時讓選單独占鍵盤；關閉後不再擋，避免焦點留在觸發鈕時無法選列 */
@@ -205,9 +234,10 @@ export function BaseUserMasterView() {
   const [users, setUsers] = useState<BaseUserRow[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [keyword, setKeyword] = useState('');
-  const [jobPick, setJobPick] = useState<string>('');
+  /** 空集合＝不篩職務（顯示全部）；有值時僅顯示所選職務（複選 OR） */
+  const [jobPicks, setJobPicks] = useState<Set<string>>(() => new Set());
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'username', dir: 'asc' });
-  const [checked, setChecked] = useState<Set<string>>(() => new Set());
   /** 列表鍵盤／單擊選取列（變色），開啟明細另用 selectedId */
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -238,8 +268,6 @@ export function BaseUserMasterView() {
     DEFAULT_COL_PREF,
   );
   const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
-
-  const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -295,14 +323,28 @@ export function BaseUserMasterView() {
   const filtered = useMemo(() => {
     const k = keyword.trim().toLowerCase();
     return users.filter((u) => {
-      if (jobPick && u.jobTitle !== jobPick) return false;
+      if (jobPicks.size > 0 && !jobPicks.has(u.jobTitle)) return false;
+      if (activeFilter === 'active' && !u.isActive) return false;
+      if (activeFilter === 'inactive' && u.isActive) return false;
       if (k) {
-        const blob = (u.username + ' ' + u.displayName + ' ' + u.jobTitle + ' ' + u.email + ' ' + u.phone).toLowerCase();
+        const blob = (
+          u.username +
+          ' ' +
+          u.displayName +
+          ' ' +
+          u.jobTitle +
+          ' ' +
+          u.email +
+          ' ' +
+          u.phone +
+          ' ' +
+          u.warehouseLabel
+        ).toLowerCase();
         if (!blob.includes(k)) return false;
       }
       return true;
     });
-  }, [users, keyword, jobPick]);
+  }, [users, keyword, jobPicks, activeFilter]);
 
   const sortedRows = useMemo(() => {
     const mult = sort.dir === 'asc' ? 1 : -1;
@@ -331,18 +373,16 @@ export function BaseUserMasterView() {
           return mult * a.email.localeCompare(b.email, 'zh-Hant');
         case 'phone':
           return mult * a.phone.localeCompare(b.phone, 'zh-Hant');
+        case 'warehouseLabel':
+          return mult * a.warehouseLabel.localeCompare(b.warehouseLabel, 'zh-Hant');
         case 'createdAt':
           return mult * String(a.createdAt).localeCompare(String(b.createdAt));
         case 'updatedAt':
           return cmpNullLast(a.updatedAt, b.updatedAt, () => mult * String(a.updatedAt ?? '').localeCompare(String(b.updatedAt ?? '')));
-        case 'createdBy':
-          return mult * (a.createdBy ?? '').localeCompare(b.createdBy ?? '');
-        case 'createdByName':
-          return mult * a.createdByName.localeCompare(b.createdByName, 'zh-Hant');
-        case 'updatedBy':
-          return mult * (a.updatedBy ?? '').localeCompare(b.updatedBy ?? '');
-        case 'updatedByName':
-          return mult * (a.updatedByName ?? '').localeCompare(b.updatedByName ?? '', 'zh-Hant');
+        case 'createdByPerson':
+          return mult * a.createdByPerson.localeCompare(b.createdByPerson, 'zh-Hant');
+        case 'updatedByPerson':
+          return mult * a.updatedByPerson.localeCompare(b.updatedByPerson, 'zh-Hant');
         default:
           return 0;
       }
@@ -358,7 +398,7 @@ export function BaseUserMasterView() {
     return sortedRows.slice(start, start + PAGE_SIZE);
   }, [sortedRows, safePage]);
 
-  const filterKey = `${keyword}|${jobPick}`;
+  const filterKey = `${keyword}|${[...jobPicks].sort().join('\u0001')}|${activeFilter}`;
   const prevFilterKeyRef = useRef('');
 
   useEffect(() => {
@@ -452,7 +492,7 @@ export function BaseUserMasterView() {
       }
 
       if (colPickerOpen || panelOpen) return;
-      if (isListKeyboardBlocked(e.target, detailPanelRef.current, panelOpen)) return;
+      if (isMasterListKeyboardBlocked(e.target, detailPanelRef.current, panelOpen)) return;
       if (isRadixJobFilterMenuOpen()) return;
 
       if (e.key === 'ArrowDown') {
@@ -516,31 +556,14 @@ export function BaseUserMasterView() {
 
   const pageRowIds = useMemo(() => pageRows.map((r) => r.id), [pageRows]);
 
-  useEffect(() => {
-    const el = headerCheckboxRef.current;
-    if (!el) return;
-    const checkedCount = pageRowIds.filter((id) => checked.has(id)).length;
-    el.indeterminate = checkedCount > 0 && checkedCount < pageRowIds.length;
-    el.checked = pageRowIds.length > 0 && checkedCount === pageRowIds.length;
-  }, [pageRowIds, checked]);
-
-  const toggleOne = (id: string, on: boolean) => {
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (on) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  };
-
-  const toggleAllVisible = (on: boolean) => {
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (on) pageRowIds.forEach((id) => next.add(id));
-      else pageRowIds.forEach((id) => next.delete(id));
-      return next;
-    });
-  };
+  const {
+    checked,
+    setChecked,
+    headerCheckboxRef,
+    toggleOne,
+    toggleAllVisible,
+    hasSelection: hasListSelection,
+  } = useMasterListRowSelection(pageRowIds);
 
   const onRowSingleClick = (id: string) => {
     setFocusedRowId(id);
@@ -698,19 +721,7 @@ export function BaseUserMasterView() {
           </td>
         );
       case 'isActive':
-        return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5">
-            <span
-              className={cn(
-                'inline-flex size-6 items-center justify-center rounded-md text-xs font-medium',
-                row.isActive ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' : 'bg-destructive/15 text-destructive',
-              )}
-              title={row.isActive ? '啟用' : '停用'}
-            >
-              {row.isActive ? '✓' : '×'}
-            </span>
-          </td>
-        );
+        return <MasterActiveListCell key={key} isActive={row.isActive} />;
       case 'lastLoginAt':
         return (
           <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground tabular-nums">
@@ -729,6 +740,12 @@ export function BaseUserMasterView() {
             {row.phone || '—'}
           </td>
         );
+      case 'warehouseLabel':
+        return (
+          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.warehouseLabel}
+          </td>
+        );
       case 'createdAt':
       case 'updatedAt':
         return (
@@ -736,13 +753,11 @@ export function BaseUserMasterView() {
             {formatDt(row[key] as string | null)}
           </td>
         );
-      case 'createdBy':
-      case 'updatedBy':
-      case 'createdByName':
-      case 'updatedByName':
+      case 'createdByPerson':
+      case 'updatedByPerson':
         return (
-          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
-            {(row[key] as string | null | undefined) ?? '—'}
+          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row[key]}
           </td>
         );
       default:
@@ -751,8 +766,11 @@ export function BaseUserMasterView() {
   };
 
   const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
-  const hasListSelection = checked.size > 0;
-  const jobFilterValue = jobPick === '' ? '__all__' : jobPick;
+  const jobFilterSummary =
+    jobPicks.size === 0 ? '職務：全部' : jobPicks.size === 1 ? `職務：${[...jobPicks][0]}` : `職務：已選 ${jobPicks.size} 項`;
+
+  const activeFilterSummary =
+    activeFilter === 'all' ? '狀態：全部' : activeFilter === 'active' ? '狀態：啟用' : '狀態：停用';
 
   return (
     <div className="relative flex flex-col gap-4">
@@ -836,32 +854,14 @@ export function BaseUserMasterView() {
                 欄位
               </Button>
 
-              {!hasListSelection ? (
-                <Button type="button" size="sm" variant="default" onClick={onAdd} disabled={loading || saving}>
-                  新增
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => void onBulkActive(true)}
-                    disabled={saving}
-                  >
-                    啟用
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => void onBulkActive(false)}
-                    disabled={saving}
-                  >
-                    停用
-                  </Button>
-                </>
-              )}
+              <MasterToolbarAddOrBulkActive
+                hasSelection={hasListSelection}
+                loading={loading}
+                saving={saving}
+                onAdd={onAdd}
+                onBulkEnable={() => onBulkActive(true)}
+                onBulkDisable={() => onBulkActive(false)}
+              />
 
               <Button
                 type="button"
@@ -880,7 +880,7 @@ export function BaseUserMasterView() {
                 id="bu-keyword"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="帳號、姓名、Email、電話…"
+                placeholder="帳號、姓名、信箱、電話、隸屬倉庫…"
                 autoComplete="off"
                 className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
               />
@@ -891,10 +891,67 @@ export function BaseUserMasterView() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-9 w-[min(100%,11rem)] shrink-0 justify-between gap-1 px-2.5 font-normal sm:w-40"
-                    aria-label="依職務篩選"
+                    className="h-9 w-[min(100%,11rem)] shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-44 sm:w-auto sm:max-w-[14rem]"
+                    aria-label="依職務篩選（可複選）"
                   >
-                    <span className="truncate">{jobPick === '' ? '職務：全部' : jobPick}</span>
+                    <span className="truncate">{jobFilterSummary}</span>
+                    <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="max-h-72 w-56 overflow-y-auto"
+                  onCloseAutoFocus={(e) => {
+                    e.preventDefault();
+                    focusListKeyboardRegion();
+                  }}
+                >
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">依職務篩選（可複選）</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    className="text-xs"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setJobPicks(new Set());
+                    }}
+                  >
+                    清除篩選（顯示全部）
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {jobTitleOptions.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">尚無職務資料</div>
+                  ) : (
+                    jobTitleOptions.map((j) => (
+                      <DropdownMenuCheckboxItem
+                        key={j}
+                        checked={jobPicks.has(j)}
+                        onCheckedChange={(checked) => {
+                          setJobPicks((prev) => {
+                            const next = new Set(prev);
+                            if (checked) next.add(j);
+                            else next.delete(j);
+                            return next;
+                          });
+                        }}
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-sm"
+                      >
+                        {j}
+                      </DropdownMenuCheckboxItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-36"
+                    aria-label="依啟用狀態篩選"
+                  >
+                    <span className="truncate">{activeFilterSummary}</span>
                     <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
                   </Button>
                 </DropdownMenuTrigger>
@@ -906,17 +963,14 @@ export function BaseUserMasterView() {
                     focusListKeyboardRegion();
                   }}
                 >
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">依職務篩選</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">啟用與停用</DropdownMenuLabel>
                   <DropdownMenuRadioGroup
-                    value={jobFilterValue}
-                    onValueChange={(v) => setJobPick(v === '__all__' ? '' : v)}
+                    value={activeFilter}
+                    onValueChange={(v) => setActiveFilter(v as ActiveFilter)}
                   >
-                    <DropdownMenuRadioItem value="__all__">全部</DropdownMenuRadioItem>
-                    {jobTitleOptions.map((j) => (
-                      <DropdownMenuRadioItem key={j} value={j}>
-                        {j}
-                      </DropdownMenuRadioItem>
-                    ))}
+                    <DropdownMenuRadioItem value="all">全部</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="active">僅啟用</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="inactive">僅停用</DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1009,24 +1063,21 @@ export function BaseUserMasterView() {
 
         <section className="glass-card nx-glass-raised flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 lg:min-h-[420px]">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
-              <div
-                ref={listKeyboardRootRef}
-                tabIndex={-1}
-                role="region"
-                aria-label="使用者列表，方向鍵選取列，Enter 開啟明細，雙擊開啟明細"
-                className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain rounded-md pr-2 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40"
+              <MasterListScrollRegion
+                scrollRef={listKeyboardRootRef}
+                ariaLabel="使用者列表，方向鍵選取列，Enter 開啟明細，雙擊開啟明細"
               >
                 <table
                   className="nx-master-table w-full border-collapse text-sm"
                   style={{ minWidth: tableMinW }}
                 >
                     <thead>
-                      <tr className="border-b border-primary/15 bg-black/[0.55] text-left text-muted-foreground shadow-[inset_0_-1px_0_0_rgba(255,255,255,0.07)]">
+                      <tr className="nx-master-thead-row text-left text-muted-foreground">
                         <th className="w-10 px-2 py-2.5">
                           <input
                             ref={headerCheckboxRef}
                             type="checkbox"
-                            className="size-4 rounded border border-input accent-primary"
+                            className="nx-master-row-checkbox"
                             aria-label="全選本頁列"
                             onChange={(e) => toggleAllVisible(e.target.checked)}
                           />
@@ -1047,25 +1098,19 @@ export function BaseUserMasterView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {pageRows.map((row, rowIndex) => {
+                      {pageRows.map((row) => {
                         const isFocused = row.id === focusedRowId;
                         const isOpenDetail = !creating && panelOpen && row.id === selectedId;
                         const isHighlighted = isFocused || isOpenDetail;
-                        const stripeLight = rowIndex % 2 === 0;
                         return (
                           <tr
                             key={row.id}
                             className={cn(
-                              'cursor-pointer border-b border-white/[0.06] transition-colors duration-150',
+                              'nx-master-tbody-row cursor-pointer transition-colors duration-150',
                               isHighlighted && 'nx-row-selected',
                               isHighlighted
                                 ? 'bg-primary/20 ring-1 ring-inset ring-primary/40 shadow-[inset_0_1px_0_0_rgba(244,180,0,0.14)]'
-                                : cn(
-                                    stripeLight
-                                      ? 'bg-white/[0.04]'
-                                      : 'bg-black/[0.42]',
-                                    'hover:bg-primary/12 hover:shadow-[inset_0_0_0_1px_rgba(244,180,0,0.2)]',
-                                  ),
+                                : 'hover:bg-primary/12 hover:shadow-[inset_0_0_0_1px_rgba(244,180,0,0.2)]',
                             )}
                             onClick={() => onRowSingleClick(row.id)}
                             onDoubleClick={(e) => {
@@ -1076,7 +1121,7 @@ export function BaseUserMasterView() {
                             <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="checkbox"
-                                className="size-4 rounded border border-input accent-primary"
+                                className="nx-master-row-checkbox"
                                 checked={checked.has(row.id)}
                                 onChange={(e) => toggleOne(row.id, e.target.checked)}
                                 aria-label={'選取 ' + row.username}
@@ -1091,110 +1136,26 @@ export function BaseUserMasterView() {
                       })}
                     </tbody>
                 </table>
-              </div>
+              </MasterListScrollRegion>
             </div>
         </section>
       </div>
 
-      {panelOpen ? (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-background/55 backdrop-blur-[2px] dark:bg-background/70"
-            aria-hidden
-            onClick={closeDetailFull}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                closeDetailFull();
-              }
-            }}
-            role="button"
-            tabIndex={-1}
-          />
-
-          <aside
-            ref={detailPanelRef}
-            className={cn(
-              'glass-card nx-glass-raised fixed left-1/2 top-1/2 z-50 flex -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-2xl transition-[width,max-height] duration-200 ease-out',
-              detailFullscreen
-                ? 'h-[min(90dvh,calc(100dvh-1.5rem))] w-[min(92vw,calc(100vw-1rem))]'
-                : 'max-h-[min(85dvh,calc(100dvh-2rem))] w-[min(80vw,calc(100vw-1.5rem))]',
-            )}
-            aria-modal="true"
-            role="dialog"
-            aria-labelledby="bu-detail-title"
-          >
-        <div
-          className={cn(
-            'flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-6',
-          )}
-        >
-          <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 pb-3">
-            <div className="flex min-w-0 flex-1 items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
-                <h2
-                  id="bu-detail-title"
-                  className="mt-0.5 truncate text-base font-semibold text-foreground"
-                >
-                  {creating ? '新增使用者' : auditSource?.username ?? '使用者明細'}
-                </h2>
-                {!creating && auditSource ? (
-                  <p className="truncate text-xs text-muted-foreground">{auditSource.displayName}</p>
-                ) : null}
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-1">
-              {!creating && selectedIdxSorted >= 0 ? (
-                <>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="inline-flex size-8"
-                    aria-label="上一筆"
-                    disabled={selectedIdxSorted <= 0}
-                    onClick={goDetailPrev}
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="inline-flex size-8"
-                    aria-label="下一筆"
-                    disabled={selectedIdxSorted >= sortedRows.length - 1}
-                    onClick={goDetailNext}
-                  >
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </>
-              ) : null}
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="inline-flex size-8"
-                aria-label={detailFullscreen ? '恢復預設視窗大小' : '放大視窗'}
-                title={detailFullscreen ? '恢復預設視窗大小' : '放大視窗'}
-                onClick={() => setDetailFullscreen((v) => !v)}
-              >
-                {detailFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="size-8"
-                aria-label="關閉詳情"
-                onClick={closeDetailFull}
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-          </div>
-
+      <BaseMasterModalFrame
+        open={panelOpen}
+        detailPanelRef={detailPanelRef}
+        detailFullscreen={detailFullscreen}
+        onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
+        onClose={closeDetailFull}
+        titleId="bu-detail-title"
+        title={creating ? '新增使用者' : auditSource?.username ?? '使用者明細'}
+        subtitle={!creating && auditSource ? auditSource.displayName : null}
+        showPrevNext={!creating && selectedIdxSorted >= 0}
+        onPrev={goDetailPrev}
+        onNext={goDetailNext}
+        disablePrev={selectedIdxSorted <= 0}
+        disableNext={selectedIdxSorted >= sortedRows.length - 1}
+      >
           <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
             <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
               <TabsTrigger value="main" className="flex-none">
@@ -1294,7 +1255,7 @@ export function BaseUserMasterView() {
                   </Label>
                   </div>
                   <div className="space-y-2">
-                  <Label htmlFor="bu-d-email">Email</Label>
+                  <Label htmlFor="bu-d-email">信箱</Label>
                   <Input
                     id="bu-d-email"
                     type="email"
@@ -1314,13 +1275,29 @@ export function BaseUserMasterView() {
                     className={!editing && !creating ? readonlyFieldCls : undefined}
                   />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bu-d-wh">隸屬倉庫</Label>
+                    <Input
+                      id="bu-d-wh-ro"
+                      readOnly
+                      value={auditSource?.warehouseLabel ?? '\u2014'}
+                      className={readonlyFieldCls}
+                    />
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      多據點請至{' '}
+                      <Link href="/base/user-warehouse" className="font-medium text-primary underline-offset-4 hover:underline">
+                        使用者據點設定
+                      </Link>
+                      。
+                    </p>
+                  </div>
               </div>
             </TabsContent>
 
             <TabsContent value="audit" className="mt-3 outline-none">
               <div className="space-y-3 pb-2">
                   <div className="space-y-2">
-                  <Label htmlFor="bu-d-lastlogin">最後登入時間</Label>
+                  <Label htmlFor="bu-d-lastlogin">最後一次登入</Label>
                   <Input
                     id="bu-d-lastlogin"
                     readOnly
@@ -1329,22 +1306,13 @@ export function BaseUserMasterView() {
                   />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="bu-d-created-by-id">建立人員（ID）</Label>
+                    <Label htmlFor="bu-d-wh-audit">隸屬倉庫</Label>
                     <Input
-                      id="bu-d-created-by-id"
+                      id="bu-d-wh-audit"
                       readOnly
-                      value={auditSource?.createdBy ?? '\u2014'}
+                      value={auditSource?.warehouseLabel ?? '\u2014'}
                       className={readonlyFieldCls}
                     />
-                  </div>
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-created-by">建立人員（姓名）</Label>
-                  <Input
-                    id="bu-d-created-by"
-                    readOnly
-                    value={auditSource?.createdByName ?? '\u2014'}
-                    className={readonlyFieldCls}
-                  />
                   </div>
                   <div className="space-y-2">
                   <Label htmlFor="bu-d-created-at">建立時間</Label>
@@ -1356,7 +1324,16 @@ export function BaseUserMasterView() {
                   />
                   </div>
                   <div className="space-y-2">
-                  <Label htmlFor="bu-d-updated-at">最後修改時間</Label>
+                  <Label htmlFor="bu-d-created-by">建立人員</Label>
+                  <Input
+                    id="bu-d-created-by"
+                    readOnly
+                    value={auditSource?.createdByPerson ?? '\u2014'}
+                    className={readonlyFieldCls}
+                  />
+                  </div>
+                  <div className="space-y-2">
+                  <Label htmlFor="bu-d-updated-at">修改時間</Label>
                   <Input
                     id="bu-d-updated-at"
                     readOnly
@@ -1365,20 +1342,11 @@ export function BaseUserMasterView() {
                   />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="bu-d-updated-by-id">最後修改人員（ID）</Label>
-                    <Input
-                      id="bu-d-updated-by-id"
-                      readOnly
-                      value={auditSource?.updatedBy ?? '\u2014'}
-                      className={readonlyFieldCls}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-updated-by">最後修改人員（姓名）</Label>
+                  <Label htmlFor="bu-d-updated-by">修改人員</Label>
                   <Input
                     id="bu-d-updated-by"
                     readOnly
-                    value={auditSource?.updatedByName ?? '\u2014'}
+                    value={auditSource?.updatedByPerson ?? '\u2014'}
                     className={readonlyFieldCls}
                   />
                   </div>
@@ -1419,10 +1387,7 @@ export function BaseUserMasterView() {
               <Pencil className="size-6" />
             </Button>
           ) : null}
-        </div>
-          </aside>
-        </>
-      ) : null}
+      </BaseMasterModalFrame>
     </div>
   );
 }

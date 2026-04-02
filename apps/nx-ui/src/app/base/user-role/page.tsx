@@ -75,10 +75,7 @@ export default function BaseUserRolePage() {
       }
     >
       <div className="w-full min-w-0 space-y-6">
-        <BaseMasterPageHeader
-          title="使用者職務設定"
-          description="依職務管理隸屬使用者（新增／移除／主要職務）。職務代碼與名稱請至「職務主檔」維護。"
-        />
+        <BaseMasterPageHeader title="使用者職務設定" />
 
         <BaseUserRoleView />
       </div>

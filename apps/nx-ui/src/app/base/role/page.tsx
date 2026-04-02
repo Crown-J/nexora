@@ -79,10 +79,7 @@ export default function BaseRolePage() {
       }
     >
       <div className="w-full min-w-0 space-y-6">
-        <BaseMasterPageHeader
-          title="職務主檔"
-          description="維護職務代碼、名稱、排序與啟用狀態。若要指派使用者至職務，請至「使用者職務設定」。"
-        />
+        <BaseMasterPageHeader title="職務主檔" />
 
         <BaseRoleMasterView />
       </div>

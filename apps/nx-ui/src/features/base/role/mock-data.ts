@@ -16,9 +16,15 @@ export type BaseRoleRow = {
   createdAt: string;
   updatedAt: string | null;
   createdBy?: string | null;
+  createdByUsername?: string | null;
   createdByName?: string;
+  /** 列表／明細「建立人員」：`帳號 姓名` */
+  createdByPerson?: string;
   updatedBy?: string | null;
+  updatedByUsername?: string | null;
   updatedByName?: string | null;
+  /** 列表／明細「修改人員」：`帳號 姓名` */
+  updatedByPerson?: string;
 };
 
 /** 某職務底下的使用者指派（mock） */

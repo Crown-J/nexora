@@ -2,7 +2,11 @@
 @import './tw-animate.css';
 @import 'react-day-picker/style.css';
 
-@custom-variant dark (&:is(.dark *));
+/**
+ * 主題：TopBar 僅在淺色時為 <html> 加 `.light`，深色為「未加 .light」而非 `.dark`。
+ * 若只寫 `&:is(.dark *)`，全站 `dark:` 工具類在預設深色下完全不會套用。
+ */
+@custom-variant dark (&:where(html:not(.light) *, .dark *));
 
 /**
  * 與 demo/home 對齊之深色主題（頂欄模組選單／TopBar／卡片）
@@ -43,6 +47,9 @@
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.35 0 0);
   --sidebar-ring: oklch(0.78 0.14 75);
+  --nx-scroll-track: oklch(0.18 0 0);
+  --nx-scroll-thumb: oklch(0.38 0 0);
+  --nx-scroll-thumb-hover: oklch(0.48 0 0);
 }
 
 .dark {
@@ -78,6 +85,9 @@
   --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(0.35 0 0);
   --sidebar-ring: oklch(0.78 0.14 75);
+  --nx-scroll-track: oklch(0.18 0 0);
+  --nx-scroll-thumb: oklch(0.38 0 0);
+  --nx-scroll-thumb-hover: oklch(0.48 0 0);
 }
 
 /* TopBar theme toggle 使用：加在 <html class="light"> */
@@ -110,6 +120,9 @@
   --sidebar-accent-foreground: oklch(0.28 0.01 258);
   --sidebar-border: oklch(0.85 0.006 258);
   --sidebar-ring: oklch(0.69 0.128 73);
+  --nx-scroll-track: oklch(0.93 0.006 258);
+  --nx-scroll-thumb: oklch(0.78 0.008 258);
+  --nx-scroll-thumb-hover: oklch(0.68 0.012 258);
 }
 
 /**
@@ -192,6 +205,152 @@ html.light select.nx-native-select {
 }
 
 @layer utilities {
+  /**
+   * 主檔橫向／直向列表捲動：細軌道 + 拇指，Firefox scrollbar-color + WebKit
+   */
+  .nx-master-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--nx-scroll-thumb) var(--nx-scroll-track);
+    scrollbar-gutter: stable;
+  }
+
+  .nx-master-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .nx-master-scroll::-webkit-scrollbar-track {
+    background: var(--nx-scroll-track);
+    border-radius: 999px;
+  }
+
+  .nx-master-scroll::-webkit-scrollbar-thumb {
+    background: var(--nx-scroll-thumb);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .nx-master-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--nx-scroll-thumb-hover);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .nx-master-scroll::-webkit-scrollbar-corner {
+    background: var(--nx-scroll-track);
+  }
+
+  /** 置中明細內文直向捲動（較窄） */
+  .nx-master-modal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--nx-scroll-thumb) var(--nx-scroll-track);
+  }
+
+  .nx-master-modal-scroll::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  .nx-master-modal-scroll::-webkit-scrollbar-track {
+    background: var(--nx-scroll-track);
+    border-radius: 999px;
+  }
+
+  .nx-master-modal-scroll::-webkit-scrollbar-thumb {
+    background: var(--nx-scroll-thumb);
+    border-radius: 999px;
+  }
+
+  .nx-master-modal-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--nx-scroll-thumb-hover);
+  }
+
+  /** 主檔列表列勾選：淺色下邊框與底色柔和，避免粗黑方塊 */
+  .nx-master-row-checkbox {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    cursor: pointer;
+    border-radius: 0.25rem;
+    border: 1px solid color-mix(in oklab, hsl(var(--border)) 82%, hsl(var(--foreground)) 12%);
+    background-color: color-mix(in oklab, hsl(var(--background)) 94%, transparent);
+    accent-color: hsl(var(--primary));
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  /**
+   * 淺色：近乎白底 + 淡灰藍邊框（不依賴偏深的 --border），並自繪方塊避免系統勾選塊過黑
+   */
+  html.light .nx-master-row-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid oklch(0.9 0.012 264);
+    background-color: oklch(0.995 0.003 264);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.85);
+    accent-color: transparent;
+  }
+
+  html.light .nx-master-row-checkbox:hover:not(:disabled) {
+    border-color: oklch(0.84 0.02 264);
+    background-color: oklch(1 0 0);
+  }
+
+  html.light .nx-master-row-checkbox:checked {
+    border-color: color-mix(in oklab, hsl(var(--primary)) 45%, oklch(0.88 0.02 264) 55%);
+    background-color: color-mix(in oklab, hsl(var(--primary)) 88%, white 12%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath stroke='%231a1a1a' stroke-opacity='0.72' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M3.8 8.2 6.5 11l5.8-6.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-size: 10px 10px;
+    box-shadow: none;
+  }
+
+  html.light .nx-master-row-checkbox:indeterminate {
+    border-color: color-mix(in oklab, hsl(var(--primary)) 40%, oklch(0.88 0.02 264) 60%);
+    background-color: oklch(0.98 0.006 264);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath stroke='%23475569' stroke-width='2' stroke-linecap='round' d='M4 8h8'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-size: 10px 10px;
+    box-shadow: none;
+  }
+
+  .nx-master-row-checkbox:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /** 主檔表格表頭：依 html.light 切換，勿在元件寫死 bg-black */
+  html:not(.light) .nx-master-table thead tr.nx-master-thead-row {
+    background: rgba(0, 0, 0, 0.55);
+    border-bottom: 1px solid color-mix(in oklch, var(--primary) 15%, transparent);
+    box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.07);
+  }
+
+  html.light .nx-master-table thead tr.nx-master-thead-row {
+    background: oklch(0.94 0.004 258);
+    border-bottom: 1px solid rgba(244, 180, 0, 0.22);
+    box-shadow: inset 0 -1px 0 0 rgba(17, 24, 39, 0.06);
+  }
+
+  html:not(.light) .nx-master-table tbody tr.nx-master-tbody-row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  html.light .nx-master-table tbody tr.nx-master-tbody-row {
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  html:not(.light) .nx-master-table tbody tr.nx-master-tbody-row:nth-child(odd):not(:hover):not(.nx-row-selected) {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  html:not(.light) .nx-master-table tbody tr.nx-master-tbody-row:nth-child(even):not(:hover):not(.nx-row-selected) {
+    background: rgba(0, 0, 0, 0.42);
+  }
+
   .animate-orbit {
     animation: orbit 10s linear infinite;
   }
@@ -346,22 +505,12 @@ html.light select.nx-native-select {
     border-color: rgba(17, 24, 39, 0.12);
   }
 
-  /** 主檔表格：淺色主題時斑馬紋（與深色版的半透明疊加不同） */
-  .light .nx-master-table thead tr {
-    background: rgba(248, 250, 252, 0.98);
-    border-bottom-color: rgba(244, 180, 0, 0.22);
-    box-shadow: inset 0 -1px 0 0 rgba(17, 24, 39, 0.06);
-  }
-
-  .light .nx-master-table tbody tr {
-    border-bottom-color: rgba(17, 24, 39, 0.08);
-  }
-
-  .light .nx-master-table tbody tr:nth-child(odd):not(:hover):not(.nx-row-selected) {
+  /** 主檔表格淺色斑馬（表頭由 .nx-master-thead-row 統一處理） */
+  .light .nx-master-table tbody tr.nx-master-tbody-row:nth-child(odd):not(:hover):not(.nx-row-selected) {
     background: rgba(255, 255, 255, 0.98);
   }
 
-  .light .nx-master-table tbody tr:nth-child(even):not(:hover):not(.nx-row-selected) {
+  .light .nx-master-table tbody tr.nx-master-tbody-row:nth-child(even):not(:hover):not(.nx-row-selected) {
     background: rgba(241, 245, 249, 0.96);
   }
 

@@ -13,7 +13,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import type { LookupItem, LookupLocationItem, PartnerType } from '../dto/lookup.dto';
 
-const ALLOWED_PARTNER_TYPES: PartnerType[] = ['BOTH', 'CUST', 'SUP'];
+const ALLOWED_PARTNER_TYPES: PartnerType[] = ['C', 'S', 'T', 'V', 'B', 'BOTH', 'CUST', 'SUP'];
 
 function normalizePartnerType(v: any): PartnerType | undefined {
     if (v === undefined || v === null || String(v).trim() === '') return undefined;
@@ -36,7 +36,7 @@ export class LookupService {
         });
     }
 
-    /** 汽車廠牌（nx00_car_brand）— 供零件主檔 car_brand_id 下拉 */
+    /** 汽車廠牌（nx00_car_brand）— 其他主檔／表單下拉用 */
     async carBrand(isActive?: boolean): Promise<LookupItem[]> {
         return this.prisma.nx00CarBrand.findMany({
             where: isActive === undefined ? {} : { isActive },

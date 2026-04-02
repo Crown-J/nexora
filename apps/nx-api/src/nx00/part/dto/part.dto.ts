@@ -20,10 +20,6 @@ export type PartDto = {
 
     /** 是否正廠件 */
     isOem: boolean;
-    /** 汽車廠牌 → nx00_car_brand.id */
-    carBrandId: string | null;
-    carBrandCode: string | null;
-    carBrandName: string | null;
 
     /** A/B/C/D 或 null */
     partType: string | null;
@@ -50,10 +46,13 @@ export type PartDto = {
 
     createdAt: string;
     createdBy: string | null;
+    /** 建立者帳號（與 createdByName 併用可組「帳號 姓名」） */
+    createdByUsername: string | null;
     createdByName: string | null;
 
     updatedAt: string;
     updatedBy: string | null;
+    updatedByUsername: string | null;
     updatedByName: string | null;
 };
 
@@ -67,7 +66,6 @@ export type PagedResult<T> = {
 export type ListPartQuery = {
     q?: string;
     partBrandId?: string;
-    carBrandId?: string;
     isActive?: boolean;
     page?: number;
     pageSize?: number;
@@ -78,7 +76,6 @@ export type CreatePartBody = {
     name: string;
     partBrandId?: string | null;
     isOem?: boolean;
-    carBrandId?: string | null;
     /** A/B/C/D，空字串視為 null */
     partType?: string | null;
     secCode?: string | null;
@@ -99,7 +96,6 @@ export type UpdatePartBody = {
     name?: string;
     partBrandId?: string | null;
     isOem?: boolean;
-    carBrandId?: string | null;
     partType?: string | null;
     secCode?: string | null;
     seg1?: string | null;

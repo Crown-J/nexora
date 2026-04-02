@@ -46,8 +46,8 @@ type LocationRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { username: string; displayName: string } | null;
+    updatedByUser?: { username: string; displayName: string } | null;
 
     warehouse?: { code: string; name: string } | null;
 };
@@ -73,10 +73,12 @@ function toLocationDto(row: LocationRowWithAudit): LocationDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
+        createdByUsername: row.createdByUser?.username ?? null,
         createdByName: row.createdByUser?.displayName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
+        updatedByUsername: row.updatedByUser?.username ?? null,
         updatedByName: row.updatedByUser?.displayName ?? null,
     };
 }
@@ -126,8 +128,8 @@ export class LocationService {
                 take: pageSize,
                 include: {
                     warehouse: { select: { code: true, name: true } },
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             }),
         ]);
@@ -145,8 +147,8 @@ export class LocationService {
             where: { id },
             include: {
                 warehouse: { select: { code: true, name: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
         if (!row) throw new NotFoundException('Location not found');
@@ -187,8 +189,8 @@ export class LocationService {
                 },
                 include: {
                     warehouse: { select: { code: true, name: true } },
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -290,8 +292,8 @@ export class LocationService {
                 data,
                 include: {
                     warehouse: { select: { code: true, name: true } },
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { username: true, displayName: true } },
+                    updatedByUser: { select: { username: true, displayName: true } },
                 },
             });
 
@@ -361,8 +363,8 @@ export class LocationService {
             },
             include: {
                 warehouse: { select: { code: true, name: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { username: true, displayName: true } },
+                updatedByUser: { select: { username: true, displayName: true } },
             },
         });
 

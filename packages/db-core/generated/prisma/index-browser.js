@@ -162,6 +162,16 @@ exports.Prisma.Nx00UserRoleScalarFieldEnum = {
   isActive: 'isActive'
 };
 
+exports.Prisma.Nx00UserWarehouseScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  warehouseId: 'warehouseId',
+  assignedAt: 'assignedAt',
+  assignedBy: 'assignedBy',
+  revokedAt: 'revokedAt',
+  isActive: 'isActive'
+};
+
 exports.Prisma.Nx00ViewScalarFieldEnum = {
   id: 'id',
   code: 'code',
@@ -235,7 +245,6 @@ exports.Prisma.Nx00PartScalarFieldEnum = {
   seg5: 'seg5',
   countryId: 'countryId',
   partBrandId: 'partBrandId',
-  carBrandId: 'carBrandId',
   partType: 'partType',
   partGroupId: 'partGroupId',
   spec: 'spec',
@@ -947,6 +956,7 @@ exports.Prisma.ModelName = {
   Nx00User: 'Nx00User',
   Nx00Role: 'Nx00Role',
   Nx00UserRole: 'Nx00UserRole',
+  Nx00UserWarehouse: 'Nx00UserWarehouse',
   Nx00View: 'Nx00View',
   Nx00RoleView: 'Nx00RoleView',
   Nx00Country: 'Nx00Country',

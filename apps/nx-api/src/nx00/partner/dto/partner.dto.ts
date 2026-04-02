@@ -6,8 +6,10 @@
  * - NX00-API-PARTNER-DTO-001：Partner DTO（LITE 對齊 nx00_partner）
  */
 
-/** docs/nx00_field.csv：CUST／SUP／BOTH */
-export type PartnerType = 'BOTH' | 'CUST' | 'SUP';
+/**
+ * 客戶類型：C/S/T/V/B（新制）＋ BOTH/CUST/SUP（舊資料相容）
+ */
+export type PartnerType = 'C' | 'S' | 'T' | 'V' | 'B' | 'BOTH' | 'CUST' | 'SUP';
 
 export type PartnerDto = {
     id: string;
@@ -26,10 +28,12 @@ export type PartnerDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername: string | null;
     createdByName: string | null;
 
     updatedAt: string;
     updatedBy: string | null;
+    updatedByUsername: string | null;
     updatedByName: string | null;
 };
 

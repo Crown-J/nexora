@@ -3,12 +3,12 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-PART-SVC-001：Part Service（CRUD + audit user displayName）
+ * - NX00-API-PART-SVC-001：Part Service（CRUD + audit user username/displayName）
  *
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_part_id()
- * - @@unique([code, carBrandId]) — 同 car_brand_id 下 code 不可重複
- * - partBrandId / carBrandId 可為 null；寫入前檢查 FK
+ * - @@unique([code]) — 基準料號全表唯一
+ * - partBrandId 可為 null；寫入前檢查 FK
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
@@ -43,7 +43,6 @@ type PartRowWithAudit = {
     name: string;
     partBrandId: string | null;
     isOem: boolean;
-    carBrandId: string | null;
     partType: string | null;
     secCode: string | null;
     seg1: string | null;
@@ -62,11 +61,10 @@ type PartRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { username: string; displayName: string } | null;
+    updatedByUser?: { username: string; displayName: string } | null;
 
     partBrand?: { code?: string | null; name?: string | null } | null;
-    carBrand?: { code?: string | null; name?: string | null } | null;
     country?: { code?: string | null; name?: string | null } | null;
     partGroup?: { code?: string | null; name?: string | null } | null;
 };
@@ -82,9 +80,6 @@ function toPartDto(row: PartRowWithAudit): PartDto {
         brandName: row.partBrand?.name ?? null,
 
         isOem: Boolean(row.isOem),
-        carBrandId: row.carBrandId ?? null,
-        carBrandCode: row.carBrand?.code ?? null,
-        carBrandName: row.carBrand?.name ?? null,
         partType: row.partType ?? null,
 
         secCode: row.secCode ?? null,
@@ -107,10 +102,12 @@ function toPartDto(row: PartRowWithAudit): PartDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
+        createdByUsername: row.createdByUser?.username ?? null,
         createdByName: row.createdByUser?.displayName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
+        updatedByUsername: row.updatedByUser?.username ?? null,
         updatedByName: row.updatedByUser?.displayName ?? null,
     };
 }
@@ -121,7 +118,6 @@ function snapshotPartForAudit(row: {
     name: string;
     partBrandId: string | null;
     isOem: boolean;
-    carBrandId: string | null;
     partType: string | null;
     secCode: string | null;
     seg1: string | null;
@@ -141,7 +137,6 @@ function snapshotPartForAudit(row: {
         name: row.name,
         partBrandId: row.partBrandId ?? null,
         isOem: Boolean(row.isOem),
-        carBrandId: row.carBrandId ?? null,
         partType: row.partType ?? null,
         secCode: row.secCode ?? null,
         seg1: row.seg1 ?? null,
@@ -173,12 +168,6 @@ export class PartService {
         private readonly audit: AuditLogService,
     ) { }
 
-    private async assertCarBrandId(carBrandId: string | null | undefined): Promise<void> {
-        if (!carBrandId) return;
-        const c = await this.prisma.nx00CarBrand.findUnique({ where: { id: carBrandId }, select: { id: true } });
-        if (!c) throw new BadRequestException('Car brand not found');
-    }
-
     private async assertCountryId(countryId: string | null | undefined): Promise<void> {
         if (!countryId) return;
         const c = await this.prisma.nx00Country.findUnique({ where: { id: countryId }, select: { id: true } });
@@ -194,11 +183,10 @@ export class PartService {
     private partInclude() {
         return {
             partBrand: { select: { code: true, name: true } },
-            carBrand: { select: { code: true, name: true } },
             country: { select: { code: true, name: true } },
             partGroup: { select: { code: true, name: true } },
-            createdByUser: { select: { displayName: true } },
-            updatedByUser: { select: { displayName: true } },
+            createdByUser: { select: { username: true, displayName: true } },
+            updatedByUser: { select: { username: true, displayName: true } },
         } as const;
     }
 
@@ -218,7 +206,6 @@ export class PartService {
             ];
         }
         if (query.partBrandId) where.partBrandId = query.partBrandId;
-        if (query.carBrandId) where.carBrandId = query.carBrandId;
         if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
 
         const [total, rows] = await Promise.all([
@@ -263,7 +250,6 @@ export class PartService {
             const b = await this.prisma.nx00PartBrand.findUnique({ where: { id: body.partBrandId }, select: { id: true } });
             if (!b) throw new BadRequestException('Brand not found');
         }
-        await this.assertCarBrandId(body.carBrandId ?? null);
         await this.assertCountryId(body.countryId ?? null);
         await this.assertPartGroupId(body.partGroupId ?? null);
 
@@ -280,7 +266,6 @@ export class PartService {
                     name,
                     partBrandId: body.partBrandId ?? null,
                     isOem: body.isOem ?? true,
-                    carBrandId: body.carBrandId ?? null,
                     ...(partTypeResolved != null ? { partType: partTypeResolved } : {}),
                     secCode: trimSeg(body.secCode),
                     seg1: trimSeg(body.seg1),
@@ -320,7 +305,7 @@ export class PartService {
         } catch (e: any) {
             const pe = e as PrismaKnownError;
             if (pe?.code === 'P2002') {
-                throw new BadRequestException('料號與汽車廠牌組合已存在，請調整 code 或 carBrandId');
+                throw new BadRequestException('基準料號（code）已存在');
             }
             throw e;
         }
@@ -335,7 +320,6 @@ export class PartService {
                 name: true,
                 partBrandId: true,
                 isOem: true,
-                carBrandId: true,
                 partType: true,
                 secCode: true,
                 seg1: true,
@@ -367,7 +351,6 @@ export class PartService {
         if (typeof body.name === 'string') data.name = body.name.trim();
         if (body.partBrandId !== undefined) data.partBrandId = body.partBrandId ?? null;
         if (typeof body.isOem === 'boolean') data.isOem = body.isOem;
-        if (body.carBrandId !== undefined) data.carBrandId = body.carBrandId ?? null;
         if (body.partType !== undefined) {
             const pt = resolvePartTypeForWrite(body.partType);
             data.partType = pt ?? 'A';
@@ -387,9 +370,6 @@ export class PartService {
         if (data.partBrandId) {
             const b = await this.prisma.nx00PartBrand.findUnique({ where: { id: data.partBrandId }, select: { id: true } });
             if (!b) throw new BadRequestException('Brand not found');
-        }
-        if (data.carBrandId !== undefined) {
-            await this.assertCarBrandId(data.carBrandId ?? null);
         }
         if (data.countryId !== undefined) {
             await this.assertCountryId(data.countryId ?? null);
@@ -425,7 +405,7 @@ export class PartService {
         } catch (e: any) {
             const pe = e as PrismaKnownError;
             if (pe?.code === 'P2002') {
-                throw new BadRequestException('料號與汽車廠牌組合已存在，請調整 code 或 carBrandId');
+                throw new BadRequestException('基準料號（code）已存在');
             }
             throw e;
         }

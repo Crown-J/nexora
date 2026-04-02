@@ -10,6 +10,8 @@ export type LocationDto = {
     id: string;
 
     warehouseId: string;
+    warehouseCode?: string | null;
+    warehouseName?: string | null;
 
     code: string;
     name: string | null;
@@ -26,10 +28,12 @@ export type LocationDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername?: string | null;
     createdByName?: string | null;
 
     updatedAt: string | null;
     updatedBy: string | null;
+    updatedByUsername?: string | null;
     updatedByName?: string | null;
 };
 

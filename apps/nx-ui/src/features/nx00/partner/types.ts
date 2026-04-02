@@ -6,8 +6,8 @@
  * - NX00-UI-NX00-PARTNER-TYPES-001：Partner Types（SSOT）
  */
 
-/** 對齊 docs/nx00_field.csv */
-export type PartnerType = 'CUST' | 'SUP' | 'BOTH';
+/** 新制 C/S/T/V/B；舊資料 BOTH / CUST / SUP */
+export type PartnerType = 'C' | 'S' | 'T' | 'V' | 'B' | 'BOTH' | 'CUST' | 'SUP';
 
 export type PartnerDto = {
     id: string;
@@ -27,10 +27,12 @@ export type PartnerDto = {
 
     createdAt: string;
     createdBy: string | null;
+    createdByUsername?: string | null;
     createdByName?: string | null;
 
     updatedAt: string | null;
     updatedBy: string | null;
+    updatedByUsername?: string | null;
     updatedByName?: string | null;
 };
 
