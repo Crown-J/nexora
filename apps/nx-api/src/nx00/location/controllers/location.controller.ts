@@ -3,10 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-LOCATION-CTRL-001：Location CRUD endpoints (ADMIN only)
- *
- * Notes:
- * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
+ * - NX00-API-LOCATION-CTRL-001：Location CRUD（依 nx00_role_view／NX00_LOCATION）
  */
 
 import {
@@ -23,22 +20,21 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 
 import { LocationService } from '../services/location.service';
 import type { CreateLocationBody, SetActiveBody, UpdateLocationBody } from '../dto/location.dto';
 
 @Controller('location')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class LocationController {
     constructor(private readonly location: LocationService) { }
 
-    /**
-     * @CODE nxapi_nx00_location_list_001
-     */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'read')
     async list(@Query() query: any) {
         return this.location.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -49,18 +45,14 @@ export class LocationController {
         });
     }
 
-    /**
-     * @CODE nxapi_nx00_location_get_001
-     */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'read')
     async get(@Param('id') id: string) {
         return this.location.get(id);
     }
 
-    /**
-     * @CODE nxapi_nx00_location_create_001
-     */
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'create')
     async create(@Body() body: CreateLocationBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -70,10 +62,8 @@ export class LocationController {
         return this.location.create(body, { actorUserId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_location_update_001
-     */
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateLocationBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -83,10 +73,8 @@ export class LocationController {
         return this.location.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_location_set_active_001
-     */
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

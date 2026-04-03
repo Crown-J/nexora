@@ -11545,7 +11545,7 @@ export namespace Prisma {
     canRead: boolean | null
     canCreate: boolean | null
     canUpdate: boolean | null
-    canDelete: boolean | null
+    canToggleActive: boolean | null
     canExport: boolean | null
     isActive: boolean | null
     grantedAt: Date | null
@@ -11562,7 +11562,7 @@ export namespace Prisma {
     canRead: boolean | null
     canCreate: boolean | null
     canUpdate: boolean | null
-    canDelete: boolean | null
+    canToggleActive: boolean | null
     canExport: boolean | null
     isActive: boolean | null
     grantedAt: Date | null
@@ -11579,7 +11579,7 @@ export namespace Prisma {
     canRead: number
     canCreate: number
     canUpdate: number
-    canDelete: number
+    canToggleActive: number
     canExport: number
     isActive: number
     grantedAt: number
@@ -11598,7 +11598,7 @@ export namespace Prisma {
     canRead?: true
     canCreate?: true
     canUpdate?: true
-    canDelete?: true
+    canToggleActive?: true
     canExport?: true
     isActive?: true
     grantedAt?: true
@@ -11615,7 +11615,7 @@ export namespace Prisma {
     canRead?: true
     canCreate?: true
     canUpdate?: true
-    canDelete?: true
+    canToggleActive?: true
     canExport?: true
     isActive?: true
     grantedAt?: true
@@ -11632,7 +11632,7 @@ export namespace Prisma {
     canRead?: true
     canCreate?: true
     canUpdate?: true
-    canDelete?: true
+    canToggleActive?: true
     canExport?: true
     isActive?: true
     grantedAt?: true
@@ -11722,7 +11722,7 @@ export namespace Prisma {
     canRead: boolean
     canCreate: boolean
     canUpdate: boolean
-    canDelete: boolean
+    canToggleActive: boolean
     canExport: boolean
     isActive: boolean
     grantedAt: Date
@@ -11756,7 +11756,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: boolean
@@ -11778,7 +11778,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: boolean
@@ -11800,7 +11800,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: boolean
@@ -11822,7 +11822,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: boolean
@@ -11831,7 +11831,7 @@ export namespace Prisma {
     revokedBy?: boolean
   }
 
-  export type Nx00RoleViewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "roleId" | "viewId" | "canRead" | "canCreate" | "canUpdate" | "canDelete" | "canExport" | "isActive" | "grantedAt" | "grantedBy" | "revokedAt" | "revokedBy", ExtArgs["result"]["nx00RoleView"]>
+  export type Nx00RoleViewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "roleId" | "viewId" | "canRead" | "canCreate" | "canUpdate" | "canToggleActive" | "canExport" | "isActive" | "grantedAt" | "grantedBy" | "revokedAt" | "revokedBy", ExtArgs["result"]["nx00RoleView"]>
   export type Nx00RoleViewInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     role?: boolean | Nx00RoleDefaultArgs<ExtArgs>
@@ -11871,10 +11871,25 @@ export namespace Prisma {
       tenantId: string
       roleId: string
       viewId: string
+      /**
+       * 瀏覽（進入畫面、列表／明細）
+       */
       canRead: boolean
+      /**
+       * 新增
+       */
       canCreate: boolean
+      /**
+       * 修改
+       */
       canUpdate: boolean
-      canDelete: boolean
+      /**
+       * 啟用／停用（狀態切換；DB 欄位仍為 can_delete）
+       */
+      canToggleActive: boolean
+      /**
+       * 匯出
+       */
       canExport: boolean
       isActive: boolean
       grantedAt: Date
@@ -12316,7 +12331,7 @@ export namespace Prisma {
     readonly canRead: FieldRef<"Nx00RoleView", 'Boolean'>
     readonly canCreate: FieldRef<"Nx00RoleView", 'Boolean'>
     readonly canUpdate: FieldRef<"Nx00RoleView", 'Boolean'>
-    readonly canDelete: FieldRef<"Nx00RoleView", 'Boolean'>
+    readonly canToggleActive: FieldRef<"Nx00RoleView", 'Boolean'>
     readonly canExport: FieldRef<"Nx00RoleView", 'Boolean'>
     readonly isActive: FieldRef<"Nx00RoleView", 'Boolean'>
     readonly grantedAt: FieldRef<"Nx00RoleView", 'DateTime'>
@@ -40986,7 +41001,7 @@ export namespace Prisma {
     canRead: 'canRead',
     canCreate: 'canCreate',
     canUpdate: 'canUpdate',
-    canDelete: 'canDelete',
+    canToggleActive: 'canToggleActive',
     canExport: 'canExport',
     isActive: 'isActive',
     grantedAt: 'grantedAt',
@@ -42148,7 +42163,7 @@ export namespace Prisma {
     canRead?: BoolFilter<"Nx00RoleView"> | boolean
     canCreate?: BoolFilter<"Nx00RoleView"> | boolean
     canUpdate?: BoolFilter<"Nx00RoleView"> | boolean
-    canDelete?: BoolFilter<"Nx00RoleView"> | boolean
+    canToggleActive?: BoolFilter<"Nx00RoleView"> | boolean
     canExport?: BoolFilter<"Nx00RoleView"> | boolean
     isActive?: BoolFilter<"Nx00RoleView"> | boolean
     grantedAt?: DateTimeFilter<"Nx00RoleView"> | Date | string
@@ -42170,7 +42185,7 @@ export namespace Prisma {
     canRead?: SortOrder
     canCreate?: SortOrder
     canUpdate?: SortOrder
-    canDelete?: SortOrder
+    canToggleActive?: SortOrder
     canExport?: SortOrder
     isActive?: SortOrder
     grantedAt?: SortOrder
@@ -42196,7 +42211,7 @@ export namespace Prisma {
     canRead?: BoolFilter<"Nx00RoleView"> | boolean
     canCreate?: BoolFilter<"Nx00RoleView"> | boolean
     canUpdate?: BoolFilter<"Nx00RoleView"> | boolean
-    canDelete?: BoolFilter<"Nx00RoleView"> | boolean
+    canToggleActive?: BoolFilter<"Nx00RoleView"> | boolean
     canExport?: BoolFilter<"Nx00RoleView"> | boolean
     isActive?: BoolFilter<"Nx00RoleView"> | boolean
     grantedAt?: DateTimeFilter<"Nx00RoleView"> | Date | string
@@ -42218,7 +42233,7 @@ export namespace Prisma {
     canRead?: SortOrder
     canCreate?: SortOrder
     canUpdate?: SortOrder
-    canDelete?: SortOrder
+    canToggleActive?: SortOrder
     canExport?: SortOrder
     isActive?: SortOrder
     grantedAt?: SortOrder
@@ -42241,7 +42256,7 @@ export namespace Prisma {
     canRead?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
     canCreate?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
     canUpdate?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
-    canDelete?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
+    canToggleActive?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
     canExport?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
     isActive?: BoolWithAggregatesFilter<"Nx00RoleView"> | boolean
     grantedAt?: DateTimeWithAggregatesFilter<"Nx00RoleView"> | Date | string
@@ -45246,7 +45261,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -45266,7 +45281,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -45280,7 +45295,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45300,7 +45315,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45317,7 +45332,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -45331,7 +45346,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45346,7 +45361,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48600,7 +48615,7 @@ export namespace Prisma {
     canRead?: SortOrder
     canCreate?: SortOrder
     canUpdate?: SortOrder
-    canDelete?: SortOrder
+    canToggleActive?: SortOrder
     canExport?: SortOrder
     isActive?: SortOrder
     grantedAt?: SortOrder
@@ -48617,7 +48632,7 @@ export namespace Prisma {
     canRead?: SortOrder
     canCreate?: SortOrder
     canUpdate?: SortOrder
-    canDelete?: SortOrder
+    canToggleActive?: SortOrder
     canExport?: SortOrder
     isActive?: SortOrder
     grantedAt?: SortOrder
@@ -48634,7 +48649,7 @@ export namespace Prisma {
     canRead?: SortOrder
     canCreate?: SortOrder
     canUpdate?: SortOrder
-    canDelete?: SortOrder
+    canToggleActive?: SortOrder
     canExport?: SortOrder
     isActive?: SortOrder
     grantedAt?: SortOrder
@@ -56009,7 +56024,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -56028,7 +56043,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -56051,7 +56066,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -56070,7 +56085,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -57555,7 +57570,7 @@ export namespace Prisma {
     canRead?: BoolFilter<"Nx00RoleView"> | boolean
     canCreate?: BoolFilter<"Nx00RoleView"> | boolean
     canUpdate?: BoolFilter<"Nx00RoleView"> | boolean
-    canDelete?: BoolFilter<"Nx00RoleView"> | boolean
+    canToggleActive?: BoolFilter<"Nx00RoleView"> | boolean
     canExport?: BoolFilter<"Nx00RoleView"> | boolean
     isActive?: BoolFilter<"Nx00RoleView"> | boolean
     grantedAt?: DateTimeFilter<"Nx00RoleView"> | Date | string
@@ -58253,7 +58268,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -58271,7 +58286,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -60262,7 +60277,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -60280,7 +60295,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -71090,7 +71105,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -71108,7 +71123,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -73142,7 +73157,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -73158,7 +73173,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -74615,7 +74630,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74634,7 +74649,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74650,7 +74665,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74663,7 +74678,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74682,7 +74697,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -74698,7 +74713,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75294,7 +75309,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -75341,7 +75356,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75359,7 +75374,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75375,7 +75390,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75391,7 +75406,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -75405,7 +75420,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75423,7 +75438,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75439,7 +75454,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -76160,7 +76175,7 @@ export namespace Prisma {
     canRead?: boolean
     canCreate?: boolean
     canUpdate?: boolean
-    canDelete?: boolean
+    canToggleActive?: boolean
     canExport?: boolean
     isActive?: boolean
     grantedAt?: Date | string
@@ -76653,7 +76668,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -76671,7 +76686,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -76687,7 +76702,7 @@ export namespace Prisma {
     canRead?: BoolFieldUpdateOperationsInput | boolean
     canCreate?: BoolFieldUpdateOperationsInput | boolean
     canUpdate?: BoolFieldUpdateOperationsInput | boolean
-    canDelete?: BoolFieldUpdateOperationsInput | boolean
+    canToggleActive?: BoolFieldUpdateOperationsInput | boolean
     canExport?: BoolFieldUpdateOperationsInput | boolean
     isActive?: BoolFieldUpdateOperationsInput | boolean
     grantedAt?: DateTimeFieldUpdateOperationsInput | Date | string

@@ -18,12 +18,14 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { ViewPermissionService } from '../../nx00/rbac/view-permission.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly viewPerm: ViewPermissionService,
   ) { }
 
   /**
@@ -152,6 +154,7 @@ export class AuthService {
       where: { id: userId },
       select: {
         id: true,
+        tenantId: true,
         userAccount: true,
         userName: true,
         email: true,
@@ -163,7 +166,11 @@ export class AuthService {
         tenant: { select: { name: true, nameEn: true } },
         userRoles: {
           where: { isActive: true },
-          select: { role: { select: { code: true } } },
+          select: {
+            tenantId: true,
+            roleId: true,
+            role: { select: { code: true } },
+          },
         },
       },
     });
@@ -173,6 +180,29 @@ export class AuthService {
     }
 
     const roles = user.userRoles.map((ur) => ur.role.code);
+    const isPlatformAdmin = user.userRoles.some((ur) => ur.role.code === 'ADMIN');
+
+    const merged = await this.viewPerm.mergeForProfile({
+      tenantId: user.tenantId,
+      isPlatformAdmin,
+      roleIdsForTenant: user.userRoles.filter((ur) => ur.tenantId === user.tenantId).map((ur) => ur.roleId),
+    });
+
+    const view_permissions =
+      merged === null
+        ? null
+        : Object.fromEntries(
+          Object.entries(merged).map(([code, v]) => [
+            code,
+            {
+              can_read: v.canRead,
+              can_create: v.canCreate,
+              can_update: v.canUpdate,
+              can_toggle_active: v.canToggleActive,
+              can_export: v.canExport,
+            },
+          ]),
+        );
 
     return {
       id: user.id,
@@ -187,6 +217,7 @@ export class AuthService {
       tenant_name: user.tenant?.name ?? null,
       tenant_name_en: user.tenant?.nameEn ?? null,
       roles,
+      view_permissions,
     };
   }
 }

@@ -45,6 +45,8 @@ export function buildDemoMeFromStorage(): MeDto {
     username,
     display_name: '展示模式',
     displayName: '展示模式',
+    /** 展示模式不套用矩陣（等同平台管理語意） */
+    view_permissions: null,
     is_active: true,
     isActive: true,
     last_login_at: new Date().toISOString(),

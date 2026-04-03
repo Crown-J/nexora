@@ -30,7 +30,7 @@ import type {
   ViewDto,
 } from '@/features/nx00/role-view/types';
 
-const PERM_KEYS: PermKey[] = ['canRead', 'canCreate', 'canUpdate', 'canDelete', 'canExport'];
+const PERM_KEYS: PermKey[] = ['canRead', 'canCreate', 'canUpdate', 'canToggleActive', 'canExport'];
 
 function permsEqual(a: Perms, b: Perms) {
   return PERM_KEYS.every((k) => Boolean(a[k]) === Boolean(b[k]));
@@ -41,7 +41,9 @@ function normalizePerms(p?: Partial<Perms> | null): Perms {
     canRead: Boolean(p?.canRead ?? true),
     canCreate: Boolean(p?.canCreate ?? false),
     canUpdate: Boolean(p?.canUpdate ?? false),
-    canDelete: Boolean(p?.canDelete ?? false),
+    canToggleActive: Boolean(
+      p?.canToggleActive ?? (p as { canDelete?: boolean } | null | undefined)?.canDelete ?? false,
+    ),
     canExport: Boolean(p?.canExport ?? false),
   };
 }
@@ -57,7 +59,11 @@ function buildRow(view: ViewDto, rv?: RoleViewDto | null): RoleViewDraftRow {
           canRead: (rv as any).canRead ?? (rv as any)?.perms?.canRead,
           canCreate: (rv as any).canCreate ?? (rv as any)?.perms?.canCreate,
           canUpdate: (rv as any).canUpdate ?? (rv as any)?.perms?.canUpdate,
-          canDelete: (rv as any).canDelete ?? (rv as any)?.perms?.canDelete,
+          canToggleActive:
+            (rv as any).canToggleActive ??
+            (rv as any)?.perms?.canToggleActive ??
+            (rv as any).canDelete ??
+            (rv as any)?.perms?.canDelete,
           canExport: (rv as any).canExport ?? (rv as any)?.perms?.canExport,
         })
       : normalizePerms(null),
@@ -320,7 +326,7 @@ export function useRoleView() {
       canRead: { allChecked: false, indeterminate: false },
       canCreate: { allChecked: false, indeterminate: false },
       canUpdate: { allChecked: false, indeterminate: false },
-      canDelete: { allChecked: false, indeterminate: false },
+      canToggleActive: { allChecked: false, indeterminate: false },
       canExport: { allChecked: false, indeterminate: false },
     };
 
@@ -375,7 +381,7 @@ export function useRoleView() {
               canRead: value,
               canCreate: value,
               canUpdate: value,
-              canDelete: value,
+              canToggleActive: value,
               canExport: value,
             },
           };
@@ -409,7 +415,7 @@ export function useRoleView() {
               canRead: nextValue,
               canCreate: nextValue,
               canUpdate: nextValue,
-              canDelete: nextValue,
+              canToggleActive: nextValue,
               canExport: nextValue,
             },
           },
@@ -446,7 +452,7 @@ export function useRoleView() {
               canRead: nextValue,
               canCreate: nextValue,
               canUpdate: nextValue,
-              canDelete: nextValue,
+              canToggleActive: nextValue,
               canExport: nextValue,
             },
           };
@@ -470,7 +476,7 @@ export function useRoleView() {
       canRead: Boolean(row.isActive && row.perms.canRead),
       canCreate: Boolean(row.isActive && row.perms.canCreate),
       canUpdate: Boolean(row.isActive && row.perms.canUpdate),
-      canDelete: Boolean(row.isActive && row.perms.canDelete),
+      canToggleActive: Boolean(row.isActive && row.perms.canToggleActive),
       canExport: Boolean(row.isActive && row.perms.canExport),
     }));
 

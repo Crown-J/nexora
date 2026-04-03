@@ -1,17 +1,20 @@
 import { Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
+
 import { CarBrandService } from '../services/car-brand.service';
 import type { CreateCarBrandBody, SetActiveBody, UpdateCarBrandBody } from '../dto/car-brand.dto';
 
 @Controller('car-brand')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class CarBrandController {
     constructor(private readonly carBrand: CarBrandService) {}
 
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'read')
     async list(@Query() query: any) {
         return this.carBrand.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -22,11 +25,13 @@ export class CarBrandController {
     }
 
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'read')
     async get(@Param('id') id: string) {
         return this.carBrand.get(id);
     }
 
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'create')
     async create(@Body() body: CreateCarBrandBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         const tenantId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -39,6 +44,7 @@ export class CarBrandController {
     }
 
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateCarBrandBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.carBrand.update(id, body, {
@@ -49,6 +55,7 @@ export class CarBrandController {
     }
 
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.carBrand.setActive(id, body, {

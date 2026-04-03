@@ -3,10 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-PART-CTRL-001：Part CRUD endpoints (ADMIN only)
- *
- * Notes:
- * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
+ * - NX00-API-PART-CTRL-001：Part CRUD（依 nx00_role_view／NX00_PART）
  */
 
 import {
@@ -23,22 +20,21 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 
 import { PartService } from '../services/part.service';
 import type { CreatePartBody, SetActiveBody, UpdatePartBody } from '../dto/part.dto';
 
 @Controller('part')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class PartController {
     constructor(private readonly part: PartService) { }
 
-    /**
-     * @CODE nxapi_nx00_part_list_001
-     */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.PART, 'read')
     async list(@Query() query: any) {
         return this.part.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -49,18 +45,14 @@ export class PartController {
         });
     }
 
-    /**
-     * @CODE nxapi_nx00_part_get_001
-     */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.PART, 'read')
     async get(@Param('id') id: string) {
         return this.part.get(id);
     }
 
-    /**
-     * @CODE nxapi_nx00_part_create_001
-     */
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.PART, 'create')
     async create(@Body() body: CreatePartBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -71,10 +63,8 @@ export class PartController {
         return this.part.create(body, { actorUserId, tenantId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_part_update_001
-     */
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.PART, 'update')
     async update(@Param('id') id: string, @Body() body: UpdatePartBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -84,10 +74,8 @@ export class PartController {
         return this.part.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_part_set_active_001
-     */
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.PART, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

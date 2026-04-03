@@ -1,17 +1,20 @@
 import { Body, Controller, Get, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
+
 import { BrandCodeRoleService } from '../services/brand-code-role.service';
 import type { CreateBrandCodeRoleBody, SetActiveBody, UpdateBrandCodeRoleBody } from '../dto/brand-code-role.dto';
 
 @Controller('brand-code-role')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class BrandCodeRoleController {
     constructor(private readonly svc: BrandCodeRoleService) { }
 
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'read')
     async list(@Query() query: any) {
         return this.svc.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -22,11 +25,13 @@ export class BrandCodeRoleController {
     }
 
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'read')
     async get(@Param('id') id: string) {
         return this.svc.get(id);
     }
 
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'create')
     async create(@Body() body: CreateBrandCodeRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.svc.create(body, {
@@ -37,6 +42,7 @@ export class BrandCodeRoleController {
     }
 
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateBrandCodeRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.svc.update(id, body, {
@@ -47,6 +53,7 @@ export class BrandCodeRoleController {
     }
 
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.svc.setActive(id, body, {

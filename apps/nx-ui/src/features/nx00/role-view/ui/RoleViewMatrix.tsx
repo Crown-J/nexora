@@ -10,15 +10,8 @@
 
 import type { ReactNode } from 'react';
 import { cx } from '@/shared/lib/cx';
+import { PERM_MATRIX_COLS } from '@/features/nx00/role-view/perm-labels';
 import type { PermKey, RoleViewDraftRow } from '@/features/nx00/role-view/types';
-
-const PERM_COLS: { key: PermKey; label: string }[] = [
-  { key: 'canRead', label: '讀取' },
-  { key: 'canCreate', label: '新增' },
-  { key: 'canUpdate', label: '修改' },
-  { key: 'canDelete', label: '刪除' },
-  { key: 'canExport', label: '匯出' },
-];
 
 export type RoleViewMatrixProps = {
   title: string;
@@ -179,7 +172,7 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
         <table className="w-full table-fixed text-sm">
           <colgroup>
             <col className="w-[420px]" />
-            {PERM_COLS.map((c) => (
+            {PERM_MATRIX_COLS.map((c) => (
               <col key={c.key} className="w-[110px]" />
             ))}
             <col className="w-[110px]" />
@@ -203,9 +196,10 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                 畫面 / 功能
               </th>
 
-              {PERM_COLS.map((c) => (
+              {PERM_MATRIX_COLS.map((c) => (
                 <th
                   key={c.key}
+                  title={c.hint}
                   className={cx(
                     'px-3 py-2 text-center text-[11px] font-semibold tracking-wide',
                     base ? 'text-muted-foreground' : 'text-white/75',
@@ -279,7 +273,7 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                         </button>
                       </div>
                     </td>
-                    {PERM_COLS.map((c) => (
+                    {PERM_MATRIX_COLS.map((c) => (
                       <td
                         key={c.key}
                         className={cx(
@@ -331,7 +325,7 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                           </div>
                         </td>
 
-                        {PERM_COLS.map((c) => (
+                        {PERM_MATRIX_COLS.map((c) => (
                           <td key={c.key} className="px-3 py-2 text-center align-middle">
                             <input
                               type="checkbox"

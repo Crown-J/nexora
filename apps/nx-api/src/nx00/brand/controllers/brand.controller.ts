@@ -3,10 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-BRAND-CTRL-001：Brand CRUD endpoints (ADMIN only)
- *
- * Notes:
- * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
+ * - NX00-API-BRAND-CTRL-001：Brand CRUD（依 nx00_role_view／NX00_BRAND）
  */
 
 import {
@@ -23,22 +20,21 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 
 import { BrandService } from '../services/brand.service';
 import type { CreateBrandBody, SetActiveBody, UpdateBrandBody } from '../dto/brand.dto';
 
 @Controller('brand')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class BrandController {
     constructor(private readonly brand: BrandService) { }
 
-    /**
-     * @CODE nxapi_nx00_brand_list_001
-     */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'read')
     async list(@Query() query: any) {
         return this.brand.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -48,18 +44,14 @@ export class BrandController {
         });
     }
 
-    /**
-     * @CODE nxapi_nx00_brand_get_001
-     */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'read')
     async get(@Param('id') id: string) {
         return this.brand.get(id);
     }
 
-    /**
-     * @CODE nxapi_nx00_brand_create_001
-     */
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'create')
     async create(@Body() body: CreateBrandBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -70,10 +62,8 @@ export class BrandController {
         return this.brand.create(body, { actorUserId, tenantId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_brand_update_001
-     */
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateBrandBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -83,10 +73,8 @@ export class BrandController {
         return this.brand.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_brand_set_active_001
-     */
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

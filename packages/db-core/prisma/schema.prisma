@@ -237,10 +237,15 @@ model Nx00RoleView {
   roleId    String   @map("role_id") @db.VarChar(15)
   viewId    String   @map("view_id") @db.VarChar(15)
 
+  /// 瀏覽（進入畫面、列表／明細）
   canRead   Boolean  @default(true)  @map("can_read")
+  /// 新增
   canCreate Boolean  @default(false) @map("can_create")
+  /// 修改
   canUpdate Boolean  @default(false) @map("can_update")
-  canDelete Boolean  @default(false) @map("can_delete")
+  /// 啟用／停用（狀態切換；DB 欄位仍為 can_delete）
+  canToggleActive Boolean  @default(false) @map("can_delete")
+  /// 匯出
   canExport Boolean  @default(false) @map("can_export")
 
   isActive  Boolean  @default(true) @map("is_active")

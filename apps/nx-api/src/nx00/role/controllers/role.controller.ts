@@ -3,11 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-ROLE-CTRL-001：Role CRUD（讀取：已登入且 JWT 有租戶，或平台 ADMIN；寫入：ADMIN）
- *
- * Notes:
- * - 由 roles.controller.ts 複製重構為單數命名（LITE 統一）
- * - 寫入 AuditLog 時需要 actorUserId + ipAddr + userAgent，因此由 Controller 統一取值後傳入 Service
+ * - NX00-API-ROLE-CTRL-001：Role CRUD（讀寫依 nx00_role_view／NX00_ROLE）
  */
 
 import {
@@ -24,16 +20,17 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
 
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 import { assertTenantScopedOrPlatformAdmin } from '../../utils/assert-tenant-read-context';
 
 import { RoleService } from '../services/role.service';
 import type { CreateRoleBody, SetActiveBody, UpdateRoleBody } from '../dto/role.dto';
 
 @Controller('role')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class RoleController {
     constructor(private readonly role: RoleService) { }
 
@@ -41,6 +38,7 @@ export class RoleController {
      * @CODE nxapi_nx00_role_list_001
      */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.ROLE, 'read')
     async list(@Query() query: any, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -58,6 +56,7 @@ export class RoleController {
      * @CODE nxapi_nx00_role_get_001
      */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.ROLE, 'read')
     async get(@Param('id') id: string, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -68,11 +67,10 @@ export class RoleController {
      * @CODE nxapi_nx00_role_create_001
      */
     @Post()
-    @Roles('ADMIN')
+    @RequireNx00ViewPermission(NX00_VIEW.ROLE, 'create')
     async create(@Body() body: CreateRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
-        // audit context（若後端有 proxy/ingress，req.ip 可能是 proxy ip；之後可再統一從 x-forwarded-for 取值）
         const ipAddr = (req?.ip as string | undefined) ?? null;
         const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
 
@@ -84,11 +82,10 @@ export class RoleController {
      * @CODE nxapi_nx00_role_update_001
      */
     @Put(':id')
-    @Roles('ADMIN')
+    @RequireNx00ViewPermission(NX00_VIEW.ROLE, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
-        // audit context
         const ipAddr = (req?.ip as string | undefined) ?? null;
         const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
 
@@ -99,11 +96,10 @@ export class RoleController {
      * @CODE nxapi_nx00_role_set_active_001
      */
     @Patch(':id/active')
-    @Roles('ADMIN')
+    @RequireNx00ViewPermission(NX00_VIEW.ROLE, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
-        // audit context
         const ipAddr = (req?.ip as string | undefined) ?? null;
         const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
 

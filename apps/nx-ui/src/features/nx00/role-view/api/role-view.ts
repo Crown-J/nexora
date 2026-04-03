@@ -73,7 +73,7 @@ export type UpdateRoleViewPermsBody = Partial<Perms>;
 export async function updateRoleViewPerms(id: string, body: UpdateRoleViewPermsBody): Promise<RoleViewDto> {
     const res = await apiFetch(`/role-view/${encodeURIComponent(id)}/perms`, {
         method: 'PATCH',
-        body: JSON.stringify(body),
+        body: JSON.stringify({ perms: body }),
     });
     await assertOk(res, 'nxui_nx00_role_view_update_perms_001');
     return (await res.json()) as RoleViewDto;
@@ -144,7 +144,7 @@ export type UpsertRoleViewItem = {
     canRead: boolean;
     canCreate: boolean;
     canUpdate: boolean;
-    canDelete: boolean;
+    canToggleActive: boolean;
     canExport: boolean;
 };
 

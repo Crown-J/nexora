@@ -1616,6 +1616,52 @@ async function main() {
     });
   }
   console.log('✅ nx00_view seed 完成，共 14 筆');
+
+  await seedNx00RoleViewsForTenants(tenantIds);
+}
+
+/**
+ * 各租戶 × 各職務 × 各畫面：預設五維全開（API 依 nx00_role_view 檢查；可於 role-view 頁再收斂）。
+ */
+async function seedNx00RoleViewsForTenants(tenantIds: TenantIds): Promise<void> {
+  const tids = [tenantIds.dev, tenantIds.demoLite, tenantIds.demoPlus];
+  const viewRows = await prisma.nx00View.findMany({ select: { id: true, code: true } });
+  if (viewRows.length === 0) return;
+
+  let n = 0;
+  for (const tid of tids) {
+    const roleMap = await getRoleIdMap(tid);
+    for (const spec of ROLE_SPECS) {
+      const roleId = roleMap.get(spec.code);
+      if (!roleId) continue;
+      for (const v of viewRows) {
+        await prisma.nx00RoleView.upsert({
+          where: { tenantId_roleId_viewId: { tenantId: tid, roleId, viewId: v.id } },
+          update: {
+            canRead: true,
+            canCreate: true,
+            canUpdate: true,
+            canToggleActive: true,
+            canExport: true,
+            isActive: true,
+          },
+          create: {
+            tenantId: tid,
+            roleId,
+            viewId: v.id,
+            canRead: true,
+            canCreate: true,
+            canUpdate: true,
+            canToggleActive: true,
+            canExport: true,
+            isActive: true,
+          },
+        });
+        n += 1;
+      }
+    }
+  }
+  console.log(`✅ nx00_role_view seed：三租戶 × 職務 × 畫面，共 ${n} 筆 upsert`);
 }
 
 main()

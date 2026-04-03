@@ -19,7 +19,7 @@ import type { RoleDto } from '@/features/nx00/role/types';
 import { listRoleView, listView, grantRoleView, revokeRoleView, updateRoleViewPerms } from '@/features/nx00/role-view/api/role-view';
 import type { PermKey, Perms, RoleViewDraftRow, RoleViewDto, SaveOp, ViewDto } from '@/features/nx00/role-view/types';
 
-const PERM_KEYS: PermKey[] = ['canRead', 'canCreate', 'canUpdate', 'canDelete', 'canExport'];
+const PERM_KEYS: PermKey[] = ['canRead', 'canCreate', 'canUpdate', 'canToggleActive', 'canExport'];
 
 function permsEqual(a: Perms, b: Perms) {
     return PERM_KEYS.every((k) => Boolean(a[k]) === Boolean(b[k]));
@@ -30,7 +30,9 @@ function normalizePerms(p?: Partial<Perms> | null): Perms {
         canRead: Boolean(p?.canRead ?? true),
         canCreate: Boolean(p?.canCreate ?? false),
         canUpdate: Boolean(p?.canUpdate ?? false),
-        canDelete: Boolean(p?.canDelete ?? false),
+        canToggleActive: Boolean(
+            p?.canToggleActive ?? (p as { canDelete?: boolean } | null | undefined)?.canDelete ?? false,
+        ),
         canExport: Boolean(p?.canExport ?? false),
     };
 }
@@ -41,7 +43,19 @@ function buildRow(view: ViewDto, rv?: RoleViewDto | null): RoleViewDraftRow {
         view,
         recordId: has ? String(rv!.id) : null,
         isActive: has ? Boolean(rv!.isActive) : false, // 未授權 = false
-        perms: has ? normalizePerms(rv) : normalizePerms(null),
+        perms: has
+            ? normalizePerms({
+                  canRead: (rv as any).canRead ?? (rv as any)?.perms?.canRead,
+                  canCreate: (rv as any).canCreate ?? (rv as any)?.perms?.canCreate,
+                  canUpdate: (rv as any).canUpdate ?? (rv as any)?.perms?.canUpdate,
+                  canToggleActive:
+                      (rv as any).canToggleActive ??
+                      (rv as any)?.perms?.canToggleActive ??
+                      (rv as any).canDelete ??
+                      (rv as any)?.perms?.canDelete,
+                  canExport: (rv as any).canExport ?? (rv as any)?.perms?.canExport,
+              })
+            : normalizePerms(null),
     };
 }
 

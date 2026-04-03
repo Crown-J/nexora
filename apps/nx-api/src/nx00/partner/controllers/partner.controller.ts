@@ -3,10 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-PARTNER-CTRL-001：Partner CRUD endpoints (ADMIN only)
- *
- * Notes:
- * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
+ * - NX00-API-PARTNER-CTRL-001：Partner CRUD（依 nx00_role_view／NX00_PARTNER）
  */
 
 import {
@@ -23,22 +20,21 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 
 import { PartnerService } from '../services/partner.service';
 import type { CreatePartnerBody, SetActiveBody, UpdatePartnerBody } from '../dto/partner.dto';
 
 @Controller('partner')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class PartnerController {
     constructor(private readonly partner: PartnerService) { }
 
-    /**
-     * @CODE nxapi_nx00_partner_list_001
-     */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.PARTNER, 'read')
     async list(@Query() query: any) {
         return this.partner.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -49,18 +45,14 @@ export class PartnerController {
         });
     }
 
-    /**
-     * @CODE nxapi_nx00_partner_get_001
-     */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.PARTNER, 'read')
     async get(@Param('id') id: string) {
         return this.partner.get(id);
     }
 
-    /**
-     * @CODE nxapi_nx00_partner_create_001
-     */
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.PARTNER, 'create')
     async create(@Body() body: CreatePartnerBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -71,10 +63,8 @@ export class PartnerController {
         return this.partner.create(body, { actorUserId, tenantId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_partner_update_001
-     */
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.PARTNER, 'update')
     async update(@Param('id') id: string, @Body() body: UpdatePartnerBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -84,10 +74,8 @@ export class PartnerController {
         return this.partner.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_partner_set_active_001
-     */
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.PARTNER, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

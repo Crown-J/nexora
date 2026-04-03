@@ -3,13 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-USER-ROLE-CTRL-001：UserRole（讀取：JWT 租戶或平台 ADMIN；寫入：ADMIN／OWNER）
- *
- * Notes:
- * - assign：指派角色
- * - revoke：撤銷（soft revoke：revoked_at + is_active=false）
- * - setPrimary：設為主角色（同 user 只能有一個 primary）
- * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
+ * - NX00-API-USER-ROLE-CTRL-001：UserRole（依 nx00_role_view／NX00_USER_ROLE）
  */
 
 import {
@@ -26,10 +20,10 @@ import {
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 
-import {
-    assertAdminOrOwnerManager,
-    assertTenantScopedOrPlatformAdmin,
-} from '../../utils/assert-tenant-read-context';
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
+import { assertTenantScopedOrPlatformAdmin } from '../../utils/assert-tenant-read-context';
 
 import { UserRoleService } from '../services/user-role.service';
 import type {
@@ -48,7 +42,7 @@ function mutationCtx(req: any) {
 }
 
 @Controller('user-role')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class UserRoleController {
     constructor(private readonly userRole: UserRoleService) { }
 
@@ -56,6 +50,7 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_list_001
      */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.USER_ROLE, 'read')
     async list(@Query() query: any, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -75,6 +70,7 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_get_001
      */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.USER_ROLE, 'read')
     async get(@Param('id') id: string, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -85,9 +81,9 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_assign_001
      */
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.USER_ROLE, 'create')
     async assign(@Body() body: AssignUserRoleBody, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
-        assertAdminOrOwnerManager(req?.user);
         return this.userRole.assign(body, mutationCtx(req));
     }
 
@@ -95,9 +91,9 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_revoke_001
      */
     @Patch(':id/revoke')
+    @RequireNx00ViewPermission(NX00_VIEW.USER_ROLE, 'update')
     async revoke(@Param('id') id: string, @Body() body: RevokeUserRoleBody, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
-        assertAdminOrOwnerManager(req?.user);
         return this.userRole.revoke(id, body, mutationCtx(req));
     }
 
@@ -105,9 +101,9 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_set_primary_001
      */
     @Patch(':id/primary')
+    @RequireNx00ViewPermission(NX00_VIEW.USER_ROLE, 'update')
     async setPrimary(@Param('id') id: string, @Body() body: SetPrimaryBody, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
-        assertAdminOrOwnerManager(req?.user);
         return this.userRole.setPrimary(id, body, mutationCtx(req));
     }
 
@@ -115,9 +111,9 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_set_active_001
      */
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.USER_ROLE, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
-        assertAdminOrOwnerManager(req?.user);
         return this.userRole.setActive(id, body, mutationCtx(req));
     }
 }

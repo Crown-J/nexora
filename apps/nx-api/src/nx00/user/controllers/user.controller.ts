@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-USER-CTRL-001：User CRUD（讀取：已登入且 JWT 有租戶，或平台 ADMIN；寫入：ADMIN）
+ * - NX00-API-USER-CTRL-001：User CRUD（讀寫依 nx00_role_view／NX00_USER）
  *
  * Notes:
  * - 寫入 AuditLog 時需要 actorUserId + ipAddr + userAgent，因此由 Controller 統一取值後傳入 Service
@@ -23,16 +23,17 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
 
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 import { assertTenantScopedOrPlatformAdmin } from '../../utils/assert-tenant-read-context';
 
 import { UserService } from '../services/user.service';
 import type { CreateUserBody, SetActiveBody, UpdateUserBody } from '../dto/user.dto';
 
 @Controller('user')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class UserController {
     constructor(private readonly user: UserService) { }
 
@@ -40,6 +41,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_list_001
      */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.USER, 'read')
     async list(@Query() query: any, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -57,6 +59,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_get_001
      */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.USER, 'read')
     async get(@Param('id') id: string, @Req() req: any) {
         assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
@@ -67,7 +70,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_create_001
      */
     @Post()
-    @Roles('ADMIN')
+    @RequireNx00ViewPermission(NX00_VIEW.USER, 'create')
     async create(@Body() body: CreateUserBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -83,7 +86,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_update_001
      */
     @Put(':id')
-    @Roles('ADMIN')
+    @RequireNx00ViewPermission(NX00_VIEW.USER, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateUserBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -98,7 +101,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_set_active_001
      */
     @Patch(':id/active')
-    @Roles('ADMIN')
+    @RequireNx00ViewPermission(NX00_VIEW.USER, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

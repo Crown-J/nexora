@@ -8,12 +8,13 @@
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_role_view_id()
  * - @@unique([roleId, viewId])：同 role-view 不可重複（P2002）
+ * - 權限五維：瀏覽／新增／修改／啟用‧停用（canToggleActive ↔ can_delete）／匯出
  * - grant：若已存在且 inactive，重新啟用（revokedAt/By 清空 + grantedAt/By 更新）
  * - revoke：revokedAt/By + isActive=false
  * - 為寫入 AuditLog（GRANT/UPDATE_PERMS/REVOKE/SET_ACTIVE），Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
@@ -40,7 +41,7 @@ type RoleViewRow = {
     canRead: boolean;
     canCreate: boolean;
     canUpdate: boolean;
-    canDelete: boolean;
+    canToggleActive: boolean;
     canExport: boolean;
 
     isActive: boolean;
@@ -62,7 +63,7 @@ function pickPerms(p?: Partial<RoleViewPerms>): RoleViewPerms {
         canRead: p?.canRead ?? true,
         canCreate: p?.canCreate ?? false,
         canUpdate: p?.canUpdate ?? false,
-        canDelete: p?.canDelete ?? false,
+        canToggleActive: p?.canToggleActive ?? false,
         canExport: p?.canExport ?? false,
     };
 }
@@ -77,7 +78,7 @@ function toDto(row: RoleViewRow): RoleViewDto {
             canRead: Boolean(row.canRead),
             canCreate: Boolean(row.canCreate),
             canUpdate: Boolean(row.canUpdate),
-            canDelete: Boolean(row.canDelete),
+            canToggleActive: Boolean(row.canToggleActive),
             canExport: Boolean(row.canExport),
         },
         isActive: Boolean(row.isActive),
@@ -112,9 +113,25 @@ function toDto(row: RoleViewRow): RoleViewDto {
  */
 export type RoleViewActionContext = {
     actorUserId?: string;
+    /** JWT 租戶；平台 ADMIN 為 null，不檢查跨租戶 */
+    actorTenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
+
+function assertTenantMatchesRole(actorTenantId: string | null | undefined, roleTenantId: string): void {
+    if (actorTenantId == null || actorTenantId === '') return;
+    if (actorTenantId !== roleTenantId) {
+        throw new ForbiddenException('Tenant mismatch');
+    }
+}
+
+function assertTenantMatchesRow(actorTenantId: string | null | undefined, rowTenantId: string): void {
+    if (actorTenantId == null || actorTenantId === '') return;
+    if (actorTenantId !== rowTenantId) {
+        throw new ForbiddenException('Tenant mismatch');
+    }
+}
 
 @Injectable()
 export class RoleViewService {
@@ -127,12 +144,18 @@ export class RoleViewService {
      * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F01
      * 說明：list - 依條件列出 RoleView（支援 roleId/viewId/moduleCode/isActive + 分頁）
      */
-    async list(query: ListRoleViewQuery): Promise<PagedResult<RoleViewDto>> {
+    async list(
+        query: ListRoleViewQuery,
+        opts?: { tenantScopeId?: string | null },
+    ): Promise<PagedResult<RoleViewDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const where: any = {};
+        if (typeof opts?.tenantScopeId === 'string' && opts.tenantScopeId.trim() !== '') {
+            where.tenantId = opts.tenantScopeId.trim();
+        }
         if (query.roleId) where.roleId = query.roleId;
         if (query.viewId) where.viewId = query.viewId;
         if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
@@ -205,6 +228,7 @@ export class RoleViewService {
             ]);
             if (!r) throw new BadRequestException('Role not found');
             if (!v) throw new BadRequestException('View not found');
+            assertTenantMatchesRole(ctx?.actorTenantId ?? null, r.tenantId);
 
             const existing = await tx.nx00RoleView.findFirst({
                 where: { roleId, viewId, tenantId: r.tenantId },
@@ -255,7 +279,7 @@ export class RoleViewService {
                                 canRead: updated.canRead,
                                 canCreate: updated.canCreate,
                                 canUpdate: updated.canUpdate,
-                                canDelete: updated.canDelete,
+                                canToggleActive: updated.canToggleActive,
                                 canExport: updated.canExport,
                             }),
                         },
@@ -305,7 +329,7 @@ export class RoleViewService {
                             canRead: created.canRead,
                             canCreate: created.canCreate,
                             canUpdate: created.canUpdate,
-                            canDelete: created.canDelete,
+                            canToggleActive: created.canToggleActive,
                             canExport: created.canExport,
                         }),
                     },
@@ -327,6 +351,7 @@ export class RoleViewService {
     async updatePerms(id: string, body: UpdateRoleViewPermsBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
+        assertTenantMatchesRow(ctx?.actorTenantId ?? null, exists.tenantId);
 
         const p = body?.perms ?? {};
         const data: any = {};
@@ -334,7 +359,7 @@ export class RoleViewService {
         if (p.canRead !== undefined) data.canRead = Boolean(p.canRead);
         if (p.canCreate !== undefined) data.canCreate = Boolean(p.canCreate);
         if (p.canUpdate !== undefined) data.canUpdate = Boolean(p.canUpdate);
-        if (p.canDelete !== undefined) data.canDelete = Boolean(p.canDelete);
+        if (p.canToggleActive !== undefined) data.canToggleActive = Boolean(p.canToggleActive);
         if (p.canExport !== undefined) data.canExport = Boolean(p.canExport);
 
         const row = await this.prisma.nx00RoleView.update({
@@ -364,7 +389,7 @@ export class RoleViewService {
                         canRead: Boolean(exists.canRead),
                         canCreate: Boolean(exists.canCreate),
                         canUpdate: Boolean(exists.canUpdate),
-                        canDelete: Boolean(exists.canDelete),
+                        canToggleActive: Boolean(exists.canToggleActive),
                         canExport: Boolean(exists.canExport),
                     },
                 },
@@ -373,7 +398,7 @@ export class RoleViewService {
                         canRead: Boolean(row.canRead),
                         canCreate: Boolean(row.canCreate),
                         canUpdate: Boolean(row.canUpdate),
-                        canDelete: Boolean(row.canDelete),
+                        canToggleActive: Boolean(row.canToggleActive),
                         canExport: Boolean(row.canExport),
                     },
                 },
@@ -392,6 +417,7 @@ export class RoleViewService {
     async revoke(id: string, body: RevokeRoleViewBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
+        assertTenantMatchesRow(ctx?.actorTenantId ?? null, exists.tenantId);
 
         const revokedAt = body.revokedAt ? new Date(body.revokedAt) : new Date();
         if (Number.isNaN(revokedAt.getTime())) throw new BadRequestException('Invalid revokedAt');
@@ -439,6 +465,7 @@ export class RoleViewService {
     async setActive(id: string, body: SetActiveBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
         const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
         if (!exists) throw new NotFoundException('RoleView not found');
+        assertTenantMatchesRow(ctx?.actorTenantId ?? null, exists.tenantId);
 
         const isActive = Boolean(body.isActive);
 
@@ -490,10 +517,22 @@ export class RoleViewService {
      * @FUNCTION_CODE NX00-ROLE-VIEW-SVC-001-F10
      * 說明：getByRoleId - 取得某角色所有畫面權限（flat list）
      */
-    async getByRoleId(roleId: string): Promise<RoleViewDto[]> {
+    async getByRoleId(
+        roleId: string,
+        opts?: { tenantScopeId?: string | null },
+    ): Promise<RoleViewDto[]> {
         const trimmed = roleId?.trim();
         if (!trimmed) {
             throw new BadRequestException('roleId is required');
+        }
+
+        const role = await this.prisma.nx00Role.findUnique({
+            where: { id: trimmed },
+            select: { id: true, tenantId: true },
+        });
+        if (!role) throw new BadRequestException('Role not found');
+        if (typeof opts?.tenantScopeId === 'string' && opts.tenantScopeId !== role.tenantId) {
+            throw new NotFoundException('Role not found');
         }
 
         const rows = await this.prisma.nx00RoleView.findMany({
@@ -542,6 +581,7 @@ export class RoleViewService {
             if (!role) {
                 throw new BadRequestException('Role not found');
             }
+            assertTenantMatchesRole(ctx?.actorTenantId ?? null, role.tenantId);
 
             // 2) 收集所有 viewId 並驗證存在
             const viewIds = Array.from(
@@ -581,7 +621,7 @@ export class RoleViewService {
                     canRead: Boolean(item.canRead),
                     canCreate: Boolean(item.canCreate),
                     canUpdate: Boolean(item.canUpdate),
-                    canDelete: Boolean(item.canDelete),
+                    canToggleActive: Boolean(item.canToggleActive),
                     canExport: Boolean(item.canExport),
                 };
 
@@ -646,7 +686,7 @@ export class RoleViewService {
                                 canRead: Boolean(rv.canRead),
                                 canCreate: Boolean(rv.canCreate),
                                 canUpdate: Boolean(rv.canUpdate),
-                                canDelete: Boolean(rv.canDelete),
+                                canToggleActive: Boolean(rv.canToggleActive),
                                 canExport: Boolean(rv.canExport),
                             },
                         })),
@@ -662,7 +702,7 @@ export class RoleViewService {
                                 canRead: Boolean(rv.canRead),
                                 canCreate: Boolean(rv.canCreate),
                                 canUpdate: Boolean(rv.canUpdate),
-                                canDelete: Boolean(rv.canDelete),
+                                canToggleActive: Boolean(rv.canToggleActive),
                                 canExport: Boolean(rv.canExport),
                             },
                         })),

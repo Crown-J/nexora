@@ -20,16 +20,9 @@ import { GroupPanelShell } from '@/shared/ui/group/GroupPanelShell';
 import { cx } from '@/shared/lib/cx';
 
 import { useRoleViewMatrix } from '@/features/nx00/role-view/hooks/useRoleViewMatrix';
+import { PERM_MATRIX_COLS } from '@/features/nx00/role-view/perm-labels';
 import type { PermKey } from '@/features/nx00/role-view/types';
 import type { RoleDto } from '@/features/nx00/role/types';
-
-const PERM_COLS: { key: PermKey; label: string }[] = [
-    { key: 'canRead', label: '讀取' },
-    { key: 'canCreate', label: '新增' },
-    { key: 'canUpdate', label: '修改' },
-    { key: 'canDelete', label: '刪除' },
-    { key: 'canExport', label: '匯出' },
-];
 
 function roleItem(r: RoleDto) {
     return (
@@ -106,9 +99,9 @@ export function RoleViewMatrixView() {
                 </div>
             ) : (
                 <>
-                    {/* Top bulk buttons (像你圖上的 讀取/新增/修改/刪除/匯出) */}
+                    {/* Top bulk buttons：瀏覽／新增／修改／停用‧啟用／匯出 */}
                     <div className="mb-3 flex flex-wrap items-center gap-2">
-                        {PERM_COLS.map((c) => (
+                        {PERM_MATRIX_COLS.map((c) => (
                             <button
                                 key={c.key}
                                 className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/80 hover:bg-white/10 disabled:opacity-40"
@@ -146,8 +139,12 @@ export function RoleViewMatrixView() {
                                         畫面 / 功能
                                     </th>
 
-                                    {PERM_COLS.map((c) => (
-                                        <th key={c.key} className="w-[110px] px-3 py-2 text-center text-[11px] font-semibold text-white/70">
+                                    {PERM_MATRIX_COLS.map((c) => (
+                                        <th
+                                            key={c.key}
+                                            title={c.hint}
+                                            className="w-[110px] px-3 py-2 text-center text-[11px] font-semibold text-white/70"
+                                        >
                                             {c.label}
                                         </th>
                                     ))}
@@ -178,7 +175,7 @@ export function RoleViewMatrixView() {
                                                             <span className="text-xs text-white/45">({rows.length})</span>
                                                         </button>
                                                     </td>
-                                                    {PERM_COLS.map((c) => (
+                                                    {PERM_MATRIX_COLS.map((c) => (
                                                         <td key={c.key} className="px-3 py-2 text-center text-xs text-white/35">
                                                             —
                                                         </td>
@@ -201,7 +198,7 @@ export function RoleViewMatrixView() {
                                                                 <div className="text-[11px] text-white/35">{r.view.path}</div>
                                                             </td>
 
-                                                            {PERM_COLS.map((c) => (
+                                                            {PERM_MATRIX_COLS.map((c) => (
                                                                 <td key={c.key} className="px-3 py-2 text-center">
                                                                     <input
                                                                         type="checkbox"

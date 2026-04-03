@@ -197,7 +197,7 @@ exports.Prisma.Nx00RoleViewScalarFieldEnum = {
   canRead: 'canRead',
   canCreate: 'canCreate',
   canUpdate: 'canUpdate',
-  canDelete: 'canDelete',
+  canToggleActive: 'canToggleActive',
   canExport: 'canExport',
   isActive: 'isActive',
   grantedAt: 'grantedAt',

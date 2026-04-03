@@ -6,11 +6,12 @@
  * - NX00-API-ROLE-VIEW-DTO-001：RoleView DTO（LITE 對齊 nx00_role_view）
  */
 
+/** 五維權限（Prisma：`canToggleActive` ↔ DB `can_delete`，語意為啟用／停用） */
 export type RoleViewPerms = {
     canRead: boolean;
     canCreate: boolean;
     canUpdate: boolean;
-    canDelete: boolean;
+    canToggleActive: boolean;
     canExport: boolean;
 };
 
@@ -86,7 +87,7 @@ export class UpsertRoleViewItemDto {
     canRead!: boolean;
     canCreate!: boolean;
     canUpdate!: boolean;
-    canDelete!: boolean;
+    canToggleActive!: boolean;
     canExport!: boolean;
 }
 

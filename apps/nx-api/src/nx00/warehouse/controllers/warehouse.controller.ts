@@ -3,10 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-WAREHOUSE-CTRL-001：Warehouse CRUD endpoints (ADMIN only)
- *
- * Notes:
- * - 為寫入 AuditLog，統一傳入 actorUserId + ipAddr + userAgent
+ * - NX00-API-WAREHOUSE-CTRL-001：Warehouse CRUD（依 nx00_role_view／NX00_WAREHOUSE）
  */
 
 import {
@@ -23,22 +20,21 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import { NX00_VIEW } from '../../rbac/nx00-view-codes';
+import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
+import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 
 import { WarehouseService } from '../services/warehouse.service';
 import type { CreateWarehouseBody, SetActiveBody, UpdateWarehouseBody } from '../dto/warehouse.dto';
 
 @Controller('warehouse')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
 export class WarehouseController {
     constructor(private readonly warehouse: WarehouseService) { }
 
-    /**
-     * @CODE nxapi_nx00_warehouse_list_001
-     */
     @Get()
+    @RequireNx00ViewPermission(NX00_VIEW.WAREHOUSE, 'read')
     async list(@Query() query: any) {
         return this.warehouse.list({
             q: typeof query.q === 'string' ? query.q : undefined,
@@ -48,18 +44,14 @@ export class WarehouseController {
         });
     }
 
-    /**
-     * @CODE nxapi_nx00_warehouse_get_001
-     */
     @Get(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.WAREHOUSE, 'read')
     async get(@Param('id') id: string) {
         return this.warehouse.get(id);
     }
 
-    /**
-     * @CODE nxapi_nx00_warehouse_create_001
-     */
     @Post()
+    @RequireNx00ViewPermission(NX00_VIEW.WAREHOUSE, 'create')
     async create(@Body() body: CreateWarehouseBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -70,10 +62,8 @@ export class WarehouseController {
         return this.warehouse.create(body, { actorUserId, tenantId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_warehouse_update_001
-     */
     @Put(':id')
+    @RequireNx00ViewPermission(NX00_VIEW.WAREHOUSE, 'update')
     async update(@Param('id') id: string, @Body() body: UpdateWarehouseBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -83,10 +73,8 @@ export class WarehouseController {
         return this.warehouse.update(id, body, { actorUserId, ipAddr, userAgent });
     }
 
-    /**
-     * @CODE nxapi_nx00_warehouse_set_active_001
-     */
     @Patch(':id/active')
+    @RequireNx00ViewPermission(NX00_VIEW.WAREHOUSE, 'toggleActive')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

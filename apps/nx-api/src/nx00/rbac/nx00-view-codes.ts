@@ -1,0 +1,17 @@
+/**
+ * nx00_view.code（與 seed 一致）— API 權限檢查用。
+ */
+export const NX00_VIEW = {
+    USER: 'NX00_USER',
+    ROLE: 'NX00_ROLE',
+    USER_ROLE: 'NX00_USER_ROLE',
+    USER_WAREHOUSE: 'NX00_USER_WAREHOUSE',
+    ROLE_VIEW: 'NX00_ROLE_VIEW',
+    PART: 'NX00_PART',
+    BRAND: 'NX00_BRAND',
+    CAR_BRAND: 'NX00_CAR_BRAND',
+    PART_BRAND: 'NX00_PART_BRAND',
+    WAREHOUSE: 'NX00_WAREHOUSE',
+    LOCATION: 'NX00_LOCATION',
+    PARTNER: 'NX00_PARTNER',
+} as const;

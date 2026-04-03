@@ -7,7 +7,7 @@
  *
  * Notes:
  * - View 是 seed 資源表（通常不給一般 UI 新增）
- * - RoleView 是授權關聯 + CRUDX 權限矩陣
+ * - RoleView 是授權關聯 + **五維**權限：瀏覽／新增／修改／啟用‧停用／匯出（API：`canToggleActive` ↔ DB `can_delete`）
  */
 
 export type ViewDto = {
@@ -31,7 +31,7 @@ export type RoleViewDto = {
     canRead: boolean;
     canCreate: boolean;
     canUpdate: boolean;
-    canDelete: boolean;
+    canToggleActive: boolean;
     canExport: boolean;
 
     isActive: boolean;
@@ -45,7 +45,7 @@ export type RoleViewDto = {
     view?: ViewDto;
 };
 
-export type PermKey = 'canRead' | 'canCreate' | 'canUpdate' | 'canDelete' | 'canExport';
+export type PermKey = 'canRead' | 'canCreate' | 'canUpdate' | 'canToggleActive' | 'canExport';
 
 export type Perms = Record<PermKey, boolean>;
 
