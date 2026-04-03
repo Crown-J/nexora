@@ -185,8 +185,8 @@ export class AuthService {
       ? user.userRoles.filter((ur) => ur.tenantId === user.tenantId)
       : user.userRoles;
     const roles = roleRowsForMe.map((ur) => ur.role.code);
-    const isPlatformAdminForPerms =
-      user.tenantId == null && user.userRoles.some((ur) => ur.role.code === 'ADMIN');
+    /** 與 Guard 一致：掛 ADMIN 職務者 view_permissions 為 null（前端視為全開） */
+    const isPlatformAdminForPerms = roleRowsForMe.some((ur) => ur.role.code === 'ADMIN');
 
     const merged = await this.viewPerm.mergeForProfile({
       tenantId: user.tenantId,

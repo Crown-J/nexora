@@ -68,19 +68,39 @@ function pickPerms(p?: Partial<RoleViewPerms>): RoleViewPerms {
     };
 }
 
-function toDto(row: RoleViewRow): RoleViewDto {
+/** 系統管理員職務（ADMIN）：五維強制全開，不可於 UI 關閉 */
+function adminRoleFullPerms(): RoleViewPerms {
     return {
-        id: row.id,
-        roleId: row.roleId,
-        viewId: row.viewId,
+        canRead: true,
+        canCreate: true,
+        canUpdate: true,
+        canToggleActive: true,
+        canExport: true,
+    };
+}
 
-        perms: {
+function isAdminRoleCode(code: string | null | undefined): boolean {
+    return (code ?? '').trim() === 'ADMIN';
+}
+
+function toDto(row: RoleViewRow): RoleViewDto {
+    const adminLocked = isAdminRoleCode(row.role?.code ?? null);
+    const permsObj = adminLocked
+        ? adminRoleFullPerms()
+        : {
             canRead: Boolean(row.canRead),
             canCreate: Boolean(row.canCreate),
             canUpdate: Boolean(row.canUpdate),
             canToggleActive: Boolean(row.canToggleActive),
             canExport: Boolean(row.canExport),
-        },
+        };
+
+    return {
+        id: row.id,
+        roleId: row.roleId,
+        viewId: row.viewId,
+
+        perms: permsObj,
         isActive: Boolean(row.isActive),
 
         grantedAt: row.grantedAt?.toISOString?.() ?? String(row.grantedAt),
@@ -218,8 +238,6 @@ export class RoleViewService {
         if (!roleId) throw new BadRequestException('roleId is required');
         if (!viewId) throw new BadRequestException('viewId is required');
 
-        const perms = pickPerms(body.perms);
-
         const row = await this.prisma.$transaction(async (tx) => {
             // 檢查 FK（避免 500）
             const [r, v] = await Promise.all([
@@ -229,6 +247,8 @@ export class RoleViewService {
             if (!r) throw new BadRequestException('Role not found');
             if (!v) throw new BadRequestException('View not found');
             assertTenantMatchesRole(ctx?.actorTenantId ?? null, r.tenantId);
+
+            const perms = isAdminRoleCode(r.code) ? adminRoleFullPerms() : pickPerms(body.perms);
 
             const existing = await tx.nx00RoleView.findFirst({
                 where: { roleId, viewId, tenantId: r.tenantId },
@@ -349,18 +369,32 @@ export class RoleViewService {
      * 說明：updatePerms - 更新單筆 CRUDX 權限
      */
     async updatePerms(id: string, body: UpdateRoleViewPermsBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
-        const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
+        const exists = await this.prisma.nx00RoleView.findUnique({
+            where: { id },
+            include: { role: { select: { code: true } } },
+        });
         if (!exists) throw new NotFoundException('RoleView not found');
         assertTenantMatchesRow(ctx?.actorTenantId ?? null, exists.tenantId);
 
+        const adminLocked = isAdminRoleCode(exists.role?.code);
         const p = body?.perms ?? {};
-        const data: any = {};
+        const data: any = adminLocked
+            ? {
+                canRead: true,
+                canCreate: true,
+                canUpdate: true,
+                canToggleActive: true,
+                canExport: true,
+            }
+            : {};
 
-        if (p.canRead !== undefined) data.canRead = Boolean(p.canRead);
-        if (p.canCreate !== undefined) data.canCreate = Boolean(p.canCreate);
-        if (p.canUpdate !== undefined) data.canUpdate = Boolean(p.canUpdate);
-        if (p.canToggleActive !== undefined) data.canToggleActive = Boolean(p.canToggleActive);
-        if (p.canExport !== undefined) data.canExport = Boolean(p.canExport);
+        if (!adminLocked) {
+            if (p.canRead !== undefined) data.canRead = Boolean(p.canRead);
+            if (p.canCreate !== undefined) data.canCreate = Boolean(p.canCreate);
+            if (p.canUpdate !== undefined) data.canUpdate = Boolean(p.canUpdate);
+            if (p.canToggleActive !== undefined) data.canToggleActive = Boolean(p.canToggleActive);
+            if (p.canExport !== undefined) data.canExport = Boolean(p.canExport);
+        }
 
         const row = await this.prisma.nx00RoleView.update({
             where: { id },
@@ -415,9 +449,15 @@ export class RoleViewService {
      * 說明：revoke - 撤銷單筆 RoleView（soft revoke）
      */
     async revoke(id: string, body: RevokeRoleViewBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
-        const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
+        const exists = await this.prisma.nx00RoleView.findUnique({
+            where: { id },
+            include: { role: { select: { code: true } } },
+        });
         if (!exists) throw new NotFoundException('RoleView not found');
         assertTenantMatchesRow(ctx?.actorTenantId ?? null, exists.tenantId);
+        if (isAdminRoleCode(exists.role?.code)) {
+            throw new BadRequestException('系統管理員職務之畫面授權不可撤銷');
+        }
 
         const revokedAt = body.revokedAt ? new Date(body.revokedAt) : new Date();
         if (Number.isNaN(revokedAt.getTime())) throw new BadRequestException('Invalid revokedAt');
@@ -463,11 +503,17 @@ export class RoleViewService {
      * 說明：setActive - 切換單筆 RoleView 啟用狀態
      */
     async setActive(id: string, body: SetActiveBody, ctx?: RoleViewActionContext): Promise<RoleViewDto> {
-        const exists = await this.prisma.nx00RoleView.findUnique({ where: { id } });
+        const exists = await this.prisma.nx00RoleView.findUnique({
+            where: { id },
+            include: { role: { select: { code: true } } },
+        });
         if (!exists) throw new NotFoundException('RoleView not found');
         assertTenantMatchesRow(ctx?.actorTenantId ?? null, exists.tenantId);
 
         const isActive = Boolean(body.isActive);
+        if (isAdminRoleCode(exists.role?.code) && !isActive) {
+            throw new BadRequestException('系統管理員職務之畫面授權不可停用');
+        }
 
         const row = await this.prisma.nx00RoleView.update({
             where: { id },
@@ -617,13 +663,15 @@ export class RoleViewService {
                 if (!viewId) continue;
                 if (!viewMap.has(viewId)) continue;
 
-                const perms: RoleViewPerms = {
-                    canRead: Boolean(item.canRead),
-                    canCreate: Boolean(item.canCreate),
-                    canUpdate: Boolean(item.canUpdate),
-                    canToggleActive: Boolean(item.canToggleActive),
-                    canExport: Boolean(item.canExport),
-                };
+                const perms: RoleViewPerms = isAdminRoleCode(role.code)
+                    ? adminRoleFullPerms()
+                    : {
+                        canRead: Boolean(item.canRead),
+                        canCreate: Boolean(item.canCreate),
+                        canUpdate: Boolean(item.canUpdate),
+                        canToggleActive: Boolean(item.canToggleActive),
+                        canExport: Boolean(item.canExport),
+                    };
 
                 const key = `${trimmedRoleId}:${viewId}`;
                 const existingRow = existingMap.get(key);

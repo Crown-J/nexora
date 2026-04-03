@@ -1,6 +1,6 @@
 /**
  * 依 nx00_role_view 合併「目前 JWT 使用者＋租戶」之畫面權限（多職務 OR）。
- * - 僅「無租戶」之 ADMIN（平台）：merge 回傳 null → 略過檢查；租戶內 ADMIN 仍走矩陣
+ * - 凡 JWT roles 含 **ADMIN**（租戶內系統管理員或平台）：merge 回傳 null → 略過 Guard（租戶資料範圍仍依 **tenantId**）
  */
 
 import { Injectable } from '@nestjs/common';
@@ -22,9 +22,9 @@ export type MergedNx00ViewPerms = {
 export class ViewPermissionService {
     constructor(private readonly prisma: PrismaService) { }
 
-    /** null＝跨租戶平台 ADMIN 略過；空物件＝無任何授權列 */
+    /** null＝具 ADMIN 職務略過矩陣檢查；空物件＝無任何授權列 */
     async mergeForRequestUser(user: RequestUser): Promise<Record<string, MergedNx00ViewPerms> | null> {
-        if (user.roles?.includes('ADMIN') && user.tenantId == null) return null;
+        if (user.roles?.includes('ADMIN')) return null;
         const tid = user.tenantId;
         if (!tid) return {};
 
