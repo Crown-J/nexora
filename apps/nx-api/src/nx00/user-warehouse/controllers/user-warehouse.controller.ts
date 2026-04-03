@@ -23,20 +23,25 @@ export class UserWarehouseController {
 
     @Get()
     @RequireNx00ViewPermission(NX00_VIEW.USER_WAREHOUSE, 'read')
-    async list(@Query() query: Record<string, string | undefined>) {
-        return this.userWarehouse.list({
-            userId: typeof query.userId === 'string' ? query.userId : undefined,
-            warehouseId: typeof query.warehouseId === 'string' ? query.warehouseId : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+    async list(@Query() query: Record<string, string | undefined>, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.userWarehouse.list(
+            {
+                userId: typeof query.userId === 'string' ? query.userId : undefined,
+                warehouseId: typeof query.warehouseId === 'string' ? query.warehouseId : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     @Get(':id')
     @RequireNx00ViewPermission(NX00_VIEW.USER_WAREHOUSE, 'read')
-    async get(@Param('id') id: string) {
-        return this.userWarehouse.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.userWarehouse.get(id, { tenantScopeId });
     }
 
     @Post()

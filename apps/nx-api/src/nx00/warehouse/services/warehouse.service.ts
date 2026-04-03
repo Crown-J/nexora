@@ -27,6 +27,7 @@ type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 type WarehouseRowWithAudit = {
     id: string;
+    tenantId: string;
     code: string;
     name: string;
     remark: string | null;
@@ -73,6 +74,9 @@ export type WarehouseActionContext = {
     userAgent?: string | null;
 };
 
+/** 租戶 JWT 讀取範圍；有值時 list/get 僅該租戶 */
+export type WarehouseReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class WarehouseService {
     constructor(
@@ -80,22 +84,27 @@ export class WarehouseService {
         private readonly audit: AuditLogService,
     ) { }
 
-    async list(query: ListWarehouseQuery): Promise<PagedResult<WarehouseDto>> {
+    async list(query: ListWarehouseQuery, scope?: WarehouseReadScope): Promise<PagedResult<WarehouseDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
 
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { code: { contains: q, mode: 'insensitive' as const } },
-                { name: { contains: q, mode: 'insensitive' as const } },
-                { remark: { contains: q, mode: 'insensitive' as const } },
-            ];
+            parts.push({
+                OR: [
+                    { code: { contains: q, mode: 'insensitive' as const } },
+                    { name: { contains: q, mode: 'insensitive' as const } },
+                    { remark: { contains: q, mode: 'insensitive' as const } },
+                ],
+            });
         }
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00Warehouse.count({ where }),
@@ -119,7 +128,7 @@ export class WarehouseService {
         };
     }
 
-    async get(id: string): Promise<WarehouseDto> {
+    async get(id: string, scope?: WarehouseReadScope): Promise<WarehouseDto> {
         const row = await this.prisma.nx00Warehouse.findUnique({
             where: { id },
             include: {
@@ -128,6 +137,8 @@ export class WarehouseService {
             },
         });
         if (!row) throw new NotFoundException('Warehouse not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Warehouse not found');
         return toWarehouseDto(row as unknown as WarehouseRowWithAudit);
     }
 

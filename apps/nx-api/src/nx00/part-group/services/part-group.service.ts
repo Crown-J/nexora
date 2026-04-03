@@ -14,6 +14,7 @@ type PrismaKnownError = { code?: string; message?: string };
 
 type Row = {
     id: string;
+    tenantId: string;
     code: string;
     name: string;
     sortNo: number;
@@ -51,6 +52,8 @@ export type PartGroupActionContext = {
     userAgent?: string | null;
 };
 
+export type PartGroupReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class PartGroupService {
     constructor(
@@ -65,18 +68,23 @@ export class PartGroupService {
         } as const;
     }
 
-    async list(query: ListPartGroupQuery): Promise<PagedResult<PartGroupDto>> {
+    async list(query: ListPartGroupQuery, scope?: PartGroupReadScope): Promise<PagedResult<PartGroupDto>> {
         const page = Number(query.page) > 0 ? Number(query.page) : 1;
         const pageSize = Number(query.pageSize) > 0 ? Number(query.pageSize) : 50;
         const q = query.q?.trim();
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { code: { contains: q, mode: 'insensitive' as const } },
-                { name: { contains: q, mode: 'insensitive' as const } },
-            ];
+            parts.push({
+                OR: [
+                    { code: { contains: q, mode: 'insensitive' as const } },
+                    { name: { contains: q, mode: 'insensitive' as const } },
+                ],
+            });
         }
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00PartGroup.count({ where }),
@@ -92,9 +100,11 @@ export class PartGroupService {
         return { items: rows.map((r) => toDto(r as Row)), page, pageSize, total };
     }
 
-    async get(id: string): Promise<PartGroupDto> {
+    async get(id: string, scope?: PartGroupReadScope): Promise<PartGroupDto> {
         const row = await this.prisma.nx00PartGroup.findUnique({ where: { id }, include: this.include() });
         if (!row) throw new NotFoundException('Part group not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Part group not found');
         return toDto(row as Row);
     }
 

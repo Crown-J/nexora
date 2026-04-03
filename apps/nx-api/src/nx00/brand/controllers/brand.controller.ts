@@ -35,19 +35,24 @@ export class BrandController {
 
     @Get()
     @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'read')
-    async list(@Query() query: any) {
-        return this.brand.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.brand.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     @Get(':id')
     @RequireNx00ViewPermission(NX00_VIEW.BRAND, 'read')
-    async get(@Param('id') id: string) {
-        return this.brand.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.brand.get(id, { tenantScopeId });
     }
 
     @Post()

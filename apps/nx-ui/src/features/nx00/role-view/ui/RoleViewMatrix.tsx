@@ -36,7 +36,6 @@ export type RoleViewMatrixProps = {
   onSetPerm(viewId: string, key: PermKey, value: boolean): void;
   onSetRowActive(viewId: string, active: boolean): void;
   onToggleAll(nextValue: boolean): void;
-  onToggleRowAll(viewId: string): void;
   onToggleModuleAll(moduleCode: string): void;
 
   /** dashboard = NX00 深色玻璃；base = 主檔 Landing 語意色票 */
@@ -65,7 +64,6 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
     onSetPerm,
     onSetRowActive,
     onToggleAll,
-    onToggleRowAll,
     onToggleModuleAll,
     appearance = 'dashboard',
     showMatrixHeader = true,
@@ -214,8 +212,9 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                   'px-3 py-2 text-center text-[11px] font-semibold tracking-wide',
                   base ? 'text-muted-foreground' : 'text-white/75',
                 )}
+                title="是否授權此角色使用此畫面；關閉時讀寫等細項權限一併失效。與左側各欄「讀取／新增…」為不同層級。"
               >
-                啟用
+                使用畫面
               </th>
             </tr>
           </thead>
@@ -338,31 +337,15 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                         ))}
 
                         <td className="px-3 py-2 text-center align-middle">
-                          <div className="flex items-center justify-center gap-2">
-                            <input
-                              type="checkbox"
-                              className={chk}
-                              checked={Boolean(r.isActive)}
-                              onChange={(e) => onSetRowActive(r.view.id, e.target.checked)}
-                              disabled={saving}
-                              title="取消啟用會在儲存後視為關閉該 View 權限"
-                            />
-
-                            <button
-                              type="button"
-                              onClick={() => onToggleRowAll(r.view.id)}
-                              className={cx(
-                                'rounded-full border px-2 py-0.5 text-[10px] disabled:opacity-40',
-                                base
-                                  ? 'border-border bg-muted/40 text-foreground hover:bg-muted'
-                                  : 'border-white/15 bg-white/5 text-white/75 hover:bg-white/12',
-                              )}
-                              disabled={saving}
-                              title="切換此畫面的所有權限全選/全取消"
-                            >
-                              全選
-                            </button>
-                          </div>
+                          <input
+                            type="checkbox"
+                            className={chk}
+                            checked={Boolean(r.isActive)}
+                            onChange={(e) => onSetRowActive(r.view.id, e.target.checked)}
+                            disabled={saving}
+                            title="關閉後儲存將撤銷此畫面授權；細項權限請用左側各欄勾選，或使用上方「全部勾選／全部取消」。"
+                            aria-label={`${r.view.name}：使用此畫面`}
+                          />
                         </td>
                       </tr>
                     ))}

@@ -12,18 +12,23 @@ export class PartGroupController {
     constructor(private readonly partGroup: PartGroupService) { }
 
     @Get()
-    async list(@Query() query: any) {
-        return this.partGroup.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 50,
-        });
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.partGroup.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 50,
+            },
+            { tenantScopeId },
+        );
     }
 
     @Get(':id')
-    async get(@Param('id') id: string) {
-        return this.partGroup.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.partGroup.get(id, { tenantScopeId });
     }
 
     @Post()

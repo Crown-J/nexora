@@ -109,7 +109,6 @@ export function RoleViewSplitView() {
           onSetPerm={vm.actions.setPerm}
           onSetRowActive={vm.actions.setRowActive}
           onToggleAll={vm.actions.setAllPerms}
-          onToggleRowAll={vm.actions.toggleRowAll}
           onToggleModuleAll={vm.actions.toggleModuleAll}
         />
       )}

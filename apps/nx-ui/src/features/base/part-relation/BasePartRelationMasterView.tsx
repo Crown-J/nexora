@@ -32,6 +32,7 @@ export function BasePartRelationMasterView() {
       fields={FIELDS}
       upperCaseFields={[]}
       selectOptions={{ relationType: REL_OPTS }}
+      unifiedMasterShell
     />
   );
 }

@@ -149,8 +149,11 @@ export function RoleViewMatrixView() {
                                         </th>
                                     ))}
 
-                                    <th className="w-[110px] px-3 py-2 text-center text-[11px] font-semibold text-white/70">
-                                        啟用
+                                    <th
+                                        className="w-[110px] px-3 py-2 text-center text-[11px] font-semibold text-white/70"
+                                        title="是否授權此角色使用此畫面；關閉時讀寫等細項權限一併失效。"
+                                    >
+                                        使用畫面
                                     </th>
                                 </tr>
                             </thead>
@@ -215,7 +218,8 @@ export function RoleViewMatrixView() {
                                                                     checked={Boolean(r.isActive)}
                                                                     onChange={(e) => vm.actions.setRowActive(r.view.id, e.target.checked)}
                                                                     disabled={vm.saving}
-                                                                    title="取消啟用會在 Save 後 revoke"
+                                                                    title="關閉後儲存將撤銷此畫面授權；細項權限請用左側各欄勾選。"
+                                                                    aria-label={`${r.view.name}：使用此畫面`}
                                                                 />
                                                             </td>
                                                         </tr>

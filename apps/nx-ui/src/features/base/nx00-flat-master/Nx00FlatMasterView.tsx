@@ -19,6 +19,8 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
+import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
+import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
 
 const AUDIT_KEYS = ['createdAt', 'createdBy', 'createdByName', 'updatedAt', 'updatedBy', 'updatedByName'] as const;
 
@@ -48,6 +50,8 @@ export type Nx00FlatMasterProps = {
   fields: FlatFieldDef[];
   /** 表單欄位改為下拉（例：partBrandId、relationType） */
   selectOptions?: Record<string, { value: string; label: string }[]>;
+  /** true：單欄工具列＋主檔列表版型（對齊使用者主檔），隱藏左側狀態欄與獨立 FILTER 區塊 */
+  unifiedMasterShell?: boolean;
 };
 
 type SortDir = 'asc' | 'desc';
@@ -103,6 +107,7 @@ export function Nx00FlatMasterView({
   upperCaseFields = ['code'],
   fields,
   selectOptions,
+  unifiedMasterShell = false,
 }: Nx00FlatMasterProps) {
   const upper = useMemo(() => new Set(upperCaseFields), [upperCaseFields]);
 
@@ -178,6 +183,7 @@ export function Nx00FlatMasterView({
   const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
+  const listScrollRef = useRef<HTMLDivElement>(null);
   const PAGE_SIZE = 10;
 
   const { value: colPref, setValue: setColPref } = useListLocalPref<ColPref>(prefKey, 2, DEFAULT_COL_PREF);
@@ -432,64 +438,110 @@ export function Nx00FlatMasterView({
           </div>
         ) : null}
 
-        <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
-          <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
-          <div className="mt-4">
-            <Label htmlFor="nx-flat-kw">關鍵字</Label>
-            <Input
-              id="nx-flat-kw"
-              className="mt-2 max-w-md"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="全文（除 id）"
-              autoComplete="off"
-            />
-          </div>
-        </section>
+        {!unifiedMasterShell ? (
+          <section className="glass-card rounded-2xl border border-border/80 p-4 shadow-sm">
+            <p className="text-xs tracking-[0.35em] text-muted-foreground">FILTER</p>
+            <h2 className="mt-1 text-sm font-semibold text-foreground">搜尋與篩選</h2>
+            <div className="mt-4">
+              <Label htmlFor="nx-flat-kw">關鍵字</Label>
+              <Input
+                id="nx-flat-kw"
+                className="mt-2 max-w-md"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="全文（除 id）"
+                autoComplete="off"
+              />
+            </div>
+          </section>
+        ) : null}
 
-        <section className="glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
-            <nav
-              className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
-              aria-label="狀態"
-            >
-              {(
-                [
-                  { k: 'all' as const, label: '全部' },
-                  { k: 'active' as const, label: '啟用' },
-                  { k: 'inactive' as const, label: '停用' },
-                ] as const
-              ).map(({ k, label }) => (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setActivePick(k)}
-                  className={cn(
-                    'rounded-lg px-3 py-2 text-left text-sm transition-colors',
-                    activePick === k ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </nav>
-
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
-              <div className="mb-3 flex flex-wrap gap-2 lg:hidden">
-                <select
-                  className="nx-native-select h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-                  value={activePick}
-                  onChange={(e) => setActivePick(e.target.value as 'all' | 'active' | 'inactive')}
+        <section
+          className={cn(
+            'glass-card flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-sm lg:min-h-[420px]',
+            unifiedMasterShell && 'nx-glass-raised border-border/80',
+          )}
+        >
+          <div
+            className={cn(
+              'flex min-h-0 min-w-0 flex-1',
+              unifiedMasterShell ? 'flex-col' : 'flex-col lg:flex-row',
+            )}
+          >
+            {!unifiedMasterShell ? (
+              <>
+                <nav
+                  className="hidden shrink-0 flex-col gap-0.5 border-b border-border/60 p-3 lg:flex lg:w-36 lg:border-b-0 lg:border-r lg:py-4"
                   aria-label="狀態"
                 >
-                  <option value="all">全部</option>
-                  <option value="active">啟用</option>
-                  <option value="inactive">停用</option>
-                </select>
-              </div>
+                  {(
+                    [
+                      { k: 'all' as const, label: '全部' },
+                      { k: 'active' as const, label: '啟用' },
+                      { k: 'inactive' as const, label: '停用' },
+                    ] as const
+                  ).map(({ k, label }) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setActivePick(k)}
+                      className={cn(
+                        'rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                        activePick === k ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-secondary/60',
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </nav>
+              </>
+            ) : null}
 
-              <div className="relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3" ref={colPickerWrapRef}>
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-3 sm:p-4">
+              {!unifiedMasterShell ? (
+                <div className="mb-3 flex flex-wrap gap-2 lg:hidden">
+                  <select
+                    className="nx-native-select h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                    value={activePick}
+                    onChange={(e) => setActivePick(e.target.value as 'all' | 'active' | 'inactive')}
+                    aria-label="狀態"
+                  >
+                    <option value="all">全部</option>
+                    <option value="active">啟用</option>
+                    <option value="inactive">停用</option>
+                  </select>
+                </div>
+              ) : null}
+
+              <div
+                className={cn(
+                  'relative flex flex-wrap items-center gap-2 border-b border-border/60 pb-3',
+                  unifiedMasterShell && colPickerOpen && 'z-[100]',
+                )}
+                ref={colPickerWrapRef}
+              >
+                {unifiedMasterShell ? (
+                  <>
+                    <Input
+                      id="nx-flat-kw-inline"
+                      value={keyword}
+                      onChange={(e) => setKeyword(e.target.value)}
+                      placeholder="關鍵字（全文，除 id）"
+                      autoComplete="off"
+                      className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
+                    />
+                    <select
+                      className="nx-native-select h-9 shrink-0 rounded-md border border-input bg-transparent px-3 text-sm sm:min-w-36"
+                      value={activePick}
+                      onChange={(e) => setActivePick(e.target.value as 'all' | 'active' | 'inactive')}
+                      aria-label="依啟用狀態篩選"
+                    >
+                      <option value="all">狀態：全部</option>
+                      <option value="active">狀態：啟用</option>
+                      <option value="inactive">狀態：停用</option>
+                    </select>
+                  </>
+                ) : null}
                 <Button type="button" size="sm" onClick={() => { setSelectedId(null); setCreating(true); }} disabled={loading || saving}>
                   新增
                 </Button>
@@ -508,7 +560,12 @@ export function Nx00FlatMasterView({
                 </Button>
 
                 {colPickerOpen ? (
-                  <div className="absolute right-0 top-full z-30 mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 shadow-lg">
+                  <div
+                    className={cn(
+                      'absolute right-0 top-full mt-2 w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 shadow-lg',
+                      unifiedMasterShell ? 'z-[100]' : 'z-30',
+                    )}
+                  >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold">顯示欄位</span>
                       <Button
@@ -580,7 +637,74 @@ export function Nx00FlatMasterView({
                 ) : null}
               </div>
 
-              <div className="mt-3 min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain pr-2">
+              <div
+                className={cn(
+                  'mt-3 min-h-0 min-w-0 flex-1 pr-2',
+                  unifiedMasterShell ? 'flex min-h-0 flex-col' : 'overflow-auto overscroll-x-contain',
+                )}
+              >
+                {unifiedMasterShell ? (
+                  <MasterListScrollRegion scrollRef={listScrollRef} ariaLabel="主檔列表" className="min-h-0 flex-1">
+                    <table
+                      className="nx-master-table w-full border-collapse text-sm"
+                      style={{ minWidth: tableMinW }}
+                    >
+                      <thead>
+                        <tr className="nx-master-thead-row text-left text-muted-foreground">
+                          {orderedVisibleCols.map((key) => (
+                            <th key={key} className="whitespace-nowrap px-2 py-2.5">
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                                onClick={() => toggleSort(key)}
+                              >
+                                {COL_DEF[key]?.label ?? key}
+                                {sortIcon(key)}
+                              </button>
+                            </th>
+                          ))}
+                          <th className="w-10 px-1 py-2.5" aria-hidden />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pageRows.map((row) => {
+                          const id = String(row.id);
+                          const sel = id === selectedId && !creating;
+                          return (
+                            <tr
+                              key={id}
+                              className={cn(
+                                'nx-master-tbody-row cursor-pointer transition-colors duration-150',
+                                sel && 'nx-row-selected bg-primary/20 ring-1 ring-inset ring-primary/40',
+                                !sel &&
+                                  'hover:bg-primary/12 hover:shadow-[inset_0_0_0_1px_rgba(244,180,0,0.2)]',
+                              )}
+                              onClick={() => {
+                                if (sel) {
+                                  closeDetailFull();
+                                  return;
+                                }
+                                setSelectedId(id);
+                                setCreating(false);
+                              }}
+                            >
+                              {orderedVisibleCols.map((key) =>
+                                key === 'isActive' ? (
+                                  <MasterActiveListCell key={key} isActive={Boolean(row.isActive)} />
+                                ) : (
+                                  <td key={key} className="px-2 py-2.5">
+                                    {renderCell(row, key)}
+                                  </td>
+                                ),
+                              )}
+                              <td className="px-1 py-2.5 text-muted-foreground">›</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </MasterListScrollRegion>
+                ) : (
                   <table className="w-full border-collapse text-sm" style={{ minWidth: tableMinW }}>
                     <thead>
                       <tr className="border-b border-border/60 bg-muted/30 text-left text-muted-foreground">
@@ -634,10 +758,11 @@ export function Nx00FlatMasterView({
                       })}
                     </tbody>
                   </table>
-                  {loading ? <div className="py-8 text-center text-sm text-muted-foreground">載入中…</div> : null}
-                  {!loading && pageRows.length === 0 ? (
-                    <div className="py-8 text-center text-sm text-muted-foreground">無資料</div>
-                  ) : null}
+                )}
+                {loading ? <div className="py-8 text-center text-sm text-muted-foreground">載入中…</div> : null}
+                {!loading && pageRows.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">無資料</div>
+                ) : null}
               </div>
 
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">

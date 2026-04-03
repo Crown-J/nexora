@@ -15,6 +15,7 @@ const ALLOWED = new Set<PartRelationType>(['S', 'R', 'C', 'B', 'F']);
 
 type Row = {
     id: string;
+    tenantId: string;
     partIdFrom: string;
     partIdTo: string;
     relationType: string;
@@ -59,6 +60,8 @@ export type PartRelationActionContext = {
     userAgent?: string | null;
 };
 
+export type PartRelationReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class PartRelationService {
     constructor(
@@ -89,21 +92,26 @@ export class PartRelationService {
         if (!p) throw new BadRequestException('Part not found');
     }
 
-    async list(query: ListPartRelationQuery): Promise<PagedResult<PartRelationDto>> {
+    async list(query: ListPartRelationQuery, scope?: PartRelationReadScope): Promise<PagedResult<PartRelationDto>> {
         const page = Number(query.page) > 0 ? Number(query.page) : 1;
         const pageSize = Number(query.pageSize) > 0 ? Number(query.pageSize) : 50;
         const q = query.q?.trim();
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { remark: { contains: q, mode: 'insensitive' as const } },
-                { partFrom: { code: { contains: q, mode: 'insensitive' as const } } },
-                { partFrom: { name: { contains: q, mode: 'insensitive' as const } } },
-                { partTo: { code: { contains: q, mode: 'insensitive' as const } } },
-                { partTo: { name: { contains: q, mode: 'insensitive' as const } } },
-            ];
+            parts.push({
+                OR: [
+                    { remark: { contains: q, mode: 'insensitive' as const } },
+                    { partFrom: { code: { contains: q, mode: 'insensitive' as const } } },
+                    { partFrom: { name: { contains: q, mode: 'insensitive' as const } } },
+                    { partTo: { code: { contains: q, mode: 'insensitive' as const } } },
+                    { partTo: { name: { contains: q, mode: 'insensitive' as const } } },
+                ],
+            });
         }
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00PartRelation.count({ where }),
@@ -119,12 +127,14 @@ export class PartRelationService {
         return { items: rows.map((r) => toDto(r as Row)), page, pageSize, total };
     }
 
-    async get(id: string): Promise<PartRelationDto> {
+    async get(id: string, scope?: PartRelationReadScope): Promise<PartRelationDto> {
         const row = await this.prisma.nx00PartRelation.findUnique({
             where: { id },
             include: this.include(),
         });
         if (!row) throw new NotFoundException('Part relation not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Part relation not found');
         return toDto(row as Row);
     }
 

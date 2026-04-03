@@ -13,6 +13,8 @@ export type UserWarehouseDto = {
   assignedByName: string | null;
   revokedAt: string | null;
   userDisplayName: string | null;
+  /** 帳號（列表顯示；避免僅有 userId 內碼） */
+  userAccount: string | null;
   warehouseCode: string | null;
   warehouseName: string | null;
 };

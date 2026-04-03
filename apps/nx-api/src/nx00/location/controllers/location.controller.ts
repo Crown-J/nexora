@@ -35,20 +35,25 @@ export class LocationController {
 
     @Get()
     @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'read')
-    async list(@Query() query: any) {
-        return this.location.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            warehouseId: typeof query.warehouseId === 'string' ? query.warehouseId : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.location.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                warehouseId: typeof query.warehouseId === 'string' ? query.warehouseId : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     @Get(':id')
     @RequireNx00ViewPermission(NX00_VIEW.LOCATION, 'read')
-    async get(@Param('id') id: string) {
-        return this.location.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.location.get(id, { tenantScopeId });
     }
 
     @Post()

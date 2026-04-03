@@ -12,6 +12,7 @@ import type {
 
 type Row = {
     id: string;
+    tenantId: string;
     partBrandId: string;
     seg1Limit: number;
     seg2Limit: number;
@@ -61,6 +62,8 @@ export type BrandCodeRoleActionContext = {
     userAgent?: string | null;
 };
 
+export type BrandCodeRoleReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class BrandCodeRoleService {
     constructor(
@@ -76,20 +79,25 @@ export class BrandCodeRoleService {
         } as const;
     }
 
-    async list(query: ListBrandCodeRoleQuery): Promise<PagedResult<BrandCodeRoleDto>> {
+    async list(query: ListBrandCodeRoleQuery, scope?: BrandCodeRoleReadScope): Promise<PagedResult<BrandCodeRoleDto>> {
         const page = Number(query.page) > 0 ? Number(query.page) : 1;
         const pageSize = Number(query.pageSize) > 0 ? Number(query.pageSize) : 50;
         const q = query.q?.trim();
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { codeFormat: { contains: q, mode: 'insensitive' as const } },
-                { brandSort: { contains: q, mode: 'insensitive' as const } },
-                { partBrand: { code: { contains: q, mode: 'insensitive' as const } } },
-                { partBrand: { name: { contains: q, mode: 'insensitive' as const } } },
-            ];
+            parts.push({
+                OR: [
+                    { codeFormat: { contains: q, mode: 'insensitive' as const } },
+                    { brandSort: { contains: q, mode: 'insensitive' as const } },
+                    { partBrand: { code: { contains: q, mode: 'insensitive' as const } } },
+                    { partBrand: { name: { contains: q, mode: 'insensitive' as const } } },
+                ],
+            });
         }
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00BrandCodeRole.count({ where }),
@@ -105,12 +113,14 @@ export class BrandCodeRoleService {
         return { items: rows.map((r) => toDto(r as Row)), page, pageSize, total };
     }
 
-    async get(id: string): Promise<BrandCodeRoleDto> {
+    async get(id: string, scope?: BrandCodeRoleReadScope): Promise<BrandCodeRoleDto> {
         const row = await this.prisma.nx00BrandCodeRole.findUnique({
             where: { id },
             include: this.include(),
         });
         if (!row) throw new NotFoundException('Brand code role not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Brand code role not found');
         return toDto(row as Row);
     }
 

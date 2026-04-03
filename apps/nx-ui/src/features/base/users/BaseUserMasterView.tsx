@@ -57,6 +57,7 @@ import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '
 type ListColKey =
   | 'username'
   | 'displayName'
+  | 'jobTitle'
   | 'email'
   | 'phone'
   | 'warehouseLabel'
@@ -84,12 +85,13 @@ type EditableDraft = {
 
 const PAGE_SIZE = 10;
 
-const LIST_COL_PREF_VERSION = 6;
+const LIST_COL_PREF_VERSION = 7;
 const LIST_COL_PREF_KEY = 'base.user.listcols';
 
 const ALL_LIST_COLS: ListColKey[] = [
   'username',
   'displayName',
+  'jobTitle',
   'email',
   'phone',
   'warehouseLabel',
@@ -104,6 +106,7 @@ const ALL_LIST_COLS: ListColKey[] = [
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   username: { label: '帳號', locked: true },
   displayName: { label: '姓名' },
+  jobTitle: { label: '職務' },
   email: { label: '信箱' },
   phone: { label: '電話' },
   warehouseLabel: { label: '隸屬倉庫' },
@@ -362,6 +365,8 @@ export function BaseUserMasterView() {
           return mult * a.username.localeCompare(b.username, 'zh-Hant');
         case 'displayName':
           return mult * a.displayName.localeCompare(b.displayName, 'zh-Hant');
+        case 'jobTitle':
+          return mult * a.jobTitle.localeCompare(b.jobTitle, 'zh-Hant');
         case 'isActive': {
           const av = a.isActive ? 1 : 0;
           const bv = b.isActive ? 1 : 0;
@@ -720,6 +725,12 @@ export function BaseUserMasterView() {
             {row.displayName}
           </td>
         );
+      case 'jobTitle':
+        return (
+          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.jobTitle || '—'}
+          </td>
+        );
       case 'isActive':
         return <MasterActiveListCell key={key} isActive={row.isActive} />;
       case 'lastLoginAt':
@@ -782,7 +793,13 @@ export function BaseUserMasterView() {
         ) : null}
 
         <section className="glass-card nx-glass-raised rounded-2xl border border-border/80 p-3 sm:p-4">
-          <div className="relative flex min-w-0 flex-wrap items-center gap-2" ref={colPickerWrapRef}>
+          <div
+            className={cn(
+              'relative flex min-w-0 flex-wrap items-center gap-2',
+              colPickerOpen && 'z-[100]',
+            )}
+            ref={colPickerWrapRef}
+          >
               <div
                 className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
                 role="navigation"
@@ -880,7 +897,7 @@ export function BaseUserMasterView() {
                 id="bu-keyword"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                placeholder="帳號、姓名、信箱、電話、隸屬倉庫…"
+                placeholder="帳號、姓名、職務、信箱、電話、隸屬倉庫…"
                 autoComplete="off"
                 className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
               />
@@ -980,7 +997,7 @@ export function BaseUserMasterView() {
               </span>
 
               {colPickerOpen ? (
-                <div className="absolute left-0 right-0 top-full z-30 mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
+                <div className="absolute left-0 right-0 top-full z-[110] mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
                     <Button
@@ -1061,7 +1078,7 @@ export function BaseUserMasterView() {
           </div>
         </section>
 
-        <section className="glass-card nx-glass-raised flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 lg:min-h-[420px]">
+        <section className="glass-card nx-glass-raised relative z-0 flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 lg:min-h-[420px]">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
               <MasterListScrollRegion
                 scrollRef={listKeyboardRootRef}

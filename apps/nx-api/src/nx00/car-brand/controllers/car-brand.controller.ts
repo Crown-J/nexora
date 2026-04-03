@@ -15,19 +15,24 @@ export class CarBrandController {
 
     @Get()
     @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'read')
-    async list(@Query() query: any) {
-        return this.carBrand.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 50,
-        });
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.carBrand.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 50,
+            },
+            { tenantScopeId },
+        );
     }
 
     @Get(':id')
     @RequireNx00ViewPermission(NX00_VIEW.CAR_BRAND, 'read')
-    async get(@Param('id') id: string) {
-        return this.carBrand.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.carBrand.get(id, { tenantScopeId });
     }
 
     @Post()

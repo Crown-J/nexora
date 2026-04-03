@@ -27,7 +27,7 @@ type UserWarehouseRow = {
     assignedBy: string | null;
     revokedAt: Date | null;
     assignedByUser?: { userName: string } | null;
-    user?: { userName: string } | null;
+    user?: { userAccount: string; userName: string } | null;
     warehouse?: { code: string; name: string } | null;
 };
 
@@ -42,6 +42,7 @@ function toDto(row: UserWarehouseRow): UserWarehouseDto {
         assignedByName: row.assignedByUser?.userName ?? null,
         revokedAt: row.revokedAt ? (row.revokedAt.toISOString?.() ?? String(row.revokedAt)) : null,
         userDisplayName: row.user?.userName ?? null,
+        userAccount: row.user?.userAccount ?? null,
         warehouseCode: row.warehouse?.code ?? null,
         warehouseName: row.warehouse?.name ?? null,
     };
@@ -53,6 +54,8 @@ export type UserWarehouseActionContext = {
     userAgent?: string | null;
 };
 
+export type UserWarehouseReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class UserWarehouseService {
     constructor(
@@ -60,15 +63,19 @@ export class UserWarehouseService {
         private readonly audit: AuditLogService,
     ) {}
 
-    async list(query: ListUserWarehouseQuery): Promise<PagedResult<UserWarehouseDto>> {
+    async list(query: ListUserWarehouseQuery, scope?: UserWarehouseReadScope): Promise<PagedResult<UserWarehouseDto>> {
         const page = Number.isFinite(query.page as number) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as number) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
-        const where: Record<string, unknown> = {};
-        if (query.userId) where.userId = query.userId;
-        if (query.warehouseId) where.warehouseId = query.warehouseId;
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: Record<string, unknown>[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
+        if (query.userId) parts.push({ userId: query.userId });
+        if (query.warehouseId) parts.push({ warehouseId: query.warehouseId });
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where =
+            parts.length === 0 ? {} : parts.length === 1 ? parts[0]! : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00UserWarehouse.count({ where }),
@@ -79,7 +86,7 @@ export class UserWarehouseService {
                 take: pageSize,
                 include: {
                     assignedByUser: { select: { userName: true } },
-                    user: { select: { userName: true } },
+                    user: { select: { userAccount: true, userName: true } },
                     warehouse: { select: { code: true, name: true } },
                 },
             }),
@@ -93,16 +100,18 @@ export class UserWarehouseService {
         };
     }
 
-    async get(id: string): Promise<UserWarehouseDto> {
+    async get(id: string, scope?: UserWarehouseReadScope): Promise<UserWarehouseDto> {
         const row = await this.prisma.nx00UserWarehouse.findUnique({
             where: { id },
             include: {
                 assignedByUser: { select: { userName: true } },
-                user: { select: { userName: true } },
+                user: { select: { userAccount: true, userName: true } },
                 warehouse: { select: { code: true, name: true } },
             },
         });
         if (!row) throw new NotFoundException('UserWarehouse not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('UserWarehouse not found');
         return toDto(row as unknown as UserWarehouseRow);
     }
 
@@ -134,7 +143,7 @@ export class UserWarehouseService {
                 },
                 include: {
                     assignedByUser: { select: { userName: true } },
-                    user: { select: { userName: true } },
+                    user: { select: { userAccount: true, userName: true } },
                     warehouse: { select: { code: true, name: true } },
                 },
             });
@@ -177,7 +186,7 @@ export class UserWarehouseService {
         const exists = await this.prisma.nx00UserWarehouse.findUnique({
             where: { id },
             include: {
-                user: { select: { userName: true } },
+                user: { select: { userAccount: true, userName: true } },
                 warehouse: { select: { code: true, name: true } },
             },
         });
@@ -191,7 +200,7 @@ export class UserWarehouseService {
             data: { revokedAt, isActive: false },
             include: {
                 assignedByUser: { select: { userName: true } },
-                user: { select: { userName: true } },
+                user: { select: { userAccount: true, userName: true } },
                 warehouse: { select: { code: true, name: true } },
             },
         });

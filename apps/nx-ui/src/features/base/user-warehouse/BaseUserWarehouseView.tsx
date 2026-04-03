@@ -22,7 +22,31 @@ import { assignUserWarehouse, listUserWarehouses, revokeUserWarehouse } from '@/
 import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
 import { listUsers } from '@/features/base/api/user';
 
-type WhMemberRow = { id: string; userId: string };
+type WhMemberRow = { id: string; userId: string; userAccount: string | null; userDisplayName: string | null };
+
+function dedupeWarehousesById(rows: WarehouseDto[]): WarehouseDto[] {
+  const seen = new Map<string, WarehouseDto>();
+  for (const w of rows) {
+    if (!seen.has(w.id)) seen.set(w.id, w);
+  }
+  return [...seen.values()];
+}
+
+function memberAccountLabel(u: BaseUserRow | undefined, row: WhMemberRow): string {
+  const fromUser = (u?.username ?? '').trim();
+  if (fromUser) return fromUser;
+  const fromApi = (row.userAccount ?? '').trim();
+  if (fromApi) return fromApi;
+  return '—';
+}
+
+function memberNameLabel(u: BaseUserRow | undefined, row: WhMemberRow): string {
+  const fromUser = (u?.displayName ?? '').trim();
+  if (fromUser) return fromUser;
+  const fromApi = (row.userDisplayName ?? '').trim();
+  if (fromApi) return fromApi;
+  return '—';
+}
 
 export function BaseUserWarehouseView() {
   const router = useRouter();
@@ -50,7 +74,9 @@ export function BaseUserWarehouseView() {
         listWarehouses({ page: 1, pageSize: 200, isActive: true }),
         listUsers({ page: 1, pageSize: 500 }),
       ]);
-      const rows = wr.items.sort((a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code));
+      const rows = dedupeWarehousesById(wr.items).sort(
+        (a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code),
+      );
       setWarehouses(rows);
       setPickerUsers(
         ur.items.map((u) => {
@@ -98,7 +124,12 @@ export function BaseUserWarehouseView() {
 
   const loadMembers = useCallback(async (warehouseId: string) => {
     const res = await listUserWarehouses({ warehouseId, isActive: true, page: 1, pageSize: 500 });
-    const list: WhMemberRow[] = res.items.map((x) => ({ id: x.id, userId: x.userId }));
+    const list: WhMemberRow[] = res.items.map((x) => ({
+      id: x.id,
+      userId: x.userId,
+      userAccount: x.userAccount ?? null,
+      userDisplayName: x.userDisplayName ?? null,
+    }));
     setMembersByWh((prev) => ({ ...prev, [warehouseId]: list }));
   }, []);
 
@@ -134,13 +165,12 @@ export function BaseUserWarehouseView() {
       ? ms
       : ms.filter((row) => {
           const u = userById.get(row.userId);
-          if (!u) return false;
-          const blob = `${u.username} ${u.displayName}`.toLowerCase();
+          const blob = `${memberAccountLabel(u, row)} ${memberNameLabel(u, row)}`.toLowerCase();
           return blob.includes(k);
         });
     const accountKey = (row: (typeof ms)[number]) => {
       const u = userById.get(row.userId);
-      return (u?.username ?? row.userId).toLowerCase();
+      return memberAccountLabel(u, row).toLowerCase();
     };
     return [...filtered].sort((a, b) =>
       accountKey(a).localeCompare(accountKey(b), 'zh-Hant', { numeric: true, sensitivity: 'base' }),
@@ -479,15 +509,17 @@ export function BaseUserWarehouseView() {
                                 )}
                               >
                                 <span className="truncate font-mono text-xs text-muted-foreground tabular-nums">
-                                  {u?.username ?? row.userId}
+                                  {memberAccountLabel(u, row)}
                                 </span>
-                                <span className="min-w-0 truncate text-foreground">{u?.displayName ?? '—'}</span>
+                                <span className="min-w-0 truncate text-foreground">{memberNameLabel(u, row)}</span>
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="icon"
                                   className="size-8 shrink-0 text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                                  aria-label={u ? `移除 ${u.username}` : '移除成員'}
+                                  aria-label={
+                                    u ? `移除 ${u.username}` : `移除 ${memberAccountLabel(undefined, row)}`
+                                  }
                                   title="移除"
                                   onClick={() => removeMember(row.id)}
                                 >

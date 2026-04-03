@@ -15,19 +15,24 @@ export class BrandCodeRoleController {
 
     @Get()
     @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'read')
-    async list(@Query() query: any) {
-        return this.svc.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 50,
-        });
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.svc.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 50,
+            },
+            { tenantScopeId },
+        );
     }
 
     @Get(':id')
     @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'read')
-    async get(@Param('id') id: string) {
-        return this.svc.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.svc.get(id, { tenantScopeId });
     }
 
     @Post()

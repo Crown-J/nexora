@@ -47,6 +47,7 @@ function normalizePartnerType(v: any): PartnerType {
 
 type PartnerRowWithAudit = {
     id: string;
+    tenantId: string;
     code: string;
     name: string;
     partnerType: string;
@@ -97,6 +98,8 @@ function toPartnerDto(row: PartnerRowWithAudit): PartnerDto {
     };
 }
 
+export type PartnerReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class PartnerService {
     constructor(
@@ -104,26 +107,31 @@ export class PartnerService {
         private readonly audit: AuditLogService,
     ) { }
 
-    async list(query: ListPartnerQuery): Promise<PagedResult<PartnerDto>> {
+    async list(query: ListPartnerQuery, scope?: PartnerReadScope): Promise<PagedResult<PartnerDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
 
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { code: { contains: q, mode: 'insensitive' as const } },
-                { name: { contains: q, mode: 'insensitive' as const } },
-                { contactName: { contains: q, mode: 'insensitive' as const } },
-                { phone: { contains: q, mode: 'insensitive' as const } },
-                { mobile: { contains: q, mode: 'insensitive' as const } },
-                { email: { contains: q, mode: 'insensitive' as const } },
-            ];
+            parts.push({
+                OR: [
+                    { code: { contains: q, mode: 'insensitive' as const } },
+                    { name: { contains: q, mode: 'insensitive' as const } },
+                    { contactName: { contains: q, mode: 'insensitive' as const } },
+                    { phone: { contains: q, mode: 'insensitive' as const } },
+                    { mobile: { contains: q, mode: 'insensitive' as const } },
+                    { email: { contains: q, mode: 'insensitive' as const } },
+                ],
+            });
         }
-        if (query.partnerType) where.partnerType = normalizePartnerType(query.partnerType);
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (query.partnerType) parts.push({ partnerType: normalizePartnerType(query.partnerType) });
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00Partner.count({ where }),
@@ -147,7 +155,7 @@ export class PartnerService {
         };
     }
 
-    async get(id: string): Promise<PartnerDto> {
+    async get(id: string, scope?: PartnerReadScope): Promise<PartnerDto> {
         const row = await this.prisma.nx00Partner.findUnique({
             where: { id },
             include: {
@@ -156,6 +164,8 @@ export class PartnerService {
             },
         });
         if (!row) throw new NotFoundException('Partner not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Partner not found');
         return toPartnerDto(row as unknown as PartnerRowWithAudit);
     }
 

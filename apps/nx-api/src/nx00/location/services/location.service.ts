@@ -28,6 +28,7 @@ type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 type LocationRowWithAudit = {
     id: string;
+    tenantId: string;
     warehouseId: string;
     code: string;
     name: string | null;
@@ -92,6 +93,8 @@ export type LocationActionContext = {
     userAgent?: string | null;
 };
 
+export type LocationReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class LocationService {
     constructor(
@@ -99,25 +102,30 @@ export class LocationService {
         private readonly audit: AuditLogService,
     ) { }
 
-    async list(query: ListLocationQuery): Promise<PagedResult<LocationDto>> {
+    async list(query: ListLocationQuery, scope?: LocationReadScope): Promise<PagedResult<LocationDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
 
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { code: { contains: q, mode: 'insensitive' as const } },
-                { name: { contains: q, mode: 'insensitive' as const } },
-                { zone: { contains: q, mode: 'insensitive' as const } },
-                { rack: { contains: q, mode: 'insensitive' as const } },
-                { binNo: { contains: q, mode: 'insensitive' as const } },
-            ];
+            parts.push({
+                OR: [
+                    { code: { contains: q, mode: 'insensitive' as const } },
+                    { name: { contains: q, mode: 'insensitive' as const } },
+                    { zone: { contains: q, mode: 'insensitive' as const } },
+                    { rack: { contains: q, mode: 'insensitive' as const } },
+                    { binNo: { contains: q, mode: 'insensitive' as const } },
+                ],
+            });
         }
-        if (query.warehouseId) where.warehouseId = query.warehouseId;
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (query.warehouseId) parts.push({ warehouseId: query.warehouseId });
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00Location.count({ where }),
@@ -142,7 +150,7 @@ export class LocationService {
         };
     }
 
-    async get(id: string): Promise<LocationDto> {
+    async get(id: string, scope?: LocationReadScope): Promise<LocationDto> {
         const row = await this.prisma.nx00Location.findUnique({
             where: { id },
             include: {
@@ -152,6 +160,8 @@ export class LocationService {
             },
         });
         if (!row) throw new NotFoundException('Location not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Location not found');
         return toLocationDto(row as unknown as LocationRowWithAudit);
     }
 
