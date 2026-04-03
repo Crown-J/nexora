@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-USER-CTRL-001：User CRUD（讀取：租戶內已種子之各職務；寫入：ADMIN）
+ * - NX00-API-USER-CTRL-001：User CRUD（讀取：已登入且 JWT 有租戶，或平台 ADMIN；寫入：ADMIN）
  *
  * Notes:
  * - 寫入 AuditLog 時需要 actorUserId + ipAddr + userAgent，因此由 Controller 統一取值後傳入 Service
@@ -26,7 +26,7 @@ import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 
-import { NX00_TENANT_MASTER_READ_ROLES } from '../../constants/tenant-master-read-roles';
+import { assertTenantScopedOrPlatformAdmin } from '../../utils/assert-tenant-read-context';
 
 import { UserService } from '../services/user.service';
 import type { CreateUserBody, SetActiveBody, UpdateUserBody } from '../dto/user.dto';
@@ -40,8 +40,8 @@ export class UserController {
      * @CODE nxapi_nx00_user_list_001
      */
     @Get()
-    @Roles(...NX00_TENANT_MASTER_READ_ROLES)
     async list(@Query() query: any, @Req() req: any) {
+        assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
         return this.user.list(
             {
@@ -57,8 +57,8 @@ export class UserController {
      * @CODE nxapi_nx00_user_get_001
      */
     @Get(':id')
-    @Roles(...NX00_TENANT_MASTER_READ_ROLES)
     async get(@Param('id') id: string, @Req() req: any) {
+        assertTenantScopedOrPlatformAdmin(req?.user);
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
         return this.user.get(id, { tenantScopeId });
     }
