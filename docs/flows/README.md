@@ -15,6 +15,7 @@
 - [07-stocktaking.md](./07-stocktaking.md)
 - [08-transfer.md](./08-transfer.md)
 - [09-period-close.md](./09-period-close.md)
+- [11-railway-db-and-tenant-prep.md](./11-railway-db-and-tenant-prep.md)（Railway 上線與 DB／多租戶整備：分段計劃與優先順序）
 
 ## 共通原則
 

@@ -64,8 +64,8 @@ export class AppController {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
-        username: true,
-        displayName: true,
+        userAccount: true,
+        userName: true,
         email: true,
         phone: true,
         isActive: true,

@@ -72,6 +72,8 @@ export type ListPartQuery = {
 };
 
 export type CreatePartBody = {
+    /** 無 partBrandId 時必填（或 JWT 帶租戶） */
+    tenantId?: string;
     code: string;
     name: string;
     partBrandId?: string | null;

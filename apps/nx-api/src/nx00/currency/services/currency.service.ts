@@ -24,8 +24,8 @@ type Row = {
     createdBy: string | null;
     updatedAt: Date;
     updatedBy: string | null;
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toDto(row: Row): CurrencyDto {
@@ -39,12 +39,12 @@ function toDto(row: Row): CurrencyDto {
         isActive: Boolean(row.isActive),
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -59,8 +59,8 @@ export class CurrencyService {
 
     private include() {
         return {
-            createdByUser: { select: { username: true, displayName: true } },
-            updatedByUser: { select: { username: true, displayName: true } },
+            createdByUser: { select: { userAccount: true, userName: true } },
+            updatedByUser: { select: { userAccount: true, userName: true } },
         } as const;
     }
 

@@ -40,6 +40,8 @@ export type ListWarehouseQuery = {
 };
 
 export type CreateWarehouseBody = {
+    /** 平台 ADMIN（JWT 無租戶）時必填 */
+    tenantId?: string;
     code: string;
     name: string;
     remark?: string | null;

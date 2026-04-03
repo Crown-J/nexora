@@ -46,8 +46,8 @@ type LocationRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 
     warehouse?: { code: string; name: string } | null;
 };
@@ -73,13 +73,13 @@ function toLocationDto(row: LocationRowWithAudit): LocationDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -128,8 +128,8 @@ export class LocationService {
                 take: pageSize,
                 include: {
                     warehouse: { select: { code: true, name: true } },
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             }),
         ]);
@@ -147,8 +147,8 @@ export class LocationService {
             where: { id },
             include: {
                 warehouse: { select: { code: true, name: true } },
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
         if (!row) throw new NotFoundException('Location not found');
@@ -163,7 +163,10 @@ export class LocationService {
         if (!code) throw new BadRequestException('code is required');
 
         // 確認 warehouse 存在（避免 FK 500）
-        const wh = await this.prisma.nx00Warehouse.findUnique({ where: { id: warehouseId }, select: { id: true } });
+        const wh = await this.prisma.nx00Warehouse.findUnique({
+            where: { id: warehouseId },
+            select: { id: true, tenantId: true },
+        });
         if (!wh) throw new BadRequestException('Warehouse not found');
 
         const sortNo = typeof body.sortNo === 'number' && Number.isFinite(body.sortNo) ? body.sortNo : 0;
@@ -171,6 +174,7 @@ export class LocationService {
         try {
             const row = await this.prisma.nx00Location.create({
                 data: {
+                    tenantId: wh.tenantId,
                     warehouseId,
                     code,
                     name: body.name ?? null,
@@ -189,8 +193,8 @@ export class LocationService {
                 },
                 include: {
                     warehouse: { select: { code: true, name: true } },
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -198,6 +202,7 @@ export class LocationService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_location',
@@ -292,8 +297,8 @@ export class LocationService {
                 data,
                 include: {
                     warehouse: { select: { code: true, name: true } },
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -301,6 +306,7 @@ export class LocationService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_location',
@@ -363,8 +369,8 @@ export class LocationService {
             },
             include: {
                 warehouse: { select: { code: true, name: true } },
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
 
@@ -372,6 +378,7 @@ export class LocationService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_location',

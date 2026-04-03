@@ -26,8 +26,8 @@ type Row = {
     updatedAt: Date;
     updatedBy: string | null;
     partBrand?: { code: string; name: string } | null;
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toDto(row: Row): BrandCodeRoleDto {
@@ -46,12 +46,12 @@ function toDto(row: Row): BrandCodeRoleDto {
         isActive: Boolean(row.isActive),
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -71,8 +71,8 @@ export class BrandCodeRoleService {
     private include() {
         return {
             partBrand: { select: { code: true, name: true } },
-            createdByUser: { select: { username: true, displayName: true } },
-            updatedByUser: { select: { username: true, displayName: true } },
+            createdByUser: { select: { userAccount: true, userName: true } },
+            updatedByUser: { select: { userAccount: true, userName: true } },
         } as const;
     }
 
@@ -117,7 +117,10 @@ export class BrandCodeRoleService {
     async create(body: CreateBrandCodeRoleBody, ctx?: BrandCodeRoleActionContext): Promise<BrandCodeRoleDto> {
         const partBrandId = body.partBrandId?.trim();
         if (!partBrandId) throw new BadRequestException('partBrandId is required');
-        const b = await this.prisma.nx00PartBrand.findUnique({ where: { id: partBrandId }, select: { id: true } });
+        const b = await this.prisma.nx00PartBrand.findUnique({
+            where: { id: partBrandId },
+            select: { id: true, tenantId: true },
+        });
         if (!b) throw new BadRequestException('Part brand not found');
 
         const codeFormat = body.codeFormat?.trim();
@@ -131,6 +134,7 @@ export class BrandCodeRoleService {
         try {
             const row = await this.prisma.nx00BrandCodeRole.create({
                 data: {
+                    tenantId: b.tenantId,
                     partBrandId,
                     seg1Limit: n(body.seg1, 0),
                     seg2Limit: n(body.seg2, 0),
@@ -148,6 +152,7 @@ export class BrandCodeRoleService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_brand_code_role',
@@ -190,6 +195,7 @@ export class BrandCodeRoleService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'UPDATE',
                 entityTable: 'nx00_brand_code_role',
@@ -208,7 +214,7 @@ export class BrandCodeRoleService {
     async setActive(id: string, body: SetActiveBody, ctx?: BrandCodeRoleActionContext): Promise<BrandCodeRoleDto> {
         const exists = await this.prisma.nx00BrandCodeRole.findUnique({
             where: { id },
-            select: { id: true, partBrandId: true, isActive: true },
+            select: { id: true, tenantId: true, partBrandId: true, isActive: true },
         });
         if (!exists) throw new NotFoundException('Brand code role not found');
         const row = await this.prisma.nx00BrandCodeRole.update({
@@ -219,6 +225,7 @@ export class BrandCodeRoleService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_brand_code_role',

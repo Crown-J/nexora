@@ -46,6 +46,8 @@ export type ListBrandQuery = {
 };
 
 export type CreateBrandBody = {
+    /** 平台 ADMIN（JWT 無租戶）時必填 */
+    tenantId?: string;
     code: string;
     name: string;
     countryId?: string | null;

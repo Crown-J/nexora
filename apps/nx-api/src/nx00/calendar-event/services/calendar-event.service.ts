@@ -20,45 +20,37 @@ function toDto(row: {
   id: string;
   tenantId: string;
   title: string;
-  subtitle: string | null;
-  content: string | null;
   scopeType: string;
-  eventKind: string;
   dateStart: Date;
   dateEnd: Date;
   isAllDay: boolean;
-  location: string | null;
   orderType: string | null;
-  orderId: string | null;
+  orderDocNo: string | null;
   isActive: boolean;
   createdAt: Date;
   createdBy: string | null;
   updatedAt: Date;
   updatedBy: string | null;
-  createdByUser?: { displayName: string } | null;
-  updatedByUser?: { displayName: string } | null;
+  createdByUser?: { userName: string } | null;
+  updatedByUser?: { userName: string } | null;
 }): CalendarEventDto {
   return {
     id: row.id,
     tenantId: row.tenantId,
     title: row.title,
-    subtitle: row.subtitle ?? null,
-    content: row.content ?? null,
     scopeType: row.scopeType,
-    eventKind: row.eventKind,
     dateStart: row.dateStart?.toISOString?.() ?? String(row.dateStart),
     dateEnd: row.dateEnd?.toISOString?.() ?? String(row.dateEnd),
     isAllDay: Boolean(row.isAllDay),
-    location: row.location ?? null,
     orderType: row.orderType ?? null,
-    orderId: row.orderId ?? null,
+    orderDocNo: row.orderDocNo ?? null,
     isActive: Boolean(row.isActive),
     createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
     createdBy: row.createdBy ?? null,
-    createdByName: row.createdByUser?.displayName ?? null,
+    createdByName: row.createdByUser?.userName ?? null,
     updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
     updatedBy: row.updatedBy ?? null,
-    updatedByName: row.updatedByUser?.displayName ?? null,
+    updatedByName: row.updatedByUser?.userName ?? null,
   };
 }
 
@@ -123,8 +115,8 @@ export class CalendarEventService {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          createdByUser: { select: { displayName: true } },
-          updatedByUser: { select: { displayName: true } },
+          createdByUser: { select: { userName: true } },
+          updatedByUser: { select: { userName: true } },
         },
       }),
     ]);
@@ -144,8 +136,8 @@ export class CalendarEventService {
     const row = await this.prisma.nx00CalendarEvent.findFirst({
       where: { id, tenantId },
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
     if (!row) throw new NotFoundException('Calendar event not found');
@@ -164,9 +156,6 @@ export class CalendarEventService {
     if (!scope || scope.length !== 1 || !['S', 'C', 'R'].includes(scope)) {
       throw new BadRequestException('scopeType must be S, C, or R');
     }
-    const kind = body.eventKind?.trim();
-    if (!kind) throw new BadRequestException('eventKind is required');
-
     const dateStart = new Date(body.dateStart);
     const dateEnd = new Date(body.dateEnd);
     if (Number.isNaN(dateStart.getTime()) || Number.isNaN(dateEnd.getTime())) {
@@ -180,29 +169,26 @@ export class CalendarEventService {
       data: {
         tenantId: tid,
         title,
-        subtitle: body.subtitle?.trim() ?? null,
-        content: body.content ?? null,
         scopeType: scope,
-        eventKind: kind,
         dateStart,
         dateEnd,
         isAllDay: body.isAllDay ?? false,
-        location: body.location?.trim() ?? null,
         orderType: body.orderType?.trim() ?? null,
-        orderId: body.orderId?.trim() ?? null,
+        orderDocNo: body.orderDocNo?.trim() ?? null,
         isActive: body.isActive ?? true,
         createdBy: ctx?.actorUserId ?? null,
         updatedBy: ctx?.actorUserId ?? null,
       },
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
 
     if (ctx?.actorUserId) {
       await this.audit.write({
         actorUserId: ctx.actorUserId,
+        tenantId: row.tenantId,
         moduleCode: 'NX00',
         action: 'CREATE',
         entityTable: 'nx00_calendar_event',
@@ -235,8 +221,6 @@ export class CalendarEventService {
       updatedBy: ctx?.actorUserId ?? null,
     };
     if (typeof body.title === 'string') data.title = body.title.trim();
-    if (body.subtitle !== undefined) data.subtitle = body.subtitle?.trim() ?? null;
-    if (body.content !== undefined) data.content = body.content ?? null;
     if (typeof body.scopeType === 'string') {
       const scope = body.scopeType.trim();
       if (scope.length !== 1 || !['S', 'C', 'R'].includes(scope)) {
@@ -244,27 +228,26 @@ export class CalendarEventService {
       }
       data.scopeType = scope;
     }
-    if (typeof body.eventKind === 'string') data.eventKind = body.eventKind.trim();
     if (body.dateStart !== undefined) data.dateStart = new Date(body.dateStart);
     if (body.dateEnd !== undefined) data.dateEnd = new Date(body.dateEnd);
     if (typeof body.isAllDay === 'boolean') data.isAllDay = body.isAllDay;
-    if (body.location !== undefined) data.location = body.location?.trim() ?? null;
     if (body.orderType !== undefined) data.orderType = body.orderType?.trim() ?? null;
-    if (body.orderId !== undefined) data.orderId = body.orderId?.trim() ?? null;
+    if (body.orderDocNo !== undefined) data.orderDocNo = body.orderDocNo?.trim() ?? null;
     if (typeof body.isActive === 'boolean') data.isActive = body.isActive;
 
     const row = await this.prisma.nx00CalendarEvent.update({
       where: { id },
       data,
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
 
     if (ctx?.actorUserId) {
       await this.audit.write({
         actorUserId: ctx.actorUserId,
+        tenantId: row.tenantId,
         moduleCode: 'NX00',
         action: 'UPDATE',
         entityTable: 'nx00_calendar_event',
@@ -301,14 +284,15 @@ export class CalendarEventService {
         updatedBy: ctx?.actorUserId ?? null,
       },
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
 
     if (ctx?.actorUserId) {
       await this.audit.write({
         actorUserId: ctx.actorUserId,
+        tenantId: row.tenantId,
         moduleCode: 'NX00',
         action: 'SET_ACTIVE',
         entityTable: 'nx00_calendar_event',

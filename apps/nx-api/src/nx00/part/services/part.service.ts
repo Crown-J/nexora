@@ -61,8 +61,8 @@ type PartRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 
     partBrand?: { code?: string | null; name?: string | null } | null;
     country?: { code?: string | null; name?: string | null } | null;
@@ -102,13 +102,13 @@ function toPartDto(row: PartRowWithAudit): PartDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -157,6 +157,7 @@ function snapshotPartForAudit(row: {
  */
 export type PartActionContext = {
     actorUserId?: string;
+    tenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -174,10 +175,14 @@ export class PartService {
         if (!c) throw new BadRequestException('Country not found');
     }
 
-    private async assertPartGroupId(partGroupId: string | null | undefined): Promise<void> {
+    private async assertPartGroupId(partGroupId: string | null | undefined, tenantId: string): Promise<void> {
         if (!partGroupId) return;
-        const g = await this.prisma.nx00PartGroup.findUnique({ where: { id: partGroupId }, select: { id: true } });
+        const g = await this.prisma.nx00PartGroup.findUnique({
+            where: { id: partGroupId },
+            select: { id: true, tenantId: true },
+        });
         if (!g) throw new BadRequestException('Part group not found');
+        if (g.tenantId !== tenantId) throw new BadRequestException('Part group tenant mismatch');
     }
 
     private partInclude() {
@@ -185,8 +190,8 @@ export class PartService {
             partBrand: { select: { code: true, name: true } },
             country: { select: { code: true, name: true } },
             partGroup: { select: { code: true, name: true } },
-            createdByUser: { select: { username: true, displayName: true } },
-            updatedByUser: { select: { username: true, displayName: true } },
+            createdByUser: { select: { userAccount: true, userName: true } },
+            updatedByUser: { select: { userAccount: true, userName: true } },
         } as const;
     }
 
@@ -246,12 +251,25 @@ export class PartService {
         const uom = (body.uom ?? 'pcs').trim() || 'pcs';
         const partTypeResolved = resolvePartTypeForWrite(body.partType);
 
-        if (body.partBrandId) {
-            const b = await this.prisma.nx00PartBrand.findUnique({ where: { id: body.partBrandId }, select: { id: true } });
+        let tenantId: string | null = null;
+        const brandId = body.partBrandId?.trim() || null;
+        if (brandId) {
+            const b = await this.prisma.nx00PartBrand.findUnique({
+                where: { id: brandId },
+                select: { id: true, tenantId: true },
+            });
             if (!b) throw new BadRequestException('Brand not found');
+            tenantId = b.tenantId;
+        } else {
+            tenantId =
+                (typeof body.tenantId === 'string' && body.tenantId.trim() !== '' ? body.tenantId.trim() : null) ??
+                ctx?.tenantId ??
+                null;
         }
+        if (!tenantId) throw new BadRequestException('tenantId is required (set partBrandId or tenantId)');
+
         await this.assertCountryId(body.countryId ?? null);
-        await this.assertPartGroupId(body.partGroupId ?? null);
+        await this.assertPartGroupId(body.partGroupId ?? null, tenantId);
 
         const trimSeg = (v: unknown) => {
             if (v === undefined || v === null) return null;
@@ -262,6 +280,7 @@ export class PartService {
         try {
             const row = await this.prisma.nx00Part.create({
                 data: {
+                    tenantId,
                     code,
                     name,
                     partBrandId: body.partBrandId ?? null,
@@ -288,6 +307,7 @@ export class PartService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_part',
@@ -316,6 +336,7 @@ export class PartService {
             where: { id },
             select: {
                 id: true,
+                tenantId: true,
                 code: true,
                 name: true,
                 partBrandId: true,
@@ -368,14 +389,18 @@ export class PartService {
         if (typeof body.isActive === 'boolean') data.isActive = body.isActive;
 
         if (data.partBrandId) {
-            const b = await this.prisma.nx00PartBrand.findUnique({ where: { id: data.partBrandId }, select: { id: true } });
+            const b = await this.prisma.nx00PartBrand.findUnique({
+                where: { id: data.partBrandId },
+                select: { id: true, tenantId: true },
+            });
             if (!b) throw new BadRequestException('Brand not found');
+            if (b.tenantId !== exists.tenantId) throw new BadRequestException('Brand tenant mismatch');
         }
         if (data.countryId !== undefined) {
             await this.assertCountryId(data.countryId ?? null);
         }
         if (data.partGroupId !== undefined) {
-            await this.assertPartGroupId(data.partGroupId ?? null);
+            await this.assertPartGroupId(data.partGroupId ?? null, exists.tenantId);
         }
 
         try {
@@ -388,6 +413,7 @@ export class PartService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_part',
@@ -414,7 +440,7 @@ export class PartService {
     async setActive(id: string, body: SetActiveBody, ctx?: PartActionContext): Promise<PartDto> {
         const exists = await this.prisma.nx00Part.findUnique({
             where: { id },
-            select: { id: true, code: true, isActive: true },
+            select: { id: true, tenantId: true, code: true, isActive: true },
         });
         if (!exists) throw new NotFoundException('Part not found');
 
@@ -430,6 +456,7 @@ export class PartService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_part',

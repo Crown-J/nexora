@@ -40,8 +40,8 @@ type BrandRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toBrandDto(row: BrandRowWithAudit): BrandDto {
@@ -61,13 +61,13 @@ function toBrandDto(row: BrandRowWithAudit): BrandDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -76,6 +76,7 @@ function toBrandDto(row: BrandRowWithAudit): BrandDto {
  */
 export type BrandActionContext = {
     actorUserId?: string;
+    tenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -136,8 +137,8 @@ export class BrandService {
                 take: pageSize,
                 include: {
                     country: { select: { code: true, name: true } },
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             }),
         ]);
@@ -155,8 +156,8 @@ export class BrandService {
             where: { id },
             include: {
                 country: { select: { code: true, name: true } },
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
         if (!row) throw new NotFoundException('Brand not found');
@@ -174,9 +175,16 @@ export class BrandService {
 
         const cid = await this.resolvePartBrandCountryId(body.countryId ?? undefined, body.originCountry ?? undefined);
 
+        const tid =
+            (typeof body.tenantId === 'string' && body.tenantId.trim() !== '' ? body.tenantId.trim() : null) ??
+            ctx?.tenantId ??
+            null;
+        if (!tid) throw new BadRequestException('tenantId is required');
+
         try {
             const row = await this.prisma.nx00PartBrand.create({
                 data: {
+                    tenantId: tid,
                     code,
                     name,
                     countryId: cid,
@@ -189,8 +197,8 @@ export class BrandService {
                 },
                 include: {
                     country: { select: { code: true, name: true } },
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -198,6 +206,7 @@ export class BrandService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_brand',
@@ -273,8 +282,8 @@ export class BrandService {
                 data,
                 include: {
                     country: { select: { code: true, name: true } },
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -282,6 +291,7 @@ export class BrandService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_brand',
@@ -336,8 +346,8 @@ export class BrandService {
             },
             include: {
                 country: { select: { code: true, name: true } },
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
 
@@ -345,6 +355,7 @@ export class BrandService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_brand',

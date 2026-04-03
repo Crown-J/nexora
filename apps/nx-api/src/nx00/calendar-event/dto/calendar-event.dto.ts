@@ -6,18 +6,13 @@ export type CalendarEventDto = {
   id: string;
   tenantId: string;
   title: string;
-  subtitle: string | null;
-  content: string | null;
   /** S=SYSTEM / C=COMPANY / R=REMIND */
   scopeType: string;
-  /** meeting | delivery | visit | other */
-  eventKind: string;
   dateStart: string;
   dateEnd: string;
   isAllDay: boolean;
-  location: string | null;
   orderType: string | null;
-  orderId: string | null;
+  orderDocNo: string | null;
   isActive: boolean;
 
   createdAt: string;
@@ -47,31 +42,23 @@ export type ListCalendarEventQuery = {
 
 export type CreateCalendarEventBody = {
   title: string;
-  subtitle?: string | null;
-  content?: string | null;
   scopeType: string;
-  eventKind: string;
   dateStart: string;
   dateEnd: string;
   isAllDay?: boolean;
-  location?: string | null;
   orderType?: string | null;
-  orderId?: string | null;
+  orderDocNo?: string | null;
   isActive?: boolean;
 };
 
 export type UpdateCalendarEventBody = {
   title?: string;
-  subtitle?: string | null;
-  content?: string | null;
   scopeType?: string;
-  eventKind?: string;
   dateStart?: string;
   dateEnd?: string;
   isAllDay?: boolean;
-  location?: string | null;
   orderType?: string | null;
-  orderId?: string | null;
+  orderDocNo?: string | null;
   isActive?: boolean;
 };
 

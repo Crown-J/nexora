@@ -29,8 +29,10 @@ export class PartGroupController {
     @Post()
     async create(@Body() body: CreatePartGroupBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
+        const tenantId = (req?.user?.tenantId as string | null | undefined) ?? null;
         return this.partGroup.create(body, {
             actorUserId,
+            tenantId,
             ipAddr: (req?.ip as string | undefined) ?? null,
             userAgent: (req?.headers?.['user-agent'] as string | undefined) ?? null,
         });

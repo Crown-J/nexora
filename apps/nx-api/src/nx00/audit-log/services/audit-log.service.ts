@@ -18,7 +18,7 @@ type AuditLogRow = {
     occurredAt: Date;
 
     actorUserId: string;
-    actorUser?: { displayName: string } | null;
+    actorUser?: { userName: string } | null;
 
     moduleCode: string;
     action: string;
@@ -41,7 +41,7 @@ function toAuditLogDto(row: AuditLogRow): AuditLogDto {
         occurredAt: row.occurredAt?.toISOString?.() ?? String(row.occurredAt),
 
         actorUserId: row.actorUserId,
-        actorUserName: row.actorUser?.displayName ?? null,
+        actorUserName: row.actorUser?.userName ?? null,
 
         moduleCode: row.moduleCode,
         action: row.action,
@@ -106,7 +106,7 @@ export class AuditLogService {
                 orderBy: [{ occurredAt: 'desc' }],
                 skip: (page - 1) * pageSize,
                 take: pageSize,
-                include: { actorUser: { select: { displayName: true } } },
+                include: { actorUser: { select: { userName: true } } },
             }),
         ]);
 
@@ -121,7 +121,7 @@ export class AuditLogService {
     async get(id: string): Promise<AuditLogDto> {
         const row = await this.prisma.nx00AuditLog.findUnique({
             where: { id },
-            include: { actorUser: { select: { displayName: true } } },
+            include: { actorUser: { select: { userName: true } } },
         });
 
         if (!row) throw new NotFoundException('AuditLog not found');
@@ -134,6 +134,8 @@ export class AuditLogService {
      */
     async write(args: {
         actorUserId: string;
+        /** 稽核所屬租戶；未傳則由 actor 使用者帶出 */
+        tenantId?: string | null;
         moduleCode: string;
         action: string;
         entityTable: string;
@@ -154,8 +156,21 @@ export class AuditLogService {
         if (!action) throw new BadRequestException('action is required');
         if (!entityTable) throw new BadRequestException('entityTable is required');
 
+        let tenantId = args.tenantId ?? null;
+        if (!tenantId && args.actorUserId) {
+            const actor = await this.prisma.nx00User.findUnique({
+                where: { id: args.actorUserId },
+                select: { tenantId: true },
+            });
+            tenantId = actor?.tenantId ?? null;
+        }
+        if (!tenantId) {
+            throw new BadRequestException('tenantId is required for audit log (pass explicitly or ensure actor has tenantId)');
+        }
+
         await this.prisma.nx00AuditLog.create({
             data: {
+                tenantId,
                 actorUserId: args.actorUserId,
                 moduleCode,
                 action,

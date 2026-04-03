@@ -47,8 +47,8 @@ export class AuthService {
     const uname = String(username).trim();
     if (!uname) throw new BadRequestException('username/password required');
 
-    const user = await this.prisma.nx00User.findUnique({
-      where: { username: uname },
+    const user = await this.prisma.nx00User.findFirst({
+      where: { userAccount: uname },
       include: {
         tenant: true,
         userRoles: {
@@ -85,7 +85,15 @@ export class AuthService {
       });
     }
 
-    const token = await this.buildToken(user, subscription, isPlatformAdmin);
+    const token = await this.buildToken(
+      {
+        id: user.id,
+        username: user.userAccount,
+        tenant: user.tenant ? { id: user.tenant.id, code: user.tenant.code } : null,
+      },
+      subscription,
+      isPlatformAdmin,
+    );
     await this.prisma.nx00User.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -95,8 +103,8 @@ export class AuthService {
       token,
       user: {
         id: user.id,
-        username: user.username,
-        display_name: user.displayName ?? null,
+        username: user.userAccount,
+        display_name: user.userName ?? null,
       },
     };
   }
@@ -144,8 +152,8 @@ export class AuthService {
       where: { id: userId },
       select: {
         id: true,
-        username: true,
-        displayName: true,
+        userAccount: true,
+        userName: true,
         email: true,
         phone: true,
         isActive: true,
@@ -168,8 +176,8 @@ export class AuthService {
 
     return {
       id: user.id,
-      username: user.username,
-      display_name: user.displayName,
+      username: user.userAccount,
+      display_name: user.userName,
       email: user.email ?? null,
       phone: user.phone ?? null,
       is_active: user.isActive,

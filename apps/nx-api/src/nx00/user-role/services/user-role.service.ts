@@ -41,8 +41,8 @@ type UserRoleRow = {
     assignedBy: string | null;
     revokedAt: Date | null;
 
-    assignedByUser?: { displayName: string } | null;
-    user?: { displayName: string } | null;
+    assignedByUser?: { userName: string } | null;
+    user?: { userName: string } | null;
     role?: { code: string; name: string } | null;
 };
 
@@ -57,11 +57,11 @@ function toDto(row: UserRoleRow): UserRoleDto {
 
         assignedAt: row.assignedAt?.toISOString?.() ?? String(row.assignedAt),
         assignedBy: row.assignedBy ?? null,
-        assignedByName: row.assignedByUser?.displayName ?? null,
+        assignedByName: row.assignedByUser?.userName ?? null,
 
         revokedAt: row.revokedAt ? (row.revokedAt.toISOString?.() ?? String(row.revokedAt)) : null,
 
-        userDisplayName: row.user?.displayName ?? null,
+        userDisplayName: row.user?.userName ?? null,
         roleCode: row.role?.code ?? null,
         roleName: row.role?.name ?? null,
     };
@@ -101,8 +101,8 @@ export class UserRoleService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    assignedByUser: { select: { displayName: true } },
-                    user: { select: { displayName: true } },
+                    assignedByUser: { select: { userName: true } },
+                    user: { select: { userName: true } },
                     role: { select: { code: true, name: true } },
                 },
             }),
@@ -120,8 +120,8 @@ export class UserRoleService {
         const row = await this.prisma.nx00UserRole.findUnique({
             where: { id },
             include: {
-                assignedByUser: { select: { displayName: true } },
-                user: { select: { displayName: true } },
+                assignedByUser: { select: { userName: true } },
+                user: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
             },
         });
@@ -140,14 +140,18 @@ export class UserRoleService {
 
         // 交易：若設 primary=true，同 user 其他 primary 要清掉
         try {
-            const { row, beforePrimaryCleared } = await this.prisma.$transaction(async (tx) => {
+            const { row, beforePrimaryCleared, roleCode } = await this.prisma.$transaction(async (tx) => {
                 // 確認 user/role 存在（避免 FK error 變成 500）
                 const [u, r] = await Promise.all([
-                    tx.nx00User.findUnique({ where: { id: userId }, select: { id: true, displayName: true } }),
-                    tx.nx00Role.findUnique({ where: { id: roleId }, select: { id: true, code: true, name: true } }),
+                    tx.nx00User.findUnique({ where: { id: userId }, select: { id: true, userName: true, tenantId: true } }),
+                    tx.nx00Role.findUnique({
+                        where: { id: roleId },
+                        select: { id: true, code: true, name: true, tenantId: true },
+                    }),
                 ]);
                 if (!u) throw new BadRequestException('User not found');
                 if (!r) throw new BadRequestException('Role not found');
+                if (u.tenantId !== r.tenantId) throw new BadRequestException('User and role tenant mismatch');
 
                 // 如果指定 primary=true，先把同 user 其他 active 的 primary 清掉
                 let beforePrimary: any[] = [];
@@ -166,6 +170,7 @@ export class UserRoleService {
                 // 建立（id 由 DB default）
                 const created = await tx.nx00UserRole.create({
                     data: {
+                        tenantId: u.tenantId,
                         userId,
                         roleId,
                         isPrimary,
@@ -174,25 +179,26 @@ export class UserRoleService {
                         isActive: true,
                     },
                     include: {
-                        assignedByUser: { select: { displayName: true } },
-                        user: { select: { displayName: true } },
+                        assignedByUser: { select: { userName: true } },
+                        user: { select: { userName: true } },
                         role: { select: { code: true, name: true } },
                     },
                 });
 
-                return { row: created, beforePrimaryCleared: beforePrimary };
+                return { row: created, beforePrimaryCleared: beforePrimary, roleCode: r.code };
             });
 
             // AuditLog（ASSIGN）
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'ASSIGN',
                     entityTable: 'nx00_user_role',
                     entityId: row.id,
                     entityCode: `${row.userId}:${row.roleId}`,
-                    summary: `Assign role ${row.role?.code ?? row.roleId} to user ${row.userId}`,
+                    summary: `Assign role ${roleCode} to user ${row.userId}`,
                     beforeData: {
                         primaryCleared: beforePrimaryCleared,
                     },
@@ -226,7 +232,7 @@ export class UserRoleService {
         const exists = await this.prisma.nx00UserRole.findUnique({
             where: { id },
             include: {
-                user: { select: { displayName: true } },
+                user: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
             },
         });
@@ -243,8 +249,8 @@ export class UserRoleService {
                 // 這張表沒有 updatedBy/updatedAt 欄位，所以不寫 actor
             },
             include: {
-                assignedByUser: { select: { displayName: true } },
-                user: { select: { displayName: true } },
+                assignedByUser: { select: { userName: true } },
+                user: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
             },
         });
@@ -253,6 +259,7 @@ export class UserRoleService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'REVOKE',
                 entityTable: 'nx00_user_role',
@@ -287,7 +294,7 @@ export class UserRoleService {
         const exists = await this.prisma.nx00UserRole.findUnique({
             where: { id },
             include: {
-                user: { select: { displayName: true } },
+                user: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
             },
         });
@@ -316,8 +323,8 @@ export class UserRoleService {
                 where: { id },
                 data: { isPrimary },
                 include: {
-                    assignedByUser: { select: { displayName: true } },
-                    user: { select: { displayName: true } },
+                    assignedByUser: { select: { userName: true } },
+                    user: { select: { userName: true } },
                     role: { select: { code: true, name: true } },
                 },
             });
@@ -329,6 +336,7 @@ export class UserRoleService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_PRIMARY',
                 entityTable: 'nx00_user_role',
@@ -361,7 +369,7 @@ export class UserRoleService {
         const exists = await this.prisma.nx00UserRole.findUnique({
             where: { id },
             include: {
-                user: { select: { displayName: true } },
+                user: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
             },
         });
@@ -378,8 +386,8 @@ export class UserRoleService {
                 isPrimary: isActive ? exists.isPrimary : false,
             },
             include: {
-                assignedByUser: { select: { displayName: true } },
-                user: { select: { displayName: true } },
+                assignedByUser: { select: { userName: true } },
+                user: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
             },
         });
@@ -388,6 +396,7 @@ export class UserRoleService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_user_role',

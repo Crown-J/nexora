@@ -33,6 +33,7 @@ type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 type RoleViewRow = {
     id: string;
+    tenantId: string;
     roleId: string;
     viewId: string;
 
@@ -49,15 +50,8 @@ type RoleViewRow = {
     revokedAt: Date | null;
     revokedBy: string | null;
 
-    createdAt: Date;
-    createdBy: string | null;
-    updatedAt: Date;
-    updatedBy: string | null;
-
-    grantedByUser?: { displayName: string } | null;
-    revokedByUser?: { displayName: string } | null;
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    grantedByUser?: { userName: string } | null;
+    revokedByUser?: { userName: string } | null;
 
     role?: { code: string; name: string } | null;
     view?: { code: string; name: string; path: string; moduleCode: string } | null;
@@ -90,19 +84,19 @@ function toDto(row: RoleViewRow): RoleViewDto {
 
         grantedAt: row.grantedAt?.toISOString?.() ?? String(row.grantedAt),
         grantedBy: row.grantedBy ?? null,
-        grantedByName: row.grantedByUser?.displayName ?? null,
+        grantedByName: row.grantedByUser?.userName ?? null,
 
         revokedAt: row.revokedAt ? (row.revokedAt.toISOString?.() ?? String(row.revokedAt)) : null,
         revokedBy: row.revokedBy ?? null,
-        revokedByName: row.revokedByUser?.displayName ?? null,
+        revokedByName: row.revokedByUser?.userName ?? null,
 
-        createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
-        createdBy: row.createdBy ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdAt: row.grantedAt?.toISOString?.() ?? String(row.grantedAt),
+        createdBy: row.grantedBy ?? null,
+        createdByName: row.grantedByUser?.userName ?? null,
 
-        updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
-        updatedBy: row.updatedBy ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedAt: (row.revokedAt ?? row.grantedAt)?.toISOString?.() ?? String(row.revokedAt ?? row.grantedAt),
+        updatedBy: row.revokedBy ?? row.grantedBy ?? null,
+        updatedByName: row.revokedByUser?.userName ?? row.grantedByUser?.userName ?? null,
 
         roleCode: row.role?.code ?? null,
         roleName: row.role?.name ?? null,
@@ -156,10 +150,8 @@ export class RoleViewService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    grantedByUser: { select: { displayName: true } },
-                    revokedByUser: { select: { displayName: true } },
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    grantedByUser: { select: { userName: true } },
+                    revokedByUser: { select: { userName: true } },
                     role: { select: { code: true, name: true } },
                     view: { select: { code: true, name: true, path: true, moduleCode: true } },
                 },
@@ -182,10 +174,8 @@ export class RoleViewService {
         const row = await this.prisma.nx00RoleView.findUnique({
             where: { id },
             include: {
-                grantedByUser: { select: { displayName: true } },
-                revokedByUser: { select: { displayName: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                grantedByUser: { select: { userName: true } },
+                revokedByUser: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
                 view: { select: { code: true, name: true, path: true, moduleCode: true } },
             },
@@ -210,14 +200,14 @@ export class RoleViewService {
         const row = await this.prisma.$transaction(async (tx) => {
             // 檢查 FK（避免 500）
             const [r, v] = await Promise.all([
-                tx.nx00Role.findUnique({ where: { id: roleId }, select: { id: true, code: true } }),
+                tx.nx00Role.findUnique({ where: { id: roleId }, select: { id: true, code: true, tenantId: true } }),
                 tx.nx00View.findUnique({ where: { id: viewId }, select: { id: true, code: true, moduleCode: true } }),
             ]);
             if (!r) throw new BadRequestException('Role not found');
             if (!v) throw new BadRequestException('View not found');
 
             const existing = await tx.nx00RoleView.findFirst({
-                where: { roleId, viewId },
+                where: { roleId, viewId, tenantId: r.tenantId },
             });
 
             if (existing) {
@@ -230,13 +220,10 @@ export class RoleViewService {
                         grantedBy: ctx?.actorUserId ?? null,
                         revokedAt: null,
                         revokedBy: null,
-                        updatedBy: ctx?.actorUserId ?? null,
                     },
                     include: {
-                        grantedByUser: { select: { displayName: true } },
-                        revokedByUser: { select: { displayName: true } },
-                        createdByUser: { select: { displayName: true } },
-                        updatedByUser: { select: { displayName: true } },
+                        grantedByUser: { select: { userName: true } },
+                        revokedByUser: { select: { userName: true } },
                         role: { select: { code: true, name: true } },
                         view: { select: { code: true, name: true, path: true, moduleCode: true } },
                     },
@@ -246,6 +233,7 @@ export class RoleViewService {
                 if (ctx?.actorUserId) {
                     await this.audit.write({
                         actorUserId: ctx.actorUserId,
+                        tenantId: updated.tenantId,
                         moduleCode: 'NX00',
                         action: 'GRANT',
                         entityTable: 'nx00_role_view',
@@ -281,19 +269,16 @@ export class RoleViewService {
 
             const created = await tx.nx00RoleView.create({
                 data: {
+                    tenantId: r.tenantId,
                     roleId,
                     viewId,
                     ...perms,
                     isActive: true,
                     grantedBy: ctx?.actorUserId ?? null,
-                    createdBy: ctx?.actorUserId ?? null,
-                    updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    grantedByUser: { select: { displayName: true } },
-                    revokedByUser: { select: { displayName: true } },
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    grantedByUser: { select: { userName: true } },
+                    revokedByUser: { select: { userName: true } },
                     role: { select: { code: true, name: true } },
                     view: { select: { code: true, name: true, path: true, moduleCode: true } },
                 },
@@ -303,6 +288,7 @@ export class RoleViewService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: created.tenantId,
                     moduleCode: 'NX00',
                     action: 'GRANT',
                     entityTable: 'nx00_role_view',
@@ -343,7 +329,7 @@ export class RoleViewService {
         if (!exists) throw new NotFoundException('RoleView not found');
 
         const p = body?.perms ?? {};
-        const data: any = { updatedBy: ctx?.actorUserId ?? null };
+        const data: any = {};
 
         if (p.canRead !== undefined) data.canRead = Boolean(p.canRead);
         if (p.canCreate !== undefined) data.canCreate = Boolean(p.canCreate);
@@ -355,10 +341,8 @@ export class RoleViewService {
             where: { id },
             data,
             include: {
-                grantedByUser: { select: { displayName: true } },
-                revokedByUser: { select: { displayName: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                grantedByUser: { select: { userName: true } },
+                revokedByUser: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
                 view: { select: { code: true, name: true, path: true, moduleCode: true } },
             },
@@ -368,6 +352,7 @@ export class RoleViewService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'UPDATE_PERMS',
                 entityTable: 'nx00_role_view',
@@ -417,13 +402,10 @@ export class RoleViewService {
                 isActive: false,
                 revokedAt,
                 revokedBy: ctx?.actorUserId ?? null,
-                updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                grantedByUser: { select: { displayName: true } },
-                revokedByUser: { select: { displayName: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                grantedByUser: { select: { userName: true } },
+                revokedByUser: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
                 view: { select: { code: true, name: true, path: true, moduleCode: true } },
             },
@@ -433,6 +415,7 @@ export class RoleViewService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'REVOKE',
                 entityTable: 'nx00_role_view',
@@ -468,19 +451,15 @@ export class RoleViewService {
                     grantedBy: ctx?.actorUserId ?? null,
                     revokedAt: null,
                     revokedBy: null,
-                    updatedBy: ctx?.actorUserId ?? null,
                 }
                 : {
                     isActive: false,
                     revokedAt: exists.revokedAt ?? new Date(),
                     revokedBy: ctx?.actorUserId ?? null,
-                    updatedBy: ctx?.actorUserId ?? null,
                 },
             include: {
-                grantedByUser: { select: { displayName: true } },
-                revokedByUser: { select: { displayName: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                grantedByUser: { select: { userName: true } },
+                revokedByUser: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
                 view: { select: { code: true, name: true, path: true, moduleCode: true } },
             },
@@ -490,6 +469,7 @@ export class RoleViewService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_role_view',
@@ -523,10 +503,8 @@ export class RoleViewService {
                 { viewId: 'asc' },
             ],
             include: {
-                grantedByUser: { select: { displayName: true } },
-                revokedByUser: { select: { displayName: true } },
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                grantedByUser: { select: { userName: true } },
+                revokedByUser: { select: { userName: true } },
                 role: { select: { code: true, name: true } },
                 view: { select: { code: true, name: true, path: true, moduleCode: true } },
             },
@@ -559,7 +537,7 @@ export class RoleViewService {
             // 1) 驗證角色存在
             const role = await tx.nx00Role.findUnique({
                 where: { id: trimmedRoleId },
-                select: { id: true, code: true, name: true },
+                select: { id: true, code: true, name: true, tenantId: true },
             });
             if (!role) {
                 throw new BadRequestException('Role not found');
@@ -616,13 +594,10 @@ export class RoleViewService {
                         data: {
                             ...perms,
                             isActive: true,
-                            updatedBy: ctx?.actorUserId ?? null,
                         },
                         include: {
-                            grantedByUser: { select: { displayName: true } },
-                            revokedByUser: { select: { displayName: true } },
-                            createdByUser: { select: { displayName: true } },
-                            updatedByUser: { select: { displayName: true } },
+                            grantedByUser: { select: { userName: true } },
+                            revokedByUser: { select: { userName: true } },
                             role: { select: { code: true, name: true } },
                             view: { select: { code: true, name: true, path: true, moduleCode: true } },
                         },
@@ -631,19 +606,16 @@ export class RoleViewService {
                 } else {
                     const row = await tx.nx00RoleView.create({
                         data: {
+                            tenantId: role.tenantId,
                             roleId: trimmedRoleId,
                             viewId,
                             ...perms,
                             isActive: true,
                             grantedBy: ctx?.actorUserId ?? null,
-                            createdBy: ctx?.actorUserId ?? null,
-                            updatedBy: ctx?.actorUserId ?? null,
                         },
                         include: {
-                            grantedByUser: { select: { displayName: true } },
-                            revokedByUser: { select: { displayName: true } },
-                            createdByUser: { select: { displayName: true } },
-                            updatedByUser: { select: { displayName: true } },
+                            grantedByUser: { select: { userName: true } },
+                            revokedByUser: { select: { userName: true } },
                             role: { select: { code: true, name: true } },
                             view: { select: { code: true, name: true, path: true, moduleCode: true } },
                         },
@@ -656,6 +628,7 @@ export class RoleViewService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: role.tenantId,
                     moduleCode: 'NX00',
                     action: 'SET_PERMISSION',
                     entityTable: 'nx00_role_view',

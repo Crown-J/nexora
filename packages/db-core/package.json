@@ -10,7 +10,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset --force",
     "build": "tsc -p tsconfig.json",
-    "import:parts2": "tsx scripts/import-parts2-csv.ts"
+    "import:parts2": "tsx scripts/import-parts2-csv.ts",
+    "p0:railway-ddl": "pnpm exec tsx scripts/p0-railway-ddl-test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",

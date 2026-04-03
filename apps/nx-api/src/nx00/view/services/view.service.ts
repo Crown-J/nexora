@@ -37,8 +37,8 @@ type ViewRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { userName: string } | null;
+    updatedByUser?: { userName: string } | null;
 };
 
 function toViewDto(row: ViewRowWithAudit): ViewDto {
@@ -53,11 +53,11 @@ function toViewDto(row: ViewRowWithAudit): ViewDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -95,8 +95,8 @@ export class ViewService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { userName: true } },
+                    updatedByUser: { select: { userName: true } },
                 },
             }),
         ]);
@@ -113,8 +113,8 @@ export class ViewService {
         const row = await this.prisma.nx00View.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { userName: true } },
+                updatedByUser: { select: { userName: true } },
             },
         });
         if (!row) throw new NotFoundException('View not found');
@@ -147,8 +147,8 @@ export class ViewService {
                     updatedBy: actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { userName: true } },
+                    updatedByUser: { select: { userName: true } },
                 },
             });
 
@@ -189,8 +189,8 @@ export class ViewService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { displayName: true } },
-                    updatedByUser: { select: { displayName: true } },
+                    createdByUser: { select: { userName: true } },
+                    updatedByUser: { select: { userName: true } },
                 },
             });
 
@@ -215,8 +215,8 @@ export class ViewService {
                 updatedBy: actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { displayName: true } },
-                updatedByUser: { select: { displayName: true } },
+                createdByUser: { select: { userName: true } },
+                updatedByUser: { select: { userName: true } },
             },
         });
 

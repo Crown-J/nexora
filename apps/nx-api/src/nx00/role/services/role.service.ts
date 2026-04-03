@@ -41,8 +41,8 @@ type RoleRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toRoleDto(row: RoleRowWithAudit): RoleDto {
@@ -58,13 +58,13 @@ function toRoleDto(row: RoleRowWithAudit): RoleDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -73,6 +73,7 @@ function toRoleDto(row: RoleRowWithAudit): RoleDto {
  */
 export type RoleActionContext = {
     actorUserId?: string;
+    tenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -108,8 +109,8 @@ export class RoleService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             }),
         ]);
@@ -126,8 +127,8 @@ export class RoleService {
         const row = await this.prisma.nx00Role.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
 
@@ -142,10 +143,17 @@ export class RoleService {
         if (!code) throw new BadRequestException('code is required');
         if (!name) throw new BadRequestException('name is required');
 
+        const tid =
+            (typeof body.tenantId === 'string' && body.tenantId.trim() !== '' ? body.tenantId.trim() : null) ??
+            ctx?.tenantId ??
+            null;
+        if (!tid) throw new BadRequestException('tenantId is required');
+
         try {
             // id 交給 DB default：gen_nx00_role_id()
             const row = await this.prisma.nx00Role.create({
                 data: {
+                    tenantId: tid,
                     code,
                     name,
                     description: body.description ?? null,
@@ -158,8 +166,8 @@ export class RoleService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -167,6 +175,7 @@ export class RoleService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_role',
@@ -227,8 +236,8 @@ export class RoleService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -236,6 +245,7 @@ export class RoleService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_role',
@@ -286,8 +296,8 @@ export class RoleService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
 
@@ -295,6 +305,7 @@ export class RoleService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_role',

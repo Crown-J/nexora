@@ -1,9 +1,10 @@
 // C:\nexora\packages\db-core\prisma\schema.prisma
 // NEXORA / db-core schema
-// - NX00 主檔欄位以 docs/nx00_field.csv 為準（Prisma 仍 camelCase；DB snake_case 用 @map）
+// - NX00 主檔欄位以 docs/nx00_field.csv（與計畫 NX00 欄位表）為準（Prisma camelCase；DB snake_case 用 @map）
 // - Prisma 欄位 camelCase；DB 欄位 snake_case 用 @map 對應
 // - 欄位說明：每個 scalar／關聯欄位上方使用 ///（Prisma doc）；PostgreSQL 以 migration COMMENT ON 寫入表／欄位備註（見 migrations/*_add_pg_comments_all）
 // - ID 規則：VARCHAR(15) 由 DB DEFAULT gen_xxx_id() 產生
+// - NX01～NX06 模型暫自本檔移除（空庫整理／MW1 僅 nx00+nx99 API）；後續波段再併回 schema 與 migration
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -28,9 +29,11 @@ model Nx00User {
   /// 員工主檔 ID（外鍵，PRO；表未於 CSV 定義時可僅存 ID）
   employeeId   String?   @map("employee_id") @db.VarChar(15)
 
-  username     String    @unique @db.VarChar(50)
+  /// 登入帳號（DB：user_account）
+  userAccount  String    @map("user_account") @db.VarChar(50)
   passwordHash String    @map("password_hash") @db.VarChar(255)
-  displayName  String    @map("display_name") @db.VarChar(50)
+  /// 顯示名稱（DB：user_name）
+  userName     String    @map("user_name") @db.VarChar(50)
   email        String?   @db.VarChar(100)
   phone        String?   @db.VarChar(20)
   isActive     Boolean   @default(true) @map("is_active")
@@ -60,8 +63,6 @@ model Nx00User {
   rolesUpdated       Nx00Role[]      @relation("Nx00RoleUpdatedBy")
   viewsCreated       Nx00View[]      @relation("Nx00ViewCreatedBy")
   viewsUpdated       Nx00View[]      @relation("Nx00ViewUpdatedBy")
-  roleViewsCreated   Nx00RoleView[]  @relation("Nx00RoleViewCreatedBy")
-  roleViewsUpdated   Nx00RoleView[]  @relation("Nx00RoleViewUpdatedBy")
 
   partsCreated       Nx00Part[]      @relation("Nx00PartCreatedBy")
   partsUpdated       Nx00Part[]      @relation("Nx00PartUpdatedBy")
@@ -100,6 +101,7 @@ model Nx00User {
   partRelationsCreated  Nx00PartRelation[]  @relation("Nx00PartRelationCreatedBy")
   partRelationsUpdated  Nx00PartRelation[]  @relation("Nx00PartRelationUpdatedBy")
 
+  @@unique([tenantId, userAccount])
   @@index([tenantId])
   @@map("nx00_user")
 }
@@ -110,7 +112,10 @@ model Nx00User {
 /// =======================================================
 model Nx00Role {
   id          String   @id @default(dbgenerated("gen_nx00_role_id()")) @db.VarChar(15)
-  code        String   @unique @db.VarChar(30)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant @relation(fields: [tenantId], references: [id])
+  code        String   @db.VarChar(30)
   name        String   @db.VarChar(50)
   description String?  @db.VarChar(200)
   isSystem    Boolean  @default(false) @map("is_system")
@@ -128,6 +133,8 @@ model Nx00Role {
   userRoles Nx00UserRole[]
   roleViews Nx00RoleView[]
 
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@map("nx00_role")
 }
 
@@ -137,6 +144,9 @@ model Nx00Role {
 /// =======================================================
 model Nx00UserRole {
   id         String    @id @default(dbgenerated("gen_nx00_user_role_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId   String     @map("tenant_id") @db.VarChar(15)
+  tenant     Nx99Tenant @relation(fields: [tenantId], references: [id])
   userId     String    @map("user_id") @db.VarChar(15)
   roleId     String    @map("role_id") @db.VarChar(15)
 
@@ -150,7 +160,8 @@ model Nx00UserRole {
   role          Nx00Role @relation(fields: [roleId], references: [id])
   assignedByUser Nx00User? @relation("Nx00UserRoleAssignedBy", fields: [assignedBy], references: [id])
 
-  @@unique([userId, roleId])
+  @@unique([tenantId, userId, roleId])
+  @@index([tenantId])
   @@index([userId])
   @@index([roleId])
   @@index([isActive])
@@ -163,6 +174,9 @@ model Nx00UserRole {
 /// =======================================================
 model Nx00UserWarehouse {
   id          String    @id @default(dbgenerated("gen_nx00_user_warehouse_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant @relation(fields: [tenantId], references: [id])
   userId      String    @map("user_id") @db.VarChar(15)
   warehouseId String    @map("warehouse_id") @db.VarChar(15)
 
@@ -175,7 +189,8 @@ model Nx00UserWarehouse {
   warehouse      Nx00Warehouse @relation(fields: [warehouseId], references: [id])
   assignedByUser Nx00User?     @relation("Nx00UserWarehouseAssignedBy", fields: [assignedBy], references: [id])
 
-  @@unique([userId, warehouseId])
+  @@unique([tenantId, userId, warehouseId])
+  @@index([tenantId])
   @@index([userId])
   @@index([warehouseId])
   @@index([isActive])
@@ -216,6 +231,9 @@ model Nx00View {
 /// =======================================================
 model Nx00RoleView {
   id        String   @id @default(dbgenerated("gen_nx00_role_view_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  tenant    Nx99Tenant @relation(fields: [tenantId], references: [id])
   roleId    String   @map("role_id") @db.VarChar(15)
   viewId    String   @map("view_id") @db.VarChar(15)
 
@@ -232,21 +250,14 @@ model Nx00RoleView {
   revokedAt DateTime? @map("revoked_at")
   revokedBy String?  @map("revoked_by") @db.VarChar(15)
 
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String?  @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  updatedBy String?  @map("updated_by") @db.VarChar(15)
-
   role Nx00Role @relation(fields: [roleId], references: [id])
   view Nx00View @relation(fields: [viewId], references: [id])
 
   grantedByUser Nx00User? @relation("Nx00RoleViewGrantedBy", fields: [grantedBy], references: [id])
   revokedByUser Nx00User? @relation("Nx00RoleViewRevokedBy", fields: [revokedBy], references: [id])
 
-  createdByUser Nx00User? @relation("Nx00RoleViewCreatedBy", fields: [createdBy], references: [id])
-  updatedByUser Nx00User? @relation("Nx00RoleViewUpdatedBy", fields: [updatedBy], references: [id])
-
-  @@unique([roleId, viewId])
+  @@unique([tenantId, roleId, viewId])
+  @@index([tenantId])
   @@index([roleId])
   @@index([viewId])
   @@index([isActive])
@@ -314,6 +325,9 @@ model Nx00Currency {
 /// =======================================================
 model Nx00Part {
   id       String  @id @default(dbgenerated("gen_nx00_part_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId String     @map("tenant_id") @db.VarChar(15)
+  tenant   Nx99Tenant @relation(fields: [tenantId], references: [id])
   /// 零件料號
   code     String  @db.VarChar(50)
   /// 零件名稱／品名
@@ -349,17 +363,11 @@ model Nx00Part {
   createdByUser Nx00User? @relation("Nx00PartCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartUpdatedBy", fields: [updatedBy], references: [id])
 
-  rfqItems Nx01RfqItem[]
-  poItems  Nx01PoItem[]
-  quoteItems Nx03QuoteItem[]
-  soItems    Nx03SoItem[]
   relationsFrom Nx00PartRelation[] @relation("Nx00PartRelationFrom")
   relationsTo   Nx00PartRelation[] @relation("Nx00PartRelationTo")
-  stockBalances Nx02StockBalance[]
-  stockLedgers  Nx02StockLedger[]
-  stockTakeItems Nx02StockTakeItem[]
 
-  @@unique([code])
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([partBrandId])
   @@index([countryId])
   @@index([partGroupId])
@@ -373,8 +381,11 @@ model Nx00Part {
 /// =======================================================
 model Nx00PartBrand {
   id       String  @id @default(dbgenerated("gen_nx00_pabr_id()")) @db.VarChar(15)
-  /// 設計 LITE 建議 3 碼；匯入資料可能較長故欄寬 30
-  code     String  @unique @db.VarChar(30)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId String     @map("tenant_id") @db.VarChar(15)
+  tenant   Nx99Tenant @relation(fields: [tenantId], references: [id])
+  /// 零件品牌代碼（3 碼）
+  code     String  @db.VarChar(3)
   name     String  @db.VarChar(100)
   /// 品牌國家
   countryId String? @map("country_id") @db.VarChar(15)
@@ -393,9 +404,9 @@ model Nx00PartBrand {
 
   parts          Nx00Part[]
   brandCodeRole  Nx00BrandCodeRole?
-  quoteItems     Nx03QuoteItem[]
-  soItems        Nx03SoItem[]
 
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([countryId])
   @@index([isActive])
   @@map("nx00_part_brand")
@@ -407,7 +418,10 @@ model Nx00PartBrand {
 /// =======================================================
 model Nx00CarBrand {
   id       String  @id @default(dbgenerated("gen_nx00_cabr_id()")) @db.VarChar(15)
-  code     String  @unique @db.VarChar(30)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId String     @map("tenant_id") @db.VarChar(15)
+  tenant   Nx99Tenant @relation(fields: [tenantId], references: [id])
+  code     String  @db.VarChar(30)
   name     String  @db.VarChar(100)
   countryId String? @map("country_id") @db.VarChar(15)
   country   Nx00Country? @relation(fields: [countryId], references: [id])
@@ -423,6 +437,8 @@ model Nx00CarBrand {
   createdByUser Nx00User? @relation("Nx00CarBrandCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00CarBrandUpdatedBy", fields: [updatedBy], references: [id])
 
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([countryId])
   @@index([isActive])
   @@map("nx00_car_brand")
@@ -434,7 +450,10 @@ model Nx00CarBrand {
 /// =======================================================
 model Nx00PartGroup {
   id       String  @id @default(dbgenerated("gen_nx00_pagr_id()")) @db.VarChar(15)
-  code     String  @unique @db.VarChar(30)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId String     @map("tenant_id") @db.VarChar(15)
+  tenant   Nx99Tenant @relation(fields: [tenantId], references: [id])
+  code     String  @db.VarChar(30)
   name     String  @db.VarChar(100)
   sortNo   Int     @default(0) @map("sort_no")
   isActive Boolean @default(true) @map("is_active")
@@ -449,6 +468,8 @@ model Nx00PartGroup {
 
   parts Nx00Part[]
 
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([isActive])
   @@map("nx00_part_group")
 }
@@ -459,6 +480,9 @@ model Nx00PartGroup {
 /// =======================================================
 model Nx00BrandCodeRole {
   id         String @id @default(dbgenerated("gen_nx00_bcor_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId   String     @map("tenant_id") @db.VarChar(15)
+  tenant     Nx99Tenant @relation(fields: [tenantId], references: [id])
   partBrandId String @unique @map("part_brand_id") @db.VarChar(15)
   partBrand   Nx00PartBrand @relation(fields: [partBrandId], references: [id])
   seg1Limit  Int    @default(0) @map("seg1")
@@ -480,6 +504,7 @@ model Nx00BrandCodeRole {
   createdByUser Nx00User? @relation("Nx00BrandCodeRoleCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00BrandCodeRoleUpdatedBy", fields: [updatedBy], references: [id])
 
+  @@index([tenantId])
   @@index([isActive])
   @@map("nx00_brand_code_role")
 }
@@ -490,6 +515,9 @@ model Nx00BrandCodeRole {
 /// =======================================================
 model Nx00PartRelation {
   id           String @id @default(dbgenerated("gen_nx00_pare_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId     String     @map("tenant_id") @db.VarChar(15)
+  tenant       Nx99Tenant @relation(fields: [tenantId], references: [id])
   partIdFrom   String @map("part_id_from") @db.VarChar(15)
   partIdTo     String @map("part_id_to") @db.VarChar(15)
   /// S=改號 / R=同款 / C=改版換周邊 / B=組合包 / F=拆解包
@@ -509,6 +537,7 @@ model Nx00PartRelation {
   createdByUser Nx00User? @relation("Nx00PartRelationCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartRelationUpdatedBy", fields: [updatedBy], references: [id])
 
+  @@index([tenantId])
   @@index([partIdFrom])
   @@index([partIdTo])
   @@index([isActive])
@@ -521,7 +550,10 @@ model Nx00PartRelation {
 /// =======================================================
 model Nx00Warehouse {
   id       String  @id @default(dbgenerated("gen_nx00_warehouse_id()")) @db.VarChar(15)
-  code     String  @unique @db.VarChar(10)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId String     @map("tenant_id") @db.VarChar(15)
+  tenant   Nx99Tenant @relation(fields: [tenantId], references: [id])
+  code     String  @db.VarChar(10)
   name     String  @db.VarChar(100)
   remark   String? @db.VarChar(200)
   sortNo   Int     @default(0) @map("sort_no")
@@ -537,14 +569,9 @@ model Nx00Warehouse {
 
   locations Nx00Location[]
   userWarehouses Nx00UserWarehouse[]
-  poItems   Nx01PoItem[]
-  soItems   Nx03SoItem[]
-  stockBalances Nx02StockBalance[]
-  stockLedgers  Nx02StockLedger[]
-  stockTakes    Nx02StockTake[]
-  stockTakeLineItems Nx02StockTakeItem[]
-  salesOrders   Nx03So[]
 
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([isActive])
   @@map("nx00_warehouse")
 }
@@ -555,6 +582,9 @@ model Nx00Warehouse {
 /// =======================================================
 model Nx00Location {
   id          String  @id @default(dbgenerated("gen_nx00_location_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant @relation(fields: [tenantId], references: [id])
   warehouseId String  @map("warehouse_id") @db.VarChar(15)
   code        String  @db.VarChar(30)
   name        String? @db.VarChar(100)
@@ -576,13 +606,8 @@ model Nx00Location {
   createdByUser Nx00User? @relation("Nx00LocationCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00LocationUpdatedBy", fields: [updatedBy], references: [id])
 
-  poItems Nx01PoItem[]
-  soItems Nx03SoItem[]
-  stockBalances Nx02StockBalance[]
-  stockTakeItems Nx02StockTakeItem[]
-  stockLedgers  Nx02StockLedger[]
-
-  @@unique([warehouseId, code])
+  @@unique([tenantId, warehouseId, code])
+  @@index([tenantId])
   @@index([warehouseId])
   @@index([isActive])
   @@map("nx00_location")
@@ -594,10 +619,13 @@ model Nx00Location {
 /// =======================================================
 model Nx00Partner {
   id          String  @id @default(dbgenerated("gen_nx00_partner_id()")) @db.VarChar(15)
-  code        String  @unique @db.VarChar(30)
+  /// 租戶 ID（外鍵 → nx99_tenant）
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant @relation(fields: [tenantId], references: [id])
+  code        String  @db.VarChar(30)
   name        String  @db.VarChar(120)
-  /// CUST=客戶 / SUP=供應商 / BOTH=皆是（docs/nx00_field.csv）
-  partnerType String  @default("BOTH") @map("partner_type") @db.VarChar(10)
+  /// 往來類型：C=客戶／S=零件供應商／T=外包物流／V=一般廠商／B=銀行
+  partnerType String  @default("C") @map("partner_type") @db.VarChar(1)
   contactName String? @map("contact_name") @db.VarChar(50)
   phone       String? @db.VarChar(30)
   mobile      String? @db.VarChar(30)
@@ -614,14 +642,8 @@ model Nx00Partner {
   createdByUser Nx00User? @relation("Nx00PartnerCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartnerUpdatedBy", fields: [updatedBy], references: [id])
 
-  rfqs Nx01Rfq[]
-  pos  Nx01Po[]
-  quotes Nx03Quote[]
-  salesOrders Nx03So[]
-  arLedgers Nx04ArLedger[]
-  apLedgers Nx04ApLedger[]
-  paylogs   Nx04Paylog[]
-
+  @@unique([tenantId, code])
+  @@index([tenantId])
   @@index([isActive])
   @@index([partnerType])
   @@map("nx00_partner")
@@ -633,6 +655,9 @@ model Nx00Partner {
 /// =======================================================
 model Nx00AuditLog {
   id          String   @id @default(dbgenerated("gen_nx00_audit_log_id()")) @db.VarChar(15)
+  /// 租戶 ID（NOT NULL，稽核查詢以租戶 filter 為主）
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant @relation(fields: [tenantId], references: [id])
   occurredAt  DateTime @default(now()) @map("occurred_at")
   actorUserId String   @map("actor_user_id") @db.VarChar(15)
 
@@ -652,6 +677,7 @@ model Nx00AuditLog {
 
   actorUser Nx00User @relation(fields: [actorUserId], references: [id])
 
+  @@index([tenantId])
   @@index([occurredAt])
   @@index([actorUserId])
   @@index([moduleCode])
@@ -668,16 +694,12 @@ model Nx00Bulletin {
   /// 租戶（→ nx99_tenant）
   tenantId String @map("tenant_id") @db.VarChar(15)
   title    String @db.VarChar(100)
-  /// 副標題（UI 延伸欄位）
-  subtitle String? @db.VarChar(200)
   content  String? @db.Text
   /// S=SYSTEM / C=COMPANY / R=REMIND
   scopeType String @map("type") @db.VarChar(1)
   isPinned  Boolean @default(false) @map("is_pinned")
   expiredAt DateTime? @map("expired_at")
   isActive  Boolean @default(true) @map("is_active")
-  /// UI 標籤：important | normal | update
-  displayBadge String? @map("display_badge") @db.VarChar(20)
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.VarChar(15)
@@ -702,18 +724,14 @@ model Nx00CalendarEvent {
   id     String @id @default(dbgenerated("gen_nx00_caev_id()")) @db.VarChar(15)
   tenantId String @map("tenant_id") @db.VarChar(15)
   title    String @db.VarChar(100)
-  subtitle String? @db.VarChar(200)
-  content  String? @db.Text
   /// S=SYSTEM / C=COMPANY / R=REMIND
   scopeType String @map("type") @db.VarChar(1)
-  /// UI 分類：meeting | delivery | visit | other
-  eventKind String @map("event_kind") @db.VarChar(20)
   dateStart DateTime @map("date_start")
   dateEnd   DateTime @map("date_end")
   isAllDay  Boolean @default(false) @map("is_all_day")
-  location  String? @db.VarChar(200)
   orderType String? @map("order_type") @db.VarChar(2)
-  orderId   String? @map("order_id") @db.VarChar(15)
+  /// 關聯單號（文件編號）
+  orderDocNo String? @map("order_doc_no") @db.VarChar(16)
   isActive  Boolean @default(true) @map("is_active")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -764,613 +782,25 @@ model Nx99Tenant {
 
   subscriptions Nx99Subscription[]
   users         Nx00User[]
-  rfqs          Nx01Rfq[]
-  rfqItems      Nx01RfqItem[]
-  pos           Nx01Po[]
-  poItems       Nx01PoItem[]
-  quotes        Nx03Quote[]
-  quoteItems    Nx03QuoteItem[]
-  salesOrders   Nx03So[]
-  salesOrderItems Nx03SoItem[]
-  stockBalances Nx02StockBalance[]
-  stockLedgers  Nx02StockLedger[]
+  roles          Nx00Role[]
+  userRoles      Nx00UserRole[]
+  roleViews      Nx00RoleView[]
+  userWarehouses Nx00UserWarehouse[]
+  parts          Nx00Part[]
+  partBrands     Nx00PartBrand[]
+  carBrands      Nx00CarBrand[]
+  partGroups     Nx00PartGroup[]
+  brandCodeRoles Nx00BrandCodeRole[]
+  partRelations  Nx00PartRelation[]
+  warehouses     Nx00Warehouse[]
+  locations      Nx00Location[]
+  partners       Nx00Partner[]
+  auditLogs      Nx00AuditLog[]
 
   bulletins       Nx00Bulletin[]
   calendarEvents  Nx00CalendarEvent[]
 
   @@map("nx99_tenant")
-}
-
-/// =======================================================
-/// NX01 - RFQ (Header)
-/// Table: nx01_rfq
-/// =======================================================
-model Nx01Rfq {
-  /// NX01 詢價單表頭 - 記錄供應商詢價主檔，支援後續轉進貨單
-  id           String    @id @default(dbgenerated("gen_nx01_rfqo_id()")) @db.VarChar(15)
-  tenantId     String?   @db.VarChar(15)  @map("tenant_id")
-  docNo        String    @unique @db.VarChar(15) @map("doc_no")
-  /// 單號規則：[R]+[年月]+[倉別]+[5碼流水號]，EX：R-202602-Z01-00001
-  rfqDate      DateTime  @map("rfq_date") @db.Date
-  supplierId   String    @db.VarChar(15)  @map("supplier_id")
-  contactName  String?   @db.VarChar(50)  @map("contact_name")
-  contactPhone String?   @db.VarChar(30)  @map("contact_phone")
-  currency     String    @db.VarChar(10)  @default("TWD")
-  status       String    @db.VarChar(20)  @default("D")
-  /// 單據狀態：(D=DRAFT, S=SENT, R=REPLIED, C=CLOSED, V=VOID)
-  remark       String?   @db.VarChar(200)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  createdBy    String?   @db.VarChar(15) @map("created_by")
-  updatedAt    DateTime  @updatedAt      @map("updated_at")
-  updatedBy    String?   @db.VarChar(15) @map("updated_by")
-  voidedAt     DateTime? @map("voided_at")
-  voidedBy     String?   @db.VarChar(15) @map("voided_by")
-
-  tenant   Nx99Tenant? @relation(fields: [tenantId], references: [id])
-  supplier Nx00Partner @relation(fields: [supplierId], references: [id])
-  items    Nx01RfqItem[]
-  quotes   Nx03Quote[]
-
-  @@map("nx01_rfq")
-}
-
-/// =======================================================
-/// NX01 - RFQ Item
-/// Table: nx01_rfq_item
-/// =======================================================
-model Nx01RfqItem {
-  /// NX01 詢價單明細 - 含料號快照與供應商回覆資訊，支援部分或完整轉單
-  id           String   @id @default(dbgenerated("gen_nx01_rfit_id()")) @db.VarChar(15)
-  tenantId     String?  @db.VarChar(15)   @map("tenant_id")
-  rfqId        String   @db.VarChar(15)   @map("rfq_id")
-  lineNo       Int      @map("line_no")
-  /// 明細排序號（1,2,3...）
-  partId       String   @db.VarChar(15)   @map("part_id")
-  /// → nx00_part
-  partNo       String   @db.VarChar(50)   @map("part_no")
-  /// 料號快照
-  partName     String   @db.VarChar(200)  @map("part_name")
-  /// 零件名稱快照
-  qty          Decimal  @db.Decimal(14, 4)
-  unitPrice    Decimal? @db.Decimal(14, 4) @map("unit_price")
-  /// 供應商回覆單價（未回覆可空）
-  currency     String   @db.VarChar(10)   @default("TWD")
-  leadTimeDays Int?     @map("lead_time_days")
-  /// 交期（天數，可空）
-  status       String   @db.VarChar(20)   @default("P")
-  /// 狀態：(P=PENDING, R=REPLIED, S=SELECTED, C=REJECTED)
-  remark       String?  @db.VarChar(200)
-  createdAt    DateTime @default(now()) @map("created_at")
-  createdBy    String?  @db.VarChar(15) @map("created_by")
-  updatedAt    DateTime @updatedAt      @map("updated_at")
-  updatedBy    String?  @db.VarChar(15) @map("updated_by")
-
-  tenant Nx99Tenant? @relation(fields: [tenantId], references: [id])
-  rfq    Nx01Rfq     @relation(fields: [rfqId], references: [id])
-  part   Nx00Part    @relation(fields: [partId], references: [id])
-  quoteItems Nx03QuoteItem[]
-
-  @@map("nx01_rfq_item")
-}
-
-/// =======================================================
-/// NX01 - PO (Header)
-/// Table: nx01_po
-/// =======================================================
-model Nx01Po {
-  /// NX01 進貨單表頭 - 過帳後產生庫存異動與應付帳款
-  id           String    @id @default(dbgenerated("gen_nx01_poht_id()")) @db.VarChar(15)
-  tenantId     String?   @db.VarChar(15)  @map("tenant_id")
-  docNo        String    @unique @db.VarChar(15) @map("doc_no")
-  /// 單號規則：[I]+[年月]+[倉別]+[5碼流水號]，EX：I-202602-Z01-00001
-  poDate       DateTime  @map("po_date") @db.Date
-  supplierId   String    @db.VarChar(15)  @map("supplier_id")
-  rfqId        String?   @db.VarChar(15)  @map("rfq_id")
-  currency     String    @db.VarChar(10)  @default("TWD")
-  subtotal     Decimal   @db.Decimal(14, 2) @default(0)
-  taxAmount    Decimal   @db.Decimal(14, 2) @default(0) @map("tax_amount")
-  totalAmount  Decimal   @db.Decimal(14, 2) @default(0) @map("total_amount")
-  status       String    @db.VarChar(1)   @default("D")
-  /// 單據狀態：(D=DRAFT, P=POSTED, C=CANCELED)
-  postedAt     DateTime? @map("posted_at")
-  postedBy     String?   @db.VarChar(15)  @map("posted_by")
-  remark       String?   @db.VarChar(200)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  createdBy    String?   @db.VarChar(15) @map("created_by")
-  updatedAt    DateTime  @updatedAt      @map("updated_at")
-  updatedBy    String?   @db.VarChar(15) @map("updated_by")
-  voidedAt     DateTime? @map("voided_at")
-  voidedBy     String?   @db.VarChar(15) @map("voided_by")
-
-  tenant   Nx99Tenant? @relation(fields: [tenantId], references: [id])
-  supplier Nx00Partner @relation(fields: [supplierId], references: [id])
-  items    Nx01PoItem[]
-
-  @@map("nx01_po")
-}
-
-/// =======================================================
-/// NX01 - PO Item
-/// Table: nx01_po_item
-/// =======================================================
-model Nx01PoItem {
-  /// NX01 進貨單明細 - 過帳時寫入庫存異動台帳並更新庫存餘額
-  id          String   @id @default(dbgenerated("gen_nx01_poit_id()")) @db.VarChar(15)
-  tenantId    String?  @db.VarChar(15)   @map("tenant_id")
-  poId        String   @db.VarChar(15)   @map("po_id")
-  lineNo      Int      @map("line_no")
-  /// 明細行號（1,2,3…）
-  partId      String   @db.VarChar(15)   @map("part_id")
-  /// → nx00_part
-  partNo      String   @db.VarChar(50)   @map("part_no")
-  /// 料號快照
-  partName    String   @db.VarChar(200)  @map("part_name")
-  /// 零件名稱快照
-  warehouseId String   @db.VarChar(15)   @map("warehouse_id")
-  /// → nx00_warehouse
-  locationId  String?  @db.VarChar(15)   @map("location_id")
-  /// → nx00_location（LITE 先要求必填，此處保留 nullable）
-  qty         Decimal  @db.Decimal(14, 4)
-  unitCost    Decimal  @db.Decimal(14, 4) @map("unit_cost")
-  lineAmount  Decimal  @db.Decimal(14, 4) @map("line_amount")
-  /// qty * unit_cost
-  remark      String?  @db.VarChar(200)
-  createdAt   DateTime @default(now()) @map("created_at")
-  createdBy   String?  @db.VarChar(15) @map("created_by")
-  updatedAt   DateTime @updatedAt      @map("updated_at")
-  updatedBy   String?  @db.VarChar(15) @map("updated_by")
-
-  tenant    Nx99Tenant?   @relation(fields: [tenantId], references: [id])
-  po        Nx01Po        @relation(fields: [poId], references: [id])
-  part      Nx00Part      @relation(fields: [partId], references: [id])
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  location  Nx00Location? @relation(fields: [locationId], references: [id])
-
-  @@map("nx01_po_item")
-}
-
-/// =======================================================
-/// NX03 - Quote（對客報價）
-/// Table: nx03_quote
-/// =======================================================
-model Nx03Quote {
-  id        String   @id @default(dbgenerated("gen_nx03_qthd_id()")) @db.VarChar(15)
-  tenantId  String   @map("tenant_id") @db.VarChar(15)
-  docNo     String   @unique @map("doc_no") @db.VarChar(15)
-  quoteDate DateTime @map("quote_date") @db.Date
-
-  customerId String   @map("customer_id") @db.VarChar(15)
-  contactName  String? @map("contact_name") @db.VarChar(50)
-  contactPhone String? @map("contact_phone") @db.VarChar(30)
-  rfqId   String?  @map("rfq_id") @db.VarChar(15)
-
-  currency String   @map("currency") @db.VarChar(10) @default("TWD")
-  status   String   @map("status") @db.VarChar(1) @default("D")
-  validUntil DateTime? @map("valid_until") @db.Date
-  subtotal   Decimal  @default(0) @map("subtotal") @db.Decimal(14, 2)
-  taxAmount  Decimal  @default(0) @map("tax_amount") @db.Decimal(14, 2)
-  totalAmount Decimal @default(0) @map("total_amount") @db.Decimal(14, 2)
-  remark   String?  @map("remark") @db.VarChar(200)
-
-  voidedAt  DateTime? @map("voided_at")
-  voidedBy  String?   @map("voided_by") @db.VarChar(15)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String?  @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @updatedAt @map("updated_at")
-  updatedBy String?  @map("updated_by") @db.VarChar(15)
-
-  tenant    Nx99Tenant  @relation(fields: [tenantId], references: [id])
-  customer  Nx00Partner @relation(fields: [customerId], references: [id])
-  rfq       Nx01Rfq?    @relation(fields: [rfqId], references: [id])
-  items     Nx03QuoteItem[]
-  salesOrders Nx03So[]
-
-  @@map("nx03_quote")
-}
-
-/// =======================================================
-/// NX03 - Quote Item
-/// Table: nx03_quote_item
-/// =======================================================
-model Nx03QuoteItem {
-  id      String   @id @default(dbgenerated("gen_nx03_qtit_id()")) @db.VarChar(15)
-  tenantId String  @map("tenant_id") @db.VarChar(15)
-
-  quoteId  String @map("quote_id") @db.VarChar(15)
-  lineNo   Int    @map("line_no")
-
-  rfqItemId String? @map("rfq_item_id") @db.VarChar(15)
-
-  partId   String @map("part_id") @db.VarChar(15)
-  partNo   String @map("part_no") @db.VarChar(50)
-  partName String @map("part_name") @db.VarChar(200)
-  partBrandId String? @map("part_brand_id") @db.VarChar(15)
-
-  qty        Decimal  @db.Decimal(14, 4)
-  unitPrice  Decimal  @default(0) @map("unit_price") @db.Decimal(14, 4)
-  discountRate Decimal @default(0) @map("discount_rate") @db.Decimal(6, 4)
-  lineAmount Decimal  @default(0) @map("line_amount") @db.Decimal(14, 2)
-  estUnitCost Decimal @default(0) @map("est_unit_cost") @db.Decimal(14, 4)
-  estMarginAmount Decimal @default(0) @map("est_margin_amount") @db.Decimal(14, 2)
-
-  /// 由 RFQ 流程保留之成本／交期快照（與 unit_price 並存）
-  unitCostSnapshot   Decimal? @map("unit_cost_snapshot") @db.Decimal(14, 4)
-  unitPriceSnapshot  Decimal? @map("unit_price_snapshot") @db.Decimal(14, 4)
-  markupType  String? @map("markup_type") @db.VarChar(1)
-  markupValue Decimal? @map("markup_value") @db.Decimal(14, 4)
-
-  currency String @map("currency") @db.VarChar(10) @default("TWD")
-  leadTimeDays Int? @map("lead_time_days")
-
-  remark    String? @map("remark") @db.VarChar(200)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String?  @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @updatedAt @map("updated_at")
-  updatedBy String?  @map("updated_by") @db.VarChar(15)
-
-  tenant    Nx99Tenant   @relation(fields: [tenantId], references: [id])
-  quote     Nx03Quote    @relation(fields: [quoteId], references: [id])
-  rfqItem   Nx01RfqItem? @relation(fields: [rfqItemId], references: [id])
-  part      Nx00Part     @relation(fields: [partId], references: [id])
-  partBrand Nx00PartBrand? @relation(fields: [partBrandId], references: [id])
-  soItems   Nx03SoItem[]
-
-  @@map("nx03_quote_item")
-}
-
-/// =======================================================
-/// NX03 - Sales Order（銷貨單）
-/// Table: nx03_so
-/// =======================================================
-model Nx03So {
-  id         String   @id @default(dbgenerated("gen_nx03_sohd_id()")) @db.VarChar(15)
-  tenantId   String   @map("tenant_id") @db.VarChar(15)
-  docNo      String   @unique @map("doc_no") @db.VarChar(15)
-  soDate     DateTime @map("so_date") @db.Date
-
-  customerId String   @map("customer_id") @db.VarChar(15)
-  contactName  String? @map("contact_name") @db.VarChar(50)
-  contactPhone String? @map("contact_phone") @db.VarChar(30)
-  warehouseId  String   @map("warehouse_id") @db.VarChar(15)
-  sourceQuoteId String? @map("source_quote_id") @db.VarChar(15)
-
-  currency String   @map("currency") @db.VarChar(10) @default("TWD")
-  status   String   @map("status") @db.VarChar(1) @default("D")
-  subtotal   Decimal  @default(0) @map("subtotal") @db.Decimal(14, 2)
-  taxAmount  Decimal  @default(0) @map("tax_amount") @db.Decimal(14, 2)
-  totalAmount Decimal @default(0) @map("total_amount") @db.Decimal(14, 2)
-  remark   String?  @map("remark") @db.VarChar(200)
-
-  postedAt  DateTime? @map("posted_at")
-  postedBy  String?   @map("posted_by") @db.VarChar(15)
-  voidedAt  DateTime? @map("voided_at")
-  voidedBy  String?   @map("voided_by") @db.VarChar(15)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String?  @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @updatedAt @map("updated_at")
-  updatedBy String?  @map("updated_by") @db.VarChar(15)
-
-  tenant   Nx99Tenant  @relation(fields: [tenantId], references: [id])
-  customer Nx00Partner @relation(fields: [customerId], references: [id])
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  sourceQuote Nx03Quote? @relation(fields: [sourceQuoteId], references: [id])
-  items    Nx03SoItem[]
-
-  @@map("nx03_so")
-}
-
-/// =======================================================
-/// NX03 - Sales Order Item
-/// Table: nx03_so_item
-/// =======================================================
-model Nx03SoItem {
-  id       String   @id @default(dbgenerated("gen_nx03_soit_id()")) @db.VarChar(15)
-  tenantId String   @map("tenant_id") @db.VarChar(15)
-
-  soId     String @map("so_id") @db.VarChar(15)
-  lineNo   Int    @map("line_no")
-
-  sourceQuoteItemId String? @map("source_quote_item_id") @db.VarChar(15)
-  sourceQuoteId     String? @map("source_quote_id") @db.VarChar(15)
-
-  partId   String @map("part_id") @db.VarChar(15)
-  partNo   String @map("part_no") @db.VarChar(50)
-  partName String @map("part_name") @db.VarChar(200)
-  partBrandId String? @map("part_brand_id") @db.VarChar(15)
-
-  qty       Decimal @db.Decimal(14, 4)
-  unitPrice Decimal @map("unit_price") @db.Decimal(14, 4)
-  discountRate Decimal @default(0) @map("discount_rate") @db.Decimal(6, 4)
-  lineAmount Decimal @default(0) @map("line_amount") @db.Decimal(14, 2)
-  unitCost  Decimal @default(0) @map("unit_cost") @db.Decimal(14, 4)
-  costAmount Decimal @default(0) @map("cost_amount") @db.Decimal(14, 2)
-  marginAmount Decimal @default(0) @map("margin_amount") @db.Decimal(14, 2)
-
-  warehouseId String @map("warehouse_id") @db.VarChar(15)
-  locationId  String? @map("location_id") @db.VarChar(15)
-
-  remark    String? @map("remark") @db.VarChar(200)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String?  @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @updatedAt @map("updated_at")
-  updatedBy String?  @map("updated_by") @db.VarChar(15)
-
-  tenant    Nx99Tenant   @relation(fields: [tenantId], references: [id])
-  so        Nx03So       @relation(fields: [soId], references: [id])
-  quoteItem Nx03QuoteItem? @relation(fields: [sourceQuoteItemId], references: [id])
-
-  part      Nx00Part      @relation(fields: [partId], references: [id])
-  partBrand Nx00PartBrand? @relation(fields: [partBrandId], references: [id])
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  location  Nx00Location? @relation(fields: [locationId], references: [id])
-
-  @@map("nx03_so_item")
-}
-
-/// =======================================================
-/// NX02 - Stock balance
-/// Table: nx02_stock_balance
-/// =======================================================
-model Nx02StockBalance {
-  id         String   @id @default(dbgenerated("gen_nx02_stbl_id()")) @db.VarChar(15)
-  tenantId   String?  @map("tenant_id") @db.VarChar(15)
-  partId     String   @map("part_id") @db.VarChar(15)
-  warehouseId String  @map("warehouse_id") @db.VarChar(15)
-  locationId  String? @map("location_id") @db.VarChar(15)
-
-  onHandQty  Decimal @default(0) @map("on_hand_qty") @db.Decimal(14, 4)
-  avgCost    Decimal @default(0) @map("avg_cost") @db.Decimal(14, 4)
-  stockValue Decimal @default(0) @map("stock_value") @db.Decimal(14, 2)
-  lastInAt   DateTime? @map("last_in_at")
-  lastOutAt  DateTime? @map("last_out_at")
-  lastMoveAt DateTime @default(now()) @map("last_move_at")
-  isActive   Boolean @default(true) @map("is_active")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String?  @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @updatedAt @map("updated_at")
-  updatedBy String?  @map("updated_by") @db.VarChar(15)
-
-  tenant    Nx99Tenant?   @relation(fields: [tenantId], references: [id])
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  location  Nx00Location? @relation(fields: [locationId], references: [id])
-  part      Nx00Part      @relation(fields: [partId], references: [id])
-
-  @@unique([tenantId, partId, warehouseId, locationId])
-  @@index([warehouseId])
-  @@map("nx02_stock_balance")
-}
-
-/// =======================================================
-/// NX02 - Stock ledger（庫存異動／流水）
-/// Table: nx02_stock_ledger
-/// =======================================================
-model Nx02StockLedger {
-  id String @id @default(dbgenerated("gen_nx02_stle_id()")) @db.VarChar(15)
-
-  tenantId   String?  @map("tenant_id") @db.VarChar(15)
-  movementDate DateTime @default(now()) @map("movement_date")
-
-  partId     String @map("part_id") @db.VarChar(15)
-  warehouseId String @map("warehouse_id") @db.VarChar(15)
-  locationId  String? @map("location_id") @db.VarChar(15)
-
-  movementType String @map("movement_type") @db.VarChar(1)
-  qtyIn    Decimal @default(0) @map("qty_in") @db.Decimal(14, 4)
-  qtyOut   Decimal @default(0) @map("qty_out") @db.Decimal(14, 4)
-  unitCost Decimal @default(0) @map("unit_cost") @db.Decimal(14, 4)
-  totalCost Decimal @default(0) @map("total_cost") @db.Decimal(14, 2)
-  balanceQty Decimal @default(0) @map("balance_qty") @db.Decimal(14, 4)
-  balanceCost Decimal @default(0) @map("balance_cost") @db.Decimal(14, 4)
-
-  sourceModule   String @map("source_module") @db.VarChar(10)
-  sourceDocType  String @map("source_doc_type") @db.VarChar(1)
-  sourceDocId    String @map("source_doc_id") @db.VarChar(15)
-  sourceItemId   String? @map("source_item_id") @db.VarChar(15)
-
-  /// 舊 nx09_stock_txn 相容欄位（可逐步淘汰）
-  occurredAt DateTime? @map("occurred_at")
-  txnType    String?   @map("txn_type") @db.VarChar(1)
-  refType    String?   @map("ref_type") @db.VarChar(10)
-  refId      String?   @map("ref_id") @db.VarChar(15)
-  qtyDelta   Decimal?  @map("qty_delta") @db.Decimal(14, 4)
-  beforeQty  Decimal?  @map("before_qty") @db.Decimal(14, 4)
-  afterQty   Decimal?  @map("after_qty") @db.Decimal(14, 4)
-
-  remark String? @map("remark") @db.VarChar(200)
-
-  createdBy String? @map("created_by") @db.VarChar(15)
-  updatedBy String? @map("updated_by") @db.VarChar(15)
-
-  tenant    Nx99Tenant?   @relation(fields: [tenantId], references: [id])
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  location  Nx00Location? @relation(fields: [locationId], references: [id])
-  part      Nx00Part      @relation(fields: [partId], references: [id])
-
-  @@index([movementDate])
-  @@index([warehouseId])
-  @@index([partId])
-  @@map("nx02_stock_ledger")
-}
-
-/// =======================================================
-/// NX02 - Stock take
-/// Table: nx02_stock_take
-/// =======================================================
-model Nx02StockTake {
-  id          String   @id @default(dbgenerated("gen_nx02_sttk_id()")) @db.VarChar(15)
-  docNo       String   @unique @map("doc_no") @db.VarChar(15)
-  stockTakeDate DateTime @map("stock_take_date") @db.Date
-  warehouseId String   @map("warehouse_id") @db.VarChar(15)
-  scopeType   String   @map("scope_type") @db.VarChar(1)
-  status      String   @map("status") @db.VarChar(1)
-  remark      String?  @map("remark") @db.VarChar(200)
-  postedAt    DateTime? @map("posted_at")
-  postedBy    String?   @map("posted_by") @db.VarChar(15)
-  voidedAt    DateTime? @map("voided_at")
-  voidedBy    String?   @map("voided_by") @db.VarChar(15)
-  createdAt   DateTime @default(now()) @map("created_at")
-  createdBy   String?  @map("created_by") @db.VarChar(15)
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  updatedBy   String?  @map("updated_by") @db.VarChar(15)
-
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  items     Nx02StockTakeItem[]
-
-  @@map("nx02_stock_take")
-}
-
-/// =======================================================
-/// NX02 - Stock take item
-/// Table: nx02_stock_take_item
-/// =======================================================
-model Nx02StockTakeItem {
-  id           String   @id @default(dbgenerated("gen_nx02_stti_id()")) @db.VarChar(15)
-  stockTakeId  String   @map("stock_take_id") @db.VarChar(15)
-  lineNo       Int      @map("line_no")
-  partId       String   @map("part_id") @db.VarChar(15)
-  partNo       String   @map("part_no") @db.VarChar(50)
-  partName     String   @map("part_name") @db.VarChar(200)
-  warehouseId  String   @map("warehouse_id") @db.VarChar(15)
-  locationId   String   @map("location_id") @db.VarChar(15)
-  systemQty    Decimal  @map("system_qty") @db.Decimal(14, 4)
-  countedQty   Decimal  @map("counted_qty") @db.Decimal(14, 4)
-  diffQty      Decimal  @map("diff_qty") @db.Decimal(14, 4)
-  unitCost     Decimal  @map("unit_cost") @db.Decimal(14, 4)
-  diffCost     Decimal  @map("diff_cost") @db.Decimal(14, 2)
-  adjustType   String   @map("adjust_type") @db.VarChar(1)
-  status       String   @map("status") @db.VarChar(1)
-  remark       String?  @map("remark") @db.VarChar(200)
-  createdAt    DateTime @default(now()) @map("created_at")
-  createdBy    String?  @map("created_by") @db.VarChar(15)
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  updatedBy    String?  @map("updated_by") @db.VarChar(15)
-
-  stockTake Nx02StockTake @relation(fields: [stockTakeId], references: [id])
-  part      Nx00Part      @relation(fields: [partId], references: [id])
-  warehouse Nx00Warehouse @relation(fields: [warehouseId], references: [id])
-  location  Nx00Location  @relation(fields: [locationId], references: [id])
-
-  @@map("nx02_stock_take_item")
-}
-
-/// =======================================================
-/// NX04 - AR ledger
-/// Table: nx04_ar_ledger
-/// =======================================================
-model Nx04ArLedger {
-  id             String   @id @default(dbgenerated("gen_nx04_arle_id()")) @db.VarChar(15)
-  customerId     String   @map("customer_id") @db.VarChar(15)
-  arDate         DateTime @map("ar_date") @db.Date
-  dueDate        DateTime? @map("due_date") @db.Date
-  sourceDocType  String   @map("source_doc_type") @db.VarChar(1)
-  sourceDocId    String   @map("source_doc_id") @db.VarChar(15)
-  sourceDocNo    String   @map("source_doc_no") @db.VarChar(20)
-  currency       String   @map("currency") @db.VarChar(10) @default("TWD")
-  amount         Decimal  @map("amount") @db.Decimal(14, 2)
-  paidAmount     Decimal  @default(0) @map("paid_amount") @db.Decimal(14, 2)
-  balanceAmount  Decimal  @default(0) @map("balance_amount") @db.Decimal(14, 2)
-  status         String   @map("status") @db.VarChar(1)
-  remark         String?  @map("remark") @db.VarChar(200)
-  voidedAt       DateTime? @map("voided_at")
-  voidedBy       String?   @map("voided_by") @db.VarChar(15)
-  createdAt      DateTime @default(now()) @map("created_at")
-  createdBy      String?  @map("created_by") @db.VarChar(15)
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  updatedBy      String?  @map("updated_by") @db.VarChar(15)
-
-  customer Nx00Partner @relation(fields: [customerId], references: [id])
-
-  @@map("nx04_ar_ledger")
-}
-
-/// =======================================================
-/// NX04 - AP ledger
-/// Table: nx04_ap_ledger
-/// =======================================================
-model Nx04ApLedger {
-  id             String   @id @default(dbgenerated("gen_nx04_aple_id()")) @db.VarChar(15)
-  supplierId     String   @map("supplier_id") @db.VarChar(15)
-  apDate         DateTime @map("ap_date") @db.Date
-  dueDate        DateTime? @map("due_date") @db.Date
-  sourceDocType  String   @map("source_doc_type") @db.VarChar(1)
-  sourceDocId    String   @map("source_doc_id") @db.VarChar(15)
-  sourceDocNo    String   @map("source_doc_no") @db.VarChar(20)
-  currency       String   @map("currency") @db.VarChar(10) @default("TWD")
-  amount         Decimal  @map("amount") @db.Decimal(14, 2)
-  paidAmount     Decimal  @default(0) @map("paid_amount") @db.Decimal(14, 2)
-  balanceAmount  Decimal  @default(0) @map("balance_amount") @db.Decimal(14, 2)
-  status         String   @map("status") @db.VarChar(1)
-  remark         String?  @map("remark") @db.VarChar(200)
-  voidedAt       DateTime? @map("voided_at")
-  voidedBy       String?   @map("voided_by") @db.VarChar(15)
-  createdAt      DateTime @default(now()) @map("created_at")
-  createdBy      String?  @map("created_by") @db.VarChar(15)
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  updatedBy      String?  @map("updated_by") @db.VarChar(15)
-
-  supplier Nx00Partner @relation(fields: [supplierId], references: [id])
-
-  @@map("nx04_ap_ledger")
-}
-
-/// =======================================================
-/// NX04 - Paylog
-/// Table: nx04_paylog
-/// =======================================================
-model Nx04Paylog {
-  id               String   @id @default(dbgenerated("gen_nx04_payl_id()")) @db.VarChar(15)
-  payNo            String   @unique @map("pay_no") @db.VarChar(15)
-  payDate          DateTime @map("pay_date") @db.Date
-  payType          String   @map("pay_type") @db.VarChar(1)
-  partnerId        String   @map("partner_id") @db.VarChar(15)
-  currency         String   @map("currency") @db.VarChar(10) @default("TWD")
-  amount           Decimal  @map("amount") @db.Decimal(14, 2)
-  method           String   @map("method") @db.VarChar(1)
-  refNo            String?  @map("ref_no") @db.VarChar(50)
-  targetLedgerType String   @map("target_ledger_type") @db.VarChar(1)
-  targetLedgerId   String?  @map("target_ledger_id") @db.VarChar(15)
-  status           String   @map("status") @db.VarChar(1)
-  remark           String?  @map("remark") @db.VarChar(200)
-  voidedAt         DateTime? @map("voided_at")
-  voidedBy         String?   @map("voided_by") @db.VarChar(15)
-  createdAt        DateTime @default(now()) @map("created_at")
-  createdBy        String?  @map("created_by") @db.VarChar(15)
-  updatedAt        DateTime @updatedAt @map("updated_at")
-  updatedBy        String?  @map("updated_by") @db.VarChar(15)
-
-  partner Nx00Partner @relation(fields: [partnerId], references: [id])
-
-  @@map("nx04_paylog")
-}
-
-/// =======================================================
-/// NX06 - Document link（跨單據關聯；field_list：nx06_doc_link）
-/// Table: nx06_doc_link
-/// =======================================================
-model Nx06DocLink {
-  id           String   @id @default(dbgenerated("gen_nx06_docl_id()")) @db.VarChar(15)
-  fromDocType  String   @map("from_doc_type") @db.VarChar(1)
-  fromDocId    String   @map("from_doc_id") @db.VarChar(15)
-  fromDocNo    String   @map("from_doc_no") @db.VarChar(15)
-  fromItemId   String?  @map("from_item_id") @db.VarChar(15)
-  toDocType    String   @map("to_doc_type") @db.VarChar(1)
-  toDocId      String   @map("to_doc_id") @db.VarChar(15)
-  toDocNo      String   @map("to_doc_no") @db.VarChar(15)
-  toItemId     String?  @map("to_item_id") @db.VarChar(15)
-  linkType     String   @map("link_type") @db.VarChar(1)
-  linkNote     String?  @map("link_note") @db.VarChar(200)
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  createdBy    String?  @map("created_by") @db.VarChar(15)
-  updatedAt    DateTime @updatedAt @map("updated_at")
-  updatedBy    String?  @map("updated_by") @db.VarChar(15)
-
-  @@map("nx06_doc_link")
 }
 
 /// =======================================================

@@ -6,14 +6,12 @@ export type BulletinDto = {
   id: string;
   tenantId: string;
   title: string;
-  subtitle: string | null;
   content: string | null;
   /** S=SYSTEM / C=COMPANY / R=REMIND */
   scopeType: string;
   isPinned: boolean;
   expiredAt: string | null;
   isActive: boolean;
-  displayBadge: string | null;
 
   createdAt: string;
   createdBy: string | null;
@@ -39,24 +37,20 @@ export type ListBulletinQuery = {
 
 export type CreateBulletinBody = {
   title: string;
-  subtitle?: string | null;
   content?: string | null;
   scopeType: string;
   isPinned?: boolean;
   expiredAt?: string | null;
   isActive?: boolean;
-  displayBadge?: string | null;
 };
 
 export type UpdateBulletinBody = {
   title?: string;
-  subtitle?: string | null;
   content?: string | null;
   scopeType?: string;
   isPinned?: boolean;
   expiredAt?: string | null;
   isActive?: boolean;
-  displayBadge?: string | null;
 };
 
 export type SetActiveBody = {

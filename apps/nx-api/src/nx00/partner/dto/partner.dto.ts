@@ -53,6 +53,8 @@ export type ListPartnerQuery = {
 };
 
 export type CreatePartnerBody = {
+    /** 平台 ADMIN（JWT 無租戶）時必填 */
+    tenantId?: string;
     code: string;
     name: string;
     partnerType?: PartnerType;

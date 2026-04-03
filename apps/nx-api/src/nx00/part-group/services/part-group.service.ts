@@ -22,8 +22,8 @@ type Row = {
     createdBy: string | null;
     updatedAt: Date;
     updatedBy: string | null;
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toDto(row: Row): PartGroupDto {
@@ -35,16 +35,21 @@ function toDto(row: Row): PartGroupDto {
         isActive: Boolean(row.isActive),
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
-export type PartGroupActionContext = { actorUserId?: string; ipAddr?: string | null; userAgent?: string | null };
+export type PartGroupActionContext = {
+    actorUserId?: string;
+    tenantId?: string | null;
+    ipAddr?: string | null;
+    userAgent?: string | null;
+};
 
 @Injectable()
 export class PartGroupService {
@@ -55,8 +60,8 @@ export class PartGroupService {
 
     private include() {
         return {
-            createdByUser: { select: { username: true, displayName: true } },
-            updatedByUser: { select: { username: true, displayName: true } },
+            createdByUser: { select: { userAccount: true, userName: true } },
+            updatedByUser: { select: { userAccount: true, userName: true } },
         } as const;
     }
 
@@ -100,9 +105,16 @@ export class PartGroupService {
         if (!name) throw new BadRequestException('name is required');
         const sortNo = typeof body.sortNo === 'number' && Number.isFinite(body.sortNo) ? body.sortNo : 0;
 
+        const tid =
+            (typeof body.tenantId === 'string' && body.tenantId.trim() !== '' ? body.tenantId.trim() : null) ??
+            ctx?.tenantId ??
+            null;
+        if (!tid) throw new BadRequestException('tenantId is required');
+
         try {
             const row = await this.prisma.nx00PartGroup.create({
                 data: {
+                    tenantId: tid,
                     code,
                     name,
                     sortNo,
@@ -115,6 +127,7 @@ export class PartGroupService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_part_group',
@@ -155,11 +168,12 @@ export class PartGroupService {
                 include: this.include(),
             });
             if (ctx?.actorUserId) {
-                await this.audit.write({
-                    actorUserId: ctx.actorUserId,
-                    moduleCode: 'NX00',
-                    action: 'UPDATE',
-                    entityTable: 'nx00_part_group',
+            await this.audit.write({
+                actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
+                moduleCode: 'NX00',
+                action: 'UPDATE',
+                entityTable: 'nx00_part_group',
                     entityId: row.id,
                     entityCode: row.code,
                     summary: `Update part group ${row.code}`,
@@ -201,6 +215,7 @@ export class PartGroupService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_part_group',

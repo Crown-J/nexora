@@ -27,8 +27,8 @@ type Row = {
     updatedBy: string | null;
     partFrom?: { code: string; name: string } | null;
     partTo?: { code: string; name: string } | null;
-    createdByUser?: { displayName: string } | null;
-    updatedByUser?: { displayName: string } | null;
+    createdByUser?: { userName: string } | null;
+    updatedByUser?: { userName: string } | null;
 };
 
 function toDto(row: Row): PartRelationDto {
@@ -46,10 +46,10 @@ function toDto(row: Row): PartRelationDto {
         isActive: Boolean(row.isActive),
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -70,8 +70,8 @@ export class PartRelationService {
         return {
             partFrom: { select: { code: true, name: true } },
             partTo: { select: { code: true, name: true } },
-            createdByUser: { select: { displayName: true } },
-            updatedByUser: { select: { displayName: true } },
+            createdByUser: { select: { userName: true } },
+            updatedByUser: { select: { userName: true } },
         } as const;
     }
 
@@ -133,13 +133,18 @@ export class PartRelationService {
         const partIdTo = body.partIdTo?.trim();
         if (!partIdFrom || !partIdTo) throw new BadRequestException('partIdFrom and partIdTo required');
         if (partIdFrom === partIdTo) throw new BadRequestException('partIdFrom and partIdTo must differ');
-        await this.assertPart(partIdFrom);
-        await this.assertPart(partIdTo);
+        const [pf, pt] = await Promise.all([
+            this.prisma.nx00Part.findUnique({ where: { id: partIdFrom }, select: { id: true, tenantId: true } }),
+            this.prisma.nx00Part.findUnique({ where: { id: partIdTo }, select: { id: true, tenantId: true } }),
+        ]);
+        if (!pf || !pt) throw new BadRequestException('Part not found');
+        if (pf.tenantId !== pt.tenantId) throw new BadRequestException('Parts must belong to the same tenant');
         const relationType = this.assertType(body.relationType);
         const sortNo = typeof body.sortNo === 'number' && Number.isFinite(body.sortNo) ? body.sortNo : 0;
 
         const row = await this.prisma.nx00PartRelation.create({
             data: {
+                tenantId: pf.tenantId,
                 partIdFrom,
                 partIdTo,
                 relationType,
@@ -154,6 +159,7 @@ export class PartRelationService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'CREATE',
                 entityTable: 'nx00_part_relation',
@@ -170,7 +176,10 @@ export class PartRelationService {
     }
 
     async update(id: string, body: UpdatePartRelationBody, ctx?: PartRelationActionContext): Promise<PartRelationDto> {
-        const exists = await this.prisma.nx00PartRelation.findUnique({ where: { id } });
+        const exists = await this.prisma.nx00PartRelation.findUnique({
+            where: { id },
+            include: this.include(),
+        });
         if (!exists) throw new NotFoundException('Part relation not found');
 
         const data: any = { updatedBy: ctx?.actorUserId ?? null };
@@ -198,6 +207,15 @@ export class PartRelationService {
         const to = data.partIdTo ?? exists.partIdTo;
         if (from === to) throw new BadRequestException('partIdFrom and partIdTo must differ');
 
+        const [pf, pt] = await Promise.all([
+            this.prisma.nx00Part.findUnique({ where: { id: from }, select: { tenantId: true } }),
+            this.prisma.nx00Part.findUnique({ where: { id: to }, select: { tenantId: true } }),
+        ]);
+        if (!pf || !pt) throw new BadRequestException('Part not found');
+        if (pf.tenantId !== pt.tenantId || pf.tenantId !== exists.tenantId) {
+            throw new BadRequestException('Parts must belong to the same tenant as this relation');
+        }
+
         const row = await this.prisma.nx00PartRelation.update({
             where: { id },
             data,
@@ -206,6 +224,7 @@ export class PartRelationService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'UPDATE',
                 entityTable: 'nx00_part_relation',
@@ -224,7 +243,7 @@ export class PartRelationService {
     async setActive(id: string, body: SetActiveBody, ctx?: PartRelationActionContext): Promise<PartRelationDto> {
         const exists = await this.prisma.nx00PartRelation.findUnique({
             where: { id },
-            select: { id: true, partIdFrom: true, partIdTo: true, isActive: true },
+            select: { id: true, tenantId: true, partIdFrom: true, partIdTo: true, isActive: true },
         });
         if (!exists) throw new NotFoundException('Part relation not found');
         const row = await this.prisma.nx00PartRelation.update({
@@ -235,6 +254,7 @@ export class PartRelationService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_part_relation',

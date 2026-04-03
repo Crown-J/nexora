@@ -4,9 +4,10 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { PrismaClient, Prisma } from '../generated/prisma';
+import { PrismaClient } from '../generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import { poolConfigFromDatabaseUrl } from '../scripts/pgTlsPoolConfig';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl || typeof databaseUrl !== 'string') {
@@ -14,11 +15,41 @@ if (!databaseUrl || typeof databaseUrl !== 'string') {
   throw new Error('DATABASE_URL is not set or not a string');
 }
 
-const pool = new pg.Pool({
-  connectionString: String(databaseUrl),
-});
+/** Railway Public + sslmode=require 時須與 P0 相同 TLS 設定，否則 adapter-pg 會 P1011 憑證鏈錯誤 */
+const pool = new pg.Pool(poolConfigFromDatabaseUrl(String(databaseUrl)));
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+type TenantRoleSeed = {
+  code: string;
+  name: string;
+  description?: string | null;
+  isSystem?: boolean;
+  sortNo: number;
+};
+
+/** 每租戶一組 role（@@unique([tenantId, code])） */
+async function upsertNx00RoleForTenant(tenantId: string, spec: TenantRoleSeed) {
+  return prisma.nx00Role.upsert({
+    where: { tenantId_code: { tenantId, code: spec.code } },
+    update: {
+      name: spec.name,
+      description: spec.description ?? null,
+      isSystem: spec.isSystem ?? false,
+      isActive: true,
+      sortNo: spec.sortNo,
+    },
+    create: {
+      tenantId,
+      code: spec.code,
+      name: spec.name,
+      description: spec.description ?? null,
+      isSystem: spec.isSystem ?? false,
+      isActive: true,
+      sortNo: spec.sortNo,
+    },
+  });
+}
 
 /** bcrypt：一般員工／種子帳號預設 changeme */
 const CHANGEME_PASSWORD_HASH =
@@ -29,8 +60,8 @@ const ADMIN_PLATFORM_PASSWORD_HASH =
 
 /**
  * 恆迎 CYTIC 名冊：`seed-data/cytic-employees.txt`（Tab）
- * - 第 1 欄＝**帳號** → `nx00_user.username`（如 Y001）
- * - 第 2 欄＝**姓名** → `display_name`
+ * - 第 1 欄＝**帳號** → `nx00_user.user_account`（如 Y001）
+ * - 第 2 欄＝**姓名** → `user_name`
  * - 第 3 欄＝**離職**：`TRUE`＝已離職 → `is_active=false`
  * 以 `#` 開頭之行為註解，略過。
  */
@@ -67,8 +98,8 @@ async function removeExistingCyticUsers(cyticTenantId: string) {
 
 /** 刪除除 admin 外所有 nx00_user（先清 audit／user_role 以滿足 FK） */
 async function purgeUsersExceptAdmin() {
-  const admin = await prisma.nx00User.findUnique({
-    where: { username: 'admin' },
+  const admin = await prisma.nx00User.findFirst({
+    where: { userAccount: 'admin' },
     select: { id: true },
   });
   if (!admin) return;
@@ -109,49 +140,44 @@ async function runResetUsersAdminOnly(): Promise<void> {
     },
   });
 
-  const adminRole = await prisma.nx00Role.upsert({
-    where: { code: 'ADMIN' },
-    update: {
-      name: '管理者',
-      isSystem: true,
-      isActive: true,
-    },
-    create: {
-      code: 'ADMIN',
-      name: '管理者',
-      description: '系統管理者（擁有全域存取權限）',
-      isSystem: true,
-      isActive: true,
-      sortNo: 0,
-    },
+  await upsertNx00RoleForTenant(devTenant.id, {
+    code: 'ADMIN',
+    name: '管理者',
+    description: '系統管理者（擁有全域存取權限）',
+    isSystem: true,
+    sortNo: 0,
+  });
+  const adminRole = await prisma.nx00Role.findUniqueOrThrow({
+    where: { tenantId_code: { tenantId: devTenant.id, code: 'ADMIN' } },
   });
 
   await prisma.nx00User.upsert({
-    where: { username: 'admin' },
+    where: { tenantId_userAccount: { tenantId: devTenant.id, userAccount: 'admin' } },
     update: {
       passwordHash: ADMIN_PLATFORM_PASSWORD_HASH,
-      displayName: '系統管理員',
+      userName: '系統管理員',
       isActive: true,
       tenantId: devTenant.id,
     },
     create: {
-      username: 'admin',
-      passwordHash: ADMIN_PLATFORM_PASSWORD_HASH,
-      displayName: '系統管理員',
-      isActive: true,
       tenantId: devTenant.id,
+      userAccount: 'admin',
+      passwordHash: ADMIN_PLATFORM_PASSWORD_HASH,
+      userName: '系統管理員',
+      isActive: true,
     },
   });
 
   const adminUser = await prisma.nx00User.findUnique({
-    where: { username: 'admin' },
-    select: { id: true, username: true },
+    where: { tenantId_userAccount: { tenantId: devTenant.id, userAccount: 'admin' } },
+    select: { id: true, userAccount: true },
   });
 
   if (adminUser) {
     await prisma.nx00UserRole.upsert({
       where: {
-        userId_roleId: {
+        tenantId_userId_roleId: {
+          tenantId: devTenant.id,
           userId: adminUser.id,
           roleId: adminRole.id,
         },
@@ -161,6 +187,7 @@ async function runResetUsersAdminOnly(): Promise<void> {
         isActive: true,
       },
       create: {
+        tenantId: devTenant.id,
         userId: adminUser.id,
         roleId: adminRole.id,
         isPrimary: true,
@@ -230,66 +257,64 @@ async function main() {
    * @FUNCTION_CODE NX00-ROLE-SVC-SEED-F01
    * 說明：ADMIN + 常用職務（恆迎員工預設綁 SALES）
    */
-  const adminRole = await prisma.nx00Role.upsert({
-    where: { code: 'ADMIN' },
-    update: {
-      name: '管理者',
-      isSystem: true,
-      isActive: true,
-    },
-    create: {
-      code: 'ADMIN',
-      name: '管理者',
-      description: '系統管理者（擁有全域存取權限）',
-      isSystem: true,
-      isActive: true,
-      sortNo: 0,
-    },
+  await upsertNx00RoleForTenant(devTenant.id, {
+    code: 'ADMIN',
+    name: '管理者',
+    description: '系統管理者（擁有全域存取權限）',
+    isSystem: true,
+    sortNo: 0,
+  });
+  const adminRole = await prisma.nx00Role.findUniqueOrThrow({
+    where: { tenantId_code: { tenantId: devTenant.id, code: 'ADMIN' } },
   });
   const extraRoles = [
     { code: 'SALES', name: '業務', sortNo: 1 },
     { code: 'WH', name: '倉管', sortNo: 2 },
   ] as const;
   for (const r of extraRoles) {
-    await prisma.nx00Role.upsert({
-      where: { code: r.code },
-      update: { name: r.name, sortNo: r.sortNo, isActive: true },
-      create: { code: r.code, name: r.name, sortNo: r.sortNo, isActive: true },
+    await upsertNx00RoleForTenant(cyticTenant.id, {
+      code: r.code,
+      name: r.name,
+      isSystem: false,
+      sortNo: r.sortNo,
     });
   }
-  const salesRole = await prisma.nx00Role.findUnique({ where: { code: 'SALES' } });
+  const salesRole = await prisma.nx00Role.findUnique({
+    where: { tenantId_code: { tenantId: cyticTenant.id, code: 'SALES' } },
+  });
 
   /**
    * @FUNCTION_CODE NX00-USER-SVC-SEED-F01
    * 說明：admin 僅此帳號使用 Nexoragrid2026；其餘種子使用者於 purge 後由 CYTIC 清單建立
    */
   await prisma.nx00User.upsert({
-    where: { username: 'admin' },
+    where: { tenantId_userAccount: { tenantId: devTenant.id, userAccount: 'admin' } },
     update: {
       passwordHash: ADMIN_PLATFORM_PASSWORD_HASH,
-      displayName: '系統管理員',
+      userName: '系統管理員',
       isActive: true,
       tenantId: devTenant.id,
     },
     create: {
-      username: 'admin',
-      passwordHash: ADMIN_PLATFORM_PASSWORD_HASH,
-      displayName: '系統管理員',
-      isActive: true,
       tenantId: devTenant.id,
+      userAccount: 'admin',
+      passwordHash: ADMIN_PLATFORM_PASSWORD_HASH,
+      userName: '系統管理員',
+      isActive: true,
     },
   });
-  console.log('✅ admin seed 完成（username=admin，密碼=Nexoragrid2026）');
+  console.log('✅ admin seed 完成（userAccount=admin，密碼=Nexoragrid2026）');
 
   const adminUser = await prisma.nx00User.findUnique({
-    where: { username: 'admin' },
-    select: { id: true, username: true },
+    where: { tenantId_userAccount: { tenantId: devTenant.id, userAccount: 'admin' } },
+    select: { id: true, userAccount: true },
   });
 
   if (adminUser) {
     await prisma.nx00UserRole.upsert({
       where: {
-        userId_roleId: {
+        tenantId_userId_roleId: {
+          tenantId: devTenant.id,
           userId: adminUser.id,
           roleId: adminRole.id,
         },
@@ -299,6 +324,7 @@ async function main() {
         isActive: true,
       },
       create: {
+        tenantId: devTenant.id,
         userId: adminUser.id,
         roleId: adminRole.id,
         isPrimary: true,
@@ -311,7 +337,7 @@ async function main() {
       `✅ admin 綁定 ADMIN 角色完成（userId=${adminUser.id}, roleId=${adminRole.id}, roleCode=ADMIN）`,
     );
   } else {
-    console.log('⚠ 找不到 username=admin 的使用者，無法綁定 ADMIN 角色');
+    console.log('⚠ 找不到 userAccount=admin 的使用者，無法綁定 ADMIN 角色');
   }
 
   await purgeUsersExceptAdmin();
@@ -321,27 +347,32 @@ async function main() {
     const cyticRows = loadCyticEmployees();
     for (const row of cyticRows) {
       const u = await prisma.nx00User.upsert({
-        where: { username: row.username },
+        where: { tenantId_userAccount: { tenantId: cyticTenant.id, userAccount: row.username } },
         update: {
-          displayName: row.displayName,
+          userName: row.displayName,
           isActive: !row.disabled,
           tenantId: cyticTenant.id,
           passwordHash: CHANGEME_PASSWORD_HASH,
         },
         create: {
-          username: row.username,
-          displayName: row.displayName,
+          tenantId: cyticTenant.id,
+          userAccount: row.username,
+          userName: row.displayName,
           passwordHash: CHANGEME_PASSWORD_HASH,
           isActive: !row.disabled,
-          tenantId: cyticTenant.id,
         },
       });
       await prisma.nx00UserRole.upsert({
         where: {
-          userId_roleId: { userId: u.id, roleId: salesRole.id },
+          tenantId_userId_roleId: {
+            tenantId: cyticTenant.id,
+            userId: u.id,
+            roleId: salesRole.id,
+          },
         },
         update: { isPrimary: true, isActive: true },
         create: {
+          tenantId: cyticTenant.id,
           userId: u.id,
           roleId: salesRole.id,
           isPrimary: true,
@@ -351,7 +382,7 @@ async function main() {
       });
     }
     console.log(
-      `✅ 恆迎 CYTIC 使用者 ${cyticRows.length} 筆（username=Y001… 等帳號欄；「離職=TRUE」→ is_active=false；預設密碼 changeme；主職務 SALES）`,
+      `✅ 恆迎 CYTIC 使用者 ${cyticRows.length} 筆（user_account=Y001… 等帳號欄；「離職=TRUE」→ is_active=false；預設密碼 changeme；主職務 SALES）`,
     );
   }
 
@@ -906,7 +937,7 @@ async function main() {
   console.log('✅ nx00_view seed 完成，共 14 筆');
 
   // 以下 DEMO 資料已移除：國家／零件品牌／零件／倉庫／庫位／往來客戶／nx01 單據／首頁公告與行事曆。
-  // 請自行匯入主檔；遷移 20260406120000_part_drop_car_brand_unique_code 會 TRUNCATE nx00_part CASCADE 清空相依明細。
+  // 請自行匯入主檔（舊鏈曾含會 TRUNCATE nx00_part 之 migration，已封存於 prisma/_archive_migrations/）。
 
 }
 

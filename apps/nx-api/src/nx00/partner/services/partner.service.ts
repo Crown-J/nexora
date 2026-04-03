@@ -30,6 +30,7 @@ type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 export type AuditActor = {
     actorUserId?: string;
+    tenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -64,8 +65,8 @@ type PartnerRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toPartnerDto(row: PartnerRowWithAudit): PartnerDto {
@@ -86,13 +87,13 @@ function toPartnerDto(row: PartnerRowWithAudit): PartnerDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -132,8 +133,8 @@ export class PartnerService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             }),
         ]);
@@ -150,8 +151,8 @@ export class PartnerService {
         const row = await this.prisma.nx00Partner.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
         if (!row) throw new NotFoundException('Partner not found');
@@ -167,9 +168,16 @@ export class PartnerService {
 
         const partnerType = body.partnerType ? normalizePartnerType(body.partnerType) : ('C' as PartnerType);
 
+        const tid =
+            (typeof body.tenantId === 'string' && body.tenantId.trim() !== '' ? body.tenantId.trim() : null) ??
+            actor?.tenantId ??
+            null;
+        if (!tid) throw new BadRequestException('tenantId is required');
+
         try {
             const row = await this.prisma.nx00Partner.create({
                 data: {
+                    tenantId: tid,
                     code,
                     name,
                     partnerType,
@@ -187,8 +195,8 @@ export class PartnerService {
                     updatedBy: actor?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -196,6 +204,7 @@ export class PartnerService {
             if (actor?.actorUserId) {
                 await this.audit.write({
                     actorUserId: actor.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_partner',
@@ -257,8 +266,8 @@ export class PartnerService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -266,6 +275,7 @@ export class PartnerService {
             if (actor?.actorUserId) {
                 await this.audit.write({
                     actorUserId: actor.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_partner',
@@ -326,8 +336,8 @@ export class PartnerService {
                 updatedBy: actor?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
 
@@ -335,6 +345,7 @@ export class PartnerService {
         if (actor?.actorUserId) {
             await this.audit.write({
                 actorUserId: actor.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_partner',

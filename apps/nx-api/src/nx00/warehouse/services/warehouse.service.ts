@@ -38,8 +38,8 @@ type WarehouseRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 };
 
 function toWarehouseDto(row: WarehouseRowWithAudit): WarehouseDto {
@@ -53,13 +53,13 @@ function toWarehouseDto(row: WarehouseRowWithAudit): WarehouseDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -68,6 +68,7 @@ function toWarehouseDto(row: WarehouseRowWithAudit): WarehouseDto {
  */
 export type WarehouseActionContext = {
     actorUserId?: string;
+    tenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -104,8 +105,8 @@ export class WarehouseService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             }),
         ]);
@@ -122,8 +123,8 @@ export class WarehouseService {
         const row = await this.prisma.nx00Warehouse.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
         if (!row) throw new NotFoundException('Warehouse not found');
@@ -138,9 +139,16 @@ export class WarehouseService {
 
         const sortNo = typeof body.sortNo === 'number' && Number.isFinite(body.sortNo) ? body.sortNo : 0;
 
+        const tid =
+            (typeof body.tenantId === 'string' && body.tenantId.trim() !== '' ? body.tenantId.trim() : null) ??
+            ctx?.tenantId ??
+            null;
+        if (!tid) throw new BadRequestException('tenantId is required');
+
         try {
             const row = await this.prisma.nx00Warehouse.create({
                 data: {
+                    tenantId: tid,
                     code,
                     name,
                     remark: body.remark ?? null,
@@ -151,8 +159,8 @@ export class WarehouseService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -160,6 +168,7 @@ export class WarehouseService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_warehouse',
@@ -226,8 +235,8 @@ export class WarehouseService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                 },
             });
 
@@ -235,6 +244,7 @@ export class WarehouseService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_warehouse',
@@ -286,8 +296,8 @@ export class WarehouseService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
             },
         });
 
@@ -295,6 +305,7 @@ export class WarehouseService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_warehouse',

@@ -20,37 +20,33 @@ function toDto(row: {
   id: string;
   tenantId: string;
   title: string;
-  subtitle: string | null;
   content: string | null;
   scopeType: string;
   isPinned: boolean;
   expiredAt: Date | null;
   isActive: boolean;
-  displayBadge: string | null;
   createdAt: Date;
   createdBy: string | null;
   updatedAt: Date;
   updatedBy: string | null;
-  createdByUser?: { displayName: string } | null;
-  updatedByUser?: { displayName: string } | null;
+  createdByUser?: { userName: string } | null;
+  updatedByUser?: { userName: string } | null;
 }): BulletinDto {
   return {
     id: row.id,
     tenantId: row.tenantId,
     title: row.title,
-    subtitle: row.subtitle ?? null,
     content: row.content ?? null,
     scopeType: row.scopeType,
     isPinned: Boolean(row.isPinned),
     expiredAt: row.expiredAt?.toISOString?.() ?? null,
     isActive: Boolean(row.isActive),
-    displayBadge: row.displayBadge ?? null,
     createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
     createdBy: row.createdBy ?? null,
-    createdByName: row.createdByUser?.displayName ?? null,
+    createdByName: row.createdByUser?.userName ?? null,
     updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
     updatedBy: row.updatedBy ?? null,
-    updatedByName: row.updatedByUser?.displayName ?? null,
+    updatedByName: row.updatedByUser?.userName ?? null,
   };
 }
 
@@ -97,8 +93,8 @@ export class BulletinService {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          createdByUser: { select: { displayName: true } },
-          updatedByUser: { select: { displayName: true } },
+          createdByUser: { select: { userName: true } },
+          updatedByUser: { select: { userName: true } },
         },
       }),
     ]);
@@ -119,8 +115,8 @@ export class BulletinService {
     const row = await this.prisma.nx00Bulletin.findFirst({
       where: { id, tenantId: tid },
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
     if (!row) throw new NotFoundException('Bulletin not found');
@@ -144,25 +140,24 @@ export class BulletinService {
       data: {
         tenantId: tid,
         title,
-        subtitle: body.subtitle?.trim() ?? null,
         content: body.content ?? null,
         scopeType: scope,
         isPinned: body.isPinned ?? false,
         expiredAt: body.expiredAt ? new Date(body.expiredAt) : null,
         isActive: body.isActive ?? true,
-        displayBadge: body.displayBadge?.trim() ?? null,
         createdBy: ctx?.actorUserId ?? null,
         updatedBy: ctx?.actorUserId ?? null,
       },
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
 
     if (ctx?.actorUserId) {
       await this.audit.write({
         actorUserId: ctx.actorUserId,
+        tenantId: row.tenantId,
         moduleCode: 'NX00',
         action: 'CREATE',
         entityTable: 'nx00_bulletin',
@@ -195,7 +190,6 @@ export class BulletinService {
       updatedBy: ctx?.actorUserId ?? null,
     };
     if (typeof body.title === 'string') data.title = body.title.trim();
-    if (body.subtitle !== undefined) data.subtitle = body.subtitle?.trim() ?? null;
     if (body.content !== undefined) data.content = body.content ?? null;
     if (typeof body.scopeType === 'string') {
       const scope = body.scopeType.trim();
@@ -209,20 +203,20 @@ export class BulletinService {
       data.expiredAt = body.expiredAt ? new Date(body.expiredAt) : null;
     }
     if (typeof body.isActive === 'boolean') data.isActive = body.isActive;
-    if (body.displayBadge !== undefined) data.displayBadge = body.displayBadge?.trim() ?? null;
 
     const row = await this.prisma.nx00Bulletin.update({
       where: { id },
       data,
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
 
     if (ctx?.actorUserId) {
       await this.audit.write({
         actorUserId: ctx.actorUserId,
+        tenantId: row.tenantId,
         moduleCode: 'NX00',
         action: 'UPDATE',
         entityTable: 'nx00_bulletin',
@@ -267,14 +261,15 @@ export class BulletinService {
         updatedBy: ctx?.actorUserId ?? null,
       },
       include: {
-        createdByUser: { select: { displayName: true } },
-        updatedByUser: { select: { displayName: true } },
+        createdByUser: { select: { userName: true } },
+        updatedByUser: { select: { userName: true } },
       },
     });
 
     if (ctx?.actorUserId) {
       await this.audit.write({
         actorUserId: ctx.actorUserId,
+        tenantId: row.tenantId,
         moduleCode: 'NX00',
         action: 'SET_ACTIVE',
         entityTable: 'nx00_bulletin',

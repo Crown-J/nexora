@@ -26,8 +26,8 @@ type UserWarehouseRow = {
     assignedAt: Date;
     assignedBy: string | null;
     revokedAt: Date | null;
-    assignedByUser?: { displayName: string } | null;
-    user?: { displayName: string } | null;
+    assignedByUser?: { userName: string } | null;
+    user?: { userName: string } | null;
     warehouse?: { code: string; name: string } | null;
 };
 
@@ -39,9 +39,9 @@ function toDto(row: UserWarehouseRow): UserWarehouseDto {
         isActive: Boolean(row.isActive),
         assignedAt: row.assignedAt?.toISOString?.() ?? String(row.assignedAt),
         assignedBy: row.assignedBy ?? null,
-        assignedByName: row.assignedByUser?.displayName ?? null,
+        assignedByName: row.assignedByUser?.userName ?? null,
         revokedAt: row.revokedAt ? (row.revokedAt.toISOString?.() ?? String(row.revokedAt)) : null,
-        userDisplayName: row.user?.displayName ?? null,
+        userDisplayName: row.user?.userName ?? null,
         warehouseCode: row.warehouse?.code ?? null,
         warehouseName: row.warehouse?.name ?? null,
     };
@@ -78,8 +78,8 @@ export class UserWarehouseService {
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    assignedByUser: { select: { displayName: true } },
-                    user: { select: { displayName: true } },
+                    assignedByUser: { select: { userName: true } },
+                    user: { select: { userName: true } },
                     warehouse: { select: { code: true, name: true } },
                 },
             }),
@@ -97,8 +97,8 @@ export class UserWarehouseService {
         const row = await this.prisma.nx00UserWarehouse.findUnique({
             where: { id },
             include: {
-                assignedByUser: { select: { displayName: true } },
-                user: { select: { displayName: true } },
+                assignedByUser: { select: { userName: true } },
+                user: { select: { userName: true } },
                 warehouse: { select: { code: true, name: true } },
             },
         });
@@ -114,25 +114,27 @@ export class UserWarehouseService {
 
         try {
             const [u, w] = await Promise.all([
-                this.prisma.nx00User.findUnique({ where: { id: userId }, select: { id: true, displayName: true } }),
+                this.prisma.nx00User.findUnique({ where: { id: userId }, select: { id: true, userName: true, tenantId: true } }),
                 this.prisma.nx00Warehouse.findUnique({
                     where: { id: warehouseId },
-                    select: { id: true, code: true, name: true },
+                    select: { id: true, code: true, name: true, tenantId: true },
                 }),
             ]);
             if (!u) throw new BadRequestException('User not found');
             if (!w) throw new BadRequestException('Warehouse not found');
+            if (u.tenantId !== w.tenantId) throw new BadRequestException('User and warehouse tenant mismatch');
 
             const row = await this.prisma.nx00UserWarehouse.create({
                 data: {
+                    tenantId: u.tenantId,
                     userId,
                     warehouseId,
                     assignedBy: ctx?.actorUserId ?? null,
                     isActive: true,
                 },
                 include: {
-                    assignedByUser: { select: { displayName: true } },
-                    user: { select: { displayName: true } },
+                    assignedByUser: { select: { userName: true } },
+                    user: { select: { userName: true } },
                     warehouse: { select: { code: true, name: true } },
                 },
             });
@@ -140,6 +142,7 @@ export class UserWarehouseService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'ASSIGN',
                     entityTable: 'nx00_user_warehouse',
@@ -174,7 +177,7 @@ export class UserWarehouseService {
         const exists = await this.prisma.nx00UserWarehouse.findUnique({
             where: { id },
             include: {
-                user: { select: { displayName: true } },
+                user: { select: { userName: true } },
                 warehouse: { select: { code: true, name: true } },
             },
         });
@@ -187,8 +190,8 @@ export class UserWarehouseService {
             where: { id },
             data: { revokedAt, isActive: false },
             include: {
-                assignedByUser: { select: { displayName: true } },
-                user: { select: { displayName: true } },
+                assignedByUser: { select: { userName: true } },
+                user: { select: { userName: true } },
                 warehouse: { select: { code: true, name: true } },
             },
         });
@@ -196,6 +199,7 @@ export class UserWarehouseService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'REVOKE',
                 entityTable: 'nx00_user_warehouse',

@@ -60,7 +60,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const rows = await this.prisma.nx00UserRole.findMany({
-      where: { userId: payload.sub },
+      where: {
+        userId: payload.sub,
+        ...(payload.tenantId ? { tenantId: payload.tenantId } : {}),
+      },
       include: { role: true },
     });
 

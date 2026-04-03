@@ -21,9 +21,10 @@ type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 type UserRowWithAudit = {
     id: string;
-    username: string;
+    tenantId: string;
+    userAccount: string;
     passwordHash: string;
-    displayName: string;
+    userName: string;
     email: string | null;
     phone: string | null;
     isActive: boolean;
@@ -34,8 +35,8 @@ type UserRowWithAudit = {
     updatedAt: Date;
     updatedBy: string | null;
 
-    createdByUser?: { username: string; displayName: string } | null;
-    updatedByUser?: { username: string; displayName: string } | null;
+    createdByUser?: { userAccount: string; userName: string } | null;
+    updatedByUser?: { userAccount: string; userName: string } | null;
 
     userWarehouses?: Array<{ warehouse: { code: string; name: string } | null }>;
 
@@ -79,8 +80,8 @@ function jobTitleFromUserRoles(
 function toUserDto(row: UserRowWithAudit): UserDto {
     return {
         id: row.id,
-        username: row.username,
-        displayName: row.displayName,
+        username: row.userAccount,
+        displayName: row.userName,
         email: row.email ?? null,
         phone: row.phone ?? null,
         isActive: Boolean(row.isActive),
@@ -91,13 +92,13 @@ function toUserDto(row: UserRowWithAudit): UserDto {
 
         createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
         createdBy: row.createdBy ?? null,
-        createdByUsername: row.createdByUser?.username ?? null,
-        createdByName: row.createdByUser?.displayName ?? null,
+        createdByUsername: row.createdByUser?.userAccount ?? null,
+        createdByName: row.createdByUser?.userName ?? null,
 
         updatedAt: row.updatedAt?.toISOString?.() ?? String(row.updatedAt),
         updatedBy: row.updatedBy ?? null,
-        updatedByUsername: row.updatedByUser?.username ?? null,
-        updatedByName: row.updatedByUser?.displayName ?? null,
+        updatedByUsername: row.updatedByUser?.userAccount ?? null,
+        updatedByName: row.updatedByUser?.userName ?? null,
     };
 }
 
@@ -145,8 +146,8 @@ export class UserService {
         const where = q
             ? {
                 OR: [
-                    { username: { contains: q, mode: 'insensitive' as const } },
-                    { displayName: { contains: q, mode: 'insensitive' as const } },
+                    { userAccount: { contains: q, mode: 'insensitive' as const } },
+                    { userName: { contains: q, mode: 'insensitive' as const } },
                     { email: { contains: q, mode: 'insensitive' as const } },
                     { phone: { contains: q, mode: 'insensitive' as const } },
                 ],
@@ -157,12 +158,12 @@ export class UserService {
             this.prisma.nx00User.count({ where }),
             this.prisma.nx00User.findMany({
                 where,
-                orderBy: [{ username: 'asc' }],
+                orderBy: [{ userAccount: 'asc' }],
                 skip: (page - 1) * pageSize,
                 take: pageSize,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                     userWarehouses: {
                         where: { isActive: true },
                         select: { warehouse: { select: { code: true, name: true } } },
@@ -187,8 +188,8 @@ export class UserService {
         const row = await this.prisma.nx00User.findUnique({
             where: { id },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
                 userWarehouses: {
                     where: { isActive: true },
                     select: { warehouse: { select: { code: true, name: true } } },
@@ -231,9 +232,9 @@ export class UserService {
                 data: {
                     // id 交給 DB default：gen_nx00_user_id()
                     tenantId: tid,
-                    username,
+                    userAccount: username,
                     passwordHash,
-                    displayName,
+                    userName: displayName,
                     email: body.email ?? null,
                     phone: body.phone ?? null,
                     isActive: body.isActive ?? true,
@@ -241,8 +242,8 @@ export class UserService {
                     updatedBy: ctx?.actorUserId ?? null,
                 },
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                     userWarehouses: {
                         where: { isActive: true },
                         select: { warehouse: { select: { code: true, name: true } } },
@@ -258,17 +259,18 @@ export class UserService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'CREATE',
                     entityTable: 'nx00_user',
                     entityId: row.id,
-                    entityCode: row.username,
-                    summary: `Create user ${row.username}`,
+                    entityCode: row.userAccount,
+                    summary: `Create user ${row.userAccount}`,
                     beforeData: null,
                     afterData: {
                         id: row.id,
-                        username: row.username,
-                        displayName: row.displayName,
+                        username: row.userAccount,
+                        displayName: row.userName,
                         email: row.email ?? null,
                         phone: row.phone ?? null,
                         isActive: Boolean(row.isActive),
@@ -296,7 +298,7 @@ export class UserService {
             updatedBy: ctx?.actorUserId ?? null,
         };
 
-        if (typeof body.displayName === 'string') data.displayName = body.displayName.trim();
+        if (typeof body.displayName === 'string') data.userName = body.displayName.trim();
         if (body.email !== undefined) data.email = body.email ?? null;
         if (body.phone !== undefined) data.phone = body.phone ?? null;
         if (typeof body.isActive === 'boolean') data.isActive = body.isActive;
@@ -311,8 +313,8 @@ export class UserService {
                 where: { id },
                 data,
                 include: {
-                    createdByUser: { select: { username: true, displayName: true } },
-                    updatedByUser: { select: { username: true, displayName: true } },
+                    createdByUser: { select: { userAccount: true, userName: true } },
+                    updatedByUser: { select: { userAccount: true, userName: true } },
                     userWarehouses: {
                         where: { isActive: true },
                         select: { warehouse: { select: { code: true, name: true } } },
@@ -328,16 +330,17 @@ export class UserService {
             if (ctx?.actorUserId) {
                 await this.audit.write({
                     actorUserId: ctx.actorUserId,
+                    tenantId: row.tenantId,
                     moduleCode: 'NX00',
                     action: 'UPDATE',
                     entityTable: 'nx00_user',
                     entityId: row.id,
-                    entityCode: row.username,
-                    summary: `Update user ${row.username}`,
+                    entityCode: row.userAccount,
+                    summary: `Update user ${row.userAccount}`,
                     beforeData: {
                         id: exists.id,
-                        username: exists.username,
-                        displayName: exists.displayName,
+                        username: exists.userAccount,
+                        displayName: exists.userName,
                         email: exists.email ?? null,
                         phone: exists.phone ?? null,
                         isActive: Boolean(exists.isActive),
@@ -345,8 +348,8 @@ export class UserService {
                     },
                     afterData: {
                         id: row.id,
-                        username: row.username,
-                        displayName: row.displayName,
+                        username: row.userAccount,
+                        displayName: row.userName,
                         email: row.email ?? null,
                         phone: row.phone ?? null,
                         isActive: Boolean(row.isActive),
@@ -378,8 +381,8 @@ export class UserService {
                 updatedBy: ctx?.actorUserId ?? null,
             },
             include: {
-                createdByUser: { select: { username: true, displayName: true } },
-                updatedByUser: { select: { username: true, displayName: true } },
+                createdByUser: { select: { userAccount: true, userName: true } },
+                updatedByUser: { select: { userAccount: true, userName: true } },
                 userWarehouses: {
                     where: { isActive: true },
                     select: { warehouse: { select: { code: true, name: true } } },
@@ -395,12 +398,13 @@ export class UserService {
         if (ctx?.actorUserId) {
             await this.audit.write({
                 actorUserId: ctx.actorUserId,
+                tenantId: row.tenantId,
                 moduleCode: 'NX00',
                 action: 'SET_ACTIVE',
                 entityTable: 'nx00_user',
                 entityId: row.id,
-                entityCode: row.username,
-                summary: `Set user ${row.username} active=${Boolean(body.isActive)}`,
+                entityCode: row.userAccount,
+                summary: `Set user ${row.userAccount} active=${Boolean(body.isActive)}`,
                 beforeData: { isActive: Boolean(exists.isActive) },
                 afterData: { isActive: Boolean(row.isActive) },
                 ipAddr: ctx.ipAddr ?? null,

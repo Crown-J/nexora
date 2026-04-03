@@ -18,7 +18,14 @@ export type PagedResult<T> = { items: T[]; page: number; pageSize: number; total
 
 export type ListPartGroupQuery = { q?: string; isActive?: boolean; page?: number; pageSize?: number };
 
-export type CreatePartGroupBody = { code: string; name: string; sortNo?: number; isActive?: boolean };
+export type CreatePartGroupBody = {
+    /** 平台 ADMIN（JWT 無租戶）時必填 */
+    tenantId?: string;
+    code: string;
+    name: string;
+    sortNo?: number;
+    isActive?: boolean;
+};
 
 export type UpdatePartGroupBody = { code?: string; name?: string; sortNo?: number; isActive?: boolean };
 
