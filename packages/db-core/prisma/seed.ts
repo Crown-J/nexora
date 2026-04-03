@@ -58,28 +58,77 @@ const CHANGEME_PASSWORD_HASH =
 const ADMIN_PLATFORM_PASSWORD_HASH =
   '$2b$10$H269i.oPp5pRGqcV2dzzb.viPbIMP4BMFR62oxD17CGiWvciXNWIq';
 
+type CyticUserSeedRow = {
+  username: string;
+  displayName: string;
+  disabled: boolean;
+  passwordHash: string;
+  email: string | null;
+  phone: string | null;
+  employeeId: string | null;
+};
+
 /**
- * 恆迎 CYTIC 名冊：`seed-data/cytic-employees.txt`（Tab）
- * - 第 1 欄＝**帳號** → `nx00_user.user_account`（如 Y001）
- * - 第 2 欄＝**姓名** → `user_name`
- * - 第 3 欄＝**離職**：`TRUE`＝已離職 → `is_active=false`
- * 以 `#` 開頭之行為註解，略過。
+ * 恆迎 CYTIC 使用者：`seed-data/cytic_nx00_user.csv`（與上傳專用 nx00_user 欄位一致）
+ * - `user_account` → userAccount；`user_name` → userName；`is_active` TRUE/FALSE → isActive
+ * - `password_hash`／`email`／`phone`／`employee_id` 一併寫入（空欄 → null）
+ * - 略過表頭；`tenant_id` 以執行時 **CYTIC 租戶實際 id** 為準（不依 CSV 內固定 id）
  */
-function loadCyticEmployees(): { username: string; displayName: string; disabled: boolean }[] {
-  const p = path.join(__dirname, 'seed-data', 'cytic-employees.txt');
-  const txt = fs.readFileSync(p, 'utf8');
-  return txt
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line !== '' && !line.startsWith('#'))
-    .map((line) => {
-      const [username, displayName, dis] = line.split('\t');
-      return {
-        username: username!.trim(),
-        displayName: displayName!.trim(),
-        disabled: dis!.trim().toUpperCase() === 'TRUE',
-      };
+function loadCyticNx00UserCsv(): CyticUserSeedRow[] {
+  const p = path.join(__dirname, 'seed-data', 'cytic_nx00_user.csv');
+  const raw = fs.readFileSync(p, 'utf8');
+  const lines = raw.split(/\r?\n/).filter((l) => l.trim() !== '');
+  if (lines.length < 2) return [];
+
+  const header = lines[0]!.split(',').map((h) => h.trim());
+  const col = (name: string) => header.indexOf(name);
+
+  const iAcct = col('user_account');
+  const iName = col('user_name');
+  const iActive = col('is_active');
+  const iHash = col('password_hash');
+  const iEmail = col('email');
+  const iPhone = col('phone');
+  const iEmp = col('employee_id');
+  if (iAcct < 0 || iName < 0 || iActive < 0) {
+    throw new Error(
+      'cytic_nx00_user.csv 表頭需含 user_account, user_name, is_active（請對齊上傳專用 nx00_user.csv）',
+    );
+  }
+
+  const out: CyticUserSeedRow[] = [];
+  for (let li = 1; li < lines.length; li++) {
+    const line = lines[li]!;
+    const cells = line.split(',');
+    const username = (cells[iAcct] ?? '').trim();
+    const displayName = (cells[iName] ?? '').trim();
+    if (!username || !displayName) continue;
+
+    const activeTok = (cells[iActive] ?? '').trim().toUpperCase();
+    const isActive = activeTok === 'TRUE';
+    const disabled = !isActive;
+
+    let passwordHash = CHANGEME_PASSWORD_HASH;
+    if (iHash >= 0) {
+      const h = (cells[iHash] ?? '').trim();
+      if (h) passwordHash = h;
+    }
+
+    const email = iEmail >= 0 && (cells[iEmail] ?? '').trim() ? (cells[iEmail] ?? '').trim() : null;
+    const phone = iPhone >= 0 && (cells[iPhone] ?? '').trim() ? (cells[iPhone] ?? '').trim() : null;
+    const employeeId = iEmp >= 0 && (cells[iEmp] ?? '').trim() ? (cells[iEmp] ?? '').trim() : null;
+
+    out.push({
+      username,
+      displayName,
+      disabled,
+      passwordHash,
+      email,
+      phone,
+      employeeId,
     });
+  }
+  return out;
 }
 
 /** 刪除 CYTIC 租戶既有使用者（含 role／該等帳號產生之 audit），避免舊種子帳號殘留 */
@@ -344,7 +393,7 @@ async function main() {
 
   if (cyticTenant && salesRole) {
     await removeExistingCyticUsers(cyticTenant.id);
-    const cyticRows = loadCyticEmployees();
+    const cyticRows = loadCyticNx00UserCsv();
     for (const row of cyticRows) {
       const u = await prisma.nx00User.upsert({
         where: { tenantId_userAccount: { tenantId: cyticTenant.id, userAccount: row.username } },
@@ -352,14 +401,20 @@ async function main() {
           userName: row.displayName,
           isActive: !row.disabled,
           tenantId: cyticTenant.id,
-          passwordHash: CHANGEME_PASSWORD_HASH,
+          passwordHash: row.passwordHash,
+          email: row.email,
+          phone: row.phone,
+          employeeId: row.employeeId,
         },
         create: {
           tenantId: cyticTenant.id,
           userAccount: row.username,
           userName: row.displayName,
-          passwordHash: CHANGEME_PASSWORD_HASH,
+          passwordHash: row.passwordHash,
           isActive: !row.disabled,
+          email: row.email,
+          phone: row.phone,
+          employeeId: row.employeeId,
         },
       });
       await prisma.nx00UserRole.upsert({
@@ -382,7 +437,7 @@ async function main() {
       });
     }
     console.log(
-      `✅ 恆迎 CYTIC 使用者 ${cyticRows.length} 筆（user_account=Y001… 等帳號欄；「離職=TRUE」→ is_active=false；預設密碼 changeme；主職務 SALES）`,
+      `✅ 恆迎 CYTIC 使用者 ${cyticRows.length} 筆（seed-data/cytic_nx00_user.csv；is_active 與上傳檔一致；主職務 SALES）`,
     );
   }
 
