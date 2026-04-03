@@ -78,7 +78,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
     const roles = urRows.map((r) => r.role.code);
 
-    const isCrossTenantPlatform = roles.includes('ADMIN') && userRow.tenantId == null;
+    const isCrossTenantPlatform =
+      roles.some((c) => String(c).trim().toUpperCase() === 'ADMIN') && userRow.tenantId == null;
 
     let tenantId: string | null;
     let tenantCode: string | null;

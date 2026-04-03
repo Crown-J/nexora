@@ -7,7 +7,7 @@
  *
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_user_role_id()
- * - @@unique([userId, roleId])：同 user-role 不可重複（P2002）
+ * - @@unique([tenantId, userId, roleId])：同一租戶同使用者同職務僅一筆；revoke 僅停用，assign 時若已存在停用列則改為復用並啟用（避免 P2002）
  * - revoke：revoked_at=now + is_active=false
  * - primary：同一個 user 只能有一個 is_primary=true（service 內以 transaction 保護）
  * - 為寫入 AuditLog，Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
@@ -194,6 +194,19 @@ export class UserRoleService {
 
                 // 如果指定 primary=true，先把同 user 其他 active 的 primary 清掉
                 let beforePrimary: any[] = [];
+                const existing = await tx.nx00UserRole.findUnique({
+                    where: {
+                        tenantId_userId_roleId: {
+                            tenantId: u.tenantId,
+                            userId,
+                            roleId,
+                        },
+                    },
+                });
+                if (existing?.isActive) {
+                    throw new BadRequestException('此使用者已擁有該角色（不可重複指派）');
+                }
+
                 if (isPrimary) {
                     beforePrimary = await tx.nx00UserRole.findMany({
                         where: { userId, isActive: true, isPrimary: true },
@@ -206,25 +219,42 @@ export class UserRoleService {
                     });
                 }
 
-                // 建立（id 由 DB default）
-                const created = await tx.nx00UserRole.create({
-                    data: {
-                        tenantId: u.tenantId,
-                        userId,
-                        roleId,
-                        isPrimary,
-                        assignedBy: ctx?.actorUserId ?? null,
-                        // assignedAt default now()
-                        isActive: true,
-                    },
-                    include: {
-                        assignedByUser: { select: { userName: true } },
-                        user: { select: { userName: true } },
-                        role: { select: { code: true, name: true } },
-                    },
-                });
+                let rowOut;
+                if (existing && !existing.isActive) {
+                    rowOut = await tx.nx00UserRole.update({
+                        where: { id: existing.id },
+                        data: {
+                            isActive: true,
+                            revokedAt: null,
+                            assignedAt: new Date(),
+                            assignedBy: ctx?.actorUserId ?? null,
+                            isPrimary,
+                        },
+                        include: {
+                            assignedByUser: { select: { userName: true } },
+                            user: { select: { userName: true } },
+                            role: { select: { code: true, name: true } },
+                        },
+                    });
+                } else {
+                    rowOut = await tx.nx00UserRole.create({
+                        data: {
+                            tenantId: u.tenantId,
+                            userId,
+                            roleId,
+                            isPrimary,
+                            assignedBy: ctx?.actorUserId ?? null,
+                            isActive: true,
+                        },
+                        include: {
+                            assignedByUser: { select: { userName: true } },
+                            user: { select: { userName: true } },
+                            role: { select: { code: true, name: true } },
+                        },
+                    });
+                }
 
-                return { row: created, beforePrimaryCleared: beforePrimary, roleCode: r.code };
+                return { row: rowOut, beforePrimaryCleared: beforePrimary, roleCode: r.code };
             });
 
             // AuditLog（ASSIGN）
@@ -260,7 +290,6 @@ export class UserRoleService {
         } catch (e: any) {
             const pe = e as PrismaKnownError;
             if (pe?.code === 'P2002') {
-                // @@unique([userId, roleId])
                 throw new BadRequestException('此使用者已擁有該角色（不可重複指派）');
             }
             throw e;

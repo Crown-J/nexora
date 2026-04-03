@@ -7,7 +7,7 @@
  * - 串接登入 API（call api + store token + redirect）
  *
  * Notes:
- * - 後端目前僅接受單一 username；公司帳號先作為 UI 欄位保留，不參與登入 payload
+ * - 公司帳號（選填）以 **tenantCode** 一併送 **POST /auth/login**，與 username 鎖定租戶內帳號
  * - 成功登入後導向 /home（Landing + 頂欄模組選單；主檔總覽為 /base，作業模組為 /dashboard/nx…）
  */
 
@@ -73,6 +73,7 @@ export default function LoginPage() {
       const result = await callLoginApi({
         account,
         password: normalized.password,
+        tenantCode: normalized.companyAccount || undefined,
       });
 
       if (!result?.token) {

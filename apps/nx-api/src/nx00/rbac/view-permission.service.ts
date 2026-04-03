@@ -22,9 +22,28 @@ export type MergedNx00ViewPerms = {
 export class ViewPermissionService {
     constructor(private readonly prisma: PrismaService) { }
 
+    /** JWT roles 或 DB 任一認定為 ADMIN → 略過矩陣（避免 roles 與 DB 短暫不一致時誤擋） */
+    private rolesIncludeAdmin(roles: string[] | undefined): boolean {
+        return (roles ?? []).some((r) => String(r).trim().toUpperCase() === 'ADMIN');
+    }
+
+    private async userHasActiveAdminAssignment(userId: string, tenantId: string | null): Promise<boolean> {
+        const row = await this.prisma.nx00UserRole.findFirst({
+            where: {
+                userId,
+                isActive: true,
+                ...(tenantId ? { tenantId } : {}),
+                role: { code: 'ADMIN', isActive: true },
+            },
+            select: { id: true },
+        });
+        return Boolean(row);
+    }
+
     /** null＝具 ADMIN 職務略過矩陣檢查；空物件＝無任何授權列 */
     async mergeForRequestUser(user: RequestUser): Promise<Record<string, MergedNx00ViewPerms> | null> {
-        if (user.roles?.includes('ADMIN')) return null;
+        if (this.rolesIncludeAdmin(user.roles)) return null;
+        if (await this.userHasActiveAdminAssignment(user.sub, user.tenantId ?? null)) return null;
         const tid = user.tenantId;
         if (!tid) return {};
 

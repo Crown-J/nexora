@@ -41,7 +41,7 @@ export class AuthService {
    * - 登入成功更新 lastLoginAt（稽核）
    * - user.tenantId 為 null 時仍可登入，租戶/方案欄位帶 null
    */
-  async login(username: string, password: string) {
+  async login(username: string, password: string, tenantCode?: string | null) {
     if (!username || !password) {
       throw new BadRequestException('username/password required');
     }
@@ -49,16 +49,39 @@ export class AuthService {
     const uname = String(username).trim();
     if (!uname) throw new BadRequestException('username/password required');
 
-    const user = await this.prisma.nx00User.findFirst({
-      where: { userAccount: uname },
-      include: {
-        tenant: true,
-        userRoles: {
-          where: { isActive: true },
-          include: { role: { select: { code: true } } },
-        },
+    const tenantCodeTrim =
+      tenantCode != null && String(tenantCode).trim() !== '' ? String(tenantCode).trim() : '';
+
+    const userInclude = {
+      tenant: true,
+      userRoles: {
+        where: { isActive: true },
+        include: { role: { select: { code: true } } },
       },
-    });
+    } as const;
+
+    let user;
+    if (tenantCodeTrim) {
+      const tenant = await this.prisma.nx99Tenant.findFirst({
+        where: {
+          code: { equals: tenantCodeTrim, mode: 'insensitive' },
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      if (!tenant) {
+        throw new UnauthorizedException('Invalid username or password');
+      }
+      user = await this.prisma.nx00User.findUnique({
+        where: { tenantId_userAccount: { tenantId: tenant.id, userAccount: uname } },
+        include: userInclude,
+      });
+    } else {
+      user = await this.prisma.nx00User.findFirst({
+        where: { userAccount: uname },
+        include: userInclude,
+      });
+    }
 
     if (!user) {
       throw new UnauthorizedException('Invalid username or password');
@@ -77,9 +100,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    const scopedUserRoles = user.userRoles.filter((ur) => ur.tenantId === user.tenantId);
     /** 僅「無租戶綁定」的 ADMIN 為跨租戶平台；租戶內 admin 帳號仍帶 tenantId 以隔離資料 */
     const isCrossTenantPlatform =
-      user.userRoles.some((ur) => ur.role.code === 'ADMIN') && user.tenantId == null;
+      scopedUserRoles.some((ur) => String(ur.role?.code ?? '').trim().toUpperCase() === 'ADMIN') &&
+      user.tenantId == null;
 
     let subscription: { plan: { code: string } } | null = null;
     if (!isCrossTenantPlatform && user.tenantId) {
@@ -186,7 +211,9 @@ export class AuthService {
       : user.userRoles;
     const roles = roleRowsForMe.map((ur) => ur.role.code);
     /** 與 Guard 一致：掛 ADMIN 職務者 view_permissions 為 null（前端視為全開） */
-    const isPlatformAdminForPerms = roleRowsForMe.some((ur) => ur.role.code === 'ADMIN');
+    const isPlatformAdminForPerms = roleRowsForMe.some(
+      (ur) => String(ur.role.code).trim().toUpperCase() === 'ADMIN',
+    );
 
     const merged = await this.viewPerm.mergeForProfile({
       tenantId: user.tenantId,

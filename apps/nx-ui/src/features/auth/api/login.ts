@@ -31,11 +31,13 @@ export async function callLoginApi(
     };
   }
 
+  const tenantCode = String(payload.tenantCode ?? '').trim();
   return apiJson<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({
       username: payload.account,
       password: payload.password,
+      ...(tenantCode ? { tenantCode } : {}),
     }),
   });
 }
