@@ -10,7 +10,7 @@
  * - 驗證帳密、簽發 JWT
  * - /auth/me 用 sub 查 nx00_user 回傳使用者資訊
  * - Prisma 回傳 camelCase 欄位（isActive/passwordHash/displayName...）
- * - tenant_id 為 null 時仍可登入，payload 中租戶/方案欄位為 null
+ * - tenant_id 為 null 時仍可登入；僅「無租戶＋ADMIN」簽出無租戶 JWT，其餘租戶 admin 帶 tenantId
  */
 
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
@@ -77,10 +77,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    const isPlatformAdmin = user.userRoles.some((ur) => ur.role.code === 'ADMIN');
+    /** 僅「無租戶綁定」的 ADMIN 為跨租戶平台；租戶內 admin 帳號仍帶 tenantId 以隔離資料 */
+    const isCrossTenantPlatform =
+      user.userRoles.some((ur) => ur.role.code === 'ADMIN') && user.tenantId == null;
 
     let subscription: { plan: { code: string } } | null = null;
-    if (!isPlatformAdmin && user.tenantId) {
+    if (!isCrossTenantPlatform && user.tenantId) {
       subscription = await this.prisma.nx99Subscription.findFirst({
         where: { tenantId: user.tenantId, status: 'A' },
         include: { plan: true },
@@ -94,7 +96,7 @@ export class AuthService {
         tenant: user.tenant ? { id: user.tenant.id, code: user.tenant.code } : null,
       },
       subscription,
-      isPlatformAdmin,
+      isCrossTenantPlatform,
     );
     await this.prisma.nx00User.update({
       where: { id: user.id },
@@ -118,9 +120,9 @@ export class AuthService {
   private async buildToken(
     user: { id: string; username: string; tenant?: { id: string; code: string } | null },
     subscription: { plan: { code: string } } | null,
-    isPlatformAdmin: boolean,
+    isCrossTenantPlatform: boolean,
   ) {
-    if (isPlatformAdmin) {
+    if (isCrossTenantPlatform) {
       return this.jwt.signAsync({
         sub: user.id,
         username: user.username,
@@ -179,13 +181,17 @@ export class AuthService {
       throw new UnauthorizedException('Token user not found');
     }
 
-    const roles = user.userRoles.map((ur) => ur.role.code);
-    const isPlatformAdmin = user.userRoles.some((ur) => ur.role.code === 'ADMIN');
+    const roleRowsForMe = user.tenantId
+      ? user.userRoles.filter((ur) => ur.tenantId === user.tenantId)
+      : user.userRoles;
+    const roles = roleRowsForMe.map((ur) => ur.role.code);
+    const isPlatformAdminForPerms =
+      user.tenantId == null && user.userRoles.some((ur) => ur.role.code === 'ADMIN');
 
     const merged = await this.viewPerm.mergeForProfile({
       tenantId: user.tenantId,
-      isPlatformAdmin,
-      roleIdsForTenant: user.userRoles.filter((ur) => ur.tenantId === user.tenantId).map((ur) => ur.roleId),
+      isPlatformAdmin: isPlatformAdminForPerms,
+      roleIdsForTenant: roleRowsForMe.map((ur) => ur.roleId),
     });
 
     const view_permissions =

@@ -105,7 +105,16 @@ export class UserRoleService {
         if (typeof query.isActive === 'boolean') search.isActive = query.isActive;
 
         const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
-        const where = tid !== null ? { AND: [{ tenantId: tid }, search] } : search;
+        const omitBuiltInAdmin =
+            tid !== null
+                ? {
+                    user: {
+                        NOT: { userAccount: { equals: 'admin', mode: 'insensitive' as const } },
+                    },
+                }
+                : {};
+
+        const where = tid !== null ? { AND: [{ tenantId: tid }, search, omitBuiltInAdmin] } : search;
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00UserRole.count({ where }),
@@ -159,7 +168,10 @@ export class UserRoleService {
             const { row, beforePrimaryCleared, roleCode } = await this.prisma.$transaction(async (tx) => {
                 // 確認 user/role 存在（避免 FK error 變成 500）
                 const [u, r] = await Promise.all([
-                    tx.nx00User.findUnique({ where: { id: userId }, select: { id: true, userName: true, tenantId: true } }),
+                    tx.nx00User.findUnique({
+                        where: { id: userId },
+                        select: { id: true, userName: true, userAccount: true, tenantId: true },
+                    }),
                     tx.nx00Role.findUnique({
                         where: { id: roleId },
                         select: { id: true, code: true, name: true, tenantId: true },
@@ -169,6 +181,16 @@ export class UserRoleService {
                 if (!r) throw new BadRequestException('Role not found');
                 if (u.tenantId !== r.tenantId) throw new BadRequestException('User and role tenant mismatch');
                 this.assertActorTenant(ctx, u.tenantId);
+
+                if (ctx?.actorTenantId != null) {
+                    const acc = (u.userAccount ?? '').trim().toLowerCase();
+                    if (acc === 'admin') {
+                        throw new BadRequestException('內建管理員帳號無需指派職務');
+                    }
+                    if (r.code === 'ADMIN') {
+                        throw new BadRequestException('租戶內無法指派系統管理員職務');
+                    }
+                }
 
                 // 如果指定 primary=true，先把同 user 其他 active 的 primary 清掉
                 let beforePrimary: any[] = [];

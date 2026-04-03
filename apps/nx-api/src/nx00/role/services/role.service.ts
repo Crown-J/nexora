@@ -104,8 +104,12 @@ export class RoleService {
             : {};
 
         const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        /** 租戶內不列出 ADMIN（僅內建 admin 帳號使用；避免職務指派頁重複／誤操作） */
+        const excludeAdmin =
+            tid !== null ? { code: { not: 'ADMIN' } } : {};
+
         const where =
-            tid !== null ? { AND: [{ tenantId: tid }, searchWhere] } : searchWhere;
+            tid !== null ? { AND: [{ tenantId: tid }, searchWhere, excludeAdmin] } : searchWhere;
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00Role.count({ where }),
@@ -141,6 +145,7 @@ export class RoleService {
         if (!row) throw new NotFoundException('Role not found');
         const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
         if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Role not found');
+        if (tid !== null && row.code === 'ADMIN') throw new NotFoundException('Role not found');
         return toRoleDto(row as unknown as RoleRowWithAudit);
     }
 

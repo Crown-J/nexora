@@ -5,12 +5,12 @@
  * Purpose:
  * - JWT 驗證 + 注入 roles 到 req.user
  * - NX99-T3：validate 回傳 tenantId / tenantCode / planCode 供 API 識別租戶與方案
- * - 角色含 **ADMIN** 時：上述租戶／方案欄位強制為 **null**（跨租戶平台管理）
+ * - **跨租戶平台**：僅當 nx00_user.tenantId 為 null 且具 ADMIN 職務時，租戶欄位為 null
+ * - **租戶內 ADMIN**（如 DEMO 的 admin）：仍帶該租戶 tenantId，列表／查詢僅限該公司
  *
  * Notes:
  * - validate 回傳物件會掛到 req.user
  * - 一定要保留 sub，避免 RolesGuard 判定為 Invalid token
- * - tenantId 為 null 時仍可通過驗證
  */
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -50,33 +50,74 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   /**
    * @CODE nxapi_auth_jwt_strategy_validate_003
    * @FUNCTION_CODE NX99-AUTH-STR-001-F01
-   * 說明：
-   * - token 驗證通過後，查 DB 取得角色 codes
-   * - 回傳 { sub, username, roles, tenantId, tenantCode, planCode } 給 req.user
    */
   async validate(payload: JwtPayload): Promise<RequestUser> {
     if (!payload?.sub) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
-    const rows = await this.prisma.nx00UserRole.findMany({
-      where: {
-        userId: payload.sub,
-        ...(payload.tenantId ? { tenantId: payload.tenantId } : {}),
-      },
+    const userRow = await this.prisma.nx00User.findUnique({
+      where: { id: payload.sub },
+      select: { tenantId: true },
+    });
+    if (!userRow) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const urWhere: { userId: string; isActive: boolean; tenantId?: string } = {
+      userId: payload.sub,
+      isActive: true,
+    };
+    if (userRow.tenantId) {
+      urWhere.tenantId = userRow.tenantId;
+    }
+
+    const urRows = await this.prisma.nx00UserRole.findMany({
+      where: urWhere,
       include: { role: true },
     });
+    const roles = urRows.map((r) => r.role.code);
 
-    const roles = rows.map((r) => r.role.code);
-    const isPlatformAdmin = roles.includes('ADMIN');
+    const isCrossTenantPlatform = roles.includes('ADMIN') && userRow.tenantId == null;
+
+    let tenantId: string | null;
+    let tenantCode: string | null;
+    let planCode: string | null;
+
+    if (isCrossTenantPlatform) {
+      tenantId = null;
+      tenantCode = null;
+      planCode = null;
+    } else {
+      tenantId = userRow.tenantId ?? payload.tenantId ?? null;
+      tenantCode = payload.tenantCode ?? null;
+      planCode = payload.planCode ?? null;
+
+      if (tenantId) {
+        if (!tenantCode) {
+          const t = await this.prisma.nx99Tenant.findUnique({
+            where: { id: tenantId },
+            select: { code: true },
+          });
+          tenantCode = t?.code ?? null;
+        }
+        if (!planCode) {
+          const sub = await this.prisma.nx99Subscription.findFirst({
+            where: { tenantId, status: 'A' },
+            include: { plan: true },
+          });
+          planCode = sub?.plan?.code ?? null;
+        }
+      }
+    }
 
     return {
       sub: payload.sub,
       username: payload.username,
       roles,
-      tenantId: isPlatformAdmin ? null : (payload.tenantId ?? null),
-      tenantCode: isPlatformAdmin ? null : (payload.tenantCode ?? null),
-      planCode: isPlatformAdmin ? null : (payload.planCode ?? null),
+      tenantId,
+      tenantCode,
+      planCode,
     };
   }
 }

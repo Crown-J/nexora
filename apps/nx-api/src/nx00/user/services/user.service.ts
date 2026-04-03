@@ -163,8 +163,14 @@ export class UserService {
             : {};
 
         const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        /** 租戶內不列出內建帳號 admin（無需指派職務、避免多租戶混淆） */
+        const omitBuiltInAdmin =
+            tid !== null
+                ? { NOT: { userAccount: { equals: 'admin', mode: 'insensitive' as const } } }
+                : {};
+
         const where =
-            tid !== null ? { AND: [{ tenantId: tid }, searchWhere] } : searchWhere;
+            tid !== null ? { AND: [{ tenantId: tid }, searchWhere, omitBuiltInAdmin] } : searchWhere;
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00User.count({ where }),
@@ -216,6 +222,9 @@ export class UserService {
         if (!row) throw new NotFoundException('User not found');
         const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
         if (tid !== null && row.tenantId !== tid) throw new NotFoundException('User not found');
+        if (tid !== null && row.userAccount.trim().toLowerCase() === 'admin') {
+            throw new NotFoundException('User not found');
+        }
         return toUserDto(row as unknown as UserRowWithAudit);
     }
 
