@@ -19,10 +19,20 @@ export type ApiClientOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;
 };
 
+function normalizeApiBaseUrl(raw: string): string {
+  const u = raw.trim().replace(/\/+$/, '');
+  if (u.startsWith('http://') && typeof window !== 'undefined' && window.location?.protocol === 'https:') {
+    throw new Error(
+      '[NX00-API-001] NEXT_PUBLIC_API_URL must use https:// when the site is served over HTTPS (mixed content blocks fetch).',
+    );
+  }
+  return u;
+}
+
 function getBaseUrl(): string {
   if (isNexoraDemoMode()) {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-    if (baseUrl) return baseUrl;
+    if (baseUrl) return normalizeApiBaseUrl(baseUrl);
     // 純展示可不設 API；非 auth 的 fetch 會連線失敗（預期）
     return 'http://127.0.0.1:9';
   }
@@ -31,7 +41,7 @@ function getBaseUrl(): string {
   if (!baseUrl) {
     throw new Error('[NX00-API-001] NEXT_PUBLIC_API_URL is not set');
   }
-  return baseUrl;
+  return normalizeApiBaseUrl(baseUrl);
 }
 
 /**
@@ -60,8 +70,12 @@ export async function apiFetch(
     headers['Content-Type'] = 'application/json';
   }
 
-  return fetch(`${baseUrl}${path}`, {
+  const url = `${baseUrl}${path.startsWith('/') ? path : `/${path}`}`;
+
+  return fetch(url, {
     ...opts,
+    credentials: 'include',
+    mode: 'cors',
     headers,
   });
 }

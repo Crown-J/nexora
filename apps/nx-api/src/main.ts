@@ -25,7 +25,8 @@ async function bootstrap() {
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    // 瀏覽器 preflight 常帶 Accept；與 credentials: true 搭配時前端需 credentials: 'include'
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3001;
