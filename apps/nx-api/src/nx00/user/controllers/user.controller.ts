@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-USER-CTRL-001：User CRUD endpoints (ADMIN only)
+ * - NX00-API-USER-CTRL-001：User CRUD（讀取：租戶內已種子之各職務；寫入：ADMIN）
  *
  * Notes:
  * - 寫入 AuditLog 時需要 actorUserId + ipAddr + userAgent，因此由 Controller 統一取值後傳入 Service
@@ -29,9 +29,18 @@ import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { UserService } from '../services/user.service';
 import type { CreateUserBody, SetActiveBody, UpdateUserBody } from '../dto/user.dto';
 
+/** 與 seed ROLE_SPECS 一致；租戶使用者可查看同租戶同事主檔（實際資料仍由 list/get 之 tenantId 篩選） */
+const USER_READ_ROLES = [
+    'ADMIN',
+    'OWNER',
+    'SALES',
+    'WAREHOUSE',
+    'DRIVER',
+    'ACCOUNTANT',
+] as const;
+
 @Controller('user')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 export class UserController {
     constructor(private readonly user: UserService) { }
 
@@ -39,26 +48,34 @@ export class UserController {
      * @CODE nxapi_nx00_user_list_001
      */
     @Get()
-    async list(@Query() query: any) {
-        return this.user.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+    @Roles(...USER_READ_ROLES)
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.user.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     /**
      * @CODE nxapi_nx00_user_get_001
      */
     @Get(':id')
-    async get(@Param('id') id: string) {
-        return this.user.get(id);
+    @Roles(...USER_READ_ROLES)
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.user.get(id, { tenantScopeId });
     }
 
     /**
      * @CODE nxapi_nx00_user_create_001
      */
     @Post()
+    @Roles('ADMIN')
     async create(@Body() body: CreateUserBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -74,6 +91,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_update_001
      */
     @Put(':id')
+    @Roles('ADMIN')
     async update(@Param('id') id: string, @Body() body: UpdateUserBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -88,6 +106,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_set_active_001
      */
     @Patch(':id/active')
+    @Roles('ADMIN')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

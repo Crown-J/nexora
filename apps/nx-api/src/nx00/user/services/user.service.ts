@@ -14,7 +14,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditLogService } from '../../audit-log/services/audit-log.service';
-import type { CreateUserBody, ListUserQuery, PagedResult, SetActiveBody, UpdateUserBody, UserDto } from '../dto/user.dto';
+import type {
+    CreateUserBody,
+    ListUserQuery,
+    PagedResult,
+    SetActiveBody,
+    UpdateUserBody,
+    UserDto,
+    UserReadScope,
+} from '../dto/user.dto';
 
 // Prisma error codes (keep minimal, no extra deps)
 type PrismaKnownError = { code?: string; meta?: any; message?: string };
@@ -136,14 +144,14 @@ export class UserService {
         private readonly audit: AuditLogService,
     ) { }
 
-    async list(query: ListUserQuery): Promise<PagedResult<UserDto>> {
+    async list(query: ListUserQuery, scope?: UserReadScope): Promise<PagedResult<UserDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
 
-        const where = q
+        const searchWhere = q
             ? {
                 OR: [
                     { userAccount: { contains: q, mode: 'insensitive' as const } },
@@ -153,6 +161,10 @@ export class UserService {
                 ],
             }
             : {};
+
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const where =
+            tid !== null ? { AND: [{ tenantId: tid }, searchWhere] } : searchWhere;
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00User.count({ where }),
@@ -184,7 +196,7 @@ export class UserService {
         };
     }
 
-    async get(id: string): Promise<UserDto> {
+    async get(id: string, scope?: UserReadScope): Promise<UserDto> {
         const row = await this.prisma.nx00User.findUnique({
             where: { id },
             include: {
@@ -202,6 +214,8 @@ export class UserService {
         });
 
         if (!row) throw new NotFoundException('User not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('User not found');
         return toUserDto(row as unknown as UserRowWithAudit);
     }
 

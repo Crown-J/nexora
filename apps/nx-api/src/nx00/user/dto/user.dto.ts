@@ -45,6 +45,11 @@ export type ListUserQuery = {
     pageSize?: number;
 };
 
+/** list/get 讀取範圍：租戶使用者帶 JWT tenantId；平台 ADMIN（tenantId null）不篩租戶 */
+export type UserReadScope = {
+    tenantScopeId: string | null;
+};
+
 export type CreateUserBody = {
     username: string;
     password: string; // 明碼只允許從 API input 進來，DB 存 passwordHash
