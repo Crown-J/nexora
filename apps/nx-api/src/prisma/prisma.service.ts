@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  * Purpose: NX00-API-002 PrismaService（Prisma v7 + adapter-pg 連線 PostgreSQL）
  * Notes:
- * - 連線字串讀取 DATABASE_URL（請設定於 apps/nx-api/.env）
+ * - 連線字串讀取 process.env.DATABASE_URL（本機用 apps/nx-api/.env；Railway／Docker 請在「該服務」Variables 設定）
  * - 使用 @prisma/adapter-pg 搭配 pg Pool
  * - PrismaClient 來源統一使用 db-core（packages/db-core/generated/prisma）
  */
@@ -24,9 +24,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
      * - Prisma v7 adapter 模式：PrismaClient({ adapter })
      * - DATABASE_URL 缺少時直接 fail-fast
      */
-    const url = process.env.DATABASE_URL;
+    const url = process.env.DATABASE_URL?.trim();
     if (!url) {
-      throw new Error('DATABASE_URL is missing. Please set it in apps/nx-api/.env');
+      throw new Error(
+        'DATABASE_URL is missing. Set it on the nx-api service (e.g. Railway Variables: DATABASE_URL = ${{ Postgres.DATABASE_URL }}). ' +
+          'Local dev: apps/nx-api/.env',
+      );
     }
 
     const pool = new Pool({ connectionString: url });
