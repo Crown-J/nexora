@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-ROLE-CTRL-001：Role CRUD endpoints (ADMIN only)
+ * - NX00-API-ROLE-CTRL-001：Role CRUD（讀取：租戶內已種子之各職務；寫入：ADMIN）
  *
  * Notes:
  * - 由 roles.controller.ts 複製重構為單數命名（LITE 統一）
@@ -27,12 +27,13 @@ import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 
+import { NX00_TENANT_MASTER_READ_ROLES } from '../../constants/tenant-master-read-roles';
+
 import { RoleService } from '../services/role.service';
 import type { CreateRoleBody, SetActiveBody, UpdateRoleBody } from '../dto/role.dto';
 
 @Controller('role')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
 export class RoleController {
     constructor(private readonly role: RoleService) { }
 
@@ -40,26 +41,34 @@ export class RoleController {
      * @CODE nxapi_nx00_role_list_001
      */
     @Get()
-    async list(@Query() query: any) {
-        return this.role.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+    @Roles(...NX00_TENANT_MASTER_READ_ROLES)
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.role.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     /**
      * @CODE nxapi_nx00_role_get_001
      */
     @Get(':id')
-    async get(@Param('id') id: string) {
-        return this.role.get(id);
+    @Roles(...NX00_TENANT_MASTER_READ_ROLES)
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.role.get(id, { tenantScopeId });
     }
 
     /**
      * @CODE nxapi_nx00_role_create_001
      */
     @Post()
+    @Roles('ADMIN')
     async create(@Body() body: CreateRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -75,6 +84,7 @@ export class RoleController {
      * @CODE nxapi_nx00_role_update_001
      */
     @Put(':id')
+    @Roles('ADMIN')
     async update(@Param('id') id: string, @Body() body: UpdateRoleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 
@@ -89,6 +99,7 @@ export class RoleController {
      * @CODE nxapi_nx00_role_set_active_001
      */
     @Patch(':id/active')
+    @Roles('ADMIN')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
 

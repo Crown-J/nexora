@@ -40,6 +40,11 @@ export type ListRoleQuery = {
     pageSize?: number;
 };
 
+/** list/get 讀取範圍：租戶 JWT 帶 tenantId；平台 ADMIN（null）不篩租戶 */
+export type RoleReadScope = {
+    tenantScopeId: string | null;
+};
+
 export type CreateRoleBody = {
     /** 平台 ADMIN（JWT 無租戶）時必填 */
     tenantId?: string;

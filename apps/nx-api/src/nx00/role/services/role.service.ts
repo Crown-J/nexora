@@ -19,6 +19,7 @@ import type {
     ListRoleQuery,
     PagedResult,
     RoleDto,
+    RoleReadScope,
     SetActiveBody,
     UpdateRoleBody,
 } from '../dto/role.dto';
@@ -28,6 +29,7 @@ type PrismaKnownError = { code?: string; meta?: any; message?: string };
 
 type RoleRowWithAudit = {
     id: string;
+    tenantId: string;
     code: string;
     name: string;
     description: string | null;
@@ -85,14 +87,14 @@ export class RoleService {
         private readonly audit: AuditLogService,
     ) { }
 
-    async list(query: ListRoleQuery): Promise<PagedResult<RoleDto>> {
+    async list(query: ListRoleQuery, scope?: RoleReadScope): Promise<PagedResult<RoleDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
 
-        const where = q
+        const searchWhere = q
             ? {
                 OR: [
                     { code: { contains: q, mode: 'insensitive' as const } },
@@ -100,6 +102,10 @@ export class RoleService {
                 ],
             }
             : {};
+
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const where =
+            tid !== null ? { AND: [{ tenantId: tid }, searchWhere] } : searchWhere;
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00Role.count({ where }),
@@ -123,7 +129,7 @@ export class RoleService {
         };
     }
 
-    async get(id: string): Promise<RoleDto> {
+    async get(id: string, scope?: RoleReadScope): Promise<RoleDto> {
         const row = await this.prisma.nx00Role.findUnique({
             where: { id },
             include: {
@@ -133,6 +139,8 @@ export class RoleService {
         });
 
         if (!row) throw new NotFoundException('Role not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Role not found');
         return toRoleDto(row as unknown as RoleRowWithAudit);
     }
 

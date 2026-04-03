@@ -26,18 +26,10 @@ import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 import { RolesGuard } from '../../../shared/guards/roles.guard';
 
+import { NX00_TENANT_MASTER_READ_ROLES } from '../../constants/tenant-master-read-roles';
+
 import { UserService } from '../services/user.service';
 import type { CreateUserBody, SetActiveBody, UpdateUserBody } from '../dto/user.dto';
-
-/** 與 seed ROLE_SPECS 一致；租戶使用者可查看同租戶同事主檔（實際資料仍由 list/get 之 tenantId 篩選） */
-const USER_READ_ROLES = [
-    'ADMIN',
-    'OWNER',
-    'SALES',
-    'WAREHOUSE',
-    'DRIVER',
-    'ACCOUNTANT',
-] as const;
 
 @Controller('user')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -48,7 +40,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_list_001
      */
     @Get()
-    @Roles(...USER_READ_ROLES)
+    @Roles(...NX00_TENANT_MASTER_READ_ROLES)
     async list(@Query() query: any, @Req() req: any) {
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
         return this.user.list(
@@ -65,7 +57,7 @@ export class UserController {
      * @CODE nxapi_nx00_user_get_001
      */
     @Get(':id')
-    @Roles(...USER_READ_ROLES)
+    @Roles(...NX00_TENANT_MASTER_READ_ROLES)
     async get(@Param('id') id: string, @Req() req: any) {
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
         return this.user.get(id, { tenantScopeId });
