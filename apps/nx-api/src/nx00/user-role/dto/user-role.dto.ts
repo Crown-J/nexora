@@ -41,6 +41,11 @@ export type ListUserRoleQuery = {
     pageSize?: number;
 };
 
+/** list/get：JWT 有租戶則篩 tenantId；null 表平台不篩 */
+export type UserRoleReadScope = {
+    tenantScopeId: string | null;
+};
+
 export type AssignUserRoleBody = {
     userId: string;
     roleId: string;

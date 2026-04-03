@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-API-USER-ROLE-CTRL-001：UserRole endpoints (ADMIN only)
+ * - NX00-API-USER-ROLE-CTRL-001：UserRole（讀取：JWT 租戶或平台 ADMIN；寫入：ADMIN／OWNER）
  *
  * Notes:
  * - assign：指派角色
@@ -25,8 +25,11 @@ import {
 } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
-import { Roles } from '../../../shared/decorators/roles.decorator';
-import { RolesGuard } from '../../../shared/guards/roles.guard';
+
+import {
+    assertAdminOrOwnerManager,
+    assertTenantScopedOrPlatformAdmin,
+} from '../../utils/assert-tenant-read-context';
 
 import { UserRoleService } from '../services/user-role.service';
 import type {
@@ -36,9 +39,16 @@ import type {
     SetPrimaryBody,
 } from '../dto/user-role.dto';
 
+function mutationCtx(req: any) {
+    const actorUserId = req?.user?.sub as string | undefined;
+    const actorTenantId = (req?.user?.tenantId as string | null | undefined) ?? null;
+    const ipAddr = (req?.ip as string | undefined) ?? null;
+    const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
+    return { actorUserId, actorTenantId, ipAddr, userAgent };
+}
+
 @Controller('user-role')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(JwtAuthGuard)
 export class UserRoleController {
     constructor(private readonly userRole: UserRoleService) { }
 
@@ -46,22 +56,29 @@ export class UserRoleController {
      * @CODE nxapi_nx00_user_role_list_001
      */
     @Get()
-    async list(@Query() query: any) {
-        return this.userRole.list({
-            userId: typeof query.userId === 'string' ? query.userId : undefined,
-            roleId: typeof query.roleId === 'string' ? query.roleId : undefined,
-            isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+    async list(@Query() query: any, @Req() req: any) {
+        assertTenantScopedOrPlatformAdmin(req?.user);
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.userRole.list(
+            {
+                userId: typeof query.userId === 'string' ? query.userId : undefined,
+                roleId: typeof query.roleId === 'string' ? query.roleId : undefined,
+                isActive: query.isActive === undefined ? undefined : String(query.isActive) === 'true',
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     /**
      * @CODE nxapi_nx00_user_role_get_001
      */
     @Get(':id')
-    async get(@Param('id') id: string) {
-        return this.userRole.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        assertTenantScopedOrPlatformAdmin(req?.user);
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.userRole.get(id, { tenantScopeId });
     }
 
     /**
@@ -69,12 +86,9 @@ export class UserRoleController {
      */
     @Post()
     async assign(@Body() body: AssignUserRoleBody, @Req() req: any) {
-        const actorUserId = req?.user?.sub as string | undefined;
-
-        const ipAddr = (req?.ip as string | undefined) ?? null;
-        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
-
-        return this.userRole.assign(body, { actorUserId, ipAddr, userAgent });
+        assertTenantScopedOrPlatformAdmin(req?.user);
+        assertAdminOrOwnerManager(req?.user);
+        return this.userRole.assign(body, mutationCtx(req));
     }
 
     /**
@@ -82,12 +96,9 @@ export class UserRoleController {
      */
     @Patch(':id/revoke')
     async revoke(@Param('id') id: string, @Body() body: RevokeUserRoleBody, @Req() req: any) {
-        const actorUserId = req?.user?.sub as string | undefined;
-
-        const ipAddr = (req?.ip as string | undefined) ?? null;
-        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
-
-        return this.userRole.revoke(id, body, { actorUserId, ipAddr, userAgent });
+        assertTenantScopedOrPlatformAdmin(req?.user);
+        assertAdminOrOwnerManager(req?.user);
+        return this.userRole.revoke(id, body, mutationCtx(req));
     }
 
     /**
@@ -95,12 +106,9 @@ export class UserRoleController {
      */
     @Patch(':id/primary')
     async setPrimary(@Param('id') id: string, @Body() body: SetPrimaryBody, @Req() req: any) {
-        const actorUserId = req?.user?.sub as string | undefined;
-
-        const ipAddr = (req?.ip as string | undefined) ?? null;
-        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
-
-        return this.userRole.setPrimary(id, body, { actorUserId, ipAddr, userAgent });
+        assertTenantScopedOrPlatformAdmin(req?.user);
+        assertAdminOrOwnerManager(req?.user);
+        return this.userRole.setPrimary(id, body, mutationCtx(req));
     }
 
     /**
@@ -108,11 +116,8 @@ export class UserRoleController {
      */
     @Patch(':id/active')
     async setActive(@Param('id') id: string, @Body() body: SetActiveBody, @Req() req: any) {
-        const actorUserId = req?.user?.sub as string | undefined;
-
-        const ipAddr = (req?.ip as string | undefined) ?? null;
-        const userAgent = (req?.headers?.['user-agent'] as string | undefined) ?? null;
-
-        return this.userRole.setActive(id, body, { actorUserId, ipAddr, userAgent });
+        assertTenantScopedOrPlatformAdmin(req?.user);
+        assertAdminOrOwnerManager(req?.user);
+        return this.userRole.setActive(id, body, mutationCtx(req));
     }
 }

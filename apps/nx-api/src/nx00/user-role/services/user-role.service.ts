@@ -13,7 +13,7 @@
  * - 為寫入 AuditLog，Controller 會傳入 ctx（actorUserId/ipAddr/userAgent）
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditLogService } from '../../audit-log/services/audit-log.service';
 import type {
@@ -24,6 +24,7 @@ import type {
     SetActiveBody,
     SetPrimaryBody,
     UserRoleDto,
+    UserRoleReadScope,
 } from '../dto/user-role.dto';
 
 // Prisma error codes
@@ -72,6 +73,8 @@ function toDto(row: UserRoleRow): UserRoleDto {
  */
 export type UserRoleActionContext = {
     actorUserId?: string;
+    /** 租戶操作者之 tenantId；null 表平台（可跨租戶） */
+    actorTenantId?: string | null;
     ipAddr?: string | null;
     userAgent?: string | null;
 };
@@ -83,15 +86,26 @@ export class UserRoleService {
         private readonly audit: AuditLogService,
     ) { }
 
-    async list(query: ListUserRoleQuery): Promise<PagedResult<UserRoleDto>> {
+    /** 租戶使用者僅能操作同租戶資料；actorTenantId === null 視為平台 */
+    private assertActorTenant(ctx: UserRoleActionContext | undefined, resourceTenantId: string): void {
+        const actorTid = ctx?.actorTenantId;
+        if (actorTid != null && actorTid !== resourceTenantId) {
+            throw new ForbiddenException('Operation not permitted for this tenant');
+        }
+    }
+
+    async list(query: ListUserRoleQuery, scope?: UserRoleReadScope): Promise<PagedResult<UserRoleDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
-        const where: any = {};
-        if (query.userId) where.userId = query.userId;
-        if (query.roleId) where.roleId = query.roleId;
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        const search: any = {};
+        if (query.userId) search.userId = query.userId;
+        if (query.roleId) search.roleId = query.roleId;
+        if (typeof query.isActive === 'boolean') search.isActive = query.isActive;
+
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const where = tid !== null ? { AND: [{ tenantId: tid }, search] } : search;
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00UserRole.count({ where }),
@@ -116,7 +130,7 @@ export class UserRoleService {
         };
     }
 
-    async get(id: string): Promise<UserRoleDto> {
+    async get(id: string, scope?: UserRoleReadScope): Promise<UserRoleDto> {
         const row = await this.prisma.nx00UserRole.findUnique({
             where: { id },
             include: {
@@ -127,6 +141,8 @@ export class UserRoleService {
         });
 
         if (!row) throw new NotFoundException('UserRole not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('UserRole not found');
         return toDto(row as unknown as UserRoleRow);
     }
 
@@ -152,6 +168,7 @@ export class UserRoleService {
                 if (!u) throw new BadRequestException('User not found');
                 if (!r) throw new BadRequestException('Role not found');
                 if (u.tenantId !== r.tenantId) throw new BadRequestException('User and role tenant mismatch');
+                this.assertActorTenant(ctx, u.tenantId);
 
                 // 如果指定 primary=true，先把同 user 其他 active 的 primary 清掉
                 let beforePrimary: any[] = [];
@@ -237,6 +254,7 @@ export class UserRoleService {
             },
         });
         if (!exists) throw new NotFoundException('UserRole not found');
+        this.assertActorTenant(ctx, exists.tenantId);
 
         const revokedAt = body.revokedAt ? new Date(body.revokedAt) : new Date();
         if (Number.isNaN(revokedAt.getTime())) throw new BadRequestException('Invalid revokedAt');
@@ -300,6 +318,7 @@ export class UserRoleService {
         });
         if (!exists) throw new NotFoundException('UserRole not found');
         if (!exists.isActive) throw new BadRequestException('Inactive userRole cannot be primary');
+        this.assertActorTenant(ctx, exists.tenantId);
 
         const isPrimary = Boolean(body.isPrimary);
 
@@ -374,6 +393,7 @@ export class UserRoleService {
             },
         });
         if (!exists) throw new NotFoundException('UserRole not found');
+        this.assertActorTenant(ctx, exists.tenantId);
 
         const isActive = Boolean(body.isActive);
 

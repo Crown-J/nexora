@@ -16,3 +16,11 @@ export function assertTenantScopedOrPlatformAdmin(user: JwtUserForRead | undefin
         throw new ForbiddenException('Missing tenant scope for this resource');
     }
 }
+
+/** 使用者職務指派等：須為系統管理員或負責人（依 JWT validate 載入之 roles） */
+export function assertAdminOrOwnerManager(user: JwtUserForRead | undefined): void {
+    const roles = user?.roles ?? [];
+    if (!roles.includes('ADMIN') && !roles.includes('OWNER')) {
+        throw new ForbiddenException('需要系統管理員或負責人權限');
+    }
+}
