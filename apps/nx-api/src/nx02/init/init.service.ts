@@ -52,9 +52,44 @@ function roundMoney2(x: Prisma.Decimal): Prisma.Decimal {
   return new Prisma.Decimal(x.toFixed(2, Prisma.Decimal.ROUND_HALF_UP));
 }
 
+/** 與 getById findFirst 的 include 一致，供 mapInitRowToDetail 使用 */
+const initDetailInclude = {
+  warehouse: { select: { id: true, code: true, name: true } as const },
+  items: { orderBy: { lineNo: 'asc' as const } },
+} as const;
+
+type InitDetailRow = Prisma.Nx02InitGetPayload<{ include: typeof initDetailInclude }>;
+
 @Injectable()
 export class InitService {
   constructor(private readonly prisma: PrismaService) { }
+
+  private mapInitRowToDetail(row: InitDetailRow) {
+    return {
+      id: row.id,
+      docNo: row.docNo,
+      warehouseId: row.warehouseId,
+      warehouseName: row.warehouse.name,
+      initDate: row.initDate.toISOString().slice(0, 10),
+      status: row.status,
+      remark: row.remark,
+      createdAt: row.createdAt.toISOString(),
+      postedAt: row.postedAt?.toISOString() ?? null,
+      voidedAt: row.voidedAt?.toISOString() ?? null,
+      items: row.items.map((it) => ({
+        id: it.id,
+        lineNo: it.lineNo,
+        partId: it.partId,
+        partNo: it.partNo,
+        partName: it.partName,
+        locationId: it.locationId,
+        qty: it.qty.toNumber(),
+        unitCost: it.unitCost.toNumber(),
+        totalCost: it.totalCost.toNumber(),
+        remark: it.remark,
+      })),
+    };
+  }
 
   /**
    * @FUNCTION_CODE NX02-INIT-SVC-001-F01
@@ -111,36 +146,10 @@ export class InitService {
   async getById(tenantId: string, id: string) {
     const row = await this.prisma.nx02Init.findFirst({
       where: { id, tenantId },
-      include: {
-        warehouse: { select: { id: true, code: true, name: true } },
-        items: { orderBy: { lineNo: 'asc' } },
-      },
+      include: initDetailInclude,
     });
     if (!row) throw new NotFoundException('開帳存不存在');
-    return {
-      id: row.id,
-      docNo: row.docNo,
-      warehouseId: row.warehouseId,
-      warehouseName: row.warehouse.name,
-      initDate: row.initDate.toISOString().slice(0, 10),
-      status: row.status,
-      remark: row.remark,
-      createdAt: row.createdAt.toISOString(),
-      postedAt: row.postedAt?.toISOString() ?? null,
-      voidedAt: row.voidedAt?.toISOString() ?? null,
-      items: row.items.map((it) => ({
-        id: it.id,
-        lineNo: it.lineNo,
-        partId: it.partId,
-        partNo: it.partNo,
-        partName: it.partName,
-        locationId: it.locationId,
-        qty: it.qty.toNumber(),
-        unitCost: it.unitCost.toNumber(),
-        totalCost: it.totalCost.toNumber(),
-        remark: it.remark,
-      })),
-    };
+    return this.mapInitRowToDetail(row);
   }
 
   private async assertWarehouse(tenantId: string, warehouseId: string) {
@@ -222,7 +231,7 @@ export class InitService {
     const initDate = parseYmd(body.initDate);
     const payloads = await this.buildItemsPayload(tenantId, wh.id, body.items);
 
-    const newId = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       const docNo = await allocateInitDocNo(tx, tenantId, initDate, wh.code);
       const doc = await tx.nx02Init.create({
         data: {
@@ -250,12 +259,14 @@ export class InitService {
             })),
           },
         },
-        include: { items: true },
       });
-      return doc.id;
+      const row = await tx.nx02Init.findFirst({
+        where: { id: doc.id, tenantId },
+        include: initDetailInclude,
+      });
+      if (!row) throw new NotFoundException('開帳存不存在');
+      return this.mapInitRowToDetail(row);
     });
-    // 須在 transaction 提交後再查：否則另一條連線讀不到未提交列，會誤拋 404「開帳存不存在」
-    return this.getById(tenantId, newId);
   }
 
   /**
@@ -268,7 +279,7 @@ export class InitService {
 
     const initDate = body.initDate ? parseYmd(body.initDate) : undefined;
 
-    await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       if (body.items) {
         const payloads = await this.buildItemsPayload(tenantId, existing.warehouseId, body.items);
         await tx.nx02InitItem.deleteMany({ where: { initId: id } });
@@ -303,8 +314,14 @@ export class InitService {
           updatedBy: userId ?? null,
         },
       });
+
+      const row = await tx.nx02Init.findFirst({
+        where: { id, tenantId },
+        include: initDetailInclude,
+      });
+      if (!row) throw new NotFoundException('開帳存不存在');
+      return this.mapInitRowToDetail(row);
     });
-    return this.getById(tenantId, id);
   }
 
   /**

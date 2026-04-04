@@ -39,9 +39,49 @@ function roundMoney2(x: Prisma.Decimal): Prisma.Decimal {
   return new Prisma.Decimal(x.toFixed(2, Prisma.Decimal.ROUND_HALF_UP));
 }
 
+const stockTakeDetailInclude = {
+  warehouse: { select: { id: true, code: true, name: true } as const },
+  items: { orderBy: { lineNo: 'asc' as const } },
+} as const;
+
+type StockTakeDetailRow = Prisma.Nx02StockTakeGetPayload<{ include: typeof stockTakeDetailInclude }>;
+
 @Injectable()
 export class StockTakeService {
   constructor(private readonly prisma: PrismaService) { }
+
+  private mapStockTakeRowToDetail(row: StockTakeDetailRow) {
+    return {
+      id: row.id,
+      docNo: row.docNo,
+      warehouseId: row.warehouseId,
+      warehouseName: row.warehouse.name,
+      stockTakeDate: row.stockTakeDate.toISOString().slice(0, 10),
+      scopeType: row.scopeType,
+      status: row.status,
+      remark: row.remark,
+      createdAt: row.createdAt.toISOString(),
+      postedAt: row.postedAt?.toISOString() ?? null,
+      voidedAt: row.voidedAt?.toISOString() ?? null,
+      items: row.items.map((it) => ({
+        id: it.id,
+        lineNo: it.lineNo,
+        partId: it.partId,
+        partNo: it.partNo,
+        partName: it.partName,
+        warehouseId: it.warehouseId,
+        locationId: it.locationId,
+        systemQty: it.systemQty.toNumber(),
+        countedQty: it.countedQty?.toNumber() ?? null,
+        diffQty: it.diffQty.toNumber(),
+        unitCost: it.unitCost.toNumber(),
+        diffCost: it.diffCost.toNumber(),
+        adjustType: it.adjustType,
+        status: it.status,
+        remark: it.remark,
+      })),
+    };
+  }
 
   /**
    * @FUNCTION_CODE NX02-STTK-SVC-001-F01
@@ -94,42 +134,10 @@ export class StockTakeService {
   async getById(tenantId: string, id: string) {
     const row = await this.prisma.nx02StockTake.findFirst({
       where: { id, tenantId },
-      include: {
-        warehouse: { select: { id: true, code: true, name: true } },
-        items: { orderBy: { lineNo: 'asc' } },
-      },
+      include: stockTakeDetailInclude,
     });
     if (!row) throw new NotFoundException('盤點單不存在');
-    return {
-      id: row.id,
-      docNo: row.docNo,
-      warehouseId: row.warehouseId,
-      warehouseName: row.warehouse.name,
-      stockTakeDate: row.stockTakeDate.toISOString().slice(0, 10),
-      scopeType: row.scopeType,
-      status: row.status,
-      remark: row.remark,
-      createdAt: row.createdAt.toISOString(),
-      postedAt: row.postedAt?.toISOString() ?? null,
-      voidedAt: row.voidedAt?.toISOString() ?? null,
-      items: row.items.map((it) => ({
-        id: it.id,
-        lineNo: it.lineNo,
-        partId: it.partId,
-        partNo: it.partNo,
-        partName: it.partName,
-        warehouseId: it.warehouseId,
-        locationId: it.locationId,
-        systemQty: it.systemQty.toNumber(),
-        countedQty: it.countedQty?.toNumber() ?? null,
-        diffQty: it.diffQty.toNumber(),
-        unitCost: it.unitCost.toNumber(),
-        diffCost: it.diffCost.toNumber(),
-        adjustType: it.adjustType,
-        status: it.status,
-        remark: it.remark,
-      })),
-    };
+    return this.mapStockTakeRowToDetail(row);
   }
 
   /**
@@ -203,7 +211,7 @@ export class StockTakeService {
       }
     }
 
-    const newId = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       const docNo = await allocateStockTakeDocNo(tx, tenantId, stDate, wh.code);
       const doc = await tx.nx02StockTake.create({
         data: {
@@ -238,9 +246,13 @@ export class StockTakeService {
           },
         },
       });
-      return doc.id;
+      const row = await tx.nx02StockTake.findFirst({
+        where: { id: doc.id, tenantId },
+        include: stockTakeDetailInclude,
+      });
+      if (!row) throw new NotFoundException('盤點單不存在');
+      return this.mapStockTakeRowToDetail(row);
     });
-    return this.getById(tenantId, newId);
   }
 
   /**
@@ -259,7 +271,7 @@ export class StockTakeService {
     }
     if (!body.items?.length) throw new BadRequestException('items 不可為空');
 
-    await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       for (const it of body.items) {
         const line = await tx.nx02StockTakeItem.findFirst({
           where: { id: it.id, stockTakeId: id },
@@ -282,9 +294,13 @@ export class StockTakeService {
         where: { id },
         data: { status: 'C', updatedBy: userId ?? null },
       });
+      const row = await tx.nx02StockTake.findFirst({
+        where: { id, tenantId },
+        include: stockTakeDetailInclude,
+      });
+      if (!row) throw new NotFoundException('盤點單不存在');
+      return this.mapStockTakeRowToDetail(row);
     });
-
-    return this.getById(tenantId, id);
   }
 
   /**
