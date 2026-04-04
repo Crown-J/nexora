@@ -203,7 +203,7 @@ export class StockTakeService {
       }
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const newId = await this.prisma.$transaction(async (tx) => {
       const docNo = await allocateStockTakeDocNo(tx, tenantId, stDate, wh.code);
       const doc = await tx.nx02StockTake.create({
         data: {
@@ -238,8 +238,9 @@ export class StockTakeService {
           },
         },
       });
-      return this.getById(tenantId, doc.id);
+      return doc.id;
     });
+    return this.getById(tenantId, newId);
   }
 
   /**

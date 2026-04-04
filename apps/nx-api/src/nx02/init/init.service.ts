@@ -222,7 +222,7 @@ export class InitService {
     const initDate = parseYmd(body.initDate);
     const payloads = await this.buildItemsPayload(tenantId, wh.id, body.items);
 
-    return this.prisma.$transaction(async (tx) => {
+    const newId = await this.prisma.$transaction(async (tx) => {
       const docNo = await allocateInitDocNo(tx, tenantId, initDate, wh.code);
       const doc = await tx.nx02Init.create({
         data: {
@@ -252,8 +252,10 @@ export class InitService {
         },
         include: { items: true },
       });
-      return this.getById(tenantId, doc.id);
+      return doc.id;
     });
+    // 須在 transaction 提交後再查：否則另一條連線讀不到未提交列，會誤拋 404「開帳存不存在」
+    return this.getById(tenantId, newId);
   }
 
   /**
@@ -266,7 +268,7 @@ export class InitService {
 
     const initDate = body.initDate ? parseYmd(body.initDate) : undefined;
 
-    return this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       if (body.items) {
         const payloads = await this.buildItemsPayload(tenantId, existing.warehouseId, body.items);
         await tx.nx02InitItem.deleteMany({ where: { initId: id } });
@@ -301,9 +303,8 @@ export class InitService {
           updatedBy: userId ?? null,
         },
       });
-
-      return this.getById(tenantId, id);
     });
+    return this.getById(tenantId, id);
   }
 
   /**
