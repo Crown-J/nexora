@@ -1018,10 +1018,13 @@ export function BasePartnerMasterView() {
         onNext={goDetailNext}
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
+        modalSizeClassName="w-[min(92vw,44rem)]"
       >
         <div className="mt-4">
-            <div className="space-y-3 pb-2">
-              <div className="grid gap-4 sm:grid-cols-2">
+          <div className="mx-auto w-full max-w-2xl space-y-5 pb-2">
+            <section className="rounded-xl border border-border/60 bg-muted/5 p-4 dark:bg-muted/10">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">基本資料</p>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor={`${titleId}-code`}>客戶代碼</Label>
                   <Input
@@ -1044,22 +1047,28 @@ export function BasePartnerMasterView() {
                     autoComplete="off"
                   />
                 </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${titleId}-pt`}>客戶類型</Label>
-                  <select
-                    id={`${titleId}-pt`}
-                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
-                    value={formValues.partnerType}
-                    disabled={!editing && !creating}
-                    onChange={(e) => setDraft((d) => ({ ...d, partnerType: e.target.value as PartnerType }))}
-                  >
-                    {PARTNER_TYPE_FORM_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              </div>
+              <div className="mt-3 max-w-xs space-y-2">
+                <Label htmlFor={`${titleId}-pt`}>客戶類型</Label>
+                <select
+                  id={`${titleId}-pt`}
+                  className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                  value={formValues.partnerType}
+                  disabled={!editing && !creating}
+                  onChange={(e) => setDraft((d) => ({ ...d, partnerType: e.target.value as PartnerType }))}
+                >
+                  {PARTNER_TYPE_FORM_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-border/60 bg-muted/5 p-4 dark:bg-muted/10">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">聯絡方式</p>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor={`${titleId}-cn`}>聯絡人</Label>
                   <Input
@@ -1111,7 +1120,7 @@ export function BasePartnerMasterView() {
                     className={!editing && !creating ? readonlyFieldCls : undefined}
                   />
                 </div>
-                <div className="flex items-center gap-2 pb-2 sm:col-span-2">
+                <div className="flex items-center gap-2 pb-1 sm:col-span-2">
                   <input
                     id={`${titleId}-active`}
                     type="checkbox"
@@ -1125,7 +1134,8 @@ export function BasePartnerMasterView() {
                   </Label>
                 </div>
               </div>
-            </div>
+            </section>
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">

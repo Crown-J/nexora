@@ -26,6 +26,7 @@ import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
+import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
 import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
@@ -206,6 +207,7 @@ export function Nx00FlatMasterView({
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
+  const detailPanelRef = useRef<HTMLElement | null>(null);
   const PAGE_SIZE = 10;
 
   const { value: colPref, setValue: setColPref } = useListLocalPref<ColPref>(prefKey, 2, DEFAULT_COL_PREF);
@@ -453,6 +455,100 @@ export function Nx00FlatMasterView({
     if (slideDetailSubtitle !== undefined) return slideDetailSubtitle({ creating, selected: sel });
     return !creating && selected ? String(selected.name ?? '') : undefined;
   }, [slideDetailSubtitle, creating, selected]);
+
+  const detailFormFields = fields.filter((f) => f.edit !== false && f.detailForm !== false);
+
+  const detailFormGridClass = (f: FlatFieldDef) =>
+    cn(
+      f.type === 'bool' && 'sm:col-span-2',
+      f.optional && 'sm:col-span-2',
+      f.type === 'number' && 'sm:max-w-[10rem]',
+    );
+
+  const detailFormInner = (
+    <>
+      <p className="mb-2 text-xs text-muted-foreground">不顯示系統內碼 id。</p>
+      <div className="mt-1 flex min-h-0 flex-1 flex-col gap-0">
+        <div
+          className={cn(
+            'mt-3 min-h-0 flex-1 outline-none',
+            unifiedMasterShell ? 'space-y-4' : 'space-y-3 overflow-y-auto',
+          )}
+        >
+          {renderDetailExtras
+            ? renderDetailExtras({ draft, setDraft, creating, selected: selected ?? null })
+            : null}
+          <div className={unifiedMasterShell ? 'grid gap-3 sm:grid-cols-2' : 'contents'}>
+            {detailFormFields.map((f) => {
+              const opts = selectOptions?.[f.key];
+              const readOnlyLocked = f.createOnly && !creating;
+              return (
+                <div key={f.key} className={unifiedMasterShell ? detailFormGridClass(f) : undefined}>
+                  <Label>{f.label}</Label>
+                  {readOnlyLocked ? (
+                    <Input className="mt-2 bg-muted/40" readOnly value={draft[f.key] ?? ''} />
+                  ) : f.type === 'bool' ? (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={draft[f.key] === '1'}
+                        onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.checked ? '1' : '0' }))}
+                        className="size-4 rounded border border-input accent-primary"
+                      />
+                    </div>
+                  ) : opts && opts.length > 0 ? (
+                    <select
+                      className="nx-native-select mt-2 flex h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                      value={draft[f.key] ?? ''}
+                      onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                    >
+                      <option value="">— 請選擇 —</option>
+                      {opts.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      className="mt-2"
+                      type={f.type === 'number' ? 'number' : 'text'}
+                      value={draft[f.key] ?? ''}
+                      onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  const detailFooter = (
+    <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => (creating ? setDraft(emptyDraft()) : setDraft({ ...baseline }))}
+        disabled={!dirty || saving}
+      >
+        還原
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        disabled={!dirty || saving}
+        onClick={() => {
+          if (dirty) setSaveConfirmOpen(true);
+        }}
+      >
+        {saving ? '儲存中…' : '儲存'}
+      </Button>
+    </div>
+  );
 
   return (
     <>
@@ -827,100 +923,52 @@ export function Nx00FlatMasterView({
         </section>
       </div>
 
-      <BaseMasterSlideAside
-        open={panelOpen}
-        detailFullscreen={detailFullscreen}
-        onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
-        onClose={closeDetailFull}
-        titleId={`${prefKey}-detail-title`}
-        title={slideTitleResolved}
-        subtitle={slideSubtitleResolved ?? undefined}
-        navPrev={
-          !creating && selectedIdx >= 0
-            ? { onClick: goDetailPrev, disabled: selectedIdx <= 0 }
-            : undefined
-        }
-        navNext={
-          !creating && selectedIdx >= 0
-            ? { onClick: goDetailNext, disabled: selectedIdx >= sortedRows.length - 1 }
-            : undefined
-        }
-        footer={
-          <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => (creating ? setDraft(emptyDraft()) : setDraft({ ...baseline }))}
-              disabled={!dirty || saving}
-            >
-              還原
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={!dirty || saving}
-              onClick={() => {
-                if (dirty) setSaveConfirmOpen(true);
-              }}
-            >
-              {saving ? '儲存中…' : '儲存'}
-            </Button>
+      {unifiedMasterShell ? (
+        <BaseMasterModalFrame
+          open={panelOpen}
+          detailPanelRef={detailPanelRef}
+          detailFullscreen={detailFullscreen}
+          onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
+          onClose={closeDetailFull}
+          titleId={`${prefKey}-detail-title`}
+          title={slideTitleResolved}
+          subtitle={slideSubtitleResolved ?? undefined}
+          showPrevNext={!creating && selectedIdx >= 0}
+          onPrev={goDetailPrev}
+          onNext={goDetailNext}
+          disablePrev={selectedIdx <= 0}
+          disableNext={selectedIdx >= sortedRows.length - 1}
+          modalSizeClassName="w-[min(92vw,42rem)]"
+        >
+          <div className="mt-4 min-h-0 flex-1">
+            <div className="mx-auto w-full max-w-2xl">{detailFormInner}</div>
+            {detailFooter}
           </div>
-        }
-      >
-        <p className="mb-2 text-xs text-muted-foreground">不顯示系統內碼 id。</p>
-        <div className="mt-1 flex min-h-0 flex-1 flex-col gap-0">
-          <div className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto outline-none">
-            {renderDetailExtras
-              ? renderDetailExtras({ draft, setDraft, creating, selected: selected ?? null })
-              : null}
-            {fields
-              .filter((f) => f.edit !== false && f.detailForm !== false)
-              .map((f) => {
-                const opts = selectOptions?.[f.key];
-                const readOnlyLocked = f.createOnly && !creating;
-                return (
-                  <div key={f.key}>
-                    <Label>{f.label}</Label>
-                    {readOnlyLocked ? (
-                      <Input className="mt-2 bg-muted/40" readOnly value={draft[f.key] ?? ''} />
-                    ) : f.type === 'bool' ? (
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={draft[f.key] === '1'}
-                          onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.checked ? '1' : '0' }))}
-                          className="size-4 rounded border border-input"
-                        />
-                      </div>
-                    ) : opts && opts.length > 0 ? (
-                      <select
-                        className="nx-native-select mt-2 flex h-10 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                        value={draft[f.key] ?? ''}
-                        onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
-                      >
-                        <option value="">— 請選擇 —</option>
-                        {opts.map((o) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input
-                        className="mt-2"
-                        type={f.type === 'number' ? 'number' : 'text'}
-                        value={draft[f.key] ?? ''}
-                        onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      </BaseMasterSlideAside>
+        </BaseMasterModalFrame>
+      ) : (
+        <BaseMasterSlideAside
+          open={panelOpen}
+          detailFullscreen={detailFullscreen}
+          onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
+          onClose={closeDetailFull}
+          titleId={`${prefKey}-detail-title`}
+          title={slideTitleResolved}
+          subtitle={slideSubtitleResolved ?? undefined}
+          navPrev={
+            !creating && selectedIdx >= 0
+              ? { onClick: goDetailPrev, disabled: selectedIdx <= 0 }
+              : undefined
+          }
+          navNext={
+            !creating && selectedIdx >= 0
+              ? { onClick: goDetailNext, disabled: selectedIdx >= sortedRows.length - 1 }
+              : undefined
+          }
+          footer={detailFooter}
+        >
+          {detailFormInner}
+        </BaseMasterSlideAside>
+      )}
 
       <MasterSaveConfirmDialog
         open={saveConfirmOpen}
