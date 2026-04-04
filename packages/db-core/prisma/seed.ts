@@ -618,9 +618,124 @@ function defaultBrandRuleKey(partBrandCode: string): string {
   return k;
 }
 
+/** 依 codeRuleId 快取規則（seedParts 每租戶開始會 clear） */
+const seedRuleDetailCache = new Map<
+  string,
+  { seg1: number; seg2: number; seg3: number; seg4: number; seg5: number; brandCode: string }
+>();
+
+function clearSeedRuleDetailCache(): void {
+  seedRuleDetailCache.clear();
+}
+
+async function getCachedRuleDetail(codeRuleId: string) {
+  const hit = seedRuleDetailCache.get(codeRuleId);
+  if (hit) return hit;
+  const row = await prisma.nx00BrandCodeRule.findUnique({
+    where: { id: codeRuleId },
+    include: { partBrand: { select: { code: true } } },
+  });
+  if (!row) throw new Error(`seed: missing nx00_brand_code_rule id=${codeRuleId}`);
+  const d = {
+    seg1: row.seg1,
+    seg2: row.seg2,
+    seg3: row.seg3,
+    seg4: row.seg4,
+    seg5: row.seg5,
+    brandCode: row.partBrand?.code ?? 'UNK',
+  };
+  seedRuleDetailCache.set(codeRuleId, d);
+  return d;
+}
+
+/** 僅保留英數，供 VAG／OEM／BOS 等分段 */
+function splitRawAlnumByWidths(raw: string, widths: number[]): string[] {
+  const s = raw.replace(/[^A-Za-z0-9]/g, '');
+  const w = widths.filter((n) => n > 0);
+  if (w.length === 0) return s ? [s] : [];
+  const parts: string[] = [];
+  let pos = 0;
+  for (let i = 0; i < w.length; i++) {
+    if (pos >= s.length) break;
+    if (i === w.length - 1) {
+      parts.push(s.slice(pos));
+      break;
+    }
+    parts.push(s.slice(pos, pos + w[i]!));
+    pos += w[i]!;
+  }
+  return parts.filter((p) => p.length > 0);
+}
+
+/**
+ * MANN：前 seg1 個「英數字元」切在原文位置，餘下保留斜線等（例 W712/75 → W7 + 12/75）
+ */
+function splitMannStyleRaw(raw: string, seg1Width: number): string[] {
+  const t = raw.trim();
+  if (seg1Width <= 0) return t ? [t] : [];
+  let alnumCount = 0;
+  let cut = 0;
+  for (let i = 0; i < t.length; i++) {
+    if (/[A-Za-z0-9]/.test(t.charAt(i))) {
+      alnumCount++;
+      if (alnumCount >= seg1Width) {
+        cut = i + 1;
+        break;
+      }
+    }
+  }
+  const a = t.slice(0, cut);
+  const b = t.slice(cut).trim();
+  const out = [a, b].filter((x) => x.length > 0);
+  return out.length ? out : t ? [t] : [];
+}
+
+function buildPartCodeAndSegStrings(
+  rawMaterial: string,
+  detail: { seg1: number; seg2: number; seg3: number; seg4: number; seg5: number; brandCode: string },
+): { code: string; seg1: string | null; seg2: string | null; seg3: string | null; seg4: string | null; seg5: string | null } {
+  const widths = [detail.seg1, detail.seg2, detail.seg3, detail.seg4, detail.seg5];
+  const positive = widths.filter((n) => n > 0);
+  const isMannStyle =
+    detail.brandCode === 'MAN' ||
+    (positive.length === 2 && detail.seg1 === 2 && detail.seg2 > 0 && detail.seg3 === 0 && detail.seg4 === 0 && detail.seg5 === 0);
+
+  const pieces = isMannStyle ? splitMannStyleRaw(rawMaterial, detail.seg1) : splitRawAlnumByWidths(rawMaterial, widths);
+
+  const code = `${detail.brandCode}-${pieces.join(' ')}`;
+  return {
+    code,
+    seg1: pieces[0] ?? null,
+    seg2: pieces[1] ?? null,
+    seg3: pieces[2] ?? null,
+    seg4: pieces[3] ?? null,
+    seg5: pieces[4] ?? null,
+  };
+}
+
+async function materialToPartCodeAndSegs(rawMaterial: string, codeRuleId: string) {
+  const detail = await getCachedRuleDetail(codeRuleId);
+  return buildPartCodeAndSegStrings(rawMaterial.trim(), detail);
+}
+
+/** 依 ruleMap 將原始料號轉成與 nx00_part.code 相同的展示字串（part_relation 用） */
+async function resolveSeedPartDisplayCode(
+  rawMaterial: string,
+  partBrandCode: string,
+  ruleMap: Map<string, string>,
+  ruleMapKey?: string,
+): Promise<string> {
+  const rk = ruleMapKey ?? defaultBrandRuleKey(partBrandCode);
+  const codeRuleId = ruleMap.get(rk);
+  if (!codeRuleId) throw new Error(`seed: missing brand code rule id for key ${rk}`);
+  const { code } = await materialToPartCodeAndSegs(rawMaterial, codeRuleId);
+  return code;
+}
+
 async function upsertPart(
   tenantId: string,
   p: {
+    /** 原始料號（英數或 MANN 含 /）；系統依編碼規則組合 code */
     code: string;
     name: string;
     isOem: boolean;
@@ -641,8 +756,9 @@ async function upsertPart(
   const rk = p.ruleMapKey ?? defaultBrandRuleKey(p.partBrandCode);
   const codeRuleId = ruleMap.get(rk);
   if (!codeRuleId) throw new Error(`seed: missing brand code rule id for key ${rk}`);
+  const { code: displayCode, seg1, seg2, seg3, seg4, seg5 } = await materialToPartCodeAndSegs(p.code, codeRuleId);
   await prisma.nx00Part.upsert({
-    where: { tenantId_code_countryId: { tenantId, code: p.code, countryId: p.countryId } },
+    where: { tenantId_code_countryId: { tenantId, code: displayCode, countryId: p.countryId } },
     update: {
       name: p.name,
       isOem: p.isOem,
@@ -653,11 +769,16 @@ async function upsertPart(
       codeRuleId,
       tenantId,
       isActive: true,
+      seg1,
+      seg2,
+      seg3,
+      seg4,
+      seg5,
     },
     create: {
       tenantId,
       codeRuleId,
-      code: p.code,
+      code: displayCode,
       name: p.name,
       isOem: p.isOem,
       uom: p.uom,
@@ -665,6 +786,11 @@ async function upsertPart(
       partGroupId: pg,
       countryId: p.countryId,
       isActive: true,
+      seg1,
+      seg2,
+      seg3,
+      seg4,
+      seg5,
     },
   });
 }
@@ -680,6 +806,7 @@ async function seedParts(
   groupMap: Map<string, string>,
   ruleMap: Map<string, string>,
 ): Promise<void> {
+  clearSeedRuleDetailCache();
   const oil = [
     '8K0115561',
     '06L115561',
@@ -925,7 +1052,7 @@ async function seedParts(
   await upsertPart(
     tenantId,
     {
-      code: '8K0-819-439B',
+      code: '8K0819439B',
       name: '冷氣濾網（展示：同料號 DEU）',
       isOem: true,
       uom: 'pcs',
@@ -941,7 +1068,7 @@ async function seedParts(
   await upsertPart(
     tenantId,
     {
-      code: '8K0-819-439B',
+      code: '8K0819439B',
       name: '冷氣濾網（展示：同料號 CHN）',
       isOem: true,
       uom: 'pcs',
@@ -957,7 +1084,7 @@ async function seedParts(
   await upsertPart(
     tenantId,
     {
-      code: '06L-115-561',
+      code: '06L115561',
       name: '機油濾芯（展示：同料號 DEU）',
       isOem: true,
       uom: 'pcs',
@@ -973,7 +1100,7 @@ async function seedParts(
   await upsertPart(
     tenantId,
     {
-      code: '06L-115-561',
+      code: '06L115561',
       name: '機油濾芯（展示：同料號 CHN）',
       isOem: true,
       uom: 'pcs',
@@ -993,20 +1120,26 @@ async function seedParts(
 /**
  * @FUNCTION_CODE NX00-SEED-SVC-001-F14
  */
-async function seedPartRelations(tenantId: string, countryIdDeu: string): Promise<void> {
-  const pairs: [string, string, string][] = [
-    ['8K0115561', '06L115561', 'S'],
-    ['8K0819439B', '8P0819439', 'S'],
-    ['8K0698151A', '8K0698151B', 'S'],
-    ['8K0412021AF', '8K0412022AF', 'R'],
-    ['8K0505431L', '8K0505432L', 'R'],
-    ['06H109243', '06H109244', 'R'],
-    ['8K0959455L', '8K0959455M', 'S'],
-    ['8K0959455M', '8K0959455P', 'S'],
-    ['8K1955426', '8K1955427', 'R'],
-    ['8K0615301L', '8K0615302L', 'R'],
+async function seedPartRelations(
+  tenantId: string,
+  countryIdDeu: string,
+  ruleMap: Map<string, string>,
+): Promise<void> {
+  const pairs: [string, string, string, string, string][] = [
+    ['8K0115561', '06L115561', 'VAG', 'VAG', 'S'],
+    ['8K0819439B', '8P0819439', 'VAG', 'VAG', 'S'],
+    ['8K0698151A', '8K0698151B', 'VAG', 'VAG', 'S'],
+    ['8K0412021AF', '8K0412022AF', 'VAG', 'VAG', 'R'],
+    ['8K0505431L', '8K0505432L', 'VAG', 'VAG', 'R'],
+    ['06H109243', '06H109244', 'OEM', 'OEM', 'R'],
+    ['8K0959455L', '8K0959455M', 'VAG', 'VAG', 'S'],
+    ['8K0959455M', '8K0959455P', 'VAG', 'VAG', 'S'],
+    ['8K1955426', '8K1955427', 'VAG', 'VAG', 'R'],
+    ['8K0615301L', '8K0615302L', 'VAG', 'VAG', 'R'],
   ];
-  for (const [fromC, toC, rt] of pairs) {
+  for (const [fromR, toR, brandFrom, brandTo, rt] of pairs) {
+    const fromC = await resolveSeedPartDisplayCode(fromR, brandFrom, ruleMap);
+    const toC = await resolveSeedPartDisplayCode(toR, brandTo, ruleMap);
     const fromP = await prisma.nx00Part.findUnique({
       where: { tenantId_code_countryId: { tenantId, code: fromC, countryId: countryIdDeu } },
       select: { id: true },
@@ -1164,7 +1297,7 @@ async function seedDemoData(tenantId: string, users: DemoUserSeed[]): Promise<vo
   await seedPartners(tenantId);
   const ruleMap = await seedBrandCodeRules(tenantId, brandMap);
   await seedParts(tenantId, deuId, chnId, brandMap, groupMap, ruleMap);
-  await seedPartRelations(tenantId, deuId);
+  await seedPartRelations(tenantId, deuId, ruleMap);
   await seedBulletins(tenantId);
   await seedCalendarEvents(tenantId);
   console.log(`✅ NX00-SEED-SVC-001-F17 seedDemoData 完成 tenant=${tenantId.slice(0, 8)}…`);

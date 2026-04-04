@@ -105,7 +105,7 @@ Phase 3：清除 Railway DB → 套用 migration → 重新 seed → 驗收
 ### 修改 2：seedParts
 
 - 每筆 `codeRuleId`；多數 `countryId = DEU`
-- 展示：同 code `8K0-819-439B` 與 `06L-115-561` 各 DEU + CHN
+- 展示：同「展示用料號」**`VAG-8K0 819 439 B`** 與 **`VAG-06L 115 561`**（原始 **`8K0819439B`**／**`06L115561`** 依規則組合）各 DEU + CHN
 
 ### 修改 3：seedUserWarehouses
 
