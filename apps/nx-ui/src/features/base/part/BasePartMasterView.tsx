@@ -37,6 +37,7 @@ import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import { listBrand } from '@/features/nx00/brand/api/brand';
 import type { BrandDto } from '@/features/nx00/brand/types';
+import { useBrandCodeRuleLookup } from '@/features/nx00/lookup/hooks/useBrandCodeRuleLookup';
 import { createPart, listPart, setPartActive, updatePart } from '@/features/nx00/part/api/part';
 import type { PartDto } from '@/features/nx00/part/types';
 import { apiFetch } from '@/shared/api/client';
@@ -52,10 +53,11 @@ import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRo
 
 const PAGE_SIZE = 10;
 const LIST_COL_PREF_KEY = 'base.part.listcols';
-const LIST_COL_PREF_VERSION = 3;
+const LIST_COL_PREF_VERSION = 4;
 
 type ListColKey =
   | 'sku'
+  | 'codeRuleName'
   | 'secCode'
   | 'name'
   | 'brandName'
@@ -83,6 +85,7 @@ type OemFilter = 'all' | 'oem' | 'aftermarket';
 
 const ALL_LIST_COLS: ListColKey[] = [
   'sku',
+  'codeRuleName',
   'secCode',
   'name',
   'brandName',
@@ -106,6 +109,7 @@ const ALL_LIST_COLS: ListColKey[] = [
 
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   sku: { label: '基準料號', locked: true },
+  codeRuleName: { label: '編碼規則' },
   secCode: { label: '廠牌料號' },
   name: { label: '品名' },
   brandName: { label: '廠牌' },
@@ -172,6 +176,7 @@ function isRadixFilterMenuOpen(): boolean {
 }
 
 type Draft = {
+  codeRuleId: string;
   sku: string;
   name: string;
   spec: string;
@@ -192,6 +197,7 @@ type Draft = {
 
 function emptyDraft(): Draft {
   return {
+    codeRuleId: '',
     sku: '',
     name: '',
     spec: '',
@@ -213,6 +219,7 @@ function emptyDraft(): Draft {
 
 function fromRow(r: BasePartRow): Draft {
   return {
+    codeRuleId: r.codeRuleId,
     sku: r.sku,
     name: r.name,
     spec: r.spec,
@@ -237,6 +244,8 @@ function dtoToRow(p: PartDto): BasePartRow {
   const ubName = p.updatedByName ?? null;
   return {
     id: p.id,
+    codeRuleId: p.codeRuleId,
+    codeRuleName: p.codeRuleName ?? null,
     sku: p.code,
     name: p.name,
     spec: p.spec ?? '',
@@ -288,6 +297,7 @@ function partGroupDisplay(r: BasePartRow): string {
 export function BasePartMasterView() {
   const router = useRouter();
   const pathname = usePathname();
+  const ruleLookup = useBrandCodeRuleLookup();
   const [rows, setRows] = useState<BasePartRow[]>([]);
   const [brands, setBrands] = useState<BrandDto[]>([]);
   const [keyword, setKeyword] = useState('');
@@ -408,7 +418,7 @@ export function BasePartMasterView() {
       if (oemFilter === 'aftermarket' && r.isOem) return false;
       if (k) {
         const blob =
-          `${r.sku} ${r.name} ${r.spec} ${brandLabel(r)} ${partTypeLabel(r.partType)} ${r.secCode ?? ''} ${countryDisplay(r)} ${partGroupDisplay(r)} ${r.seg1 ?? ''} ${r.seg2 ?? ''} ${r.seg3 ?? ''} ${r.seg4 ?? ''} ${r.seg5 ?? ''} ${r.unit} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
+          `${r.sku} ${r.codeRuleName ?? ''} ${r.name} ${r.spec} ${brandLabel(r)} ${partTypeLabel(r.partType)} ${r.secCode ?? ''} ${countryDisplay(r)} ${partGroupDisplay(r)} ${r.seg1 ?? ''} ${r.seg2 ?? ''} ${r.seg3 ?? ''} ${r.seg4 ?? ''} ${r.seg5 ?? ''} ${r.unit} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
       return true;
@@ -429,6 +439,8 @@ export function BasePartMasterView() {
       switch (sk) {
         case 'sku':
           return mult * a.sku.localeCompare(b.sku, 'zh-Hant');
+        case 'codeRuleName':
+          return mult * (a.codeRuleName ?? '').localeCompare(b.codeRuleName ?? '', 'zh-Hant');
         case 'name':
           return mult * a.name.localeCompare(b.name, 'zh-Hant');
         case 'brandName':
@@ -692,6 +704,11 @@ export function BasePartMasterView() {
   const performSave = async () => {
     const sku = draft.sku.trim();
     if (!sku) return;
+    const crid = draft.codeRuleId.trim();
+    if (creating && !crid) {
+      setError('請選擇編碼規則（codeRuleId）');
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -718,7 +735,7 @@ export function BasePartMasterView() {
         partGroupId: draft.partGroupId,
       };
       if (creating) {
-        const dto = await createPart(body);
+        const dto = await createPart({ ...body, codeRuleId: crid });
         const row = dtoToRow(dto);
         setRows((prev) => [...prev, row]);
         setCreating(false);
@@ -728,7 +745,7 @@ export function BasePartMasterView() {
         return;
       }
       if (!selectedId) return;
-      const dto = await updatePart(selectedId, body);
+      const dto = await updatePart(selectedId, { ...body, codeRuleId: crid });
       const row = dtoToRow(dto);
       setRows((prev) => prev.map((r) => (r.id === selectedId ? row : r)));
       setEditing(false);
@@ -756,6 +773,12 @@ export function BasePartMasterView() {
         return (
           <td key={key} className="max-w-[120px] truncate px-2 py-2.5 font-mono text-xs text-foreground">
             {row.sku}
+          </td>
+        );
+      case 'codeRuleName':
+        return (
+          <td key={key} className="max-w-[160px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {cellDash(row.codeRuleName)}
           </td>
         );
       case 'name':
@@ -1202,6 +1225,26 @@ export function BasePartMasterView() {
 
                 <TabsContent value="main" className="mt-3 outline-none">
                   <div className="space-y-3 pb-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-coderule">編碼規則</Label>
+                      <select
+                        id="bp-coderule"
+                        className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                        value={formValues.codeRuleId}
+                        disabled={!creating && !editing || ruleLookup.loading}
+                        onChange={(e) => setDraft((d) => ({ ...d, codeRuleId: e.target.value }))}
+                      >
+                        <option value="">— 請選擇 —</option>
+                        {(ruleLookup.options ?? []).map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                      {ruleLookup.error ? (
+                        <p className="text-xs text-destructive">規則清單載入失敗：{ruleLookup.error}</p>
+                      ) : null}
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="bp-sku">基準料號</Label>
                       <Input

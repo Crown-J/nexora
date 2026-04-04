@@ -2,6 +2,10 @@
 
 本文件為**計劃與檢查清單**，不含實作步驟之程式變更說明細節；執行時請依序對照 `packages/db-core` 與部署環境。
 
+### 前置閘道：NX00 Schema 重構（必做）
+
+繼續本文之 Railway／雲端整備、或假設 **MIG001 之後僅做增量 migration** 前，須先完成 **[NX00 Schema 重構計劃書](./10b-nx00-schema-refactor.md)**（`brand_code_rule`、`part.code_rule_id`、訂閱 `currency_id` 等）。執行順序為 **Phase 1（schema）→ Alex 確認 → Phase 2（seed）→ Alex 確認 → Phase 3（清庫／`MIG002-nx00-schema-refactor`／重 seed／驗收）**。完成後目標環境以 **MIG002 後之 schema** 為準，並與該計劃之 TRUNCATE／seed 流程一致。
+
 **文件狀態**：MW1 範圍（NX00 + NX99）所有決策已全部定案，詳見 §1.2 與各階段定案敘述。NX01～NX07 之 `tenant_id` 策略於各 MW 波段啟動前補齊，不影響 MW1 上線。Seed 策略已於 2026-04-03 重新定案：移除真實客戶租戶（CYTIC），改為 DEMO-LITE / DEMO-PLUS 展示租戶；真實客戶資料一律透過 CSV 匯入工具導入。**Seed 實作與驗收已於 2026-04-03 完成**（`packages/db-core/prisma/seed.ts`：平台國別／幣別、三租戶、DEMO 主檔與 nx99／nx00_view 等）。P0～P4 所有階段已於 2026-04-03 完成執行；Railway Postgres 已套用 MIG001 baseline，nx-api 已部署並通過登入驗收。MW1 完成判準達成。**下一步**：先完成 **§銜接 MW2 前 — 雲端／正式環境驗收** 並收斂前端／權限體感問題後，再啟動 **MW2**（NX02 庫存等波段）。
 
 ### 計劃書與實務對照（2026-04-03 起）

@@ -11,6 +11,9 @@ export type PartTypeCode = 'A' | 'B' | 'C' | 'D';
 
 export type PartDto = {
     id: string;
+    codeRuleId: string;
+    /** 編碼規則名稱（nx00_brand_code_rule.name） */
+    codeRuleName: string | null;
     code: string;
     name: string;
 
@@ -74,6 +77,8 @@ export type ListPartQuery = {
 export type CreatePartBody = {
     /** 無 partBrandId 時必填（或 JWT 帶租戶） */
     tenantId?: string;
+    /** 編碼規則（nx00_brand_code_rule.id） */
+    codeRuleId: string;
     code: string;
     name: string;
     partBrandId?: string | null;
@@ -94,6 +99,7 @@ export type CreatePartBody = {
 };
 
 export type UpdatePartBody = {
+    codeRuleId?: string;
     code?: string;
     name?: string;
     partBrandId?: string | null;

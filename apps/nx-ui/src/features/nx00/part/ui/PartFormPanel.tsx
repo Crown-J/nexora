@@ -20,6 +20,7 @@ import { AuditGrid } from '@/shared/ui/audit/AuditGrid';
 import { FormPanelShell } from '@/shared/ui/listform/FormPanelShell';
 
 import { useBrandLookup } from '@/features/nx00/lookup/hooks/useBrandLookup';
+import { useBrandCodeRuleLookup } from '@/features/nx00/lookup/hooks/useBrandCodeRuleLookup';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 
 type Props = {
@@ -39,6 +40,7 @@ type Props = {
 };
 
 type FormState = {
+    codeRuleId: string;
     code: string;
     name: string;
     partBrandId: string;
@@ -51,6 +53,7 @@ type FormState = {
 
 function toFormState(d: PartDto | null): FormState {
     return {
+        codeRuleId: d?.codeRuleId ?? '',
         code: d?.code ?? '',
         name: d?.name ?? '',
         partBrandId: d?.partBrandId ?? '',
@@ -79,6 +82,7 @@ export function PartFormPanel(props: Props) {
     // ===== lookup: brands =====
     // 預設：只抓啟用的品牌（你若希望包含停用，改成 useBrandLookup(false) 或在 hook 內調整）
     const brandLookup = useBrandLookup(true);
+    const ruleLookup = useBrandCodeRuleLookup();
 
     // 檢視/編輯切換（只在 edit mode 有意義）
     const [editing, setEditing] = useState(false);
@@ -93,6 +97,7 @@ export function PartFormPanel(props: Props) {
         if (isEdit) setForm(toFormState(detail));
         if (isNew)
             setForm({
+                codeRuleId: '',
                 code: '',
                 name: '',
                 partBrandId: '',
@@ -131,9 +136,13 @@ export function PartFormPanel(props: Props) {
     const submit = async () => {
         const code = form.code.trim();
         const name = form.name.trim();
+        let codeRuleId = form.codeRuleId.trim();
+        if (!isNew && !codeRuleId && detail?.codeRuleId) codeRuleId = detail.codeRuleId.trim();
         if (!code || !name) return;
+        if (isNew && !codeRuleId) return;
 
         const payload = {
+            codeRuleId,
             code,
             name,
             partBrandId: form.partBrandId.trim() ? form.partBrandId.trim() : null,
@@ -174,6 +183,37 @@ export function PartFormPanel(props: Props) {
             }}
             onSave={submit}
         >
+            <FormField
+                label="編碼規則（codeRuleId）"
+                hint={
+                    readOnly
+                        ? undefined
+                        : ruleLookup.error
+                          ? `載入失敗：${ruleLookup.error}`
+                          : ruleLookup.loading
+                            ? '載入中…'
+                            : '必選；決定料號組合規則'
+                }
+            >
+                {readOnly ? (
+                    <ReadOnlyBox value={detail?.codeRuleName?.trim() || detail?.codeRuleId || '-'} />
+                ) : (
+                    <select
+                        className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none focus:border-white/20 disabled:opacity-60"
+                        value={form.codeRuleId}
+                        onChange={(e) => setForm((p) => ({ ...p, codeRuleId: e.target.value }))}
+                        disabled={ruleLookup.loading}
+                    >
+                        <option value="">（請選擇）</option>
+                        {(ruleLookup.options ?? []).map((o) => (
+                            <option key={o.value} value={o.value}>
+                                {o.label}
+                            </option>
+                        ))}
+                    </select>
+                )}
+            </FormField>
+
             <FormField label="料號（code）" hint={readOnly ? '（檢視模式：可複製，按「編輯」才能修改）' : undefined}>
                 <input
                     className={`${inputClass} ${inputReadOnlyClass}`}

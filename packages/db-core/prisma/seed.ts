@@ -552,13 +552,15 @@ async function seedPartners(tenantId: string): Promise<void> {
 
 /**
  * @FUNCTION_CODE NX00-SEED-SVC-001-F12
+ * seedBrandCodeRules（原 seedBrandCodeRoles）：同品牌可有多筆規則（例：Bosch 德國／上海）
  */
-async function seedBrandCodeRoles(
+async function seedBrandCodeRules(
   tenantId: string,
   brandMap: Map<string, string>,
-): Promise<void> {
+): Promise<Map<string, string>> {
   const specs: {
     brand: string;
+    name: string;
     s1: number;
     s2: number;
     s3: number;
@@ -567,42 +569,53 @@ async function seedBrandCodeRoles(
     codeFormat: string;
     brandSort: string;
   }[] = [
-    { brand: 'VAG', s1: 3, s2: 3, s3: 3, s4: 1, s5: 0, codeFormat: '1-2-3-4', brandSort: '1234' },
-    { brand: 'OEM', s1: 3, s2: 3, s3: 3, s4: 1, s5: 0, codeFormat: '1-2-3-4', brandSort: '1234' },
-    { brand: 'MAN', s1: 2, s2: 4, s3: 0, s4: 0, s5: 0, codeFormat: '1-2', brandSort: '12' },
-    { brand: 'BOS', s1: 4, s2: 3, s3: 0, s4: 0, s5: 0, codeFormat: '1-2', brandSort: '12' },
+    { brand: 'VAG', name: 'VAG 標準', s1: 3, s2: 3, s3: 3, s4: 1, s5: 0, codeFormat: '1-2-3-4', brandSort: '1234' },
+    { brand: 'OEM', name: 'OEM 標準', s1: 3, s2: 3, s3: 3, s4: 1, s5: 0, codeFormat: '1-2-3-4', brandSort: '1234' },
+    { brand: 'MAN', name: 'MANN 德國', s1: 2, s2: 4, s3: 0, s4: 0, s5: 0, codeFormat: '1-2', brandSort: '12' },
+    { brand: 'BOS', name: 'Bosch 德國', s1: 4, s2: 3, s3: 0, s4: 0, s5: 0, codeFormat: '1-2', brandSort: '12' },
+    { brand: 'BOS', name: 'Bosch 上海', s1: 3, s2: 3, s3: 2, s4: 0, s5: 0, codeFormat: '1-2-3', brandSort: '123' },
   ];
+  const ruleMap = new Map<string, string>();
   for (const s of specs) {
     const pbid = brandMap.get(s.brand);
     if (!pbid) continue;
-    await prisma.nx00BrandCodeRole.upsert({
-      where: { partBrandId: pbid },
-      update: {
-        tenantId,
-        seg1Limit: s.s1,
-        seg2Limit: s.s2,
-        seg3Limit: s.s3,
-        seg4Limit: s.s4,
-        seg5Limit: s.s5,
-        codeFormat: s.codeFormat,
-        brandSort: s.brandSort,
-        isActive: true,
-      },
-      create: {
-        tenantId,
-        partBrandId: pbid,
-        seg1Limit: s.s1,
-        seg2Limit: s.s2,
-        seg3Limit: s.s3,
-        seg4Limit: s.s4,
-        seg5Limit: s.s5,
-        codeFormat: s.codeFormat,
-        brandSort: s.brandSort,
-        isActive: true,
-      },
+    const key = `${s.brand}|${s.name}`;
+    const existing = await prisma.nx00BrandCodeRule.findFirst({
+      where: { tenantId, partBrandId: pbid, name: s.name },
+      select: { id: true },
     });
+    const data = {
+      tenantId,
+      partBrandId: pbid,
+      name: s.name,
+      seg1: s.s1,
+      seg2: s.s2,
+      seg3: s.s3,
+      seg4: s.s4,
+      seg5: s.s5,
+      codeFormat: s.codeFormat,
+      brandSort: s.brandSort,
+      isActive: true,
+    };
+    const row = existing
+      ? await prisma.nx00BrandCodeRule.update({ where: { id: existing.id }, data })
+      : await prisma.nx00BrandCodeRule.create({ data });
+    ruleMap.set(key, row.id);
   }
-  console.log(`✅ NX00-SEED-SVC-001-F12 seedBrandCodeRoles tenant=${tenantId.slice(0, 8)}…`);
+  console.log(`✅ NX00-SEED-SVC-001-F12 seedBrandCodeRules tenant=${tenantId.slice(0, 8)}…`);
+  return ruleMap;
+}
+
+function defaultBrandRuleKey(partBrandCode: string): string {
+  const m: Record<string, string> = {
+    VAG: 'VAG|VAG 標準',
+    OEM: 'OEM|OEM 標準',
+    MAN: 'MAN|MANN 德國',
+    BOS: 'BOS|Bosch 德國',
+  };
+  const k = m[partBrandCode];
+  if (!k) throw new Error(`seed: no default brand code rule mapping for ${partBrandCode}`);
+  return k;
 }
 
 async function upsertPart(
@@ -615,15 +628,21 @@ async function upsertPart(
     partBrandCode: string;
     partGroupCode: string;
     countryId: string;
+    /** 覆寫 ruleMap key，預設依 partBrandCode */
+    ruleMapKey?: string;
   },
   brandMap: Map<string, string>,
   groupMap: Map<string, string>,
+  ruleMap: Map<string, string>,
 ): Promise<void> {
   const pb = brandMap.get(p.partBrandCode);
   const pg = groupMap.get(p.partGroupCode);
   if (!pb || !pg) return;
+  const rk = p.ruleMapKey ?? defaultBrandRuleKey(p.partBrandCode);
+  const codeRuleId = ruleMap.get(rk);
+  if (!codeRuleId) throw new Error(`seed: missing brand code rule id for key ${rk}`);
   await prisma.nx00Part.upsert({
-    where: { tenantId_code: { tenantId, code: p.code } },
+    where: { tenantId_code_countryId: { tenantId, code: p.code, countryId: p.countryId } },
     update: {
       name: p.name,
       isOem: p.isOem,
@@ -631,11 +650,13 @@ async function upsertPart(
       partBrandId: pb,
       partGroupId: pg,
       countryId: p.countryId,
+      codeRuleId,
       tenantId,
       isActive: true,
     },
     create: {
       tenantId,
+      codeRuleId,
       code: p.code,
       name: p.name,
       isOem: p.isOem,
@@ -654,8 +675,10 @@ async function upsertPart(
 async function seedParts(
   tenantId: string,
   countryIdDeu: string,
+  countryIdChn: string,
   brandMap: Map<string, string>,
   groupMap: Map<string, string>,
+  ruleMap: Map<string, string>,
 ): Promise<void> {
   const oil = [
     '8K0115561',
@@ -700,6 +723,7 @@ async function seedParts(
       { code: c, name: `機油濾芯 ${c}`, isOem: true, uom: 'pcs', partBrandCode: 'VAG', partGroupCode: 'FILTER', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
   for (const c of air) {
@@ -708,6 +732,7 @@ async function seedParts(
       { code: c, name: `空氣濾芯 ${c}`, isOem: true, uom: 'pcs', partBrandCode: 'VAG', partGroupCode: 'FILTER', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
   for (const c of cabin) {
@@ -716,6 +741,7 @@ async function seedParts(
       { code: c, name: `冷氣濾網 ${c}`, isOem: true, uom: 'pcs', partBrandCode: 'VAG', partGroupCode: 'FILTER', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
   for (const c of mann) {
@@ -724,6 +750,7 @@ async function seedParts(
       { code: c, name: `MANN 濾清 ${c}`, isOem: false, uom: 'pcs', partBrandCode: 'MAN', partGroupCode: 'FILTER', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
 
@@ -769,6 +796,7 @@ async function seedParts(
       { code: c, name: `煞車皮前 ${c}`, isOem: true, uom: '套', partBrandCode: 'VAG', partGroupCode: 'BRAKE', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
   for (const c of brakeDiscF) {
@@ -777,6 +805,7 @@ async function seedParts(
       { code: c, name: `煞車盤前 ${c}`, isOem: true, uom: '片', partBrandCode: 'VAG', partGroupCode: 'BRAKE', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
   for (const c of brakePadR) {
@@ -785,6 +814,7 @@ async function seedParts(
       { code: c, name: `煞車皮後 ${c}`, isOem: true, uom: '套', partBrandCode: 'VAG', partGroupCode: 'BRAKE', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
 
@@ -818,6 +848,7 @@ async function seedParts(
       { code: c, name: `火星塞 ${c}`, isOem: true, uom: '支', partBrandCode: 'OEM', partGroupCode: 'ENGINE', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
   for (const c of belt) {
@@ -826,6 +857,7 @@ async function seedParts(
       { code: c, name: `皮帶組 ${c}`, isOem: true, uom: '組', partBrandCode: 'VAG', partGroupCode: 'ENGINE', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
 
@@ -852,6 +884,7 @@ async function seedParts(
       { code: c, name: `懸吊 ${c}`, isOem: true, uom: 'pcs', partBrandCode: 'VAG', partGroupCode: 'SUSPENSION', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
 
@@ -873,6 +906,7 @@ async function seedParts(
       { code: c, name: `電器 ${c}`, isOem: true, uom: 'pcs', partBrandCode: 'VAG', partGroupCode: 'ELECTRICAL', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
 
@@ -883,16 +917,83 @@ async function seedParts(
       { code: c, name: `車身 ${c}`, isOem: true, uom: 'pcs', partBrandCode: 'VAG', partGroupCode: 'BODY', countryId: countryIdDeu },
       brandMap,
       groupMap,
+      ruleMap,
     );
   }
 
-  console.log(`✅ NX00-SEED-SVC-001-F13 seedParts tenant=${tenantId.slice(0, 8)}…（120 筆）`);
+  const vagRule = 'VAG|VAG 標準';
+  await upsertPart(
+    tenantId,
+    {
+      code: '8K0-819-439B',
+      name: '冷氣濾網（展示：同料號 DEU）',
+      isOem: true,
+      uom: 'pcs',
+      partBrandCode: 'VAG',
+      partGroupCode: 'FILTER',
+      countryId: countryIdDeu,
+      ruleMapKey: vagRule,
+    },
+    brandMap,
+    groupMap,
+    ruleMap,
+  );
+  await upsertPart(
+    tenantId,
+    {
+      code: '8K0-819-439B',
+      name: '冷氣濾網（展示：同料號 CHN）',
+      isOem: true,
+      uom: 'pcs',
+      partBrandCode: 'VAG',
+      partGroupCode: 'FILTER',
+      countryId: countryIdChn,
+      ruleMapKey: vagRule,
+    },
+    brandMap,
+    groupMap,
+    ruleMap,
+  );
+  await upsertPart(
+    tenantId,
+    {
+      code: '06L-115-561',
+      name: '機油濾芯（展示：同料號 DEU）',
+      isOem: true,
+      uom: 'pcs',
+      partBrandCode: 'VAG',
+      partGroupCode: 'FILTER',
+      countryId: countryIdDeu,
+      ruleMapKey: vagRule,
+    },
+    brandMap,
+    groupMap,
+    ruleMap,
+  );
+  await upsertPart(
+    tenantId,
+    {
+      code: '06L-115-561',
+      name: '機油濾芯（展示：同料號 CHN）',
+      isOem: true,
+      uom: 'pcs',
+      partBrandCode: 'VAG',
+      partGroupCode: 'FILTER',
+      countryId: countryIdChn,
+      ruleMapKey: vagRule,
+    },
+    brandMap,
+    groupMap,
+    ruleMap,
+  );
+
+  console.log(`✅ NX00-SEED-SVC-001-F13 seedParts tenant=${tenantId.slice(0, 8)}…（124 筆含展示）`);
 }
 
 /**
  * @FUNCTION_CODE NX00-SEED-SVC-001-F14
  */
-async function seedPartRelations(tenantId: string): Promise<void> {
+async function seedPartRelations(tenantId: string, countryIdDeu: string): Promise<void> {
   const pairs: [string, string, string][] = [
     ['8K0115561', '06L115561', 'S'],
     ['8K0819439B', '8P0819439', 'S'],
@@ -907,11 +1008,11 @@ async function seedPartRelations(tenantId: string): Promise<void> {
   ];
   for (const [fromC, toC, rt] of pairs) {
     const fromP = await prisma.nx00Part.findUnique({
-      where: { tenantId_code: { tenantId, code: fromC } },
+      where: { tenantId_code_countryId: { tenantId, code: fromC, countryId: countryIdDeu } },
       select: { id: true },
     });
     const toP = await prisma.nx00Part.findUnique({
-      where: { tenantId_code: { tenantId, code: toC } },
+      where: { tenantId_code_countryId: { tenantId, code: toC, countryId: countryIdDeu } },
       select: { id: true },
     });
     if (!fromP || !toP) continue;
@@ -1051,6 +1152,8 @@ async function seedDemoData(tenantId: string, users: DemoUserSeed[]): Promise<vo
   const countryMap = await prisma.nx00Country.findMany({ select: { id: true, code: true } });
   const deuId = countryMap.find((c) => c.code === 'DEU')?.id;
   if (!deuId) throw new Error('缺少 DEU 國別');
+  const chnId = countryMap.find((c) => c.code === 'CHN')?.id;
+  if (!chnId) throw new Error('缺少 CHN 國別');
 
   const brandMap = await seedPartBrands(tenantId, deuId);
   await seedCarBrands(tenantId, deuId);
@@ -1059,9 +1162,9 @@ async function seedDemoData(tenantId: string, users: DemoUserSeed[]): Promise<vo
   await seedLocations(tenantId, whMap);
   await seedDemoUsersForTenant(tenantId, users);
   await seedPartners(tenantId);
-  await seedBrandCodeRoles(tenantId, brandMap);
-  await seedParts(tenantId, deuId, brandMap, groupMap);
-  await seedPartRelations(tenantId);
+  const ruleMap = await seedBrandCodeRules(tenantId, brandMap);
+  await seedParts(tenantId, deuId, chnId, brandMap, groupMap, ruleMap);
+  await seedPartRelations(tenantId, deuId);
   await seedBulletins(tenantId);
   await seedCalendarEvents(tenantId);
   console.log(`✅ NX00-SEED-SVC-001-F17 seedDemoData 完成 tenant=${tenantId.slice(0, 8)}…`);
@@ -1108,6 +1211,7 @@ async function seedSubscriptionForTenant(args: {
   tenantId: string;
   planCode: string;
   seats: number;
+  currencyId: string;
   prmoIdByCode: Map<string, string>;
   nx99ProductModules: Nx99ModSeed[];
 }): Promise<void> {
@@ -1177,6 +1281,7 @@ async function seedSubscriptionForTenant(args: {
       subtotalSnapshot,
       discountAmountSnapshot: 0,
       totalSnapshot: subtotalSnapshot,
+      currencyId: args.currencyId,
       items: { create: itemCreates },
     },
   });
@@ -1562,10 +1667,14 @@ async function main() {
   }
   console.log(`✅ nx99_product_module_map seed 完成，共 ${nx99ProductModules.length} 筆`);
 
+  const twdCurrency = await prisma.nx00Currency.findUnique({ where: { code: 'TWD' }, select: { id: true } });
+  if (!twdCurrency) throw new Error('缺少 TWD 幣別（seedCurrencies）');
+
   await seedSubscriptionForTenant({
     tenantId: tenantIds.dev,
     planCode: 'NEXORA-PRO',
     seats: 10,
+    currencyId: twdCurrency.id,
     prmoIdByCode,
     nx99ProductModules,
   });
@@ -1573,6 +1682,7 @@ async function main() {
     tenantId: tenantIds.demoLite,
     planCode: 'NEXORA-LITE',
     seats: 10,
+    currencyId: twdCurrency.id,
     prmoIdByCode,
     nx99ProductModules,
   });
@@ -1580,6 +1690,7 @@ async function main() {
     tenantId: tenantIds.demoPlus,
     planCode: 'NEXORA-PLUS',
     seats: 20,
+    currencyId: twdCurrency.id,
     prmoIdByCode,
     nx99ProductModules,
   });

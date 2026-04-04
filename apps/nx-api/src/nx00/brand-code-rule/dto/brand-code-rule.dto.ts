@@ -1,6 +1,7 @@
-export type BrandCodeRoleDto = {
+export type BrandCodeRuleDto = {
     id: string;
     partBrandId: string;
+    name: string;
     partBrandCode: string | null;
     partBrandName: string | null;
     seg1: number;
@@ -23,21 +24,23 @@ export type BrandCodeRoleDto = {
 
 export type PagedResult<T> = { items: T[]; page: number; pageSize: number; total: number };
 
-export type ListBrandCodeRoleQuery = { q?: string; isActive?: boolean; page?: number; pageSize?: number };
+export type ListBrandCodeRuleQuery = { q?: string; isActive?: boolean; page?: number; pageSize?: number };
 
-export type CreateBrandCodeRoleBody = {
+export type CreateBrandCodeRuleBody = {
     partBrandId: string;
+    name: string;
     seg1?: number;
     seg2?: number;
     seg3?: number;
     seg4?: number;
     seg5?: number;
-    codeFormat: string;
-    brandSort: string;
+    codeFormat?: string;
+    brandSort?: string;
     isActive?: boolean;
 };
 
-export type UpdateBrandCodeRoleBody = {
+export type UpdateBrandCodeRuleBody = {
+    name?: string;
     seg1?: number;
     seg2?: number;
     seg3?: number;

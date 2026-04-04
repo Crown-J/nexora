@@ -7,8 +7,8 @@
  *
  * Notes:
  * - id 由 DB function 自動產生：gen_nx00_part_id()
- * - @@unique([code]) — 基準料號全表唯一
- * - partBrandId 可為 null；寫入前檢查 FK
+ * - @@unique([tenantId, code, countryId]) — 同租戶同料號同產地唯一
+ * - codeRuleId 必填；partBrandId 可為 null；寫入前檢查 FK
  */
 
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
@@ -39,6 +39,7 @@ function resolvePartTypeForWrite(v: unknown): string | null {
 
 type PartRowWithAudit = {
     id: string;
+    codeRuleId: string;
     code: string;
     name: string;
     partBrandId: string | null;
@@ -65,6 +66,7 @@ type PartRowWithAudit = {
     updatedByUser?: { userAccount: string; userName: string } | null;
 
     partBrand?: { code?: string | null; name?: string | null } | null;
+    codeRule?: { name?: string | null } | null;
     country?: { code?: string | null; name?: string | null } | null;
     partGroup?: { code?: string | null; name?: string | null } | null;
 };
@@ -72,6 +74,8 @@ type PartRowWithAudit = {
 function toPartDto(row: PartRowWithAudit): PartDto {
     return {
         id: row.id,
+        codeRuleId: row.codeRuleId,
+        codeRuleName: row.codeRule?.name ?? null,
         code: row.code,
         name: row.name,
 
@@ -114,6 +118,7 @@ function toPartDto(row: PartRowWithAudit): PartDto {
 
 function snapshotPartForAudit(row: {
     id: string;
+    codeRuleId: string;
     code: string;
     name: string;
     partBrandId: string | null;
@@ -133,6 +138,7 @@ function snapshotPartForAudit(row: {
 }) {
     return {
         id: row.id,
+        codeRuleId: row.codeRuleId,
         code: row.code,
         name: row.name,
         partBrandId: row.partBrandId ?? null,
@@ -185,8 +191,20 @@ export class PartService {
         if (g.tenantId !== tenantId) throw new BadRequestException('Part group tenant mismatch');
     }
 
+    private async assertCodeRuleId(codeRuleId: string | null | undefined, tenantId: string): Promise<void> {
+        const id = codeRuleId?.trim();
+        if (!id) throw new BadRequestException('codeRuleId is required');
+        const r = await this.prisma.nx00BrandCodeRule.findUnique({
+            where: { id },
+            select: { id: true, tenantId: true },
+        });
+        if (!r) throw new BadRequestException('Code rule not found');
+        if (r.tenantId !== tenantId) throw new BadRequestException('Code rule tenant mismatch');
+    }
+
     private partInclude() {
         return {
+            codeRule: { select: { name: true } },
             partBrand: { select: { code: true, name: true } },
             country: { select: { code: true, name: true } },
             partGroup: { select: { code: true, name: true } },
@@ -268,6 +286,7 @@ export class PartService {
         }
         if (!tenantId) throw new BadRequestException('tenantId is required (set partBrandId or tenantId)');
 
+        await this.assertCodeRuleId(body.codeRuleId, tenantId);
         await this.assertCountryId(body.countryId ?? null);
         await this.assertPartGroupId(body.partGroupId ?? null, tenantId);
 
@@ -281,6 +300,7 @@ export class PartService {
             const row = await this.prisma.nx00Part.create({
                 data: {
                     tenantId,
+                    codeRuleId: body.codeRuleId!.trim(),
                     code,
                     name,
                     partBrandId: body.partBrandId ?? null,
@@ -325,7 +345,7 @@ export class PartService {
         } catch (e: any) {
             const pe = e as PrismaKnownError;
             if (pe?.code === 'P2002') {
-                throw new BadRequestException('基準料號（code）已存在');
+                throw new BadRequestException('同租戶、同料號、同產地之組合已存在');
             }
             throw e;
         }
@@ -337,6 +357,7 @@ export class PartService {
             select: {
                 id: true,
                 tenantId: true,
+                codeRuleId: true,
                 code: true,
                 name: true,
                 partBrandId: true,
@@ -368,6 +389,10 @@ export class PartService {
             return s === '' ? null : s;
         };
 
+        if (body.codeRuleId !== undefined) {
+            await this.assertCodeRuleId(body.codeRuleId, exists.tenantId);
+            data.codeRuleId = body.codeRuleId.trim();
+        }
         if (typeof body.code === 'string') data.code = body.code.trim();
         if (typeof body.name === 'string') data.name = body.name.trim();
         if (body.partBrandId !== undefined) data.partBrandId = body.partBrandId ?? null;
@@ -431,7 +456,7 @@ export class PartService {
         } catch (e: any) {
             const pe = e as PrismaKnownError;
             if (pe?.code === 'P2002') {
-                throw new BadRequestException('基準料號（code）已存在');
+                throw new BadRequestException('同租戶、同料號、同產地之組合已存在');
             }
             throw e;
         }

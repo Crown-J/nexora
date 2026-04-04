@@ -96,8 +96,8 @@ model Nx00User {
   countriesUpdated      Nx00Country[]       @relation("Nx00CountryUpdatedBy")
   currenciesCreated     Nx00Currency[]      @relation("Nx00CurrencyCreatedBy")
   currenciesUpdated     Nx00Currency[]      @relation("Nx00CurrencyUpdatedBy")
-  brandCodeRolesCreated Nx00BrandCodeRole[] @relation("Nx00BrandCodeRoleCreatedBy")
-  brandCodeRolesUpdated Nx00BrandCodeRole[] @relation("Nx00BrandCodeRoleUpdatedBy")
+  brandCodeRulesCreated Nx00BrandCodeRule[] @relation("Nx00BrandCodeRuleCreatedBy")
+  brandCodeRulesUpdated Nx00BrandCodeRule[] @relation("Nx00BrandCodeRuleUpdatedBy")
   partRelationsCreated  Nx00PartRelation[]  @relation("Nx00PartRelationCreatedBy")
   partRelationsUpdated  Nx00PartRelation[]  @relation("Nx00PartRelationUpdatedBy")
 
@@ -320,6 +320,8 @@ model Nx00Currency {
   createdByUser Nx00User? @relation("Nx00CurrencyCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00CurrencyUpdatedBy", fields: [updatedBy], references: [id])
 
+  subscriptions Nx99Subscription[]
+
   @@index([isActive])
   @@map("nx00_currency")
 }
@@ -329,41 +331,41 @@ model Nx00Currency {
 /// Table: nx00_part
 /// =======================================================
 model Nx00Part {
-  id       String  @id @default(dbgenerated("gen_nx00_part_id()")) @db.VarChar(15)
+  /// [NX00]+[PART]+[7碼流水號]，EX : NX00PART0000001
+  id         String   @id @default(dbgenerated("gen_nx00_part_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵 → nx99_tenant）
-  tenantId String     @map("tenant_id") @db.VarChar(15)
-  tenant   Nx99Tenant @relation(fields: [tenantId], references: [id])
-  /// 零件料號
-  code     String  @db.VarChar(50)
-  /// 零件名稱／品名
-  name     String  @db.VarChar(200)
-  isOem    Boolean @default(true) @map("is_oem")
-  /// 副廠料號
-  secCode  String? @map("sec_code") @db.VarChar(50)
-  seg1     String? @db.VarChar(10)
-  seg2     String? @db.VarChar(10)
-  seg3     String? @db.VarChar(10)
-  seg4     String? @db.VarChar(10)
-  seg5     String? @db.VarChar(10)
-  /// 產地
-  countryId String? @map("country_id") @db.VarChar(15)
-  country   Nx00Country? @relation(fields: [countryId], references: [id])
+  tenantId   String     @map("tenant_id") @db.VarChar(15)
+  tenant     Nx99Tenant @relation(fields: [tenantId], references: [id])
+  /// 編碼規則（外鍵 → nx00_brand_code_rule）
+  codeRuleId String     @map("code_rule_id") @db.VarChar(15)
+  codeRule   Nx00BrandCodeRule @relation(fields: [codeRuleId], references: [id])
+  /// 零件料號（系統組合；唯一性：同租戶 + 同料號 + 同產地）
+  code       String   @db.VarChar(50)
+  /// 零件名稱/品名
+  name       String   @db.VarChar(200)
+  isOem      Boolean  @default(true) @map("is_oem")
+  secCode    String?  @map("sec_code") @db.VarChar(50)
+  seg1       String?  @db.VarChar(10)
+  seg2       String?  @db.VarChar(10)
+  seg3       String?  @db.VarChar(10)
+  seg4       String?  @db.VarChar(10)
+  seg5       String?  @db.VarChar(10)
+  countryId  String?  @map("country_id") @db.VarChar(15)
+  country    Nx00Country? @relation(fields: [countryId], references: [id])
   partBrandId String? @map("part_brand_id") @db.VarChar(15)
-  /// A=專用型 / B=通用型 / C=組合型 / D=拆解型（預設 A）
-  partType String  @default("A") @map("type") @db.VarChar(1)
-  /// 零件種類
-  partGroupId String? @map("part_group_id") @db.VarChar(15)
+  partBrand   Nx00PartBrand? @relation(fields: [partBrandId], references: [id])
+  /// A=專用型 / B=通用型 / C=組合型 / D=拆解型
+  partType    String   @default("A") @map("type") @db.VarChar(1)
+  partGroupId String?  @map("part_group_id") @db.VarChar(15)
   partGroup   Nx00PartGroup? @relation(fields: [partGroupId], references: [id])
-  spec     String? @db.VarChar(200)
-  uom      String  @default("pcs") @db.VarChar(10)
-  isActive Boolean @default(true) @map("is_active")
+  spec        String?  @db.VarChar(200)
+  uom         String   @default("pcs") @db.VarChar(10)
+  isActive    Boolean  @default(true) @map("is_active")
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.VarChar(15)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   updatedBy String?  @map("updated_by") @db.VarChar(15)
-
-  partBrand Nx00PartBrand? @relation(fields: [partBrandId], references: [id])
 
   createdByUser Nx00User? @relation("Nx00PartCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartUpdatedBy", fields: [updatedBy], references: [id])
@@ -371,8 +373,9 @@ model Nx00Part {
   relationsFrom Nx00PartRelation[] @relation("Nx00PartRelationFrom")
   relationsTo   Nx00PartRelation[] @relation("Nx00PartRelationTo")
 
-  @@unique([tenantId, code])
+  @@unique([tenantId, code, countryId])
   @@index([tenantId])
+  @@index([codeRuleId])
   @@index([partBrandId])
   @@index([countryId])
   @@index([partGroupId])
@@ -407,8 +410,8 @@ model Nx00PartBrand {
   createdByUser Nx00User? @relation("Nx00PartBrandCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartBrandUpdatedBy", fields: [updatedBy], references: [id])
 
-  parts          Nx00Part[]
-  brandCodeRole  Nx00BrandCodeRole?
+  parts           Nx00Part[]
+  brandCodeRules  Nx00BrandCodeRule[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -480,38 +483,43 @@ model Nx00PartGroup {
 }
 
 /// =======================================================
-/// NX00 - Brand code role（料號規則，docs/nx00_field.csv）
-/// Table: nx00_brand_code_role
+/// NX00 - Brand code rule（料號規則，docs/nx00_field.csv）
+/// Table: nx00_brand_code_rule
 /// =======================================================
-model Nx00BrandCodeRole {
-  id         String @id @default(dbgenerated("gen_nx00_bcor_id()")) @db.VarChar(15)
+model Nx00BrandCodeRule {
+  /// [NX00]+[BCOR]+[7碼流水號]，EX : NX00BCOR0000001
+  id          String   @id @default(dbgenerated("gen_nx00_bcor_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵 → nx99_tenant）
-  tenantId   String     @map("tenant_id") @db.VarChar(15)
-  tenant     Nx99Tenant @relation(fields: [tenantId], references: [id])
-  partBrandId String @unique @map("part_brand_id") @db.VarChar(15)
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant @relation(fields: [tenantId], references: [id])
+  /// 零件品牌 ID（同品牌可有多筆規則）
+  partBrandId String     @map("part_brand_id") @db.VarChar(15)
   partBrand   Nx00PartBrand @relation(fields: [partBrandId], references: [id])
-  seg1Limit  Int    @default(0) @map("seg1")
-  seg2Limit  Int    @default(0) @map("seg2")
-  seg3Limit  Int    @default(0) @map("seg3")
-  seg4Limit  Int    @default(0) @map("seg4")
-  seg5Limit  Int    @default(0) @map("seg5")
-  /// 料號組合格式
-  codeFormat String @map("code_format") @db.VarChar(20)
-  /// 料號排列順序，例：12345、23145
-  brandSort  String @map("brand_sort") @db.VarChar(5)
-  isActive   Boolean @default(true) @map("is_active")
+  /// 規則名稱（例：VAG 標準、Bosch 德國原廠）
+  name        String     @db.VarChar(15)
+  seg1        Int        @default(0) @map("seg1")
+  seg2        Int        @default(0) @map("seg2")
+  seg3        Int        @default(0) @map("seg3")
+  seg4        Int        @default(0) @map("seg4")
+  seg5        Int        @default(0) @map("seg5")
+  codeFormat  String     @default("1-2-3-4-5") @map("code_format") @db.VarChar(20)
+  brandSort   String     @default("12345") @map("brand_sort") @db.VarChar(5)
+  isActive    Boolean    @default(true) @map("is_active")
 
   createdAt DateTime @default(now()) @map("created_at")
   createdBy String?  @map("created_by") @db.VarChar(15)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   updatedBy String?  @map("updated_by") @db.VarChar(15)
 
-  createdByUser Nx00User? @relation("Nx00BrandCodeRoleCreatedBy", fields: [createdBy], references: [id])
-  updatedByUser Nx00User? @relation("Nx00BrandCodeRoleUpdatedBy", fields: [updatedBy], references: [id])
+  createdByUser Nx00User? @relation("Nx00BrandCodeRuleCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser Nx00User? @relation("Nx00BrandCodeRuleUpdatedBy", fields: [updatedBy], references: [id])
+
+  parts Nx00Part[]
 
   @@index([tenantId])
+  @@index([partBrandId])
   @@index([isActive])
-  @@map("nx00_brand_code_role")
+  @@map("nx00_brand_code_rule")
 }
 
 /// =======================================================
@@ -795,7 +803,7 @@ model Nx99Tenant {
   partBrands     Nx00PartBrand[]
   carBrands      Nx00CarBrand[]
   partGroups     Nx00PartGroup[]
-  brandCodeRoles Nx00BrandCodeRole[]
+  brandCodeRules Nx00BrandCodeRule[]
   partRelations  Nx00PartRelation[]
   warehouses     Nx00Warehouse[]
   locations      Nx00Location[]
@@ -897,7 +905,9 @@ model Nx99Subscription {
   subtotalSnapshot       Int      @map("subtotal_snapshot")
   discountAmountSnapshot Int      @map("discount_amount_snapshot")
   totalSnapshot          Int      @map("total_snapshot")
-  currency               String   @db.VarChar(10) @default("TWD")
+  /// 幣別（外鍵 → nx00_currency；長度對齊 PK VARCHAR(15)）
+  currencyId             String   @map("currency_id") @db.VarChar(15)
+  currency               Nx00Currency @relation(fields: [currencyId], references: [id])
   remark                 String?  @db.VarChar(200)
   createdAt              DateTime @default(now()) @map("created_at")
   createdBy              String?  @db.VarChar(15) @map("created_by")

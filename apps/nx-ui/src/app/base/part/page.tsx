@@ -81,7 +81,7 @@ export default function BasePartPage() {
       <div className="w-full min-w-0 space-y-6">
         <BaseMasterPageHeader
           title="零件主檔"
-          description="基準料號全表唯一；廠牌、類型、區間碼、產地、族群、單位與稽核欄位。連線 /part、/brand、/country、/part-group。"
+          description="同租戶下同料號＋同產地唯一；需指定編碼規則。連線 /part、/brand-code-rule、/brand、/country、/part-group。"
         />
 
         <BasePartMasterView />

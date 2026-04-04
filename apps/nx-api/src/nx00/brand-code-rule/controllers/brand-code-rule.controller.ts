@@ -5,13 +5,13 @@ import { NX00_VIEW } from '../../rbac/nx00-view-codes';
 import { Nx00ViewPermissionGuard } from '../../rbac/nx00-view-permission.guard';
 import { RequireNx00ViewPermission } from '../../rbac/require-nx00-view-permission.decorator';
 
-import { BrandCodeRoleService } from '../services/brand-code-role.service';
-import type { CreateBrandCodeRoleBody, SetActiveBody, UpdateBrandCodeRoleBody } from '../dto/brand-code-role.dto';
+import { BrandCodeRuleService } from '../services/brand-code-rule.service';
+import type { CreateBrandCodeRuleBody, SetActiveBody, UpdateBrandCodeRuleBody } from '../dto/brand-code-rule.dto';
 
-@Controller('brand-code-role')
+@Controller('brand-code-rule')
 @UseGuards(JwtAuthGuard, Nx00ViewPermissionGuard)
-export class BrandCodeRoleController {
-    constructor(private readonly svc: BrandCodeRoleService) { }
+export class BrandCodeRuleController {
+    constructor(private readonly svc: BrandCodeRuleService) { }
 
     @Get()
     @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'read')
@@ -37,7 +37,7 @@ export class BrandCodeRoleController {
 
     @Post()
     @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'create')
-    async create(@Body() body: CreateBrandCodeRoleBody, @Req() req: any) {
+    async create(@Body() body: CreateBrandCodeRuleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.svc.create(body, {
             actorUserId,
@@ -48,7 +48,7 @@ export class BrandCodeRoleController {
 
     @Put(':id')
     @RequireNx00ViewPermission(NX00_VIEW.PART_BRAND, 'update')
-    async update(@Param('id') id: string, @Body() body: UpdateBrandCodeRoleBody, @Req() req: any) {
+    async update(@Param('id') id: string, @Body() body: UpdateBrandCodeRuleBody, @Req() req: any) {
         const actorUserId = req?.user?.sub as string | undefined;
         return this.svc.update(id, body, {
             actorUserId,

@@ -48,6 +48,7 @@ import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRo
 type BcrRow = {
   id: string;
   partBrandId: string;
+  ruleName: string;
   partBrandDisplay: string;
   partBrandCode: string | null;
   partBrandName: string | null;
@@ -67,6 +68,7 @@ type BcrRow = {
 
 type BcrDraft = {
   partBrandId: string;
+  name: string;
   seg1: string;
   seg2: string;
   seg3: string;
@@ -79,6 +81,7 @@ type BcrDraft = {
 
 type ListColKey =
   | 'partBrandDisplay'
+  | 'ruleName'
   | 'seg1'
   | 'seg2'
   | 'seg3'
@@ -100,6 +103,7 @@ const PAGE_SIZE = 10;
 
 const ALL_LIST_COLS: ListColKey[] = [
   'partBrandDisplay',
+  'ruleName',
   'seg1',
   'seg2',
   'seg3',
@@ -116,6 +120,7 @@ const ALL_LIST_COLS: ListColKey[] = [
 
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   partBrandDisplay: { label: '零件品牌', locked: true },
+  ruleName: { label: '規則名稱' },
   seg1: { label: '第1段字數限制' },
   seg2: { label: '第2段字數限制' },
   seg3: { label: '第3段字數限制' },
@@ -151,6 +156,7 @@ function normalizeColPref(raw: ListColPref, allowed: readonly string[]): ListCol
 function dtoToRow(d: {
   id: string;
   partBrandId: string;
+  name: string;
   partBrandCode: string | null;
   partBrandName: string | null;
   seg1: number;
@@ -174,6 +180,7 @@ function dtoToRow(d: {
   return {
     id: d.id,
     partBrandId: d.partBrandId,
+    ruleName: (d.name ?? '').trim(),
     partBrandDisplay,
     partBrandCode: d.partBrandCode,
     partBrandName: d.partBrandName,
@@ -195,6 +202,7 @@ function dtoToRow(d: {
 function emptyDraft(): BcrDraft {
   return {
     partBrandId: '',
+    name: '',
     seg1: '0',
     seg2: '0',
     seg3: '0',
@@ -209,6 +217,7 @@ function emptyDraft(): BcrDraft {
 function fromRow(r: BcrRow): BcrDraft {
   return {
     partBrandId: r.partBrandId,
+    name: r.ruleName,
     seg1: String(r.seg1),
     seg2: String(r.seg2),
     seg3: String(r.seg3),
@@ -241,10 +250,10 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
 
   const meta = useMemo(
     () => ({
-      basePath: '/brand-code-role',
+      basePath: '/brand-code-rule',
       listErrorCode: 'nxui_base_bcor_list',
       listPrefKey: 'base.brandCodeRole.modal.listcols',
-      listPrefVersion: 1,
+      listPrefVersion: 2,
       titleId: 'nx-bcr-detail',
       hubName: '廠牌料號規則',
       addLabel: '新增料號規則',
@@ -354,7 +363,7 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
       if (activeFilter === 'inactive' && r.isActive) return false;
       if (!k) return true;
       const blob =
-        `${r.partBrandDisplay} ${r.codeFormat} ${r.brandSort} ${r.seg1} ${r.seg2} ${r.seg3} ${r.seg4} ${r.seg5} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
+        `${r.partBrandDisplay} ${r.ruleName} ${r.codeFormat} ${r.brandSort} ${r.seg1} ${r.seg2} ${r.seg3} ${r.seg4} ${r.seg5} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
       return blob.includes(k);
     });
   }, [rows, keyword, activeFilter]);
@@ -604,6 +613,7 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
   };
 
   const onSave = async () => {
+    const name = draft.name.trim();
     const codeFormat = draft.codeFormat.trim();
     const brandSort = draft.brandSort.trim();
     if (!codeFormat || !brandSort) return;
@@ -617,7 +627,7 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
     try {
       if (creating) {
         const partBrandId = draft.partBrandId.trim();
-        if (!partBrandId) {
+        if (!partBrandId || !name) {
           setSaving(false);
           return;
         }
@@ -625,6 +635,7 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
           method: 'POST',
           body: JSON.stringify({
             partBrandId,
+            name,
             seg1: s1,
             seg2: s2,
             seg3: s3,
@@ -638,7 +649,13 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
         await assertOk(res, 'base.brandCodeRole_create');
         const dto = (await res.json()) as Parameters<typeof dtoToRow>[0];
         const row = dtoToRow(dto);
-        setRows((prev) => [...prev, row].sort((a, b) => a.partBrandDisplay.localeCompare(b.partBrandDisplay, 'zh-Hant')));
+        setRows((prev) =>
+          [...prev, row].sort(
+            (a, b) =>
+              a.partBrandDisplay.localeCompare(b.partBrandDisplay, 'zh-Hant') ||
+              a.ruleName.localeCompare(b.ruleName, 'zh-Hant'),
+          ),
+        );
         setCreating(false);
         setEditing(false);
         setSelectedId(row.id);
@@ -649,6 +666,7 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
       const res = await apiFetch(`${meta.basePath}/${encodeURIComponent(selectedId)}`, {
         method: 'PUT',
         body: JSON.stringify({
+          name,
           seg1: s1,
           seg2: s2,
           seg3: s3,
@@ -685,6 +703,12 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
         return (
           <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-sm text-foreground">
             {row.partBrandDisplay}
+          </td>
+        );
+      case 'ruleName':
+        return (
+          <td key={key} className="max-w-[140px] truncate px-2 py-2.5 text-sm text-foreground">
+            {row.ruleName || '\u2014'}
           </td>
         );
       case 'seg1':
@@ -1079,6 +1103,18 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
                       className={readonlyFieldCls}
                     />
                   )}
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor={`${meta.titleId}-rname`}>規則名稱</Label>
+                  <Input
+                    id={`${meta.titleId}-rname`}
+                    value={formValues.name}
+                    onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    maxLength={15}
+                    className={!editing && !creating ? readonlyFieldCls : undefined}
+                    autoComplete="off"
+                  />
                 </div>
                 {(['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const).map((sk, i) => (
                   <div key={sk} className="space-y-2">

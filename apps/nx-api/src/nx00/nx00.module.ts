@@ -32,7 +32,7 @@ import { CountryModule } from './country/country.module';
 import { CurrencyModule } from './currency/currency.module';
 import { PartGroupModule } from './part-group/part-group.module';
 import { CarBrandModule } from './car-brand/car-brand.module';
-import { BrandCodeRoleModule } from './brand-code-role/brand-code-role.module';
+import { BrandCodeRuleModule } from './brand-code-rule/brand-code-rule.module';
 import { PartRelationModule } from './part-relation/part-relation.module';
 
 import { BulletinModule } from './bulletin/bulletin.module';
@@ -64,7 +64,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     CurrencyModule,
     PartGroupModule,
     CarBrandModule,
-    BrandCodeRoleModule,
+    BrandCodeRuleModule,
     PartRelationModule,
 
     BulletinModule,

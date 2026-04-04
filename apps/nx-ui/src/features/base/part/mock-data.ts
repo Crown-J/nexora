@@ -4,6 +4,8 @@
 
 export type BasePartRow = {
   id: string;
+  codeRuleId: string;
+  codeRuleName: string | null;
   sku: string;
   name: string;
   spec: string;

@@ -235,6 +235,7 @@ exports.Prisma.Nx00CurrencyScalarFieldEnum = {
 exports.Prisma.Nx00PartScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  codeRuleId: 'codeRuleId',
   code: 'code',
   name: 'name',
   isOem: 'isOem',
@@ -300,15 +301,16 @@ exports.Prisma.Nx00PartGroupScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00BrandCodeRoleScalarFieldEnum = {
+exports.Prisma.Nx00BrandCodeRuleScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   partBrandId: 'partBrandId',
-  seg1Limit: 'seg1Limit',
-  seg2Limit: 'seg2Limit',
-  seg3Limit: 'seg3Limit',
-  seg4Limit: 'seg4Limit',
-  seg5Limit: 'seg5Limit',
+  name: 'name',
+  seg1: 'seg1',
+  seg2: 'seg2',
+  seg3: 'seg3',
+  seg4: 'seg4',
+  seg5: 'seg5',
   codeFormat: 'codeFormat',
   brandSort: 'brandSort',
   isActive: 'isActive',
@@ -508,7 +510,7 @@ exports.Prisma.Nx99SubscriptionScalarFieldEnum = {
   subtotalSnapshot: 'subtotalSnapshot',
   discountAmountSnapshot: 'discountAmountSnapshot',
   totalSnapshot: 'totalSnapshot',
-  currency: 'currency',
+  currencyId: 'currencyId',
   remark: 'remark',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
@@ -606,7 +608,7 @@ exports.Prisma.ModelName = {
   Nx00PartBrand: 'Nx00PartBrand',
   Nx00CarBrand: 'Nx00CarBrand',
   Nx00PartGroup: 'Nx00PartGroup',
-  Nx00BrandCodeRole: 'Nx00BrandCodeRole',
+  Nx00BrandCodeRule: 'Nx00BrandCodeRule',
   Nx00PartRelation: 'Nx00PartRelation',
   Nx00Warehouse: 'Nx00Warehouse',
   Nx00Location: 'Nx00Location',

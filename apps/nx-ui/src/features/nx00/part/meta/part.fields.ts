@@ -7,6 +7,8 @@
  */
 
 export type PartFieldKey =
+    | 'codeRuleId'
+    | 'codeRuleName'
     | 'code'
     | 'name'
     | 'partBrandId'
@@ -36,6 +38,7 @@ export type PartFieldDef = {
 };
 
 export const PART_FIELDS: PartFieldDef[] = [
+    { key: 'codeRuleName', label: '編碼規則', inList: true, sortable: true, filterable: true },
     { key: 'code', label: '基準料號', inList: true, sortable: true, filterable: true },
     { key: 'name', label: '品名', inList: true, sortable: true, filterable: true },
 
@@ -47,6 +50,7 @@ export const PART_FIELDS: PartFieldDef[] = [
     { key: 'uom', label: '單位', inList: true, sortable: true, filterable: true },
     { key: 'isActive', label: '啟用', inList: true, sortable: true, filterable: true },
 
+    { key: 'codeRuleId', label: '編碼規則ID', inList: false, sortable: true },
     { key: 'partBrandId', label: '零件品牌ID', inList: false, sortable: true },
     { key: 'brandCode', label: '品牌代碼', inList: false, sortable: true },
 

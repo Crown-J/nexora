@@ -8,6 +8,8 @@
 
 export type PartDto = {
     id: string;
+    codeRuleId: string;
+    codeRuleName?: string | null;
     code: string;
     name: string;
 
@@ -64,6 +66,7 @@ export type PartsListQuery = {
 };
 
 export type CreatePartBody = {
+    codeRuleId: string;
     code: string;
     name: string;
     partBrandId?: string | null;
@@ -83,6 +86,7 @@ export type CreatePartBody = {
 };
 
 export type UpdatePartBody = {
+    codeRuleId?: string;
     code?: string;
     name?: string;
     partBrandId?: string | null;

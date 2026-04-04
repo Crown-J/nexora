@@ -111,13 +111,13 @@ export type Nx00CarBrand = $Result.DefaultSelection<Prisma.$Nx00CarBrandPayload>
  */
 export type Nx00PartGroup = $Result.DefaultSelection<Prisma.$Nx00PartGroupPayload>
 /**
- * Model Nx00BrandCodeRole
+ * Model Nx00BrandCodeRule
  * =======================================================
- * NX00 - Brand code role（料號規則，docs/nx00_field.csv）
- * Table: nx00_brand_code_role
+ * NX00 - Brand code rule（料號規則，docs/nx00_field.csv）
+ * Table: nx00_brand_code_rule
  * =======================================================
  */
-export type Nx00BrandCodeRole = $Result.DefaultSelection<Prisma.$Nx00BrandCodeRolePayload>
+export type Nx00BrandCodeRule = $Result.DefaultSelection<Prisma.$Nx00BrandCodeRulePayload>
 /**
  * Model Nx00PartRelation
  * =======================================================
@@ -477,14 +477,14 @@ export class PrismaClient<
   get nx00PartGroup(): Prisma.Nx00PartGroupDelegate<ExtArgs, ClientOptions>;
 
   /**
-   * `prisma.nx00BrandCodeRole`: Exposes CRUD operations for the **Nx00BrandCodeRole** model.
+   * `prisma.nx00BrandCodeRule`: Exposes CRUD operations for the **Nx00BrandCodeRule** model.
     * Example usage:
     * ```ts
-    * // Fetch zero or more Nx00BrandCodeRoles
-    * const nx00BrandCodeRoles = await prisma.nx00BrandCodeRole.findMany()
+    * // Fetch zero or more Nx00BrandCodeRules
+    * const nx00BrandCodeRules = await prisma.nx00BrandCodeRule.findMany()
     * ```
     */
-  get nx00BrandCodeRole(): Prisma.Nx00BrandCodeRoleDelegate<ExtArgs, ClientOptions>;
+  get nx00BrandCodeRule(): Prisma.Nx00BrandCodeRuleDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.nx00PartRelation`: Exposes CRUD operations for the **Nx00PartRelation** model.
@@ -1081,7 +1081,7 @@ export namespace Prisma {
     Nx00PartBrand: 'Nx00PartBrand',
     Nx00CarBrand: 'Nx00CarBrand',
     Nx00PartGroup: 'Nx00PartGroup',
-    Nx00BrandCodeRole: 'Nx00BrandCodeRole',
+    Nx00BrandCodeRule: 'Nx00BrandCodeRule',
     Nx00PartRelation: 'Nx00PartRelation',
     Nx00Warehouse: 'Nx00Warehouse',
     Nx00Location: 'Nx00Location',
@@ -1112,7 +1112,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "nx00User" | "nx00Role" | "nx00UserRole" | "nx00UserWarehouse" | "nx00View" | "nx00RoleView" | "nx00Country" | "nx00Currency" | "nx00Part" | "nx00PartBrand" | "nx00CarBrand" | "nx00PartGroup" | "nx00BrandCodeRole" | "nx00PartRelation" | "nx00Warehouse" | "nx00Location" | "nx00Partner" | "nx00AuditLog" | "nx00Bulletin" | "nx00CalendarEvent" | "nx99Tenant" | "nx99Release" | "nx99ReleaseItem" | "nx99Plan" | "nx99Subscription" | "nx99SubscriptionItem" | "nx99ProductModule" | "nx99ProductModuleMap"
+      modelProps: "nx00User" | "nx00Role" | "nx00UserRole" | "nx00UserWarehouse" | "nx00View" | "nx00RoleView" | "nx00Country" | "nx00Currency" | "nx00Part" | "nx00PartBrand" | "nx00CarBrand" | "nx00PartGroup" | "nx00BrandCodeRule" | "nx00PartRelation" | "nx00Warehouse" | "nx00Location" | "nx00Partner" | "nx00AuditLog" | "nx00Bulletin" | "nx00CalendarEvent" | "nx99Tenant" | "nx99Release" | "nx99ReleaseItem" | "nx99Plan" | "nx99Subscription" | "nx99SubscriptionItem" | "nx99ProductModule" | "nx99ProductModuleMap"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2004,77 +2004,77 @@ export namespace Prisma {
           }
         }
       }
-      Nx00BrandCodeRole: {
-        payload: Prisma.$Nx00BrandCodeRolePayload<ExtArgs>
-        fields: Prisma.Nx00BrandCodeRoleFieldRefs
+      Nx00BrandCodeRule: {
+        payload: Prisma.$Nx00BrandCodeRulePayload<ExtArgs>
+        fields: Prisma.Nx00BrandCodeRuleFieldRefs
         operations: {
           findUnique: {
-            args: Prisma.Nx00BrandCodeRoleFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload> | null
+            args: Prisma.Nx00BrandCodeRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload> | null
           }
           findUniqueOrThrow: {
-            args: Prisma.Nx00BrandCodeRoleFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>
+            args: Prisma.Nx00BrandCodeRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>
           }
           findFirst: {
-            args: Prisma.Nx00BrandCodeRoleFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload> | null
+            args: Prisma.Nx00BrandCodeRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload> | null
           }
           findFirstOrThrow: {
-            args: Prisma.Nx00BrandCodeRoleFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>
+            args: Prisma.Nx00BrandCodeRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>
           }
           findMany: {
-            args: Prisma.Nx00BrandCodeRoleFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>[]
+            args: Prisma.Nx00BrandCodeRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>[]
           }
           create: {
-            args: Prisma.Nx00BrandCodeRoleCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>
+            args: Prisma.Nx00BrandCodeRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>
           }
           createMany: {
-            args: Prisma.Nx00BrandCodeRoleCreateManyArgs<ExtArgs>
+            args: Prisma.Nx00BrandCodeRuleCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
           createManyAndReturn: {
-            args: Prisma.Nx00BrandCodeRoleCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>[]
+            args: Prisma.Nx00BrandCodeRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>[]
           }
           delete: {
-            args: Prisma.Nx00BrandCodeRoleDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>
+            args: Prisma.Nx00BrandCodeRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>
           }
           update: {
-            args: Prisma.Nx00BrandCodeRoleUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>
+            args: Prisma.Nx00BrandCodeRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>
           }
           deleteMany: {
-            args: Prisma.Nx00BrandCodeRoleDeleteManyArgs<ExtArgs>
+            args: Prisma.Nx00BrandCodeRuleDeleteManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateMany: {
-            args: Prisma.Nx00BrandCodeRoleUpdateManyArgs<ExtArgs>
+            args: Prisma.Nx00BrandCodeRuleUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
           updateManyAndReturn: {
-            args: Prisma.Nx00BrandCodeRoleUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>[]
+            args: Prisma.Nx00BrandCodeRuleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>[]
           }
           upsert: {
-            args: Prisma.Nx00BrandCodeRoleUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRolePayload>
+            args: Prisma.Nx00BrandCodeRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx00BrandCodeRulePayload>
           }
           aggregate: {
-            args: Prisma.Nx00BrandCodeRoleAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateNx00BrandCodeRole>
+            args: Prisma.Nx00BrandCodeRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx00BrandCodeRule>
           }
           groupBy: {
-            args: Prisma.Nx00BrandCodeRoleGroupByArgs<ExtArgs>
-            result: $Utils.Optional<Nx00BrandCodeRoleGroupByOutputType>[]
+            args: Prisma.Nx00BrandCodeRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx00BrandCodeRuleGroupByOutputType>[]
           }
           count: {
-            args: Prisma.Nx00BrandCodeRoleCountArgs<ExtArgs>
-            result: $Utils.Optional<Nx00BrandCodeRoleCountAggregateOutputType> | number
+            args: Prisma.Nx00BrandCodeRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx00BrandCodeRuleCountAggregateOutputType> | number
           }
         }
       }
@@ -3308,7 +3308,7 @@ export namespace Prisma {
     nx00PartBrand?: Nx00PartBrandOmit
     nx00CarBrand?: Nx00CarBrandOmit
     nx00PartGroup?: Nx00PartGroupOmit
-    nx00BrandCodeRole?: Nx00BrandCodeRoleOmit
+    nx00BrandCodeRule?: Nx00BrandCodeRuleOmit
     nx00PartRelation?: Nx00PartRelationOmit
     nx00Warehouse?: Nx00WarehouseOmit
     nx00Location?: Nx00LocationOmit
@@ -3439,8 +3439,8 @@ export namespace Prisma {
     countriesUpdated: number
     currenciesCreated: number
     currenciesUpdated: number
-    brandCodeRolesCreated: number
-    brandCodeRolesUpdated: number
+    brandCodeRulesCreated: number
+    brandCodeRulesUpdated: number
     partRelationsCreated: number
     partRelationsUpdated: number
   }
@@ -3481,8 +3481,8 @@ export namespace Prisma {
     countriesUpdated?: boolean | Nx00UserCountOutputTypeCountCountriesUpdatedArgs
     currenciesCreated?: boolean | Nx00UserCountOutputTypeCountCurrenciesCreatedArgs
     currenciesUpdated?: boolean | Nx00UserCountOutputTypeCountCurrenciesUpdatedArgs
-    brandCodeRolesCreated?: boolean | Nx00UserCountOutputTypeCountBrandCodeRolesCreatedArgs
-    brandCodeRolesUpdated?: boolean | Nx00UserCountOutputTypeCountBrandCodeRolesUpdatedArgs
+    brandCodeRulesCreated?: boolean | Nx00UserCountOutputTypeCountBrandCodeRulesCreatedArgs
+    brandCodeRulesUpdated?: boolean | Nx00UserCountOutputTypeCountBrandCodeRulesUpdatedArgs
     partRelationsCreated?: boolean | Nx00UserCountOutputTypeCountPartRelationsCreatedArgs
     partRelationsUpdated?: boolean | Nx00UserCountOutputTypeCountPartRelationsUpdatedArgs
   }
@@ -3746,15 +3746,15 @@ export namespace Prisma {
   /**
    * Nx00UserCountOutputType without action
    */
-  export type Nx00UserCountOutputTypeCountBrandCodeRolesCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: Nx00BrandCodeRoleWhereInput
+  export type Nx00UserCountOutputTypeCountBrandCodeRulesCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BrandCodeRuleWhereInput
   }
 
   /**
    * Nx00UserCountOutputType without action
    */
-  export type Nx00UserCountOutputTypeCountBrandCodeRolesUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: Nx00BrandCodeRoleWhereInput
+  export type Nx00UserCountOutputTypeCountBrandCodeRulesUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BrandCodeRuleWhereInput
   }
 
   /**
@@ -3893,6 +3893,37 @@ export namespace Prisma {
 
 
   /**
+   * Count Type Nx00CurrencyCountOutputType
+   */
+
+  export type Nx00CurrencyCountOutputType = {
+    subscriptions: number
+  }
+
+  export type Nx00CurrencyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    subscriptions?: boolean | Nx00CurrencyCountOutputTypeCountSubscriptionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * Nx00CurrencyCountOutputType without action
+   */
+  export type Nx00CurrencyCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00CurrencyCountOutputType
+     */
+    select?: Nx00CurrencyCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * Nx00CurrencyCountOutputType without action
+   */
+  export type Nx00CurrencyCountOutputTypeCountSubscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx99SubscriptionWhereInput
+  }
+
+
+  /**
    * Count Type Nx00PartCountOutputType
    */
 
@@ -3938,10 +3969,12 @@ export namespace Prisma {
 
   export type Nx00PartBrandCountOutputType = {
     parts: number
+    brandCodeRules: number
   }
 
   export type Nx00PartBrandCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     parts?: boolean | Nx00PartBrandCountOutputTypeCountPartsArgs
+    brandCodeRules?: boolean | Nx00PartBrandCountOutputTypeCountBrandCodeRulesArgs
   }
 
   // Custom InputTypes
@@ -3960,6 +3993,13 @@ export namespace Prisma {
    */
   export type Nx00PartBrandCountOutputTypeCountPartsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx00PartWhereInput
+  }
+
+  /**
+   * Nx00PartBrandCountOutputType without action
+   */
+  export type Nx00PartBrandCountOutputTypeCountBrandCodeRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BrandCodeRuleWhereInput
   }
 
 
@@ -3990,6 +4030,37 @@ export namespace Prisma {
    * Nx00PartGroupCountOutputType without action
    */
   export type Nx00PartGroupCountOutputTypeCountPartsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00PartWhereInput
+  }
+
+
+  /**
+   * Count Type Nx00BrandCodeRuleCountOutputType
+   */
+
+  export type Nx00BrandCodeRuleCountOutputType = {
+    parts: number
+  }
+
+  export type Nx00BrandCodeRuleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    parts?: boolean | Nx00BrandCodeRuleCountOutputTypeCountPartsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * Nx00BrandCodeRuleCountOutputType without action
+   */
+  export type Nx00BrandCodeRuleCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BrandCodeRuleCountOutputType
+     */
+    select?: Nx00BrandCodeRuleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * Nx00BrandCodeRuleCountOutputType without action
+   */
+  export type Nx00BrandCodeRuleCountOutputTypeCountPartsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx00PartWhereInput
   }
 
@@ -4049,7 +4120,7 @@ export namespace Prisma {
     partBrands: number
     carBrands: number
     partGroups: number
-    brandCodeRoles: number
+    brandCodeRules: number
     partRelations: number
     warehouses: number
     locations: number
@@ -4070,7 +4141,7 @@ export namespace Prisma {
     partBrands?: boolean | Nx99TenantCountOutputTypeCountPartBrandsArgs
     carBrands?: boolean | Nx99TenantCountOutputTypeCountCarBrandsArgs
     partGroups?: boolean | Nx99TenantCountOutputTypeCountPartGroupsArgs
-    brandCodeRoles?: boolean | Nx99TenantCountOutputTypeCountBrandCodeRolesArgs
+    brandCodeRules?: boolean | Nx99TenantCountOutputTypeCountBrandCodeRulesArgs
     partRelations?: boolean | Nx99TenantCountOutputTypeCountPartRelationsArgs
     warehouses?: boolean | Nx99TenantCountOutputTypeCountWarehousesArgs
     locations?: boolean | Nx99TenantCountOutputTypeCountLocationsArgs
@@ -4164,8 +4235,8 @@ export namespace Prisma {
   /**
    * Nx99TenantCountOutputType without action
    */
-  export type Nx99TenantCountOutputTypeCountBrandCodeRolesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: Nx00BrandCodeRoleWhereInput
+  export type Nx99TenantCountOutputTypeCountBrandCodeRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BrandCodeRuleWhereInput
   }
 
   /**
@@ -4620,8 +4691,8 @@ export namespace Prisma {
     countriesUpdated?: boolean | Nx00User$countriesUpdatedArgs<ExtArgs>
     currenciesCreated?: boolean | Nx00User$currenciesCreatedArgs<ExtArgs>
     currenciesUpdated?: boolean | Nx00User$currenciesUpdatedArgs<ExtArgs>
-    brandCodeRolesCreated?: boolean | Nx00User$brandCodeRolesCreatedArgs<ExtArgs>
-    brandCodeRolesUpdated?: boolean | Nx00User$brandCodeRolesUpdatedArgs<ExtArgs>
+    brandCodeRulesCreated?: boolean | Nx00User$brandCodeRulesCreatedArgs<ExtArgs>
+    brandCodeRulesUpdated?: boolean | Nx00User$brandCodeRulesUpdatedArgs<ExtArgs>
     partRelationsCreated?: boolean | Nx00User$partRelationsCreatedArgs<ExtArgs>
     partRelationsUpdated?: boolean | Nx00User$partRelationsUpdatedArgs<ExtArgs>
     _count?: boolean | Nx00UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -4724,8 +4795,8 @@ export namespace Prisma {
     countriesUpdated?: boolean | Nx00User$countriesUpdatedArgs<ExtArgs>
     currenciesCreated?: boolean | Nx00User$currenciesCreatedArgs<ExtArgs>
     currenciesUpdated?: boolean | Nx00User$currenciesUpdatedArgs<ExtArgs>
-    brandCodeRolesCreated?: boolean | Nx00User$brandCodeRolesCreatedArgs<ExtArgs>
-    brandCodeRolesUpdated?: boolean | Nx00User$brandCodeRolesUpdatedArgs<ExtArgs>
+    brandCodeRulesCreated?: boolean | Nx00User$brandCodeRulesCreatedArgs<ExtArgs>
+    brandCodeRulesUpdated?: boolean | Nx00User$brandCodeRulesUpdatedArgs<ExtArgs>
     partRelationsCreated?: boolean | Nx00User$partRelationsCreatedArgs<ExtArgs>
     partRelationsUpdated?: boolean | Nx00User$partRelationsUpdatedArgs<ExtArgs>
     _count?: boolean | Nx00UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -4785,8 +4856,8 @@ export namespace Prisma {
       countriesUpdated: Prisma.$Nx00CountryPayload<ExtArgs>[]
       currenciesCreated: Prisma.$Nx00CurrencyPayload<ExtArgs>[]
       currenciesUpdated: Prisma.$Nx00CurrencyPayload<ExtArgs>[]
-      brandCodeRolesCreated: Prisma.$Nx00BrandCodeRolePayload<ExtArgs>[]
-      brandCodeRolesUpdated: Prisma.$Nx00BrandCodeRolePayload<ExtArgs>[]
+      brandCodeRulesCreated: Prisma.$Nx00BrandCodeRulePayload<ExtArgs>[]
+      brandCodeRulesUpdated: Prisma.$Nx00BrandCodeRulePayload<ExtArgs>[]
       partRelationsCreated: Prisma.$Nx00PartRelationPayload<ExtArgs>[]
       partRelationsUpdated: Prisma.$Nx00PartRelationPayload<ExtArgs>[]
     }
@@ -5249,8 +5320,8 @@ export namespace Prisma {
     countriesUpdated<T extends Nx00User$countriesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$countriesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00CountryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     currenciesCreated<T extends Nx00User$currenciesCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$currenciesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00CurrencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     currenciesUpdated<T extends Nx00User$currenciesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$currenciesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00CurrencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    brandCodeRolesCreated<T extends Nx00User$brandCodeRolesCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$brandCodeRolesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    brandCodeRolesUpdated<T extends Nx00User$brandCodeRolesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$brandCodeRolesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    brandCodeRulesCreated<T extends Nx00User$brandCodeRulesCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$brandCodeRulesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    brandCodeRulesUpdated<T extends Nx00User$brandCodeRulesUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$brandCodeRulesUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     partRelationsCreated<T extends Nx00User$partRelationsCreatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partRelationsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartRelationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     partRelationsUpdated<T extends Nx00User$partRelationsUpdatedArgs<ExtArgs> = {}>(args?: Subset<T, Nx00User$partRelationsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartRelationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -6570,51 +6641,51 @@ export namespace Prisma {
   }
 
   /**
-   * Nx00User.brandCodeRolesCreated
+   * Nx00User.brandCodeRulesCreated
    */
-  export type Nx00User$brandCodeRolesCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00User$brandCodeRulesCreatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
-    where?: Nx00BrandCodeRoleWhereInput
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
+    where?: Nx00BrandCodeRuleWhereInput
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Nx00BrandCodeRoleScalarFieldEnum | Nx00BrandCodeRoleScalarFieldEnum[]
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
-   * Nx00User.brandCodeRolesUpdated
+   * Nx00User.brandCodeRulesUpdated
    */
-  export type Nx00User$brandCodeRolesUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00User$brandCodeRulesUpdatedArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
-    where?: Nx00BrandCodeRoleWhereInput
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
+    where?: Nx00BrandCodeRuleWhereInput
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Nx00BrandCodeRoleScalarFieldEnum | Nx00BrandCodeRoleScalarFieldEnum[]
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
@@ -14324,6 +14395,8 @@ export namespace Prisma {
     updatedBy?: boolean
     createdByUser?: boolean | Nx00Currency$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Currency$updatedByUserArgs<ExtArgs>
+    subscriptions?: boolean | Nx00Currency$subscriptionsArgs<ExtArgs>
+    _count?: boolean | Nx00CurrencyCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["nx00Currency"]>
 
   export type Nx00CurrencySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -14376,6 +14449,8 @@ export namespace Prisma {
   export type Nx00CurrencyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdByUser?: boolean | Nx00Currency$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Currency$updatedByUserArgs<ExtArgs>
+    subscriptions?: boolean | Nx00Currency$subscriptionsArgs<ExtArgs>
+    _count?: boolean | Nx00CurrencyCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type Nx00CurrencyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     createdByUser?: boolean | Nx00Currency$createdByUserArgs<ExtArgs>
@@ -14391,6 +14466,7 @@ export namespace Prisma {
     objects: {
       createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      subscriptions: Prisma.$Nx99SubscriptionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -14803,6 +14879,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     createdByUser<T extends Nx00Currency$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Currency$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     updatedByUser<T extends Nx00Currency$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Currency$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    subscriptions<T extends Nx00Currency$subscriptionsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Currency$subscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx99SubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -15277,6 +15354,30 @@ export namespace Prisma {
   }
 
   /**
+   * Nx00Currency.subscriptions
+   */
+  export type Nx00Currency$subscriptionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx99Subscription
+     */
+    select?: Nx99SubscriptionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx99Subscription
+     */
+    omit?: Nx99SubscriptionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx99SubscriptionInclude<ExtArgs> | null
+    where?: Nx99SubscriptionWhereInput
+    orderBy?: Nx99SubscriptionOrderByWithRelationInput | Nx99SubscriptionOrderByWithRelationInput[]
+    cursor?: Nx99SubscriptionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx99SubscriptionScalarFieldEnum | Nx99SubscriptionScalarFieldEnum[]
+  }
+
+  /**
    * Nx00Currency without action
    */
   export type Nx00CurrencyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -15308,6 +15409,7 @@ export namespace Prisma {
   export type Nx00PartMinAggregateOutputType = {
     id: string | null
     tenantId: string | null
+    codeRuleId: string | null
     code: string | null
     name: string | null
     isOem: boolean | null
@@ -15333,6 +15435,7 @@ export namespace Prisma {
   export type Nx00PartMaxAggregateOutputType = {
     id: string | null
     tenantId: string | null
+    codeRuleId: string | null
     code: string | null
     name: string | null
     isOem: boolean | null
@@ -15358,6 +15461,7 @@ export namespace Prisma {
   export type Nx00PartCountAggregateOutputType = {
     id: number
     tenantId: number
+    codeRuleId: number
     code: number
     name: number
     isOem: number
@@ -15385,6 +15489,7 @@ export namespace Prisma {
   export type Nx00PartMinAggregateInputType = {
     id?: true
     tenantId?: true
+    codeRuleId?: true
     code?: true
     name?: true
     isOem?: true
@@ -15410,6 +15515,7 @@ export namespace Prisma {
   export type Nx00PartMaxAggregateInputType = {
     id?: true
     tenantId?: true
+    codeRuleId?: true
     code?: true
     name?: true
     isOem?: true
@@ -15435,6 +15541,7 @@ export namespace Prisma {
   export type Nx00PartCountAggregateInputType = {
     id?: true
     tenantId?: true
+    codeRuleId?: true
     code?: true
     name?: true
     isOem?: true
@@ -15533,6 +15640,7 @@ export namespace Prisma {
   export type Nx00PartGroupByOutputType = {
     id: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem: boolean
@@ -15575,6 +15683,7 @@ export namespace Prisma {
   export type Nx00PartSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
+    codeRuleId?: boolean
     code?: boolean
     name?: boolean
     isOem?: boolean
@@ -15596,9 +15705,10 @@ export namespace Prisma {
     updatedAt?: boolean
     updatedBy?: boolean
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    codeRule?: boolean | Nx00BrandCodeRuleDefaultArgs<ExtArgs>
     country?: boolean | Nx00Part$countryArgs<ExtArgs>
-    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     partBrand?: boolean | Nx00Part$partBrandArgs<ExtArgs>
+    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     createdByUser?: boolean | Nx00Part$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Part$updatedByUserArgs<ExtArgs>
     relationsFrom?: boolean | Nx00Part$relationsFromArgs<ExtArgs>
@@ -15609,6 +15719,7 @@ export namespace Prisma {
   export type Nx00PartSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
+    codeRuleId?: boolean
     code?: boolean
     name?: boolean
     isOem?: boolean
@@ -15630,9 +15741,10 @@ export namespace Prisma {
     updatedAt?: boolean
     updatedBy?: boolean
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    codeRule?: boolean | Nx00BrandCodeRuleDefaultArgs<ExtArgs>
     country?: boolean | Nx00Part$countryArgs<ExtArgs>
-    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     partBrand?: boolean | Nx00Part$partBrandArgs<ExtArgs>
+    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     createdByUser?: boolean | Nx00Part$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Part$updatedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["nx00Part"]>
@@ -15640,6 +15752,7 @@ export namespace Prisma {
   export type Nx00PartSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
+    codeRuleId?: boolean
     code?: boolean
     name?: boolean
     isOem?: boolean
@@ -15661,9 +15774,10 @@ export namespace Prisma {
     updatedAt?: boolean
     updatedBy?: boolean
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    codeRule?: boolean | Nx00BrandCodeRuleDefaultArgs<ExtArgs>
     country?: boolean | Nx00Part$countryArgs<ExtArgs>
-    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     partBrand?: boolean | Nx00Part$partBrandArgs<ExtArgs>
+    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     createdByUser?: boolean | Nx00Part$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Part$updatedByUserArgs<ExtArgs>
   }, ExtArgs["result"]["nx00Part"]>
@@ -15671,6 +15785,7 @@ export namespace Prisma {
   export type Nx00PartSelectScalar = {
     id?: boolean
     tenantId?: boolean
+    codeRuleId?: boolean
     code?: boolean
     name?: boolean
     isOem?: boolean
@@ -15693,12 +15808,13 @@ export namespace Prisma {
     updatedBy?: boolean
   }
 
-  export type Nx00PartOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "code" | "name" | "isOem" | "secCode" | "seg1" | "seg2" | "seg3" | "seg4" | "seg5" | "countryId" | "partBrandId" | "partType" | "partGroupId" | "spec" | "uom" | "isActive" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00Part"]>
+  export type Nx00PartOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "codeRuleId" | "code" | "name" | "isOem" | "secCode" | "seg1" | "seg2" | "seg3" | "seg4" | "seg5" | "countryId" | "partBrandId" | "partType" | "partGroupId" | "spec" | "uom" | "isActive" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00Part"]>
   export type Nx00PartInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    codeRule?: boolean | Nx00BrandCodeRuleDefaultArgs<ExtArgs>
     country?: boolean | Nx00Part$countryArgs<ExtArgs>
-    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     partBrand?: boolean | Nx00Part$partBrandArgs<ExtArgs>
+    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     createdByUser?: boolean | Nx00Part$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Part$updatedByUserArgs<ExtArgs>
     relationsFrom?: boolean | Nx00Part$relationsFromArgs<ExtArgs>
@@ -15707,17 +15823,19 @@ export namespace Prisma {
   }
   export type Nx00PartIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    codeRule?: boolean | Nx00BrandCodeRuleDefaultArgs<ExtArgs>
     country?: boolean | Nx00Part$countryArgs<ExtArgs>
-    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     partBrand?: boolean | Nx00Part$partBrandArgs<ExtArgs>
+    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     createdByUser?: boolean | Nx00Part$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Part$updatedByUserArgs<ExtArgs>
   }
   export type Nx00PartIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    codeRule?: boolean | Nx00BrandCodeRuleDefaultArgs<ExtArgs>
     country?: boolean | Nx00Part$countryArgs<ExtArgs>
-    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     partBrand?: boolean | Nx00Part$partBrandArgs<ExtArgs>
+    partGroup?: boolean | Nx00Part$partGroupArgs<ExtArgs>
     createdByUser?: boolean | Nx00Part$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00Part$updatedByUserArgs<ExtArgs>
   }
@@ -15726,50 +15844,49 @@ export namespace Prisma {
     name: "Nx00Part"
     objects: {
       tenant: Prisma.$Nx99TenantPayload<ExtArgs>
+      codeRule: Prisma.$Nx00BrandCodeRulePayload<ExtArgs>
       country: Prisma.$Nx00CountryPayload<ExtArgs> | null
-      partGroup: Prisma.$Nx00PartGroupPayload<ExtArgs> | null
       partBrand: Prisma.$Nx00PartBrandPayload<ExtArgs> | null
+      partGroup: Prisma.$Nx00PartGroupPayload<ExtArgs> | null
       createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       relationsFrom: Prisma.$Nx00PartRelationPayload<ExtArgs>[]
       relationsTo: Prisma.$Nx00PartRelationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
+      /**
+       * [NX00]+[PART]+[7碼流水號]，EX : NX00PART0000001
+       */
       id: string
       /**
        * 租戶 ID（外鍵 → nx99_tenant）
        */
       tenantId: string
       /**
-       * 零件料號
+       * 編碼規則（外鍵 → nx00_brand_code_rule）
+       */
+      codeRuleId: string
+      /**
+       * 零件料號（系統組合；唯一性：同租戶 + 同料號 + 同產地）
        */
       code: string
       /**
-       * 零件名稱／品名
+       * 零件名稱/品名
        */
       name: string
       isOem: boolean
-      /**
-       * 副廠料號
-       */
       secCode: string | null
       seg1: string | null
       seg2: string | null
       seg3: string | null
       seg4: string | null
       seg5: string | null
-      /**
-       * 產地
-       */
       countryId: string | null
       partBrandId: string | null
       /**
-       * A=專用型 / B=通用型 / C=組合型 / D=拆解型（預設 A）
+       * A=專用型 / B=通用型 / C=組合型 / D=拆解型
        */
       partType: string
-      /**
-       * 零件種類
-       */
       partGroupId: string | null
       spec: string | null
       uom: string
@@ -16173,9 +16290,10 @@ export namespace Prisma {
   export interface Prisma__Nx00PartClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends Nx99TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx99TenantDefaultArgs<ExtArgs>>): Prisma__Nx99TenantClient<$Result.GetResult<Prisma.$Nx99TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    codeRule<T extends Nx00BrandCodeRuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BrandCodeRuleDefaultArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     country<T extends Nx00Part$countryArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$countryArgs<ExtArgs>>): Prisma__Nx00CountryClient<$Result.GetResult<Prisma.$Nx00CountryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-    partGroup<T extends Nx00Part$partGroupArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$partGroupArgs<ExtArgs>>): Prisma__Nx00PartGroupClient<$Result.GetResult<Prisma.$Nx00PartGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     partBrand<T extends Nx00Part$partBrandArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$partBrandArgs<ExtArgs>>): Prisma__Nx00PartBrandClient<$Result.GetResult<Prisma.$Nx00PartBrandPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    partGroup<T extends Nx00Part$partGroupArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$partGroupArgs<ExtArgs>>): Prisma__Nx00PartGroupClient<$Result.GetResult<Prisma.$Nx00PartGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     createdByUser<T extends Nx00Part$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     updatedByUser<T extends Nx00Part$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     relationsFrom<T extends Nx00Part$relationsFromArgs<ExtArgs> = {}>(args?: Subset<T, Nx00Part$relationsFromArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartRelationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -16211,6 +16329,7 @@ export namespace Prisma {
   interface Nx00PartFieldRefs {
     readonly id: FieldRef<"Nx00Part", 'String'>
     readonly tenantId: FieldRef<"Nx00Part", 'String'>
+    readonly codeRuleId: FieldRef<"Nx00Part", 'String'>
     readonly code: FieldRef<"Nx00Part", 'String'>
     readonly name: FieldRef<"Nx00Part", 'String'>
     readonly isOem: FieldRef<"Nx00Part", 'Boolean'>
@@ -16646,25 +16765,6 @@ export namespace Prisma {
   }
 
   /**
-   * Nx00Part.partGroup
-   */
-  export type Nx00Part$partGroupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Nx00PartGroup
-     */
-    select?: Nx00PartGroupSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Nx00PartGroup
-     */
-    omit?: Nx00PartGroupOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: Nx00PartGroupInclude<ExtArgs> | null
-    where?: Nx00PartGroupWhereInput
-  }
-
-  /**
    * Nx00Part.partBrand
    */
   export type Nx00Part$partBrandArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16681,6 +16781,25 @@ export namespace Prisma {
      */
     include?: Nx00PartBrandInclude<ExtArgs> | null
     where?: Nx00PartBrandWhereInput
+  }
+
+  /**
+   * Nx00Part.partGroup
+   */
+  export type Nx00Part$partGroupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00PartGroup
+     */
+    select?: Nx00PartGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00PartGroup
+     */
+    omit?: Nx00PartGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00PartGroupInclude<ExtArgs> | null
+    where?: Nx00PartGroupWhereInput
   }
 
   /**
@@ -17047,7 +17166,7 @@ export namespace Prisma {
     createdByUser?: boolean | Nx00PartBrand$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00PartBrand$updatedByUserArgs<ExtArgs>
     parts?: boolean | Nx00PartBrand$partsArgs<ExtArgs>
-    brandCodeRole?: boolean | Nx00PartBrand$brandCodeRoleArgs<ExtArgs>
+    brandCodeRules?: boolean | Nx00PartBrand$brandCodeRulesArgs<ExtArgs>
     _count?: boolean | Nx00PartBrandCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["nx00PartBrand"]>
 
@@ -17111,7 +17230,7 @@ export namespace Prisma {
     createdByUser?: boolean | Nx00PartBrand$createdByUserArgs<ExtArgs>
     updatedByUser?: boolean | Nx00PartBrand$updatedByUserArgs<ExtArgs>
     parts?: boolean | Nx00PartBrand$partsArgs<ExtArgs>
-    brandCodeRole?: boolean | Nx00PartBrand$brandCodeRoleArgs<ExtArgs>
+    brandCodeRules?: boolean | Nx00PartBrand$brandCodeRulesArgs<ExtArgs>
     _count?: boolean | Nx00PartBrandCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type Nx00PartBrandIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -17135,7 +17254,7 @@ export namespace Prisma {
       createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       parts: Prisma.$Nx00PartPayload<ExtArgs>[]
-      brandCodeRole: Prisma.$Nx00BrandCodeRolePayload<ExtArgs> | null
+      brandCodeRules: Prisma.$Nx00BrandCodeRulePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -17558,7 +17677,7 @@ export namespace Prisma {
     createdByUser<T extends Nx00PartBrand$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PartBrand$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     updatedByUser<T extends Nx00PartBrand$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PartBrand$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     parts<T extends Nx00PartBrand$partsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PartBrand$partsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    brandCodeRole<T extends Nx00PartBrand$brandCodeRoleArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PartBrand$brandCodeRoleArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    brandCodeRules<T extends Nx00PartBrand$brandCodeRulesArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PartBrand$brandCodeRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -18077,22 +18196,27 @@ export namespace Prisma {
   }
 
   /**
-   * Nx00PartBrand.brandCodeRole
+   * Nx00PartBrand.brandCodeRules
    */
-  export type Nx00PartBrand$brandCodeRoleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00PartBrand$brandCodeRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
-    where?: Nx00BrandCodeRoleWhereInput
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
+    where?: Nx00BrandCodeRuleWhereInput
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
@@ -20626,42 +20750,43 @@ export namespace Prisma {
 
 
   /**
-   * Model Nx00BrandCodeRole
+   * Model Nx00BrandCodeRule
    */
 
-  export type AggregateNx00BrandCodeRole = {
-    _count: Nx00BrandCodeRoleCountAggregateOutputType | null
-    _avg: Nx00BrandCodeRoleAvgAggregateOutputType | null
-    _sum: Nx00BrandCodeRoleSumAggregateOutputType | null
-    _min: Nx00BrandCodeRoleMinAggregateOutputType | null
-    _max: Nx00BrandCodeRoleMaxAggregateOutputType | null
+  export type AggregateNx00BrandCodeRule = {
+    _count: Nx00BrandCodeRuleCountAggregateOutputType | null
+    _avg: Nx00BrandCodeRuleAvgAggregateOutputType | null
+    _sum: Nx00BrandCodeRuleSumAggregateOutputType | null
+    _min: Nx00BrandCodeRuleMinAggregateOutputType | null
+    _max: Nx00BrandCodeRuleMaxAggregateOutputType | null
   }
 
-  export type Nx00BrandCodeRoleAvgAggregateOutputType = {
-    seg1Limit: number | null
-    seg2Limit: number | null
-    seg3Limit: number | null
-    seg4Limit: number | null
-    seg5Limit: number | null
+  export type Nx00BrandCodeRuleAvgAggregateOutputType = {
+    seg1: number | null
+    seg2: number | null
+    seg3: number | null
+    seg4: number | null
+    seg5: number | null
   }
 
-  export type Nx00BrandCodeRoleSumAggregateOutputType = {
-    seg1Limit: number | null
-    seg2Limit: number | null
-    seg3Limit: number | null
-    seg4Limit: number | null
-    seg5Limit: number | null
+  export type Nx00BrandCodeRuleSumAggregateOutputType = {
+    seg1: number | null
+    seg2: number | null
+    seg3: number | null
+    seg4: number | null
+    seg5: number | null
   }
 
-  export type Nx00BrandCodeRoleMinAggregateOutputType = {
+  export type Nx00BrandCodeRuleMinAggregateOutputType = {
     id: string | null
     tenantId: string | null
     partBrandId: string | null
-    seg1Limit: number | null
-    seg2Limit: number | null
-    seg3Limit: number | null
-    seg4Limit: number | null
-    seg5Limit: number | null
+    name: string | null
+    seg1: number | null
+    seg2: number | null
+    seg3: number | null
+    seg4: number | null
+    seg5: number | null
     codeFormat: string | null
     brandSort: string | null
     isActive: boolean | null
@@ -20671,15 +20796,16 @@ export namespace Prisma {
     updatedBy: string | null
   }
 
-  export type Nx00BrandCodeRoleMaxAggregateOutputType = {
+  export type Nx00BrandCodeRuleMaxAggregateOutputType = {
     id: string | null
     tenantId: string | null
     partBrandId: string | null
-    seg1Limit: number | null
-    seg2Limit: number | null
-    seg3Limit: number | null
-    seg4Limit: number | null
-    seg5Limit: number | null
+    name: string | null
+    seg1: number | null
+    seg2: number | null
+    seg3: number | null
+    seg4: number | null
+    seg5: number | null
     codeFormat: string | null
     brandSort: string | null
     isActive: boolean | null
@@ -20689,15 +20815,16 @@ export namespace Prisma {
     updatedBy: string | null
   }
 
-  export type Nx00BrandCodeRoleCountAggregateOutputType = {
+  export type Nx00BrandCodeRuleCountAggregateOutputType = {
     id: number
     tenantId: number
     partBrandId: number
-    seg1Limit: number
-    seg2Limit: number
-    seg3Limit: number
-    seg4Limit: number
-    seg5Limit: number
+    name: number
+    seg1: number
+    seg2: number
+    seg3: number
+    seg4: number
+    seg5: number
     codeFormat: number
     brandSort: number
     isActive: number
@@ -20709,31 +20836,32 @@ export namespace Prisma {
   }
 
 
-  export type Nx00BrandCodeRoleAvgAggregateInputType = {
-    seg1Limit?: true
-    seg2Limit?: true
-    seg3Limit?: true
-    seg4Limit?: true
-    seg5Limit?: true
+  export type Nx00BrandCodeRuleAvgAggregateInputType = {
+    seg1?: true
+    seg2?: true
+    seg3?: true
+    seg4?: true
+    seg5?: true
   }
 
-  export type Nx00BrandCodeRoleSumAggregateInputType = {
-    seg1Limit?: true
-    seg2Limit?: true
-    seg3Limit?: true
-    seg4Limit?: true
-    seg5Limit?: true
+  export type Nx00BrandCodeRuleSumAggregateInputType = {
+    seg1?: true
+    seg2?: true
+    seg3?: true
+    seg4?: true
+    seg5?: true
   }
 
-  export type Nx00BrandCodeRoleMinAggregateInputType = {
+  export type Nx00BrandCodeRuleMinAggregateInputType = {
     id?: true
     tenantId?: true
     partBrandId?: true
-    seg1Limit?: true
-    seg2Limit?: true
-    seg3Limit?: true
-    seg4Limit?: true
-    seg5Limit?: true
+    name?: true
+    seg1?: true
+    seg2?: true
+    seg3?: true
+    seg4?: true
+    seg5?: true
     codeFormat?: true
     brandSort?: true
     isActive?: true
@@ -20743,15 +20871,16 @@ export namespace Prisma {
     updatedBy?: true
   }
 
-  export type Nx00BrandCodeRoleMaxAggregateInputType = {
+  export type Nx00BrandCodeRuleMaxAggregateInputType = {
     id?: true
     tenantId?: true
     partBrandId?: true
-    seg1Limit?: true
-    seg2Limit?: true
-    seg3Limit?: true
-    seg4Limit?: true
-    seg5Limit?: true
+    name?: true
+    seg1?: true
+    seg2?: true
+    seg3?: true
+    seg4?: true
+    seg5?: true
     codeFormat?: true
     brandSort?: true
     isActive?: true
@@ -20761,15 +20890,16 @@ export namespace Prisma {
     updatedBy?: true
   }
 
-  export type Nx00BrandCodeRoleCountAggregateInputType = {
+  export type Nx00BrandCodeRuleCountAggregateInputType = {
     id?: true
     tenantId?: true
     partBrandId?: true
-    seg1Limit?: true
-    seg2Limit?: true
-    seg3Limit?: true
-    seg4Limit?: true
-    seg5Limit?: true
+    name?: true
+    seg1?: true
+    seg2?: true
+    seg3?: true
+    seg4?: true
+    seg5?: true
     codeFormat?: true
     brandSort?: true
     isActive?: true
@@ -20780,101 +20910,102 @@ export namespace Prisma {
     _all?: true
   }
 
-  export type Nx00BrandCodeRoleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which Nx00BrandCodeRole to aggregate.
+     * Filter which Nx00BrandCodeRule to aggregate.
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Nx00BrandCodeRoles to fetch.
+     * Determine the order of Nx00BrandCodeRules to fetch.
      */
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
      */
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Nx00BrandCodeRoles from the position of the cursor.
+     * Take `±n` Nx00BrandCodeRules from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Nx00BrandCodeRoles.
+     * Skip the first `n` Nx00BrandCodeRules.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned Nx00BrandCodeRoles
+     * Count returned Nx00BrandCodeRules
     **/
-    _count?: true | Nx00BrandCodeRoleCountAggregateInputType
+    _count?: true | Nx00BrandCodeRuleCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    _avg?: Nx00BrandCodeRoleAvgAggregateInputType
+    _avg?: Nx00BrandCodeRuleAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    _sum?: Nx00BrandCodeRoleSumAggregateInputType
+    _sum?: Nx00BrandCodeRuleSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    _min?: Nx00BrandCodeRoleMinAggregateInputType
+    _min?: Nx00BrandCodeRuleMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    _max?: Nx00BrandCodeRoleMaxAggregateInputType
+    _max?: Nx00BrandCodeRuleMaxAggregateInputType
   }
 
-  export type GetNx00BrandCodeRoleAggregateType<T extends Nx00BrandCodeRoleAggregateArgs> = {
-        [P in keyof T & keyof AggregateNx00BrandCodeRole]: P extends '_count' | 'count'
+  export type GetNx00BrandCodeRuleAggregateType<T extends Nx00BrandCodeRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx00BrandCodeRule]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateNx00BrandCodeRole[P]>
-      : GetScalarType<T[P], AggregateNx00BrandCodeRole[P]>
+        : GetScalarType<T[P], AggregateNx00BrandCodeRule[P]>
+      : GetScalarType<T[P], AggregateNx00BrandCodeRule[P]>
   }
 
 
 
 
-  export type Nx00BrandCodeRoleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: Nx00BrandCodeRoleWhereInput
-    orderBy?: Nx00BrandCodeRoleOrderByWithAggregationInput | Nx00BrandCodeRoleOrderByWithAggregationInput[]
-    by: Nx00BrandCodeRoleScalarFieldEnum[] | Nx00BrandCodeRoleScalarFieldEnum
-    having?: Nx00BrandCodeRoleScalarWhereWithAggregatesInput
+  export type Nx00BrandCodeRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx00BrandCodeRuleWhereInput
+    orderBy?: Nx00BrandCodeRuleOrderByWithAggregationInput | Nx00BrandCodeRuleOrderByWithAggregationInput[]
+    by: Nx00BrandCodeRuleScalarFieldEnum[] | Nx00BrandCodeRuleScalarFieldEnum
+    having?: Nx00BrandCodeRuleScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    _count?: Nx00BrandCodeRoleCountAggregateInputType | true
-    _avg?: Nx00BrandCodeRoleAvgAggregateInputType
-    _sum?: Nx00BrandCodeRoleSumAggregateInputType
-    _min?: Nx00BrandCodeRoleMinAggregateInputType
-    _max?: Nx00BrandCodeRoleMaxAggregateInputType
+    _count?: Nx00BrandCodeRuleCountAggregateInputType | true
+    _avg?: Nx00BrandCodeRuleAvgAggregateInputType
+    _sum?: Nx00BrandCodeRuleSumAggregateInputType
+    _min?: Nx00BrandCodeRuleMinAggregateInputType
+    _max?: Nx00BrandCodeRuleMaxAggregateInputType
   }
 
-  export type Nx00BrandCodeRoleGroupByOutputType = {
+  export type Nx00BrandCodeRuleGroupByOutputType = {
     id: string
     tenantId: string
     partBrandId: string
-    seg1Limit: number
-    seg2Limit: number
-    seg3Limit: number
-    seg4Limit: number
-    seg5Limit: number
+    name: string
+    seg1: number
+    seg2: number
+    seg3: number
+    seg4: number
+    seg5: number
     codeFormat: string
     brandSort: string
     isActive: boolean
@@ -20882,36 +21013,37 @@ export namespace Prisma {
     createdBy: string | null
     updatedAt: Date
     updatedBy: string | null
-    _count: Nx00BrandCodeRoleCountAggregateOutputType | null
-    _avg: Nx00BrandCodeRoleAvgAggregateOutputType | null
-    _sum: Nx00BrandCodeRoleSumAggregateOutputType | null
-    _min: Nx00BrandCodeRoleMinAggregateOutputType | null
-    _max: Nx00BrandCodeRoleMaxAggregateOutputType | null
+    _count: Nx00BrandCodeRuleCountAggregateOutputType | null
+    _avg: Nx00BrandCodeRuleAvgAggregateOutputType | null
+    _sum: Nx00BrandCodeRuleSumAggregateOutputType | null
+    _min: Nx00BrandCodeRuleMinAggregateOutputType | null
+    _max: Nx00BrandCodeRuleMaxAggregateOutputType | null
   }
 
-  type GetNx00BrandCodeRoleGroupByPayload<T extends Nx00BrandCodeRoleGroupByArgs> = Prisma.PrismaPromise<
+  type GetNx00BrandCodeRuleGroupByPayload<T extends Nx00BrandCodeRuleGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickEnumerable<Nx00BrandCodeRoleGroupByOutputType, T['by']> &
+      PickEnumerable<Nx00BrandCodeRuleGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof Nx00BrandCodeRoleGroupByOutputType))]: P extends '_count'
+          [P in ((keyof T) & (keyof Nx00BrandCodeRuleGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
               ? number
-              : GetScalarType<T[P], Nx00BrandCodeRoleGroupByOutputType[P]>
-            : GetScalarType<T[P], Nx00BrandCodeRoleGroupByOutputType[P]>
+              : GetScalarType<T[P], Nx00BrandCodeRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx00BrandCodeRuleGroupByOutputType[P]>
         }
       >
     >
 
 
-  export type Nx00BrandCodeRoleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type Nx00BrandCodeRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
     partBrandId?: boolean
-    seg1Limit?: boolean
-    seg2Limit?: boolean
-    seg3Limit?: boolean
-    seg4Limit?: boolean
-    seg5Limit?: boolean
+    name?: boolean
+    seg1?: boolean
+    seg2?: boolean
+    seg3?: boolean
+    seg4?: boolean
+    seg5?: boolean
     codeFormat?: boolean
     brandSort?: boolean
     isActive?: boolean
@@ -20921,19 +21053,22 @@ export namespace Prisma {
     updatedBy?: boolean
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     partBrand?: boolean | Nx00PartBrandDefaultArgs<ExtArgs>
-    createdByUser?: boolean | Nx00BrandCodeRole$createdByUserArgs<ExtArgs>
-    updatedByUser?: boolean | Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>
-  }, ExtArgs["result"]["nx00BrandCodeRole"]>
+    createdByUser?: boolean | Nx00BrandCodeRule$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>
+    parts?: boolean | Nx00BrandCodeRule$partsArgs<ExtArgs>
+    _count?: boolean | Nx00BrandCodeRuleCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00BrandCodeRule"]>
 
-  export type Nx00BrandCodeRoleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type Nx00BrandCodeRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
     partBrandId?: boolean
-    seg1Limit?: boolean
-    seg2Limit?: boolean
-    seg3Limit?: boolean
-    seg4Limit?: boolean
-    seg5Limit?: boolean
+    name?: boolean
+    seg1?: boolean
+    seg2?: boolean
+    seg3?: boolean
+    seg4?: boolean
+    seg5?: boolean
     codeFormat?: boolean
     brandSort?: boolean
     isActive?: boolean
@@ -20943,19 +21078,20 @@ export namespace Prisma {
     updatedBy?: boolean
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     partBrand?: boolean | Nx00PartBrandDefaultArgs<ExtArgs>
-    createdByUser?: boolean | Nx00BrandCodeRole$createdByUserArgs<ExtArgs>
-    updatedByUser?: boolean | Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>
-  }, ExtArgs["result"]["nx00BrandCodeRole"]>
+    createdByUser?: boolean | Nx00BrandCodeRule$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00BrandCodeRule"]>
 
-  export type Nx00BrandCodeRoleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+  export type Nx00BrandCodeRuleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     tenantId?: boolean
     partBrandId?: boolean
-    seg1Limit?: boolean
-    seg2Limit?: boolean
-    seg3Limit?: boolean
-    seg4Limit?: boolean
-    seg5Limit?: boolean
+    name?: boolean
+    seg1?: boolean
+    seg2?: boolean
+    seg3?: boolean
+    seg4?: boolean
+    seg5?: boolean
     codeFormat?: boolean
     brandSort?: boolean
     isActive?: boolean
@@ -20965,19 +21101,20 @@ export namespace Prisma {
     updatedBy?: boolean
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     partBrand?: boolean | Nx00PartBrandDefaultArgs<ExtArgs>
-    createdByUser?: boolean | Nx00BrandCodeRole$createdByUserArgs<ExtArgs>
-    updatedByUser?: boolean | Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>
-  }, ExtArgs["result"]["nx00BrandCodeRole"]>
+    createdByUser?: boolean | Nx00BrandCodeRule$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>
+  }, ExtArgs["result"]["nx00BrandCodeRule"]>
 
-  export type Nx00BrandCodeRoleSelectScalar = {
+  export type Nx00BrandCodeRuleSelectScalar = {
     id?: boolean
     tenantId?: boolean
     partBrandId?: boolean
-    seg1Limit?: boolean
-    seg2Limit?: boolean
-    seg3Limit?: boolean
-    seg4Limit?: boolean
-    seg5Limit?: boolean
+    name?: boolean
+    seg1?: boolean
+    seg2?: boolean
+    seg3?: boolean
+    seg4?: boolean
+    seg5?: boolean
     codeFormat?: boolean
     brandSort?: boolean
     isActive?: boolean
@@ -20987,189 +21124,196 @@ export namespace Prisma {
     updatedBy?: boolean
   }
 
-  export type Nx00BrandCodeRoleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "partBrandId" | "seg1Limit" | "seg2Limit" | "seg3Limit" | "seg4Limit" | "seg5Limit" | "codeFormat" | "brandSort" | "isActive" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00BrandCodeRole"]>
-  export type Nx00BrandCodeRoleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "partBrandId" | "name" | "seg1" | "seg2" | "seg3" | "seg4" | "seg5" | "codeFormat" | "brandSort" | "isActive" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx00BrandCodeRule"]>
+  export type Nx00BrandCodeRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     partBrand?: boolean | Nx00PartBrandDefaultArgs<ExtArgs>
-    createdByUser?: boolean | Nx00BrandCodeRole$createdByUserArgs<ExtArgs>
-    updatedByUser?: boolean | Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>
+    createdByUser?: boolean | Nx00BrandCodeRule$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>
+    parts?: boolean | Nx00BrandCodeRule$partsArgs<ExtArgs>
+    _count?: boolean | Nx00BrandCodeRuleCountOutputTypeDefaultArgs<ExtArgs>
   }
-  export type Nx00BrandCodeRoleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     partBrand?: boolean | Nx00PartBrandDefaultArgs<ExtArgs>
-    createdByUser?: boolean | Nx00BrandCodeRole$createdByUserArgs<ExtArgs>
-    updatedByUser?: boolean | Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>
+    createdByUser?: boolean | Nx00BrandCodeRule$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>
   }
-  export type Nx00BrandCodeRoleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     partBrand?: boolean | Nx00PartBrandDefaultArgs<ExtArgs>
-    createdByUser?: boolean | Nx00BrandCodeRole$createdByUserArgs<ExtArgs>
-    updatedByUser?: boolean | Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>
+    createdByUser?: boolean | Nx00BrandCodeRule$createdByUserArgs<ExtArgs>
+    updatedByUser?: boolean | Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>
   }
 
-  export type $Nx00BrandCodeRolePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "Nx00BrandCodeRole"
+  export type $Nx00BrandCodeRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx00BrandCodeRule"
     objects: {
       tenant: Prisma.$Nx99TenantPayload<ExtArgs>
       partBrand: Prisma.$Nx00PartBrandPayload<ExtArgs>
       createdByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
       updatedByUser: Prisma.$Nx00UserPayload<ExtArgs> | null
+      parts: Prisma.$Nx00PartPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
+      /**
+       * [NX00]+[BCOR]+[7碼流水號]，EX : NX00BCOR0000001
+       */
       id: string
       /**
        * 租戶 ID（外鍵 → nx99_tenant）
        */
       tenantId: string
+      /**
+       * 零件品牌 ID（同品牌可有多筆規則）
+       */
       partBrandId: string
-      seg1Limit: number
-      seg2Limit: number
-      seg3Limit: number
-      seg4Limit: number
-      seg5Limit: number
       /**
-       * 料號組合格式
+       * 規則名稱（例：VAG 標準、Bosch 德國原廠）
        */
+      name: string
+      seg1: number
+      seg2: number
+      seg3: number
+      seg4: number
+      seg5: number
       codeFormat: string
-      /**
-       * 料號排列順序，例：12345、23145
-       */
       brandSort: string
       isActive: boolean
       createdAt: Date
       createdBy: string | null
       updatedAt: Date
       updatedBy: string | null
-    }, ExtArgs["result"]["nx00BrandCodeRole"]>
+    }, ExtArgs["result"]["nx00BrandCodeRule"]>
     composites: {}
   }
 
-  type Nx00BrandCodeRoleGetPayload<S extends boolean | null | undefined | Nx00BrandCodeRoleDefaultArgs> = $Result.GetResult<Prisma.$Nx00BrandCodeRolePayload, S>
+  type Nx00BrandCodeRuleGetPayload<S extends boolean | null | undefined | Nx00BrandCodeRuleDefaultArgs> = $Result.GetResult<Prisma.$Nx00BrandCodeRulePayload, S>
 
-  type Nx00BrandCodeRoleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<Nx00BrandCodeRoleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: Nx00BrandCodeRoleCountAggregateInputType | true
+  type Nx00BrandCodeRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx00BrandCodeRuleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx00BrandCodeRuleCountAggregateInputType | true
     }
 
-  export interface Nx00BrandCodeRoleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00BrandCodeRole'], meta: { name: 'Nx00BrandCodeRole' } }
+  export interface Nx00BrandCodeRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx00BrandCodeRule'], meta: { name: 'Nx00BrandCodeRule' } }
     /**
-     * Find zero or one Nx00BrandCodeRole that matches the filter.
-     * @param {Nx00BrandCodeRoleFindUniqueArgs} args - Arguments to find a Nx00BrandCodeRole
+     * Find zero or one Nx00BrandCodeRule that matches the filter.
+     * @param {Nx00BrandCodeRuleFindUniqueArgs} args - Arguments to find a Nx00BrandCodeRule
      * @example
-     * // Get one Nx00BrandCodeRole
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.findUnique({
+     * // Get one Nx00BrandCodeRule
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUnique<T extends Nx00BrandCodeRoleFindUniqueArgs>(args: SelectSubset<T, Nx00BrandCodeRoleFindUniqueArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends Nx00BrandCodeRuleFindUniqueArgs>(args: SelectSubset<T, Nx00BrandCodeRuleFindUniqueArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find one Nx00BrandCodeRole that matches the filter or throw an error with `error.code='P2025'`
+     * Find one Nx00BrandCodeRule that matches the filter or throw an error with `error.code='P2025'`
      * if no matches were found.
-     * @param {Nx00BrandCodeRoleFindUniqueOrThrowArgs} args - Arguments to find a Nx00BrandCodeRole
+     * @param {Nx00BrandCodeRuleFindUniqueOrThrowArgs} args - Arguments to find a Nx00BrandCodeRule
      * @example
-     * // Get one Nx00BrandCodeRole
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.findUniqueOrThrow({
+     * // Get one Nx00BrandCodeRule
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.findUniqueOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findUniqueOrThrow<T extends Nx00BrandCodeRoleFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00BrandCodeRoleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends Nx00BrandCodeRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx00BrandCodeRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first Nx00BrandCodeRole that matches the filter.
+     * Find the first Nx00BrandCodeRule that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleFindFirstArgs} args - Arguments to find a Nx00BrandCodeRole
+     * @param {Nx00BrandCodeRuleFindFirstArgs} args - Arguments to find a Nx00BrandCodeRule
      * @example
-     * // Get one Nx00BrandCodeRole
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.findFirst({
+     * // Get one Nx00BrandCodeRule
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.findFirst({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirst<T extends Nx00BrandCodeRoleFindFirstArgs>(args?: SelectSubset<T, Nx00BrandCodeRoleFindFirstArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends Nx00BrandCodeRuleFindFirstArgs>(args?: SelectSubset<T, Nx00BrandCodeRuleFindFirstArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find the first Nx00BrandCodeRole that matches the filter or
+     * Find the first Nx00BrandCodeRule that matches the filter or
      * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleFindFirstOrThrowArgs} args - Arguments to find a Nx00BrandCodeRole
+     * @param {Nx00BrandCodeRuleFindFirstOrThrowArgs} args - Arguments to find a Nx00BrandCodeRule
      * @example
-     * // Get one Nx00BrandCodeRole
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.findFirstOrThrow({
+     * // Get one Nx00BrandCodeRule
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.findFirstOrThrow({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      */
-    findFirstOrThrow<T extends Nx00BrandCodeRoleFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00BrandCodeRoleFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends Nx00BrandCodeRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx00BrandCodeRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Find zero or more Nx00BrandCodeRoles that matches the filter.
+     * Find zero or more Nx00BrandCodeRules that matches the filter.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @param {Nx00BrandCodeRuleFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Nx00BrandCodeRoles
-     * const nx00BrandCodeRoles = await prisma.nx00BrandCodeRole.findMany()
+     * // Get all Nx00BrandCodeRules
+     * const nx00BrandCodeRules = await prisma.nx00BrandCodeRule.findMany()
      * 
-     * // Get first 10 Nx00BrandCodeRoles
-     * const nx00BrandCodeRoles = await prisma.nx00BrandCodeRole.findMany({ take: 10 })
+     * // Get first 10 Nx00BrandCodeRules
+     * const nx00BrandCodeRules = await prisma.nx00BrandCodeRule.findMany({ take: 10 })
      * 
      * // Only select the `id`
-     * const nx00BrandCodeRoleWithIdOnly = await prisma.nx00BrandCodeRole.findMany({ select: { id: true } })
+     * const nx00BrandCodeRuleWithIdOnly = await prisma.nx00BrandCodeRule.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends Nx00BrandCodeRoleFindManyArgs>(args?: SelectSubset<T, Nx00BrandCodeRoleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends Nx00BrandCodeRuleFindManyArgs>(args?: SelectSubset<T, Nx00BrandCodeRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
 
     /**
-     * Create a Nx00BrandCodeRole.
-     * @param {Nx00BrandCodeRoleCreateArgs} args - Arguments to create a Nx00BrandCodeRole.
+     * Create a Nx00BrandCodeRule.
+     * @param {Nx00BrandCodeRuleCreateArgs} args - Arguments to create a Nx00BrandCodeRule.
      * @example
-     * // Create one Nx00BrandCodeRole
-     * const Nx00BrandCodeRole = await prisma.nx00BrandCodeRole.create({
+     * // Create one Nx00BrandCodeRule
+     * const Nx00BrandCodeRule = await prisma.nx00BrandCodeRule.create({
      *   data: {
-     *     // ... data to create a Nx00BrandCodeRole
+     *     // ... data to create a Nx00BrandCodeRule
      *   }
      * })
      * 
      */
-    create<T extends Nx00BrandCodeRoleCreateArgs>(args: SelectSubset<T, Nx00BrandCodeRoleCreateArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends Nx00BrandCodeRuleCreateArgs>(args: SelectSubset<T, Nx00BrandCodeRuleCreateArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Create many Nx00BrandCodeRoles.
-     * @param {Nx00BrandCodeRoleCreateManyArgs} args - Arguments to create many Nx00BrandCodeRoles.
+     * Create many Nx00BrandCodeRules.
+     * @param {Nx00BrandCodeRuleCreateManyArgs} args - Arguments to create many Nx00BrandCodeRules.
      * @example
-     * // Create many Nx00BrandCodeRoles
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.createMany({
+     * // Create many Nx00BrandCodeRules
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.createMany({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      *     
      */
-    createMany<T extends Nx00BrandCodeRoleCreateManyArgs>(args?: SelectSubset<T, Nx00BrandCodeRoleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    createMany<T extends Nx00BrandCodeRuleCreateManyArgs>(args?: SelectSubset<T, Nx00BrandCodeRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many Nx00BrandCodeRoles and returns the data saved in the database.
-     * @param {Nx00BrandCodeRoleCreateManyAndReturnArgs} args - Arguments to create many Nx00BrandCodeRoles.
+     * Create many Nx00BrandCodeRules and returns the data saved in the database.
+     * @param {Nx00BrandCodeRuleCreateManyAndReturnArgs} args - Arguments to create many Nx00BrandCodeRules.
      * @example
-     * // Create many Nx00BrandCodeRoles
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.createManyAndReturn({
+     * // Create many Nx00BrandCodeRules
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.createManyAndReturn({
      *   data: [
      *     // ... provide data here
      *   ]
      * })
      * 
-     * // Create many Nx00BrandCodeRoles and only return the `id`
-     * const nx00BrandCodeRoleWithIdOnly = await prisma.nx00BrandCodeRole.createManyAndReturn({
+     * // Create many Nx00BrandCodeRules and only return the `id`
+     * const nx00BrandCodeRuleWithIdOnly = await prisma.nx00BrandCodeRule.createManyAndReturn({
      *   select: { id: true },
      *   data: [
      *     // ... provide data here
@@ -21179,28 +21323,28 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    createManyAndReturn<T extends Nx00BrandCodeRoleCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00BrandCodeRoleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+    createManyAndReturn<T extends Nx00BrandCodeRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx00BrandCodeRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Delete a Nx00BrandCodeRole.
-     * @param {Nx00BrandCodeRoleDeleteArgs} args - Arguments to delete one Nx00BrandCodeRole.
+     * Delete a Nx00BrandCodeRule.
+     * @param {Nx00BrandCodeRuleDeleteArgs} args - Arguments to delete one Nx00BrandCodeRule.
      * @example
-     * // Delete one Nx00BrandCodeRole
-     * const Nx00BrandCodeRole = await prisma.nx00BrandCodeRole.delete({
+     * // Delete one Nx00BrandCodeRule
+     * const Nx00BrandCodeRule = await prisma.nx00BrandCodeRule.delete({
      *   where: {
-     *     // ... filter to delete one Nx00BrandCodeRole
+     *     // ... filter to delete one Nx00BrandCodeRule
      *   }
      * })
      * 
      */
-    delete<T extends Nx00BrandCodeRoleDeleteArgs>(args: SelectSubset<T, Nx00BrandCodeRoleDeleteArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends Nx00BrandCodeRuleDeleteArgs>(args: SelectSubset<T, Nx00BrandCodeRuleDeleteArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Update one Nx00BrandCodeRole.
-     * @param {Nx00BrandCodeRoleUpdateArgs} args - Arguments to update one Nx00BrandCodeRole.
+     * Update one Nx00BrandCodeRule.
+     * @param {Nx00BrandCodeRuleUpdateArgs} args - Arguments to update one Nx00BrandCodeRule.
      * @example
-     * // Update one Nx00BrandCodeRole
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.update({
+     * // Update one Nx00BrandCodeRule
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.update({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -21210,30 +21354,30 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends Nx00BrandCodeRoleUpdateArgs>(args: SelectSubset<T, Nx00BrandCodeRoleUpdateArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends Nx00BrandCodeRuleUpdateArgs>(args: SelectSubset<T, Nx00BrandCodeRuleUpdateArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
     /**
-     * Delete zero or more Nx00BrandCodeRoles.
-     * @param {Nx00BrandCodeRoleDeleteManyArgs} args - Arguments to filter Nx00BrandCodeRoles to delete.
+     * Delete zero or more Nx00BrandCodeRules.
+     * @param {Nx00BrandCodeRuleDeleteManyArgs} args - Arguments to filter Nx00BrandCodeRules to delete.
      * @example
-     * // Delete a few Nx00BrandCodeRoles
-     * const { count } = await prisma.nx00BrandCodeRole.deleteMany({
+     * // Delete a few Nx00BrandCodeRules
+     * const { count } = await prisma.nx00BrandCodeRule.deleteMany({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
      * 
      */
-    deleteMany<T extends Nx00BrandCodeRoleDeleteManyArgs>(args?: SelectSubset<T, Nx00BrandCodeRoleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    deleteMany<T extends Nx00BrandCodeRuleDeleteManyArgs>(args?: SelectSubset<T, Nx00BrandCodeRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Nx00BrandCodeRoles.
+     * Update zero or more Nx00BrandCodeRules.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @param {Nx00BrandCodeRuleUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Nx00BrandCodeRoles
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.updateMany({
+     * // Update many Nx00BrandCodeRules
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -21243,14 +21387,14 @@ export namespace Prisma {
      * })
      * 
      */
-    updateMany<T extends Nx00BrandCodeRoleUpdateManyArgs>(args: SelectSubset<T, Nx00BrandCodeRoleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+    updateMany<T extends Nx00BrandCodeRuleUpdateManyArgs>(args: SelectSubset<T, Nx00BrandCodeRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Nx00BrandCodeRoles and returns the data updated in the database.
-     * @param {Nx00BrandCodeRoleUpdateManyAndReturnArgs} args - Arguments to update many Nx00BrandCodeRoles.
+     * Update zero or more Nx00BrandCodeRules and returns the data updated in the database.
+     * @param {Nx00BrandCodeRuleUpdateManyAndReturnArgs} args - Arguments to update many Nx00BrandCodeRules.
      * @example
-     * // Update many Nx00BrandCodeRoles
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.updateManyAndReturn({
+     * // Update many Nx00BrandCodeRules
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.updateManyAndReturn({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -21259,8 +21403,8 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Nx00BrandCodeRoles and only return the `id`
-     * const nx00BrandCodeRoleWithIdOnly = await prisma.nx00BrandCodeRole.updateManyAndReturn({
+     * // Update zero or more Nx00BrandCodeRules and only return the `id`
+     * const nx00BrandCodeRuleWithIdOnly = await prisma.nx00BrandCodeRule.updateManyAndReturn({
      *   select: { id: true },
      *   where: {
      *     // ... provide filter here
@@ -21273,56 +21417,56 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * 
      */
-    updateManyAndReturn<T extends Nx00BrandCodeRoleUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00BrandCodeRoleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+    updateManyAndReturn<T extends Nx00BrandCodeRuleUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx00BrandCodeRuleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
 
     /**
-     * Create or update one Nx00BrandCodeRole.
-     * @param {Nx00BrandCodeRoleUpsertArgs} args - Arguments to update or create a Nx00BrandCodeRole.
+     * Create or update one Nx00BrandCodeRule.
+     * @param {Nx00BrandCodeRuleUpsertArgs} args - Arguments to update or create a Nx00BrandCodeRule.
      * @example
-     * // Update or create a Nx00BrandCodeRole
-     * const nx00BrandCodeRole = await prisma.nx00BrandCodeRole.upsert({
+     * // Update or create a Nx00BrandCodeRule
+     * const nx00BrandCodeRule = await prisma.nx00BrandCodeRule.upsert({
      *   create: {
-     *     // ... data to create a Nx00BrandCodeRole
+     *     // ... data to create a Nx00BrandCodeRule
      *   },
      *   update: {
      *     // ... in case it already exists, update
      *   },
      *   where: {
-     *     // ... the filter for the Nx00BrandCodeRole we want to update
+     *     // ... the filter for the Nx00BrandCodeRule we want to update
      *   }
      * })
      */
-    upsert<T extends Nx00BrandCodeRoleUpsertArgs>(args: SelectSubset<T, Nx00BrandCodeRoleUpsertArgs<ExtArgs>>): Prisma__Nx00BrandCodeRoleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends Nx00BrandCodeRuleUpsertArgs>(args: SelectSubset<T, Nx00BrandCodeRuleUpsertArgs<ExtArgs>>): Prisma__Nx00BrandCodeRuleClient<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
 
 
     /**
-     * Count the number of Nx00BrandCodeRoles.
+     * Count the number of Nx00BrandCodeRules.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleCountArgs} args - Arguments to filter Nx00BrandCodeRoles to count.
+     * @param {Nx00BrandCodeRuleCountArgs} args - Arguments to filter Nx00BrandCodeRules to count.
      * @example
-     * // Count the number of Nx00BrandCodeRoles
-     * const count = await prisma.nx00BrandCodeRole.count({
+     * // Count the number of Nx00BrandCodeRules
+     * const count = await prisma.nx00BrandCodeRule.count({
      *   where: {
-     *     // ... the filter for the Nx00BrandCodeRoles we want to count
+     *     // ... the filter for the Nx00BrandCodeRules we want to count
      *   }
      * })
     **/
-    count<T extends Nx00BrandCodeRoleCountArgs>(
-      args?: Subset<T, Nx00BrandCodeRoleCountArgs>,
+    count<T extends Nx00BrandCodeRuleCountArgs>(
+      args?: Subset<T, Nx00BrandCodeRuleCountArgs>,
     ): Prisma.PrismaPromise<
       T extends $Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
-          : GetScalarType<T['select'], Nx00BrandCodeRoleCountAggregateOutputType>
+          : GetScalarType<T['select'], Nx00BrandCodeRuleCountAggregateOutputType>
         : number
     >
 
     /**
-     * Allows you to perform aggregations operations on a Nx00BrandCodeRole.
+     * Allows you to perform aggregations operations on a Nx00BrandCodeRule.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @param {Nx00BrandCodeRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
      * // Where email contains prisma.io
@@ -21342,13 +21486,13 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends Nx00BrandCodeRoleAggregateArgs>(args: Subset<T, Nx00BrandCodeRoleAggregateArgs>): Prisma.PrismaPromise<GetNx00BrandCodeRoleAggregateType<T>>
+    aggregate<T extends Nx00BrandCodeRuleAggregateArgs>(args: Subset<T, Nx00BrandCodeRuleAggregateArgs>): Prisma.PrismaPromise<GetNx00BrandCodeRuleAggregateType<T>>
 
     /**
-     * Group by Nx00BrandCodeRole.
+     * Group by Nx00BrandCodeRule.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {Nx00BrandCodeRoleGroupByArgs} args - Group by arguments.
+     * @param {Nx00BrandCodeRuleGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
      * const result = await prisma.user.groupBy({
@@ -21363,14 +21507,14 @@ export namespace Prisma {
      * 
     **/
     groupBy<
-      T extends Nx00BrandCodeRoleGroupByArgs,
+      T extends Nx00BrandCodeRuleGroupByArgs,
       HasSelectOrTake extends Or<
         Extends<'skip', Keys<T>>,
         Extends<'take', Keys<T>>
       >,
       OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: Nx00BrandCodeRoleGroupByArgs['orderBy'] }
-        : { orderBy?: Nx00BrandCodeRoleGroupByArgs['orderBy'] },
+        ? { orderBy: Nx00BrandCodeRuleGroupByArgs['orderBy'] }
+        : { orderBy?: Nx00BrandCodeRuleGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
@@ -21419,25 +21563,26 @@ export namespace Prisma {
             ? never
             : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
         }[OrderFields]
-    >(args: SubsetIntersection<T, Nx00BrandCodeRoleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00BrandCodeRoleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+    >(args: SubsetIntersection<T, Nx00BrandCodeRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx00BrandCodeRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
   /**
-   * Fields of the Nx00BrandCodeRole model
+   * Fields of the Nx00BrandCodeRule model
    */
-  readonly fields: Nx00BrandCodeRoleFieldRefs;
+  readonly fields: Nx00BrandCodeRuleFieldRefs;
   }
 
   /**
-   * The delegate class that acts as a "Promise-like" for Nx00BrandCodeRole.
+   * The delegate class that acts as a "Promise-like" for Nx00BrandCodeRule.
    * Why is this prefixed with `Prisma__`?
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__Nx00BrandCodeRoleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__Nx00BrandCodeRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     tenant<T extends Nx99TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx99TenantDefaultArgs<ExtArgs>>): Prisma__Nx99TenantClient<$Result.GetResult<Prisma.$Nx99TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     partBrand<T extends Nx00PartBrandDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00PartBrandDefaultArgs<ExtArgs>>): Prisma__Nx00PartBrandClient<$Result.GetResult<Prisma.$Nx00PartBrandPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    createdByUser<T extends Nx00BrandCodeRole$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BrandCodeRole$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-    updatedByUser<T extends Nx00BrandCodeRole$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BrandCodeRole$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    createdByUser<T extends Nx00BrandCodeRule$createdByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BrandCodeRule$createdByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    updatedByUser<T extends Nx00BrandCodeRule$updatedByUserArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BrandCodeRule$updatedByUserArgs<ExtArgs>>): Prisma__Nx00UserClient<$Result.GetResult<Prisma.$Nx00UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    parts<T extends Nx00BrandCodeRule$partsArgs<ExtArgs> = {}>(args?: Subset<T, Nx00BrandCodeRule$partsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -21464,423 +21609,424 @@ export namespace Prisma {
 
 
   /**
-   * Fields of the Nx00BrandCodeRole model
+   * Fields of the Nx00BrandCodeRule model
    */
-  interface Nx00BrandCodeRoleFieldRefs {
-    readonly id: FieldRef<"Nx00BrandCodeRole", 'String'>
-    readonly tenantId: FieldRef<"Nx00BrandCodeRole", 'String'>
-    readonly partBrandId: FieldRef<"Nx00BrandCodeRole", 'String'>
-    readonly seg1Limit: FieldRef<"Nx00BrandCodeRole", 'Int'>
-    readonly seg2Limit: FieldRef<"Nx00BrandCodeRole", 'Int'>
-    readonly seg3Limit: FieldRef<"Nx00BrandCodeRole", 'Int'>
-    readonly seg4Limit: FieldRef<"Nx00BrandCodeRole", 'Int'>
-    readonly seg5Limit: FieldRef<"Nx00BrandCodeRole", 'Int'>
-    readonly codeFormat: FieldRef<"Nx00BrandCodeRole", 'String'>
-    readonly brandSort: FieldRef<"Nx00BrandCodeRole", 'String'>
-    readonly isActive: FieldRef<"Nx00BrandCodeRole", 'Boolean'>
-    readonly createdAt: FieldRef<"Nx00BrandCodeRole", 'DateTime'>
-    readonly createdBy: FieldRef<"Nx00BrandCodeRole", 'String'>
-    readonly updatedAt: FieldRef<"Nx00BrandCodeRole", 'DateTime'>
-    readonly updatedBy: FieldRef<"Nx00BrandCodeRole", 'String'>
+  interface Nx00BrandCodeRuleFieldRefs {
+    readonly id: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly tenantId: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly partBrandId: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly name: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly seg1: FieldRef<"Nx00BrandCodeRule", 'Int'>
+    readonly seg2: FieldRef<"Nx00BrandCodeRule", 'Int'>
+    readonly seg3: FieldRef<"Nx00BrandCodeRule", 'Int'>
+    readonly seg4: FieldRef<"Nx00BrandCodeRule", 'Int'>
+    readonly seg5: FieldRef<"Nx00BrandCodeRule", 'Int'>
+    readonly codeFormat: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly brandSort: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly isActive: FieldRef<"Nx00BrandCodeRule", 'Boolean'>
+    readonly createdAt: FieldRef<"Nx00BrandCodeRule", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx00BrandCodeRule", 'String'>
+    readonly updatedAt: FieldRef<"Nx00BrandCodeRule", 'DateTime'>
+    readonly updatedBy: FieldRef<"Nx00BrandCodeRule", 'String'>
   }
     
 
   // Custom InputTypes
   /**
-   * Nx00BrandCodeRole findUnique
+   * Nx00BrandCodeRule findUnique
    */
-  export type Nx00BrandCodeRoleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * Filter, which Nx00BrandCodeRole to fetch.
+     * Filter, which Nx00BrandCodeRule to fetch.
      */
-    where: Nx00BrandCodeRoleWhereUniqueInput
+    where: Nx00BrandCodeRuleWhereUniqueInput
   }
 
   /**
-   * Nx00BrandCodeRole findUniqueOrThrow
+   * Nx00BrandCodeRule findUniqueOrThrow
    */
-  export type Nx00BrandCodeRoleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * Filter, which Nx00BrandCodeRole to fetch.
+     * Filter, which Nx00BrandCodeRule to fetch.
      */
-    where: Nx00BrandCodeRoleWhereUniqueInput
+    where: Nx00BrandCodeRuleWhereUniqueInput
   }
 
   /**
-   * Nx00BrandCodeRole findFirst
+   * Nx00BrandCodeRule findFirst
    */
-  export type Nx00BrandCodeRoleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * Filter, which Nx00BrandCodeRole to fetch.
+     * Filter, which Nx00BrandCodeRule to fetch.
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Nx00BrandCodeRoles to fetch.
+     * Determine the order of Nx00BrandCodeRules to fetch.
      */
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for Nx00BrandCodeRoles.
+     * Sets the position for searching for Nx00BrandCodeRules.
      */
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Nx00BrandCodeRoles from the position of the cursor.
+     * Take `±n` Nx00BrandCodeRules from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Nx00BrandCodeRoles.
+     * Skip the first `n` Nx00BrandCodeRules.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of Nx00BrandCodeRoles.
+     * Filter by unique combinations of Nx00BrandCodeRules.
      */
-    distinct?: Nx00BrandCodeRoleScalarFieldEnum | Nx00BrandCodeRoleScalarFieldEnum[]
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
-   * Nx00BrandCodeRole findFirstOrThrow
+   * Nx00BrandCodeRule findFirstOrThrow
    */
-  export type Nx00BrandCodeRoleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * Filter, which Nx00BrandCodeRole to fetch.
+     * Filter, which Nx00BrandCodeRule to fetch.
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Nx00BrandCodeRoles to fetch.
+     * Determine the order of Nx00BrandCodeRules to fetch.
      */
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for Nx00BrandCodeRoles.
+     * Sets the position for searching for Nx00BrandCodeRules.
      */
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Nx00BrandCodeRoles from the position of the cursor.
+     * Take `±n` Nx00BrandCodeRules from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Nx00BrandCodeRoles.
+     * Skip the first `n` Nx00BrandCodeRules.
      */
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
-     * Filter by unique combinations of Nx00BrandCodeRoles.
+     * Filter by unique combinations of Nx00BrandCodeRules.
      */
-    distinct?: Nx00BrandCodeRoleScalarFieldEnum | Nx00BrandCodeRoleScalarFieldEnum[]
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
-   * Nx00BrandCodeRole findMany
+   * Nx00BrandCodeRule findMany
    */
-  export type Nx00BrandCodeRoleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * Filter, which Nx00BrandCodeRoles to fetch.
+     * Filter, which Nx00BrandCodeRules to fetch.
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
-     * Determine the order of Nx00BrandCodeRoles to fetch.
+     * Determine the order of Nx00BrandCodeRules to fetch.
      */
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for listing Nx00BrandCodeRoles.
+     * Sets the position for listing Nx00BrandCodeRules.
      */
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Take `±n` Nx00BrandCodeRoles from the position of the cursor.
+     * Take `±n` Nx00BrandCodeRules from the position of the cursor.
      */
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
-     * Skip the first `n` Nx00BrandCodeRoles.
+     * Skip the first `n` Nx00BrandCodeRules.
      */
     skip?: number
-    distinct?: Nx00BrandCodeRoleScalarFieldEnum | Nx00BrandCodeRoleScalarFieldEnum[]
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
-   * Nx00BrandCodeRole create
+   * Nx00BrandCodeRule create
    */
-  export type Nx00BrandCodeRoleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * The data needed to create a Nx00BrandCodeRole.
+     * The data needed to create a Nx00BrandCodeRule.
      */
-    data: XOR<Nx00BrandCodeRoleCreateInput, Nx00BrandCodeRoleUncheckedCreateInput>
+    data: XOR<Nx00BrandCodeRuleCreateInput, Nx00BrandCodeRuleUncheckedCreateInput>
   }
 
   /**
-   * Nx00BrandCodeRole createMany
+   * Nx00BrandCodeRule createMany
    */
-  export type Nx00BrandCodeRoleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to create many Nx00BrandCodeRoles.
+     * The data used to create many Nx00BrandCodeRules.
      */
-    data: Nx00BrandCodeRoleCreateManyInput | Nx00BrandCodeRoleCreateManyInput[]
+    data: Nx00BrandCodeRuleCreateManyInput | Nx00BrandCodeRuleCreateManyInput[]
     skipDuplicates?: boolean
   }
 
   /**
-   * Nx00BrandCodeRole createManyAndReturn
+   * Nx00BrandCodeRule createManyAndReturn
    */
-  export type Nx00BrandCodeRoleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelectCreateManyAndReturn<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelectCreateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
-     * The data used to create many Nx00BrandCodeRoles.
+     * The data used to create many Nx00BrandCodeRules.
      */
-    data: Nx00BrandCodeRoleCreateManyInput | Nx00BrandCodeRoleCreateManyInput[]
+    data: Nx00BrandCodeRuleCreateManyInput | Nx00BrandCodeRuleCreateManyInput[]
     skipDuplicates?: boolean
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleIncludeCreateManyAndReturn<ExtArgs> | null
+    include?: Nx00BrandCodeRuleIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
-   * Nx00BrandCodeRole update
+   * Nx00BrandCodeRule update
    */
-  export type Nx00BrandCodeRoleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * The data needed to update a Nx00BrandCodeRole.
+     * The data needed to update a Nx00BrandCodeRule.
      */
-    data: XOR<Nx00BrandCodeRoleUpdateInput, Nx00BrandCodeRoleUncheckedUpdateInput>
+    data: XOR<Nx00BrandCodeRuleUpdateInput, Nx00BrandCodeRuleUncheckedUpdateInput>
     /**
-     * Choose, which Nx00BrandCodeRole to update.
+     * Choose, which Nx00BrandCodeRule to update.
      */
-    where: Nx00BrandCodeRoleWhereUniqueInput
+    where: Nx00BrandCodeRuleWhereUniqueInput
   }
 
   /**
-   * Nx00BrandCodeRole updateMany
+   * Nx00BrandCodeRule updateMany
    */
-  export type Nx00BrandCodeRoleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * The data used to update Nx00BrandCodeRoles.
+     * The data used to update Nx00BrandCodeRules.
      */
-    data: XOR<Nx00BrandCodeRoleUpdateManyMutationInput, Nx00BrandCodeRoleUncheckedUpdateManyInput>
+    data: XOR<Nx00BrandCodeRuleUpdateManyMutationInput, Nx00BrandCodeRuleUncheckedUpdateManyInput>
     /**
-     * Filter which Nx00BrandCodeRoles to update
+     * Filter which Nx00BrandCodeRules to update
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
-     * Limit how many Nx00BrandCodeRoles to update.
+     * Limit how many Nx00BrandCodeRules to update.
      */
     limit?: number
   }
 
   /**
-   * Nx00BrandCodeRole updateManyAndReturn
+   * Nx00BrandCodeRule updateManyAndReturn
    */
-  export type Nx00BrandCodeRoleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelectUpdateManyAndReturn<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelectUpdateManyAndReturn<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
-     * The data used to update Nx00BrandCodeRoles.
+     * The data used to update Nx00BrandCodeRules.
      */
-    data: XOR<Nx00BrandCodeRoleUpdateManyMutationInput, Nx00BrandCodeRoleUncheckedUpdateManyInput>
+    data: XOR<Nx00BrandCodeRuleUpdateManyMutationInput, Nx00BrandCodeRuleUncheckedUpdateManyInput>
     /**
-     * Filter which Nx00BrandCodeRoles to update
+     * Filter which Nx00BrandCodeRules to update
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
-     * Limit how many Nx00BrandCodeRoles to update.
+     * Limit how many Nx00BrandCodeRules to update.
      */
     limit?: number
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleIncludeUpdateManyAndReturn<ExtArgs> | null
+    include?: Nx00BrandCodeRuleIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
-   * Nx00BrandCodeRole upsert
+   * Nx00BrandCodeRule upsert
    */
-  export type Nx00BrandCodeRoleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * The filter to search for the Nx00BrandCodeRole to update in case it exists.
+     * The filter to search for the Nx00BrandCodeRule to update in case it exists.
      */
-    where: Nx00BrandCodeRoleWhereUniqueInput
+    where: Nx00BrandCodeRuleWhereUniqueInput
     /**
-     * In case the Nx00BrandCodeRole found by the `where` argument doesn't exist, create a new Nx00BrandCodeRole with this data.
+     * In case the Nx00BrandCodeRule found by the `where` argument doesn't exist, create a new Nx00BrandCodeRule with this data.
      */
-    create: XOR<Nx00BrandCodeRoleCreateInput, Nx00BrandCodeRoleUncheckedCreateInput>
+    create: XOR<Nx00BrandCodeRuleCreateInput, Nx00BrandCodeRuleUncheckedCreateInput>
     /**
-     * In case the Nx00BrandCodeRole was found with the provided `where` argument, update it with this data.
+     * In case the Nx00BrandCodeRule was found with the provided `where` argument, update it with this data.
      */
-    update: XOR<Nx00BrandCodeRoleUpdateInput, Nx00BrandCodeRoleUncheckedUpdateInput>
+    update: XOR<Nx00BrandCodeRuleUpdateInput, Nx00BrandCodeRuleUncheckedUpdateInput>
   }
 
   /**
-   * Nx00BrandCodeRole delete
+   * Nx00BrandCodeRule delete
    */
-  export type Nx00BrandCodeRoleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
     /**
-     * Filter which Nx00BrandCodeRole to delete.
+     * Filter which Nx00BrandCodeRule to delete.
      */
-    where: Nx00BrandCodeRoleWhereUniqueInput
+    where: Nx00BrandCodeRuleWhereUniqueInput
   }
 
   /**
-   * Nx00BrandCodeRole deleteMany
+   * Nx00BrandCodeRule deleteMany
    */
-  export type Nx00BrandCodeRoleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Filter which Nx00BrandCodeRoles to delete
+     * Filter which Nx00BrandCodeRules to delete
      */
-    where?: Nx00BrandCodeRoleWhereInput
+    where?: Nx00BrandCodeRuleWhereInput
     /**
-     * Limit how many Nx00BrandCodeRoles to delete.
+     * Limit how many Nx00BrandCodeRules to delete.
      */
     limit?: number
   }
 
   /**
-   * Nx00BrandCodeRole.createdByUser
+   * Nx00BrandCodeRule.createdByUser
    */
-  export type Nx00BrandCodeRole$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRule$createdByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Nx00User
      */
@@ -21897,9 +22043,9 @@ export namespace Prisma {
   }
 
   /**
-   * Nx00BrandCodeRole.updatedByUser
+   * Nx00BrandCodeRule.updatedByUser
    */
-  export type Nx00BrandCodeRole$updatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRule$updatedByUserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the Nx00User
      */
@@ -21916,21 +22062,45 @@ export namespace Prisma {
   }
 
   /**
-   * Nx00BrandCodeRole without action
+   * Nx00BrandCodeRule.parts
    */
-  export type Nx00BrandCodeRoleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx00BrandCodeRule$partsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00Part
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00PartSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00Part
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00PartOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
+    include?: Nx00PartInclude<ExtArgs> | null
+    where?: Nx00PartWhereInput
+    orderBy?: Nx00PartOrderByWithRelationInput | Nx00PartOrderByWithRelationInput[]
+    cursor?: Nx00PartWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx00PartScalarFieldEnum | Nx00PartScalarFieldEnum[]
+  }
+
+  /**
+   * Nx00BrandCodeRule without action
+   */
+  export type Nx00BrandCodeRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx00BrandCodeRule
+     */
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx00BrandCodeRule
+     */
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
   }
 
 
@@ -30929,7 +31099,7 @@ export namespace Prisma {
     partBrands?: boolean | Nx99Tenant$partBrandsArgs<ExtArgs>
     carBrands?: boolean | Nx99Tenant$carBrandsArgs<ExtArgs>
     partGroups?: boolean | Nx99Tenant$partGroupsArgs<ExtArgs>
-    brandCodeRoles?: boolean | Nx99Tenant$brandCodeRolesArgs<ExtArgs>
+    brandCodeRules?: boolean | Nx99Tenant$brandCodeRulesArgs<ExtArgs>
     partRelations?: boolean | Nx99Tenant$partRelationsArgs<ExtArgs>
     warehouses?: boolean | Nx99Tenant$warehousesArgs<ExtArgs>
     locations?: boolean | Nx99Tenant$locationsArgs<ExtArgs>
@@ -30997,7 +31167,7 @@ export namespace Prisma {
     partBrands?: boolean | Nx99Tenant$partBrandsArgs<ExtArgs>
     carBrands?: boolean | Nx99Tenant$carBrandsArgs<ExtArgs>
     partGroups?: boolean | Nx99Tenant$partGroupsArgs<ExtArgs>
-    brandCodeRoles?: boolean | Nx99Tenant$brandCodeRolesArgs<ExtArgs>
+    brandCodeRules?: boolean | Nx99Tenant$brandCodeRulesArgs<ExtArgs>
     partRelations?: boolean | Nx99Tenant$partRelationsArgs<ExtArgs>
     warehouses?: boolean | Nx99Tenant$warehousesArgs<ExtArgs>
     locations?: boolean | Nx99Tenant$locationsArgs<ExtArgs>
@@ -31023,7 +31193,7 @@ export namespace Prisma {
       partBrands: Prisma.$Nx00PartBrandPayload<ExtArgs>[]
       carBrands: Prisma.$Nx00CarBrandPayload<ExtArgs>[]
       partGroups: Prisma.$Nx00PartGroupPayload<ExtArgs>[]
-      brandCodeRoles: Prisma.$Nx00BrandCodeRolePayload<ExtArgs>[]
+      brandCodeRules: Prisma.$Nx00BrandCodeRulePayload<ExtArgs>[]
       partRelations: Prisma.$Nx00PartRelationPayload<ExtArgs>[]
       warehouses: Prisma.$Nx00WarehousePayload<ExtArgs>[]
       locations: Prisma.$Nx00LocationPayload<ExtArgs>[]
@@ -31486,7 +31656,7 @@ export namespace Prisma {
     partBrands<T extends Nx99Tenant$partBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$partBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartBrandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     carBrands<T extends Nx99Tenant$carBrandsArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$carBrandsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00CarBrandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     partGroups<T extends Nx99Tenant$partGroupsArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$partGroupsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    brandCodeRoles<T extends Nx99Tenant$brandCodeRolesArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$brandCodeRolesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    brandCodeRules<T extends Nx99Tenant$brandCodeRulesArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$brandCodeRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00BrandCodeRulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     partRelations<T extends Nx99Tenant$partRelationsArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$partRelationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00PartRelationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     warehouses<T extends Nx99Tenant$warehousesArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$warehousesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00WarehousePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     locations<T extends Nx99Tenant$locationsArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$locationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx00LocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -32163,27 +32333,27 @@ export namespace Prisma {
   }
 
   /**
-   * Nx99Tenant.brandCodeRoles
+   * Nx99Tenant.brandCodeRules
    */
-  export type Nx99Tenant$brandCodeRolesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Nx99Tenant$brandCodeRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the Nx00BrandCodeRole
+     * Select specific fields to fetch from the Nx00BrandCodeRule
      */
-    select?: Nx00BrandCodeRoleSelect<ExtArgs> | null
+    select?: Nx00BrandCodeRuleSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Nx00BrandCodeRole
+     * Omit specific fields from the Nx00BrandCodeRule
      */
-    omit?: Nx00BrandCodeRoleOmit<ExtArgs> | null
+    omit?: Nx00BrandCodeRuleOmit<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: Nx00BrandCodeRoleInclude<ExtArgs> | null
-    where?: Nx00BrandCodeRoleWhereInput
-    orderBy?: Nx00BrandCodeRoleOrderByWithRelationInput | Nx00BrandCodeRoleOrderByWithRelationInput[]
-    cursor?: Nx00BrandCodeRoleWhereUniqueInput
+    include?: Nx00BrandCodeRuleInclude<ExtArgs> | null
+    where?: Nx00BrandCodeRuleWhereInput
+    orderBy?: Nx00BrandCodeRuleOrderByWithRelationInput | Nx00BrandCodeRuleOrderByWithRelationInput[]
+    cursor?: Nx00BrandCodeRuleWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Nx00BrandCodeRoleScalarFieldEnum | Nx00BrandCodeRoleScalarFieldEnum[]
+    distinct?: Nx00BrandCodeRuleScalarFieldEnum | Nx00BrandCodeRuleScalarFieldEnum[]
   }
 
   /**
@@ -35953,7 +36123,7 @@ export namespace Prisma {
     subtotalSnapshot: number | null
     discountAmountSnapshot: number | null
     totalSnapshot: number | null
-    currency: string | null
+    currencyId: string | null
     remark: string | null
     createdAt: Date | null
     createdBy: string | null
@@ -35978,7 +36148,7 @@ export namespace Prisma {
     subtotalSnapshot: number | null
     discountAmountSnapshot: number | null
     totalSnapshot: number | null
-    currency: string | null
+    currencyId: string | null
     remark: string | null
     createdAt: Date | null
     createdBy: string | null
@@ -36003,7 +36173,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency: number
+    currencyId: number
     remark: number
     createdAt: number
     createdBy: number
@@ -36050,7 +36220,7 @@ export namespace Prisma {
     subtotalSnapshot?: true
     discountAmountSnapshot?: true
     totalSnapshot?: true
-    currency?: true
+    currencyId?: true
     remark?: true
     createdAt?: true
     createdBy?: true
@@ -36075,7 +36245,7 @@ export namespace Prisma {
     subtotalSnapshot?: true
     discountAmountSnapshot?: true
     totalSnapshot?: true
-    currency?: true
+    currencyId?: true
     remark?: true
     createdAt?: true
     createdBy?: true
@@ -36100,7 +36270,7 @@ export namespace Prisma {
     subtotalSnapshot?: true
     discountAmountSnapshot?: true
     totalSnapshot?: true
-    currency?: true
+    currencyId?: true
     remark?: true
     createdAt?: true
     createdBy?: true
@@ -36212,7 +36382,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency: string
+    currencyId: string
     remark: string | null
     createdAt: Date
     createdBy: string | null
@@ -36256,12 +36426,13 @@ export namespace Prisma {
     subtotalSnapshot?: boolean
     discountAmountSnapshot?: boolean
     totalSnapshot?: boolean
-    currency?: boolean
+    currencyId?: boolean
     remark?: boolean
     createdAt?: boolean
     createdBy?: boolean
     updatedAt?: boolean
     updatedBy?: boolean
+    currency?: boolean | Nx00CurrencyDefaultArgs<ExtArgs>
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     plan?: boolean | Nx99PlanDefaultArgs<ExtArgs>
     items?: boolean | Nx99Subscription$itemsArgs<ExtArgs>
@@ -36285,12 +36456,13 @@ export namespace Prisma {
     subtotalSnapshot?: boolean
     discountAmountSnapshot?: boolean
     totalSnapshot?: boolean
-    currency?: boolean
+    currencyId?: boolean
     remark?: boolean
     createdAt?: boolean
     createdBy?: boolean
     updatedAt?: boolean
     updatedBy?: boolean
+    currency?: boolean | Nx00CurrencyDefaultArgs<ExtArgs>
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     plan?: boolean | Nx99PlanDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["nx99Subscription"]>
@@ -36312,12 +36484,13 @@ export namespace Prisma {
     subtotalSnapshot?: boolean
     discountAmountSnapshot?: boolean
     totalSnapshot?: boolean
-    currency?: boolean
+    currencyId?: boolean
     remark?: boolean
     createdAt?: boolean
     createdBy?: boolean
     updatedAt?: boolean
     updatedBy?: boolean
+    currency?: boolean | Nx00CurrencyDefaultArgs<ExtArgs>
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     plan?: boolean | Nx99PlanDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["nx99Subscription"]>
@@ -36339,7 +36512,7 @@ export namespace Prisma {
     subtotalSnapshot?: boolean
     discountAmountSnapshot?: boolean
     totalSnapshot?: boolean
-    currency?: boolean
+    currencyId?: boolean
     remark?: boolean
     createdAt?: boolean
     createdBy?: boolean
@@ -36347,18 +36520,21 @@ export namespace Prisma {
     updatedBy?: boolean
   }
 
-  export type Nx99SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "planId" | "status" | "billingCycle" | "seats" | "startAt" | "endAt" | "autoRenew" | "baseFeeSnapshot" | "seatFeeSnapshot" | "discountTypeSnapshot" | "discountValueSnapshot" | "subtotalSnapshot" | "discountAmountSnapshot" | "totalSnapshot" | "currency" | "remark" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx99Subscription"]>
+  export type Nx99SubscriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "planId" | "status" | "billingCycle" | "seats" | "startAt" | "endAt" | "autoRenew" | "baseFeeSnapshot" | "seatFeeSnapshot" | "discountTypeSnapshot" | "discountValueSnapshot" | "subtotalSnapshot" | "discountAmountSnapshot" | "totalSnapshot" | "currencyId" | "remark" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx99Subscription"]>
   export type Nx99SubscriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    currency?: boolean | Nx00CurrencyDefaultArgs<ExtArgs>
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     plan?: boolean | Nx99PlanDefaultArgs<ExtArgs>
     items?: boolean | Nx99Subscription$itemsArgs<ExtArgs>
     _count?: boolean | Nx99SubscriptionCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type Nx99SubscriptionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    currency?: boolean | Nx00CurrencyDefaultArgs<ExtArgs>
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     plan?: boolean | Nx99PlanDefaultArgs<ExtArgs>
   }
   export type Nx99SubscriptionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    currency?: boolean | Nx00CurrencyDefaultArgs<ExtArgs>
     tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
     plan?: boolean | Nx99PlanDefaultArgs<ExtArgs>
   }
@@ -36366,6 +36542,7 @@ export namespace Prisma {
   export type $Nx99SubscriptionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Nx99Subscription"
     objects: {
+      currency: Prisma.$Nx00CurrencyPayload<ExtArgs>
       tenant: Prisma.$Nx99TenantPayload<ExtArgs>
       plan: Prisma.$Nx99PlanPayload<ExtArgs>
       items: Prisma.$Nx99SubscriptionItemPayload<ExtArgs>[]
@@ -36390,7 +36567,10 @@ export namespace Prisma {
       subtotalSnapshot: number
       discountAmountSnapshot: number
       totalSnapshot: number
-      currency: string
+      /**
+       * 幣別（外鍵 → nx00_currency；長度對齊 PK VARCHAR(15)）
+       */
+      currencyId: string
       remark: string | null
       createdAt: Date
       createdBy: string | null
@@ -36790,6 +36970,7 @@ export namespace Prisma {
    */
   export interface Prisma__Nx99SubscriptionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    currency<T extends Nx00CurrencyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx00CurrencyDefaultArgs<ExtArgs>>): Prisma__Nx00CurrencyClient<$Result.GetResult<Prisma.$Nx00CurrencyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     tenant<T extends Nx99TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx99TenantDefaultArgs<ExtArgs>>): Prisma__Nx99TenantClient<$Result.GetResult<Prisma.$Nx99TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     plan<T extends Nx99PlanDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx99PlanDefaultArgs<ExtArgs>>): Prisma__Nx99PlanClient<$Result.GetResult<Prisma.$Nx99PlanPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     items<T extends Nx99Subscription$itemsArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Subscription$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx99SubscriptionItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -36838,7 +37019,7 @@ export namespace Prisma {
     readonly subtotalSnapshot: FieldRef<"Nx99Subscription", 'Int'>
     readonly discountAmountSnapshot: FieldRef<"Nx99Subscription", 'Int'>
     readonly totalSnapshot: FieldRef<"Nx99Subscription", 'Int'>
-    readonly currency: FieldRef<"Nx99Subscription", 'String'>
+    readonly currencyId: FieldRef<"Nx99Subscription", 'String'>
     readonly remark: FieldRef<"Nx99Subscription", 'String'>
     readonly createdAt: FieldRef<"Nx99Subscription", 'DateTime'>
     readonly createdBy: FieldRef<"Nx99Subscription", 'String'>
@@ -41048,6 +41229,7 @@ export namespace Prisma {
   export const Nx00PartScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
+    codeRuleId: 'codeRuleId',
     code: 'code',
     name: 'name',
     isOem: 'isOem',
@@ -41125,15 +41307,16 @@ export namespace Prisma {
   export type Nx00PartGroupScalarFieldEnum = (typeof Nx00PartGroupScalarFieldEnum)[keyof typeof Nx00PartGroupScalarFieldEnum]
 
 
-  export const Nx00BrandCodeRoleScalarFieldEnum: {
+  export const Nx00BrandCodeRuleScalarFieldEnum: {
     id: 'id',
     tenantId: 'tenantId',
     partBrandId: 'partBrandId',
-    seg1Limit: 'seg1Limit',
-    seg2Limit: 'seg2Limit',
-    seg3Limit: 'seg3Limit',
-    seg4Limit: 'seg4Limit',
-    seg5Limit: 'seg5Limit',
+    name: 'name',
+    seg1: 'seg1',
+    seg2: 'seg2',
+    seg3: 'seg3',
+    seg4: 'seg4',
+    seg5: 'seg5',
     codeFormat: 'codeFormat',
     brandSort: 'brandSort',
     isActive: 'isActive',
@@ -41143,7 +41326,7 @@ export namespace Prisma {
     updatedBy: 'updatedBy'
   };
 
-  export type Nx00BrandCodeRoleScalarFieldEnum = (typeof Nx00BrandCodeRoleScalarFieldEnum)[keyof typeof Nx00BrandCodeRoleScalarFieldEnum]
+  export type Nx00BrandCodeRuleScalarFieldEnum = (typeof Nx00BrandCodeRuleScalarFieldEnum)[keyof typeof Nx00BrandCodeRuleScalarFieldEnum]
 
 
   export const Nx00PartRelationScalarFieldEnum: {
@@ -41369,7 +41552,7 @@ export namespace Prisma {
     subtotalSnapshot: 'subtotalSnapshot',
     discountAmountSnapshot: 'discountAmountSnapshot',
     totalSnapshot: 'totalSnapshot',
-    currency: 'currency',
+    currencyId: 'currencyId',
     remark: 'remark',
     createdAt: 'createdAt',
     createdBy: 'createdBy',
@@ -41621,8 +41804,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryListRelationFilter
     currenciesCreated?: Nx00CurrencyListRelationFilter
     currenciesUpdated?: Nx00CurrencyListRelationFilter
-    brandCodeRolesCreated?: Nx00BrandCodeRoleListRelationFilter
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleListRelationFilter
+    brandCodeRulesCreated?: Nx00BrandCodeRuleListRelationFilter
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleListRelationFilter
     partRelationsCreated?: Nx00PartRelationListRelationFilter
     partRelationsUpdated?: Nx00PartRelationListRelationFilter
   }
@@ -41680,8 +41863,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryOrderByRelationAggregateInput
     currenciesCreated?: Nx00CurrencyOrderByRelationAggregateInput
     currenciesUpdated?: Nx00CurrencyOrderByRelationAggregateInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleOrderByRelationAggregateInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleOrderByRelationAggregateInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleOrderByRelationAggregateInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleOrderByRelationAggregateInput
     partRelationsCreated?: Nx00PartRelationOrderByRelationAggregateInput
     partRelationsUpdated?: Nx00PartRelationOrderByRelationAggregateInput
   }
@@ -41743,8 +41926,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryListRelationFilter
     currenciesCreated?: Nx00CurrencyListRelationFilter
     currenciesUpdated?: Nx00CurrencyListRelationFilter
-    brandCodeRolesCreated?: Nx00BrandCodeRoleListRelationFilter
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleListRelationFilter
+    brandCodeRulesCreated?: Nx00BrandCodeRuleListRelationFilter
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleListRelationFilter
     partRelationsCreated?: Nx00PartRelationListRelationFilter
     partRelationsUpdated?: Nx00PartRelationListRelationFilter
   }, "id" | "tenantId_userAccount">
@@ -42371,6 +42554,7 @@ export namespace Prisma {
     updatedBy?: StringNullableFilter<"Nx00Currency"> | string | null
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    subscriptions?: Nx99SubscriptionListRelationFilter
   }
 
   export type Nx00CurrencyOrderByWithRelationInput = {
@@ -42387,6 +42571,7 @@ export namespace Prisma {
     updatedBy?: SortOrderInput | SortOrder
     createdByUser?: Nx00UserOrderByWithRelationInput
     updatedByUser?: Nx00UserOrderByWithRelationInput
+    subscriptions?: Nx99SubscriptionOrderByRelationAggregateInput
   }
 
   export type Nx00CurrencyWhereUniqueInput = Prisma.AtLeast<{
@@ -42406,6 +42591,7 @@ export namespace Prisma {
     updatedBy?: StringNullableFilter<"Nx00Currency"> | string | null
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    subscriptions?: Nx99SubscriptionListRelationFilter
   }, "id" | "code">
 
   export type Nx00CurrencyOrderByWithAggregationInput = {
@@ -42450,6 +42636,7 @@ export namespace Prisma {
     NOT?: Nx00PartWhereInput | Nx00PartWhereInput[]
     id?: StringFilter<"Nx00Part"> | string
     tenantId?: StringFilter<"Nx00Part"> | string
+    codeRuleId?: StringFilter<"Nx00Part"> | string
     code?: StringFilter<"Nx00Part"> | string
     name?: StringFilter<"Nx00Part"> | string
     isOem?: BoolFilter<"Nx00Part"> | boolean
@@ -42471,9 +42658,10 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Nx00Part"> | Date | string
     updatedBy?: StringNullableFilter<"Nx00Part"> | string | null
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
+    codeRule?: XOR<Nx00BrandCodeRuleScalarRelationFilter, Nx00BrandCodeRuleWhereInput>
     country?: XOR<Nx00CountryNullableScalarRelationFilter, Nx00CountryWhereInput> | null
-    partGroup?: XOR<Nx00PartGroupNullableScalarRelationFilter, Nx00PartGroupWhereInput> | null
     partBrand?: XOR<Nx00PartBrandNullableScalarRelationFilter, Nx00PartBrandWhereInput> | null
+    partGroup?: XOR<Nx00PartGroupNullableScalarRelationFilter, Nx00PartGroupWhereInput> | null
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     relationsFrom?: Nx00PartRelationListRelationFilter
@@ -42483,6 +42671,7 @@ export namespace Prisma {
   export type Nx00PartOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    codeRuleId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isOem?: SortOrder
@@ -42504,9 +42693,10 @@ export namespace Prisma {
     updatedAt?: SortOrder
     updatedBy?: SortOrderInput | SortOrder
     tenant?: Nx99TenantOrderByWithRelationInput
+    codeRule?: Nx00BrandCodeRuleOrderByWithRelationInput
     country?: Nx00CountryOrderByWithRelationInput
-    partGroup?: Nx00PartGroupOrderByWithRelationInput
     partBrand?: Nx00PartBrandOrderByWithRelationInput
+    partGroup?: Nx00PartGroupOrderByWithRelationInput
     createdByUser?: Nx00UserOrderByWithRelationInput
     updatedByUser?: Nx00UserOrderByWithRelationInput
     relationsFrom?: Nx00PartRelationOrderByRelationAggregateInput
@@ -42515,11 +42705,12 @@ export namespace Prisma {
 
   export type Nx00PartWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    tenantId_code?: Nx00PartTenantIdCodeCompoundUniqueInput
+    tenantId_code_countryId?: Nx00PartTenantIdCodeCountryIdCompoundUniqueInput
     AND?: Nx00PartWhereInput | Nx00PartWhereInput[]
     OR?: Nx00PartWhereInput[]
     NOT?: Nx00PartWhereInput | Nx00PartWhereInput[]
     tenantId?: StringFilter<"Nx00Part"> | string
+    codeRuleId?: StringFilter<"Nx00Part"> | string
     code?: StringFilter<"Nx00Part"> | string
     name?: StringFilter<"Nx00Part"> | string
     isOem?: BoolFilter<"Nx00Part"> | boolean
@@ -42541,18 +42732,20 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Nx00Part"> | Date | string
     updatedBy?: StringNullableFilter<"Nx00Part"> | string | null
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
+    codeRule?: XOR<Nx00BrandCodeRuleScalarRelationFilter, Nx00BrandCodeRuleWhereInput>
     country?: XOR<Nx00CountryNullableScalarRelationFilter, Nx00CountryWhereInput> | null
-    partGroup?: XOR<Nx00PartGroupNullableScalarRelationFilter, Nx00PartGroupWhereInput> | null
     partBrand?: XOR<Nx00PartBrandNullableScalarRelationFilter, Nx00PartBrandWhereInput> | null
+    partGroup?: XOR<Nx00PartGroupNullableScalarRelationFilter, Nx00PartGroupWhereInput> | null
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     relationsFrom?: Nx00PartRelationListRelationFilter
     relationsTo?: Nx00PartRelationListRelationFilter
-  }, "id" | "tenantId_code">
+  }, "id" | "tenantId_code_countryId">
 
   export type Nx00PartOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    codeRuleId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isOem?: SortOrder
@@ -42584,6 +42777,7 @@ export namespace Prisma {
     NOT?: Nx00PartScalarWhereWithAggregatesInput | Nx00PartScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Nx00Part"> | string
     tenantId?: StringWithAggregatesFilter<"Nx00Part"> | string
+    codeRuleId?: StringWithAggregatesFilter<"Nx00Part"> | string
     code?: StringWithAggregatesFilter<"Nx00Part"> | string
     name?: StringWithAggregatesFilter<"Nx00Part"> | string
     isOem?: BoolWithAggregatesFilter<"Nx00Part"> | boolean
@@ -42627,7 +42821,7 @@ export namespace Prisma {
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     parts?: Nx00PartListRelationFilter
-    brandCodeRole?: XOR<Nx00BrandCodeRoleNullableScalarRelationFilter, Nx00BrandCodeRoleWhereInput> | null
+    brandCodeRules?: Nx00BrandCodeRuleListRelationFilter
   }
 
   export type Nx00PartBrandOrderByWithRelationInput = {
@@ -42648,7 +42842,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserOrderByWithRelationInput
     updatedByUser?: Nx00UserOrderByWithRelationInput
     parts?: Nx00PartOrderByRelationAggregateInput
-    brandCodeRole?: Nx00BrandCodeRoleOrderByWithRelationInput
+    brandCodeRules?: Nx00BrandCodeRuleOrderByRelationAggregateInput
   }
 
   export type Nx00PartBrandWhereUniqueInput = Prisma.AtLeast<{
@@ -42673,7 +42867,7 @@ export namespace Prisma {
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     parts?: Nx00PartListRelationFilter
-    brandCodeRole?: XOR<Nx00BrandCodeRoleNullableScalarRelationFilter, Nx00BrandCodeRoleWhereInput> | null
+    brandCodeRules?: Nx00BrandCodeRuleListRelationFilter
   }, "id" | "tenantId_code">
 
   export type Nx00PartBrandOrderByWithAggregationInput = {
@@ -42908,40 +43102,43 @@ export namespace Prisma {
     updatedBy?: StringNullableWithAggregatesFilter<"Nx00PartGroup"> | string | null
   }
 
-  export type Nx00BrandCodeRoleWhereInput = {
-    AND?: Nx00BrandCodeRoleWhereInput | Nx00BrandCodeRoleWhereInput[]
-    OR?: Nx00BrandCodeRoleWhereInput[]
-    NOT?: Nx00BrandCodeRoleWhereInput | Nx00BrandCodeRoleWhereInput[]
-    id?: StringFilter<"Nx00BrandCodeRole"> | string
-    tenantId?: StringFilter<"Nx00BrandCodeRole"> | string
-    partBrandId?: StringFilter<"Nx00BrandCodeRole"> | string
-    seg1Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg2Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg3Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg4Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg5Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    codeFormat?: StringFilter<"Nx00BrandCodeRole"> | string
-    brandSort?: StringFilter<"Nx00BrandCodeRole"> | string
-    isActive?: BoolFilter<"Nx00BrandCodeRole"> | boolean
-    createdAt?: DateTimeFilter<"Nx00BrandCodeRole"> | Date | string
-    createdBy?: StringNullableFilter<"Nx00BrandCodeRole"> | string | null
-    updatedAt?: DateTimeFilter<"Nx00BrandCodeRole"> | Date | string
-    updatedBy?: StringNullableFilter<"Nx00BrandCodeRole"> | string | null
+  export type Nx00BrandCodeRuleWhereInput = {
+    AND?: Nx00BrandCodeRuleWhereInput | Nx00BrandCodeRuleWhereInput[]
+    OR?: Nx00BrandCodeRuleWhereInput[]
+    NOT?: Nx00BrandCodeRuleWhereInput | Nx00BrandCodeRuleWhereInput[]
+    id?: StringFilter<"Nx00BrandCodeRule"> | string
+    tenantId?: StringFilter<"Nx00BrandCodeRule"> | string
+    partBrandId?: StringFilter<"Nx00BrandCodeRule"> | string
+    name?: StringFilter<"Nx00BrandCodeRule"> | string
+    seg1?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg2?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg3?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg4?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg5?: IntFilter<"Nx00BrandCodeRule"> | number
+    codeFormat?: StringFilter<"Nx00BrandCodeRule"> | string
+    brandSort?: StringFilter<"Nx00BrandCodeRule"> | string
+    isActive?: BoolFilter<"Nx00BrandCodeRule"> | boolean
+    createdAt?: DateTimeFilter<"Nx00BrandCodeRule"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00BrandCodeRule"> | string | null
+    updatedAt?: DateTimeFilter<"Nx00BrandCodeRule"> | Date | string
+    updatedBy?: StringNullableFilter<"Nx00BrandCodeRule"> | string | null
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     partBrand?: XOR<Nx00PartBrandScalarRelationFilter, Nx00PartBrandWhereInput>
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
+    parts?: Nx00PartListRelationFilter
   }
 
-  export type Nx00BrandCodeRoleOrderByWithRelationInput = {
+  export type Nx00BrandCodeRuleOrderByWithRelationInput = {
     id?: SortOrder
     tenantId?: SortOrder
     partBrandId?: SortOrder
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+    name?: SortOrder
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
     codeFormat?: SortOrder
     brandSort?: SortOrder
     isActive?: SortOrder
@@ -42953,42 +43150,46 @@ export namespace Prisma {
     partBrand?: Nx00PartBrandOrderByWithRelationInput
     createdByUser?: Nx00UserOrderByWithRelationInput
     updatedByUser?: Nx00UserOrderByWithRelationInput
+    parts?: Nx00PartOrderByRelationAggregateInput
   }
 
-  export type Nx00BrandCodeRoleWhereUniqueInput = Prisma.AtLeast<{
+  export type Nx00BrandCodeRuleWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    partBrandId?: string
-    AND?: Nx00BrandCodeRoleWhereInput | Nx00BrandCodeRoleWhereInput[]
-    OR?: Nx00BrandCodeRoleWhereInput[]
-    NOT?: Nx00BrandCodeRoleWhereInput | Nx00BrandCodeRoleWhereInput[]
-    tenantId?: StringFilter<"Nx00BrandCodeRole"> | string
-    seg1Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg2Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg3Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg4Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg5Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    codeFormat?: StringFilter<"Nx00BrandCodeRole"> | string
-    brandSort?: StringFilter<"Nx00BrandCodeRole"> | string
-    isActive?: BoolFilter<"Nx00BrandCodeRole"> | boolean
-    createdAt?: DateTimeFilter<"Nx00BrandCodeRole"> | Date | string
-    createdBy?: StringNullableFilter<"Nx00BrandCodeRole"> | string | null
-    updatedAt?: DateTimeFilter<"Nx00BrandCodeRole"> | Date | string
-    updatedBy?: StringNullableFilter<"Nx00BrandCodeRole"> | string | null
+    AND?: Nx00BrandCodeRuleWhereInput | Nx00BrandCodeRuleWhereInput[]
+    OR?: Nx00BrandCodeRuleWhereInput[]
+    NOT?: Nx00BrandCodeRuleWhereInput | Nx00BrandCodeRuleWhereInput[]
+    tenantId?: StringFilter<"Nx00BrandCodeRule"> | string
+    partBrandId?: StringFilter<"Nx00BrandCodeRule"> | string
+    name?: StringFilter<"Nx00BrandCodeRule"> | string
+    seg1?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg2?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg3?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg4?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg5?: IntFilter<"Nx00BrandCodeRule"> | number
+    codeFormat?: StringFilter<"Nx00BrandCodeRule"> | string
+    brandSort?: StringFilter<"Nx00BrandCodeRule"> | string
+    isActive?: BoolFilter<"Nx00BrandCodeRule"> | boolean
+    createdAt?: DateTimeFilter<"Nx00BrandCodeRule"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00BrandCodeRule"> | string | null
+    updatedAt?: DateTimeFilter<"Nx00BrandCodeRule"> | Date | string
+    updatedBy?: StringNullableFilter<"Nx00BrandCodeRule"> | string | null
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     partBrand?: XOR<Nx00PartBrandScalarRelationFilter, Nx00PartBrandWhereInput>
     createdByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
     updatedByUser?: XOR<Nx00UserNullableScalarRelationFilter, Nx00UserWhereInput> | null
-  }, "id" | "partBrandId">
+    parts?: Nx00PartListRelationFilter
+  }, "id">
 
-  export type Nx00BrandCodeRoleOrderByWithAggregationInput = {
+  export type Nx00BrandCodeRuleOrderByWithAggregationInput = {
     id?: SortOrder
     tenantId?: SortOrder
     partBrandId?: SortOrder
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+    name?: SortOrder
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
     codeFormat?: SortOrder
     brandSort?: SortOrder
     isActive?: SortOrder
@@ -42996,32 +43197,33 @@ export namespace Prisma {
     createdBy?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     updatedBy?: SortOrderInput | SortOrder
-    _count?: Nx00BrandCodeRoleCountOrderByAggregateInput
-    _avg?: Nx00BrandCodeRoleAvgOrderByAggregateInput
-    _max?: Nx00BrandCodeRoleMaxOrderByAggregateInput
-    _min?: Nx00BrandCodeRoleMinOrderByAggregateInput
-    _sum?: Nx00BrandCodeRoleSumOrderByAggregateInput
+    _count?: Nx00BrandCodeRuleCountOrderByAggregateInput
+    _avg?: Nx00BrandCodeRuleAvgOrderByAggregateInput
+    _max?: Nx00BrandCodeRuleMaxOrderByAggregateInput
+    _min?: Nx00BrandCodeRuleMinOrderByAggregateInput
+    _sum?: Nx00BrandCodeRuleSumOrderByAggregateInput
   }
 
-  export type Nx00BrandCodeRoleScalarWhereWithAggregatesInput = {
-    AND?: Nx00BrandCodeRoleScalarWhereWithAggregatesInput | Nx00BrandCodeRoleScalarWhereWithAggregatesInput[]
-    OR?: Nx00BrandCodeRoleScalarWhereWithAggregatesInput[]
-    NOT?: Nx00BrandCodeRoleScalarWhereWithAggregatesInput | Nx00BrandCodeRoleScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"Nx00BrandCodeRole"> | string
-    tenantId?: StringWithAggregatesFilter<"Nx00BrandCodeRole"> | string
-    partBrandId?: StringWithAggregatesFilter<"Nx00BrandCodeRole"> | string
-    seg1Limit?: IntWithAggregatesFilter<"Nx00BrandCodeRole"> | number
-    seg2Limit?: IntWithAggregatesFilter<"Nx00BrandCodeRole"> | number
-    seg3Limit?: IntWithAggregatesFilter<"Nx00BrandCodeRole"> | number
-    seg4Limit?: IntWithAggregatesFilter<"Nx00BrandCodeRole"> | number
-    seg5Limit?: IntWithAggregatesFilter<"Nx00BrandCodeRole"> | number
-    codeFormat?: StringWithAggregatesFilter<"Nx00BrandCodeRole"> | string
-    brandSort?: StringWithAggregatesFilter<"Nx00BrandCodeRole"> | string
-    isActive?: BoolWithAggregatesFilter<"Nx00BrandCodeRole"> | boolean
-    createdAt?: DateTimeWithAggregatesFilter<"Nx00BrandCodeRole"> | Date | string
-    createdBy?: StringNullableWithAggregatesFilter<"Nx00BrandCodeRole"> | string | null
-    updatedAt?: DateTimeWithAggregatesFilter<"Nx00BrandCodeRole"> | Date | string
-    updatedBy?: StringNullableWithAggregatesFilter<"Nx00BrandCodeRole"> | string | null
+  export type Nx00BrandCodeRuleScalarWhereWithAggregatesInput = {
+    AND?: Nx00BrandCodeRuleScalarWhereWithAggregatesInput | Nx00BrandCodeRuleScalarWhereWithAggregatesInput[]
+    OR?: Nx00BrandCodeRuleScalarWhereWithAggregatesInput[]
+    NOT?: Nx00BrandCodeRuleScalarWhereWithAggregatesInput | Nx00BrandCodeRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx00BrandCodeRule"> | string
+    tenantId?: StringWithAggregatesFilter<"Nx00BrandCodeRule"> | string
+    partBrandId?: StringWithAggregatesFilter<"Nx00BrandCodeRule"> | string
+    name?: StringWithAggregatesFilter<"Nx00BrandCodeRule"> | string
+    seg1?: IntWithAggregatesFilter<"Nx00BrandCodeRule"> | number
+    seg2?: IntWithAggregatesFilter<"Nx00BrandCodeRule"> | number
+    seg3?: IntWithAggregatesFilter<"Nx00BrandCodeRule"> | number
+    seg4?: IntWithAggregatesFilter<"Nx00BrandCodeRule"> | number
+    seg5?: IntWithAggregatesFilter<"Nx00BrandCodeRule"> | number
+    codeFormat?: StringWithAggregatesFilter<"Nx00BrandCodeRule"> | string
+    brandSort?: StringWithAggregatesFilter<"Nx00BrandCodeRule"> | string
+    isActive?: BoolWithAggregatesFilter<"Nx00BrandCodeRule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Nx00BrandCodeRule"> | Date | string
+    createdBy?: StringNullableWithAggregatesFilter<"Nx00BrandCodeRule"> | string | null
+    updatedAt?: DateTimeWithAggregatesFilter<"Nx00BrandCodeRule"> | Date | string
+    updatedBy?: StringNullableWithAggregatesFilter<"Nx00BrandCodeRule"> | string | null
   }
 
   export type Nx00PartRelationWhereInput = {
@@ -43798,7 +44000,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandListRelationFilter
     carBrands?: Nx00CarBrandListRelationFilter
     partGroups?: Nx00PartGroupListRelationFilter
-    brandCodeRoles?: Nx00BrandCodeRoleListRelationFilter
+    brandCodeRules?: Nx00BrandCodeRuleListRelationFilter
     partRelations?: Nx00PartRelationListRelationFilter
     warehouses?: Nx00WarehouseListRelationFilter
     locations?: Nx00LocationListRelationFilter
@@ -43831,7 +44033,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandOrderByRelationAggregateInput
     carBrands?: Nx00CarBrandOrderByRelationAggregateInput
     partGroups?: Nx00PartGroupOrderByRelationAggregateInput
-    brandCodeRoles?: Nx00BrandCodeRoleOrderByRelationAggregateInput
+    brandCodeRules?: Nx00BrandCodeRuleOrderByRelationAggregateInput
     partRelations?: Nx00PartRelationOrderByRelationAggregateInput
     warehouses?: Nx00WarehouseOrderByRelationAggregateInput
     locations?: Nx00LocationOrderByRelationAggregateInput
@@ -43867,7 +44069,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandListRelationFilter
     carBrands?: Nx00CarBrandListRelationFilter
     partGroups?: Nx00PartGroupListRelationFilter
-    brandCodeRoles?: Nx00BrandCodeRoleListRelationFilter
+    brandCodeRules?: Nx00BrandCodeRuleListRelationFilter
     partRelations?: Nx00PartRelationListRelationFilter
     warehouses?: Nx00WarehouseListRelationFilter
     locations?: Nx00LocationListRelationFilter
@@ -44194,12 +44396,13 @@ export namespace Prisma {
     subtotalSnapshot?: IntFilter<"Nx99Subscription"> | number
     discountAmountSnapshot?: IntFilter<"Nx99Subscription"> | number
     totalSnapshot?: IntFilter<"Nx99Subscription"> | number
-    currency?: StringFilter<"Nx99Subscription"> | string
+    currencyId?: StringFilter<"Nx99Subscription"> | string
     remark?: StringNullableFilter<"Nx99Subscription"> | string | null
     createdAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
     createdBy?: StringNullableFilter<"Nx99Subscription"> | string | null
     updatedAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
     updatedBy?: StringNullableFilter<"Nx99Subscription"> | string | null
+    currency?: XOR<Nx00CurrencyScalarRelationFilter, Nx00CurrencyWhereInput>
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     plan?: XOR<Nx99PlanScalarRelationFilter, Nx99PlanWhereInput>
     items?: Nx99SubscriptionItemListRelationFilter
@@ -44222,12 +44425,13 @@ export namespace Prisma {
     subtotalSnapshot?: SortOrder
     discountAmountSnapshot?: SortOrder
     totalSnapshot?: SortOrder
-    currency?: SortOrder
+    currencyId?: SortOrder
     remark?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     updatedAt?: SortOrder
     updatedBy?: SortOrderInput | SortOrder
+    currency?: Nx00CurrencyOrderByWithRelationInput
     tenant?: Nx99TenantOrderByWithRelationInput
     plan?: Nx99PlanOrderByWithRelationInput
     items?: Nx99SubscriptionItemOrderByRelationAggregateInput
@@ -44253,12 +44457,13 @@ export namespace Prisma {
     subtotalSnapshot?: IntFilter<"Nx99Subscription"> | number
     discountAmountSnapshot?: IntFilter<"Nx99Subscription"> | number
     totalSnapshot?: IntFilter<"Nx99Subscription"> | number
-    currency?: StringFilter<"Nx99Subscription"> | string
+    currencyId?: StringFilter<"Nx99Subscription"> | string
     remark?: StringNullableFilter<"Nx99Subscription"> | string | null
     createdAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
     createdBy?: StringNullableFilter<"Nx99Subscription"> | string | null
     updatedAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
     updatedBy?: StringNullableFilter<"Nx99Subscription"> | string | null
+    currency?: XOR<Nx00CurrencyScalarRelationFilter, Nx00CurrencyWhereInput>
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     plan?: XOR<Nx99PlanScalarRelationFilter, Nx99PlanWhereInput>
     items?: Nx99SubscriptionItemListRelationFilter
@@ -44281,7 +44486,7 @@ export namespace Prisma {
     subtotalSnapshot?: SortOrder
     discountAmountSnapshot?: SortOrder
     totalSnapshot?: SortOrder
-    currency?: SortOrder
+    currencyId?: SortOrder
     remark?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     createdBy?: SortOrderInput | SortOrder
@@ -44314,7 +44519,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntWithAggregatesFilter<"Nx99Subscription"> | number
     discountAmountSnapshot?: IntWithAggregatesFilter<"Nx99Subscription"> | number
     totalSnapshot?: IntWithAggregatesFilter<"Nx99Subscription"> | number
-    currency?: StringWithAggregatesFilter<"Nx99Subscription"> | string
+    currencyId?: StringWithAggregatesFilter<"Nx99Subscription"> | string
     remark?: StringNullableWithAggregatesFilter<"Nx99Subscription"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Nx99Subscription"> | Date | string
     createdBy?: StringNullableWithAggregatesFilter<"Nx99Subscription"> | string | null
@@ -44671,8 +44876,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -44727,8 +44932,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -44783,8 +44988,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -44839,8 +45044,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -45476,6 +45681,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     createdByUser?: Nx00UserCreateNestedOneWithoutCurrenciesCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutCurrenciesUpdatedInput
+    subscriptions?: Nx99SubscriptionCreateNestedManyWithoutCurrencyInput
   }
 
   export type Nx00CurrencyUncheckedCreateInput = {
@@ -45490,6 +45696,7 @@ export namespace Prisma {
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    subscriptions?: Nx99SubscriptionUncheckedCreateNestedManyWithoutCurrencyInput
   }
 
   export type Nx00CurrencyUpdateInput = {
@@ -45504,6 +45711,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdByUser?: Nx00UserUpdateOneWithoutCurrenciesCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutCurrenciesUpdatedNestedInput
+    subscriptions?: Nx99SubscriptionUpdateManyWithoutCurrencyNestedInput
   }
 
   export type Nx00CurrencyUncheckedUpdateInput = {
@@ -45518,6 +45726,7 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptions?: Nx99SubscriptionUncheckedUpdateManyWithoutCurrencyNestedInput
   }
 
   export type Nx00CurrencyCreateManyInput = {
@@ -45578,9 +45787,10 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
     relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
@@ -45590,6 +45800,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -45632,9 +45843,10 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
     relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
@@ -45644,6 +45856,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -45671,6 +45884,7 @@ export namespace Prisma {
   export type Nx00PartCreateManyInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -45715,6 +45929,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -45751,7 +45966,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserCreateNestedOneWithoutPartBrandsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartBrandsUpdatedInput
     parts?: Nx00PartCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandUncheckedCreateInput = {
@@ -45768,7 +45983,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     updatedBy?: string | null
     parts?: Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandUpdateInput = {
@@ -45785,7 +46000,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserUpdateOneWithoutPartBrandsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartBrandsUpdatedNestedInput
     parts?: Nx00PartUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateInput = {
@@ -45802,7 +46017,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     parts?: Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandCreateManyInput = {
@@ -46039,69 +46254,76 @@ export namespace Prisma {
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type Nx00BrandCodeRoleCreateInput = {
+  export type Nx00BrandCodeRuleCreateInput = {
     id?: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRolesInput
-    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRoleInput
-    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesCreatedInput
-    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesUpdatedInput
+    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRulesInput
+    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRulesInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesUpdatedInput
+    parts?: Nx00PartCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateInput = {
+  export type Nx00BrandCodeRuleUncheckedCreateInput = {
     id?: string
     tenantId: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    parts?: Nx00PartUncheckedCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleUpdateInput = {
+  export type Nx00BrandCodeRuleUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRolesNestedInput
-    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRoleNestedInput
-    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesCreatedNestedInput
-    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesUpdatedNestedInput
+    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesUpdatedNestedInput
+    parts?: Nx00PartUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -46109,19 +46331,21 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    parts?: Nx00PartUncheckedUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleCreateManyInput = {
+  export type Nx00BrandCodeRuleCreateManyInput = {
     id?: string
     tenantId: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
@@ -46129,13 +46353,14 @@ export namespace Prisma {
     updatedBy?: string | null
   }
 
-  export type Nx00BrandCodeRoleUpdateManyMutationInput = {
+  export type Nx00BrandCodeRuleUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -46143,15 +46368,16 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -46981,7 +47207,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -47014,7 +47240,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -47047,7 +47273,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -47080,7 +47306,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -47451,12 +47677,12 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    currency: Nx00CurrencyCreateNestedOneWithoutSubscriptionsInput
     tenant: Nx99TenantCreateNestedOneWithoutSubscriptionsInput
     plan: Nx99PlanCreateNestedOneWithoutSubscriptionsInput
     items?: Nx99SubscriptionItemCreateNestedManyWithoutSubscriptionInput
@@ -47479,7 +47705,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -47503,12 +47729,12 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    currency?: Nx00CurrencyUpdateOneRequiredWithoutSubscriptionsNestedInput
     tenant?: Nx99TenantUpdateOneRequiredWithoutSubscriptionsNestedInput
     plan?: Nx99PlanUpdateOneRequiredWithoutSubscriptionsNestedInput
     items?: Nx99SubscriptionItemUpdateManyWithoutSubscriptionNestedInput
@@ -47531,7 +47757,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47557,7 +47783,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -47580,7 +47806,6 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -47605,7 +47830,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -48140,10 +48365,10 @@ export namespace Prisma {
     none?: Nx00CurrencyWhereInput
   }
 
-  export type Nx00BrandCodeRoleListRelationFilter = {
-    every?: Nx00BrandCodeRoleWhereInput
-    some?: Nx00BrandCodeRoleWhereInput
-    none?: Nx00BrandCodeRoleWhereInput
+  export type Nx00BrandCodeRuleListRelationFilter = {
+    every?: Nx00BrandCodeRuleWhereInput
+    some?: Nx00BrandCodeRuleWhereInput
+    none?: Nx00BrandCodeRuleWhereInput
   }
 
   export type Nx00PartRelationListRelationFilter = {
@@ -48229,7 +48454,7 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type Nx00BrandCodeRoleOrderByRelationAggregateInput = {
+  export type Nx00BrandCodeRuleOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -48702,6 +48927,16 @@ export namespace Prisma {
     sortNo?: SortOrder
   }
 
+  export type Nx99SubscriptionListRelationFilter = {
+    every?: Nx99SubscriptionWhereInput
+    some?: Nx99SubscriptionWhereInput
+    none?: Nx99SubscriptionWhereInput
+  }
+
+  export type Nx99SubscriptionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type Nx00CurrencyCountOrderByAggregateInput = {
     id?: SortOrder
     code?: SortOrder
@@ -48754,14 +48989,14 @@ export namespace Prisma {
     sortNo?: SortOrder
   }
 
+  export type Nx00BrandCodeRuleScalarRelationFilter = {
+    is?: Nx00BrandCodeRuleWhereInput
+    isNot?: Nx00BrandCodeRuleWhereInput
+  }
+
   export type Nx00CountryNullableScalarRelationFilter = {
     is?: Nx00CountryWhereInput | null
     isNot?: Nx00CountryWhereInput | null
-  }
-
-  export type Nx00PartGroupNullableScalarRelationFilter = {
-    is?: Nx00PartGroupWhereInput | null
-    isNot?: Nx00PartGroupWhereInput | null
   }
 
   export type Nx00PartBrandNullableScalarRelationFilter = {
@@ -48769,14 +49004,21 @@ export namespace Prisma {
     isNot?: Nx00PartBrandWhereInput | null
   }
 
-  export type Nx00PartTenantIdCodeCompoundUniqueInput = {
+  export type Nx00PartGroupNullableScalarRelationFilter = {
+    is?: Nx00PartGroupWhereInput | null
+    isNot?: Nx00PartGroupWhereInput | null
+  }
+
+  export type Nx00PartTenantIdCodeCountryIdCompoundUniqueInput = {
     tenantId: string
     code: string
+    countryId: string
   }
 
   export type Nx00PartCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    codeRuleId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isOem?: SortOrder
@@ -48802,6 +49044,7 @@ export namespace Prisma {
   export type Nx00PartMaxOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    codeRuleId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isOem?: SortOrder
@@ -48827,6 +49070,7 @@ export namespace Prisma {
   export type Nx00PartMinOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
+    codeRuleId?: SortOrder
     code?: SortOrder
     name?: SortOrder
     isOem?: SortOrder
@@ -48847,11 +49091,6 @@ export namespace Prisma {
     createdBy?: SortOrder
     updatedAt?: SortOrder
     updatedBy?: SortOrder
-  }
-
-  export type Nx00BrandCodeRoleNullableScalarRelationFilter = {
-    is?: Nx00BrandCodeRoleWhereInput | null
-    isNot?: Nx00BrandCodeRoleWhereInput | null
   }
 
   export type Nx00PartBrandTenantIdCodeCompoundUniqueInput = {
@@ -49027,15 +49266,16 @@ export namespace Prisma {
     isNot?: Nx00PartBrandWhereInput
   }
 
-  export type Nx00BrandCodeRoleCountOrderByAggregateInput = {
+  export type Nx00BrandCodeRuleCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
     partBrandId?: SortOrder
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+    name?: SortOrder
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
     codeFormat?: SortOrder
     brandSort?: SortOrder
     isActive?: SortOrder
@@ -49045,23 +49285,24 @@ export namespace Prisma {
     updatedBy?: SortOrder
   }
 
-  export type Nx00BrandCodeRoleAvgOrderByAggregateInput = {
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+  export type Nx00BrandCodeRuleAvgOrderByAggregateInput = {
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
   }
 
-  export type Nx00BrandCodeRoleMaxOrderByAggregateInput = {
+  export type Nx00BrandCodeRuleMaxOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
     partBrandId?: SortOrder
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+    name?: SortOrder
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
     codeFormat?: SortOrder
     brandSort?: SortOrder
     isActive?: SortOrder
@@ -49071,15 +49312,16 @@ export namespace Prisma {
     updatedBy?: SortOrder
   }
 
-  export type Nx00BrandCodeRoleMinOrderByAggregateInput = {
+  export type Nx00BrandCodeRuleMinOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
     partBrandId?: SortOrder
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+    name?: SortOrder
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
     codeFormat?: SortOrder
     brandSort?: SortOrder
     isActive?: SortOrder
@@ -49089,12 +49331,12 @@ export namespace Prisma {
     updatedBy?: SortOrder
   }
 
-  export type Nx00BrandCodeRoleSumOrderByAggregateInput = {
-    seg1Limit?: SortOrder
-    seg2Limit?: SortOrder
-    seg3Limit?: SortOrder
-    seg4Limit?: SortOrder
-    seg5Limit?: SortOrder
+  export type Nx00BrandCodeRuleSumOrderByAggregateInput = {
+    seg1?: SortOrder
+    seg2?: SortOrder
+    seg3?: SortOrder
+    seg4?: SortOrder
+    seg5?: SortOrder
   }
 
   export type Nx00PartScalarRelationFilter = {
@@ -49564,16 +49806,6 @@ export namespace Prisma {
     updatedBy?: SortOrder
   }
 
-  export type Nx99SubscriptionListRelationFilter = {
-    every?: Nx99SubscriptionWhereInput
-    some?: Nx99SubscriptionWhereInput
-    none?: Nx99SubscriptionWhereInput
-  }
-
-  export type Nx99SubscriptionOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type Nx99TenantCountOrderByAggregateInput = {
     id?: SortOrder
     code?: SortOrder
@@ -49798,6 +50030,11 @@ export namespace Prisma {
     sortNo?: SortOrder
   }
 
+  export type Nx00CurrencyScalarRelationFilter = {
+    is?: Nx00CurrencyWhereInput
+    isNot?: Nx00CurrencyWhereInput
+  }
+
   export type Nx99PlanScalarRelationFilter = {
     is?: Nx99PlanWhereInput
     isNot?: Nx99PlanWhereInput
@@ -49830,7 +50067,7 @@ export namespace Prisma {
     subtotalSnapshot?: SortOrder
     discountAmountSnapshot?: SortOrder
     totalSnapshot?: SortOrder
-    currency?: SortOrder
+    currencyId?: SortOrder
     remark?: SortOrder
     createdAt?: SortOrder
     createdBy?: SortOrder
@@ -49865,7 +50102,7 @@ export namespace Prisma {
     subtotalSnapshot?: SortOrder
     discountAmountSnapshot?: SortOrder
     totalSnapshot?: SortOrder
-    currency?: SortOrder
+    currencyId?: SortOrder
     remark?: SortOrder
     createdAt?: SortOrder
     createdBy?: SortOrder
@@ -49890,7 +50127,7 @@ export namespace Prisma {
     subtotalSnapshot?: SortOrder
     discountAmountSnapshot?: SortOrder
     totalSnapshot?: SortOrder
-    currency?: SortOrder
+    currencyId?: SortOrder
     remark?: SortOrder
     createdAt?: SortOrder
     createdBy?: SortOrder
@@ -50363,18 +50600,18 @@ export namespace Prisma {
     connect?: Nx00CurrencyWhereUniqueInput | Nx00CurrencyWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRoleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyCreatedByUserInputEnvelope
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
+  export type Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRuleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyUpdatedByUserInputEnvelope
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
+  export type Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
   export type Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput = {
@@ -50636,18 +50873,18 @@ export namespace Prisma {
     connect?: Nx00CurrencyWhereUniqueInput | Nx00CurrencyWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRoleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyCreatedByUserInputEnvelope
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
+  export type Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRuleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyCreatedByUserInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyUpdatedByUserInputEnvelope
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
+  export type Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyUpdatedByUserInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
   export type Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput = {
@@ -51202,32 +51439,32 @@ export namespace Prisma {
     deleteMany?: Nx00CurrencyScalarWhereInput | Nx00CurrencyScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRoleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput[]
-    upsert?: Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutCreatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyCreatedByUserInputEnvelope
-    set?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    disconnect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    delete?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    update?: Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutCreatedByUserInput[]
-    updateMany?: Nx00BrandCodeRoleUpdateManyWithWhereWithoutCreatedByUserInput | Nx00BrandCodeRoleUpdateManyWithWhereWithoutCreatedByUserInput[]
-    deleteMany?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
+  export type Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRuleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyCreatedByUserInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutCreatedByUserInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput[]
-    upsert?: Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyUpdatedByUserInputEnvelope
-    set?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    disconnect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    delete?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    update?: Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
-    updateMany?: Nx00BrandCodeRoleUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00BrandCodeRoleUpdateManyWithWhereWithoutUpdatedByUserInput[]
-    deleteMany?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
+  export type Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
   export type Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput = {
@@ -51748,32 +51985,32 @@ export namespace Prisma {
     deleteMany?: Nx00CurrencyScalarWhereInput | Nx00CurrencyScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRoleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput[]
-    upsert?: Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutCreatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyCreatedByUserInputEnvelope
-    set?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    disconnect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    delete?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    update?: Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutCreatedByUserInput[]
-    updateMany?: Nx00BrandCodeRoleUpdateManyWithWhereWithoutCreatedByUserInput | Nx00BrandCodeRoleUpdateManyWithWhereWithoutCreatedByUserInput[]
-    deleteMany?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput> | Nx00BrandCodeRuleCreateWithoutCreatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutCreatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyCreatedByUserInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutCreatedByUserInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutCreatedByUserInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutCreatedByUserInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutCreatedByUserInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput[]
-    upsert?: Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyUpdatedByUserInputEnvelope
-    set?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    disconnect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    delete?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    update?: Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
-    updateMany?: Nx00BrandCodeRoleUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00BrandCodeRoleUpdateManyWithWhereWithoutUpdatedByUserInput[]
-    deleteMany?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput> | Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput | Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutUpdatedByUserInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyUpdatedByUserInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutUpdatedByUserInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutUpdatedByUserInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutUpdatedByUserInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutUpdatedByUserInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
   export type Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput = {
@@ -52376,6 +52613,20 @@ export namespace Prisma {
     connect?: Nx00UserWhereUniqueInput
   }
 
+  export type Nx99SubscriptionCreateNestedManyWithoutCurrencyInput = {
+    create?: XOR<Nx99SubscriptionCreateWithoutCurrencyInput, Nx99SubscriptionUncheckedCreateWithoutCurrencyInput> | Nx99SubscriptionCreateWithoutCurrencyInput[] | Nx99SubscriptionUncheckedCreateWithoutCurrencyInput[]
+    connectOrCreate?: Nx99SubscriptionCreateOrConnectWithoutCurrencyInput | Nx99SubscriptionCreateOrConnectWithoutCurrencyInput[]
+    createMany?: Nx99SubscriptionCreateManyCurrencyInputEnvelope
+    connect?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+  }
+
+  export type Nx99SubscriptionUncheckedCreateNestedManyWithoutCurrencyInput = {
+    create?: XOR<Nx99SubscriptionCreateWithoutCurrencyInput, Nx99SubscriptionUncheckedCreateWithoutCurrencyInput> | Nx99SubscriptionCreateWithoutCurrencyInput[] | Nx99SubscriptionUncheckedCreateWithoutCurrencyInput[]
+    connectOrCreate?: Nx99SubscriptionCreateOrConnectWithoutCurrencyInput | Nx99SubscriptionCreateOrConnectWithoutCurrencyInput[]
+    createMany?: Nx99SubscriptionCreateManyCurrencyInputEnvelope
+    connect?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+  }
+
   export type Nx00UserUpdateOneWithoutCurrenciesCreatedNestedInput = {
     create?: XOR<Nx00UserCreateWithoutCurrenciesCreatedInput, Nx00UserUncheckedCreateWithoutCurrenciesCreatedInput>
     connectOrCreate?: Nx00UserCreateOrConnectWithoutCurrenciesCreatedInput
@@ -52396,10 +52647,44 @@ export namespace Prisma {
     update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutCurrenciesUpdatedInput, Nx00UserUpdateWithoutCurrenciesUpdatedInput>, Nx00UserUncheckedUpdateWithoutCurrenciesUpdatedInput>
   }
 
+  export type Nx99SubscriptionUpdateManyWithoutCurrencyNestedInput = {
+    create?: XOR<Nx99SubscriptionCreateWithoutCurrencyInput, Nx99SubscriptionUncheckedCreateWithoutCurrencyInput> | Nx99SubscriptionCreateWithoutCurrencyInput[] | Nx99SubscriptionUncheckedCreateWithoutCurrencyInput[]
+    connectOrCreate?: Nx99SubscriptionCreateOrConnectWithoutCurrencyInput | Nx99SubscriptionCreateOrConnectWithoutCurrencyInput[]
+    upsert?: Nx99SubscriptionUpsertWithWhereUniqueWithoutCurrencyInput | Nx99SubscriptionUpsertWithWhereUniqueWithoutCurrencyInput[]
+    createMany?: Nx99SubscriptionCreateManyCurrencyInputEnvelope
+    set?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    disconnect?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    delete?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    connect?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    update?: Nx99SubscriptionUpdateWithWhereUniqueWithoutCurrencyInput | Nx99SubscriptionUpdateWithWhereUniqueWithoutCurrencyInput[]
+    updateMany?: Nx99SubscriptionUpdateManyWithWhereWithoutCurrencyInput | Nx99SubscriptionUpdateManyWithWhereWithoutCurrencyInput[]
+    deleteMany?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
+  }
+
+  export type Nx99SubscriptionUncheckedUpdateManyWithoutCurrencyNestedInput = {
+    create?: XOR<Nx99SubscriptionCreateWithoutCurrencyInput, Nx99SubscriptionUncheckedCreateWithoutCurrencyInput> | Nx99SubscriptionCreateWithoutCurrencyInput[] | Nx99SubscriptionUncheckedCreateWithoutCurrencyInput[]
+    connectOrCreate?: Nx99SubscriptionCreateOrConnectWithoutCurrencyInput | Nx99SubscriptionCreateOrConnectWithoutCurrencyInput[]
+    upsert?: Nx99SubscriptionUpsertWithWhereUniqueWithoutCurrencyInput | Nx99SubscriptionUpsertWithWhereUniqueWithoutCurrencyInput[]
+    createMany?: Nx99SubscriptionCreateManyCurrencyInputEnvelope
+    set?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    disconnect?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    delete?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    connect?: Nx99SubscriptionWhereUniqueInput | Nx99SubscriptionWhereUniqueInput[]
+    update?: Nx99SubscriptionUpdateWithWhereUniqueWithoutCurrencyInput | Nx99SubscriptionUpdateWithWhereUniqueWithoutCurrencyInput[]
+    updateMany?: Nx99SubscriptionUpdateManyWithWhereWithoutCurrencyInput | Nx99SubscriptionUpdateManyWithWhereWithoutCurrencyInput[]
+    deleteMany?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
+  }
+
   export type Nx99TenantCreateNestedOneWithoutPartsInput = {
     create?: XOR<Nx99TenantCreateWithoutPartsInput, Nx99TenantUncheckedCreateWithoutPartsInput>
     connectOrCreate?: Nx99TenantCreateOrConnectWithoutPartsInput
     connect?: Nx99TenantWhereUniqueInput
+  }
+
+  export type Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutPartsInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartsInput>
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutPartsInput
+    connect?: Nx00BrandCodeRuleWhereUniqueInput
   }
 
   export type Nx00CountryCreateNestedOneWithoutPartsInput = {
@@ -52408,16 +52693,16 @@ export namespace Prisma {
     connect?: Nx00CountryWhereUniqueInput
   }
 
-  export type Nx00PartGroupCreateNestedOneWithoutPartsInput = {
-    create?: XOR<Nx00PartGroupCreateWithoutPartsInput, Nx00PartGroupUncheckedCreateWithoutPartsInput>
-    connectOrCreate?: Nx00PartGroupCreateOrConnectWithoutPartsInput
-    connect?: Nx00PartGroupWhereUniqueInput
-  }
-
   export type Nx00PartBrandCreateNestedOneWithoutPartsInput = {
     create?: XOR<Nx00PartBrandCreateWithoutPartsInput, Nx00PartBrandUncheckedCreateWithoutPartsInput>
     connectOrCreate?: Nx00PartBrandCreateOrConnectWithoutPartsInput
     connect?: Nx00PartBrandWhereUniqueInput
+  }
+
+  export type Nx00PartGroupCreateNestedOneWithoutPartsInput = {
+    create?: XOR<Nx00PartGroupCreateWithoutPartsInput, Nx00PartGroupUncheckedCreateWithoutPartsInput>
+    connectOrCreate?: Nx00PartGroupCreateOrConnectWithoutPartsInput
+    connect?: Nx00PartGroupWhereUniqueInput
   }
 
   export type Nx00UserCreateNestedOneWithoutPartsCreatedInput = {
@@ -52468,6 +52753,14 @@ export namespace Prisma {
     update?: XOR<XOR<Nx99TenantUpdateToOneWithWhereWithoutPartsInput, Nx99TenantUpdateWithoutPartsInput>, Nx99TenantUncheckedUpdateWithoutPartsInput>
   }
 
+  export type Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutPartsInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartsInput>
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutPartsInput
+    upsert?: Nx00BrandCodeRuleUpsertWithoutPartsInput
+    connect?: Nx00BrandCodeRuleWhereUniqueInput
+    update?: XOR<XOR<Nx00BrandCodeRuleUpdateToOneWithWhereWithoutPartsInput, Nx00BrandCodeRuleUpdateWithoutPartsInput>, Nx00BrandCodeRuleUncheckedUpdateWithoutPartsInput>
+  }
+
   export type Nx00CountryUpdateOneWithoutPartsNestedInput = {
     create?: XOR<Nx00CountryCreateWithoutPartsInput, Nx00CountryUncheckedCreateWithoutPartsInput>
     connectOrCreate?: Nx00CountryCreateOrConnectWithoutPartsInput
@@ -52478,16 +52771,6 @@ export namespace Prisma {
     update?: XOR<XOR<Nx00CountryUpdateToOneWithWhereWithoutPartsInput, Nx00CountryUpdateWithoutPartsInput>, Nx00CountryUncheckedUpdateWithoutPartsInput>
   }
 
-  export type Nx00PartGroupUpdateOneWithoutPartsNestedInput = {
-    create?: XOR<Nx00PartGroupCreateWithoutPartsInput, Nx00PartGroupUncheckedCreateWithoutPartsInput>
-    connectOrCreate?: Nx00PartGroupCreateOrConnectWithoutPartsInput
-    upsert?: Nx00PartGroupUpsertWithoutPartsInput
-    disconnect?: Nx00PartGroupWhereInput | boolean
-    delete?: Nx00PartGroupWhereInput | boolean
-    connect?: Nx00PartGroupWhereUniqueInput
-    update?: XOR<XOR<Nx00PartGroupUpdateToOneWithWhereWithoutPartsInput, Nx00PartGroupUpdateWithoutPartsInput>, Nx00PartGroupUncheckedUpdateWithoutPartsInput>
-  }
-
   export type Nx00PartBrandUpdateOneWithoutPartsNestedInput = {
     create?: XOR<Nx00PartBrandCreateWithoutPartsInput, Nx00PartBrandUncheckedCreateWithoutPartsInput>
     connectOrCreate?: Nx00PartBrandCreateOrConnectWithoutPartsInput
@@ -52496,6 +52779,16 @@ export namespace Prisma {
     delete?: Nx00PartBrandWhereInput | boolean
     connect?: Nx00PartBrandWhereUniqueInput
     update?: XOR<XOR<Nx00PartBrandUpdateToOneWithWhereWithoutPartsInput, Nx00PartBrandUpdateWithoutPartsInput>, Nx00PartBrandUncheckedUpdateWithoutPartsInput>
+  }
+
+  export type Nx00PartGroupUpdateOneWithoutPartsNestedInput = {
+    create?: XOR<Nx00PartGroupCreateWithoutPartsInput, Nx00PartGroupUncheckedCreateWithoutPartsInput>
+    connectOrCreate?: Nx00PartGroupCreateOrConnectWithoutPartsInput
+    upsert?: Nx00PartGroupUpsertWithoutPartsInput
+    disconnect?: Nx00PartGroupWhereInput | boolean
+    delete?: Nx00PartGroupWhereInput | boolean
+    connect?: Nx00PartGroupWhereUniqueInput
+    update?: XOR<XOR<Nx00PartGroupUpdateToOneWithWhereWithoutPartsInput, Nx00PartGroupUpdateWithoutPartsInput>, Nx00PartGroupUncheckedUpdateWithoutPartsInput>
   }
 
   export type Nx00UserUpdateOneWithoutPartsCreatedNestedInput = {
@@ -52605,10 +52898,11 @@ export namespace Prisma {
     connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput>
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutPartBrandInput
-    connect?: Nx00BrandCodeRoleWhereUniqueInput
+  export type Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput> | Nx00BrandCodeRuleCreateWithoutPartBrandInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput | Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyPartBrandInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
   export type Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput = {
@@ -52618,10 +52912,11 @@ export namespace Prisma {
     connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput>
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutPartBrandInput
-    connect?: Nx00BrandCodeRoleWhereUniqueInput
+  export type Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput> | Nx00BrandCodeRuleCreateWithoutPartBrandInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput | Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyPartBrandInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
   export type Nx99TenantUpdateOneRequiredWithoutPartBrandsNestedInput = {
@@ -52676,14 +52971,18 @@ export namespace Prisma {
     deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput>
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutPartBrandInput
-    upsert?: Nx00BrandCodeRoleUpsertWithoutPartBrandInput
-    disconnect?: Nx00BrandCodeRoleWhereInput | boolean
-    delete?: Nx00BrandCodeRoleWhereInput | boolean
-    connect?: Nx00BrandCodeRoleWhereUniqueInput
-    update?: XOR<XOR<Nx00BrandCodeRoleUpdateToOneWithWhereWithoutPartBrandInput, Nx00BrandCodeRoleUpdateWithoutPartBrandInput>, Nx00BrandCodeRoleUncheckedUpdateWithoutPartBrandInput>
+  export type Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput> | Nx00BrandCodeRuleCreateWithoutPartBrandInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput | Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutPartBrandInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutPartBrandInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyPartBrandInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutPartBrandInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutPartBrandInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutPartBrandInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutPartBrandInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
   export type Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput = {
@@ -52700,14 +52999,18 @@ export namespace Prisma {
     deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput>
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutPartBrandInput
-    upsert?: Nx00BrandCodeRoleUpsertWithoutPartBrandInput
-    disconnect?: Nx00BrandCodeRoleWhereInput | boolean
-    delete?: Nx00BrandCodeRoleWhereInput | boolean
-    connect?: Nx00BrandCodeRoleWhereUniqueInput
-    update?: XOR<XOR<Nx00BrandCodeRoleUpdateToOneWithWhereWithoutPartBrandInput, Nx00BrandCodeRoleUpdateWithoutPartBrandInput>, Nx00BrandCodeRoleUncheckedUpdateWithoutPartBrandInput>
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput> | Nx00BrandCodeRuleCreateWithoutPartBrandInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput | Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutPartBrandInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutPartBrandInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyPartBrandInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutPartBrandInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutPartBrandInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutPartBrandInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutPartBrandInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
   export type Nx99TenantCreateNestedOneWithoutCarBrandsInput = {
@@ -52860,64 +53163,106 @@ export namespace Prisma {
     deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
   }
 
-  export type Nx99TenantCreateNestedOneWithoutBrandCodeRolesInput = {
-    create?: XOR<Nx99TenantCreateWithoutBrandCodeRolesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRolesInput>
-    connectOrCreate?: Nx99TenantCreateOrConnectWithoutBrandCodeRolesInput
+  export type Nx99TenantCreateNestedOneWithoutBrandCodeRulesInput = {
+    create?: XOR<Nx99TenantCreateWithoutBrandCodeRulesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRulesInput>
+    connectOrCreate?: Nx99TenantCreateOrConnectWithoutBrandCodeRulesInput
     connect?: Nx99TenantWhereUniqueInput
   }
 
-  export type Nx00PartBrandCreateNestedOneWithoutBrandCodeRoleInput = {
-    create?: XOR<Nx00PartBrandCreateWithoutBrandCodeRoleInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRoleInput>
-    connectOrCreate?: Nx00PartBrandCreateOrConnectWithoutBrandCodeRoleInput
+  export type Nx00PartBrandCreateNestedOneWithoutBrandCodeRulesInput = {
+    create?: XOR<Nx00PartBrandCreateWithoutBrandCodeRulesInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRulesInput>
+    connectOrCreate?: Nx00PartBrandCreateOrConnectWithoutBrandCodeRulesInput
     connect?: Nx00PartBrandWhereUniqueInput
   }
 
-  export type Nx00UserCreateNestedOneWithoutBrandCodeRolesCreatedInput = {
-    create?: XOR<Nx00UserCreateWithoutBrandCodeRolesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesCreatedInput>
-    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRolesCreatedInput
+  export type Nx00UserCreateNestedOneWithoutBrandCodeRulesCreatedInput = {
+    create?: XOR<Nx00UserCreateWithoutBrandCodeRulesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRulesCreatedInput
     connect?: Nx00UserWhereUniqueInput
   }
 
-  export type Nx00UserCreateNestedOneWithoutBrandCodeRolesUpdatedInput = {
-    create?: XOR<Nx00UserCreateWithoutBrandCodeRolesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesUpdatedInput>
-    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRolesUpdatedInput
+  export type Nx00UserCreateNestedOneWithoutBrandCodeRulesUpdatedInput = {
+    create?: XOR<Nx00UserCreateWithoutBrandCodeRulesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRulesUpdatedInput
     connect?: Nx00UserWhereUniqueInput
   }
 
-  export type Nx99TenantUpdateOneRequiredWithoutBrandCodeRolesNestedInput = {
-    create?: XOR<Nx99TenantCreateWithoutBrandCodeRolesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRolesInput>
-    connectOrCreate?: Nx99TenantCreateOrConnectWithoutBrandCodeRolesInput
-    upsert?: Nx99TenantUpsertWithoutBrandCodeRolesInput
+  export type Nx00PartCreateNestedManyWithoutCodeRuleInput = {
+    create?: XOR<Nx00PartCreateWithoutCodeRuleInput, Nx00PartUncheckedCreateWithoutCodeRuleInput> | Nx00PartCreateWithoutCodeRuleInput[] | Nx00PartUncheckedCreateWithoutCodeRuleInput[]
+    connectOrCreate?: Nx00PartCreateOrConnectWithoutCodeRuleInput | Nx00PartCreateOrConnectWithoutCodeRuleInput[]
+    createMany?: Nx00PartCreateManyCodeRuleInputEnvelope
+    connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+  }
+
+  export type Nx00PartUncheckedCreateNestedManyWithoutCodeRuleInput = {
+    create?: XOR<Nx00PartCreateWithoutCodeRuleInput, Nx00PartUncheckedCreateWithoutCodeRuleInput> | Nx00PartCreateWithoutCodeRuleInput[] | Nx00PartUncheckedCreateWithoutCodeRuleInput[]
+    connectOrCreate?: Nx00PartCreateOrConnectWithoutCodeRuleInput | Nx00PartCreateOrConnectWithoutCodeRuleInput[]
+    createMany?: Nx00PartCreateManyCodeRuleInputEnvelope
+    connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+  }
+
+  export type Nx99TenantUpdateOneRequiredWithoutBrandCodeRulesNestedInput = {
+    create?: XOR<Nx99TenantCreateWithoutBrandCodeRulesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRulesInput>
+    connectOrCreate?: Nx99TenantCreateOrConnectWithoutBrandCodeRulesInput
+    upsert?: Nx99TenantUpsertWithoutBrandCodeRulesInput
     connect?: Nx99TenantWhereUniqueInput
-    update?: XOR<XOR<Nx99TenantUpdateToOneWithWhereWithoutBrandCodeRolesInput, Nx99TenantUpdateWithoutBrandCodeRolesInput>, Nx99TenantUncheckedUpdateWithoutBrandCodeRolesInput>
+    update?: XOR<XOR<Nx99TenantUpdateToOneWithWhereWithoutBrandCodeRulesInput, Nx99TenantUpdateWithoutBrandCodeRulesInput>, Nx99TenantUncheckedUpdateWithoutBrandCodeRulesInput>
   }
 
-  export type Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRoleNestedInput = {
-    create?: XOR<Nx00PartBrandCreateWithoutBrandCodeRoleInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRoleInput>
-    connectOrCreate?: Nx00PartBrandCreateOrConnectWithoutBrandCodeRoleInput
-    upsert?: Nx00PartBrandUpsertWithoutBrandCodeRoleInput
+  export type Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRulesNestedInput = {
+    create?: XOR<Nx00PartBrandCreateWithoutBrandCodeRulesInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRulesInput>
+    connectOrCreate?: Nx00PartBrandCreateOrConnectWithoutBrandCodeRulesInput
+    upsert?: Nx00PartBrandUpsertWithoutBrandCodeRulesInput
     connect?: Nx00PartBrandWhereUniqueInput
-    update?: XOR<XOR<Nx00PartBrandUpdateToOneWithWhereWithoutBrandCodeRoleInput, Nx00PartBrandUpdateWithoutBrandCodeRoleInput>, Nx00PartBrandUncheckedUpdateWithoutBrandCodeRoleInput>
+    update?: XOR<XOR<Nx00PartBrandUpdateToOneWithWhereWithoutBrandCodeRulesInput, Nx00PartBrandUpdateWithoutBrandCodeRulesInput>, Nx00PartBrandUncheckedUpdateWithoutBrandCodeRulesInput>
   }
 
-  export type Nx00UserUpdateOneWithoutBrandCodeRolesCreatedNestedInput = {
-    create?: XOR<Nx00UserCreateWithoutBrandCodeRolesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesCreatedInput>
-    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRolesCreatedInput
-    upsert?: Nx00UserUpsertWithoutBrandCodeRolesCreatedInput
+  export type Nx00UserUpdateOneWithoutBrandCodeRulesCreatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutBrandCodeRulesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesCreatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRulesCreatedInput
+    upsert?: Nx00UserUpsertWithoutBrandCodeRulesCreatedInput
     disconnect?: Nx00UserWhereInput | boolean
     delete?: Nx00UserWhereInput | boolean
     connect?: Nx00UserWhereUniqueInput
-    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutBrandCodeRolesCreatedInput, Nx00UserUpdateWithoutBrandCodeRolesCreatedInput>, Nx00UserUncheckedUpdateWithoutBrandCodeRolesCreatedInput>
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutBrandCodeRulesCreatedInput, Nx00UserUpdateWithoutBrandCodeRulesCreatedInput>, Nx00UserUncheckedUpdateWithoutBrandCodeRulesCreatedInput>
   }
 
-  export type Nx00UserUpdateOneWithoutBrandCodeRolesUpdatedNestedInput = {
-    create?: XOR<Nx00UserCreateWithoutBrandCodeRolesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesUpdatedInput>
-    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRolesUpdatedInput
-    upsert?: Nx00UserUpsertWithoutBrandCodeRolesUpdatedInput
+  export type Nx00UserUpdateOneWithoutBrandCodeRulesUpdatedNestedInput = {
+    create?: XOR<Nx00UserCreateWithoutBrandCodeRulesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesUpdatedInput>
+    connectOrCreate?: Nx00UserCreateOrConnectWithoutBrandCodeRulesUpdatedInput
+    upsert?: Nx00UserUpsertWithoutBrandCodeRulesUpdatedInput
     disconnect?: Nx00UserWhereInput | boolean
     delete?: Nx00UserWhereInput | boolean
     connect?: Nx00UserWhereUniqueInput
-    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutBrandCodeRolesUpdatedInput, Nx00UserUpdateWithoutBrandCodeRolesUpdatedInput>, Nx00UserUncheckedUpdateWithoutBrandCodeRolesUpdatedInput>
+    update?: XOR<XOR<Nx00UserUpdateToOneWithWhereWithoutBrandCodeRulesUpdatedInput, Nx00UserUpdateWithoutBrandCodeRulesUpdatedInput>, Nx00UserUncheckedUpdateWithoutBrandCodeRulesUpdatedInput>
+  }
+
+  export type Nx00PartUpdateManyWithoutCodeRuleNestedInput = {
+    create?: XOR<Nx00PartCreateWithoutCodeRuleInput, Nx00PartUncheckedCreateWithoutCodeRuleInput> | Nx00PartCreateWithoutCodeRuleInput[] | Nx00PartUncheckedCreateWithoutCodeRuleInput[]
+    connectOrCreate?: Nx00PartCreateOrConnectWithoutCodeRuleInput | Nx00PartCreateOrConnectWithoutCodeRuleInput[]
+    upsert?: Nx00PartUpsertWithWhereUniqueWithoutCodeRuleInput | Nx00PartUpsertWithWhereUniqueWithoutCodeRuleInput[]
+    createMany?: Nx00PartCreateManyCodeRuleInputEnvelope
+    set?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    disconnect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    delete?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    update?: Nx00PartUpdateWithWhereUniqueWithoutCodeRuleInput | Nx00PartUpdateWithWhereUniqueWithoutCodeRuleInput[]
+    updateMany?: Nx00PartUpdateManyWithWhereWithoutCodeRuleInput | Nx00PartUpdateManyWithWhereWithoutCodeRuleInput[]
+    deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
+  }
+
+  export type Nx00PartUncheckedUpdateManyWithoutCodeRuleNestedInput = {
+    create?: XOR<Nx00PartCreateWithoutCodeRuleInput, Nx00PartUncheckedCreateWithoutCodeRuleInput> | Nx00PartCreateWithoutCodeRuleInput[] | Nx00PartUncheckedCreateWithoutCodeRuleInput[]
+    connectOrCreate?: Nx00PartCreateOrConnectWithoutCodeRuleInput | Nx00PartCreateOrConnectWithoutCodeRuleInput[]
+    upsert?: Nx00PartUpsertWithWhereUniqueWithoutCodeRuleInput | Nx00PartUpsertWithWhereUniqueWithoutCodeRuleInput[]
+    createMany?: Nx00PartCreateManyCodeRuleInputEnvelope
+    set?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    disconnect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    delete?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    connect?: Nx00PartWhereUniqueInput | Nx00PartWhereUniqueInput[]
+    update?: Nx00PartUpdateWithWhereUniqueWithoutCodeRuleInput | Nx00PartUpdateWithWhereUniqueWithoutCodeRuleInput[]
+    updateMany?: Nx00PartUpdateManyWithWhereWithoutCodeRuleInput | Nx00PartUpdateManyWithWhereWithoutCodeRuleInput[]
+    deleteMany?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
   }
 
   export type Nx99TenantCreateNestedOneWithoutPartRelationsInput = {
@@ -53428,11 +53773,11 @@ export namespace Prisma {
     connect?: Nx00PartGroupWhereUniqueInput | Nx00PartGroupWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutTenantInput, Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRoleCreateWithoutTenantInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyTenantInputEnvelope
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
+  export type Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutTenantInput, Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRuleCreateWithoutTenantInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyTenantInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
   export type Nx00PartRelationCreateNestedManyWithoutTenantInput = {
@@ -53554,11 +53899,11 @@ export namespace Prisma {
     connect?: Nx00PartGroupWhereUniqueInput | Nx00PartGroupWhereUniqueInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutTenantInput, Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRoleCreateWithoutTenantInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyTenantInputEnvelope
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
+  export type Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutTenantInput, Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRuleCreateWithoutTenantInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyTenantInputEnvelope
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
   }
 
   export type Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput = {
@@ -53750,18 +54095,18 @@ export namespace Prisma {
     deleteMany?: Nx00PartGroupScalarWhereInput | Nx00PartGroupScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutTenantInput, Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRoleCreateWithoutTenantInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput[]
-    upsert?: Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutTenantInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyTenantInputEnvelope
-    set?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    disconnect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    delete?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    update?: Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutTenantInput[]
-    updateMany?: Nx00BrandCodeRoleUpdateManyWithWhereWithoutTenantInput | Nx00BrandCodeRoleUpdateManyWithWhereWithoutTenantInput[]
-    deleteMany?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
+  export type Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutTenantInput, Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRuleCreateWithoutTenantInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyTenantInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutTenantInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
   export type Nx00PartRelationUpdateManyWithoutTenantNestedInput = {
@@ -54002,18 +54347,18 @@ export namespace Prisma {
     deleteMany?: Nx00PartGroupScalarWhereInput | Nx00PartGroupScalarWhereInput[]
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput = {
-    create?: XOR<Nx00BrandCodeRoleCreateWithoutTenantInput, Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRoleCreateWithoutTenantInput[] | Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput[]
-    connectOrCreate?: Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput[]
-    upsert?: Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutTenantInput[]
-    createMany?: Nx00BrandCodeRoleCreateManyTenantInputEnvelope
-    set?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    disconnect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    delete?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    connect?: Nx00BrandCodeRoleWhereUniqueInput | Nx00BrandCodeRoleWhereUniqueInput[]
-    update?: Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutTenantInput[]
-    updateMany?: Nx00BrandCodeRoleUpdateManyWithWhereWithoutTenantInput | Nx00BrandCodeRoleUpdateManyWithWhereWithoutTenantInput[]
-    deleteMany?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<Nx00BrandCodeRuleCreateWithoutTenantInput, Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput> | Nx00BrandCodeRuleCreateWithoutTenantInput[] | Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput | Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput[]
+    upsert?: Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: Nx00BrandCodeRuleCreateManyTenantInputEnvelope
+    set?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    disconnect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    delete?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    connect?: Nx00BrandCodeRuleWhereUniqueInput | Nx00BrandCodeRuleWhereUniqueInput[]
+    update?: Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutTenantInput | Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: Nx00BrandCodeRuleUpdateManyWithWhereWithoutTenantInput | Nx00BrandCodeRuleUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
   }
 
   export type Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput = {
@@ -54212,6 +54557,12 @@ export namespace Prisma {
     deleteMany?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
   }
 
+  export type Nx00CurrencyCreateNestedOneWithoutSubscriptionsInput = {
+    create?: XOR<Nx00CurrencyCreateWithoutSubscriptionsInput, Nx00CurrencyUncheckedCreateWithoutSubscriptionsInput>
+    connectOrCreate?: Nx00CurrencyCreateOrConnectWithoutSubscriptionsInput
+    connect?: Nx00CurrencyWhereUniqueInput
+  }
+
   export type Nx99TenantCreateNestedOneWithoutSubscriptionsInput = {
     create?: XOR<Nx99TenantCreateWithoutSubscriptionsInput, Nx99TenantUncheckedCreateWithoutSubscriptionsInput>
     connectOrCreate?: Nx99TenantCreateOrConnectWithoutSubscriptionsInput
@@ -54236,6 +54587,14 @@ export namespace Prisma {
     connectOrCreate?: Nx99SubscriptionItemCreateOrConnectWithoutSubscriptionInput | Nx99SubscriptionItemCreateOrConnectWithoutSubscriptionInput[]
     createMany?: Nx99SubscriptionItemCreateManySubscriptionInputEnvelope
     connect?: Nx99SubscriptionItemWhereUniqueInput | Nx99SubscriptionItemWhereUniqueInput[]
+  }
+
+  export type Nx00CurrencyUpdateOneRequiredWithoutSubscriptionsNestedInput = {
+    create?: XOR<Nx00CurrencyCreateWithoutSubscriptionsInput, Nx00CurrencyUncheckedCreateWithoutSubscriptionsInput>
+    connectOrCreate?: Nx00CurrencyCreateOrConnectWithoutSubscriptionsInput
+    upsert?: Nx00CurrencyUpsertWithoutSubscriptionsInput
+    connect?: Nx00CurrencyWhereUniqueInput
+    update?: XOR<XOR<Nx00CurrencyUpdateToOneWithWhereWithoutSubscriptionsInput, Nx00CurrencyUpdateWithoutSubscriptionsInput>, Nx00CurrencyUncheckedUpdateWithoutSubscriptionsInput>
   }
 
   export type Nx99TenantUpdateOneRequiredWithoutSubscriptionsNestedInput = {
@@ -54598,7 +54957,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -54630,7 +54989,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -54694,8 +55053,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -54749,8 +55108,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -54809,8 +55168,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -54864,8 +55223,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -54924,8 +55283,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -54979,8 +55338,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -55044,8 +55403,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -55099,8 +55458,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -55385,9 +55744,10 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
     relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
     relationsTo?: Nx00PartRelationCreateNestedManyWithoutPartToInput
@@ -55396,6 +55756,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutCreatedByUserInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -55447,9 +55808,10 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
     relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
     relationsTo?: Nx00PartRelationCreateNestedManyWithoutPartToInput
@@ -55458,6 +55820,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutUpdatedByUserInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -55504,7 +55867,7 @@ export namespace Prisma {
     country?: Nx00CountryCreateNestedOneWithoutPartBrandsInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartBrandsUpdatedInput
     parts?: Nx00PartCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandUncheckedCreateWithoutCreatedByUserInput = {
@@ -55520,7 +55883,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     updatedBy?: string | null
     parts?: Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandCreateOrConnectWithoutCreatedByUserInput = {
@@ -55546,7 +55909,7 @@ export namespace Prisma {
     country?: Nx00CountryCreateNestedOneWithoutPartBrandsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartBrandsCreatedInput
     parts?: Nx00PartCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandUncheckedCreateWithoutUpdatedByUserInput = {
@@ -55562,7 +55925,7 @@ export namespace Prisma {
     createdBy?: string | null
     updatedAt?: Date | string
     parts?: Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandCreateOrConnectWithoutUpdatedByUserInput = {
@@ -56392,6 +56755,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     updatedByUser?: Nx00UserCreateNestedOneWithoutCurrenciesUpdatedInput
+    subscriptions?: Nx99SubscriptionCreateNestedManyWithoutCurrencyInput
   }
 
   export type Nx00CurrencyUncheckedCreateWithoutCreatedByUserInput = {
@@ -56405,6 +56769,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     updatedBy?: string | null
+    subscriptions?: Nx99SubscriptionUncheckedCreateNestedManyWithoutCurrencyInput
   }
 
   export type Nx00CurrencyCreateOrConnectWithoutCreatedByUserInput = {
@@ -56428,6 +56793,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     createdByUser?: Nx00UserCreateNestedOneWithoutCurrenciesCreatedInput
+    subscriptions?: Nx99SubscriptionCreateNestedManyWithoutCurrencyInput
   }
 
   export type Nx00CurrencyUncheckedCreateWithoutUpdatedByUserInput = {
@@ -56441,6 +56807,7 @@ export namespace Prisma {
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
+    subscriptions?: Nx99SubscriptionUncheckedCreateNestedManyWithoutCurrencyInput
   }
 
   export type Nx00CurrencyCreateOrConnectWithoutUpdatedByUserInput = {
@@ -56453,91 +56820,99 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type Nx00BrandCodeRoleCreateWithoutCreatedByUserInput = {
+  export type Nx00BrandCodeRuleCreateWithoutCreatedByUserInput = {
     id?: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRolesInput
-    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRoleInput
-    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesUpdatedInput
+    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRulesInput
+    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRulesInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesUpdatedInput
+    parts?: Nx00PartCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput = {
+  export type Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput = {
     id?: string
     tenantId: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     updatedBy?: string | null
+    parts?: Nx00PartUncheckedCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleCreateOrConnectWithoutCreatedByUserInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    create: XOR<Nx00BrandCodeRoleCreateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput>
+  export type Nx00BrandCodeRuleCreateOrConnectWithoutCreatedByUserInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    create: XOR<Nx00BrandCodeRuleCreateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleCreateManyCreatedByUserInputEnvelope = {
-    data: Nx00BrandCodeRoleCreateManyCreatedByUserInput | Nx00BrandCodeRoleCreateManyCreatedByUserInput[]
+  export type Nx00BrandCodeRuleCreateManyCreatedByUserInputEnvelope = {
+    data: Nx00BrandCodeRuleCreateManyCreatedByUserInput | Nx00BrandCodeRuleCreateManyCreatedByUserInput[]
     skipDuplicates?: boolean
   }
 
-  export type Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput = {
+  export type Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput = {
     id?: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRolesInput
-    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRoleInput
-    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesCreatedInput
+    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRulesInput
+    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRulesInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesCreatedInput
+    parts?: Nx00PartCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput = {
+  export type Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput = {
     id?: string
     tenantId: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
+    parts?: Nx00PartUncheckedCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleCreateOrConnectWithoutUpdatedByUserInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    create: XOR<Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput>
+  export type Nx00BrandCodeRuleCreateOrConnectWithoutUpdatedByUserInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    create: XOR<Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleCreateManyUpdatedByUserInputEnvelope = {
-    data: Nx00BrandCodeRoleCreateManyUpdatedByUserInput | Nx00BrandCodeRoleCreateManyUpdatedByUserInput[]
+  export type Nx00BrandCodeRuleCreateManyUpdatedByUserInputEnvelope = {
+    data: Nx00BrandCodeRuleCreateManyUpdatedByUserInput | Nx00BrandCodeRuleCreateManyUpdatedByUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -56650,7 +57025,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -56682,7 +57057,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -56752,8 +57127,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -56807,8 +57182,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -56873,8 +57248,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -56928,8 +57303,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -57184,6 +57559,7 @@ export namespace Prisma {
     NOT?: Nx00PartScalarWhereInput | Nx00PartScalarWhereInput[]
     id?: StringFilter<"Nx00Part"> | string
     tenantId?: StringFilter<"Nx00Part"> | string
+    codeRuleId?: StringFilter<"Nx00Part"> | string
     code?: StringFilter<"Nx00Part"> | string
     name?: StringFilter<"Nx00Part"> | string
     isOem?: BoolFilter<"Nx00Part"> | boolean
@@ -57829,57 +58205,58 @@ export namespace Prisma {
     data: XOR<Nx00CurrencyUpdateManyMutationInput, Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutCreatedByUserInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    update: XOR<Nx00BrandCodeRoleUpdateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedUpdateWithoutCreatedByUserInput>
-    create: XOR<Nx00BrandCodeRoleCreateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutCreatedByUserInput>
+  export type Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    update: XOR<Nx00BrandCodeRuleUpdateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedUpdateWithoutCreatedByUserInput>
+    create: XOR<Nx00BrandCodeRuleCreateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutCreatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutCreatedByUserInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    data: XOR<Nx00BrandCodeRoleUpdateWithoutCreatedByUserInput, Nx00BrandCodeRoleUncheckedUpdateWithoutCreatedByUserInput>
+  export type Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutCreatedByUserInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    data: XOR<Nx00BrandCodeRuleUpdateWithoutCreatedByUserInput, Nx00BrandCodeRuleUncheckedUpdateWithoutCreatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateManyWithWhereWithoutCreatedByUserInput = {
-    where: Nx00BrandCodeRoleScalarWhereInput
-    data: XOR<Nx00BrandCodeRoleUpdateManyMutationInput, Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserInput>
+  export type Nx00BrandCodeRuleUpdateManyWithWhereWithoutCreatedByUserInput = {
+    where: Nx00BrandCodeRuleScalarWhereInput
+    data: XOR<Nx00BrandCodeRuleUpdateManyMutationInput, Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleScalarWhereInput = {
-    AND?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
-    OR?: Nx00BrandCodeRoleScalarWhereInput[]
-    NOT?: Nx00BrandCodeRoleScalarWhereInput | Nx00BrandCodeRoleScalarWhereInput[]
-    id?: StringFilter<"Nx00BrandCodeRole"> | string
-    tenantId?: StringFilter<"Nx00BrandCodeRole"> | string
-    partBrandId?: StringFilter<"Nx00BrandCodeRole"> | string
-    seg1Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg2Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg3Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg4Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    seg5Limit?: IntFilter<"Nx00BrandCodeRole"> | number
-    codeFormat?: StringFilter<"Nx00BrandCodeRole"> | string
-    brandSort?: StringFilter<"Nx00BrandCodeRole"> | string
-    isActive?: BoolFilter<"Nx00BrandCodeRole"> | boolean
-    createdAt?: DateTimeFilter<"Nx00BrandCodeRole"> | Date | string
-    createdBy?: StringNullableFilter<"Nx00BrandCodeRole"> | string | null
-    updatedAt?: DateTimeFilter<"Nx00BrandCodeRole"> | Date | string
-    updatedBy?: StringNullableFilter<"Nx00BrandCodeRole"> | string | null
+  export type Nx00BrandCodeRuleScalarWhereInput = {
+    AND?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
+    OR?: Nx00BrandCodeRuleScalarWhereInput[]
+    NOT?: Nx00BrandCodeRuleScalarWhereInput | Nx00BrandCodeRuleScalarWhereInput[]
+    id?: StringFilter<"Nx00BrandCodeRule"> | string
+    tenantId?: StringFilter<"Nx00BrandCodeRule"> | string
+    partBrandId?: StringFilter<"Nx00BrandCodeRule"> | string
+    name?: StringFilter<"Nx00BrandCodeRule"> | string
+    seg1?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg2?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg3?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg4?: IntFilter<"Nx00BrandCodeRule"> | number
+    seg5?: IntFilter<"Nx00BrandCodeRule"> | number
+    codeFormat?: StringFilter<"Nx00BrandCodeRule"> | string
+    brandSort?: StringFilter<"Nx00BrandCodeRule"> | string
+    isActive?: BoolFilter<"Nx00BrandCodeRule"> | boolean
+    createdAt?: DateTimeFilter<"Nx00BrandCodeRule"> | Date | string
+    createdBy?: StringNullableFilter<"Nx00BrandCodeRule"> | string | null
+    updatedAt?: DateTimeFilter<"Nx00BrandCodeRule"> | Date | string
+    updatedBy?: StringNullableFilter<"Nx00BrandCodeRule"> | string | null
   }
 
-  export type Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutUpdatedByUserInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    update: XOR<Nx00BrandCodeRoleUpdateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedUpdateWithoutUpdatedByUserInput>
-    create: XOR<Nx00BrandCodeRoleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedCreateWithoutUpdatedByUserInput>
+  export type Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    update: XOR<Nx00BrandCodeRuleUpdateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedUpdateWithoutUpdatedByUserInput>
+    create: XOR<Nx00BrandCodeRuleCreateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedCreateWithoutUpdatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutUpdatedByUserInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    data: XOR<Nx00BrandCodeRoleUpdateWithoutUpdatedByUserInput, Nx00BrandCodeRoleUncheckedUpdateWithoutUpdatedByUserInput>
+  export type Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutUpdatedByUserInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    data: XOR<Nx00BrandCodeRuleUpdateWithoutUpdatedByUserInput, Nx00BrandCodeRuleUncheckedUpdateWithoutUpdatedByUserInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateManyWithWhereWithoutUpdatedByUserInput = {
-    where: Nx00BrandCodeRoleScalarWhereInput
-    data: XOR<Nx00BrandCodeRoleUpdateManyMutationInput, Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserInput>
+  export type Nx00BrandCodeRuleUpdateManyWithWhereWithoutUpdatedByUserInput = {
+    where: Nx00BrandCodeRuleScalarWhereInput
+    data: XOR<Nx00BrandCodeRuleUpdateManyMutationInput, Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserInput>
   }
 
   export type Nx00PartRelationUpsertWithWhereUniqueWithoutCreatedByUserInput = {
@@ -57954,7 +58331,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -57986,7 +58363,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -58050,8 +58427,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58105,8 +58482,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58165,8 +58542,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58220,8 +58597,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58338,7 +58715,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -58370,7 +58747,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -58440,8 +58817,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -58495,8 +58872,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -58561,8 +58938,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -58616,8 +58993,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -58676,7 +59053,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -58708,7 +59085,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -58772,8 +59149,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58827,8 +59204,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58924,8 +59301,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -58979,8 +59356,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -59023,7 +59400,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -59055,7 +59432,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -59125,8 +59502,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -59180,8 +59557,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -59289,8 +59666,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -59344,8 +59721,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -59372,7 +59749,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -59404,7 +59781,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -59468,8 +59845,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -59523,8 +59900,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -59618,8 +59995,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -59673,8 +60050,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -59717,7 +60094,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -59749,7 +60126,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -59819,8 +60196,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -59874,8 +60251,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -59981,8 +60358,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -60036,8 +60413,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -60091,8 +60468,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60146,8 +60523,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60206,8 +60583,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60261,8 +60638,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60374,8 +60751,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -60429,8 +60806,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -60495,8 +60872,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -60550,8 +60927,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -60594,7 +60971,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -60626,7 +61003,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -60760,8 +61137,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60815,8 +61192,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60875,8 +61252,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60930,8 +61307,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -60974,7 +61351,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -61006,7 +61383,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -61158,8 +61535,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61213,8 +61590,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61279,8 +61656,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61334,8 +61711,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61389,8 +61766,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -61444,8 +61821,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -61504,8 +61881,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryCreateNestedManyWithoutCreatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -61559,8 +61936,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -61583,7 +61960,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserCreateNestedOneWithoutPartBrandsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartBrandsUpdatedInput
     parts?: Nx00PartCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandUncheckedCreateWithoutCountryInput = {
@@ -61599,7 +61976,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     updatedBy?: string | null
     parts?: Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandCreateOrConnectWithoutCountryInput = {
@@ -61668,8 +62045,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
     relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
@@ -61679,6 +62057,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutCountryInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -61772,8 +62151,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61827,8 +62206,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61893,8 +62272,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUpdateManyWithoutCreatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -61948,8 +62327,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -62051,8 +62430,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryCreateNestedManyWithoutCreatedByUserInput
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62106,8 +62485,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUncheckedCreateNestedManyWithoutCreatedByUserInput
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62166,8 +62545,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryCreateNestedManyWithoutCreatedByUserInput
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62221,8 +62600,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUncheckedCreateNestedManyWithoutCreatedByUserInput
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62230,6 +62609,66 @@ export namespace Prisma {
   export type Nx00UserCreateOrConnectWithoutCurrenciesUpdatedInput = {
     where: Nx00UserWhereUniqueInput
     create: XOR<Nx00UserCreateWithoutCurrenciesUpdatedInput, Nx00UserUncheckedCreateWithoutCurrenciesUpdatedInput>
+  }
+
+  export type Nx99SubscriptionCreateWithoutCurrencyInput = {
+    id?: string
+    status: string
+    billingCycle: string
+    seats: number
+    startAt: Date | string
+    endAt: Date | string
+    autoRenew: boolean
+    baseFeeSnapshot: number
+    seatFeeSnapshot: number
+    discountTypeSnapshot: string
+    discountValueSnapshot: number
+    subtotalSnapshot: number
+    discountAmountSnapshot: number
+    totalSnapshot: number
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+    tenant: Nx99TenantCreateNestedOneWithoutSubscriptionsInput
+    plan: Nx99PlanCreateNestedOneWithoutSubscriptionsInput
+    items?: Nx99SubscriptionItemCreateNestedManyWithoutSubscriptionInput
+  }
+
+  export type Nx99SubscriptionUncheckedCreateWithoutCurrencyInput = {
+    id?: string
+    tenantId: string
+    planId: string
+    status: string
+    billingCycle: string
+    seats: number
+    startAt: Date | string
+    endAt: Date | string
+    autoRenew: boolean
+    baseFeeSnapshot: number
+    seatFeeSnapshot: number
+    discountTypeSnapshot: string
+    discountValueSnapshot: number
+    subtotalSnapshot: number
+    discountAmountSnapshot: number
+    totalSnapshot: number
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+    items?: Nx99SubscriptionItemUncheckedCreateNestedManyWithoutSubscriptionInput
+  }
+
+  export type Nx99SubscriptionCreateOrConnectWithoutCurrencyInput = {
+    where: Nx99SubscriptionWhereUniqueInput
+    create: XOR<Nx99SubscriptionCreateWithoutCurrencyInput, Nx99SubscriptionUncheckedCreateWithoutCurrencyInput>
+  }
+
+  export type Nx99SubscriptionCreateManyCurrencyInputEnvelope = {
+    data: Nx99SubscriptionCreateManyCurrencyInput | Nx99SubscriptionCreateManyCurrencyInput[]
+    skipDuplicates?: boolean
   }
 
   export type Nx00UserUpsertWithoutCurrenciesCreatedInput = {
@@ -62292,8 +62731,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUpdateManyWithoutCreatedByUserNestedInput
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -62347,8 +62786,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -62413,8 +62852,8 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUpdateManyWithoutCreatedByUserNestedInput
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -62468,10 +62907,54 @@ export namespace Prisma {
     countriesCreated?: Nx00CountryUncheckedUpdateManyWithoutCreatedByUserNestedInput
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+  }
+
+  export type Nx99SubscriptionUpsertWithWhereUniqueWithoutCurrencyInput = {
+    where: Nx99SubscriptionWhereUniqueInput
+    update: XOR<Nx99SubscriptionUpdateWithoutCurrencyInput, Nx99SubscriptionUncheckedUpdateWithoutCurrencyInput>
+    create: XOR<Nx99SubscriptionCreateWithoutCurrencyInput, Nx99SubscriptionUncheckedCreateWithoutCurrencyInput>
+  }
+
+  export type Nx99SubscriptionUpdateWithWhereUniqueWithoutCurrencyInput = {
+    where: Nx99SubscriptionWhereUniqueInput
+    data: XOR<Nx99SubscriptionUpdateWithoutCurrencyInput, Nx99SubscriptionUncheckedUpdateWithoutCurrencyInput>
+  }
+
+  export type Nx99SubscriptionUpdateManyWithWhereWithoutCurrencyInput = {
+    where: Nx99SubscriptionScalarWhereInput
+    data: XOR<Nx99SubscriptionUpdateManyMutationInput, Nx99SubscriptionUncheckedUpdateManyWithoutCurrencyInput>
+  }
+
+  export type Nx99SubscriptionScalarWhereInput = {
+    AND?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
+    OR?: Nx99SubscriptionScalarWhereInput[]
+    NOT?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
+    id?: StringFilter<"Nx99Subscription"> | string
+    tenantId?: StringFilter<"Nx99Subscription"> | string
+    planId?: StringFilter<"Nx99Subscription"> | string
+    status?: StringFilter<"Nx99Subscription"> | string
+    billingCycle?: StringFilter<"Nx99Subscription"> | string
+    seats?: IntFilter<"Nx99Subscription"> | number
+    startAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
+    endAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
+    autoRenew?: BoolFilter<"Nx99Subscription"> | boolean
+    baseFeeSnapshot?: IntFilter<"Nx99Subscription"> | number
+    seatFeeSnapshot?: IntFilter<"Nx99Subscription"> | number
+    discountTypeSnapshot?: StringFilter<"Nx99Subscription"> | string
+    discountValueSnapshot?: IntFilter<"Nx99Subscription"> | number
+    subtotalSnapshot?: IntFilter<"Nx99Subscription"> | number
+    discountAmountSnapshot?: IntFilter<"Nx99Subscription"> | number
+    totalSnapshot?: IntFilter<"Nx99Subscription"> | number
+    currencyId?: StringFilter<"Nx99Subscription"> | string
+    remark?: StringNullableFilter<"Nx99Subscription"> | string | null
+    createdAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
+    createdBy?: StringNullableFilter<"Nx99Subscription"> | string | null
+    updatedAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
+    updatedBy?: StringNullableFilter<"Nx99Subscription"> | string | null
   }
 
   export type Nx99TenantCreateWithoutPartsInput = {
@@ -62496,7 +62979,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -62528,7 +63011,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -62541,6 +63024,49 @@ export namespace Prisma {
   export type Nx99TenantCreateOrConnectWithoutPartsInput = {
     where: Nx99TenantWhereUniqueInput
     create: XOR<Nx99TenantCreateWithoutPartsInput, Nx99TenantUncheckedCreateWithoutPartsInput>
+  }
+
+  export type Nx00BrandCodeRuleCreateWithoutPartsInput = {
+    id?: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRulesInput
+    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRulesInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesUpdatedInput
+  }
+
+  export type Nx00BrandCodeRuleUncheckedCreateWithoutPartsInput = {
+    id?: string
+    tenantId: string
+    partBrandId: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+  }
+
+  export type Nx00BrandCodeRuleCreateOrConnectWithoutPartsInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    create: XOR<Nx00BrandCodeRuleCreateWithoutPartsInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartsInput>
   }
 
   export type Nx00CountryCreateWithoutPartsInput = {
@@ -62576,6 +63102,43 @@ export namespace Prisma {
     create: XOR<Nx00CountryCreateWithoutPartsInput, Nx00CountryUncheckedCreateWithoutPartsInput>
   }
 
+  export type Nx00PartBrandCreateWithoutPartsInput = {
+    id?: string
+    code: string
+    name: string
+    remark?: string | null
+    isActive?: boolean
+    sortNo?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: Nx99TenantCreateNestedOneWithoutPartBrandsInput
+    country?: Nx00CountryCreateNestedOneWithoutPartBrandsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutPartBrandsCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPartBrandsUpdatedInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput
+  }
+
+  export type Nx00PartBrandUncheckedCreateWithoutPartsInput = {
+    id?: string
+    tenantId: string
+    code: string
+    name: string
+    countryId?: string | null
+    remark?: string | null
+    isActive?: boolean
+    sortNo?: number
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput
+  }
+
+  export type Nx00PartBrandCreateOrConnectWithoutPartsInput = {
+    where: Nx00PartBrandWhereUniqueInput
+    create: XOR<Nx00PartBrandCreateWithoutPartsInput, Nx00PartBrandUncheckedCreateWithoutPartsInput>
+  }
+
   export type Nx00PartGroupCreateWithoutPartsInput = {
     id?: string
     code: string
@@ -62605,43 +63168,6 @@ export namespace Prisma {
   export type Nx00PartGroupCreateOrConnectWithoutPartsInput = {
     where: Nx00PartGroupWhereUniqueInput
     create: XOR<Nx00PartGroupCreateWithoutPartsInput, Nx00PartGroupUncheckedCreateWithoutPartsInput>
-  }
-
-  export type Nx00PartBrandCreateWithoutPartsInput = {
-    id?: string
-    code: string
-    name: string
-    remark?: string | null
-    isActive?: boolean
-    sortNo?: number
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    tenant: Nx99TenantCreateNestedOneWithoutPartBrandsInput
-    country?: Nx00CountryCreateNestedOneWithoutPartBrandsInput
-    createdByUser?: Nx00UserCreateNestedOneWithoutPartBrandsCreatedInput
-    updatedByUser?: Nx00UserCreateNestedOneWithoutPartBrandsUpdatedInput
-    brandCodeRole?: Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput
-  }
-
-  export type Nx00PartBrandUncheckedCreateWithoutPartsInput = {
-    id?: string
-    tenantId: string
-    code: string
-    name: string
-    countryId?: string | null
-    remark?: string | null
-    isActive?: boolean
-    sortNo?: number
-    createdAt?: Date | string
-    createdBy?: string | null
-    updatedAt?: Date | string
-    updatedBy?: string | null
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput
-  }
-
-  export type Nx00PartBrandCreateOrConnectWithoutPartsInput = {
-    where: Nx00PartBrandWhereUniqueInput
-    create: XOR<Nx00PartBrandCreateWithoutPartsInput, Nx00PartBrandUncheckedCreateWithoutPartsInput>
   }
 
   export type Nx00UserCreateWithoutPartsCreatedInput = {
@@ -62693,8 +63219,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62748,8 +63274,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62808,8 +63334,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62863,8 +63389,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -62983,7 +63509,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -63015,7 +63541,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -63023,6 +63549,55 @@ export namespace Prisma {
     auditLogs?: Nx00AuditLogUncheckedUpdateManyWithoutTenantNestedInput
     bulletins?: Nx00BulletinUncheckedUpdateManyWithoutTenantNestedInput
     calendarEvents?: Nx00CalendarEventUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type Nx00BrandCodeRuleUpsertWithoutPartsInput = {
+    update: XOR<Nx00BrandCodeRuleUpdateWithoutPartsInput, Nx00BrandCodeRuleUncheckedUpdateWithoutPartsInput>
+    create: XOR<Nx00BrandCodeRuleCreateWithoutPartsInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartsInput>
+    where?: Nx00BrandCodeRuleWhereInput
+  }
+
+  export type Nx00BrandCodeRuleUpdateToOneWithWhereWithoutPartsInput = {
+    where?: Nx00BrandCodeRuleWhereInput
+    data: XOR<Nx00BrandCodeRuleUpdateWithoutPartsInput, Nx00BrandCodeRuleUncheckedUpdateWithoutPartsInput>
+  }
+
+  export type Nx00BrandCodeRuleUpdateWithoutPartsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
+    codeFormat?: StringFieldUpdateOperationsInput | string
+    brandSort?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesUpdatedNestedInput
+  }
+
+  export type Nx00BrandCodeRuleUncheckedUpdateWithoutPartsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    partBrandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
+    codeFormat?: StringFieldUpdateOperationsInput | string
+    brandSort?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type Nx00CountryUpsertWithoutPartsInput = {
@@ -63064,6 +63639,49 @@ export namespace Prisma {
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutCountryNestedInput
   }
 
+  export type Nx00PartBrandUpsertWithoutPartsInput = {
+    update: XOR<Nx00PartBrandUpdateWithoutPartsInput, Nx00PartBrandUncheckedUpdateWithoutPartsInput>
+    create: XOR<Nx00PartBrandCreateWithoutPartsInput, Nx00PartBrandUncheckedCreateWithoutPartsInput>
+    where?: Nx00PartBrandWhereInput
+  }
+
+  export type Nx00PartBrandUpdateToOneWithWhereWithoutPartsInput = {
+    where?: Nx00PartBrandWhereInput
+    data: XOR<Nx00PartBrandUpdateWithoutPartsInput, Nx00PartBrandUncheckedUpdateWithoutPartsInput>
+  }
+
+  export type Nx00PartBrandUpdateWithoutPartsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutPartBrandsNestedInput
+    country?: Nx00CountryUpdateOneWithoutPartBrandsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutPartBrandsCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutPartBrandsUpdatedNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput
+  }
+
+  export type Nx00PartBrandUncheckedUpdateWithoutPartsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    countryId?: NullableStringFieldUpdateOperationsInput | string | null
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    sortNo?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput
+  }
+
   export type Nx00PartGroupUpsertWithoutPartsInput = {
     update: XOR<Nx00PartGroupUpdateWithoutPartsInput, Nx00PartGroupUncheckedUpdateWithoutPartsInput>
     create: XOR<Nx00PartGroupCreateWithoutPartsInput, Nx00PartGroupUncheckedCreateWithoutPartsInput>
@@ -63099,49 +63717,6 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
-  }
-
-  export type Nx00PartBrandUpsertWithoutPartsInput = {
-    update: XOR<Nx00PartBrandUpdateWithoutPartsInput, Nx00PartBrandUncheckedUpdateWithoutPartsInput>
-    create: XOR<Nx00PartBrandCreateWithoutPartsInput, Nx00PartBrandUncheckedCreateWithoutPartsInput>
-    where?: Nx00PartBrandWhereInput
-  }
-
-  export type Nx00PartBrandUpdateToOneWithWhereWithoutPartsInput = {
-    where?: Nx00PartBrandWhereInput
-    data: XOR<Nx00PartBrandUpdateWithoutPartsInput, Nx00PartBrandUncheckedUpdateWithoutPartsInput>
-  }
-
-  export type Nx00PartBrandUpdateWithoutPartsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    remark?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    sortNo?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: Nx99TenantUpdateOneRequiredWithoutPartBrandsNestedInput
-    country?: Nx00CountryUpdateOneWithoutPartBrandsNestedInput
-    createdByUser?: Nx00UserUpdateOneWithoutPartBrandsCreatedNestedInput
-    updatedByUser?: Nx00UserUpdateOneWithoutPartBrandsUpdatedNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput
-  }
-
-  export type Nx00PartBrandUncheckedUpdateWithoutPartsInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    tenantId?: StringFieldUpdateOperationsInput | string
-    code?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    countryId?: NullableStringFieldUpdateOperationsInput | string | null
-    remark?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    sortNo?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput
   }
 
   export type Nx00UserUpsertWithoutPartsCreatedInput = {
@@ -63204,8 +63779,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -63259,8 +63834,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -63325,8 +63900,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -63380,8 +63955,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -63440,7 +64015,7 @@ export namespace Prisma {
     parts?: Nx00PartCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -63472,7 +64047,7 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -63569,8 +64144,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -63624,8 +64199,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -63684,8 +64259,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -63739,8 +64314,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -63768,6 +64343,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
     partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
@@ -63779,6 +64355,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutPartBrandInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -63812,43 +64389,52 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type Nx00BrandCodeRoleCreateWithoutPartBrandInput = {
+  export type Nx00BrandCodeRuleCreateWithoutPartBrandInput = {
     id?: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRolesInput
-    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesCreatedInput
-    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesUpdatedInput
+    tenant: Nx99TenantCreateNestedOneWithoutBrandCodeRulesInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesUpdatedInput
+    parts?: Nx00PartCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput = {
+  export type Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput = {
     id?: string
     tenantId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    parts?: Nx00PartUncheckedCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleCreateOrConnectWithoutPartBrandInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    create: XOR<Nx00BrandCodeRoleCreateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput>
+  export type Nx00BrandCodeRuleCreateOrConnectWithoutPartBrandInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    create: XOR<Nx00BrandCodeRuleCreateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput>
+  }
+
+  export type Nx00BrandCodeRuleCreateManyPartBrandInputEnvelope = {
+    data: Nx00BrandCodeRuleCreateManyPartBrandInput | Nx00BrandCodeRuleCreateManyPartBrandInput[]
+    skipDuplicates?: boolean
   }
 
   export type Nx99TenantUpsertWithoutPartBrandsInput = {
@@ -63884,7 +64470,7 @@ export namespace Prisma {
     parts?: Nx00PartUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -63916,7 +64502,7 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -64025,8 +64611,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64080,8 +64666,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64146,8 +64732,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64201,8 +64787,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64223,49 +64809,20 @@ export namespace Prisma {
     data: XOR<Nx00PartUpdateManyMutationInput, Nx00PartUncheckedUpdateManyWithoutPartBrandInput>
   }
 
-  export type Nx00BrandCodeRoleUpsertWithoutPartBrandInput = {
-    update: XOR<Nx00BrandCodeRoleUpdateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedUpdateWithoutPartBrandInput>
-    create: XOR<Nx00BrandCodeRoleCreateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedCreateWithoutPartBrandInput>
-    where?: Nx00BrandCodeRoleWhereInput
+  export type Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutPartBrandInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    update: XOR<Nx00BrandCodeRuleUpdateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedUpdateWithoutPartBrandInput>
+    create: XOR<Nx00BrandCodeRuleCreateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedCreateWithoutPartBrandInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateToOneWithWhereWithoutPartBrandInput = {
-    where?: Nx00BrandCodeRoleWhereInput
-    data: XOR<Nx00BrandCodeRoleUpdateWithoutPartBrandInput, Nx00BrandCodeRoleUncheckedUpdateWithoutPartBrandInput>
+  export type Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutPartBrandInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    data: XOR<Nx00BrandCodeRuleUpdateWithoutPartBrandInput, Nx00BrandCodeRuleUncheckedUpdateWithoutPartBrandInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateWithoutPartBrandInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
-    codeFormat?: StringFieldUpdateOperationsInput | string
-    brandSort?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRolesNestedInput
-    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesCreatedNestedInput
-    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesUpdatedNestedInput
-  }
-
-  export type Nx00BrandCodeRoleUncheckedUpdateWithoutPartBrandInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    tenantId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
-    codeFormat?: StringFieldUpdateOperationsInput | string
-    brandSort?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  export type Nx00BrandCodeRuleUpdateManyWithWhereWithoutPartBrandInput = {
+    where: Nx00BrandCodeRuleScalarWhereInput
+    data: XOR<Nx00BrandCodeRuleUpdateManyMutationInput, Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandInput>
   }
 
   export type Nx99TenantCreateWithoutCarBrandsInput = {
@@ -64290,7 +64847,7 @@ export namespace Prisma {
     parts?: Nx00PartCreateNestedManyWithoutTenantInput
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -64322,7 +64879,7 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedCreateNestedManyWithoutTenantInput
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -64419,8 +64976,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -64474,8 +65031,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -64534,8 +65091,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -64589,8 +65146,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -64633,7 +65190,7 @@ export namespace Prisma {
     parts?: Nx00PartUpdateManyWithoutTenantNestedInput
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -64665,7 +65222,7 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedUpdateManyWithoutTenantNestedInput
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -64774,8 +65331,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64829,8 +65386,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64895,8 +65452,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64950,8 +65507,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -64978,7 +65535,7 @@ export namespace Prisma {
     parts?: Nx00PartCreateNestedManyWithoutTenantInput
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -65010,7 +65567,7 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedCreateNestedManyWithoutTenantInput
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -65074,8 +65631,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -65129,8 +65686,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -65189,8 +65746,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -65244,8 +65801,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -65273,6 +65830,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
@@ -65284,6 +65842,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutPartGroupInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -65350,7 +65909,7 @@ export namespace Prisma {
     parts?: Nx00PartUpdateManyWithoutTenantNestedInput
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -65382,7 +65941,7 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedUpdateManyWithoutTenantNestedInput
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -65452,8 +66011,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -65507,8 +66066,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -65573,8 +66132,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -65628,8 +66187,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -65650,7 +66209,7 @@ export namespace Prisma {
     data: XOR<Nx00PartUpdateManyMutationInput, Nx00PartUncheckedUpdateManyWithoutPartGroupInput>
   }
 
-  export type Nx99TenantCreateWithoutBrandCodeRolesInput = {
+  export type Nx99TenantCreateWithoutBrandCodeRulesInput = {
     id?: string
     code: string
     name: string
@@ -65682,7 +66241,7 @@ export namespace Prisma {
     calendarEvents?: Nx00CalendarEventCreateNestedManyWithoutTenantInput
   }
 
-  export type Nx99TenantUncheckedCreateWithoutBrandCodeRolesInput = {
+  export type Nx99TenantUncheckedCreateWithoutBrandCodeRulesInput = {
     id?: string
     code: string
     name: string
@@ -65714,12 +66273,12 @@ export namespace Prisma {
     calendarEvents?: Nx00CalendarEventUncheckedCreateNestedManyWithoutTenantInput
   }
 
-  export type Nx99TenantCreateOrConnectWithoutBrandCodeRolesInput = {
+  export type Nx99TenantCreateOrConnectWithoutBrandCodeRulesInput = {
     where: Nx99TenantWhereUniqueInput
-    create: XOR<Nx99TenantCreateWithoutBrandCodeRolesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRolesInput>
+    create: XOR<Nx99TenantCreateWithoutBrandCodeRulesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRulesInput>
   }
 
-  export type Nx00PartBrandCreateWithoutBrandCodeRoleInput = {
+  export type Nx00PartBrandCreateWithoutBrandCodeRulesInput = {
     id?: string
     code: string
     name: string
@@ -65735,7 +66294,7 @@ export namespace Prisma {
     parts?: Nx00PartCreateNestedManyWithoutPartBrandInput
   }
 
-  export type Nx00PartBrandUncheckedCreateWithoutBrandCodeRoleInput = {
+  export type Nx00PartBrandUncheckedCreateWithoutBrandCodeRulesInput = {
     id?: string
     tenantId: string
     code: string
@@ -65751,12 +66310,12 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput
   }
 
-  export type Nx00PartBrandCreateOrConnectWithoutBrandCodeRoleInput = {
+  export type Nx00PartBrandCreateOrConnectWithoutBrandCodeRulesInput = {
     where: Nx00PartBrandWhereUniqueInput
-    create: XOR<Nx00PartBrandCreateWithoutBrandCodeRoleInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRoleInput>
+    create: XOR<Nx00PartBrandCreateWithoutBrandCodeRulesInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRulesInput>
   }
 
-  export type Nx00UserCreateWithoutBrandCodeRolesCreatedInput = {
+  export type Nx00UserCreateWithoutBrandCodeRulesCreatedInput = {
     id?: string
     employeeId?: string | null
     userAccount: string
@@ -65806,12 +66365,12 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
 
-  export type Nx00UserUncheckedCreateWithoutBrandCodeRolesCreatedInput = {
+  export type Nx00UserUncheckedCreateWithoutBrandCodeRulesCreatedInput = {
     id?: string
     tenantId: string
     employeeId?: string | null
@@ -65861,17 +66420,17 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
 
-  export type Nx00UserCreateOrConnectWithoutBrandCodeRolesCreatedInput = {
+  export type Nx00UserCreateOrConnectWithoutBrandCodeRulesCreatedInput = {
     where: Nx00UserWhereUniqueInput
-    create: XOR<Nx00UserCreateWithoutBrandCodeRolesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesCreatedInput>
+    create: XOR<Nx00UserCreateWithoutBrandCodeRulesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesCreatedInput>
   }
 
-  export type Nx00UserCreateWithoutBrandCodeRolesUpdatedInput = {
+  export type Nx00UserCreateWithoutBrandCodeRulesUpdatedInput = {
     id?: string
     employeeId?: string | null
     userAccount: string
@@ -65921,12 +66480,12 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
 
-  export type Nx00UserUncheckedCreateWithoutBrandCodeRolesUpdatedInput = {
+  export type Nx00UserUncheckedCreateWithoutBrandCodeRulesUpdatedInput = {
     id?: string
     tenantId: string
     employeeId?: string | null
@@ -65976,28 +66535,92 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
 
-  export type Nx00UserCreateOrConnectWithoutBrandCodeRolesUpdatedInput = {
+  export type Nx00UserCreateOrConnectWithoutBrandCodeRulesUpdatedInput = {
     where: Nx00UserWhereUniqueInput
-    create: XOR<Nx00UserCreateWithoutBrandCodeRolesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesUpdatedInput>
+    create: XOR<Nx00UserCreateWithoutBrandCodeRulesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesUpdatedInput>
   }
 
-  export type Nx99TenantUpsertWithoutBrandCodeRolesInput = {
-    update: XOR<Nx99TenantUpdateWithoutBrandCodeRolesInput, Nx99TenantUncheckedUpdateWithoutBrandCodeRolesInput>
-    create: XOR<Nx99TenantCreateWithoutBrandCodeRolesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRolesInput>
+  export type Nx00PartCreateWithoutCodeRuleInput = {
+    id?: string
+    code: string
+    name: string
+    isOem?: boolean
+    secCode?: string | null
+    seg1?: string | null
+    seg2?: string | null
+    seg3?: string | null
+    seg4?: string | null
+    seg5?: string | null
+    partType?: string
+    spec?: string | null
+    uom?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    country?: Nx00CountryCreateNestedOneWithoutPartsInput
+    partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
+    relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
+    relationsTo?: Nx00PartRelationCreateNestedManyWithoutPartToInput
+  }
+
+  export type Nx00PartUncheckedCreateWithoutCodeRuleInput = {
+    id?: string
+    tenantId: string
+    code: string
+    name: string
+    isOem?: boolean
+    secCode?: string | null
+    seg1?: string | null
+    seg2?: string | null
+    seg3?: string | null
+    seg4?: string | null
+    seg5?: string | null
+    countryId?: string | null
+    partBrandId?: string | null
+    partType?: string
+    partGroupId?: string | null
+    spec?: string | null
+    uom?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+    relationsFrom?: Nx00PartRelationUncheckedCreateNestedManyWithoutPartFromInput
+    relationsTo?: Nx00PartRelationUncheckedCreateNestedManyWithoutPartToInput
+  }
+
+  export type Nx00PartCreateOrConnectWithoutCodeRuleInput = {
+    where: Nx00PartWhereUniqueInput
+    create: XOR<Nx00PartCreateWithoutCodeRuleInput, Nx00PartUncheckedCreateWithoutCodeRuleInput>
+  }
+
+  export type Nx00PartCreateManyCodeRuleInputEnvelope = {
+    data: Nx00PartCreateManyCodeRuleInput | Nx00PartCreateManyCodeRuleInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx99TenantUpsertWithoutBrandCodeRulesInput = {
+    update: XOR<Nx99TenantUpdateWithoutBrandCodeRulesInput, Nx99TenantUncheckedUpdateWithoutBrandCodeRulesInput>
+    create: XOR<Nx99TenantCreateWithoutBrandCodeRulesInput, Nx99TenantUncheckedCreateWithoutBrandCodeRulesInput>
     where?: Nx99TenantWhereInput
   }
 
-  export type Nx99TenantUpdateToOneWithWhereWithoutBrandCodeRolesInput = {
+  export type Nx99TenantUpdateToOneWithWhereWithoutBrandCodeRulesInput = {
     where?: Nx99TenantWhereInput
-    data: XOR<Nx99TenantUpdateWithoutBrandCodeRolesInput, Nx99TenantUncheckedUpdateWithoutBrandCodeRolesInput>
+    data: XOR<Nx99TenantUpdateWithoutBrandCodeRulesInput, Nx99TenantUncheckedUpdateWithoutBrandCodeRulesInput>
   }
 
-  export type Nx99TenantUpdateWithoutBrandCodeRolesInput = {
+  export type Nx99TenantUpdateWithoutBrandCodeRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -66029,7 +66652,7 @@ export namespace Prisma {
     calendarEvents?: Nx00CalendarEventUpdateManyWithoutTenantNestedInput
   }
 
-  export type Nx99TenantUncheckedUpdateWithoutBrandCodeRolesInput = {
+  export type Nx99TenantUncheckedUpdateWithoutBrandCodeRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -66061,18 +66684,18 @@ export namespace Prisma {
     calendarEvents?: Nx00CalendarEventUncheckedUpdateManyWithoutTenantNestedInput
   }
 
-  export type Nx00PartBrandUpsertWithoutBrandCodeRoleInput = {
-    update: XOR<Nx00PartBrandUpdateWithoutBrandCodeRoleInput, Nx00PartBrandUncheckedUpdateWithoutBrandCodeRoleInput>
-    create: XOR<Nx00PartBrandCreateWithoutBrandCodeRoleInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRoleInput>
+  export type Nx00PartBrandUpsertWithoutBrandCodeRulesInput = {
+    update: XOR<Nx00PartBrandUpdateWithoutBrandCodeRulesInput, Nx00PartBrandUncheckedUpdateWithoutBrandCodeRulesInput>
+    create: XOR<Nx00PartBrandCreateWithoutBrandCodeRulesInput, Nx00PartBrandUncheckedCreateWithoutBrandCodeRulesInput>
     where?: Nx00PartBrandWhereInput
   }
 
-  export type Nx00PartBrandUpdateToOneWithWhereWithoutBrandCodeRoleInput = {
+  export type Nx00PartBrandUpdateToOneWithWhereWithoutBrandCodeRulesInput = {
     where?: Nx00PartBrandWhereInput
-    data: XOR<Nx00PartBrandUpdateWithoutBrandCodeRoleInput, Nx00PartBrandUncheckedUpdateWithoutBrandCodeRoleInput>
+    data: XOR<Nx00PartBrandUpdateWithoutBrandCodeRulesInput, Nx00PartBrandUncheckedUpdateWithoutBrandCodeRulesInput>
   }
 
-  export type Nx00PartBrandUpdateWithoutBrandCodeRoleInput = {
+  export type Nx00PartBrandUpdateWithoutBrandCodeRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -66088,7 +66711,7 @@ export namespace Prisma {
     parts?: Nx00PartUpdateManyWithoutPartBrandNestedInput
   }
 
-  export type Nx00PartBrandUncheckedUpdateWithoutBrandCodeRoleInput = {
+  export type Nx00PartBrandUncheckedUpdateWithoutBrandCodeRulesInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
@@ -66104,18 +66727,18 @@ export namespace Prisma {
     parts?: Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput
   }
 
-  export type Nx00UserUpsertWithoutBrandCodeRolesCreatedInput = {
-    update: XOR<Nx00UserUpdateWithoutBrandCodeRolesCreatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRolesCreatedInput>
-    create: XOR<Nx00UserCreateWithoutBrandCodeRolesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesCreatedInput>
+  export type Nx00UserUpsertWithoutBrandCodeRulesCreatedInput = {
+    update: XOR<Nx00UserUpdateWithoutBrandCodeRulesCreatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRulesCreatedInput>
+    create: XOR<Nx00UserCreateWithoutBrandCodeRulesCreatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesCreatedInput>
     where?: Nx00UserWhereInput
   }
 
-  export type Nx00UserUpdateToOneWithWhereWithoutBrandCodeRolesCreatedInput = {
+  export type Nx00UserUpdateToOneWithWhereWithoutBrandCodeRulesCreatedInput = {
     where?: Nx00UserWhereInput
-    data: XOR<Nx00UserUpdateWithoutBrandCodeRolesCreatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRolesCreatedInput>
+    data: XOR<Nx00UserUpdateWithoutBrandCodeRulesCreatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRulesCreatedInput>
   }
 
-  export type Nx00UserUpdateWithoutBrandCodeRolesCreatedInput = {
+  export type Nx00UserUpdateWithoutBrandCodeRulesCreatedInput = {
     id?: StringFieldUpdateOperationsInput | string
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     userAccount?: StringFieldUpdateOperationsInput | string
@@ -66165,12 +66788,12 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
 
-  export type Nx00UserUncheckedUpdateWithoutBrandCodeRolesCreatedInput = {
+  export type Nx00UserUncheckedUpdateWithoutBrandCodeRulesCreatedInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -66220,23 +66843,23 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
 
-  export type Nx00UserUpsertWithoutBrandCodeRolesUpdatedInput = {
-    update: XOR<Nx00UserUpdateWithoutBrandCodeRolesUpdatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRolesUpdatedInput>
-    create: XOR<Nx00UserCreateWithoutBrandCodeRolesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRolesUpdatedInput>
+  export type Nx00UserUpsertWithoutBrandCodeRulesUpdatedInput = {
+    update: XOR<Nx00UserUpdateWithoutBrandCodeRulesUpdatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRulesUpdatedInput>
+    create: XOR<Nx00UserCreateWithoutBrandCodeRulesUpdatedInput, Nx00UserUncheckedCreateWithoutBrandCodeRulesUpdatedInput>
     where?: Nx00UserWhereInput
   }
 
-  export type Nx00UserUpdateToOneWithWhereWithoutBrandCodeRolesUpdatedInput = {
+  export type Nx00UserUpdateToOneWithWhereWithoutBrandCodeRulesUpdatedInput = {
     where?: Nx00UserWhereInput
-    data: XOR<Nx00UserUpdateWithoutBrandCodeRolesUpdatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRolesUpdatedInput>
+    data: XOR<Nx00UserUpdateWithoutBrandCodeRulesUpdatedInput, Nx00UserUncheckedUpdateWithoutBrandCodeRulesUpdatedInput>
   }
 
-  export type Nx00UserUpdateWithoutBrandCodeRolesUpdatedInput = {
+  export type Nx00UserUpdateWithoutBrandCodeRulesUpdatedInput = {
     id?: StringFieldUpdateOperationsInput | string
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
     userAccount?: StringFieldUpdateOperationsInput | string
@@ -66286,12 +66909,12 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
 
-  export type Nx00UserUncheckedUpdateWithoutBrandCodeRolesUpdatedInput = {
+  export type Nx00UserUncheckedUpdateWithoutBrandCodeRulesUpdatedInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     employeeId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -66341,9 +66964,25 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+  }
+
+  export type Nx00PartUpsertWithWhereUniqueWithoutCodeRuleInput = {
+    where: Nx00PartWhereUniqueInput
+    update: XOR<Nx00PartUpdateWithoutCodeRuleInput, Nx00PartUncheckedUpdateWithoutCodeRuleInput>
+    create: XOR<Nx00PartCreateWithoutCodeRuleInput, Nx00PartUncheckedCreateWithoutCodeRuleInput>
+  }
+
+  export type Nx00PartUpdateWithWhereUniqueWithoutCodeRuleInput = {
+    where: Nx00PartWhereUniqueInput
+    data: XOR<Nx00PartUpdateWithoutCodeRuleInput, Nx00PartUncheckedUpdateWithoutCodeRuleInput>
+  }
+
+  export type Nx00PartUpdateManyWithWhereWithoutCodeRuleInput = {
+    where: Nx00PartScalarWhereInput
+    data: XOR<Nx00PartUpdateManyMutationInput, Nx00PartUncheckedUpdateManyWithoutCodeRuleInput>
   }
 
   export type Nx99TenantCreateWithoutPartRelationsInput = {
@@ -66369,7 +67008,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
     partners?: Nx00PartnerCreateNestedManyWithoutTenantInput
@@ -66401,7 +67040,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
     partners?: Nx00PartnerUncheckedCreateNestedManyWithoutTenantInput
@@ -66433,9 +67072,10 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
     relationsTo?: Nx00PartRelationCreateNestedManyWithoutPartToInput
@@ -66444,6 +67084,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutRelationsFromInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -66490,9 +67131,10 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     tenant: Nx99TenantCreateNestedOneWithoutPartsInput
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
     relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
@@ -66501,6 +67143,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedCreateWithoutRelationsToInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -66579,8 +67222,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
 
@@ -66634,8 +67277,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
 
@@ -66694,8 +67337,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
   }
 
@@ -66749,8 +67392,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
   }
 
@@ -66793,7 +67436,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
     partners?: Nx00PartnerUpdateManyWithoutTenantNestedInput
@@ -66825,7 +67468,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
     partners?: Nx00PartnerUncheckedUpdateManyWithoutTenantNestedInput
@@ -66863,9 +67506,10 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
     relationsTo?: Nx00PartRelationUpdateManyWithoutPartToNestedInput
@@ -66874,6 +67518,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutRelationsFromInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -66926,9 +67571,10 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
     relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
@@ -66937,6 +67583,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutRelationsToInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -67021,8 +67668,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
 
@@ -67076,8 +67723,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
 
@@ -67142,8 +67789,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
   }
 
@@ -67197,8 +67844,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
   }
 
@@ -67225,7 +67872,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
     partners?: Nx00PartnerCreateNestedManyWithoutTenantInput
@@ -67257,7 +67904,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
     partners?: Nx00PartnerUncheckedCreateNestedManyWithoutTenantInput
@@ -67320,8 +67967,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -67375,8 +68022,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -67435,8 +68082,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -67490,8 +68137,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -67611,7 +68258,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
     partners?: Nx00PartnerUpdateManyWithoutTenantNestedInput
@@ -67643,7 +68290,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
     partners?: Nx00PartnerUncheckedUpdateManyWithoutTenantNestedInput
@@ -67712,8 +68359,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -67767,8 +68414,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -67833,8 +68480,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -67888,8 +68535,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -67949,7 +68596,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     partners?: Nx00PartnerCreateNestedManyWithoutTenantInput
@@ -67981,7 +68628,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     partners?: Nx00PartnerUncheckedCreateNestedManyWithoutTenantInput
@@ -68079,8 +68726,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68134,8 +68781,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68194,8 +68841,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68249,8 +68896,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68294,7 +68941,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     partners?: Nx00PartnerUpdateManyWithoutTenantNestedInput
@@ -68326,7 +68973,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     partners?: Nx00PartnerUncheckedUpdateManyWithoutTenantNestedInput
@@ -68436,8 +69083,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -68491,8 +69138,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -68557,8 +69204,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -68612,8 +69259,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -68641,7 +69288,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -68673,7 +69320,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -68736,8 +69383,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68791,8 +69438,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68851,8 +69498,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68906,8 +69553,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -68951,7 +69598,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -68983,7 +69630,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -69052,8 +69699,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -69107,8 +69754,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -69173,8 +69820,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -69228,8 +69875,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -69257,7 +69904,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -69289,7 +69936,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -69352,8 +69999,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -69407,8 +70054,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -69452,7 +70099,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -69484,7 +70131,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -69553,8 +70200,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -69608,8 +70255,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -69637,7 +70284,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -69669,7 +70316,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -69732,8 +70379,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -69787,8 +70434,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -69847,8 +70494,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -69902,8 +70549,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -69947,7 +70594,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -69979,7 +70626,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -70048,8 +70695,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70103,8 +70750,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70169,8 +70816,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70224,8 +70871,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70253,7 +70900,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -70285,7 +70932,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -70348,8 +70995,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -70403,8 +71050,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -70463,8 +71110,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -70518,8 +71165,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -70563,7 +71210,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -70595,7 +71242,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -70664,8 +71311,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70719,8 +71366,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70785,8 +71432,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70840,8 +71487,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -70861,12 +71508,12 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    currency: Nx00CurrencyCreateNestedOneWithoutSubscriptionsInput
     plan: Nx99PlanCreateNestedOneWithoutSubscriptionsInput
     items?: Nx99SubscriptionItemCreateNestedManyWithoutSubscriptionInput
   }
@@ -70887,7 +71534,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -70955,8 +71602,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -71010,8 +71657,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedCreateNestedManyWithoutUpdatedByUserInput
     currenciesCreated?: Nx00CurrencyUncheckedCreateNestedManyWithoutCreatedByUserInput
     currenciesUpdated?: Nx00CurrencyUncheckedCreateNestedManyWithoutUpdatedByUserInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutCreatedByUserInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutUpdatedByUserInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutCreatedByUserInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutUpdatedByUserInput
     partRelationsCreated?: Nx00PartRelationUncheckedCreateNestedManyWithoutCreatedByUserInput
     partRelationsUpdated?: Nx00PartRelationUncheckedCreateNestedManyWithoutUpdatedByUserInput
   }
@@ -71189,9 +71836,10 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    codeRule: Nx00BrandCodeRuleCreateNestedOneWithoutPartsInput
     country?: Nx00CountryCreateNestedOneWithoutPartsInput
-    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     partBrand?: Nx00PartBrandCreateNestedOneWithoutPartsInput
+    partGroup?: Nx00PartGroupCreateNestedOneWithoutPartsInput
     createdByUser?: Nx00UserCreateNestedOneWithoutPartsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartsUpdatedInput
     relationsFrom?: Nx00PartRelationCreateNestedManyWithoutPartFromInput
@@ -71200,6 +71848,7 @@ export namespace Prisma {
 
   export type Nx00PartUncheckedCreateWithoutTenantInput = {
     id?: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -71247,7 +71896,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserCreateNestedOneWithoutPartBrandsCreatedInput
     updatedByUser?: Nx00UserCreateNestedOneWithoutPartBrandsUpdatedInput
     parts?: Nx00PartCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandUncheckedCreateWithoutTenantInput = {
@@ -71263,7 +71912,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     updatedBy?: string | null
     parts?: Nx00PartUncheckedCreateNestedManyWithoutPartBrandInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedCreateNestedOneWithoutPartBrandInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutPartBrandInput
   }
 
   export type Nx00PartBrandCreateOrConnectWithoutTenantInput = {
@@ -71350,47 +71999,51 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type Nx00BrandCodeRoleCreateWithoutTenantInput = {
+  export type Nx00BrandCodeRuleCreateWithoutTenantInput = {
     id?: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
-    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRoleInput
-    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesCreatedInput
-    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRolesUpdatedInput
+    partBrand: Nx00PartBrandCreateNestedOneWithoutBrandCodeRulesInput
+    createdByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutBrandCodeRulesUpdatedInput
+    parts?: Nx00PartCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput = {
+  export type Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput = {
     id?: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    parts?: Nx00PartUncheckedCreateNestedManyWithoutCodeRuleInput
   }
 
-  export type Nx00BrandCodeRoleCreateOrConnectWithoutTenantInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    create: XOR<Nx00BrandCodeRoleCreateWithoutTenantInput, Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput>
+  export type Nx00BrandCodeRuleCreateOrConnectWithoutTenantInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    create: XOR<Nx00BrandCodeRuleCreateWithoutTenantInput, Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput>
   }
 
-  export type Nx00BrandCodeRoleCreateManyTenantInputEnvelope = {
-    data: Nx00BrandCodeRoleCreateManyTenantInput | Nx00BrandCodeRoleCreateManyTenantInput[]
+  export type Nx00BrandCodeRuleCreateManyTenantInputEnvelope = {
+    data: Nx00BrandCodeRuleCreateManyTenantInput | Nx00BrandCodeRuleCreateManyTenantInput[]
     skipDuplicates?: boolean
   }
 
@@ -71702,34 +72355,6 @@ export namespace Prisma {
     data: XOR<Nx99SubscriptionUpdateManyMutationInput, Nx99SubscriptionUncheckedUpdateManyWithoutTenantInput>
   }
 
-  export type Nx99SubscriptionScalarWhereInput = {
-    AND?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
-    OR?: Nx99SubscriptionScalarWhereInput[]
-    NOT?: Nx99SubscriptionScalarWhereInput | Nx99SubscriptionScalarWhereInput[]
-    id?: StringFilter<"Nx99Subscription"> | string
-    tenantId?: StringFilter<"Nx99Subscription"> | string
-    planId?: StringFilter<"Nx99Subscription"> | string
-    status?: StringFilter<"Nx99Subscription"> | string
-    billingCycle?: StringFilter<"Nx99Subscription"> | string
-    seats?: IntFilter<"Nx99Subscription"> | number
-    startAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
-    endAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
-    autoRenew?: BoolFilter<"Nx99Subscription"> | boolean
-    baseFeeSnapshot?: IntFilter<"Nx99Subscription"> | number
-    seatFeeSnapshot?: IntFilter<"Nx99Subscription"> | number
-    discountTypeSnapshot?: StringFilter<"Nx99Subscription"> | string
-    discountValueSnapshot?: IntFilter<"Nx99Subscription"> | number
-    subtotalSnapshot?: IntFilter<"Nx99Subscription"> | number
-    discountAmountSnapshot?: IntFilter<"Nx99Subscription"> | number
-    totalSnapshot?: IntFilter<"Nx99Subscription"> | number
-    currency?: StringFilter<"Nx99Subscription"> | string
-    remark?: StringNullableFilter<"Nx99Subscription"> | string | null
-    createdAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
-    createdBy?: StringNullableFilter<"Nx99Subscription"> | string | null
-    updatedAt?: DateTimeFilter<"Nx99Subscription"> | Date | string
-    updatedBy?: StringNullableFilter<"Nx99Subscription"> | string | null
-  }
-
   export type Nx00UserUpsertWithWhereUniqueWithoutTenantInput = {
     where: Nx00UserWhereUniqueInput
     update: XOR<Nx00UserUpdateWithoutTenantInput, Nx00UserUncheckedUpdateWithoutTenantInput>
@@ -71874,20 +72499,20 @@ export namespace Prisma {
     data: XOR<Nx00PartGroupUpdateManyMutationInput, Nx00PartGroupUncheckedUpdateManyWithoutTenantInput>
   }
 
-  export type Nx00BrandCodeRoleUpsertWithWhereUniqueWithoutTenantInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    update: XOR<Nx00BrandCodeRoleUpdateWithoutTenantInput, Nx00BrandCodeRoleUncheckedUpdateWithoutTenantInput>
-    create: XOR<Nx00BrandCodeRoleCreateWithoutTenantInput, Nx00BrandCodeRoleUncheckedCreateWithoutTenantInput>
+  export type Nx00BrandCodeRuleUpsertWithWhereUniqueWithoutTenantInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    update: XOR<Nx00BrandCodeRuleUpdateWithoutTenantInput, Nx00BrandCodeRuleUncheckedUpdateWithoutTenantInput>
+    create: XOR<Nx00BrandCodeRuleCreateWithoutTenantInput, Nx00BrandCodeRuleUncheckedCreateWithoutTenantInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateWithWhereUniqueWithoutTenantInput = {
-    where: Nx00BrandCodeRoleWhereUniqueInput
-    data: XOR<Nx00BrandCodeRoleUpdateWithoutTenantInput, Nx00BrandCodeRoleUncheckedUpdateWithoutTenantInput>
+  export type Nx00BrandCodeRuleUpdateWithWhereUniqueWithoutTenantInput = {
+    where: Nx00BrandCodeRuleWhereUniqueInput
+    data: XOR<Nx00BrandCodeRuleUpdateWithoutTenantInput, Nx00BrandCodeRuleUncheckedUpdateWithoutTenantInput>
   }
 
-  export type Nx00BrandCodeRoleUpdateManyWithWhereWithoutTenantInput = {
-    where: Nx00BrandCodeRoleScalarWhereInput
-    data: XOR<Nx00BrandCodeRoleUpdateManyMutationInput, Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantInput>
+  export type Nx00BrandCodeRuleUpdateManyWithWhereWithoutTenantInput = {
+    where: Nx00BrandCodeRuleScalarWhereInput
+    data: XOR<Nx00BrandCodeRuleUpdateManyMutationInput, Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantInput>
   }
 
   export type Nx00PartRelationUpsertWithWhereUniqueWithoutTenantInput = {
@@ -72132,12 +72757,12 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    currency: Nx00CurrencyCreateNestedOneWithoutSubscriptionsInput
     tenant: Nx99TenantCreateNestedOneWithoutSubscriptionsInput
     items?: Nx99SubscriptionItemCreateNestedManyWithoutSubscriptionInput
   }
@@ -72158,7 +72783,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -72193,6 +72818,39 @@ export namespace Prisma {
     data: XOR<Nx99SubscriptionUpdateManyMutationInput, Nx99SubscriptionUncheckedUpdateManyWithoutPlanInput>
   }
 
+  export type Nx00CurrencyCreateWithoutSubscriptionsInput = {
+    id?: string
+    code: string
+    name: string
+    symbol?: string | null
+    decimalPlaces?: number
+    sortNo?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdByUser?: Nx00UserCreateNestedOneWithoutCurrenciesCreatedInput
+    updatedByUser?: Nx00UserCreateNestedOneWithoutCurrenciesUpdatedInput
+  }
+
+  export type Nx00CurrencyUncheckedCreateWithoutSubscriptionsInput = {
+    id?: string
+    code: string
+    name: string
+    symbol?: string | null
+    decimalPlaces?: number
+    sortNo?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+  }
+
+  export type Nx00CurrencyCreateOrConnectWithoutSubscriptionsInput = {
+    where: Nx00CurrencyWhereUniqueInput
+    create: XOR<Nx00CurrencyCreateWithoutSubscriptionsInput, Nx00CurrencyUncheckedCreateWithoutSubscriptionsInput>
+  }
+
   export type Nx99TenantCreateWithoutSubscriptionsInput = {
     id?: string
     code: string
@@ -72215,7 +72873,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationCreateNestedManyWithoutTenantInput
@@ -72247,7 +72905,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedCreateNestedManyWithoutTenantInput
     carBrands?: Nx00CarBrandUncheckedCreateNestedManyWithoutTenantInput
     partGroups?: Nx00PartGroupUncheckedCreateNestedManyWithoutTenantInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedCreateNestedManyWithoutTenantInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
     partRelations?: Nx00PartRelationUncheckedCreateNestedManyWithoutTenantInput
     warehouses?: Nx00WarehouseUncheckedCreateNestedManyWithoutTenantInput
     locations?: Nx00LocationUncheckedCreateNestedManyWithoutTenantInput
@@ -72359,6 +73017,45 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type Nx00CurrencyUpsertWithoutSubscriptionsInput = {
+    update: XOR<Nx00CurrencyUpdateWithoutSubscriptionsInput, Nx00CurrencyUncheckedUpdateWithoutSubscriptionsInput>
+    create: XOR<Nx00CurrencyCreateWithoutSubscriptionsInput, Nx00CurrencyUncheckedCreateWithoutSubscriptionsInput>
+    where?: Nx00CurrencyWhereInput
+  }
+
+  export type Nx00CurrencyUpdateToOneWithWhereWithoutSubscriptionsInput = {
+    where?: Nx00CurrencyWhereInput
+    data: XOR<Nx00CurrencyUpdateWithoutSubscriptionsInput, Nx00CurrencyUncheckedUpdateWithoutSubscriptionsInput>
+  }
+
+  export type Nx00CurrencyUpdateWithoutSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    symbol?: NullableStringFieldUpdateOperationsInput | string | null
+    decimalPlaces?: IntFieldUpdateOperationsInput | number
+    sortNo?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdByUser?: Nx00UserUpdateOneWithoutCurrenciesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutCurrenciesUpdatedNestedInput
+  }
+
+  export type Nx00CurrencyUncheckedUpdateWithoutSubscriptionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    symbol?: NullableStringFieldUpdateOperationsInput | string | null
+    decimalPlaces?: IntFieldUpdateOperationsInput | number
+    sortNo?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type Nx99TenantUpsertWithoutSubscriptionsInput = {
     update: XOR<Nx99TenantUpdateWithoutSubscriptionsInput, Nx99TenantUncheckedUpdateWithoutSubscriptionsInput>
     create: XOR<Nx99TenantCreateWithoutSubscriptionsInput, Nx99TenantUncheckedCreateWithoutSubscriptionsInput>
@@ -72392,7 +73089,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUpdateManyWithoutTenantNestedInput
@@ -72424,7 +73121,7 @@ export namespace Prisma {
     partBrands?: Nx00PartBrandUncheckedUpdateManyWithoutTenantNestedInput
     carBrands?: Nx00CarBrandUncheckedUpdateManyWithoutTenantNestedInput
     partGroups?: Nx00PartGroupUncheckedUpdateManyWithoutTenantNestedInput
-    brandCodeRoles?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
     partRelations?: Nx00PartRelationUncheckedUpdateManyWithoutTenantNestedInput
     warehouses?: Nx00WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     locations?: Nx00LocationUncheckedUpdateManyWithoutTenantNestedInput
@@ -72543,12 +73240,12 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
     updatedAt?: Date | string
     updatedBy?: string | null
+    currency: Nx00CurrencyCreateNestedOneWithoutSubscriptionsInput
     tenant: Nx99TenantCreateNestedOneWithoutSubscriptionsInput
     plan: Nx99PlanCreateNestedOneWithoutSubscriptionsInput
   }
@@ -72570,7 +73267,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -72609,12 +73306,12 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    currency?: Nx00CurrencyUpdateOneRequiredWithoutSubscriptionsNestedInput
     tenant?: Nx99TenantUpdateOneRequiredWithoutSubscriptionsNestedInput
     plan?: Nx99PlanUpdateOneRequiredWithoutSubscriptionsNestedInput
   }
@@ -72636,7 +73333,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -72915,6 +73612,7 @@ export namespace Prisma {
   export type Nx00PartCreateManyCreatedByUserInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -72939,6 +73637,7 @@ export namespace Prisma {
   export type Nx00PartCreateManyUpdatedByUserInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -73305,34 +74004,36 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
-  export type Nx00BrandCodeRoleCreateManyCreatedByUserInput = {
+  export type Nx00BrandCodeRuleCreateManyCreatedByUserInput = {
     id?: string
     tenantId: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     updatedBy?: string | null
   }
 
-  export type Nx00BrandCodeRoleCreateManyUpdatedByUserInput = {
+  export type Nx00BrandCodeRuleCreateManyUpdatedByUserInput = {
     id?: string
     tenantId: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
@@ -73416,8 +74117,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -73471,8 +74172,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -73542,8 +74243,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -73597,8 +74298,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -73904,9 +74605,10 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
     relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
     relationsTo?: Nx00PartRelationUpdateManyWithoutPartToNestedInput
@@ -73915,6 +74617,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -73941,6 +74644,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateManyWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -73980,9 +74684,10 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
     relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
     relationsTo?: Nx00PartRelationUpdateManyWithoutPartToNestedInput
@@ -73991,6 +74696,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutUpdatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -74017,6 +74723,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateManyWithoutUpdatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -74051,7 +74758,7 @@ export namespace Prisma {
     country?: Nx00CountryUpdateOneWithoutPartBrandsNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartBrandsUpdatedNestedInput
     parts?: Nx00PartUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateWithoutCreatedByUserInput = {
@@ -74067,7 +74774,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     parts?: Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -74097,7 +74804,7 @@ export namespace Prisma {
     country?: Nx00CountryUpdateOneWithoutPartBrandsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartBrandsCreatedNestedInput
     parts?: Nx00PartUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateWithoutUpdatedByUserInput = {
@@ -74113,7 +74820,7 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parts?: Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateManyWithoutUpdatedByUserInput = {
@@ -75038,6 +75745,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedByUser?: Nx00UserUpdateOneWithoutCurrenciesUpdatedNestedInput
+    subscriptions?: Nx99SubscriptionUpdateManyWithoutCurrencyNestedInput
   }
 
   export type Nx00CurrencyUncheckedUpdateWithoutCreatedByUserInput = {
@@ -75051,6 +75759,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    subscriptions?: Nx99SubscriptionUncheckedUpdateManyWithoutCurrencyNestedInput
   }
 
   export type Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserInput = {
@@ -75077,6 +75786,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdByUser?: Nx00UserUpdateOneWithoutCurrenciesCreatedNestedInput
+    subscriptions?: Nx99SubscriptionUpdateManyWithoutCurrencyNestedInput
   }
 
   export type Nx00CurrencyUncheckedUpdateWithoutUpdatedByUserInput = {
@@ -75090,6 +75800,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subscriptions?: Nx99SubscriptionUncheckedUpdateManyWithoutCurrencyNestedInput
   }
 
   export type Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserInput = {
@@ -75105,32 +75816,54 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type Nx00BrandCodeRoleUpdateWithoutCreatedByUserInput = {
+  export type Nx00BrandCodeRuleUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRolesNestedInput
-    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRoleNestedInput
-    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesUpdatedNestedInput
+    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesUpdatedNestedInput
+    parts?: Nx00PartUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateWithoutCreatedByUserInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateWithoutCreatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
+    codeFormat?: StringFieldUpdateOperationsInput | string
+    brandSort?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    parts?: Nx00PartUncheckedUpdateManyWithoutCodeRuleNestedInput
+  }
+
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    partBrandId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -75139,66 +75872,54 @@ export namespace Prisma {
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserInput = {
+  export type Nx00BrandCodeRuleUpdateWithoutUpdatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    tenantId?: StringFieldUpdateOperationsInput | string
-    partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesCreatedNestedInput
+    parts?: Nx00PartUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleUpdateWithoutUpdatedByUserInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
-    codeFormat?: StringFieldUpdateOperationsInput | string
-    brandSort?: StringFieldUpdateOperationsInput | string
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRolesNestedInput
-    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRoleNestedInput
-    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesCreatedNestedInput
-  }
-
-  export type Nx00BrandCodeRoleUncheckedUpdateWithoutUpdatedByUserInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateWithoutUpdatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parts?: Nx00PartUncheckedUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -75494,6 +76215,7 @@ export namespace Prisma {
   export type Nx00PartCreateManyCountryInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -75528,7 +76250,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserUpdateOneWithoutPartBrandsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartBrandsUpdatedNestedInput
     parts?: Nx00PartUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateWithoutCountryInput = {
@@ -75544,7 +76266,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     parts?: Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateManyWithoutCountryInput = {
@@ -75621,8 +76343,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
     relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
@@ -75632,6 +76355,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutCountryInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -75658,6 +76382,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateManyWithoutCountryInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -75673,6 +76398,104 @@ export namespace Prisma {
     spec?: NullableStringFieldUpdateOperationsInput | string | null
     uom?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx99SubscriptionCreateManyCurrencyInput = {
+    id?: string
+    tenantId: string
+    planId: string
+    status: string
+    billingCycle: string
+    seats: number
+    startAt: Date | string
+    endAt: Date | string
+    autoRenew: boolean
+    baseFeeSnapshot: number
+    seatFeeSnapshot: number
+    discountTypeSnapshot: string
+    discountValueSnapshot: number
+    subtotalSnapshot: number
+    discountAmountSnapshot: number
+    totalSnapshot: number
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+  }
+
+  export type Nx99SubscriptionUpdateWithoutCurrencyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    billingCycle?: StringFieldUpdateOperationsInput | string
+    seats?: IntFieldUpdateOperationsInput | number
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
+    baseFeeSnapshot?: IntFieldUpdateOperationsInput | number
+    seatFeeSnapshot?: IntFieldUpdateOperationsInput | number
+    discountTypeSnapshot?: StringFieldUpdateOperationsInput | string
+    discountValueSnapshot?: IntFieldUpdateOperationsInput | number
+    subtotalSnapshot?: IntFieldUpdateOperationsInput | number
+    discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
+    totalSnapshot?: IntFieldUpdateOperationsInput | number
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: Nx99TenantUpdateOneRequiredWithoutSubscriptionsNestedInput
+    plan?: Nx99PlanUpdateOneRequiredWithoutSubscriptionsNestedInput
+    items?: Nx99SubscriptionItemUpdateManyWithoutSubscriptionNestedInput
+  }
+
+  export type Nx99SubscriptionUncheckedUpdateWithoutCurrencyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    planId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    billingCycle?: StringFieldUpdateOperationsInput | string
+    seats?: IntFieldUpdateOperationsInput | number
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
+    baseFeeSnapshot?: IntFieldUpdateOperationsInput | number
+    seatFeeSnapshot?: IntFieldUpdateOperationsInput | number
+    discountTypeSnapshot?: StringFieldUpdateOperationsInput | string
+    discountValueSnapshot?: IntFieldUpdateOperationsInput | number
+    subtotalSnapshot?: IntFieldUpdateOperationsInput | number
+    discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
+    totalSnapshot?: IntFieldUpdateOperationsInput | number
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    items?: Nx99SubscriptionItemUncheckedUpdateManyWithoutSubscriptionNestedInput
+  }
+
+  export type Nx99SubscriptionUncheckedUpdateManyWithoutCurrencyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    planId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    billingCycle?: StringFieldUpdateOperationsInput | string
+    seats?: IntFieldUpdateOperationsInput | number
+    startAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    endAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    autoRenew?: BoolFieldUpdateOperationsInput | boolean
+    baseFeeSnapshot?: IntFieldUpdateOperationsInput | number
+    seatFeeSnapshot?: IntFieldUpdateOperationsInput | number
+    discountTypeSnapshot?: StringFieldUpdateOperationsInput | string
+    discountValueSnapshot?: IntFieldUpdateOperationsInput | number
+    subtotalSnapshot?: IntFieldUpdateOperationsInput | number
+    discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
+    totalSnapshot?: IntFieldUpdateOperationsInput | number
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -75794,6 +76617,7 @@ export namespace Prisma {
   export type Nx00PartCreateManyPartBrandInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -75808,6 +76632,24 @@ export namespace Prisma {
     partGroupId?: string | null
     spec?: string | null
     uom?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+  }
+
+  export type Nx00BrandCodeRuleCreateManyPartBrandInput = {
+    id?: string
+    tenantId: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
@@ -75833,6 +76675,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
     partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
@@ -75844,6 +76687,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutPartBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -75870,6 +76714,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateManyWithoutPartBrandInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -75891,9 +76736,66 @@ export namespace Prisma {
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type Nx00BrandCodeRuleUpdateWithoutPartBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
+    codeFormat?: StringFieldUpdateOperationsInput | string
+    brandSort?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesUpdatedNestedInput
+    parts?: Nx00PartUpdateManyWithoutCodeRuleNestedInput
+  }
+
+  export type Nx00BrandCodeRuleUncheckedUpdateWithoutPartBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
+    codeFormat?: StringFieldUpdateOperationsInput | string
+    brandSort?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    parts?: Nx00PartUncheckedUpdateManyWithoutCodeRuleNestedInput
+  }
+
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
+    codeFormat?: StringFieldUpdateOperationsInput | string
+    brandSort?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type Nx00PartCreateManyPartGroupInput = {
     id?: string
     tenantId: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -75933,6 +76835,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
@@ -75944,6 +76847,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateWithoutPartGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -75970,6 +76874,7 @@ export namespace Prisma {
   export type Nx00PartUncheckedUpdateManyWithoutPartGroupInput = {
     id?: StringFieldUpdateOperationsInput | string
     tenantId?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -75982,6 +76887,110 @@ export namespace Prisma {
     countryId?: NullableStringFieldUpdateOperationsInput | string | null
     partBrandId?: NullableStringFieldUpdateOperationsInput | string | null
     partType?: StringFieldUpdateOperationsInput | string
+    spec?: NullableStringFieldUpdateOperationsInput | string | null
+    uom?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx00PartCreateManyCodeRuleInput = {
+    id?: string
+    tenantId: string
+    code: string
+    name: string
+    isOem?: boolean
+    secCode?: string | null
+    seg1?: string | null
+    seg2?: string | null
+    seg3?: string | null
+    seg4?: string | null
+    seg5?: string | null
+    countryId?: string | null
+    partBrandId?: string | null
+    partType?: string
+    partGroupId?: string | null
+    spec?: string | null
+    uom?: string
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy?: string | null
+    updatedAt?: Date | string
+    updatedBy?: string | null
+  }
+
+  export type Nx00PartUpdateWithoutCodeRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isOem?: BoolFieldUpdateOperationsInput | boolean
+    secCode?: NullableStringFieldUpdateOperationsInput | string | null
+    seg1?: NullableStringFieldUpdateOperationsInput | string | null
+    seg2?: NullableStringFieldUpdateOperationsInput | string | null
+    seg3?: NullableStringFieldUpdateOperationsInput | string | null
+    seg4?: NullableStringFieldUpdateOperationsInput | string | null
+    seg5?: NullableStringFieldUpdateOperationsInput | string | null
+    partType?: StringFieldUpdateOperationsInput | string
+    spec?: NullableStringFieldUpdateOperationsInput | string | null
+    uom?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutPartsNestedInput
+    country?: Nx00CountryUpdateOneWithoutPartsNestedInput
+    partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
+    relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
+    relationsTo?: Nx00PartRelationUpdateManyWithoutPartToNestedInput
+  }
+
+  export type Nx00PartUncheckedUpdateWithoutCodeRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isOem?: BoolFieldUpdateOperationsInput | boolean
+    secCode?: NullableStringFieldUpdateOperationsInput | string | null
+    seg1?: NullableStringFieldUpdateOperationsInput | string | null
+    seg2?: NullableStringFieldUpdateOperationsInput | string | null
+    seg3?: NullableStringFieldUpdateOperationsInput | string | null
+    seg4?: NullableStringFieldUpdateOperationsInput | string | null
+    seg5?: NullableStringFieldUpdateOperationsInput | string | null
+    countryId?: NullableStringFieldUpdateOperationsInput | string | null
+    partBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    partType?: StringFieldUpdateOperationsInput | string
+    partGroupId?: NullableStringFieldUpdateOperationsInput | string | null
+    spec?: NullableStringFieldUpdateOperationsInput | string | null
+    uom?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    relationsFrom?: Nx00PartRelationUncheckedUpdateManyWithoutPartFromNestedInput
+    relationsTo?: Nx00PartRelationUncheckedUpdateManyWithoutPartToNestedInput
+  }
+
+  export type Nx00PartUncheckedUpdateManyWithoutCodeRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isOem?: BoolFieldUpdateOperationsInput | boolean
+    secCode?: NullableStringFieldUpdateOperationsInput | string | null
+    seg1?: NullableStringFieldUpdateOperationsInput | string | null
+    seg2?: NullableStringFieldUpdateOperationsInput | string | null
+    seg3?: NullableStringFieldUpdateOperationsInput | string | null
+    seg4?: NullableStringFieldUpdateOperationsInput | string | null
+    seg5?: NullableStringFieldUpdateOperationsInput | string | null
+    countryId?: NullableStringFieldUpdateOperationsInput | string | null
+    partBrandId?: NullableStringFieldUpdateOperationsInput | string | null
+    partType?: StringFieldUpdateOperationsInput | string
+    partGroupId?: NullableStringFieldUpdateOperationsInput | string | null
     spec?: NullableStringFieldUpdateOperationsInput | string | null
     uom?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -76119,7 +77128,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -76196,6 +77205,7 @@ export namespace Prisma {
 
   export type Nx00PartCreateManyTenantInput = {
     id?: string
+    codeRuleId: string
     code: string
     name: string
     isOem?: boolean
@@ -76258,16 +77268,17 @@ export namespace Prisma {
     updatedBy?: string | null
   }
 
-  export type Nx00BrandCodeRoleCreateManyTenantInput = {
+  export type Nx00BrandCodeRuleCreateManyTenantInput = {
     id?: string
     partBrandId: string
-    seg1Limit?: number
-    seg2Limit?: number
-    seg3Limit?: number
-    seg4Limit?: number
-    seg5Limit?: number
-    codeFormat: string
-    brandSort: string
+    name: string
+    seg1?: number
+    seg2?: number
+    seg3?: number
+    seg4?: number
+    seg5?: number
+    codeFormat?: string
+    brandSort?: string
     isActive?: boolean
     createdAt?: Date | string
     createdBy?: string | null
@@ -76399,12 +77410,12 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    currency?: Nx00CurrencyUpdateOneRequiredWithoutSubscriptionsNestedInput
     plan?: Nx99PlanUpdateOneRequiredWithoutSubscriptionsNestedInput
     items?: Nx99SubscriptionItemUpdateManyWithoutSubscriptionNestedInput
   }
@@ -76425,7 +77436,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -76450,7 +77461,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -76507,8 +77518,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -76562,8 +77573,8 @@ export namespace Prisma {
     countriesUpdated?: Nx00CountryUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     currenciesCreated?: Nx00CurrencyUncheckedUpdateManyWithoutCreatedByUserNestedInput
     currenciesUpdated?: Nx00CurrencyUncheckedUpdateManyWithoutUpdatedByUserNestedInput
-    brandCodeRolesCreated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutCreatedByUserNestedInput
-    brandCodeRolesUpdated?: Nx00BrandCodeRoleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
+    brandCodeRulesCreated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutCreatedByUserNestedInput
+    brandCodeRulesUpdated?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutUpdatedByUserNestedInput
     partRelationsCreated?: Nx00PartRelationUncheckedUpdateManyWithoutCreatedByUserNestedInput
     partRelationsUpdated?: Nx00PartRelationUncheckedUpdateManyWithoutUpdatedByUserNestedInput
   }
@@ -76758,9 +77769,10 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    codeRule?: Nx00BrandCodeRuleUpdateOneRequiredWithoutPartsNestedInput
     country?: Nx00CountryUpdateOneWithoutPartsNestedInput
-    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     partBrand?: Nx00PartBrandUpdateOneWithoutPartsNestedInput
+    partGroup?: Nx00PartGroupUpdateOneWithoutPartsNestedInput
     createdByUser?: Nx00UserUpdateOneWithoutPartsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartsUpdatedNestedInput
     relationsFrom?: Nx00PartRelationUpdateManyWithoutPartFromNestedInput
@@ -76769,6 +77781,7 @@ export namespace Prisma {
 
   export type Nx00PartUncheckedUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -76795,6 +77808,7 @@ export namespace Prisma {
 
   export type Nx00PartUncheckedUpdateManyWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
+    codeRuleId?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     isOem?: BoolFieldUpdateOperationsInput | boolean
@@ -76830,7 +77844,7 @@ export namespace Prisma {
     createdByUser?: Nx00UserUpdateOneWithoutPartBrandsCreatedNestedInput
     updatedByUser?: Nx00UserUpdateOneWithoutPartBrandsUpdatedNestedInput
     parts?: Nx00PartUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateWithoutTenantInput = {
@@ -76846,7 +77860,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
     parts?: Nx00PartUncheckedUpdateManyWithoutPartBrandNestedInput
-    brandCodeRole?: Nx00BrandCodeRoleUncheckedUpdateOneWithoutPartBrandNestedInput
+    brandCodeRules?: Nx00BrandCodeRuleUncheckedUpdateManyWithoutPartBrandNestedInput
   }
 
   export type Nx00PartBrandUncheckedUpdateManyWithoutTenantInput = {
@@ -76943,31 +77957,34 @@ export namespace Prisma {
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type Nx00BrandCodeRoleUpdateWithoutTenantInput = {
+  export type Nx00BrandCodeRuleUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRoleNestedInput
-    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesCreatedNestedInput
-    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRolesUpdatedNestedInput
+    partBrand?: Nx00PartBrandUpdateOneRequiredWithoutBrandCodeRulesNestedInput
+    createdByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesCreatedNestedInput
+    updatedByUser?: Nx00UserUpdateOneWithoutBrandCodeRulesUpdatedNestedInput
+    parts?: Nx00PartUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateWithoutTenantInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -76975,16 +77992,18 @@ export namespace Prisma {
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    parts?: Nx00PartUncheckedUpdateManyWithoutCodeRuleNestedInput
   }
 
-  export type Nx00BrandCodeRoleUncheckedUpdateManyWithoutTenantInput = {
+  export type Nx00BrandCodeRuleUncheckedUpdateManyWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     partBrandId?: StringFieldUpdateOperationsInput | string
-    seg1Limit?: IntFieldUpdateOperationsInput | number
-    seg2Limit?: IntFieldUpdateOperationsInput | number
-    seg3Limit?: IntFieldUpdateOperationsInput | number
-    seg4Limit?: IntFieldUpdateOperationsInput | number
-    seg5Limit?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    seg1?: IntFieldUpdateOperationsInput | number
+    seg2?: IntFieldUpdateOperationsInput | number
+    seg3?: IntFieldUpdateOperationsInput | number
+    seg4?: IntFieldUpdateOperationsInput | number
+    seg5?: IntFieldUpdateOperationsInput | number
     codeFormat?: StringFieldUpdateOperationsInput | string
     brandSort?: StringFieldUpdateOperationsInput | string
     isActive?: BoolFieldUpdateOperationsInput | boolean
@@ -77369,7 +78388,7 @@ export namespace Prisma {
     subtotalSnapshot: number
     discountAmountSnapshot: number
     totalSnapshot: number
-    currency?: string
+    currencyId: string
     remark?: string | null
     createdAt?: Date | string
     createdBy?: string | null
@@ -77392,12 +78411,12 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    currency?: Nx00CurrencyUpdateOneRequiredWithoutSubscriptionsNestedInput
     tenant?: Nx99TenantUpdateOneRequiredWithoutSubscriptionsNestedInput
     items?: Nx99SubscriptionItemUpdateManyWithoutSubscriptionNestedInput
   }
@@ -77418,7 +78437,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
@@ -77443,7 +78462,7 @@ export namespace Prisma {
     subtotalSnapshot?: IntFieldUpdateOperationsInput | number
     discountAmountSnapshot?: IntFieldUpdateOperationsInput | number
     totalSnapshot?: IntFieldUpdateOperationsInput | number
-    currency?: StringFieldUpdateOperationsInput | string
+    currencyId?: StringFieldUpdateOperationsInput | string
     remark?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdBy?: NullableStringFieldUpdateOperationsInput | string | null
