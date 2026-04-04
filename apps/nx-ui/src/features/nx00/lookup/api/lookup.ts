@@ -1,16 +1,11 @@
 /**
- * File: apps/nx-ui/src/features/nx00/lookups/api/lookups.ts
+ * File: apps/nx-ui/src/features/nx00/lookup/api/lookup.ts
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-LOOKUPS-API-001：Lookup APIs（brand/function-group/part-status）
+ * - NX00-UI-NX00-LOOKUPS-API-001：Lookup APIs（brand／warehouse／location／part 等）
  *
  * Notes:
- * - Endpoints (singular):
- *   - GET /lookup/brand
- *   - GET /lookup/function-group
- *   - GET /lookup/part-status
- *
  * - 回傳建議為 array：LookupRow[] / PartStatusRow[]
  */
 

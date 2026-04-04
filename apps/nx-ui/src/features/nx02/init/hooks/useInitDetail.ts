@@ -147,11 +147,12 @@ export function useInitDetail(initId: string) {
     }
   }, [doc, isDraft]);
 
-  const addRow = useCallback(() => {
+  const addRow = useCallback((): string => {
+    const tempKey = `n-${Date.now()}`;
     setItems((prev) => [
       ...prev,
       {
-        tempKey: `n-${Date.now()}`,
+        tempKey,
         partId: '',
         partNo: '',
         partName: '',
@@ -161,6 +162,7 @@ export function useInitDetail(initId: string) {
         remark: '',
       },
     ]);
+    return tempKey;
   }, []);
 
   const removeRow = useCallback((tempKey: string) => {
