@@ -13,6 +13,8 @@
  * 登入頁等亦共用同一套 token。
  */
 :root {
+  /** 讓原生表單（含 select 選項面板）在預設深色主題下由 UA 使用深色，避免白底淺字 */
+  color-scheme: dark;
   --background: oklch(0.12 0 0);
   --foreground: oklch(0.95 0 0);
   /* 略抬升卡片與邊框 L*，改善深色模式下區塊框／分隔線可辨度（仍維持低調對比） */
@@ -92,6 +94,7 @@
 
 /* TopBar theme toggle 使用：加在 <html class="light"> */
 .light {
+  color-scheme: light;
   /* neutral-clean: 淺灰商務風 */
   --background: oklch(0.963 0.004 258);
   --foreground: oklch(0.245 0.008 258);
@@ -126,13 +129,13 @@
 }
 
 /**
- * 原生 <select>：專案預設為深色（無 html.light）時，下拉選單若用淺色面板會出現淺字看不清。
- * 使用 color-scheme 讓瀏覽器以深色繪製選項；淺色模式維持 light。
+ * 原生 select：除根節點 color-scheme 外，再於 select 上指定，避免在 fixed 彈窗等子樹內繼承失敗。
+ * 涵蓋所有 select（非僅 nx-native-select），與自訂 DropdownMenu 深色版視覺一致。
  */
-html:not(.light) select.nx-native-select {
+html:not(.light) select {
   color-scheme: dark;
 }
-html.light select.nx-native-select {
+html.light select {
   color-scheme: light;
 }
 
