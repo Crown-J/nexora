@@ -61,6 +61,20 @@ export async function listLookupCarBrand(params: ListLookupsParams = {}): Promis
 }
 
 /**
+ * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F01C
+ * 說明：倉庫下拉（NX02 庫存一覽／台帳等）
+ * - GET /lookup/warehouse?isActive=true
+ */
+export async function listLookupWarehouse(params: ListLookupsParams = {}): Promise<LookupRow[]> {
+    const q = buildQueryString({
+        isActive: params.isActive === undefined ? undefined : String(params.isActive),
+        q: params.q?.trim() ? params.q.trim() : undefined,
+    });
+
+    return getJson<LookupRow[]>(`/lookup/warehouse${q}`, 'nxui_nx00_lookup_warehouse_list_001');
+}
+
+/**
  * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F02
  * 說明：
  * - listLookupFunctionGroup：功能群組下拉

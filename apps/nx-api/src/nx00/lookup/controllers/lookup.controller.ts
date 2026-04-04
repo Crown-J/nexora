@@ -48,8 +48,10 @@ export class LookupController {
     /**
      * @CODE nxapi_nx00_lookup_warehouse_001
      * GET /lookup/warehouse?isActive=true
+     * 說明：方法級 @Roles() 覆寫 class 的 ADMIN，供庫存等模組一般登入使用者下拉用
      */
     @Get('warehouse')
+    @Roles()
     async warehouse(@Query() query: any, @Req() req: any) {
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;

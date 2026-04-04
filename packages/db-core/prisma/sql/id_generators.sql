@@ -171,6 +171,78 @@ BEGIN
 END; $$;
 
 -- =======================================================
+-- NX02 庫存（MIG003；與 schema.prisma / migrations 一致）
+-- =======================================================
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_stle_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_stle_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02STLE' || LPAD(nextval('seq_nx02_stle_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_stbl_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_stbl_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02STBL' || LPAD(nextval('seq_nx02_stbl_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_psst_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_psst_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02PSST' || LPAD(nextval('seq_nx02_psst_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_shor_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_shor_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02SHOR' || LPAD(nextval('seq_nx02_shor_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_aure_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_aure_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02AURE' || LPAD(nextval('seq_nx02_aure_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_sttk_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_sttk_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02STTK' || LPAD(nextval('seq_nx02_sttk_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_stti_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_stti_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02STTI' || LPAD(nextval('seq_nx02_stti_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_sthd_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_sthd_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02STHD' || LPAD(nextval('seq_nx02_sthd_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+CREATE SEQUENCE IF NOT EXISTS seq_nx02_stit_id START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_stit_id()
+RETURNS VARCHAR AS $$
+  SELECT 'NX02STIT' || LPAD(nextval('seq_nx02_stit_id')::text, 7, '0');
+$$ LANGUAGE sql;
+
+-- NX02 開帳存（MIG003b；ID 前綴依 docs/nx02_field.csv 為 NX00INHD / NX00INIT）
+CREATE SEQUENCE IF NOT EXISTS nx02_inhd_seq START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_inhd_id()
+RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN 'NX00INHD' || LPAD(nextval('nx02_inhd_seq')::TEXT, 7, '0');
+END; $$;
+
+CREATE SEQUENCE IF NOT EXISTS nx02_init_seq START 1;
+CREATE OR REPLACE FUNCTION gen_nx02_init_id()
+RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN 'NX00INIT' || LPAD(nextval('nx02_init_seq')::TEXT, 7, '0');
+END; $$;
+
+-- =======================================================
 -- NX07 & NX08
 -- =======================================================
 CREATE SEQUENCE IF NOT EXISTS nx07_quote_seq START 1;

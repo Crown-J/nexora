@@ -3,16 +3,13 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 庫存管理模組入口（占位頁）
+ * - NX02 庫存模組首頁（統計卡片）
  */
 
-import { ModulePlaceholderPage } from '@/features/layout/ui/ModulePlaceholderPage';
+'use client';
+
+import { Nx02DashboardPage } from '@/features/nx02/dashboard/ui/Nx02DashboardPage';
 
 export default function Nx02ModulePage() {
-  return (
-    <ModulePlaceholderPage
-      title="庫存管理"
-      description="庫存異動、盤點與倉儲作業將於此模組管理。"
-    />
-  );
+  return <Nx02DashboardPage />;
 }

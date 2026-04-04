@@ -39,6 +39,7 @@ export type MeResponse = {
   tenant_name?: string | null;
   tenant_name_en?: string | null;
   roles?: string[];
+  plan_code?: string | null;
   /** nx00_view.code → 合併權限；ADMIN 為 null；無租戶為 {} */
   view_permissions?: Record<string, ViewPermissionSnake> | null;
 };
@@ -65,6 +66,8 @@ export type MeDto = {
   tenant_name?: string | null;
   /** 租戶英文名（nx99_tenant.name_en） */
   tenant_name_en?: string | null;
+  /** 訂閱方案代碼（LITE / PLUS / PRO） */
+  plan_code?: string | null;
   /** nx00_view.code → 合併權限；ADMIN 為 null；無租戶為 {} */
   view_permissions?: Record<string, ViewPermissionSnake> | null;
 };

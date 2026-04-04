@@ -3,6 +3,9 @@
 | 代碼 | 目錄名 | 說明 |
 |------|--------|------|
 | MIG001 | `20260403130000_MIG001-mw1-baseline` | MW1 Baseline：NX00 + NX99 全部表結構與 ID 產生函式 |
+| MIG002 | `20260404120000_MIG002-nx00-schema-refactor` | NX00 料號規則／零件／訂閱幣別等 schema 重構 |
+| MIG003 | `20260405100000_MIG003-nx02-inventory` | MW2：NX02 庫存（台帳、餘額、設定、盤點、調撥、缺貨、自動補貨） |
+| MIG003b | `20260405110000_MIG003b-nx02-init` | NX02 開帳存（`nx02_init` / `nx02_init_item`） |
 
 ## 封存說明
 
@@ -14,7 +17,7 @@
 
 格式：`{timestamp}_MIG{NNN}-{module}-{slug}`
 
-例：`20260410000000_MIG002-nx02-stock-baseline`
+例：`20260405100000_MIG003-nx02-inventory`
 
 ## 既有開發庫（曾套用舊鏈）注意
 

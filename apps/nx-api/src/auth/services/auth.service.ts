@@ -221,6 +221,15 @@ export class AuthService {
       roleIdsForTenant: roleRowsForMe.map((ur) => ur.roleId),
     });
 
+    let plan_code: string | null = null;
+    if (user.tenantId) {
+      const sub = await this.prisma.nx99Subscription.findFirst({
+        where: { tenantId: user.tenantId, status: 'A' },
+        include: { plan: true },
+      });
+      plan_code = sub?.plan?.code ?? null;
+    }
+
     const view_permissions =
       merged === null
         ? null
@@ -249,6 +258,7 @@ export class AuthService {
       last_login_at: user.lastLoginAt ?? null,
       tenant_name: user.tenant?.name ?? null,
       tenant_name_en: user.tenant?.nameEn ?? null,
+      plan_code,
       roles,
       view_permissions,
     };
