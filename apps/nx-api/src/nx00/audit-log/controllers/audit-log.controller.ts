@@ -10,7 +10,7 @@
  * - 不提供 create/edit/delete（AuditLog 必須由後端自動寫入）
  */
 
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
@@ -28,27 +28,32 @@ export class AuditLogController {
      * @CODE nxapi_nx00_audit_log_list_001
      */
     @Get()
-    async list(@Query() query: any) {
-        return this.audit.list({
-            q: typeof query.q === 'string' ? query.q : undefined,
-            actorUserId: typeof query.actorUserId === 'string' ? query.actorUserId : undefined,
-            moduleCode: typeof query.moduleCode === 'string' ? query.moduleCode : undefined,
-            action: typeof query.action === 'string' ? query.action : undefined,
-            entityTable: typeof query.entityTable === 'string' ? query.entityTable : undefined,
+    async list(@Query() query: any, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.audit.list(
+            {
+                q: typeof query.q === 'string' ? query.q : undefined,
+                actorUserId: typeof query.actorUserId === 'string' ? query.actorUserId : undefined,
+                moduleCode: typeof query.moduleCode === 'string' ? query.moduleCode : undefined,
+                action: typeof query.action === 'string' ? query.action : undefined,
+                entityTable: typeof query.entityTable === 'string' ? query.entityTable : undefined,
 
-            dateFrom: typeof query.dateFrom === 'string' ? query.dateFrom : undefined,
-            dateTo: typeof query.dateTo === 'string' ? query.dateTo : undefined,
+                dateFrom: typeof query.dateFrom === 'string' ? query.dateFrom : undefined,
+                dateTo: typeof query.dateTo === 'string' ? query.dateTo : undefined,
 
-            page: query.page ? Number(query.page) : 1,
-            pageSize: query.pageSize ? Number(query.pageSize) : 20,
-        });
+                page: query.page ? Number(query.page) : 1,
+                pageSize: query.pageSize ? Number(query.pageSize) : 20,
+            },
+            { tenantScopeId },
+        );
     }
 
     /**
      * @CODE nxapi_nx00_audit_log_get_001
      */
     @Get(':id')
-    async get(@Param('id') id: string) {
-        return this.audit.get(id);
+    async get(@Param('id') id: string, @Req() req: any) {
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.audit.get(id, { tenantScopeId });
     }
 }

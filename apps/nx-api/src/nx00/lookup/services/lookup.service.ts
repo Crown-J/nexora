@@ -24,42 +24,59 @@ function normalizePartnerType(v: any): PartnerType | undefined {
     throw new BadRequestException(`partnerType must be one of: ${ALLOWED_PARTNER_TYPES.join(', ')}`);
 }
 
+export type LookupReadScope = { tenantScopeId?: string | null };
+
+function withTenantWhere(
+    scope: LookupReadScope | undefined,
+    filters: Record<string, unknown>,
+): Record<string, unknown> {
+    const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+    if (tid === null) return filters;
+    return { ...filters, tenantId: tid };
+}
+
 @Injectable()
 export class LookupService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async brand(isActive?: boolean): Promise<LookupItem[]> {
+    async brand(isActive?: boolean, scope?: LookupReadScope): Promise<LookupItem[]> {
+        const base = isActive === undefined ? {} : { isActive };
         return this.prisma.nx00PartBrand.findMany({
-            where: isActive === undefined ? {} : { isActive },
+            where: withTenantWhere(scope, base),
             orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
             select: { id: true, code: true, name: true, isActive: true },
         });
     }
 
     /** 汽車廠牌（nx00_car_brand）— 其他主檔／表單下拉用 */
-    async carBrand(isActive?: boolean): Promise<LookupItem[]> {
+    async carBrand(isActive?: boolean, scope?: LookupReadScope): Promise<LookupItem[]> {
+        const base = isActive === undefined ? {} : { isActive };
         return this.prisma.nx00CarBrand.findMany({
-            where: isActive === undefined ? {} : { isActive },
+            where: withTenantWhere(scope, base),
             orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
             select: { id: true, code: true, name: true, isActive: true },
         });
     }
 
-    async warehouse(isActive?: boolean): Promise<LookupItem[]> {
+    async warehouse(isActive?: boolean, scope?: LookupReadScope): Promise<LookupItem[]> {
+        const base = isActive === undefined ? {} : { isActive };
         return this.prisma.nx00Warehouse.findMany({
-            where: isActive === undefined ? {} : { isActive },
+            where: withTenantWhere(scope, base),
             orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
             select: { id: true, code: true, name: true, isActive: true },
         });
     }
 
-    async location(params?: { warehouseId?: string; isActive?: boolean }): Promise<LookupLocationItem[]> {
+    async location(
+        params?: { warehouseId?: string; isActive?: boolean },
+        scope?: LookupReadScope,
+    ): Promise<LookupLocationItem[]> {
         const where: any = {};
         if (params?.warehouseId) where.warehouseId = params.warehouseId;
         if (params?.isActive !== undefined) where.isActive = params.isActive;
 
         return this.prisma.nx00Location.findMany({
-            where,
+            where: withTenantWhere(scope, where),
             orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
             select: {
                 id: true,
@@ -75,22 +92,26 @@ export class LookupService {
         });
     }
 
-    async role(isActive?: boolean): Promise<LookupItem[]> {
+    async role(isActive?: boolean, scope?: LookupReadScope): Promise<LookupItem[]> {
+        const base = isActive === undefined ? {} : { isActive };
         return this.prisma.nx00Role.findMany({
-            where: isActive === undefined ? {} : { isActive },
+            where: withTenantWhere(scope, base),
             orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
             select: { id: true, code: true, name: true, isActive: true },
         });
     }
 
-    async partner(params?: { partnerType?: string; isActive?: boolean }): Promise<Array<LookupItem & { partnerType: string }>> {
+    async partner(
+        params?: { partnerType?: string; isActive?: boolean },
+        scope?: LookupReadScope,
+    ): Promise<Array<LookupItem & { partnerType: string }>> {
         const where: any = {};
         const pt = normalizePartnerType(params?.partnerType);
         if (pt) where.partnerType = pt;
         if (params?.isActive !== undefined) where.isActive = params.isActive;
 
         return this.prisma.nx00Partner.findMany({
-            where,
+            where: withTenantWhere(scope, where),
             orderBy: [{ code: 'asc' }],
             select: { id: true, code: true, name: true, partnerType: true, isActive: true },
         });

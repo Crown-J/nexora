@@ -9,7 +9,7 @@
  * - 只回傳下拉需要欄位（select 精簡）
  */
 
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 
 import { JwtAuthGuard } from '../../../shared/guards/jwt-auth.guard';
 import { Roles } from '../../../shared/decorators/roles.decorator';
@@ -28,9 +28,10 @@ export class LookupController {
      * GET /lookup/brand?isActive=true
      */
     @Get('brand')
-    async brand(@Query() query: any) {
+    async brand(@Query() query: any, @Req() req: any) {
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
-        return this.lookup.brand(isActive);
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.brand(isActive, { tenantScopeId });
     }
 
     /**
@@ -38,9 +39,10 @@ export class LookupController {
      * GET /lookup/car-brand?isActive=true
      */
     @Get('car-brand')
-    async carBrand(@Query() query: any) {
+    async carBrand(@Query() query: any, @Req() req: any) {
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
-        return this.lookup.carBrand(isActive);
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.carBrand(isActive, { tenantScopeId });
     }
 
     /**
@@ -48,9 +50,10 @@ export class LookupController {
      * GET /lookup/warehouse?isActive=true
      */
     @Get('warehouse')
-    async warehouse(@Query() query: any) {
+    async warehouse(@Query() query: any, @Req() req: any) {
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
-        return this.lookup.warehouse(isActive);
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.warehouse(isActive, { tenantScopeId });
     }
 
     /**
@@ -58,10 +61,11 @@ export class LookupController {
      * GET /lookup/location?warehouseId=...&isActive=true
      */
     @Get('location')
-    async location(@Query() query: any) {
+    async location(@Query() query: any, @Req() req: any) {
         const warehouseId = typeof query.warehouseId === 'string' ? query.warehouseId : undefined;
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
-        return this.lookup.location({ warehouseId, isActive });
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.location({ warehouseId, isActive }, { tenantScopeId });
     }
 
     /**
@@ -69,9 +73,10 @@ export class LookupController {
      * GET /lookup/role?isActive=true
      */
     @Get('role')
-    async role(@Query() query: any) {
+    async role(@Query() query: any, @Req() req: any) {
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
-        return this.lookup.role(isActive);
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.role(isActive, { tenantScopeId });
     }
 
     /**
@@ -79,9 +84,10 @@ export class LookupController {
      * GET /lookup/partner?partnerType=BOTH&isActive=true
      */
     @Get('partner')
-    async partner(@Query() query: any) {
+    async partner(@Query() query: any, @Req() req: any) {
         const partnerType = typeof query.partnerType === 'string' ? query.partnerType : undefined;
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
-        return this.lookup.partner({ partnerType, isActive });
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.partner({ partnerType, isActive }, { tenantScopeId });
     }
 }

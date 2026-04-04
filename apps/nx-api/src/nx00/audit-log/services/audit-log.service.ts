@@ -66,11 +66,13 @@ function parseDateOrThrow(v?: string, fieldName?: string): Date | undefined {
     return d;
 }
 
+export type AuditLogReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class AuditLogService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async list(query: ListAuditLogQuery): Promise<PagedResult<AuditLogDto>> {
+    async list(query: ListAuditLogQuery, scope?: AuditLogReadScope): Promise<PagedResult<AuditLogDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
@@ -79,25 +81,32 @@ export class AuditLogService {
         const dateFrom = parseDateOrThrow(query.dateFrom, 'dateFrom');
         const dateTo = parseDateOrThrow(query.dateTo, 'dateTo');
 
-        const where: any = {};
-        if (q) {
-            where.OR = [
-                { summary: { contains: q, mode: 'insensitive' as const } },
-                { entityCode: { contains: q, mode: 'insensitive' as const } },
-                { entityId: { contains: q, mode: 'insensitive' as const } },
-                { entityTable: { contains: q, mode: 'insensitive' as const } },
-            ];
-        }
-        if (query.actorUserId) where.actorUserId = query.actorUserId;
-        if (query.moduleCode) where.moduleCode = query.moduleCode;
-        if (query.action) where.action = query.action;
-        if (query.entityTable) where.entityTable = query.entityTable;
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
 
-        if (dateFrom || dateTo) {
-            where.occurredAt = {};
-            if (dateFrom) where.occurredAt.gte = dateFrom;
-            if (dateTo) where.occurredAt.lte = dateTo;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
+        if (q) {
+            parts.push({
+                OR: [
+                    { summary: { contains: q, mode: 'insensitive' as const } },
+                    { entityCode: { contains: q, mode: 'insensitive' as const } },
+                    { entityId: { contains: q, mode: 'insensitive' as const } },
+                    { entityTable: { contains: q, mode: 'insensitive' as const } },
+                ],
+            });
         }
+        if (query.actorUserId) parts.push({ actorUserId: query.actorUserId });
+        if (query.moduleCode) parts.push({ moduleCode: query.moduleCode });
+        if (query.action) parts.push({ action: query.action });
+        if (query.entityTable) parts.push({ entityTable: query.entityTable });
+        if (dateFrom || dateTo) {
+            const occurredAt: { gte?: Date; lte?: Date } = {};
+            if (dateFrom) occurredAt.gte = dateFrom;
+            if (dateTo) occurredAt.lte = dateTo;
+            parts.push({ occurredAt });
+        }
+
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00AuditLog.count({ where }),
@@ -118,13 +127,15 @@ export class AuditLogService {
         };
     }
 
-    async get(id: string): Promise<AuditLogDto> {
+    async get(id: string, scope?: AuditLogReadScope): Promise<AuditLogDto> {
         const row = await this.prisma.nx00AuditLog.findUnique({
             where: { id },
             include: { actorUser: { select: { userName: true } } },
         });
 
         if (!row) throw new NotFoundException('AuditLog not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('AuditLog not found');
         return toAuditLogDto(row as unknown as AuditLogRow);
     }
 

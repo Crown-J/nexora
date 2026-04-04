@@ -168,6 +168,9 @@ export type PartActionContext = {
     userAgent?: string | null;
 };
 
+/** 列表／明細：有租戶 JWT 時僅該租戶；平台 ADMIN（tenantId null）不篩租戶 */
+export type PartReadScope = { tenantScopeId?: string | null };
+
 @Injectable()
 export class PartService {
     constructor(
@@ -213,23 +216,28 @@ export class PartService {
         } as const;
     }
 
-    async list(query: ListPartQuery): Promise<PagedResult<PartDto>> {
+    async list(query: ListPartQuery, scope?: PartReadScope): Promise<PagedResult<PartDto>> {
         const page = Number.isFinite(query.page as any) && (query.page as number) > 0 ? Number(query.page) : 1;
         const pageSize =
             Number.isFinite(query.pageSize as any) && (query.pageSize as number) > 0 ? Number(query.pageSize) : 20;
 
         const q = query.q?.trim() ? query.q.trim() : undefined;
 
-        const where: any = {};
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        const parts: any[] = [];
+        if (tid !== null) parts.push({ tenantId: tid });
         if (q) {
-            where.OR = [
-                { code: { contains: q, mode: 'insensitive' as const } },
-                { name: { contains: q, mode: 'insensitive' as const } },
-                { spec: { contains: q, mode: 'insensitive' as const } },
-            ];
+            parts.push({
+                OR: [
+                    { code: { contains: q, mode: 'insensitive' as const } },
+                    { name: { contains: q, mode: 'insensitive' as const } },
+                    { spec: { contains: q, mode: 'insensitive' as const } },
+                ],
+            });
         }
-        if (query.partBrandId) where.partBrandId = query.partBrandId;
-        if (typeof query.isActive === 'boolean') where.isActive = query.isActive;
+        if (query.partBrandId) parts.push({ partBrandId: query.partBrandId });
+        if (typeof query.isActive === 'boolean') parts.push({ isActive: query.isActive });
+        const where = parts.length === 0 ? {} : parts.length === 1 ? parts[0] : { AND: parts };
 
         const [total, rows] = await Promise.all([
             this.prisma.nx00Part.count({ where }),
@@ -250,12 +258,14 @@ export class PartService {
         };
     }
 
-    async get(id: string): Promise<PartDto> {
+    async get(id: string, scope?: PartReadScope): Promise<PartDto> {
         const row = await this.prisma.nx00Part.findUnique({
             where: { id },
             include: this.partInclude(),
         });
         if (!row) throw new NotFoundException('Part not found');
+        const tid = scope?.tenantScopeId?.trim() ? scope.tenantScopeId.trim() : null;
+        if (tid !== null && row.tenantId !== tid) throw new NotFoundException('Part not found');
         return toPartDto(row as unknown as PartRowWithAudit);
     }
 
@@ -378,6 +388,11 @@ export class PartService {
         });
         if (!exists) throw new NotFoundException('Part not found');
 
+        const actorTid = ctx?.tenantId?.trim() ? ctx.tenantId.trim() : null;
+        if (actorTid !== null && exists.tenantId !== actorTid) {
+            throw new NotFoundException('Part not found');
+        }
+
         const data: any = {
             updatedBy: ctx?.actorUserId ?? null,
         };
@@ -468,6 +483,11 @@ export class PartService {
             select: { id: true, tenantId: true, code: true, isActive: true },
         });
         if (!exists) throw new NotFoundException('Part not found');
+
+        const actorTid = ctx?.tenantId?.trim() ? ctx.tenantId.trim() : null;
+        if (actorTid !== null && exists.tenantId !== actorTid) {
+            throw new NotFoundException('Part not found');
+        }
 
         const row = await this.prisma.nx00Part.update({
             where: { id },
