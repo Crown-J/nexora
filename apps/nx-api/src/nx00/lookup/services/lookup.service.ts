@@ -101,6 +101,35 @@ export class LookupService {
         });
     }
 
+    /**
+     * 零件關鍵字搜尋（料號／品名，供開帳存／盤點等 AutoComplete）
+     * - q 空字串時回傳 []，避免一次載入全主檔
+     */
+    async part(
+        params?: { q?: string; pageSize?: number; isActive?: boolean },
+        scope?: LookupReadScope,
+    ): Promise<LookupItem[]> {
+        const rawQ = params?.q?.trim() ?? '';
+        if (!rawQ) return [];
+
+        const take = Math.min(50, Math.max(1, Number(params?.pageSize) || 20));
+        const activeOnly = params?.isActive !== false;
+        const base: Record<string, unknown> = activeOnly ? { isActive: true } : {};
+
+        return this.prisma.nx00Part.findMany({
+            where: withTenantWhere(scope, {
+                ...base,
+                OR: [
+                    { code: { contains: rawQ, mode: 'insensitive' } },
+                    { name: { contains: rawQ, mode: 'insensitive' } },
+                ],
+            }),
+            take,
+            orderBy: [{ code: 'asc' }],
+            select: { id: true, code: true, name: true, isActive: true },
+        });
+    }
+
     async partner(
         params?: { partnerType?: string; isActive?: boolean },
         scope?: LookupReadScope,

@@ -3,15 +3,15 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 開帳存占位頁（後續批次實作）
+ * - 開帳存清單
  */
 
 'use client';
 
-export default function Nx02InitPlaceholderPage() {
-  return (
-    <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-sm text-muted-foreground">
-      開帳存功能將於後續批次提供。
-    </div>
-  );
+import { InitListView } from '@/features/nx02/init/ui/InitListView';
+import { useInitList } from '@/features/nx02/init/hooks/useInitList';
+
+export default function Nx02InitListPage() {
+  const vm = useInitList();
+  return <InitListView vm={vm} />;
 }

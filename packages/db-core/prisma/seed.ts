@@ -1843,6 +1843,9 @@ async function main() {
     { code: 'NX00_WAREHOUSE', name: '倉庫基本資料', moduleCode: 'nx00', path: '/base/location', sortNo: 12 },
     { code: 'NX00_LOCATION', name: '庫位基本資料', moduleCode: 'nx00', path: '/base/location', sortNo: 13 },
     { code: 'NX00_PARTNER', name: '往來客戶基本資料', moduleCode: 'nx00', path: '/base/partner', sortNo: 14 },
+    { code: 'NX02_INIT', name: '開帳存', moduleCode: 'nx02', path: '/dashboard/nx02/init', sortNo: 50 },
+    { code: 'NX02_STOCK_SETTING', name: '庫存設定', moduleCode: 'nx02', path: '/dashboard/nx02/stock-setting', sortNo: 51 },
+    { code: 'NX02_STOCK_TAKE', name: '盤點單', moduleCode: 'nx02', path: '/dashboard/nx02/stock-take', sortNo: 52 },
   ];
 
   for (const view of views) {
@@ -1859,7 +1862,7 @@ async function main() {
       },
     });
   }
-  console.log('✅ nx00_view seed 完成，共 14 筆');
+  console.log(`✅ nx00_view seed 完成，共 ${views.length} 筆`);
 
   await seedNx00RoleViewsForTenants(tenantIds);
 }

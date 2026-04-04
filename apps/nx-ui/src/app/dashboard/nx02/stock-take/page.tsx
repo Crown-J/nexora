@@ -3,15 +3,15 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 盤點單占位頁（後續批次實作）
+ * - 盤點單清單
  */
 
 'use client';
 
-export default function Nx02StockTakePlaceholderPage() {
-  return (
-    <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-sm text-muted-foreground">
-      盤點單功能將於後續批次提供。
-    </div>
-  );
+import { useStockTakeList } from '@/features/nx02/stock-take/hooks/useStockTakeList';
+import { StockTakeListView } from '@/features/nx02/stock-take/ui/StockTakeListView';
+
+export default function Nx02StockTakeListPage() {
+  const vm = useStockTakeList();
+  return <StockTakeListView vm={vm} />;
 }

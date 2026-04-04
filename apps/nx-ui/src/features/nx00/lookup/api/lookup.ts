@@ -74,6 +74,47 @@ export async function listLookupWarehouse(params: ListLookupsParams = {}): Promi
     return getJson<LookupRow[]>(`/lookup/warehouse${q}`, 'nxui_nx00_lookup_warehouse_list_001');
 }
 
+export type LookupLocationRow = {
+    id: string;
+    warehouseId: string;
+    code: string;
+    name: string | null;
+};
+
+/**
+ * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F01D
+ * - GET /lookup/location?warehouseId=&isActive=true
+ */
+export async function listLookupLocation(params: {
+    warehouseId: string;
+    isActive?: boolean;
+}): Promise<LookupLocationRow[]> {
+    const q = buildQueryString({
+        warehouseId: params.warehouseId,
+        isActive: params.isActive === undefined ? undefined : String(params.isActive),
+    });
+    return getJson<LookupLocationRow[]>(`/lookup/location${q}`, 'nxui_nx00_lookup_location_list_001');
+}
+
+/**
+ * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F01E
+ * 說明：零件關鍵字（料號／品名）— 對應 GET /lookup/part（文件常寫為 /nx00/lookup/part）
+ */
+export async function listLookupPart(params: {
+    q: string;
+    pageSize?: number;
+    isActive?: boolean;
+}): Promise<LookupRow[]> {
+    const trimmed = params.q?.trim() ?? '';
+    if (!trimmed) return [];
+    const q = buildQueryString({
+        q: trimmed,
+        pageSize: String(params.pageSize ?? 20),
+        isActive: params.isActive === undefined ? 'true' : String(params.isActive),
+    });
+    return getJson<LookupRow[]>(`/lookup/part${q}`, 'nxui_nx00_lookup_part_list_001');
+}
+
 /**
  * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F02
  * 說明：

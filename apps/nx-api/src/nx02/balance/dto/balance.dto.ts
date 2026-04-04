@@ -20,3 +20,17 @@ export type BalanceSortField =
   | 'last_move_at';
 
 export type SortDir = 'asc' | 'desc';
+
+/**
+ * GET /nx02/balance/dashboard 回應（庫存首頁卡片；無單據時多為 0，鍵名固定）
+ */
+export type Nx02BalanceDashboardDto = {
+  balance: { inStock: number; zero: number; negative: number };
+  ledger: { thisMonthCount: number };
+  init: { totalCount: number };
+  stockSetting: { settingCount: number };
+  stockTake: { inProgressCount: number };
+  transfer: { inProgressCount: number };
+  shortage: { openCount: number };
+  autoReplenish: { activeRuleCount: number };
+};

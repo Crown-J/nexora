@@ -61,13 +61,30 @@ export class LookupController {
     /**
      * @CODE nxapi_nx00_lookup_location_001
      * GET /lookup/location?warehouseId=...&isActive=true
+     * 說明：方法級 @Roles() 覆寫，供庫存開帳／盤點等一般登入使用者依倉庫選庫位
      */
     @Get('location')
+    @Roles()
     async location(@Query() query: any, @Req() req: any) {
         const warehouseId = typeof query.warehouseId === 'string' ? query.warehouseId : undefined;
         const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
         const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
         return this.lookup.location({ warehouseId, isActive }, { tenantScopeId });
+    }
+
+    /**
+     * @CODE nxapi_nx00_lookup_part_001
+     * GET /lookup/part?q=&pageSize=20&isActive=true
+     * 說明：NX00 零件 lookup（與文件語意 /nx00/lookup/part 對齊；實際路徑為 /lookup/part）
+     */
+    @Get('part')
+    @Roles()
+    async part(@Query() query: any, @Req() req: any) {
+        const q = typeof query.q === 'string' ? query.q : undefined;
+        const pageSize = query.pageSize !== undefined ? Number(query.pageSize) : undefined;
+        const isActive = query.isActive === undefined ? undefined : String(query.isActive) === 'true';
+        const tenantScopeId = (req?.user?.tenantId as string | null | undefined) ?? null;
+        return this.lookup.part({ q, pageSize, isActive }, { tenantScopeId });
     }
 
     /**

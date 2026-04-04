@@ -15,7 +15,12 @@ import { Prisma } from 'db-core';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
-import type { BalanceSortField, BalanceStatusFilter, SortDir } from './dto/balance.dto';
+import type {
+  BalanceSortField,
+  BalanceStatusFilter,
+  Nx02BalanceDashboardDto,
+  SortDir,
+} from './dto/balance.dto';
 
 function toNum(d: Prisma.Decimal): number {
   return d.toNumber();
@@ -175,13 +180,12 @@ export class BalanceService {
   /**
    * @FUNCTION_CODE NX02-BAL-SVC-001-F05
    */
-  async dashboard(tenantId: string) {
+  async dashboard(tenantId: string): Promise<Nx02BalanceDashboardDto> {
     const z = new Prisma.Decimal(0);
     const now = new Date();
     const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
 
     const [
-      ,
       inStock,
       zero,
       negative,
@@ -193,7 +197,6 @@ export class BalanceService {
       shortageOpen,
       autoRuleActive,
     ] = await Promise.all([
-      this.prisma.nx02StockBalance.count({ where: { tenantId } }),
       this.prisma.nx02StockBalance.count({ where: { tenantId, onHandQty: { gt: z } } }),
       this.prisma.nx02StockBalance.count({ where: { tenantId, onHandQty: { equals: z } } }),
       this.prisma.nx02StockBalance.count({ where: { tenantId, onHandQty: { lt: z } } }),

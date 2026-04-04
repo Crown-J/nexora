@@ -3,15 +3,15 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 庫存設定占位頁（後續批次實作）
+ * - 庫存設定（左清單＋右表單）
  */
 
 'use client';
 
-export default function Nx02StockSettingPlaceholderPage() {
-  return (
-    <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-sm text-muted-foreground">
-      庫存設定功能將於後續批次提供。
-    </div>
-  );
+import { useStockSetting } from '@/features/nx02/stock-setting/hooks/useStockSetting';
+import { StockSettingSplitView } from '@/features/nx02/stock-setting/ui/StockSettingSplitView';
+
+export default function Nx02StockSettingPage() {
+  const vm = useStockSetting();
+  return <StockSettingSplitView vm={vm} />;
 }

@@ -40,6 +40,7 @@ const SOURCE_LABEL: Record<string, string> = {
 function movementBadgeClass(t: string): string {
   if (t === 'I') return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
   if (t === 'O') return 'bg-orange-500/15 text-orange-600 dark:text-orange-400';
+  if (t === 'A') return 'bg-violet-500/15 text-violet-700 dark:text-violet-300';
   return 'bg-muted text-muted-foreground';
 }
 

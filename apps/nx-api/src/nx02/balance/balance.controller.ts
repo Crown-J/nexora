@@ -18,7 +18,12 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { assertNx02TenantId } from '../utils/assert-nx02-tenant';
 
 import { BalanceService } from './balance.service';
-import type { BalanceSortField, BalanceStatusFilter, SortDir } from './dto/balance.dto';
+import type {
+  BalanceSortField,
+  BalanceStatusFilter,
+  Nx02BalanceDashboardDto,
+  SortDir,
+} from './dto/balance.dto';
 
 @Controller('nx02/balance')
 @UseGuards(JwtAuthGuard)
@@ -77,9 +82,23 @@ export class BalanceController {
 
   /**
    * @FUNCTION_CODE NX02-BAL-CTRL-001-F03
+   * GET /nx02/balance/dashboard
+   * 庫存首頁統計（租戶隔離；NX02 單據尚空時多為 0，結構固定供前端型別對齊）
+   *
+   * 回應範例：
+   * {
+   *   "balance": { "inStock": 0, "zero": 0, "negative": 0 },
+   *   "ledger": { "thisMonthCount": 0 },
+   *   "init": { "totalCount": 0 },
+   *   "stockSetting": { "settingCount": 0 },
+   *   "stockTake": { "inProgressCount": 0 },
+   *   "transfer": { "inProgressCount": 0 },
+   *   "shortage": { "openCount": 0 },
+   *   "autoReplenish": { "activeRuleCount": 0 }
+   * }
    */
   @Get('dashboard')
-  async dashboard(@CurrentUser() user: RequestUser) {
+  async dashboard(@CurrentUser() user: RequestUser): Promise<Nx02BalanceDashboardDto> {
     const tenantId = assertNx02TenantId(user);
     return this.balance.dashboard(tenantId);
   }
