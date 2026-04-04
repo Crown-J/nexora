@@ -205,6 +205,8 @@ export function Nx00FlatMasterView({
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
   const [detailFullscreen, setDetailFullscreen] = useState(false);
+  /** 與客戶主檔等一致：`unifiedMasterShell` 下列表單擊僅聚焦，雙擊才開明細 */
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
@@ -317,6 +319,14 @@ export function Nx00FlatMasterView({
     });
     return out;
   }, [filtered, sort]);
+
+  useEffect(() => {
+    if (!unifiedMasterShell) return;
+    setFocusedRowId((prev) => {
+      if (prev == null) return null;
+      return sortedRows.some((r) => String(r.id) === prev) ? prev : null;
+    });
+  }, [unifiedMasterShell, sortedRows]);
 
   const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
   const safePage = Math.max(1, Math.min(page, totalPages));
@@ -435,14 +445,22 @@ export function Nx00FlatMasterView({
   const goDetailPrev = useCallback(() => {
     if (creating || selectedIdx <= 0) return;
     const prev = sortedRows[selectedIdx - 1];
-    if (prev) setSelectedId(String(prev.id));
-  }, [creating, selectedIdx, sortedRows]);
+    if (prev) {
+      const pid = String(prev.id);
+      setSelectedId(pid);
+      if (unifiedMasterShell) setFocusedRowId(pid);
+    }
+  }, [creating, selectedIdx, sortedRows, unifiedMasterShell]);
 
   const goDetailNext = useCallback(() => {
     if (creating || selectedIdx < 0 || selectedIdx >= sortedRows.length - 1) return;
     const next = sortedRows[selectedIdx + 1];
-    if (next) setSelectedId(String(next.id));
-  }, [creating, selectedIdx, sortedRows]);
+    if (next) {
+      const nid = String(next.id);
+      setSelectedId(nid);
+      if (unifiedMasterShell) setFocusedRowId(nid);
+    }
+  }, [creating, selectedIdx, sortedRows, unifiedMasterShell]);
 
   const slideTitleResolved = useMemo(() => {
     const sel = selected ?? null;
@@ -670,7 +688,16 @@ export function Nx00FlatMasterView({
                     </select>
                   </>
                 ) : null}
-                <Button type="button" size="sm" onClick={() => { setSelectedId(null); setCreating(true); }} disabled={loading || saving}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedId(null);
+                    setCreating(true);
+                    if (unifiedMasterShell) setFocusedRowId(null);
+                  }}
+                  disabled={loading || saving}
+                >
                   新增
                 </Button>
                 <Button type="button" size="sm" variant="ghost" onClick={() => void reload()} disabled={loading}>
@@ -797,23 +824,28 @@ export function Nx00FlatMasterView({
                       <tbody>
                         {pageRows.map((row) => {
                           const id = String(row.id);
-                          const sel = id === selectedId && !creating;
+                          const panelOpen = creating || selectedId != null;
+                          const isFocused = id === focusedRowId;
+                          const isOpenDetail = !creating && panelOpen && id === selectedId;
+                          const isHighlighted = isFocused || isOpenDetail;
                           return (
                             <tr
                               key={id}
                               className={cn(
                                 'nx-master-tbody-row cursor-pointer transition-colors duration-150',
-                                sel && 'nx-row-selected bg-primary/20 ring-1 ring-inset ring-primary/40',
-                                !sel &&
+                                isHighlighted &&
+                                  'nx-row-selected bg-primary/20 ring-1 ring-inset ring-primary/40 shadow-[inset_0_1px_0_0_rgba(244,180,0,0.14)]',
+                                !isHighlighted &&
                                   'hover:bg-primary/12 hover:shadow-[inset_0_0_0_1px_rgba(244,180,0,0.2)]',
                               )}
                               onClick={() => {
-                                if (sel) {
-                                  closeDetailFull();
-                                  return;
-                                }
+                                setFocusedRowId(id);
+                              }}
+                              onDoubleClick={(e) => {
+                                e.preventDefault();
                                 setSelectedId(id);
                                 setCreating(false);
+                                setFocusedRowId(id);
                               }}
                             >
                               {orderedVisibleCols.map((key) =>
