@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -294,6 +293,16 @@ function partGroupDisplay(r: BasePartRow): string {
   return r.partGroupCode || r.partGroupName || '';
 }
 
+type BrandRuleDetailPick = {
+  seg1: number;
+  seg2: number;
+  seg3: number;
+  seg4: number;
+  seg5: number;
+  codeFormat: string;
+  partBrandCode: string | null;
+};
+
 export function BasePartMasterView() {
   const router = useRouter();
   const pathname = usePathname();
@@ -318,8 +327,8 @@ export function BasePartMasterView() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
+  const [ruleDetail, setRuleDetail] = useState<BrandRuleDetailPick | null>(null);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
   const listKeyboardRootRef = useRef<HTMLDivElement>(null);
@@ -530,8 +539,8 @@ export function BasePartMasterView() {
     setCreating(false);
     setEditing(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
+    setRuleDetail(null);
   }, []);
 
   const openDetail = useCallback((id: string) => {
@@ -640,13 +649,71 @@ export function BasePartMasterView() {
   useEffect(() => {
     if (creating) {
       setDraft(emptyDraft());
-      setDetailTab('main');
       return;
     }
     if (selected) setDraft(fromRow(selected));
   }, [creating, selectedId, selected]);
 
+  useEffect(() => {
+    const id = draft.codeRuleId.trim();
+    if (!id) {
+      setRuleDetail(null);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await apiFetch(`/brand-code-rule/${encodeURIComponent(id)}`, { method: 'GET' });
+        await assertOk(res, 'nxui_part_rule_detail');
+        const j = (await res.json()) as BrandRuleDetailPick & { id: string };
+        if (!alive) return;
+        setRuleDetail({
+          seg1: Number(j.seg1) || 0,
+          seg2: Number(j.seg2) || 0,
+          seg3: Number(j.seg3) || 0,
+          seg4: Number(j.seg4) || 0,
+          seg5: Number(j.seg5) || 0,
+          codeFormat: j.codeFormat ?? '',
+          partBrandCode: j.partBrandCode ?? null,
+        });
+      } catch {
+        if (!alive) return;
+        setRuleDetail(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [draft.codeRuleId]);
+
   const formValues = creating || editing ? draft : selected ? fromRow(selected) : emptyDraft();
+
+  const segLimits = useMemo(() => {
+    if (!ruleDetail) return [10, 10, 10, 10, 10] as const;
+    return [ruleDetail.seg1, ruleDetail.seg2, ruleDetail.seg3, ruleDetail.seg4, ruleDetail.seg5] as const;
+  }, [ruleDetail]);
+
+  const autoSku = useMemo(() => {
+    if (!ruleDetail) return '';
+    const segs = [draft.seg1, draft.seg2, draft.seg3, draft.seg4, draft.seg5].map((s) => s.trim());
+    const lims = [ruleDetail.seg1, ruleDetail.seg2, ruleDetail.seg3, ruleDetail.seg4, ruleDetail.seg5];
+    const parts: string[] = [];
+    for (let i = 0; i < 5; i++) {
+      if (lims[i] <= 0) continue;
+      if (segs[i]) parts.push(segs[i]);
+    }
+    if (parts.length === 0) return '';
+    const core = parts.join(' ');
+    const pfx = (ruleDetail.partBrandCode ?? '').trim();
+    return pfx ? `${pfx}-${core}` : core;
+  }, [ruleDetail, draft.seg1, draft.seg2, draft.seg3, draft.seg4, draft.seg5]);
+
+  useEffect(() => {
+    if (!creating) return;
+    const next = autoSku.trim();
+    if (!next) return;
+    setDraft((d) => (d.sku === next ? d : { ...d, sku: next }));
+  }, [creating, autoSku]);
   const readonlyFieldCls = 'bg-muted/40 text-muted-foreground cursor-default';
   const selectCls =
     'nx-native-select flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]';
@@ -1213,19 +1280,30 @@ export function BasePartMasterView() {
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
       >
-              <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
-                <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-                  <TabsTrigger value="main" className="flex-none">
-                    基本資料
-                  </TabsTrigger>
-                  <TabsTrigger value="audit" className="flex-none" disabled={creating}>
-                    稽核
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="main" className="mt-3 outline-none">
-                  <div className="space-y-3 pb-2">
-                    <div className="space-y-2">
+              <div className="mt-4 space-y-4 pb-2">
+                <section className="space-y-3 rounded-xl border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">廠牌與編碼規則</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="bp-brand">廠牌</Label>
+                      <select
+                        id="bp-brand"
+                        className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                        value={formValues.partBrandId ?? ''}
+                        disabled={!creating && !editing || brandsLoading}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, partBrandId: e.target.value === '' ? null : e.target.value }))
+                        }
+                      >
+                        <option value="">（未指定）</option>
+                        {brands.map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.code} — {b.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="bp-coderule">編碼規則</Label>
                       <select
                         id="bp-coderule"
@@ -1245,16 +1323,70 @@ export function BasePartMasterView() {
                         <p className="text-xs text-destructive">規則清單載入失敗：{ruleLookup.error}</p>
                       ) : null}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-sku">基準料號</Label>
-                      <Input
-                        id="bp-sku"
-                        value={formValues.sku}
-                        onChange={(e) => setDraft((d) => ({ ...d, sku: e.target.value }))}
-                        readOnly={!creating && !editing}
-                        className={!creating && !editing ? readonlyFieldCls : undefined}
-                      />
-                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-3 rounded-xl border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">區段與基準料號</p>
+                  <div className="grid gap-3 sm:grid-cols-5">
+                    {(['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const).map((k, i) => {
+                      const lim = segLimits[i] ?? 10;
+                      const ro = !creating && !editing;
+                      const unused = lim <= 0;
+                      return (
+                        <div key={k} className="space-y-2">
+                          <Label htmlFor={`bp-${k}`}>
+                            {`第${i + 1}區段碼`}
+                            {ruleDetail ? (
+                              <span className="ml-1 text-[10px] text-muted-foreground">
+                                {unused ? '（未使用）' : `（${lim} 碼）`}
+                              </span>
+                            ) : null}
+                          </Label>
+                          <Input
+                            id={`bp-${k}`}
+                            value={formValues[k]}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              const cap = lim > 0 ? raw.slice(0, lim) : '';
+                              setDraft((d) => ({ ...d, [k]: cap }));
+                              if (lim > 0 && cap.length === lim && i < 4) {
+                                const nextKey = (['seg2', 'seg3', 'seg4', 'seg5'] as const)[i];
+                                requestAnimationFrame(() => document.getElementById(`bp-${nextKey}`)?.focus());
+                              }
+                            }}
+                            readOnly={ro || unused}
+                            className={cn((ro || unused) && readonlyFieldCls, 'font-mono text-xs')}
+                            maxLength={lim > 0 ? lim : undefined}
+                            aria-disabled={unused}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bp-sku">基準料號</Label>
+                    <Input
+                      id="bp-sku"
+                      value={formValues.sku}
+                      onChange={(e) => setDraft((d) => ({ ...d, sku: e.target.value }))}
+                      readOnly={creating || !editing}
+                      className={cn((creating || !editing) && readonlyFieldCls)}
+                    />
+                    {creating ? (
+                      <p className="text-[11px] text-muted-foreground">
+                        新增時依廠牌規則與區段自動組合；亦可於編輯模式手動調整。
+                      </p>
+                    ) : null}
+                  </div>
+                  {ruleDetail?.codeFormat ? (
+                    <p className="text-[11px] text-muted-foreground">規則格式：{ruleDetail.codeFormat}</p>
+                  ) : null}
+                </section>
+
+                <section className="space-y-3 rounded-xl border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">品項資料</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="bp-seccode">廠牌料號</Label>
                       <Input
@@ -1265,7 +1397,7 @@ export function BasePartMasterView() {
                         className={!creating && !editing ? readonlyFieldCls : undefined}
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="bp-name">品名</Label>
                       <Input
                         id="bp-name"
@@ -1276,32 +1408,15 @@ export function BasePartMasterView() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="bp-brand">廠牌</Label>
-                      <select
-                        id="bp-brand"
-                        className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
-                        value={formValues.partBrandId ?? ''}
-                        disabled={!creating && !editing || brandsLoading}
-                        onChange={(e) =>
-                          setDraft((d) => ({ ...d, partBrandId: e.target.value === '' ? null : e.target.value }))
-                        }
-                      >
-                        <option value="">（未指定）</option>
-                        {brands.map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.code} — {b.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
                       <Label htmlFor="bp-ptype">零件類型</Label>
                       <select
                         id="bp-ptype"
                         className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
                         value={formValues.partType ?? ''}
                         disabled={!creating && !editing}
-                        onChange={(e) => setDraft((d) => ({ ...d, partType: e.target.value === '' ? null : e.target.value }))}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, partType: e.target.value === '' ? null : e.target.value }))
+                        }
                       >
                         {PART_TYPE_OPTIONS.map((o) => (
                           <option key={o.value || 'empty'} value={o.value}>
@@ -1309,32 +1424,6 @@ export function BasePartMasterView() {
                           </option>
                         ))}
                       </select>
-                    </div>
-                    <label htmlFor="bp-oem" className="flex items-center gap-2 text-sm">
-                      <input
-                        id="bp-oem"
-                        type="checkbox"
-                        className="size-4 accent-primary"
-                        checked={formValues.isOem}
-                        disabled={!creating && !editing}
-                        onChange={(e) => setDraft((d) => ({ ...d, isOem: e.target.checked }))}
-                      />
-                      正廠件
-                    </label>
-                    <div className="grid gap-3 sm:grid-cols-5">
-                      {(['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const).map((k, i) => (
-                        <div key={k} className="space-y-2">
-                          <Label htmlFor={`bp-${k}`}>{`第${i + 1}區間碼`}</Label>
-                          <Input
-                            id={`bp-${k}`}
-                            value={formValues[k]}
-                            onChange={(e) => setDraft((d) => ({ ...d, [k]: e.target.value }))}
-                            readOnly={!creating && !editing}
-                            className={cn(!creating && !editing && readonlyFieldCls, 'font-mono text-xs')}
-                            maxLength={10}
-                          />
-                        </div>
-                      ))}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="bp-pg">零件族群</Label>
@@ -1374,7 +1463,7 @@ export function BasePartMasterView() {
                         ))}
                       </select>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="bp-spec">規格</Label>
                       <Input
                         id="bp-spec"
@@ -1394,7 +1483,18 @@ export function BasePartMasterView() {
                         className={!creating && !editing ? readonlyFieldCls : undefined}
                       />
                     </div>
-                    <label htmlFor="bp-active" className="flex items-center gap-2 text-sm">
+                    <label htmlFor="bp-oem" className="flex items-center gap-2 text-sm sm:col-span-2">
+                      <input
+                        id="bp-oem"
+                        type="checkbox"
+                        className="size-4 accent-primary"
+                        checked={formValues.isOem}
+                        disabled={!creating && !editing}
+                        onChange={(e) => setDraft((d) => ({ ...d, isOem: e.target.checked }))}
+                      />
+                      正廠件
+                    </label>
+                    <label htmlFor="bp-active" className="flex items-center gap-2 text-sm sm:col-span-2">
                       <input
                         id="bp-active"
                         type="checkbox"
@@ -1406,50 +1506,8 @@ export function BasePartMasterView() {
                       啟用
                     </label>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="audit" className="mt-3 space-y-2 text-sm outline-none">
-                  <div className="space-y-3 pb-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-created-at">建立時間</Label>
-                      <Input
-                        id="bp-created-at"
-                        readOnly
-                        value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-created-by">建立人員</Label>
-                      <Input
-                        id="bp-created-by"
-                        readOnly
-                        value={auditSource?.createdByPerson ?? '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-updated-at">修改時間</Label>
-                      <Input
-                        id="bp-updated-at"
-                        readOnly
-                        value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-updated-by">修改人員</Label>
-                      <Input
-                        id="bp-updated-by"
-                        readOnly
-                        value={auditSource?.updatedByPerson ?? '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p> : null}
-                  </div>
-                </TabsContent>
-              </Tabs>
+                </section>
+              </div>
 
               <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
                 {creating || editing ? (

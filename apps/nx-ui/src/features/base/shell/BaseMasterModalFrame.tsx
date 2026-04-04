@@ -26,6 +26,8 @@ export type BaseMasterModalFrameProps = {
   onNext?: () => void;
   disablePrev?: boolean;
   disableNext?: boolean;
+  /** 非全螢幕時覆寫寬度（例：族群／國家等小表單用較窄視窗） */
+  modalSizeClassName?: string;
   children: ReactNode;
 };
 
@@ -44,6 +46,7 @@ export function BaseMasterModalFrame({
   onNext,
   disablePrev,
   disableNext,
+  modalSizeClassName,
   children,
 }: BaseMasterModalFrameProps) {
   if (!open) return null;
@@ -70,7 +73,10 @@ export function BaseMasterModalFrame({
           'glass-card nx-glass-raised fixed left-1/2 top-1/2 z-50 flex -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border/80 shadow-2xl transition-[width,max-height] duration-200 ease-out',
           detailFullscreen
             ? 'h-[min(90dvh,calc(100dvh-1.5rem))] w-[min(92vw,calc(100vw-1rem))]'
-            : 'max-h-[min(85dvh,calc(100dvh-2rem))] w-[min(80vw,calc(100vw-1.5rem))]',
+            : cn(
+                'max-h-[min(85dvh,calc(100dvh-2rem))] w-[min(80vw,calc(100vw-1.5rem))]',
+                modalSizeClassName,
+              ),
         )}
         aria-modal="true"
         role="dialog"

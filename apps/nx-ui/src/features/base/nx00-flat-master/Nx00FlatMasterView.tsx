@@ -1,16 +1,24 @@
 /**
- * 通用主檔：code/name/sort/isActive + 稽核欄位（不顯示 id）。
- * 適用 country / currency / part-group 等扁平 DTO。
+ * 通用主檔：code/name/sort/isActive（不顯示 id；明細不含稽核分頁）。
+ * 適用 country / currency / part-group / part-relation 等扁平 DTO。
  */
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, ChevronRight, Columns3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -37,6 +45,8 @@ export type FlatFieldDef = {
   optional?: boolean;
   /** 僅新增可編輯（儲存後唯讀，如 partBrandId） */
   createOnly?: boolean;
+  /** 明細表單是否畫出該欄（預設 true）；false 仍進 draft／送 API，改由 renderDetailExtras 編輯 */
+  detailForm?: boolean;
   type?: 'text' | 'number' | 'bool';
 };
 
@@ -52,6 +62,16 @@ export type Nx00FlatMasterProps = {
   selectOptions?: Record<string, { value: string; label: string }[]>;
   /** true：單欄工具列＋主檔列表版型（對齊使用者主檔），隱藏左側狀態欄與獨立 FILTER 區塊 */
   unifiedMasterShell?: boolean;
+  /** 明細頂部自訂區塊（例：零件關聯之來源／目的料號搜尋） */
+  renderDetailExtras?: (ctx: {
+    draft: Record<string, string>;
+    setDraft: Dispatch<SetStateAction<Record<string, string>>>;
+    creating: boolean;
+    selected: Record<string, unknown> | null;
+  }) => ReactNode;
+  /** 自訂側欄標題（預設 code／新增） */
+  slideDetailTitle?: (ctx: { creating: boolean; selected: Record<string, unknown> | null }) => ReactNode;
+  slideDetailSubtitle?: (ctx: { creating: boolean; selected: Record<string, unknown> | null }) => ReactNode | null;
 };
 
 type SortDir = 'asc' | 'desc';
@@ -108,6 +128,9 @@ export function Nx00FlatMasterView({
   fields,
   selectOptions,
   unifiedMasterShell = false,
+  renderDetailExtras,
+  slideDetailTitle,
+  slideDetailSubtitle,
 }: Nx00FlatMasterProps) {
   const upper = useMemo(() => new Set(upperCaseFields), [upperCaseFields]);
 
@@ -180,7 +203,6 @@ export function Nx00FlatMasterView({
   const [saving, setSaving] = useState(false);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
@@ -246,7 +268,6 @@ export function Nx00FlatMasterView({
       const e = emptyDraft();
       setDraft(e);
       setBaseline(e);
-      setDetailTab('main');
       return;
     }
     if (selected) {
@@ -311,7 +332,6 @@ export function Nx00FlatMasterView({
   const closeDetailFull = useCallback(() => {
     setCreating(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
     setSaveConfirmOpen(false);
   }, []);
@@ -421,6 +441,18 @@ export function Nx00FlatMasterView({
     const next = sortedRows[selectedIdx + 1];
     if (next) setSelectedId(String(next.id));
   }, [creating, selectedIdx, sortedRows]);
+
+  const slideTitleResolved = useMemo(() => {
+    const sel = selected ?? null;
+    if (slideDetailTitle) return slideDetailTitle({ creating, selected: sel });
+    return creating ? '新增' : String(selected?.code ?? '明細');
+  }, [slideDetailTitle, creating, selected]);
+
+  const slideSubtitleResolved = useMemo(() => {
+    const sel = selected ?? null;
+    if (slideDetailSubtitle !== undefined) return slideDetailSubtitle({ creating, selected: sel });
+    return !creating && selected ? String(selected.name ?? '') : undefined;
+  }, [slideDetailSubtitle, creating, selected]);
 
   return (
     <>
@@ -801,8 +833,8 @@ export function Nx00FlatMasterView({
         onToggleFullscreen={() => setDetailFullscreen((v) => !v)}
         onClose={closeDetailFull}
         titleId={`${prefKey}-detail-title`}
-        title={creating ? '新增' : String(selected?.code ?? '明細')}
-        subtitle={!creating && selected ? String(selected.name ?? '') : undefined}
+        title={slideTitleResolved}
+        subtitle={slideSubtitleResolved ?? undefined}
         navPrev={
           !creating && selectedIdx >= 0
             ? { onClick: goDetailPrev, disabled: selectedIdx <= 0 }
@@ -837,19 +869,14 @@ export function Nx00FlatMasterView({
           </div>
         }
       >
-        <p className="mb-2 text-xs text-muted-foreground">不顯示系統內碼 id；稽核於「稽核」分頁</p>
-        <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-1 flex min-h-0 flex-1 flex-col gap-0">
-          <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-            <TabsTrigger value="main" className="flex-none">
-              基本資料
-            </TabsTrigger>
-            <TabsTrigger value="audit" className="flex-none" disabled={creating}>
-              稽核
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="main" className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto outline-none">
+        <p className="mb-2 text-xs text-muted-foreground">不顯示系統內碼 id。</p>
+        <div className="mt-1 flex min-h-0 flex-1 flex-col gap-0">
+          <div className="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto outline-none">
+            {renderDetailExtras
+              ? renderDetailExtras({ draft, setDraft, creating, selected: selected ?? null })
+              : null}
             {fields
-              .filter((f) => f.edit !== false)
+              .filter((f) => f.edit !== false && f.detailForm !== false)
               .map((f) => {
                 const opts = selectOptions?.[f.key];
                 const readOnlyLocked = f.createOnly && !creating;
@@ -891,24 +918,8 @@ export function Nx00FlatMasterView({
                   </div>
                 );
               })}
-          </TabsContent>
-          <TabsContent value="audit" className="mt-3 space-y-2 text-sm outline-none">
-            {(creating ? null : selected) ? (
-              <>
-                {AUDIT_KEYS.map((k) => (
-                  <div key={k} className="flex justify-between gap-4 border-b border-border/40 py-2">
-                    <span className="text-muted-foreground">{COL_DEF[k]?.label ?? k}</span>
-                    <span className="text-right font-mono text-xs">
-                      {k.includes('At') ? formatDt(selected![k] as string) : String(selected![k] ?? '—')}
-                    </span>
-                  </div>
-                ))}
-              </>
-            ) : (
-              <p className="text-muted-foreground">新增模式無稽核資料</p>
-            )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </BaseMasterSlideAside>
 
       <MasterSaveConfirmDialog

@@ -10,7 +10,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -39,7 +38,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -50,8 +48,21 @@ import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRe
 import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
-import { assignUserRole, listUserRoles } from '@/features/base/api/user-role';
+import {
+  assignUserRole,
+  listUserRoles,
+  revokeUserRole,
+  setUserRolePrimary,
+  type UserRoleDto,
+} from '@/features/base/api/user-role';
+import {
+  assignUserWarehouse,
+  listUserWarehouses,
+  revokeUserWarehouse,
+  type UserWarehouseDto,
+} from '@/features/base/api/user-warehouse';
 import { listRoles, type RoleDto } from '@/features/base/api/role';
+import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
 import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 
 type ListColKey =
@@ -253,8 +264,13 @@ export function BaseUserMasterView() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
+  const [sideUserRoles, setSideUserRoles] = useState<UserRoleDto[]>([]);
+  const [sideUserWarehouses, setSideUserWarehouses] = useState<UserWarehouseDto[]>([]);
+  const [warehouseOptions, setWarehouseOptions] = useState<WarehouseDto[]>([]);
+  const [sideLoading, setSideLoading] = useState(false);
+  const [sideBusy, setSideBusy] = useState(false);
+  const [sideErr, setSideErr] = useState<string | null>(null);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
   const listKeyboardRootRef = useRef<HTMLDivElement>(null);
@@ -436,8 +452,11 @@ export function BaseUserMasterView() {
     setCreating(false);
     setEditing(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
+    setSideUserRoles([]);
+    setSideUserWarehouses([]);
+    setWarehouseOptions([]);
+    setSideErr(null);
   }, []);
 
   const openDetail = useCallback((id: string) => {
@@ -553,6 +572,52 @@ export function BaseUserMasterView() {
     setCreating(false);
   }, [creating, selectedIdxSorted, sortedRows]);
 
+  useEffect(() => {
+    if (creating || !selectedId) {
+      setSideUserRoles([]);
+      setSideUserWarehouses([]);
+      setWarehouseOptions([]);
+      setSideLoading(false);
+      setSideErr(null);
+      return;
+    }
+    let alive = true;
+    setSideLoading(true);
+    setSideErr(null);
+    void Promise.all([
+      listUserRoles({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
+      listUserWarehouses({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
+      listWarehouses({ page: 1, pageSize: 500 }),
+    ])
+      .then(([ur, uw, wh]) => {
+        if (!alive) return;
+        setSideUserRoles(ur.items ?? []);
+        setSideUserWarehouses(uw.items ?? []);
+        setWarehouseOptions((wh.items ?? []).filter((w) => w.isActive));
+      })
+      .catch((e: unknown) => {
+        if (!alive) return;
+        setSideErr(e instanceof Error ? e.message : '載入職務／倉庫失敗');
+      })
+      .finally(() => {
+        if (!alive) return;
+        setSideLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [creating, selectedId]);
+
+  const refetchSidePanels = useCallback(async () => {
+    if (!selectedId) return;
+    const [ur, uw] = await Promise.all([
+      listUserRoles({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
+      listUserWarehouses({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
+    ]);
+    setSideUserRoles(ur.items ?? []);
+    setSideUserWarehouses(uw.items ?? []);
+  }, [selectedId]);
+
   const formValues = useMemo(() => {
     if (editing || creating) return draft;
     if (selected) return rowFromUser(selected);
@@ -617,6 +682,62 @@ export function BaseUserMasterView() {
       return;
     }
     setEditing(false);
+  };
+
+  const onToggleUserRole = async (roleId: string) => {
+    if (!selectedId || sideBusy) return;
+    const existing = sideUserRoles.find((x) => x.roleId === roleId);
+    setSideBusy(true);
+    setSideErr(null);
+    try {
+      if (existing) {
+        await revokeUserRole(existing.id);
+      } else {
+        const first = sideUserRoles.length === 0;
+        await assignUserRole({ userId: selectedId, roleId, isPrimary: first });
+      }
+      await refetchSidePanels();
+      await reload();
+    } catch (e) {
+      setSideErr(e instanceof Error ? e.message : '職務更新失敗');
+    } finally {
+      setSideBusy(false);
+    }
+  };
+
+  const onSetPrimaryUserRole = async (userRoleId: string) => {
+    if (!selectedId || sideBusy) return;
+    setSideBusy(true);
+    setSideErr(null);
+    try {
+      await setUserRolePrimary(userRoleId, true);
+      await refetchSidePanels();
+      await reload();
+    } catch (e) {
+      setSideErr(e instanceof Error ? e.message : '主職務更新失敗');
+    } finally {
+      setSideBusy(false);
+    }
+  };
+
+  const onToggleUserWarehouse = async (warehouseId: string) => {
+    if (!selectedId || sideBusy) return;
+    const existing = sideUserWarehouses.find((x) => x.warehouseId === warehouseId);
+    setSideBusy(true);
+    setSideErr(null);
+    try {
+      if (existing) {
+        await revokeUserWarehouse(existing.id);
+      } else {
+        await assignUserWarehouse({ userId: selectedId, warehouseId });
+      }
+      await refetchSidePanels();
+      await reload();
+    } catch (e) {
+      setSideErr(e instanceof Error ? e.message : '倉庫更新失敗');
+    } finally {
+      setSideBusy(false);
+    }
   };
 
   const onSave = async () => {
@@ -1173,19 +1294,10 @@ export function BaseUserMasterView() {
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
       >
-          <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
-            <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-              <TabsTrigger value="main" className="flex-none">
-                基本資料
-              </TabsTrigger>
-              <TabsTrigger value="audit" className="flex-none">
-                稽核
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="main" className="mt-3 outline-none">
-              <div className="space-y-3 pb-2">
-                  <div className="space-y-2">
+          <div className="mt-4">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] xl:grid-cols-[minmax(0,1.05fr)_minmax(280px,380px)]">
+              <div className="min-w-0 space-y-3 pb-2 lg:max-w-xl">
+                <div className="space-y-2">
                   <Label htmlFor="bu-d-username">帳號</Label>
                   <Input
                     id="bu-d-username"
@@ -1195,8 +1307,8 @@ export function BaseUserMasterView() {
                     className={!usernameEditable ? readonlyFieldCls : undefined}
                     autoComplete="off"
                   />
-                  </div>
-                  <div className="space-y-2">
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="bu-d-display">姓名</Label>
                   <Input
                     id="bu-d-display"
@@ -1205,7 +1317,7 @@ export function BaseUserMasterView() {
                     readOnly={!editing && !creating}
                     className={!editing && !creating ? readonlyFieldCls : undefined}
                   />
-                  </div>
+                </div>
                 {creating ? (
                   <>
                     <div className="space-y-2">
@@ -1234,19 +1346,8 @@ export function BaseUserMasterView() {
                       </select>
                     </div>
                   </>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="bu-d-job-ro">職務（主角色名稱）</Label>
-                    <Input
-                      id="bu-d-job-ro"
-                      readOnly
-                      value={auditSource?.jobTitle ?? '—'}
-                      className={readonlyFieldCls}
-                    />
-                    <p className="text-[11px] text-muted-foreground">調整角色請至「職務」主檔指派成員。</p>
-                  </div>
-                )}
-                  {editing && !creating ? (
+                ) : null}
+                {editing && !creating ? (
                   <div className="space-y-2">
                     <Label htmlFor="bu-d-npw">新密碼（選填，至少 6 碼）</Label>
                     <Input
@@ -1258,7 +1359,7 @@ export function BaseUserMasterView() {
                     />
                   </div>
                 ) : null}
-                  <div className="flex items-center gap-2 pt-1">
+                <div className="flex items-center gap-2 pt-1">
                   <input
                     id="bu-d-active"
                     type="checkbox"
@@ -1270,8 +1371,8 @@ export function BaseUserMasterView() {
                   <Label htmlFor="bu-d-active" className="font-normal">
                     啟用
                   </Label>
-                  </div>
-                  <div className="space-y-2">
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="bu-d-email">信箱</Label>
                   <Input
                     id="bu-d-email"
@@ -1281,8 +1382,8 @@ export function BaseUserMasterView() {
                     readOnly={!editing && !creating}
                     className={!editing && !creating ? readonlyFieldCls : undefined}
                   />
-                  </div>
-                  <div className="space-y-2">
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="bu-d-phone">電話</Label>
                   <Input
                     id="bu-d-phone"
@@ -1291,88 +1392,105 @@ export function BaseUserMasterView() {
                     readOnly={!editing && !creating}
                     className={!editing && !creating ? readonlyFieldCls : undefined}
                   />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bu-d-wh">隸屬倉庫</Label>
-                    <Input
-                      id="bu-d-wh-ro"
-                      readOnly
-                      value={auditSource?.warehouseLabel ?? '\u2014'}
-                      className={readonlyFieldCls}
-                    />
-                    <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      多據點請至{' '}
-                      <Link href="/base/user-warehouse" className="font-medium text-primary underline-offset-4 hover:underline">
-                        使用者據點設定
-                      </Link>
-                      。
-                    </p>
-                  </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="audit" className="mt-3 outline-none">
-              <div className="space-y-3 pb-2">
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-lastlogin">最後一次登入</Label>
-                  <Input
-                    id="bu-d-lastlogin"
-                    readOnly
-                    value={formatDt(auditSource?.lastLoginAt ?? null)}
-                    className={readonlyFieldCls}
-                  />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bu-d-wh-audit">隸屬倉庫</Label>
-                    <Input
-                      id="bu-d-wh-audit"
-                      readOnly
-                      value={auditSource?.warehouseLabel ?? '\u2014'}
-                      className={readonlyFieldCls}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-created-at">建立時間</Label>
-                  <Input
-                    id="bu-d-created-at"
-                    readOnly
-                    value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
-                    className={readonlyFieldCls}
-                  />
-                  </div>
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-created-by">建立人員</Label>
-                  <Input
-                    id="bu-d-created-by"
-                    readOnly
-                    value={auditSource?.createdByPerson ?? '\u2014'}
-                    className={readonlyFieldCls}
-                  />
-                  </div>
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-updated-at">修改時間</Label>
-                  <Input
-                    id="bu-d-updated-at"
-                    readOnly
-                    value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
-                    className={readonlyFieldCls}
-                  />
-                  </div>
-                  <div className="space-y-2">
-                  <Label htmlFor="bu-d-updated-by">修改人員</Label>
-                  <Input
-                    id="bu-d-updated-by"
-                    readOnly
-                    value={auditSource?.updatedByPerson ?? '\u2014'}
-                    className={readonlyFieldCls}
-                  />
-                  </div>
-                {creating ? (
-                  <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p>
+                </div>
+                {!creating && auditSource ? (
+                  <p className="text-[11px] text-muted-foreground">
+                    最後登入：{formatDt(auditSource.lastLoginAt ?? null)}
+                  </p>
                 ) : null}
               </div>
-            </TabsContent>
-          </Tabs>
+
+              {!creating && selectedId ? (
+                <div className="flex min-h-0 flex-col gap-4 lg:max-h-[min(72vh,640px)]">
+                  {sideErr ? <p className="text-xs text-destructive">{sideErr}</p> : null}
+                  <section className="flex min-h-[200px] flex-1 flex-col rounded-xl border border-border/70 bg-muted/10 p-3 shadow-sm">
+                    <h3 className="text-xs font-semibold tracking-wide text-muted-foreground">擔任職務</h3>
+                    <p className="mt-1 text-[11px] text-muted-foreground">勾選指派或取消；「主」為列表上職務顯示依據。</p>
+                    <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                      {sideLoading ? (
+                        <p className="text-xs text-muted-foreground">載入中…</p>
+                      ) : (
+                        roles.map((r) => {
+                          const ur = sideUserRoles.find((x) => x.roleId === r.id);
+                          const assigned = Boolean(ur);
+                          return (
+                            <div
+                              key={r.id}
+                              className="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-background/60 px-2 py-2 text-sm"
+                            >
+                              <label className="flex flex-1 cursor-pointer items-center gap-2 min-w-[8rem]">
+                                <input
+                                  type="checkbox"
+                                  className="size-4 rounded border border-input accent-primary"
+                                  checked={assigned}
+                                  disabled={sideBusy}
+                                  onChange={() => void onToggleUserRole(r.id)}
+                                />
+                                <span className="truncate">
+                                  {r.name}
+                                  <span className="ml-1 font-mono text-xs text-muted-foreground">{r.code}</span>
+                                </span>
+                              </label>
+                              {assigned && ur ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={ur.isPrimary ? 'default' : 'outline'}
+                                  className="h-7 shrink-0 px-2 text-xs"
+                                  disabled={sideBusy || ur.isPrimary}
+                                  onClick={() => void onSetPrimaryUserRole(ur.id)}
+                                >
+                                  {ur.isPrimary ? '主職務' : '設為主職務'}
+                                </Button>
+                              ) : null}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="flex min-h-[200px] flex-1 flex-col rounded-xl border border-border/70 bg-muted/10 p-3 shadow-sm">
+                    <h3 className="text-xs font-semibold tracking-wide text-muted-foreground">隸屬倉庫</h3>
+                    <p className="mt-1 text-[11px] text-muted-foreground">可複選；變更後列表摘要會同步更新。</p>
+                    <div className="mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                      {sideLoading ? (
+                        <p className="text-xs text-muted-foreground">載入中…</p>
+                      ) : warehouseOptions.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">無啟用倉庫可指派。</p>
+                      ) : (
+                        warehouseOptions.map((w) => {
+                          const uw = sideUserWarehouses.find((x) => x.warehouseId === w.id);
+                          return (
+                            <label
+                              key={w.id}
+                              className="flex cursor-pointer items-center gap-2 rounded-lg border border-border/50 bg-background/60 px-2 py-2 text-sm"
+                            >
+                              <input
+                                type="checkbox"
+                                className="size-4 rounded border border-input accent-primary"
+                                checked={Boolean(uw)}
+                                disabled={sideBusy}
+                                onChange={() => void onToggleUserWarehouse(w.id)}
+                              />
+                              <span className="truncate">
+                                <span className="font-mono text-xs">{w.code}</span>
+                                <span className="ml-1">{w.name}</span>
+                              </span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  </section>
+                </div>
+              ) : creating ? (
+                <div className="rounded-xl border border-dashed border-border/60 bg-muted/10 p-4 text-sm text-muted-foreground">
+                  建立帳號後，可於此處指派多個職務與倉庫。
+                </div>
+              ) : null}
+            </div>
+          </div>
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
             {creating || editing ? (

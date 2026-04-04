@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -278,7 +277,6 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
@@ -434,7 +432,6 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
     setCreating(false);
     setEditing(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
   }, []);
 
@@ -543,7 +540,6 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
   useEffect(() => {
     if (creating) {
       setDraft(emptyDraft());
-      setDetailTab('main');
       return;
     }
     if (selected) setDraft(fromRow(selected));
@@ -1064,133 +1060,106 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
         onNext={goDetailNext}
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
+        modalSizeClassName="w-[min(92vw,42rem)]"
       >
-        <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
-          <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-            <TabsTrigger value="main" className="flex-none">
-              基本資料
-            </TabsTrigger>
-            <TabsTrigger value="audit" className="flex-none">
-              稽核
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="main" className="mt-3 outline-none">
-            <div className="space-y-3 pb-2">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${meta.titleId}-brand`}>零件品牌</Label>
-                  {creating ? (
-                    <select
-                      id={`${meta.titleId}-brand`}
-                      className={cn(selectCls, !editing && readonlyFieldCls)}
-                      disabled={!editing}
-                      value={formValues.partBrandId}
-                      onChange={(e) => setDraft((d) => ({ ...d, partBrandId: e.target.value }))}
-                    >
-                      <option value="">— 請選擇零件品牌 —</option>
-                      {brandOpts.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Input
-                      id={`${meta.titleId}-brand`}
-                      readOnly
-                      value={selected?.partBrandDisplay ?? '\u2014'}
-                      className={readonlyFieldCls}
-                    />
-                  )}
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${meta.titleId}-rname`}>規則名稱</Label>
-                  <Input
-                    id={`${meta.titleId}-rname`}
-                    value={formValues.name}
-                    onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    maxLength={15}
-                    className={!editing && !creating ? readonlyFieldCls : undefined}
-                    autoComplete="off"
-                  />
-                </div>
-                {(['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const).map((sk, i) => (
-                  <div key={sk} className="space-y-2">
-                    <Label htmlFor={`${meta.titleId}-${sk}`}>第{i + 1}段字數限制</Label>
-                    <Input
-                      id={`${meta.titleId}-${sk}`}
-                      type="number"
-                      inputMode="numeric"
-                      value={formValues[sk]}
-                      onChange={(e) => setDraft((d) => ({ ...d, [sk]: e.target.value }))}
-                      readOnly={!editing && !creating}
-                      className={!editing && !creating ? readonlyFieldCls : undefined}
-                    />
-                  </div>
+        <div className="mt-4 space-y-3 pb-2">
+          <div className="space-y-2">
+            <Label htmlFor={`${meta.titleId}-brand`}>零件品牌</Label>
+            {creating ? (
+              <select
+                id={`${meta.titleId}-brand`}
+                className={cn(selectCls, !editing && readonlyFieldCls)}
+                disabled={!editing}
+                value={formValues.partBrandId}
+                onChange={(e) => setDraft((d) => ({ ...d, partBrandId: e.target.value }))}
+              >
+                <option value="">— 請選擇零件品牌 —</option>
+                {brandOpts.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${meta.titleId}-fmt`}>組合格式</Label>
-                  <Input
-                    id={`${meta.titleId}-fmt`}
-                    value={formValues.codeFormat}
-                    onChange={(e) => setDraft((d) => ({ ...d, codeFormat: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    className={!editing && !creating ? readonlyFieldCls : undefined}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${meta.titleId}-sort`}>排序順序</Label>
-                  <Input
-                    id={`${meta.titleId}-sort`}
-                    value={formValues.brandSort}
-                    onChange={(e) => setDraft((d) => ({ ...d, brandSort: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    className={!editing && !creating ? readonlyFieldCls : undefined}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="flex items-center gap-2 pb-2 sm:col-span-2">
-                  <input
-                    id={`${meta.titleId}-active`}
-                    type="checkbox"
-                    className="size-4 rounded border border-input accent-primary"
-                    checked={formValues.isActive}
-                    disabled={!editing && !creating}
-                    onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
-                  />
-                  <Label htmlFor={`${meta.titleId}-active`} className="font-normal">
-                    啟用
+              </select>
+            ) : (
+              <Input
+                id={`${meta.titleId}-brand`}
+                readOnly
+                value={selected?.partBrandDisplay ?? '\u2014'}
+                className={readonlyFieldCls}
+              />
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor={`${meta.titleId}-rname`}>規則名稱</Label>
+            <Input
+              id={`${meta.titleId}-rname`}
+              value={formValues.name}
+              onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+              readOnly={!editing && !creating}
+              maxLength={15}
+              className={!editing && !creating ? readonlyFieldCls : undefined}
+              autoComplete="off"
+            />
+          </div>
+          <div>
+            <p className="mb-2 text-xs text-muted-foreground">各段字數上限（0＝不使用該段）</p>
+            <div className="grid grid-cols-5 gap-2 sm:max-w-xl">
+              {(['seg1', 'seg2', 'seg3', 'seg4', 'seg5'] as const).map((sk, i) => (
+                <div key={sk} className="space-y-1.5">
+                  <Label className="text-[11px]" htmlFor={`${meta.titleId}-${sk}`}>
+                    第{i + 1}段
                   </Label>
+                  <Input
+                    id={`${meta.titleId}-${sk}`}
+                    type="number"
+                    inputMode="numeric"
+                    value={formValues[sk]}
+                    onChange={(e) => setDraft((d) => ({ ...d, [sk]: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={cn('max-w-full font-mono text-sm tabular-nums', !editing && !creating && readonlyFieldCls)}
+                  />
                 </div>
-              </div>
+              ))}
             </div>
-          </TabsContent>
-
-          <TabsContent value="audit" className="mt-3 outline-none">
-            <div className="space-y-3 pb-2">
-              <div className="space-y-2">
-                <Label>建立時間</Label>
-                <Input readOnly value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>建立人員</Label>
-                <Input readOnly value={auditSource?.createdByPerson ?? '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>修改時間</Label>
-                <Input readOnly value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>修改人員</Label>
-                <Input readOnly value={auditSource?.updatedByPerson ?? '\u2014'} className={readonlyFieldCls} />
-              </div>
-              {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p> : null}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 sm:max-w-xl">
+            <div className="space-y-2">
+              <Label htmlFor={`${meta.titleId}-fmt`}>組合格式</Label>
+              <Input
+                id={`${meta.titleId}-fmt`}
+                value={formValues.codeFormat}
+                onChange={(e) => setDraft((d) => ({ ...d, codeFormat: e.target.value }))}
+                readOnly={!editing && !creating}
+                className={!editing && !creating ? readonlyFieldCls : undefined}
+                autoComplete="off"
+              />
             </div>
-          </TabsContent>
-        </Tabs>
+            <div className="space-y-2">
+              <Label htmlFor={`${meta.titleId}-sort`}>排序順序</Label>
+              <Input
+                id={`${meta.titleId}-sort`}
+                value={formValues.brandSort}
+                onChange={(e) => setDraft((d) => ({ ...d, brandSort: e.target.value }))}
+                readOnly={!editing && !creating}
+                className={!editing && !creating ? readonlyFieldCls : undefined}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pb-1">
+            <input
+              id={`${meta.titleId}-active`}
+              type="checkbox"
+              className="size-4 rounded border border-input accent-primary"
+              checked={formValues.isActive}
+              disabled={!editing && !creating}
+              onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
+            />
+            <Label htmlFor={`${meta.titleId}-active`} className="font-normal">
+              啟用
+            </Label>
+          </div>
+        </div>
 
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (

@@ -37,6 +37,8 @@ export type RoleViewMatrixProps = {
   onSetRowActive(viewId: string, active: boolean): void;
   onToggleAll(nextValue: boolean): void;
   onToggleModuleAll(moduleCode: string): void;
+  /** 單一畫面列：橫向全選／全取消（含使用畫面與各細項權限） */
+  onToggleRowAll?(viewId: string): void;
 
   /** dashboard = NX00 深色玻璃；base = 主檔 Landing 語意色票 */
   appearance?: 'dashboard' | 'base';
@@ -65,6 +67,7 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
     onSetRowActive,
     onToggleAll,
     onToggleModuleAll,
+    onToggleRowAll,
     appearance = 'dashboard',
     showMatrixHeader = true,
   } = props;
@@ -311,16 +314,36 @@ export function RoleViewMatrix(props: RoleViewMatrixProps) {
                         )}
                       >
                         <td className="px-3 py-2 align-middle">
-                          <div className="text-sm font-semibold">{r.view.name}</div>
-                          <div
-                            className={cx('text-xs', base ? 'text-muted-foreground' : 'text-white/45')}
-                          >
-                            {r.view.code}
-                          </div>
-                          <div
-                            className={cx('text-[11px]', base ? 'text-muted-foreground/80' : 'text-white/35')}
-                          >
-                            {r.view.path}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-semibold">{r.view.name}</div>
+                              <div
+                                className={cx('text-xs', base ? 'text-muted-foreground' : 'text-white/45')}
+                              >
+                                {r.view.code}
+                              </div>
+                              <div
+                                className={cx('text-[11px]', base ? 'text-muted-foreground/80' : 'text-white/35')}
+                              >
+                                {r.view.path}
+                              </div>
+                            </div>
+                            {onToggleRowAll ? (
+                              <button
+                                type="button"
+                                className={cx(
+                                  'shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold disabled:opacity-40',
+                                  base
+                                    ? 'border-border bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                                    : 'border-white/10 bg-white/5 text-white/75 hover:bg-white/10',
+                                )}
+                                onClick={() => onToggleRowAll(r.view.id)}
+                                disabled={saving}
+                                title="此畫面列：權限與使用畫面一次全選或全取消"
+                              >
+                                全選
+                              </button>
+                            ) : null}
                           </div>
                         </td>
 

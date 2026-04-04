@@ -136,6 +136,7 @@ export function BaseRoleViewSplitView() {
                 onSetRowActive={vm.actions.setRowActive}
                 onToggleAll={vm.actions.setAllPerms}
                 onToggleModuleAll={vm.actions.toggleModuleAll}
+                onToggleRowAll={vm.actions.toggleRowAll}
                 appearance="base"
                 showMatrixHeader={false}
               />

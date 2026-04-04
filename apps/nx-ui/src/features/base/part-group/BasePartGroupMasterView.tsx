@@ -23,13 +23,6 @@ function newId(): string {
   return `pg-${Date.now()}`;
 }
 
-function formatDt(iso: string | null | undefined): string {
-  if (iso == null || iso === '') return '\u2014';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' });
-}
-
 function formatSegLine(r: BasePartGroupRow): string {
   const parts = [r.seg1, r.seg2, r.seg3, r.seg4, r.seg5].map((s) => (s.trim() === '' ? '—' : s));
   return parts.join(' · ');
@@ -253,8 +246,6 @@ export function BasePartGroupMasterView() {
     setEditing(false);
   };
 
-  const auditSource = selected;
-
   return (
     <>
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,42%)_minmax(0,1fr)] lg:items-start">
@@ -470,46 +461,6 @@ export function BasePartGroupMasterView() {
             />
             啟用（is_active）
           </label>
-
-          <div className="border-t border-border/60 pt-3 space-y-3">
-            <p className="text-xs font-medium text-muted-foreground">稽核</p>
-            <div className="space-y-2">
-              <Label htmlFor="pg-created-by">建立人員</Label>
-              <Input
-                id="pg-created-by"
-                readOnly
-                value={auditSource?.createdBy ?? '\u2014'}
-                className={readonlyCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pg-created-at">建立時間</Label>
-              <Input
-                id="pg-created-at"
-                readOnly
-                value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
-                className={readonlyCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pg-updated-at">最後修改時間</Label>
-              <Input
-                id="pg-updated-at"
-                readOnly
-                value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
-                className={readonlyCls}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pg-updated-by">最後修改人員</Label>
-              <Input
-                id="pg-updated-by"
-                readOnly
-                value={auditSource?.updatedBy ?? '\u2014'}
-                className={readonlyCls}
-              />
-            </div>
-          </div>
         </div>
         <div className="mt-5 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (

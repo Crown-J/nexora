@@ -279,6 +279,29 @@ export function useRoleViewMatrix() {
         [moduleFilter],
     );
 
+    const toggleRowAll = useCallback((viewId: string) => {
+        setDraft((prev) => {
+            const row = prev[viewId];
+            if (!row) return prev;
+            const allSelected = PERM_KEYS.every((k) => Boolean(row.perms[k])) && Boolean(row.isActive);
+            const nextValue = !allSelected;
+            return {
+                ...prev,
+                [viewId]: {
+                    ...row,
+                    isActive: nextValue,
+                    perms: {
+                        canRead: nextValue,
+                        canCreate: nextValue,
+                        canUpdate: nextValue,
+                        canToggleActive: nextValue,
+                        canExport: nextValue,
+                    },
+                },
+            };
+        });
+    }, []);
+
     const dirtyCount = useMemo(() => {
         let n = 0;
         for (const viewId of Object.keys(draft)) {
@@ -367,10 +390,11 @@ export function useRoleViewMatrix() {
             setPerm,
             setRowActive,
             bulkSetPermForVisible,
+            toggleRowAll,
 
             save,
         }),
-        [setPerm, setRowActive, bulkSetPermForVisible, save],
+        [setPerm, setRowActive, bulkSetPermForVisible, toggleRowAll, save],
     );
 
     return {

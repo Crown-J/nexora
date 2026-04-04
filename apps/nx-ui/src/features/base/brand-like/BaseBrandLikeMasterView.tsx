@@ -32,7 +32,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -228,7 +227,6 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
@@ -389,7 +387,6 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
     setCreating(false);
     setEditing(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
   }, []);
 
@@ -499,7 +496,6 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
   useEffect(() => {
     if (creating) {
       setDraft(emptyDraft());
-      setDetailTab('main');
       return;
     }
     if (selected) setDraft(fromRow(selected));
@@ -989,124 +985,91 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
       >
-        <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
-          <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-            <TabsTrigger value="main" className="flex-none">
-              基本資料
-            </TabsTrigger>
-            <TabsTrigger value="audit" className="flex-none">
-              稽核
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="main" className="mt-3 outline-none">
-            <div className="space-y-3 pb-2">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor={`${m.titleId}-code`}>廠牌代碼</Label>
-                  <Input
-                    id={`${m.titleId}-code`}
-                    value={formValues.code}
-                    onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    className={!editing && !creating ? readonlyFieldCls : undefined}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`${m.titleId}-name`}>廠牌名稱</Label>
-                  <Input
-                    id={`${m.titleId}-name`}
-                    value={formValues.name}
-                    onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    className={!editing && !creating ? readonlyFieldCls : undefined}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${m.titleId}-country`}>廠牌國家</Label>
-                  <select
-                    id={`${m.titleId}-country`}
-                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
-                    disabled={!editing && !creating}
-                    value={formValues.countryId ?? ''}
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        countryId: e.target.value === '' ? null : e.target.value,
-                      }))
-                    }
-                  >
-                    <option value="">（未指定）</option>
-                    {countries.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.code} {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor={`${m.titleId}-remark`}>備註</Label>
-                  <Textarea
-                    id={`${m.titleId}-remark`}
-                    value={formValues.remark}
-                    onChange={(e) => setDraft((d) => ({ ...d, remark: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    className={cn('min-h-[88px] resize-y', !editing && !creating && readonlyFieldCls)}
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`${m.titleId}-sort`}>排序</Label>
-                  <Input
-                    id={`${m.titleId}-sort`}
-                    inputMode="numeric"
-                    value={formValues.sortNo}
-                    onChange={(e) => setDraft((d) => ({ ...d, sortNo: e.target.value }))}
-                    readOnly={!editing && !creating}
-                    className={!editing && !creating ? readonlyFieldCls : undefined}
-                  />
-                </div>
-                <div className="flex items-center gap-2 pb-2 sm:col-span-2">
-                  <input
-                    id={`${m.titleId}-active`}
-                    type="checkbox"
-                    className="size-4 rounded border border-input accent-primary"
-                    checked={formValues.isActive}
-                    disabled={!editing && !creating}
-                    onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
-                  />
-                  <Label htmlFor={`${m.titleId}-active`} className="font-normal">
-                    啟用
-                  </Label>
-                </div>
+        <div className="mt-4 space-y-3 pb-2">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:items-stretch">
+            <div className="space-y-3 lg:max-w-sm">
+              <div className="space-y-2">
+                <Label htmlFor={`${m.titleId}-code`}>廠牌代碼</Label>
+                <Input
+                  id={`${m.titleId}-code`}
+                  value={formValues.code}
+                  onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value }))}
+                  readOnly={!editing && !creating}
+                  className={!editing && !creating ? readonlyFieldCls : undefined}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${m.titleId}-name`}>廠牌名稱</Label>
+                <Input
+                  id={`${m.titleId}-name`}
+                  value={formValues.name}
+                  onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                  readOnly={!editing && !creating}
+                  className={!editing && !creating ? readonlyFieldCls : undefined}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${m.titleId}-country`}>廠牌國家</Label>
+                <select
+                  id={`${m.titleId}-country`}
+                  className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                  disabled={!editing && !creating}
+                  value={formValues.countryId ?? ''}
+                  onChange={(e) =>
+                    setDraft((d) => ({
+                      ...d,
+                      countryId: e.target.value === '' ? null : e.target.value,
+                    }))
+                  }
+                >
+                  <option value="">（未指定）</option>
+                  {countries.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`${m.titleId}-sort`}>排序</Label>
+                <Input
+                  id={`${m.titleId}-sort`}
+                  inputMode="numeric"
+                  value={formValues.sortNo}
+                  onChange={(e) => setDraft((d) => ({ ...d, sortNo: e.target.value }))}
+                  readOnly={!editing && !creating}
+                  className={!editing && !creating ? readonlyFieldCls : undefined}
+                />
+              </div>
+              <div className="flex items-center gap-2 pb-1">
+                <input
+                  id={`${m.titleId}-active`}
+                  type="checkbox"
+                  className="size-4 rounded border border-input accent-primary"
+                  checked={formValues.isActive}
+                  disabled={!editing && !creating}
+                  onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                />
+                <Label htmlFor={`${m.titleId}-active`} className="font-normal">
+                  啟用
+                </Label>
               </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="audit" className="mt-3 outline-none">
-            <div className="space-y-3 pb-2">
-              <div className="space-y-2">
-                <Label>建立時間</Label>
-                <Input readOnly value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>建立人員</Label>
-                <Input readOnly value={auditSource?.createdByPerson ?? '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>修改時間</Label>
-                <Input readOnly value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>修改人員</Label>
-                <Input readOnly value={auditSource?.updatedByPerson ?? '\u2014'} className={readonlyFieldCls} />
-              </div>
-              {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p> : null}
+            <div className="flex min-h-[160px] flex-col space-y-2">
+              <Label htmlFor={`${m.titleId}-remark`}>備註</Label>
+              <Textarea
+                id={`${m.titleId}-remark`}
+                value={formValues.remark}
+                onChange={(e) => setDraft((d) => ({ ...d, remark: e.target.value }))}
+                readOnly={!editing && !creating}
+                className={cn('min-h-[120px] flex-1 resize-y', !editing && !creating && readonlyFieldCls)}
+                rows={6}
+              />
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
 
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (

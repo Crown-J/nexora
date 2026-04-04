@@ -110,6 +110,7 @@ export function RoleViewSplitView() {
           onSetRowActive={vm.actions.setRowActive}
           onToggleAll={vm.actions.setAllPerms}
           onToggleModuleAll={vm.actions.toggleModuleAll}
+          onToggleRowAll={vm.actions.toggleRowAll}
         />
       )}
     </GroupPanelShell>

@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -293,6 +292,11 @@ export function BaseNx00ModalCodeMasterView({ variant }: { variant: Nx00ModalCod
     };
   }, [variant]);
 
+  const detailModalNarrowCls = useMemo(
+    () => (variant === 'currency' ? 'w-[min(92vw,36rem)]' : 'w-[min(92vw,30rem)]'),
+    [variant],
+  );
+
   const [rows, setRows] = useState<CodeRow[]>([]);
   const [keyword, setKeyword] = useState('');
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
@@ -308,7 +312,6 @@ export function BaseNx00ModalCodeMasterView({ variant }: { variant: Nx00ModalCod
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
@@ -449,7 +452,6 @@ export function BaseNx00ModalCodeMasterView({ variant }: { variant: Nx00ModalCod
     setCreating(false);
     setEditing(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
   }, []);
 
@@ -560,7 +562,6 @@ export function BaseNx00ModalCodeMasterView({ variant }: { variant: Nx00ModalCod
     if (creating) {
       if (isCurrency) setDraftCurrency(emptyDraftCurrency());
       else setDraftCountry(emptyDraftCountry());
-      setDetailTab('main');
       return;
     }
     if (selected) {
@@ -1124,18 +1125,9 @@ export function BaseNx00ModalCodeMasterView({ variant }: { variant: Nx00ModalCod
         onNext={goDetailNext}
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
+        modalSizeClassName={detailModalNarrowCls}
       >
-        <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
-          <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-            <TabsTrigger value="main" className="flex-none">
-              基本資料
-            </TabsTrigger>
-            <TabsTrigger value="audit" className="flex-none">
-              稽核
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="main" className="mt-3 outline-none">
+        <div className="mt-4">
             <div className="space-y-3 pb-2">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -1217,30 +1209,7 @@ export function BaseNx00ModalCodeMasterView({ variant }: { variant: Nx00ModalCod
                 </div>
               </div>
             </div>
-          </TabsContent>
-
-          <TabsContent value="audit" className="mt-3 outline-none">
-            <div className="space-y-3 pb-2">
-              <div className="space-y-2">
-                <Label>建立時間</Label>
-                <Input readOnly value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>建立人員</Label>
-                <Input readOnly value={auditSource?.createdByPerson ?? '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>修改時間</Label>
-                <Input readOnly value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'} className={readonlyFieldCls} />
-              </div>
-              <div className="space-y-2">
-                <Label>修改人員</Label>
-                <Input readOnly value={auditSource?.updatedByPerson ?? '\u2014'} className={readonlyFieldCls} />
-              </div>
-              {creating ? <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p> : null}
-            </div>
-          </TabsContent>
-        </Tabs>
+        </div>
 
         <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
           {creating || editing ? (

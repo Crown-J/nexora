@@ -35,7 +35,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
@@ -207,7 +206,6 @@ export function BaseRoleMasterView() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
-  const [detailTab, setDetailTab] = useState('main');
   const [detailFullscreen, setDetailFullscreen] = useState(false);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
@@ -349,7 +347,6 @@ export function BaseRoleMasterView() {
     setCreating(false);
     setEditing(false);
     setSelectedId(null);
-    setDetailTab('main');
     setDetailFullscreen(false);
   }, []);
 
@@ -958,141 +955,73 @@ export function BaseRoleMasterView() {
         disablePrev={selectedIdxSorted <= 0}
         disableNext={selectedIdxSorted >= sortedRows.length - 1}
       >
-              <Tabs value={detailTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-0">
-                <TabsList className="h-auto w-full shrink-0 flex-wrap justify-start gap-1 bg-muted/50 p-1">
-                  <TabsTrigger value="main" className="flex-none">
-                    基本資料
-                  </TabsTrigger>
-                  <TabsTrigger value="audit" className="flex-none">
-                    稽核
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="main" className="mt-3 outline-none">
-                  <div className="space-y-3 pb-2">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="br-d-code">職務代碼</Label>
-                        <Input
-                          id="br-d-code"
-                          value={formValues.code}
-                          onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value }))}
-                          readOnly={!codeEditable}
-                          className={!codeEditable ? readonlyFieldCls : undefined}
-                          placeholder="例：ADMIN"
-                          autoComplete="off"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="br-d-name">職務名稱</Label>
-                        <Input
-                          id="br-d-name"
-                          value={formValues.name}
-                          onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                          readOnly={!editing && !creating}
-                          className={!editing && !creating ? readonlyFieldCls : undefined}
-                          placeholder="職務顯示名稱"
-                          autoComplete="off"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="br-d-sort">順序</Label>
-                        <Input
-                          id="br-d-sort"
-                          inputMode="numeric"
-                          value={formValues.sortOrder}
-                          onChange={(e) => setDraft((d) => ({ ...d, sortOrder: e.target.value }))}
-                          readOnly={!editing && !creating}
-                          className={!editing && !creating ? readonlyFieldCls : undefined}
-                          placeholder="數字越小越前面"
-                        />
-                      </div>
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="br-d-desc">職務說明</Label>
-                        <Textarea
-                          id="br-d-desc"
-                          value={formValues.description}
-                          onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
-                          readOnly={!editing && !creating}
-                          className={cn('min-h-[88px] resize-y', !editing && !creating && readonlyFieldCls)}
-                          placeholder="職務職責摘要（選填）"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex items-center gap-2 pb-2 sm:col-span-2">
-                        <input
-                          id="br-d-active"
-                          type="checkbox"
-                          className="size-4 rounded border border-input accent-primary"
-                          checked={formValues.isActive}
-                          disabled={!editing && !creating}
-                          onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
-                        />
-                        <Label htmlFor="br-d-active" className="font-normal">
-                          啟用
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2 pb-2 sm:col-span-2">
-                        <input
-                          id="br-d-sys"
-                          type="checkbox"
-                          className="size-4 rounded border border-input accent-primary"
-                          checked={formValues.isSystem}
-                          disabled
-                          readOnly
-                        />
-                        <Label htmlFor="br-d-sys" className="font-normal text-muted-foreground">
-                          系統內建（僅顯示；新增一律為否）
-                        </Label>
-                      </div>
+              <div className="mt-4 space-y-3 pb-2">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)] lg:items-stretch">
+                  <div className="space-y-3 lg:max-w-sm">
+                    <div className="space-y-2">
+                      <Label htmlFor="br-d-code">職務代碼</Label>
+                      <Input
+                        id="br-d-code"
+                        value={formValues.code}
+                        onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value }))}
+                        readOnly={!codeEditable}
+                        className={!codeEditable ? readonlyFieldCls : undefined}
+                        placeholder="例：ADMIN"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="br-d-name">職務名稱</Label>
+                      <Input
+                        id="br-d-name"
+                        value={formValues.name}
+                        onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                        readOnly={!editing && !creating}
+                        className={!editing && !creating ? readonlyFieldCls : undefined}
+                        placeholder="職務顯示名稱"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="br-d-sort">順序</Label>
+                      <Input
+                        id="br-d-sort"
+                        inputMode="numeric"
+                        value={formValues.sortOrder}
+                        onChange={(e) => setDraft((d) => ({ ...d, sortOrder: e.target.value }))}
+                        readOnly={!editing && !creating}
+                        className={!editing && !creating ? readonlyFieldCls : undefined}
+                        placeholder="數字越小越前面"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 pb-1">
+                      <input
+                        id="br-d-active"
+                        type="checkbox"
+                        className="size-4 rounded border border-input accent-primary"
+                        checked={formValues.isActive}
+                        disabled={!editing && !creating}
+                        onChange={(e) => setDraft((d) => ({ ...d, isActive: e.target.checked }))}
+                      />
+                      <Label htmlFor="br-d-active" className="font-normal">
+                        啟用
+                      </Label>
                     </div>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="audit" className="mt-3 outline-none">
-                  <div className="space-y-3 pb-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="br-d-created-at">建立時間</Label>
-                      <Input
-                        id="br-d-created-at"
-                        readOnly
-                        value={auditSource ? formatDt(auditSource.createdAt) : '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="br-d-created-by">建立人員</Label>
-                      <Input
-                        id="br-d-created-by"
-                        readOnly
-                        value={auditSource?.createdByPerson ?? '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="br-d-updated-at">修改時間</Label>
-                      <Input
-                        id="br-d-updated-at"
-                        readOnly
-                        value={auditSource ? formatDt(auditSource.updatedAt) : '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="br-d-updated-by">修改人員</Label>
-                      <Input
-                        id="br-d-updated-by"
-                        readOnly
-                        value={auditSource?.updatedByPerson ?? '\u2014'}
-                        className={readonlyFieldCls}
-                      />
-                    </div>
-                    {creating ? (
-                      <p className="text-xs text-muted-foreground">建立完成後將顯示稽核欄位。</p>
-                    ) : null}
+                  <div className="flex min-h-[140px] flex-col space-y-2 lg:min-h-[220px]">
+                    <Label htmlFor="br-d-desc">職務說明</Label>
+                    <Textarea
+                      id="br-d-desc"
+                      value={formValues.description}
+                      onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+                      readOnly={!editing && !creating}
+                      className={cn('min-h-[120px] flex-1 resize-y lg:min-h-0', !editing && !creating && readonlyFieldCls)}
+                      placeholder="職務職責摘要（選填）"
+                      rows={6}
+                    />
                   </div>
-                </TabsContent>
-              </Tabs>
+                </div>
+              </div>
 
               <div className="mt-4 flex flex-wrap gap-2 border-t border-border/60 pt-4">
                 {creating || editing ? (
