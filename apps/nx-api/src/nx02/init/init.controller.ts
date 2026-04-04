@@ -10,6 +10,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -75,6 +77,7 @@ export class InitController {
    * @FUNCTION_CODE NX02-INIT-CTRL-001-F03
    */
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @RequireNx00ViewPermission(NX00_VIEW.NX02_INIT, 'create')
   async create(@Req() req: { user?: RequestUser }, @Body() body: CreateInitBodyDto) {
     const tenantId = assertNx02TenantId(req.user);
