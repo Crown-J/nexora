@@ -25,6 +25,9 @@ export type DraftItem = {
   partNo: string;
   partName: string;
   locationId: string;
+  /** API 帶入，供已過帳／唯讀列顯示庫位文字 */
+  locationCode?: string | null;
+  locationName?: string | null;
   qty: string;
   unitCost: string;
   remark: string;
@@ -37,6 +40,8 @@ function itemToDraft(it: InitItemDto): DraftItem {
     partNo: it.partNo,
     partName: it.partName,
     locationId: it.locationId ?? '',
+    locationCode: it.locationCode ?? null,
+    locationName: it.locationName ?? null,
     qty: String(it.qty),
     unitCost: String(it.unitCost),
     remark: it.remark ?? '',

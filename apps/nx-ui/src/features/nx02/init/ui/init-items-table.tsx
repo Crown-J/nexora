@@ -16,6 +16,14 @@ import { listLookupLocation } from '@/features/nx00/lookup/api/lookup';
 import type { DraftItem } from '../hooks/useInitDetail';
 import { PartLookupAutocomplete } from '../../shared/ui/PartLookupAutocomplete';
 
+function formatInitLocationReadOnly(row: DraftItem): string {
+  if (row.locationCode || row.locationName) {
+    const s = `${row.locationCode ?? ''}${row.locationName ? ` ${row.locationName}` : ''}`.trim();
+    if (s) return s;
+  }
+  return row.locationId ? row.locationId : '—';
+}
+
 export function InitItemsTable({
   warehouseId,
   items,
@@ -128,7 +136,9 @@ function InitItemRow({
   const locSelectRef = useRef<HTMLSelectElement>(null);
   const qtyRef = useRef<HTMLInputElement>(null);
   const unitCostRef = useRef<HTMLInputElement>(null);
-  const [locOpts, setLocOpts] = useState<{ id: string; label: string }[]>([]);
+  const [locOpts, setLocOpts] = useState<
+    { id: string; code: string; name: string | null; label: string }[]
+  >([]);
 
   useEffect(() => {
     if (!warehouseId) {
@@ -140,6 +150,8 @@ function InitItemRow({
         setLocOpts(
           l.map((x) => ({
             id: x.id,
+            code: x.code,
+            name: x.name,
             label: `${x.code}${x.name ? ` ${x.name}` : ''}`,
           })),
         ),
@@ -206,7 +218,15 @@ function InitItemRow({
             ref={locSelectRef}
             className="max-w-[160px] rounded border border-border bg-background px-2 py-1 text-xs"
             value={row.locationId}
-            onChange={(e) => onUpdate({ locationId: e.target.value })}
+            onChange={(e) => {
+              const v = e.target.value;
+              const opt = locOpts.find((x) => x.id === v);
+              onUpdate({
+                locationId: v,
+                locationCode: opt?.code ?? null,
+                locationName: opt?.name ?? null,
+              });
+            }}
             onKeyDown={onLocKeyDown}
           >
             <option value="">（預設庫位）</option>
@@ -217,7 +237,7 @@ function InitItemRow({
             ))}
           </select>
         ) : (
-          <span className="text-xs text-muted-foreground">{row.locationId || '—'}</span>
+          <span className="text-xs text-muted-foreground">{formatInitLocationReadOnly(row)}</span>
         )}
       </td>
       <td className="px-2 py-2 text-right align-top">

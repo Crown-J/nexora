@@ -55,7 +55,12 @@ function roundMoney2(x: Prisma.Decimal): Prisma.Decimal {
 /** 與 getById findFirst 的 include 一致，供 mapInitRowToDetail 使用 */
 const initDetailInclude = {
   warehouse: { select: { id: true, code: true, name: true } as const },
-  items: { orderBy: { lineNo: 'asc' as const } },
+  items: {
+    orderBy: { lineNo: 'asc' as const },
+    include: {
+      location: { select: { code: true, name: true } },
+    },
+  },
 } as const;
 
 type InitDetailRow = Prisma.Nx02InitGetPayload<{ include: typeof initDetailInclude }>;
@@ -83,6 +88,8 @@ export class InitService {
         partNo: it.partNo,
         partName: it.partName,
         locationId: it.locationId,
+        locationCode: it.location?.code ?? null,
+        locationName: it.location?.name ?? null,
         qty: it.qty.toNumber(),
         unitCost: it.unitCost.toNumber(),
         totalCost: it.totalCost.toNumber(),
