@@ -31,6 +31,22 @@ import { clearToken, getToken } from '@/features/auth/token';
 
 export type { MeDto } from '@/features/auth/types';
 
+/**
+ * 合併 plan_code／planCode，避免 JWT 或閘道只回 camelCase 時前端誤判為非 PLUS。
+ */
+function normalizeMeDto(raw: MeDto): MeDto {
+  const camel = raw.planCode;
+  const snake = raw.plan_code;
+  const fromSnake = snake != null && String(snake).trim() !== '' ? String(snake).trim() : null;
+  const fromCamel = camel != null && String(camel).trim() !== '' ? String(camel).trim() : null;
+  const plan = fromSnake ?? fromCamel ?? null;
+  return {
+    ...raw,
+    plan_code: plan,
+    planCode: plan,
+  };
+}
+
 export type ViewState = {
   loading: boolean;
   errorMsg: string | null;
@@ -51,6 +67,8 @@ export type UseSessionMeResult = {
   tenantNameZh: string;
   /** 租戶英文名；無則空字串 */
   tenantNameEn: string;
+  /** 訂閱方案（LITE / PLUS / PRO）；已合併 JWT／API 的 planCode 與 plan_code */
+  planCode: string | null;
 
   logout: () => void;
 };
@@ -123,7 +141,7 @@ export function useSessionMe(): UseSessionMeResult {
 
       if (isNexoraDemoMode() && token === NEXORA_DEMO_ACCESS_TOKEN) {
         if (!alive) return;
-        setMe(buildDemoMeFromStorage());
+        setMe(normalizeMeDto(buildDemoMeFromStorage()));
         setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
         return;
       }
@@ -146,7 +164,7 @@ export function useSessionMe(): UseSessionMeResult {
         // 其他狀況統一用 assertOk
         await assertOk(res, 'nxui_auth_session_me_001');
 
-        const data = (await res.json()) as MeDto;
+        const data = normalizeMeDto((await res.json()) as MeDto);
 
         if (!alive) return;
         setMe(data);
@@ -220,6 +238,12 @@ export function useSessionMe(): UseSessionMeResult {
     [me],
   );
 
+  /** 與 me.plan_code 同步；供頁面只依 hook 判斷方案時使用 */
+  const normalizedPlanCode = useMemo(
+    () => (me ? me.plan_code ?? me.planCode ?? null : null),
+    [me],
+  );
+
   return {
     me,
     view,
@@ -231,6 +255,8 @@ export function useSessionMe(): UseSessionMeResult {
     isActive: normalizedIsActive,
     tenantNameZh: normalizedTenantNameZh,
     tenantNameEn: normalizedTenantNameEn,
+    /** LITE / PLUS / PRO；已合併 planCode／plan_code */
+    planCode: normalizedPlanCode,
 
     logout,
   };

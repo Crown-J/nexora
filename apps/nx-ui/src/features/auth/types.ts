@@ -66,8 +66,10 @@ export type MeDto = {
   tenant_name?: string | null;
   /** 租戶英文名（nx99_tenant.name_en） */
   tenant_name_en?: string | null;
-  /** 訂閱方案代碼（LITE / PLUS / PRO） */
+  /** 訂閱方案代碼（例：NEXORA-LITE、NEXORA-PLUS；或簡寫 LITE、PLUS） */
   plan_code?: string | null;
+  /** 與 JWT／部分閘道回應的 camelCase 相容（等同 plan_code） */
+  planCode?: string | null;
   /** nx00_view.code → 合併權限；ADMIN 為 null；無租戶為 {} */
   view_permissions?: Record<string, ViewPermissionSnake> | null;
 };

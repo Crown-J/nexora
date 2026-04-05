@@ -12,16 +12,12 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
 import { useShortage } from '@/features/nx02/shortage/hooks/useShortage';
 import { ShortageView } from '@/features/nx02/shortage/ui/ShortageView';
-
-function isPlusPlan(code: string | null | undefined): boolean {
-  const p = (code ?? '').trim().toUpperCase();
-  return p === 'PLUS' || p === 'PRO';
-}
+import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 export default function Nx02ShortagePage() {
-  const { me } = useSessionMe();
+  const { planCode } = useSessionMe();
   const vm = useShortage();
-  if (!isPlusPlan(me?.plan_code)) {
+  if (!planSupportsNx02PlusFeatures(planCode)) {
     return <PlanUpgradePrompt requiredPlan="PLUS" />;
   }
   return <ShortageView vm={vm} />;

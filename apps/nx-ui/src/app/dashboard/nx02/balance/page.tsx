@@ -11,14 +11,10 @@
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { useBalance } from '@/features/nx02/balance/hooks/useBalance';
 import { BalanceView } from '@/features/nx02/balance/ui/BalanceView';
-
-function isPlusPlan(code: string | null | undefined): boolean {
-  const p = (code ?? '').trim().toUpperCase();
-  return p === 'PLUS' || p === 'PRO';
-}
+import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 export default function Nx02BalancePage() {
-  const { me } = useSessionMe();
+  const { planCode } = useSessionMe();
   const vm = useBalance();
-  return <BalanceView vm={vm} showPlus={isPlusPlan(me?.plan_code)} />;
+  return <BalanceView vm={vm} showPlus={planSupportsNx02PlusFeatures(planCode)} />;
 }

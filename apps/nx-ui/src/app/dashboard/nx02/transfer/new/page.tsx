@@ -12,16 +12,12 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
 import { useTransferDoc } from '@/features/nx02/transfer/hooks/useTransfer';
 import { TransferFormView } from '@/features/nx02/transfer/ui/TransferFormView';
-
-function isPlusPlan(code: string | null | undefined): boolean {
-  const p = (code ?? '').trim().toUpperCase();
-  return p === 'PLUS' || p === 'PRO';
-}
+import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 export default function Nx02TransferNewPage() {
-  const { me } = useSessionMe();
+  const { planCode } = useSessionMe();
   const vm = useTransferDoc(undefined);
-  if (!isPlusPlan(me?.plan_code)) {
+  if (!planSupportsNx02PlusFeatures(planCode)) {
     return <PlanUpgradePrompt requiredPlan="PLUS" />;
   }
   return <TransferFormView vm={vm} isNew />;

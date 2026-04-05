@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { planSupportsNx02PlusFeatures } from '../../shared/plan/plan-plus-support';
 
 /**
  * @FUNCTION_CODE NX02-PLS-GUA-001-F01
@@ -26,8 +27,7 @@ export class PlusPlanGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const req = context.switchToHttp().getRequest<{ user?: RequestUser }>();
     const user = req.user;
-    const p = (user?.planCode ?? '').trim().toUpperCase();
-    if (p === 'PLUS' || p === 'PRO') return true;
+    if (planSupportsNx02PlusFeatures(user?.planCode)) return true;
     throw new HttpException(
       {
         code: 'PLAN_NOT_SUPPORTED',

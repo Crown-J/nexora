@@ -6,29 +6,25 @@
  * - NX02-DSH-UI-002：庫存模組首頁（CARD 區塊 + 統計）
  *
  * Notes:
- * - PLUS 卡片依 planCode（PLUS／PRO）顯示；LITE 隱藏
+ * - PLUS 卡片依方案（NEXORA-PLUS／NEXORA-PRO 或簡寫 PLUS／PRO）顯示；LITE 隱藏
  * - @FUNCTION_CODE NX02-DSH-UI-002-F01
  */
 
 'use client';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 import { useDashboard } from '../hooks/useDashboard';
 import { Nx02StatCard } from './Nx02StatCard';
-
-function planShowsPlusFeatures(planCode: string | null | undefined): boolean {
-  const p = (planCode ?? '').trim().toUpperCase();
-  return p === 'PLUS' || p === 'PRO';
-}
 
 /**
  * @FUNCTION_CODE NX02-DSH-UI-002-F01
  */
 export function Nx02DashboardPage() {
-  const { me } = useSessionMe();
+  const { planCode } = useSessionMe();
   const { data, loading, error } = useDashboard();
-  const showPlus = planShowsPlusFeatures(me?.plan_code ?? null);
+  const showPlus = planSupportsNx02PlusFeatures(planCode);
 
   return (
     <div className="space-y-10">

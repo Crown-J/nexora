@@ -12,16 +12,12 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
 import { useAutoReplenish } from '@/features/nx02/auto-replenish/hooks/useAutoReplenish';
 import { AutoReplenishSplitView } from '@/features/nx02/auto-replenish/ui/AutoReplenishSplitView';
-
-function isPlusPlan(code: string | null | undefined): boolean {
-  const p = (code ?? '').trim().toUpperCase();
-  return p === 'PLUS' || p === 'PRO';
-}
+import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 export default function Nx02AutoReplenishPage() {
-  const { me } = useSessionMe();
+  const { planCode } = useSessionMe();
   const vm = useAutoReplenish();
-  if (!isPlusPlan(me?.plan_code)) {
+  if (!planSupportsNx02PlusFeatures(planCode)) {
     return <PlanUpgradePrompt requiredPlan="PLUS" />;
   }
   return <AutoReplenishSplitView vm={vm} />;
