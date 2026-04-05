@@ -82,7 +82,7 @@ export type PatchRfqReplyBody = {
 };
 
 export async function patchRfqReply(id: string, body: PatchRfqReplyBody): Promise<RfqDetailDto> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/reply`, {
+  const res = await apiFetch(`/nx01/rfq/reply/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });

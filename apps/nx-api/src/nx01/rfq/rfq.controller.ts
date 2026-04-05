@@ -90,8 +90,9 @@ export class RfqController {
 
   /**
    * @FUNCTION_CODE NX01-RFQ-CTRL-001-F04A
+   * 雙路徑：部分閘道／舊版客戶端只認其中一種；`reply/:id` 將靜態段置前較利於相容。
    */
-  @Patch(':id/reply')
+  @Patch([':id/reply', 'reply/:id'])
   @RequireNx00ViewPermission(NX00_VIEW.NX01_RFQ, 'update')
   async patchReply(
     @Req() req: { user?: RequestUser },
