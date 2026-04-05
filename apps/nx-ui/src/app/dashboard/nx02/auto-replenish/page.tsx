@@ -3,15 +3,26 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 自動補貨設定占位頁（PLUS；後續批次實作）
+ * - 自動補貨設定（PLUS）
  */
 
 'use client';
 
-export default function Nx02AutoReplenishPlaceholderPage() {
-  return (
-    <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-sm text-muted-foreground">
-      自動補貨設定功能將於後續批次提供。
-    </div>
-  );
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
+import { useAutoReplenish } from '@/features/nx02/auto-replenish/hooks/useAutoReplenish';
+import { AutoReplenishSplitView } from '@/features/nx02/auto-replenish/ui/AutoReplenishSplitView';
+
+function isPlusPlan(code: string | null | undefined): boolean {
+  const p = (code ?? '').trim().toUpperCase();
+  return p === 'PLUS' || p === 'PRO';
+}
+
+export default function Nx02AutoReplenishPage() {
+  const { me } = useSessionMe();
+  const vm = useAutoReplenish();
+  if (!isPlusPlan(me?.plan_code)) {
+    return <PlanUpgradePrompt requiredPlan="PLUS" />;
+  }
+  return <AutoReplenishSplitView vm={vm} />;
 }

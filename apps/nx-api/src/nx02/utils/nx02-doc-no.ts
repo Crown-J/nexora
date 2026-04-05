@@ -3,10 +3,10 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02-CORE-UTL-002：產生開帳存／盤點單 doc_no（VARCHAR(16)）
+ * - NX02-CORE-UTL-002：產生開帳存／盤點單／調撥單 doc_no（VARCHAR(16)）
  *
  * Notes:
- * - 規格為 IN-YYYYMM-倉碼-流水，欄位僅 16 字元 → 壓縮為 IN|YYMM|倉碼3|流水7（共 16）
+ * - 規格為 IN/SL/ST + YYMM + 倉碼3 + 流水7（共 16 字元）
  * - @FUNCTION_CODE NX02-CORE-UTL-002-F01
  */
 
@@ -29,7 +29,7 @@ function yymm(d: Date): string {
   return String(y).slice(2) + String(m).padStart(2, '0');
 }
 
-function buildPrefix(kind: 'IN' | 'SL', refDate: Date, warehouseCode: string): string {
+function buildPrefix(kind: 'IN' | 'SL' | 'ST', refDate: Date, warehouseCode: string): string {
   return `${kind}${yymm(refDate)}${warehouseCodeTo3(warehouseCode)}`;
 }
 
@@ -77,5 +77,27 @@ export async function allocateStockTakeDocNo(
   });
   const seq = nextSeqFromLast(last?.docNo, prefix);
   if (seq > 9_999_999) throw new Error('stock take doc_no sequence overflow');
+  return `${prefix}${String(seq).padStart(7, '0')}`;
+}
+
+/**
+ * 調撥單 doc_no：ST + YYMM + 來源倉3碼 + 流水7（共 16 字元）
+ *
+ * @FUNCTION_CODE NX02-CORE-UTL-002-F04
+ */
+export async function allocateTransferDocNo(
+  tx: Prisma.TransactionClient,
+  tenantId: string,
+  refDate: Date,
+  fromWarehouseCode: string,
+): Promise<string> {
+  const prefix = buildPrefix('ST', refDate, fromWarehouseCode);
+  const last = await tx.nx02StockTransfer.findFirst({
+    where: { tenantId, docNo: { startsWith: prefix } },
+    orderBy: { docNo: 'desc' },
+    select: { docNo: true },
+  });
+  const seq = nextSeqFromLast(last?.docNo, prefix);
+  if (seq > 9_999_999) throw new Error('transfer doc_no sequence overflow');
   return `${prefix}${String(seq).padStart(7, '0')}`;
 }

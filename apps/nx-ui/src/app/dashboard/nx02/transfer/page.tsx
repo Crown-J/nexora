@@ -3,15 +3,26 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 調撥單占位頁（PLUS；後續批次實作）
+ * - 調撥單列表（PLUS）
  */
 
 'use client';
 
-export default function Nx02TransferPlaceholderPage() {
-  return (
-    <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-sm text-muted-foreground">
-      調撥單功能將於後續批次提供。
-    </div>
-  );
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
+import { useTransferList } from '@/features/nx02/transfer/hooks/useTransfer';
+import { TransferListView } from '@/features/nx02/transfer/ui/TransferListView';
+
+function isPlusPlan(code: string | null | undefined): boolean {
+  const p = (code ?? '').trim().toUpperCase();
+  return p === 'PLUS' || p === 'PRO';
+}
+
+export default function Nx02TransferListPage() {
+  const { me } = useSessionMe();
+  const vm = useTransferList();
+  if (!isPlusPlan(me?.plan_code)) {
+    return <PlanUpgradePrompt requiredPlan="PLUS" />;
+  }
+  return <TransferListView vm={vm} />;
 }

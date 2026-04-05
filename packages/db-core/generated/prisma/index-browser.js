@@ -451,6 +451,34 @@ exports.Prisma.Nx99TenantScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
+exports.Prisma.Nx01RfqScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  rfqDate: 'rfqDate',
+  supplierId: 'supplierId',
+  currency: 'currency',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01RfqItemScalarFieldEnum = {
+  id: 'id',
+  rfqId: 'rfqId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  qtyRequested: 'qtyRequested',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.Nx02StockLedgerScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -825,6 +853,8 @@ exports.Prisma.ModelName = {
   Nx00Bulletin: 'Nx00Bulletin',
   Nx00CalendarEvent: 'Nx00CalendarEvent',
   Nx99Tenant: 'Nx99Tenant',
+  Nx01Rfq: 'Nx01Rfq',
+  Nx01RfqItem: 'Nx01RfqItem',
   Nx02StockLedger: 'Nx02StockLedger',
   Nx02StockBalance: 'Nx02StockBalance',
   Nx02PartStockSetting: 'Nx02PartStockSetting',

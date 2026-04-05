@@ -407,6 +407,7 @@ model Nx00Part {
   stockTakeItems    Nx02StockTakeItem[]
   stockTransferItems Nx02StockTransferItem[]
   initItems         Nx02InitItem[]
+  rfqItems          Nx01RfqItem[]
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId])
@@ -876,7 +877,58 @@ model Nx99Tenant {
   stockTransfers     Nx02StockTransfer[]
   inits              Nx02Init[]
 
+  rfqs Nx01Rfq[]
+
   @@map("nx99_tenant")
+}
+
+/// =======================================================
+/// NX01 - RFQ 詢價單（MW2 草稿；缺貨轉 RFQ）
+/// Table: nx01_rfq / nx01_rfq_item
+/// =======================================================
+model Nx01Rfq {
+  id         String   @id @default(dbgenerated("gen_nx01_rfqo_id()")) @db.VarChar(15)
+  tenantId   String   @map("tenant_id") @db.VarChar(15)
+  tenant     Nx99Tenant @relation(fields: [tenantId], references: [id])
+  docNo      String   @map("doc_no") @db.VarChar(20)
+  rfqDate    DateTime @map("rfq_date") @db.Date
+  supplierId String?  @map("supplier_id") @db.VarChar(15)
+  currency   String   @default("TWD") @db.VarChar(10)
+  /// D=草稿
+  status     String   @default("D") @db.VarChar(1)
+  remark     String?  @db.VarChar(200)
+  createdAt  DateTime @default(now()) @map("created_at")
+  createdBy  String?  @map("created_by") @db.VarChar(15)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  updatedBy  String?  @map("updated_by") @db.VarChar(15)
+
+  items     Nx01RfqItem[]
+  shortages Nx02Shortage[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId])
+  @@index([status])
+  @@map("nx01_rfq")
+}
+
+model Nx01RfqItem {
+  id           String   @id @default(dbgenerated("gen_nx01_rfit_id()")) @db.VarChar(15)
+  rfqId        String   @map("rfq_id") @db.VarChar(15)
+  rfq          Nx01Rfq @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  lineNo       Int      @map("line_no")
+  partId       String   @map("part_id") @db.VarChar(15)
+  part         Nx00Part @relation(fields: [partId], references: [id])
+  qtyRequested Decimal  @map("qty_requested") @db.Decimal(14, 4)
+  remark       String?  @db.VarChar(200)
+  createdAt    DateTime @default(now()) @map("created_at")
+  createdBy    String?  @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  updatedBy    String?  @map("updated_by") @db.VarChar(15)
+
+  @@unique([rfqId, lineNo])
+  @@index([rfqId])
+  @@index([partId])
+  @@map("nx01_rfq_item")
 }
 
 /// =======================================================
@@ -1003,6 +1055,7 @@ model Nx02Shortage {
   /// O=OPEN / R=RFQ / C=CLOSED / I=IGNORED
   status            String    @map("status") @db.VarChar(1)
   refRfqId          String?   @map("ref_rfq_id") @db.VarChar(15)
+  refRfq            Nx01Rfq?  @relation(fields: [refRfqId], references: [id])
   detectedAt        DateTime  @default(now()) @map("detected_at")
   resolvedAt        DateTime? @map("resolved_at")
   remark            String?   @db.VarChar(200)

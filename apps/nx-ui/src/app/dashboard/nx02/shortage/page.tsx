@@ -3,15 +3,26 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02 缺貨簿占位頁（PLUS；後續批次實作）
+ * - 缺貨簿（PLUS）
  */
 
 'use client';
 
-export default function Nx02ShortagePlaceholderPage() {
-  return (
-    <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-sm text-muted-foreground">
-      缺貨簿功能將於後續批次提供。
-    </div>
-  );
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
+import { useShortage } from '@/features/nx02/shortage/hooks/useShortage';
+import { ShortageView } from '@/features/nx02/shortage/ui/ShortageView';
+
+function isPlusPlan(code: string | null | undefined): boolean {
+  const p = (code ?? '').trim().toUpperCase();
+  return p === 'PLUS' || p === 'PRO';
+}
+
+export default function Nx02ShortagePage() {
+  const { me } = useSessionMe();
+  const vm = useShortage();
+  if (!isPlusPlan(me?.plan_code)) {
+    return <PlanUpgradePrompt requiredPlan="PLUS" />;
+  }
+  return <ShortageView vm={vm} />;
 }

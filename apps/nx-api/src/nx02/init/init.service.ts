@@ -18,6 +18,7 @@ import { Prisma } from 'db-core';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
+import { ShortageService } from '../shortage/shortage.service';
 import { allocateInitDocNo } from '../utils/nx02-doc-no';
 import { resolveLedgerLocationId } from '../utils/nx02-resolve-location';
 
@@ -67,7 +68,10 @@ type InitDetailRow = Prisma.Nx02InitGetPayload<{ include: typeof initDetailInclu
 
 @Injectable()
 export class InitService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly shortage: ShortageService,
+  ) { }
 
   private mapInitRowToDetail(row: InitDetailRow) {
     return {
@@ -435,6 +439,8 @@ export class InitService {
             updatedBy: userId ?? null,
           },
         });
+
+        await this.shortage.detect(tx, tenantId, line.partId, doc.warehouseId, userId ?? null);
       }
 
       await tx.nx02Init.update({

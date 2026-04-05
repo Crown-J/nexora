@@ -15,6 +15,7 @@ import { Prisma } from 'db-core';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
+import { ShortageService } from '../shortage/shortage.service';
 import { allocateStockTakeDocNo } from '../utils/nx02-doc-no';
 import { resolveLedgerLocationId } from '../utils/nx02-resolve-location';
 
@@ -48,7 +49,10 @@ type StockTakeDetailRow = Prisma.Nx02StockTakeGetPayload<{ include: typeof stock
 
 @Injectable()
 export class StockTakeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly shortage: ShortageService,
+  ) { }
 
   private mapStockTakeRowToDetail(row: StockTakeDetailRow) {
     return {
@@ -463,6 +467,8 @@ export class StockTakeService {
             updatedBy: userId ?? null,
           },
         });
+
+        await this.shortage.detect(tx, tenantId, line.partId, doc.warehouseId, userId ?? null);
       }
 
       await tx.nx02StockTake.update({
