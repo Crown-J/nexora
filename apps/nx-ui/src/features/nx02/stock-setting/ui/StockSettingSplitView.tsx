@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
-import { getPart } from '@/features/nx00/part/api/part';
+import { PartLookupAutocomplete } from '@/features/nx02/shared/ui/PartLookupAutocomplete';
 import { cx } from '@/shared/lib/cx';
 
 import type { StockSettingVm } from '../hooks/useStockSetting';
@@ -156,33 +156,27 @@ export function StockSettingSplitView({ vm }: StockSettingSplitViewProps) {
           <>
             <h2 className="text-base font-semibold">{isNew ? '新增庫存設定' : '編輯設定'}</h2>
             <div className="grid gap-3 md:grid-cols-2">
-              <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-                零件 ID {isNew ? '' : '（唯讀）'}
-                <div className="flex gap-2">
-                  <input
-                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm disabled:opacity-60"
-                    disabled={!isNew}
-                    value={form.partId}
-                    onChange={(e) => setForm({ ...form, partId: e.target.value })}
+              <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                <span>零件 {isNew ? '*' : '（唯讀）'}</span>
+                {isNew ? (
+                  <PartLookupAutocomplete
+                    partId={form.partId}
+                    partCode={form.partCode}
+                    partName={form.partName}
+                    onChange={(p) =>
+                      p
+                        ? setForm({ ...form, partId: p.id, partCode: p.code, partName: p.name })
+                        : setForm({ ...form, partId: '', partCode: '', partName: '' })
+                    }
+                    placeholder="料號或品名…"
+                    inputClassName="text-sm"
                   />
-                  {isNew ? (
-                    <button
-                      type="button"
-                      className="rounded-lg border border-border px-2 text-xs"
-                      onClick={async () => {
-                        try {
-                          const p = await getPart(form.partId.trim());
-                          setForm({ ...form, partId: p.id, partCode: p.code, partName: p.name });
-                        } catch {
-                          setForm({ ...form, partName: '（查無）' });
-                        }
-                      }}
-                    >
-                      帶入
-                    </button>
-                  ) : null}
-                </div>
-              </label>
+                ) : (
+                  <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2 font-mono text-sm">
+                    {form.partCode || '—'}
+                  </div>
+                )}
+              </div>
               <label className="flex flex-col gap-1 text-xs text-muted-foreground">
                 倉庫 {isNew ? '' : '（唯讀）'}
                 <select
@@ -199,10 +193,12 @@ export function StockSettingSplitView({ vm }: StockSettingSplitViewProps) {
                   ))}
                 </select>
               </label>
-              <div className="md:col-span-2 text-sm">
-                <span className="text-muted-foreground">品名：</span>
-                {form.partName || '—'}
-              </div>
+              {!isNew ? (
+                <div className="md:col-span-2 text-sm">
+                  <span className="text-muted-foreground">品名：</span>
+                  {form.partName || '—'}
+                </div>
+              ) : null}
               <label className="flex flex-col gap-1 text-xs text-muted-foreground">
                 安全量
                 <input
