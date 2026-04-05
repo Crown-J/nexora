@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
 import { PartLookupAutocomplete } from '@/features/nx02/shared/ui/PartLookupAutocomplete';
 import { cx } from '@/shared/lib/cx';
+import { parseIntInput } from '@/shared/lib/normalize-numeric-input';
 
 import type { StockSettingVm } from '../hooks/useStockSetting';
 
@@ -205,7 +206,7 @@ export function StockSettingSplitView({ vm }: StockSettingSplitViewProps) {
                   type="number"
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   value={form.minQty}
-                  onChange={(e) => setForm({ ...form, minQty: Number(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, minQty: parseIntInput(e.target.value) })}
                 />
               </label>
               <label className="flex flex-col gap-1 text-xs text-muted-foreground">
@@ -214,7 +215,7 @@ export function StockSettingSplitView({ vm }: StockSettingSplitViewProps) {
                   type="number"
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   value={form.maxQty}
-                  onChange={(e) => setForm({ ...form, maxQty: Number(e.target.value) })}
+                  onChange={(e) => setForm({ ...form, maxQty: parseIntInput(e.target.value) })}
                 />
               </label>
               <div className="text-sm">

@@ -9,6 +9,7 @@
 'use client';
 
 import { cx } from '@/shared/lib/cx';
+import { normalizeDecimalStringInput } from '@/shared/lib/normalize-numeric-input';
 
 import type { StockTakeDetailVm } from '../hooks/useStockTakeDetail';
 
@@ -76,9 +77,12 @@ export function StockTakeDetailView({ vm }: StockTakeDetailViewProps) {
                   <td className="px-2 py-2 text-right">
                     {editable ? (
                       <input
-                        className="w-24 rounded border border-border bg-background px-1 py-0.5 text-right text-xs"
+                        type="number"
+                        className="w-24 rounded border border-border bg-background px-1 py-0.5 text-right text-xs tabular-nums"
                         value={l.countedInput}
-                        onChange={(e) => updateLine(l.id, { countedInput: e.target.value })}
+                        onChange={(e) =>
+                          updateLine(l.id, { countedInput: normalizeDecimalStringInput(e.target.value) })
+                        }
                         placeholder="空白=未盤"
                       />
                     ) : (

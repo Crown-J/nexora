@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { listLookupLocation } from '@/features/nx00/lookup/api/lookup';
+import { normalizeDecimalStringInput } from '@/shared/lib/normalize-numeric-input';
 
 import type { DraftItem } from '../hooks/useInitDetail';
 import { PartLookupAutocomplete } from '../../shared/ui/PartLookupAutocomplete';
@@ -247,7 +248,7 @@ function InitItemRow({
             type="number"
             className="w-24 rounded border border-border bg-background px-2 py-1 text-right tabular-nums"
             value={row.qty}
-            onChange={(e) => onUpdate({ qty: e.target.value })}
+            onChange={(e) => onUpdate({ qty: normalizeDecimalStringInput(e.target.value) })}
             onKeyDown={onQtyKeyDown}
           />
         ) : (
@@ -261,7 +262,7 @@ function InitItemRow({
             type="number"
             className="w-28 rounded border border-border bg-background px-2 py-1 text-right tabular-nums"
             value={row.unitCost}
-            onChange={(e) => onUpdate({ unitCost: e.target.value })}
+            onChange={(e) => onUpdate({ unitCost: normalizeDecimalStringInput(e.target.value) })}
             onKeyDown={onUnitCostKeyDown}
           />
         ) : (
