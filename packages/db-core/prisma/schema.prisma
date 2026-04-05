@@ -992,6 +992,7 @@ model Nx01RfqItem {
   updatedByUser Nx00User? @relation("Nx01RfqItemUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
 
   poItems Nx01PoItem[]
+  rrItems Nx01RrItem[]
 
   @@unique([rfqId, lineNo])
   @@index([rfqId])
@@ -1150,6 +1151,8 @@ model Nx01RrItem {
   lineAmount  Decimal  @default(0) @map("line_amount") @db.Decimal(14, 2)
   poItemId    String?  @map("po_item_id") @db.VarChar(15)
   poItem      Nx01PoItem? @relation(fields: [poItemId], references: [id], onDelete: SetNull)
+  rfqItemId   String?  @map("rfq_item_id") @db.VarChar(15)
+  rfqItem     Nx01RfqItem? @relation(fields: [rfqItemId], references: [id], onDelete: SetNull)
   remark      String?  @db.VarChar(200)
   createdAt   DateTime @default(now()) @map("created_at")
   createdBy   String?  @map("created_by") @db.VarChar(15)
@@ -1166,6 +1169,7 @@ model Nx01RrItem {
   @@index([partId])
   @@index([locationId])
   @@index([poItemId])
+  @@index([rfqItemId])
   @@map("nx01_rr_item")
 }
 

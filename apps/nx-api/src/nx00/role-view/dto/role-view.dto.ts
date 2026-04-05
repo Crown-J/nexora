@@ -6,6 +6,9 @@
  * - NX00-API-ROLE-VIEW-DTO-001：RoleView DTO（LITE 對齊 nx00_role_view）
  */
 
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsString, ValidateNested } from 'class-validator';
+
 /** 五維權限（Prisma：`canToggleActive` ↔ DB `can_delete`，語意為啟用／停用） */
 export type RoleViewPerms = {
     canRead: boolean;
@@ -83,14 +86,28 @@ export type SetActiveBody = {
 };
 
 export class UpsertRoleViewItemDto {
+    @IsString()
     viewId!: string;
+
+    @IsBoolean()
     canRead!: boolean;
+
+    @IsBoolean()
     canCreate!: boolean;
+
+    @IsBoolean()
     canUpdate!: boolean;
+
+    @IsBoolean()
     canToggleActive!: boolean;
+
+    @IsBoolean()
     canExport!: boolean;
 }
 
 export class UpsertRoleViewDto {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => UpsertRoleViewItemDto)
     items!: UpsertRoleViewItemDto[];
 }

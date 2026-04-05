@@ -48,6 +48,7 @@ export type CreateRrBody = {
     qty: number;
     unitCost: number;
     poItemId?: string | null;
+    rfqItemId?: string | null;
     remark?: string | null;
   }[];
 };

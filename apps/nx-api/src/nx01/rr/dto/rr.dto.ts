@@ -12,6 +12,8 @@ export type RrItemInputDto = {
   qty: number;
   unitCost: number;
   poItemId?: string | null;
+  /** 來自詢價明細；過帳後將該 rfq_item 標為 S（已選用） */
+  rfqItemId?: string | null;
   remark?: string | null;
 };
 

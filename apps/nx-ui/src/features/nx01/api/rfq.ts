@@ -53,6 +53,43 @@ export async function createRfq(body: CreateRfqBody): Promise<{ id: string }> {
   return (await res.json()) as { id: string };
 }
 
+export type PatchRfqBody = {
+  rfqDate?: string;
+  supplierId?: string | null;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  remark?: string | null;
+  items?: {
+    partId: string;
+    qty: number;
+    unitPrice?: number | null;
+    leadTimeDays?: number | null;
+    remark?: string | null;
+  }[];
+};
+
+export async function patchRfq(id: string, body: PatchRfqBody): Promise<RfqDetailDto> {
+  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+  await assertOk(res, 'nxui_nx01_rfq_patch_001');
+  return (await res.json()) as RfqDetailDto;
+}
+
+export type PatchRfqReplyBody = {
+  items: { id: string; unit_price: number | null; lead_time_days: number | null; status: 'R' | 'C' }[];
+};
+
+export async function patchRfqReply(id: string, body: PatchRfqReplyBody): Promise<RfqDetailDto> {
+  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/reply`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+  await assertOk(res, 'nxui_nx01_rfq_reply_001');
+  return (await res.json()) as RfqDetailDto;
+}
+
 export async function patchRfqStatus(id: string, status: string): Promise<void> {
   const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/status`, {
     method: 'PATCH',

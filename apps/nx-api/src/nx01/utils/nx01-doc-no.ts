@@ -15,6 +15,14 @@ import type { Prisma } from 'db-core';
 
 import { warehouseCodeTo3 } from '../../nx02/utils/nx02-doc-no';
 
+function requireWarehouseCodeForNx01(warehouseCode: string | undefined | null): string {
+  const c = String(warehouseCode ?? '').trim();
+  if (!c) {
+    throw new Error('warehouseCode is required for doc_no generation');
+  }
+  return c;
+}
+
 function yymm(d: Date): string {
   const y = d.getUTCFullYear();
   const m = d.getUTCMonth() + 1;
@@ -41,7 +49,8 @@ export async function allocateRfqDocNo(
   refDate: Date,
   warehouseCode: string,
 ): Promise<string> {
-  const prefix = buildPrefix('RF', refDate, warehouseCode);
+  const wh = requireWarehouseCodeForNx01(warehouseCode);
+  const prefix = buildPrefix('RF', refDate, wh);
   const last = await tx.nx01Rfq.findFirst({
     where: { tenantId, docNo: { startsWith: prefix } },
     orderBy: { docNo: 'desc' },
@@ -61,7 +70,8 @@ export async function allocatePoDocNo(
   refDate: Date,
   warehouseCode: string,
 ): Promise<string> {
-  const prefix = buildPrefix('PO', refDate, warehouseCode);
+  const wh = requireWarehouseCodeForNx01(warehouseCode);
+  const prefix = buildPrefix('PO', refDate, wh);
   const last = await tx.nx01Po.findFirst({
     where: { tenantId, docNo: { startsWith: prefix } },
     orderBy: { docNo: 'desc' },
@@ -81,7 +91,8 @@ export async function allocateRrDocNo(
   refDate: Date,
   warehouseCode: string,
 ): Promise<string> {
-  const prefix = buildPrefix('RR', refDate, warehouseCode);
+  const wh = requireWarehouseCodeForNx01(warehouseCode);
+  const prefix = buildPrefix('RR', refDate, wh);
   const last = await tx.nx01Rr.findFirst({
     where: { tenantId, docNo: { startsWith: prefix } },
     orderBy: { docNo: 'desc' },
@@ -101,7 +112,8 @@ export async function allocatePrDocNo(
   refDate: Date,
   warehouseCode: string,
 ): Promise<string> {
-  const prefix = buildPrefix('PR', refDate, warehouseCode);
+  const wh = requireWarehouseCodeForNx01(warehouseCode);
+  const prefix = buildPrefix('PR', refDate, wh);
   const last = await tx.nx01Pr.findFirst({
     where: { tenantId, docNo: { startsWith: prefix } },
     orderBy: { docNo: 'desc' },

@@ -570,6 +570,7 @@ exports.Prisma.Nx01RrItemScalarFieldEnum = {
   unitCost: 'unitCost',
   lineAmount: 'lineAmount',
   poItemId: 'poItemId',
+  rfqItemId: 'rfqItemId',
   remark: 'remark',
   createdAt: 'createdAt',
   createdBy: 'createdBy',

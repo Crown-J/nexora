@@ -89,6 +89,7 @@ export class RrService {
         unitCost: it.unitCost.toNumber(),
         lineAmount: it.lineAmount.toNumber(),
         poItemId: it.poItemId,
+        rfqItemId: it.rfqItemId,
         remark: it.remark,
       })),
     };
@@ -196,6 +197,21 @@ export class RrService {
     return p;
   }
 
+  private async maybeClosePoAfterRrPost(
+    tx: Prisma.TransactionClient,
+    poId: string,
+    userId: string | undefined,
+  ) {
+    const items = await tx.nx01PoItem.findMany({ where: { poId } });
+    const allReceived = items.length > 0 && items.every((it) => it.receivedQty.gte(it.qty));
+    if (allReceived) {
+      await tx.nx01Po.update({
+        where: { id: poId },
+        data: { status: 'C', updatedBy: userId ?? null },
+      });
+    }
+  }
+
   private async buildItems(
     tenantId: string,
     warehouseId: string,
@@ -211,6 +227,7 @@ export class RrService {
       unitCost: Prisma.Decimal;
       lineAmount: Prisma.Decimal;
       poItemId: string | null;
+      rfqItemId: string | null;
       remark: string | null;
     }[] = [];
     for (const raw of inputs) {
@@ -238,6 +255,7 @@ export class RrService {
         unitCost,
         lineAmount,
         poItemId: raw.poItemId?.trim() || null,
+        rfqItemId: raw.rfqItemId?.trim() || null,
         remark: raw.remark?.trim() ? raw.remark.trim() : null,
       });
     }
@@ -250,10 +268,40 @@ export class RrService {
   async create(tenantId: string, userId: string | undefined, body: CreateRrBodyDto) {
     const wh = await this.assertWh(tenantId, body.warehouseId);
     await this.assertSupplier(tenantId, body.supplierId);
+    if (body.rfqId?.trim()) {
+      const rfq = await this.prisma.nx01Rfq.findFirst({ where: { id: body.rfqId.trim(), tenantId } });
+      if (!rfq) throw new NotFoundException('詢價單不存在');
+      if (rfq.status !== 'R') throw new BadRequestException('僅「已回覆」之詢價單可轉進貨');
+      if (rfq.supplierId && rfq.supplierId !== body.supplierId) {
+        throw new BadRequestException('供應商須與詢價單一致');
+      }
+    }
+    if (body.poId?.trim()) {
+      const po = await this.prisma.nx01Po.findFirst({ where: { id: body.poId.trim(), tenantId } });
+      if (!po) throw new NotFoundException('採購單不存在');
+      if (po.status !== 'S') throw new BadRequestException('僅已送出的採購單可轉進貨');
+      if (po.supplierId !== body.supplierId) {
+        throw new BadRequestException('供應商須與採購單一致');
+      }
+    }
     const rrDate = body.rrDate ? parseYmd(body.rrDate) : parseYmd(new Date().toISOString().slice(0, 10));
     const currencyId = body.currencyId?.trim() || (await resolveTwdCurrencyId(this.prisma));
     const taxRate = body.taxRate != null ? d(body.taxRate) : d(5);
     const items = await this.buildItems(tenantId, body.warehouseId, body.items);
+    for (const it of items) {
+      if (it.rfqItemId && body.rfqId?.trim()) {
+        const fi = await this.prisma.nx01RfqItem.findFirst({
+          where: { id: it.rfqItemId, rfqId: body.rfqId.trim() },
+        });
+        if (!fi) throw new BadRequestException('詢價明細與來源詢價單不符');
+      }
+      if (it.poItemId && body.poId?.trim()) {
+        const pi = await this.prisma.nx01PoItem.findFirst({
+          where: { id: it.poItemId, poId: body.poId.trim() },
+        });
+        if (!pi) throw new BadRequestException('採購明細與來源採購單不符');
+      }
+    }
     let subtotal = d(0);
     for (const it of items) subtotal = subtotal.add(it.lineAmount);
     subtotal = roundMoney2(subtotal);
@@ -290,6 +338,7 @@ export class RrService {
               unitCost: it.unitCost,
               lineAmount: it.lineAmount,
               poItemId: it.poItemId,
+              rfqItemId: it.rfqItemId,
               remark: it.remark,
               createdBy: userId ?? null,
               updatedBy: userId ?? null,
@@ -340,6 +389,7 @@ export class RrService {
               unitCost: it.unitCost,
               lineAmount: it.lineAmount,
               poItemId: it.poItemId,
+              rfqItemId: it.rfqItemId,
               remark: it.remark,
               createdBy: userId ?? null,
               updatedBy: userId ?? null,
@@ -492,6 +542,45 @@ export class RrService {
         });
 
         await this.shortage.detect(tx, tenantId, line.partId, doc.warehouseId, userId ?? null);
+
+        if (line.poItemId) {
+          const pit = await tx.nx01PoItem.findUnique({
+            where: { id: line.poItemId },
+            select: { id: true, receivedQty: true, qty: true, partNo: true },
+          });
+          if (pit) {
+            const nextRecv = pit.receivedQty.add(qty);
+            if (nextRecv.gt(pit.qty)) {
+              throw new BadRequestException(`收貨累計超過採購量（${pit.partNo}）`);
+            }
+            await tx.nx01PoItem.update({
+              where: { id: pit.id },
+              data: { receivedQty: nextRecv, updatedBy: userId ?? null },
+            });
+          }
+        }
+      }
+
+      if (doc.rfqId) {
+        const seen = new Set<string>();
+        for (const line of doc.items) {
+          if (!line.rfqItemId || seen.has(line.rfqItemId)) continue;
+          seen.add(line.rfqItemId);
+          const fi = await tx.nx01RfqItem.findFirst({
+            where: { id: line.rfqItemId, rfqId: doc.rfqId },
+            select: { id: true },
+          });
+          if (fi) {
+            await tx.nx01RfqItem.update({
+              where: { id: fi.id },
+              data: { status: 'S', updatedBy: userId ?? null },
+            });
+          }
+        }
+      }
+
+      if (doc.poId) {
+        await this.maybeClosePoAfterRrPost(tx, doc.poId, userId);
       }
 
       await tx.nx01Rr.update({

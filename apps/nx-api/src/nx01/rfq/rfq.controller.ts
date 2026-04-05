@@ -31,8 +31,9 @@ import { RequireNx00ViewPermission } from '../../nx00/rbac/require-nx00-view-per
 import { assertNx02TenantId } from '../../nx02/utils/assert-nx02-tenant';
 import { PlusPlanGuard } from '../../nx02/guards/plus-plan.guard';
 
+import { CreateRfqDto } from './dto/create-rfq.dto';
+import { PatchReplyDto } from './dto/patch-reply.dto';
 import type {
-  CreateRfqBodyDto,
   PatchRfqBodyDto,
   PatchRfqStatusBodyDto,
   RfqToPoBodyDto,
@@ -82,23 +83,23 @@ export class RfqController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequireNx00ViewPermission(NX00_VIEW.NX01_RFQ, 'create')
-  async create(@Req() req: { user?: RequestUser }, @Body() body: CreateRfqBodyDto) {
+  async create(@Req() req: { user?: RequestUser }, @Body() body: CreateRfqDto) {
     const tenantId = assertNx02TenantId(req.user);
     return this.rfq.create(tenantId, req.user?.sub, body);
   }
 
   /**
-   * @FUNCTION_CODE NX01-RFQ-CTRL-001-F04
+   * @FUNCTION_CODE NX01-RFQ-CTRL-001-F04A
    */
-  @Patch(':id')
+  @Patch(':id/reply')
   @RequireNx00ViewPermission(NX00_VIEW.NX01_RFQ, 'update')
-  async patch(
+  async patchReply(
     @Req() req: { user?: RequestUser },
     @Param('id') id: string,
-    @Body() body: PatchRfqBodyDto,
+    @Body() body: PatchReplyDto,
   ) {
     const tenantId = assertNx02TenantId(req.user);
-    return this.rfq.patch(tenantId, req.user?.sub, id, body);
+    return this.rfq.patchReply(tenantId, req.user?.sub, id, body);
   }
 
   /**
@@ -113,6 +114,20 @@ export class RfqController {
   ) {
     const tenantId = assertNx02TenantId(req.user);
     return this.rfq.patchStatus(tenantId, req.user?.sub, id, body);
+  }
+
+  /**
+   * @FUNCTION_CODE NX01-RFQ-CTRL-001-F04
+   */
+  @Patch(':id')
+  @RequireNx00ViewPermission(NX00_VIEW.NX01_RFQ, 'update')
+  async patch(
+    @Req() req: { user?: RequestUser },
+    @Param('id') id: string,
+    @Body() body: PatchRfqBodyDto,
+  ) {
+    const tenantId = assertNx02TenantId(req.user);
+    return this.rfq.patch(tenantId, req.user?.sub, id, body);
   }
 
   /**

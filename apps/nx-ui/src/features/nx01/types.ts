@@ -156,6 +156,7 @@ export type RrDetailDto = {
     unitCost: number;
     lineAmount: number;
     poItemId: string | null;
+    rfqItemId: string | null;
     remark: string | null;
   }[];
 };

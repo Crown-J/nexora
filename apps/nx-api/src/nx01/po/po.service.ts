@@ -258,6 +258,10 @@ export class PoService {
       if (body.rfqId?.trim()) {
         const rfq = await tx.nx01Rfq.findFirst({ where: { id: body.rfqId.trim(), tenantId } });
         if (!rfq) throw new BadRequestException('來源詢價單不存在');
+        if (rfq.status !== 'R') throw new BadRequestException('僅「已回覆」之詢價單可建立採購');
+        if (rfq.supplierId && rfq.supplierId !== body.supplierId) {
+          throw new BadRequestException('採購供應商須與詢價單一致');
+        }
       }
       const no = await allocatePoDocNo(tx, tenantId, poDate, wh.code);
       const doc = await tx.nx01Po.create({
@@ -496,19 +500,6 @@ export class PoService {
         poItemId: l.poItemId,
         remark: l.remark,
       })),
-    });
-
-    await this.prisma.$transaction(async (tx) => {
-      for (const sel of body.items) {
-        const pit = await tx.nx01PoItem.findFirst({ where: { id: sel.poItemId, poId } });
-        if (!pit) continue;
-        const q = d(sel.qty);
-        await tx.nx01PoItem.update({
-          where: { id: pit.id },
-          data: { receivedQty: pit.receivedQty.add(q), updatedBy: userId ?? null },
-        });
-      }
-      await this.maybeClosePo(tx, poId, userId);
     });
 
     return { rrId: rr.id, rrDocNo: rr.docNo };

@@ -24,6 +24,7 @@ import { d, parseYmd, resolveTwdCurrencyId } from '../utils/nx01-helpers';
 import type {
   CreateRfqBodyDto,
   PatchRfqBodyDto,
+  PatchRfqReplyBodyDto,
   PatchRfqStatusBodyDto,
   RfqItemInputDto,
   RfqToPoBodyDto,
@@ -203,6 +204,9 @@ export class RfqService {
    * @FUNCTION_CODE NX01-RFQ-SVC-001-F03
    */
   async create(tenantId: string, userId: string | undefined, body: CreateRfqBodyDto) {
+    if (!body.warehouseId?.trim()) {
+      throw new BadRequestException('warehouseId 為必填（單號須含倉別碼）');
+    }
     const wh = await this.assertWh(tenantId, body.warehouseId);
     const supplierId = await this.assertSupplierOptional(tenantId, body.supplierId);
     const rfqDate = body.rfqDate ? parseYmd(body.rfqDate) : parseYmd(new Date().toISOString().slice(0, 10));
@@ -335,6 +339,73 @@ export class RfqService {
   }
 
   /**
+   * 已發出（S）時填寫供應商回覆；若所有明細均為 R 或 C，表頭轉為 R（已回覆）。
+   */
+  async patchReply(tenantId: string, userId: string | undefined, id: string, body: PatchRfqReplyBodyDto) {
+    if (!body.items?.length) throw new BadRequestException('至少一筆明細回覆');
+
+    await this.prisma.$transaction(async (tx) => {
+      const doc = await tx.nx01Rfq.findFirst({
+        where: { id, tenantId },
+        include: { items: true },
+      });
+      if (!doc) throw new NotFoundException('詢價單不存在');
+      if (doc.status !== 'S') throw new BadRequestException('僅「已發出」狀態可填寫供應商回覆');
+
+      const byId = new Map(doc.items.map((x) => [x.id, x]));
+      for (const row of body.items) {
+        const line = byId.get(row.id);
+        if (!line) throw new BadRequestException(`明細不存在：${row.id}`);
+        const st = String(row.status || '').trim();
+        if (st !== 'R' && st !== 'C') {
+          throw new BadRequestException('明細狀態須為 R（已回覆）或 C（不採用）');
+        }
+        let unitPrice: Prisma.Decimal | null = null;
+        let leadTimeDays: number | null = null;
+        if (st === 'R') {
+          if (row.unit_price === undefined || row.unit_price === null) {
+            throw new BadRequestException(`已回覆之明細須填單價：${line.partNo}`);
+          }
+          const up = d(row.unit_price);
+          if (up.lt(0)) throw new BadRequestException('單價不可為負');
+          unitPrice = up;
+          const leadRaw = row.lead_time_days;
+          if (leadRaw === undefined) {
+            leadTimeDays = line.leadTimeDays;
+          } else if (leadRaw === null) {
+            leadTimeDays = null;
+          } else {
+            const lead = Math.floor(Number(leadRaw));
+            leadTimeDays = Number.isFinite(lead) ? lead : null;
+          }
+        }
+
+        await tx.nx01RfqItem.update({
+          where: { id: line.id },
+          data: {
+            unitPrice,
+            leadTimeDays,
+            status: st,
+            updatedBy: userId ?? null,
+          },
+        });
+      }
+
+      const fresh = await tx.nx01RfqItem.findMany({ where: { rfqId: id } });
+      const allTerminal =
+        fresh.length > 0 && fresh.every((it) => it.status === 'R' || it.status === 'C');
+      if (allTerminal) {
+        await tx.nx01Rfq.update({
+          where: { id },
+          data: { status: 'R', updatedBy: userId ?? null },
+        });
+      }
+    });
+
+    return this.getById(tenantId, id);
+  }
+
+  /**
    * @FUNCTION_CODE NX01-RFQ-SVC-001-F06
    */
   async toRr(tenantId: string, userId: string | undefined, rfqId: string, body: RfqToRrBodyDto) {
@@ -347,6 +418,7 @@ export class RfqService {
       include: { items: true },
     });
     if (!rfq) throw new NotFoundException('詢價單不存在');
+    if (rfq.status !== 'R') throw new BadRequestException('僅「已回覆」之詢價單可轉進貨');
     if (!body.items?.length) throw new BadRequestException('請選擇明細');
 
     const defaultLoc = await this.prisma.nx00Location.findFirst({
@@ -403,6 +475,7 @@ export class RfqService {
       include: { items: true },
     });
     if (!rfq) throw new NotFoundException('詢價單不存在');
+    if (rfq.status !== 'R') throw new BadRequestException('僅「已回覆」之詢價單可轉採購');
     if (!rfq.supplierId) throw new BadRequestException('詢價單未指定供應商，無法轉採購');
     if (!body.items?.length) throw new BadRequestException('請選擇明細');
 
