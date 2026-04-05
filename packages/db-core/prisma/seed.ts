@@ -4,7 +4,7 @@
  *
  * 策略（2026-04-03）：DEV-INNOVA + DEMO-LITE + DEMO-PLUS；CYTIC 不寫入（真實客戶改 CSV 匯入）。
  */
-import { PrismaClient } from '../generated/prisma';
+import { Prisma, PrismaClient } from '../generated/prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import { poolConfigFromDatabaseUrl } from '../scripts/pgTlsPoolConfig';
@@ -1303,6 +1303,57 @@ async function seedDemoData(tenantId: string, users: DemoUserSeed[]): Promise<vo
   console.log(`✅ NX00-SEED-SVC-001-F17 seedDemoData 完成 tenant=${tenantId.slice(0, 8)}…`);
 }
 
+/**
+ * DEMO-PLUS：料號 03N115561 × 台北主倉（Z01）庫存設定，供缺貨偵測驗收（min_qty=100）。
+ * @FUNCTION_CODE NX00-SEED-SVC-001-F18
+ */
+async function seedDemoPlusNx02StockSettingForShortage(tenantId: string): Promise<void> {
+  const wh = await prisma.nx00Warehouse.findFirst({
+    where: { tenantId, code: 'Z01' },
+    select: { id: true, name: true },
+  });
+  // 展示料號依編碼規則非原始英數；以名稱對應 seed「機油濾芯 03N115561」
+  const part = await prisma.nx00Part.findFirst({
+    where: { tenantId, name: { contains: '03N115561' }, isActive: true },
+    select: { id: true, code: true },
+  });
+  if (!wh || !part) {
+    console.log(
+      '⚠ seedDemoPlusNx02StockSettingForShortage：跳過（缺 Z01 或料號 03N115561 之零件）',
+    );
+    return;
+  }
+  await prisma.nx02PartStockSetting.upsert({
+    where: {
+      tenantId_partId_warehouseId: {
+        tenantId,
+        partId: part.id,
+        warehouseId: wh.id,
+      },
+    },
+    update: {
+      minQty: new Prisma.Decimal(100),
+      maxQty: new Prisma.Decimal(0),
+      reorderQty: new Prisma.Decimal(50),
+      isActive: true,
+      remark: 'seed：缺貨簿／開帳存驗收用',
+    },
+    create: {
+      tenantId,
+      partId: part.id,
+      warehouseId: wh.id,
+      minQty: new Prisma.Decimal(100),
+      maxQty: new Prisma.Decimal(0),
+      reorderQty: new Prisma.Decimal(50),
+      isActive: true,
+      remark: 'seed：缺貨簿／開帳存驗收用',
+    },
+  });
+  console.log(
+    `✅ DEMO-PLUS nx02_part_stock_setting：${part.code} @ ${wh.name}（Z01）min_qty=100`,
+  );
+}
+
 type Nx99ModSeed = {
   code: string;
   name: string;
@@ -1442,6 +1493,7 @@ async function main() {
 
   await seedDemoData(tenantIds.demoLite, DEMO_LITE_USERS);
   await seedDemoData(tenantIds.demoPlus, DEMO_PLUS_USERS);
+  await seedDemoPlusNx02StockSettingForShortage(tenantIds.demoPlus);
 
   const nx99Plans = [
     {
