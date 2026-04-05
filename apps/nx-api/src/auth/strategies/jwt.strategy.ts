@@ -92,7 +92,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     } else {
       tenantId = userRow.tenantId ?? payload.tenantId ?? null;
       tenantCode = payload.tenantCode ?? null;
-      planCode = payload.planCode ?? null;
+      const payloadPlan = payload.planCode ?? null;
 
       if (tenantId) {
         if (!tenantCode) {
@@ -102,13 +102,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           });
           tenantCode = t?.code ?? null;
         }
-        if (!planCode) {
-          const sub = await this.prisma.nx99Subscription.findFirst({
-            where: { tenantId, status: 'A' },
-            include: { plan: true },
-          });
-          planCode = sub?.plan?.code ?? null;
-        }
+        // 方案以 DB 有效訂閱為準；JWT 可能為舊簽發（plan 已變更）或與 nx99_plan.code 格式不一致
+        const sub = await this.prisma.nx99Subscription.findFirst({
+          where: { tenantId, status: 'A' },
+          include: { plan: true },
+        });
+        const dbPlan = sub?.plan?.code ?? null;
+        planCode = dbPlan ?? payloadPlan;
+      } else {
+        planCode = payloadPlan;
       }
     }
 
