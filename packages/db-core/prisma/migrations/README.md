@@ -6,6 +6,8 @@
 | MIG002 | `20260404120000_MIG002-nx00-schema-refactor` | NX00 料號規則／零件／訂閱幣別等 schema 重構 |
 | MIG003 | `20260405100000_MIG003-nx02-inventory` | MW2：NX02 庫存（台帳、餘額、設定、盤點、調撥、缺貨、自動補貨） |
 | MIG003b | `20260405110000_MIG003b-nx02-init` | NX02 開帳存（`nx02_init` / `nx02_init_item`） |
+| MIG004 | `20260406100000_MIG004-nx01-rfq` | NX01 詢價單草稿（`nx01_rfq` / `nx01_rfq_item`）＋缺貨 `ref_rfq_id` FK |
+| MIG005 | `20260406120000_MIG005-nx01-full` | NX01 對齊欄位＋`nx01_po`／`rr`／`pr` 全套表與 ID 函式 |
 
 ## 封存說明
 

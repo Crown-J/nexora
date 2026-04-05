@@ -89,6 +89,10 @@ CREATE SEQUENCE IF NOT EXISTS nx01_rfqo_seq START 1;
 CREATE SEQUENCE IF NOT EXISTS nx01_rfit_seq START 1;
 CREATE SEQUENCE IF NOT EXISTS nx01_poht_seq START 1;
 CREATE SEQUENCE IF NOT EXISTS nx01_poit_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS nx01_rrht_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS nx01_rrit_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS nx01_prht_seq START 1;
+CREATE SEQUENCE IF NOT EXISTS nx01_prit_seq START 1;
 
 CREATE OR REPLACE FUNCTION gen_nx99_tant_id()
 RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
@@ -168,6 +172,38 @@ DECLARE seq_val BIGINT;
 BEGIN
   seq_val := nextval('nx01_poit_seq');
   RETURN 'NX01POIT' || LPAD(seq_val::TEXT, 7, '0');
+END; $$;
+
+CREATE OR REPLACE FUNCTION gen_nx01_rrht_id()
+RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
+DECLARE seq_val BIGINT;
+BEGIN
+  seq_val := nextval('nx01_rrht_seq');
+  RETURN 'NX01RRHT' || LPAD(seq_val::TEXT, 7, '0');
+END; $$;
+
+CREATE OR REPLACE FUNCTION gen_nx01_rrit_id()
+RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
+DECLARE seq_val BIGINT;
+BEGIN
+  seq_val := nextval('nx01_rrit_seq');
+  RETURN 'NX01RRIT' || LPAD(seq_val::TEXT, 7, '0');
+END; $$;
+
+CREATE OR REPLACE FUNCTION gen_nx01_prht_id()
+RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
+DECLARE seq_val BIGINT;
+BEGIN
+  seq_val := nextval('nx01_prht_seq');
+  RETURN 'NX01PRHT' || LPAD(seq_val::TEXT, 7, '0');
+END; $$;
+
+CREATE OR REPLACE FUNCTION gen_nx01_prit_id()
+RETURNS VARCHAR(15) LANGUAGE plpgsql AS $$
+DECLARE seq_val BIGINT;
+BEGIN
+  seq_val := nextval('nx01_prit_seq');
+  RETURN 'NX01PRIT' || LPAD(seq_val::TEXT, 7, '0');
 END; $$;
 
 -- =======================================================

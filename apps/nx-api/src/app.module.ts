@@ -8,9 +8,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { Nx00Module } from './nx00/nx00.module';
 import { Nx02Module } from './nx02/nx02.module';
+import { Nx01Module } from './nx01/nx01.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, Nx00Module, Nx02Module],
+  imports: [PrismaModule, AuthModule, Nx00Module, Nx02Module, Nx01Module],
   controllers: [AppController],
   providers: [AppService],
 })

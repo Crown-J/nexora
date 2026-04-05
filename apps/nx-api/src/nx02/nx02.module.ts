@@ -30,6 +30,7 @@ import { AutoReplenishService } from './auto-replenish/auto-replenish.service';
 
 @Module({
   imports: [PrismaModule],
+  exports: [ShortageService, PlusPlanGuard],
   controllers: [
     BalanceController,
     LedgerController,

@@ -3,11 +3,13 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX01 進／退貨作業模組入口：流程式採購與進貨總覽（mock 待辦＋導向庫存補貨）
+ * - NX01 採購模組首頁：流程進度條＋統計（GET /nx01/dashboard）
  */
 
-import { ProcurementFlowHub } from '@/features/nx01/procurement/ProcurementFlowHub';
+'use client';
+
+import { Nx01DashboardPage } from '@/features/nx01/dashboard/ui/Nx01DashboardPage';
 
 export default function Nx01ModulePage() {
-  return <ProcurementFlowHub />;
+  return <Nx01DashboardPage />;
 }

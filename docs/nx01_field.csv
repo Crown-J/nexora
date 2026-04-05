@@ -1,0 +1,146 @@
+表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx01_rfq,1,id,LITE,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[RFHT]+[7碼流水號]，EX : NX00RFHT0000001
+nx01_rfq,2,tenant_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx99_tenant,,租戶ID
+nx01_rfq,3,doc_no,LITE,VARCHAR(16),FALSE,TRUE,TRUE,FALSE,,GEN,詢價單號（唯一），[RF]+[年月]+[倉別]+[5碼流水號]，EX：RF-202602-Z01-00001
+nx01_rfq,4,rfq_date,LITE,DATE,FALSE,FALSE,TRUE,FALSE,,TODAY,詢價日期
+nx01_rfq,5,supplier_id,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_partner,,供應商（交易對象 ID；僅允許 SUP/BOTH）
+nx01_rfq,6,contact_name,LITE,VARCHAR(50),FALSE,FALSE,FALSE,FALSE,,,聯絡人（可空，臨時覆寫 partner 主檔）
+nx01_rfq,7,contact_phone,LITE,VARCHAR(30),FALSE,FALSE,FALSE,FALSE,,,聯絡電話（可空）
+nx01_rfq,8,currency,LITE,VARCHAR(10),FALSE,FALSE,TRUE,FALSE,,TWD,幣別（LITE 預設 TWD）
+nx01_rfq,9,status,LITE,VARCHAR(20),FALSE,FALSE,TRUE,FALSE,,DRAFT,"狀態。(D=DRAFT, S=SENT, R=REPLIED, C=CLOSED, V=VOID)"
+nx01_rfq,10,remark,LITE,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_rfq,11,created_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_rfq,12,created_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_rfq,13,updated_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_rfq,14,updated_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_rfq,15,voided_at,LITE,TIMESTAMP,FALSE,FALSE,FALSE,FALSE,,,作廢時間。
+nx01_rfq,16,voided_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,作廢人（使用者 ID）
+nx01_rfq_item,1,id,LITE,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[RFIT]+[7碼流水號]，EX : NX00RFIT0000001
+nx01_rfq_item,2,rfq_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx01_rfq,,對應詢價單表頭
+nx01_rfq_item,3,line_no,LITE,INT,FALSE,FALSE,TRUE,FALSE,,1,"明細排序號（1,2,3...）"
+nx01_rfq_item,4,part_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_part,,零件 ID
+nx01_rfq_item,5,part_no,LITE,VARCHAR(50),FALSE,FALSE,TRUE,FALSE,,,零件料號快照（避免主檔變動影響歷史）
+nx01_rfq_item,6,part_name,LITE,VARCHAR(200),FALSE,FALSE,TRUE,FALSE,,,零件名稱快照
+nx01_rfq_item,7,qty,LITE,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,詢價數量
+nx01_rfq_item,8,unit_price,LITE,"DECIMAL(14,4)",FALSE,FALSE,FALSE,FALSE,,,供應商回覆單價（未回覆可空）
+nx01_rfq_item,9,currency_id,LITE,VARCHAR(10),FALSE,FALSE,TRUE,TRUE,nx00_currency,TWD,幣別
+nx01_rfq_item,10,lead_time_days,LITE,INT,FALSE,FALSE,FALSE,FALSE,,,交期（天數，可空）
+nx01_rfq_item,11,status,LITE,VARCHAR(20),FALSE,FALSE,TRUE,FALSE,,P,"狀態。( P=PENDING, R=REPLIED, S=SELECTED, C=REJECTED )"
+nx01_rfq_item,12,remark,LITE,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_rfq_item,13,created_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_rfq_item,14,created_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_rfq_item,15,updated_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_rfq_item,16,updated_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_po,1,id,PLUS,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[POHD]+[7碼流水號]，EX : NX00POHD0000001
+nx01_po,2,tenant_id,PLUS,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx99_tenant,,租戶ID
+nx01_po,3,doc_no,PLUS,VARCHAR(16),FALSE,TRUE,TRUE,FALSE,,GEN,採購單號（唯一），[PO]+[年月]+[倉別]+[5碼流水號]，EX：PO-202602-Z01-00001
+nx01_po,4,po_date,PLUS,DATE,FALSE,FALSE,TRUE,FALSE,,TODAY,採購日期
+nx01_po,5,supplier_id,PLUS,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_partner,,廠商 ID (外鍵)
+nx01_po,6,rfq_id,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx01_rfq,,來源單據 id (外鍵)
+nx01_po,7,currency_id,PLUS,VARCHAR(10),FALSE,FALSE,TRUE,FALSE,,TWD,幣別 ID (外鍵)
+nx01_po,8,status,PLUS,VARCHAR(1),FALSE,FALSE,TRUE,FALSE,,D,單據狀態（D=草稿 / S=已送出 / C=已關閉 / V=作廢）
+nx01_po,9,subtotal,PLUS,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,小計（明細加總，未稅）
+nx01_po,10,tax_rate,PLUS,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,5,稅率（預設 5.00）
+nx01_po,11,tax_amount,PLUS,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,稅額（可手動覆寫）
+nx01_po,12,total_amount,PLUS,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,總額（subtotal + tax_amount）
+nx01_po,13,expected_date,PLUS,DATE,FALSE,FALSE,FALSE,FALSE,,,預計到貨日
+nx01_po,14,remark,PLUS,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_po,15,created_at,PLUS,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_po,16,created_by,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_po,17,updated_at,PLUS,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_po,18,updated_by,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_po,19,voided_at,PLUS,TIMESTAMP,FALSE,FALSE,FALSE,FALSE,,,作廢時間
+nx01_po,20,voided_by,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,作廢人（使用者 ID）
+nx01_po_item,1,id,PLUS,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[POIT]+[7碼流水號]，EX : NX00POIT0000001
+nx01_po_item,2,po_id,PLUS,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx01_po,,對應採購單表頭 ID
+nx01_po_item,3,rfq_item_id,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx01_rfq_item,,詢價明細 ID (外鍵) (可空)
+nx01_po_item,4,line_no,PLUS,INT,FALSE,FALSE,TRUE,FALSE,,1,"明細行號（1,2,3…）"
+nx01_po_item,5,part_id,PLUS,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_part,,零件 ID
+nx01_po_item,6,part_no,PLUS,VARCHAR(50),FALSE,FALSE,TRUE,FALSE,,,零件料號快照（避免主檔變更影響歷史）
+nx01_po_item,7,part_name,PLUS,VARCHAR(200),FALSE,FALSE,TRUE,FALSE,,,零件名稱快照
+nx01_po_item,8,qty,PLUS,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,採購數量
+nx01_po_item,9,received_qty,PLUS,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,已收數量（預設 0，RR 過帳時累加）
+nx01_po_item,10,unit_cost,PLUS,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,採購單價
+nx01_po_item,11,line_amount,PLUS,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,明細金額（qty * unit_cost）
+nx01_po_item,12,expected_date,PLUS,DATE,FALSE,FALSE,FALSE,FALSE,,,預計到貨日
+nx01_po_item,13,remark,PLUS,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_po_item,14,created_at,PLUS,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_po_item,15,created_by,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_po_item,16,updated_at,PLUS,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_po_item,17,updated_by,PLUS,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_rr,1,id,LITE,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[RRHD]+[7碼流水號]，EX : NX00RRHD0000001
+nx01_rr,2,tenant_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx99_tenant,,租戶ID
+nx01_rr,3,warehouse_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_warehouse,,入庫倉庫 ID
+nx01_rr,4,doc_no,LITE,VARCHAR(16),FALSE,TRUE,TRUE,FALSE,,GEN,進貨單號（唯一），[RR]+[年月]+[倉別]+[5碼流水號]，EX：RR-202602-Z01-00001
+nx01_rr,5,rr_date,LITE,DATE,FALSE,FALSE,TRUE,FALSE,,TODAY,進貨日期
+nx01_rr,6,supplier_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_partner,,廠商 ID (外鍵)
+nx01_rr,7,rfq_id,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx01_rfq,,來源詢價單據 id (外鍵)
+nx01_rr,8,po_id,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx01_po,,來源採購單據 id (外鍵)
+nx01_rr,9,currency_id,LITE,VARCHAR(10),FALSE,FALSE,TRUE,FALSE,,TWD,幣別 ID (外鍵)
+nx01_rr,10,status,LITE,VARCHAR(1),FALSE,FALSE,TRUE,FALSE,,D,單據狀態（D=Draft / P=Posted / C=Canceled）
+nx01_rr,11,subtotal,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,小計（明細加總，未稅）
+nx01_rr,12,tax_rate,LITE,"DECIMAL(5,2)",FALSE,FALSE,TRUE,FALSE,,5,稅率（預設 5.00）
+nx01_rr,13,tax_amount,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,稅額
+nx01_rr,14,total_amount,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,總額（subtotal + tax_amount）
+nx01_rr,15,remark,LITE,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_rr,16,created_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_rr,17,created_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_rr,18,updated_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_rr,19,updated_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_rr,20,posted_at,LITE,TIMESTAMP,FALSE,FALSE,FALSE,FALSE,,,過帳時間（POSTED 才有）
+nx01_rr,21,posted_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,過帳人（POSTED 才有）
+nx01_rr,22,voided_at,LITE,TIMESTAMP,FALSE,FALSE,FALSE,FALSE,,,作廢時間
+nx01_rr,23,voided_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,作廢人（使用者 ID）
+nx01_rr_item,1,id,LITE,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[RRIT]+[7碼流水號]，EX : NX00RRIT0000001
+nx01_rr_item,2,rr_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx01_rr,,對應進貨單表頭 ID
+nx01_rr_item,3,line_no,LITE,INT,FALSE,FALSE,TRUE,FALSE,,1,"明細行號（1,2,3…）"
+nx01_rr_item,4,part_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_part,,零件 ID
+nx01_rr_item,5,part_no,LITE,VARCHAR(50),FALSE,FALSE,TRUE,FALSE,,,零件料號快照（避免主檔變更影響歷史）
+nx01_rr_item,6,part_name,LITE,VARCHAR(200),FALSE,FALSE,TRUE,FALSE,,,零件名稱快照
+nx01_rr_item,7,location_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_location,,入庫庫位 ID（LITE 先要求必填）
+nx01_rr_item,8,qty,LITE,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,進貨數量
+nx01_rr_item,9,unit_cost,LITE,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,單位成本（進貨成本）
+nx01_rr_item,10,line_amount,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,明細金額（qty * unit_cost）
+nx01_rr_item,11,remark,LITE,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_rr_item,12,created_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_rr_item,13,created_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_rr_item,14,updated_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_rr_item,15,updated_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_pr,1,id,LITE,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[PRHD]+[7碼流水號]，EX : NX00PRHD0000001
+nx01_pr,2,tenant_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx99_tenant,,租戶ID
+nx01_pr,3,warehouse_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_warehouse,,退貨倉庫 ID
+nx01_pr,4,doc_no,LITE,VARCHAR(16),FALSE,TRUE,TRUE,FALSE,,GEN,退貨單號（唯一），[PR]+[年月]+[倉別]+[5碼流水號]，EX：PR-202602-Z01-00001
+nx01_pr,5,pr_date,LITE,DATE,FALSE,FALSE,TRUE,FALSE,,TODAY,退貨日期
+nx01_pr,6,supplier_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_partner,,廠商 ID (外鍵)
+nx01_pr,7,rr_id,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx01_rr,,來源單據 id (外鍵)
+nx01_pr,8,currency_id,LITE,VARCHAR(10),FALSE,FALSE,TRUE,FALSE,,TWD,幣別 ID (外鍵)
+nx01_pr,9,status,LITE,VARCHAR(1),FALSE,FALSE,TRUE,FALSE,,D,單據狀態（D=草稿 / P=已過帳 / V=作廢）
+nx01_pr,10,subtotal,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,小計（明細加總，未稅）
+nx01_pr,11,tax_rate,LITE,"DECIMAL(5,2)",FALSE,FALSE,TRUE,FALSE,,5,稅率（預設 5.00）
+nx01_pr,12,tax_amount,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,稅額（可手動覆寫）
+nx01_pr,13,total_amount,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,總額（subtotal + tax_amount）
+nx01_pr,14,remark,LITE,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_pr,15,created_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_pr,16,created_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_pr,17,updated_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_pr,18,updated_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。
+nx01_pr,19,posted_at,LITE,TIMESTAMP,FALSE,FALSE,FALSE,FALSE,,,過帳時間（POSTED 才有）
+nx01_pr,20,posted_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,過帳人（POSTED 才有）
+nx01_pr,21,voided_at,LITE,TIMESTAMP,FALSE,FALSE,FALSE,FALSE,,,作廢時間
+nx01_pr,22,voided_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,作廢人（使用者 ID）
+nx01_pr_item,1,id,LITE,VARCHAR(15),TRUE,TRUE,TRUE,FALSE,,GEN,[NX00]+[PRIT]+[7碼流水號]，EX : NX00PRIT0000001
+nx01_pr_item,2,pr_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx01_pr,,對應退貨單表頭 ID
+nx01_pr_item,3,rr_item_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx01_rr_item,,來源進貨明細 (外鍵)
+nx01_pr_item,4,line_no,LITE,INT,FALSE,FALSE,TRUE,FALSE,,1,"明細行號（1,2,3…）"
+nx01_pr_item,5,part_id,LITE,VARCHAR(15),FALSE,FALSE,TRUE,TRUE,nx00_part,,零件 ID
+nx01_pr_item,6,part_no,LITE,VARCHAR(50),FALSE,FALSE,TRUE,FALSE,,,零件料號快照（避免主檔變更影響歷史）
+nx01_pr_item,7,part_name,LITE,VARCHAR(200),FALSE,FALSE,TRUE,FALSE,,,零件名稱快照
+nx01_pr_item,8,location_id,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_location,,退貨庫位 ID
+nx01_pr_item,9,qty,LITE,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,退貨數量
+nx01_pr_item,10,unit_cost,LITE,"DECIMAL(14,4)",FALSE,FALSE,TRUE,FALSE,,0,退貨成本（從 RR 帶入）
+nx01_pr_item,11,line_amount,LITE,"DECIMAL(14,2)",FALSE,FALSE,TRUE,FALSE,,0,明細金額
+nx01_pr_item,12,remark,LITE,VARCHAR(200),FALSE,FALSE,FALSE,FALSE,,,備註
+nx01_pr_item,13,created_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,建立時間。
+nx01_pr_item,14,created_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,建立人（對應使用者 ID）。
+nx01_pr_item,15,updated_at,LITE,TIMESTAMP,FALSE,FALSE,TRUE,FALSE,,NOW,更新時間。
+nx01_pr_item,16,updated_by,LITE,VARCHAR(15),FALSE,FALSE,FALSE,TRUE,nx00_user,,更新人（對應使用者 ID）。

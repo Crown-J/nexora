@@ -19,4 +19,11 @@ export const NX00_VIEW = {
     NX02_INIT: 'NX02_INIT',
     NX02_STOCK_SETTING: 'NX02_STOCK_SETTING',
     NX02_STOCK_TAKE: 'NX02_STOCK_TAKE',
+
+    /** NX01 採購 */
+    NX01_HOME: 'NX01_HOME',
+    NX01_RFQ: 'NX01_RFQ',
+    NX01_PO: 'NX01_PO',
+    NX01_RR: 'NX01_RR',
+    NX01_PR: 'NX01_PR',
 } as const;

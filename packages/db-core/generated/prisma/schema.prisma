@@ -128,6 +128,29 @@ model Nx00User {
   initItemsCreated              Nx02InitItem[]          @relation("Nx02InitItemCreatedBy")
   initItemsUpdated              Nx02InitItem[]          @relation("Nx02InitItemUpdatedBy")
 
+  nx01RfqsCreated     Nx01Rfq[]     @relation("Nx01RfqCreatedBy")
+  nx01RfqsUpdated     Nx01Rfq[]     @relation("Nx01RfqUpdatedBy")
+  nx01RfqsVoided      Nx01Rfq[]     @relation("Nx01RfqVoidedBy")
+  nx01RfqItemsCreated Nx01RfqItem[] @relation("Nx01RfqItemCreatedBy")
+  nx01RfqItemsUpdated Nx01RfqItem[] @relation("Nx01RfqItemUpdatedBy")
+  nx01PosCreated      Nx01Po[]      @relation("Nx01PoCreatedBy")
+  nx01PosUpdated      Nx01Po[]      @relation("Nx01PoUpdatedBy")
+  nx01PosVoided       Nx01Po[]      @relation("Nx01PoVoidedBy")
+  nx01PoItemsCreated  Nx01PoItem[]  @relation("Nx01PoItemCreatedBy")
+  nx01PoItemsUpdated  Nx01PoItem[]  @relation("Nx01PoItemUpdatedBy")
+  nx01RrsCreated      Nx01Rr[]      @relation("Nx01RrCreatedBy")
+  nx01RrsUpdated      Nx01Rr[]      @relation("Nx01RrUpdatedBy")
+  nx01RrsPosted       Nx01Rr[]      @relation("Nx01RrPostedBy")
+  nx01RrsVoided       Nx01Rr[]      @relation("Nx01RrVoidedBy")
+  nx01RrItemsCreated  Nx01RrItem[]  @relation("Nx01RrItemCreatedBy")
+  nx01RrItemsUpdated  Nx01RrItem[]  @relation("Nx01RrItemUpdatedBy")
+  nx01PrsCreated      Nx01Pr[]      @relation("Nx01PrCreatedBy")
+  nx01PrsUpdated      Nx01Pr[]      @relation("Nx01PrUpdatedBy")
+  nx01PrsPosted       Nx01Pr[]      @relation("Nx01PrPostedBy")
+  nx01PrsVoided       Nx01Pr[]      @relation("Nx01PrVoidedBy")
+  nx01PrItemsCreated  Nx01PrItem[]  @relation("Nx01PrItemCreatedBy")
+  nx01PrItemsUpdated  Nx01PrItem[]  @relation("Nx01PrItemUpdatedBy")
+
   @@unique([tenantId, userAccount])
   @@index([tenantId])
   @@map("nx00_user")
@@ -349,6 +372,11 @@ model Nx00Currency {
 
   subscriptions Nx99Subscription[]
 
+  nx01RfqItems Nx01RfqItem[]
+  nx01Pos      Nx01Po[]
+  nx01Rrs      Nx01Rr[]
+  nx01Prs      Nx01Pr[]
+
   @@index([isActive])
   @@map("nx00_currency")
 }
@@ -408,6 +436,9 @@ model Nx00Part {
   stockTransferItems Nx02StockTransferItem[]
   initItems          Nx02InitItem[]
   rfqItems           Nx01RfqItem[]
+  poItems            Nx01PoItem[]
+  rrItems            Nx01RrItem[]
+  prItems            Nx01PrItem[]
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId])
@@ -631,6 +662,8 @@ model Nx00Warehouse {
   autoReplenishAsSource Nx02AutoReplenish[]    @relation("Nx02AutoReplenishFromWh")
   autoReplenishAsTarget Nx02AutoReplenish[]    @relation("Nx02AutoReplenishToWh")
   inits                 Nx02Init[]
+  nx01Rrs               Nx01Rr[]
+  nx01Prs               Nx01Pr[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -670,6 +703,8 @@ model Nx00Location {
   stockTransferItemsFrom Nx02StockTransferItem[] @relation("Nx02TransferItemFromLocation")
   stockTransferItemsTo   Nx02StockTransferItem[] @relation("Nx02TransferItemToLocation")
   initItems              Nx02InitItem[]
+  nx01RrItems            Nx01RrItem[]
+  nx01PrItems            Nx01PrItem[]
 
   createdByUser Nx00User? @relation("Nx00LocationCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00LocationUpdatedBy", fields: [updatedBy], references: [id])
@@ -709,6 +744,11 @@ model Nx00Partner {
 
   createdByUser Nx00User? @relation("Nx00PartnerCreatedBy", fields: [createdBy], references: [id])
   updatedByUser Nx00User? @relation("Nx00PartnerUpdatedBy", fields: [updatedBy], references: [id])
+
+  rfqsAsSupplier Nx01Rfq[] @relation("Nx01RfqSupplier")
+  posAsSupplier  Nx01Po[]  @relation("Nx01PoSupplier")
+  rrsAsSupplier  Nx01Rr[]  @relation("Nx01RrSupplier")
+  prsAsSupplier  Nx01Pr[]  @relation("Nx01PrSupplier")
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -878,57 +918,338 @@ model Nx99Tenant {
   inits             Nx02Init[]
 
   rfqs Nx01Rfq[]
+  pos  Nx01Po[]
+  rrs  Nx01Rr[]
+  prs  Nx01Pr[]
 
   @@map("nx99_tenant")
 }
 
 /// =======================================================
-/// NX01 - RFQ 詢價單（MW2 草稿；缺貨轉 RFQ）
+/// NX01 - RFQ 詢價單（docs/nx01_field.csv）
 /// Table: nx01_rfq / nx01_rfq_item
 /// =======================================================
 model Nx01Rfq {
-  id         String     @id @default(dbgenerated("gen_nx01_rfqo_id()")) @db.VarChar(15)
-  tenantId   String     @map("tenant_id") @db.VarChar(15)
-  tenant     Nx99Tenant @relation(fields: [tenantId], references: [id])
-  docNo      String     @map("doc_no") @db.VarChar(20)
-  rfqDate    DateTime   @map("rfq_date") @db.Date
-  supplierId String?    @map("supplier_id") @db.VarChar(15)
-  currency   String     @default("TWD") @db.VarChar(10)
-  /// D=草稿
-  status     String     @default("D") @db.VarChar(1)
-  remark     String?    @db.VarChar(200)
-  createdAt  DateTime   @default(now()) @map("created_at")
-  createdBy  String?    @map("created_by") @db.VarChar(15)
-  updatedAt  DateTime   @default(now()) @updatedAt @map("updated_at")
-  updatedBy  String?    @map("updated_by") @db.VarChar(15)
+  id           String       @id @default(dbgenerated("gen_nx01_rfqo_id()")) @db.VarChar(15)
+  tenantId     String       @map("tenant_id") @db.VarChar(15)
+  tenant       Nx99Tenant   @relation(fields: [tenantId], references: [id])
+  docNo        String       @map("doc_no") @db.VarChar(20)
+  rfqDate      DateTime     @map("rfq_date") @db.Date
+  supplierId   String?      @map("supplier_id") @db.VarChar(15)
+  supplier     Nx00Partner? @relation("Nx01RfqSupplier", fields: [supplierId], references: [id], onDelete: Restrict)
+  contactName  String?      @map("contact_name") @db.VarChar(50)
+  contactPhone String?      @map("contact_phone") @db.VarChar(30)
+  currency     String       @default("TWD") @db.VarChar(10)
+  /// D=草稿 S=已發出 R=已回覆 C=已關閉 V=作廢
+  status       String       @default("D") @db.VarChar(1)
+  remark       String?      @db.VarChar(200)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  createdBy    String?      @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  updatedBy    String?      @map("updated_by") @db.VarChar(15)
+  voidedAt     DateTime?    @map("voided_at")
+  voidedBy     String?      @map("voided_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01RfqCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01RfqUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+  voidedByUser  Nx00User? @relation("Nx01RfqVoidedBy", fields: [voidedBy], references: [id], onDelete: SetNull)
 
   items     Nx01RfqItem[]
   shortages Nx02Shortage[]
+  pos       Nx01Po[]
+  rrs       Nx01Rr[]
 
   @@unique([tenantId, docNo])
   @@index([tenantId])
   @@index([status])
+  @@index([supplierId])
   @@map("nx01_rfq")
 }
 
 model Nx01RfqItem {
-  id           String   @id @default(dbgenerated("gen_nx01_rfit_id()")) @db.VarChar(15)
-  rfqId        String   @map("rfq_id") @db.VarChar(15)
-  rfq          Nx01Rfq  @relation(fields: [rfqId], references: [id], onDelete: Cascade)
-  lineNo       Int      @map("line_no")
-  partId       String   @map("part_id") @db.VarChar(15)
-  part         Nx00Part @relation(fields: [partId], references: [id])
-  qtyRequested Decimal  @map("qty_requested") @db.Decimal(14, 4)
-  remark       String?  @db.VarChar(200)
-  createdAt    DateTime @default(now()) @map("created_at")
-  createdBy    String?  @map("created_by") @db.VarChar(15)
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
-  updatedBy    String?  @map("updated_by") @db.VarChar(15)
+  id           String       @id @default(dbgenerated("gen_nx01_rfit_id()")) @db.VarChar(15)
+  rfqId        String       @map("rfq_id") @db.VarChar(15)
+  rfq          Nx01Rfq      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  lineNo       Int          @map("line_no")
+  partId       String       @map("part_id") @db.VarChar(15)
+  part         Nx00Part     @relation(fields: [partId], references: [id])
+  partNo       String       @map("part_no") @db.VarChar(50)
+  partName     String       @map("part_name") @db.VarChar(200)
+  qty          Decimal      @default(0) @db.Decimal(14, 4)
+  unitPrice    Decimal?     @map("unit_price") @db.Decimal(14, 4)
+  currencyId   String       @map("currency_id") @db.VarChar(15)
+  currency     Nx00Currency @relation(fields: [currencyId], references: [id])
+  leadTimeDays Int?         @map("lead_time_days")
+  /// P=待回覆 R=已回覆 S=已選定 C=未採用
+  status       String       @default("P") @map("status") @db.VarChar(1)
+  remark       String?      @db.VarChar(200)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  createdBy    String?      @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  updatedBy    String?      @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01RfqItemCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01RfqItemUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  poItems Nx01PoItem[]
 
   @@unique([rfqId, lineNo])
   @@index([rfqId])
   @@index([partId])
+  @@index([currencyId])
   @@map("nx01_rfq_item")
+}
+
+/// =======================================================
+/// NX01 - PO 採購單（PLUS；docs/nx01_field.csv）
+/// Table: nx01_po / nx01_po_item
+/// =======================================================
+model Nx01Po {
+  id           String       @id @default(dbgenerated("gen_nx01_poht_id()")) @db.VarChar(15)
+  tenantId     String       @map("tenant_id") @db.VarChar(15)
+  tenant       Nx99Tenant   @relation(fields: [tenantId], references: [id])
+  docNo        String       @map("doc_no") @db.VarChar(20)
+  poDate       DateTime     @map("po_date") @db.Date
+  supplierId   String       @map("supplier_id") @db.VarChar(15)
+  supplier     Nx00Partner  @relation("Nx01PoSupplier", fields: [supplierId], references: [id], onDelete: Restrict)
+  rfqId        String?      @map("rfq_id") @db.VarChar(15)
+  rfq          Nx01Rfq?     @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  currencyId   String       @map("currency_id") @db.VarChar(15)
+  currencyRef  Nx00Currency @relation(fields: [currencyId], references: [id])
+  /// D=草稿 S=已送出 C=已關閉 V=作廢
+  status       String       @default("D") @map("status") @db.VarChar(1)
+  subtotal     Decimal      @default(0) @map("subtotal") @db.Decimal(14, 2)
+  taxRate      Decimal      @default(5) @map("tax_rate") @db.Decimal(14, 2)
+  taxAmount    Decimal      @default(0) @map("tax_amount") @db.Decimal(14, 2)
+  totalAmount  Decimal      @default(0) @map("total_amount") @db.Decimal(14, 2)
+  expectedDate DateTime?    @map("expected_date") @db.Date
+  remark       String?      @db.VarChar(200)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  createdBy    String?      @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  updatedBy    String?      @map("updated_by") @db.VarChar(15)
+  voidedAt     DateTime?    @map("voided_at")
+  voidedBy     String?      @map("voided_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01PoCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01PoUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+  voidedByUser  Nx00User? @relation("Nx01PoVoidedBy", fields: [voidedBy], references: [id], onDelete: SetNull)
+
+  items Nx01PoItem[]
+  rrs   Nx01Rr[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([rfqId])
+  @@map("nx01_po")
+}
+
+model Nx01PoItem {
+  id           String       @id @default(dbgenerated("gen_nx01_poit_id()")) @db.VarChar(15)
+  poId         String       @map("po_id") @db.VarChar(15)
+  po           Nx01Po       @relation(fields: [poId], references: [id], onDelete: Cascade)
+  rfqItemId    String?      @map("rfq_item_id") @db.VarChar(15)
+  rfqItem      Nx01RfqItem? @relation(fields: [rfqItemId], references: [id], onDelete: SetNull)
+  lineNo       Int          @map("line_no")
+  partId       String       @map("part_id") @db.VarChar(15)
+  part         Nx00Part     @relation(fields: [partId], references: [id])
+  partNo       String       @map("part_no") @db.VarChar(50)
+  partName     String       @map("part_name") @db.VarChar(200)
+  qty          Decimal      @default(0) @db.Decimal(14, 4)
+  receivedQty  Decimal      @default(0) @map("received_qty") @db.Decimal(14, 4)
+  unitCost     Decimal      @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  lineAmount   Decimal      @default(0) @map("line_amount") @db.Decimal(14, 2)
+  expectedDate DateTime?    @map("expected_date") @db.Date
+  remark       String?      @db.VarChar(200)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  createdBy    String?      @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime     @default(now()) @updatedAt @map("updated_at")
+  updatedBy    String?      @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01PoItemCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01PoItemUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  rrItems Nx01RrItem[]
+
+  @@unique([poId, lineNo])
+  @@index([poId])
+  @@index([partId])
+  @@index([rfqItemId])
+  @@map("nx01_po_item")
+}
+
+/// =======================================================
+/// NX01 - RR 進貨單（docs/nx01_field.csv）
+/// Table: nx01_rr / nx01_rr_item
+/// =======================================================
+model Nx01Rr {
+  id          String        @id @default(dbgenerated("gen_nx01_rrht_id()")) @db.VarChar(15)
+  tenantId    String        @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant    @relation(fields: [tenantId], references: [id])
+  warehouseId String        @map("warehouse_id") @db.VarChar(15)
+  warehouse   Nx00Warehouse @relation(fields: [warehouseId], references: [id])
+  docNo       String        @map("doc_no") @db.VarChar(20)
+  rrDate      DateTime      @map("rr_date") @db.Date
+  supplierId  String        @map("supplier_id") @db.VarChar(15)
+  supplier    Nx00Partner   @relation("Nx01RrSupplier", fields: [supplierId], references: [id], onDelete: Restrict)
+  rfqId       String?       @map("rfq_id") @db.VarChar(15)
+  rfq         Nx01Rfq?      @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  poId        String?       @map("po_id") @db.VarChar(15)
+  po          Nx01Po?       @relation(fields: [poId], references: [id], onDelete: SetNull)
+  currencyId  String        @map("currency_id") @db.VarChar(15)
+  currencyRef Nx00Currency  @relation(fields: [currencyId], references: [id])
+  /// D=草稿 P=已過帳 C=已取消
+  status      String        @default("D") @map("status") @db.VarChar(1)
+  subtotal    Decimal       @default(0) @map("subtotal") @db.Decimal(14, 2)
+  taxRate     Decimal       @default(5) @map("tax_rate") @db.Decimal(5, 2)
+  taxAmount   Decimal       @default(0) @map("tax_amount") @db.Decimal(14, 2)
+  totalAmount Decimal       @default(0) @map("total_amount") @db.Decimal(14, 2)
+  remark      String?       @db.VarChar(200)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  createdBy   String?       @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
+  updatedBy   String?       @map("updated_by") @db.VarChar(15)
+  postedAt    DateTime?     @map("posted_at")
+  postedBy    String?       @map("posted_by") @db.VarChar(15)
+  voidedAt    DateTime?     @map("voided_at")
+  voidedBy    String?       @map("voided_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01RrCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01RrUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+  postedByUser  Nx00User? @relation("Nx01RrPostedBy", fields: [postedBy], references: [id], onDelete: SetNull)
+  voidedByUser  Nx00User? @relation("Nx01RrVoidedBy", fields: [voidedBy], references: [id], onDelete: SetNull)
+
+  items Nx01RrItem[]
+  prs   Nx01Pr[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId])
+  @@index([warehouseId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([rfqId])
+  @@index([poId])
+  @@map("nx01_rr")
+}
+
+model Nx01RrItem {
+  id         String       @id @default(dbgenerated("gen_nx01_rrit_id()")) @db.VarChar(15)
+  rrId       String       @map("rr_id") @db.VarChar(15)
+  rr         Nx01Rr       @relation(fields: [rrId], references: [id], onDelete: Cascade)
+  lineNo     Int          @map("line_no")
+  partId     String       @map("part_id") @db.VarChar(15)
+  part       Nx00Part     @relation(fields: [partId], references: [id])
+  partNo     String       @map("part_no") @db.VarChar(50)
+  partName   String       @map("part_name") @db.VarChar(200)
+  locationId String       @map("location_id") @db.VarChar(15)
+  location   Nx00Location @relation(fields: [locationId], references: [id])
+  qty        Decimal      @default(0) @db.Decimal(14, 4)
+  unitCost   Decimal      @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  lineAmount Decimal      @default(0) @map("line_amount") @db.Decimal(14, 2)
+  poItemId   String?      @map("po_item_id") @db.VarChar(15)
+  poItem     Nx01PoItem?  @relation(fields: [poItemId], references: [id], onDelete: SetNull)
+  remark     String?      @db.VarChar(200)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  createdBy  String?      @map("created_by") @db.VarChar(15)
+  updatedAt  DateTime     @default(now()) @updatedAt @map("updated_at")
+  updatedBy  String?      @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01RrItemCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01RrItemUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  prItems Nx01PrItem[]
+
+  @@unique([rrId, lineNo])
+  @@index([rrId])
+  @@index([partId])
+  @@index([locationId])
+  @@index([poItemId])
+  @@map("nx01_rr_item")
+}
+
+/// =======================================================
+/// NX01 - PR 退貨單（docs/nx01_field.csv）
+/// Table: nx01_pr / nx01_pr_item
+/// =======================================================
+model Nx01Pr {
+  id          String        @id @default(dbgenerated("gen_nx01_prht_id()")) @db.VarChar(15)
+  tenantId    String        @map("tenant_id") @db.VarChar(15)
+  tenant      Nx99Tenant    @relation(fields: [tenantId], references: [id])
+  warehouseId String        @map("warehouse_id") @db.VarChar(15)
+  warehouse   Nx00Warehouse @relation(fields: [warehouseId], references: [id])
+  docNo       String        @map("doc_no") @db.VarChar(20)
+  prDate      DateTime      @map("pr_date") @db.Date
+  supplierId  String        @map("supplier_id") @db.VarChar(15)
+  supplier    Nx00Partner   @relation("Nx01PrSupplier", fields: [supplierId], references: [id], onDelete: Restrict)
+  rrId        String?       @map("rr_id") @db.VarChar(15)
+  rr          Nx01Rr?       @relation(fields: [rrId], references: [id], onDelete: SetNull)
+  currencyId  String        @map("currency_id") @db.VarChar(15)
+  currencyRef Nx00Currency  @relation(fields: [currencyId], references: [id])
+  /// D=草稿 P=已過帳 V=作廢
+  status      String        @default("D") @map("status") @db.VarChar(1)
+  subtotal    Decimal       @default(0) @map("subtotal") @db.Decimal(14, 2)
+  taxRate     Decimal       @default(5) @map("tax_rate") @db.Decimal(5, 2)
+  taxAmount   Decimal       @default(0) @map("tax_amount") @db.Decimal(14, 2)
+  totalAmount Decimal       @default(0) @map("total_amount") @db.Decimal(14, 2)
+  remark      String?       @db.VarChar(200)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  createdBy   String?       @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at")
+  updatedBy   String?       @map("updated_by") @db.VarChar(15)
+  postedAt    DateTime?     @map("posted_at")
+  postedBy    String?       @map("posted_by") @db.VarChar(15)
+  voidedAt    DateTime?     @map("voided_at")
+  voidedBy    String?       @map("voided_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01PrCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01PrUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+  postedByUser  Nx00User? @relation("Nx01PrPostedBy", fields: [postedBy], references: [id], onDelete: SetNull)
+  voidedByUser  Nx00User? @relation("Nx01PrVoidedBy", fields: [voidedBy], references: [id], onDelete: SetNull)
+
+  items Nx01PrItem[]
+
+  @@unique([tenantId, docNo])
+  @@index([tenantId])
+  @@index([warehouseId])
+  @@index([supplierId])
+  @@index([rrId])
+  @@index([status])
+  @@map("nx01_pr")
+}
+
+model Nx01PrItem {
+  id         String        @id @default(dbgenerated("gen_nx01_prit_id()")) @db.VarChar(15)
+  prId       String        @map("pr_id") @db.VarChar(15)
+  pr         Nx01Pr        @relation(fields: [prId], references: [id], onDelete: Cascade)
+  rrItemId   String        @map("rr_item_id") @db.VarChar(15)
+  rrItem     Nx01RrItem    @relation(fields: [rrItemId], references: [id], onDelete: Restrict)
+  lineNo     Int           @map("line_no")
+  partId     String        @map("part_id") @db.VarChar(15)
+  part       Nx00Part      @relation(fields: [partId], references: [id])
+  partNo     String        @map("part_no") @db.VarChar(50)
+  partName   String        @map("part_name") @db.VarChar(200)
+  locationId String?       @map("location_id") @db.VarChar(15)
+  location   Nx00Location? @relation(fields: [locationId], references: [id])
+  qty        Decimal       @default(0) @db.Decimal(14, 4)
+  unitCost   Decimal       @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  lineAmount Decimal       @default(0) @map("line_amount") @db.Decimal(14, 2)
+  remark     String?       @db.VarChar(200)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  createdBy  String?       @map("created_by") @db.VarChar(15)
+  updatedAt  DateTime      @default(now()) @updatedAt @map("updated_at")
+  updatedBy  String?       @map("updated_by") @db.VarChar(15)
+
+  createdByUser Nx00User? @relation("Nx01PrItemCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  updatedByUser Nx00User? @relation("Nx01PrItemUpdatedBy", fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@unique([prId, lineNo])
+  @@index([prId])
+  @@index([rrItemId])
+  @@index([partId])
+  @@index([locationId])
+  @@map("nx01_pr_item")
 }
 
 /// =======================================================

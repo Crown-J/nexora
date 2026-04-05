@@ -17,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from 'db-core';
 
-import { allocateRfqDocNo } from '../../nx01/utils/nx01-rfq-doc-no';
+import { allocateRfqDocNo } from '../../nx01/utils/nx01-doc-no';
 import { PrismaService } from '../../prisma/prisma.service';
 
 import { allocateTransferDocNo } from '../utils/nx02-doc-no';
@@ -284,7 +284,10 @@ export class ShortageService {
     const rfqId = await this.prisma.$transaction(async (tx) => {
       const shorts = await tx.nx02Shortage.findMany({
         where: { id: { in: ids }, tenantId },
-        include: { part: { select: { id: true, code: true, name: true } } },
+        include: {
+          part: { select: { id: true, code: true, name: true } },
+          warehouse: { select: { id: true, code: true } },
+        },
         orderBy: { id: 'asc' },
       });
       if (shorts.length !== ids.length) {
@@ -295,12 +298,19 @@ export class ShortageService {
           throw new BadRequestException(`缺貨紀錄 ${s.id} 狀態非可轉 RFQ`);
         }
       }
+      const whId = shorts[0]!.warehouseId;
+      if (shorts.some((s) => s.warehouseId !== whId)) {
+        throw new BadRequestException('批次轉 RFQ 僅限同一倉庫之缺貨紀錄');
+      }
+
+      const twd = await tx.nx00Currency.findFirst({ where: { code: 'TWD' }, select: { id: true } });
+      if (!twd) throw new BadRequestException('系統缺少 TWD 幣別，無法建立 RFQ 明細');
 
       const today = new Date();
       const rfqDate = new Date(
         Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0, 0),
       );
-      const docNo = await allocateRfqDocNo(tx, tenantId, rfqDate);
+      const docNo = await allocateRfqDocNo(tx, tenantId, rfqDate, shorts[0]!.warehouse.code);
 
       const rfq = await tx.nx01Rfq.create({
         data: {
@@ -315,7 +325,10 @@ export class ShortageService {
             create: shorts.map((s, i) => ({
               lineNo: i + 1,
               partId: s.partId,
-              qtyRequested: s.suggestOrderQty,
+              partNo: s.part.code,
+              partName: s.part.name,
+              qty: s.suggestOrderQty,
+              currencyId: twd.id,
               remark: `缺貨 ${s.part.code}`,
               createdBy: userId ?? null,
               updatedBy: userId ?? null,

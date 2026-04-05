@@ -1898,6 +1898,11 @@ async function main() {
     { code: 'NX02_INIT', name: '開帳存', moduleCode: 'nx02', path: '/dashboard/nx02/init', sortNo: 50 },
     { code: 'NX02_STOCK_SETTING', name: '庫存設定', moduleCode: 'nx02', path: '/dashboard/nx02/stock-setting', sortNo: 51 },
     { code: 'NX02_STOCK_TAKE', name: '盤點單', moduleCode: 'nx02', path: '/dashboard/nx02/stock-take', sortNo: 52 },
+    { code: 'NX01_HOME', name: '採購作業首頁', moduleCode: 'nx01', path: '/dashboard/nx01', sortNo: 60 },
+    { code: 'NX01_RFQ', name: '詢價單', moduleCode: 'nx01', path: '/dashboard/nx01/rfq', sortNo: 61 },
+    { code: 'NX01_PO', name: '採購單', moduleCode: 'nx01', path: '/dashboard/nx01/po', sortNo: 62 },
+    { code: 'NX01_RR', name: '進貨單', moduleCode: 'nx01', path: '/dashboard/nx01/rr', sortNo: 63 },
+    { code: 'NX01_PR', name: '退貨單', moduleCode: 'nx01', path: '/dashboard/nx01/pr', sortNo: 64 },
   ];
 
   for (const view of views) {

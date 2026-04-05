@@ -369,6 +369,29 @@ nx-ui 部署於 Vercel（`app.nexoragrid.com`）；正式環境 `NEXT_PUBLIC_API
 - **強制控制**：MVP 不要求 2FA 或 IP 白名單，複雜密碼 + JWT 即可。
 - **平台稽核**：MVP 不做平台操作稽核紀錄，未來有多人操作 NX99 時再加。
 
+### NX02 PLUS：缺貨「一鍵轉 RFQ」與 MIG004（維運）
+
+庫存管理 **NX02 缺貨簿** 之「一鍵轉 RFQ」會寫入 **`nx01_rfq`**、**`nx01_rfq_item`**（migration：**`20260406100000_MIG004-nx01-rfq`**）。若目標環境未套用該 migration，API 可能回 **500**，UI 錯誤碼形如 **`nxui_nx02_shortage_torfq_001`**。
+
+**在 DBeaver（或 psql）確認表是否存在：**
+
+```sql
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_name IN ('nx01_rfq', 'nx01_rfq_item');
+```
+
+**若兩表皆不存在**：於 **`packages/db-core`** 對該 Railway Postgres 執行增量遷移（本機一次性即可）：
+
+- **`prisma.config.ts`** 使用 **`DIRECT_URL ?? DATABASE_URL`**；若使用連線池且 **`migrate deploy` 卡住或無法執行 DDL**，請改以 **直連 URI** 設 **`DIRECT_URL`**（或暫時將 **`DATABASE_URL`** 設為直連），再執行：
+
+```bash
+pnpm exec prisma migrate deploy
+```
+
+套用成功後再於缺貨簿重試「一鍵轉 RFQ」。
+
 ---
 
 ## 文件維護
