@@ -1,0 +1,296 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx00_user,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[USER]+[7碼流水號]，EX : NX00USER0000001
+nx00_user,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_user,3,employee_id,PRO,VARCHAR(15),False,False,False,True,nx00_employee,,員工主檔 ID（外鍵）
+nx00_user,4,user_account,LITE,VARCHAR(50),False,True,True,False,,,使用者登入帳號（唯一），建議只允許英數與部分符號（如 . _ -）
+nx00_user,5,password_hash,LITE,VARCHAR(255),False,False,True,False,,,密碼雜湊值（不可存明碼）。
+nx00_user,6,user_name,LITE,VARCHAR(50),False,False,True,False,,,顯示名稱（姓名/暱稱）
+nx00_user,7,email,LITE,VARCHAR(100),False,False,False,False,,,Email（可選填；未來可用於通知/重設密碼）
+nx00_user,8,phone,LITE,VARCHAR(20),False,False,False,False,,,電話（可選填）
+nx00_user,9,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用後不可登入）
+nx00_user,10,last_login_at,LITE,TIMESTAMP,False,False,False,False,,,最後登入時間
+nx00_user,11,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_user,12,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_user,13,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_user,14,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_role,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[ROLE]+[7碼流水號]，EX : NX00ROLE0000001
+nx00_role,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_role,3,code,LITE,VARCHAR(30),False,True,True,False,,,角色代碼（唯一），例：ADMIN、SALES、WH、OWNER
+nx00_role,4,name,LITE,VARCHAR(50),False,False,True,False,,,角色名稱（顯示用），例：管理者、業務、倉管
+nx00_role,5,description,LITE,VARCHAR(200),False,False,False,False,,,角色說明（可選）
+nx00_role,6,is_system,LITE,BOOLEAN,False,False,True,False,,FALSE,是否系統內建角色（內建可限制刪除/改代碼）
+nx00_role,7,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用後不可再指派）
+nx00_role,8,sort_no,LITE,INT,False,False,True,False,,0,排序用（清單顯示順序）
+nx00_role,9,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_role,10,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_role,11,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_role,12,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_user_role,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[USRO]+[7碼流水號]，EX : NX00USRO0000001
+nx00_user_role,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_user_role,3,user_id,LITE,VARCHAR(15),False,False,True,True,nx00_user,,使用者 ID（外鍵）。
+nx00_user_role,4,role_id,LITE,VARCHAR(15),False,False,True,True,nx00_role,,角色 ID（外鍵）。
+nx00_user_role,5,is_primary,LITE,BOOLEAN,False,False,True,False,,FALSE,是否主要角色（用於預設權限/預設首頁顯示等）
+nx00_user_role,6,assigned_at,LITE,TIMESTAMP,False,False,True,False,,NOW,指派時間
+nx00_user_role,7,assigned_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,指派者（使用者 ID）
+nx00_user_role,8,revoked_at,LITE,TIMESTAMP,False,False,False,False,,,取消指派時間（保留歷史用；若你想硬刪也可不需要）
+nx00_user_role,9,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否有效（TRUE=目前生效；FALSE=已取消但保留紀錄）
+nx00_user_warehouse,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[USWA]+[7碼流水號]，EX : NX00USWA0000001
+nx00_user_warehouse,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_user_warehouse,3,user_id,LITE,VARCHAR(15),False,False,True,True,nx00_user,,使用者 ID（外鍵）。
+nx00_user_warehouse,4,warehouse_id,LITE,VARCHAR(15),False,False,True,True,nx00_warehouse,,倉庫 ID（外鍵）。
+nx00_user_warehouse,5,assigned_at,LITE,TIMESTAMP,False,False,True,False,,NOW,指派時間
+nx00_user_warehouse,6,assigned_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,指派者（使用者 ID）
+nx00_user_warehouse,7,revoked_at,LITE,TIMESTAMP,False,False,False,False,,,取消指派時間（保留歷史用；若你想硬刪也可不需要）
+nx00_user_warehouse,8,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否有效（TRUE=目前生效；FALSE=已取消但保留紀錄）
+nx00_view,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[VIEW]+[7碼流水號]，EX : NX00VIEW0000001
+nx00_view,2,code,LITE,VARCHAR(50),False,True,True,False,,,畫面代碼（給程式用、不可重複），建議：NX00_PART_VIEW
+nx00_view,3,name,LITE,VARCHAR(100),False,False,True,False,,,畫面名稱（給人看），例：零件主檔
+nx00_view,4,module_code,LITE,VARCHAR(10),False,False,True,False,,,所屬模組代碼：nx00/nx01/nx02...（方便分類與未來菜單）
+nx00_view,5,path,LITE,VARCHAR(200),False,False,True,False,,,前端路由/網址路徑，例：/nx00/parts
+nx00_view,6,sort_no,LITE,INT,False,False,True,False,,0,排序用（菜單/列表呈現順序）
+nx00_view,7,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（下架畫面用，不刪資料）
+nx00_view,8,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_view,9,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_view,10,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_view,11,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_role_view,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[ROVI]+[7碼流水號]，EX : NX00ROVI0000001
+nx00_role_view,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_role_view,3,role_id,LITE,VARCHAR(15),False,False,True,True,nx00_role,,使用者 ID（外鍵）。
+nx00_role_view,4,view_id,LITE,VARCHAR(15),False,False,True,True,nx00_view,,角色 ID（外鍵）。
+nx00_role_view,5,can_read,LITE,BOOLEAN,False,False,True,False,,TRUE,是否可讀取/進入此畫面
+nx00_role_view,6,can_create,LITE,BOOLEAN,False,False,True,False,,FALSE,是否可新增
+nx00_role_view,7,can_update,LITE,BOOLEAN,False,False,True,False,,FALSE,是否可編輯
+nx00_role_view,8,can_delete,LITE,BOOLEAN,False,False,True,False,,FALSE,是否可刪除
+nx00_role_view,9,can_export,LITE,BOOLEAN,False,False,True,False,,FALSE,是否可匯出（CSV/Excel/PDF 等）
+nx00_role_view,10,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用不刪資料）
+nx00_role_view,11,granted_at,LITE,TIMESTAMP,False,False,True,False,,NOW,授權時間
+nx00_role_view,12,granted_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,授權人（對應使用者 ID）
+nx00_role_view,13,revoked_at,LITE,TIMESTAMP,False,False,False,False,,,撤銷時間（撤銷才填）
+nx00_role_view,14,revoked_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,撤銷人（對應使用者 ID）
+nx00_country,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[COUN]+[7碼流水號]，EX : NX00COUN0000001
+nx00_country,2,code,LITE,VARCHAR(3),False,True,True,False,,,國家代碼，例：TWN、DEU、JPN
+nx00_country,3,name,LITE,VARCHAR(100),False,False,True,False,,,國家名稱，例：台灣、德國
+nx00_country,4,sort_no,LITE,INT,False,False,True,False,,0,排序
+nx00_country,5,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_country,6,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_country,7,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_country,8,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_country,9,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_currency,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[CURR]+[7碼流水號]，EX : NX00CURR0000001
+nx00_currency,2,code,LITE,VARCHAR(3),False,True,True,False,,,幣別代碼，例：TWD、EUR、JPY
+nx00_currency,3,name,LITE,VARCHAR(100),False,False,True,False,,,幣別名稱，例：新台幣、歐元
+nx00_currency,4,symbol,LITE,VARCHAR(5),False,False,False,False,,,符號，例：$、€、?
+nx00_currency,5,decimal_places,LITE,INT,False,False,True,False,,2,"小數位數（TWD=0, USD=2）"
+nx00_currency,6,sort_no,LITE,INT,False,False,True,False,,0,排序
+nx00_currency,7,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_currency,8,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_currency,9,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_currency,10,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_currency,11,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_part,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[PART]+[7碼流水號]，EX : NX00PART0000001
+nx00_part,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_part,3,code_rule_id,LITE,VARCHAR(15),False,False,True,True,nx00_brand_code_rule,,"編碼規則 (外建，@@unique([tenantId, code, countryId])（同料號不同產地可並存）)"
+nx00_part,4,code,LITE,VARCHAR(50),False,False,True,False,,,零件料號 ( [零件品牌代碼]-[seg1] [seg2] [seg3] [seg4] [seg3]，EX : VAG-8K0 819 439 B）
+nx00_part,5,name,LITE,VARCHAR(200),False,False,True,False,,,零件名稱/品名（例：機油濾芯）
+nx00_part,6,is_oem,LITE,BOOLEAN,False,False,True,False,,TRUE,是否為正廠件
+nx00_part,7,sec_code,LITE,VARCHAR(50),False,False,False,False,,,副廠料號
+nx00_part,8,seg1,LITE,VARCHAR(10),False,False,False,False,,,第一組料號規則
+nx00_part,9,seg2,LITE,VARCHAR(10),False,False,False,False,,,第二組料號規則
+nx00_part,10,seg3,LITE,VARCHAR(10),False,False,False,False,,,第三組料號規則
+nx00_part,11,seg4,LITE,VARCHAR(10),False,False,False,False,,,第四組料號規則
+nx00_part,12,seg5,LITE,VARCHAR(10),False,False,False,False,,,第五組料號規則
+nx00_part,13,country_id,LITE,VARCHAR(15),False,False,False,True,nx00_country,,產地 (外鍵)
+nx00_part,14,part_brand_id,LITE,VARCHAR(15),False,False,False,True,nx00_part_brand,,零件品牌（可空，因為有些料號可能還沒補齊）
+nx00_part,15,type,LITE,VARCHAR(1),False,False,False,False,,A,零件類型 (A=專用型 / B=通用型 / C=組合型 / D=拆解型)
+nx00_part,16,part_group_id,LITE,VARCHAR(15),False,False,False,True,nx00_part_group,,零件種類 id (外鍵)
+nx00_part,17,spec,LITE,VARCHAR(200),False,False,False,False,,,規格/備註（例：MANN / 含墊片 / 06L…適用）
+nx00_part,18,uom,LITE,VARCHAR(10),False,False,True,False,,pcs,單位（LITE 固定單位即可；未來再做多單位換算）
+nx00_part,19,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（下架不刪資料）
+nx00_part,20,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_part,21,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_part,22,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_part,23,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_part,24,return_policy,LITE-CORE,VARCHAR(1),False,False,True,False,,S,退貨政策（F=自由退貨/S=標準退貨/R=限制退貨/N=不可退貨/W=保固處理）。F/S貼包裝LOGO日期貼紙；R貼本體LOGO日期貼紙；W貼保固QRCode貼紙；N不貼。預設S。
+nx00_part,25,warranty_months,LITE-CORE,INT,False,False,True,False,,0,保固月數，0=不保固。進貨驗收時系統依此計算保固到期日（warranty_expired_at）並寫入進貨明細。
+nx00_part_brand,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[PABR]+[7碼流水號]，EX : NX00PABR0000001
+nx00_part_brand,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_part_brand,3,code,LITE,VARCHAR(3),False,True,True,False,,,品牌代碼（唯一，例：VAG、BMW、OEM）
+nx00_part_brand,4,name,LITE,VARCHAR(100),False,False,True,False,,,品牌名稱（顯示用）
+nx00_part_brand,5,country_id,LITE,VARCHAR(15),False,False,False,True,nx00_country,,品牌國家 (外鍵)
+nx00_part_brand,6,remark,LITE,VARCHAR(200),False,False,False,False,,,備註說明
+nx00_part_brand,7,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用不刪資料）
+nx00_part_brand,8,sort_no,LITE,INT,False,False,True,False,,0,排序用（下拉選單顯示順序）
+nx00_part_brand,9,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_part_brand,10,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_part_brand,11,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_part_brand,12,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_part_group,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[PAGR]+[7碼流水號]，EX : NX00PAGR0000001
+nx00_part_group,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_part_group,2,code,LITE,VARCHAR(30),False,True,True,False,,,族群代碼（唯一）
+nx00_part_group,3,name,LITE,VARCHAR(100),False,False,True,False,,,族群名稱（使用者自訂）
+nx00_part_group,4,sort_no,LITE,INT,False,False,True,False,,0,排序
+nx00_part_group,5,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_part_group,6,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_part_group,7,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_part_group,8,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_part_group,9,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_car_brand,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[CABR]+[7碼流水號]，EX : NX00CABR0000001
+nx00_car_brand,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_car_brand,2,code,LITE,VARCHAR(30),False,True,True,False,,,品牌代碼（唯一，例：MANN、BOSCH、OEM）
+nx00_car_brand,3,name,LITE,VARCHAR(100),False,False,True,False,,,品牌名稱（顯示用）
+nx00_car_brand,4,country_id,LITE,VARCHAR(15),False,False,False,True,nx00_country,,品牌國家 (外鍵)
+nx00_car_brand,5,remark,LITE,VARCHAR(200),False,False,False,False,,,備註說明
+nx00_car_brand,6,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用不刪資料）
+nx00_car_brand,7,sort_no,LITE,INT,False,False,True,False,,0,排序用（下拉選單顯示順序）
+nx00_car_brand,8,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_car_brand,9,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_car_brand,10,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_car_brand,11,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_brand_code_rule,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[BCOR]+[7碼流水號]，EX : NX00BCOR0000001
+nx00_brand_code_rule,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_brand_code_rule,3,part_brand_id,LITE,VARCHAR(15),False,False,True,True,nx00_part_brand,,零件品牌 ID（一個品牌只有一筆規則）
+nx00_brand_code_rule,4,name,LITE,VARCHAR(15),False,False,True,False,,,規則名稱
+nx00_brand_code_rule,5,seg1,LITE,INT,False,False,True,False,,0,第1段字數限制（0=不使用）
+nx00_brand_code_rule,6,seg2,LITE,INT,False,False,True,False,,0,第2段字數限制（0=不使用）
+nx00_brand_code_rule,7,seg3,LITE,INT,False,False,True,False,,0,第3段字數限制（0=不使用）
+nx00_brand_code_rule,8,seg4,LITE,INT,False,False,True,False,,0,第4段字數限制（0=不使用）
+nx00_brand_code_rule,9,seg5,LITE,INT,False,False,True,False,,0,第5段字數限制（0=不使用）
+nx00_brand_code_rule,10,code_format,LITE,VARCHAR(20),False,False,True,False,,1-2-3-4-5,料號組合格式
+nx00_brand_code_rule,11,brand_sort,LITE,VARCHAR(5),False,False,True,False,,12345,料號排列順序，例：VAG=23145
+nx00_brand_code_rule,12,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_brand_code_rule,13,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_brand_code_rule,14,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_brand_code_rule,15,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_brand_code_rule,16,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_part_relation,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[PARE]+[7碼流水號]，EX : NX00PARE0000001
+nx00_part_relation,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_part_relation,3,part_id_from,LITE,VARCHAR(15),False,False,True,True,nx00_part,,來源零件 ID (外鍵)
+nx00_part_relation,4,part_id_to,LITE,VARCHAR(15),False,False,True,True,nx00_part,,目標零件 ID (外鍵)
+nx00_part_relation,5,relation_type,LITE,VARCHAR(1),False,False,True,False,,,S=改號 / R=同款 / C=改版換周邊 / B=組合包 / F=拆解包
+nx00_part_relation,6,remark,LITE,VARCHAR(200),False,False,False,False,,,備註
+nx00_part_relation,7,sort_no,LITE,INT,False,False,True,False,,0,排序
+nx00_part_relation,8,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_part_relation,9,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_part_relation,10,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_part_relation,11,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_part_relation,12,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_warehouse,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[WARE]+[7碼流水號]，EX : NX00WARE0000001
+nx00_warehouse,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_warehouse,2,code,LITE,VARCHAR(10),False,True,True,False,,,倉庫代碼（唯一），例：Z01、Z02
+nx00_warehouse,3,name,LITE,VARCHAR(100),False,False,True,False,,,倉庫名稱（顯示用），例：台北倉、二倉
+nx00_warehouse,4,remark,LITE,VARCHAR(200),False,False,False,False,,,備註（例：只放新品、只放中古件）
+nx00_warehouse,5,sort_no,LITE,INT,False,False,True,False,,0,排序用
+nx00_warehouse,6,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用不刪資料）
+nx00_warehouse,7,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_warehouse,8,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_warehouse,9,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_warehouse,10,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_warehouse,11,warehouse_type_id,PLUS-CORE,VARCHAR(15),False,False,False,True,nx00_warehouse_type,,倉庫類型ID（FK nx00_warehouse_type，PLUS版），控制自動調撥邏輯。H=總部/M=主倉/W=分倉/S=衛星倉。
+nx00_warehouse_type,1,id,PLUS-CORE,VARCHAR(15),True,False,True,False,,,[NX00]+[WHTP]+[7碼流水號]，EX : NX00WHTP0000001
+nx00_warehouse_type,2,code,PLUS-CORE,VARCHAR(1),False,True,True,False,,,倉庫類型代碼（H=總部集中倉/M=主倉/W=分倉/S=衛星倉），系統預設，不可自行新增。
+nx00_warehouse_type,3,name,PLUS-CORE,VARCHAR(50),False,False,True,False,,,倉庫類型名稱（顯示用）。
+nx00_warehouse_type,4,flow_mode,PLUS-CORE,VARCHAR(1),False,False,True,False,,,配貨流程模式（C=集中管理/D=分倉管理）。控制進貨後自動調撥的觸發邏輯。
+nx00_warehouse_type,5,description,PLUS-CORE,VARCHAR(200),False,False,False,False,,,類型說明。
+nx00_warehouse_type,6,sort_no,PLUS-CORE,INT,False,False,True,False,,,排序用。
+nx00_warehouse_type,7,is_active,PLUS-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx00_location,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[LOCA]+[7碼流水號]，EX : NX00LOCA0000001
+nx00_location,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_location,2,warehouse_id,LITE,VARCHAR(15),False,False,True,True,nx00_warehouse,,所屬倉庫 ID
+nx00_location,3,code,LITE,VARCHAR(30),False,False,True,False,,,庫位代碼（倉內唯一），例：A-01-01、B2-03
+nx00_location,4,name,LITE,VARCHAR(100),False,False,False,False,,,庫位名稱（選填），例：靠門口、二樓左側
+nx00_location,5,zone,LITE,VARCHAR(20),False,False,False,False,,,區域（選填），例：A區、B區
+nx00_location,6,rack,LITE,VARCHAR(20),False,False,False,False,,,架號（選填），例：R01
+nx00_location,7,level_no,LITE,INT,False,False,False,False,,,層（選填），例：1、2、3
+nx00_location,8,bin_no,LITE,VARCHAR(20),False,False,False,False,,,格（選填），例：01、02
+nx00_location,9,remark,LITE,VARCHAR(200),False,False,False,False,,,備註（選填）
+nx00_location,10,sort_no,LITE,INT,False,False,True,False,,0,排序用
+nx00_location,11,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用不刪資料）
+nx00_location,12,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_location,13,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_location,14,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_location,15,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_partner,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[PTNR]+[7碼流水號]，EX : NX00PTNR0000001
+nx00_partner,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_partner,3,code,LITE,VARCHAR(30),False,True,True,False,,,交易對象代碼（唯一），例：C0001、S0003、BP0008
+nx00_partner,4,name,LITE,VARCHAR(120),False,False,True,False,,,交易對象名稱（公司名/店名/個人名）
+nx00_partner,5,partner_type,LITE,VARCHAR(1),False,False,True,False,,BOTH,角色類型。( C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行)
+nx00_partner,6,contact_name,LITE,VARCHAR(50),False,False,False,False,,,聯絡人（可空）
+nx00_partner,7,phone,LITE,VARCHAR(30),False,False,False,False,,,電話（可空）
+nx00_partner,8,mobile,LITE,VARCHAR(30),False,False,False,False,,,手機（可空）
+nx00_partner,9,email,LITE,VARCHAR(100),False,False,False,False,,,Email（可空）
+nx00_partner,10,address,LITE,VARCHAR(200),False,False,False,False,,,地址（可空）
+nx00_partner,11,remark,LITE,VARCHAR(200),False,False,False,False,,,備註（例：習慣月結、送貨時間、黑名單原因等）
+nx00_partner,12,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用（停用後不可再開單）
+nx00_partner,13,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_partner,14,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_partner,15,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_partner,16,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_partner,17,tax_id,LITE-CORE,VARCHAR(20),False,False,False,False,,,統一編號（開立發票用，客戶與廠商均可填寫，選填）。
+nx00_partner,18,payment_term,LITE-CORE,VARCHAR(10),False,False,True,False,,NET30,付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響AP/AR到期日計算。
+nx00_partner,19,customer_grade_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx00_customer_grade,,客戶等級ID（FK nx00_customer_grade），供報價單定價邏輯使用。僅客戶類型（partner_type=C）填寫。
+nx00_partner,20,credit_limit,LITE-CORE,"DECIMAL(15,2)",False,False,False,False,,0,信用額度（客戶用），0=不限制。已用額度超過80%警示，超過100%通知負責人。負責人可設定口頭警告/僅收現金/凍結三種處置方式。
+nx00_partner,21,credit_status,LITE-CORE,VARCHAR(1),False,False,True,False,,N,信用狀態（N=正常/W=僅收現金/F=凍結）。凍結時業務無法建立新SO，系統直接擋單。由負責人設定。
+nx00_customer_grade,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX00]+[CUGR]+[7碼流水號]，EX : NX00CUGR0000001
+nx00_customer_grade,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_customer_grade,3,code,LITE-CORE,VARCHAR(10),False,False,True,False,,,等級代碼（租戶內唯一），預設：A/B/C/D，可自行新增。
+nx00_customer_grade,4,name,LITE-CORE,VARCHAR(50),False,False,True,False,,,等級名稱（顯示用），例：黃金客戶、一般客戶。
+nx00_customer_grade,5,margin_pct,LITE-CORE,"DECIMAL(5,2)",False,False,True,False,,,最低毛利率（%），售價不得低於 成本×(1+margin_pct/100)。例：15.00 表示最低售價為成本×115%。
+nx00_customer_grade,6,sort_no,LITE-CORE,INT,False,False,True,False,,,排序用（數字越小等級越優惠）。
+nx00_customer_grade,7,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx00_customer_grade,8,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx00_customer_grade,9,created_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,建立人（對應使用者 ID）。
+nx00_customer_grade,10,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx00_customer_grade,11,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（對應使用者 ID）。
+nx00_discount_code,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX00]+[DISC]+[7碼流水號]，EX : NX00DISC0000001
+nx00_discount_code,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_discount_code,3,code,LITE-CORE,VARCHAR(20),False,False,True,False,,,折扣代碼（租戶內唯一），例：DEFECT/USED/VIP/BULK。
+nx00_discount_code,4,name,LITE-CORE,VARCHAR(50),False,False,True,False,,,折扣名稱（顯示用），例：瑕疵品折扣、中古件折扣。
+nx00_discount_code,5,discount_type,LITE-CORE,VARCHAR(1),False,False,True,False,,,折扣方式（P=折扣率%/A=折扣金額）。
+nx00_discount_code,6,discount_value,LITE-CORE,"DECIMAL(10,2)",False,False,True,False,,,折扣值（discount_type=P時為百分比如20.00表示打八折；A時為固定金額）。
+nx00_discount_code,7,managed_by,LITE-CORE,VARCHAR(1),False,False,True,False,,P,管理角色（P=採購組長/S=銷售組長）。折扣代碼由採購組長管理。
+nx00_discount_code,8,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註說明。
+nx00_discount_code,9,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx00_discount_code,10,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx00_discount_code,11,created_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,建立人（對應使用者 ID）。
+nx00_discount_code,12,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx00_discount_code,13,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（對應使用者 ID）。
+nx00_bulletin,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[BULL]+[7碼流水號]，EX : NX00BULL0000001
+nx00_bulletin,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_bulletin,3,title,LITE,VARCHAR(100),False,False,True,False,,,公告標題
+nx00_bulletin,4,content,LITE,TEXT,False,False,False,False,,,公告內容（多行文字）
+nx00_bulletin,5,type,LITE,VARCHAR(1),False,False,True,False,,C,公告類型：S=SYSTEM / C=COMPANY / R=REMIND
+nx00_bulletin,6,is_pinned,LITE,BOOLEAN,False,False,True,False,,FALSE,是否置頂
+nx00_bulletin,7,expired_at,LITE,TIMESTAMP,False,False,False,False,,1個月到期,到期時間（NULL = 永久顯示）
+nx00_bulletin,8,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_bulletin,9,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_bulletin,10,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_bulletin,11,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_bulletin,12,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_calendar_event,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[CAEV]+[7碼流水號]，EX : NX00CAEV0000001
+nx00_calendar_event,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_calendar_event,3,title,LITE,VARCHAR(100),False,False,True,False,,,事件標題
+nx00_calendar_event,4,type,LITE,VARCHAR(1),False,False,True,False,,,事件類型：S=SYSTEM / C=COMPANY / R=REMIND
+nx00_calendar_event,5,date_start,LITE,TIMESTAMP,False,False,True,False,,TODAY,開始時間
+nx00_calendar_event,6,date_end,LITE,TIMESTAMP,False,False,True,False,,,結束時間
+nx00_calendar_event,7,is_all_day,LITE,BOOLEAN,False,False,True,False,,FALSE,是否整天
+nx00_calendar_event,8,order_type,LITE,VARCHAR(2),False,False,False,False,,,相關單據類型：RF=詢價單 / PO=採購單 / RR=進貨單 / RM=退貨單 / QT=報價單 / SO=銷貨單 / SR=銷退單
+nx00_calendar_event,9,order_doc_no,LITE,VARCHAR(16),False,False,False,False,,,單據單號 (依 order_type 動態對應)
+nx00_calendar_event,10,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx00_calendar_event,11,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx00_calendar_event,12,created_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,建立人（對應使用者 ID）。
+nx00_calendar_event,13,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx00_calendar_event,14,updated_by,LITE,VARCHAR(15),False,False,False,True,nx00_user,,更新人（對應使用者 ID）。
+nx00_audit_log,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX00]+[AULO]+[7碼流水號]，EX : NX00AULO0000001
+nx00_audit_log,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx00_audit_log,3,occurred_at,LITE,TIMESTAMP,False,False,True,False,,NOW,發生時間
+nx00_audit_log,4,actor_user_id,LITE,VARCHAR(15),False,False,True,True,nx00_user,,操作者（使用者 ID）
+nx00_audit_log,5,module_code,LITE,VARCHAR(10),False,False,True,False,,,模組代碼：nx00/nx01/nx02...
+nx00_audit_log,6,action,LITE,VARCHAR(20),False,False,True,False,,,動作類型：CREATE/UPDATE/DELETE/LOGIN/LOGOUT/EXPORT/POST/VOID…
+nx00_audit_log,7,entity_table,LITE,VARCHAR(50),False,False,True,False,,,目標表格名稱，例：nx01_po、nx00_part
+nx00_audit_log,8,entity_id,LITE,VARCHAR(20),False,False,False,False,,,目標資料 ID（多數是 VARCHAR(15)，允許更長避免未來擴充）
+nx00_audit_log,9,entity_code,LITE,VARCHAR(50),False,False,False,False,,,目標資料識別碼（例：單號、料號、畫面代碼），方便人查
+nx00_audit_log,10,summary,LITE,VARCHAR(200),False,False,False,False,,,簡述（例：建立進貨單、修改銷貨單金額）
+nx00_audit_log,11,before_data,LITE,JSON,False,False,False,False,,,變更前資料快照（可空；只在 UPDATE/DELETE 時有）
+nx00_audit_log,12,after_data,LITE,JSON,False,False,False,False,,,變更後資料快照（可空；只在 CREATE/UPDATE 時有）
+nx00_audit_log,13,ip_addr,LITE,VARCHAR(45),False,False,False,False,,,IP 位址（IPv4/IPv6；可空）
+nx00_audit_log,14,user_agent,LITE,VARCHAR(200),False,False,False,False,,,瀏覽器/裝置資訊（可空）
