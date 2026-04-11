@@ -1,0 +1,189 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx07_shift_type,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SHFT]+[7碼流水號]，EX : NX07SHFT0000001
+nx07_shift_type,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_shift_type,3,code,PRO,VARCHAR(10),False,False,True,False,,,班別代碼，例：DAY/NIGHT/OFF。
+nx07_shift_type,4,name,PRO,VARCHAR(50),False,False,True,False,,,班別名稱，例：早班/晚班/休假。
+nx07_shift_type,5,start_time,PRO,TIME,False,False,False,False,,,標準上班時間（例：09:00）。
+nx07_shift_type,6,end_time,PRO,TIME,False,False,False,False,,,標準下班時間（例：18:00）。
+nx07_shift_type,7,is_work_day,PRO,BOOLEAN,False,False,True,False,,TRUE,是否為工作班（FALSE=休假班）。
+nx07_shift_type,8,cross_midnight,PRO,BOOLEAN,False,False,True,False,,FALSE,是否跨日班（例：晚班 22:00-06:00）。
+nx07_shift_type,9,color_code,PRO,VARCHAR(7),False,False,False,False,,,排班顯示顏色（HEX色碼，例：#FF5733）。
+nx07_shift_type,10,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx07_shift_type,11,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_shift_type,12,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_shift_type,13,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_shift_type,14,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_schedule,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SCHD]+[7碼流水號]，EX : NX07SCHD0000001
+nx07_schedule,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_schedule,3,team_id,PRO,VARCHAR(15),False,False,True,True,nx01_team,,排班組別ID（FK nx01_team）。
+nx07_schedule,4,year_month,PRO,VARCHAR(7),False,False,True,False,,,排班年月（格式：YYYY-MM，例：2026-04）。
+nx07_schedule,5,status,PRO,VARCHAR(1),False,False,True,False,,D,狀態（D=草稿/P=已發布/L=已鎖定）。發布後員工可查看，鎖定後不可修改。
+nx07_schedule,6,published_at,PRO,TIMESTAMP,False,False,False,False,,,發布時間。
+nx07_schedule,7,published_by,PRO,VARCHAR(15),False,False,False,False,,,發布人（組長，使用者ID）。
+nx07_schedule,8,remark,PRO,VARCHAR(200),False,False,False,False,,,備註。
+nx07_schedule,9,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_schedule,10,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_schedule,11,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_schedule,12,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_schedule_item,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SCIT]+[7碼流水號]，EX : NX07SCIT0000001
+nx07_schedule_item,2,schedule_id,PRO,VARCHAR(15),False,False,True,True,nx07_schedule,,對應排班主檔ID（FK nx07_schedule）。
+nx07_schedule_item,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx07_schedule_item,4,work_date,PRO,DATE,False,False,True,False,,,排班日期。
+nx07_schedule_item,5,shift_type_id,PRO,VARCHAR(15),False,False,True,True,nx07_shift_type,,班別ID（FK nx07_shift_type）。
+nx07_schedule_item,6,swap_user_id,PRO,VARCHAR(15),False,False,False,True,nx01_user,,代班人員ID（換班時填入，FK nx01_user）。
+nx07_schedule_item,7,swap_approved,PRO,BOOLEAN,False,False,True,False,,FALSE,代班是否已核准。
+nx07_schedule_item,8,swap_approved_by,PRO,VARCHAR(15),False,False,False,False,,,代班核准人（組長，使用者ID）。
+nx07_schedule_item,9,remark,PRO,VARCHAR(200),False,False,False,False,,,備註。
+nx07_schedule_item,10,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_schedule_item,11,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_schedule_item,12,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_attendance,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[ATND]+[7碼流水號]，EX : NX07ATND0000001
+nx07_attendance,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_attendance,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx07_attendance,4,work_date,PRO,DATE,False,False,True,False,,,工作日期。
+nx07_attendance,5,schedule_item_id,PRO,VARCHAR(15),False,False,False,True,nx07_schedule_item,,對應排班明細ID（FK nx07_schedule_item）。
+nx07_attendance,6,clock_in_at,PRO,TIMESTAMP,False,False,False,False,,,實際上班打卡時間。
+nx07_attendance,7,clock_out_at,PRO,TIMESTAMP,False,False,False,False,,,實際下班打卡時間。
+nx07_attendance,8,clock_in_method,PRO,VARCHAR(1),False,False,False,False,,,上班打卡方式（I=IP驗證/M=手動/R=遠端）。
+nx07_attendance,9,clock_out_method,PRO,VARCHAR(1),False,False,False,False,,,下班打卡方式（I=IP驗證/M=手動/R=遠端）。
+nx07_attendance,10,clock_in_ip,PRO,VARCHAR(45),False,False,False,False,,,上班打卡IP位址。
+nx07_attendance,11,clock_out_ip,PRO,VARCHAR(45),False,False,False,False,,,下班打卡IP位址。
+nx07_attendance,12,line_verified,PRO,BOOLEAN,False,False,True,False,,FALSE,LINE Login 是否已驗證。
+nx07_attendance,13,std_clock_in,PRO,TIMESTAMP,False,False,False,False,,,基準上班時間（含主管審核補正後的時間）。
+nx07_attendance,14,std_clock_out,PRO,TIMESTAMP,False,False,False,False,,,基準下班時間（含主管審核補正後的時間）。
+nx07_attendance,15,late_minutes,PRO,INT,False,False,True,False,,0,遲到分鐘數（系統自動計算）。
+nx07_attendance,16,early_leave_minutes,PRO,INT,False,False,True,False,,0,早退分鐘數（系統自動計算）。
+nx07_attendance,17,work_hours,PRO,"DECIMAL(5,2)",False,False,True,False,,0,實際工作時數（系統自動計算）。
+nx07_attendance,18,overtime_hours,PRO,"DECIMAL(5,2)",False,False,True,False,,0,加班時數（系統自動計算）。
+nx07_attendance,19,status,PRO,VARCHAR(1),False,False,True,False,,N,狀態（N=正常/L=遲到/E=早退/A=缺勤/S=特殊審核）。
+nx07_attendance,20,approved_by,PRO,VARCHAR(15),False,False,False,False,,,主管審核人（遲到/早退/遠端打卡時填入）。
+nx07_attendance,21,approved_at,PRO,TIMESTAMP,False,False,False,False,,,主管審核時間。
+nx07_attendance,22,approve_remark,PRO,VARCHAR(200),False,False,False,False,,,審核說明（業務需求導致遲到/早退的原因）。
+nx07_attendance,23,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_attendance,24,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_leave_type,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[LVTP]+[7碼流水號]，EX : NX07LVTP0000001
+nx07_leave_type,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_leave_type,3,code,PRO,VARCHAR(10),False,False,True,False,,,假別代碼，例：ANNUAL/SICK/PERSONAL。
+nx07_leave_type,4,name,PRO,VARCHAR(50),False,False,True,False,,,假別名稱，例：特休/病假/事假。
+nx07_leave_type,5,is_paid,PRO,BOOLEAN,False,False,True,False,,TRUE,是否為有薪假。
+nx07_leave_type,6,max_days_per_year,PRO,"DECIMAL(5,1)",False,False,False,False,,,每年最高天數（NULL表示無上限，依勞基法計算）。
+nx07_leave_type,7,min_apply_hours,PRO,"DECIMAL(4,1)",False,False,True,False,,1,最小請假單位（小時），例：0.5=半小時/1=1小時/8=1天。
+nx07_leave_type,8,need_approval,PRO,BOOLEAN,False,False,True,False,,TRUE,是否需要主管審核。
+nx07_leave_type,9,is_system,PRO,BOOLEAN,False,False,True,False,,FALSE,是否系統預設假別（TRUE=勞基法規定，不可刪除）。
+nx07_leave_type,10,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx07_leave_type,11,sort_no,PRO,INT,False,False,True,False,,0,排序用。
+nx07_leave_type,12,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_leave_type,13,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_leave_type,14,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_leave_type,15,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_leave_balance,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[LVBL]+[7碼流水號]，EX : NX07LVBL0000001
+nx07_leave_balance,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_leave_balance,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx07_leave_balance,4,leave_type_id,PRO,VARCHAR(15),False,False,True,True,nx07_leave_type,,假別ID（FK nx07_leave_type）。
+nx07_leave_balance,5,year,PRO,INT,False,False,True,False,,,年度，例：2026。
+nx07_leave_balance,6,entitled_hours,PRO,"DECIMAL(6,1)",False,False,True,False,,0,應有時數（依年資/勞基法計算）。
+nx07_leave_balance,7,used_hours,PRO,"DECIMAL(6,1)",False,False,True,False,,0,已使用時數。
+nx07_leave_balance,8,remaining_hours,PRO,"DECIMAL(6,1)",False,False,True,False,,0,剩餘時數（entitled_hours - used_hours）。
+nx07_leave_balance,9,carry_over_hours,PRO,"DECIMAL(6,1)",False,False,True,False,,0,上年度結轉時數。
+nx07_leave_balance,10,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_leave_request,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[LVRQ]+[7碼流水號]，EX : NX07LVRQ0000001
+nx07_leave_request,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_leave_request,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,申請人員工ID（FK nx01_user）。
+nx07_leave_request,4,leave_type_id,PRO,VARCHAR(15),False,False,True,True,nx07_leave_type,,假別ID（FK nx07_leave_type）。
+nx07_leave_request,5,request_type,PRO,VARCHAR(1),False,False,True,False,,S,申請類型（S=排休/T=臨時請假）。
+nx07_leave_request,6,start_at,PRO,TIMESTAMP,False,False,True,False,,,請假開始時間。
+nx07_leave_request,7,end_at,PRO,TIMESTAMP,False,False,True,False,,,請假結束時間。
+nx07_leave_request,8,total_hours,PRO,"DECIMAL(5,1)",False,False,True,False,,0,請假總時數（系統自動計算）。
+nx07_leave_request,9,reason,PRO,VARCHAR(200),False,False,False,False,,,請假原因（病假/事假必填）。
+nx07_leave_request,10,attachment_url,PRO,VARCHAR(500),False,False,False,False,,,附件路徑（病假診斷證明等）。
+nx07_leave_request,11,status,PRO,VARCHAR(1),False,False,True,False,,P,狀態（P=待審核/A=已核准/R=已退件/C=已取消）。
+nx07_leave_request,12,approved_by,PRO,VARCHAR(15),False,False,False,False,,,審核人（主管，使用者ID）。
+nx07_leave_request,13,approved_at,PRO,TIMESTAMP,False,False,False,False,,,審核時間。
+nx07_leave_request,14,reject_reason,PRO,VARCHAR(200),False,False,False,False,,,退件原因（退件時必填）。
+nx07_leave_request,15,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_leave_request,16,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_leave_request,17,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_leave_request,18,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_overtime_request,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[OTRQ]+[7碼流水號]，EX : NX07OTRQ0000001
+nx07_overtime_request,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_overtime_request,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,申請人員工ID（FK nx01_user）。
+nx07_overtime_request,4,work_date,PRO,DATE,False,False,True,False,,,加班日期。
+nx07_overtime_request,5,start_at,PRO,TIMESTAMP,False,False,True,False,,,加班開始時間。
+nx07_overtime_request,6,end_at,PRO,TIMESTAMP,False,False,True,False,,,加班結束時間。
+nx07_overtime_request,7,total_hours,PRO,"DECIMAL(5,2)",False,False,True,False,,0,加班總時數（系統自動計算）。
+nx07_overtime_request,8,reason,PRO,VARCHAR(200),False,False,True,False,,,加班原因（必填）。
+nx07_overtime_request,9,ot_type,PRO,VARCHAR(1),False,False,True,False,,W,加班類型（W=平日加班/H=假日加班）。影響加班費計算。
+nx07_overtime_request,10,status,PRO,VARCHAR(1),False,False,True,False,,P,狀態（P=待審核/A=已核准/R=已退件/C=已取消）。
+nx07_overtime_request,11,approved_by,PRO,VARCHAR(15),False,False,False,False,,,審核人（主管，使用者ID）。
+nx07_overtime_request,12,approved_at,PRO,TIMESTAMP,False,False,False,False,,,審核時間。
+nx07_overtime_request,13,reject_reason,PRO,VARCHAR(200),False,False,False,False,,,退件原因。
+nx07_overtime_request,14,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_overtime_request,15,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_salary_setting,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SLST]+[7碼流水號]，EX : NX07SLST0000001
+nx07_salary_setting,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_salary_setting,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx07_salary_setting,4,emp_type,PRO,VARCHAR(1),False,False,True,False,,F,員工類別（F=全職月薪/P=兼職時薪）。
+nx07_salary_setting,5,base_salary,PRO,"DECIMAL(10,2)",False,False,True,False,,0,底薪（全職=月薪/兼職=時薪）。
+nx07_salary_setting,6,effective_date,PRO,DATE,False,False,True,False,,,生效日期（支援薪資異動記錄）。
+nx07_salary_setting,7,pay_day,PRO,INT,False,False,True,False,,5,發薪日（預設5號，1-28）。
+nx07_salary_setting,8,pay_cycle_start,PRO,INT,False,False,True,False,,1,計薪週期起始日（1表示每月1日）。
+nx07_salary_setting,9,ot_rate_1,PRO,"DECIMAL(4,2)",False,False,True,False,,1.34,平日加班前2小時倍率（勞基法預設1.34）。
+nx07_salary_setting,10,ot_rate_2,PRO,"DECIMAL(4,2)",False,False,True,False,,1.67,平日加班後2小時倍率（勞基法預設1.67）。
+nx07_salary_setting,11,ot_rate_holiday,PRO,"DECIMAL(4,2)",False,False,True,False,,2.00,假日加班倍率（勞基法預設2.00）。
+nx07_salary_setting,12,ot_rate_below_legal,PRO,BOOLEAN,False,False,True,False,,FALSE,加班倍率是否低於勞基法標準（系統自動檢查，TRUE時顯示警示）。
+nx07_salary_setting,13,remark,PRO,VARCHAR(200),False,False,False,False,,,備註。
+nx07_salary_setting,14,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_salary_setting,15,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_salary_setting,16,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_salary_setting,17,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_salary_component,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SLCP]+[7碼流水號]，EX : NX07SLCP0000001
+nx07_salary_component,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_salary_component,3,code,PRO,VARCHAR(20),False,False,True,False,,,項目代碼，例：TRANSPORT/MEAL/ATTENDANCE_BONUS。
+nx07_salary_component,4,name,PRO,VARCHAR(50),False,False,True,False,,,項目名稱，例：交通津貼/餐費補貼/全勤獎金。
+nx07_salary_component,5,comp_type,PRO,VARCHAR(1),False,False,True,False,,A,項目類型（A=加項/D=減項）。加項=加薪，減項=扣薪。
+nx07_salary_component,6,calc_method,PRO,VARCHAR(1),False,False,True,False,,F,計算方式（F=固定金額/R=比率/K=依KPI達成率）。
+nx07_salary_component,7,default_value,PRO,"DECIMAL(10,2)",False,False,False,False,,0,預設金額或比率。
+nx07_salary_component,8,kpi_template_id,PRO,VARCHAR(15),False,False,False,True,nx01_kpi_template,,關聯KPI指標ID（calc_method=K時填入，FK nx01_kpi_template）。
+nx07_salary_component,9,is_system,PRO,BOOLEAN,False,False,True,False,,FALSE,是否系統預設項目（TRUE=不可刪除，例如底薪/加班費）。
+nx07_salary_component,10,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx07_salary_component,11,sort_no,PRO,INT,False,False,True,False,,0,排序用。
+nx07_salary_component,12,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_salary_component,13,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_salary_component,14,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_salary_component,15,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_salary_record,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SLRC]+[7碼流水號]，EX : NX07SLRC0000001
+nx07_salary_record,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_salary_record,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx07_salary_record,4,year_month,PRO,VARCHAR(7),False,False,True,False,,,薪資年月（格式：YYYY-MM）。
+nx07_salary_record,5,base_salary,PRO,"DECIMAL(10,2)",False,False,True,False,,0,底薪快照。
+nx07_salary_record,6,work_days,PRO,INT,False,False,True,False,,0,實際工作天數。
+nx07_salary_record,7,work_hours,PRO,"DECIMAL(6,2)",False,False,True,False,,0,實際工作時數（兼職計薪用）。
+nx07_salary_record,8,ot_hours_wd,PRO,"DECIMAL(5,2)",False,False,True,False,,0,平日加班時數。
+nx07_salary_record,9,ot_hours_holiday,PRO,"DECIMAL(5,2)",False,False,True,False,,0,假日加班時數。
+nx07_salary_record,10,ot_pay,PRO,"DECIMAL(10,2)",False,False,True,False,,0,加班費（系統自動計算）。
+nx07_salary_record,11,gross_salary,PRO,"DECIMAL(10,2)",False,False,True,False,,0,應發薪資合計（底薪+加班費+各加項）。
+nx07_salary_record,12,deduction_total,PRO,"DECIMAL(10,2)",False,False,True,False,,0,扣項合計（勞健保/所得稅/各減項）。
+nx07_salary_record,13,net_salary,PRO,"DECIMAL(10,2)",False,False,True,False,,0,實發薪資（gross_salary - deduction_total）。
+nx07_salary_record,14,status,PRO,VARCHAR(1),False,False,True,False,,D,狀態（D=草稿/C=已確認/P=已發放）。
+nx07_salary_record,15,confirmed_at,PRO,TIMESTAMP,False,False,False,False,,,確認時間。
+nx07_salary_record,16,confirmed_by,PRO,VARCHAR(15),False,False,False,False,,,確認人（使用者ID）。
+nx07_salary_record,17,paid_at,PRO,TIMESTAMP,False,False,False,False,,,發放時間。
+nx07_salary_record,18,remark,PRO,VARCHAR(200),False,False,False,False,,,備註。
+nx07_salary_record,19,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_salary_record,20,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_salary_record_item,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[SLRI]+[7碼流水號]，EX : NX07SLRI0000001
+nx07_salary_record_item,2,salary_record_id,PRO,VARCHAR(15),False,False,True,True,nx07_salary_record,,對應薪資記錄ID（FK nx07_salary_record）。
+nx07_salary_record_item,3,component_id,PRO,VARCHAR(15),False,False,True,True,nx07_salary_component,,薪資組成項目ID（FK nx07_salary_component）。
+nx07_salary_record_item,4,amount,PRO,"DECIMAL(10,2)",False,False,True,False,,0,金額（正數=加項/負數=減項）。
+nx07_salary_record_item,5,calc_basis,PRO,VARCHAR(200),False,False,False,False,,,計算依據說明，例：KPI達成率85%×5000=4250。
+nx07_salary_record_item,6,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_ip_whitelist,1,id,PRO,VARCHAR(15),True,False,True,False,,,[NX07]+[IPWL]+[7碼流水號]，EX : NX07IPWL0000001
+nx07_ip_whitelist,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx07_ip_whitelist,3,warehouse_id,PRO,VARCHAR(15),False,False,False,True,nx01_warehouse,,對應倉庫ID（FK nx01_warehouse）。
+nx07_ip_whitelist,4,ip_address,PRO,VARCHAR(45),False,False,True,False,,,IP 位址或 CIDR 範圍，例：192.168.1.0/24。
+nx07_ip_whitelist,5,name,PRO,VARCHAR(50),False,False,True,False,,,名稱說明，例：Z01台北倉固定IP。
+nx07_ip_whitelist,6,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx07_ip_whitelist,7,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx07_ip_whitelist,8,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx07_ip_whitelist,9,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx07_ip_whitelist,10,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

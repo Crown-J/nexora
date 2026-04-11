@@ -1,0 +1,112 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx09_km_article,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[ARTI]+[7碼流水號]，EX : NX09ARTI0000001
+nx09_km_article,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx09_km_article,3,dept_id,PRO,VARCHAR(15),False,False,False,True,nx01_department,,所屬部門ID（FK nx01_department，可空=跨部門適用）。
+nx09_km_article,4,category,PRO,VARCHAR(2),False,False,True,False,,SO,文章分類（SO=系統操作/BP=業務流程/RG=規章制度/CX=客戶處理/EM=緊急狀況/OT=其他）。
+nx09_km_article,5,question,PRO,TEXT,False,False,True,False,,,問題（Q）內容，供搜尋與 Phase 2 RAG 向量化使用。
+nx09_km_article,6,answer,PRO,TEXT,False,False,True,False,,,答案（A）內容。
+nx09_km_article,7,context,PRO,TEXT,False,False,False,False,,,適用情境說明（選填，補充說明何時適用此 QA）。
+nx09_km_article,8,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否有效（FALSE=已過時，不顯示在搜尋結果）。
+nx09_km_article,9,expired_at,PRO,DATE,False,False,False,False,,,有效期限（選填，過期後自動設 is_active=FALSE）。
+nx09_km_article,10,view_count,PRO,INT,False,False,True,False,,0,瀏覽次數（系統累計）。
+nx09_km_article,11,helpful_count,PRO,INT,False,False,True,False,,0,已解決次數（員工點擊「已解決」按鈕累計）。
+nx09_km_article,12,remark,PRO,VARCHAR(500),False,False,False,False,,,備註。
+nx09_km_article,13,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_km_article,14,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_km_article,15,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_km_article,16,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_km_tag,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[KMTG]+[7碼流水號]，EX : NX09KMTG0000001
+nx09_km_tag,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx09_km_tag,3,name,PRO,VARCHAR(50),False,False,True,False,,,標籤名稱，例：Prisma/採購單/報價流程/緊急處理。
+nx09_km_tag,4,is_system,PRO,BOOLEAN,False,False,True,False,,FALSE,是否系統預設標籤（TRUE=不可刪除）。
+nx09_km_tag,5,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx09_km_tag,6,sort_no,PRO,INT,False,False,True,False,,0,排序用。
+nx09_km_tag,7,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_km_tag,8,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_km_tag,9,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_km_tag,10,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_km_article_tag,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[KMTL]+[7碼流水號]，EX : NX09KMTL0000001
+nx09_km_article_tag,2,article_id,PRO,VARCHAR(15),False,False,True,True,nx09_km_article,,知識庫文章ID（FK nx09_km_article）。
+nx09_km_article_tag,3,tag_id,PRO,VARCHAR(15),False,False,True,True,nx09_km_tag,,標籤ID（FK nx09_km_tag）。
+nx09_km_article_tag,4,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_km_article_tag,5,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_km_feedback,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[KMFB]+[7碼流水號]，EX : NX09KMFB0000001
+nx09_km_feedback,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx09_km_feedback,3,article_id,PRO,VARCHAR(15),False,False,True,True,nx09_km_article,,知識庫文章ID（FK nx09_km_article）。
+nx09_km_feedback,4,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,回饋員工ID（FK nx01_user）。
+nx09_km_feedback,5,is_helpful,PRO,BOOLEAN,False,False,True,False,,TRUE,是否有幫助（TRUE=已解決/FALSE=未解決）。
+nx09_km_feedback,6,comment,PRO,VARCHAR(500),False,False,False,False,,,補充說明（選填）。
+nx09_km_feedback,7,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),回饋時間。
+nx09_document,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[DOCU]+[7碼流水號]，EX : NX09DOCU0000001
+nx09_document,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx09_document,3,title,PRO,VARCHAR(200),False,False,True,False,,,文件標題。
+nx09_document,4,doc_category,PRO,VARCHAR(2),False,False,True,False,,,文件分類（CR=章則彙編/SP=SOP/JD=工作說明書/FM=表單/OT=其他）。
+nx09_document,5,dept_id,PRO,VARCHAR(15),False,False,False,True,nx01_department,,適用部門ID（可空=全公司適用，FK nx01_department）。
+nx09_document,6,current_ver,PRO,VARCHAR(10),False,False,True,False,,1.0,目前版本號（如1.0/2.1）。
+nx09_document,7,effective_date,PRO,DATE,False,False,True,False,,,生效日期。
+nx09_document,8,expired_date,PRO,DATE,False,False,False,False,,,失效日期（選填）。
+nx09_document,9,view_permission,PRO,VARCHAR(1),False,False,True,False,,A,閱覽權限（A=全員/M=主管以上/D=指定部門）。
+nx09_document,10,is_active,PRO,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx09_document,11,remark,PRO,VARCHAR(500),False,False,False,False,,,備註。
+nx09_document,12,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_document,13,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_document,14,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_document,15,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_document_version,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[DVER]+[7碼流水號]，EX : NX09DVER0000001
+nx09_document_version,2,document_id,PRO,VARCHAR(15),False,False,True,True,nx09_document,,對應文件ID（FK nx09_document）。
+nx09_document_version,3,version_no,PRO,VARCHAR(10),False,False,True,False,,,版本號（如1.0/1.1/2.0）。
+nx09_document_version,4,file_url,PRO,VARCHAR(500),False,False,True,False,,,檔案儲存路徑（PDF/Word）。
+nx09_document_version,5,file_size_kb,PRO,INT,False,False,False,False,,,檔案大小（KB）。
+nx09_document_version,6,change_summary,PRO,VARCHAR(500),False,False,False,False,,,版本修訂說明。
+nx09_document_version,7,print_count,PRO,INT,False,False,True,False,,0,列印次數（系統累計）。
+nx09_document_version,8,last_print_at,PRO,TIMESTAMP,False,False,False,False,,,最後列印時間。
+nx09_document_version,9,last_print_by,PRO,VARCHAR(15),False,False,False,True,nx01_user,,最後列印人（FK nx01_user）。
+nx09_document_version,10,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間（上傳時間）。
+nx09_document_version,11,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[MTNG]+[7碼流水號]，EX : NX09MTNG0000001
+nx09_meeting,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx09_meeting,3,title,PRO,VARCHAR(200),False,False,True,False,,,會議主題。
+nx09_meeting,4,meeting_type,PRO,VARCHAR(2),False,False,True,False,,,會議類型（PS=產銷會議/WK=週會/MN=月會/AD=臨時/TR=教育訓練）。
+nx09_meeting,5,location,PRO,VARCHAR(200),False,False,False,False,,,會議地點（選填）。
+nx09_meeting,6,start_at,PRO,TIMESTAMP,False,False,True,False,,,會議開始時間。
+nx09_meeting,7,end_at,PRO,TIMESTAMP,False,False,True,False,,,會議結束時間。
+nx09_meeting,8,organizer_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,發起人ID（FK nx01_user）。
+nx09_meeting,9,status,PRO,VARCHAR(1),False,False,True,False,,P,狀態（P=預定/I=進行中/C=已完成/X=已取消）。
+nx09_meeting,10,remark,PRO,VARCHAR(500),False,False,False,False,,,備註。
+nx09_meeting,11,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_meeting,12,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting,13,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_meeting,14,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting_attendee,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[MTAT]+[7碼流水號]，EX : NX09MTAT0000001
+nx09_meeting_attendee,2,meeting_id,PRO,VARCHAR(15),False,False,True,True,nx09_meeting,,對應會議ID（FK nx09_meeting）。
+nx09_meeting_attendee,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,出席人員ID（FK nx01_user）。
+nx09_meeting_attendee,4,confirm_status,PRO,VARCHAR(1),False,False,True,False,,P,確認狀態（P=待確認/Y=確認出席/L=請假/N=無法出席）。
+nx09_meeting_attendee,5,actual_attended,PRO,BOOLEAN,False,False,True,False,,FALSE,是否實際出席（會議結束後更新）。
+nx09_meeting_attendee,6,absent_reason,PRO,VARCHAR(200),False,False,False,False,,,未出席原因（actual_attended=FALSE時填入）。
+nx09_meeting_attendee,7,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_meeting_attendee,8,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_meeting_attendee,9,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting_minutes,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[MTMI]+[7碼流水號]，EX : NX09MTMI0000001
+nx09_meeting_minutes,2,meeting_id,PRO,VARCHAR(15),False,True,True,True,nx09_meeting,,對應會議ID（FK nx09_meeting，每會議一筆）。
+nx09_meeting_minutes,3,content,PRO,TEXT,False,False,False,False,,,會議內容（討論事項、決議等，支援 Markdown）。
+nx09_meeting_minutes,4,decisions,PRO,TEXT,False,False,False,False,,,決議事項摘要（供快速查看）。
+nx09_meeting_minutes,5,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_meeting_minutes,6,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting_minutes,7,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_meeting_minutes,8,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting_action,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX09]+[MTAC]+[7碼流水號]，EX : NX09MTAC0000001
+nx09_meeting_action,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx09_meeting_action,3,meeting_id,PRO,VARCHAR(15),False,False,True,True,nx09_meeting,,來源會議ID（FK nx09_meeting）。
+nx09_meeting_action,4,minutes_id,PRO,VARCHAR(15),False,False,False,True,nx09_meeting_minutes,,來源會議紀錄ID（FK nx09_meeting_minutes）。
+nx09_meeting_action,5,title,PRO,VARCHAR(200),False,False,True,False,,,追蹤事項標題。
+nx09_meeting_action,6,assignee_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,負責人ID（FK nx01_user）。
+nx09_meeting_action,7,due_date,PRO,DATE,False,False,True,False,,,截止日期。
+nx09_meeting_action,8,status,PRO,VARCHAR(1),False,False,True,False,,O,狀態（O=待處理/I=進行中/C=已完成/D=延期/X=取消）。
+nx09_meeting_action,9,completed_at,PRO,TIMESTAMP,False,False,False,False,,,完成時間（status=C時填入）。
+nx09_meeting_action,10,result_desc,PRO,TEXT,False,False,False,False,,,完成說明（status=C時填入執行結果）。
+nx09_meeting_action,11,is_overdue,PRO,BOOLEAN,False,False,True,False,,FALSE,是否逾期（系統每日計算：due_date < today AND status!=C）。
+nx09_meeting_action,12,remark,PRO,VARCHAR(500),False,False,False,False,,,備註。
+nx09_meeting_action,13,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx09_meeting_action,14,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx09_meeting_action,15,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx09_meeting_action,16,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

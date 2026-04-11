@@ -1,0 +1,134 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx04_quote,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX04]+[QTHD]+[7碼流水號]，EX : NX04QTHD0000001
+nx04_quote,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx04_quote,3,warehouse_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_warehouse,,報價倉庫ID，影響單號產生（FK nx01_warehouse）。
+nx04_quote,4,doc_no,LITE-CORE,VARCHAR(16),False,True,True,False,,,報價單號（唯一），[QT]+[年月]+[倉別]+[5碼流水號]，EX：QT-202604-Z01-00001
+nx04_quote,5,quote_date,LITE-CORE,DATE,False,False,True,False,,,報價日期。
+nx04_quote,6,customer_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,客戶ID（FK nx01_partner，partner_type=C）。
+nx04_quote,7,customer_grade_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_customer_grade,,客戶等級ID快照（報價時帶入）。
+nx04_quote,8,valid_until,LITE-CORE,DATE,False,False,False,False,,,報價有效期限，過期後不得轉銷貨單。
+nx04_quote,9,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,TWD,幣別ID（FK nx01_currency，預設TWD）。
+nx04_quote,10,subtotal,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,小計（is_selected=TRUE的明細加總，未稅）。
+nx04_quote,11,tax_rate,LITE-CORE,"DECIMAL(5,2)",False,False,True,False,,5.00,稅率（預設5.00）。
+nx04_quote,12,tax_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,稅額。
+nx04_quote,13,total_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,總額（subtotal + tax_amount）。
+nx04_quote,14,status,LITE-CORE,VARCHAR(1),False,False,True,False,,D,狀態（D=草稿/S=已發出/C=已轉單/X=已作廢）。
+nx04_quote,15,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx04_quote,16,voided_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,作廢時間。
+nx04_quote,17,voided_by,LITE-CORE,VARCHAR(15),False,False,False,False,,,作廢人（使用者ID）。
+nx04_quote,18,void_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,作廢原因（必填）。
+nx04_quote,19,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx04_quote,20,created_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_quote,21,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx04_quote,22,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_quote,23,rfq_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx02_rfq,,來源詢價單ID（可空，無庫存走同行調貨詢價流程時填入，FK nx02_rfq）。
+nx04_quote_item,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX04]+[QTIT]+[7碼流水號]，EX : NX04QTIT0000001
+nx04_quote_item,2,quote_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx04_quote,,對應報價單表頭ID（FK nx04_quote）。
+nx04_quote_item,3,line_no,LITE-CORE,INT,False,False,True,False,,,"明細行號（1,2,3…）。"
+nx04_quote_item,4,group_no,LITE-CORE,INT,False,False,False,False,,,選項群組號碼，同一客戶詢問對應多個料號時使用相同group_no（如原廠+副廠選項）。NULL表示無多選項。
+nx04_quote_item,5,part_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_part,,零件ID（FK nx01_part）。
+nx04_quote_item,6,part_no,LITE-CORE,VARCHAR(50),False,False,True,False,,,零件料號快照。
+nx04_quote_item,7,part_name,LITE-CORE,VARCHAR(200),False,False,True,False,,,零件名稱快照。
+nx04_quote_item,8,qty,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,,報價數量。
+nx04_quote_item,9,unit_price,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,0,報價單價（業務填入）。
+nx04_quote_item,10,min_price,LITE-CORE,"DECIMAL(14,4)",False,False,False,False,,,最低售價快照（依客戶等級計算，成本×毛利%），供前端警示用。
+nx04_quote_item,11,discount_code_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_discount_code,,折扣代碼ID（選填，FK nx01_discount_code）。
+nx04_quote_item,12,line_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,明細金額（qty × unit_price）。is_selected=FALSE時不計入表頭小計。
+nx04_quote_item,13,is_selected,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,客戶是否選擇此料號（同group_no多選項中，客戶確認選哪筆）。FALSE的明細不計入小計、不轉銷貨單。
+nx04_quote_item,14,below_min_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,低於最低售價原因（unit_price < min_price時必填，自動記錄並倒扣業績）。
+nx04_quote_item,15,transferred_qty,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,0,已轉銷貨單數量（支援同一報價單分批轉單，不可超過qty）。
+nx04_quote_item,16,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx04_quote_item,17,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx04_quote_item,18,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx04_quote_item,19,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_so,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX04]+[SOHD]+[7碼流水號]，EX : NX04SOHD0000001
+nx04_so,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx04_so,3,warehouse_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_warehouse,,出貨倉庫ID（FK nx01_warehouse）。
+nx04_so,4,doc_no,LITE-CORE,VARCHAR(16),False,True,True,False,,,銷貨單號（唯一），[SO]+[年月]+[倉別]+[5碼流水號]，EX：SO-202604-Z01-00001
+nx04_so,5,so_date,LITE-CORE,DATE,False,False,True,False,,,銷貨日期。
+nx04_so,6,customer_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,客戶ID（FK nx01_partner，partner_type=C）。
+nx04_so,7,quote_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx04_quote,,來源報價單ID（FK nx04_quote，可空=即時報價直接開單）。
+nx04_so,8,delivery_type,LITE-CORE,VARCHAR(1),False,False,True,False,,,出貨方式（D=配送/P=自取/C=寄貨）。影響後續流程分流與AR產生時機。
+nx04_so,9,source_type,LITE-CORE,VARCHAR(1),False,False,True,False,,S,出貨來源（S=本倉庫存/O=他倉/T=調撥/G=同行調貨/M=混合/B=客訂預約）。
+nx04_so,10,delivery_address,LITE-CORE,VARCHAR(200),False,False,False,False,,,配送地址（delivery_type=D時必填）。
+nx04_so,11,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,TWD,幣別ID（FK nx01_currency）。
+nx04_so,12,subtotal,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,小計（明細加總，未稅）。
+nx04_so,13,tax_rate,LITE-CORE,"DECIMAL(5,2)",False,False,True,False,,5.00,稅率（預設5.00）。
+nx04_so,14,tax_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,稅額。
+nx04_so,15,total_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,總額（subtotal + tax_amount）。
+nx04_so,16,status,LITE-CORE,VARCHAR(1),False,False,True,False,,R,表頭狀態（N=待確認/B=備貨中/F=部分出貨/O=已出貨/C=已完成/X=已取消）。依各明細item_status彙整計算。
+nx04_so,17,payment_term,LITE-CORE,VARCHAR(10),False,False,True,False,,NET30,付款條件（快照自nx01_partner.payment_term）。影響AR產生時機。
+nx04_so,18,expected_delivery_date,LITE-CORE,DATE,False,False,False,False,,,預計出貨日（選填）。
+nx04_so,19,cancel_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,取消原因（status=X時必填）。
+nx04_so,20,cancelled_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,取消時間。
+nx04_so,21,cancelled_by,LITE-CORE,VARCHAR(15),False,False,False,False,,,取消人（使用者ID）。
+nx04_so,22,completed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,完成時間（status=C時填入）。
+nx04_so,23,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx04_so,24,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx04_so,25,created_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_so,26,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx04_so,27,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_so_item,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX04]+[SOIT]+[7碼流水號]，EX : NX04SOIT0000001
+nx04_so_item,2,so_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx04_so,,對應銷貨單表頭ID（FK nx04_so）。
+nx04_so_item,3,quote_item_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx04_quote_item,,來源報價明細ID（可空，即時報價時無來源）。
+nx04_so_item,4,line_no,LITE-CORE,INT,False,False,True,False,,,"明細行號（1,2,3…）。"
+nx04_so_item,5,part_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_part,,零件ID（FK nx01_part）。
+nx04_so_item,6,part_no,LITE-CORE,VARCHAR(50),False,False,True,False,,,零件料號快照。
+nx04_so_item,7,part_name,LITE-CORE,VARCHAR(200),False,False,True,False,,,零件名稱快照。
+nx04_so_item,8,warehouse_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_warehouse,,出貨倉庫ID（FK nx01_warehouse，可與表頭不同支援跨倉銷售）。
+nx04_so_item,9,location_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_location,,出貨庫位ID（FK nx01_location）。
+nx04_so_item,10,qty,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,,銷貨數量。
+nx04_so_item,11,unit_price,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,0,銷售單價。
+nx04_so_item,12,discount_code_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_discount_code,,折扣代碼ID（選填，FK nx01_discount_code）。
+nx04_so_item,13,line_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,明細金額（qty × unit_price）。
+nx04_so_item,14,reserved_qty,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,0,預留庫存數量（SO建立時立即寫入stock_balance.reserved_qty）。
+nx04_so_item,15,below_min_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,低於最低售價原因（必填）。
+nx04_so_item,16,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx04_so_item,17,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx04_so_item,18,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx04_so_item,19,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_so_item,20,item_status,LITE-CORE,VARCHAR(2),False,False,True,False,,WP,明細備貨狀態（WA=待調撥/TA=調撥中/WG=待調貨/TG=調貨中/WP=待撿貨/WD=待配送/ID=配送中/WT=待取貨/WB=待包貨/WS=待寄貨/C=已完成）。依出貨方式與備貨情況自動更新。
+nx04_so_item,21,ti_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx02_ti,,關聯調貨單ID（業務按Alt+T發起調貨後填入，FK nx02_ti）。
+nx04_so_item,22,st_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx03_st,,關聯調撥單ID（系統偵測本倉庫存不足後自動建立，FK nx03_st）。
+nx04_sr,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX04]+[SRHD]+[7碼流水號]，EX : NX04SRHD0000001
+nx04_sr,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx04_sr,3,warehouse_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_warehouse,,退回倉庫ID（退回原出貨倉，FK nx01_warehouse）。
+nx04_sr,4,doc_no,LITE-CORE,VARCHAR(16),False,True,True,False,,,銷退單號（唯一），[SR]+[年月]+[倉別]+[5碼流水號]，EX：SR-202604-Z01-00001
+nx04_sr,5,sr_date,LITE-CORE,DATE,False,False,True,False,,,銷退日期。
+nx04_sr,6,customer_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,客戶ID（FK nx01_partner）。
+nx04_sr,7,so_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx04_so,,來源銷貨單ID（必填，FK nx04_so）。
+nx04_sr,8,return_method,LITE-CORE,VARCHAR(1),False,False,True,False,,,退貨取件方式（S=客戶自行送回/C=外務順路取回/P=客戶自行寄回）。由外務組長在 NX07 決定並更新，NX04 建立時可預填供參考。
+nx04_sr,9,status,LITE-CORE,VARCHAR(1),False,False,True,False,,D,狀態（D=草稿/A=待審核/P=已核准/R=已退件/C=已完成/V=已作廢）。
+nx04_sr,10,subtotal,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,退款小計（明細加總，未稅）。
+nx04_sr,11,tax_rate,LITE-CORE,"DECIMAL(5,2)",False,False,True,False,,5.00,稅率（預設5.00）。
+nx04_sr,12,tax_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,稅額。
+nx04_sr,13,total_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,退款總額（subtotal + tax_amount）。
+nx04_sr,14,approved_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,銷售組長核准時間。
+nx04_sr,15,approved_by,LITE-CORE,VARCHAR(15),False,False,False,False,,,核准人（銷售組長，使用者ID）。
+nx04_sr,16,reject_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,退件原因（銷售組長退件時填寫）。
+nx04_sr,17,received_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,退貨收到時間（倉管專員確認收貨）。
+nx04_sr,18,received_by,LITE-CORE,VARCHAR(15),False,False,False,False,,,收貨確認人（倉管專員，使用者ID）。
+nx04_sr,19,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx04_sr,20,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx04_sr,21,created_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_sr,22,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx04_sr,23,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx04_sr_item,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX04]+[SRIT]+[7碼流水號]，EX : NX04SRIT0000001
+nx04_sr_item,2,sr_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx04_sr,,對應銷退單表頭ID（FK nx04_sr）。
+nx04_sr_item,3,so_item_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx04_so_item,,來源銷貨明細ID（FK nx04_so_item）。
+nx04_sr_item,4,line_no,LITE-CORE,INT,False,False,True,False,,,"明細行號（1,2,3…）。"
+nx04_sr_item,5,part_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_part,,零件ID（FK nx01_part）。
+nx04_sr_item,6,part_no,LITE-CORE,VARCHAR(50),False,False,True,False,,,零件料號快照。
+nx04_sr_item,7,part_name,LITE-CORE,VARCHAR(200),False,False,True,False,,,零件名稱快照。
+nx04_sr_item,8,return_policy,LITE-CORE,VARCHAR(1),False,False,True,False,,,退貨政策快照（F=自由/S=標準/R=限制/N=不可退/W=保固，從nx01_part帶入）。
+nx04_sr_item,9,return_type,LITE-CORE,VARCHAR(1),False,False,True,False,,N,退貨類型（N=一般退貨/E=業務通融）。
+nx04_sr_item,10,return_reason,LITE-CORE,VARCHAR(1),False,False,True,False,,,退貨原因（C=客戶不需要/D=商品有瑕疵/W=送錯料號/Q=送錯數量/O=其他）。
+nx04_sr_item,11,concession_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,業務通融原因（return_type=E時必填）。
+nx04_sr_item,12,qty,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,,退貨數量（不可超過原始出貨數量）。
+nx04_sr_item,13,unit_price,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,0,退貨單價（從SO帶入）。
+nx04_sr_item,14,line_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,退款金額（qty × unit_price）。
+nx04_sr_item,15,location_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_location,,退回庫位ID（倉管專員入庫時填入）。
+nx04_sr_item,16,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx04_sr_item,17,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx04_sr_item,18,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx04_sr_item,19,updated_by,LITE-CORE,VARCHAR(15),False,False,True,False,,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

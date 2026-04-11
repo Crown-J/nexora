@@ -1,0 +1,119 @@
+﻿view_code,view_name,route,min_plan,description
+SYS_DASHBOARD,首頁儀表板,/dashboard,LITE,系統首頁：快速模組入口/統計卡片/待辦事項/公告
+SYS_PROFILE,個人設定,/dashboard/profile,LITE,個人帳號資訊與密碼修改
+SYS_NOTIFICATION,通知中心,/dashboard/notification,LITE,系統通知與待辦提醒
+SYS_PLAN,方案設定,/dashboard/system/plan,LITE,目前訂閱方案查看（管理員限定）
+NX01_USER,使用者管理,/dashboard/nx01/user,LITE,使用者帳號查看/新增/編輯/停用
+NX01_ROLE,職務管理,/dashboard/nx01/role,LITE,職務角色查看/新增/編輯/刪除
+NX01_ROLE_VIEW,畫面權限設定,/dashboard/nx01/role-view,LITE,各角色對每個畫面的 canRead/canCreate/canUpdate/canDelete/canExport 設定
+NX01_PART,零件主檔,/dashboard/nx01/part,LITE,料號查看/新增/編輯，含售價/保固/退貨政策設定
+NX01_PART_PRICE,產品定價作業,/dashboard/nx01/part/pricing,LITE,採購組長依成本/客戶等級設定 A~D 建議售價（P-W05）
+NX01_PART_BRAND,品牌主檔,/dashboard/nx01/part-brand,LITE,零件品牌管理（Hella/Bosch 等）
+NX01_PART_GROUP,零件種類,/dashboard/nx01/part-group,LITE,濾芯/煞車/引擎等分類管理
+NX01_CAR_BRAND,汽車品牌,/dashboard/nx01/car-brand,LITE,VAG 汽車品牌（VW/Audi/Skoda/SEAT）管理
+NX01_BRAND_RULE,料號編碼規則,/dashboard/nx01/brand-code-rule,LITE,各品牌料號編碼格式設定
+NX01_PARTNER,交易對象主檔,/dashboard/nx01/partner,LITE,客戶/廠商/外包物流/銀行 主檔查看/新增/編輯（P-W07）
+NX01_PARTNER_CREDIT,客戶信用額度,/dashboard/nx01/partner-credit,LITE,各客戶信用額度與付款條件設定
+NX01_CUSTOMER_GRADE,客戶等級設定,/dashboard/nx01/customer-grade,LITE,A~D 等級毛利下限設定（S-W05）
+NX01_DISCOUNT_CODE,折扣代碼,/dashboard/nx01/discount-code,LITE,折扣代碼查看/新增/編輯
+NX01_WAREHOUSE,倉庫主檔,/dashboard/nx01/warehouse,LITE,倉庫資料管理（MW1/BW1 等）
+NX01_LOCATION,庫位主檔,/dashboard/nx01/location,LITE,倉庫內庫位管理（I-W04）
+NX01_WAREHOUSE_TYPE,倉庫類型,/dashboard/nx01/warehouse-type,PLUS,H/M/W/S 倉庫類型設定
+NX01_USER_WAREHOUSE,使用者據點授權,/dashboard/nx01/user-warehouse,PLUS,使用者可存取倉庫的授權管理
+NX01_DEPARTMENT,部門管理,/dashboard/nx01/department,PLUS,部門架構管理
+NX01_TEAM,組別管理,/dashboard/nx01/team,PLUS,部門下的組別管理
+NX01_USER_TEAM,使用者組別,/dashboard/nx01/user-team,PLUS,使用者所屬組別關聯
+NX01_COUNTRY,地區主檔,/dashboard/nx01/country,LITE,國家/地區資料管理
+NX01_CURRENCY,幣別主檔,/dashboard/nx01/currency,LITE,幣別與即時匯率管理
+NX01_BULLETIN,公告管理,/dashboard/nx01/bulletin,LITE,系統公告發布管理
+NX01_CALENDAR,行事曆,/dashboard/nx01/calendar,LITE,公司行事曆事件管理
+NX01_AUDIT_LOG,操作稽核記錄,/dashboard/nx01/audit-log,LITE,系統操作紀錄查詢（管理員限定）
+NX01_KPI_TEMPLATE,KPI 指標設定,/dashboard/nx01/kpi-template,PRO,KPI 指標範本定義（H-W05）
+NX01_KPI_TARGET,KPI 目標設定,/dashboard/nx01/kpi-target,PRO,各角色/人員 KPI 目標值設定（H-W05）
+NX01_KPI_RECORD,KPI 達成記錄,/dashboard/nx01/kpi-record,PRO,KPI 實際達成記錄查詢
+NX02_DASHBOARD,採購作業首頁,/dashboard/nx02,LITE,採購模組首頁：流程引導/待辦/缺貨待詢價清單
+NX02_DEMAND,採購需求單,/dashboard/nx02/demand,LITE,採購需求單查看/新增/轉詢價（P-W01）
+NX02_RFQ,詢價單,/dashboard/nx02/rfq,LITE,詢價單建立/發出/回覆管理（P-W01/P-W02）
+NX02_PO,採購單,/dashboard/nx02/po,PLUS,採購單建立/審核/寄出管理（PLUS）
+NX02_RR,進貨單,/dashboard/nx02/rr,LITE,進貨驗收/入帳管理（I-W01/P-W01）
+NX02_RR_IMPORT,進口費用攤分,/dashboard/nx02/rr-import,PLUS,進口採購費用攤分明細（P-W02，PLUS）
+NX02_PR,退供應商單,/dashboard/nx02/pr,LITE,退貨給廠商的單據管理（P-W03）
+NX02_TI,調貨單,/dashboard/nx02/ti,LITE,向同行調貨的單據管理（S-W01 路線C）
+NX02_WARRANTY,保固申請單,/dashboard/nx02/warranty,LITE,向廠商申請零件保固作業（P-W08）
+NX02_PARTNER_EVAL,廠商評鑑,/dashboard/nx02/partner-eval,PRO,廠商定期評鑑作業（P-W07，PRO）
+NX02_STOCK_SETTING,安全量設定,/dashboard/nx02/stock-setting,LITE,各料號各倉安全量/最高量設定（P-W06）
+NX03_DASHBOARD,庫存作業首頁,/dashboard/nx03,LITE,庫存模組首頁：庫存概況/待辦撿貨/待辦包貨
+NX03_BALANCE,庫存一覽,/dashboard/nx03/balance,LITE,各料號各倉庫存餘額查詢
+NX03_LEDGER,庫存台帳,/dashboard/nx03/ledger,LITE,庫存異動歷史記錄查詢
+NX03_INIT,開帳存,/dashboard/nx03/init,LITE,系統初始化期初庫存建立
+NX03_STOCK_TAKE,盤點單,/dashboard/nx03/stock-take,LITE,庫存盤點作業管理（I-W03）
+NX03_TRANSFER,調撥單,/dashboard/nx03/transfer,PLUS,跨倉庫存調撥作業（I02，PLUS）
+NX03_SHORTAGE,缺貨簿,/dashboard/nx03/shortage,PLUS,缺貨狀況查看與轉詢價（PLUS）
+NX03_AUTO_REPLENISH,自動補貨設定,/dashboard/nx03/auto-replenish,PLUS,自動調撥補貨規則設定（PLUS）
+NX03_PK,撿貨單,/dashboard/nx03/picking,LITE,撿貨任務執行管理（I03）
+NX03_PL,包貨單,/dashboard/nx03/packing,LITE,包貨作業管理（I04）
+NX03_PARCEL,包裹追蹤,/dashboard/nx03/parcel,LITE,BX 包裹編號/物流追蹤（I04）
+NX03_LOCATION_MGMT,庫位管理,/dashboard/nx03/location-mgmt,LITE,庫位使用率查看/整理/優化（I-W04）
+NX04_DASHBOARD,銷售作業首頁,/dashboard/nx04,LITE,銷售模組首頁：業績概況/待辦報價/待出貨清單
+NX04_QUOTE,報價單,/dashboard/nx04/quote,LITE,客戶報價單建立/發出管理（S-W01/F08）
+NX04_SO,銷貨單,/dashboard/nx04/so,LITE,銷貨單建立/備貨追蹤/出貨管理（S-W01/F09）
+NX04_SR,銷退單,/dashboard/nx04/sr,LITE,客戶退貨處理管理（S-W03/F10）
+NX04_CUSTOMER_DEV,客戶開發管理,/dashboard/nx04/customer-dev,LITE,新客戶開發進度追蹤（S-W04）
+NX04_CUSTOMER_GRADE_REQ,客戶等級調整申請,/dashboard/nx04/grade-request,LITE,客戶等級調整申請與審核（S-W05）
+NX04_CUSTOMER_FEEDBACK,客戶需求回饋,/dashboard/nx04/feedback,LITE,客戶需求/品質回饋記錄（S-W06）
+NX04_FOREIGN_SO,國外銷貨單,/dashboard/nx04/foreign-so,PLUS,國外出口銷貨單（Incoterm/幣別/報關，S-W02，PLUS）
+NX05_DASHBOARD,財務作業首頁,/dashboard/nx05,LITE,財務模組首頁：AP/AR 概況/即將到期/現金餘額
+NX05_AR,應收帳款,/dashboard/nx05/ar,LITE,客戶 AR 查看/催收（F05/F-W01）
+NX05_AR_COLLECT,應收帳款催收,/dashboard/nx05/ar-collect,LITE,逾期 AR 催收作業管理（F-W01）
+NX05_INVOICE,月結請款,/dashboard/nx05/invoice,LITE,月結客戶帳單產出/發送（F-W02）
+NX05_AP,應付帳款,/dashboard/nx05/ap,LITE,廠商 AP 查看/付款安排（F01/F-W04）
+NX05_PAYLOG,收付款記錄,/dashboard/nx05/paylog,LITE,所有收付款/費用支出登記（F03/F-W05）
+NX05_NOTE,票據管理,/dashboard/nx05/note,LITE,應收/應付支票/本票管理（F04/F-W06）
+NX05_ALLOWANCE,折讓單,/dashboard/nx05/allowance,LITE,進貨/銷貨折讓單建立/審核（F02/F-W07）
+NX05_CLOSING,關帳作業,/dashboard/nx05/closing,LITE,每日/月末關帳，401 報表（F-W03）
+NX05_ACCOUNT_CODE,會計科目,/dashboard/nx05/account-code,LITE,費用支出會計科目主檔管理
+NX06_DASHBOARD,物流作業首頁,/dashboard/nx06,LITE,物流模組首頁：當日送貨任務/取貨任務/退件任務
+NX06_DN,送貨單管理,/dashboard/nx06/dn,LITE,配送/調撥/取貨/退件送貨單管理（L01）
+NX06_DN_DRIVER,外務行程（手機）,/dashboard/nx06/driver,LITE,外務人員手機版：當日停靠點任務執行/電子簽收（L01）
+NX06_RETURN_PICKUP,退貨取件安排,/dashboard/nx06/return-pickup,LITE,銷退取件方式決定與指派（L04/S-W03）
+NX06_INTL_LOGISTICS,國際物流,/dashboard/nx06/international,PLUS,國際出口物流安排與追蹤（L03，PLUS）
+NX07_EMPLOYEE,員工主檔,/dashboard/nx07/employee,PRO,員工基本資料/職務/部門管理（H-W04）
+NX07_ONBOARDING,入離職作業,/dashboard/nx07/onboarding,PRO,員工入職/調職/離職流程（H-W04）
+NX07_SHIFT_TYPE,班別設定,/dashboard/nx07/shift-type,PRO,班別主檔定義（早班/晚班/休假）
+NX07_SCHEDULE,排班管理,/dashboard/nx07/schedule,PRO,月排班建立/發布/換班管理（H-W01）
+NX07_ATTENDANCE,出勤記錄,/dashboard/nx07/attendance,PRO,員工打卡記錄查看/異常處理/補登審核（H-W01）
+NX07_LEAVE_TYPE,假別設定,/dashboard/nx07/leave-type,PRO,假別主檔管理（勞基法假別）
+NX07_LEAVE_BALANCE,假別餘額,/dashboard/nx07/leave-balance,PRO,員工各假別剩餘時數查看
+NX07_LEAVE_REQUEST,請假申請,/dashboard/nx07/leave-request,PRO,請假申請建立/審核管理（H-W02）
+NX07_OT_REQUEST,加班申請,/dashboard/nx07/overtime,PRO,加班申請建立/審核管理（H-W02）
+NX07_TRAINING,教育訓練管理,/dashboard/nx07/training,PRO,OST/OJT/外訓/DT 訓練規劃與記錄（H-W06）
+NX07_PERFORMANCE,績效考核,/dashboard/nx07/performance,PRO,台式 OKR：目標設定/自評/主管評分（H-W05）
+NX07_SALARY_SETTING,薪資設定,/dashboard/nx07/salary-setting,PRO,員工薪資設定（底薪/津貼/加班倍率，H-W03）
+NX07_SALARY_COMP,薪資組成設定,/dashboard/nx07/salary-component,PRO,薪資組成項目定義（津貼/獎金/扣項）
+NX07_SALARY_RECORD,薪資記錄,/dashboard/nx07/salary-record,PRO,每月薪資計算結果與發放管理（H-W03）
+NX07_IP_WHITELIST,打卡 IP 設定,/dashboard/nx07/ip-whitelist,PRO,各倉庫合法打卡 IP 白名單設定
+NX08_DASHBOARD,經營分析首頁,/dashboard/nx08,PRO,總經理儀表板：各模組 KPI 概況/HPA 趨勢
+NX08_DAILY_REPORT,個人日報表,/dashboard/nx08/daily-report,PRO,每日工作日報填寫/查看/主管回饋（R-W00）
+NX08_MONTHLY_REPORT,個人月報表,/dashboard/nx08/monthly-report,PRO,每月 KPI 達成率自評/主管評分（R-W00）
+NX08_SALES_ANALYSIS,銷售分析報表,/dashboard/nx08/sales,PRO,HPA 趨勢/業務別/客戶別/料號別分析（R-W02）
+NX08_PURCHASE_ANALYSIS,採購分析報表,/dashboard/nx08/purchase,PRO,採購成本/廠商績效/到貨率/瑕疵率分析（R-W03）
+NX08_INVENTORY_ANALYSIS,庫存產品分析,/dashboard/nx08/inventory,PRO,BCG 矩陣/週轉率/滯銷分析（R-W04）
+NX08_FINANCE_ANALYSIS,財務分析報表,/dashboard/nx08/finance,PRO,毛利率/費用率/現金週轉/AP-AR 分析（R-W06）
+NX08_HR_ANALYSIS,人資分析報表,/dashboard/nx08/hr,PRO,KPI 達成率/人才象限/訓練完成率（R-W07）
+NX08_PARTNER_ANALYSIS,廠商分析報表,/dashboard/nx08/partner,PRO,Porter 五力供應商議價力/廠商集中度（R-W05）
+NX08_BIZ_ANALYSIS,經營分析報表,/dashboard/nx08/biz,PRO,PESTEL/SWOT/TOWS/Ansoff/HPA 整合分析（R-W01）
+NX08_SWOT,SWOT/TOWS 記錄,/dashboard/nx08/swot,PRO,季度 SWOT/TOWS 策略分析記錄
+NX08_PESTEL,PESTEL 記錄,/dashboard/nx08/pestel,PRO,PESTEL 外部環境分析記錄
+NX09_KM,KM 知識庫,/dashboard/nx09/km,PRO,QA 知識庫文章查看/撰寫/搜尋（NX09-W01）
+NX09_KM_TAG,知識庫標籤,/dashboard/nx09/km/tags,PRO,知識庫分類標籤管理
+NX09_DOCUMENT,文件庫,/dashboard/nx09/document,PRO,公司制度/SOP/工作說明書查看與上傳（NX09-W02）
+NX09_MEETING,會議管理,/dashboard/nx09/meeting,PRO,會議預約/出席確認/紀錄管理（NX09-W03）
+NX09_MEETING_ACTION,會議追蹤事項,/dashboard/nx09/meeting/actions,PRO,個人會議決議待辦追蹤
+NX10_DASHBOARD,遊戲化首頁,/dashboard/nx10,PRO,個人勳章/Exp/排行榜/任務進度總覽
+NX10_MEDAL_SETTING,勳章等級設定,/dashboard/nx10/medal,PRO,20 階勳章等級與 Exp 門檻管理
+NX10_TASK_SETTING,任務範本設定,/dashboard/nx10/task,PRO,任務類型/週期/Exp 規則定義
+NX10_TEAM_TASK,門市團隊任務,/dashboard/nx10/team-task,PRO,門市整體目標任務設定與達成記錄
+NX10_SPRINT,限時衝刺設定,/dashboard/nx10/sprint,PRO,限時衝刺任務建立（週衝刺/月末衝刺/季度排行）
+NX10_PROMOTION,轉職條件設定,/dashboard/nx10/promotion,PRO,職務升遷條件定義（NX10-W02）
+NX10_MY_PROGRESS,我的轉職進度,/dashboard/nx10/my-progress,PRO,員工查看個人轉職條件達成狀況
+NX10_EXP_LOG,Exp 異動記錄,/dashboard/nx10/exp-log,PRO,員工 Exp 異動歷史查詢（不可刪除）

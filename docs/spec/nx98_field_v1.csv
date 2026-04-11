@@ -1,0 +1,12 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx98_doc_link,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX98]+[DOCL]+[7碼流水號]，EX : NX98DOCL0000001
+nx98_doc_link,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx98_doc_link,3,from_doc_type,LITE-CORE,VARCHAR(4),False,False,True,False,,,來源單據類型（RF=詢價單/PO=採購單/RR=進貨單/QT=報價單/SO=銷貨單/ST=調撥單/TI=調貨單/SR=銷退單/PR=退供應商）。
+nx98_doc_link,4,from_doc_id,LITE-CORE,VARCHAR(15),False,False,True,False,,,來源單據 ID。
+nx98_doc_link,5,to_doc_type,LITE-CORE,VARCHAR(4),False,False,True,False,,,目標單據類型（同 from_doc_type 可選值）。
+nx98_doc_link,6,to_doc_id,LITE-CORE,VARCHAR(15),False,False,True,False,,,目標單據 ID。
+nx98_doc_link,7,link_type,LITE-CORE,VARCHAR(2),False,False,True,False,,CV,關聯類型（CV=轉單Converted/RF=參考Reference）。
+nx98_doc_link,8,linked_qty,LITE-CORE,"DECIMAL(14,4)",False,False,False,False,,,關聯數量（部分轉單時填入）。
+nx98_doc_link,9,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx98_doc_link,10,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx98_doc_link,11,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

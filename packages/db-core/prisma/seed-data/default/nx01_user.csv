@@ -1,0 +1,3 @@
+﻿id,tenant_id,username,email,password_hash,display_name,is_active,is_system,seed_type,created_at,created_by,updated_at,updated_by
+NX01USER0000001,{{TENANT_ID}},sysadmin,sysadmin@nexoragrid.com,{{SYSADMIN_PW_HASH}},系統管理員,FALSE,TRUE,ALL,NOW(),NX01USER0000001,NOW(),NX01USER0000001
+NX01USER0000002,{{TENANT_ID}},admin,admin@{{TENANT_CODE}}.com,{{ADMIN_PW_HASH}},租戶管理員,TRUE,FALSE,ALL,NOW(),NX01USER0000001,NOW(),NX01USER0000001

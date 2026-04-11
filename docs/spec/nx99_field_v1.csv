@@ -1,0 +1,121 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx99_tenant,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[TANT]+[7碼流水號]，EX : NX99TANT0000001
+nx99_tenant,2,code,LITE-CORE,VARCHAR(30),False,True,True,False,,,租戶代碼（唯一），可作公司代碼/登入識別碼
+nx99_tenant,3,name,LITE-CORE,VARCHAR(100),False,False,True,False,,,租戶名稱（公司名稱）
+nx99_tenant,4,name_en,LITE-CORE,VARCHAR(100),False,False,False,False,,,租戶英文名稱（公司名稱）
+nx99_tenant,5,status,LITE-CORE,VARCHAR(1),False,False,True,False,,,"租戶狀態。( A=ACTIVE, S=SUSPENDED, C=CLOSED )"
+nx99_tenant,6,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註
+nx99_tenant,7,sort_no,LITE-CORE,INT,False,False,True,False,,,排序
+nx99_tenant,8,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,,是否啟用
+nx99_tenant,9,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx99_tenant,10,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_tenant,11,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx99_tenant,12,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_tenant,13,contact_name,LITE-CORE,VARCHAR(50),False,False,False,False,,,租戶主要聯絡人姓名。
+nx99_tenant,14,contact_email,LITE-CORE,VARCHAR(100),False,False,False,False,,,租戶聯絡 Email（系統通知用）。
+nx99_tenant,15,contact_phone,LITE-CORE,VARCHAR(30),False,False,False,False,,,租戶聯絡電話。
+nx99_tenant,16,timezone,LITE-CORE,VARCHAR(50),False,False,True,False,,Asia/Taipei,時區設定（預設 Asia/Taipei），影響關帳時間計算。
+nx99_tenant,17,locale,LITE-CORE,VARCHAR(10),False,False,True,False,,zh-TW,語系設定（預設 zh-TW）。
+nx99_plan,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[PLAN]+[7碼流水號]，EX : NX99PLAN0000001
+nx99_plan,2,code,LITE-CORE,VARCHAR(20),False,True,True,False,,,方案代碼：NEXORA-LITE / NEXORA-PLUS / NEXORA-PRO
+nx99_plan,3,name,LITE-CORE,VARCHAR(50),False,False,True,False,,,方案名稱
+nx99_plan,4,level_no,LITE-CORE,INT,False,False,True,False,,10,方案級距（10/20/30…便於比較）
+nx99_plan,5,base_fee_month,LITE-CORE,INT,False,False,True,False,,0,基礎費用（月）
+nx99_plan,6,seat_fee_month,LITE-CORE,INT,False,False,True,False,,0,每人加價（月）
+nx99_plan,7,min_seats,LITE-CORE,INT,False,False,True,False,,1,最低人數
+nx99_plan,8,max_seats,LITE-CORE,INT,False,False,True,False,,1,最高人數
+nx99_plan,9,billing_default,LITE-CORE,VARCHAR(10),False,False,True,False,,MONTH,預設收費週期：MONTH/YEAR
+nx99_plan,10,tier,LITE-CORE,VARCHAR(4),False,False,True,False,,S,方案級距代碼（S/M/L/XL），LITE:S~M / PLUS:S~L / PRO:S~XL。
+nx99_plan,11,quarter_discount_type,LITE-CORE,VARCHAR(1),False,False,True,False,,R,季繳折扣型態（R=比率折扣，預設×2.8即省7%）。
+nx99_plan,12,quarter_discount_value,LITE-CORE,INT,False,False,True,False,,7,季繳折扣值（7=省7%，即月費×2.8=3個月費用）。
+nx99_plan,13,year_discount_type,LITE-CORE,VARCHAR(1),False,False,True,False,,R,"年繳折扣型態。( R=RATE, A=AMOUNT, O=OVERRIDE )"
+nx99_plan,14,year_discount_value,LITE-CORE,INT,False,False,True,False,,0,折扣值：RATE=折扣百分比(15=折15%)；AMOUNT=折抵金額
+nx99_plan,15,year_price_override,LITE-CORE,INT,False,False,False,False,,,OVERRIDE：指定年費（選用）
+nx99_plan,16,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註
+nx99_plan,17,sort_no,LITE-CORE,INT,False,False,False,False,,0,排序
+nx99_plan,18,is_active,LITE-CORE,BOOLEAN,False,False,False,False,,TRUE,是否啟用
+nx99_plan,19,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx99_plan,20,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_plan,21,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx99_plan,22,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_subscription,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[SUBS]+[7碼流水號]，EX : NX99SUBS0000001
+nx99_subscription,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶ID
+nx99_subscription,3,plan_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_plan,,方案ID
+nx99_subscription,4,status,LITE-CORE,VARCHAR(1),False,False,True,False,,A,"訂閱狀態。( A=ACTIVE, E=EXPIRED, C=CANCELED )"
+nx99_subscription,5,billing_cycle,LITE-CORE,VARCHAR(1),False,False,True,False,,M,收費週期（M=月繳/Q=季繳/Y=年繳）。
+nx99_subscription,6,seats,LITE-CORE,INT,False,False,True,False,,1,授權席次（可啟用使用者上限）
+nx99_subscription,7,start_at,LITE-CORE,TIMESTAMP(3),False,False,True,False,,,訂閱起始時間
+nx99_subscription,8,end_at,LITE-CORE,TIMESTAMP(3),False,False,True,False,,,訂閱到期時間
+nx99_subscription,9,auto_renew,LITE-CORE,BOOLEAN,False,False,True,False,,,是否自動續約
+nx99_subscription,10,base_fee_snapshot,LITE-CORE,INT,False,False,True,False,,,基礎費用快照（月價）
+nx99_subscription,11,seat_fee_snapshot,LITE-CORE,INT,False,False,True,False,,,每人加價快照（月價）
+nx99_subscription,12,discount_type_snapshot,LITE-CORE,VARCHAR(1),False,False,True,False,,,"折扣型態快照。( N=NONE, R=RATE, A=AMOUNT, O=OVERRIDE )"
+nx99_subscription,13,discount_value_snapshot,LITE-CORE,INT,False,False,True,False,,,折扣值快照（RATE=折扣百分比、AMOUNT=金額）
+nx99_subscription,14,subtotal_snapshot,LITE-CORE,INT,False,False,True,False,,,未折扣合計快照（含加購項目合計）
+nx99_subscription,15,discount_amount_snapshot,LITE-CORE,INT,False,False,True,False,,,折扣金額快照
+nx99_subscription,16,total_snapshot,LITE-CORE,INT,False,False,True,False,,,折扣後總額快照
+nx99_subscription,17,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,,幣別
+nx99_subscription,18,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註
+nx99_subscription,19,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx99_subscription,20,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_subscription,21,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx99_subscription,22,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_subscription_item,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[SUIT]+[7碼流水號]，EX : NX99SUIT0000001
+nx99_subscription_item,2,subscription_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_subscription,,所屬訂閱
+nx99_subscription_item,3,item_type,LITE-CORE,VARCHAR(20),False,False,True,False,,M,項目類型。( M=MODULE，※目前先用 MODULE )
+nx99_subscription_item,4,ref_id,LITE-CORE,VARCHAR(15),False,False,True,False,,,參照ID：item_type=MODULE 時，指向 nx99_product_module.id
+nx99_subscription_item,5,status,LITE-CORE,VARCHAR(20),False,False,True,False,,,"狀態。( A=ACTIVE, C=CANCELED )"
+nx99_subscription_item,6,is_included,LITE-CORE,BOOLEAN,False,False,True,False,,,是否標配帶入（TRUE=標配，FALSE=加購）
+nx99_subscription_item,7,billing_cycle,LITE-CORE,VARCHAR(1),False,False,True,False,,,"收費週期。( M=MONTH, Y=YEAR，※通常跟 subscription 一致 )"
+nx99_subscription_item,8,price_snapshot,LITE-CORE,INT,False,False,True,False,,,單價快照（依 billing_cycle 解讀）
+nx99_subscription_item,9,discount_type_snapshot,LITE-CORE,VARCHAR(1),False,False,True,False,,,"折扣型態快照。( N=NONE, R=RATE, A=AMOUNT )"
+nx99_subscription_item,10,discount_value_snapshot,LITE-CORE,INT,False,False,True,False,,,折扣值快照
+nx99_subscription_item,11,total_snapshot,LITE-CORE,INT,False,False,True,False,,,折扣後金額快照
+nx99_subscription_item,12,start_at,LITE-CORE,TIMESTAMP,False,False,True,False,,,生效時間
+nx99_subscription_item,13,end_at,LITE-CORE,TIMESTAMP,False,False,True,False,,,結束時間
+nx99_subscription_item,14,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx99_subscription_item,15,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_subscription_item,16,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx99_subscription_item,17,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_product_module,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[PRMO]+[7碼流水號]，EX : NX99PRMO0000001
+nx99_product_module,2,code,LITE-CORE,VARCHAR(30),False,True,True,False,,,產品模組代號（SKU）：NX-LIT-CORE-SSO…
+nx99_product_module,3,name,LITE-CORE,VARCHAR(100),False,False,True,False,,,模組名稱
+nx99_product_module,4,module_level,LITE-CORE,VARCHAR(1),False,False,True,False,,,"標/選配。( C=Core, A=Add-on )"
+nx99_product_module,5,applicable_plan_code,LITE-CORE,VARCHAR(30),False,False,True,False,,,適用方案代碼（如 NEXORA-LITE）
+nx99_product_module,6,billing_type,LITE-CORE,VARCHAR(1),False,False,True,False,,F,計費類型（先支援 F=FIXED）
+nx99_product_module,7,monthly_fee,LITE-CORE,INT,False,False,True,False,,0,月費（定價）
+nx99_product_module,8,is_bundle_default,LITE-CORE,BOOLEAN,False,False,True,False,,FALSE,是否標配（TRUE=標配）
+nx99_product_module,9,description,LITE-CORE,TEXT,False,False,False,False,,,模組說明
+nx99_product_module,10,sort_no,LITE-CORE,INT,False,False,True,False,,0,排序
+nx99_product_module,11,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx99_product_module,12,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx99_product_module,13,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_product_module,14,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx99_product_module,15,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_product_module_map,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[PRMM]+[7碼流水號]，EX : NX99PRMM0000001
+nx99_product_module_map,2,product_module_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_product_module,,所屬產品模組（SKU）
+nx99_product_module_map,3,app_module_code,LITE-CORE,VARCHAR(10),False,False,True,False,,,程式碼模組代號：NX01~NX10/NX98/NX99（新版模組代碼）。
+nx99_product_module_map,4,is_required,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否必含（通常 TRUE）
+nx99_product_module_map,5,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註
+nx99_product_module_map,6,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx99_product_module_map,7,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_product_module_map,8,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx99_product_module_map,9,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_release,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX99]+[RELE]+[7碼流水號]，EX : NX99RELE0000001
+nx99_release,2,version,LITE-CORE,VARCHAR(20),False,True,True,False,,,版本號（唯一），例：v1.0.0 / v1.1.0。
+nx99_release,3,release_date,LITE-CORE,DATE,False,False,True,False,,,發行日期。
+nx99_release,4,title,LITE-CORE,VARCHAR(100),False,False,True,False,,,版本標題，例：NX01 採購模組上線。
+nx99_release,5,description,LITE-CORE,TEXT,False,False,False,False,,,版本說明（更新內容摘要）。
+nx99_release,6,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx99_release,7,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx99_release,8,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_release,9,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx99_release,10,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx99_release_item,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX99]+[REIT]+[7碼流水號]，EX : NX99REIT0000001
+nx99_release_item,2,release_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_release,,對應平台版本ID（FK nx99_release）。
+nx99_release_item,3,item_type,LITE-CORE,VARCHAR(1),False,False,True,False,,,項目類型（T=資料表/F=功能/B=修正）。
+nx99_release_item,4,module_code,LITE-CORE,VARCHAR(10),False,False,True,False,,,所屬模組代碼（NX00~NX99）。
+nx99_release_item,5,item_name,LITE-CORE,VARCHAR(100),False,False,True,False,,,項目名稱（例：nx01_demand / 採購需求單）。
+nx99_release_item,6,description,LITE-CORE,VARCHAR(200),False,False,False,False,,,變更說明。
+nx99_release_item,7,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx99_release_item,8,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

@@ -1,0 +1,151 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx08_sales_cache,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[SLCA]+[7碼流水號]，EX : NX08SLCA0000001
+nx08_sales_cache,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_sales_cache,3,cache_date,PRO,DATE,False,False,True,False,,TODAY,快取計算日期（每日更新）。
+nx08_sales_cache,4,customer_id,PRO,VARCHAR(15),False,False,True,True,nx01_partner,,客戶ID（FK nx01_partner）。
+nx08_sales_cache,5,period_type,PRO,VARCHAR(1),False,False,True,False,,M,統計週期（M=月/Q=季/Y=年）。
+nx08_sales_cache,6,period_value,PRO,VARCHAR(7),False,False,True,False,,,統計期間（YYYY-MM 或 YYYY-Q1 或 YYYY）。
+nx08_sales_cache,7,so_count,PRO,INT,False,False,True,False,,0,銷貨單筆數。
+nx08_sales_cache,8,so_amount,PRO,"DECIMAL(14,2)",False,False,True,False,,0,銷售金額。
+nx08_sales_cache,9,sr_amount,PRO,"DECIMAL(14,2)",False,False,True,False,,0,銷退金額。
+nx08_sales_cache,10,net_amount,PRO,"DECIMAL(14,2)",False,False,True,False,,0,淨銷售額（so_amount - sr_amount）。
+nx08_sales_cache,11,gross_profit,PRO,"DECIMAL(14,2)",False,False,True,False,,0,毛利額（淨銷售額 - 進貨成本）。
+nx08_sales_cache,12,gross_margin,PRO,"DECIMAL(5,2)",False,False,True,False,,0,毛利率（%）。
+nx08_sales_cache,13,ar_overdue_amt,PRO,"DECIMAL(14,2)",False,False,True,False,,0,逾期應收金額快照。
+nx08_sales_cache,14,customer_grade,PRO,VARCHAR(1),False,False,False,False,,,客戶等級快照（A/B/C/D）。
+nx08_sales_cache,15,hpa_trend,PRO,VARCHAR(1),False,False,False,False,,,HPA 趨勢（U=上升/D=下降/S=穩定）。系統依近3期自動判斷。
+nx08_sales_cache,16,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_sales_cache,17,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),最後計算更新時間。
+nx08_purchase_cache,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[PUCA]+[7碼流水號]，EX : NX08PUCA0000001
+nx08_purchase_cache,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_purchase_cache,3,cache_date,PRO,DATE,False,False,True,False,,TODAY,快取計算日期。
+nx08_purchase_cache,4,supplier_id,PRO,VARCHAR(15),False,False,True,True,nx01_partner,,廠商ID（FK nx01_partner）。
+nx08_purchase_cache,5,period_type,PRO,VARCHAR(1),False,False,True,False,,M,統計週期（M=月/Q=季/Y=年）。
+nx08_purchase_cache,6,period_value,PRO,VARCHAR(7),False,False,True,False,,,統計期間。
+nx08_purchase_cache,7,po_count,PRO,INT,False,False,True,False,,0,採購單筆數。
+nx08_purchase_cache,8,po_amount,PRO,"DECIMAL(14,2)",False,False,True,False,,0,採購金額。
+nx08_purchase_cache,9,pr_amount,PRO,"DECIMAL(14,2)",False,False,True,False,,0,退貨金額。
+nx08_purchase_cache,10,on_time_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,準時交貨率（%）。
+nx08_purchase_cache,11,defect_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,瑕疵品率（%）。
+nx08_purchase_cache,12,avg_lead_days,PRO,"DECIMAL(5,1)",False,False,True,False,,0,平均交期天數。
+nx08_purchase_cache,13,supplier_grade,PRO,VARCHAR(1),False,False,False,False,,,廠商評級快照（A/B/C/D）。系統依準時率/瑕疵率自動計算。
+nx08_purchase_cache,14,hpa_trend,PRO,VARCHAR(1),False,False,False,False,,,HPA 趨勢（U/D/S）。
+nx08_purchase_cache,15,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_purchase_cache,16,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),最後計算更新時間。
+nx08_inventory_cache,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[IVCA]+[7碼流水號]，EX : NX08IVCA0000001
+nx08_inventory_cache,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_inventory_cache,3,cache_date,PRO,DATE,False,False,True,False,,TODAY,快取計算日期。
+nx08_inventory_cache,4,part_id,PRO,VARCHAR(15),False,False,True,True,nx01_part,,料號ID（FK nx01_part）。
+nx08_inventory_cache,5,warehouse_id,PRO,VARCHAR(15),False,False,True,True,nx01_warehouse,,倉庫ID（FK nx01_warehouse）。
+nx08_inventory_cache,6,period_type,PRO,VARCHAR(1),False,False,True,False,,M,統計週期（M=月/Q=季/Y=年）。
+nx08_inventory_cache,7,period_value,PRO,VARCHAR(7),False,False,True,False,,,統計期間。
+nx08_inventory_cache,8,avg_stock_qty,PRO,"DECIMAL(14,4)",False,False,True,False,,0,期間平均庫存量。
+nx08_inventory_cache,9,sales_qty,PRO,"DECIMAL(14,4)",False,False,True,False,,0,期間銷售量。
+nx08_inventory_cache,10,sales_amount,PRO,"DECIMAL(14,2)",False,False,True,False,,0,期間銷售金額。
+nx08_inventory_cache,11,turnover_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,庫存週轉率（sales_qty / avg_stock_qty × 12）。
+nx08_inventory_cache,12,stock_value,PRO,"DECIMAL(14,2)",False,False,True,False,,0,庫存總值快照。
+nx08_inventory_cache,13,days_stagnant,PRO,INT,False,False,True,False,,0,滯銷天數（最後一次出貨至今天數）。
+nx08_inventory_cache,14,bcg_quadrant,PRO,VARCHAR(1),False,False,False,False,,,BCG 矩陣象限（Q=問題/S=明星/C=金牛/D=老狗）。系統自動計算。
+nx08_inventory_cache,15,gross_margin,PRO,"DECIMAL(5,2)",False,False,True,False,,0,毛利率（%）。
+nx08_inventory_cache,16,hpa_trend,PRO,VARCHAR(1),False,False,False,False,,,HPA 趨勢（U/D/S）。
+nx08_inventory_cache,17,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_inventory_cache,18,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),最後計算更新時間。
+nx08_finance_cache,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[FICA]+[7碼流水號]，EX : NX08FICA0000001
+nx08_finance_cache,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_finance_cache,3,cache_date,PRO,DATE,False,False,True,False,,TODAY,快取計算日期。
+nx08_finance_cache,4,period_type,PRO,VARCHAR(1),False,False,True,False,,M,統計週期（M=月/Q=季/Y=年）。
+nx08_finance_cache,5,period_value,PRO,VARCHAR(7),False,False,True,False,,,統計期間。
+nx08_finance_cache,6,revenue,PRO,"DECIMAL(14,2)",False,False,True,False,,0,營業收入。
+nx08_finance_cache,7,cogs,PRO,"DECIMAL(14,2)",False,False,True,False,,0,銷貨成本（COGS）。
+nx08_finance_cache,8,gross_profit,PRO,"DECIMAL(14,2)",False,False,True,False,,0,毛利額。
+nx08_finance_cache,9,gross_margin,PRO,"DECIMAL(5,2)",False,False,True,False,,0,毛利率（%）。
+nx08_finance_cache,10,expense_total,PRO,"DECIMAL(14,2)",False,False,True,False,,0,營業費用合計。
+nx08_finance_cache,11,expense_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,費用率（expense_total / revenue × 100）。
+nx08_finance_cache,12,ar_total,PRO,"DECIMAL(14,2)",False,False,True,False,,0,應收帳款總額快照。
+nx08_finance_cache,13,ar_overdue_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,AR逾期率（%）。
+nx08_finance_cache,14,ap_total,PRO,"DECIMAL(14,2)",False,False,True,False,,0,應付帳款總額快照。
+nx08_finance_cache,15,cash_cycle_days,PRO,"DECIMAL(6,1)",False,False,True,False,,0,現金週轉天數（AR天數 + 庫存天數 - AP天數）。
+nx08_finance_cache,16,hpa_trend,PRO,VARCHAR(1),False,False,False,False,,,毛利率 HPA 趨勢（U/D/S）。
+nx08_finance_cache,17,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_finance_cache,18,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),最後計算更新時間。
+nx08_hr_cache,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[HRCA]+[7碼流水號]，EX : NX08HRCA0000001
+nx08_hr_cache,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_hr_cache,3,cache_date,PRO,DATE,False,False,True,False,,TODAY,快取計算日期。
+nx08_hr_cache,4,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx08_hr_cache,5,period_type,PRO,VARCHAR(1),False,False,True,False,,M,統計週期（M=月/Q=季/Y=年）。
+nx08_hr_cache,6,period_value,PRO,VARCHAR(7),False,False,True,False,,,統計期間。
+nx08_hr_cache,7,attendance_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,出勤率（%）。
+nx08_hr_cache,8,late_count,PRO,INT,False,False,True,False,,0,遲到次數。
+nx08_hr_cache,9,absence_days,PRO,"DECIMAL(4,1)",False,False,True,False,,0,缺勤天數。
+nx08_hr_cache,10,ot_hours,PRO,"DECIMAL(5,2)",False,False,True,False,,0,加班時數。
+nx08_hr_cache,11,daily_report_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,日報表繳交率（%）。
+nx08_hr_cache,12,kpi_achieve_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,KPI 總達成率（%）。
+nx08_hr_cache,13,salary_cost,PRO,"DECIMAL(10,2)",False,False,True,False,,0,薪資成本快照。
+nx08_hr_cache,14,talent_quadrant,PRO,VARCHAR(2),False,False,False,False,,,人才象限（HS=高績效高潛力/HL=高績效低潛力/LS=低績效高潛力/LL=低績效低潛力）。
+nx08_hr_cache,15,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_hr_cache,16,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),最後計算更新時間。
+nx08_swot_record,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[SWOT]+[7碼流水號]，EX : NX08SWOT0000001
+nx08_swot_record,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_swot_record,3,record_date,PRO,DATE,False,False,True,False,,TODAY,記錄日期（建議每季一次）。
+nx08_swot_record,4,period,PRO,VARCHAR(10),False,False,True,False,,,分析期間，例：2026-Q1。
+nx08_swot_record,5,strengths,PRO,TEXT,False,False,False,False,,,優勢（S）分析內容。
+nx08_swot_record,6,weaknesses,PRO,TEXT,False,False,False,False,,,劣勢（W）分析內容。
+nx08_swot_record,7,opportunities,PRO,TEXT,False,False,False,False,,,機會（O）分析內容。
+nx08_swot_record,8,threats,PRO,TEXT,False,False,False,False,,,威脅（T）分析內容。
+nx08_swot_record,9,so_strategy,PRO,TEXT,False,False,False,False,,,SO 策略（優勢×機會）。
+nx08_swot_record,10,wo_strategy,PRO,TEXT,False,False,False,False,,,WO 策略（劣勢×機會）。
+nx08_swot_record,11,st_strategy,PRO,TEXT,False,False,False,False,,,ST 策略（優勢×威脅）。
+nx08_swot_record,12,wt_strategy,PRO,TEXT,False,False,False,False,,,WT 策略（劣勢×威脅）。
+nx08_swot_record,13,remark,PRO,VARCHAR(500),False,False,False,False,,,備註。
+nx08_swot_record,14,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_swot_record,15,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_swot_record,16,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx08_swot_record,17,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_pestel_record,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[PEST]+[7碼流水號]，EX : NX08PEST0000001
+nx08_pestel_record,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_pestel_record,3,record_date,PRO,DATE,False,False,True,False,,TODAY,記錄日期。
+nx08_pestel_record,4,period,PRO,VARCHAR(10),False,False,True,False,,,分析期間。
+nx08_pestel_record,5,political,PRO,TEXT,False,False,False,False,,,政治因素（P）分析。
+nx08_pestel_record,6,economic,PRO,TEXT,False,False,False,False,,,經濟因素（E）分析。
+nx08_pestel_record,7,social,PRO,TEXT,False,False,False,False,,,社會因素（S）分析。
+nx08_pestel_record,8,technological,PRO,TEXT,False,False,False,False,,,技術因素（T）分析。
+nx08_pestel_record,9,environmental,PRO,TEXT,False,False,False,False,,,環境因素（E）分析。
+nx08_pestel_record,10,legal,PRO,TEXT,False,False,False,False,,,法規因素（L）分析。
+nx08_pestel_record,11,impact_summary,PRO,TEXT,False,False,False,False,,,對汽車零件產業的整體影響摘要。
+nx08_pestel_record,12,remark,PRO,VARCHAR(500),False,False,False,False,,,備註。
+nx08_pestel_record,13,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_pestel_record,14,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_pestel_record,15,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx08_pestel_record,16,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_daily_report,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[DRPT]+[7碼流水號]，EX : NX08DRPT0000001
+nx08_daily_report,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_daily_report,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx08_daily_report,4,report_date,PRO,DATE,False,True,True,False,,TODAY,報表日期（每人每日唯一）。
+nx08_daily_report,5,done_items,PRO,TEXT,False,False,False,False,,,今日完成事項（逐條填寫，對應五大工作重點）。
+nx08_daily_report,6,kpi_progress,PRO,TEXT,False,False,False,False,,,KPI 當日累計進度（系統自動帶入可量化數字，人工補充說明）。
+nx08_daily_report,7,exception_items,PRO,TEXT,False,False,False,False,,,異常事項（需主管協助的問題/風險）。
+nx08_daily_report,8,tomorrow_plan,PRO,TEXT,False,False,False,False,,,明日計畫（預計執行事項）。
+nx08_daily_report,9,submitted_at,PRO,TIMESTAMP,False,False,False,False,,,提交時間（系統記錄）。
+nx08_daily_report,10,supervisor_reply,PRO,TEXT,False,False,False,False,,,主管回饋（選填）。
+nx08_daily_report,11,replied_at,PRO,TIMESTAMP,False,False,False,False,,,主管回饋時間。
+nx08_daily_report,12,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_daily_report,13,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_daily_report,14,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx08_daily_report,15,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_monthly_report,1,id,PRO,VARCHAR(15),True,True,True,False,,GEN,[NX08]+[MRPT]+[7碼流水號]，EX : NX08MRPT0000001
+nx08_monthly_report,2,tenant_id,PRO,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx08_monthly_report,3,user_id,PRO,VARCHAR(15),False,False,True,True,nx01_user,,員工ID（FK nx01_user）。
+nx08_monthly_report,4,year_month,PRO,VARCHAR(7),False,True,True,False,,,報表年月（每人每月唯一，格式：YYYY-MM）。
+nx08_monthly_report,5,kpi_summary,PRO,TEXT,False,False,False,False,,,五大KPI達成率（含自評/差異分析）。
+nx08_monthly_report,6,achievement_desc,PRO,TEXT,False,False,False,False,,,本月重要事項說明（達標/未達標原因）。
+nx08_monthly_report,7,daily_report_rate,PRO,"DECIMAL(5,2)",False,False,True,False,,0,日報表繳交率（%，系統自動統計）。
+nx08_monthly_report,8,training_hours,PRO,"DECIMAL(5,1)",False,False,True,False,,0,本月教育訓練時數（OST/OJT/外訓）。
+nx08_monthly_report,9,next_month_goals,PRO,TEXT,False,False,False,False,,,下月KPI目標與計畫。
+nx08_monthly_report,10,submitted_at,PRO,TIMESTAMP,False,False,False,False,,,提交時間。
+nx08_monthly_report,11,supervisor_score,PRO,"DECIMAL(5,2)",False,False,False,False,,,主管評分（行政指標+學習成長，佔20%）。
+nx08_monthly_report,12,supervisor_reply,PRO,TEXT,False,False,False,False,,,主管月度回饋。
+nx08_monthly_report,13,replied_at,PRO,TIMESTAMP,False,False,False,False,,,主管回饋時間。
+nx08_monthly_report,14,created_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx08_monthly_report,15,created_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx08_monthly_report,16,updated_at,PRO,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx08_monthly_report,17,updated_by,PRO,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

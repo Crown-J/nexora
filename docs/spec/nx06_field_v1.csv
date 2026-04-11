@@ -1,0 +1,56 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx06_dn,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX06]+[DNHD]+[7碼流水號]，EX : NX06DNHD0000001
+nx06_dn,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx06_dn,3,warehouse_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_warehouse,,出發倉庫ID（FK nx01_warehouse）。
+nx06_dn,4,doc_no,LITE-CORE,VARCHAR(16),False,True,True,False,,,送貨單號（唯一），[DN]+[年月]+[倉別]+[5碼流水號]，EX：DN-202604-Z01-00001
+nx06_dn,5,dn_date,LITE-CORE,DATE,False,False,True,False,,,送貨日期。
+nx06_dn,6,driver_user_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,外務人員ID（FK nx01_user）。
+nx06_dn,7,vehicle_no,LITE-CORE,VARCHAR(20),False,False,False,False,,,車牌號碼（選填）。
+nx06_dn,8,status,LITE-CORE,VARCHAR(1),False,False,True,False,,P,狀態（P=待出發/D=配送中/C=已完成/V=已作廢）。
+nx06_dn,9,departed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,出發時間（外務點擊出發後記錄）。
+nx06_dn,10,completed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,全部任務完成時間。
+nx06_dn,11,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註（含臨時收件等口頭回報記錄）。
+nx06_dn,12,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx06_dn,13,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx06_dn,14,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx06_dn,15,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx06_dn_stop,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX06]+[DNST]+[7碼流水號]，EX : NX06DNST0000001
+nx06_dn_stop,2,dn_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx06_dn,,對應送貨單表頭ID（FK nx06_dn）。
+nx06_dn_stop,3,stop_no,LITE-CORE,INT,False,False,True,False,,,"停靠順序號碼（1,2,3…），物流組長安排路線順序。"
+nx06_dn_stop,4,task_type,LITE-CORE,VARCHAR(1),False,False,True,False,,,任務類型（D=DELIVER送貨/K=PICKUP取貨/R=RETURN退貨/C=COLLECT取回退貨）。
+nx06_dn_stop,5,partner_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_partner,,交易對象ID（客戶或同行，FK nx01_partner）。
+nx06_dn_stop,6,warehouse_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_warehouse,,目標倉庫ID（調撥送貨時填入，FK nx01_warehouse）。
+nx06_dn_stop,7,address,LITE-CORE,VARCHAR(200),False,False,True,False,,,停靠地址。
+nx06_dn_stop,8,contact_name,LITE-CORE,VARCHAR(50),False,False,False,False,,,聯絡人姓名（選填）。
+nx06_dn_stop,9,contact_phone,LITE-CORE,VARCHAR(30),False,False,False,False,,,聯絡電話（選填）。
+nx06_dn_stop,10,status,LITE-CORE,VARCHAR(1),False,False,True,False,,P,停靠狀態（P=待到達/D=已到達/C=已完成/E=異常）。
+nx06_dn_stop,11,arrived_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,實際到達時間。
+nx06_dn_stop,12,completed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,此停靠點完成時間。
+nx06_dn_stop,13,signer_type,LITE-CORE,VARCHAR(1),False,False,True,False,,N,簽收方式（C=客戶簽收/W=倉管簽收/N=不需簽收）。
+nx06_dn_stop,14,signed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,簽收時間（signer_type=C/W時填入）。
+nx06_dn_stop,15,signed_by_name,LITE-CORE,VARCHAR(50),False,False,False,False,,,簽收人姓名（客戶或倉管）。
+nx06_dn_stop,16,signature_url,LITE-CORE,VARCHAR(500),False,False,False,False,,,電子簽名照片路徑（簽名後上傳存儲）。
+nx06_dn_stop,17,exception_remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,停靠點異常說明（status=E時填入，例：客戶不在/地址錯誤）。
+nx06_dn_stop,18,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx06_dn_stop,19,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx06_dn_stop,20,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx06_dn_stop,21,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx06_dn_item,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX06]+[DNIT]+[7碼流水號]，EX : NX06DNIT0000001
+nx06_dn_item,2,dn_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx06_dn,,對應送貨單表頭ID（FK nx06_dn）。
+nx06_dn_item,3,stop_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx06_dn_stop,,對應停靠點ID（FK nx06_dn_stop）。
+nx06_dn_item,4,line_no,LITE-CORE,INT,False,False,True,False,,,"明細行號（1,2,3…）。"
+nx06_dn_item,5,source_doc_type,LITE-CORE,VARCHAR(2),False,False,True,False,,,來源單據類型（SO=銷貨單NX04/ST=調撥單NX03/TI=調貨單NX02/PR=退供應商NX02/SR=銷退單NX04）。
+nx06_dn_item,6,source_doc_id,LITE-CORE,VARCHAR(15),False,False,True,False,,,來源單據ID。
+nx06_dn_item,7,source_item_id,LITE-CORE,VARCHAR(15),False,False,False,False,,,來源明細ID（可空）。
+nx06_dn_item,8,parcel_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx03_parcel,,關聯包裹ID（調撥/寄貨有包貨時填入，FK nx03_parcel）。
+nx06_dn_item,9,part_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_part,,零件ID（FK nx01_part，PICKUP/RETURN任務時填入）。
+nx06_dn_item,10,part_no,LITE-CORE,VARCHAR(50),False,False,False,False,,,零件料號快照。
+nx06_dn_item,11,part_name,LITE-CORE,VARCHAR(200),False,False,False,False,,,零件名稱快照。
+nx06_dn_item,12,qty,LITE-CORE,"DECIMAL(14,4)",False,False,True,False,,0,應送/取數量。
+nx06_dn_item,13,delivery_status,LITE-CORE,VARCHAR(1),False,False,True,False,,P,交付狀態（P=待確認/C=正常交付/E=異常）。外務可標記異常，客戶確認後再簽名。
+nx06_dn_item,14,exception_type,LITE-CORE,VARCHAR(1),False,False,False,False,,,異常類型（W=送錯料號/Q=數量不符/D=貨物損壞/O=其他）。delivery_status=E時必填。
+nx06_dn_item,15,exception_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,異常說明（delivery_status=E時必填）。
+nx06_dn_item,16,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx06_dn_item,17,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx06_dn_item,18,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx06_dn_item,19,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）

@@ -1,2 +1,0 @@
-# 已停用：恆迎 CYTIC 使用者改由同目錄 `cytic_nx00_user.csv` 維護（與上傳專用 nx00_user.csv 欄位一致）。
-# Prisma seed 已改讀 CSV，勿再編輯本檔內容。

@@ -1,0 +1,149 @@
+﻿表格名稱,欄位序號,欄位名稱,啟用最低需求版本,型別,PK,UQ,NN,FK,來源表格,預設值,欄位說明
+nx05_ar_ledger,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[ARLE]+[7碼流水號]，EX : NX05ARLE0000001
+nx05_ar_ledger,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_ar_ledger,3,doc_no,LITE-CORE,VARCHAR(20),False,True,True,False,,GEN,應收帳款單號（唯一），[AR]-[年月]-[機構碼]-[5碼流水號]，EX：AR-202604-HQ0-00001。
+nx05_ar_ledger,4,so_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx04_so,,來源銷貨單ID（FK nx04_so）。
+nx05_ar_ledger,5,customer_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,客戶ID（快照自SO，FK nx01_partner）。
+nx05_ar_ledger,6,ar_date,LITE-CORE,DATE,False,False,True,False,,TODAY,應收帳款產生日期。
+nx05_ar_ledger,7,due_date,LITE-CORE,DATE,False,False,True,False,,,到期日（依付款條件計算）。
+nx05_ar_ledger,8,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,TWD,幣別ID（FK nx01_currency）。
+nx05_ar_ledger,9,original_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,應收金額（含稅）。
+nx05_ar_ledger,10,paid_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,已收金額（累計）。
+nx05_ar_ledger,11,balance_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,未收餘額（original_amount - paid_amount）。
+nx05_ar_ledger,12,status,LITE-CORE,VARCHAR(1),False,False,True,False,,O,狀態（O=未收/P=部分收款/C=已結清/V=作廢）。
+nx05_ar_ledger,13,payment_term,LITE-CORE,VARCHAR(20),False,False,True,False,,NET30,付款條件快照（自SO帶入）。
+nx05_ar_ledger,14,overdue_days,LITE-CORE,INT,False,False,True,False,,0,逾期天數（系統每日計算，due_date < today 時累計）。
+nx05_ar_ledger,15,is_partial_approved,LITE-CORE,BOOLEAN,False,False,True,False,,FALSE,部分收款是否已獲負責人核准（partial payment 需核准）。
+nx05_ar_ledger,16,write_off_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,核銷時間（status=C時填入）。
+nx05_ar_ledger,17,write_off_by,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_user,,核銷人（使用者ID）。
+nx05_ar_ledger,18,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_ar_ledger,19,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_ar_ledger,20,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_ar_ledger,21,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_ar_ledger,22,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_ap_ledger,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[APLE]+[7碼流水號]，EX : NX05APLE0000001
+nx05_ap_ledger,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_ap_ledger,3,doc_no,LITE-CORE,VARCHAR(20),False,True,True,False,,GEN,應付帳款單號（唯一），[AP]-[年月]-[機構碼]-[5碼流水號]，EX：AP-202604-HQ0-00001。
+nx05_ap_ledger,4,source_type,LITE-CORE,VARCHAR(2),False,False,True,False,,PO,來源類型（PO=採購單/RR=進貨單/TI=調貨單）。PLUS前PO確認產生；LITE進貨入帳後產生。
+nx05_ap_ledger,5,po_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx02_po,,來源採購單ID（可空，PLUS限定，FK nx02_po）。
+nx05_ap_ledger,6,rr_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx02_rr,,來源進貨單ID（可空，LITE直接由RR產生，FK nx02_rr）。
+nx05_ap_ledger,7,ti_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx02_ti,,來源調貨單ID（可空，FK nx02_ti）。
+nx05_ap_ledger,8,supplier_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,廠商ID（FK nx01_partner）。
+nx05_ap_ledger,9,ap_date,LITE-CORE,DATE,False,False,True,False,,TODAY,應付帳款產生日期。
+nx05_ap_ledger,10,due_date,LITE-CORE,DATE,False,False,True,False,,,到期日（依付款條件計算）。
+nx05_ap_ledger,11,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,TWD,幣別ID（FK nx01_currency）。
+nx05_ap_ledger,12,original_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,應付金額（含稅）。
+nx05_ap_ledger,13,paid_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,已付金額（累計）。
+nx05_ap_ledger,14,balance_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,未付餘額（original_amount - paid_amount）。
+nx05_ap_ledger,15,status,LITE-CORE,VARCHAR(1),False,False,True,False,,O,狀態（O=未付/P=部分付款/C=已結清/V=作廢）。
+nx05_ap_ledger,16,payment_term,LITE-CORE,VARCHAR(20),False,False,True,False,,NET30,付款條件快照（自廠商主檔帶入）。
+nx05_ap_ledger,17,write_off_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,核銷時間（status=C時填入）。
+nx05_ap_ledger,18,write_off_by,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_user,,核銷人（使用者ID）。
+nx05_ap_ledger,19,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_ap_ledger,20,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_ap_ledger,21,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_ap_ledger,22,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_ap_ledger,23,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_paylog,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[PAYL]+[7碼流水號]，EX : NX05PAYL0000001
+nx05_paylog,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_paylog,3,doc_no,LITE-CORE,VARCHAR(20),False,True,True,False,,GEN,收付款單號（唯一），[PY]-[年月]-[機構碼]-[5碼流水號]，EX：PY-202604-HQ0-00001。
+nx05_paylog,4,pay_type,LITE-CORE,VARCHAR(2),False,False,True,False,,,收付款類型（CR=客戶收款/CP=廠商付款/RR=廠商退款/RC=客戶退款/EX=費用支出）。
+nx05_paylog,5,pay_date,LITE-CORE,DATE,False,False,True,False,,TODAY,收付款日期。
+nx05_paylog,6,partner_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_partner,,交易對象ID（EX費用支出可空，FK nx01_partner）。
+nx05_paylog,7,ar_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_ar_ledger,,關聯應收帳款ID（pay_type=CR/RC時填入，FK nx05_ar_ledger）。
+nx05_paylog,8,ap_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_ap_ledger,,關聯應付帳款ID（pay_type=CP/RR時填入，FK nx05_ap_ledger）。
+nx05_paylog,9,amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,收付款金額（正數）。
+nx05_paylog,10,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,TWD,幣別ID（FK nx01_currency）。
+nx05_paylog,11,pay_method,LITE-CORE,VARCHAR(2),False,False,True,False,,CA,付款方式（CA=現金/TT=匯款/CK=支票/PN=本票）。
+nx05_paylog,12,note_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_note,,關聯票據ID（pay_method=CK/PN時填入，FK nx05_note）。
+nx05_paylog,13,account_code_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_account_code,,會計科目ID（pay_type=EX費用支出時必填，FK nx05_account_code）。
+nx05_paylog,14,cash_balance_after,LITE-CORE,"DECIMAL(14,2)",False,False,False,False,,,現金餘額快照（pay_method=CA時，交易後的現金庫存餘額）。
+nx05_paylog,15,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_paylog,16,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_paylog,17,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_paylog,18,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_paylog,19,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_note,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[NOTE]+[7碼流水號]，EX : NX05NOTE0000001
+nx05_note,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_note,3,doc_no,LITE-CORE,VARCHAR(20),False,True,True,False,,GEN,票據系統單號（唯一），[NT]-[年月]-[機構碼]-[5碼流水號]，EX：NT-202604-HQ0-00001。票號本身另欄填入。
+nx05_note,4,note_type,LITE-CORE,VARCHAR(2),False,False,True,False,,,票據類型（CK=支票/PN=本票）。
+nx05_note,5,direction,LITE-CORE,VARCHAR(1),False,False,True,False,,,方向（R=應收票據/P=應付票據）。
+nx05_note,6,partner_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,票據來源/受款人（FK nx01_partner）。
+nx05_note,7,note_no,LITE-CORE,VARCHAR(50),False,False,True,False,,,票號（銀行票據編號，人工填入）。
+nx05_note,8,bank_name,LITE-CORE,VARCHAR(100),False,False,True,False,,,銀行名稱。
+nx05_note,9,bank_account,LITE-CORE,VARCHAR(30),False,False,False,False,,,帳號末四碼（選填，供對帳使用）。
+nx05_note,10,amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,票面金額。
+nx05_note,11,currency_id,LITE-CORE,VARCHAR(10),False,False,True,True,nx01_currency,TWD,幣別ID（FK nx01_currency）。
+nx05_note,12,issue_date,LITE-CORE,DATE,False,False,True,False,,,開票日期。
+nx05_note,13,due_date,LITE-CORE,DATE,False,False,True,False,,,到期日。
+nx05_note,14,status,LITE-CORE,VARCHAR(1),False,False,True,False,,H,狀態（H=持有中/C=已兌現/B=退票/V=作廢）。
+nx05_note,15,cleared_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,兌現時間（status=C時填入）。
+nx05_note,16,bounced_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,退票時間（status=B時填入）。
+nx05_note,17,bounced_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,退票原因（status=B時必填）。
+nx05_note,18,paylog_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_paylog,,關聯收付款紀錄ID（票據開立時關聯，FK nx05_paylog）。
+nx05_note,19,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_note,20,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_note,21,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_note,22,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_note,23,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_allowance,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[ALOW]+[7碼流水號]，EX : NX05ALOW0000001
+nx05_allowance,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_allowance,3,doc_no,LITE-CORE,VARCHAR(20),False,True,True,False,,GEN,折讓單號（唯一），[AL]-[年月]-[機構碼]-[5碼流水號]，EX：AL-202604-HQ0-00001。
+nx05_allowance,4,allowance_type,LITE-CORE,VARCHAR(1),False,False,True,False,,,折讓方向（P=進貨折讓廠商給我方/S=銷貨折讓我方給客戶）。
+nx05_allowance,5,partner_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_partner,,交易對象ID（廠商或客戶，FK nx01_partner）。
+nx05_allowance,6,allowance_date,LITE-CORE,DATE,False,False,True,False,,TODAY,折讓日期。
+nx05_allowance,7,ref_ar_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_ar_ledger,,關聯應收帳款ID（allowance_type=S時填入，FK nx05_ar_ledger）。
+nx05_allowance,8,ref_ap_id,LITE-CORE,VARCHAR(15),False,False,False,True,nx05_ap_ledger,,關聯應付帳款ID（allowance_type=P時填入，FK nx05_ap_ledger）。
+nx05_allowance,9,total_amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,折讓總金額（明細加總）。
+nx05_allowance,10,status,LITE-CORE,VARCHAR(1),False,False,True,False,,D,狀態（D=草稿/A=待審核/P=已核准/C=已處理/V=作廢）。
+nx05_allowance,11,approved_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,核准時間（負責人核准，status=P時填入）。
+nx05_allowance,12,approved_by,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_user,,核准人（使用者ID）。
+nx05_allowance,13,reject_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,退件原因（負責人退件時必填）。
+nx05_allowance,14,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_allowance,15,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_allowance,16,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_allowance,17,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_allowance,18,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_allowance_item,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[AWIT]+[7碼流水號]，EX : NX05AWIT0000001
+nx05_allowance_item,2,allowance_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx05_allowance,,對應折讓單表頭ID（FK nx05_allowance）。
+nx05_allowance_item,3,line_no,LITE-CORE,INT,False,False,True,False,,1,"明細行號（1,2,3…）。"
+nx05_allowance_item,4,reason,LITE-CORE,VARCHAR(200),False,False,True,False,,,折讓原因（品質問題/數量短缺/規格不符/定價錯誤/其他）。
+nx05_allowance_item,5,amount,LITE-CORE,"DECIMAL(14,2)",False,False,True,False,,0,折讓金額。
+nx05_allowance_item,6,disposal_method,LITE-CORE,VARCHAR(1),False,False,True,False,,O,處置方式（O=沖銷AP/AR / D=下次折抵 / R=現金退回）。
+nx05_allowance_item,7,ref_doc_id,LITE-CORE,VARCHAR(15),False,False,False,False,,,來源單據ID（可空，關聯進貨單RR或銷貨單SO）。
+nx05_allowance_item,8,ref_doc_type,LITE-CORE,VARCHAR(2),False,False,False,False,,,來源單據類型（RR=進貨單/SO=銷貨單）。
+nx05_allowance_item,9,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_allowance_item,10,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_allowance_item,11,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_allowance_item,12,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_allowance_item,13,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_closing,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[CLOS]+[7碼流水號]，EX : NX05CLOS0000001
+nx05_closing,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_closing,3,doc_no,LITE-CORE,VARCHAR(20),False,True,True,False,,GEN,關帳單號（唯一），[CL]-[年月]-[機構碼]-[5碼流水號]，EX：CL-202604-HQ0-00001。
+nx05_closing,4,closing_date,LITE-CORE,DATE,False,True,True,False,,TODAY,關帳日期（每日一筆，唯一）。
+nx05_closing,5,closed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,關帳時間（人工執行或系統自動）。
+nx05_closing,6,closed_by,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_user,,關帳執行人（使用者ID）。
+nx05_closing,7,is_auto,LITE-CORE,BOOLEAN,False,False,True,False,,FALSE,是否為系統自動關帳（TRUE=系統自動/FALSE=人工執行）。
+nx05_closing,8,report_printed_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,401報表列印/下載時間。
+nx05_closing,9,report_printed_by,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_user,,報表列印人（使用者ID）。
+nx05_closing,10,status,LITE-CORE,VARCHAR(1),False,False,True,False,,C,狀態（C=已關帳/R=已解除）。解除記錄永久保存。
+nx05_closing,11,reopened_at,LITE-CORE,TIMESTAMP,False,False,False,False,,,解除關帳時間（status=R時填入）。
+nx05_closing,12,reopened_by,LITE-CORE,VARCHAR(15),False,False,False,True,nx01_user,,解除關帳人（負責人，使用者ID）。
+nx05_closing,13,reopen_reason,LITE-CORE,VARCHAR(200),False,False,False,False,,,解除原因（必填，永久保存作稽核依據）。
+nx05_closing,14,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_closing,15,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_closing,16,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_closing,17,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_closing,18,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_account_code,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX05]+[ACCD]+[7碼流水號]，EX : NX05ACCD0000001
+nx05_account_code,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
+nx05_account_code,3,code,LITE-CORE,VARCHAR(10),False,True,True,False,,,科目代碼（唯一），EX：6132=租金/6139=水電費/6150=電話費。
+nx05_account_code,4,name,LITE-CORE,VARCHAR(100),False,False,True,False,,,科目名稱。
+nx05_account_code,5,category,LITE-CORE,VARCHAR(1),False,False,True,False,,,科目類別（I=收入/E=支出/A=資產/L=負債）。
+nx05_account_code,6,is_system,LITE-CORE,BOOLEAN,False,False,True,False,,FALSE,是否為系統預設科目（TRUE=不可刪除）。
+nx05_account_code,7,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
+nx05_account_code,8,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註。
+nx05_account_code,9,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。
+nx05_account_code,10,created_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx05_account_code,11,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),更新時間。
+nx05_account_code,12,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
