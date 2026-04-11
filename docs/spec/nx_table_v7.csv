@@ -1,0 +1,125 @@
+﻿序號,模組代碼,模組名稱,表格代碼,表格名稱,中文名稱,最低需求版本,表格說明,前綴碼,Table ID 範例,舊表格名稱
+1,nx01,主檔管理,user,nx01_user,使用者主檔,LITE-CORE,系統登入帳號資料，包含帳號、密碼雜湊、姓名、狀態與基本資訊；用於登入驗證、權限判斷與操作紀錄追蹤。可預留 employee_id 以支援未來人事模組整合。,USER,NX01USER0000001,nx00_user
+2,nx01,主檔管理,employee,nx01_employee,員工主檔,PRO-CORE,員工基本資料主檔（PRO版），記錄員工姓名、部門、職稱、到職日與薪資基本資訊，與使用者帳號（nx00_user）關聯，供人資模組（NX08）使用。,EMPL,NX01EMPL0000001,nx00_employee
+3,nx01,主檔管理,role,nx01_role,職務主檔,LITE-CORE,定義系統權限角色（如管理者、業務、倉管等），用於彙整可操作功能權限集合。,ROLE,NX01ROLE0000001,nx00_role
+4,nx01,主檔管理,user_role,nx01_user_role,使用者職務對應表,LITE-CORE,使用者與權限角色之多對多關聯表，支援一人多角色與角色彈性擴充。,USRO,NX01USRO0000001,nx00_user_role
+5,nx01,主檔管理,user_warehouse,nx01_user_warehouse,使用者據點對應表,PLUS-CORE,使用者與倉庫的多對多關聯表（PLUS版），限制使用者只能操作被授權的倉庫，支援多倉管理的權限控管。,USWA,NX01USWA0000001,nx00_user_warehouse
+6,nx01,主檔管理,view,nx01_view,畫面主檔,LITE-CORE,系統功能畫面定義主檔，用於控管畫面層級權限與後續功能模組管理。,VIEW,NX01VIEW0000001,nx00_view
+7,nx01,主檔管理,role_view,nx01_role_view,角色與畫面權限對應,LITE-CORE,定義角色對各畫面的操作權限（讀取/新增/編輯/刪除/匯出），實現 RBAC 權限控管機制。,ROVI,NX01ROVI0000001,nx00_role_view
+8,nx01,主檔管理,country,nx01_country,地區主檔,LITE-CORE,地區/國家主檔，記錄國家代碼與名稱，供交易對象地址、幣別對應與報表統計使用。,COUN,NX01COUN0000001,nx00_country
+9,nx01,主檔管理,currency,nx01_currency,幣別主檔,LITE-CORE,幣別主檔，記錄幣別代碼（如TWD/USD/EUR）、名稱與匯率，供採購與財務模組引用。,CURR,NX01CURR0000001,nx00_currency
+10,nx01,主檔管理,part,nx01_part,零件主檔,LITE-CORE,零件基礎資料維護，包含料號、名稱、品牌、規格與狀態等屬性，供進銷存流程引用。,PART,NX01PART0000001,nx00_part
+11,nx01,主檔管理,part_brand,nx01_part_brand,品牌主檔,LITE-CORE,零件品牌資料維護，用於分類與報表統計。,PABR,NX01PABR0000001,nx00_part_brand
+12,nx01,主檔管理,part_group,nx01_part_group,零件種類,LITE-CORE,零件種類主檔，定義零件的分類群組（如濾芯類、煞車類、引擎類），用於盤點範圍設定與報表統計。,PAGR,NX01PAGR0000001,nx00_part_group
+13,nx01,主檔管理,car_brand,nx01_car_brand,汽車品牌,LITE-CORE,汽車品牌資料維護，用於分類與報表統計。,CABR,NX01CABR0000001,nx00_car_brand
+14,nx01,主檔管理,brand_code_rule,nx01_brand_code_rule,編碼規則檔,LITE-CORE,零件編碼規則主檔，定義各品牌的料號編碼格式與規則，確保料號格式一致性與可辨識性。,BCOR,NX01BCOR0000001,nx00_brand_code_rule
+15,nx01,主檔管理,part_relation,nx01_part_relation,零件關聯表,LITE-CORE,專車族群主檔，包含族群名稱與料號匹配條件,PARE,NX01PARE0000001,nx00_part_relation
+16,nx01,主檔管理,warehouse,nx01_warehouse,倉庫主檔,LITE-CORE,倉庫資料維護（即使 LITE 為單倉架構仍保留），為未來多倉升級預留基礎。,WARE,NX01WARE0000001,nx00_warehouse
+17,nx01,主檔管理,warehouse_type,nx01_warehouse_type,倉庫類型主檔,PLUS-CORE,倉庫類型主檔，定義系統預設倉庫類型代碼（H=總部/M=主倉/W=分倉/S=衛星倉），搭配 flow_mode 控制集中或分倉管理邏輯。,WHTP,NX01WHTP0000001,nx00_warehouse_type
+18,nx01,主檔管理,location,nx01_location,庫位主檔,LITE-CORE,倉庫內庫位資料，支援庫存精準定位與盤點管理。,LOCA,NX01LOCA0000001,nx00_location
+19,nx01,主檔管理,partner,nx01_partner,交易對象主檔,LITE-CORE,統一管理客戶與供應商資料，包含聯絡資訊、角色類型（客戶/供應商/雙角色），供採購與銷售單據引用。,PTNR,NX01PTNR0000001,nx00_partner
+20,nx01,主檔管理,bulletin,nx01_bulletin,公告主檔,LITE-CORE,公告主檔，記錄系統內部公告資料，支援類型分類、置頂設定與到期自動隱藏功能，用於系統通知與公告管理。,BULL,NX01BULL0000001,nx00_bulletin
+21,nx01,主檔管理,calendar_event,nx01_calendar_event,事件主檔,LITE-CORE,行事曆事件主檔，記錄手動登錄的重要事件，包含廠商到貨（可關聯PO）、公司內部活動等，供首頁行事曆顯示。,CAEV,NX01CAEV0000001,nx00_calendar_event
+22,nx01,主檔管理,audit_log,nx01_audit_log,操作紀錄表,LITE-CORE,記錄系統重要操作與資料異動歷程，包含操作者、時間、動作類型與變更內容，用於稽核與問題追溯。,AULO,NX01AULO0000001,nx00_audit_log
+23,nx01,主檔管理,discount_code,nx01_discount_code,折扣代碼主檔,LITE-CORE,定義各種折扣代碼（DEFECT瑕疵品/USED中古件/VIP客戶優惠/BULK批量折扣等），由採購組長管理，業務銷售時套用。支援折扣率（%）或折扣金額兩種方式。,DISC,NX01DISC0000001,nx00_discount_code
+24,nx01,主檔管理,partner_credit,nx01_partner_credit,客戶信用額度設定,LITE-CORE,記錄客戶信用額度設定，控管下單風險。已用額度超過80%警示，超過100%通知負責人，負責人可設定口頭警告/僅收現金/凍結三種處置方式。,PTCR,NX01PTCR0000001,nx00_partner_credit
+25,nx01,主檔管理,customer_grade,nx01_customer_grade,客戶等級主檔,LITE-CORE,定義客戶等級（預設 A/B/C/D 四級，可自行新增），記錄各等級名稱、毛利下限百分比與最高售價規則（以下一等級最低售價為上限，D級無上限）。由銷售組長管理，供報價單定價邏輯使用。,CUGR,NX01CUGR0000001,nx00_customer_grade
+26,nx01,主檔管理,department,nx01_department,部門主檔,LITE-CORE,記錄公司部門資料，例：採購部/業務部/倉管部/財務部/物流部。,DEPT,NX01DEPT0000001,nx00_department
+27,nx01,主檔管理,team,nx01_team,組別主檔,LITE-CORE,記錄部門下的組別，支援無限層級（parent_team_id自我關聯），預設兩層。倉管組別可關聯倉庫。,TEAM,NX01TEAM0000001,nx00_team
+28,nx01,主檔管理,user_team,nx01_user_team,使用者組別關聯,LITE-CORE,記錄使用者所屬組別，支援一人多組，is_leader標記組長。,USTM,NX01USTM0000001,nx00_user_team
+29,nx01,主檔管理,kpi_template,nx01_kpi_template,KPI 指標範本,PRO,系統預設KPI指標範本，定義指標代碼、計算來源、計算方式、週期與目標方向。系統預設指標不可刪除。,KPIT,NX01KPIT0000001,nx00_kpi_template
+30,nx01,主檔管理,kpi_target,nx01_kpi_target,KPI 目標設定,PRO,設定各角色或個人的KPI目標值。個人目標優先於角色目標（override機制）。,KPIG,NX01KPIG0000001,nx00_kpi_target
+31,nx01,主檔管理,kpi_record,nx01_kpi_record,KPI 實際記錄,PRO,系統自動計算並記錄每位使用者各期間的KPI實際達成值與達成率。,KPIR,NX01KPIR0000001,nx00_kpi_record
+32,nx02,採購管理,rfq,nx02_rfq,詢價單表頭資料,LITE-CORE,記錄供應商或同行詢價主檔，分為一般詢價（採購專員建立）與同行調貨詢價（銷售專員建立）兩種類型。支援詢價原因複選（庫存不足/客訂/新品/特價/同行調貨），可匯出 Excel/PDF/CSV 寄給供應商，支援回傳匯入報價。,RFHT,NX02RFHT0000001,nx01_rfq
+33,nx02,採購管理,rfq_item,nx02_rfq_item,詢價單明細資料,LITE-CORE,詢價單明細項目，記錄零件、數量與詢價成本，支援部分或完整轉單。,RFIT,NX02RFIT0000001,nx01_rfq_item
+34,nx02,採購管理,po,nx02_po,採購單表頭資料,PLUS-CORE,採購單表頭主檔（PLUS版），記錄向正式廠商下訂單的主檔資料，必須從詢價單匯入建立，需採購組長審核後才能寄出。廠商確認後系統自動產生應付帳款。,POHT,NX02POHT0000001,nx01_po
+35,nx02,採購管理,po_item,nx02_po_item,採購單明細資料,PLUS-CORE,採購單明細資料（PLUS版），記錄採購料號、數量、單價、預計到貨日與已到貨數量，支援分批到貨追蹤。,POIT,NX02POIT0000001,nx01_po_item
+36,nx02,採購管理,rr,nx02_rr,進貨單表頭資料,LITE-CORE,記錄進貨單主檔資料，包含供應商、單據日期、單號、狀態與總金額；過帳後將產生庫存異動。,RRHT,NX02RRHT0000001,nx01_rr
+37,nx02,採購管理,rr_item,nx02_rr_item,進貨單明細資料,LITE-CORE,記錄進貨零件、入庫倉庫/庫位、數量與單位成本；過帳時寫入庫存異動台帳並更新庫存餘額。,RRIT,NX02RRIT0000001,nx01_rr_item
+38,nx02,採購管理,pr,nx02_pr,退貨單表頭資料,LITE-CORE,退供應商單表頭資料，記錄退貨主檔，來源為進貨驗收異常或入帳後才發現問題。需採購組長審核，退貨完成後依付款狀態自動沖銷AP或產生應收廠商退款。,PRHT,NX02PRHT0000001,nx01_pr
+39,nx02,採購管理,pr_item,nx02_pr_item,退貨單明細資料,LITE-CORE,退供應商單明細資料，記錄退貨料號、數量、退貨原因（數量多餘/外觀損壞/功能異常/規格不符/其他）與瑕疵照片附件。,PRIT,NX02PRIT0000001,nx01_pr_item
+40,nx02,採購管理,demand,nx02_demand,採購需求單,LITE-CORE,記錄被動產生的採購需求，來源分為庫存不足（系統自動）與客訂（銷售專員登記）兩種。採購專員每日查看並決定是否發起詢價。,DMND,NX02DMND0000001,nx01_demand
+41,nx02,採購管理,ti,nx02_ti,調貨單表頭資料,LITE-CORE,記錄向同行調貨的主檔資料，從詢價單（同行調貨詢價）建立，包含同行資料、料號、數量與報價。支援驗收入帳後觸發庫存異動。,TIHT,NX02TIHT0000001,nx01_ti
+42,nx02,採購管理,ti_item,nx02_ti_item,調貨單明細資料,LITE-CORE,記錄調貨明細項目，包含料號、數量、單價與入庫倉庫/庫位。,TIIT,NX02TIIT0000001,nx01_ti_item
+43,nx02,採購管理,rr_import,nx02_rr_import,進口費用攤分明細,LITE-CORE,記錄進口採購每批到貨的進口費用明細（海運費/關稅/報關費/倉儲費/其他），依包裹裁積衍生費用除以數量計算每件攤分成本，自動帶入對應進貨單成本欄位。,RRIM,NX02RRIM0000001,nx01_rr_import
+44,nx03,庫存管理,stock_ledger,nx03_stock_ledger,庫存異動台帳,LITE-CORE,庫存異動唯一真實來源（Single Source of Truth），記錄每一次庫存變動（進貨、銷貨、盤點、調整等），支援庫存追溯與成本計算。,STLE,NX03STLE0000001,nx02_stock_ledger
+45,nx03,庫存管理,stock_balance,nx03_stock_balance,庫存餘額彙總表,LITE-CORE,依零件/倉庫/庫位彙總現有庫存數量與移動平均成本，為查詢效率優化之結果表。,STBL,NX03STBL0000001,nx02_stock_balance
+46,nx03,庫存管理,part_stock_setting,nx03_part_stock_setting,安全量/最高量設定,LITE-CORE,零件安全量與最高量設定，記錄各倉庫各料號的最低安全量與最高庫存量，供缺貨偵測與自動補貨計算使用。,PSST,NX03PSST0000001,nx02_part_stock_setting
+47,nx03,庫存管理,shortage,nx03_shortage,缺貨簿,PLUS-CORE,缺貨簿（PLUS版），記錄庫存低於安全量的缺貨狀況，來源包含庫存不足自動偵測與跨倉補貨需求，供採購需求單自動產生使用。,SHOR,NX03SHOR0000001,nx02_shortage
+48,nx03,庫存管理,auto_replenish,nx03_auto_replenish,自動調撥補貨設定,PLUS-CORE,自動調撥補貨設定（PLUS版），定義各料號在各倉庫的自動補貨規則，當庫存低於安全量時系統自動產生調撥草稿。,AURE,NX03AURE0000001,nx02_auto_replenish
+49,nx03,庫存管理,init,nx03_init,開帳存表頭,LITE-CORE,開帳存表頭，記錄系統首次啟用時的期初庫存單主檔，包含開帳日期、倉庫與狀態，過帳後寫入庫存台帳作為庫存起始基準。,INHD,NX03INHD0000001,nx02_init
+50,nx03,庫存管理,init_item,nx03_init_item,開帳存明細,LITE-CORE,開帳存明細，記錄各料號的期初庫存數量、庫位與單位成本，過帳後寫入庫存異動台帳並建立庫存餘額。,INIT,NX03INIT0000001,nx02_init_item
+51,nx03,庫存管理,stock_take,nx03_stock_take,盤點單表頭資料,LITE-CORE,記錄盤點單基本資料與盤點期間，用於盤點差異確認。,STTK,NX03STTK0000001,nx02_stock_take
+52,nx03,庫存管理,stock_take_item,nx03_stock_take_item,盤點單明細資料,LITE-CORE,記錄實際盤點數量與系統數量差異，過帳後寫入庫存異動台帳進行修正。,STTI,NX03STTI0000001,nx02_stock_take_item
+53,nx03,庫存管理,st,nx03_st,調撥單表頭資料,LITE-CORE,調撥單表頭資料，支援自動調撥（進貨後系統產生草稿）與手動調撥申請（跨倉補貨）。採兩階段過帳：來源倉出貨後庫存減少，目標倉確認收貨後庫存增加。調撥核准後系統自動產生撿貨單。,STHD,NX03STHD0000001,nx02_st
+54,nx03,庫存管理,st_item,nx03_st_item,調撥單明細資料,LITE-CORE,調撥單明細資料，記錄調撥料號、數量、來源倉/庫位、目標倉/庫位與實際收貨數量，支援數量異常處理。,STIT,NX03STIT0000001,nx02_st_item
+55,nx03,庫存管理,pk,nx03_pk,撿貨單表頭資料,LITE-CORE,由系統自動產生，來源為銷貨單（本倉有庫存）或調撥單核准後。一張撿貨單可合併多張銷貨單，撿貨完成後依出貨方式分流（配送/自取/寄貨/調撥）。,PKHD,NX03PKHD0000001,nx02_pk
+56,nx03,庫存管理,pk_item,nx03_pk_item,撿貨單明細資料,LITE-CORE,記錄撿貨明細，包含料號、庫位、數量、貼紙確認狀態與撿貨結果（正常/找不到貨）。,PKIT,NX03PKIT0000001,nx02_pk_item
+57,nx03,庫存管理,pl,nx03_pl,包貨單表頭資料,LITE-CORE,撿貨完成後產生（寄貨或調撥類型），記錄包貨作業主檔。一張包貨單可包裝成多個包裹，每個包裹有唯一包裹編號。,PLHD,NX03PLHD0000001,nx02_pl
+58,nx03,庫存管理,pl_item,nx03_pl_item,包貨單明細資料,LITE-CORE,記錄包貨明細，包含料號、數量與對應包裹編號。,PLIT,NX03PLIT0000001,nx02_pl_item
+59,nx03,庫存管理,parcel,nx03_parcel,包裹主檔,LITE-CORE,記錄每個實體包裹資料，包含唯一包裹編號（BOX-來源倉-目的地-日期-流水）、包裹內容、重量與第三方物流單號（寄貨時填入）。,PARC,NX03PARC0000001,nx02_parcel
+60,nx04,銷售管理,quote,nx04_quote,報價單表頭資料,LITE-CORE,記錄客戶報價單主檔資料，包含客戶、單據日期、狀態與總金額，支援轉銷貨單。,QTHD,NX04QTHD0000001,nx03_quote
+61,nx04,銷售管理,quote_item,nx04_quote_item,報價單明細資料,LITE-CORE,報價明細項目，記錄零件、數量與單價，支援部分或完整轉單。,QTIT,NX04QTIT0000001,nx03_quote_item
+62,nx04,銷售管理,so,nx04_so,銷貨單表頭資料,LITE-CORE,記錄銷貨主檔資料，包含客戶、單據日期、狀態與總金額；過帳後將扣減庫存並產生應收帳款。,SOHD,NX04SOHD0000001,nx03_so
+63,nx04,銷售管理,so_item,nx04_so_item,銷貨單明細資料,LITE-CORE,記錄銷貨零件、出貨倉庫/庫位、數量與單價；過帳時寫入庫存異動台帳。,SOIT,NX04SOIT0000001,nx03_so_item
+64,nx04,銷售管理,sr,nx04_sr,銷退單表頭資料,LITE-CORE,記錄客戶退貨主檔資料，來源為已配送或已完成的銷貨單。依料號退貨政策（return_policy）自動提示退貨標準，支援一般退貨與業務通融兩種類型，需銷售組長審核。,SRHD,NX04SRHD0000001,nx03_sr
+65,nx04,銷售管理,sr_item,nx04_sr_item,銷退單明細資料,LITE-CORE,記錄銷退明細，包含料號、退貨數量、退貨原因、退貨類型（一般/業務通融）與通融原因。,SRIT,NX04SRIT0000001,nx03_sr_item
+66,nx05,財務管理,ar_ledger,nx05_ar_ledger,應收帳款紀錄,LITE-CORE,記錄銷貨單產生之應收帳款資料，包含客戶、應收金額、已收金額與未收餘額。支援部分收款（需負責人審核）與信用額度控管。,ARLE,NX05ARLE0000001,nx04_ar_ledger
+67,nx05,財務管理,ap_ledger,nx05_ap_ledger,應付帳款紀錄,LITE-CORE,記錄採購單廠商確認後產生之應付帳款資料，包含供應商、應付金額、已付金額與未付餘額。支援部分付款與先付款廠商即時 AP 產生。,APLE,NX05APLE0000001,nx04_ap_ledger
+68,nx05,財務管理,paylog,nx05_paylog,收付款紀錄,LITE-ADD-ON,收付款紀錄，記錄所有實際金流動作，包含客戶收款（AR核銷）、廠商付款（AP核銷）、客戶退款、廠商退款與日常費用支出（租金/水電等）。支援現金庫存餘額追蹤。,PAYL,NX05PAYL0000001,nx04_paylog
+69,nx05,財務管理,note,nx05_note,票據管理,LITE-CORE,記錄應收與應付票據（支票/本票），包含票號、銀行、金額、到期日與狀態（持有中/已兌現/退票/作廢）。系統每日自動偵測7天內到期票據並通知出納。,NOTE,NX05NOTE0000001,nx04_note
+70,nx05,財務管理,allowance,nx05_allowance,折讓單,LITE-CORE,記錄進貨折讓（廠商給我們）與銷貨折讓（我們給客戶）主檔，需負責人審核。支援沖銷AP/AR、下次折抵、現金退回三種處置方式。,ALOW,NX05ALOW0000001,nx04_allowance
+71,nx05,財務管理,allowance_item,nx05_allowance_item,折讓單明細,LITE-CORE,記錄折讓明細，包含折讓原因、折讓金額、處置方式與來源單據關聯。,AWIT,NX05AWIT0000001,nx04_allowance_item
+72,nx05,財務管理,closing,nx05_closing,關帳記錄,LITE-CORE,記錄每日關帳作業，包含關帳時間、執行人、401報表上傳/列印時間。支援負責人解除關帳，解除記錄永久保存作稽核依據。,CLOS,NX05CLOS0000001,nx04_closing
+73,nx05,財務管理,account_code,nx05_account_code,會計科目主檔,LITE-CORE,定義財務會計科目，包含科目代碼（如6132租金/6139水電費/6150電話費）、科目名稱與類別（收入/支出/資產/負債）。供收付款費用登記、損益報表與財務分析使用。,ACCD,NX05ACCD0000001,nx04_account_code
+74,nx06,物流管理,dn,nx06_dn,送貨單表頭資料,LITE-CORE,外務出車任務主檔，支援多種任務類型（DELIVER送貨/PICKUP取貨/RETURN退貨/COLLECT取回退貨），可合併多張來源單據（SO/ST/TI/PR/SR）。支援電子簽收與 Phase 2 GPS 即時追蹤。,DNHD,NX06DNHD0000001,nx07_dn
+75,nx06,物流管理,dn_item,nx06_dn_item,送貨單明細資料,LITE-CORE,送貨任務明細，記錄任務類型（DELIVER/PICKUP/RETURN/COLLECT）、來源單據、地址、簽收時間與簽收照片。,DNIT,NX06DNIT0000001,nx07_dn_item
+76,nx06,物流管理,dn_stop,nx06_dn_stop,送貨停靠點,LITE-CORE,記錄送貨單每個停靠點資料，以客戶或目標倉為單位。含任務類型（DELIVER/PICKUP/RETURN/COLLECT）、地址、簽收資訊（客戶或倉管簽名）與異常說明。同一停靠點的所有項目共用一次簽收。,DNST,NX06DNST0000001,nx07_dn_stop
+77,nx07,人資管理,shift_type,nx07_shift_type,班別主檔,PRO,定義班別（早班/晚班/休假等），包含上下班時間、是否跨日、顏色標示。,SHFT,NX07SHFT0000001,nx08_shift_type
+78,nx07,人資管理,schedule,nx07_schedule,月排班主檔,PRO,每月排班表頭，依組別產生，草稿→發布→鎖定。,SCHD,NX07SCHD0000001,nx08_schedule
+79,nx07,人資管理,schedule_item,nx07_schedule_item,排班明細,PRO,每人每日排班明細，支援代班申請與核准。,SCIT,NX07SCIT0000001,nx08_schedule_item
+80,nx07,人資管理,attendance,nx07_attendance,打卡記錄,PRO,記錄每日打卡（IP驗證+LINE Login），自動計算遲到/早退/工時/加班，支援主管審核補正。,ATND,NX07ATND0000001,nx08_attendance
+81,nx07,人資管理,leave_type,nx07_leave_type,假別主檔,PRO,定義假別（特休/病假/事假等），系統預設勞基法假別不可刪除，可自訂新增。,LVTP,NX07LVTP0000001,nx08_leave_type
+82,nx07,人資管理,leave_balance,nx07_leave_balance,假別餘額,PRO,記錄每位員工每年各假別的應有/已用/剩餘時數，特休依年資自動計算。,LVBL,NX07LVBL0000001,nx08_leave_balance
+83,nx07,人資管理,leave_request,nx07_leave_request,請假申請,PRO,記錄排休與臨時請假申請，支援主管審核，核准後自動扣除假別餘額。,LVRQ,NX07LVRQ0000001,nx08_leave_request
+84,nx07,人資管理,overtime_request,nx07_overtime_request,加班申請,PRO,記錄加班申請（平日/假日），支援主管審核，核准後計入薪資計算。,OTRQ,NX07OTRQ0000001,nx08_overtime_request
+85,nx07,人資管理,salary_setting,nx07_salary_setting,薪資設定,PRO,每位員工的薪資設定（月薪/時薪/加班倍率），支援異動記錄，低於勞基法標準顯示警示。,SLST,NX07SLST0000001,nx08_salary_setting
+86,nx07,人資管理,salary_component,nx07_salary_component,薪資組成項目主檔,PRO,自訂薪資組成項目（交通津貼/餐費/全勤獎金等），支援固定金額/比率/KPI達成率三種計算方式。,SLCP,NX07SLCP0000001,nx08_salary_component
+87,nx07,人資管理,salary_record,nx07_salary_record,每月薪資記錄,PRO,每月薪資計算結果，系統自動計算底薪/加班費/各項津貼/扣項，狀態：草稿→確認→發放。,SLRC,NX07SLRC0000001,nx08_salary_record
+88,nx07,人資管理,salary_record_item,nx07_salary_record_item,薪資明細,PRO,每月薪資的各組成項目明細，包含計算依據說明。,SLRI,NX07SLRI0000001,nx08_salary_record_item
+89,nx07,人資管理,ip_whitelist,nx07_ip_whitelist,打卡IP白名單,PRO,設定各倉庫的固定IP或IP範圍，作為打卡位置驗證依據。,IPWL,NX07IPWL0000001,nx08_ip_whitelist
+90,nx08,經營分析,product_analysis,nx08_product_analysis,產品分析快取,LITE-CORE,記錄每個料號的進貨/銷售/價格分析資料快取，每日系統自動計算更新，供產品分析Tab使用。,PRAN,NX08PRAN0000001,nx05_product_analysis
+91,nx08,經營分析,sales_analysis,nx08_sales_analysis,銷售分析快取,LITE-CORE,記錄每個客戶的銷售/銷退/付款狀況分析資料快取，每日系統自動計算更新，供銷售分析Tab使用。,SLAN,NX08SLAN0000001,nx05_sales_analysis
+92,nx08,經營分析,inventory_analysis,nx08_inventory_analysis,庫存分析快取,LITE-CORE,記錄每個料號每個倉庫的出貨趨勢/庫存水位/週轉率分析資料快取，每日系統自動計算更新，供庫存分析Tab使用。,IVAN,NX08IVAN0000001,nx05_inventory_analysis
+93,nx98,共用核心,doc_link,nx98_doc_link,單據流轉關聯表,LITE-ADD-ON,單據流轉關聯表，記錄來源單據與目標單據之關聯關係，支援詢價→採購、報價→銷貨等轉單流程，並可追溯單據轉換歷程與關聯查詢。,DOCL,NX98DOCL0000001,nx06_doc_link
+94,nx99,系統管理,tenant,nx99_tenant,租戶主檔,LITE-CORE,記錄系統租戶資料，每個公司一筆，作為多租戶隔離根節點。,TANT,NX99TANT0000001,nx99_tenant
+95,nx99,系統管理,plan,nx99_plan,方案主檔,LITE-CORE,定義 NEXORA-LITE / PLUS / PRO 等方案與人數計價規則。,PLAN,NX99PLAN0000001,nx99_plan
+96,nx99,系統管理,subscription,nx99_subscription,租戶訂閱資料,LITE-CORE,記錄租戶目前訂閱的方案、席次、人數與起訖時間。,SUBS,NX99SUBS0000001,nx99_subscription
+97,nx99,系統管理,subscription_item,nx99_subscription_item,訂閱項目明細,LITE-CORE,記錄訂閱包含之模組或費用項目（標配/加購），並保存價格快照。,SUIT,NX99SUIT0000001,nx99_subscription_item
+98,nx99,系統管理,product_module,nx99_product_module,產品模組主檔,LITE-CORE,定義產品銷售模組 SKU（如 LIT-CORE-SSO、LIT-ADD-ACC）。,PRMO,NX99PRMO0000001,nx99_product_module
+99,nx99,系統管理,product_module_map,nx99_product_module_map,模組對照表,LITE-CORE,將產品模組對應至實際程式碼模組（NX00~NX06）。,PRMM,NX99PRMM0000001,nx99_product_module_map
+100,nx99,系統管理,release,nx99_release,平台版本主檔,LITE-CORE,平台發行版本主檔，定義 NEXORA 平台的升級批次與版本號，作為版本管理與更新追蹤的基礎。,RELE,NX99RELE0000001,nx99_release
+101,nx99,系統管理,release_item,nx99_release_item,版本內容清單,LITE-CORE,版本內容清單，記錄某發行版本中新增或修改的資料表、功能項目與變更說明，供開發追蹤與客戶通知使用。,REIT,NX99REIT0000001,nx99_release_item
+102,nx09,知識管理,km_article,nx09_km_article,NX09知識庫主檔,PRO,KM知識庫文章主檔，記錄主管每日撰寫的QA條目，包含部門、分類標籤、問題(Q)、答案(A)、適用情境、有效性狀態。結構化設計供Phase 2 RAG向量化使用。,ARTI,NX09ARTI0000001,(新增)
+103,nx09,知識管理,km_tag,nx09_km_tag,知識庫標籤主檔,PRO,知識庫分類標籤主檔，定義系統操作/業務流程/規章制度/客戶處理/緊急狀況等標籤，供文章分類與搜尋使用。,KMTG,NX09KMTG0000001,(新增)
+104,nx09,知識管理,km_article_tag,nx09_km_article_tag,文章標籤關聯,PRO,知識庫文章與標籤的多對多關聯表。,KMTL,NX09KMTL0000001,(新增)
+105,nx09,知識管理,km_feedback,nx09_km_feedback,知識庫回饋記錄,PRO,記錄員工對KM文章的回饋，包含「已解決」按鈕統計，供計算解決率與熱門問題排行使用。,KMFB,NX09KMFB0000001,(新增)
+106,nx09,知識管理,document,nx09_document,文件庫主檔,PRO,公司制度文件主檔，包含章則彙編、SOP、工作說明書，記錄文件名稱、分類、版本號、生效日期、閱覽權限。,DOCU,NX09DOCU0000001,(新增)
+107,nx09,知識管理,document_version,nx09_document_version,文件版本記錄,PRO,文件庫版本紀錄，每次上傳新版本自動建立，記錄版本號、上傳人、上傳時間與列印記錄。,DVER,NX09DVER0000001,(新增)
+108,nx09,知識管理,meeting,nx09_meeting,會議主檔,PRO,會議主檔，記錄會議主題、時間、地點、會議類型（產銷會議/週會/月會/臨時/教育訓練）、發起人與出席人員。,MTNG,NX09MTNG0000001,(新增)
+109,nx09,知識管理,meeting_attendee,nx09_meeting_attendee,會議出席記錄,PRO,記錄每位出席人員的確認狀態（確認出席/請假/實際出席），供出席率統計使用。,MTAT,NX09MTAT0000001,(新增)
+110,nx09,知識管理,meeting_minutes,nx09_meeting_minutes,會議紀錄,PRO,記錄會議討論內容與決議事項，關聯會議主檔。,MTMI,NX09MTMI0000001,(新增)
+111,nx09,知識管理,meeting_action,nx09_meeting_action,會議追蹤事項,PRO,記錄會議決議產生的待辦追蹤事項，包含負責人、截止日期、完成狀態，逾期自動提醒。,MTAC,NX09MTAC0000001,(新增)
+112,nx10,遊戲化系統,medal_level,nx10_medal_level,勳章等級主檔,PRO,定義20個勳章等級（銅IV~鑽I），記錄等級代碼、中文名稱、所需Exp門檻與圖示設定。,MDLV,NX10MDLV0000001,(新增)
+113,nx10,遊戲化系統,emp_medal,nx10_emp_medal,員工當前勳章,PRO,記錄每位員工當前勳章等級、累積總Exp、當前等級起始Exp與降階保護期截止日。,EMMD,NX10EMMD0000001,(新增)
+114,nx10,遊戲化系統,emp_exp_log,nx10_emp_exp_log,員工Exp異動記錄,PRO,記錄每筆Exp異動明細，包含來源類型（簽到/KPI/里程碑/懲罰/驚喜寶箱/團隊任務）、異動數量、異動原因與異動後總計，永久保存不可刪除。,EXPG,NX10EXPG0000001,(新增)
+115,nx10,遊戲化系統,task_template,nx10_task_template,任務範本主檔,PRO,定義所有任務類型範本，包含任務代碼、名稱、週期（每日/每週/每月/季度/里程碑）、適用職務、Exp獎勵規則與計算來源模組。,TKTM,NX10TKTM0000001,(新增)
+116,nx10,遊戲化系統,emp_task_log,nx10_emp_task_log,員工任務執行記錄,PRO,記錄每位員工每日/每週/每月任務的執行結果，包含KPI達成率、獲得Exp與完成狀態，由系統每日自動計算寫入。,EMTK,NX10EMTK0000001,(新增)
+117,nx10,遊戲化系統,surprise_box_log,nx10_surprise_box_log,驚喜寶箱開啟記錄,PRO,記錄員工每次開啟驚喜寶箱的結果，包含寶箱等級（普通/稀有/史詩）、獲得Exp與觸發條件，每日最多開啟3個。,SPBX,NX10SPBX0000001,(新增)
+118,nx10,遊戲化系統,team_task,nx10_team_task,門市團隊任務主檔,PRO,定義門市層級的團隊任務，包含任務目標（全勤率/KPI達成率/日報表繳交率等）、門檻值、週期與全員獎勵Exp。,TMTK,NX10TMTK0000001,(新增)
+119,nx10,遊戲化系統,team_task_log,nx10_team_task_log,門市團隊任務記錄,PRO,記錄每個門市每期團隊任務的達成狀況與發放獎勵記錄。,TMTL,NX10TMTL0000001,(新增)
+120,nx10,遊戲化系統,sprint_task,nx10_sprint_task,限時衝刺任務主檔,PRO,定義限時衝刺任務，包含任務類型（週衝刺/月末衝刺/季度排行）、有效期間、獎勵倍率與目標條件。,SPTK,NX10SPTK0000001,(新增)
+121,nx10,遊戲化系統,sprint_task_log,nx10_sprint_task_log,限時衝刺任務記錄,PRO,記錄每位員工參與限時衝刺任務的達成狀況與獎勵結果。,SPTL,NX10SPTL0000001,(新增)
+122,nx10,遊戲化系統,promotion_criteria,nx10_promotion_criteria,轉職條件主檔,PRO,定義每個職務升遷的系統驗證條件，包含所需勳章等級、在職年資、KPI達成率門檻、帶新人數與無懲罰期間要求。,PMCR,NX10PMCR0000001,(新增)
+123,nx10,遊戲化系統,promotion_request,nx10_promotion_request,轉職申請記錄,PRO,記錄員工轉職申請的完整歷程，包含申請時間、系統條件驗證結果、主管推薦意見、負責人審核結果與最終執行狀態。,PMRQ,NX10PMRQ0000001,(新增)
+124,nx10,遊戲化系統,mentorship_record,nx10_mentorship_record,帶新人記錄,PRO,記錄師徒關係配對，包含帶新人期間、新人KPI達成狀況與帶新人Exp獎勵發放記錄。,MNSH,NX10MNSH0000001,(新增)

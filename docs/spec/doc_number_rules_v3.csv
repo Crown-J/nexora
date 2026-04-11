@@ -1,0 +1,24 @@
+模組,單據名稱,類型代碼,英文全名,範例,備註
+說明,統一格式,,,[類型代碼]-[年月]-[倉庫/機構代碼]-[5碼流水號],倉庫代碼：Z01/Z02...；無倉庫時使用機構代碼（預設HQ0，可於系統設定自訂，例如：HEY=恆迎）
+NX02,採購需求單,DR,Demand Request,DR-202604-HQ0-00001,無倉庫時使用機構代碼
+NX02,詢價單,RF,Request for Quotation,RF-202604-Z01-00001,
+NX02,採購單,PO,Purchase Order,PO-202604-Z01-00001,PLUS 限定
+NX02,調貨單,TI,Transfer In,TI-202604-Z01-00001,向同行調貨
+NX02,進貨單,RR,Receiving Report,RR-202604-Z01-00001,
+NX02,退供應商單,PR,Purchase Return,PR-202604-Z01-00001,
+NX03,調撥單,ST,Stock Transfer,ST-202604-Z01-00001,PLUS 限定
+NX03,盤點單,SL,Stocktaking List,SL-202604-Z01-00001,
+NX03,開帳單,IN,Inventory Init,IN-202604-Z01-00001,
+NX03,撿貨單,PK,Picking List,PK-202604-Z01-00001,
+NX03,包貨單,PL,Packing List,PL-202604-Z01-00001,所有出貨類型均需經過包貨
+NX03,包裹,BOX,Box,BOX-202604-Z01-00001,出庫倉庫代碼；自取為簡易包裝客戶現場核對；寄貨/調撥加貼物流標籤
+NX04,報價單,QT,Quotation,QT-202604-Z01-00001,
+NX04,銷貨單,SO,Sales Order,SO-202604-Z01-00001,
+NX04,銷退單,SR,Sales Return,SR-202604-Z01-00001,
+NX05,應付帳款,AP,Accounts Payable,AP-202604-HQ0-00001,無倉庫時使用機構代碼
+NX05,應收帳款,AR,Accounts Receivable,AR-202604-HQ0-00001,無倉庫時使用機構代碼
+NX05,折讓單,AL,Allowance,AL-202604-HQ0-00001,無倉庫時使用機構代碼
+NX05,收付款記錄,PY,Payment,PY-202604-HQ0-00001,每筆實際金流動作的系統單號
+NX05,票據,NT,Note,NT-202604-HQ0-00001,系統追蹤用單號；票據本身的票號另欄填入
+NX05,關帳記錄,CL,Closing,CL-202604-HQ0-00001,每日關帳一筆；無倉庫時使用機構代碼
+NX06,送貨單,DN,Delivery Note,DN-202604-Z01-00001,包含配送/取件/退貨取件/調撥等任務類型
