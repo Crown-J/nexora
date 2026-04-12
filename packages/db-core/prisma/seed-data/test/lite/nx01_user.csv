@@ -1,0 +1,6 @@
+﻿id,tenant_id,employee_id,user_account,password_hash,user_name,email,phone,is_active,last_login_at,created_at,created_by,updated_at,updated_by
+NULL,{{TENANT_ID}},,admin,{{TEST_PW_HASH}},系統管理員,admin@test.com,,TRUE,NULL,NULL,NX01USER0000001,NULL,NX01USER0000001
+NULL,{{TENANT_ID}},,purchase1,{{TEST_PW_HASH}},陳採購,purchase1@test.com,0912-001-001,TRUE,NULL,NULL,NX01USER0000001,NULL,NX01USER0000001
+NULL,{{TENANT_ID}},,sales1,{{TEST_PW_HASH}},林業務,sales1@test.com,0912-001-002,TRUE,NULL,NULL,NX01USER0000001,NULL,NX01USER0000001
+NULL,{{TENANT_ID}},,warehouse1,{{TEST_PW_HASH}},王倉管,warehouse1@test.com,0912-001-003,TRUE,NULL,NULL,NX01USER0000001,NULL,NX01USER0000001
+NULL,{{TENANT_ID}},,finance1,{{TEST_PW_HASH}},黃財務,finance1@test.com,0912-001-004,TRUE,NULL,NULL,NX01USER0000001,NULL,NX01USER0000001

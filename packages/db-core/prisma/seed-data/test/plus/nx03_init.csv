@@ -1,0 +1,3 @@
+﻿id,tenant_id,doc_no,init_date,warehouse_code,status,remark,created_at,created_by,updated_at,updated_by,posted_at,posted_by,voided_at,voided_by
+NULL,{{TENANT_ID}},IN-202601-MW1-00001,2026-01-01,MW1,P,MW1 期初庫存建帳,NULL,NX01USER0000001,NULL,NX01USER0000001,2026-01-01 09:00:00,admin,NULL,
+NULL,{{TENANT_ID}},IN-202601-BW1-00002,2026-01-01,BW1,P,BW1 期初庫存建帳,NULL,NX01USER0000001,NULL,NX01USER0000001,2026-01-01 09:00:00,admin,NULL,
