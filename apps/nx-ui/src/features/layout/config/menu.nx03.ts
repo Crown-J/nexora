@@ -3,15 +3,24 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX03 銷貨模組：`DashboardSubNav` 用選單（目前刻意為空）
+ * - NX04 銷售管理側邊選單
  *
  * Notes:
- * - 模組首頁為流程總覽（`SalesFlowHub`）；即時工作台為 `/dashboard/nx03/workbench`。
- * - `/dashboard/nx03/customer-sales` 仍可直接書籤。
+ * - 路由 v2.0：/dashboard/sales/*
  */
 
 import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
 
 export function getNx03SideMenu(): SideMenuGroup[] {
-  return [];
+  return [
+    {
+      group: '銷售管理',
+      items: [
+        { key: 'sales.home',     label: '銷售模組首頁',         href: '/dashboard/sales' },
+        { key: 'sales.domestic', label: '國內銷售作業',         href: '/dashboard/sales/domestic' },
+        { key: 'sales.export',   label: '國外銷售作業（PLUS）', href: '/dashboard/sales/export' },
+        { key: 'sales.customer', label: '客戶管理',             href: '/dashboard/sales/customer' },
+      ],
+    },
+  ];
 }

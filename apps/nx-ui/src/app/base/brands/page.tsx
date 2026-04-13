@@ -1,5 +1,2 @@
 import { redirect } from 'next/navigation';
-
-export default function BaseBrandsLegacyRedirectPage() {
-  redirect('/base/part-brand');
-}
+export default function BaseBrandsRedirectPage() { redirect('/dashboard/base/part-brand'); }

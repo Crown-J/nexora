@@ -3,12 +3,10 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-SHELL-002：NX00（系統核心）側邊選單設定
+ * - NX01 主檔管理（Base）側邊選單
  *
  * Notes:
- * - NX00 左側次功能，先以 Lite 版所需的主檔/權限做出一套
- * - ✅ 路由統一採「單數 / 去 s 化」：/user /role /part ...
- * - 之後 nx01/nx02… 會各自有一份 menu.nx01.ts / menu.nx02.ts
+ * - 路由 v2.0：所有路由統一掛在 /dashboard/base/* 之下
  */
 
 export type SideMenuItem = {
@@ -25,41 +23,40 @@ export type SideMenuGroup = {
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-002-F01
- * 說明：
- * - 原 NX00 主檔已遷至 `/base`（儀表板內 `/dashboard/nx00/*` 僅轉址）
- * - 此選單保留給仍落在 `/dashboard/nx00` 路徑之過渡情境；連結一律指向主檔新路徑
  */
 export function getNx00SideMenu(): SideMenuGroup[] {
   return [
     {
-      group: '使用者與權限管理',
+      group: '帳號與權限',
       items: [
-        { key: 'nx00.home', label: '主檔總覽', href: '/base' },
-        { key: 'nx00.user', label: '使用者基本資料', href: '/base/user' },
-        { key: 'nx00.role', label: '職務主檔', href: '/base/role' },
-        { key: 'nx00.user-role', label: '使用者職務設定', href: '/base/user-role' },
-        { key: 'nx00.user-warehouse', label: '使用者據點設定', href: '/base/user-warehouse' },
-        { key: 'nx00.role-view', label: '職務權限設定', href: '/base/role-view' },
+        { key: 'base.home',           label: '主檔總覽',         href: '/dashboard/base' },
+        { key: 'base.users',          label: '使用者',           href: '/dashboard/base/users' },
+        { key: 'base.roles',          label: '職務主檔',         href: '/dashboard/base/roles' },
+        { key: 'base.user-role',      label: '使用者職務設定',   href: '/dashboard/base/user-role' },
+        { key: 'base.user-warehouse', label: '使用者據點設定',   href: '/dashboard/base/user-warehouse' },
+        { key: 'base.role-view',      label: '職務權限設定',     href: '/dashboard/base/role-view' },
       ],
     },
     {
-      group: '產品管理',
+      group: '產品與料號',
       items: [
-        { key: 'nx00.part', label: '零件基本資料', href: '/base/part' },
-        { key: 'nx00.car-brand', label: '汽車廠牌主檔', href: '/base/car-brand' },
-        { key: 'nx00.part-brand', label: '零件廠牌主檔', href: '/base/part-brand' },
+        { key: 'base.parts',           label: '零件主檔',   href: '/dashboard/base/parts' },
+        { key: 'base.car-brand',       label: '汽車廠牌',   href: '/dashboard/base/car-brand' },
+        { key: 'base.part-brand',      label: '零件廠牌',   href: '/dashboard/base/part-brand' },
       ],
     },
     {
-      group: '倉庫與庫位管理',
+      group: '倉儲',
       items: [
-        { key: 'nx00.warehouse', label: '倉庫主檔', href: '/base/warehouse' },
-        { key: 'nx00.location', label: '庫位主檔', href: '/base/location' },
+        { key: 'base.warehouses', label: '倉庫主檔', href: '/dashboard/base/warehouses' },
+        { key: 'base.location',   label: '庫位主檔', href: '/dashboard/base/location' },
       ],
     },
     {
-      group: '供應商與客戶管理',
-      items: [{ key: 'nx00.partner', label: '客戶主檔', href: '/base/partner' }],
+      group: '往來對象',
+      items: [
+        { key: 'base.partners', label: '廠商 / 客戶主檔', href: '/dashboard/base/partners' },
+      ],
     },
   ];
 }

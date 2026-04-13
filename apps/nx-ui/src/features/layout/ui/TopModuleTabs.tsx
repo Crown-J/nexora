@@ -16,16 +16,24 @@ import { cn } from '@/lib/utils';
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-003-F01
  * 說明：
- * - 根據 pathname 判斷目前在哪個模組
+ * - 根據 pathname 判斷目前在哪個模組（路由 v2.0 語意化路由）
  * - 高亮目前 tab
  */
 function getActiveModule(pathname: string): string {
-  const m = pathname.match(/^\/dashboard\/(nx\d{2})/i);
-  return (m?.[1] || '').toLowerCase();
+  if (pathname.startsWith('/dashboard/base'))       return 'base';
+  if (pathname.startsWith('/dashboard/purchase'))   return 'purchase';
+  if (pathname.startsWith('/dashboard/inventory'))  return 'inventory';
+  if (pathname.startsWith('/dashboard/sales'))      return 'sales';
+  if (pathname.startsWith('/dashboard/finance'))    return 'finance';
+  if (pathname.startsWith('/dashboard/logistics'))  return 'logistics';
+  if (pathname.startsWith('/dashboard/hr'))         return 'hr';
+  if (pathname.startsWith('/dashboard/report'))     return 'report';
+  if (pathname.startsWith('/dashboard/knowledge'))  return 'knowledge';
+  if (pathname.startsWith('/dashboard/game'))       return 'game';
+  return '';
 }
 
 function isModuleTabActive(pathname: string, tabCode: string): boolean {
-  if (tabCode === 'nx00' && pathname.startsWith('/base')) return true;
   return getActiveModule(pathname) === tabCode;
 }
 

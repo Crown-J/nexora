@@ -1,6 +1,6 @@
 # NX03_WAREHOUSE_WORKSPACE — 庫存作業工作台畫面規劃
 
-> 路由：/dashboard/nx03/workspace
+> 路由：/dashboard/inventory/workspace（路由標準表 v2.0）
 > 最低版本：LITE
 > 最後更新：2026-04-12
 > 對應流程：I-W01_進貨主流程.md / I-W02_出貨主流程.md / I-W03_盤點作業.md
@@ -756,8 +756,8 @@ PK-002  IC-7805   新竹科技  庫位 A-01-1 數量不足（應有50個，實�
 ## 九、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx03/workspace/
-├── WarehouseWorkspacePage.tsx      ← 主頁面，含 Tab 切換
+features/inventory/workspace/        ← 實作目錄（語意化路由，避免與銷貨 nx03 混淆）
+├── ui/InventoryWorkspacePage.tsx   ← 主頁面，含 Tab 切換（第一版殼層）
 ├── KpiBar/
 │   ├── WarehouseKpiBar.tsx         ← PRO only，庫存專屬 KPI
 │   └── KpiProgressItem.tsx         ← 共用

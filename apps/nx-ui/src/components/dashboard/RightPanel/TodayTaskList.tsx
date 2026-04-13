@@ -5,6 +5,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Briefcase } from 'lucide-react';
 import type { MockTask, PlanCode } from '@/mocks/dashboard';
 import { cx } from '@/shared/lib/cx';
 
@@ -12,9 +13,18 @@ type Props = {
   tasks: MockTask[];
   onTasksChange: (next: MockTask[]) => void;
   planCode: PlanCode;
+  className?: string;
+  /** false：由外層容器捲動（例如手機版整欄單一捲軸） */
+  listScrollable?: boolean;
 };
 
-export function TodayTaskList({ tasks, onTasksChange, planCode }: Props) {
+export function TodayTaskList({
+  tasks,
+  onTasksChange,
+  planCode,
+  className,
+  listScrollable = true,
+}: Props) {
   const router = useRouter();
   const showXp = planCode === 'PRO';
   const doneCount = tasks.filter((t) => t.done).length;
@@ -29,9 +39,17 @@ export function TodayTaskList({ tasks, onTasksChange, planCode }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur-sm">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-foreground">💼 今日工作</div>
+    <div
+      className={cx(
+        'nx-dash-card flex min-h-0 flex-col p-4',
+        className,
+      )}
+    >
+      <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <Briefcase className="h-4 w-4 text-muted-foreground" aria-hidden />
+          今日工作
+        </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>
             {doneCount}/{tasks.length} 完成
@@ -39,7 +57,12 @@ export function TodayTaskList({ tasks, onTasksChange, planCode }: Props) {
           {showXp ? <span className="text-primary">+15 XP</span> : null}
         </div>
       </div>
-      <ul className="space-y-2">
+      <ul
+        className={cx(
+          'space-y-2 pr-1',
+          listScrollable && 'nx-master-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain',
+        )}
+      >
         {tasks.map((t) => (
           <li key={t.id}>
             <div
@@ -53,8 +76,8 @@ export function TodayTaskList({ tasks, onTasksChange, planCode }: Props) {
                 }
               }}
               className={cx(
-                'flex cursor-pointer gap-3 rounded-xl border border-border/40 px-3 py-2 text-left transition hover:border-border',
-                t.done && 'bg-secondary/20 opacity-60',
+                'flex cursor-pointer gap-3 rounded-xl border border-border/70 bg-muted/25 px-3 py-2 text-left transition hover:border-border hover:bg-muted/40',
+                t.done && 'opacity-60',
               )}
             >
               <button
@@ -101,7 +124,10 @@ export function TodayTaskList({ tasks, onTasksChange, planCode }: Props) {
           </li>
         ))}
       </ul>
-      <button type="button" className="mt-3 text-xs text-primary hover:underline">
+      <button
+        type="button"
+        className="mt-3 shrink-0 text-xs text-primary hover:underline"
+      >
         查看所有工作 &gt;
       </button>
     </div>

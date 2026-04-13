@@ -1,18 +1,12 @@
 /**
  * File: apps/nx-ui/src/app/dashboard/nx04/page.tsx
- * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX04 財務管理模組入口（占位頁）
+ * - 路由 v2.0 redirect：/dashboard/nx04 → /dashboard/finance
  */
 
-import { ModulePlaceholderPage } from '@/features/layout/ui/ModulePlaceholderPage';
+import { redirect } from 'next/navigation';
 
-export default function Nx04ModulePage() {
-  return (
-    <ModulePlaceholderPage
-      title="財務管理"
-      description="應收應付、立帳與財務報表將於此模組檢視與維護。"
-    />
-  );
+export default function Nx04RedirectPage() {
+  redirect('/dashboard/finance');
 }

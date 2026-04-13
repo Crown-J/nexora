@@ -6,10 +6,20 @@
  * - NX00-UI-SHELL-001：主模組（Top Tabs）設定集中管理
  *
  * Notes:
- * - 目前先用 NX00~NX04 代表（之後可換成中文：系統核心/採購/庫存/銷售/報表）
+ * - 路由 v2.0：語意化路由，不使用模組代碼（nx01 等）
  */
 
-export type NxModuleCode = 'nx00' | 'nx01' | 'nx02' | 'nx03' | 'nx04';
+export type NxModuleCode =
+  | 'base'
+  | 'purchase'
+  | 'inventory'
+  | 'sales'
+  | 'finance'
+  | 'logistics'
+  | 'hr'
+  | 'report'
+  | 'knowledge'
+  | 'game';
 
 export type ModuleTab = {
   code: NxModuleCode;
@@ -22,14 +32,14 @@ export type ModuleTab = {
  * @FUNCTION_CODE NX00-UI-SHELL-001-F01
  * 說明：
  * - 定義 TopBar 上方的主模組 Tabs
- * - 優點：未來要改名稱、路徑、開關，只改這裡
+ * - 路由對應 ROUTE_TABLE_v2.0
  */
 export function getModuleTabs(): ModuleTab[] {
   return [
-    { code: 'nx00', label: '主檔', href: '/base', enabled: true },
-    { code: 'nx01', label: '進/退貨作業', href: '/dashboard/nx01', enabled: true },
-    { code: 'nx03', label: '銷貨作業', href: '/dashboard/nx03', enabled: true },
-    { code: 'nx02', label: '庫存管理', href: '/dashboard/nx02', enabled: true },
-    { code: 'nx04', label: '財務管理', href: '/dashboard/nx04', enabled: true },
+    { code: 'base',      label: '主檔管理', href: '/dashboard/base',                 enabled: true },
+    { code: 'purchase',  label: '採購管理', href: '/dashboard/purchase',              enabled: true },
+    { code: 'inventory', label: '庫存管理', href: '/dashboard/inventory',             enabled: true },
+    { code: 'sales',     label: '銷售管理', href: '/dashboard/sales/domestic',        enabled: true },
+    { code: 'finance',   label: '財務管理', href: '/dashboard/finance/workspace',     enabled: true },
   ];
 }

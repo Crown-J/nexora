@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter nx-ui exec tsc --noEmit)",
+      "Bash(pnpm --filter nx-ui exec next build)"
+    ]
+  }
+}

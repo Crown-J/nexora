@@ -67,7 +67,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Users,
     statLabel: '啟用帳號',
     statValue: '42 筆',
-    href: '/base/user',
+    href: '/dashboard/base/users',
   },
   {
     id: 'role',
@@ -77,7 +77,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Briefcase,
     statLabel: '職務項目',
     statValue: '—',
-    href: '/base/role',
+    href: '/dashboard/base/roles',
   },
   {
     id: 'user-role',
@@ -87,7 +87,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: UserCog,
     statLabel: '關聯筆數',
     statValue: '—',
-    href: '/base/user-role',
+    href: '/dashboard/base/user-role',
   },
   {
     id: 'user-warehouse',
@@ -97,7 +97,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: MapPin,
     statLabel: '關聯筆數',
     statValue: '—',
-    href: '/base/user-warehouse',
+    href: '/dashboard/base/user-warehouse',
   },
   {
     id: 'role-view',
@@ -107,7 +107,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Shield,
     statLabel: '已套用規則',
     statValue: '—',
-    href: '/base/role-view',
+    href: '/dashboard/base/role-view',
   },
   {
     id: 'part',
@@ -117,7 +117,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Package,
     statLabel: '零件筆數',
     statValue: '—',
-    href: '/base/part',
+    href: '/dashboard/base/parts',
   },
   {
     id: 'brand-masters',
@@ -128,8 +128,8 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '廠牌筆數',
     statValue: '—',
     links: [
-      { label: '汽車廠牌', href: '/base/car-brand' },
-      { label: '零件廠牌', href: '/base/part-brand' },
+      { label: '汽車廠牌', href: '/dashboard/base/car-brand' },
+      { label: '零件廠牌', href: '/dashboard/base/part-brand' },
     ],
   },
   {
@@ -140,7 +140,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Layers,
     statLabel: '族群',
     statValue: '—',
-    href: '/base/part-group',
+    href: '/dashboard/base/part-group',
   },
   {
     id: 'brand-code-rule',
@@ -150,7 +150,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: SlidersHorizontal,
     statLabel: '規則',
     statValue: '—',
-    href: '/base/brand-code-rule',
+    href: '/dashboard/base/brand-code-rule',
   },
   {
     id: 'part-relation',
@@ -160,7 +160,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Link2,
     statLabel: '關聯',
     statValue: '—',
-    href: '/base/part-relation',
+    href: '/dashboard/base/part-relation',
   },
   {
     id: 'country',
@@ -170,7 +170,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Globe,
     statLabel: '國家',
     statValue: '—',
-    href: '/base/country',
+    href: '/dashboard/base/country',
   },
   {
     id: 'currency',
@@ -180,7 +180,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: CircleDollarSign,
     statLabel: '幣別',
     statValue: '—',
-    href: '/base/currency',
+    href: '/dashboard/base/currency',
   },
   {
     id: 'warehouse-location',
@@ -191,8 +191,8 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '倉／庫位',
     statValue: '—',
     links: [
-      { label: '倉庫主檔', href: '/base/warehouse' },
-      { label: '庫位主檔', href: '/base/location' },
+      { label: '倉庫主檔', href: '/dashboard/base/warehouses' },
+      { label: '庫位主檔', href: '/dashboard/base/location' },
     ],
   },
   {
@@ -203,7 +203,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Handshake,
     statLabel: '客戶',
     statValue: '—',
-    href: '/base/partner',
+    href: '/dashboard/base/partners',
   },
 ];
 
@@ -232,7 +232,8 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   'user-role': '使用者職務設定',
   'user-warehouse': '使用者據點設定',
   role: '職務',
-  positions: '職務',
+  roles: '職務主檔',
+  positions: '職務主檔',
   'role-view': '職務權限設定',
   permissions: '職務權限設定',
   part: '零件主檔',
@@ -247,6 +248,7 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   'part-families': '零件族群主檔',
   location: '庫位主檔',
   warehouse: '倉庫主檔',
+  warehouses: '倉庫主檔',
   partner: '客戶主檔',
   partners: '客戶主檔',
 };

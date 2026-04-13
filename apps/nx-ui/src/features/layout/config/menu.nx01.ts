@@ -3,7 +3,10 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX01 進／退貨作業側邊選單（占位）
+ * - NX02 採購管理側邊選單
+ *
+ * Notes:
+ * - 路由 v2.0：/dashboard/purchase/*
  */
 
 import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
@@ -11,14 +14,14 @@ import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
 export function getNx01SideMenu(): SideMenuGroup[] {
   return [
     {
-      group: '進／退貨作業',
+      group: '採購管理',
       items: [
-        { key: 'nx01.home', label: '採購作業總覽', href: '/dashboard/nx01' },
-        { key: 'nx01.rfq', label: '詢價 RFQ', href: '/dashboard/nx01/rfq' },
-        { key: 'nx01.po', label: '採購 PO（PLUS）', href: '/dashboard/nx01/po' },
-        { key: 'nx01.rr', label: '進貨 RR', href: '/dashboard/nx01/rr' },
-        { key: 'nx01.pr', label: '退貨 PR', href: '/dashboard/nx01/pr' },
-        { key: 'nx01.stock-replenishment', label: '庫存補貨流程', href: '/dashboard/nx01/stock-replenishment' },
+        { key: 'purchase.home',     label: '採購模組首頁',         href: '/dashboard/purchase' },
+        { key: 'purchase.domestic', label: '國內採購作業',         href: '/dashboard/purchase/domestic' },
+        { key: 'purchase.import',   label: '國外採購作業（PLUS）', href: '/dashboard/purchase/import' },
+        { key: 'purchase.special',  label: '特殊採購（掃貨）',     href: '/dashboard/purchase/special' },
+        { key: 'purchase.product',  label: '產品管理',             href: '/dashboard/purchase/product' },
+        { key: 'purchase.vendor',   label: '廠商管理',             href: '/dashboard/purchase/vendor' },
       ],
     },
   ];

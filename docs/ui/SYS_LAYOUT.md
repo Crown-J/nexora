@@ -15,8 +15,8 @@
 /dashboard/nx02/special             特殊採購作業
 /dashboard/nx02/product             產品管理
 /dashboard/nx02/vendor              廠商管理
-/dashboard/nx03/workspace           庫存作業工作台
-/dashboard/nx03/warehouse-setting   庫位管理（倉管設定）
+/dashboard/inventory/workspace      庫存作業工作台
+/dashboard/inventory/setting        庫位管理 + 安全量建議
 /dashboard/nx04/domestic            國內銷售作業
 /dashboard/nx04/export              國外銷售作業
 /dashboard/nx04/customer            客戶管理
@@ -27,7 +27,7 @@
 /dashboard/nx09/workspace           知識管理工作台
 
 手機版專屬路由：
-/m/nx03                             倉管手機版
+/m/inventory                        倉管手機版
 /driver                             外務手機版
 ```
 

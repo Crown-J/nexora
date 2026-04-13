@@ -2,7 +2,19 @@
 
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, User, ChevronDown, Settings, LogOut, UserCircle, Moon, Sun, Monitor } from 'lucide-react';
+import {
+  Bell,
+  User,
+  ChevronDown,
+  ChevronRight,
+  Settings,
+  LogOut,
+  UserCircle,
+  Moon,
+  Sun,
+  Monitor,
+  Megaphone,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,7 +39,22 @@ import { Label } from '@/components/ui/label';
 import { useNxThemeMode } from '@/hooks/useNxThemeMode';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { NavPlanetMenu } from '@/components/home/dock';
+import { useDashboardBulletinOptional } from '@/features/sys-dashboard/context/DashboardBulletinContext';
+import type { MockBulletin } from '@/mocks/dashboard';
+
+function bulletinTypeLabel(t: MockBulletin['type']) {
+  if (t === 'URGENT') return '緊急';
+  if (t === 'COMPANY') return '公司';
+  return '系統';
+}
+
+function isEditableTarget(el: EventTarget | null): boolean {
+  if (!(el instanceof HTMLElement)) return false;
+  return el.closest('input, textarea, select, [contenteditable="true"]') !== null;
+}
 
 const HEADER_NOTIFICATION_ITEMS = [
   { title: '新訂單通知', desc: '客戶「大同汽車」下了一筆新訂單', time: '5 分鐘前', type: 'order' as const },
@@ -59,6 +86,10 @@ export function HomeTopBar({
   tenantNameEn,
   centerContent,
 }: HomeTopBarProps) {
+  const pathname = usePathname() ?? '';
+  const bulletinCtx = useDashboardBulletinOptional();
+  const showDashBulletin = pathname === '/dashboard' && bulletinCtx;
+
   const [currentTime, setCurrentTime] = useState<Date>(() => new Date());
   const { themeMode, setThemeMode, cycleThemeMode } = useNxThemeMode();
 
@@ -76,6 +107,18 @@ export function HomeTopBar({
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!showDashBulletin || !bulletinCtx) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.key.toLowerCase() !== 'a' || e.ctrlKey || e.metaKey) return;
+      if (isEditableTarget(e.target)) return;
+      e.preventDefault();
+      bulletinCtx.setBulletinOpen((o) => !o);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showDashBulletin, bulletinCtx]);
 
   useEffect(() => {
     return () => {
@@ -157,7 +200,7 @@ export function HomeTopBar({
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center gap-3 border-x-0 border-t-0 border-b border-border/50 glass-card nx-glass-raised px-4 lg:px-6 rounded-none"
+      className="nx-home-topbar fixed top-0 left-0 right-0 z-50 flex h-16 w-full items-center gap-3 border-x-0 border-t-0 border-b border-border/50 glass-card nx-glass-raised px-4 lg:px-6 rounded-none"
     >
       <div className="flex min-w-0 shrink-0 items-center gap-3 sm:gap-4">
         <NavPlanetMenu />
@@ -282,6 +325,76 @@ export function HomeTopBar({
         </div>
 
         <div className="hidden md:block w-px h-8 bg-gradient-to-b from-transparent via-border to-transparent" />
+
+        {showDashBulletin && bulletinCtx ? (
+          <DropdownMenu
+            open={bulletinCtx.bulletinOpen}
+            onOpenChange={bulletinCtx.setBulletinOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative rounded-xl h-10 w-10 text-foreground hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_18px_rgba(244,176,52,0.25)]"
+                aria-label="公告廣播"
+                title="公告（Alt+A）"
+              >
+                <Megaphone className="h-5 w-5" />
+                {bulletinCtx.bulletins.filter((b) => !b.isRead).length > 0 ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--color-danger)] px-1 text-[9px] font-bold text-white">
+                    {bulletinCtx.bulletins.filter((b) => !b.isRead).length}
+                  </span>
+                ) : null}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="glass-card w-80 overflow-hidden p-0">
+              <DropdownMenuLabel className="flex items-center justify-between border-b border-border/50 px-4 py-3">
+                <span className="font-semibold text-foreground">公告</span>
+                <Badge variant="secondary" className="text-[10px]">
+                  未讀 {bulletinCtx.bulletins.filter((b) => !b.isRead).length}
+                </Badge>
+              </DropdownMenuLabel>
+              <div className="max-h-[min(70vh,320px)] overflow-y-auto">
+                {bulletinCtx.bulletins.slice(0, 5).map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-center gap-2 border-b border-border/30 px-4 py-3 last:border-0"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <span className="rounded bg-secondary px-1 py-0.5 text-[10px] text-muted-foreground">
+                          {bulletinTypeLabel(b.type)}
+                        </span>
+                        {!b.isRead ? (
+                          <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-danger)]" />
+                        ) : null}
+                      </div>
+                      <div className="mt-0.5 text-sm font-medium text-foreground">{b.title}</div>
+                      <div className="text-[10px] text-muted-foreground">{b.date}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => bulletinCtx.markBulletinRead(b.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      aria-label="標記已讀"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-border/50 p-2">
+                <Button
+                  asChild
+                  size="sm"
+                  className="w-full text-xs font-medium bg-primary/90 text-primary-foreground hover:bg-primary"
+                >
+                  <Link href="/dashboard/bulletin">查看所有公告</Link>
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

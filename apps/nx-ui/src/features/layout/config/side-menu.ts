@@ -6,7 +6,7 @@
  * - NX00-UI-SHELL-004：SideMenu 設定解析（依 pathname 回傳對應模組選單）
  *
  * Notes:
- * - UI 不處理模組判斷規則，僅 render
+ * - 路由 v2.0：語意化路由，不使用模組代碼
  */
 
 import { getNx00SideMenu, type SideMenuGroup } from '@/features/layout/config/menu.nx00';
@@ -18,26 +18,15 @@ import { getNx04SideMenu } from '@/features/layout/config/menu.nx04';
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-004-F01
  * 說明：
- * - 依 pathname 推斷當前模組（nx00/nx01/...）
+ * - 依 pathname 推斷當前模組（語意化路由 v2.0）
  * - 回傳該模組的 SideMenuGroup[]
  */
 export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
-  const m = pathname.match(/^\/dashboard\/(nx\d{2})(?:\/|$)/i);
-  const code = (m?.[1] || 'nx00').toLowerCase();
-
-  switch (code) {
-    case 'nx00':
-      return getNx00SideMenu();
-    case 'nx01':
-      return getNx01SideMenu();
-    case 'nx02':
-      return getNx02SideMenu();
-    case 'nx03':
-      return getNx03SideMenu();
-    case 'nx04':
-      return getNx04SideMenu();
-
-    default:
-      return [];
-  }
+  // 主檔管理 & 採購管理：頁面自帶導覽（卡片 Hub 或 ModulePageNav），不使用 SubNav
+  if (pathname.startsWith('/dashboard/base'))      return [];
+  if (pathname.startsWith('/dashboard/purchase'))  return [];
+  if (pathname.startsWith('/dashboard/inventory')) return getNx02SideMenu();
+  if (pathname.startsWith('/dashboard/sales'))     return getNx03SideMenu();
+  if (pathname.startsWith('/dashboard/finance'))   return getNx04SideMenu();
+  return [];
 }

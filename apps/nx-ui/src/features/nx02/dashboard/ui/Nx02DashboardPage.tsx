@@ -18,18 +18,26 @@ import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 import { useDashboard } from '../hooks/useDashboard';
 import { Nx02StatCard } from './Nx02StatCard';
 
+export type Nx02DashboardSurface = 'legacy' | 'v2';
+
+type Nx02DashboardPageProps = {
+  /** v2：`/dashboard/inventory` 語意化路由；legacy：`/dashboard/nx02` */
+  surface?: Nx02DashboardSurface;
+};
+
 /**
  * @FUNCTION_CODE NX02-DSH-UI-002-F01
  */
-export function Nx02DashboardPage() {
+export function Nx02DashboardPage({ surface = 'legacy' }: Nx02DashboardPageProps) {
   const { planCode } = useSessionMe();
   const { data, loading, error } = useDashboard();
   const showPlus = planSupportsNx02PlusFeatures(planCode);
+  const codeLabel = surface === 'v2' ? 'INVENTORY' : 'NX02';
 
   return (
     <div className="space-y-10">
       <header className="space-y-1">
-        <p className="text-xs tracking-[0.35em] text-muted-foreground">NX02</p>
+        <p className="text-xs tracking-[0.35em] text-muted-foreground">{codeLabel}</p>
         <h1 className="text-2xl font-semibold text-foreground">庫存管理</h1>
         <p className="text-sm text-muted-foreground">庫存查詢、台帳與倉儲作業入口</p>
       </header>
@@ -71,6 +79,20 @@ export function Nx02DashboardPage() {
               庫存作業
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Nx02StatCard
+                title="作業工作台"
+                description="入庫／出庫／盤點流程節點（倉管）"
+                href="/dashboard/inventory/workspace"
+              >
+                <p className="text-xs text-muted-foreground">Alt+W 快捷進入</p>
+              </Nx02StatCard>
+              <Nx02StatCard
+                title="庫位與安全量"
+                description="庫位主檔、安全量／最高量設定"
+                href="/dashboard/inventory/setting"
+              >
+                <p className="text-xs text-muted-foreground">路由 v2 設定彙整頁</p>
+              </Nx02StatCard>
               <Nx02StatCard title="開帳存" description="初次導入庫存與成本" href="/dashboard/nx02/init">
                 <p className="tabular-nums text-foreground">
                   歷史 <span className="font-semibold">{data.init.totalCount}</span> 張

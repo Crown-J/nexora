@@ -22,21 +22,31 @@ export function DailyGoalCard() {
   }, [goals]);
 
   const doneCount = goals.filter((g) => g.done).length;
+  const donePct = goals.length ? Math.round((doneCount / goals.length) * 100) : 0;
 
   const toggle = (id: string) => {
     setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, done: !g.done } : g)));
   };
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur-sm">
+    <div className="nx-dash-card p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#e8a020]" />
+          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-600/50" />
           <span className="text-sm font-semibold text-foreground">本日目標</span>
         </div>
         <span className="text-xs tabular-nums text-muted-foreground">
           {earned} / {totalXp} XP
         </span>
+      </div>
+      <div className="mb-3">
+        <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
+          <span>完成度</span>
+          <span className="tabular-nums font-medium text-foreground">{donePct}%</span>
+        </div>
+        <div className="nx-goal-bar-track w-full">
+          <div className="nx-goal-bar-fill transition-all" style={{ width: `${donePct}%` }} />
+        </div>
       </div>
       <ul className="space-y-2">
         {goals.map((g) => (
@@ -59,12 +69,18 @@ export function DailyGoalCard() {
               >
                 {g.done ? '✓' : ''}
               </span>
-              <span className={cx('flex-1', g.done && 'line-through')}>{g.label}</span>
+              <span className={cx('min-w-0 flex-1', g.done && 'line-through')}>{g.label}</span>
               {g.time ? (
                 <span className="shrink-0 text-xs text-muted-foreground">⏰{g.time}</span>
               ) : null}
               <span className="shrink-0 text-xs text-primary">+{g.xp}</span>
             </button>
+            <div className="nx-goal-bar-track ml-6 mt-1 w-[calc(100%-1.5rem)]">
+              <div
+                className="nx-goal-bar-fill transition-all"
+                style={{ width: g.done ? '100%' : '0%' }}
+              />
+            </div>
           </li>
         ))}
       </ul>

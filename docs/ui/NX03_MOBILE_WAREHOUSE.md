@@ -1,6 +1,6 @@
 # NX03_MOBILE_WAREHOUSE — 手機版倉管介面規劃
 
-> 路由：/m/nx03（手機版專屬路由）
+> 路由：/m/inventory（路由標準表 v2.0；手機版專屬）
 > 最低版本：LITE
 > 最後更新：2026-04-12
 > 相關文件：NX03_WAREHOUSE_WORKSPACE.md（桌面版）

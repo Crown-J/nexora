@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
         destination: "/dashboard/base/:path*",
         permanent: true,
       },
+      {
+        source: "/dashboard/nx02",
+        destination: "/dashboard/inventory",
+        permanent: true,
+      },
     ];
   },
   /**

@@ -28,7 +28,7 @@ export function TodayAttendanceCard({ people }: Props) {
   const present = people.filter((p) => p.status === 'in').length;
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur-sm">
+    <div className="nx-dash-card p-4">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground">今日上班</span>
         <span className="text-xs text-muted-foreground">{present}人</span>

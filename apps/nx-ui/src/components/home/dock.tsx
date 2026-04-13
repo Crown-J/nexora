@@ -29,34 +29,57 @@ export type DockNavItem = {
   href: string;
 };
 
-/** 與 demo/home 一致；連結對應 NEXORA 實際路由 */
+/** 與 demo/home 一致；連結對應 NEXORA 實際路由（v2.0 語意化） */
 export const HOME_DOCK_ITEMS: DockNavItem[] = [
-  { icon: Home, label: '首頁', href: '/home' },
-  { icon: Layers3, label: '主檔', href: '/base' },
-  { icon: ShoppingCart, label: '採購', href: '/dashboard/nx01' },
-  { icon: Package, label: '銷貨', href: '/dashboard/nx03' },
-  { icon: Warehouse, label: '庫存', href: '/dashboard/nx02' },
-  { icon: DollarSign, label: '財務', href: '/dashboard/nx04' },
-  { icon: BarChart3, label: '報表', href: '/dashboard' },
+  { icon: Home,         label: '首頁', href: '/dashboard' },
+  { icon: Layers3,      label: '主檔', href: '/dashboard/base' },
+  { icon: ShoppingCart, label: '採購', href: '/dashboard/purchase' },
+  { icon: Package,      label: '銷貨', href: '/dashboard/sales/domestic' },
+  { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory/workspace' },
+  { icon: DollarSign,   label: '財務', href: '/dashboard/finance/workspace' },
+  { icon: BarChart3,    label: '報表', href: '/dashboard/report/workspace' },
 ];
 
 /** Alt+X 開啟後，單鍵：H 首頁／B 主檔／P 採購／S 銷貨／W 庫存／M 財務／R 報表 */
 const DOCK_LETTER_TO_HREF: Record<string, string> = {
-  h: '/home',
-  b: '/base',
-  p: '/dashboard/nx01',
-  s: '/dashboard/nx03',
-  w: '/dashboard/nx02',
-  m: '/dashboard/nx04',
-  r: '/dashboard',
+  h: '/dashboard',
+  b: '/dashboard/base',
+  p: '/dashboard/purchase',
+  s: '/dashboard/sales/domestic',
+  w: '/dashboard/inventory/workspace',
+  m: '/dashboard/finance/workspace',
+  r: '/dashboard/report/workspace',
 };
 
 const DOCK_ITEM_ALT_HINT: (string | null)[] = ['H', 'B', 'P', 'S', 'W', 'M', 'R'];
 
 export function isDockActive(pathname: string, href: string): boolean {
   if (href === '/home') return pathname === '/home';
-  if (href === '/dashboard') return pathname === '/dashboard';
-  if (href === '/base') return pathname === '/base' || pathname.startsWith('/base/');
+  if (href === '/dashboard') {
+    return (
+      pathname === '/dashboard' ||
+      pathname === '/home' ||
+      pathname.startsWith('/dashboard/bulletin')
+    );
+  }
+  if (href === '/dashboard/base') {
+    return pathname.startsWith('/dashboard/base');
+  }
+  if (href === '/dashboard/purchase') {
+    return pathname.startsWith('/dashboard/purchase');
+  }
+  if (href === '/dashboard/sales/domestic') {
+    return pathname.startsWith('/dashboard/sales');
+  }
+  if (href === '/dashboard/inventory/workspace') {
+    return pathname.startsWith('/dashboard/inventory');
+  }
+  if (href === '/dashboard/finance/workspace') {
+    return pathname.startsWith('/dashboard/finance');
+  }
+  if (href === '/dashboard/report/workspace') {
+    return pathname.startsWith('/dashboard/report');
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -158,7 +181,7 @@ export function NavPlanetMenu() {
   }, [router]);
 
   useEffect(() => {
-    setOpen(false);
+    queueMicrotask(() => setOpen(false));
   }, [pathname]);
 
   const onOpenChange = (next: boolean) => {

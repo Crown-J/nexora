@@ -43,7 +43,7 @@ export function CheckinCard() {
 
   return (
     <>
-      <div className="rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur-sm">
+      <div className="nx-dash-card p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-[var(--color-success)]" />
@@ -84,8 +84,8 @@ export function CheckinCard() {
             type="button"
             onClick={onSign}
             className={cx(
-              'mt-4 w-full rounded-xl py-3 text-sm font-semibold text-primary-foreground',
-              'bg-gradient-to-r from-[#e8a020] to-[#f5c842] shadow-sm hover:opacity-95',
+              'mt-4 w-full rounded-lg border border-primary/35 bg-primary/8 py-2.5 text-sm font-medium',
+              'text-primary transition hover:border-primary/50 hover:bg-primary/12',
             )}
           >
             簽到

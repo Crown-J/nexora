@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { FileText } from 'lucide-react';
 import { cx } from '@/shared/lib/cx';
 
 export function DailyReportBtn() {
@@ -16,11 +17,11 @@ export function DailyReportBtn() {
     return (
       <div
         className={cx(
-          'rounded-2xl border border-[var(--color-success)]/40 bg-[var(--color-success)]/10 px-4 py-3 text-center text-sm font-medium',
-          'text-[var(--color-success)]',
+          'rounded-xl border border-border bg-muted/50 px-4 py-3 text-center text-sm font-medium text-foreground',
         )}
       >
-        ✓ 今日日誌已完成 +25 XP
+        今日日誌已完成{' '}
+        <span className="tabular-nums text-[var(--color-success)]">+25 XP</span>
       </div>
     );
   }
@@ -33,11 +34,12 @@ export function DailyReportBtn() {
         router.push('/dashboard/nx08/daily-report');
       }}
       className={cx(
-        'w-full rounded-2xl py-3 text-sm font-semibold text-primary-foreground',
-        'bg-gradient-to-r from-[#e8a020] to-[#f5c842] shadow-sm hover:opacity-95',
+        'flex w-full items-center justify-center gap-2 rounded-lg border border-primary/35 bg-primary/8 py-2.5 text-sm font-medium',
+        'text-primary transition hover:border-primary/50 hover:bg-primary/12',
       )}
     >
-      📄 填寫工作日誌
+      <FileText className="h-4 w-4 opacity-80" aria-hidden />
+      填寫工作日誌
     </button>
   );
 }

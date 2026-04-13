@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX99-SYS-DASH-UI-009-F01
- * PRO 限定 EXP BAR
+ * PRO 限定 EXP BAR：綠色流動經驗條＋放大頭像／勳章入口（與主題 primary 分離）
  */
 
 'use client';
@@ -16,32 +16,54 @@ export function ExpBar() {
     mockExpData;
   const pct = Math.min(100, Math.round((currentExp / nextLevelExp) * 100));
   const need = nextLevelExp - currentExp;
+  const initial = userName.slice(0, 1);
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-4 border-b border-border/60 bg-gradient-to-r from-primary/10 via-card/80 to-card/40 px-4 py-3 backdrop-blur-sm">
-        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-[#e8a020] bg-secondary text-sm font-bold text-foreground">
-          {userName.slice(0, 1)}
-          <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#e8a020] text-[10px] font-bold text-primary-foreground">
+      <div className="flex flex-wrap items-center gap-3 border-b border-border/80 bg-card/50 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3">
+        <div
+          className={cx(
+            'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border',
+            'bg-secondary text-sm font-semibold text-foreground tabular-nums',
+            'shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]',
+          )}
+        >
+          {initial}
+          <span
+            className={cx(
+              'absolute -bottom-0.5 -right-0.5 rounded border border-border bg-card px-1 py-px',
+              'text-[9px] font-bold tabular-nums text-primary shadow-sm',
+            )}
+          >
             {currentLevel}
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-foreground">
-            {medalName} Lv.{currentLevel} <span className="text-[#e8a020]">★★★</span>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-sm font-semibold text-foreground">{medalName}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+              Lv.{currentLevel}
+            </span>
           </div>
-          <div className="mt-1.5 flex items-center gap-3">
-            <div className="h-2.5 min-w-[120px] flex-1 overflow-hidden rounded-full bg-secondary">
+          <div className="mt-2 flex min-w-0 items-center gap-2.5">
+            <div
+              className={cx(
+                'relative h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-muted',
+                'shadow-[inset_0_1px_2px_rgba(0,0,0,0.18)]',
+              )}
+            >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#e8a020] to-[#f5c842]"
+                className={cx(
+                  'nx-exp-bar-fill absolute inset-y-0 left-0 overflow-hidden rounded-full',
+                )}
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+            <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground sm:text-xs">
               {currentExp.toLocaleString()} / {nextLevelExp.toLocaleString()}
             </span>
           </div>
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-[10px] tracking-wide text-muted-foreground sm:text-xs">
             還需 {need.toLocaleString()} 經驗值升級
           </div>
         </div>
@@ -49,11 +71,12 @@ export function ExpBar() {
           type="button"
           onClick={() => setModalOpen(true)}
           className={cx(
-            'shrink-0 rounded-xl border-2 border-[#e8a020]/70 bg-primary/10 px-4 py-2 text-xs font-semibold',
-            'text-primary hover:bg-primary/15',
+            'shrink-0 rounded-lg border border-border bg-secondary/90 px-3 py-2 text-xs font-semibold',
+            'text-foreground transition sm:px-3.5 sm:py-2 sm:text-sm',
+            'hover:border-primary/35 hover:bg-secondary',
           )}
         >
-          金牌 {medalRank}
+          勳章 · {medalRank}
         </button>
       </div>
       <MedalModal open={modalOpen} onClose={() => setModalOpen(false)} />

@@ -14,45 +14,22 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
 import { HomeTopBar } from '@/components/home/top-bar';
+import { DashboardBulletinProvider } from '@/features/sys-dashboard/context/DashboardBulletinContext';
+import { DashboardPaletteProvider } from '@/features/sys-dashboard/context/DashboardPaletteContext';
+import { DashboardHomePlanProvider } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
+import { TopBarPlanToggles } from '@/features/sys-dashboard/ui/TopBarPlanToggles';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { TopModuleTabs } from '@/features/layout/ui/TopModuleTabs';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {
   children: ReactNode;
-  /** 右側內容框標題；省略則不顯示標題列 */
-  title?: string;
 };
-
-function ContentFrame({
-  title,
-  children,
-}: {
-  title?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div
-      className={cn(
-        'rounded-2xl border border-border bg-card/60 shadow-sm backdrop-blur-sm',
-        'text-foreground',
-      )}
-    >
-      {title ? (
-        <div className="border-b border-border/60 px-5 py-4">
-          <div className="text-sm font-medium text-foreground">{title}</div>
-        </div>
-      ) : null}
-      <div className="p-5">{children}</div>
-    </div>
-  );
-}
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-005-F01
  */
-export function DashboardShell({ children, title }: DashboardShellProps) {
+export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
@@ -100,28 +77,50 @@ export function DashboardShell({ children, title }: DashboardShellProps) {
 
   const nameText = displayName || me?.username || '系統管理員';
 
-  if (isSysDashboardHome) {
-    return <div className="min-h-screen bg-background text-foreground">{children}</div>;
-  }
-
   return (
-    <HomeLandingChrome
-      topBar={
-        <HomeTopBar
-          displayName={nameText}
-          roleLabel="使用者"
-          onLogout={logout}
-          onOpenDashboard={() => router.push('/home')}
-          tenantNameZh={tenantNameZh || null}
-          tenantNameEn={tenantNameEn || null}
-          centerContent={<TopModuleTabs />}
-        />
-      }
-    >
-      <div className="mx-auto w-full max-w-7xl space-y-4">
-        <DashboardSubNav />
-        <ContentFrame title={title}>{children}</ContentFrame>
-      </div>
-    </HomeLandingChrome>
+    <DashboardPaletteProvider>
+      <DashboardBulletinProvider>
+        {isSysDashboardHome ? (
+          <DashboardHomePlanProvider>
+            <HomeLandingChrome
+              fillViewport
+              topBar={
+                <HomeTopBar
+                  displayName={nameText}
+                  roleLabel="使用者"
+                  onLogout={logout}
+                  onOpenDashboard={() => router.push('/dashboard')}
+                  tenantNameZh={tenantNameZh || null}
+                  tenantNameEn={tenantNameEn || null}
+                  centerContent={<TopBarPlanToggles />}
+                />
+              }
+            >
+              <div className="mx-auto flex h-full min-h-0 w-full max-w-none flex-1 flex-col px-1 text-foreground sm:px-2">
+                {children}
+              </div>
+            </HomeLandingChrome>
+          </DashboardHomePlanProvider>
+        ) : (
+          <HomeLandingChrome
+            topBar={
+              <HomeTopBar
+                displayName={nameText}
+                roleLabel="使用者"
+                onLogout={logout}
+                onOpenDashboard={() => router.push('/dashboard')}
+                tenantNameZh={tenantNameZh || null}
+                tenantNameEn={tenantNameEn || null}
+              />
+            }
+          >
+            <div className="w-full min-w-0 space-y-4">
+              <DashboardSubNav />
+              {children}
+            </div>
+          </HomeLandingChrome>
+        )}
+      </DashboardBulletinProvider>
+    </DashboardPaletteProvider>
   );
 }

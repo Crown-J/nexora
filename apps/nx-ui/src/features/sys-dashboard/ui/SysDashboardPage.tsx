@@ -1,14 +1,14 @@
 /**
  * @FUNCTION_CODE NX99-SYS-DASH-UI-001-F01
- * 首頁儀表板 Phase 1：Mock Data + planCode 版型
+ * 首頁儀表板 Phase 1：Mock Data + planCode 版型（外殼沿用 HomeLandingChrome / Dock / HomeTopBar）
+ *
+ * 大螢幕三欄：左（簽到／目標／日誌）｜中（行事曆不捲動、事件、出勤）｜右（今日工作）
  */
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { format } from 'date-fns';
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { MainShell } from '@/components/layout/MainShell';
 import { ExpBar } from '@/components/dashboard/ExpBar/ExpBar';
 import { CheckinCard } from '@/components/dashboard/LeftPanel/CheckinCard';
 import { DailyGoalCard } from '@/components/dashboard/LeftPanel/DailyGoalCard';
@@ -18,48 +18,97 @@ import { CalendarCard } from '@/components/dashboard/RightPanel/CalendarCard';
 import { TodayEventCard } from '@/components/dashboard/RightPanel/TodayEventCard';
 import { TodayAttendanceCard } from '@/components/dashboard/RightPanel/TodayAttendanceCard';
 import { TodayTaskList } from '@/components/dashboard/RightPanel/TodayTaskList';
-import { ModuleMenuOverlay } from '@/components/dashboard/ModuleMenuOverlay';
 import {
   mockAttendanceToday,
-  mockBulletins,
   mockCalendarEvents,
   type MockCalendarEvent,
-  mockCurrentUser,
   mockTasks,
-  type MockBulletin,
   type MockTask,
-  type PlanCode,
 } from '@/mocks/dashboard';
-import { useNxThemeMode } from '@/hooks/useNxThemeMode';
-import { useDemoSession } from '@/hooks/useDemoSession';
+import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 import { cx } from '@/shared/lib/cx';
 
+function LeftColumnCards() {
+  return (
+    <div className="flex flex-col gap-3">
+      <CheckinCard />
+      <DailyGoalCard />
+      <MonthlyGoalCard />
+      <DailyReportBtn />
+    </div>
+  );
+}
+
+type MiddleStackProps = {
+  calendarEvents: MockCalendarEvent[];
+  selectedDate: Date;
+  onSelectDate: (d: Date) => void;
+  showAttendance: boolean;
+  /** 大螢幕：填滿中欄剩餘高度；小螢幕：僅垂直排列 */
+  layout: 'scroll' | 'fill';
+};
+
+function MiddleStack({
+  calendarEvents,
+  selectedDate,
+  onSelectDate,
+  showAttendance,
+  layout,
+}: MiddleStackProps) {
+  const attendanceBlock = showAttendance ? (
+    <div
+      className={cx(
+        'pr-0.5',
+        layout === 'fill' &&
+          'nx-master-scroll min-h-0 max-h-[min(240px,32vh)] shrink-0 overflow-y-auto overscroll-contain',
+      )}
+    >
+      <TodayAttendanceCard people={mockAttendanceToday} />
+    </div>
+  ) : null;
+
+  if (layout === 'fill') {
+    return (
+      <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
+        <div className="shrink-0">
+          <CalendarCard
+            events={calendarEvents}
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+          />
+        </div>
+        <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
+          <TodayEventCard events={calendarEvents} focusDate={selectedDate} />
+        </div>
+        {attendanceBlock}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <CalendarCard
+        events={calendarEvents}
+        selectedDate={selectedDate}
+        onSelectDate={onSelectDate}
+      />
+      <TodayEventCard events={calendarEvents} focusDate={selectedDate} />
+      {showAttendance ? <TodayAttendanceCard people={mockAttendanceToday} /> : null}
+    </div>
+  );
+}
+
 export function SysDashboardPage() {
-  const { isDemoMode, user: demoUser } = useDemoSession();
-  const { logout, displayName, tenantNameZh } = useSessionMe();
-  const { cycleThemeMode } = useNxThemeMode();
+  const { planCode } = useDashboardHomePlan();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [planCode, setPlanCode] = useState<PlanCode>(
-    () => demoUser?.planCode ?? mockCurrentUser.planCode,
-  );
-  const [bulletins, setBulletins] = useState<MockBulletin[]>(() =>
-    mockBulletins.map((b) => ({ ...b })),
-  );
   const [tasks, setTasks] = useState<MockTask[]>(() => mockTasks.map((t) => ({ ...t })));
-
-  const [bulletinOpen, setBulletinOpen] = useState(false);
-  const [userOpen, setUserOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [moduleOpen, setModuleOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
 
   const showExpBar = planCode === 'PRO';
   const showLeftPanel = planCode === 'PRO';
-  const showAttendance = planCode === 'PLUS' || planCode === 'PRO';
-
-  const markBulletinRead = useCallback((id: number) => {
-    setBulletins((prev) => prev.map((b) => (b.id === id ? { ...b, isRead: true } : b)));
-  }, []);
+  /** 人資出勤為 PRO（NX07）；PLUS 與 LITE 皆不顯示今日上班 */
+  const showAttendance = planCode === 'PRO';
 
   const calendarEvents = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -75,51 +124,7 @@ export function SysDashboardPage() {
   }, []);
 
   useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (t.closest('.nx-sys-topbar')) return;
-      setBulletinOpen(false);
-      setUserOpen(false);
-      setNotifOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, []);
-
-  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === 'x') {
-        e.preventDefault();
-        setModuleOpen((o) => !o);
-        return;
-      }
-      if (moduleOpen) return;
-      if (e.altKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        setBulletinOpen((v) => !v);
-        setUserOpen(false);
-        setNotifOpen(false);
-        return;
-      }
-      if (e.altKey && e.key.toLowerCase() === 'n') {
-        e.preventDefault();
-        setNotifOpen((v) => !v);
-        setBulletinOpen(false);
-        setUserOpen(false);
-        return;
-      }
-      if (e.altKey && e.key.toLowerCase() === 'u') {
-        e.preventDefault();
-        setUserOpen((v) => !v);
-        setBulletinOpen(false);
-        setNotifOpen(false);
-        return;
-      }
-      if (e.altKey && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        cycleThemeMode();
-        return;
-      }
       if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const el = document.activeElement;
         if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
@@ -129,121 +134,85 @@ export function SysDashboardPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [cycleThemeMode, moduleOpen]);
+  }, []);
 
-  const userName =
-    (isDemoMode && demoUser ? demoUser.name : displayName) || mockCurrentUser.name;
-  const tenantName =
-    (isDemoMode && demoUser ? demoUser.tenantName : tenantNameZh) || mockCurrentUser.tenantName;
+  const middleProps = {
+    calendarEvents,
+    selectedDate,
+    onSelectDate: setSelectedDate,
+    showAttendance,
+  };
 
   return (
-    <>
-      <MainShell
-        topBarProps={{
-          planCode,
-          moduleTitle: '首頁',
-          tenantName,
-          userName,
-          roleLabel: isDemoMode && demoUser ? demoUser.role : mockCurrentUser.role,
-          avatarInitial:
-            isDemoMode && demoUser ? demoUser.avatarInitial : mockCurrentUser.avatarInitial,
-          bulletins,
-          onMarkBulletinRead: markBulletinRead,
-          bulletinOpen,
-          onBulletinOpenChange: setBulletinOpen,
-          userOpen,
-          onUserOpenChange: setUserOpen,
-          notifOpen,
-          onNotifOpenChange: setNotifOpen,
-          searchInputRef: searchRef,
-          onLogout: () => logout(),
-        }}
-      >
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border/60 bg-secondary/10 px-3 py-2 text-[11px] text-muted-foreground">
-          <span className="font-medium text-foreground">Phase 1 版型切換（Mock）</span>
-          {(['LITE', 'PLUS', 'PRO'] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPlanCode(p)}
-              className={cx(
-                'rounded-lg border px-2 py-1 transition',
-                planCode === p
-                  ? 'border-primary bg-primary/15 text-primary'
-                  : 'border-border hover:bg-secondary/50',
-              )}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+      <input
+        ref={searchRef}
+        type="search"
+        tabIndex={-1}
+        className="sr-only"
+        aria-label="全域搜尋"
+        placeholder="搜尋…"
+      />
 
-        {showExpBar ? <ExpBar /> : null}
-
-        <div
-          className={cx(
-            'mt-4 grid gap-4',
-            showLeftPanel ? 'lg:grid-cols-[minmax(240px,280px)_1fr]' : 'grid-cols-1',
-          )}
-        >
-          {showLeftPanel ? (
-            <aside className="hidden space-y-4 lg:block">
-              <CheckinCard />
-              <DailyGoalCard />
-              <MonthlyGoalCard />
-              <DailyReportBtn />
-            </aside>
-          ) : null}
-
-          <div className="min-w-0 space-y-4">
-            <div
-              className={cx(
-                'grid gap-4',
-                showAttendance ? 'xl:grid-cols-2' : 'md:grid-cols-2',
-              )}
-            >
-              <CalendarCard events={calendarEvents} />
-              <div className="space-y-4">
-                <TodayEventCard events={calendarEvents} />
-                {showAttendance ? <TodayAttendanceCard people={mockAttendanceToday} /> : null}
-              </div>
-            </div>
-            <TodayTaskList tasks={tasks} onTasksChange={setTasks} planCode={planCode} />
-          </div>
-        </div>
-
-        {showLeftPanel ? (
-          <div className="mt-4 space-y-4 border-t border-border/40 pt-4 lg:hidden">
-            <p className="text-xs text-muted-foreground">PRO：小螢幕左欄改直向排列</p>
-            <CheckinCard />
-            <DailyGoalCard />
-            <MonthlyGoalCard />
-            <DailyReportBtn />
+      <div className="nx-dash-frame flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4">
+        {showExpBar ? (
+          <div className="shrink-0">
+            <ExpBar />
           </div>
         ) : null}
 
-        <nav
-          className="fixed bottom-0 left-0 right-0 z-40 flex justify-around border-t border-border bg-card/95 px-2 py-2 backdrop-blur-md md:hidden"
-          aria-label="行動導覽"
+        <div
+          className={cx(
+            'flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden',
+            showExpBar ? 'mt-2' : 'mt-0',
+          )}
         >
-          <button type="button" className="px-3 py-1 text-xs" onClick={() => setModuleOpen(true)}>
-            模組
-          </button>
-          <button
-            type="button"
-            className="px-3 py-1 text-xs"
-            onClick={() => setNotifOpen((v) => !v)}
-          >
-            通知
-          </button>
-          <button type="button" className="px-3 py-1 text-xs" onClick={() => searchRef.current?.focus()}>
-            搜尋
-          </button>
-        </nav>
-        <div className="h-14 md:hidden" />
-      </MainShell>
+          <div className="nx-master-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+            <div className="space-y-3 pb-2">
+              {showLeftPanel ? (
+                <div className="space-y-3 border-b border-border/80 pb-3">
+                  <LeftColumnCards />
+                </div>
+              ) : null}
+              <MiddleStack {...middleProps} layout="scroll" />
+              <TodayTaskList
+                tasks={tasks}
+                onTasksChange={setTasks}
+                planCode={planCode}
+                listScrollable={false}
+              />
+            </div>
+          </div>
+        </div>
 
-      <ModuleMenuOverlay open={moduleOpen} onClose={() => setModuleOpen(false)} planCode={planCode} />
-    </>
+        <div
+          className={cx(
+            'hidden min-h-0 flex-1 gap-4 overflow-hidden lg:grid',
+            showExpBar ? 'mt-3' : 'mt-0',
+            showLeftPanel
+              ? 'lg:grid-cols-[minmax(220px,15vw)_minmax(0,1fr)_minmax(300px,24vw)]'
+              : 'lg:grid-cols-[minmax(0,1fr)_minmax(300px,26vw)]',
+          )}
+        >
+          {showLeftPanel ? (
+            <aside className="nx-master-scroll min-h-0 overflow-y-auto overscroll-contain border-r border-border/80 pr-3">
+              <LeftColumnCards />
+            </aside>
+          ) : null}
+
+          <MiddleStack {...middleProps} layout="fill" />
+
+          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/80 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
+            <TodayTaskList
+              tasks={tasks}
+              onTasksChange={setTasks}
+              planCode={planCode}
+              className="min-h-0 flex-1"
+              listScrollable
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

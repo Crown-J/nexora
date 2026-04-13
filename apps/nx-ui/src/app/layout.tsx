@@ -14,6 +14,7 @@
 
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { NxPaletteHydration } from '@/components/theme/NxPaletteHydration';
 import { PwaRegister } from '@/components/pwa-register';
 import './globals.css';
 
@@ -80,6 +81,7 @@ export default function RootLayout({
         ].join(' ')}
       >
         <PwaRegister />
+        <NxPaletteHydration />
         {children}
       </body>
     </html>
