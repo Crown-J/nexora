@@ -11,7 +11,7 @@
 
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
 import { HomeTopBar } from '@/components/home/top-bar';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
@@ -54,7 +54,9 @@ function ContentFrame({
  */
 export function DashboardShell({ children, title }: DashboardShellProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
+  const isSysDashboardHome = pathname === '/dashboard';
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -97,6 +99,10 @@ export function DashboardShell({ children, title }: DashboardShellProps) {
   }
 
   const nameText = displayName || me?.username || '系統管理員';
+
+  if (isSysDashboardHome) {
+    return <div className="min-h-screen bg-background text-foreground">{children}</div>;
+  }
 
   return (
     <HomeLandingChrome

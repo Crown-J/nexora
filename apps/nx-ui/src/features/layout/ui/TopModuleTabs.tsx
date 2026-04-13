@@ -47,7 +47,7 @@ export function TopModuleTabs() {
     <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2">
       <button
         type="button"
-        onClick={() => router.push('/home')}
+        onClick={() => router.push('/dashboard')}
         className={cn(
           'shrink-0 rounded-xl border px-2.5 py-1.5 text-[11px] transition sm:px-3 sm:text-xs',
           homeActive

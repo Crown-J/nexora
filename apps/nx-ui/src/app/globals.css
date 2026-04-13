@@ -52,6 +52,13 @@
   --nx-scroll-track: oklch(0.18 0 0);
   --nx-scroll-thumb: oklch(0.38 0 0);
   --nx-scroll-thumb-hover: oklch(0.48 0 0);
+  /** SYS_DASHBOARD / docs/flows README */
+  --color-primary-light: #f5c842;
+  --color-primary-bg: rgba(232, 160, 32, 0.15);
+  --color-success: #1d9e75;
+  --color-danger: #e24b4a;
+  --color-warning: #e8a020;
+  --color-meeting: #378add;
 }
 
 .dark {
