@@ -299,6 +299,7 @@ MODULE_NX02_UI.md         ← NX02 採購模組專屬元件
 |------|------|
 | 畫面規劃文件 | `nexora/docs/ui/` |
 | 流程開發計畫書 | `nexora/docs/flows/`（本資料夾）|
+| 路由標準表（v2.0 語意化）| `nexora/docs/flows/ROUTE_TABLE_v2.0_路由標準表.md` |
 | 模組說明文件 | `nexora/docs/modules/` |
 | 截圖存放 | `nexora/docs/screenshots/[流程代碼]/` |
 | 欄位定義 CSV | `nexora/docs/spec/nx0x_field_v1.csv` |
