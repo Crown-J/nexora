@@ -26,6 +26,11 @@ import { assertOk } from '@/shared/api/http';
 import { NEXORA_DEMO_ACCESS_TOKEN } from '@/features/auth/constants';
 import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@/features/auth/demo-session';
 import { isNexoraDemoMode } from '@/features/auth/run-mode';
+import {
+  DEMO_USER,
+  demoUserToMeDto,
+  isNextPublicDemoMode,
+} from '@/hooks/useDemoSession';
 import type { MeDto } from '@/features/auth/types';
 import { clearToken, getToken } from '@/features/auth/token';
 
@@ -107,16 +112,22 @@ export function useSessionMe(): UseSessionMeResult {
    * - hasToken 用於 UI 顯示（System Health）等場景
    * - 初始值 null：表示尚未完成 client mount 後的 token 檢查
    */
-  const [hasToken, setHasToken] = useState<boolean | null>(null);
+  const [hasToken, setHasToken] = useState<boolean | null>(() =>
+    isNextPublicDemoMode() ? true : null,
+  );
 
   /**
    * @FUNCTION_CODE NX00-UI-AUTH-001-F03
    * 說明：
    * - 僅在 client mount 後讀一次 token 狀態
    * - 避免 SSR/CSR 首屏不一致（hydration mismatch）
+   * - NEXT_PUBLIC_DEMO_MODE：hasToken 已在 useState 初值設為 true，此 effect 略過
    */
   useEffect(() => {
-    setHasToken(!!getToken());
+    if (isNextPublicDemoMode()) return;
+    queueMicrotask(() => {
+      setHasToken(!!getToken());
+    });
   }, []);
 
   /**
@@ -130,6 +141,13 @@ export function useSessionMe(): UseSessionMeResult {
     let alive = true;
 
     async function boot() {
+      if (isNextPublicDemoMode()) {
+        if (!alive) return;
+        setMe(normalizeMeDto(demoUserToMeDto(DEMO_USER)));
+        setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
+        return;
+      }
+
       const token = getToken();
       if (!token) {
         // 沒 token：直接去登入

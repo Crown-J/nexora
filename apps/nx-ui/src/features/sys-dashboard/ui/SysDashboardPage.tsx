@@ -31,14 +31,18 @@ import {
   type PlanCode,
 } from '@/mocks/dashboard';
 import { useNxThemeMode } from '@/hooks/useNxThemeMode';
+import { useDemoSession } from '@/hooks/useDemoSession';
 import { cx } from '@/shared/lib/cx';
 
 export function SysDashboardPage() {
+  const { isDemoMode, user: demoUser } = useDemoSession();
   const { logout, displayName, tenantNameZh } = useSessionMe();
   const { cycleThemeMode } = useNxThemeMode();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [planCode, setPlanCode] = useState<PlanCode>(mockCurrentUser.planCode);
+  const [planCode, setPlanCode] = useState<PlanCode>(
+    () => demoUser?.planCode ?? mockCurrentUser.planCode,
+  );
   const [bulletins, setBulletins] = useState<MockBulletin[]>(() =>
     mockBulletins.map((b) => ({ ...b })),
   );
@@ -127,8 +131,10 @@ export function SysDashboardPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [cycleThemeMode, moduleOpen]);
 
-  const userName = displayName || mockCurrentUser.name;
-  const tenantName = tenantNameZh || mockCurrentUser.tenantName;
+  const userName =
+    (isDemoMode && demoUser ? demoUser.name : displayName) || mockCurrentUser.name;
+  const tenantName =
+    (isDemoMode && demoUser ? demoUser.tenantName : tenantNameZh) || mockCurrentUser.tenantName;
 
   return (
     <>
@@ -138,8 +144,9 @@ export function SysDashboardPage() {
           moduleTitle: '首頁',
           tenantName,
           userName,
-          roleLabel: mockCurrentUser.role,
-          avatarInitial: mockCurrentUser.avatarInitial,
+          roleLabel: isDemoMode && demoUser ? demoUser.role : mockCurrentUser.role,
+          avatarInitial:
+            isDemoMode && demoUser ? demoUser.avatarInitial : mockCurrentUser.avatarInitial,
           bulletins,
           onMarkBulletinRead: markBulletinRead,
           bulletinOpen,
