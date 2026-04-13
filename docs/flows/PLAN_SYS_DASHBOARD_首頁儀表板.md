@@ -669,21 +669,27 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 ---
 
 ### Phase 3｜Schema 確認
-- **完成時間**：
-- **完成人**：Hank
+- **完成時間**：2026-04-13（本機 db-core：spec v7 baseline 已套用並與 `prisma/schema.prisma` 同步）
+- **完成人**：Hank（Cursor）
 - **本次修改摘要**：
-  -
+  - `docs/spec` 驅動之 Prisma schema（含欄位 `///` 與「啟用最低需求版本」）與首包 migration `20260413120000_spec_v7_baseline`（內含 128 組 `gen_*_id()` + 全表 DDL）已於本機 `nexora_core` 驗證；`migrate deploy` / `migrate dev` / `validate` 通過。
 - **已知問題 / 待確認**：
+  - 生產／Railway 須另依流程執行 `migrate deploy`，**不可**在未備份下對生產庫使用 `DROP SCHEMA public CASCADE`。
 - **Crown 驗收結果**：⏳ 待驗收
 
 ---
 
 ### Phase 4｜Seed 資料
-- **完成時間**：
-- **完成人**：Hank
+- **完成時間**：2026-04-13
+- **完成人**：Hank（Cursor）
 - **本次修改摘要**：
-  -
+  - 新增 `packages/db-core/prisma/seed/`：`index.ts`（`system` / `default` / `test`）、`system/nx01_view.ts` + `system/nx01_role_view.ts`（讀取 `prisma/seed-data/system/*.csv`，UTF-8 BOM 已處理）、`default/*` 租戶初始化模組、`test/lite|plus|pro` 占位。
+  - `package.json`：`seed:system` / `seed:default` / `seed:test` / `seed:test:plus` / `seed:test:pro`；`prisma.config.ts` 的 `db seed` 指向 `default`。
+  - 驗證：`nx01_view` 118 筆、`nx01_role_view` 826 筆；`SYSADMIN`（`NX01USER0000001`）`is_active=false`；租戶 admin（`NX01USER0000002`）`is_active=true`；恆迎企業 `NX99TANT0000001` 訂閱 `NEXORA-PRO`。
+  - Schema 修正：`nx99_subscription.currency_id` 改為 `VARCHAR(15)`（migration `20260413140000_nx99_subscription_currency_id_len`），與 `nx01_currency.id` 對齊。
+  - **說明**：規格中的 `nx10_checkin_reward` 表尚未存在於 v7 schema，連續簽到 7 筆獎勵以 `nx10_task_template`（代碼 `STREAK_D1`～`STREAK_D7`）寫入。
 - **已知問題 / 待確認**：
+  - `nx01_role` / `nx01_warehouse` 等表目前為 DB 層級 `code` 全域唯一（非 `tenant_id+code`）；多租戶正式上線前需 Crown 與 schema 一併檢視。
 - **Crown 驗收結果**：⏳ 待驗收
 
 ---

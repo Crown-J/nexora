@@ -7,11 +7,17 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prisma:generate": "prisma generate",
+    "schema:from-spec": "node scripts/generate-schema-from-spec.mjs",
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset --force",
     "build": "tsc -p tsconfig.json",
     "import:parts2": "tsx scripts/import-parts2-csv.ts",
-    "p0:railway-ddl": "pnpm exec tsx scripts/p0-railway-ddl-test.ts"
+    "p0:railway-ddl": "pnpm exec tsx scripts/p0-railway-ddl-test.ts",
+    "seed:system": "tsx prisma/seed/index.ts system",
+    "seed:default": "tsx prisma/seed/index.ts default",
+    "seed:test": "tsx prisma/seed/index.ts test lite",
+    "seed:test:plus": "tsx prisma/seed/index.ts test plus",
+    "seed:test:pro": "tsx prisma/seed/index.ts test pro"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",

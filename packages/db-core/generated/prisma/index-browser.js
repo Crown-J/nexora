@@ -120,188 +120,24 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.Nx00UserScalarFieldEnum = {
+exports.Prisma.Nx01AuditLogScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  employeeId: 'employeeId',
-  userAccount: 'userAccount',
-  passwordHash: 'passwordHash',
-  userName: 'userName',
-  email: 'email',
-  phone: 'phone',
-  isActive: 'isActive',
-  lastLoginAt: 'lastLoginAt',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00RoleScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  code: 'code',
-  name: 'name',
-  description: 'description',
-  isSystem: 'isSystem',
-  isActive: 'isActive',
-  sortNo: 'sortNo',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00UserRoleScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  userId: 'userId',
-  roleId: 'roleId',
-  isPrimary: 'isPrimary',
-  assignedAt: 'assignedAt',
-  assignedBy: 'assignedBy',
-  revokedAt: 'revokedAt',
-  isActive: 'isActive'
-};
-
-exports.Prisma.Nx00UserWarehouseScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  userId: 'userId',
-  warehouseId: 'warehouseId',
-  assignedAt: 'assignedAt',
-  assignedBy: 'assignedBy',
-  revokedAt: 'revokedAt',
-  isActive: 'isActive'
-};
-
-exports.Prisma.Nx00ViewScalarFieldEnum = {
-  id: 'id',
-  code: 'code',
-  name: 'name',
+  occurredAt: 'occurredAt',
+  actorUserId: 'actorUserId',
   moduleCode: 'moduleCode',
-  path: 'path',
-  sortNo: 'sortNo',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  action: 'action',
+  entityTable: 'entityTable',
+  entityId: 'entityId',
+  entityCode: 'entityCode',
+  summary: 'summary',
+  beforeData: 'beforeData',
+  afterData: 'afterData',
+  ipAddr: 'ipAddr',
+  userAgent: 'userAgent'
 };
 
-exports.Prisma.Nx00RoleViewScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  roleId: 'roleId',
-  viewId: 'viewId',
-  canRead: 'canRead',
-  canCreate: 'canCreate',
-  canUpdate: 'canUpdate',
-  canToggleActive: 'canToggleActive',
-  canExport: 'canExport',
-  isActive: 'isActive',
-  grantedAt: 'grantedAt',
-  grantedBy: 'grantedBy',
-  revokedAt: 'revokedAt',
-  revokedBy: 'revokedBy'
-};
-
-exports.Prisma.Nx00CountryScalarFieldEnum = {
-  id: 'id',
-  code: 'code',
-  name: 'name',
-  sortNo: 'sortNo',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00CurrencyScalarFieldEnum = {
-  id: 'id',
-  code: 'code',
-  name: 'name',
-  symbol: 'symbol',
-  decimalPlaces: 'decimalPlaces',
-  sortNo: 'sortNo',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00PartScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  codeRuleId: 'codeRuleId',
-  code: 'code',
-  name: 'name',
-  isOem: 'isOem',
-  secCode: 'secCode',
-  seg1: 'seg1',
-  seg2: 'seg2',
-  seg3: 'seg3',
-  seg4: 'seg4',
-  seg5: 'seg5',
-  countryId: 'countryId',
-  partBrandId: 'partBrandId',
-  partType: 'partType',
-  partGroupId: 'partGroupId',
-  spec: 'spec',
-  uom: 'uom',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00PartBrandScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  code: 'code',
-  name: 'name',
-  countryId: 'countryId',
-  remark: 'remark',
-  isActive: 'isActive',
-  sortNo: 'sortNo',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00CarBrandScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  code: 'code',
-  name: 'name',
-  countryId: 'countryId',
-  remark: 'remark',
-  isActive: 'isActive',
-  sortNo: 'sortNo',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00PartGroupScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  code: 'code',
-  name: 'name',
-  sortNo: 'sortNo',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00BrandCodeRuleScalarFieldEnum = {
+exports.Prisma.Nx01BrandCodeRuleScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   partBrandId: 'partBrandId',
@@ -320,14 +156,14 @@ exports.Prisma.Nx00BrandCodeRuleScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00PartRelationScalarFieldEnum = {
+exports.Prisma.Nx01BulletinScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  partIdFrom: 'partIdFrom',
-  partIdTo: 'partIdTo',
-  relationType: 'relationType',
-  remark: 'remark',
-  sortNo: 'sortNo',
+  title: 'title',
+  content: 'content',
+  type: 'type',
+  isPinned: 'isPinned',
+  expiredAt: 'expiredAt',
   isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
@@ -335,12 +171,42 @@ exports.Prisma.Nx00PartRelationScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00WarehouseScalarFieldEnum = {
+exports.Prisma.Nx01CalendarEventScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  title: 'title',
+  type: 'type',
+  dateStart: 'dateStart',
+  dateEnd: 'dateEnd',
+  isAllDay: 'isAllDay',
+  orderType: 'orderType',
+  orderDocNo: 'orderDocNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01CarBrandScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   code: 'code',
   name: 'name',
+  countryId: 'countryId',
   remark: 'remark',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01CountryScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
   sortNo: 'sortNo',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -349,7 +215,117 @@ exports.Prisma.Nx00WarehouseScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00LocationScalarFieldEnum = {
+exports.Prisma.Nx01CurrencyScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  symbol: 'symbol',
+  decimalPlaces: 'decimalPlaces',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01CustomerGradeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  marginPct: 'marginPct',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01DepartmentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01DiscountCodeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  discountType: 'discountType',
+  discountValue: 'discountValue',
+  managedBy: 'managedBy',
+  remark: 'remark',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01KpiRecordScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  kpiTemplateId: 'kpiTemplateId',
+  kpiTargetId: 'kpiTargetId',
+  userId: 'userId',
+  periodYear: 'periodYear',
+  periodValue: 'periodValue',
+  actualValue: 'actualValue',
+  targetValue: 'targetValue',
+  achievementRate: 'achievementRate',
+  calcAt: 'calcAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Nx01KpiTargetScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  kpiTemplateId: 'kpiTemplateId',
+  targetType: 'targetType',
+  roleId: 'roleId',
+  userId: 'userId',
+  periodYear: 'periodYear',
+  periodValue: 'periodValue',
+  targetValue: 'targetValue',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01KpiTemplateScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  applicableRoleCode: 'applicableRoleCode',
+  sourceModule: 'sourceModule',
+  sourceTable: 'sourceTable',
+  sourceField: 'sourceField',
+  calcMethod: 'calcMethod',
+  periodType: 'periodType',
+  targetDirection: 'targetDirection',
+  unit: 'unit',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01LocationScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   warehouseId: 'warehouseId',
@@ -368,7 +344,84 @@ exports.Prisma.Nx00LocationScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx00PartnerScalarFieldEnum = {
+exports.Prisma.Nx01PartScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  codeRuleId: 'codeRuleId',
+  code: 'code',
+  name: 'name',
+  isOem: 'isOem',
+  secCode: 'secCode',
+  seg1: 'seg1',
+  seg2: 'seg2',
+  seg3: 'seg3',
+  seg4: 'seg4',
+  seg5: 'seg5',
+  countryId: 'countryId',
+  partBrandId: 'partBrandId',
+  type: 'type',
+  partGroupId: 'partGroupId',
+  spec: 'spec',
+  uom: 'uom',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  returnPolicy: 'returnPolicy',
+  warrantyMonths: 'warrantyMonths',
+  priceA: 'priceA',
+  priceB: 'priceB',
+  priceC: 'priceC',
+  priceD: 'priceD',
+  priceUpdatedAt: 'priceUpdatedAt',
+  priceUpdatedBy: 'priceUpdatedBy'
+};
+
+exports.Prisma.Nx01PartBrandScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  countryId: 'countryId',
+  remark: 'remark',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01PartGroupScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01PartRelationScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partIdFrom: 'partIdFrom',
+  partIdTo: 'partIdTo',
+  relationType: 'relationType',
+  remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01PartnerScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   code: 'code',
@@ -384,65 +437,57 @@ exports.Prisma.Nx00PartnerScalarFieldEnum = {
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  updatedBy: 'updatedBy',
+  taxId: 'taxId',
+  paymentTermDomestic: 'paymentTermDomestic',
+  customerGradeId: 'customerGradeId',
+  creditLimit: 'creditLimit',
+  creditStatus: 'creditStatus',
+  paymentTermImport: 'paymentTermImport',
+  incoterm: 'incoterm'
 };
 
-exports.Prisma.Nx00AuditLogScalarFieldEnum = {
+exports.Prisma.Nx01RoleScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  occurredAt: 'occurredAt',
-  actorUserId: 'actorUserId',
-  moduleCode: 'moduleCode',
-  action: 'action',
-  entityTable: 'entityTable',
-  entityId: 'entityId',
-  entityCode: 'entityCode',
-  summary: 'summary',
-  beforeData: 'beforeData',
-  afterData: 'afterData',
-  ipAddr: 'ipAddr',
-  userAgent: 'userAgent'
-};
-
-exports.Prisma.Nx00BulletinScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  title: 'title',
-  content: 'content',
-  scopeType: 'scopeType',
-  isPinned: 'isPinned',
-  expiredAt: 'expiredAt',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx00CalendarEventScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  title: 'title',
-  scopeType: 'scopeType',
-  dateStart: 'dateStart',
-  dateEnd: 'dateEnd',
-  isAllDay: 'isAllDay',
-  orderType: 'orderType',
-  orderDocNo: 'orderDocNo',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx99TenantScalarFieldEnum = {
-  id: 'id',
   code: 'code',
   name: 'name',
-  nameEn: 'nameEn',
-  status: 'status',
-  remark: 'remark',
+  description: 'description',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01RoleViewScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  roleId: 'roleId',
+  viewId: 'viewId',
+  canRead: 'canRead',
+  canCreate: 'canCreate',
+  canUpdate: 'canUpdate',
+  canDelete: 'canDelete',
+  canExport: 'canExport',
+  isActive: 'isActive',
+  grantedAt: 'grantedAt',
+  grantedBy: 'grantedBy',
+  revokedAt: 'revokedAt',
+  revokedBy: 'revokedBy',
+  canApprove: 'canApprove'
+};
+
+exports.Prisma.Nx01TeamScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  departmentId: 'departmentId',
+  parentTeamId: 'parentTeamId',
+  code: 'code',
+  name: 'name',
+  warehouseId: 'warehouseId',
   sortNo: 'sortNo',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -451,37 +496,108 @@ exports.Prisma.Nx99TenantScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx01RfqScalarFieldEnum = {
+exports.Prisma.Nx01UserScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  docNo: 'docNo',
-  rfqDate: 'rfqDate',
-  supplierId: 'supplierId',
-  contactName: 'contactName',
-  contactPhone: 'contactPhone',
-  currency: 'currency',
-  status: 'status',
+  employeeId: 'employeeId',
+  userAccount: 'userAccount',
+  passwordHash: 'passwordHash',
+  userName: 'userName',
+  email: 'email',
+  phone: 'phone',
+  isActive: 'isActive',
+  lastLoginAt: 'lastLoginAt',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01UserRoleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  roleId: 'roleId',
+  isPrimary: 'isPrimary',
+  assignedAt: 'assignedAt',
+  assignedBy: 'assignedBy',
+  revokedAt: 'revokedAt',
+  isActive: 'isActive'
+};
+
+exports.Prisma.Nx01UserTeamScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  teamId: 'teamId',
+  isLeader: 'isLeader',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.Nx01UserWarehouseScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  warehouseId: 'warehouseId',
+  assignedAt: 'assignedAt',
+  assignedBy: 'assignedBy',
+  revokedAt: 'revokedAt',
+  isActive: 'isActive'
+};
+
+exports.Prisma.Nx01ViewScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  moduleCode: 'moduleCode',
+  path: 'path',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx01WarehouseScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
   remark: 'remark',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy',
-  voidedAt: 'voidedAt',
-  voidedBy: 'voidedBy'
+  warehouseTypeId: 'warehouseTypeId'
 };
 
-exports.Prisma.Nx01RfqItemScalarFieldEnum = {
+exports.Prisma.Nx01WarehouseTypeScalarFieldEnum = {
   id: 'id',
-  rfqId: 'rfqId',
-  lineNo: 'lineNo',
+  code: 'code',
+  name: 'name',
+  flowMode: 'flowMode',
+  description: 'description',
+  sortNo: 'sortNo',
+  isActive: 'isActive'
+};
+
+exports.Prisma.Nx02DemandScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  demandType: 'demandType',
   partId: 'partId',
-  partNo: 'partNo',
-  partName: 'partName',
+  warehouseId: 'warehouseId',
   qty: 'qty',
-  unitPrice: 'unitPrice',
-  currencyId: 'currencyId',
-  leadTimeDays: 'leadTimeDays',
+  customerId: 'customerId',
+  expectedDate: 'expectedDate',
   status: 'status',
+  ignoreReason: 'ignoreReason',
+  refRfqId: 'refRfqId',
   remark: 'remark',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
@@ -489,7 +605,7 @@ exports.Prisma.Nx01RfqItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx01PoScalarFieldEnum = {
+exports.Prisma.Nx02PoScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   docNo: 'docNo',
@@ -509,10 +625,21 @@ exports.Prisma.Nx01PoScalarFieldEnum = {
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy',
   voidedAt: 'voidedAt',
-  voidedBy: 'voidedBy'
+  voidedBy: 'voidedBy',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  sentAt: 'sentAt',
+  supplierConfirmedAt: 'supplierConfirmedAt',
+  rejectReason: 'rejectReason',
+  purchaseType: 'purchaseType',
+  vesselNo: 'vesselNo',
+  containerNo: 'containerNo',
+  eta: 'eta',
+  paymentTermImport: 'paymentTermImport',
+  incoterm: 'incoterm'
 };
 
-exports.Prisma.Nx01PoItemScalarFieldEnum = {
+exports.Prisma.Nx02PoItemScalarFieldEnum = {
   id: 'id',
   poId: 'poId',
   rfqItemId: 'rfqItemId',
@@ -532,7 +659,102 @@ exports.Prisma.Nx01PoItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx01RrScalarFieldEnum = {
+exports.Prisma.Nx02PrScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  prDate: 'prDate',
+  supplierId: 'supplierId',
+  rrId: 'rrId',
+  currencyId: 'currencyId',
+  status: 'status',
+  subtotal: 'subtotal',
+  taxRate: 'taxRate',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  postedAt: 'postedAt',
+  postedBy: 'postedBy',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  rejectReason: 'rejectReason',
+  paymentStatus: 'paymentStatus'
+};
+
+exports.Prisma.Nx02PrItemScalarFieldEnum = {
+  id: 'id',
+  prId: 'prId',
+  rrItemId: 'rrItemId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  locationId: 'locationId',
+  qty: 'qty',
+  unitCost: 'unitCost',
+  lineAmount: 'lineAmount',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  returnReason: 'returnReason'
+};
+
+exports.Prisma.Nx02RfqScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  rfqDate: 'rfqDate',
+  supplierId: 'supplierId',
+  contactName: 'contactName',
+  contactPhone: 'contactPhone',
+  currency: 'currency',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy',
+  rfqType: 'rfqType',
+  rfqReason: 'rfqReason',
+  warehouseId: 'warehouseId',
+  validUntil: 'validUntil',
+  demandId: 'demandId'
+};
+
+exports.Prisma.Nx02RfqItemScalarFieldEnum = {
+  id: 'id',
+  rfqId: 'rfqId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  unitPrice: 'unitPrice',
+  currencyId: 'currencyId',
+  leadTimeDays: 'leadTimeDays',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  demandItemId: 'demandItemId',
+  isAdopted: 'isAdopted',
+  rejectReason: 'rejectReason'
+};
+
+exports.Prisma.Nx02RrScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   warehouseId: 'warehouseId',
@@ -555,10 +777,45 @@ exports.Prisma.Nx01RrScalarFieldEnum = {
   postedAt: 'postedAt',
   postedBy: 'postedBy',
   voidedAt: 'voidedAt',
-  voidedBy: 'voidedBy'
+  voidedBy: 'voidedBy',
+  tiId: 'tiId',
+  verifiedAt: 'verifiedAt',
+  verifiedBy: 'verifiedBy',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy'
 };
 
-exports.Prisma.Nx01RrItemScalarFieldEnum = {
+exports.Prisma.Nx02RrImportScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  rrId: 'rrId',
+  poId: 'poId',
+  vesselNo: 'vesselNo',
+  containerNo: 'containerNo',
+  eta: 'eta',
+  parcelLength: 'parcelLength',
+  parcelWidth: 'parcelWidth',
+  parcelHeight: 'parcelHeight',
+  parcelWeight: 'parcelWeight',
+  freightCost: 'freightCost',
+  customsDuty: 'customsDuty',
+  customsFee: 'customsFee',
+  storageFee: 'storageFee',
+  otherFee: 'otherFee',
+  otherFeeDesc: 'otherFeeDesc',
+  totalImportCost: 'totalImportCost',
+  totalQty: 'totalQty',
+  costPerUnit: 'costPerUnit',
+  currencyId: 'currencyId',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  incoterm: 'incoterm'
+};
+
+exports.Prisma.Nx02RrItemScalarFieldEnum = {
   id: 'id',
   rrId: 'rrId',
   lineNo: 'lineNo',
@@ -569,23 +826,28 @@ exports.Prisma.Nx01RrItemScalarFieldEnum = {
   qty: 'qty',
   unitCost: 'unitCost',
   lineAmount: 'lineAmount',
-  poItemId: 'poItemId',
-  rfqItemId: 'rfqItemId',
   remark: 'remark',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  updatedBy: 'updatedBy',
+  expectedQty: 'expectedQty',
+  actualQty: 'actualQty',
+  defectQty: 'defectQty',
+  defectType: 'defectType',
+  defectDesc: 'defectDesc',
+  batchNo: 'batchNo',
+  warrantyExpiredAt: 'warrantyExpiredAt'
 };
 
-exports.Prisma.Nx01PrScalarFieldEnum = {
+exports.Prisma.Nx02TiScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   warehouseId: 'warehouseId',
   docNo: 'docNo',
-  prDate: 'prDate',
-  supplierId: 'supplierId',
-  rrId: 'rrId',
+  tiDate: 'tiDate',
+  partnerId: 'partnerId',
+  rfqId: 'rfqId',
   currencyId: 'currencyId',
   status: 'status',
   subtotal: 'subtotal',
@@ -597,16 +859,14 @@ exports.Prisma.Nx01PrScalarFieldEnum = {
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy',
-  postedAt: 'postedAt',
-  postedBy: 'postedBy',
   voidedAt: 'voidedAt',
   voidedBy: 'voidedBy'
 };
 
-exports.Prisma.Nx01PrItemScalarFieldEnum = {
+exports.Prisma.Nx02TiItemScalarFieldEnum = {
   id: 'id',
-  prId: 'prId',
-  rrItemId: 'rrItemId',
+  tiId: 'tiId',
+  rfqItemId: 'rfqItemId',
   lineNo: 'lineNo',
   partId: 'partId',
   partNo: 'partNo',
@@ -622,28 +882,237 @@ exports.Prisma.Nx01PrItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx02StockLedgerScalarFieldEnum = {
+exports.Prisma.Nx03AutoReplenishScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  movementDate: 'movementDate',
-  partId: 'partId',
-  warehouseId: 'warehouseId',
-  locationId: 'locationId',
-  movementType: 'movementType',
-  qtyIn: 'qtyIn',
-  qtyOut: 'qtyOut',
-  unitCost: 'unitCost',
-  totalCost: 'totalCost',
-  balanceQty: 'balanceQty',
-  balanceCost: 'balanceCost',
-  sourceModule: 'sourceModule',
-  sourceDocType: 'sourceDocType',
-  sourceDocId: 'sourceDocId',
-  sourceItemId: 'sourceItemId',
-  createdAt: 'createdAt'
+  fromWarehouseId: 'fromWarehouseId',
+  toWarehouseId: 'toWarehouseId',
+  priority: 'priority',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx02StockBalanceScalarFieldEnum = {
+exports.Prisma.Nx03InitScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  initDate: 'initDate',
+  warehouseId: 'warehouseId',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  postedAt: 'postedAt',
+  postedBy: 'postedBy',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy'
+};
+
+exports.Prisma.Nx03InitItemScalarFieldEnum = {
+  id: 'id',
+  initId: 'initId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  locationId: 'locationId',
+  qty: 'qty',
+  unitCost: 'unitCost',
+  totalCost: 'totalCost',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03ParcelScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  plId: 'plId',
+  parcelNo: 'parcelNo',
+  parcelType: 'parcelType',
+  fromWarehouseId: 'fromWarehouseId',
+  toWarehouseId: 'toWarehouseId',
+  toPartnerId: 'toPartnerId',
+  logisticsTrackingNo: 'logisticsTrackingNo',
+  weightKg: 'weightKg',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03PartStockSettingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partId: 'partId',
+  warehouseId: 'warehouseId',
+  minQty: 'minQty',
+  maxQty: 'maxQty',
+  reorderQty: 'reorderQty',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03PkScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  pkDate: 'pkDate',
+  triggerSource: 'triggerSource',
+  deliveryType: 'deliveryType',
+  status: 'status',
+  pickupCode: 'pickupCode',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  completedBy: 'completedBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03PkItemScalarFieldEnum = {
+  id: 'id',
+  pkId: 'pkId',
+  refSoId: 'refSoId',
+  refSoItemId: 'refSoItemId',
+  refStId: 'refStId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  locationId: 'locationId',
+  qty: 'qty',
+  status: 'status',
+  notFoundReason: 'notFoundReason',
+  labelChecked: 'labelChecked',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03PlScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  plDate: 'plDate',
+  pkId: 'pkId',
+  plType: 'plType',
+  status: 'status',
+  logisticsProvider: 'logisticsProvider',
+  logisticsTrackingNo: 'logisticsTrackingNo',
+  shippedAt: 'shippedAt',
+  shippedBy: 'shippedBy',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  completedBy: 'completedBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03PlItemScalarFieldEnum = {
+  id: 'id',
+  plId: 'plId',
+  parcelId: 'parcelId',
+  pkItemId: 'pkItemId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03ShortageScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  partId: 'partId',
+  warehouseId: 'warehouseId',
+  onHandQty: 'onHandQty',
+  minQty: 'minQty',
+  shortageQty: 'shortageQty',
+  suggestOrderQty: 'suggestOrderQty',
+  status: 'status',
+  refRfqId: 'refRfqId',
+  detectedAt: 'detectedAt',
+  resolvedAt: 'resolvedAt',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx03StScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  stDate: 'stDate',
+  fromWarehouseId: 'fromWarehouseId',
+  toWarehouseId: 'toWarehouseId',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  postedAt: 'postedAt',
+  postedBy: 'postedBy',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy',
+  stType: 'stType',
+  triggerSource: 'triggerSource',
+  refSoId: 'refSoId',
+  refRrId: 'refRrId',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  receivedAt: 'receivedAt',
+  receivedBy: 'receivedBy'
+};
+
+exports.Prisma.Nx03StItemScalarFieldEnum = {
+  id: 'id',
+  stId: 'stId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  partBrandId: 'partBrandId',
+  fromLocationId: 'fromLocationId',
+  toLocationId: 'toLocationId',
+  qty: 'qty',
+  unitCost: 'unitCost',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  receivedQty: 'receivedQty'
+};
+
+exports.Prisma.Nx03StockBalanceScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   partId: 'partId',
@@ -664,57 +1133,28 @@ exports.Prisma.Nx02StockBalanceScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx02PartStockSettingScalarFieldEnum = {
+exports.Prisma.Nx03StockLedgerScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
+  movementDate: 'movementDate',
   partId: 'partId',
   warehouseId: 'warehouseId',
-  minQty: 'minQty',
-  maxQty: 'maxQty',
-  reorderQty: 'reorderQty',
-  isActive: 'isActive',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  locationId: 'locationId',
+  movementType: 'movementType',
+  qtyIn: 'qtyIn',
+  qtyOut: 'qtyOut',
+  unitCost: 'unitCost',
+  totalCost: 'totalCost',
+  balanceQty: 'balanceQty',
+  balanceCost: 'balanceCost',
+  sourceModule: 'sourceModule',
+  sourceDocType: 'sourceDocType',
+  sourceDocId: 'sourceDocId',
+  sourceItemId: 'sourceItemId',
+  createdAt: 'createdAt'
 };
 
-exports.Prisma.Nx02ShortageScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  partId: 'partId',
-  warehouseId: 'warehouseId',
-  onHandQty: 'onHandQty',
-  minQty: 'minQty',
-  shortageQty: 'shortageQty',
-  suggestOrderQty: 'suggestOrderQty',
-  status: 'status',
-  refRfqId: 'refRfqId',
-  detectedAt: 'detectedAt',
-  resolvedAt: 'resolvedAt',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx02AutoReplenishScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  fromWarehouseId: 'fromWarehouseId',
-  toWarehouseId: 'toWarehouseId',
-  priority: 'priority',
-  isActive: 'isActive',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx02StockTakeScalarFieldEnum = {
+exports.Prisma.Nx03StockTakeScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
   docNo: 'docNo',
@@ -730,10 +1170,14 @@ exports.Prisma.Nx02StockTakeScalarFieldEnum = {
   postedAt: 'postedAt',
   postedBy: 'postedBy',
   voidedAt: 'voidedAt',
-  voidedBy: 'voidedBy'
+  voidedBy: 'voidedBy',
+  scopeDetail: 'scopeDetail',
+  startedAt: 'startedAt',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy'
 };
 
-exports.Prisma.Nx02StockTakeItemScalarFieldEnum = {
+exports.Prisma.Nx03StockTakeItemScalarFieldEnum = {
   id: 'id',
   stockTakeId: 'stockTakeId',
   lineNo: 'lineNo',
@@ -753,76 +1197,134 @@ exports.Prisma.Nx02StockTakeItemScalarFieldEnum = {
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx02StockTransferScalarFieldEnum = {
-  id: 'id',
-  tenantId: 'tenantId',
-  docNo: 'docNo',
-  stDate: 'stDate',
-  fromWarehouseId: 'fromWarehouseId',
-  toWarehouseId: 'toWarehouseId',
-  status: 'status',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
   updatedBy: 'updatedBy',
-  postedAt: 'postedAt',
-  postedBy: 'postedBy',
-  voidedAt: 'voidedAt',
-  voidedBy: 'voidedBy'
+  countedAt: 'countedAt',
+  disposeType: 'disposeType',
+  disposeRemark: 'disposeRemark'
 };
 
-exports.Prisma.Nx02StockTransferItemScalarFieldEnum = {
-  id: 'id',
-  stId: 'stId',
-  lineNo: 'lineNo',
-  partId: 'partId',
-  partNo: 'partNo',
-  partName: 'partName',
-  partBrandId: 'partBrandId',
-  fromLocationId: 'fromLocationId',
-  toLocationId: 'toLocationId',
-  qty: 'qty',
-  unitCost: 'unitCost',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx02InitScalarFieldEnum = {
+exports.Prisma.Nx04QuoteScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
-  docNo: 'docNo',
-  initDate: 'initDate',
   warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  quoteDate: 'quoteDate',
+  customerId: 'customerId',
+  customerGradeId: 'customerGradeId',
+  validUntil: 'validUntil',
+  currencyId: 'currencyId',
+  subtotal: 'subtotal',
+  taxRate: 'taxRate',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
   status: 'status',
   remark: 'remark',
+  voidedAt: 'voidedAt',
+  voidedBy: 'voidedBy',
+  voidReason: 'voidReason',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy',
-  postedAt: 'postedAt',
-  postedBy: 'postedBy',
-  voidedAt: 'voidedAt',
-  voidedBy: 'voidedBy'
+  rfqId: 'rfqId'
 };
 
-exports.Prisma.Nx02InitItemScalarFieldEnum = {
+exports.Prisma.Nx04QuoteItemScalarFieldEnum = {
   id: 'id',
-  initId: 'initId',
+  quoteId: 'quoteId',
+  lineNo: 'lineNo',
+  groupNo: 'groupNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  unitPrice: 'unitPrice',
+  minPrice: 'minPrice',
+  discountCodeId: 'discountCodeId',
+  lineAmount: 'lineAmount',
+  isSelected: 'isSelected',
+  belowMinReason: 'belowMinReason',
+  transferredQty: 'transferredQty',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx04SoScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  soDate: 'soDate',
+  customerId: 'customerId',
+  quoteId: 'quoteId',
+  deliveryType: 'deliveryType',
+  sourceType: 'sourceType',
+  deliveryAddress: 'deliveryAddress',
+  currencyId: 'currencyId',
+  subtotal: 'subtotal',
+  taxRate: 'taxRate',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
+  status: 'status',
+  paymentTerm: 'paymentTerm',
+  expectedDeliveryDate: 'expectedDeliveryDate',
+  cancelReason: 'cancelReason',
+  cancelledAt: 'cancelledAt',
+  cancelledBy: 'cancelledBy',
+  completedAt: 'completedAt',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx04SoItemScalarFieldEnum = {
+  id: 'id',
+  soId: 'soId',
+  quoteItemId: 'quoteItemId',
   lineNo: 'lineNo',
   partId: 'partId',
   partNo: 'partNo',
   partName: 'partName',
+  warehouseId: 'warehouseId',
   locationId: 'locationId',
   qty: 'qty',
-  unitCost: 'unitCost',
-  totalCost: 'totalCost',
+  unitPrice: 'unitPrice',
+  discountCodeId: 'discountCodeId',
+  lineAmount: 'lineAmount',
+  reservedQty: 'reservedQty',
+  belowMinReason: 'belowMinReason',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy',
+  itemStatus: 'itemStatus',
+  tiId: 'tiId',
+  stId: 'stId'
+};
+
+exports.Prisma.Nx04SrScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  srDate: 'srDate',
+  customerId: 'customerId',
+  soId: 'soId',
+  returnMethod: 'returnMethod',
+  status: 'status',
+  subtotal: 'subtotal',
+  taxRate: 'taxRate',
+  taxAmount: 'taxAmount',
+  totalAmount: 'totalAmount',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  rejectReason: 'rejectReason',
+  receivedAt: 'receivedAt',
+  receivedBy: 'receivedBy',
   remark: 'remark',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
@@ -830,11 +1332,297 @@ exports.Prisma.Nx02InitItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx99ReleaseScalarFieldEnum = {
+exports.Prisma.Nx04SrItemScalarFieldEnum = {
   id: 'id',
-  versionCode: 'versionCode',
-  title: 'title',
-  releasedAt: 'releasedAt',
+  srId: 'srId',
+  soItemId: 'soItemId',
+  lineNo: 'lineNo',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  returnPolicy: 'returnPolicy',
+  returnType: 'returnType',
+  returnReason: 'returnReason',
+  concessionReason: 'concessionReason',
+  qty: 'qty',
+  unitPrice: 'unitPrice',
+  lineAmount: 'lineAmount',
+  locationId: 'locationId',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05AccountCodeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  category: 'category',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05AllowanceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  allowanceType: 'allowanceType',
+  partnerId: 'partnerId',
+  allowanceDate: 'allowanceDate',
+  refArId: 'refArId',
+  refApId: 'refApId',
+  totalAmount: 'totalAmount',
+  status: 'status',
+  approvedAt: 'approvedAt',
+  approvedBy: 'approvedBy',
+  rejectReason: 'rejectReason',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05AllowanceItemScalarFieldEnum = {
+  id: 'id',
+  allowanceId: 'allowanceId',
+  lineNo: 'lineNo',
+  reason: 'reason',
+  amount: 'amount',
+  disposalMethod: 'disposalMethod',
+  refDocId: 'refDocId',
+  refDocType: 'refDocType',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05ApLedgerScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  sourceType: 'sourceType',
+  poId: 'poId',
+  rrId: 'rrId',
+  tiId: 'tiId',
+  supplierId: 'supplierId',
+  apDate: 'apDate',
+  dueDate: 'dueDate',
+  currencyId: 'currencyId',
+  originalAmount: 'originalAmount',
+  paidAmount: 'paidAmount',
+  balanceAmount: 'balanceAmount',
+  status: 'status',
+  paymentTerm: 'paymentTerm',
+  writeOffAt: 'writeOffAt',
+  writeOffBy: 'writeOffBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05ArLedgerScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  soId: 'soId',
+  customerId: 'customerId',
+  arDate: 'arDate',
+  dueDate: 'dueDate',
+  currencyId: 'currencyId',
+  originalAmount: 'originalAmount',
+  paidAmount: 'paidAmount',
+  balanceAmount: 'balanceAmount',
+  status: 'status',
+  paymentTerm: 'paymentTerm',
+  overdueDays: 'overdueDays',
+  isPartialApproved: 'isPartialApproved',
+  writeOffAt: 'writeOffAt',
+  writeOffBy: 'writeOffBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05ClosingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  closingDate: 'closingDate',
+  closedAt: 'closedAt',
+  closedBy: 'closedBy',
+  isAuto: 'isAuto',
+  reportPrintedAt: 'reportPrintedAt',
+  reportPrintedBy: 'reportPrintedBy',
+  status: 'status',
+  reopenedAt: 'reopenedAt',
+  reopenedBy: 'reopenedBy',
+  reopenReason: 'reopenReason',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05NoteScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  noteType: 'noteType',
+  direction: 'direction',
+  partnerId: 'partnerId',
+  noteNo: 'noteNo',
+  bankName: 'bankName',
+  bankAccount: 'bankAccount',
+  amount: 'amount',
+  currencyId: 'currencyId',
+  issueDate: 'issueDate',
+  dueDate: 'dueDate',
+  status: 'status',
+  clearedAt: 'clearedAt',
+  bouncedAt: 'bouncedAt',
+  bouncedReason: 'bouncedReason',
+  paylogId: 'paylogId',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx05PaylogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  docNo: 'docNo',
+  payType: 'payType',
+  payDate: 'payDate',
+  partnerId: 'partnerId',
+  arId: 'arId',
+  apId: 'apId',
+  amount: 'amount',
+  currencyId: 'currencyId',
+  payMethod: 'payMethod',
+  noteId: 'noteId',
+  accountCodeId: 'accountCodeId',
+  cashBalanceAfter: 'cashBalanceAfter',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx06DnScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  dnDate: 'dnDate',
+  driverUserId: 'driverUserId',
+  vehicleNo: 'vehicleNo',
+  status: 'status',
+  departedAt: 'departedAt',
+  completedAt: 'completedAt',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx06DnItemScalarFieldEnum = {
+  id: 'id',
+  dnId: 'dnId',
+  stopId: 'stopId',
+  lineNo: 'lineNo',
+  sourceDocType: 'sourceDocType',
+  sourceDocId: 'sourceDocId',
+  sourceItemId: 'sourceItemId',
+  parcelId: 'parcelId',
+  partId: 'partId',
+  partNo: 'partNo',
+  partName: 'partName',
+  qty: 'qty',
+  deliveryStatus: 'deliveryStatus',
+  exceptionType: 'exceptionType',
+  exceptionReason: 'exceptionReason',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx06DnStopScalarFieldEnum = {
+  id: 'id',
+  dnId: 'dnId',
+  stopNo: 'stopNo',
+  taskType: 'taskType',
+  partnerId: 'partnerId',
+  warehouseId: 'warehouseId',
+  address: 'address',
+  contactName: 'contactName',
+  contactPhone: 'contactPhone',
+  status: 'status',
+  arrivedAt: 'arrivedAt',
+  completedAt: 'completedAt',
+  signerType: 'signerType',
+  signedAt: 'signedAt',
+  signedByName: 'signedByName',
+  signatureUrl: 'signatureUrl',
+  exceptionRemark: 'exceptionRemark',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07AttendanceScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  workDate: 'workDate',
+  scheduleItemId: 'scheduleItemId',
+  clockInAt: 'clockInAt',
+  clockOutAt: 'clockOutAt',
+  clockInMethod: 'clockInMethod',
+  clockOutMethod: 'clockOutMethod',
+  clockInIp: 'clockInIp',
+  clockOutIp: 'clockOutIp',
+  lineVerified: 'lineVerified',
+  stdClockIn: 'stdClockIn',
+  stdClockOut: 'stdClockOut',
+  lateMinutes: 'lateMinutes',
+  earlyLeaveMinutes: 'earlyLeaveMinutes',
+  workHours: 'workHours',
+  overtimeHours: 'overtimeHours',
+  status: 'status',
+  approvedBy: 'approvedBy',
+  approvedAt: 'approvedAt',
+  approveRemark: 'approveRemark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx07IpWhitelistScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  ipAddress: 'ipAddress',
+  name: 'name',
   isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
@@ -842,12 +1630,722 @@ exports.Prisma.Nx99ReleaseScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx99ReleaseItemScalarFieldEnum = {
+exports.Prisma.Nx07LeaveBalanceScalarFieldEnum = {
   id: 'id',
-  releaseId: 'releaseId',
-  lineNo: 'lineNo',
-  content: 'content',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  leaveTypeId: 'leaveTypeId',
+  year: 'year',
+  entitledHours: 'entitledHours',
+  usedHours: 'usedHours',
+  remainingHours: 'remainingHours',
+  carryOverHours: 'carryOverHours',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx07LeaveRequestScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  leaveTypeId: 'leaveTypeId',
+  requestType: 'requestType',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  totalHours: 'totalHours',
+  reason: 'reason',
+  attachmentUrl: 'attachmentUrl',
+  status: 'status',
+  approvedBy: 'approvedBy',
+  approvedAt: 'approvedAt',
+  rejectReason: 'rejectReason',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07LeaveTypeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  isPaid: 'isPaid',
+  maxDaysPerYear: 'maxDaysPerYear',
+  minApplyHours: 'minApplyHours',
+  needApproval: 'needApproval',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07OvertimeRequestScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  workDate: 'workDate',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  totalHours: 'totalHours',
+  reason: 'reason',
+  otType: 'otType',
+  status: 'status',
+  approvedBy: 'approvedBy',
+  approvedAt: 'approvedAt',
+  rejectReason: 'rejectReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx07SalaryComponentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  compType: 'compType',
+  calcMethod: 'calcMethod',
+  defaultValue: 'defaultValue',
+  kpiTemplateId: 'kpiTemplateId',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07SalaryRecordScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  yearMonth: 'yearMonth',
+  baseSalary: 'baseSalary',
+  workDays: 'workDays',
+  workHours: 'workHours',
+  otHoursWd: 'otHoursWd',
+  otHoursHoliday: 'otHoursHoliday',
+  otPay: 'otPay',
+  grossSalary: 'grossSalary',
+  deductionTotal: 'deductionTotal',
+  netSalary: 'netSalary',
+  status: 'status',
+  confirmedAt: 'confirmedAt',
+  confirmedBy: 'confirmedBy',
+  paidAt: 'paidAt',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx07SalaryRecordItemScalarFieldEnum = {
+  id: 'id',
+  salaryRecordId: 'salaryRecordId',
+  componentId: 'componentId',
+  amount: 'amount',
+  calcBasis: 'calcBasis',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.Nx07SalarySettingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  empType: 'empType',
+  baseSalary: 'baseSalary',
+  effectiveDate: 'effectiveDate',
+  payDay: 'payDay',
+  payCycleStart: 'payCycleStart',
+  otRate_1: 'otRate_1',
+  otRate_2: 'otRate_2',
+  otRateHoliday: 'otRateHoliday',
+  otRateBelowLegal: 'otRateBelowLegal',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07ScheduleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  teamId: 'teamId',
+  yearMonth: 'yearMonth',
+  status: 'status',
+  publishedAt: 'publishedAt',
+  publishedBy: 'publishedBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07ScheduleItemScalarFieldEnum = {
+  id: 'id',
+  scheduleId: 'scheduleId',
+  userId: 'userId',
+  workDate: 'workDate',
+  shiftTypeId: 'shiftTypeId',
+  swapUserId: 'swapUserId',
+  swapApproved: 'swapApproved',
+  swapApprovedBy: 'swapApprovedBy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx07ShiftTypeScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  isWorkDay: 'isWorkDay',
+  crossMidnight: 'crossMidnight',
+  colorCode: 'colorCode',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx08DailyReportScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  reportDate: 'reportDate',
+  doneItems: 'doneItems',
+  kpiProgress: 'kpiProgress',
+  exceptionItems: 'exceptionItems',
+  tomorrowPlan: 'tomorrowPlan',
+  submittedAt: 'submittedAt',
+  supervisorReply: 'supervisorReply',
+  repliedAt: 'repliedAt',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx08FinanceCacheScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cacheDate: 'cacheDate',
+  periodType: 'periodType',
+  periodValue: 'periodValue',
+  revenue: 'revenue',
+  cogs: 'cogs',
+  grossProfit: 'grossProfit',
+  grossMargin: 'grossMargin',
+  expenseTotal: 'expenseTotal',
+  expenseRate: 'expenseRate',
+  arTotal: 'arTotal',
+  arOverdueRate: 'arOverdueRate',
+  apTotal: 'apTotal',
+  cashCycleDays: 'cashCycleDays',
+  hpaTrend: 'hpaTrend',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx08HrCacheScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cacheDate: 'cacheDate',
+  userId: 'userId',
+  periodType: 'periodType',
+  periodValue: 'periodValue',
+  attendanceRate: 'attendanceRate',
+  lateCount: 'lateCount',
+  absenceDays: 'absenceDays',
+  otHours: 'otHours',
+  dailyReportRate: 'dailyReportRate',
+  kpiAchieveRate: 'kpiAchieveRate',
+  salaryCost: 'salaryCost',
+  talentQuadrant: 'talentQuadrant',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx08InventoryCacheScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cacheDate: 'cacheDate',
+  partId: 'partId',
+  warehouseId: 'warehouseId',
+  periodType: 'periodType',
+  periodValue: 'periodValue',
+  avgStockQty: 'avgStockQty',
+  salesQty: 'salesQty',
+  salesAmount: 'salesAmount',
+  turnoverRate: 'turnoverRate',
+  stockValue: 'stockValue',
+  daysStagnant: 'daysStagnant',
+  bcgQuadrant: 'bcgQuadrant',
+  grossMargin: 'grossMargin',
+  hpaTrend: 'hpaTrend',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx08MonthlyReportScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  yearMonth: 'yearMonth',
+  kpiSummary: 'kpiSummary',
+  achievementDesc: 'achievementDesc',
+  dailyReportRate: 'dailyReportRate',
+  trainingHours: 'trainingHours',
+  nextMonthGoals: 'nextMonthGoals',
+  submittedAt: 'submittedAt',
+  supervisorScore: 'supervisorScore',
+  supervisorReply: 'supervisorReply',
+  repliedAt: 'repliedAt',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx08PestelRecordScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  recordDate: 'recordDate',
+  period: 'period',
+  political: 'political',
+  economic: 'economic',
+  social: 'social',
+  technological: 'technological',
+  environmental: 'environmental',
+  legal: 'legal',
+  impactSummary: 'impactSummary',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx08PurchaseCacheScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cacheDate: 'cacheDate',
+  supplierId: 'supplierId',
+  periodType: 'periodType',
+  periodValue: 'periodValue',
+  poCount: 'poCount',
+  poAmount: 'poAmount',
+  prAmount: 'prAmount',
+  onTimeRate: 'onTimeRate',
+  defectRate: 'defectRate',
+  avgLeadDays: 'avgLeadDays',
+  supplierGrade: 'supplierGrade',
+  hpaTrend: 'hpaTrend',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx08SalesCacheScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  cacheDate: 'cacheDate',
+  customerId: 'customerId',
+  periodType: 'periodType',
+  periodValue: 'periodValue',
+  soCount: 'soCount',
+  soAmount: 'soAmount',
+  srAmount: 'srAmount',
+  netAmount: 'netAmount',
+  grossProfit: 'grossProfit',
+  grossMargin: 'grossMargin',
+  arOverdueAmt: 'arOverdueAmt',
+  customerGrade: 'customerGrade',
+  hpaTrend: 'hpaTrend',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx08SwotRecordScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  recordDate: 'recordDate',
+  period: 'period',
+  strengths: 'strengths',
+  weaknesses: 'weaknesses',
+  opportunities: 'opportunities',
+  threats: 'threats',
+  soStrategy: 'soStrategy',
+  woStrategy: 'woStrategy',
+  stStrategy: 'stStrategy',
+  wtStrategy: 'wtStrategy',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09DocumentScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  title: 'title',
+  docCategory: 'docCategory',
+  deptId: 'deptId',
+  currentVer: 'currentVer',
+  effectiveDate: 'effectiveDate',
+  expiredDate: 'expiredDate',
+  viewPermission: 'viewPermission',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09DocumentVersionScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  versionNo: 'versionNo',
+  fileUrl: 'fileUrl',
+  fileSizeKb: 'fileSizeKb',
+  changeSummary: 'changeSummary',
+  printCount: 'printCount',
+  lastPrintAt: 'lastPrintAt',
+  lastPrintBy: 'lastPrintBy',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.Nx09KmArticleScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  deptId: 'deptId',
+  category: 'category',
+  question: 'question',
+  answer: 'answer',
+  context: 'context',
+  isActive: 'isActive',
+  expiredAt: 'expiredAt',
+  viewCount: 'viewCount',
+  helpfulCount: 'helpfulCount',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09KmArticleTagScalarFieldEnum = {
+  id: 'id',
+  articleId: 'articleId',
+  tagId: 'tagId',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.Nx09KmFeedbackScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  articleId: 'articleId',
+  userId: 'userId',
+  isHelpful: 'isHelpful',
+  comment: 'comment',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.Nx09KmTagScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  sortNo: 'sortNo',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09MeetingScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  title: 'title',
+  meetingType: 'meetingType',
+  location: 'location',
+  startAt: 'startAt',
+  endAt: 'endAt',
+  organizerId: 'organizerId',
+  status: 'status',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09MeetingActionScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  meetingId: 'meetingId',
+  minutesId: 'minutesId',
+  title: 'title',
+  assigneeId: 'assigneeId',
+  dueDate: 'dueDate',
+  status: 'status',
+  completedAt: 'completedAt',
+  resultDesc: 'resultDesc',
+  isOverdue: 'isOverdue',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09MeetingAttendeeScalarFieldEnum = {
+  id: 'id',
+  meetingId: 'meetingId',
+  userId: 'userId',
+  confirmStatus: 'confirmStatus',
+  actualAttended: 'actualAttended',
+  absentReason: 'absentReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx09MeetingMinutesScalarFieldEnum = {
+  id: 'id',
+  meetingId: 'meetingId',
+  content: 'content',
+  decisions: 'decisions',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10EmpExpLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  sourceType: 'sourceType',
+  expChange: 'expChange',
+  expAfter: 'expAfter',
+  sourceRefId: 'sourceRefId',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.Nx10EmpMedalScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  medalLevelId: 'medalLevelId',
+  totalExp: 'totalExp',
+  currentLevelExp: 'currentLevelExp',
+  demotionProtectUntil: 'demotionProtectUntil',
+  lastCheckinDate: 'lastCheckinDate',
+  consecutiveCheckin: 'consecutiveCheckin',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.Nx10EmpTaskLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  taskTemplateId: 'taskTemplateId',
+  periodValue: 'periodValue',
+  achieveRate: 'achieveRate',
+  expEarned: 'expEarned',
+  isCompleted: 'isCompleted',
+  calculatedAt: 'calculatedAt'
+};
+
+exports.Prisma.Nx10MedalLevelScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  levelCode: 'levelCode',
+  levelName: 'levelName',
+  tier: 'tier',
+  rank: 'rank',
+  sortNo: 'sortNo',
+  expThreshold: 'expThreshold',
+  iconUrl: 'iconUrl',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10MentorshipRecordScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  mentorId: 'mentorId',
+  menteeId: 'menteeId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  menteeKpiRate: 'menteeKpiRate',
+  rewardExp: 'rewardExp',
+  rewardIssued: 'rewardIssued',
+  issuedAt: 'issuedAt',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10PromotionCriteriaScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  fromRoleId: 'fromRoleId',
+  toRoleId: 'toRoleId',
+  minMedalLevelId: 'minMedalLevelId',
+  minTenureMonths: 'minTenureMonths',
+  minKpiRate: 'minKpiRate',
+  minMentorshipCount: 'minMentorshipCount',
+  noPenaltyDays: 'noPenaltyDays',
+  isActive: 'isActive',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10PromotionRequestScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  criteriaId: 'criteriaId',
+  applyDate: 'applyDate',
+  sysVerifyResult: 'sysVerifyResult',
+  sysVerifyDetail: 'sysVerifyDetail',
+  supervisorRecommend: 'supervisorRecommend',
+  reviewedBy: 'reviewedBy',
+  reviewedAt: 'reviewedAt',
+  status: 'status',
+  rejectReason: 'rejectReason',
+  executedAt: 'executedAt',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10SprintTaskScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  sprintType: 'sprintType',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  expMultiplier: 'expMultiplier',
+  targetDesc: 'targetDesc',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10SprintTaskLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  sprintTaskId: 'sprintTaskId',
+  userId: 'userId',
+  baseExp: 'baseExp',
+  bonusExp: 'bonusExp',
+  totalExp: 'totalExp',
+  rankNo: 'rankNo',
+  calculatedAt: 'calculatedAt'
+};
+
+exports.Prisma.Nx10SurpriseBoxLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  userId: 'userId',
+  boxType: 'boxType',
+  triggerType: 'triggerType',
+  expEarned: 'expEarned',
+  openedAt: 'openedAt',
+  dailyCount: 'dailyCount'
+};
+
+exports.Prisma.Nx10TaskTemplateScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  code: 'code',
+  name: 'name',
+  taskCycle: 'taskCycle',
+  applicableRoles: 'applicableRoles',
+  expBase: 'expBase',
+  expFormula: 'expFormula',
+  sourceModule: 'sourceModule',
+  sourceKpiCode: 'sourceKpiCode',
+  isSystem: 'isSystem',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10TeamTaskScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  targetType: 'targetType',
+  targetValue: 'targetValue',
+  taskCycle: 'taskCycle',
+  rewardExp: 'rewardExp',
+  warehouseId: 'warehouseId',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx10TeamTaskLogScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  teamTaskId: 'teamTaskId',
+  warehouseId: 'warehouseId',
+  periodValue: 'periodValue',
+  actualValue: 'actualValue',
+  isAchieved: 'isAchieved',
+  rewardIssued: 'rewardIssued',
+  issuedAt: 'issuedAt',
+  calculatedAt: 'calculatedAt'
+};
+
+exports.Prisma.Nx98DocLinkScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  fromDocType: 'fromDocType',
+  fromDocId: 'fromDocId',
+  toDocType: 'toDocType',
+  toDocId: 'toDocId',
+  linkType: 'linkType',
+  linkedQty: 'linkedQty',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
 };
 
 exports.Prisma.Nx99PlanScalarFieldEnum = {
@@ -860,6 +2358,9 @@ exports.Prisma.Nx99PlanScalarFieldEnum = {
   minSeats: 'minSeats',
   maxSeats: 'maxSeats',
   billingDefault: 'billingDefault',
+  tier: 'tier',
+  quarterDiscountType: 'quarterDiscountType',
+  quarterDiscountValue: 'quarterDiscountValue',
   yearDiscountType: 'yearDiscountType',
   yearDiscountValue: 'yearDiscountValue',
   yearPriceOverride: 'yearPriceOverride',
@@ -870,6 +2371,60 @@ exports.Prisma.Nx99PlanScalarFieldEnum = {
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99ProductModuleScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  moduleLevel: 'moduleLevel',
+  applicablePlanCode: 'applicablePlanCode',
+  billingType: 'billingType',
+  monthlyFee: 'monthlyFee',
+  isBundleDefault: 'isBundleDefault',
+  description: 'description',
+  sortNo: 'sortNo',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99ProductModuleMapScalarFieldEnum = {
+  id: 'id',
+  productModuleId: 'productModuleId',
+  appModuleCode: 'appModuleCode',
+  isRequired: 'isRequired',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99ReleaseScalarFieldEnum = {
+  id: 'id',
+  version: 'version',
+  releaseDate: 'releaseDate',
+  title: 'title',
+  description: 'description',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
+exports.Prisma.Nx99ReleaseItemScalarFieldEnum = {
+  id: 'id',
+  releaseId: 'releaseId',
+  itemType: 'itemType',
+  moduleCode: 'moduleCode',
+  itemName: 'itemName',
+  description: 'description',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy'
 };
 
 exports.Prisma.Nx99SubscriptionScalarFieldEnum = {
@@ -917,34 +2472,24 @@ exports.Prisma.Nx99SubscriptionItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
-exports.Prisma.Nx99ProductModuleScalarFieldEnum = {
+exports.Prisma.Nx99TenantScalarFieldEnum = {
   id: 'id',
   code: 'code',
   name: 'name',
-  moduleLevel: 'moduleLevel',
-  applicablePlanCode: 'applicablePlanCode',
-  billingType: 'billingType',
-  monthlyFee: 'monthlyFee',
-  isBundleDefault: 'isBundleDefault',
-  description: 'description',
+  nameEn: 'nameEn',
+  status: 'status',
+  remark: 'remark',
   sortNo: 'sortNo',
   isActive: 'isActive',
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
-};
-
-exports.Prisma.Nx99ProductModuleMapScalarFieldEnum = {
-  id: 'id',
-  productModuleId: 'productModuleId',
-  appModuleCode: 'appModuleCode',
-  isRequired: 'isRequired',
-  remark: 'remark',
-  createdAt: 'createdAt',
-  createdBy: 'createdBy',
-  updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  updatedBy: 'updatedBy',
+  contactName: 'contactName',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
+  timezone: 'timezone',
+  locale: 'locale'
 };
 
 exports.Prisma.SortOrder = {
@@ -962,66 +2507,147 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
-};
-
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 
 exports.Prisma.ModelName = {
-  Nx00User: 'Nx00User',
-  Nx00Role: 'Nx00Role',
-  Nx00UserRole: 'Nx00UserRole',
-  Nx00UserWarehouse: 'Nx00UserWarehouse',
-  Nx00View: 'Nx00View',
-  Nx00RoleView: 'Nx00RoleView',
-  Nx00Country: 'Nx00Country',
-  Nx00Currency: 'Nx00Currency',
-  Nx00Part: 'Nx00Part',
-  Nx00PartBrand: 'Nx00PartBrand',
-  Nx00CarBrand: 'Nx00CarBrand',
-  Nx00PartGroup: 'Nx00PartGroup',
-  Nx00BrandCodeRule: 'Nx00BrandCodeRule',
-  Nx00PartRelation: 'Nx00PartRelation',
-  Nx00Warehouse: 'Nx00Warehouse',
-  Nx00Location: 'Nx00Location',
-  Nx00Partner: 'Nx00Partner',
-  Nx00AuditLog: 'Nx00AuditLog',
-  Nx00Bulletin: 'Nx00Bulletin',
-  Nx00CalendarEvent: 'Nx00CalendarEvent',
-  Nx99Tenant: 'Nx99Tenant',
-  Nx01Rfq: 'Nx01Rfq',
-  Nx01RfqItem: 'Nx01RfqItem',
-  Nx01Po: 'Nx01Po',
-  Nx01PoItem: 'Nx01PoItem',
-  Nx01Rr: 'Nx01Rr',
-  Nx01RrItem: 'Nx01RrItem',
-  Nx01Pr: 'Nx01Pr',
-  Nx01PrItem: 'Nx01PrItem',
-  Nx02StockLedger: 'Nx02StockLedger',
-  Nx02StockBalance: 'Nx02StockBalance',
-  Nx02PartStockSetting: 'Nx02PartStockSetting',
-  Nx02Shortage: 'Nx02Shortage',
-  Nx02AutoReplenish: 'Nx02AutoReplenish',
-  Nx02StockTake: 'Nx02StockTake',
-  Nx02StockTakeItem: 'Nx02StockTakeItem',
-  Nx02StockTransfer: 'Nx02StockTransfer',
-  Nx02StockTransferItem: 'Nx02StockTransferItem',
-  Nx02Init: 'Nx02Init',
-  Nx02InitItem: 'Nx02InitItem',
+  Nx01AuditLog: 'Nx01AuditLog',
+  Nx01BrandCodeRule: 'Nx01BrandCodeRule',
+  Nx01Bulletin: 'Nx01Bulletin',
+  Nx01CalendarEvent: 'Nx01CalendarEvent',
+  Nx01CarBrand: 'Nx01CarBrand',
+  Nx01Country: 'Nx01Country',
+  Nx01Currency: 'Nx01Currency',
+  Nx01CustomerGrade: 'Nx01CustomerGrade',
+  Nx01Department: 'Nx01Department',
+  Nx01DiscountCode: 'Nx01DiscountCode',
+  Nx01KpiRecord: 'Nx01KpiRecord',
+  Nx01KpiTarget: 'Nx01KpiTarget',
+  Nx01KpiTemplate: 'Nx01KpiTemplate',
+  Nx01Location: 'Nx01Location',
+  Nx01Part: 'Nx01Part',
+  Nx01PartBrand: 'Nx01PartBrand',
+  Nx01PartGroup: 'Nx01PartGroup',
+  Nx01PartRelation: 'Nx01PartRelation',
+  Nx01Partner: 'Nx01Partner',
+  Nx01Role: 'Nx01Role',
+  Nx01RoleView: 'Nx01RoleView',
+  Nx01Team: 'Nx01Team',
+  Nx01User: 'Nx01User',
+  Nx01UserRole: 'Nx01UserRole',
+  Nx01UserTeam: 'Nx01UserTeam',
+  Nx01UserWarehouse: 'Nx01UserWarehouse',
+  Nx01View: 'Nx01View',
+  Nx01Warehouse: 'Nx01Warehouse',
+  Nx01WarehouseType: 'Nx01WarehouseType',
+  Nx02Demand: 'Nx02Demand',
+  Nx02Po: 'Nx02Po',
+  Nx02PoItem: 'Nx02PoItem',
+  Nx02Pr: 'Nx02Pr',
+  Nx02PrItem: 'Nx02PrItem',
+  Nx02Rfq: 'Nx02Rfq',
+  Nx02RfqItem: 'Nx02RfqItem',
+  Nx02Rr: 'Nx02Rr',
+  Nx02RrImport: 'Nx02RrImport',
+  Nx02RrItem: 'Nx02RrItem',
+  Nx02Ti: 'Nx02Ti',
+  Nx02TiItem: 'Nx02TiItem',
+  Nx03AutoReplenish: 'Nx03AutoReplenish',
+  Nx03Init: 'Nx03Init',
+  Nx03InitItem: 'Nx03InitItem',
+  Nx03Parcel: 'Nx03Parcel',
+  Nx03PartStockSetting: 'Nx03PartStockSetting',
+  Nx03Pk: 'Nx03Pk',
+  Nx03PkItem: 'Nx03PkItem',
+  Nx03Pl: 'Nx03Pl',
+  Nx03PlItem: 'Nx03PlItem',
+  Nx03Shortage: 'Nx03Shortage',
+  Nx03St: 'Nx03St',
+  Nx03StItem: 'Nx03StItem',
+  Nx03StockBalance: 'Nx03StockBalance',
+  Nx03StockLedger: 'Nx03StockLedger',
+  Nx03StockTake: 'Nx03StockTake',
+  Nx03StockTakeItem: 'Nx03StockTakeItem',
+  Nx04Quote: 'Nx04Quote',
+  Nx04QuoteItem: 'Nx04QuoteItem',
+  Nx04So: 'Nx04So',
+  Nx04SoItem: 'Nx04SoItem',
+  Nx04Sr: 'Nx04Sr',
+  Nx04SrItem: 'Nx04SrItem',
+  Nx05AccountCode: 'Nx05AccountCode',
+  Nx05Allowance: 'Nx05Allowance',
+  Nx05AllowanceItem: 'Nx05AllowanceItem',
+  Nx05ApLedger: 'Nx05ApLedger',
+  Nx05ArLedger: 'Nx05ArLedger',
+  Nx05Closing: 'Nx05Closing',
+  Nx05Note: 'Nx05Note',
+  Nx05Paylog: 'Nx05Paylog',
+  Nx06Dn: 'Nx06Dn',
+  Nx06DnItem: 'Nx06DnItem',
+  Nx06DnStop: 'Nx06DnStop',
+  Nx07Attendance: 'Nx07Attendance',
+  Nx07IpWhitelist: 'Nx07IpWhitelist',
+  Nx07LeaveBalance: 'Nx07LeaveBalance',
+  Nx07LeaveRequest: 'Nx07LeaveRequest',
+  Nx07LeaveType: 'Nx07LeaveType',
+  Nx07OvertimeRequest: 'Nx07OvertimeRequest',
+  Nx07SalaryComponent: 'Nx07SalaryComponent',
+  Nx07SalaryRecord: 'Nx07SalaryRecord',
+  Nx07SalaryRecordItem: 'Nx07SalaryRecordItem',
+  Nx07SalarySetting: 'Nx07SalarySetting',
+  Nx07Schedule: 'Nx07Schedule',
+  Nx07ScheduleItem: 'Nx07ScheduleItem',
+  Nx07ShiftType: 'Nx07ShiftType',
+  Nx08DailyReport: 'Nx08DailyReport',
+  Nx08FinanceCache: 'Nx08FinanceCache',
+  Nx08HrCache: 'Nx08HrCache',
+  Nx08InventoryCache: 'Nx08InventoryCache',
+  Nx08MonthlyReport: 'Nx08MonthlyReport',
+  Nx08PestelRecord: 'Nx08PestelRecord',
+  Nx08PurchaseCache: 'Nx08PurchaseCache',
+  Nx08SalesCache: 'Nx08SalesCache',
+  Nx08SwotRecord: 'Nx08SwotRecord',
+  Nx09Document: 'Nx09Document',
+  Nx09DocumentVersion: 'Nx09DocumentVersion',
+  Nx09KmArticle: 'Nx09KmArticle',
+  Nx09KmArticleTag: 'Nx09KmArticleTag',
+  Nx09KmFeedback: 'Nx09KmFeedback',
+  Nx09KmTag: 'Nx09KmTag',
+  Nx09Meeting: 'Nx09Meeting',
+  Nx09MeetingAction: 'Nx09MeetingAction',
+  Nx09MeetingAttendee: 'Nx09MeetingAttendee',
+  Nx09MeetingMinutes: 'Nx09MeetingMinutes',
+  Nx10EmpExpLog: 'Nx10EmpExpLog',
+  Nx10EmpMedal: 'Nx10EmpMedal',
+  Nx10EmpTaskLog: 'Nx10EmpTaskLog',
+  Nx10MedalLevel: 'Nx10MedalLevel',
+  Nx10MentorshipRecord: 'Nx10MentorshipRecord',
+  Nx10PromotionCriteria: 'Nx10PromotionCriteria',
+  Nx10PromotionRequest: 'Nx10PromotionRequest',
+  Nx10SprintTask: 'Nx10SprintTask',
+  Nx10SprintTaskLog: 'Nx10SprintTaskLog',
+  Nx10SurpriseBoxLog: 'Nx10SurpriseBoxLog',
+  Nx10TaskTemplate: 'Nx10TaskTemplate',
+  Nx10TeamTask: 'Nx10TeamTask',
+  Nx10TeamTaskLog: 'Nx10TeamTaskLog',
+  Nx98DocLink: 'Nx98DocLink',
+  Nx99Plan: 'Nx99Plan',
+  Nx99ProductModule: 'Nx99ProductModule',
+  Nx99ProductModuleMap: 'Nx99ProductModuleMap',
   Nx99Release: 'Nx99Release',
   Nx99ReleaseItem: 'Nx99ReleaseItem',
-  Nx99Plan: 'Nx99Plan',
   Nx99Subscription: 'Nx99Subscription',
   Nx99SubscriptionItem: 'Nx99SubscriptionItem',
-  Nx99ProductModule: 'Nx99ProductModule',
-  Nx99ProductModuleMap: 'Nx99ProductModuleMap'
+  Nx99Tenant: 'Nx99Tenant'
 };
 
 /**
