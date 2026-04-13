@@ -6,6 +6,7 @@
 > 最低版本：LITE
 > 建立日期：2026-04-13
 > 狀態：📝 規劃中
+> 路由對照：**一律依** [ROUTE_TABLE_v2.0_路由標準表](./ROUTE_TABLE_v2.0_路由標準表.md)（語意化 `/dashboard/*`，不使用 `nx01` 等路徑）
 
 ---
 
@@ -34,6 +35,8 @@
 - 本階段全部使用 **Mock Data**，不串接後端
 - 首頁完成後必須先做**模組化優化（Phase 2）**，再進入下一個模組
 - 三個版本的版型差異透過 `planCode` prop 控制，**不做三個獨立頁面**
+- **Mock 導向路由、模組選單字母跳轉**：與 `ROUTE_TABLE_v2.0` 第十三章一致；實作若仍暫用舊 `/dashboard/nx**` URL，須列為「技術債」並在遷移完成後改連結
+- **快捷鍵語意**：`Alt+字母` 為頂欄／全域（如 `Alt+A` 公告）；**模組選單（Alt+X）開啟後**為**單鍵字母**（不含 Alt）跳轉——與路由表第十三章不衝突
 
 ---
 
@@ -66,6 +69,7 @@ apps/nx-ui/src/
 - 左側：Logo（NEXORA GRID 字樣）+ 版本 Badge（LITE/PLUS/PRO 金色外框）+ 當前模組名稱
 - 中間：即時日期時間（`YYYY年M月D日 星期X / 下午HH:MM:SS`，每秒更新）
 - 右側：公告按鈕（📢）/ 通知按鈕（🔔）/ 深淺模式（🌙）/ 使用者 Dropdown
+- 公告 Dropdown 底部「查看所有公告」連結：`/dashboard/bulletin`（見路由標準表 §一）
 
 **使用者 Dropdown 選項：**
 ```
@@ -254,9 +258,9 @@ components/dashboard/RightPanel/
 **Mock Data：**
 ```typescript
 const mockTasks = [
-  { id: 1, title: '審核本月銷售報表', desc: '檢查並批准 Q1 銷售數據', priority: 'URGENT', category: '報表', deadline: '10:00', xp: 30, done: false, targetRoute: '/dashboard/nx08/workspace' },
-  { id: 2, title: '回覆客戶抱怨郵件', desc: '', priority: 'URGENT', category: '客服', deadline: '11:30', xp: 20, done: false, targetRoute: '/dashboard/nx04/customer' },
-  { id: 3, title: '更新庫存資料', desc: '', priority: 'NORMAL', category: '庫存', deadline: '14:00', xp: 15, done: true, targetRoute: '/dashboard/nx03/workspace' },
+  { id: 1, title: '審核本月銷售報表', desc: '檢查並批准 Q1 銷售數據', priority: 'URGENT', category: '報表', deadline: '10:00', xp: 30, done: false, targetRoute: '/dashboard/report/workspace' },
+  { id: 2, title: '回覆客戶抱怨郵件', desc: '', priority: 'URGENT', category: '客服', deadline: '11:30', xp: 20, done: false, targetRoute: '/dashboard/sales/customer' },
+  { id: 3, title: '更新庫存資料', desc: '', priority: 'NORMAL', category: '庫存', deadline: '14:00', xp: 15, done: true, targetRoute: '/dashboard/inventory/workspace' },
   { id: 4, title: '參加團隊週會', desc: '', priority: 'NORMAL', category: '會議', deadline: '15:00', xp: 10, done: false, targetRoute: '/dashboard' },
 ]
 ```
@@ -265,20 +269,37 @@ const mockTasks = [
 
 #### Task 6：模組選單（Alt+X 展開）
 
-**版面：**
+**版面（字母與路由以 `ROUTE_TABLE_v2.0` §13 為準）：**
 ```
-┌──────────────────┐
-│ 模組總覽          │
-│ [首頁] H         │
-│ [主檔] B  [採購] P │
-│ [庫存] W  [銷售] S │
-│ [財務] M  [報表] R │
-│（PRO）[物流][人資][知識][遊戲化]│
-└──────────────────┘
+┌────────────────────────────────────────┐
+│ 模組總覽                                │
+│ [首頁] H                                │
+│ [主檔] B    [採購] P                    │
+│ [庫存] W    [銷售] S                    │
+│ [財務] M    [經營分析] R                │
+│（PRO 才顯示）[物流] L [人資] A [知識] K [遊戲化] G │
+└────────────────────────────────────────┘
 ```
 
 - 固定在畫面中央（或左側），按 `Alt+X` 開關
-- 鍵盤字母直接跳轉
+- **選單開啟後**按**單鍵**（H/B/P/W/S/M/L/A/R/K/G，不需 Alt）跳轉；詳見路由標準表
+- **LITE / PLUS**：不顯示 L、A、R、K、G 五鍵（PRO 限定模組）
+
+**目標路由範例：**
+
+| 鍵 | 路由 |
+|----|------|
+| H | `/dashboard` |
+| B | `/dashboard/base` |
+| P | `/dashboard/purchase/domestic` |
+| W | `/dashboard/inventory/workspace` |
+| S | `/dashboard/sales/domestic` |
+| M | `/dashboard/finance/workspace` |
+| L | `/dashboard/logistics/workspace` |
+| A | `/dashboard/hr/workspace` |
+| R | `/dashboard/report/workspace` |
+| K | `/dashboard/knowledge/workspace` |
+| G | `/dashboard/game` |
 
 ---
 
@@ -544,7 +565,7 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 | # | 測試項目 | 操作步驟 | 預期結果 |
 |---|---------|---------|---------|
 | T11 | 開關選單 | 按 Alt+X | 出現模組選單，再按一次關閉 |
-| T12 | 鍵盤跳轉 | 選單開啟後按 P | 跳轉至採購模組 `/dashboard/nx02/domestic` |
+| T12 | 鍵盤跳轉 | 選單開啟後按 P | 跳轉至採購工作台 `/dashboard/purchase/domestic` |
 | T13 | ESC 關閉 | 選單開啟後按 Esc | 選單關閉 |
 
 ### 7-4 行事曆測試
@@ -583,7 +604,7 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 | T28 | 簽到獎勵 | 點擊獎勵按鈕 | 開啟簽到獎勵 Modal，顯示連續簽到進度 |
 | T29 | 任務打勾 | 點擊本日目標中未完成任務 | 任務變為打勾 + 刪除線，XP 累計增加 |
 | T30 | 月目標切換 | 點擊公司 / 團隊 / 個人 Tab | 對應 KPI 資料切換顯示 |
-| T31 | 工作日誌按鈕 | 點擊「填寫工作日誌」| 跳轉 `/dashboard/nx08/daily-report` |
+| T31 | 工作日誌按鈕 | 點擊「填寫工作日誌」| 跳轉 `/dashboard/report/daily` |
 
 ### 7-8 今日工作測試
 
@@ -608,6 +629,7 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 
 | 文件 | 路徑 |
 |------|------|
+| 路由標準表 v2.0 | `docs/flows/ROUTE_TABLE_v2.0_路由標準表.md` |
 | 畫面規劃 | `docs/ui/SYS_DASHBOARD.md` |
 | 共用版型規則 | `docs/ui/SYS_LAYOUT.md` |
 | 共用元件說明（Phase 2 產出）| `docs/modules/MODULE_SHARED_UI.md` |
@@ -621,11 +643,17 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 > ⚠️ 每個 Phase 完成後由 Hank 當天填寫，Crown 驗收後填寫驗收結果。記錄一經建立不可刪除。
 
 ### Phase 1｜前端畫面（Mock Data）
-- **完成時間**：
+- **完成時間**：2026-04-13 12:00
 - **完成人**：Hank
 - **本次修改摘要**：
-  -
+  - `components/layout`：TopBar、MainShell、KpiBar；`components/dashboard/*`：ExpBar、LeftPanel、RightPanel、ModuleMenuOverlay
+  - `features/sys-dashboard/ui/SysDashboardPage.tsx` + `app/dashboard/page.tsx`；Mock 集中 `src/mocks/dashboard.ts`
+  - Demo 模式：`hooks/useDemoSession.ts`、`useSessionMe` 短路、`middleware.ts`；`.env.local` 範例變數（不進版控）
+  - 路由：`next.config.ts` 將 `/base` 永久導向 `/dashboard/base`，並以 `rewrites` 對應既有 `app/base/*`；`app/dashboard/bulletin/page.tsx` 公告占位；TopBar 公告「查看全部」→ `/dashboard/bulletin`
+  - `DashboardShell`：`/dashboard` 首頁全幅殼；`TopModuleTabs` HOME → `/dashboard`
 - **已知問題 / 待確認**：
+  - 其餘 v2 語意路徑（如 `/dashboard/purchase/domestic`）尚未全面建立，模組選單仍可能指向舊 URL 或待擴充 redirect/頁面
+  - Next.js 對 `middleware` 慣例之 deprecation 提示仍可能出现（與本任務無直接關係）
 - **Crown 驗收結果**：⏳ 待驗收
 
 ---

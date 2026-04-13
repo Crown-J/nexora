@@ -175,7 +175,7 @@ export function TopBar({
                 </ul>
                 <div className="border-t border-border/60 px-3 py-2">
                   <a
-                    href="/dashboard/nx01/bulletin"
+                    href="/dashboard/bulletin"
                     className="text-xs text-primary hover:underline"
                   >
                     查看所有公告 →
