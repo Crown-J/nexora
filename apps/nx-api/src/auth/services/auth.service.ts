@@ -8,7 +8,7 @@
  *
  * Notes:
  * - 驗證帳密、簽發 JWT
- * - /auth/me 用 sub 查 nx00_user 回傳使用者資訊
+ * - /auth/me 用 sub 查 nx01_user 回傳使用者資訊
  * - Prisma 回傳 camelCase 欄位（isActive/passwordHash/displayName...）
  * - tenant_id 為 null 時仍可登入；僅「無租戶＋ADMIN」簽出無租戶 JWT，其餘租戶 admin 帶 tenantId
  */
@@ -18,7 +18,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../prisma/prisma.service';
-import { ViewPermissionService } from '../../nx00/rbac/view-permission.service';
+import { ViewPermissionService } from '../../shared/rbac/view-permission.service';
 
 @Injectable()
 export class AuthService {
@@ -54,7 +54,7 @@ export class AuthService {
 
     const userInclude = {
       tenant: true,
-      userRoles: {
+      rev_Nx01UserRole_userId: {
         where: { isActive: true },
         include: { role: { select: { code: true } } },
       },
@@ -72,12 +72,12 @@ export class AuthService {
       if (!tenant) {
         throw new UnauthorizedException('Invalid username or password');
       }
-      user = await this.prisma.nx00User.findUnique({
+      user = await this.prisma.nx01User.findUnique({
         where: { tenantId_userAccount: { tenantId: tenant.id, userAccount: uname } },
         include: userInclude,
       });
     } else {
-      user = await this.prisma.nx00User.findFirst({
+      user = await this.prisma.nx01User.findFirst({
         where: { userAccount: uname },
         include: userInclude,
       });
@@ -100,7 +100,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    const scopedUserRoles = user.userRoles.filter((ur) => ur.tenantId === user.tenantId);
+    const scopedUserRoles = user.rev_Nx01UserRole_userId.filter((ur) => ur.tenantId === user.tenantId);
     /** 僅「無租戶綁定」的 ADMIN 為跨租戶平台；租戶內 admin 帳號仍帶 tenantId 以隔離資料 */
     const isCrossTenantPlatform =
       scopedUserRoles.some((ur) => String(ur.role?.code ?? '').trim().toUpperCase() === 'ADMIN') &&
@@ -123,7 +123,7 @@ export class AuthService {
       subscription,
       isCrossTenantPlatform,
     );
-    await this.prisma.nx00User.update({
+    await this.prisma.nx01User.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
@@ -170,14 +170,14 @@ export class AuthService {
    *
    * 說明：
    * - JWT Guard 解析 sub 後，帶入 userId
-   * - 查 nx00_user 回傳乾淨 DTO（不包含 passwordHash）
+   * - 查 nx01_user 回傳乾淨 DTO（不包含 passwordHash）
    */
   async me(userId: string) {
     if (!userId) {
       throw new UnauthorizedException('Token user not found');
     }
 
-    const user = await this.prisma.nx00User.findUnique({
+    const user = await this.prisma.nx01User.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -191,7 +191,7 @@ export class AuthService {
         updatedAt: true,
         lastLoginAt: true,
         tenant: { select: { name: true, nameEn: true } },
-        userRoles: {
+        rev_Nx01UserRole_userId: {
           where: { isActive: true },
           select: {
             tenantId: true,
@@ -207,8 +207,8 @@ export class AuthService {
     }
 
     const roleRowsForMe = user.tenantId
-      ? user.userRoles.filter((ur) => ur.tenantId === user.tenantId)
-      : user.userRoles;
+      ? user.rev_Nx01UserRole_userId.filter((ur) => ur.tenantId === user.tenantId)
+      : user.rev_Nx01UserRole_userId;
     const roles = roleRowsForMe.map((ur) => ur.role.code);
     /** 與 Guard 一致：掛 ADMIN 職務者 view_permissions 為 null（前端視為全開） */
     const isPlatformAdminForPerms = roleRowsForMe.some(

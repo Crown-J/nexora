@@ -43,20 +43,22 @@ export class RolesGuard implements CanActivate {
     }
 
     // 查詢使用者角色
-    const userRoles = await this.prisma.nx00UserRole.findMany({
-      where: { userId: user.sub },
-      include: { role: true },
+    const userRoles = await this.prisma.nx01UserRole.findMany({
+      where: { userId: user.sub, isActive: true },
+      include: { role: { select: { code: true, isActive: true } } },
     });
 
-    const roleCodes = userRoles.map((r) => r.role.code);
+    const roleCodes = userRoles
+      .filter((r) => r.role.isActive)
+      .map((r) => r.role.code);
 
     // 🔥 ADMIN 覆蓋邏輯
-    if (roleCodes.includes('ADMIN')) {
+    if (roleCodes.some((c) => String(c).trim().toUpperCase() === 'ADMIN')) {
       return true;
     }
 
     const hasPermission = requiredRoles.some((role) =>
-      roleCodes.includes(role),
+      roleCodes.some((c) => String(c).trim().toUpperCase() === String(role).trim().toUpperCase()),
     );
 
     if (!hasPermission) {

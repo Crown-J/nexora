@@ -5,7 +5,7 @@
  * Purpose:
  * - JWT 驗證 + 注入 roles 到 req.user
  * - NX99-T3：validate 回傳 tenantId / tenantCode / planCode 供 API 識別租戶與方案
- * - **跨租戶平台**：僅當 nx00_user.tenantId 為 null 且具 ADMIN 職務時，租戶欄位為 null
+ * - **跨租戶平台**：僅當 nx01_user.tenantId 為 null 且具 ADMIN 職務時，租戶欄位為 null
  * - **租戶內 ADMIN**（如 DEMO 的 admin）：仍帶該租戶 tenantId，列表／查詢僅限該公司
  *
  * Notes:
@@ -56,7 +56,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Invalid token payload');
     }
 
-    const userRow = await this.prisma.nx00User.findUnique({
+    const userRow = await this.prisma.nx01User.findUnique({
       where: { id: payload.sub },
       select: { tenantId: true },
     });
@@ -72,7 +72,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       urWhere.tenantId = userRow.tenantId;
     }
 
-    const urRows = await this.prisma.nx00UserRole.findMany({
+    const urRows = await this.prisma.nx01UserRole.findMany({
       where: urWhere,
       include: { role: true },
     });

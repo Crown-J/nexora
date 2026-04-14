@@ -59,7 +59,7 @@ export class AppController {
   @Roles('ADMIN')
   @Get('/debug/users')
   async debugUsers() {
-    return this.prisma.nx00User.findMany({
+    return this.prisma.nx01User.findMany({
       take: 20,
       orderBy: { createdAt: 'desc' },
       select: {

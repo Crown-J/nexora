@@ -1,0 +1,5 @@
+-- NX05 Phase 6: 收款/付款單（nx05_paylog）狀態與過帳時間
+
+ALTER TABLE "nx05_paylog" ADD COLUMN IF NOT EXISTS "status" VARCHAR(20) NOT NULL DEFAULT 'DRAFT';
+ALTER TABLE "nx05_paylog" ADD COLUMN IF NOT EXISTS "voided_at" TIMESTAMP(3);
+ALTER TABLE "nx05_paylog" ADD COLUMN IF NOT EXISTS "posted_at" TIMESTAMP(3);

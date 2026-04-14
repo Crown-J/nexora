@@ -9,6 +9,7 @@ const ROLE_SPECS = [
   { code: 'FINANCE', name: '財務', isSystem: true, sortNo: 5, description: '財務模組' },
   { code: 'LOGISTICS', name: '物流', isSystem: true, sortNo: 6, description: '物流模組' },
   { code: 'HR', name: '人資', isSystem: true, sortNo: 7, description: '人資模組' },
+  { code: 'HR_ADMIN', name: '人資主管', isSystem: true, sortNo: 8, description: '人資進階權限（含薪資明細）' },
 ];
 
 export async function seedNx01Role(prisma: PrismaClient): Promise<void> {

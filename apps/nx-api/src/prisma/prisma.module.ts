@@ -7,13 +7,14 @@
  */
 
 import { Global, Module } from '@nestjs/common';
+
+import { ViewPermissionService } from '../shared/rbac/view-permission.service';
+import { Nx01AuditLogWriterService } from '../shared/services/nx01-audit-log-writer.service';
 import { PrismaService } from './prisma.service';
-import { Nx00ViewPermissionGuard } from '../nx00/rbac/nx00-view-permission.guard';
-import { ViewPermissionService } from '../nx00/rbac/view-permission.service';
 
 @Global()
 @Module({
-  providers: [PrismaService, ViewPermissionService, Nx00ViewPermissionGuard],
-  exports: [PrismaService, ViewPermissionService, Nx00ViewPermissionGuard],
+  providers: [PrismaService, ViewPermissionService, Nx01AuditLogWriterService],
+  exports: [PrismaService, ViewPermissionService, Nx01AuditLogWriterService],
 })
 export class PrismaModule {}
