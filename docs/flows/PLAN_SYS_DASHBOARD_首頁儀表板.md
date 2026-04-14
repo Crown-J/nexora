@@ -695,11 +695,15 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 ---
 
 ### Phase 5｜後端 API
-- **完成時間**：
-- **完成人**：Hank
+- **完成時間**：2026-04-14
+- **完成人**：Hank（Cursor）
 - **本次修改摘要**：
-  -
+  - **NX01～NX10 後端 API 已全部落地**（儀表板 Phase 5 後端範圍）：`Nx01Module`～`Nx10Module` 皆已掛入 `AppModule`；各模組 fetch 驗證腳本見 `apps/nx-api/scripts/nx*-crud-fetch-test.mjs`（NX08+NX09 共用 `nx08-nx09-crud-fetch-test.mjs`）。
+  - **NX10（PRO）**：`migration 20260418120000_nx10_checkin_log` 新增 `nx10_checkin_log`（`gen_nx10_checkin_log_id`）；EXP／勳章以 **`nx10_emp_medal` + `nx10_emp_exp_log`** 為準（規格名 `nx10_user_exp` 對應此設計）；連續簽到獎勵自 **`nx10_task_template`**（`STREAK_D1`～`STREAK_D7`）。
+  - **路由**：`GET/POST /nx10/exp/*`、`/nx10/checkin/*`、`/nx10/tasks/*`（**`GET /nx10/tasks/today` 僅 Jwt**，LITE/PLUS 可讀模組彙整；其餘 NX10 路由 **`Nx10ProPlanGuard`**）、`/nx10/medals/*`、`GET /nx10/leaderboard`；簽到／任務完成／ADMIN 發放 EXP 寫 **`nx01_audit_log`（moduleCode: NX10）**。
+  - **驗證**：`pnpm exec tsc --noEmit -p apps/nx-api`；`node apps/nx-api/scripts/nx10-crud-fetch-test.mjs`（含簽到 EXP、`STREAK_D1`、排行榜、`PATCH .../tasks/:id/done`）。
 - **已知問題 / 待確認**：
+  - 首頁 Phase 6 串接時，若採計畫書之 `/api/*` 語意路徑，需 **BFF 或 nx-ui rewrite** 對應現有 `/nx10/*` REST。
 - **Crown 驗收結果**：⏳ 待驗收
 
 ---
