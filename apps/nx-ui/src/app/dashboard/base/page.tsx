@@ -15,10 +15,11 @@ import type { MasterHubCard } from '@/app/base/master-cards';
 import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
+/** 與單入口 Hub 卡左上角模組圖示同規：外框 32×32、圖示 16×16；邊框改橘金以區分雙入口 */
 const dualIconSlotClass = cn(
-  'flex flex-1 items-center justify-center rounded-xl border py-2 transition-colors',
-  'border-[#E8A020]/50 bg-transparent text-[#E8A020]',
-  'hover:border-[#E8A020]/75 hover:bg-[#E8A020]/12',
+  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition-colors',
+  'border-[#E8A020]/50 bg-secondary/50 text-[#E8A020]',
+  'hover:border-[#E8A020]/75 hover:bg-[#E8A020]/14',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
 );
 
@@ -49,7 +50,7 @@ function DualEntryHubCard({
                 aria-label={l.label}
                 title={l.label}
               >
-                <EntryIcon className="h-5 w-5 shrink-0" aria-hidden />
+                <EntryIcon className="h-4 w-4 shrink-0" aria-hidden />
               </Link>
             );
           })}
