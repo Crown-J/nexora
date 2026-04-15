@@ -140,8 +140,8 @@ function ProHomeBody({
 
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,13fr)_minmax(0,7fr)] grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
-      <ProExpRankBar className="min-h-0 self-stretch" />
-      <DashboardQuickShortcuts className="min-h-0 self-stretch" />
+      <ProExpRankBar className="h-full min-h-0 self-stretch" />
+      <DashboardQuickShortcuts className="h-full min-h-0 self-stretch" />
       <div className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,7fr)_minmax(0,13fr)] gap-3 overflow-hidden">
         <ProNx10LeftPanel className="min-h-0 h-full min-w-0" />
         <div className="flex h-full min-h-0 min-w-0 flex-col gap-3 overflow-hidden">

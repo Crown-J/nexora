@@ -22,7 +22,7 @@ export function DashboardQuickShortcuts({ className }: Props) {
   return (
     <div
       className={cx(
-        'nx-dash-card flex h-full min-h-0 w-full shrink-0 flex-row flex-nowrap items-stretch gap-1.5 p-2 sm:gap-2 sm:p-2.5',
+        'nx-dash-card flex w-full shrink-0 flex-row flex-nowrap items-stretch gap-1.5 p-2 sm:gap-2 sm:p-2.5',
         className,
       )}
       aria-label="首頁預設快捷鍵"
