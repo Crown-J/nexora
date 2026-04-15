@@ -22,6 +22,7 @@ import { listCarBrand } from '@/features/nx00/car-brand/api/car-brand';
 import { listLocation } from '@/features/nx00/location/api/location';
 import { listRoleView } from '@/features/nx00/role-view/api/role-view';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
 function fmtCount(n: number): string {
@@ -85,54 +86,71 @@ export default function BaseDashboardPage() {
               </h2>
               <span className="text-[11px] text-muted-foreground tabular-nums">{group.cards.length} 項</span>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            <div className="flex flex-wrap justify-start gap-6">
               {group.cards.map((card) => {
                 const Icon = card.icon;
                 const inner = (
-                  <>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className={cn(
-                        'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/80',
-                        'bg-secondary/50 text-primary',
-                      )}>
-                        <Icon className="h-5 w-5" aria-hidden />
+                  <div className="flex h-full min-h-0 flex-col gap-1.5">
+                    <div className="flex shrink-0 items-start justify-between gap-2">
+                      <div
+                        className={cn(
+                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/80',
+                          'bg-secondary/50 text-primary',
+                        )}
+                      >
+                        <Icon className="h-4 w-4" aria-hidden />
                       </div>
                       {!card.links ? (
                         <ChevronRight
-                          className="h-5 w-5 shrink-0 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
+                          className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
                           aria-hidden
                         />
                       ) : null}
                     </div>
-                    <div className="mt-4 space-y-1">
-                      <h3 className="text-base font-semibold text-foreground">{card.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
+                    <div className="min-h-0 flex-1 space-y-0.5">
+                      <h3 className="line-clamp-1 text-sm font-semibold leading-tight text-foreground">{card.title}</h3>
+                      <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">{card.description}</p>
                     </div>
-                    <div className="mt-4 flex flex-wrap items-end justify-between gap-2 border-t border-border/60 pt-4">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{card.statLabel}</p>
-                        <p className="text-lg font-semibold tabular-nums text-foreground">
-                          {hubStats[card.id] ?? card.statValue}
-                        </p>
-                      </div>
-                      {card.links ? (
-                        <div className="flex flex-wrap gap-2">
-                          {card.links.map((l) => (
-                            <Link
-                              key={l.href}
-                              href={l.href}
-                              className={cn(
-                                'rounded-xl border border-primary/35 bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary',
-                                'transition-colors hover:bg-primary/18 hover:border-primary/50',
-                              )}
-                            >
-                              {l.label}
-                            </Link>
-                          ))}
+                    <div className="mt-auto shrink-0 border-t border-border/60 pt-1.5">
+                      {!card.links ? (
+                        <div>
+                          <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{card.statLabel}</p>
+                          <p className="text-sm font-semibold tabular-nums leading-tight text-foreground">
+                            {hubStats[card.id] ?? card.statValue}
+                          </p>
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div>
+                            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{card.statLabel}</p>
+                            <p className="line-clamp-1 text-xs font-semibold tabular-nums leading-tight text-foreground">
+                              {hubStats[card.id] ?? card.statValue}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            {card.links.map((l) => (
+                              <Link
+                                key={l.href}
+                                href={l.href}
+                                onClick={(e) => e.stopPropagation()}
+                                className={cn(
+                                  'rounded-lg border border-primary/35 bg-primary/10 px-2 py-1 text-center text-[10px] font-medium text-primary',
+                                  'transition-colors hover:bg-primary/18 hover:border-primary/50',
+                                )}
+                              >
+                                {l.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </>
+                  </div>
+                );
+
+                const shellMotion = cn(
+                  'transition-all duration-300 ease-out',
+                  'hover:-translate-y-0.5 hover:scale-[1.01] hover:border-primary/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]',
                 );
 
                 if (card.href) {
@@ -140,13 +158,7 @@ export default function BaseDashboardPage() {
                     <Link
                       key={card.id}
                       href={card.href}
-                      className={cn(
-                        'group glass-card block rounded-2xl border border-border/80 p-5 text-left shadow-sm',
-                        'transition-all duration-300 ease-out',
-                        'hover:-translate-y-0.5 hover:scale-[1.01] hover:border-primary/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                        'active:scale-[0.998]',
-                      )}
+                      className={cn(hubCardShellBaseClass, 'group flex flex-col', shellMotion, 'active:scale-[0.998]', 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background')}
                     >
                       {inner}
                     </Link>
@@ -154,14 +166,7 @@ export default function BaseDashboardPage() {
                 }
 
                 return (
-                  <div
-                    key={card.id}
-                    className={cn(
-                      'group glass-card rounded-2xl border border-border/80 p-5 shadow-sm',
-                      'transition-all duration-300 ease-out',
-                      'hover:-translate-y-0.5 hover:scale-[1.01] hover:border-primary/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]',
-                    )}
-                  >
+                  <div key={card.id} className={cn(hubCardShellBaseClass, 'group flex flex-col', shellMotion)}>
                     {inner}
                   </div>
                 );

@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX02-DASH-UI-001-F01
- * 採購中心首頁：主檔風格卡片 + 主流程實線箭頭 + 支線虛線（進貨頂部繞接）+ 子功能 Dropdown
+ * 採購中心首頁：Hub 統一卡片尺寸 + 主流程實線 →→ + 進貨頂部虛線迴圈（量測 SVG）
  */
 
 'use client';
@@ -26,11 +26,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { mockPurchaseCounts } from '@/mocks/purchase-hub';
+import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
 const BRANCH_STROKE = 'rgba(232,160,32,0.4)';
 const FLOW_SOLID = '#E8A020';
 const BADGE_GOLD = '#E8A020';
+const BRANCH_DASH = '6 4';
 
 type SubItem = { label: string; href: string };
 
@@ -45,8 +47,8 @@ type PurchaseCardConfig = {
 };
 
 const CARD_BASE = cn(
-  'group relative glass-card w-full max-w-[280px] rounded-2xl border border-border/80 p-5 text-left shadow-sm',
-  'transition-all duration-300 ease-out',
+  hubCardShellBaseClass,
+  'flex flex-col transition-all duration-300 ease-out',
   'hover:-translate-y-0.5 hover:scale-[1.01] hover:brightness-[1.03]',
   'hover:border-[#E8A020]/55 hover:shadow-[0_0_24px_rgba(232,160,32,0.22),0_12px_40px_rgba(0,0,0,0.28)]',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
@@ -168,13 +170,20 @@ function countBadge(c: PurchaseCardConfig): string {
   return '—';
 }
 
+/** 終點小三角（↓），尖端略伸入卡片頂緣內側 */
+function downArrowPoints(cx: number, cardTopY: number): string {
+  const tipY = cardTopY + 5;
+  const baseY = cardTopY;
+  return `${cx},${tipY} ${cx - 4.5},${baseY} ${cx + 4.5},${baseY}`;
+}
+
 function SolidFlowArrow() {
   return (
     <div className="hidden w-9 shrink-0 items-center md:flex" aria-hidden>
       <div className="flex w-full min-w-[2rem] flex-row items-center gap-0">
         <div className="h-0.5 min-w-0 flex-1 rounded-full" style={{ backgroundColor: FLOW_SOLID }} />
         <span className="shrink-0 text-sm font-semibold leading-none" style={{ color: FLOW_SOLID }}>
-          →
+          →→
         </span>
       </div>
     </div>
@@ -185,11 +194,18 @@ function SolidFlowArrowMobile() {
   return (
     <div className="flex justify-center py-1 md:hidden" aria-hidden>
       <span className="text-sm font-semibold" style={{ color: FLOW_SOLID }}>
-        →
+        →→
       </span>
     </div>
   );
 }
+
+type BranchGeom = {
+  w: number;
+  h: number;
+  paths: { key: string; d: string }[];
+  arrows: { key: string; points: string }[];
+};
 
 function BranchOverlay({
   rootRef,
@@ -204,7 +220,7 @@ function BranchOverlay({
   warrantyRef: React.RefObject<HTMLDivElement | null>;
   mode: 'domestic' | 'special';
 }) {
-  const [svg, setSvg] = useState<{ w: number; h: number; d: string } | null>(null);
+  const [geom, setGeom] = useState<BranchGeom | null>(null);
 
   useLayoutEffect(() => {
     function measure() {
@@ -219,9 +235,8 @@ function BranchOverlay({
       const retR = ret.getBoundingClientRect();
       const warR = war?.getBoundingClientRect();
 
-      const padTop = 8;
-      const h = Math.max(rootR.height, padTop + 120);
       const w = rootR.width;
+      const h = rootR.height;
 
       const cx = (r: DOMRect) => r.left - rootR.left + r.width / 2;
       const top = (r: DOMRect) => r.top - rootR.top;
@@ -230,24 +245,38 @@ function BranchOverlay({
       const yPoTop = top(poR);
       const xRet = cx(retR);
       const yRetTop = top(retR);
-      const arch = Math.min(yPoTop, yRetTop, warR ? top(warR) : yRetTop) - 14;
 
-      let d: string;
-      if (mode === 'special' || !warR) {
-        d = `M ${xPo} ${yPoTop} L ${xPo} ${arch} L ${xRet} ${arch} L ${xRet} ${yRetTop}`;
-      } else {
+      const paths: { key: string; d: string }[] = [];
+      const arrows: { key: string; points: string }[] = [];
+
+      const yMidReturn = yPoTop - 20;
+      paths.push({
+        key: 'return',
+        d: `M ${xPo} ${yPoTop} L ${xPo} ${yMidReturn} L ${xRet} ${yMidReturn} L ${xRet} ${yRetTop}`,
+      });
+      arrows.push({ key: 'return', points: downArrowPoints(xRet, yRetTop) });
+
+      if (mode === 'domestic' && warR) {
         const xWar = cx(warR);
         const yWarTop = top(warR);
-        const yArch = Math.min(arch, yWarTop - 14);
-        d = `M ${xPo} ${yPoTop} L ${xPo} ${yArch} L ${xRet} ${yArch} L ${xRet} ${yRetTop} M ${xRet} ${yArch} L ${xWar} ${yArch} L ${xWar} ${yWarTop}`;
+        const yMidWarranty = yPoTop - 40;
+        paths.push({
+          key: 'warranty',
+          d: `M ${xPo} ${yPoTop} L ${xPo} ${yMidWarranty} L ${xWar} ${yMidWarranty} L ${xWar} ${yWarTop}`,
+        });
+        arrows.push({ key: 'warranty', points: downArrowPoints(xWar, yWarTop) });
       }
 
-      setSvg({ w, h, d });
+      setGeom({ w, h, paths, arrows });
     }
 
     measure();
     const ro = new ResizeObserver(() => measure());
-    if (rootRef.current) ro.observe(rootRef.current);
+    const nodes = [rootRef.current, poRef.current, returnRef.current];
+    if (mode === 'domestic') nodes.push(warrantyRef.current);
+    for (const n of nodes) {
+      if (n) ro.observe(n);
+    }
     window.addEventListener('resize', measure);
     return () => {
       ro.disconnect();
@@ -255,26 +284,31 @@ function BranchOverlay({
     };
   }, [mode, rootRef, poRef, returnRef, warrantyRef]);
 
-  if (!svg) return null;
+  if (!geom) return null;
 
   return (
     <svg
-      className="pointer-events-none absolute left-0 right-0 top-0 z-0 overflow-visible"
-      width={svg.w}
-      height={svg.h}
-      viewBox={`0 0 ${svg.w} ${svg.h}`}
-      preserveAspectRatio="none"
+      className="pointer-events-none absolute inset-0 z-0 overflow-visible"
+      width={geom.w}
+      height={geom.h}
+      viewBox={`0 0 ${geom.w} ${geom.h}`}
       aria-hidden
     >
-      <path
-        d={svg.d}
-        fill="none"
-        stroke={BRANCH_STROKE}
-        strokeWidth={2}
-        strokeDasharray="6 5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      {geom.paths.map((p) => (
+        <path
+          key={p.key}
+          d={p.d}
+          fill="none"
+          stroke={BRANCH_STROKE}
+          strokeWidth={2}
+          strokeDasharray={BRANCH_DASH}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
+      {geom.arrows.map((a) => (
+        <polygon key={a.key} points={a.points} fill={BRANCH_STROKE} stroke="none" />
+      ))}
     </svg>
   );
 }
@@ -287,23 +321,23 @@ function PurchaseMenuCard({ card }: { card: PurchaseCardConfig }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className={CARD_BASE}>
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex shrink-0 items-start justify-between gap-2">
             <div
               className={cn(
-                'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border/80',
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/80',
                 'bg-secondary/50 text-primary',
               )}
             >
-              <Icon className="h-5 w-5" aria-hidden />
+              <Icon className="h-4 w-4" aria-hidden />
             </div>
           </div>
-          <div className="mt-4 space-y-1 pr-14">
-            <h3 className="text-base font-semibold text-foreground">{card.title}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
+          <div className="mt-1.5 min-h-0 flex-1 space-y-0.5 pr-11">
+            <h3 className="line-clamp-1 text-sm font-semibold leading-tight text-foreground">{card.title}</h3>
+            <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">{card.description}</p>
           </div>
           <span
             className={cn(
-              'pointer-events-none absolute bottom-4 right-4 rounded-full border px-2.5 py-1 text-xs font-semibold tabular-nums',
+              'pointer-events-none absolute bottom-3 right-3 rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
             )}
             style={{
               color: BADGE_GOLD,
@@ -330,7 +364,7 @@ function PurchaseMenuCard({ card }: { card: PurchaseCardConfig }) {
 
 function CardWrap({ children, cardRef }: { children: ReactNode; cardRef?: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <div ref={cardRef} className="relative z-10 flex w-full max-w-[280px] shrink-0 justify-center">
+    <div ref={cardRef} className="relative z-10 flex w-[220px] shrink-0 justify-center">
       {children}
     </div>
   );
@@ -344,7 +378,7 @@ function DomesticFlow() {
   const warRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={rootRef} className="relative w-full min-w-0 pt-10">
+    <div ref={rootRef} className="relative w-full min-w-0 pt-12">
       <BranchOverlay rootRef={rootRef} poRef={poRef} returnRef={retRef} warrantyRef={warRef} mode="domestic" />
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
         <CardWrap>
@@ -379,7 +413,7 @@ function SpecialFlow() {
   const warRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={rootRef} className="relative w-full min-w-0 pt-10">
+    <div ref={rootRef} className="relative w-full min-w-0 pt-12">
       <BranchOverlay rootRef={rootRef} poRef={poRef} returnRef={retRef} warrantyRef={warRef} mode="special" />
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
         <CardWrap>
@@ -416,7 +450,7 @@ export function PurchaseCenterHub() {
 
       <section className="flex flex-wrap justify-start gap-6" aria-label="採購管理">
         {managementCards.map((c) => (
-          <div key={c.id} className="flex w-full max-w-[280px] shrink-0 justify-center sm:w-auto">
+          <div key={c.id} className="flex w-[220px] shrink-0 justify-center sm:w-auto">
             <PurchaseMenuCard card={c} />
           </div>
         ))}
