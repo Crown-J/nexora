@@ -5,8 +5,6 @@
 
 'use client';
 
-import type { ReactNode } from 'react';
-import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import {
   Building2,
@@ -17,16 +15,12 @@ import {
   RotateCcw,
   Shield,
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { mockPurchaseCounts } from '@/mocks/purchase-hub';
-import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
-import { cn } from '@/lib/utils';
+import {
+  CenterHubCardWrap,
+  CenterHubFlowCard,
+  CenterHubGroupHeading,
+} from '@/features/layout/ui/CenterHubFlowCard';
 
 const BADGE_GOLD = '#E8A020';
 const STEP_BADGE_BG = '#E8A020';
@@ -42,15 +36,6 @@ type PurchaseCardConfig = {
   countKind: 'pending' | 'total';
   countKey: keyof typeof mockPurchaseCounts;
 };
-
-const CARD_BASE = cn(
-  hubCardShellBaseClass,
-  'flex flex-col transition-all duration-300 ease-out',
-  'hover:-translate-y-0.5 hover:scale-[1.01] hover:brightness-[1.03]',
-  'hover:border-[#E8A020]/55 hover:shadow-[0_0_24px_rgba(232,160,32,0.22),0_12px_40px_rgba(0,0,0,0.28)]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-  'data-[state=open]:border-[#E8A020]/50 data-[state=open]:shadow-md',
-);
 
 const managementCards: PurchaseCardConfig[] = [
   {
@@ -167,76 +152,19 @@ function countBadge(c: PurchaseCardConfig): string {
   return '—';
 }
 
-function PurchaseGroupHeading({ id, title }: { id: string; title: string }) {
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border/70 pb-2">
-      <h2 id={id} className="text-sm font-semibold tracking-wide text-foreground">
-        {title}
-      </h2>
-    </div>
-  );
-}
-
 function PurchaseMenuCard({ card, stepLabel }: { card: PurchaseCardConfig; stepLabel?: string }) {
   const Icon = card.icon;
-  const badge = countBadge(card);
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button type="button" className={CARD_BASE}>
-          {stepLabel ? (
-            <span
-              className="pointer-events-none absolute right-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none text-neutral-950"
-              style={{ backgroundColor: STEP_BADGE_BG }}
-              aria-hidden
-            >
-              {stepLabel}
-            </span>
-          ) : null}
-          <div className={cn('flex shrink-0 items-start justify-between gap-2', stepLabel ? 'pr-[3.25rem]' : 'pr-8')}>
-            <div
-              className={cn(
-                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/80',
-                'bg-secondary/50 text-primary',
-              )}
-            >
-              <Icon className="h-4 w-4" aria-hidden />
-            </div>
-          </div>
-          <div className="mt-1.5 min-h-0 flex-1 space-y-0.5 pr-11">
-            <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-foreground">{card.title}</h3>
-            <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">{card.description}</p>
-          </div>
-          <span
-            className={cn(
-              'pointer-events-none absolute bottom-3 right-3 rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-            )}
-            style={{
-              color: BADGE_GOLD,
-              borderColor: 'rgba(232,160,32,0.45)',
-              backgroundColor: 'rgba(232,160,32,0.12)',
-            }}
-          >
-            {badge}
-          </span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" sideOffset={8} className="glass-card w-60 border-border/80 p-1 shadow-lg">
-        <DropdownMenuSeparator className="my-1 bg-border/50" />
-        {card.subItems.map((item) => (
-          <DropdownMenuItem key={item.label} asChild className="cursor-pointer">
-            <Link href={item.href}>{item.label}</Link>
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator className="my-1 bg-border/50" />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <CenterHubFlowCard
+      title={card.title}
+      description={card.description}
+      icon={Icon}
+      subItems={card.subItems}
+      footerBadge={countBadge(card)}
+      stepLabel={stepLabel}
+      accentHex={BADGE_GOLD}
+    />
   );
-}
-
-function CardWrap({ children }: { children: ReactNode }) {
-  return <div className="flex w-[220px] shrink-0 justify-center">{children}</div>;
 }
 
 function DomesticFlow() {
@@ -245,21 +173,21 @@ function DomesticFlow() {
   return (
     <div className="relative w-full min-w-0">
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
-        <CardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={a} stepLabel="Step.1" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={b} stepLabel="Step.2" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={c} stepLabel="Step.3" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={domesticBranchReturn} stepLabel="Step.4" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={domesticBranchWarranty} stepLabel="Step.5" />
-        </CardWrap>
+        </CenterHubCardWrap>
       </div>
     </div>
   );
@@ -271,18 +199,18 @@ function SpecialFlow() {
   return (
     <div className="relative w-full min-w-0">
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
-        <CardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={a} stepLabel="Step.1" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={b} stepLabel="Step.2" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={c} stepLabel="Step.3" />
-        </CardWrap>
-        <CardWrap>
+        </CenterHubCardWrap>
+        <CenterHubCardWrap>
           <PurchaseMenuCard card={specialReturn} stepLabel="Step.4" />
-        </CardWrap>
+        </CenterHubCardWrap>
       </div>
     </div>
   );
@@ -294,13 +222,11 @@ export function PurchaseCenterHub() {
       <header className="space-y-1">
         <p className="text-xs tracking-[0.35em] text-muted-foreground">PURCHASE CENTER</p>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">採購中心</h1>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          依業務分區排列；點選卡片進入各採購流程。
-        </p>
+        <p className="max-w-2xl text-sm text-muted-foreground">依業務分區排列；點選卡片進入各採購流程。</p>
       </header>
 
       <section className="space-y-4" aria-labelledby="purchase-group-mgmt">
-        <PurchaseGroupHeading id="purchase-group-mgmt" title="管理" />
+        <CenterHubGroupHeading id="purchase-group-mgmt" title="管理" />
         <div className="flex flex-wrap justify-start gap-6">
           {managementCards.map((c) => (
             <div key={c.id} className="flex w-[220px] shrink-0 justify-center sm:w-auto">
@@ -311,12 +237,12 @@ export function PurchaseCenterHub() {
       </section>
 
       <section className="space-y-4" aria-labelledby="purchase-group-domestic">
-        <PurchaseGroupHeading id="purchase-group-domestic" title="國內採購" />
+        <CenterHubGroupHeading id="purchase-group-domestic" title="國內採購" />
         <DomesticFlow />
       </section>
 
       <section className="space-y-4" aria-labelledby="purchase-group-special">
-        <PurchaseGroupHeading id="purchase-group-special" title="特殊採購" />
+        <CenterHubGroupHeading id="purchase-group-special" title="特殊採購" />
         <SpecialFlow />
       </section>
     </div>

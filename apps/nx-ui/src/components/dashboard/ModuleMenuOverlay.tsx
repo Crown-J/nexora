@@ -20,7 +20,7 @@ const routes: Record<string, string> = {
   h: '/dashboard',
   b: '/base',
   p: '/dashboard/nx01',
-  w: '/dashboard/inventory/workspace',
+  w: '/dashboard/inventory',
   s: '/dashboard/nx03',
   m: '/dashboard/nx04',
   r: '/dashboard/nx03/workbench',

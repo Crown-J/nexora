@@ -1,12 +1,9 @@
 /**
- * File: apps/nx-ui/src/app/dashboard/finance/page.tsx
- *
- * Purpose:
- * - 財務模組首頁（路由 v2：`/dashboard/finance`）→ 轉至財務工作台
+ * 財務中心首頁（路由 v2：`/dashboard/finance`）
  */
 
-import { redirect } from 'next/navigation';
+import { FinanceCenterHub } from '@/features/finance/ui/FinanceCenterHub';
 
-export default function FinanceModulePage() {
-  redirect('/dashboard/finance/workspace');
+export default function FinanceHubPage() {
+  return <FinanceCenterHub />;
 }

@@ -36,10 +36,10 @@ export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: Home,         label: '首頁', href: '/dashboard' },
   { icon: Layers3,      label: '主檔', href: '/dashboard/base' },
   { icon: ShoppingCart, label: '採購', href: '/dashboard/purchase' },
-  { icon: Package,      label: '銷貨', href: '/dashboard/sales/domestic' },
-  { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory/workspace' },
-  { icon: DollarSign,   label: '財務', href: '/dashboard/finance/workspace' },
-  { icon: BarChart3,    label: '報表', href: '/dashboard/report/workspace' },
+  { icon: Package,      label: '銷貨', href: '/dashboard/sales' },
+  { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory' },
+  { icon: DollarSign,   label: '財務', href: '/dashboard/finance' },
+  { icon: BarChart3,    label: '報表', href: '/dashboard/report' },
 ];
 
 /** Alt+X 開啟後，單鍵：H 首頁／B 主檔／P 採購／S 銷貨／W 庫存／M 財務／R 報表 */
@@ -47,10 +47,10 @@ const DOCK_LETTER_TO_HREF: Record<string, string> = {
   h: '/dashboard',
   b: '/dashboard/base',
   p: '/dashboard/purchase',
-  s: '/dashboard/sales/domestic',
-  w: '/dashboard/inventory/workspace',
-  m: '/dashboard/finance/workspace',
-  r: '/dashboard/report/workspace',
+  s: '/dashboard/sales',
+  w: '/dashboard/inventory',
+  m: '/dashboard/finance',
+  r: '/dashboard/report',
 };
 
 const DOCK_ITEM_ALT_HINT: (string | null)[] = ['H', 'B', 'P', 'S', 'W', 'M', 'R'];
@@ -70,16 +70,16 @@ export function isDockActive(pathname: string, href: string): boolean {
   if (href === '/dashboard/purchase') {
     return pathname.startsWith('/dashboard/purchase');
   }
-  if (href === '/dashboard/sales/domestic') {
+  if (href === '/dashboard/sales') {
     return pathname.startsWith('/dashboard/sales');
   }
-  if (href === '/dashboard/inventory/workspace') {
+  if (href === '/dashboard/inventory') {
     return pathname.startsWith('/dashboard/inventory');
   }
-  if (href === '/dashboard/finance/workspace') {
+  if (href === '/dashboard/finance') {
     return pathname.startsWith('/dashboard/finance');
   }
-  if (href === '/dashboard/report/workspace') {
+  if (href === '/dashboard/report') {
     return pathname.startsWith('/dashboard/report');
   }
   return pathname === href || pathname.startsWith(`${href}/`);

@@ -8,7 +8,7 @@
  *
  * Notes:
  * - 公司帳號（選填）以 **tenantCode** 一併送 **POST /auth/login**，與 username 鎖定租戶內帳號
- * - 成功登入後導向 /home（Landing + 頂欄模組選單；主檔總覽為 /base，作業模組為 /dashboard/nx…）
+ * - 成功登入後導向 /dashboard（首頁儀表板；主檔總覽為 /dashboard/base，作業模組為 /dashboard/…）
  */
 
 'use client';
@@ -80,7 +80,7 @@ export default function LoginPage() {
         throw new Error('[nxui_nx00_auth_login_flow_001] token missing in response');
       }
       setToken(result.token);
-      router.replace('/home');
+      router.replace('/dashboard');
     } catch (e: unknown) {
       setView((prev) => ({ ...prev, errorMsg: getErrorMessage(e) }));
     } finally {

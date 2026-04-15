@@ -39,7 +39,7 @@ export function getModuleTabs(): ModuleTab[] {
     { code: 'base',      label: '主檔中心', href: '/dashboard/base',                 enabled: true },
     { code: 'purchase',  label: '採購管理', href: '/dashboard/purchase',              enabled: true },
     { code: 'inventory', label: '庫存管理', href: '/dashboard/inventory',             enabled: true },
-    { code: 'sales',     label: '銷售管理', href: '/dashboard/sales/domestic',        enabled: true },
-    { code: 'finance',   label: '財務管理', href: '/dashboard/finance/workspace',     enabled: true },
+    { code: 'sales',     label: '銷售管理', href: '/dashboard/sales',                 enabled: true },
+    { code: 'finance',   label: '財務管理', href: '/dashboard/finance',               enabled: true },
   ];
 }

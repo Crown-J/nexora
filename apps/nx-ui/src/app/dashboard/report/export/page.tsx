@@ -2,15 +2,13 @@
 
 import { ModulePageNav } from '@/features/layout/ui/ModulePageNav';
 import { REPORT_NAV_ITEMS } from '@/app/dashboard/report/_nav';
+import { ModulePlaceholderPage } from '@/features/layout/ui/ModulePlaceholderPage';
 
-export default function DailyWorkReportPage() {
+export default function ReportExportPage() {
   return (
     <div className="space-y-4">
       <ModulePageNav items={REPORT_NAV_ITEMS} backHref="/dashboard/report" backLabel="報表首頁" />
-      <div className="p-6">
-        <h1 className="text-lg font-semibold text-foreground">工作日誌</h1>
-        <p className="mt-2 text-sm text-muted-foreground">此為占位頁面，後續接 NX08 日報模組。</p>
-      </div>
+      <ModulePlaceholderPage title="匯出中心" description="批次 CSV／Excel 匯出（開發中）。" />
     </div>
   );
 }
