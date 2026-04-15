@@ -173,16 +173,7 @@ export const mockDailyGoals = [
   { id: 'g4', label: '填寫工作日誌', xp: 25, done: false },
 ];
 
-/** PRO 首頁 NX10 區塊（經驗／簽到／今日目標）Mock */
-export type MockNx10TodayGoal = {
-  id: number;
-  title: string;
-  xp: number;
-  done: boolean;
-  /** 點擊任務列導頁 */
-  targetRoute: string;
-};
-
+/** PRO 首頁 NX10：經驗條／簽到／日誌 Mock */
 export type MockNx10Dashboard = {
   userName: string;
   avatarInitial: string;
@@ -195,9 +186,6 @@ export type MockNx10Dashboard = {
   checkedIn: boolean;
   checkinTime: string | null;
   dailyReportDone: boolean;
-  todayGoals: MockNx10TodayGoal[];
-  currentGoalXp: number;
-  totalGoalXp: number;
 };
 
 export const mockNx10: MockNx10Dashboard = {
@@ -212,14 +200,32 @@ export const mockNx10: MockNx10Dashboard = {
   checkedIn: false,
   checkinTime: null,
   dailyReportDone: false,
-  todayGoals: [
-    { id: 1, title: '完成5項工作任務', xp: 50, done: true, targetRoute: '/dashboard' },
-    { id: 2, title: '準時上班簽到', xp: 20, done: false, targetRoute: '/dashboard' },
-    { id: 3, title: '參與一場會議', xp: 30, done: false, targetRoute: '/dashboard' },
-    { id: 4, title: '填寫工作日誌', xp: 25, done: false, targetRoute: '/dashboard/report/daily' },
+};
+
+/** PRO 首頁「本月目標」KPI（與 `mockMonthlyKpi` 公司/團隊營收結構分離） */
+export type MockProMonthlyKpiItem = {
+  type: string;
+  label: string;
+  current: number;
+  target: number;
+  /** 反向指標：數值越高越好（顯示說明用，進度仍為 current／target） */
+  inverted?: boolean;
+};
+
+export type MockProMonthlyKpi = {
+  yearMonth: string;
+  items: MockProMonthlyKpiItem[];
+};
+
+export const mockProMonthlyKpi: MockProMonthlyKpi = {
+  yearMonth: '2026年4月',
+  items: [
+    { type: '品質', label: '客戶品質分數', current: 85, target: 100 },
+    { type: '貢獻', label: '銷售毛利分數', current: 72, target: 100 },
+    { type: '失誤', label: '被客訴分數', current: 90, target: 100, inverted: true },
+    { type: '妥善', label: '設備妥善分數', current: 95, target: 100 },
+    { type: '出勤', label: '上班時間分數', current: 88, target: 100 },
   ],
-  currentGoalXp: 50,
-  totalGoalXp: 125,
 };
 
 export type KpiScope = 'company' | 'team' | 'personal';

@@ -3,7 +3,7 @@
  * 首頁儀表板 Phase 1：Mock Data + planCode 版型
  *
  * LITE／PLUS：區塊一全寬快捷鍵 → 區塊二（行事曆＋事件簿）｜區塊三（任務清單）
- * PRO：上列 65/35（經驗條＋排位｜快捷鍵）；下列左 65% 內 35/65（簽到目標｜行事曆事件簿）＋右 35% 任務清單
+ * PRO：CSS Grid — 上列 65/35（經驗｜快捷）等高；下列左 35/65（簽到 KPI｜行事曆＋事件簿）與右欄任務同高、頂底對齊
  */
 
 'use client';
@@ -139,41 +139,37 @@ function ProHomeBody({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
-      <div className="grid shrink-0 grid-cols-[minmax(0,13fr)_minmax(0,7fr)] items-stretch gap-3">
-        <ProExpRankBar className="h-full min-h-0" />
-        <DashboardQuickShortcuts className="h-full min-h-0" />
-      </div>
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,13fr)_minmax(0,7fr)] gap-3 overflow-hidden">
-        <div className="grid min-h-0 grid-cols-[minmax(0,7fr)_minmax(0,13fr)] gap-3 overflow-hidden">
-          <ProNx10LeftPanel className="nx-master-scroll min-h-0 overflow-y-auto overscroll-contain pr-0.5" />
-          <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
-            <div className="shrink-0">
-              <CalendarCard
-                events={calendarEvents}
-                selectedDate={selectedDate}
-                onSelectDate={onSelectDate}
-              />
-            </div>
-            <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
-              <EventBookCard
-                events={calendarEvents}
-                focusDate={selectedDate}
-                fillContainerHeight
-                className="h-full min-h-0"
-              />
-            </div>
+    <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,13fr)_minmax(0,7fr)] grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
+      <ProExpRankBar className="min-h-0 self-stretch" />
+      <DashboardQuickShortcuts className="min-h-0 self-stretch" />
+      <div className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,7fr)_minmax(0,13fr)] gap-3 overflow-hidden">
+        <ProNx10LeftPanel className="min-h-0 h-full min-w-0" />
+        <div className="flex h-full min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
+          <div className="shrink-0">
+            <CalendarCard
+              events={calendarEvents}
+              selectedDate={selectedDate}
+              onSelectDate={onSelectDate}
+            />
+          </div>
+          <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
+            <EventBookCard
+              events={calendarEvents}
+              focusDate={selectedDate}
+              fillContainerHeight
+              className="h-full min-h-0"
+            />
           </div>
         </div>
-        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/60 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
-          <TaskListCard
-            tasks={tasks}
-            planCode={planCode}
-            fillColumnHeight
-            listScrollable
-            className="min-h-0 flex-1"
-          />
-        </div>
+      </div>
+      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/60 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
+        <TaskListCard
+          tasks={tasks}
+          planCode={planCode}
+          fillColumnHeight
+          listScrollable
+          className="min-h-0 h-full flex-1"
+        />
       </div>
     </div>
   );
@@ -281,7 +277,7 @@ export function SysDashboardPage() {
           </div>
         </div>
 
-        <div className="hidden min-h-0 flex-1 overflow-hidden lg:block">
+        <div className="hidden min-h-0 flex-1 flex-col overflow-hidden lg:flex">
           {showNx10 ? (
             <ProHomeBody {...proBodyProps} compact={false} />
           ) : (

@@ -32,7 +32,7 @@ export function ProExpRankBar({ className }: Props) {
     <>
       <div
         className={cx(
-          'nx-dash-card flex flex-wrap items-center gap-3 p-3 sm:gap-4 sm:p-4',
+          'nx-dash-card flex h-full min-h-0 flex-wrap items-center gap-3 p-3 sm:gap-4 sm:p-4',
           className,
         )}
       >
