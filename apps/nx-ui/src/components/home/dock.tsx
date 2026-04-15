@@ -287,8 +287,14 @@ export function NavPlanetMenu() {
   );
 }
 
+function isShortcutDockActive(pathname: string, href: string): boolean {
+  const base = href.split('?')[0] ?? href;
+  if (!base) return false;
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
 /**
- * 首頁 `/dashboard` 手機：頂欄星球已負責模組導覽，底欄改為 Q～T 單鍵快捷（與鍵盤快捷一致）。
+ * 首頁 `/dashboard` 手機：頂欄星球負責模組導覽，底欄為五項「圖示＋功能名」（與桌面快捷列語意一致，不顯示鍵位）。
  * 其餘路由仍用模組圖示底欄。
  */
 export function MobileDock() {
@@ -307,26 +313,40 @@ export function MobileDock() {
     return (
       <div
         className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch justify-around gap-1 border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden"
-        aria-label="首頁鍵盤快捷鍵（點擊等同按鍵）"
+        aria-label="首頁常用功能"
       >
-        {quickShortcuts.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            title={s.label}
-            aria-label={`${s.label}（${s.key.toUpperCase()}）`}
-            onClick={() => router.push(s.href)}
-            className={cn(
-              'flex min-w-0 flex-1 items-center justify-center rounded-lg border border-border/50 py-2.5',
-              'bg-gradient-to-b from-muted/45 to-muted/10 text-[#E8A020] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
-              'font-mono text-xs font-bold tabular-nums transition-colors',
-              'active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-            )}
-          >
-            {s.key.toUpperCase()}
-          </button>
-        ))}
+        {quickShortcuts.map((s) => {
+          const Icon = s.Icon;
+          const active = isShortcutDockActive(pathname, s.href);
+          return (
+            <button
+              key={s.key}
+              type="button"
+              title={s.label}
+              aria-label={s.label}
+              onClick={() => router.push(s.href)}
+              className={cn(
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border border-border/50 p-1.5',
+                'bg-gradient-to-b from-muted/45 to-muted/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
+                'transition-colors active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                active ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50',
+                  active ? 'border-primary/40 bg-primary/10 text-primary' : 'text-foreground',
+                )}
+              >
+                <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden />
+              </span>
+              <span className="line-clamp-2 max-w-full text-center text-[9px] font-medium leading-tight text-foreground">
+                {s.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     );
   }
