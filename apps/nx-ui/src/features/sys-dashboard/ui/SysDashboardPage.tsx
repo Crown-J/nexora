@@ -1,9 +1,9 @@
 /**
  * @FUNCTION_CODE NX99-SYS-DASH-UI-001-F01
- * 首頁儀表板 Phase 1：Mock Data + planCode 版型（外殼沿用 HomeLandingChrome / Dock / HomeTopBar）
+ * 首頁儀表板 Phase 1：Mock Data + planCode 版型
  *
- * LITE／PLUS 大螢幕：左快捷鍵列＋行事曆＋今日事件（同高）｜右今日工作
- * PRO：左（簽到／目標／日誌）｜中（行事曆、事件捲動、出勤）｜右今日工作
+ * LITE／PLUS：區塊一全寬快捷鍵 → 區塊二（行事曆＋事件簿）｜區塊三（任務清單）
+ * PRO：左欄簽到等｜中欄行事曆＋事件簿＋出勤｜右欄任務清單
  */
 
 'use client';
@@ -17,18 +17,19 @@ import { DailyGoalCard } from '@/components/dashboard/LeftPanel/DailyGoalCard';
 import { MonthlyGoalCard } from '@/components/dashboard/LeftPanel/MonthlyGoalCard';
 import { DailyReportBtn } from '@/components/dashboard/LeftPanel/DailyReportBtn';
 import { CalendarCard } from '@/components/dashboard/RightPanel/CalendarCard';
-import { TodayEventCard } from '@/components/dashboard/RightPanel/TodayEventCard';
+import { EventBookCard } from '@/components/dashboard/RightPanel/EventBookCard';
 import { TodayAttendanceCard } from '@/components/dashboard/RightPanel/TodayAttendanceCard';
-import { TodayTaskList } from '@/components/dashboard/RightPanel/TodayTaskList';
+import { TaskListCard } from '@/components/dashboard/RightPanel/TaskListCard';
 import {
   mockAttendanceToday,
   mockCalendarEvents,
-  type MockCalendarEvent,
   mockTasks,
+  type MockCalendarEvent,
+  type MockTask,
+  type PlanCode,
 } from '@/mocks/dashboard';
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 import { DASHBOARD_QUICK_SHORTCUTS } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
-import { DASH_LITE_CAL_EVENT_ROW_CLASS } from '@/features/sys-dashboard/config/dashboardLiteHeights';
 import { DashboardQuickShortcuts } from '@/features/sys-dashboard/ui/DashboardQuickShortcuts';
 import { cx } from '@/shared/lib/cx';
 
@@ -48,7 +49,6 @@ type MiddleStackProps = {
   selectedDate: Date;
   onSelectDate: (d: Date) => void;
   showAttendance: boolean;
-  /** 大螢幕：填滿中欄剩餘高度；小螢幕：僅垂直排列 */
   layout: 'scroll' | 'fill';
 };
 
@@ -82,7 +82,7 @@ function MiddleStack({
           />
         </div>
         <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
-          <TodayEventCard events={calendarEvents} focusDate={selectedDate} />
+          <EventBookCard events={calendarEvents} focusDate={selectedDate} />
         </div>
         {attendanceBlock}
       </div>
@@ -96,67 +96,77 @@ function MiddleStack({
         selectedDate={selectedDate}
         onSelectDate={onSelectDate}
       />
-      <TodayEventCard events={calendarEvents} focusDate={selectedDate} />
+      <EventBookCard events={calendarEvents} focusDate={selectedDate} />
       {showAttendance ? <TodayAttendanceCard people={mockAttendanceToday} /> : null}
     </div>
   );
 }
 
-function LiteCalendarEventRow({
-  calendarEvents,
-  selectedDate,
-  onSelectDate,
-}: {
+type LitePlusHomeBodyProps = {
   calendarEvents: MockCalendarEvent[];
   selectedDate: Date;
   onSelectDate: (d: Date) => void;
-}) {
+  tasks: MockTask[];
+  planCode: PlanCode;
+  /** 手機：外層捲動；大螢幕：任務欄內捲動 */
+  compact: boolean;
+};
+
+function LitePlusHomeBody({
+  calendarEvents,
+  selectedDate,
+  onSelectDate,
+  tasks,
+  planCode,
+  compact,
+}: LitePlusHomeBodyProps) {
   return (
-    <div className="flex min-h-0 shrink-0 items-start gap-3">
-      <DashboardQuickShortcuts heightClassName={DASH_LITE_CAL_EVENT_ROW_CLASS} />
+    <div
+      className={cx(
+        'flex flex-col gap-3',
+        compact ? 'min-h-0' : 'min-h-0 flex-1 overflow-hidden',
+      )}
+    >
+      <DashboardQuickShortcuts />
       <div
         className={cx(
-          DASH_LITE_CAL_EVENT_ROW_CLASS,
-          'w-full max-w-[600px] min-w-0 shrink-0',
+          'grid min-h-0 gap-3',
+          compact ? 'grid-cols-1' : 'flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(280px,36vw)] lg:gap-4',
         )}
       >
-        <CalendarCard
-          events={calendarEvents}
-          selectedDate={selectedDate}
-          onSelectDate={onSelectDate}
-          fillContainerHeight
-          className="h-full"
-        />
+        <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
+          <div className="shrink-0">
+            <CalendarCard
+              events={calendarEvents}
+              selectedDate={selectedDate}
+              onSelectDate={onSelectDate}
+              className="mr-auto max-w-[600px]"
+            />
+          </div>
+          <div className="min-h-0 flex-1 overflow-hidden lg:min-h-[12rem]">
+            <EventBookCard
+              events={calendarEvents}
+              focusDate={selectedDate}
+              fillContainerHeight={!compact}
+              className={cx(!compact && 'h-full min-h-0')}
+            />
+          </div>
+        </div>
+        <div
+          className={cx(
+            'flex min-h-0 min-w-0 flex-col border-t border-border/60 pt-3',
+            !compact && 'lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0',
+          )}
+        >
+          <TaskListCard
+            tasks={tasks}
+            planCode={planCode}
+            fillColumnHeight={!compact}
+            listScrollable={!compact}
+            className="min-h-0 flex-1"
+          />
+        </div>
       </div>
-      <div className={cx(DASH_LITE_CAL_EVENT_ROW_CLASS, 'min-w-0 w-full max-w-[600px] flex-1')}>
-        <TodayEventCard
-          events={calendarEvents}
-          focusDate={selectedDate}
-          fillContainerHeight
-          className="h-full max-w-none"
-        />
-      </div>
-    </div>
-  );
-}
-
-function LiteDesktopMiddleColumn({
-  calendarEvents,
-  selectedDate,
-  onSelectDate,
-}: {
-  calendarEvents: MockCalendarEvent[];
-  selectedDate: Date;
-  onSelectDate: (d: Date) => void;
-}) {
-  return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-      <LiteCalendarEventRow
-        calendarEvents={calendarEvents}
-        selectedDate={selectedDate}
-        onSelectDate={onSelectDate}
-      />
-      <div className="min-h-0 flex-1" aria-hidden />
     </div>
   );
 }
@@ -172,7 +182,6 @@ export function SysDashboardPage() {
 
   const showExpBar = planCode === 'PRO';
   const showLeftPanel = planCode === 'PRO';
-  /** 人資出勤為 PRO（NX07）；PLUS 與 LITE 皆不顯示今日上班 */
   const showAttendance = planCode === 'PRO';
 
   const calendarEvents = useMemo(() => {
@@ -231,6 +240,14 @@ export function SysDashboardPage() {
     showAttendance,
   };
 
+  const liteBodyProps = {
+    calendarEvents,
+    selectedDate,
+    onSelectDate: setSelectedDate,
+    tasks,
+    planCode,
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden">
       <input
@@ -265,17 +282,11 @@ export function SysDashboardPage() {
               {showLeftPanel ? (
                 <MiddleStack {...middleProps} layout="scroll" />
               ) : (
-                <div className="space-y-3">
-                  <DashboardQuickShortcuts orientation="horizontal" />
-                  <CalendarCard
-                    events={calendarEvents}
-                    selectedDate={selectedDate}
-                    onSelectDate={setSelectedDate}
-                  />
-                  <TodayEventCard events={calendarEvents} focusDate={selectedDate} />
-                </div>
+                <LitePlusHomeBody {...liteBodyProps} compact />
               )}
-              <TodayTaskList tasks={tasks} planCode={planCode} listScrollable={false} />
+              {showLeftPanel ? (
+                <TaskListCard tasks={tasks} planCode={planCode} listScrollable={false} />
+              ) : null}
             </div>
           </div>
         </div>
@@ -286,7 +297,7 @@ export function SysDashboardPage() {
             showExpBar ? 'mt-3' : 'mt-0',
             showLeftPanel
               ? 'lg:grid-cols-[minmax(220px,15vw)_minmax(0,1fr)_minmax(300px,24vw)]'
-              : 'lg:grid-cols-[minmax(0,1fr)_minmax(300px,26vw)]',
+              : 'lg:grid-cols-[minmax(0,1fr)]',
           )}
         >
           {showLeftPanel ? (
@@ -298,21 +309,20 @@ export function SysDashboardPage() {
           {showLeftPanel ? (
             <MiddleStack {...middleProps} layout="fill" />
           ) : (
-            <LiteDesktopMiddleColumn
-              calendarEvents={calendarEvents}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
+            <LitePlusHomeBody {...liteBodyProps} compact={false} />
           )}
 
-          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/80 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
-            <TodayTaskList
-              tasks={tasks}
-              planCode={planCode}
-              className="min-h-0 flex-1"
-              listScrollable
-            />
-          </div>
+          {showLeftPanel ? (
+            <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/80 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
+              <TaskListCard
+                tasks={tasks}
+                planCode={planCode}
+                fillColumnHeight
+                className="min-h-0 flex-1"
+                listScrollable
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 /**
- * @FUNCTION_CODE NX99-SYS-DASH-UI-019-F01
+ * @FUNCTION_CODE NX99-SYS-DASH-UI-019-F02
+ * 任務清單：系統彙整之待辦（Mock）
  */
 
 'use client';
@@ -15,13 +16,14 @@ function taskStatusAriaLabel(status: MockTaskStatus): string {
   return '待處理';
 }
 
-type Props = {
+export type TaskListCardProps = {
   tasks: MockTask[];
   onTasksChange?: (next: MockTask[]) => void;
   planCode: PlanCode;
   className?: string;
-  /** false：由外層容器捲動（例如手機版整欄單一捲軸） */
   listScrollable?: boolean;
+  /** 與左欄（行事曆＋事件簿）總高等高時撐滿 */
+  fillColumnHeight?: boolean;
 };
 
 function TaskStatusIndicator({ status }: { status: MockTaskStatus }) {
@@ -51,7 +53,13 @@ function TaskStatusIndicator({ status }: { status: MockTaskStatus }) {
   );
 }
 
-export function TodayTaskList({ tasks, planCode, className, listScrollable = true }: Props) {
+export function TaskListCard({
+  tasks,
+  planCode,
+  className,
+  listScrollable = true,
+  fillColumnHeight,
+}: TaskListCardProps) {
   const router = useRouter();
   const showXp = planCode === 'PRO';
   const doneCount = tasks.filter((t) => t.status === 'done').length;
@@ -64,13 +72,14 @@ export function TodayTaskList({ tasks, planCode, className, listScrollable = tru
     <div
       className={cx(
         'nx-dash-card flex min-h-0 flex-col p-4',
+        fillColumnHeight && 'h-full min-h-0',
         className,
       )}
     >
       <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
           <Briefcase className="h-4 w-4 text-muted-foreground" aria-hidden />
-          今日工作
+          任務清單
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>
@@ -140,7 +149,7 @@ export function TodayTaskList({ tasks, planCode, className, listScrollable = tru
         type="button"
         className="mt-3 shrink-0 text-xs text-primary hover:underline"
       >
-        查看所有工作 &gt;
+        查看所有任務 &gt;
       </button>
     </div>
   );

@@ -1,5 +1,6 @@
 /**
- * @FUNCTION_CODE NX99-SYS-DASH-UI-017-F01
+ * @FUNCTION_CODE NX99-SYS-DASH-UI-017-F02
+ * 事件簿：依行事曆選定日顯示事件列表
  */
 
 'use client';
@@ -48,22 +49,20 @@ function formatEventTimeRange(ev: MockCalendarEvent): string {
   return `${trimmed} - ${trimmed}`;
 }
 
-type TodayEventCardProps = {
+export type EventBookCardProps = {
   events: MockCalendarEvent[];
-  /** 與行事曆選定日同步；預設可由父層傳入 `new Date()` */
   focusDate: Date;
   className?: string;
-  /** 與行事曆同固定外框高度；列表區可捲動、不足時底部留白 */
   fillContainerHeight?: boolean;
 };
 
-export function TodayEventCard({ events, focusDate, className, fillContainerHeight }: TodayEventCardProps) {
+export function EventBookCard({ events, focusDate, className, fillContainerHeight }: EventBookCardProps) {
   const dayStr = format(focusDate, 'yyyy-MM-dd');
   const dayEvents = useMemo(
     () => events.filter((e) => e.date === dayStr),
     [events, dayStr],
   );
-  const heading = `${format(focusDate, 'yyyy-MM-dd')}  ${format(focusDate, 'EEEE', { locale: zhTW })}`;
+  const dateLine = `${format(focusDate, 'yyyy-MM-dd')}  ${format(focusDate, 'EEEE', { locale: zhTW })}`;
 
   const [rsvp, setRsvp] = useState<Record<string, 'yes' | 'no' | null>>({});
   const [detail, setDetail] = useState<MockCalendarEvent | null>(null);
@@ -72,14 +71,15 @@ export function TodayEventCard({ events, focusDate, className, fillContainerHeig
     <>
       <div
         className={cx(
-          'nx-dash-card w-full max-w-[600px] p-4',
+          'nx-dash-card w-full p-4',
           fillContainerHeight && 'flex h-full min-h-0 flex-col overflow-hidden',
-          !fillContainerHeight && 'mr-auto',
+          !fillContainerHeight && 'max-w-[600px] mr-auto',
           className,
         )}
       >
-        <div className="mb-3 shrink-0 text-sm font-medium tabular-nums tracking-wide text-foreground">
-          {heading}
+        <div className="mb-3 shrink-0">
+          <div className="text-sm font-medium tracking-wide text-foreground">事件簿</div>
+          <div className="mt-0.5 text-xs tabular-nums text-muted-foreground">{dateLine}</div>
         </div>
         <ul
           className={cx(
