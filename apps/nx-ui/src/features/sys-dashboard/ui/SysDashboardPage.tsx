@@ -2,12 +2,14 @@
  * @FUNCTION_CODE NX99-SYS-DASH-UI-001-F01
  * 首頁儀表板 Phase 1：Mock Data + planCode 版型（外殼沿用 HomeLandingChrome / Dock / HomeTopBar）
  *
- * 大螢幕三欄：左（簽到／目標／日誌）｜中（行事曆不捲動、事件、出勤）｜右（今日工作）
+ * LITE／PLUS 大螢幕：左快捷鍵列＋行事曆＋今日事件（同高）｜右今日工作
+ * PRO：左（簽到／目標／日誌）｜中（行事曆、事件捲動、出勤）｜右今日工作
  */
 
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { ExpBar } from '@/components/dashboard/ExpBar/ExpBar';
 import { CheckinCard } from '@/components/dashboard/LeftPanel/CheckinCard';
@@ -25,6 +27,9 @@ import {
   mockTasks,
 } from '@/mocks/dashboard';
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
+import { DASHBOARD_QUICK_SHORTCUTS } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
+import { DASH_LITE_CAL_EVENT_ROW_CLASS } from '@/features/sys-dashboard/config/dashboardLiteHeights';
+import { DashboardQuickShortcuts } from '@/features/sys-dashboard/ui/DashboardQuickShortcuts';
 import { cx } from '@/shared/lib/cx';
 
 function LeftColumnCards() {
@@ -97,8 +102,69 @@ function MiddleStack({
   );
 }
 
+function LiteCalendarEventRow({
+  calendarEvents,
+  selectedDate,
+  onSelectDate,
+}: {
+  calendarEvents: MockCalendarEvent[];
+  selectedDate: Date;
+  onSelectDate: (d: Date) => void;
+}) {
+  return (
+    <div className="flex min-h-0 shrink-0 items-start gap-3">
+      <DashboardQuickShortcuts heightClassName={DASH_LITE_CAL_EVENT_ROW_CLASS} />
+      <div
+        className={cx(
+          DASH_LITE_CAL_EVENT_ROW_CLASS,
+          'w-full max-w-[600px] min-w-0 shrink-0',
+        )}
+      >
+        <CalendarCard
+          events={calendarEvents}
+          selectedDate={selectedDate}
+          onSelectDate={onSelectDate}
+          fillContainerHeight
+          className="h-full"
+        />
+      </div>
+      <div className={cx(DASH_LITE_CAL_EVENT_ROW_CLASS, 'min-w-0 w-full max-w-[600px] flex-1')}>
+        <TodayEventCard
+          events={calendarEvents}
+          focusDate={selectedDate}
+          fillContainerHeight
+          className="h-full max-w-none"
+        />
+      </div>
+    </div>
+  );
+}
+
+function LiteDesktopMiddleColumn({
+  calendarEvents,
+  selectedDate,
+  onSelectDate,
+}: {
+  calendarEvents: MockCalendarEvent[];
+  selectedDate: Date;
+  onSelectDate: (d: Date) => void;
+}) {
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <LiteCalendarEventRow
+        calendarEvents={calendarEvents}
+        selectedDate={selectedDate}
+        onSelectDate={onSelectDate}
+      />
+      <div className="min-h-0 flex-1" aria-hidden />
+    </div>
+  );
+}
+
 export function SysDashboardPage() {
   const { planCode } = useDashboardHomePlan();
+  const pathname = usePathname();
+  const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
 
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -124,17 +190,38 @@ export function SysDashboardPage() {
   }, []);
 
   useEffect(() => {
+    const isTypingContext = (t: EventTarget | null) => {
+      if (!t || !(t instanceof HTMLElement)) return false;
+      if (t.isContentEditable) return true;
+      const tag = t.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    };
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const el = document.activeElement;
-        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isTypingContext(e.target)) return;
+
+      if (e.key === '/') {
+        if (pathname !== '/dashboard') return;
         e.preventDefault();
         searchRef.current?.focus();
+        return;
+      }
+
+      if (pathname !== '/dashboard') return;
+
+      if (e.key.length === 1) {
+        const letter = e.key.toLowerCase();
+        const hit = DASHBOARD_QUICK_SHORTCUTS.find((s) => s.key === letter);
+        if (hit) {
+          e.preventDefault();
+          router.push(hit.href);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [pathname, router]);
 
   const middleProps = {
     calendarEvents,
@@ -174,7 +261,19 @@ export function SysDashboardPage() {
                   <LeftColumnCards />
                 </div>
               ) : null}
-              <MiddleStack {...middleProps} layout="scroll" />
+              {showLeftPanel ? (
+                <MiddleStack {...middleProps} layout="scroll" />
+              ) : (
+                <div className="space-y-3">
+                  <DashboardQuickShortcuts orientation="horizontal" />
+                  <CalendarCard
+                    events={calendarEvents}
+                    selectedDate={selectedDate}
+                    onSelectDate={setSelectedDate}
+                  />
+                  <TodayEventCard events={calendarEvents} focusDate={selectedDate} />
+                </div>
+              )}
               <TodayTaskList tasks={tasks} planCode={planCode} listScrollable={false} />
             </div>
           </div>
@@ -195,7 +294,15 @@ export function SysDashboardPage() {
             </aside>
           ) : null}
 
-          <MiddleStack {...middleProps} layout="fill" />
+          {showLeftPanel ? (
+            <MiddleStack {...middleProps} layout="fill" />
+          ) : (
+            <LiteDesktopMiddleColumn
+              calendarEvents={calendarEvents}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
+          )}
 
           <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/80 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
             <TodayTaskList

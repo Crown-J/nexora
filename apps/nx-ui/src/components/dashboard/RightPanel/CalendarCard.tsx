@@ -25,9 +25,18 @@ type CalendarCardProps = {
   events: MockCalendarEvent[];
   selectedDate: Date;
   onSelectDate: (d: Date) => void;
+  className?: string;
+  /** 父層固定高度時撐滿；月曆格維持固定 cell 高，底部可留白 */
+  fillContainerHeight?: boolean;
 };
 
-export function CalendarCard({ events, selectedDate, onSelectDate }: CalendarCardProps) {
+export function CalendarCard({
+  events,
+  selectedDate,
+  onSelectDate,
+  className,
+  fillContainerHeight,
+}: CalendarCardProps) {
   const [cursor, setCursor] = useState(() => startOfMonth(selectedDate));
   const [addOpen, setAddOpen] = useState(false);
   const today = new Date();
@@ -49,7 +58,10 @@ export function CalendarCard({ events, selectedDate, onSelectDate }: CalendarCar
   return (
     <div
       className={cx(
-        'nx-dash-card relative mr-auto w-full max-w-[600px] overflow-hidden p-3 sm:p-4',
+        'nx-dash-card relative w-full max-w-[600px] overflow-hidden p-3 sm:p-4',
+        fillContainerHeight && 'flex h-full min-h-0 flex-col',
+        !fillContainerHeight && 'mr-auto',
+        className,
       )}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -106,7 +118,12 @@ export function CalendarCard({ events, selectedDate, onSelectDate }: CalendarCar
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div
+        className={cx(
+          'grid grid-cols-7 gap-1',
+          fillContainerHeight && 'min-h-0 flex-1 content-start',
+        )}
+      >
         {days.map((d) => {
           const inMonth = isSameMonth(d, cursor);
           const isToday = isSameDay(d, today);

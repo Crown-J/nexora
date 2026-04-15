@@ -40,9 +40,12 @@ type TodayEventCardProps = {
   events: MockCalendarEvent[];
   /** 與行事曆選定日同步；預設可由父層傳入 `new Date()` */
   focusDate: Date;
+  className?: string;
+  /** 與行事曆同固定外框高度；列表區可捲動、不足時底部留白 */
+  fillContainerHeight?: boolean;
 };
 
-export function TodayEventCard({ events, focusDate }: TodayEventCardProps) {
+export function TodayEventCard({ events, focusDate, className, fillContainerHeight }: TodayEventCardProps) {
   const dayStr = format(focusDate, 'yyyy-MM-dd');
   const dayEvents = useMemo(
     () => events.filter((e) => e.date === dayStr),
@@ -55,9 +58,23 @@ export function TodayEventCard({ events, focusDate }: TodayEventCardProps) {
 
   return (
     <>
-      <div className={cx('nx-dash-card mr-auto w-full max-w-[600px] p-4')}>
-        <div className="mb-3 text-sm font-medium tabular-nums tracking-wide text-foreground">{heading}</div>
-        <ul className="space-y-2">
+      <div
+        className={cx(
+          'nx-dash-card w-full max-w-[600px] p-4',
+          fillContainerHeight && 'flex h-full min-h-0 flex-col overflow-hidden',
+          !fillContainerHeight && 'mr-auto',
+          className,
+        )}
+      >
+        <div className="mb-3 shrink-0 text-sm font-medium tabular-nums tracking-wide text-foreground">
+          {heading}
+        </div>
+        <ul
+          className={cx(
+            'space-y-2',
+            fillContainerHeight && 'nx-master-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-0.5',
+          )}
+        >
           {dayEvents.length === 0 ? (
             <li className="text-xs text-muted-foreground">此日無事件</li>
           ) : (
