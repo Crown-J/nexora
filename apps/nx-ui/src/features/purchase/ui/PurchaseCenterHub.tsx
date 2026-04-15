@@ -1,11 +1,12 @@
 /**
  * @FUNCTION_CODE NX02-DASH-UI-001-F01
- * 採購中心首頁：主檔風格卡片 + 流程虛線連接 + 子功能 Dropdown
+ * 採購中心首頁：主檔風格卡片 + 主流程實線箭頭 + 支線虛線（進貨頂部繞接）+ 子功能 Dropdown
  */
 
 'use client';
 
 import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -27,8 +28,9 @@ import {
 import { mockPurchaseCounts } from '@/mocks/purchase-hub';
 import { cn } from '@/lib/utils';
 
-const FLOW = 'rgba(232,160,32,0.4)';
-const FLOW_TEXT = '#E8A020';
+const BRANCH_STROKE = 'rgba(232,160,32,0.4)';
+const FLOW_SOLID = '#E8A020';
+const BADGE_GOLD = '#E8A020';
 
 type SubItem = { label: string; href: string };
 
@@ -45,37 +47,38 @@ type PurchaseCardConfig = {
 const CARD_BASE = cn(
   'group relative glass-card w-full max-w-[280px] rounded-2xl border border-border/80 p-5 text-left shadow-sm',
   'transition-all duration-300 ease-out',
-  'hover:-translate-y-0.5 hover:scale-[1.01] hover:border-primary/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]',
+  'hover:-translate-y-0.5 hover:scale-[1.01] hover:brightness-[1.03]',
+  'hover:border-[#E8A020]/55 hover:shadow-[0_0_24px_rgba(232,160,32,0.22),0_12px_40px_rgba(0,0,0,0.28)]',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-  'data-[state=open]:border-primary/45 data-[state=open]:shadow-md',
+  'data-[state=open]:border-[#E8A020]/50 data-[state=open]:shadow-md',
 );
 
 const managementCards: PurchaseCardConfig[] = [
   {
     id: 'product',
     title: '產品管理',
-    description: '零件定價／安全量',
+    description: '零件定價/安全量',
     icon: Package,
     countKind: 'total',
     countKey: 'product',
     subItems: [
-      { label: '📋 新增料號', href: '/dashboard/base/parts' },
-      { label: '📋 料號列表', href: '/dashboard/base/parts' },
-      { label: '📋 定價管理', href: '/dashboard/purchase/product' },
-      { label: '📋 安全量設定', href: '/dashboard/purchase/product' },
+      { label: '新增料號', href: '/dashboard/base/parts' },
+      { label: '料號列表', href: '/dashboard/base/parts' },
+      { label: '定價管理', href: '/dashboard/purchase/product' },
+      { label: '安全量設定', href: '/dashboard/purchase/product' },
     ],
   },
   {
     id: 'vendor',
     title: '廠商管理',
-    description: '廠商新增／評鑑／談判',
+    description: '廠商新增/評鑑/談判',
     icon: Building2,
     countKind: 'total',
     countKey: 'vendor',
     subItems: [
-      { label: '📋 新增廠商', href: '/dashboard/base/partners' },
-      { label: '📋 廠商列表', href: '/dashboard/base/partners' },
-      { label: '📋 季度評鑑', href: '/dashboard/purchase/vendor' },
+      { label: '新增廠商', href: '/dashboard/base/partners' },
+      { label: '廠商列表', href: '/dashboard/base/partners' },
+      { label: '季度評鑑', href: '/dashboard/purchase/vendor' },
     ],
   },
 ];
@@ -89,12 +92,9 @@ const domesticMain: PurchaseCardConfig[] = [
     countKind: 'pending',
     countKey: 'rfq',
     subItems: [
-      { label: '📋 新增詢價單', href: '/dashboard/nx01/rfq/new' },
-      { label: '📋 查看詢價單列表', href: '/dashboard/nx01/rfq' },
-      {
-        label: `📋 待回覆詢價單（${mockPurchaseCounts.rfq.pending}）`,
-        href: '/dashboard/nx01/rfq',
-      },
+      { label: '新增詢價單', href: '/dashboard/nx01/rfq/new' },
+      { label: '詢價單列表', href: '/dashboard/nx01/rfq' },
+      { label: '待回覆詢價單', href: '/dashboard/nx01/rfq' },
     ],
   },
   {
@@ -105,12 +105,9 @@ const domesticMain: PurchaseCardConfig[] = [
     countKind: 'pending',
     countKey: 'po',
     subItems: [
-      { label: '📋 新增進貨單', href: '/dashboard/nx01/po/new' },
-      { label: '📋 進貨單列表', href: '/dashboard/nx01/po' },
-      {
-        label: `📋 待確認進貨單（${mockPurchaseCounts.po.pending}）`,
-        href: '/dashboard/nx01/po',
-      },
+      { label: '新增進貨單', href: '/dashboard/nx01/po/new' },
+      { label: '進貨單列表', href: '/dashboard/nx01/po' },
+      { label: '待確認進貨單', href: '/dashboard/nx01/po' },
     ],
   },
   {
@@ -121,9 +118,9 @@ const domesticMain: PurchaseCardConfig[] = [
     countKind: 'pending',
     countKey: 'receipt',
     subItems: [
-      { label: '📋 待驗收列表', href: '/dashboard/nx01/rr' },
-      { label: '📋 驗收作業', href: '/dashboard/nx01/rr' },
-      { label: '📋 已驗收記錄', href: '/dashboard/nx01/rr' },
+      { label: '待驗收列表', href: '/dashboard/nx01/rr' },
+      { label: '驗收作業', href: '/dashboard/nx01/rr' },
+      { label: '已驗收記錄', href: '/dashboard/nx01/rr' },
     ],
   },
 ];
@@ -136,8 +133,8 @@ const domesticBranchReturn: PurchaseCardConfig = {
   countKind: 'pending',
   countKey: 'return',
   subItems: [
-    { label: '📋 新增退貨單', href: '/dashboard/nx01/pr/new' },
-    { label: '📋 退貨單列表', href: '/dashboard/nx01/pr' },
+    { label: '新增退貨單', href: '/dashboard/nx01/pr/new' },
+    { label: '退貨單列表', href: '/dashboard/nx01/pr' },
   ],
 };
 
@@ -149,8 +146,8 @@ const domesticBranchWarranty: PurchaseCardConfig = {
   countKind: 'pending',
   countKey: 'warranty',
   subItems: [
-    { label: '📋 新增保固申請', href: '/dashboard/purchase/domestic?focus=warranty' },
-    { label: '📋 保固申請列表', href: '/dashboard/purchase/domestic?focus=warranty' },
+    { label: '新增保固申請', href: '/dashboard/purchase/domestic?focus=warranty' },
+    { label: '保固申請列表', href: '/dashboard/purchase/domestic?focus=warranty' },
   ],
 };
 
@@ -171,33 +168,114 @@ function countBadge(c: PurchaseCardConfig): string {
   return '—';
 }
 
-function FlowArrowH({ className }: { className?: string }) {
+function SolidFlowArrow() {
   return (
-    <div
-      className={cn(
-        'hidden min-h-[44px] min-w-[1.5rem] flex-1 flex-row items-center md:flex',
-        'max-w-[3.5rem] justify-center gap-0.5 px-1',
-        className,
-      )}
-      aria-hidden
-    >
-      <div className="h-px min-w-0 flex-1 border-t border-dashed" style={{ borderColor: FLOW }} />
-      <span className="shrink-0 text-xs font-semibold" style={{ color: FLOW_TEXT }}>
-        →
-      </span>
-      <div className="h-px min-w-0 flex-1 border-t border-dashed" style={{ borderColor: FLOW }} />
+    <div className="hidden w-9 shrink-0 items-center md:flex" aria-hidden>
+      <div className="flex w-full min-w-[2rem] flex-row items-center gap-0">
+        <div className="h-0.5 min-w-0 flex-1 rounded-full" style={{ backgroundColor: FLOW_SOLID }} />
+        <span className="shrink-0 text-sm font-semibold leading-none" style={{ color: FLOW_SOLID }}>
+          →
+        </span>
+      </div>
     </div>
   );
 }
 
-function FlowArrowV({ className }: { className?: string }) {
+function SolidFlowArrowMobile() {
   return (
-    <div className={cn('flex flex-col items-center py-1', className)} aria-hidden>
-      <span className="text-xs font-semibold leading-none" style={{ color: FLOW_TEXT }}>
-        ↓
+    <div className="flex justify-center py-1 md:hidden" aria-hidden>
+      <span className="text-sm font-semibold" style={{ color: FLOW_SOLID }}>
+        →
       </span>
-      <div className="mt-0.5 min-h-[1.25rem] w-px flex-1 border-l border-dashed" style={{ borderColor: FLOW }} />
     </div>
+  );
+}
+
+function BranchOverlay({
+  rootRef,
+  poRef,
+  returnRef,
+  warrantyRef,
+  mode,
+}: {
+  rootRef: React.RefObject<HTMLDivElement | null>;
+  poRef: React.RefObject<HTMLDivElement | null>;
+  returnRef: React.RefObject<HTMLDivElement | null>;
+  warrantyRef: React.RefObject<HTMLDivElement | null>;
+  mode: 'domestic' | 'special';
+}) {
+  const [svg, setSvg] = useState<{ w: number; h: number; d: string } | null>(null);
+
+  useLayoutEffect(() => {
+    function measure() {
+      const root = rootRef.current;
+      const po = poRef.current;
+      const ret = returnRef.current;
+      const war = mode === 'domestic' ? warrantyRef.current : null;
+      if (!root || !po || !ret) return;
+
+      const rootR = root.getBoundingClientRect();
+      const poR = po.getBoundingClientRect();
+      const retR = ret.getBoundingClientRect();
+      const warR = war?.getBoundingClientRect();
+
+      const padTop = 8;
+      const h = Math.max(rootR.height, padTop + 120);
+      const w = rootR.width;
+
+      const cx = (r: DOMRect) => r.left - rootR.left + r.width / 2;
+      const top = (r: DOMRect) => r.top - rootR.top;
+
+      const xPo = cx(poR);
+      const yPoTop = top(poR);
+      const xRet = cx(retR);
+      const yRetTop = top(retR);
+      const arch = Math.min(yPoTop, yRetTop, warR ? top(warR) : yRetTop) - 14;
+
+      let d: string;
+      if (mode === 'special' || !warR) {
+        d = `M ${xPo} ${yPoTop} L ${xPo} ${arch} L ${xRet} ${arch} L ${xRet} ${yRetTop}`;
+      } else {
+        const xWar = cx(warR);
+        const yWarTop = top(warR);
+        const yArch = Math.min(arch, yWarTop - 14);
+        d = `M ${xPo} ${yPoTop} L ${xPo} ${yArch} L ${xRet} ${yArch} L ${xRet} ${yRetTop} M ${xRet} ${yArch} L ${xWar} ${yArch} L ${xWar} ${yWarTop}`;
+      }
+
+      setSvg({ w, h, d });
+    }
+
+    measure();
+    const ro = new ResizeObserver(() => measure());
+    if (rootRef.current) ro.observe(rootRef.current);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [mode, rootRef, poRef, returnRef, warrantyRef]);
+
+  if (!svg) return null;
+
+  return (
+    <svg
+      className="pointer-events-none absolute left-0 right-0 top-0 z-0 overflow-visible"
+      width={svg.w}
+      height={svg.h}
+      viewBox={`0 0 ${svg.w} ${svg.h}`}
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <path
+        d={svg.d}
+        fill="none"
+        stroke={BRANCH_STROKE}
+        strokeWidth={2}
+        strokeDasharray="6 5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -223,16 +301,15 @@ function PurchaseMenuCard({ card }: { card: PurchaseCardConfig }) {
             <h3 className="text-base font-semibold text-foreground">{card.title}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
           </div>
-          <div className="mt-4 border-t border-border/60 pt-4">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              {card.countKind === 'pending' ? '待處理' : '總筆數'}
-            </p>
-          </div>
           <span
             className={cn(
-              'pointer-events-none absolute bottom-4 right-4 rounded-full border border-primary/35',
-              'bg-primary/12 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary',
+              'pointer-events-none absolute bottom-4 right-4 rounded-full border px-2.5 py-1 text-xs font-semibold tabular-nums',
             )}
+            style={{
+              color: BADGE_GOLD,
+              borderColor: 'rgba(232,160,32,0.45)',
+              backgroundColor: 'rgba(232,160,32,0.12)',
+            }}
           >
             {badge}
           </span>
@@ -251,12 +328,9 @@ function PurchaseMenuCard({ card }: { card: PurchaseCardConfig }) {
   );
 }
 
-function GroupHeader({ id, children }: { id: string; children: ReactNode }) {
+function CardWrap({ children, cardRef }: { children: ReactNode; cardRef?: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <div
-      id={id}
-      className="flex flex-wrap items-end justify-between gap-2 border-b border-border/70 pb-2 text-sm font-semibold tracking-wide text-foreground"
-    >
+    <div ref={cardRef} className="relative z-10 flex w-full max-w-[280px] shrink-0 justify-center">
       {children}
     </div>
   );
@@ -264,31 +338,34 @@ function GroupHeader({ id, children }: { id: string; children: ReactNode }) {
 
 function DomesticFlow() {
   const [a, b, c] = domesticMain;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const poRef = useRef<HTMLDivElement>(null);
+  const retRef = useRef<HTMLDivElement>(null);
+  const warRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="space-y-2">
-      <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-start md:justify-center">
-        <div className="flex flex-col items-center md:flex-1 md:max-w-[280px]">
+    <div ref={rootRef} className="relative w-full min-w-0 pt-10">
+      <BranchOverlay rootRef={rootRef} poRef={poRef} returnRef={retRef} warrantyRef={warRef} mode="domestic" />
+      <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
+        <CardWrap>
           <PurchaseMenuCard card={a} />
-        </div>
-        <FlowArrowH className="hidden md:flex" />
-        <div className="flex justify-center md:hidden">
-          <FlowArrowV />
-        </div>
-        <div className="flex flex-col items-center md:flex-1 md:max-w-[280px]">
+        </CardWrap>
+        <SolidFlowArrow />
+        <SolidFlowArrowMobile />
+        <CardWrap cardRef={poRef}>
           <PurchaseMenuCard card={b} />
-        </div>
-        <FlowArrowH className="hidden md:flex" />
-        <div className="flex justify-center md:hidden">
-          <FlowArrowV />
-        </div>
-        <div className="flex w-full max-w-[280px] flex-col items-center md:flex-[1.15]">
+        </CardWrap>
+        <SolidFlowArrow />
+        <SolidFlowArrowMobile />
+        <CardWrap>
           <PurchaseMenuCard card={c} />
-          <FlowArrowV />
-          <div className="mt-1 flex w-full flex-row flex-wrap justify-center gap-6 md:gap-10">
-            <PurchaseMenuCard card={domesticBranchReturn} />
-            <PurchaseMenuCard card={domesticBranchWarranty} />
-          </div>
-        </div>
+        </CardWrap>
+        <CardWrap cardRef={retRef}>
+          <PurchaseMenuCard card={domesticBranchReturn} />
+        </CardWrap>
+        <CardWrap cardRef={warRef}>
+          <PurchaseMenuCard card={domesticBranchWarranty} />
+        </CardWrap>
       </div>
     </div>
   );
@@ -296,30 +373,31 @@ function DomesticFlow() {
 
 function SpecialFlow() {
   const [a, b, c] = specialMain;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const poRef = useRef<HTMLDivElement>(null);
+  const retRef = useRef<HTMLDivElement>(null);
+  const warRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="space-y-2">
-      <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-start md:justify-center">
-        <div className="flex flex-col items-center md:flex-1 md:max-w-[280px]">
+    <div ref={rootRef} className="relative w-full min-w-0 pt-10">
+      <BranchOverlay rootRef={rootRef} poRef={poRef} returnRef={retRef} warrantyRef={warRef} mode="special" />
+      <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
+        <CardWrap>
           <PurchaseMenuCard card={a} />
-        </div>
-        <FlowArrowH className="hidden md:flex" />
-        <div className="flex justify-center md:hidden">
-          <FlowArrowV />
-        </div>
-        <div className="flex flex-col items-center md:flex-1 md:max-w-[280px]">
+        </CardWrap>
+        <SolidFlowArrow />
+        <SolidFlowArrowMobile />
+        <CardWrap cardRef={poRef}>
           <PurchaseMenuCard card={b} />
-        </div>
-        <FlowArrowH className="hidden md:flex" />
-        <div className="flex justify-center md:hidden">
-          <FlowArrowV />
-        </div>
-        <div className="flex w-full max-w-[280px] flex-col items-center md:flex-[1.15]">
+        </CardWrap>
+        <SolidFlowArrow />
+        <SolidFlowArrowMobile />
+        <CardWrap>
           <PurchaseMenuCard card={c} />
-          <FlowArrowV />
-          <div className="mt-1 flex justify-center">
-            <PurchaseMenuCard card={specialReturn} />
-          </div>
-        </div>
+        </CardWrap>
+        <CardWrap cardRef={retRef}>
+          <PurchaseMenuCard card={specialReturn} />
+        </CardWrap>
       </div>
     </div>
   );
@@ -327,7 +405,7 @@ function SpecialFlow() {
 
 export function PurchaseCenterHub() {
   return (
-    <div className="w-full min-w-0 space-y-8">
+    <div className="w-full min-w-0 space-y-12">
       <header className="space-y-1">
         <p className="text-xs tracking-[0.35em] text-muted-foreground">PURCHASE CENTER</p>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">採購中心</h1>
@@ -336,28 +414,19 @@ export function PurchaseCenterHub() {
         </p>
       </header>
 
-      <section className="space-y-4" aria-labelledby="purchase-group-mgmt">
-        <GroupHeader id="purchase-group-mgmt">
-          ─── GROUP：管理 ──────────────────────────
-        </GroupHeader>
-        <div className="grid grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {managementCards.map((c) => (
-            <PurchaseMenuCard key={c.id} card={c} />
-          ))}
-        </div>
+      <section className="flex flex-wrap justify-start gap-6" aria-label="採購管理">
+        {managementCards.map((c) => (
+          <div key={c.id} className="flex w-full max-w-[280px] shrink-0 justify-center sm:w-auto">
+            <PurchaseMenuCard card={c} />
+          </div>
+        ))}
       </section>
 
-      <section className="space-y-4" aria-labelledby="purchase-group-domestic">
-        <GroupHeader id="purchase-group-domestic">
-          ─── GROUP：國內採購 ──────────────────────────
-        </GroupHeader>
+      <section aria-label="國內採購流程">
         <DomesticFlow />
       </section>
 
-      <section className="space-y-4" aria-labelledby="purchase-group-special">
-        <GroupHeader id="purchase-group-special">
-          ─── GROUP：特殊採購 ──────────────────────────
-        </GroupHeader>
+      <section aria-label="特殊採購流程">
         <SpecialFlow />
       </section>
     </div>
