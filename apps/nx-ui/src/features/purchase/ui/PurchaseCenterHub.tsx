@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX02-DASH-UI-001-F01
- * 採購中心首頁：Hub 統一卡片尺寸 + 主流程實線 →→ + 進貨頂部虛線迴圈（量測 SVG）
+ * 採購中心首頁：群組標題（同主檔中心）+ Hub 卡 + 主流程 →→ + 進貨頂部虛線（延遲量測／僅監聽流程列容器）
  */
 
 'use client';
@@ -200,6 +200,17 @@ function SolidFlowArrowMobile() {
   );
 }
 
+/** 與主檔中心群組標題同式：text-sm font-semibold、底部分隔線 */
+function PurchaseGroupHeading({ id, title }: { id: string; title: string }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border/70 pb-2">
+      <h2 id={id} className="text-sm font-semibold tracking-wide text-foreground">
+        {title}
+      </h2>
+    </div>
+  );
+}
+
 type BranchGeom = {
   w: number;
   h: number;
@@ -223,20 +234,26 @@ function BranchOverlay({
   const [geom, setGeom] = useState<BranchGeom | null>(null);
 
   useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    let debounceTimer: number | undefined;
+
     function measure() {
-      const root = rootRef.current;
+      const el = rootRef.current;
       const po = poRef.current;
       const ret = returnRef.current;
       const war = mode === 'domestic' ? warrantyRef.current : null;
-      if (!root || !po || !ret) return;
+      if (!el || !po || !ret) return;
 
-      const rootR = root.getBoundingClientRect();
+      const rootR = el.getBoundingClientRect();
       const poR = po.getBoundingClientRect();
       const retR = ret.getBoundingClientRect();
       const warR = war?.getBoundingClientRect();
 
       const w = rootR.width;
       const h = rootR.height;
+      if (w <= 0 || h <= 0) return;
 
       const cx = (r: DOMRect) => r.left - rootR.left + r.width / 2;
       const top = (r: DOMRect) => r.top - rootR.top;
@@ -270,17 +287,25 @@ function BranchOverlay({
       setGeom({ w, h, paths, arrows });
     }
 
-    measure();
-    const ro = new ResizeObserver(() => measure());
-    const nodes = [rootRef.current, poRef.current, returnRef.current];
-    if (mode === 'domestic') nodes.push(warrantyRef.current);
-    for (const n of nodes) {
-      if (n) ro.observe(n);
+    function scheduleMeasure() {
+      if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(() => {
+        debounceTimer = undefined;
+        measure();
+      }, 100);
     }
-    window.addEventListener('resize', measure);
+
+    const initialTimer = window.setTimeout(() => measure(), 100);
+
+    const ro = new ResizeObserver(() => {
+      scheduleMeasure();
+    });
+    ro.observe(root);
+
     return () => {
+      window.clearTimeout(initialTimer);
+      if (debounceTimer !== undefined) window.clearTimeout(debounceTimer);
       ro.disconnect();
-      window.removeEventListener('resize', measure);
     };
   }, [mode, rootRef, poRef, returnRef, warrantyRef]);
 
@@ -288,10 +313,11 @@ function BranchOverlay({
 
   return (
     <svg
-      className="pointer-events-none absolute inset-0 z-0 overflow-visible"
-      width={geom.w}
-      height={geom.h}
+      className="pointer-events-none absolute left-0 top-0 z-0 h-full w-full overflow-visible"
+      width="100%"
+      height="100%"
       viewBox={`0 0 ${geom.w} ${geom.h}`}
+      preserveAspectRatio="none"
       aria-hidden
     >
       {geom.paths.map((p) => (
@@ -378,7 +404,7 @@ function DomesticFlow() {
   const warRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={rootRef} className="relative w-full min-w-0 pt-12">
+    <div ref={rootRef} className="relative w-full min-w-0 overflow-visible pt-12">
       <BranchOverlay rootRef={rootRef} poRef={poRef} returnRef={retRef} warrantyRef={warRef} mode="domestic" />
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
         <CardWrap>
@@ -413,7 +439,7 @@ function SpecialFlow() {
   const warRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={rootRef} className="relative w-full min-w-0 pt-12">
+    <div ref={rootRef} className="relative w-full min-w-0 overflow-visible pt-12">
       <BranchOverlay rootRef={rootRef} poRef={poRef} returnRef={retRef} warrantyRef={warRef} mode="special" />
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
         <CardWrap>
@@ -448,19 +474,24 @@ export function PurchaseCenterHub() {
         </p>
       </header>
 
-      <section className="flex flex-wrap justify-start gap-6" aria-label="採購管理">
-        {managementCards.map((c) => (
-          <div key={c.id} className="flex w-[220px] shrink-0 justify-center sm:w-auto">
-            <PurchaseMenuCard card={c} />
-          </div>
-        ))}
+      <section className="space-y-4" aria-labelledby="purchase-group-mgmt">
+        <PurchaseGroupHeading id="purchase-group-mgmt" title="管理" />
+        <div className="flex flex-wrap justify-start gap-6">
+          {managementCards.map((c) => (
+            <div key={c.id} className="flex w-[220px] shrink-0 justify-center sm:w-auto">
+              <PurchaseMenuCard card={c} />
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section aria-label="國內採購流程">
+      <section className="space-y-4" aria-labelledby="purchase-group-domestic">
+        <PurchaseGroupHeading id="purchase-group-domestic" title="國內採購" />
         <DomesticFlow />
       </section>
 
-      <section aria-label="特殊採購流程">
+      <section className="space-y-4" aria-labelledby="purchase-group-special">
+        <PurchaseGroupHeading id="purchase-group-special" title="特殊採購" />
         <SpecialFlow />
       </section>
     </div>
