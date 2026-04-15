@@ -47,7 +47,11 @@ export function CalendarCard({ events, selectedDate, onSelectDate }: CalendarCar
   const weekLabels = ['日', '一', '二', '三', '四', '五', '六'];
 
   return (
-    <div className={cx('nx-dash-card relative overflow-hidden p-3 sm:p-4')}>
+    <div
+      className={cx(
+        'nx-dash-card relative mr-auto w-full max-w-[600px] overflow-hidden p-3 sm:p-4',
+      )}
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
@@ -118,7 +122,7 @@ export function CalendarCard({ events, selectedDate, onSelectDate }: CalendarCar
                 setCursor(startOfMonth(d));
               }}
               className={cx(
-                'flex min-h-9 flex-col items-center justify-start rounded-lg border py-1 text-xs tabular-nums transition outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
+                'flex h-11 max-h-11 min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg border px-0.5 text-xs tabular-nums transition outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
                 !inMonth && 'border-transparent text-muted-foreground/35',
                 inMonth && !isSelected && 'border-transparent text-foreground/90 hover:border-primary/35 hover:bg-primary/10',
                 isToday &&
@@ -128,11 +132,11 @@ export function CalendarCard({ events, selectedDate, onSelectDate }: CalendarCar
                   'border border-primary bg-primary/18 font-medium text-foreground',
               )}
             >
-              <span>{format(d, 'd')}</span>
+              <span className="leading-none">{format(d, 'd')}</span>
               {hasDot ? (
-                <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-primary/75" />
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/75" />
               ) : (
-                <span className="mt-0.5 h-1.5 w-1.5" aria-hidden />
+                <span className="h-1.5 w-1.5 shrink-0" aria-hidden />
               )}
             </button>
           );

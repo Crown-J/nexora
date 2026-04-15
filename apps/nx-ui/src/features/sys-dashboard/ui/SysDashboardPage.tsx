@@ -23,7 +23,6 @@ import {
   mockCalendarEvents,
   type MockCalendarEvent,
   mockTasks,
-  type MockTask,
 } from '@/mocks/dashboard';
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 import { cx } from '@/shared/lib/cx';
@@ -102,8 +101,8 @@ export function SysDashboardPage() {
   const { planCode } = useDashboardHomePlan();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [tasks, setTasks] = useState<MockTask[]>(() => mockTasks.map((t) => ({ ...t })));
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const tasks = useMemo(() => mockTasks.map((t) => ({ ...t })), []);
 
   const showExpBar = planCode === 'PRO';
   const showLeftPanel = planCode === 'PRO';
@@ -119,6 +118,7 @@ export function SysDashboardPage() {
       type: 'LEAVE',
       title: '（Mock）排假示意',
       time: '全天',
+      creatorName: '系統',
     };
     return [...mockCalendarEvents, filler];
   }, []);
@@ -175,12 +175,7 @@ export function SysDashboardPage() {
                 </div>
               ) : null}
               <MiddleStack {...middleProps} layout="scroll" />
-              <TodayTaskList
-                tasks={tasks}
-                onTasksChange={setTasks}
-                planCode={planCode}
-                listScrollable={false}
-              />
+              <TodayTaskList tasks={tasks} planCode={planCode} listScrollable={false} />
             </div>
           </div>
         </div>
@@ -205,7 +200,6 @@ export function SysDashboardPage() {
           <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/80 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
             <TodayTaskList
               tasks={tasks}
-              onTasksChange={setTasks}
               planCode={planCode}
               className="min-h-0 flex-1"
               listScrollable

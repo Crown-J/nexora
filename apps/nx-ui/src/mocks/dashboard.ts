@@ -22,11 +22,15 @@ export type MockCalendarEvent = {
   type: CalendarEventType;
   title: string;
   time: string;
+  /** 建立／負責人（列表第二行右側） */
+  creatorName?: string;
   location?: string;
   requireRsvp?: boolean;
 };
 
 export type TaskPriority = 'URGENT' | 'NORMAL';
+
+export type MockTaskStatus = 'pending' | 'in_progress' | 'done';
 
 export type MockTask = {
   id: number;
@@ -36,7 +40,8 @@ export type MockTask = {
   category: string;
   deadline: string;
   xp: number;
-  done: boolean;
+  /** 系統偵測之待辦狀態（首頁唯讀顯示） */
+  status: MockTaskStatus;
   targetRoute: string;
 };
 
@@ -80,6 +85,7 @@ export const mockCalendarEvents: MockCalendarEvent[] = [
     type: 'MEETING',
     title: '產品規劃會議',
     time: '10:00-11:30',
+    creatorName: '王小明',
     location: '會議室A',
   },
   {
@@ -87,9 +93,16 @@ export const mockCalendarEvents: MockCalendarEvent[] = [
     type: 'EVENT',
     title: '團隊午餐',
     time: '12:00-13:30',
+    creatorName: '林美玲',
     requireRsvp: true,
   },
-  { date: '2026-04-18', type: 'DEADLINE', title: 'Q1 報表截止', time: '18:00' },
+  {
+    date: '2026-04-18',
+    type: 'DEADLINE',
+    title: 'Q1 報表截止',
+    time: '18:00',
+    creatorName: '陳主管',
+  },
 ];
 
 export const mockTasks: MockTask[] = [
@@ -101,7 +114,7 @@ export const mockTasks: MockTask[] = [
     category: '報表',
     deadline: '10:00',
     xp: 30,
-    done: false,
+    status: 'pending',
     targetRoute: '/dashboard/nx03/workbench',
   },
   {
@@ -112,7 +125,7 @@ export const mockTasks: MockTask[] = [
     category: '客服',
     deadline: '11:30',
     xp: 20,
-    done: false,
+    status: 'in_progress',
     targetRoute: '/dashboard/nx04',
   },
   {
@@ -123,7 +136,7 @@ export const mockTasks: MockTask[] = [
     category: '庫存',
     deadline: '14:00',
     xp: 15,
-    done: true,
+    status: 'done',
     targetRoute: '/dashboard/nx02/balance',
   },
   {
@@ -134,7 +147,7 @@ export const mockTasks: MockTask[] = [
     category: '會議',
     deadline: '15:00',
     xp: 10,
-    done: false,
+    status: 'pending',
     targetRoute: '/dashboard',
   },
 ];

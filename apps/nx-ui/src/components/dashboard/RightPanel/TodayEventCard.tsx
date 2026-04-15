@@ -5,17 +5,36 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { format, isSameDay } from 'date-fns';
+import { format } from 'date-fns';
 import { zhTW } from 'date-fns/locale';
-import type { MockCalendarEvent } from '@/mocks/dashboard';
+import type { CalendarEventType, MockCalendarEvent } from '@/mocks/dashboard';
 import { cx } from '@/shared/lib/cx';
 
-const borderByType: Record<string, string> = {
-  MEETING: 'border-l-[var(--color-meeting)]',
-  EVENT: 'border-l-[#e8a020]',
-  LEAVE: 'border-l-[var(--color-success)]',
-  DEADLINE: 'border-l-[var(--color-danger)]',
+const typeLabel: Record<CalendarEventType, string> = {
+  MEETING: '會議',
+  EVENT: '活動',
+  LEAVE: '排假',
+  DEADLINE: '截止',
 };
+
+const badgeClassByType: Record<CalendarEventType, string> = {
+  MEETING: 'bg-[#378ADD] text-white',
+  EVENT: 'bg-[#E8A020] text-white',
+  LEAVE: 'bg-[#1D9E75] text-white',
+  DEADLINE: 'bg-[#E24B4A] text-white',
+};
+
+function formatEventTimeRange(ev: MockCalendarEvent): string {
+  const { time, type } = ev;
+  if (time === '全天') return '全天 - 全天';
+  const trimmed = time.trim();
+  const dashParts = trimmed.split(/\s*-\s*|\s*–\s*/u).map((s) => s.trim());
+  if (dashParts.length >= 2 && dashParts[0] && dashParts[1]) {
+    return `${dashParts[0]} - ${dashParts[1]}`;
+  }
+  if (type === 'DEADLINE') return `— - ${trimmed}`;
+  return `${trimmed} - ${trimmed}`;
+}
 
 type TodayEventCardProps = {
   events: MockCalendarEvent[];
@@ -29,18 +48,15 @@ export function TodayEventCard({ events, focusDate }: TodayEventCardProps) {
     () => events.filter((e) => e.date === dayStr),
     [events, dayStr],
   );
-  const isToday = isSameDay(focusDate, new Date());
-  const heading = isToday
-    ? '今日事件'
-    : `${format(focusDate, 'M月d日 EEEE', { locale: zhTW })} · 事件`;
+  const heading = `${format(focusDate, 'yyyy-MM-dd')}  ${format(focusDate, 'EEEE', { locale: zhTW })}`;
 
   const [rsvp, setRsvp] = useState<Record<string, 'yes' | 'no' | null>>({});
   const [detail, setDetail] = useState<MockCalendarEvent | null>(null);
 
   return (
     <>
-      <div className={cx('nx-dash-card p-4')}>
-        <div className="mb-3 text-sm font-medium tracking-wide text-foreground">{heading}</div>
+      <div className={cx('nx-dash-card mr-auto w-full max-w-[600px] p-4')}>
+        <div className="mb-3 text-sm font-medium tabular-nums tracking-wide text-foreground">{heading}</div>
         <ul className="space-y-2">
           {dayEvents.length === 0 ? (
             <li className="text-xs text-muted-foreground">此日無事件</li>
@@ -48,20 +64,27 @@ export function TodayEventCard({ events, focusDate }: TodayEventCardProps) {
             dayEvents.map((ev) => (
               <li
                 key={`${ev.type}-${ev.title}-${ev.time}`}
-                className={cx(
-                  'rounded-xl border border-border/70 border-l-4 bg-muted/35 px-3 py-2 transition hover:border-primary/35 hover:bg-muted/50',
-                  borderByType[ev.type] || 'border-l-muted-foreground',
-                )}
+                className="rounded-xl border border-border/70 bg-muted/35 px-3 py-2 transition hover:border-primary/35 hover:bg-muted/50"
               >
                 <button
                   type="button"
                   onClick={() => setDetail(ev)}
                   className="w-full text-left"
                 >
-                  <div className="text-sm font-medium text-foreground">{ev.title}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    {ev.time}
-                    {ev.location ? ` · ${ev.location}` : ''}
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{ev.title}</span>
+                    <span
+                      className={cx(
+                        'shrink-0 rounded-md px-2 py-0.5 text-[10px] font-medium leading-none',
+                        badgeClassByType[ev.type] ?? 'bg-muted text-muted-foreground',
+                      )}
+                    >
+                      {typeLabel[ev.type] ?? ev.type}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <span className="tabular-nums">{formatEventTimeRange(ev)}</span>
+                    <span className="text-foreground/85">{ev.creatorName ?? '—'}</span>
                   </div>
                 </button>
                 {ev.requireRsvp ? (
@@ -103,9 +126,10 @@ export function TodayEventCard({ events, focusDate }: TodayEventCardProps) {
           <div className="w-full max-w-sm rounded-xl border border-border bg-popover p-4 text-popover-foreground shadow-lg">
             <div className="text-sm font-medium text-foreground">{detail.title}</div>
             <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-              <div>時間：{detail.time}</div>
+              <div>時間：{formatEventTimeRange(detail)}</div>
               {detail.location ? <div>地點：{detail.location}</div> : null}
-              <div>類型：{detail.type}</div>
+              <div>類型：{typeLabel[detail.type] ?? detail.type}</div>
+              {detail.creatorName ? <div>建立人：{detail.creatorName}</div> : null}
             </div>
             <button
               type="button"
