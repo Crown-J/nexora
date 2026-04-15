@@ -58,9 +58,8 @@ export function CalendarCard({
   return (
     <div
       className={cx(
-        'nx-dash-card relative w-full max-w-[600px] overflow-hidden p-2.5 sm:p-3',
+        'nx-dash-card relative w-full min-w-0 overflow-hidden p-2.5 sm:p-3',
         fillContainerHeight && 'flex h-full min-h-0 flex-col',
-        !fillContainerHeight && 'mr-auto',
         className,
       )}
     >

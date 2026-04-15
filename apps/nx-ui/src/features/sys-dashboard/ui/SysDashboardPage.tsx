@@ -67,15 +67,15 @@ function LitePlusHomeBody({
               events={calendarEvents}
               selectedDate={selectedDate}
               onSelectDate={onSelectDate}
-              className="w-full max-w-[600px]"
+              className="w-full"
             />
           </div>
-          <div className="min-h-0 w-full max-w-[600px] flex-1 overflow-hidden lg:min-h-[12rem]">
+          <div className="min-h-0 w-full flex-1 overflow-hidden lg:min-h-[12rem]">
             <EventBookCard
               events={calendarEvents}
               focusDate={selectedDate}
               fillContainerHeight={!compact}
-              className={cx('w-full max-w-[600px]', !compact && 'h-full min-h-0')}
+              className={cx('w-full', !compact && 'h-full min-h-0')}
             />
           </div>
         </div>
@@ -127,13 +127,9 @@ function ProHomeBody({
               events={calendarEvents}
               selectedDate={selectedDate}
               onSelectDate={onSelectDate}
-              className="w-full max-w-[600px]"
+              className="w-full"
             />
-            <EventBookCard
-              events={calendarEvents}
-              focusDate={selectedDate}
-              className="w-full max-w-[600px]"
-            />
+            <EventBookCard events={calendarEvents} focusDate={selectedDate} className="w-full" />
           </div>
           <ProTodayAttendancePanel className="min-h-0 sm:min-h-[12rem]" />
         </div>
@@ -149,20 +145,21 @@ function ProHomeBody({
       <div className="col-start-1 row-start-2 grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,35fr)_minmax(0,65fr)] gap-3 overflow-hidden">
         <ProNx10LeftPanel className="min-h-0 h-full min-w-0 overflow-hidden" />
         <div className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3 overflow-hidden">
-          <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
-            <div className="shrink-0">
+          <div className="flex min-h-0 min-w-0 w-full flex-col gap-3 overflow-hidden">
+            <div className="w-full shrink-0">
               <CalendarCard
                 events={calendarEvents}
                 selectedDate={selectedDate}
                 onSelectDate={onSelectDate}
+                className="w-full"
               />
             </div>
-            <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
+            <div className="nx-master-scroll min-h-0 min-w-0 w-full flex-1 overflow-y-auto overscroll-contain pr-0.5">
               <EventBookCard
                 events={calendarEvents}
                 focusDate={selectedDate}
                 fillContainerHeight
-                className="h-full min-h-0"
+                className="h-full min-h-0 w-full"
               />
             </div>
           </div>
