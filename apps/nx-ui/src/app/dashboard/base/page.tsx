@@ -3,7 +3,7 @@
  *
  * Purpose:
  * - 主檔中心首頁（路由 v2：`/dashboard/base`）
- * - Hub 卡片統一尺寸；雙入口卡：上方橘金按鈕進子頁、點其餘區域進第一順位主檔
+ * - Hub 卡片統一尺寸；雙入口卡：頂部兩圖示進子頁，其下標題＋簡述；點其餘區域進第一順位主檔
  */
 
 'use client';
@@ -15,8 +15,8 @@ import type { MasterHubCard } from '@/app/base/master-cards';
 import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
-const dualEntryButtonClass = cn(
-  'block w-full rounded-full border py-1.5 text-center text-[10px] font-medium transition-colors',
+const dualIconSlotClass = cn(
+  'flex flex-1 items-center justify-center rounded-xl border py-2 transition-colors',
   'border-[#E8A020]/50 bg-transparent text-[#E8A020]',
   'hover:border-[#E8A020]/75 hover:bg-[#E8A020]/12',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E8A020]/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
@@ -29,7 +29,6 @@ function DualEntryHubCard({
   card: MasterHubCard & { links: NonNullable<MasterHubCard['links']> };
   shellMotion: string;
 }) {
-  const Icon = card.icon;
   const first = card.links[0];
   return (
     <div className={cn(hubCardShellBaseClass, 'relative flex flex-col', shellMotion)}>
@@ -39,22 +38,21 @@ function DualEntryHubCard({
         aria-label={`${card.title}，預設開啟${first.label}`}
       />
       <div className="pointer-events-none relative z-10 flex h-full min-h-0 flex-col gap-1.5">
-        <div className="flex shrink-0 items-start justify-between gap-2">
-          <div
-            className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/80',
-              'bg-secondary/50 text-primary',
-            )}
-          >
-            <Icon className="h-4 w-4" aria-hidden />
-          </div>
-        </div>
-        <div className="pointer-events-auto flex shrink-0 flex-col gap-1.5">
-          {card.links.map((l) => (
-            <Link key={l.href} href={l.href} className={dualEntryButtonClass}>
-              {l.label}
-            </Link>
-          ))}
+        <div className="pointer-events-auto flex shrink-0 gap-2">
+          {card.links.map((l) => {
+            const EntryIcon = l.entryIcon;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={dualIconSlotClass}
+                aria-label={l.label}
+                title={l.label}
+              >
+                <EntryIcon className="h-5 w-5 shrink-0" aria-hidden />
+              </Link>
+            );
+          })}
         </div>
         <h3 className="line-clamp-2 shrink-0 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
         <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">{card.description}</p>

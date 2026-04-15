@@ -21,8 +21,16 @@ import {
   CircleDollarSign,
   SlidersHorizontal,
   Link2,
+  CarFront,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+
+/** 主檔中心雙入口卡：頂部以圖示進子頁，仍保留 label 供 aria／快捷列 */
+export type MasterHubCardLink = {
+  label: string;
+  href: string;
+  entryIcon: LucideIcon;
+};
 
 /** 主檔 hub 分區（同區卡片排在一起，避免找功能時跳來跳去） */
 export type MasterHubSectionId = 'account' | 'product' | 'geo' | 'warehouse' | 'partner';
@@ -39,7 +47,7 @@ export type MasterHubCard = {
   /** 整卡點擊導向（與 links 擇一） */
   href?: string;
   /** 倉庫／庫位等複數入口 */
-  links?: { label: string; href: string }[];
+  links?: MasterHubCardLink[];
 };
 
 const MASTER_HUB_SECTION_ORDER: MasterHubSectionId[] = ['account', 'product', 'geo', 'warehouse', 'partner'];
@@ -128,8 +136,8 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '廠牌筆數',
     statValue: '—',
     links: [
-      { label: '汽車廠牌', href: '/dashboard/base/car-brand' },
-      { label: '零件廠牌', href: '/dashboard/base/part-brand' },
+      { label: '汽車廠牌', href: '/dashboard/base/car-brand', entryIcon: CarFront },
+      { label: '零件廠牌', href: '/dashboard/base/part-brand', entryIcon: Tags },
     ],
   },
   {
@@ -191,8 +199,8 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '倉／庫位',
     statValue: '—',
     links: [
-      { label: '倉庫主檔', href: '/dashboard/base/warehouses' },
-      { label: '庫位主檔', href: '/dashboard/base/location' },
+      { label: '倉庫主檔', href: '/dashboard/base/warehouses', entryIcon: Warehouse },
+      { label: '庫位主檔', href: '/dashboard/base/location', entryIcon: MapPin },
     ],
   },
   {
