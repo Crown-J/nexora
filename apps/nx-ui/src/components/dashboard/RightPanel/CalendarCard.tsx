@@ -58,13 +58,13 @@ export function CalendarCard({
   return (
     <div
       className={cx(
-        'nx-dash-card relative w-full max-w-[600px] overflow-hidden p-3 sm:p-4',
+        'nx-dash-card relative w-full max-w-[600px] overflow-hidden p-2.5 sm:p-3',
         fillContainerHeight && 'flex h-full min-h-0 flex-col',
         !fillContainerHeight && 'mr-auto',
         className,
       )}
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -111,16 +111,16 @@ export function CalendarCard({
         </div>
       </div>
 
-      <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
+      <div className="mb-0.5 grid grid-cols-7 gap-0.5 text-center text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
         {weekLabels.map((w) => (
-          <div key={w} className="py-1">
+          <div key={w} className="py-0.5">
             {w}
           </div>
         ))}
       </div>
       <div
         className={cx(
-          'grid grid-cols-7 gap-1',
+          'grid grid-cols-7 gap-0.5',
           fillContainerHeight && 'min-h-0 flex-1 content-start',
         )}
       >
@@ -139,7 +139,7 @@ export function CalendarCard({
                 setCursor(startOfMonth(d));
               }}
               className={cx(
-                'flex h-11 max-h-11 min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg border px-0.5 text-xs tabular-nums transition outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
+                'flex h-9 max-h-9 min-h-9 flex-col items-center justify-center gap-px rounded-lg border px-0.5 text-[11px] tabular-nums transition outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
                 !inMonth && 'border-transparent text-muted-foreground/35',
                 inMonth && !isSelected && 'border-transparent text-foreground/90 hover:border-primary/35 hover:bg-primary/10',
                 isToday &&
@@ -151,9 +151,9 @@ export function CalendarCard({
             >
               <span className="leading-none">{format(d, 'd')}</span>
               {hasDot ? (
-                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/75" />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-primary/75" />
               ) : (
-                <span className="h-1.5 w-1.5 shrink-0" aria-hidden />
+                <span className="h-1 w-1 shrink-0" aria-hidden />
               )}
             </button>
           );
