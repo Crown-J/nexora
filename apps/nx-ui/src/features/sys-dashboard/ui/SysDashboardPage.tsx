@@ -145,21 +145,22 @@ function ProHomeBody({
       <div className="col-start-1 row-start-2 grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,35fr)_minmax(0,65fr)] gap-3 overflow-hidden">
         <ProNx10LeftPanel className="min-h-0 h-full min-w-0 overflow-hidden" />
         <div className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3 overflow-hidden">
-          <div className="flex min-h-0 min-w-0 w-full flex-col gap-3 overflow-hidden">
-            <div className="w-full shrink-0">
+          <div className="flex h-full min-h-0 min-w-0 w-full flex-col gap-3 overflow-hidden">
+            <div className="flex min-h-0 min-w-0 w-full flex-[1.12] flex-col overflow-hidden">
               <CalendarCard
                 events={calendarEvents}
                 selectedDate={selectedDate}
                 onSelectDate={onSelectDate}
-                className="w-full"
+                fillContainerHeight
+                className="h-full min-h-0 w-full"
               />
             </div>
-            <div className="nx-master-scroll min-h-0 min-w-0 w-full flex-1 overflow-y-auto overscroll-contain pr-0.5">
+            <div className="nx-master-scroll flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-y-auto overscroll-contain pr-0.5">
               <EventBookCard
                 events={calendarEvents}
                 focusDate={selectedDate}
                 fillContainerHeight
-                className="h-full min-h-0 w-full"
+                className="h-full min-h-0 w-full flex-1"
               />
             </div>
           </div>

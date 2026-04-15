@@ -71,7 +71,7 @@ export function EventBookCard({ events, focusDate, className, fillContainerHeigh
     <>
       <div
         className={cx(
-          'nx-dash-card w-full min-w-0 p-4',
+          'nx-dash-card w-full min-w-0 max-w-full p-4',
           fillContainerHeight && 'flex h-full min-h-0 flex-col overflow-hidden',
           className,
         )}
