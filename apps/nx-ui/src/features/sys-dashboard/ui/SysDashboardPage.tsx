@@ -54,7 +54,7 @@ function LitePlusHomeBody({
         compact ? 'min-h-0' : 'min-h-0 flex-1 overflow-hidden',
       )}
     >
-      <DashboardQuickShortcuts />
+      <DashboardQuickShortcuts className="hidden lg:flex" />
       <div
         className={cx(
           'flex min-h-0 gap-3',
@@ -119,7 +119,7 @@ function ProHomeBody({
     return (
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <ProExpRankBar />
-        <DashboardQuickShortcuts />
+        <DashboardQuickShortcuts className="hidden lg:flex" />
         <ProNx10LeftPanel />
         <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div className="flex min-h-0 flex-col gap-3">
@@ -141,7 +141,7 @@ function ProHomeBody({
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,65fr)_minmax(0,35fr)] grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
       <ProExpRankBar className="col-start-1 row-start-1 h-full min-h-0 self-stretch" />
-      <DashboardQuickShortcuts className="col-start-2 row-start-1 h-full min-h-0 w-full min-w-0 self-stretch" />
+      <DashboardQuickShortcuts className="col-start-2 row-start-1 hidden h-full min-h-0 w-full min-w-0 self-stretch lg:flex" />
       <div className="col-start-1 row-start-2 grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,35fr)_minmax(0,65fr)] gap-3 overflow-hidden">
         <ProNx10LeftPanel className="min-h-0 h-full min-w-0 overflow-hidden" />
         <div className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3 overflow-hidden">

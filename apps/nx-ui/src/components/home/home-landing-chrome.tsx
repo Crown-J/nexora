@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - 登入後「Landing」系畫面共用外殼：星空背景 + 頂欄星球模組選單 + main 預留 + MobileDock（小螢幕底欄）
+ * - 登入後「Landing」系外殼：星空背景 + 頂欄星球 + main + MobileDock（小螢幕；首頁 `/dashboard` 底欄為 Q～T 快捷鍵，其餘為模組圖示）
  * - 與 /home、/base 等頁一致，避免 TopBar／背景／間距漂移
  */
 

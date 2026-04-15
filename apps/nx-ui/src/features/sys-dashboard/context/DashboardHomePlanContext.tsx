@@ -44,3 +44,8 @@ export function useDashboardHomePlan() {
   }
   return ctx;
 }
+
+/** 供 MobileDock 等：非首頁或未包 Provider 時為 `null` */
+export function useDashboardHomePlanOptional(): DashboardHomePlanContextValue | null {
+  return useContext(DashboardHomePlanContext);
+}

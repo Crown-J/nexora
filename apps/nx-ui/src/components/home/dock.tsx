@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
+import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 
 export type DockNavItem = {
   icon: LucideIcon;
@@ -285,11 +287,52 @@ export function NavPlanetMenu() {
   );
 }
 
+/**
+ * 首頁 `/dashboard` 手機：頂欄星球已負責模組導覽，底欄改為 Q～T 單鍵快捷（與鍵盤快捷一致）。
+ * 其餘路由仍用模組圖示底欄。
+ */
 export function MobileDock() {
   const pathname = usePathname() ?? '';
+  const router = useRouter();
+  const planCtx = useDashboardHomePlanOptional();
+  const isDashboardHome = pathname === '/dashboard';
+
+  const quickShortcuts = useMemo(() => {
+    if (!isDashboardHome) return null;
+    const plan = planCtx?.planCode ?? 'LITE';
+    return getDashboardQuickShortcuts(plan);
+  }, [isDashboardHome, planCtx?.planCode]);
+
+  if (isDashboardHome && quickShortcuts) {
+    return (
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch justify-around gap-1 border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden"
+        aria-label="首頁鍵盤快捷鍵（點擊等同按鍵）"
+      >
+        {quickShortcuts.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            title={s.label}
+            aria-label={`${s.label}（${s.key.toUpperCase()}）`}
+            onClick={() => router.push(s.href)}
+            className={cn(
+              'flex min-w-0 flex-1 items-center justify-center rounded-lg border border-border/50 py-2.5',
+              'bg-gradient-to-b from-muted/45 to-muted/10 text-[#E8A020] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
+              'font-mono text-xs font-bold tabular-nums transition-colors',
+              'active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            )}
+          >
+            {s.key.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around p-2 bg-sidebar/95 backdrop-blur-md border-t border-sidebar-border lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden">
       {HOME_DOCK_ITEMS.map((item) => {
         const active = isDockActive(pathname, item.href);
         return (
@@ -297,11 +340,11 @@ export function MobileDock() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center gap-1 p-2 rounded-lg transition-colors',
+              'flex flex-col items-center gap-1 rounded-lg p-2 transition-colors',
               active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            <item.icon className="w-5 h-5" />
+            <item.icon className="h-5 w-5" />
             <span className="text-[10px]">{item.label}</span>
           </Link>
         );
