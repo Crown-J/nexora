@@ -25,9 +25,21 @@ const badgeClassByType: Record<CalendarEventType, string> = {
 };
 
 function formatEventTimeRange(ev: MockCalendarEvent): string {
-  const { time, type } = ev;
-  if (time === '全天') return '全天 - 全天';
+  if (ev.isAllDay) return '全天';
+
+  const { startTime, endTime, time, type } = ev;
   const trimmed = time.trim();
+
+  if (startTime != null && endTime != null) {
+    return `${startTime} - ${endTime}`;
+  }
+  if (startTime != null && endTime == null) {
+    return type === 'DEADLINE' ? `— - ${startTime}` : `${startTime} - —`;
+  }
+  if (startTime == null && endTime == null && trimmed === '') return '全天';
+
+  if (trimmed === '全天') return '全天';
+
   const dashParts = trimmed.split(/\s*-\s*|\s*–\s*/u).map((s) => s.trim());
   if (dashParts.length >= 2 && dashParts[0] && dashParts[1]) {
     return `${dashParts[0]} - ${dashParts[1]}`;

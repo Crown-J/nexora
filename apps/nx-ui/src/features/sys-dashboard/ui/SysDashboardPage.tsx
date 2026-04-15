@@ -184,6 +184,7 @@ export function SysDashboardPage() {
       type: 'LEAVE',
       title: '（Mock）排假示意',
       time: '全天',
+      isAllDay: true,
       creatorName: '系統',
     };
     return [...mockCalendarEvents, filler];

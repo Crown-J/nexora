@@ -21,7 +21,13 @@ export type MockCalendarEvent = {
   date: string;
   type: CalendarEventType;
   title: string;
+  /** 後端未拆欄位時：`HH:MM-HH:MM` 或「全天」等 */
   time: string;
+  /** 全日事件；與 `startTime`/`endTime` 二擇或併用 */
+  isAllDay?: boolean;
+  /** 明確起訖（HH:MM）；皆 null 且無可用 `time` 時 UI 顯示「全天」 */
+  startTime?: string | null;
+  endTime?: string | null;
   /** 建立／負責人（列表第二行右側） */
   creatorName?: string;
   location?: string;
