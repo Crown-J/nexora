@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX02-DASH-UI-001-F01
- * 採購中心首頁：群組標題 + Hub 卡 + 主流程實線 →→ + 流程步驟圓形 badge（右上角）
+ * 採購中心首頁：群組標題 + Hub 卡 + 流程步驟標籤 Step.N（右上角，橘底深字）
  */
 
 'use client';
@@ -28,7 +28,6 @@ import { mockPurchaseCounts } from '@/mocks/purchase-hub';
 import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
-const FLOW_SOLID = '#E8A020';
 const BADGE_GOLD = '#E8A020';
 const STEP_BADGE_BG = '#E8A020';
 
@@ -168,29 +167,6 @@ function countBadge(c: PurchaseCardConfig): string {
   return '—';
 }
 
-function SolidFlowArrow() {
-  return (
-    <div className="hidden w-9 shrink-0 items-center md:flex" aria-hidden>
-      <div className="flex w-full min-w-[2rem] flex-row items-center gap-0">
-        <div className="h-0.5 min-w-0 flex-1 rounded-full" style={{ backgroundColor: FLOW_SOLID }} />
-        <span className="shrink-0 text-sm font-semibold leading-none" style={{ color: FLOW_SOLID }}>
-          →→
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function SolidFlowArrowMobile() {
-  return (
-    <div className="flex justify-center py-1 md:hidden" aria-hidden>
-      <span className="text-sm font-semibold" style={{ color: FLOW_SOLID }}>
-        →→
-      </span>
-    </div>
-  );
-}
-
 function PurchaseGroupHeading({ id, title }: { id: string; title: string }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border/70 pb-2">
@@ -201,7 +177,7 @@ function PurchaseGroupHeading({ id, title }: { id: string; title: string }) {
   );
 }
 
-function PurchaseMenuCard({ card, stepGlyph }: { card: PurchaseCardConfig; stepGlyph?: string }) {
+function PurchaseMenuCard({ card, stepLabel }: { card: PurchaseCardConfig; stepLabel?: string }) {
   const Icon = card.icon;
   const badge = countBadge(card);
 
@@ -209,16 +185,16 @@ function PurchaseMenuCard({ card, stepGlyph }: { card: PurchaseCardConfig; stepG
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className={CARD_BASE}>
-          {stepGlyph ? (
+          {stepLabel ? (
             <span
-              className="pointer-events-none absolute right-2 top-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+              className="pointer-events-none absolute right-2 top-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold leading-none text-neutral-950"
               style={{ backgroundColor: STEP_BADGE_BG }}
               aria-hidden
             >
-              {stepGlyph}
+              {stepLabel}
             </span>
           ) : null}
-          <div className="flex shrink-0 items-start justify-between gap-2 pr-8">
+          <div className={cn('flex shrink-0 items-start justify-between gap-2', stepLabel ? 'pr-[3.25rem]' : 'pr-8')}>
             <div
               className={cn(
                 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/80',
@@ -270,23 +246,19 @@ function DomesticFlow() {
     <div className="relative w-full min-w-0">
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
         <CardWrap>
-          <PurchaseMenuCard card={a} stepGlyph="①" />
-        </CardWrap>
-        <SolidFlowArrow />
-        <SolidFlowArrowMobile />
-        <CardWrap>
-          <PurchaseMenuCard card={b} stepGlyph="②" />
-        </CardWrap>
-        <SolidFlowArrow />
-        <SolidFlowArrowMobile />
-        <CardWrap>
-          <PurchaseMenuCard card={c} stepGlyph="③" />
+          <PurchaseMenuCard card={a} stepLabel="Step.1" />
         </CardWrap>
         <CardWrap>
-          <PurchaseMenuCard card={domesticBranchReturn} stepGlyph="④" />
+          <PurchaseMenuCard card={b} stepLabel="Step.2" />
         </CardWrap>
         <CardWrap>
-          <PurchaseMenuCard card={domesticBranchWarranty} stepGlyph="⑤" />
+          <PurchaseMenuCard card={c} stepLabel="Step.3" />
+        </CardWrap>
+        <CardWrap>
+          <PurchaseMenuCard card={domesticBranchReturn} stepLabel="Step.4" />
+        </CardWrap>
+        <CardWrap>
+          <PurchaseMenuCard card={domesticBranchWarranty} stepLabel="Step.5" />
         </CardWrap>
       </div>
     </div>
@@ -300,20 +272,16 @@ function SpecialFlow() {
     <div className="relative w-full min-w-0">
       <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
         <CardWrap>
-          <PurchaseMenuCard card={a} stepGlyph="①" />
-        </CardWrap>
-        <SolidFlowArrow />
-        <SolidFlowArrowMobile />
-        <CardWrap>
-          <PurchaseMenuCard card={b} stepGlyph="②" />
-        </CardWrap>
-        <SolidFlowArrow />
-        <SolidFlowArrowMobile />
-        <CardWrap>
-          <PurchaseMenuCard card={c} stepGlyph="③" />
+          <PurchaseMenuCard card={a} stepLabel="Step.1" />
         </CardWrap>
         <CardWrap>
-          <PurchaseMenuCard card={specialReturn} stepGlyph="④" />
+          <PurchaseMenuCard card={b} stepLabel="Step.2" />
+        </CardWrap>
+        <CardWrap>
+          <PurchaseMenuCard card={c} stepLabel="Step.3" />
+        </CardWrap>
+        <CardWrap>
+          <PurchaseMenuCard card={specialReturn} stepLabel="Step.4" />
         </CardWrap>
       </div>
     </div>
