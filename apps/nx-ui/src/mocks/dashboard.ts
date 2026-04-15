@@ -206,10 +206,11 @@ export const mockNx10: MockNx10Dashboard = {
 export type MockProMonthlyKpiItem = {
   type: string;
   label: string;
+  formula: string;
   current: number;
   target: number;
-  /** 反向指標：數值越高越好（顯示說明用，進度仍為 current／target） */
-  inverted?: boolean;
+  /** 反向：顯示% = 100 −（目標−實際）／目標×100 */
+  reverse?: boolean;
 };
 
 export type MockProMonthlyKpi = {
@@ -220,13 +221,64 @@ export type MockProMonthlyKpi = {
 export const mockProMonthlyKpi: MockProMonthlyKpi = {
   yearMonth: '2026年4月',
   items: [
-    { type: '品質', label: '客戶品質分數', current: 85, target: 100 },
-    { type: '貢獻', label: '銷售毛利分數', current: 72, target: 100 },
-    { type: '失誤', label: '被客訴分數', current: 90, target: 100, inverted: true },
-    { type: '妥善', label: '設備妥善分數', current: 95, target: 100 },
-    { type: '出勤', label: '上班時間分數', current: 88, target: 100 },
+    {
+      type: '品質',
+      label: '客戶品質分數',
+      formula: '客戶評分加權平均',
+      current: 85,
+      target: 100,
+      reverse: false,
+    },
+    {
+      type: '貢獻',
+      label: '銷售毛利分數',
+      formula: '毛利額 / 目標毛利額',
+      current: 72,
+      target: 100,
+      reverse: false,
+    },
+    {
+      type: '失誤',
+      label: '被客訴分數',
+      formula: '反向指標：客訴次數扣分',
+      current: 90,
+      target: 100,
+      reverse: true,
+    },
+    {
+      type: '妥善',
+      label: '設備妥善分數',
+      formula: '設備正常使用率',
+      current: 95,
+      target: 100,
+      reverse: false,
+    },
+    {
+      type: '出勤',
+      label: '上班時間分數',
+      formula: '準時出勤率加權',
+      current: 88,
+      target: 100,
+      reverse: false,
+    },
   ],
 };
+
+export type MockProAttendanceStatus = 'present' | 'leave' | 'absent';
+
+export type MockProAttendancePerson = {
+  name: string;
+  initial: string;
+  status: MockProAttendanceStatus;
+};
+
+export const mockProAttendance: MockProAttendancePerson[] = [
+  { name: '王小明', initial: '王', status: 'present' },
+  { name: '林翰杰', initial: '林', status: 'present' },
+  { name: '陳大偉', initial: '陳', status: 'leave' },
+  { name: '張美玲', initial: '張', status: 'present' },
+  { name: '李志明', initial: '李', status: 'absent' },
+];
 
 export type KpiScope = 'company' | 'team' | 'personal';
 
