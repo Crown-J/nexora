@@ -155,7 +155,7 @@ function ProHomeBody({
                 className="h-full min-h-0 w-full"
               />
             </div>
-            <div className="nx-master-scroll flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-y-auto overscroll-contain pr-0.5">
+            <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden">
               <EventBookCard
                 events={calendarEvents}
                 focusDate={selectedDate}

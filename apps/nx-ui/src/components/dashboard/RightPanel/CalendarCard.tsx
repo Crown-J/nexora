@@ -63,8 +63,8 @@ export function CalendarCard({
         className,
       )}
     >
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+      <div className="mb-2 flex min-w-0 w-full flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
             onClick={() => setCursor((d) => addMonths(d, -1))}
@@ -85,7 +85,7 @@ export function CalendarCard({
             {format(cursor, 'yyyy年M月', { locale: zhTW })}
           </span>
         </div>
-        <div className="relative">
+        <div className="relative shrink-0">
           <button
             type="button"
             onClick={() => setAddOpen((o) => !o)}
