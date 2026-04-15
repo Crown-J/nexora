@@ -19,7 +19,7 @@ export async function seedNx01PartBrand(prisma: PrismaClient, _tier: SeedTier): 
 
   for (const r of rows) {
     await prisma.nx01PartBrand.upsert({
-      where: { code: r.code },
+      where: { tenantId_code: { tenantId: DEMO_TENANT_ID, code: r.code } },
       create: {
         tenantId: DEMO_TENANT_ID,
         code: r.code,

@@ -35,7 +35,7 @@ export async function seedNx01Warehouse(prisma: PrismaClient, tier: SeedTier): P
   for (const r of rows) {
     const warehouseTypeId = r.typeCode ? typeByCode.get(r.typeCode) ?? null : null;
     await prisma.nx01Warehouse.upsert({
-      where: { code: r.code },
+      where: { tenantId_code: { tenantId: DEMO_TENANT_ID, code: r.code } },
       create: {
         tenantId: DEMO_TENANT_ID,
         code: r.code,
