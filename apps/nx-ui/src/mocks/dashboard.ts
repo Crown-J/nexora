@@ -173,6 +173,55 @@ export const mockDailyGoals = [
   { id: 'g4', label: '填寫工作日誌', xp: 25, done: false },
 ];
 
+/** PRO 首頁 NX10 區塊（經驗／簽到／今日目標）Mock */
+export type MockNx10TodayGoal = {
+  id: number;
+  title: string;
+  xp: number;
+  done: boolean;
+  /** 點擊任務列導頁 */
+  targetRoute: string;
+};
+
+export type MockNx10Dashboard = {
+  userName: string;
+  avatarInitial: string;
+  medalCode: string;
+  medalRank: string;
+  medalName: string;
+  currentLevel: number;
+  currentExp: number;
+  nextLevelExp: number;
+  checkedIn: boolean;
+  checkinTime: string | null;
+  dailyReportDone: boolean;
+  todayGoals: MockNx10TodayGoal[];
+  currentGoalXp: number;
+  totalGoalXp: number;
+};
+
+export const mockNx10: MockNx10Dashboard = {
+  userName: '林翰杰',
+  avatarInitial: '林',
+  medalCode: 'GOLD',
+  medalRank: 'II',
+  medalName: '黃金大師',
+  currentLevel: 12,
+  currentExp: 3200,
+  nextLevelExp: 4500,
+  checkedIn: false,
+  checkinTime: null,
+  dailyReportDone: false,
+  todayGoals: [
+    { id: 1, title: '完成5項工作任務', xp: 50, done: true, targetRoute: '/dashboard' },
+    { id: 2, title: '準時上班簽到', xp: 20, done: false, targetRoute: '/dashboard' },
+    { id: 3, title: '參與一場會議', xp: 30, done: false, targetRoute: '/dashboard' },
+    { id: 4, title: '填寫工作日誌', xp: 25, done: false, targetRoute: '/dashboard/report/daily' },
+  ],
+  currentGoalXp: 50,
+  totalGoalXp: 125,
+};
+
 export type KpiScope = 'company' | 'team' | 'personal';
 
 export const mockMonthlyKpi: Record<

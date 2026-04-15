@@ -3,7 +3,7 @@
  * 首頁儀表板 Phase 1：Mock Data + planCode 版型
  *
  * LITE／PLUS：區塊一全寬快捷鍵 → 區塊二（行事曆＋事件簿）｜區塊三（任務清單）
- * PRO：左欄簽到等｜中欄行事曆＋事件簿＋出勤｜右欄任務清單
+ * PRO：上列 65/35（經驗條＋排位｜快捷鍵）；下列左 65% 內 35/65（簽到目標｜行事曆事件簿）＋右 35% 任務清單
  */
 
 'use client';
@@ -11,17 +11,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { ExpBar } from '@/components/dashboard/ExpBar/ExpBar';
-import { CheckinCard } from '@/components/dashboard/LeftPanel/CheckinCard';
-import { DailyGoalCard } from '@/components/dashboard/LeftPanel/DailyGoalCard';
-import { MonthlyGoalCard } from '@/components/dashboard/LeftPanel/MonthlyGoalCard';
-import { DailyReportBtn } from '@/components/dashboard/LeftPanel/DailyReportBtn';
 import { CalendarCard } from '@/components/dashboard/RightPanel/CalendarCard';
 import { EventBookCard } from '@/components/dashboard/RightPanel/EventBookCard';
-import { TodayAttendanceCard } from '@/components/dashboard/RightPanel/TodayAttendanceCard';
 import { TaskListCard } from '@/components/dashboard/RightPanel/TaskListCard';
 import {
-  mockAttendanceToday,
   mockCalendarEvents,
   mockTasks,
   type MockCalendarEvent,
@@ -31,76 +24,9 @@ import {
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
 import { DashboardQuickShortcuts } from '@/features/sys-dashboard/ui/DashboardQuickShortcuts';
+import { ProExpRankBar } from '@/features/sys-dashboard/ui/ProExpRankBar';
+import { ProNx10LeftPanel } from '@/features/sys-dashboard/ui/ProNx10LeftPanel';
 import { cx } from '@/shared/lib/cx';
-
-function LeftColumnCards() {
-  return (
-    <div className="flex flex-col gap-3">
-      <CheckinCard />
-      <DailyGoalCard />
-      <MonthlyGoalCard />
-      <DailyReportBtn />
-    </div>
-  );
-}
-
-type MiddleStackProps = {
-  calendarEvents: MockCalendarEvent[];
-  selectedDate: Date;
-  onSelectDate: (d: Date) => void;
-  showAttendance: boolean;
-  layout: 'scroll' | 'fill';
-};
-
-function MiddleStack({
-  calendarEvents,
-  selectedDate,
-  onSelectDate,
-  showAttendance,
-  layout,
-}: MiddleStackProps) {
-  const attendanceBlock = showAttendance ? (
-    <div
-      className={cx(
-        'pr-0.5',
-        layout === 'fill' &&
-          'nx-master-scroll min-h-0 max-h-[min(240px,32vh)] shrink-0 overflow-y-auto overscroll-contain',
-      )}
-    >
-      <TodayAttendanceCard people={mockAttendanceToday} />
-    </div>
-  ) : null;
-
-  if (layout === 'fill') {
-    return (
-      <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
-        <div className="shrink-0">
-          <CalendarCard
-            events={calendarEvents}
-            selectedDate={selectedDate}
-            onSelectDate={onSelectDate}
-          />
-        </div>
-        <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
-          <EventBookCard events={calendarEvents} focusDate={selectedDate} />
-        </div>
-        {attendanceBlock}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <CalendarCard
-        events={calendarEvents}
-        selectedDate={selectedDate}
-        onSelectDate={onSelectDate}
-      />
-      <EventBookCard events={calendarEvents} focusDate={selectedDate} />
-      {showAttendance ? <TodayAttendanceCard people={mockAttendanceToday} /> : null}
-    </div>
-  );
-}
 
 type LitePlusHomeBodyProps = {
   calendarEvents: MockCalendarEvent[];
@@ -171,6 +97,88 @@ function LitePlusHomeBody({
   );
 }
 
+type ProHomeBodyProps = {
+  calendarEvents: MockCalendarEvent[];
+  selectedDate: Date;
+  onSelectDate: (d: Date) => void;
+  tasks: MockTask[];
+  planCode: PlanCode;
+  compact: boolean;
+};
+
+function ProHomeBody({
+  calendarEvents,
+  selectedDate,
+  onSelectDate,
+  tasks,
+  planCode,
+  compact,
+}: ProHomeBodyProps) {
+  if (compact) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <ProExpRankBar />
+        <DashboardQuickShortcuts />
+        <ProNx10LeftPanel />
+        <div className="flex shrink-0 flex-col gap-3">
+          <CalendarCard
+            events={calendarEvents}
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+            className="w-full max-w-[600px]"
+          />
+          <EventBookCard
+            events={calendarEvents}
+            focusDate={selectedDate}
+            className="w-full max-w-[600px]"
+          />
+        </div>
+        <TaskListCard tasks={tasks} planCode={planCode} listScrollable={false} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div className="grid shrink-0 grid-cols-[minmax(0,13fr)_minmax(0,7fr)] items-stretch gap-3">
+        <ProExpRankBar className="h-full min-h-0" />
+        <DashboardQuickShortcuts className="h-full min-h-0" />
+      </div>
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,13fr)_minmax(0,7fr)] gap-3 overflow-hidden">
+        <div className="grid min-h-0 grid-cols-[minmax(0,7fr)_minmax(0,13fr)] gap-3 overflow-hidden">
+          <ProNx10LeftPanel className="nx-master-scroll min-h-0 overflow-y-auto overscroll-contain pr-0.5" />
+          <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
+            <div className="shrink-0">
+              <CalendarCard
+                events={calendarEvents}
+                selectedDate={selectedDate}
+                onSelectDate={onSelectDate}
+              />
+            </div>
+            <div className="nx-master-scroll min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain pr-0.5">
+              <EventBookCard
+                events={calendarEvents}
+                focusDate={selectedDate}
+                fillContainerHeight
+                className="h-full min-h-0"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/60 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
+          <TaskListCard
+            tasks={tasks}
+            planCode={planCode}
+            fillColumnHeight
+            listScrollable
+            className="min-h-0 flex-1"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SysDashboardPage() {
   const { planCode } = useDashboardHomePlan();
   const pathname = usePathname();
@@ -180,9 +188,7 @@ export function SysDashboardPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const tasks = useMemo(() => mockTasks.map((t) => ({ ...t })), []);
 
-  const showExpBar = planCode === 'PRO';
-  const showLeftPanel = planCode === 'PRO';
-  const showAttendance = planCode === 'PRO';
+  const showNx10 = planCode === 'PRO';
 
   const quickShortcuts = useMemo(() => getDashboardQuickShortcuts(planCode), [planCode]);
 
@@ -235,14 +241,15 @@ export function SysDashboardPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [pathname, quickShortcuts, router]);
 
-  const middleProps = {
+  const liteBodyProps = {
     calendarEvents,
     selectedDate,
     onSelectDate: setSelectedDate,
-    showAttendance,
+    tasks,
+    planCode,
   };
 
-  const liteBodyProps = {
+  const proBodyProps = {
     calendarEvents,
     selectedDate,
     onSelectDate: setSelectedDate,
@@ -262,69 +269,24 @@ export function SysDashboardPage() {
       />
 
       <div className="nx-dash-frame flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4">
-        {showExpBar ? (
-          <div className="shrink-0">
-            <ExpBar />
-          </div>
-        ) : null}
-
-        <div
-          className={cx(
-            'flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden',
-            showExpBar ? 'mt-2' : 'mt-0',
-          )}
-        >
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
           <div className="nx-master-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
             <div className="space-y-3 pb-2">
-              {showLeftPanel ? (
-                <div className="space-y-3 border-b border-border/80 pb-3">
-                  <LeftColumnCards />
-                </div>
-              ) : null}
-              {showLeftPanel ? (
-                <MiddleStack {...middleProps} layout="scroll" />
+              {showNx10 ? (
+                <ProHomeBody {...proBodyProps} compact />
               ) : (
                 <LitePlusHomeBody {...liteBodyProps} compact />
               )}
-              {showLeftPanel ? (
-                <TaskListCard tasks={tasks} planCode={planCode} listScrollable={false} />
-              ) : null}
             </div>
           </div>
         </div>
 
-        <div
-          className={cx(
-            'hidden min-h-0 flex-1 gap-4 overflow-hidden lg:grid',
-            showExpBar ? 'mt-3' : 'mt-0',
-            showLeftPanel
-              ? 'lg:grid-cols-[minmax(220px,15vw)_minmax(0,1fr)_minmax(300px,24vw)]'
-              : 'lg:grid-cols-[minmax(0,1fr)]',
-          )}
-        >
-          {showLeftPanel ? (
-            <aside className="nx-master-scroll min-h-0 overflow-y-auto overscroll-contain border-r border-border/80 pr-3">
-              <LeftColumnCards />
-            </aside>
-          ) : null}
-
-          {showLeftPanel ? (
-            <MiddleStack {...middleProps} layout="fill" />
+        <div className="hidden min-h-0 flex-1 overflow-hidden lg:block">
+          {showNx10 ? (
+            <ProHomeBody {...proBodyProps} compact={false} />
           ) : (
             <LitePlusHomeBody {...liteBodyProps} compact={false} />
           )}
-
-          {showLeftPanel ? (
-            <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border-l border-border/80 pl-3 lg:min-w-[280px] lg:max-w-[420px] xl:max-w-[460px]">
-              <TaskListCard
-                tasks={tasks}
-                planCode={planCode}
-                fillColumnHeight
-                className="min-h-0 flex-1"
-                listScrollable
-              />
-            </div>
-          ) : null}
         </div>
       </div>
     </div>
