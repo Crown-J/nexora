@@ -1,6 +1,6 @@
 /**
- * @FUNCTION_CODE NX99-SYS-DASH-UI-021-F05
- * 首頁區塊一：全寬橫向快捷鍵（emoji + 中文 + kbd，kbd 樣式對齊 Dock 選單列）
+ * @FUNCTION_CODE NX99-SYS-DASH-UI-021-F06
+ * 首頁區塊一：全寬橫向快捷鍵（Lucide 圖示 + 中文 + kbd，圖示區對齊 Dock 選單列）
  */
 
 'use client';
@@ -27,7 +27,7 @@ export function DashboardQuickShortcuts({ className }: Props) {
       )}
       aria-label="首頁預設快捷鍵"
     >
-      {shortcuts.map(({ key, label, href, emoji }) => (
+      {shortcuts.map(({ key, label, href, Icon }) => (
         <button
           key={key}
           type="button"
@@ -51,10 +51,14 @@ export function DashboardQuickShortcuts({ className }: Props) {
             aria-hidden
           />
           <span
-            className="relative shrink-0 text-lg leading-none select-none sm:text-xl"
+            className={cx(
+              'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/45 text-muted-foreground',
+              'transition-[border-color,background-color,color] duration-200',
+              'group-hover:border-primary/45 group-hover:bg-primary/10 group-hover:text-primary',
+            )}
             aria-hidden
           >
-            {emoji}
+            <Icon className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px]" strokeWidth={1.65} />
           </span>
           <span className="relative min-w-0 flex-1 truncate text-left text-xs font-medium text-foreground transition-colors group-hover:text-primary sm:text-sm">
             {label}
