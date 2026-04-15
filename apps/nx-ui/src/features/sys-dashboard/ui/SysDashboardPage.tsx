@@ -130,31 +130,31 @@ function LitePlusHomeBody({
       <DashboardQuickShortcuts />
       <div
         className={cx(
-          'grid min-h-0 gap-3',
-          compact ? 'grid-cols-1' : 'flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(280px,36vw)] lg:gap-4',
+          'flex min-h-0 gap-3',
+          compact ? 'flex-col' : 'flex-1 flex-col lg:flex-row lg:gap-4',
         )}
       >
-        <div className="flex min-h-0 min-w-0 flex-col gap-3 overflow-hidden">
+        <div className="flex w-full max-w-[600px] shrink-0 flex-col gap-3 overflow-hidden">
           <div className="shrink-0">
             <CalendarCard
               events={calendarEvents}
               selectedDate={selectedDate}
               onSelectDate={onSelectDate}
-              className="mr-auto max-w-[600px]"
+              className="w-full max-w-[600px]"
             />
           </div>
-          <div className="min-h-0 flex-1 overflow-hidden lg:min-h-[12rem]">
+          <div className="min-h-0 w-full max-w-[600px] flex-1 overflow-hidden lg:min-h-[12rem]">
             <EventBookCard
               events={calendarEvents}
               focusDate={selectedDate}
               fillContainerHeight={!compact}
-              className={cx(!compact && 'h-full min-h-0')}
+              className={cx('w-full max-w-[600px]', !compact && 'h-full min-h-0')}
             />
           </div>
         </div>
         <div
           className={cx(
-            'flex min-h-0 min-w-0 flex-col border-t border-border/60 pt-3',
+            'flex min-h-0 min-w-0 flex-1 flex-col border-t border-border/60 pt-3',
             !compact && 'lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0',
           )}
         >
