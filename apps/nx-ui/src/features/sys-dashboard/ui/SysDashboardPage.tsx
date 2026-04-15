@@ -29,7 +29,7 @@ import {
   type PlanCode,
 } from '@/mocks/dashboard';
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
-import { DASHBOARD_QUICK_SHORTCUTS } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
+import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
 import { DashboardQuickShortcuts } from '@/features/sys-dashboard/ui/DashboardQuickShortcuts';
 import { cx } from '@/shared/lib/cx';
 
@@ -184,6 +184,8 @@ export function SysDashboardPage() {
   const showLeftPanel = planCode === 'PRO';
   const showAttendance = planCode === 'PRO';
 
+  const quickShortcuts = useMemo(() => getDashboardQuickShortcuts(planCode), [planCode]);
+
   const calendarEvents = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const hasToday = mockCalendarEvents.some((e) => e.date === todayStr);
@@ -222,7 +224,7 @@ export function SysDashboardPage() {
 
       if (e.key.length === 1) {
         const letter = e.key.toLowerCase();
-        const hit = DASHBOARD_QUICK_SHORTCUTS.find((s) => s.key === letter);
+        const hit = quickShortcuts.find((s) => s.key === letter);
         if (hit) {
           e.preventDefault();
           router.push(hit.href);
@@ -231,7 +233,7 @@ export function SysDashboardPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [pathname, router]);
+  }, [pathname, quickShortcuts, router]);
 
   const middleProps = {
     calendarEvents,
