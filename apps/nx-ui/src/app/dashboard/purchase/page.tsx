@@ -39,6 +39,7 @@ export default function PurchaseHubPage() {
             title="供應商管理"
             description="廠商主檔、付款條件、評鑑記錄"
             Icon={Building2}
+            href="/dashboard/purchase/vendor"
           />
         </ModuleHubSection>
 
