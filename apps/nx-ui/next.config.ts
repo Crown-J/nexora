@@ -31,7 +31,6 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/finance/notes", destination: "/dashboard/nx05/workspace", permanent: true },
       { source: "/dashboard/finance/closing", destination: "/dashboard/nx05/workspace", permanent: true },
 
-      { source: "/dashboard/report", destination: "/dashboard/nx08/workspace", permanent: true },
       { source: "/dashboard/report/workspace", destination: "/dashboard/nx08/workspace", permanent: true },
       { source: "/dashboard/report/daily", destination: "/dashboard/nx08/workspace", permanent: true },
       { source: "/dashboard/report/monthly", destination: "/dashboard/nx08/workspace", permanent: true },

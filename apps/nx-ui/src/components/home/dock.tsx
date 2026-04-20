@@ -39,7 +39,7 @@ export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: Package,      label: '銷貨', href: '/dashboard/sale' },
   { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory' },
   { icon: DollarSign,   label: '財務', href: '/dashboard/finance' },
-  { icon: BarChart3,    label: '報表', href: '/dashboard/nx08/workspace' },
+  { icon: BarChart3,    label: '報表', href: '/dashboard/report' },
 ];
 
 /** Alt+X 開啟後，單鍵：H 首頁／B 主檔／P 採購／S 銷貨／W 庫存／M 財務／R 報表 */
@@ -50,7 +50,7 @@ const DOCK_LETTER_TO_HREF: Record<string, string> = {
   s: '/dashboard/sale',
   w: '/dashboard/inventory',
   m: '/dashboard/finance',
-  r: '/dashboard/nx08/workspace',
+  r: '/dashboard/report',
 };
 
 const DOCK_ITEM_ALT_HINT: (string | null)[] = ['H', 'B', 'P', 'S', 'W', 'M', 'R'];
@@ -94,8 +94,8 @@ export function isDockActive(pathname: string, href: string): boolean {
   if (href === '/dashboard/finance') {
     return pathname.startsWith('/dashboard/finance') || pathname.startsWith('/dashboard/nx05');
   }
-  if (href === '/dashboard/nx08/workspace') {
-    return pathname.startsWith('/dashboard/nx08');
+  if (href === '/dashboard/report') {
+    return pathname.startsWith('/dashboard/report') || pathname.startsWith('/dashboard/nx08');
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

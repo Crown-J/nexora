@@ -23,7 +23,7 @@ const routes: Record<string, string> = {
   w: '/dashboard/inventory',
   s: '/dashboard/sale',
   m: '/dashboard/finance',
-  r: '/dashboard/nx08/workspace',
+  r: '/dashboard/report',
 };
 
 export function ModuleMenuOverlay({ open, onClose, planCode }: ModuleMenuOverlayProps) {

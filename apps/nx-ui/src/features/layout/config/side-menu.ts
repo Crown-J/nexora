@@ -28,6 +28,7 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   if (pathname.startsWith('/dashboard/sale')) return [];
   if (pathname.startsWith('/dashboard/inventory')) return [];
   if (pathname.startsWith('/dashboard/finance')) return [];
+  if (pathname.startsWith('/dashboard/report')) return [];
   if (
     pathname.startsWith('/dashboard/nx02/domestic') ||
     pathname.startsWith('/dashboard/nx02/import') ||
