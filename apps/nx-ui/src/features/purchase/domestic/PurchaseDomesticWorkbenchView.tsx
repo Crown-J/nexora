@@ -5,9 +5,10 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
+  ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -158,8 +159,8 @@ function DemandStockMini({ d }: { d: MockDemand }) {
   const turnText = turnoverMonthsShortText(d.turnoverMonths);
 
   return (
-    <div className="min-w-0 max-w-[220px]">
-      <div className="relative h-1.5 w-full rounded-full bg-muted/70">
+    <div className="min-w-0 w-full max-w-[14rem]">
+      <div className="relative h-2 w-full rounded-full bg-muted/70">
         <div className={cx('h-full rounded-l-full transition-[width]', barColor)} style={{ width: `${fillPct}%` }} />
         <div
           className="pointer-events-none absolute top-[-2px] z-[1] h-[calc(100%+4px)] w-px bg-amber-500/90"
@@ -572,8 +573,6 @@ function DemandMiddleColumn({
   setFocusIdx: (i: number | ((n: number) => number)) => void;
   onGoRfq: () => void;
 }) {
-  const DEMAND_GRID = 'minmax(0,1fr) 60px 60px 60px 220px 80px 80px' as const;
-
   return (
     <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 overflow-x-hidden overflow-y-hidden">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2">
@@ -629,99 +628,152 @@ function DemandMiddleColumn({
         className="shrink-0 justify-end border-b border-border/40 pb-2"
       />
 
-      <div
-        role="listbox"
-        aria-label="採購需求單列表"
-        className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overflow-x-auto pr-0.5"
-      >
-        {pagedDemands.map((d, idx) => {
-          const focused = idx === focusIdx;
-          const urgent = d.isUrgent;
-          const suggestedQty = defaultRfqQty(d);
-          const stockHex =
-            d.currentStock === 0 ? '#E24B4A' : d.currentStock < d.safetyStock ? '#E8A020' : '#1D9E75';
-          const subRow =
-            d.source === 'sales' &&
-            (Boolean(d.remark?.trim()) || Boolean(d.salesName) || Boolean(d.customerName));
+      <div className="nx-master-scroll min-h-0 flex-1 overflow-auto rounded-lg border border-border/50 bg-card/30 pr-0.5">
+        <table
+          className="nx-master-table w-full min-w-[960px] border-collapse text-sm"
+          style={{ tableLayout: 'fixed' }}
+          aria-label="採購需求單列表"
+        >
+          <thead>
+            <tr className="nx-master-thead-row text-left text-muted-foreground">
+              <th className="w-[9.5rem] px-2 py-2.5">
+                <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                  料號 CODE
+                  <ArrowUpDown className="size-3.5 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="min-w-0 px-2 py-2.5">
+                <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                  品名
+                  <ArrowUpDown className="size-3.5 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="w-20 px-2 py-2.5">
+                <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                  廠牌
+                  <ArrowUpDown className="size-3.5 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="w-[5.5rem] px-2 py-2.5">
+                <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                  需求類型
+                  <ArrowUpDown className="size-3.5 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="w-20 px-2 py-2.5 text-right">
+                <span className="inline-flex w-full items-center justify-end gap-1 font-medium text-foreground">
+                  現有庫存
+                  <ArrowUpDown className="size-3.5 shrink-0 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="w-20 px-2 py-2.5 text-right">
+                <span className="inline-flex w-full items-center justify-end gap-1 font-medium text-foreground">
+                  安全量
+                  <ArrowUpDown className="size-3.5 shrink-0 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="w-20 px-2 py-2.5 text-right">
+                <span className="inline-flex w-full items-center justify-end gap-1 font-medium text-foreground">
+                  最高量
+                  <ArrowUpDown className="size-3.5 shrink-0 opacity-50" aria-hidden />
+                </span>
+              </th>
+              <th className="w-[14rem] px-2 py-2.5">
+                <span className="font-medium text-foreground">庫存條</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {pagedDemands.map((d, idx) => {
+              const focused = idx === focusIdx;
+              const urgent = d.isUrgent;
+              const stockHex =
+                d.currentStock === 0 ? '#E24B4A' : d.currentStock < d.safetyStock ? '#E8A020' : '#1D9E75';
+              const subRow =
+                d.source === 'sales' &&
+                (Boolean(d.remark?.trim()) || Boolean(d.salesName) || Boolean(d.customerName));
 
-          const onCardActivate = () => setFocusIdx(idx);
+              const onRowActivate = () => setFocusIdx(idx);
 
-          return (
-            <div
-              key={d.no}
-              role="option"
-              aria-selected={focused}
-              onClick={onCardActivate}
-              onKeyDown={(ev) => {
-                if (ev.key === 'Enter' || ev.key === ' ') {
-                  ev.preventDefault();
-                  onCardActivate();
-                }
-              }}
-              tabIndex={-1}
-              className={cx(
-                'min-w-[720px] cursor-pointer rounded-md border border-border/50 bg-card/40 text-left transition-colors hover:bg-muted/25',
-                focused && 'ring-1 ring-amber-500/45',
-                urgent && 'border-l-2 border-l-[#E24B4A]',
-              )}
-              onMouseEnter={() => setFocusIdx(idx)}
-            >
-              <div
-                className="grid items-center gap-x-2 px-2 py-1.5"
-                style={{ gridTemplateColumns: DEMAND_GRID }}
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-mono text-[11px] font-medium leading-tight text-muted-foreground">{d.partCode}</p>
-                  <p className="truncate text-sm font-semibold leading-tight text-foreground">{d.partName}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">
-                    <span className="text-foreground/80">{d.partBrand}</span>
-                  </p>
-                </div>
-                <p className="text-right text-sm font-bold tabular-nums" style={{ color: stockHex }}>
-                  {d.currentStock}
-                </p>
-                <p className="text-right text-sm tabular-nums text-muted-foreground">{d.safetyStock}</p>
-                <p className="text-right text-sm tabular-nums text-muted-foreground">{d.maxStock}</p>
-                <DemandStockMini d={d} />
-                <div className="flex flex-col items-stretch justify-center gap-0.5 text-[10px] leading-tight">
-                  {d.source === 'system' ? (
-                    <span className="rounded bg-sky-600/18 px-1 py-0.5 text-center font-semibold text-sky-950 dark:text-sky-50">
-                      系統自動
-                    </span>
-                  ) : d.isUrgent ? (
-                    <span className="rounded bg-red-600/20 px-1 py-0.5 text-center font-semibold text-red-950 dark:text-red-50">
-                      業務緊急
-                    </span>
-                  ) : (
-                    <span className="rounded bg-orange-500/18 px-1 py-0.5 text-center font-semibold text-orange-950 dark:text-orange-50">
-                      業務提交
-                    </span>
-                  )}
-                </div>
-                <div className="text-right">
-                  <span className="text-base font-bold tabular-nums text-foreground">{suggestedQty}</span>
-                  {d.unit ? (
-                    <span className="text-[11px] font-medium text-muted-foreground">{d.unit}</span>
+              return (
+                <Fragment key={d.no}>
+                  <tr
+                    role="row"
+                    aria-selected={focused}
+                    tabIndex={-1}
+                    className={cx(
+                      'nx-master-tbody-row cursor-pointer transition-colors',
+                      focused && 'bg-amber-500/10 ring-1 ring-inset ring-amber-500/35',
+                      urgent && 'border-l-2 border-l-[#E24B4A]',
+                    )}
+                    onClick={onRowActivate}
+                    onKeyDown={(ev) => {
+                      if (ev.key === 'Enter' || ev.key === ' ') {
+                        ev.preventDefault();
+                        onRowActivate();
+                      }
+                    }}
+                    onMouseEnter={() => setFocusIdx(idx)}
+                  >
+                    <td className="px-2 py-2 align-middle">
+                      <p className="break-all font-mono text-xs font-medium leading-snug text-foreground">{d.partCode}</p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">{d.no}</p>
+                    </td>
+                    <td className="min-w-0 px-2 py-2 align-middle">
+                      <p className="break-words font-medium leading-snug text-foreground">{d.partName}</p>
+                      {defaultRfqQty(d) !== d.qty ? (
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">
+                          建議補貨 {defaultRfqQty(d)}
+                          {d.unit ? d.unit : ''}
+                        </p>
+                      ) : null}
+                    </td>
+                    <td className="px-2 py-2 align-middle text-foreground">{d.partBrand}</td>
+                    <td className="px-2 py-2 align-middle">
+                      {d.source === 'system' ? (
+                        <span className="inline-flex rounded-md bg-sky-600/18 px-2 py-0.5 text-xs font-semibold text-sky-950 dark:text-sky-50">
+                          系統自動
+                        </span>
+                      ) : d.isUrgent ? (
+                        <span className="inline-flex rounded-md bg-red-600/20 px-2 py-0.5 text-xs font-semibold text-red-950 dark:text-red-50">
+                          業務緊急
+                        </span>
+                      ) : (
+                        <span className="inline-flex rounded-md bg-orange-500/18 px-2 py-0.5 text-xs font-semibold text-orange-950 dark:text-orange-50">
+                          業務提交
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2 text-right align-middle text-sm font-semibold tabular-nums" style={{ color: stockHex }}>
+                      {d.currentStock}
+                    </td>
+                    <td className="px-2 py-2 text-right align-middle text-sm tabular-nums text-muted-foreground">{d.safetyStock}</td>
+                    <td className="px-2 py-2 text-right align-middle text-sm tabular-nums text-muted-foreground">{d.maxStock}</td>
+                    <td className="px-2 py-2 align-middle">
+                      <DemandStockMini d={d} />
+                    </td>
+                  </tr>
+                  {subRow ? (
+                    <tr className="border-b border-border/40 bg-muted/15">
+                      <td colSpan={8} className="px-2 py-1.5 pl-8 text-xs leading-snug text-muted-foreground">
+                        <span className="text-muted-foreground/80">└─</span>{' '}
+                        <span className="text-foreground/90">{d.salesName ?? '—'}</span>
+                        <span className="text-muted-foreground"> ｜ </span>
+                        <span>{d.customerName ?? '—'}</span>
+                        {d.remark?.trim() ? (
+                          <>
+                            <span className="text-muted-foreground"> ｜ 備註：</span>
+                            <span className="text-foreground/90">{d.remark}</span>
+                          </>
+                        ) : null}
+                      </td>
+                    </tr>
                   ) : null}
-                </div>
-              </div>
-              {subRow ? (
-                <div className="border-t border-border/35 px-2 py-1.5 pl-6 text-[11px] leading-snug text-muted-foreground">
-                  <span className="text-muted-foreground/80">└─</span>{' '}
-                  <span className="text-foreground/90">{d.salesName ?? '—'}</span>
-                  <span className="text-muted-foreground"> ｜ </span>
-                  <span>{d.customerName ?? '—'}</span>
-                  {d.remark?.trim() ? (
-                    <>
-                      <span className="text-muted-foreground"> ｜ 備註：</span>
-                      <span className="text-foreground/90">{d.remark}</span>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
