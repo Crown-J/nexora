@@ -9,6 +9,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreateLocationBody, LocationDto, PagedResult, UpdateLocationBody } from '@/features/nx00/location/types';
 
 const BASE = '/location';
@@ -28,9 +29,10 @@ export type ListLocationParams = {
  * - GET /location?page=&pageSize=&q=&warehouseId=
  */
 export async function listLocation(params: ListLocationParams): Promise<PagedResult<LocationDto>> {
+    const pageSize = clampNx01ListPageSize(params.pageSize, 20);
     const query = buildQueryString({
         page: String(params.page),
-        pageSize: String(params.pageSize),
+        pageSize: String(pageSize),
         q: params.q?.trim() ? params.q.trim() : undefined,
         warehouseId: params.warehouseId ? String(params.warehouseId) : undefined,
         isActive: params.isActive === undefined ? undefined : String(params.isActive),

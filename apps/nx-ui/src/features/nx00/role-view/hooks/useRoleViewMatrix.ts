@@ -13,6 +13,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { listRole } from '@/features/nx00/role/api/role';
 import type { RoleDto } from '@/features/nx00/role/types';
 
@@ -117,11 +118,9 @@ export function useRoleViewMatrix() {
         setViewLoading(true);
         setViewError(null);
 
-        listView()
-            .then((res) => {
+        fetchAllPages((page, pageSize) => listView({ isActive: true, page, pageSize }), { pageSize: 100, maxPages: 50 })
+            .then((items) => {
                 if (!alive) return;
-
-                const items = res?.items ?? [];
                 const HIDDEN_VIEW_CODES = new Set(['NX00_LOGIN', 'NX00_HOME']);
                 const filtered = items.filter((v) => !HIDDEN_VIEW_CODES.has(String(v.code ?? '')));
                 const sorted = filtered.slice().sort((a, b) => {
@@ -164,10 +163,10 @@ export function useRoleViewMatrix() {
         setRoleViewLoading(true);
         setRoleViewError(null);
 
-        listRoleView({ roleId, page: 1, pageSize: 1000 })
-            .then((res) => {
+        fetchAllPages((page, pageSize) => listRoleView({ roleId, page, pageSize }), { pageSize: 100, maxPages: 50 })
+            .then((items) => {
                 if (!alive) return;
-                setRoleViews(res.items ?? []);
+                setRoleViews(items);
             })
             .catch((e: any) => {
                 if (!alive) return;
@@ -369,8 +368,11 @@ export function useRoleViewMatrix() {
                 }
             }
 
-            const latest = await listRoleView({ roleId, page: 1, pageSize: 1000 });
-            setRoleViews(latest.items ?? []);
+            const latestItems = await fetchAllPages(
+                (page, pageSize) => listRoleView({ roleId, page, pageSize }),
+                { pageSize: 100, maxPages: 50 },
+            );
+            setRoleViews(latestItems);
         } catch (e: any) {
             setSaveError(e?.message ?? '儲存失敗');
         } finally {

@@ -5,6 +5,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { BrandDto, CreateBrandBody, PagedResult, UpdateBrandBody } from '@/features/nx00/brand/types';
 
 const BASE = '/nx01/part-brands';
@@ -28,9 +29,10 @@ export type ListBrandParams = {
 };
 
 export async function listBrand(params: ListBrandParams): Promise<PagedResult<BrandDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const query = buildQueryString({
     page: String(params.page),
-    pageSize: String(params.pageSize),
+    pageSize: String(pageSize),
     search: params.q?.trim() ? params.q.trim() : undefined,
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });

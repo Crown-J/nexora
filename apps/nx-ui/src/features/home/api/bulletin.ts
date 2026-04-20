@@ -5,6 +5,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 
 export type BulletinDto = {
   id: string;
@@ -37,10 +38,11 @@ export async function listBulletins(params: {
   page?: number;
   pageSize?: number;
 }): Promise<PagedBulletins> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
     scopeType: params.scopeType,
     page: params.page != null ? String(params.page) : undefined,
-    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    pageSize: String(pageSize),
     isActive: 'true',
   });
   const res = await apiFetch(`/bulletin${qs}`, { method: 'GET' });

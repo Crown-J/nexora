@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@/features/base/api/warehouse';
@@ -1526,8 +1527,11 @@ export function BaseWarehouseLocationView() {
     setWhLoading(true);
     setWhError(null);
     try {
-      const r = await listWarehouses({ page: 1, pageSize: 500 });
-      setWarehouses(r.items);
+      const whItems = await fetchAllPages((page, pageSize) => listWarehouses({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setWarehouses(whItems);
     } catch (e) {
       setWhError(e instanceof Error ? e.message : '載入倉庫失敗');
       setWarehouses([]);
@@ -1540,8 +1544,11 @@ export function BaseWarehouseLocationView() {
     setLocLoading(true);
     setLocError(null);
     try {
-      const r = await listLocation({ page: 1, pageSize: 500 });
-      setLocations(r.items);
+      const locItems = await fetchAllPages((page, pageSize) => listLocation({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setLocations(locItems);
     } catch (e) {
       setLocError(e instanceof Error ? e.message : '載入庫位失敗');
       setLocations([]);

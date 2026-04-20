@@ -5,6 +5,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 
 export type CalendarEventDto = {
   id: string;
@@ -42,11 +43,12 @@ export async function listCalendarEvents(params: {
   page?: number;
   pageSize?: number;
 }): Promise<PagedCalendarEvents> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
     from: params.from,
     to: params.to,
     page: params.page != null ? String(params.page) : undefined,
-    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    pageSize: String(pageSize),
     isActive: 'true',
   });
   const res = await apiFetch(`/calendar-event${qs}`, { method: 'GET' });

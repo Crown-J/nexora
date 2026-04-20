@@ -9,6 +9,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type {
     AssignUserRoleBody,
     PagedResult,
@@ -39,12 +40,13 @@ export type ListUserRoleParams = {
  * - GET /user-role?userId=&roleId=&isActive=&page=&pageSize=
  */
 export async function listUserRole(params: ListUserRoleParams): Promise<PagedResult<UserRoleDto>> {
+    const pageSize = clampNx01ListPageSize(params.pageSize, 20);
     const query = buildQueryString({
         userId: params.userId,
         roleId: params.roleId,
         isActive: params.isActive === undefined ? undefined : String(params.isActive),
         page: String(params.page),
-        pageSize: String(params.pageSize),
+        pageSize: String(pageSize),
     });
 
     const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });

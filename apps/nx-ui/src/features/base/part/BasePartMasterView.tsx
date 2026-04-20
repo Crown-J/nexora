@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import { listBrand } from '@/features/nx00/brand/api/brand';
@@ -393,8 +394,11 @@ export function BasePartMasterView() {
   const loadBrands = useCallback(async () => {
     setBrandsLoading(true);
     try {
-      const r = await listBrand({ page: 1, pageSize: 2000 });
-      setBrands([...r.items].sort((a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code, 'en')));
+      const brandItems = await fetchAllPages((page, pageSize) => listBrand({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setBrands([...brandItems].sort((a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code, 'en')));
     } catch {
       setBrands([]);
     } finally {
@@ -405,18 +409,38 @@ export function BasePartMasterView() {
   const loadLookups = useCallback(async () => {
     setLookupsLoading(true);
     try {
-      const cQs = buildQueryString({ page: '1', pageSize: '500' });
-      const gQs = buildQueryString({ page: '1', pageSize: '500' });
-      const [cRes, gRes] = await Promise.all([
-        apiFetch(`/country${cQs}`, { method: 'GET' }),
-        apiFetch(`/part-group${gQs}`, { method: 'GET' }),
-      ]);
-      await assertOk(cRes, 'nxui_part_master_country');
-      await assertOk(gRes, 'nxui_part_master_part_group');
-      const cj = (await cRes.json()) as { items: Array<{ id: string; code: string; name: string }> };
-      const gj = (await gRes.json()) as { items: Array<{ id: string; code: string; name: string }> };
-      setCountries([...(cj.items ?? [])].sort((a, b) => a.code.localeCompare(b.code, 'en')));
-      setPartGroups([...(gj.items ?? [])].sort((a, b) => a.code.localeCompare(b.code, 'en')));
+      const countryItems = await fetchAllPages(
+        async (page, pageSize) => {
+          const qs = buildQueryString({ page: String(page), pageSize: String(pageSize) });
+          const cRes = await apiFetch(`/country${qs}`, { method: 'GET' });
+          await assertOk(cRes, 'nxui_part_master_country');
+          const cj = (await cRes.json()) as { items: unknown[]; total?: number; page?: number; pageSize?: number };
+          return {
+            items: (cj.items ?? []) as Array<{ id: string; code: string; name: string }>,
+            page,
+            pageSize,
+            total: Number(cj.total ?? (cj.items ?? []).length),
+          };
+        },
+        { pageSize: 100, maxPages: 20 },
+      );
+      const groupItems = await fetchAllPages(
+        async (page, pageSize) => {
+          const qs = buildQueryString({ page: String(page), pageSize: String(pageSize) });
+          const gRes = await apiFetch(`/part-group${qs}`, { method: 'GET' });
+          await assertOk(gRes, 'nxui_part_master_part_group');
+          const gj = (await gRes.json()) as { items: unknown[]; total?: number };
+          return {
+            items: (gj.items ?? []) as Array<{ id: string; code: string; name: string }>,
+            page,
+            pageSize,
+            total: Number(gj.total ?? (gj.items ?? []).length),
+          };
+        },
+        { pageSize: 100, maxPages: 20 },
+      );
+      setCountries([...countryItems].sort((a, b) => a.code.localeCompare(b.code, 'en')));
+      setPartGroups([...groupItems].sort((a, b) => a.code.localeCompare(b.code, 'en')));
     } catch {
       setCountries([]);
       setPartGroups([]);
@@ -429,8 +453,11 @@ export function BasePartMasterView() {
     setLoading(true);
     setError(null);
     try {
-      const r = await listPart({ page: 1, pageSize: 500 });
-      setRows(r.items.map(dtoToRow));
+      const partItems = await fetchAllPages((page, pageSize) => listPart({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setRows(partItems.map(dtoToRow));
     } catch (e) {
       setError(e instanceof Error ? e.message : '載入失敗');
       setRows([]);

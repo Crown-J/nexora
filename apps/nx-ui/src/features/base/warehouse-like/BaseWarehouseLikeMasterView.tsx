@@ -34,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import {
@@ -368,8 +369,11 @@ export function BaseWarehouseLikeMasterView({ variant }: { variant: WarehouseLik
     if (variant !== 'location') return;
     setWarehousesLoading(true);
     try {
-      const r = await listWarehouses({ page: 1, pageSize: 500 });
-      setWarehouses([...r.items].sort((a, b) => a.code.localeCompare(b.code, 'en')));
+      const whItems = await fetchAllPages((page, pageSize) => listWarehouses({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setWarehouses([...whItems].sort((a, b) => a.code.localeCompare(b.code, 'en')));
     } catch {
       setWarehouses([]);
     } finally {
@@ -382,11 +386,17 @@ export function BaseWarehouseLikeMasterView({ variant }: { variant: WarehouseLik
     setError(null);
     try {
       if (variant === 'warehouse') {
-        const r = await listWarehouses({ page: 1, pageSize: 500 });
-        setWhRows(r.items.map(dtoToWhRow));
+        const whItems = await fetchAllPages((page, pageSize) => listWarehouses({ page, pageSize }), {
+          pageSize: 100,
+          maxPages: 50,
+        });
+        setWhRows(whItems.map(dtoToWhRow));
       } else {
-        const r = await listLocation({ page: 1, pageSize: 500 });
-        setLocRows(r.items.map(dtoToLocRow));
+        const locItems = await fetchAllPages((page, pageSize) => listLocation({ page, pageSize }), {
+          pageSize: 100,
+          maxPages: 50,
+        });
+        setLocRows(locItems.map(dtoToLocRow));
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : '載入失敗');

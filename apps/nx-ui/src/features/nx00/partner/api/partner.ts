@@ -5,6 +5,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreatePartnerBody, PagedResult, PartnerDto, UpdatePartnerBody } from '@/features/nx00/partner/types';
 
 const BASE = '/nx01/partners';
@@ -27,9 +28,10 @@ export type ListPartnerParams = {
 };
 
 export async function listPartner(params: ListPartnerParams): Promise<PagedResult<PartnerDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const query = buildQueryString({
     page: String(params.page),
-    pageSize: String(params.pageSize),
+    pageSize: String(pageSize),
     search: params.q?.trim() ? params.q.trim() : undefined,
   });
 

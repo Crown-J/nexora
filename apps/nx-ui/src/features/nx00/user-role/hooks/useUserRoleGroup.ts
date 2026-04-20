@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 
 import { listRole } from '@/features/nx00/role/api/role';
 import type { RoleDto } from '@/features/nx00/role/types';
@@ -77,10 +78,14 @@ export function useUserRoleGroup() {
         setRolesLoading(true);
         setRolesError(null);
 
-        listRole({ q: roleSearch.trim() ? roleSearch.trim() : undefined, page: 1, pageSize: 200 })
-            .then((res) => {
+        fetchAllPages(
+            (page, pageSize) =>
+                listRole({ q: roleSearch.trim() ? roleSearch.trim() : undefined, page, pageSize }),
+            { pageSize: 100, maxPages: 50 },
+        )
+            .then((items) => {
                 if (!alive) return;
-                setRoles(res.items ?? []);
+                setRoles(items);
             })
             .catch((e: any) => {
                 if (!alive) return;
@@ -116,11 +121,13 @@ export function useUserRoleGroup() {
         setMembersLoading(true);
         setMembersError(null);
 
-        listUserRole({ roleId, isActive: true, page: 1, pageSize: 200 })
-            .then((res) => {
+        fetchAllPages(
+            (page, pageSize) => listUserRole({ roleId, isActive: true, page, pageSize }),
+            { pageSize: 100, maxPages: 50 },
+        )
+            .then((raw) => {
                 if (!alive) return;
                 // 前端搜尋 memberSearch（避免後端沒提供 q）
-                const raw = res.items ?? [];
                 const q = memberSearch.trim().toLowerCase();
                 if (!q) {
                     setMembers(raw);

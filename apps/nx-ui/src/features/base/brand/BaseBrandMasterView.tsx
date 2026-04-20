@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
@@ -177,17 +178,21 @@ function BrandPanel({ mode, tabLabel }: { mode: PanelMode; tabLabel: string }) {
     setLoading(true);
     setPanelError(null);
     try {
-      const [cList, brandRes, carRes] = await Promise.all([
+      const [cList, brandItems, carItems] = await Promise.all([
         fetchCountries(),
-        mode === 'part' ? listBrand({ page: 1, pageSize: 2000 }) : Promise.resolve(null),
-        mode === 'vehicle' ? listCarBrand({ page: 1, pageSize: 2000 }) : Promise.resolve(null),
+        mode === 'part'
+          ? fetchAllPages((page, pageSize) => listBrand({ page, pageSize }), { pageSize: 100, maxPages: 50 })
+          : Promise.resolve(null as BrandDto[] | null),
+        mode === 'vehicle'
+          ? fetchAllPages((page, pageSize) => listCarBrand({ page, pageSize }), { pageSize: 100, maxPages: 50 })
+          : Promise.resolve(null as BrandDto[] | null),
       ]);
       setCountries(cList);
       const cmap = new Map(cList.map((c) => [c.id, c]));
-      if (mode === 'part' && brandRes) {
-        setRows((brandRes.items ?? []).map((b) => partDtoToRow(b, cmap)));
-      } else if (mode === 'vehicle' && carRes) {
-        setRows((carRes.items ?? []).map((b) => carDtoToRow(b, cmap)));
+      if (mode === 'part' && brandItems) {
+        setRows(brandItems.map((b) => partDtoToRow(b, cmap)));
+      } else if (mode === 'vehicle' && carItems) {
+        setRows(carItems.map((b) => carDtoToRow(b, cmap)));
       } else {
         setRows([]);
       }

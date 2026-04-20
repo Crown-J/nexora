@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { fetchAllPages } from "@/shared/api/fetchAllPages"
 import type { CalendarEventDto } from "@/features/home/api/calendar-event"
 import {
   createCalendarEvent,
@@ -194,10 +195,13 @@ export function CalendarDetails({ selectedDate, isAdmin = false }: CalendarDetai
       const base = selectedDate ?? new Date()
       const from = format(startOfMonth(base), "yyyy-MM-dd")
       const to = format(endOfMonth(base), "yyyy-MM-dd")
-      const q = await listCalendarEvents({ from, to, page: 1, pageSize: 200 })
+      const rows = await fetchAllPages(
+        (page, pageSize) => listCalendarEvents({ from, to, page, pageSize }),
+        { pageSize: 100, maxPages: 50 },
+      )
       const map: Record<string, CalendarEventDto> = {}
       const home: HomeCalendarEvent[] = []
-      for (const row of q.items) {
+      for (const row of rows) {
         map[row.id] = row
         home.push(dtoToHome(row))
       }

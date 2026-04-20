@@ -1,6 +1,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 
 export type WarehouseDto = {
@@ -58,9 +59,10 @@ export async function listWarehouses(params: {
   q?: string;
   isActive?: boolean;
 }): Promise<PagedResult<WarehouseDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
     page: params.page != null ? String(params.page) : undefined,
-    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    pageSize: String(pageSize),
     search: params.q?.trim() || undefined,
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });

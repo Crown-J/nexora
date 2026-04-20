@@ -13,6 +13,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { listRole } from '@/features/nx00/role/api/role';
 import type { RoleDto } from '@/features/nx00/role/types';
 
@@ -135,11 +136,9 @@ export function useRoleView() {
     setViewLoading(true);
     setViewError(null);
 
-    listView({ isActive: true })
-      .then((res) => {
+    fetchAllPages((page, pageSize) => listView({ isActive: true, page, pageSize }), { pageSize: 100, maxPages: 50 })
+      .then((items) => {
         if (!alive) return;
-
-        const items = res?.items ?? [];
         /** 登入／首頁為全員必備，不納入職務權限矩陣 */
         const HIDDEN_VIEW_CODES = new Set(['NX00_LOGIN', 'NX00_HOME']);
         const filtered = items.filter((v) => !HIDDEN_VIEW_CODES.has(String(v.code ?? '')));

@@ -13,6 +13,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult, RoleViewDto, ViewDto, Perms } from '@/features/nx00/role-view/types';
 
 export type ListRoleViewParams = {
@@ -31,13 +32,14 @@ export type ListRoleViewParams = {
  * - GET /role-view?roleId=&moduleCode=&isActive=&page=&pageSize=
  */
 export async function listRoleView(params: ListRoleViewParams): Promise<PagedResult<RoleViewDto>> {
+    const pageSize = clampNx01ListPageSize(params.pageSize, 100);
     const q = buildQueryString({
         roleId: params.roleId,
         viewId: params.viewId,
         moduleCode: params.moduleCode,
         isActive: params.isActive === undefined ? undefined : String(params.isActive),
         page: String(params.page ?? 1),
-        pageSize: String(params.pageSize ?? 1000), // 矩陣通常要一次拉完
+        pageSize: String(pageSize),
     });
 
     const res = await apiFetch(`/role-view${q}`, { method: 'GET' });
@@ -126,12 +128,13 @@ export type ListViewParams = {
  * - GET /view?q=&moduleCode=&isActive=&page=&pageSize=
  */
 export async function listView(params: ListViewParams = {}): Promise<PagedResult<ViewDto>> {
+    const pageSize = clampNx01ListPageSize(params.pageSize, 100);
     const q = buildQueryString({
         q: params.q?.trim() ? params.q.trim() : undefined,
         moduleCode: params.moduleCode,
         isActive: params.isActive === undefined ? undefined : String(params.isActive),
         page: String(params.page ?? 1),
-        pageSize: String(params.pageSize ?? 1000), // 矩陣一次拉完
+        pageSize: String(pageSize),
     });
 
     const res = await apiFetch(`/view${q}`, { method: 'GET' });

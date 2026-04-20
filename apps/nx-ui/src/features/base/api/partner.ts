@@ -1,6 +1,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 
 export type PartnerType = 'C' | 'S' | 'T' | 'V' | 'B' | 'BOTH' | 'CUST' | 'SUP';
@@ -94,11 +95,12 @@ export async function listPartners(params: {
   page?: number;
   pageSize?: number;
 }): Promise<PagedResult<PartnerDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
     search: params.q?.trim() || undefined,
     partnerType: params.partnerType,
     page: params.page != null ? String(params.page) : undefined,
-    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    pageSize: String(pageSize),
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_partner_list');

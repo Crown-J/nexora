@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import {
@@ -365,8 +366,11 @@ export function BasePartnerMasterView() {
     setLoading(true);
     setError(null);
     try {
-      const r = await listPartners({ page: 1, pageSize: 500 });
-      setRows(r.items.map(dtoToRow));
+      const items = await fetchAllPages((page, pageSize) => listPartners({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setRows(items.map(dtoToRow));
     } catch (e) {
       setError(e instanceof Error ? e.message : '載入失敗');
       setRows([]);
@@ -383,9 +387,12 @@ export function BasePartnerMasterView() {
     let alive = true;
     void (async () => {
       try {
-        const r = await listCustomerGrades({ page: 1, pageSize: 200, isActive: true });
+        const gradeItems = await fetchAllPages(
+          (page, pageSize) => listCustomerGrades({ page, pageSize, isActive: true }),
+          { pageSize: 100, maxPages: 20 },
+        );
         if (!alive) return;
-        setGrades(r.items);
+        setGrades(gradeItems);
       } catch {
         if (!alive) return;
         setGrades([]);

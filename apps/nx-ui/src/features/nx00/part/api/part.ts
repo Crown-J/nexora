@@ -10,6 +10,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreatePartBody, PagedResult, PartDto, UpdatePartBody } from '@/features/nx00/part/types';
 
 const BASE = '/nx01/parts';
@@ -37,9 +38,10 @@ export type ListPartParams = {
  * - GET /nx01/parts?page=&pageSize=&search=
  */
 export async function listPart(params: ListPartParams): Promise<PagedResult<PartDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const query = buildQueryString({
     page: String(params.page),
-    pageSize: String(params.pageSize),
+    pageSize: String(pageSize),
     search: params.q?.trim() ? params.q.trim() : undefined,
   });
 

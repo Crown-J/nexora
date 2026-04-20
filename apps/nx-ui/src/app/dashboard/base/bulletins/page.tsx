@@ -4,6 +4,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
 import { listBulletins, type BulletinDto } from '@/features/base/api/bulletin';
 
@@ -25,9 +26,12 @@ export default function BaseBulletinsPage() {
       setLoading(true);
       setErr(null);
       try {
-        const r = await listBulletins({ page: 1, pageSize: 200 });
+        const items = await fetchAllPages((page, pageSize) => listBulletins({ page, pageSize }), {
+          pageSize: 100,
+          maxPages: 50,
+        });
         if (!alive) return;
-        setRows(r.items);
+        setRows(items);
       } catch (e) {
         if (!alive) return;
         setErr(e instanceof Error ? e.message : '載入失敗');

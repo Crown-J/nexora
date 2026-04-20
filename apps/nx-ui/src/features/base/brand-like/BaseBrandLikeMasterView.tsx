@@ -34,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import { createBrand, listBrand, setBrandActive, updateBrand } from '@/features/nx00/brand/api/brand';
@@ -248,11 +249,22 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
   const loadCountries = useCallback(async () => {
     setCountriesLoading(true);
     try {
-      const qs = buildQueryString({ page: '1', pageSize: '500' });
-      const res = await apiFetch(`/country${qs}`, { method: 'GET' });
-      await assertOk(res, 'nxui_brand_like_country');
-      const j = (await res.json()) as { items: Array<{ id: string; code: string; name: string }> };
-      setCountries([...(j.items ?? [])].sort((a, b) => a.code.localeCompare(b.code, 'en')));
+      const countryItems = await fetchAllPages(
+        async (page, pageSize) => {
+          const qs = buildQueryString({ page: String(page), pageSize: String(pageSize) });
+          const res = await apiFetch(`/country${qs}`, { method: 'GET' });
+          await assertOk(res, 'nxui_brand_like_country');
+          const j = (await res.json()) as { items: unknown[]; total?: number };
+          return {
+            items: (j.items ?? []) as Array<{ id: string; code: string; name: string }>,
+            page,
+            pageSize,
+            total: Number(j.total ?? (j.items ?? []).length),
+          };
+        },
+        { pageSize: 100, maxPages: 20 },
+      );
+      setCountries([...countryItems].sort((a, b) => a.code.localeCompare(b.code, 'en')));
     } catch {
       setCountries([]);
     } finally {
@@ -265,8 +277,11 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
     setError(null);
     try {
       const listFn = variant === 'car' ? listCarBrand : listBrand;
-      const r = await listFn({ page: 1, pageSize: 500 });
-      setRows(r.items.map(dtoToRow));
+      const items = await fetchAllPages((page, pageSize) => listFn({ page, pageSize }), {
+        pageSize: 100,
+        maxPages: 50,
+      });
+      setRows(items.map(dtoToRow));
     } catch (e) {
       setError(e instanceof Error ? e.message : '載入失敗');
       setRows([]);

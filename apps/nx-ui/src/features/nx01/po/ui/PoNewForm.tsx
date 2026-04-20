@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { listPartner } from '@/features/nx00/partner/api/partner';
 import type { PartnerDto } from '@/features/nx00/partner/types';
 import { listLookupPart, listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
@@ -59,8 +60,8 @@ export function PoNewForm() {
     listLookupWarehouse({ isActive: true })
       .then(setWhOpts)
       .catch(() => setWhOpts([]));
-    listPartner({ page: 1, pageSize: 500 })
-      .then((r) => setSuppliers(r.items.filter(isSupplier)))
+    fetchAllPages((page, pageSize) => listPartner({ page, pageSize }), { pageSize: 100, maxPages: 50 })
+      .then((items) => setSuppliers(items.filter(isSupplier)))
       .catch(() => setSuppliers([]));
   }, []);
 
