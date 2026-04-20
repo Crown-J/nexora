@@ -18,13 +18,6 @@ const nextConfig: NextConfig = {
       { source: "/base/:path*", destination: "/dashboard/base/:path*", permanent: true },
       { source: "/user", destination: "/dashboard/base/users", permanent: true },
 
-      { source: "/dashboard/purchase", destination: "/dashboard/nx02/domestic", permanent: true },
-      { source: "/dashboard/purchase/domestic", destination: "/dashboard/nx02/domestic", permanent: true },
-      { source: "/dashboard/purchase/import", destination: "/dashboard/nx02/import", permanent: true },
-      { source: "/dashboard/purchase/special", destination: "/dashboard/nx02/special", permanent: true },
-      { source: "/dashboard/purchase/product", destination: "/dashboard/nx02/product", permanent: true },
-      { source: "/dashboard/purchase/vendor", destination: "/dashboard/nx02/vendor", permanent: true },
-
       { source: "/dashboard/inventory", destination: "/dashboard/nx03/workspace", permanent: true },
       { source: "/dashboard/inventory/workspace", destination: "/dashboard/nx03/workspace", permanent: true },
       { source: "/dashboard/inventory/setting", destination: "/dashboard/nx03/warehouse-setting", permanent: true },

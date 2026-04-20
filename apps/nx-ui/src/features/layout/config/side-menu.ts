@@ -24,6 +24,7 @@ import { getNx04SideMenu } from '@/features/layout/config/menu.nx04';
 export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   // 主檔管理 & 採購工作台：頁面自帶導覽（卡片 Hub 或橫向導覽），不使用 SubNav
   if (pathname.startsWith('/dashboard/base')) return [];
+  if (pathname.startsWith('/dashboard/purchase')) return [];
   if (
     pathname.startsWith('/dashboard/nx02/domestic') ||
     pathname.startsWith('/dashboard/nx02/import') ||

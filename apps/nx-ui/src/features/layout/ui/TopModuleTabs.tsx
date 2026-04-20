@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
  */
 function getActiveModule(pathname: string): string {
   if (pathname.startsWith('/dashboard/base')) return 'base';
+  if (pathname.startsWith('/dashboard/purchase')) return 'purchase';
   if (pathname.startsWith('/dashboard/nx01')) return 'purchase';
   if (
     pathname.startsWith('/dashboard/nx02/domestic') ||
