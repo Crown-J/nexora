@@ -40,6 +40,6 @@ export function getModuleTabs(): ModuleTab[] {
     { code: 'purchase',  label: '採購管理', href: '/dashboard/purchase',               enabled: true },
     { code: 'inventory', label: '庫存管理', href: '/dashboard/inventory',            enabled: true },
     { code: 'sales',     label: '銷售管理', href: '/dashboard/sale',                  enabled: true },
-    { code: 'finance',   label: '財務管理', href: '/dashboard/nx05/workspace',        enabled: true },
+    { code: 'finance',   label: '財務管理', href: '/dashboard/finance',               enabled: true },
   ];
 }

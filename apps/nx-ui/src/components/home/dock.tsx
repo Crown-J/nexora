@@ -38,7 +38,7 @@ export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: ShoppingCart, label: '採購', href: '/dashboard/purchase' },
   { icon: Package,      label: '銷貨', href: '/dashboard/sale' },
   { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory' },
-  { icon: DollarSign,   label: '財務', href: '/dashboard/nx05/workspace' },
+  { icon: DollarSign,   label: '財務', href: '/dashboard/finance' },
   { icon: BarChart3,    label: '報表', href: '/dashboard/nx08/workspace' },
 ];
 
@@ -49,7 +49,7 @@ const DOCK_LETTER_TO_HREF: Record<string, string> = {
   p: '/dashboard/purchase',
   s: '/dashboard/sale',
   w: '/dashboard/inventory',
-  m: '/dashboard/nx05/workspace',
+  m: '/dashboard/finance',
   r: '/dashboard/nx08/workspace',
 };
 
@@ -91,8 +91,8 @@ export function isDockActive(pathname: string, href: string): boolean {
       pathname === '/dashboard/nx02'
     );
   }
-  if (href === '/dashboard/nx05/workspace') {
-    return pathname.startsWith('/dashboard/nx05');
+  if (href === '/dashboard/finance') {
+    return pathname.startsWith('/dashboard/finance') || pathname.startsWith('/dashboard/nx05');
   }
   if (href === '/dashboard/nx08/workspace') {
     return pathname.startsWith('/dashboard/nx08');

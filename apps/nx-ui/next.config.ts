@@ -24,7 +24,6 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/sales", destination: "/dashboard/sale", permanent: true },
       { source: "/dashboard/sales/domestic", destination: "/dashboard/nx04/domestic", permanent: true },
 
-      { source: "/dashboard/finance", destination: "/dashboard/nx05/workspace", permanent: true },
       { source: "/dashboard/finance/workspace", destination: "/dashboard/nx05/workspace", permanent: true },
       { source: "/dashboard/finance/receivable", destination: "/dashboard/nx05/workspace", permanent: true },
       { source: "/dashboard/finance/payable", destination: "/dashboard/nx05/workspace", permanent: true },
