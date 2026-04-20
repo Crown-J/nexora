@@ -46,9 +46,10 @@ export default function PurchaseHubPage() {
         <ModuleHubSection sectionId="purchase-domestic" title="國內採購" count={5}>
           <HubLinkCard
             title="需求"
-            description="庫存不足或客訂時建立採購需求"
+            description="庫存不足或客訂時建立採購需求；國內採購工作台"
             Icon={ClipboardList}
             stepLabel="STEP 1"
+            href="/dashboard/purchase/domestic"
           />
           <HubLinkCard
             title="詢價"
