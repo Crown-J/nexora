@@ -34,15 +34,23 @@ function normalizePaged<T>(raw: unknown): PagedResult<T> {
   };
 }
 
+export async function getRole(id: string): Promise<RoleDto> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'GET' });
+  await assertOk(res, 'nxui_base_role_get');
+  return res.json() as Promise<RoleDto>;
+}
+
 export async function listRoles(params: {
   q?: string;
   page?: number;
   pageSize?: number;
+  isActive?: boolean;
 }): Promise<PagedResult<RoleDto>> {
   const qs = buildQueryString({
     search: params.q?.trim() || undefined,
     page: params.page != null ? String(params.page) : undefined,
     pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_role_list');

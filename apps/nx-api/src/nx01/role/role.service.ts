@@ -44,6 +44,7 @@ export class RoleService {
       where.OR = [
         { code: { contains: s, mode: 'insensitive' } },
         { name: { contains: s, mode: 'insensitive' } },
+        { description: { contains: s, mode: 'insensitive' } },
       ];
     }
     if (q.isActive !== undefined) where.isActive = q.isActive;

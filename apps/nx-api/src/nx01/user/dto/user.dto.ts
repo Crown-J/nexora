@@ -1,5 +1,7 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsOptional,
   IsString,
@@ -9,7 +11,34 @@ import {
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 
-export class ListUserQueryDto extends Nx01ListQueryDto {}
+function csvToIdList(value: unknown): string[] | undefined {
+  if (value == null || value === '') return undefined;
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((v) => String(v).split(','))
+      .map((x) => x.trim())
+      .filter(Boolean)
+      .slice(0, 50);
+  }
+  const s = String(value).trim();
+  if (!s) return undefined;
+  return s
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .slice(0, 50);
+}
+
+/** 列表查詢：繼承共用分頁／search／isActive，並支援依「已指派角色」篩選（OR，nx01_user_role） */
+export class ListUserQueryDto extends Nx01ListQueryDto {
+  @IsOptional()
+  @Transform(({ value }) => csvToIdList(value))
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsString({ each: true })
+  @MaxLength(15, { each: true })
+  primaryRoleIds?: string[];
+}
 
 export class CreateUserDto {
   @IsString()

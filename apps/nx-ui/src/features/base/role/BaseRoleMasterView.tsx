@@ -39,7 +39,7 @@ import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
-import { createRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@/features/base/api/role';
+import { createRole, getRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@/features/base/api/role';
 import type { BaseRoleRow } from './mock-data';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
@@ -70,7 +70,7 @@ type EditableDraft = {
   isSystem: boolean;
 };
 
-const PAGE_SIZE = 10;
+const SERVER_PAGE_SIZE = 50;
 const LIST_COL_PREF_VERSION = 3;
 const LIST_COL_PREF_KEY = 'base.role.listcols';
 
@@ -194,6 +194,7 @@ export function BaseRoleMasterView() {
   const pathname = usePathname();
   const [roles, setRoles] = useState<BaseRoleRow[]>([]);
   const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'code', dir: 'asc' });
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
@@ -201,7 +202,9 @@ export function BaseRoleMasterView() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft());
-  const [page, setPage] = useState(1);
+  const [listPage, setListPage] = useState(1);
+  const [listTotal, setListTotal] = useState(0);
+  const [detailRole, setDetailRole] = useState<BaseRoleRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -224,23 +227,75 @@ export function BaseRoleMasterView() {
   );
   const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
 
-  const reload = useCallback(async () => {
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [keyword]);
+
+  useEffect(() => {
+    setListPage(1);
+  }, [debouncedKeyword, activeFilter]);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    void (async () => {
+      try {
+        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
+        const rr = await listRoles({
+          page: listPage,
+          pageSize: SERVER_PAGE_SIZE,
+          q: debouncedKeyword || undefined,
+          isActive: isAct,
+        });
+        if (!alive) return;
+        setListTotal(rr.total);
+        setRoles(
+          rr.items
+            .map(roleDtoToRow)
+            .sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)),
+        );
+      } catch (e) {
+        if (!alive) return;
+        setError(e instanceof Error ? e.message : '載入失敗');
+        setRoles([]);
+        setListTotal(0);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [listPage, debouncedKeyword, activeFilter]);
+
+  const refreshAll = useCallback(async () => {
+    setListPage(1);
     setLoading(true);
     setError(null);
     try {
-      const rr = await listRoles({ page: 1, pageSize: 200 });
-      setRoles(rr.items.map(roleDtoToRow).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
+      const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
+      const rr = await listRoles({
+        page: 1,
+        pageSize: SERVER_PAGE_SIZE,
+        q: debouncedKeyword || undefined,
+        isActive: isAct,
+      });
+      setListTotal(rr.total);
+      setRoles(
+        rr.items
+          .map(roleDtoToRow)
+          .sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : '載入失敗');
       setRoles([]);
+      setListTotal(0);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    void reload();
-  }, [reload]);
+  }, [debouncedKeyword, activeFilter]);
 
   useEffect(() => {
     if (!colPickerOpen) return;
@@ -256,23 +311,10 @@ export function BaseRoleMasterView() {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
   };
 
-  const filtered = useMemo(() => {
-    const k = keyword.trim().toLowerCase();
-    return roles.filter((r) => {
-      if (activeFilter === 'active' && !r.isActive) return false;
-      if (activeFilter === 'inactive' && r.isActive) return false;
-      if (k) {
-        const blob = `${r.code} ${r.name} ${r.description}`.toLowerCase();
-        if (!blob.includes(k)) return false;
-      }
-      return true;
-    });
-  }, [roles, keyword, activeFilter]);
-
   const sortedRows = useMemo(() => {
     const mult = sort.dir === 'asc' ? 1 : -1;
     const sk = sort.key;
-    const out = [...filtered];
+    const out = [...roles];
     out.sort((a, b) => {
       switch (sk) {
         case 'code':
@@ -296,16 +338,40 @@ export function BaseRoleMasterView() {
       }
     });
     return out;
-  }, [filtered, sort]);
+  }, [roles, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
-  const safePage = Math.max(1, Math.min(page, totalPages));
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return sortedRows.slice(start, start + PAGE_SIZE);
-  }, [sortedRows, safePage]);
+  const totalPages = Math.max(1, Math.ceil(listTotal / SERVER_PAGE_SIZE));
+  const safeListPage = Math.max(1, Math.min(listPage, totalPages));
 
-  const pageRowIds = useMemo(() => pageRows.map((r) => r.id), [pageRows]);
+  useEffect(() => {
+    if (listPage !== safeListPage) setListPage(safeListPage);
+  }, [listPage, safeListPage]);
+
+  useEffect(() => {
+    if (!selectedId || creating) {
+      setDetailRole(null);
+      return;
+    }
+    if (roles.some((r) => r.id === selectedId)) {
+      setDetailRole(null);
+      return;
+    }
+    let alive = true;
+    void getRole(selectedId)
+      .then((dto) => {
+        if (!alive) return;
+        setDetailRole(roleDtoToRow(dto));
+      })
+      .catch(() => {
+        if (!alive) return;
+        setDetailRole(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [selectedId, roles, creating]);
+
+  const pageRowIds = useMemo(() => sortedRows.map((r) => r.id), [sortedRows]);
   const {
     checked,
     setChecked,
@@ -315,21 +381,10 @@ export function BaseRoleMasterView() {
     hasSelection: hasListSelection,
   } = useMasterListRowSelection(pageRowIds);
 
-  const filterKey = `${keyword}|${activeFilter}`;
-  const prevFilterKeyRef = useRef('');
-  useEffect(() => {
-    if (prevFilterKeyRef.current !== filterKey) {
-      prevFilterKeyRef.current = filterKey;
-      setPage(1);
-      return;
-    }
-    setPage((p) => Math.min(p, totalPages));
-  }, [filterKey, totalPages]);
-
-  const selectedRole = useMemo(
-    () => (selectedId ? roles.find((r) => r.id === selectedId) ?? null : null),
-    [roles, selectedId],
-  );
+  const selectedRole = useMemo(() => {
+    if (!selectedId) return null;
+    return roles.find((r) => r.id === selectedId) ?? (detailRole?.id === selectedId ? detailRole : null);
+  }, [roles, selectedId, detailRole]);
 
   const panelOpen = creating || selectedId != null;
 
@@ -367,7 +422,6 @@ export function BaseRoleMasterView() {
       const row = sortedRows[nextIdx];
       if (!row) return;
       setFocusedRowId(row.id);
-      setPage(Math.floor(nextIdx / PAGE_SIZE) + 1);
     },
     [sortedRows, focusedRowId],
   );
@@ -536,7 +590,20 @@ export function BaseRoleMasterView() {
           sortNo: sortOrder,
         });
         const row = roleDtoToRow(dto);
-        setRoles((prev) => [...prev, row].sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)));
+        setListPage(1);
+        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
+        const rr = await listRoles({
+          page: 1,
+          pageSize: SERVER_PAGE_SIZE,
+          q: debouncedKeyword || undefined,
+          isActive: isAct,
+        });
+        setListTotal(rr.total);
+        setRoles(
+          rr.items
+            .map(roleDtoToRow)
+            .sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code)),
+        );
         setCreating(false);
         setEditing(false);
         setSelectedId(row.id);
@@ -651,8 +718,8 @@ export function BaseRoleMasterView() {
                 size="icon"
                 variant="ghost"
                 className="size-8 shrink-0"
-                disabled={safePage <= 1 || loading}
-                onClick={() => setPage(1)}
+                disabled={safeListPage <= 1 || loading}
+                onClick={() => setListPage(1)}
                 aria-label="第一頁"
                 title="第一頁"
               >
@@ -663,23 +730,23 @@ export function BaseRoleMasterView() {
                 size="icon"
                 variant="ghost"
                 className="size-8 shrink-0"
-                disabled={safePage <= 1 || loading}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={safeListPage <= 1 || loading}
+                onClick={() => setListPage((p) => Math.max(1, p - 1))}
                 aria-label="上一頁"
                 title="上一頁"
               >
                 <ChevronLeft className="size-4" aria-hidden />
               </Button>
               <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
-                {safePage}/{totalPages}
+                {safeListPage}/{totalPages}
               </span>
               <Button
                 type="button"
                 size="icon"
                 variant="ghost"
                 className="size-8 shrink-0"
-                disabled={safePage >= totalPages || loading}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safeListPage >= totalPages || loading}
+                onClick={() => setListPage((p) => Math.min(totalPages, p + 1))}
                 aria-label="下一頁"
                 title="下一頁"
               >
@@ -690,8 +757,8 @@ export function BaseRoleMasterView() {
                 size="icon"
                 variant="ghost"
                 className="size-8 shrink-0"
-                disabled={safePage >= totalPages || loading}
-                onClick={() => setPage(totalPages)}
+                disabled={safeListPage >= totalPages || loading}
+                onClick={() => setListPage(totalPages)}
                 aria-label="最後一頁"
                 title="最後一頁"
               >
@@ -726,7 +793,7 @@ export function BaseRoleMasterView() {
               size="icon"
               variant="ghost"
               className="size-9 shrink-0"
-              onClick={() => void reload()}
+              onClick={() => void refreshAll()}
               disabled={loading}
               aria-label="重新載入"
               title="重新載入"
@@ -777,7 +844,7 @@ export function BaseRoleMasterView() {
             </DropdownMenu>
 
             <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
-              {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+              {loading ? '載入中…' : `共 ${listTotal} 筆 · 本頁 ${sortedRows.length} 筆`}
             </span>
 
             {colPickerOpen ? (
@@ -893,7 +960,7 @@ export function BaseRoleMasterView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pageRows.map((row) => {
+                  {sortedRows.map((row) => {
                     const isFocused = row.id === focusedRowId;
                     const isOpenDetail = !creating && panelOpen && row.id === selectedId;
                     const isHighlighted = isFocused || isOpenDetail;

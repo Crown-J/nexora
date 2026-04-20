@@ -27,6 +27,46 @@ const SEL = {
 
 type Row = Prisma.Nx01UserGetPayload<{ select: typeof SEL }>;
 
+/** 列表／明細：含主要角色、倉庫摘要、建立／修改人帳號姓名 */
+const LIST_SELECT = {
+  ...SEL,
+  createdByUser: { select: { userAccount: true, userName: true } },
+  updatedByUser: { select: { userAccount: true, userName: true } },
+  rev_Nx01UserRole_userId: {
+    where: { isPrimary: true, isActive: true, revokedAt: null },
+    take: 1,
+    select: { role: { select: { name: true } } },
+  },
+  rev_Nx01UserWarehouse_userId: {
+    where: { isActive: true, revokedAt: null },
+    select: { warehouse: { select: { code: true, name: true } } },
+  },
+} as const;
+
+type ListRow = Prisma.Nx01UserGetPayload<{ select: typeof LIST_SELECT }>;
+
+export type Nx01UserPublicDto = {
+  id: string;
+  username: string;
+  displayName: string;
+  email: string | null;
+  phone: string | null;
+  isActive: boolean;
+  lastLoginAt: string | null;
+  jobTitle: string | null;
+  warehouseSummary: string | null;
+  warehouseCode: string | null;
+  warehouseName: string | null;
+  createdAt: string;
+  createdBy: string;
+  createdByUsername: string | null;
+  createdByName: string | null;
+  updatedAt: string;
+  updatedBy: string;
+  updatedByUsername: string | null;
+  updatedByName: string | null;
+};
+
 @Injectable()
 export class UserService {
   constructor(
@@ -36,16 +76,113 @@ export class UserService {
 
   private whereList(tenantId: string, q: ListUserQueryDto): Prisma.Nx01UserWhereInput {
     const where: Prisma.Nx01UserWhereInput = { tenantId };
+    const and: Prisma.Nx01UserWhereInput[] = [];
+
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [
-        { userAccount: { contains: s, mode: 'insensitive' } },
-        { userName: { contains: s, mode: 'insensitive' } },
-        { email: { contains: s, mode: 'insensitive' } },
-      ];
+      and.push({
+        OR: [
+          { userAccount: { contains: s, mode: 'insensitive' } },
+          { userName: { contains: s, mode: 'insensitive' } },
+          { email: { contains: s, mode: 'insensitive' } },
+          { phone: { contains: s, mode: 'insensitive' } },
+          {
+            rev_Nx01UserRole_userId: {
+              some: {
+                isPrimary: true,
+                isActive: true,
+                revokedAt: null,
+                role: { name: { contains: s, mode: 'insensitive' } },
+              },
+            },
+          },
+          {
+            rev_Nx01UserWarehouse_userId: {
+              some: {
+                isActive: true,
+                revokedAt: null,
+                warehouse: {
+                  OR: [
+                    { code: { contains: s, mode: 'insensitive' } },
+                    { name: { contains: s, mode: 'insensitive' } },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      });
     }
+
+    if (q.primaryRoleIds?.length) {
+      and.push({
+        rev_Nx01UserRole_userId: {
+          some: {
+            tenantId,
+            roleId: { in: q.primaryRoleIds },
+            isActive: true,
+            revokedAt: null,
+          },
+        },
+      });
+    }
+
+    if (and.length) where.AND = and;
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
+  }
+
+  private toPublicUserFromListRow(row: ListRow): Nx01UserPublicDto {
+    const whRows = row.rev_Nx01UserWarehouse_userId.map((x) => x.warehouse).filter(Boolean);
+    const parts = whRows.map((w) => `${w.code} ${w.name}`.trim()).filter(Boolean);
+    const warehouseSummary = parts.length ? parts.join('、') : null;
+    const firstWh = whRows[0];
+    const primaryUr = row.rev_Nx01UserRole_userId[0];
+    return {
+      id: row.id,
+      username: row.userAccount,
+      displayName: row.userName,
+      email: row.email,
+      phone: row.phone,
+      isActive: row.isActive,
+      lastLoginAt: row.lastLoginAt ? row.lastLoginAt.toISOString() : null,
+      jobTitle: primaryUr?.role?.name ?? null,
+      warehouseSummary,
+      warehouseCode: firstWh?.code ?? null,
+      warehouseName: firstWh?.name ?? null,
+      createdAt: row.createdAt.toISOString(),
+      createdBy: row.createdBy,
+      createdByUsername: row.createdByUser?.userAccount ?? null,
+      createdByName: row.createdByUser?.userName ?? null,
+      updatedAt: row.updatedAt.toISOString(),
+      updatedBy: row.updatedBy,
+      updatedByUsername: row.updatedByUser?.userAccount ?? null,
+      updatedByName: row.updatedByUser?.userName ?? null,
+    };
+  }
+
+  private toPublicUserFromRow(row: Row): Nx01UserPublicDto {
+    return {
+      id: row.id,
+      username: row.userAccount,
+      displayName: row.userName,
+      email: row.email,
+      phone: row.phone,
+      isActive: row.isActive,
+      lastLoginAt: row.lastLoginAt ? row.lastLoginAt.toISOString() : null,
+      jobTitle: null,
+      warehouseSummary: null,
+      warehouseCode: null,
+      warehouseName: null,
+      createdAt: row.createdAt.toISOString(),
+      createdBy: row.createdBy,
+      createdByUsername: null,
+      createdByName: null,
+      updatedAt: row.updatedAt.toISOString(),
+      updatedBy: row.updatedBy,
+      updatedByUsername: null,
+      updatedByName: null,
+    };
   }
 
   async list(user: RequestUser, q: ListUserQueryDto) {
@@ -61,17 +198,17 @@ export class UserService {
         orderBy: { userAccount: 'asc' },
         skip,
         take: pageSize,
-        select: SEL,
+        select: LIST_SELECT,
       }),
     ]);
-    return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
+    return { page, pageSize, total, rows: rows.map((r) => this.toPublicUserFromListRow(r)) };
   }
 
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
-    const row = await this.prisma.nx01User.findFirst({ where: { id, tenantId }, select: SEL });
+    const row = await this.prisma.nx01User.findFirst({ where: { id, tenantId }, select: LIST_SELECT });
     if (!row) throw new NotFoundException('User not found');
-    return this.mapRow(row);
+    return this.toPublicUserFromListRow(row);
   }
 
   async create(user: RequestUser, dto: CreateUserDto) {
@@ -108,7 +245,7 @@ export class UserService {
       summary: '建立使用者',
       afterData: row as object,
     });
-    return this.mapRow(row);
+    return this.toPublicUserFromRow(row);
   }
 
   async update(user: RequestUser, id: string, dto: UpdateUserDto) {
@@ -138,7 +275,8 @@ export class UserService {
       beforeData: existing as object,
       afterData: row as object,
     });
-    return this.mapRow(row);
+    const full = await this.prisma.nx01User.findFirst({ where: { id: row.id, tenantId }, select: LIST_SELECT });
+    return full ? this.toPublicUserFromListRow(full) : this.toPublicUserFromRow(row);
   }
 
   async softDelete(user: RequestUser, id: string) {
@@ -163,10 +301,7 @@ export class UserService {
       beforeData: existing as object,
       afterData: row as object,
     });
-    return this.mapRow(row);
-  }
-
-  private mapRow(row: Row) {
-    return { ...row };
+    const full = await this.prisma.nx01User.findFirst({ where: { id: row.id, tenantId }, select: LIST_SELECT });
+    return full ? this.toPublicUserFromListRow(full) : this.toPublicUserFromRow(row);
   }
 }

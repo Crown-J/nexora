@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
 import { assignUserWarehouse, listUserWarehouses, revokeUserWarehouse } from '@/features/base/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
@@ -70,16 +71,24 @@ export function BaseUserWarehouseView() {
   const reloadAll = useCallback(async () => {
     setLoadError(null);
     try {
-      const [wr, ur] = await Promise.all([
-        listWarehouses({ page: 1, pageSize: 200, isActive: true }),
-        listUsers({ page: 1, pageSize: 500 }),
+      const [wrAll, urAll] = await Promise.all([
+        fetchAllPages((page, pageSize) => listWarehouses({ page, pageSize, isActive: true }), { pageSize: 100 }),
+        fetchAllPages(
+          (page, pageSize) =>
+            listUsers({
+              page,
+              pageSize,
+              isActive: true,
+            }),
+          { pageSize: 100 },
+        ),
       ]);
-      const rows = dedupeWarehousesById(wr.items).sort(
+      const rows = dedupeWarehousesById(wrAll).sort(
         (a, b) => a.sortNo - b.sortNo || a.code.localeCompare(b.code),
       );
       setWarehouses(rows);
       setPickerUsers(
-        ur.items.map((u) => {
+        urAll.map((u) => {
           const cbName = u.createdByName ?? null;
           const ubName = u.updatedByName ?? null;
           const summary = (u.warehouseSummary ?? '').trim();
@@ -123,8 +132,11 @@ export function BaseUserWarehouseView() {
   }, [reloadAll]);
 
   const loadMembers = useCallback(async (warehouseId: string) => {
-    const res = await listUserWarehouses({ warehouseId, isActive: true, page: 1, pageSize: 500 });
-    const list: WhMemberRow[] = res.items.map((x) => ({
+    const items = await fetchAllPages(
+      (page, pageSize) => listUserWarehouses({ warehouseId, isActive: true, page, pageSize }),
+      { pageSize: 100 },
+    );
+    const list: WhMemberRow[] = items.map((x) => ({
       id: x.id,
       userId: x.userId,
       userAccount: x.userAccount ?? null,

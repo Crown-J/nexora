@@ -40,6 +40,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from './mock-data';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
@@ -63,7 +64,7 @@ import {
 } from '@/features/base/api/user-warehouse';
 import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
-import { createUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
+import { createUser, getUser, listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 
 type ListColKey =
   | 'username'
@@ -94,7 +95,8 @@ type EditableDraft = {
   primaryRoleId: string;
 };
 
-const PAGE_SIZE = 10;
+/** 伺服端分頁：須 ≤ nx-api Nx01ListQueryDto pageSize @Max(100) */
+const SERVER_PAGE_SIZE = 50;
 
 const LIST_COL_PREF_VERSION = 7;
 const LIST_COL_PREF_KEY = 'base.user.listcols';
@@ -248,8 +250,9 @@ export function BaseUserMasterView() {
   const [users, setUsers] = useState<BaseUserRow[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [keyword, setKeyword] = useState('');
-  /** 空集合＝不篩職務（顯示全部）；有值時僅顯示所選職務（複選 OR） */
-  const [jobPicks, setJobPicks] = useState<Set<string>>(() => new Set());
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
+  /** 空集合＝不按角色篩選；有值時後端以 nx01_user_role（已生效指派）OR 篩選 */
+  const [jobRoleIdPicks, setJobRoleIdPicks] = useState<Set<string>>(() => new Set());
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'username', dir: 'asc' });
   /** 列表鍵盤／單擊選取列（變色），開啟明細另用 selectedId */
@@ -259,7 +262,9 @@ export function BaseUserMasterView() {
   const [editing, setEditing] = useState(false);
   const defaultRoleId = roles[0]?.id ?? '';
   const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft(''));
-  const [page, setPage] = useState(1);
+  const [listPage, setListPage] = useState(1);
+  const [listTotal, setListTotal] = useState(0);
+  const [detailUser, setDetailUser] = useState<BaseUserRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -288,28 +293,88 @@ export function BaseUserMasterView() {
   );
   const listCols = useMemo(() => normalizeColPref(colPref), [colPref]);
 
-  const reload = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
+    return () => window.clearTimeout(t);
+  }, [keyword]);
+
+  const reloadRoles = useCallback(async () => {
     try {
-      const [ur, rr] = await Promise.all([
-        listUsers({ page: 1, pageSize: 500 }),
-        listRoles({ page: 1, pageSize: 200 }),
-      ]);
-      setUsers(ur.items.map(dtoToRow));
-      setRoles(rr.items.filter((r) => r.isActive));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '載入失敗');
-      setUsers([]);
+      const all = await fetchAllPages(
+        (page, pageSize) => listRoles({ page, pageSize, isActive: true }),
+        { pageSize: 100, maxPages: 50 },
+      );
+      setRoles(all);
+    } catch {
       setRoles([]);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    void reload();
-  }, [reload]);
+    void reloadRoles();
+  }, [reloadRoles]);
+
+  useEffect(() => {
+    setListPage(1);
+  }, [debouncedKeyword, activeFilter, jobRoleIdPicks]);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    setError(null);
+    void (async () => {
+      try {
+        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
+        const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
+        const res = await listUsers({
+          q: debouncedKeyword || undefined,
+          page: listPage,
+          pageSize: SERVER_PAGE_SIZE,
+          isActive: isAct,
+          primaryRoleIds: pr,
+        });
+        if (!alive) return;
+        setListTotal(res.total);
+        setUsers(res.items.map(dtoToRow));
+      } catch (e) {
+        if (!alive) return;
+        setError(e instanceof Error ? e.message : '載入失敗');
+        setUsers([]);
+        setListTotal(0);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [listPage, debouncedKeyword, activeFilter, jobRoleIdPicks]);
+
+  const refreshAll = useCallback(async () => {
+    await reloadRoles();
+    setListPage(1);
+    setLoading(true);
+    setError(null);
+    try {
+      const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
+      const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
+      const res = await listUsers({
+        q: debouncedKeyword || undefined,
+        page: 1,
+        pageSize: SERVER_PAGE_SIZE,
+        isActive: isAct,
+        primaryRoleIds: pr,
+      });
+      setListTotal(res.total);
+      setUsers(res.items.map(dtoToRow));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '載入失敗');
+      setUsers([]);
+      setListTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [reloadRoles, debouncedKeyword, activeFilter, jobRoleIdPicks]);
 
   useEffect(() => {
     if (!colPickerOpen) return;
@@ -327,48 +392,19 @@ export function BaseUserMasterView() {
     }
   }, [roles, creating, draft.primaryRoleId]);
 
-  const jobTitleOptions = useMemo(() => {
-    const s = new Set<string>();
-    for (const u of users) {
-      if (u.jobTitle && u.jobTitle !== '—') s.add(u.jobTitle);
-    }
-    return [...s].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
-  }, [users]);
+  const roleFilterOptions = useMemo(
+    () => [...roles].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')),
+    [roles],
+  );
 
   const toggleSort = (key: SortKey) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
   };
 
-  const filtered = useMemo(() => {
-    const k = keyword.trim().toLowerCase();
-    return users.filter((u) => {
-      if (jobPicks.size > 0 && !jobPicks.has(u.jobTitle)) return false;
-      if (activeFilter === 'active' && !u.isActive) return false;
-      if (activeFilter === 'inactive' && u.isActive) return false;
-      if (k) {
-        const blob = (
-          u.username +
-          ' ' +
-          u.displayName +
-          ' ' +
-          u.jobTitle +
-          ' ' +
-          u.email +
-          ' ' +
-          u.phone +
-          ' ' +
-          u.warehouseLabel
-        ).toLowerCase();
-        if (!blob.includes(k)) return false;
-      }
-      return true;
-    });
-  }, [users, keyword, jobPicks, activeFilter]);
-
   const sortedRows = useMemo(() => {
     const mult = sort.dir === 'asc' ? 1 : -1;
     const sortKey = sort.key;
-    const out = [...filtered];
+    const out = [...users];
     out.sort((a, b) => {
       const cmpNullLast = (x: string | null, y: string | null, inner: () => number) => {
         if (x == null && y == null) return 0;
@@ -409,32 +445,43 @@ export function BaseUserMasterView() {
       }
     });
     return out;
-  }, [filtered, sort]);
+  }, [users, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
-  const safePage = Math.max(1, Math.min(page, totalPages));
-
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE;
-    return sortedRows.slice(start, start + PAGE_SIZE);
-  }, [sortedRows, safePage]);
-
-  const filterKey = `${keyword}|${[...jobPicks].sort().join('\u0001')}|${activeFilter}`;
-  const prevFilterKeyRef = useRef('');
+  const totalPages = Math.max(1, Math.ceil(listTotal / SERVER_PAGE_SIZE));
+  const safeListPage = Math.max(1, Math.min(listPage, totalPages));
 
   useEffect(() => {
-    if (prevFilterKeyRef.current !== filterKey) {
-      prevFilterKeyRef.current = filterKey;
-      setPage(1);
+    if (listPage !== safeListPage) setListPage(safeListPage);
+  }, [listPage, safeListPage]);
+
+  useEffect(() => {
+    if (!selectedId || creating) {
+      setDetailUser(null);
       return;
     }
-    setPage((p) => Math.min(p, totalPages));
-  }, [filterKey, totalPages]);
+    if (users.some((u) => u.id === selectedId)) {
+      setDetailUser(null);
+      return;
+    }
+    let alive = true;
+    void getUser(selectedId)
+      .then((dto) => {
+        if (!alive) return;
+        setDetailUser(dtoToRow(dto));
+      })
+      .catch(() => {
+        if (!alive) return;
+        setDetailUser(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [selectedId, users, creating]);
 
-  const selected = useMemo(
-    () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
-    [users, selectedId],
-  );
+  const selected = useMemo(() => {
+    if (!selectedId) return null;
+    return users.find((u) => u.id === selectedId) ?? (detailUser?.id === selectedId ? detailUser : null);
+  }, [users, selectedId, detailUser]);
 
   const panelOpen = creating || selectedId != null;
 
@@ -476,7 +523,6 @@ export function BaseUserMasterView() {
       const row = sortedRows[nextIdx];
       if (!row) return;
       setFocusedRowId(row.id);
-      setPage(Math.floor(nextIdx / PAGE_SIZE) + 1);
     },
     [sortedRows, focusedRowId],
   );
@@ -585,15 +631,15 @@ export function BaseUserMasterView() {
     setSideLoading(true);
     setSideErr(null);
     void Promise.all([
-      listUserRoles({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
-      listUserWarehouses({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
-      listWarehouses({ page: 1, pageSize: 500 }),
+      listUserRoles({ userId: selectedId, isActive: true, page: 1, pageSize: 100 }),
+      listUserWarehouses({ userId: selectedId, isActive: true, page: 1, pageSize: 100 }),
+      fetchAllPages((p, ps) => listWarehouses({ page: p, pageSize: ps, isActive: true }), { pageSize: 100 }),
     ])
-      .then(([ur, uw, wh]) => {
+      .then(([ur, uw, whAll]) => {
         if (!alive) return;
         setSideUserRoles(ur.items ?? []);
         setSideUserWarehouses(uw.items ?? []);
-        setWarehouseOptions((wh.items ?? []).filter((w) => w.isActive));
+        setWarehouseOptions(whAll.filter((w) => w.isActive));
       })
       .catch((e: unknown) => {
         if (!alive) return;
@@ -611,8 +657,8 @@ export function BaseUserMasterView() {
   const refetchSidePanels = useCallback(async () => {
     if (!selectedId) return;
     const [ur, uw] = await Promise.all([
-      listUserRoles({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
-      listUserWarehouses({ userId: selectedId, isActive: true, page: 1, pageSize: 200 }),
+      listUserRoles({ userId: selectedId, isActive: true, page: 1, pageSize: 100 }),
+      listUserWarehouses({ userId: selectedId, isActive: true, page: 1, pageSize: 100 }),
     ]);
     setSideUserRoles(ur.items ?? []);
     setSideUserWarehouses(uw.items ?? []);
@@ -624,7 +670,7 @@ export function BaseUserMasterView() {
     return emptyDraft(defaultRoleId);
   }, [editing, creating, draft, selected, defaultRoleId]);
 
-  const pageRowIds = useMemo(() => pageRows.map((r) => r.id), [pageRows]);
+  const pageRowIds = useMemo(() => sortedRows.map((r) => r.id), [sortedRows]);
 
   const {
     checked,
@@ -697,7 +743,7 @@ export function BaseUserMasterView() {
         await assignUserRole({ userId: selectedId, roleId, isPrimary: first });
       }
       await refetchSidePanels();
-      await reload();
+      await refreshAll();
     } catch (e) {
       setSideErr(e instanceof Error ? e.message : '職務更新失敗');
     } finally {
@@ -712,7 +758,7 @@ export function BaseUserMasterView() {
     try {
       await setUserRolePrimary(userRoleId, true);
       await refetchSidePanels();
-      await reload();
+      await refreshAll();
     } catch (e) {
       setSideErr(e instanceof Error ? e.message : '主職務更新失敗');
     } finally {
@@ -732,7 +778,7 @@ export function BaseUserMasterView() {
         await assignUserWarehouse({ userId: selectedId, warehouseId });
       }
       await refetchSidePanels();
-      await reload();
+      await refreshAll();
     } catch (e) {
       setSideErr(e instanceof Error ? e.message : '倉庫更新失敗');
     } finally {
@@ -775,7 +821,17 @@ export function BaseUserMasterView() {
             });
           }
         }
-        const refreshed = await listUsers({ page: 1, pageSize: 500 });
+        setListPage(1);
+        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
+        const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
+        const refreshed = await listUsers({
+          page: 1,
+          pageSize: SERVER_PAGE_SIZE,
+          q: debouncedKeyword || undefined,
+          isActive: isAct,
+          primaryRoleIds: pr,
+        });
+        setListTotal(refreshed.total);
         setUsers(refreshed.items.map(dtoToRow));
         setSelectedId(created.id);
         setFocusedRowId(created.id);
@@ -898,8 +954,15 @@ export function BaseUserMasterView() {
   };
 
   const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
-  const jobFilterSummary =
-    jobPicks.size === 0 ? '職務：全部' : jobPicks.size === 1 ? `職務：${[...jobPicks][0]}` : `職務：已選 ${jobPicks.size} 項`;
+  const jobFilterSummary = useMemo(() => {
+    if (jobRoleIdPicks.size === 0) return '職務：全部';
+    if (jobRoleIdPicks.size === 1) {
+      const id = [...jobRoleIdPicks][0]!;
+      const name = roles.find((r) => r.id === id)?.name ?? id;
+      return `職務：${name}`;
+    }
+    return `職務：已選 ${jobRoleIdPicks.size} 項`;
+  }, [jobRoleIdPicks, roles]);
 
   const activeFilterSummary =
     activeFilter === 'all' ? '狀態：全部' : activeFilter === 'active' ? '狀態：啟用' : '狀態：停用';
@@ -931,8 +994,8 @@ export function BaseUserMasterView() {
                   size="icon"
                   variant="ghost"
                   className="size-8 shrink-0"
-                  disabled={safePage <= 1 || loading}
-                  onClick={() => setPage(1)}
+                  disabled={safeListPage <= 1 || loading}
+                  onClick={() => setListPage(1)}
                   aria-label="第一頁"
                   title="第一頁"
                 >
@@ -943,23 +1006,23 @@ export function BaseUserMasterView() {
                   size="icon"
                   variant="ghost"
                   className="size-8 shrink-0"
-                  disabled={safePage <= 1 || loading}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={safeListPage <= 1 || loading}
+                  onClick={() => setListPage((p) => Math.max(1, p - 1))}
                   aria-label="上一頁"
                   title="上一頁"
                 >
                   <ChevronLeft className="size-4" aria-hidden />
                 </Button>
                 <span className="min-w-[3.25rem] px-1 text-center text-xs tabular-nums text-muted-foreground">
-                  {safePage}/{totalPages}
+                  {safeListPage}/{totalPages}
                 </span>
                 <Button
                   type="button"
                   size="icon"
                   variant="ghost"
                   className="size-8 shrink-0"
-                  disabled={safePage >= totalPages || loading}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safeListPage >= totalPages || loading}
+                  onClick={() => setListPage((p) => Math.min(totalPages, p + 1))}
                   aria-label="下一頁"
                   title="下一頁"
                 >
@@ -970,8 +1033,8 @@ export function BaseUserMasterView() {
                   size="icon"
                   variant="ghost"
                   className="size-8 shrink-0"
-                  disabled={safePage >= totalPages || loading}
-                  onClick={() => setPage(totalPages)}
+                  disabled={safeListPage >= totalPages || loading}
+                  onClick={() => setListPage(totalPages)}
                   aria-label="最後一頁"
                   title="最後一頁"
                 >
@@ -1006,7 +1069,7 @@ export function BaseUserMasterView() {
                 size="icon"
                 variant="ghost"
                 className="size-9 shrink-0"
-                onClick={() => void reload()}
+                onClick={() => void refreshAll()}
                 disabled={loading}
                 aria-label="重新載入"
                 title="重新載入"
@@ -1049,31 +1112,31 @@ export function BaseUserMasterView() {
                     className="text-xs"
                     onSelect={(e) => {
                       e.preventDefault();
-                      setJobPicks(new Set());
+                      setJobRoleIdPicks(new Set());
                     }}
                   >
                     清除篩選（顯示全部）
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  {jobTitleOptions.length === 0 ? (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">尚無職務資料</div>
+                  {roleFilterOptions.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">尚無角色資料</div>
                   ) : (
-                    jobTitleOptions.map((j) => (
+                    roleFilterOptions.map((r) => (
                       <DropdownMenuCheckboxItem
-                        key={j}
-                        checked={jobPicks.has(j)}
+                        key={r.id}
+                        checked={jobRoleIdPicks.has(r.id)}
                         onCheckedChange={(checked) => {
-                          setJobPicks((prev) => {
+                          setJobRoleIdPicks((prev) => {
                             const next = new Set(prev);
-                            if (checked) next.add(j);
-                            else next.delete(j);
+                            if (checked) next.add(r.id);
+                            else next.delete(r.id);
                             return next;
                           });
                         }}
                         onSelect={(e) => e.preventDefault()}
                         className="text-sm"
                       >
-                        {j}
+                        {r.name}
                       </DropdownMenuCheckboxItem>
                     ))
                   )}
@@ -1114,7 +1177,7 @@ export function BaseUserMasterView() {
               </DropdownMenu>
 
               <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
-                {loading ? '載入中…' : `共 ${sortedRows.length} 筆 · 本頁 ${pageRows.length} 筆`}
+                {loading ? '載入中…' : `共 ${listTotal} 筆 · 本頁 ${sortedRows.length} 筆`}
               </span>
 
               {colPickerOpen ? (
@@ -1236,7 +1299,7 @@ export function BaseUserMasterView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {pageRows.map((row) => {
+                      {sortedRows.map((row) => {
                         const isFocused = row.id === focusedRowId;
                         const isOpenDetail = !creating && panelOpen && row.id === selectedId;
                         const isHighlighted = isFocused || isOpenDetail;

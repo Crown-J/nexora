@@ -43,15 +43,30 @@ export async function listUsers(params: {
   q?: string;
   page?: number;
   pageSize?: number;
+  isActive?: boolean;
+  /** 依 nx01_user_role（已生效指派）篩選：使用者須擁有其中任一角色 */
+  primaryRoleIds?: string[];
 }): Promise<PagedResult<UserDto>> {
+  const pr =
+    params.primaryRoleIds && params.primaryRoleIds.length > 0
+      ? params.primaryRoleIds.map((x) => x.trim()).filter(Boolean).join(',')
+      : undefined;
   const qs = buildQueryString({
     search: params.q?.trim() || undefined,
     page: params.page != null ? String(params.page) : undefined,
     pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    isActive: params.isActive === undefined ? undefined : String(params.isActive),
+    primaryRoleIds: pr,
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_user_list');
   return normalizePaged<UserDto>(await res.json());
+}
+
+export async function getUser(id: string): Promise<UserDto> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'GET' });
+  await assertOk(res, 'nxui_base_user_get');
+  return res.json() as Promise<UserDto>;
 }
 
 export async function createUser(body: {

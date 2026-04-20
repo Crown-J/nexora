@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
 import { assignUserRole, listUserRoles, revokeUserRole } from '@/features/base/api/user-role';
 import { listRoles, type RoleDto } from '@/features/base/api/role';
@@ -69,14 +70,22 @@ export function BaseUserRoleView() {
   const reloadAll = useCallback(async () => {
     setLoadError(null);
     try {
-      const [rr, ur] = await Promise.all([
-        listRoles({ page: 1, pageSize: 200 }),
-        listUsers({ page: 1, pageSize: 500 }),
+      const [rrAll, urAll] = await Promise.all([
+        fetchAllPages((page, pageSize) => listRoles({ page, pageSize, isActive: true }), { pageSize: 100 }),
+        fetchAllPages(
+          (page, pageSize) =>
+            listUsers({
+              page,
+              pageSize,
+              isActive: true,
+            }),
+          { pageSize: 100 },
+        ),
       ]);
-      const rows = rr.items.map(roleDtoToRow).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
+      const rows = rrAll.map(roleDtoToRow).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
       setRoles(rows);
       setPickerUsers(
-        ur.items.map((u) => {
+        urAll.map((u) => {
           const cbName = u.createdByName ?? null;
           const ubName = u.updatedByName ?? null;
           const whSummary = (u.warehouseSummary ?? '').trim();
@@ -120,8 +129,11 @@ export function BaseUserRoleView() {
   }, [reloadAll]);
 
   const loadMembers = useCallback(async (roleId: string) => {
-    const res = await listUserRoles({ roleId, isActive: true, page: 1, pageSize: 500 });
-    const list: BaseRoleMemberRow[] = res.items.map((x) => ({
+    const items = await fetchAllPages(
+      (page, pageSize) => listUserRoles({ roleId, isActive: true, page, pageSize }),
+      { pageSize: 100 },
+    );
+    const list: BaseRoleMemberRow[] = items.map((x) => ({
       id: x.id,
       userId: x.userId,
       isPrimary: x.isPrimary,
