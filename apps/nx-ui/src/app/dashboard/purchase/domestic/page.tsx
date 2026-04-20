@@ -7,7 +7,7 @@ import { PurchaseDomesticWorkbenchView } from '@/features/purchase/domestic/Purc
 
 export default function PurchaseDomesticPage() {
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-1 pb-6 pt-1 md:px-2">
+    <div className="flex min-h-[calc(100dvh-12.5rem)] w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden px-1 pb-6 pt-1 md:px-2">
       <PurchaseDomesticWorkbenchView />
     </div>
   );

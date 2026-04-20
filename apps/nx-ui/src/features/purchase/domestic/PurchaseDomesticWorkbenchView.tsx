@@ -1,12 +1,24 @@
 /**
  * @FUNCTION_CODE NX02-PO-UI-001-F01
- * 國內採購工作台：三欄（流程節點｜需求卡片｜待詢價；字級與庫存條加大以利閱讀）
+ * 國內採購工作台：流程圖示軌｜需求節點（檢視）｜詢價節點表單（TASK-0420-H）
  */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ClipboardList,
+  FileSearch,
+  Package,
+  RotateCcw,
+  ShieldCheck,
+  ShoppingCart,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,24 +32,90 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cx } from '@/shared/lib/cx';
-import type { DemandSource, FlowNodeKey, MockDemand, NodeBadges } from './mock-data';
-import {
-  INITIAL_NODE_BADGES,
-  buildRfqSplitPreview,
-  cloneInitialDemands,
-  defaultRfqQty,
-} from './mock-data';
+import type { DemandSource, FlowNodeKey, MockDemand } from './mock-data';
+import { INITIAL_NODE_BADGES, cloneInitialDemands, defaultRfqQty, turnoverMonthsLabel, turnoverMonthsTone } from './mock-data';
+import { PurchaseDomesticRfqFormView } from './PurchaseDomesticRfqFormView';
 
 /** 字級放大後略減每頁筆數，避免一屏過擠 */
 const PAGE_SIZE = 5;
 
-const FLOW: { key: FlowNodeKey; label: string }[] = [
-  { key: 'demand', label: '需求' },
-  { key: 'rfq', label: '詢價' },
-  { key: 'po', label: '採購單' },
-  { key: 'rr', label: '進貨單' },
-  { key: 'pr', label: '退貨單' },
-  { key: 'warranty', label: '保固申請' },
+function PaginationBar({
+  effPage,
+  totalPages,
+  setPage,
+  ariaLabel,
+  className,
+}: {
+  effPage: number;
+  totalPages: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  ariaLabel: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cx('flex min-w-0 max-w-full flex-wrap items-center justify-center gap-x-1 gap-y-1', className)}
+      role="navigation"
+      aria-label={ariaLabel}
+    >
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="size-9 shrink-0"
+        disabled={effPage <= 1}
+        onClick={() => setPage(1)}
+        aria-label="第一頁"
+      >
+        <ChevronsLeft className="size-5" aria-hidden />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="size-9 shrink-0"
+        disabled={effPage <= 1}
+        onClick={() => setPage((p) => Math.max(1, p - 1))}
+        aria-label="上一頁"
+      >
+        <ChevronLeft className="size-5" aria-hidden />
+      </Button>
+      <span className="min-w-[4rem] px-2 text-center text-sm font-medium tabular-nums text-muted-foreground">
+        {effPage}/{totalPages}
+      </span>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="size-9 shrink-0"
+        disabled={effPage >= totalPages}
+        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+        aria-label="下一頁"
+      >
+        <ChevronRight className="size-5" aria-hidden />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="size-9 shrink-0"
+        disabled={effPage >= totalPages}
+        onClick={() => setPage(totalPages)}
+        aria-label="最後一頁"
+      >
+        <ChevronsRight className="size-5" aria-hidden />
+      </Button>
+    </div>
+  );
+}
+
+const FLOW: { key: FlowNodeKey; label: string; Icon: LucideIcon }[] = [
+  { key: 'demand', label: '需求', Icon: ClipboardList },
+  { key: 'rfq', label: '詢價', Icon: FileSearch },
+  { key: 'po', label: '採購單', Icon: ShoppingCart },
+  { key: 'rr', label: '進貨單', Icon: Package },
+  { key: 'pr', label: '退貨單', Icon: RotateCcw },
+  { key: 'warranty', label: '保固申請', Icon: ShieldCheck },
 ];
 
 function isEditableTarget(el: EventTarget | null): boolean {
@@ -56,14 +134,12 @@ function nextDrNo(demands: MockDemand[]): string {
 
 type DemandFilter = 'all' | 'system' | 'sales' | 'urgent_priority';
 
-type QueueEntry = { no: string; qty: number };
-
 function gapToSafety(d: MockDemand): number {
   return Math.max(0, d.safetyStock - d.currentStock);
 }
 
-/** 庫存條：比例尺 0～maxStock；橘線＝安全量位置；填色依現存與安全量比較 */
-function StockVisual({ d }: { d: MockDemand }) {
+/** 庫存比例條：0～maxStock；橘線＝安全量；填色依現存與安全量 */
+function StockVisual({ d, className }: { d: MockDemand; className?: string }) {
   const max = Math.max(d.maxStock, d.safetyStock, d.currentStock, 1);
   const fillPct = Math.min(100, (d.currentStock / max) * 100);
   const safetyPct = Math.min(100, (d.safetyStock / max) * 100);
@@ -73,93 +149,94 @@ function StockVisual({ d }: { d: MockDemand }) {
   const gap = gapToSafety(d);
 
   return (
-    <div className="w-[min(100%,12.5rem)] shrink-0 sm:w-[12.5rem]">
-      <div className="relative h-3.5 w-[min(100%,8.75rem)] max-w-full rounded-full bg-muted/70">
+    <div className={cx('min-w-0 w-full max-w-full', className)}>
+      <div className="relative mx-auto h-3 w-full max-w-full rounded-full bg-muted/70 xl:mx-0 xl:max-w-[12.5rem]">
         <div className={cx('h-full rounded-l-full transition-[width]', barColor)} style={{ width: `${fillPct}%` }} />
         <div
-          className="pointer-events-none absolute top-[-3px] z-[1] h-[calc(100%+6px)] w-0.5 bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
+          className="pointer-events-none absolute top-[-3px] z-[1] h-[calc(100%+6px)] w-0.5 bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.55)]"
           style={{ left: `clamp(0px, ${safetyPct}%, calc(100% - 2px))` }}
           title="安全量位置"
         />
       </div>
-      <div className="mt-1.5 whitespace-nowrap font-mono text-xs leading-snug tabular-nums text-muted-foreground">
-        {d.currentStock} / {d.safetyStock} / {d.maxStock}
-      </div>
-      <div className="text-xs font-semibold text-orange-600 dark:text-orange-400">
-        缺口{gap}
-        {d.unit ? ` ${d.unit}` : ''}
+      <div className="mt-1.5 min-w-0 space-y-1 text-xs tabular-nums text-muted-foreground">
+        <div className="font-mono leading-snug">
+          {d.currentStock} / {d.safetyStock} / {d.maxStock}
+        </div>
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-1 gap-y-0.5 leading-snug">
+          <span className="font-semibold text-orange-600 dark:text-orange-400">
+            缺口 {gap}
+            {d.unit ? ` ${d.unit}` : ''}
+          </span>
+          <span className="text-muted-foreground">·</span>
+          <span
+            className={cx(
+              'font-semibold',
+              turnoverMonthsTone(d.turnoverMonths) === 'green' && 'text-emerald-600 dark:text-emerald-400',
+              turnoverMonthsTone(d.turnoverMonths) === 'orange' && 'text-orange-600 dark:text-orange-400',
+              turnoverMonthsTone(d.turnoverMonths) === 'red' && 'text-red-600 dark:text-red-400',
+            )}
+          >
+            {turnoverMonthsLabel(d.turnoverMonths)}
+          </span>
+        </div>
       </div>
     </div>
   );
 }
 
-function FlowNav160({
+function FlowNavIconRail({
   activeNode,
   setActiveNode,
   badgeFor,
-  activeNodeIndex,
 }: {
   activeNode: FlowNodeKey;
   setActiveNode: (k: FlowNodeKey) => void;
   badgeFor: (k: FlowNodeKey) => number;
-  activeNodeIndex: number;
 }) {
+  const activeNodeIndex = FLOW.findIndex((n) => n.key === activeNode);
+
   return (
     <nav
-      className="flex w-[168px] shrink-0 flex-col border-r border-border/50 bg-muted/20 py-3 pl-3 pr-2 sm:w-[176px]"
+      className="flex h-full min-h-0 w-[3.25rem] shrink-0 flex-col border-r border-border/50 bg-muted/20 py-3 sm:w-14"
       aria-label="採購流程節點"
     >
-      <ul className="relative flex flex-col">
+      <ul className="flex flex-1 flex-col items-stretch justify-between gap-0.5 py-1">
         {FLOW.map((node, i) => {
           const selected = activeNode === node.key;
           const badge = badgeFor(node.key);
-          const completed = i < activeNodeIndex;
-          const below = i > activeNodeIndex;
-          const hollowGray = below && badge === 0;
-          const hollowGreen = completed;
+          const completed = activeNodeIndex >= 0 && i < activeNodeIndex;
           const showBadge = badge > 0;
+          const Icon = node.Icon;
 
           return (
-            <li key={node.key} className="relative flex min-h-[48px] flex-col">
-              {i > 0 ? (
-                <div className="absolute top-0 left-[9px] h-2 w-px -translate-y-full bg-border" aria-hidden />
-              ) : null}
+            <li key={node.key} className="flex flex-1 flex-col items-center justify-center">
+              {i > 0 ? <div className="mb-0.5 h-2 w-px shrink-0 bg-border" aria-hidden /> : null}
               <button
                 type="button"
+                title={node.label}
+                aria-label={node.label}
+                aria-current={selected ? 'step' : undefined}
                 onClick={() => setActiveNode(node.key)}
                 className={cx(
-                  'relative z-[1] flex w-full items-start gap-2.5 rounded-md py-2 pr-1 text-left text-sm transition-colors',
-                  selected ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground hover:bg-muted/50',
+                  'relative flex size-11 shrink-0 items-center justify-center rounded-xl border transition-colors',
+                  selected
+                    ? 'border-amber-500/60 bg-amber-500/15 text-amber-700 shadow-sm dark:text-amber-300'
+                    : completed
+                      ? 'border-emerald-500/35 text-emerald-700/90 hover:bg-muted/50 dark:text-emerald-400/90'
+                      : 'border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                 )}
               >
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
-                  {selected ? (
-                    <span className="inline-block size-3.5 rounded-full bg-amber-500 shadow-sm ring-2 ring-amber-500/35" />
-                  ) : hollowGreen ? (
-                    <span className="inline-block size-3.5 rounded-full border-2 border-emerald-500 bg-transparent" />
-                  ) : hollowGray ? (
-                    <span className="inline-block size-3.5 rounded-full border border-muted-foreground/45 bg-transparent" />
-                  ) : (
-                    <span className="inline-block size-3.5 rounded-full border border-muted-foreground/55 bg-transparent" />
-                  )}
-                </span>
-                <span className="min-w-0 flex-1 leading-snug">
-                  <span className={cx('font-semibold', selected && 'text-amber-600 dark:text-amber-400')}>
-                    {node.label}
+                <Icon className="size-[1.35rem] shrink-0 stroke-[1.75]" aria-hidden />
+                {showBadge ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex min-h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-orange-500 px-0.5 text-[10px] font-bold leading-none text-white tabular-nums">
+                    {badge > 99 ? '99+' : badge}
                   </span>
-                  {showBadge ? (
-                    <span className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-orange-500 px-1.5 py-0.5 text-xs font-bold text-white tabular-nums">
-                      {badge}
-                    </span>
-                  ) : null}
+                ) : null}
+                <span className="sr-only">
+                  {node.label}
+                  {showBadge ? `，${badge} 筆` : ''}
                 </span>
               </button>
-              {i < FLOW.length - 1 ? (
-                <div
-                  className="absolute top-[calc(1.25rem+8px)] left-[9px] bottom-0 w-px bg-border"
-                  aria-hidden
-                />
-              ) : null}
             </li>
           );
         })}
@@ -171,25 +248,19 @@ function FlowNav160({
 export function PurchaseDomesticWorkbenchView() {
   const [activeNode, setActiveNode] = useState<FlowNodeKey>('demand');
   const [demands, setDemands] = useState<MockDemand[]>(() => cloneInitialDemands());
-  const [nodeBadges, setNodeBadges] = useState<NodeBadges>(() => ({ ...INITIAL_NODE_BADGES }));
   const [demandFilter, setDemandFilter] = useState<DemandFilter>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [queueEntries, setQueueEntries] = useState<QueueEntry[]>([]);
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [addDemandOpen, setAddDemandOpen] = useState(false);
   const [focusIdx, setFocusIdx] = useState(0);
-  const [dragNo, setDragNo] = useState<string | null>(null);
 
   const [newPartCode, setNewPartCode] = useState('');
   const [newPartName, setNewPartName] = useState('');
   const [newQty, setNewQty] = useState('10');
   const [newSource, setNewSource] = useState<DemandSource>('sales');
   const [newUrgent, setNewUrgent] = useState(false);
-  const [newVendor, setNewVendor] = useState('');
+  const [newPartBrand, setNewPartBrand] = useState('');
   const [newRemark, setNewRemark] = useState('');
-
-  const demandMap = useMemo(() => new Map(demands.map((d) => [d.no, d])), [demands]);
 
   const filteredDemands = useMemo(() => {
     let list = [...demands];
@@ -209,7 +280,10 @@ export function PurchaseDomesticWorkbenchView() {
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter(
-        (d) => d.partCode.toLowerCase().includes(q) || d.partName.toLowerCase().includes(q),
+        (d) =>
+          d.partCode.toLowerCase().includes(q) ||
+          d.partName.toLowerCase().includes(q) ||
+          d.partBrand.toLowerCase().includes(q),
       );
     }
     return list;
@@ -230,80 +304,6 @@ export function PurchaseDomesticWorkbenchView() {
     setFocusIdx((i) => Math.min(Math.max(0, i), Math.max(0, pagedDemands.length - 1)));
   }, [pagedDemands.length]);
 
-  const queueOrdered = useMemo(
-    () => queueEntries.map((e) => demandMap.get(e.no)).filter(Boolean) as MockDemand[],
-    [queueEntries, demandMap],
-  );
-
-  const splitPreview = useMemo(() => buildRfqSplitPreview(queueOrdered), [queueOrdered]);
-  const hasUnspecifiedVendor = splitPreview.some((l) => l.unspecified);
-  const activeNodeIndex = FLOW.findIndex((n) => n.key === activeNode);
-
-  const toggleInQueue = useCallback((no: string, checked: boolean) => {
-    setQueueEntries((prev) => {
-      if (!checked) return prev.filter((e) => e.no !== no);
-      if (prev.some((e) => e.no === no)) return prev;
-      const d = demandMap.get(no);
-      if (!d) return prev;
-      return [...prev, { no, qty: defaultRfqQty(d) }];
-    });
-  }, [demandMap]);
-
-  const setEntryQty = useCallback((no: string, qty: number) => {
-    const q = Math.max(1, Math.floor(qty) || 1);
-    setQueueEntries((prev) => prev.map((e) => (e.no === no ? { ...e, qty: q } : e)));
-  }, []);
-
-  const removeFromQueue = useCallback((no: string) => {
-    setQueueEntries((prev) => prev.filter((e) => e.no !== no));
-  }, []);
-
-  const onDragStartRow = (no: string) => () => setDragNo(no);
-  const onDragOverAllow = (e: React.DragEvent) => e.preventDefault();
-  const onDropRow = (no: string) => (e: React.DragEvent) => {
-    e.preventDefault();
-    const from = dragNo;
-    setDragNo(null);
-    if (!from || from === no) return;
-    setQueueEntries((prev) => {
-      const i = prev.findIndex((x) => x.no === from);
-      const j = prev.findIndex((x) => x.no === no);
-      if (i < 0 || j < 0) return prev;
-      const next = [...prev];
-      const tmp = next[i]!;
-      next[i] = next[j]!;
-      next[j] = tmp;
-      return next;
-    });
-  };
-  const onDragEnd = () => setDragNo(null);
-
-  const vendorSummary = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const e of queueEntries) {
-      const d = demandMap.get(e.no);
-      if (!d) continue;
-      const v = d.suggestedVendor ?? '（未指定廠商）';
-      m.set(v, (m.get(v) ?? 0) + 1);
-    }
-    return [...m.entries()];
-  }, [queueEntries, demandMap]);
-
-  const openCreateRfq = useCallback(() => {
-    if (activeNode !== 'demand' || queueEntries.length === 0) return;
-    setConfirmOpen(true);
-  }, [activeNode, queueEntries.length]);
-
-  const confirmCreateRfq = useCallback(() => {
-    const nos = new Set(queueEntries.map((e) => e.no));
-    const nRf = splitPreview.length;
-    setDemands((prev) => prev.filter((d) => !nos.has(d.no)));
-    setQueueEntries([]);
-    setConfirmOpen(false);
-    setNodeBadges((b) => ({ ...b, rfq: b.rfq + nRf }));
-    setActiveNode('rfq');
-  }, [queueEntries, splitPreview.length]);
-
   const saveNewDemand = useCallback(() => {
     const name = newPartName.trim();
     const code = newPartCode.trim() || `PART-${Date.now()}`;
@@ -316,6 +316,7 @@ export function PurchaseDomesticWorkbenchView() {
       date: '2026-04-20',
       partCode: code,
       partName: name,
+      partBrand: newPartBrand.trim() || '—',
       qty,
       unit: '個',
       source: newSource,
@@ -323,7 +324,8 @@ export function PurchaseDomesticWorkbenchView() {
       currentStock: 0,
       safetyStock: safety,
       maxStock,
-      suggestedVendor: newVendor.trim() || null,
+      turnoverMonths: 2.5,
+      suggestedVendor: null,
       salesName: newSource === 'sales' ? '（手動）' : null,
       customerName: null,
       remark: newRemark.trim() || null,
@@ -335,17 +337,16 @@ export function PurchaseDomesticWorkbenchView() {
     setNewQty('10');
     setNewSource('sales');
     setNewUrgent(false);
-    setNewVendor('');
+    setNewPartBrand('');
     setNewRemark('');
-  }, [demands, newPartName, newPartCode, newQty, newSource, newUrgent, newVendor, newRemark]);
+  }, [demands, newPartName, newPartCode, newPartBrand, newQty, newSource, newUrgent, newRemark]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      if (confirmOpen || addDemandOpen) {
+      if (addDemandOpen) {
         if (e.key === 'Escape') {
           e.preventDefault();
-          setConfirmOpen(false);
           setAddDemandOpen(false);
         }
         return;
@@ -361,11 +362,6 @@ export function PurchaseDomesticWorkbenchView() {
           setActiveNode(FLOW[parseInt(k, 10) - 1]!.key);
           return;
         }
-        if (k.toLowerCase() === 's' && activeNode === 'demand') {
-          e.preventDefault();
-          openCreateRfq();
-          return;
-        }
         if (k.toLowerCase() === 'a') {
           e.preventDefault();
           setAddDemandOpen(true);
@@ -373,14 +369,6 @@ export function PurchaseDomesticWorkbenchView() {
         }
       }
       if (activeNode !== 'demand') return;
-      if (e.key === ' ' && pagedDemands.length > 0) {
-        e.preventDefault();
-        const row = pagedDemands[focusIdx];
-        if (!row) return;
-        const on = queueEntries.some((x) => x.no === row.no);
-        toggleInQueue(row.no, !on);
-        return;
-      }
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         if (pagedDemands.length === 0) return;
@@ -395,38 +383,28 @@ export function PurchaseDomesticWorkbenchView() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [
-    confirmOpen,
-    addDemandOpen,
-    activeNode,
-    pagedDemands,
-    focusIdx,
-    queueEntries,
-    toggleInQueue,
-    openCreateRfq,
-  ]);
+  }, [addDemandOpen, activeNode, pagedDemands, focusIdx]);
 
-  const badgeFor = (key: FlowNodeKey) => (key === 'demand' ? demands.length : nodeBadges[key]);
+  const badgeFor = (key: FlowNodeKey) => (key === 'demand' ? demands.length : INITIAL_NODE_BADGES[key]);
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
+    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 overflow-x-hidden">
       <header className="shrink-0 px-1">
         <p className="text-xs tracking-[0.3em] text-muted-foreground">NX02-PO-UI-001-F01</p>
         <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">國內採購工作台</h1>
       </header>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden rounded-xl border border-border/60 bg-card/30">
-        <FlowNav160
-          activeNode={activeNode}
-          setActiveNode={setActiveNode}
-          badgeFor={badgeFor}
-          activeNodeIndex={activeNodeIndex}
-        />
+      <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-row overflow-x-hidden overflow-y-hidden rounded-xl border border-border/60 bg-card/30">
+        <FlowNavIconRail activeNode={activeNode} setActiveNode={setActiveNode} badgeFor={badgeFor} />
 
-        <section className="min-w-0 flex-1 overflow-hidden border-r border-border/50 bg-background/40 p-2 sm:p-3">
+        <section
+          className={cx(
+            'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background/40 p-2 sm:p-3',
+            activeNode === 'demand' && 'border-r border-border/50',
+          )}
+        >
           {activeNode === 'demand' ? (
             <DemandMiddleColumn
-              totalPending={demands.length}
               filteredTotal={filteredDemands.length}
               pagedDemands={pagedDemands}
               effPage={effPage}
@@ -436,13 +414,11 @@ export function PurchaseDomesticWorkbenchView() {
               setDemandFilter={setDemandFilter}
               search={search}
               setSearch={setSearch}
-              queueEntries={queueEntries}
-              toggleInQueue={toggleInQueue}
               focusIdx={focusIdx}
               setFocusIdx={setFocusIdx}
             />
           ) : activeNode === 'rfq' ? (
-            <PlaceholderMiddle title="詢價" subtitle="RF 詢價單列表（規格後續補充）" />
+            <PurchaseDomesticRfqFormView demands={demands} />
           ) : activeNode === 'po' ? (
             <PlaceholderMiddle title="採購單" subtitle="PO 採購單列表（規格後續補充）" />
           ) : activeNode === 'rr' ? (
@@ -454,76 +430,24 @@ export function PurchaseDomesticWorkbenchView() {
           )}
         </section>
 
-        <aside className="flex w-[min(22rem,92vw)] min-w-[17.5rem] shrink-0 flex-col overflow-y-auto bg-muted/15 p-3 sm:min-w-[19rem]">
-          {activeNode === 'demand' ? (
-            <DemandRightPanel
-              queueEntries={queueEntries}
-              demandMap={demandMap}
-              removeFromQueue={removeFromQueue}
-              setEntryQty={setEntryQty}
-              vendorSummary={vendorSummary}
-              onCreateRfq={openCreateRfq}
-              onDragStartRow={onDragStartRow}
-              onDragOverAllow={onDragOverAllow}
-              onDropRow={onDropRow}
-              onDragEnd={onDragEnd}
-            />
-          ) : activeNode === 'rfq' ? (
-            <PlaceholderRight title="詢價編輯" subtitle="詢價明細與廠商選擇（占位）" />
-          ) : activeNode === 'po' ? (
-            <PlaceholderRight title="採購單審核" subtitle="明細與審核操作（占位）" />
-          ) : activeNode === 'rr' ? (
-            <PlaceholderRight title="驗收" subtitle="逐筆核對（占位）" />
-          ) : activeNode === 'pr' ? (
-            <PlaceholderRight title="退貨處置" subtitle="（占位）" />
-          ) : (
-            <PlaceholderRight title="廠商接洽" subtitle="（占位）" />
-          )}
-        </aside>
+        {activeNode === 'demand' ? (
+          <aside className="flex h-full min-h-0 min-w-0 w-[min(100%,28rem)] max-w-[min(28rem,100%)] shrink flex-col overflow-hidden bg-muted/15 p-2.5 sm:max-w-[min(28rem,42vw)] sm:p-3 lg:max-w-[min(28rem,38vw)]">
+            <DemandGoToRfqAside totalPending={demands.length} onGoRfq={() => setActiveNode('rfq')} />
+          </aside>
+        ) : activeNode !== 'rfq' ? (
+          <aside className="flex h-full min-h-0 min-w-0 w-[min(100%,28rem)] max-w-[min(28rem,100%)] shrink flex-col overflow-hidden bg-muted/15 p-2.5 sm:max-w-[min(28rem,42vw)] sm:p-3 lg:max-w-[min(28rem,38vw)]">
+            {activeNode === 'po' ? (
+              <PlaceholderRight title="採購單審核" subtitle="明細與審核操作（占位）" />
+            ) : activeNode === 'rr' ? (
+              <PlaceholderRight title="驗收" subtitle="逐筆核對（占位）" />
+            ) : activeNode === 'pr' ? (
+              <PlaceholderRight title="退貨處置" subtitle="（占位）" />
+            ) : (
+              <PlaceholderRight title="廠商接洽" subtitle="（占位）" />
+            )}
+          </aside>
+        ) : null}
       </div>
-
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>確認建立詢價單</DialogTitle>
-            <DialogDescription asChild>
-              <div className="space-y-3 text-sm text-foreground/90">
-                <p>即將為以下 {queueEntries.length} 筆需求建立詢價單：</p>
-                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  {queueEntries.map((e) => {
-                    const d = demandMap.get(e.no);
-                    if (!d) return null;
-                    return (
-                      <li key={e.no}>
-                        {d.partName} × {e.qty} {d.unit ?? '個'}
-                      </li>
-                    );
-                  })}
-                </ul>
-                <p>系統將依廠商拆分為：</p>
-                <ul className="list-inside list-disc space-y-1 text-muted-foreground">
-                  {splitPreview.map((l) => (
-                    <li key={l.rfqNo}>
-                      {l.rfqNo} → {l.vendorLabel}（{l.partCount} 料號）
-                    </li>
-                  ))}
-                </ul>
-                {hasUnspecifiedVendor ? (
-                  <p className="text-amber-700 dark:text-amber-400">⚠️ 無建議廠商的料號將建立未指定詢價單</p>
-                ) : null}
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => setConfirmOpen(false)}>
-              取消
-            </Button>
-            <Button type="button" onClick={confirmCreateRfq}>
-              確認建立
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={addDemandOpen} onOpenChange={setAddDemandOpen}>
         <DialogContent className="sm:max-w-md">
@@ -581,8 +505,13 @@ export function PurchaseDomesticWorkbenchView() {
               緊急
             </label>
             <div className="grid gap-1.5">
-              <Label htmlFor="nd-vendor">建議廠商（選填）</Label>
-              <Input id="nd-vendor" value={newVendor} onChange={(e) => setNewVendor(e.target.value)} />
+              <Label htmlFor="nd-brand">廠牌（選填）</Label>
+              <Input
+                id="nd-brand"
+                value={newPartBrand}
+                onChange={(e) => setNewPartBrand(e.target.value)}
+                placeholder="例：BOSCH"
+              />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="nd-rm">備註</Label>
@@ -628,8 +557,31 @@ const FILTER_CHIPS: { key: DemandFilter; label: string }[] = [
   { key: 'urgent_priority', label: '緊急優先' },
 ];
 
+function DemandGoToRfqAside({ totalPending, onGoRfq }: { totalPending: number; onGoRfq: () => void }) {
+  return (
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted-foreground">
+          共 <span className="tabular-nums font-medium text-foreground">{totalPending}</span> 筆待處理
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-9 shrink-0 border-amber-500/40 bg-amber-500/15 text-amber-950 hover:bg-amber-500/25 dark:text-amber-50"
+          onClick={onGoRfq}
+        >
+          前往詢價節點 →
+        </Button>
+      </div>
+      <div className="min-h-0 flex-1 rounded-lg border border-dashed border-border/50 bg-card/30 p-3 text-sm leading-relaxed text-muted-foreground">
+        <p className="text-foreground">此節點為需求檢視</p>
+        <p className="mt-2">請於詢價節點建立詢價單與明細。快捷鍵：<span className="font-mono text-xs">Alt+2</span> 切換至詢價。</p>
+      </div>
+    </div>
+  );
+}
+
 function DemandMiddleColumn({
-  totalPending,
   filteredTotal,
   pagedDemands,
   effPage,
@@ -639,12 +591,9 @@ function DemandMiddleColumn({
   setDemandFilter,
   search,
   setSearch,
-  queueEntries,
-  toggleInQueue,
   focusIdx,
   setFocusIdx,
 }: {
-  totalPending: number;
   filteredTotal: number;
   pagedDemands: MockDemand[];
   effPage: number;
@@ -654,51 +603,57 @@ function DemandMiddleColumn({
   setDemandFilter: (f: DemandFilter) => void;
   search: string;
   setSearch: (s: string) => void;
-  queueEntries: QueueEntry[];
-  toggleInQueue: (no: string, checked: boolean) => void;
   focusIdx: number;
   setFocusIdx: (i: number | ((n: number) => number)) => void;
 }) {
-  const inQueue = (no: string) => queueEntries.some((e) => e.no === no);
-
   return (
-    <div className="flex h-full min-h-0 flex-col gap-2">
-      <div className="flex shrink-0 flex-wrap items-end justify-between gap-x-3 gap-y-1">
+    <div className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col gap-2 overflow-x-hidden overflow-y-hidden">
+      <div className="flex shrink-0 flex-wrap items-end gap-x-3 gap-y-1">
         <h2 className="text-base font-semibold text-foreground">採購需求</h2>
         <p className="text-sm text-muted-foreground">
-          共 <span className="tabular-nums text-foreground">{totalPending}</span> 筆待處理
-          {filteredTotal !== totalPending ? (
+          {filteredTotal > 0 ? (
             <>
-              {' '}
-              · 篩選 <span className="tabular-nums text-foreground">{filteredTotal}</span> 筆
+              篩選 <span className="tabular-nums text-foreground">{filteredTotal}</span> 筆
             </>
-          ) : null}
+          ) : (
+            '無符合篩選之資料'
+          )}
         </p>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <span className="text-sm text-muted-foreground">篩選：</span>
-        {FILTER_CHIPS.map((c) => (
-          <Button
-            key={c.key}
-            type="button"
-            size="sm"
-            variant={demandFilter === c.key ? 'secondary' : 'outline'}
-            className="h-9 px-3 text-sm"
-            onClick={() => setDemandFilter(c.key)}
-          >
-            {c.label}
-          </Button>
-        ))}
+      <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="text-sm text-muted-foreground">篩選：</span>
+          {FILTER_CHIPS.map((c) => (
+            <Button
+              key={c.key}
+              type="button"
+              size="sm"
+              variant={demandFilter === c.key ? 'secondary' : 'outline'}
+              className="h-9 px-3 text-sm"
+              onClick={() => setDemandFilter(c.key)}
+            >
+              {c.label}
+            </Button>
+          ))}
+        </div>
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="料號 / 品名"
+          placeholder="搜尋料號、品名或廠牌"
           autoComplete="off"
-          className="ml-auto h-9 min-w-[10rem] max-w-[18rem] flex-1 text-sm"
-          aria-label="搜尋料號品名"
+          className="h-9 w-full shrink-0 text-sm sm:w-[min(100%,15rem)] md:w-[17rem]"
+          aria-label="搜尋料號、品名或廠牌"
         />
       </div>
+
+      <PaginationBar
+        effPage={effPage}
+        totalPages={totalPages}
+        setPage={setPage}
+        ariaLabel="採購需求分頁"
+        className="shrink-0 justify-end border-b border-border/40 pb-2"
+      />
 
       <div
         role="listbox"
@@ -706,14 +661,14 @@ function DemandMiddleColumn({
         className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-0.5"
       >
         {pagedDemands.map((d, idx) => {
-          const checked = inQueue(d.no);
           const focused = idx === focusIdx;
           const urgent = d.isUrgent;
 
           const onCardActivate = () => {
             setFocusIdx(idx);
-            toggleInQueue(d.no, !checked);
           };
+
+          const suggestedQty = defaultRfqQty(d);
 
           return (
             <div
@@ -729,266 +684,87 @@ function DemandMiddleColumn({
               }}
               tabIndex={-1}
               className={cx(
-                'grid cursor-pointer grid-cols-[28px_1fr_minmax(10rem,12.5rem)_6.5rem] items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-2.5 text-left transition-colors max-sm:grid-cols-1 max-sm:gap-y-3',
-                checked && 'border-amber-500/70 bg-amber-500/10 shadow-sm',
-                !checked && 'border-border/60 bg-card/50 hover:bg-muted/30',
+                'flex min-w-0 max-w-full cursor-pointer flex-col gap-3 overflow-hidden rounded-lg border border-border/60 bg-card/50 px-2.5 py-2.5 text-left transition-colors hover:bg-muted/30 xl:flex-row xl:items-stretch xl:justify-between xl:gap-4 xl:px-3',
                 focused && 'ring-1 ring-amber-500/40',
                 urgent && 'border-l-[3px] border-l-red-500',
               )}
               onMouseEnter={() => setFocusIdx(idx)}
             >
-              <div className="pointer-events-none flex h-full items-center justify-center" aria-hidden>
-                <span
-                  className={cx(
-                    'flex size-[22px] shrink-0 items-center justify-center rounded border-2 transition-colors',
-                    checked
-                      ? 'border-amber-500 bg-amber-500 text-black'
-                      : 'border-muted-foreground/50 bg-transparent',
-                  )}
-                >
-                  {checked ? <Check className="size-4 stroke-[2.75]" /> : null}
-                </span>
+              <div className="flex min-w-0 w-full max-w-full xl:w-auto xl:max-w-[min(100%,22rem)]">
+                {/* 前：料號、品名、廠牌（不 flex-grow，避免與中部之間空洞） */}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="break-all font-mono text-xs font-medium leading-tight text-muted-foreground">{d.partCode}</p>
+                  <p className="break-words text-base font-semibold leading-snug text-foreground">{d.partName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    廠牌 <span className="font-medium text-foreground">{d.partBrand}</span>
+                  </p>
+                  {d.remark ? (
+                    <p className="line-clamp-2 text-xs italic leading-relaxed text-muted-foreground">{d.remark}</p>
+                  ) : null}
+                </div>
               </div>
 
-              <div className="min-w-0 space-y-1">
-                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-snug">
-                  {d.source === 'system' ? (
-                    <>
-                      <span className="shrink-0 rounded-md bg-sky-600/20 px-2 py-1 text-xs font-semibold text-sky-950 dark:text-sky-50">
+              <div className="flex min-w-0 w-full flex-1 flex-col gap-3 xl:w-auto xl:flex-row xl:flex-nowrap xl:items-stretch xl:justify-end xl:gap-4">
+                {/* 中：庫存數字 + 跑條 */}
+                <div className="flex w-full min-w-0 flex-col justify-center gap-2 border-y border-border/40 py-2 xl:w-[min(100%,15.5rem)] xl:shrink-0 xl:border-x xl:border-y-0 xl:px-3 xl:py-0">
+                  <div className="grid grid-cols-3 gap-2">
+                    {(
+                      [
+                        { label: '目前庫存', value: d.currentStock },
+                        { label: '安全量', value: d.safetyStock },
+                        { label: '最高量', value: d.maxStock },
+                      ] as const
+                    ).map((cell) => (
+                      <div key={cell.label} className="text-center xl:text-left">
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{cell.label}</p>
+                        <p className="mt-0.5 text-lg font-bold tabular-nums leading-none text-foreground">{cell.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <StockVisual d={d} className="pt-0.5" />
+                </div>
+
+                {/* 後：需求來源、建議數量 */}
+                <div className="flex w-full min-w-0 flex-col justify-center gap-2 xl:w-[min(100%,10.5rem)] xl:shrink-0 xl:text-right">
+                  <div className="flex flex-wrap items-center gap-1.5 xl:justify-end">
+                    {d.source === 'system' ? (
+                      <span className="rounded-md bg-sky-600/20 px-2 py-1 text-xs font-semibold text-sky-950 dark:text-sky-50">
                         系統自動
                       </span>
-                      {d.suggestedVendor ? (
-                        <span className="max-w-[10rem] truncate text-sm text-muted-foreground">{d.suggestedVendor}</span>
-                      ) : null}
-                      <span className="min-w-0 truncate font-semibold text-foreground">{d.partName}</span>
-                      <span className="shrink-0 font-mono text-xs text-muted-foreground">{d.partCode}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="shrink-0 rounded-md bg-orange-500/20 px-2 py-1 text-xs font-semibold text-orange-950 dark:text-orange-50">
-                        業務提交
-                      </span>
-                      {d.isUrgent ? (
-                        <span className="shrink-0 rounded-md bg-red-600/22 px-2 py-1 text-xs font-semibold text-red-950 dark:text-red-50">
-                          緊急
+                    ) : (
+                      <>
+                        <span className="rounded-md bg-orange-500/20 px-2 py-1 text-xs font-semibold text-orange-950 dark:text-orange-50">
+                          業務提交
                         </span>
-                      ) : null}
-                      <span className="max-w-[12rem] truncate text-sm text-muted-foreground">
-                        {d.salesName}｜{d.customerName ?? '—'}
-                      </span>
-                      <span className="min-w-0 truncate font-semibold text-foreground">{d.partName}</span>
-                      <span className="shrink-0 font-mono text-xs text-muted-foreground">{d.partCode}</span>
-                    </>
-                  )}
+                        {d.isUrgent ? (
+                          <span className="rounded-md bg-red-600/22 px-2 py-1 text-xs font-semibold text-red-950 dark:text-red-50">
+                            緊急
+                          </span>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+                  {d.source === 'sales' ? (
+                    <p className="break-words text-xs leading-snug text-muted-foreground xl:text-right">
+                      {d.salesName}｜{d.customerName ?? '—'}
+                    </p>
+                  ) : null}
+                  <div>
+                    <p className="text-xs text-muted-foreground xl:text-right">建議數量</p>
+                    <p className="text-2xl font-bold tabular-nums leading-none tracking-tight text-foreground xl:text-right">
+                      {suggestedQty}
+                      {d.unit ? <span className="ml-1 text-sm font-normal text-muted-foreground">{d.unit}</span> : null}
+                    </p>
+                    {suggestedQty !== d.qty ? (
+                      <p className="mt-0.5 text-[11px] text-muted-foreground xl:text-right">需求單量 {d.qty}</p>
+                    ) : null}
+                  </div>
                 </div>
-                {d.remark ? (
-                  <p className="line-clamp-2 text-xs italic leading-relaxed text-muted-foreground">{d.remark}</p>
-                ) : null}
-              </div>
-
-              <StockVisual d={d} />
-
-              <div className="flex flex-col items-end justify-center pr-0.5 text-right">
-                <span className="text-2xl font-bold tabular-nums leading-none tracking-tight text-foreground">{d.qty}</span>
-                <span className="mt-1 text-xs text-muted-foreground">需求量</span>
               </div>
             </div>
           );
         })}
       </div>
-
-      <div
-        className="flex shrink-0 items-center justify-center gap-1 border-t border-border/50 pt-3"
-        role="navigation"
-        aria-label="分頁"
-      >
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="size-9 shrink-0"
-          disabled={effPage <= 1}
-          onClick={() => setPage(1)}
-          aria-label="第一頁"
-        >
-          <ChevronsLeft className="size-5" aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="size-9 shrink-0"
-          disabled={effPage <= 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          aria-label="上一頁"
-        >
-          <ChevronLeft className="size-5" aria-hidden />
-        </Button>
-        <span className="min-w-[4rem] px-3 text-center text-sm font-medium tabular-nums text-muted-foreground">
-          {effPage}/{totalPages}
-        </span>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="size-9 shrink-0"
-          disabled={effPage >= totalPages}
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          aria-label="下一頁"
-        >
-          <ChevronRight className="size-5" aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="size-9 shrink-0"
-          disabled={effPage >= totalPages}
-          onClick={() => setPage(totalPages)}
-          aria-label="最後一頁"
-        >
-          <ChevronsRight className="size-5" aria-hidden />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function DemandRightPanel({
-  queueEntries,
-  demandMap,
-  removeFromQueue,
-  setEntryQty,
-  vendorSummary,
-  onCreateRfq,
-  onDragStartRow,
-  onDragOverAllow,
-  onDropRow,
-  onDragEnd,
-}: {
-  queueEntries: QueueEntry[];
-  demandMap: Map<string, MockDemand>;
-  removeFromQueue: (no: string) => void;
-  setEntryQty: (no: string, qty: number) => void;
-  vendorSummary: [string, number][];
-  onCreateRfq: () => void;
-  onDragStartRow: (no: string) => () => void;
-  onDragOverAllow: (e: React.DragEvent) => void;
-  onDropRow: (no: string) => (e: React.DragEvent) => void;
-  onDragEnd: () => void;
-}) {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-foreground">待詢價清單</h2>
-        {queueEntries.length > 0 ? (
-          <span className="text-sm tabular-nums text-muted-foreground">{queueEntries.length} 筆</span>
-        ) : null}
-      </div>
-
-      {queueEntries.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm leading-relaxed text-muted-foreground">
-          <p className="text-foreground">尚未選取需求單</p>
-          <p className="mt-2 text-sm">← 從左側勾選需求單加入</p>
-        </div>
-      ) : (
-        <>
-          <ul className="flex flex-col gap-2.5">
-            {queueEntries.map((e) => {
-              const d = demandMap.get(e.no);
-              if (!d) return null;
-              return (
-                <li
-                  key={e.no}
-                  draggable
-                  onDragStart={onDragStartRow(e.no)}
-                  onDragOver={onDragOverAllow}
-                  onDrop={onDropRow(e.no)}
-                  onDragEnd={onDragEnd}
-                  className="cursor-grab rounded-lg border border-border/50 bg-card/50 p-3 text-sm active:cursor-grabbing"
-                >
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 space-y-1.5">
-                        <p className="font-mono text-sm font-semibold text-foreground">{d.no}</p>
-                        <p className="text-base font-medium leading-snug text-foreground">
-                          {d.partName} × {e.qty} {d.unit ?? '個'}
-                        </p>
-                        <p className="text-sm">
-                          {d.source === 'system' ? (
-                            <span className="rounded-md bg-sky-600/18 px-2 py-0.5 text-xs font-semibold text-sky-950 dark:text-sky-50">
-                              系統自動
-                            </span>
-                          ) : (
-                            <span className="rounded-md bg-orange-500/18 px-2 py-0.5 text-xs font-semibold text-orange-950 dark:text-orange-50">
-                              業務提交
-                            </span>
-                          )}
-                          {d.isUrgent ? (
-                            <span className="ml-1.5 rounded-md bg-red-600/18 px-2 py-0.5 text-xs font-semibold text-red-950 dark:text-red-50">
-                              緊急
-                            </span>
-                          ) : null}{' '}
-                          <span className="text-muted-foreground">{d.suggestedVendor ?? '未指定廠商'}</span>
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="size-9 shrink-0 text-base text-muted-foreground hover:text-destructive"
-                        aria-label="移除"
-                        onClick={() => removeFromQueue(e.no)}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                    <div className="flex flex-wrap items-end gap-2 border-t border-border/30 pt-2.5">
-                      <Label htmlFor={`rqty-${e.no}`} className="text-xs text-muted-foreground">
-                        詢價數量
-                      </Label>
-                      <Input
-                        id={`rqty-${e.no}`}
-                        type="number"
-                        min={1}
-                        className="h-9 w-[6.5rem] text-sm tabular-nums"
-                        value={e.qty}
-                        onClick={(ev) => ev.stopPropagation()}
-                        onChange={(ev) => {
-                          const v = parseInt(ev.target.value, 10);
-                          if (!Number.isNaN(v)) setEntryQty(e.no, v);
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-9 px-3 text-xs text-muted-foreground"
-                        onClick={() => setEntryQty(e.no, defaultRfqQty(d))}
-                      >
-                        重設補滿
-                      </Button>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="border-t border-border/50 pt-2">
-            <p className="mb-1.5 text-sm font-medium text-foreground">涉及廠商：</p>
-            <ul className="space-y-1.5 text-sm text-muted-foreground">
-              {vendorSummary.map(([v, n]) => (
-                <li key={v}>
-                  {v} → {n} 個料號
-                </li>
-              ))}
-            </ul>
-          </div>
-          <Button type="button" className="mt-auto h-10 w-full text-sm" onClick={onCreateRfq}>
-            建立詢價單 <span className="ml-1 text-xs font-normal opacity-80">Alt+S</span>
-          </Button>
-        </>
-      )}
     </div>
   );
 }
