@@ -15,11 +15,20 @@ export type MockDemand = {
   isUrgent: boolean;
   currentStock: number;
   safetyStock: number;
+  /** 庫存上限（補貨目標）；待詢價數量預設＝補滿至此量 */
+  maxStock: number;
   suggestedVendor: string | null;
   salesName: string | null;
   customerName: string | null;
   remark: string | null;
 };
+
+/** 預設詢價／補貨量：優先補至最高庫存；已達上限則退回需求單數量 */
+export function defaultRfqQty(d: MockDemand): number {
+  const fill = d.maxStock - d.currentStock;
+  if (fill > 0) return fill;
+  return Math.max(1, d.qty);
+}
 
 export type FlowNodeKey = 'demand' | 'rfq' | 'po' | 'rr' | 'pr' | 'warranty';
 
@@ -47,6 +56,7 @@ const BASE_DEMANDS: MockDemand[] = [
     isUrgent: false,
     currentStock: 8,
     safetyStock: 30,
+    maxStock: 80,
     suggestedVendor: '德國汽配 GmbH',
     salesName: null,
     customerName: null,
@@ -63,6 +73,7 @@ const BASE_DEMANDS: MockDemand[] = [
     isUrgent: true,
     currentStock: 0,
     safetyStock: 100,
+    maxStock: 280,
     suggestedVendor: null,
     salesName: '王小明',
     customerName: '台北電子有限公司',
@@ -79,6 +90,7 @@ const BASE_DEMANDS: MockDemand[] = [
     isUrgent: false,
     currentStock: 2,
     safetyStock: 15,
+    maxStock: 48,
     suggestedVendor: '台北馬勒',
     salesName: null,
     customerName: null,
@@ -100,6 +112,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 4,
       safetyStock: 20,
+      maxStock: 60,
       suggestedVendor: '台北馬勒',
       salesName: null,
       customerName: null,
@@ -116,6 +129,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 12,
       safetyStock: 10,
+      maxStock: 56,
       suggestedVendor: '德國汽配 GmbH',
       salesName: '林業務',
       customerName: '高雄保修廠',
@@ -132,6 +146,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 1,
       safetyStock: 4,
+      maxStock: 18,
       suggestedVendor: null,
       salesName: null,
       customerName: null,
@@ -148,6 +163,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 6,
       safetyStock: 25,
+      maxStock: 72,
       suggestedVendor: '台北馬勒',
       salesName: null,
       customerName: null,
@@ -164,6 +180,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: true,
       currentStock: 30,
       safetyStock: 20,
+      maxStock: 100,
       suggestedVendor: '德國汽配 GmbH',
       salesName: '王小明',
       customerName: '台北電子有限公司',
@@ -180,6 +197,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 0,
       safetyStock: 8,
+      maxStock: 36,
       suggestedVendor: '德國汽配 GmbH',
       salesName: null,
       customerName: null,
@@ -196,6 +214,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 10,
       safetyStock: 36,
+      maxStock: 96,
       suggestedVendor: '台北馬勒',
       salesName: null,
       customerName: null,
@@ -212,6 +231,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 20,
       safetyStock: 24,
+      maxStock: 72,
       suggestedVendor: null,
       salesName: '陳業務',
       customerName: '新竹保修',
@@ -228,6 +248,7 @@ function padDemandsTo12(): MockDemand[] {
       isUrgent: false,
       currentStock: 1,
       safetyStock: 6,
+      maxStock: 24,
       suggestedVendor: '德國汽配 GmbH',
       salesName: null,
       customerName: null,
