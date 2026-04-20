@@ -397,10 +397,10 @@ export function BaseRoleMasterView() {
           closeDetailFull();
           return;
         }
-        const onBaseSubPage = pathname != null && pathname.startsWith('/base/');
+        const onBaseSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
         if (onBaseSubPage) {
           e.preventDefault();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
         return;
       }
@@ -627,7 +627,7 @@ export function BaseRoleMasterView() {
       <div className="flex min-h-0 min-w-0 flex-col gap-4">
         <p className="text-xs text-muted-foreground">
           若要為職務指派／移除使用者，請至{' '}
-          <Link href="/base/user-role" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href="/dashboard/base/user-role" className="font-medium text-primary underline-offset-4 hover:underline">
             使用者職務設定
           </Link>
           。

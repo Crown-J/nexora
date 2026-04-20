@@ -18,12 +18,12 @@ type ModuleMenuOverlayProps = {
 
 const routes: Record<string, string> = {
   h: '/dashboard',
-  b: '/base',
-  p: '/dashboard/nx01',
-  w: '/dashboard/inventory',
-  s: '/dashboard/nx03',
-  m: '/dashboard/nx04',
-  r: '/dashboard/nx03/workbench',
+  b: '/dashboard/base',
+  p: '/dashboard/nx02/domestic',
+  w: '/dashboard/nx03/workspace',
+  s: '/dashboard/nx04/domestic',
+  m: '/dashboard/nx05/workspace',
+  r: '/dashboard/nx08/workspace',
 };
 
 export function ModuleMenuOverlay({ open, onClose, planCode }: ModuleMenuOverlayProps) {

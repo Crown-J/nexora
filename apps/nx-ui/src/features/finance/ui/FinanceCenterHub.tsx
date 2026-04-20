@@ -47,8 +47,8 @@ export function FinanceCenterHub() {
               stepLabel="Step.1"
               accentHex={ACCENT}
               subItems={[
-                { label: '應收總覽（占位）', href: '/dashboard/finance/receivable' },
-                { label: '財務工作台', href: '/dashboard/finance/workspace' },
+                { label: '應收總覽（占位）', href: '/dashboard/nx05/workspace' },
+                { label: '財務工作台', href: '/dashboard/nx05/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -61,8 +61,8 @@ export function FinanceCenterHub() {
               stepLabel="Step.2"
               accentHex={ACCENT}
               subItems={[
-                { label: '應付總覽（占位）', href: '/dashboard/finance/payable' },
-                { label: '財務工作台', href: '/dashboard/finance/workspace' },
+                { label: '應付總覽（占位）', href: '/dashboard/nx05/workspace' },
+                { label: '財務工作台', href: '/dashboard/nx05/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -75,8 +75,8 @@ export function FinanceCenterHub() {
               stepLabel="Step.3"
               accentHex={ACCENT}
               subItems={[
-                { label: '收付款（占位）', href: '/dashboard/finance/cash' },
-                { label: '工作台', href: '/dashboard/finance/workspace' },
+                { label: '收付款（占位）', href: '/dashboard/nx05/workspace' },
+                { label: '工作台', href: '/dashboard/nx05/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -94,8 +94,8 @@ export function FinanceCenterHub() {
               footerBadge={badge('note', 'total')}
               accentHex={ACCENT}
               subItems={[
-                { label: '票據（占位）', href: '/dashboard/finance/notes' },
-                { label: '財務首頁', href: '/dashboard/finance' },
+                { label: '票據（占位）', href: '/dashboard/nx05/workspace' },
+                { label: '財務首頁', href: '/dashboard/nx05/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -107,8 +107,8 @@ export function FinanceCenterHub() {
               footerBadge={badge('closing', 'total')}
               accentHex={ACCENT}
               subItems={[
-                { label: '關帳（占位）', href: '/dashboard/finance/closing' },
-                { label: '工作台', href: '/dashboard/finance/workspace' },
+                { label: '關帳（占位）', href: '/dashboard/nx05/workspace' },
+                { label: '工作台', href: '/dashboard/nx05/workspace' },
               ]}
             />
           </CenterHubCardWrap>

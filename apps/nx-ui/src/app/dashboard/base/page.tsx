@@ -10,8 +10,8 @@
 
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { getMasterHubSections } from '@/app/base/master-cards';
-import type { MasterHubCard } from '@/app/base/master-cards';
+import { getMasterHubSections } from '@/features/base/config/master-cards';
+import type { MasterHubCard } from '@/features/base/config/master-cards';
 import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 

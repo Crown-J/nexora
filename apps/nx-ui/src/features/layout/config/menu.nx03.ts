@@ -6,7 +6,7 @@
  * - NX04 銷售管理側邊選單
  *
  * Notes:
- * - 路由 v2.0：/dashboard/sales/*
+ * - TASK-0420 v2：NX04 銷售管理 → /dashboard/nx04/*
  */
 
 import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
@@ -16,10 +16,10 @@ export function getNx03SideMenu(): SideMenuGroup[] {
     {
       group: '銷售管理',
       items: [
-        { key: 'sales.home',     label: '銷售模組首頁',         href: '/dashboard/sales' },
-        { key: 'sales.domestic', label: '國內銷售作業',         href: '/dashboard/sales/domestic' },
-        { key: 'sales.export',   label: '國外銷售作業（PLUS）', href: '/dashboard/sales/export' },
-        { key: 'sales.customer', label: '客戶管理',             href: '/dashboard/sales/customer' },
+        { key: 'sales.home',     label: '銷售模組首頁',         href: '/dashboard/nx04/domestic' },
+        { key: 'sales.domestic', label: '國內銷售作業',         href: '/dashboard/nx04/domestic' },
+        { key: 'sales.export',   label: '國外銷售作業（PLUS）', href: '/dashboard/nx04/export' },
+        { key: 'sales.customer', label: '客戶管理',             href: '/dashboard/nx04/customer' },
       ],
     },
   ];

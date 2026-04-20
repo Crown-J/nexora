@@ -273,11 +273,11 @@ export function BaseUserRoleView() {
         return;
       }
       if (e.key === 'Escape') {
-        const onSubPage = pathname != null && pathname.startsWith('/base/');
+        const onSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
         if (onSubPage) {
           e.preventDefault();
           e.stopPropagation();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
       }
     },
@@ -308,7 +308,7 @@ export function BaseUserRoleView() {
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               新增或編輯職務代碼／名稱請至{' '}
-              <Link href="/base/role" className="font-medium text-primary underline-offset-4 hover:underline">
+              <Link href="/dashboard/base/roles" className="font-medium text-primary underline-offset-4 hover:underline">
                 職務主檔
               </Link>
               。

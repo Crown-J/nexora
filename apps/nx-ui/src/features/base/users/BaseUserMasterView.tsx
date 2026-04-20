@@ -507,10 +507,10 @@ export function BaseUserMasterView() {
           closeDetailFull();
           return;
         }
-        const onBaseSubPage = pathname != null && pathname.startsWith('/base/');
+        const onBaseSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
         if (onBaseSubPage) {
           e.preventDefault();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
         return;
       }

@@ -6,7 +6,7 @@
  * - NX00-UI-SHELL-001：主模組（Top Tabs）設定集中管理
  *
  * Notes:
- * - 路由 v2.0：語意化路由，不使用模組代碼（nx01 等）
+ * - 路由 v2（TASK-0420）：模組代碼路徑 nx02 採購／nx03 庫存／nx04 銷售／nx05 財務
  */
 
 export type NxModuleCode =
@@ -37,9 +37,9 @@ export type ModuleTab = {
 export function getModuleTabs(): ModuleTab[] {
   return [
     { code: 'base',      label: '主檔中心', href: '/dashboard/base',                 enabled: true },
-    { code: 'purchase',  label: '採購管理', href: '/dashboard/purchase',              enabled: true },
-    { code: 'inventory', label: '庫存管理', href: '/dashboard/inventory',             enabled: true },
-    { code: 'sales',     label: '銷售管理', href: '/dashboard/sales',                 enabled: true },
-    { code: 'finance',   label: '財務管理', href: '/dashboard/finance',               enabled: true },
+    { code: 'purchase',  label: '採購管理', href: '/dashboard/nx02/domestic',          enabled: true },
+    { code: 'inventory', label: '庫存管理', href: '/dashboard/nx03/workspace',         enabled: true },
+    { code: 'sales',     label: '銷售管理', href: '/dashboard/nx04/domestic',         enabled: true },
+    { code: 'finance',   label: '財務管理', href: '/dashboard/nx05/workspace',        enabled: true },
   ];
 }

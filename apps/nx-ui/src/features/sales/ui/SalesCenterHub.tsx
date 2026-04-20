@@ -51,7 +51,7 @@ const managementCards: SalesCardConfig[] = [
     countKey: 'part',
     subItems: [
       { label: '料號列表', href: '/dashboard/base/parts' },
-      { label: '國內銷售作業', href: '/dashboard/sales/domestic' },
+      { label: '國內銷售作業', href: '/dashboard/nx04/domestic' },
       { label: 'NX03 工作台', href: '/dashboard/nx03/workbench' },
     ],
   },
@@ -66,7 +66,7 @@ const domesticMain: SalesCardConfig[] = [
     countKind: 'pending',
     countKey: 'quote',
     subItems: [
-      { label: '報價作業', href: '/dashboard/sales/domestic?mode=quote' },
+      { label: '報價作業', href: '/dashboard/nx04/domestic?mode=quote' },
       { label: '銷售工作台', href: '/dashboard/nx03/workbench' },
     ],
   },
@@ -78,7 +78,7 @@ const domesticMain: SalesCardConfig[] = [
     countKind: 'pending',
     countKey: 'so',
     subItems: [
-      { label: '建立銷貨單', href: '/dashboard/sales/domestic?mode=so' },
+      { label: '建立銷貨單', href: '/dashboard/nx04/domestic?mode=so' },
       { label: '銷貨單（工作台）', href: '/dashboard/nx03/workbench?phase=salesOrder' },
     ],
   },
@@ -90,7 +90,7 @@ const domesticMain: SalesCardConfig[] = [
     countKind: 'pending',
     countKey: 'pick',
     subItems: [
-      { label: '庫存工作台', href: '/dashboard/inventory/workspace' },
+      { label: '庫存工作台', href: '/dashboard/nx03/workspace' },
       { label: 'NX03 工作台', href: '/dashboard/nx03/workbench' },
     ],
   },
@@ -105,7 +105,7 @@ const domesticShip: SalesCardConfig = {
   countKey: 'ship',
   subItems: [
     { label: '出貨作業（工作台）', href: '/dashboard/nx03/workbench?phase=ship' },
-    { label: '銷售作業總覽', href: '/dashboard/sales/domestic' },
+    { label: '銷售作業總覽', href: '/dashboard/nx04/domestic' },
   ],
 };
 
@@ -117,7 +117,7 @@ const domesticReturn: SalesCardConfig = {
   countKind: 'pending',
   countKey: 'return',
   subItems: [
-    { label: '銷退處理', href: '/dashboard/sales/domestic?mode=return' },
+    { label: '銷退處理', href: '/dashboard/nx04/domestic?mode=return' },
     { label: '工作台', href: '/dashboard/nx03/workbench' },
   ],
 };

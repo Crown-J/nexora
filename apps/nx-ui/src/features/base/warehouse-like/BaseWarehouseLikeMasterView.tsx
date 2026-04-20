@@ -287,7 +287,7 @@ function metaFor(variant: WarehouseLikeVariant) {
       titleId: 'wh-detail-title',
       hubName: '倉庫主檔',
       otherLabel: '庫位主檔',
-      otherHref: '/base/location',
+      otherHref: '/dashboard/base/location',
       defaultSortKey: 'code' as string,
       ALL_COLS: WH_COLS as readonly string[],
       COL_DEF: WH_COL_DEF as Record<string, { label: string; locked?: boolean }>,
@@ -303,7 +303,7 @@ function metaFor(variant: WarehouseLikeVariant) {
     titleId: 'loc-detail-title',
     hubName: '庫位主檔',
     otherLabel: '倉庫主檔',
-    otherHref: '/base/warehouse',
+    otherHref: '/dashboard/base/warehouses',
     defaultSortKey: 'warehouseDisplay',
     ALL_COLS: LOC_COLS as readonly string[],
     COL_DEF: LOC_COL_DEF as Record<string, { label: string; locked?: boolean }>,
@@ -581,9 +581,9 @@ export function BaseWarehouseLikeMasterView({ variant }: { variant: WarehouseLik
           closeDetailFull();
           return;
         }
-        if (pathname != null && pathname.startsWith('/base/')) {
+        if (pathname != null && pathname.startsWith('/dashboard/base/')) {
           e.preventDefault();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
         return;
       }

@@ -20,16 +20,26 @@ import { cn } from '@/lib/utils';
  * - 高亮目前 tab
  */
 function getActiveModule(pathname: string): string {
-  if (pathname.startsWith('/dashboard/base'))       return 'base';
-  if (pathname.startsWith('/dashboard/purchase'))   return 'purchase';
-  if (pathname.startsWith('/dashboard/inventory'))  return 'inventory';
-  if (pathname.startsWith('/dashboard/sales'))      return 'sales';
-  if (pathname.startsWith('/dashboard/finance'))    return 'finance';
-  if (pathname.startsWith('/dashboard/logistics'))  return 'logistics';
-  if (pathname.startsWith('/dashboard/hr'))         return 'hr';
-  if (pathname.startsWith('/dashboard/report'))     return 'report';
-  if (pathname.startsWith('/dashboard/knowledge'))  return 'knowledge';
-  if (pathname.startsWith('/dashboard/game'))       return 'game';
+  if (pathname.startsWith('/dashboard/base')) return 'base';
+  if (pathname.startsWith('/dashboard/nx01')) return 'purchase';
+  if (
+    pathname.startsWith('/dashboard/nx02/domestic') ||
+    pathname.startsWith('/dashboard/nx02/import') ||
+    pathname.startsWith('/dashboard/nx02/special') ||
+    pathname.startsWith('/dashboard/nx02/product') ||
+    pathname.startsWith('/dashboard/nx02/vendor')
+  ) {
+    return 'purchase';
+  }
+  if (pathname.startsWith('/dashboard/nx03')) return 'inventory';
+  if (pathname.startsWith('/dashboard/nx04')) return 'sales';
+  if (pathname.startsWith('/dashboard/nx05')) return 'finance';
+  if (pathname.startsWith('/dashboard/nx02')) return 'inventory';
+  if (pathname.startsWith('/dashboard/nx06')) return 'logistics';
+  if (pathname.startsWith('/dashboard/nx07')) return 'hr';
+  if (pathname.startsWith('/dashboard/nx08')) return 'report';
+  if (pathname.startsWith('/dashboard/nx09')) return 'knowledge';
+  if (pathname.startsWith('/dashboard/nx10')) return 'game';
   return '';
 }
 
@@ -49,7 +59,7 @@ export function TopModuleTabs() {
 
   const tabs = useMemo(() => getModuleTabs(), []);
 
-  const homeActive = pathname === '/home' || pathname === '/dashboard';
+  const homeActive = pathname === '/dashboard';
 
   return (
     <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2">

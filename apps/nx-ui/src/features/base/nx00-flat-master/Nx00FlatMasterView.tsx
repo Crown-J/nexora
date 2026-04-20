@@ -124,7 +124,7 @@ export function Nx00FlatMasterView({
   basePath,
   prefKey,
   listErrorCode,
-  hubBackHref = '/base',
+  hubBackHref = '/dashboard/base',
   upperCaseFields = ['code'],
   fields,
   selectOptions,

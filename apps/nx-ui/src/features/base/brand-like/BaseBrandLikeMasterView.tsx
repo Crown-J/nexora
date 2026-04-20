@@ -168,7 +168,7 @@ function metaFor(variant: BrandLikeVariant) {
       titleId: 'cb-detail-title',
       hubName: '汽車廠牌',
       otherBrandLabel: '零件廠牌',
-      otherBrandHref: '/base/part-brand',
+      otherBrandHref: '/dashboard/base/part-brand',
     };
   }
   return {
@@ -177,7 +177,7 @@ function metaFor(variant: BrandLikeVariant) {
     titleId: 'pb-detail-title',
     hubName: '零件廠牌',
     otherBrandLabel: '汽車廠牌',
-    otherBrandHref: '/base/car-brand',
+    otherBrandHref: '/dashboard/base/car-brand',
   };
 }
 
@@ -437,10 +437,10 @@ export function BaseBrandLikeMasterView({ variant }: { variant: BrandLikeVariant
           closeDetailFull();
           return;
         }
-        const onBaseSubPage = pathname != null && pathname.startsWith('/base/');
+        const onBaseSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
         if (onBaseSubPage) {
           e.preventDefault();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
         return;
       }

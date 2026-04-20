@@ -10,7 +10,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
-import { getMasterHubSections } from '@/app/base/master-cards';
+import { getMasterHubSections } from '@/features/base/config/master-cards';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,

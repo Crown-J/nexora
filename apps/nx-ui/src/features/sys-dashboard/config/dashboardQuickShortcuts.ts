@@ -25,25 +25,25 @@ const SHORTCUTS_QWER: DashboardQuickShortcutDef[] = [
   {
     key: 'q',
     label: '即時查詢',
-    href: '/dashboard/inventory/workspace?mode=query',
+    href: '/dashboard/nx03/workspace?mode=query',
     Icon: Search,
   },
   {
     key: 'w',
     label: '即時詢價',
-    href: '/dashboard/purchase/domestic?mode=rfq',
+    href: '/dashboard/nx02/domestic?mode=rfq',
     Icon: ClipboardList,
   },
   {
     key: 'e',
     label: '即時報價',
-    href: '/dashboard/sales/domestic?mode=quote',
+    href: '/dashboard/nx04/domestic?mode=quote',
     Icon: Tags,
   },
   {
     key: 'r',
     label: '建立銷貨單',
-    href: '/dashboard/sales/domestic?mode=so',
+    href: '/dashboard/nx04/domestic?mode=so',
     Icon: FileText,
   },
 ];
@@ -51,14 +51,14 @@ const SHORTCUTS_QWER: DashboardQuickShortcutDef[] = [
 const SHORTCUT_T_LITE: DashboardQuickShortcutDef = {
   key: 't',
   label: '建立進貨單',
-  href: '/dashboard/purchase/domestic?mode=po',
+  href: '/dashboard/nx02/domestic?mode=po',
   Icon: PackagePlus,
 };
 
 const SHORTCUT_T_PLUS_PRO: DashboardQuickShortcutDef = {
   key: 't',
   label: '調撥申請',
-  href: '/dashboard/inventory/workspace?mode=transfer',
+  href: '/dashboard/nx03/workspace?mode=transfer',
   Icon: ArrowLeftRight,
 };
 

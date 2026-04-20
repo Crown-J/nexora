@@ -482,9 +482,9 @@ export function BaseNx00ModalBrandCodeRoleMasterView() {
           closeDetailFull();
           return;
         }
-        if (pathname != null && pathname.startsWith('/base/')) {
+        if (pathname != null && pathname.startsWith('/dashboard/base/')) {
           e.preventDefault();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
         return;
       }

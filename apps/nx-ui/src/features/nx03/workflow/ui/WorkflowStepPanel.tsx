@@ -155,7 +155,7 @@ export function WorkflowStepPanel({ stepId, steps, docs }: WorkflowStepPanelProp
         </h3>
         <StepCta
           stepId={stepId}
-          onStock={() => push('/home')}
+          onStock={() => push('/dashboard')}
           onRfq={() => push('/dashboard/nx01/rfq/new')}
           onQuote={() => push('/dashboard/nx03/quote/new')}
           onSo={() => push('/dashboard/nx03/so/new')}

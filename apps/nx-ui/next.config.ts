@@ -12,30 +12,52 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/base",
-        destination: "/dashboard/base",
-        permanent: true,
-      },
-      {
-        source: "/base/:path*",
-        destination: "/dashboard/base/:path*",
-        permanent: true,
-      },
-      {
-        source: "/dashboard/nx02",
-        destination: "/dashboard/inventory",
-        permanent: true,
-      },
-    ];
-  },
-  /**
-   * 與 redirects 配套：實際頁面仍位於 `app/base/*`，將 v2 URL 內部轉成既有檔案路徑，避免 404。
-   */
-  async rewrites() {
-    return [
-      { source: "/dashboard/base", destination: "/base" },
-      { source: "/dashboard/base/:path*", destination: "/base/:path*" },
+      { source: "/home", destination: "/dashboard", permanent: true },
+
+      { source: "/base", destination: "/dashboard/base", permanent: true },
+      { source: "/base/:path*", destination: "/dashboard/base/:path*", permanent: true },
+      { source: "/user", destination: "/dashboard/base/users", permanent: true },
+
+      { source: "/dashboard/purchase", destination: "/dashboard/nx02/domestic", permanent: true },
+      { source: "/dashboard/purchase/domestic", destination: "/dashboard/nx02/domestic", permanent: true },
+      { source: "/dashboard/purchase/import", destination: "/dashboard/nx02/import", permanent: true },
+      { source: "/dashboard/purchase/special", destination: "/dashboard/nx02/special", permanent: true },
+      { source: "/dashboard/purchase/product", destination: "/dashboard/nx02/product", permanent: true },
+      { source: "/dashboard/purchase/vendor", destination: "/dashboard/nx02/vendor", permanent: true },
+
+      { source: "/dashboard/inventory", destination: "/dashboard/nx03/workspace", permanent: true },
+      { source: "/dashboard/inventory/workspace", destination: "/dashboard/nx03/workspace", permanent: true },
+      { source: "/dashboard/inventory/setting", destination: "/dashboard/nx03/warehouse-setting", permanent: true },
+
+      { source: "/dashboard/sales", destination: "/dashboard/nx04/domestic", permanent: true },
+      { source: "/dashboard/sales/domestic", destination: "/dashboard/nx04/domestic", permanent: true },
+
+      { source: "/dashboard/finance", destination: "/dashboard/nx05/workspace", permanent: true },
+      { source: "/dashboard/finance/workspace", destination: "/dashboard/nx05/workspace", permanent: true },
+      { source: "/dashboard/finance/receivable", destination: "/dashboard/nx05/workspace", permanent: true },
+      { source: "/dashboard/finance/payable", destination: "/dashboard/nx05/workspace", permanent: true },
+      { source: "/dashboard/finance/cash", destination: "/dashboard/nx05/workspace", permanent: true },
+      { source: "/dashboard/finance/notes", destination: "/dashboard/nx05/workspace", permanent: true },
+      { source: "/dashboard/finance/closing", destination: "/dashboard/nx05/workspace", permanent: true },
+
+      { source: "/dashboard/report", destination: "/dashboard/nx08/workspace", permanent: true },
+      { source: "/dashboard/report/workspace", destination: "/dashboard/nx08/workspace", permanent: true },
+      { source: "/dashboard/report/daily", destination: "/dashboard/nx08/workspace", permanent: true },
+      { source: "/dashboard/report/monthly", destination: "/dashboard/nx08/workspace", permanent: true },
+      { source: "/dashboard/report/export", destination: "/dashboard/nx08/workspace", permanent: true },
+
+      { source: "/dashboard/bulletin", destination: "/dashboard", permanent: true },
+
+      { source: "/dashboard/nx00", destination: "/dashboard/base", permanent: true },
+      { source: "/dashboard/nx00/:path*", destination: "/dashboard/base/:path*", permanent: true },
+
+      { source: "/dashboard/nx03/workbench", destination: "/dashboard/nx04/domestic", permanent: true },
+      { source: "/dashboard/nx03/customer-sales", destination: "/dashboard/nx04/domestic", permanent: true },
+
+      { source: "/dashboard/nx04", destination: "/dashboard/nx05/workspace", permanent: false },
+
+      { source: "/dashboard/sales/export", destination: "/dashboard/nx04/export", permanent: true },
+      { source: "/dashboard/sales/customer", destination: "/dashboard/nx04/customer", permanent: true },
     ];
   },
 };

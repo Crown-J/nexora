@@ -10,7 +10,7 @@
 import { useParams } from 'next/navigation';
 import { BaseMasterSubPageLayout } from '@/features/base/shell/BaseMasterSubPageLayout';
 import { BaseMasterPlaceholderSection } from '@/features/base/shell/BaseMasterPlaceholderSection';
-import { getBaseSegmentTitle, isValidBaseSegment } from '@/app/base/master-cards';
+import { getBaseSegmentTitle, isValidBaseSegment } from '@/features/base/config/master-cards';
 
 export default function BaseDashboardSegmentPage() {
   const params = useParams();

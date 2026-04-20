@@ -68,7 +68,7 @@ export function InventoryCenterHub() {
               accentHex={ACCENT}
               subItems={[
                 { label: '庫存一覽', href: '/dashboard/nx02/balance' },
-                { label: '庫存工作台', href: '/dashboard/inventory/workspace' },
+                { label: '庫存工作台', href: '/dashboard/nx03/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -81,7 +81,7 @@ export function InventoryCenterHub() {
               accentHex={ACCENT}
               subItems={[
                 { label: '庫存台帳', href: '/dashboard/nx02/ledger' },
-                { label: '工作台', href: '/dashboard/inventory/workspace' },
+                { label: '工作台', href: '/dashboard/nx03/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -100,7 +100,7 @@ export function InventoryCenterHub() {
               stepLabel="Step.1"
               accentHex={ACCENT}
               subItems={[
-                { label: '庫存工作台', href: '/dashboard/inventory/workspace' },
+                { label: '庫存工作台', href: '/dashboard/nx03/workspace' },
                 { label: 'NX02 入口', href: '/dashboard/nx02/balance' },
               ]}
             />
@@ -114,7 +114,7 @@ export function InventoryCenterHub() {
               stepLabel="Step.2"
               accentHex={ACCENT}
               subItems={[
-                { label: '庫存設定頁', href: '/dashboard/inventory/setting' },
+                { label: '庫存設定頁', href: '/dashboard/nx03/warehouse-setting' },
                 { label: '安全量設定', href: '/dashboard/nx02/stock-setting' },
               ]}
             />
@@ -143,7 +143,7 @@ export function InventoryCenterHub() {
               accentHex={ACCENT}
               subItems={[
                 { label: '庫存設定', href: '/dashboard/nx02/stock-setting' },
-                { label: '設定彙整', href: '/dashboard/inventory/setting' },
+                { label: '設定彙整', href: '/dashboard/nx03/warehouse-setting' },
               ]}
             />
           </CenterHubCardWrap>
@@ -157,7 +157,7 @@ export function InventoryCenterHub() {
               accentHex={ACCENT}
               subItems={[
                 { label: '盤點單列表', href: '/dashboard/nx02/stock-take' },
-                { label: '工作台', href: '/dashboard/inventory/workspace' },
+                { label: '工作台', href: '/dashboard/nx03/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -192,7 +192,7 @@ export function InventoryCenterHub() {
                 accentHex={ACCENT}
                 subItems={[
                   { label: '缺貨簿', href: '/dashboard/nx02/shortage' },
-                  { label: '工作台', href: '/dashboard/inventory/workspace' },
+                  { label: '工作台', href: '/dashboard/nx03/workspace' },
                 ]}
               />
             </CenterHubCardWrap>
@@ -205,7 +205,7 @@ export function InventoryCenterHub() {
                 accentHex={ACCENT}
                 subItems={[
                   { label: '自動補貨', href: '/dashboard/nx02/auto-replenish' },
-                  { label: '庫存首頁', href: '/dashboard/inventory' },
+                  { label: '庫存首頁', href: '/dashboard/nx03/workspace' },
                 ]}
               />
             </CenterHubCardWrap>

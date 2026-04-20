@@ -48,8 +48,8 @@ const managementCards: PurchaseCardConfig[] = [
     subItems: [
       { label: '新增料號', href: '/dashboard/base/parts' },
       { label: '料號列表', href: '/dashboard/base/parts' },
-      { label: '定價管理', href: '/dashboard/purchase/product' },
-      { label: '安全量設定', href: '/dashboard/purchase/product' },
+      { label: '定價管理', href: '/dashboard/nx02/product' },
+      { label: '安全量設定', href: '/dashboard/nx02/product' },
     ],
   },
   {
@@ -62,7 +62,7 @@ const managementCards: PurchaseCardConfig[] = [
     subItems: [
       { label: '新增廠商', href: '/dashboard/base/partners' },
       { label: '廠商列表', href: '/dashboard/base/partners' },
-      { label: '季度評鑑', href: '/dashboard/purchase/vendor' },
+      { label: '季度評鑑', href: '/dashboard/nx02/vendor' },
     ],
   },
 ];
@@ -130,8 +130,8 @@ const domesticBranchWarranty: PurchaseCardConfig = {
   countKind: 'pending',
   countKey: 'warranty',
   subItems: [
-    { label: '新增保固申請', href: '/dashboard/purchase/domestic?focus=warranty' },
-    { label: '保固申請列表', href: '/dashboard/purchase/domestic?focus=warranty' },
+    { label: '新增保固申請', href: '/dashboard/nx02/domestic?focus=warranty' },
+    { label: '保固申請列表', href: '/dashboard/nx02/domestic?focus=warranty' },
   ],
 };
 

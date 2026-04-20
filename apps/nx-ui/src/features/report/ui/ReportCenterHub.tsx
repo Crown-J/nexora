@@ -38,8 +38,8 @@ export function ReportCenterHub() {
               stepLabel="Step.1"
               accentHex={ACCENT}
               subItems={[
-                { label: '報表工作台', href: '/dashboard/report/workspace' },
-                { label: '報表首頁', href: '/dashboard/report' },
+                { label: '報表工作台', href: '/dashboard/nx08/workspace' },
+                { label: '報表首頁', href: '/dashboard/nx08/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -52,8 +52,8 @@ export function ReportCenterHub() {
               stepLabel="Step.2"
               accentHex={ACCENT}
               subItems={[
-                { label: '填寫日報', href: '/dashboard/report/daily' },
-                { label: '報表首頁', href: '/dashboard/report' },
+                { label: '填寫日報', href: '/dashboard/nx08/workspace' },
+                { label: '報表首頁', href: '/dashboard/nx08/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -66,8 +66,8 @@ export function ReportCenterHub() {
               stepLabel="Step.3"
               accentHex={ACCENT}
               subItems={[
-                { label: '月報（占位）', href: '/dashboard/report/monthly' },
-                { label: '工作台', href: '/dashboard/report/workspace' },
+                { label: '月報（占位）', href: '/dashboard/nx08/workspace' },
+                { label: '工作台', href: '/dashboard/nx08/workspace' },
               ]}
             />
           </CenterHubCardWrap>
@@ -79,8 +79,8 @@ export function ReportCenterHub() {
               footerBadge={`${mockReportCounts.export.total}`}
               accentHex={ACCENT}
               subItems={[
-                { label: '匯出（占位）', href: '/dashboard/report/export' },
-                { label: '日報', href: '/dashboard/report/daily' },
+                { label: '匯出（占位）', href: '/dashboard/nx08/workspace' },
+                { label: '日報', href: '/dashboard/nx08/workspace' },
               ]}
             />
           </CenterHubCardWrap>

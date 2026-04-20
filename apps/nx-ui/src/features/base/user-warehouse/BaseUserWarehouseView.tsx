@@ -272,11 +272,11 @@ export function BaseUserWarehouseView() {
         return;
       }
       if (e.key === 'Escape') {
-        const onSubPage = pathname != null && pathname.startsWith('/base/');
+        const onSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
         if (onSubPage) {
           e.preventDefault();
           e.stopPropagation();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
       }
     },
@@ -307,7 +307,7 @@ export function BaseUserWarehouseView() {
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               新增或編輯倉庫代碼／名稱請至{' '}
-              <Link href="/base/location" className="font-medium text-primary underline-offset-4 hover:underline">
+              <Link href="/dashboard/base/location" className="font-medium text-primary underline-offset-4 hover:underline">
                 倉庫／庫位
               </Link>
               。

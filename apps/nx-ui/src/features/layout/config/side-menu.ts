@@ -22,11 +22,19 @@ import { getNx04SideMenu } from '@/features/layout/config/menu.nx04';
  * - 回傳該模組的 SideMenuGroup[]
  */
 export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
-  // 主檔管理 & 採購管理：頁面自帶導覽（卡片 Hub 或 ModulePageNav），不使用 SubNav
-  if (pathname.startsWith('/dashboard/base'))      return [];
-  if (pathname.startsWith('/dashboard/purchase'))  return [];
-  if (pathname.startsWith('/dashboard/inventory')) return getNx02SideMenu();
-  if (pathname.startsWith('/dashboard/sales'))     return getNx03SideMenu();
-  if (pathname.startsWith('/dashboard/finance'))   return getNx04SideMenu();
+  // 主檔管理 & 採購工作台：頁面自帶導覽（卡片 Hub 或橫向導覽），不使用 SubNav
+  if (pathname.startsWith('/dashboard/base')) return [];
+  if (
+    pathname.startsWith('/dashboard/nx02/domestic') ||
+    pathname.startsWith('/dashboard/nx02/import') ||
+    pathname.startsWith('/dashboard/nx02/special') ||
+    pathname.startsWith('/dashboard/nx02/product') ||
+    pathname.startsWith('/dashboard/nx02/vendor')
+  ) {
+    return [];
+  }
+  if (pathname.startsWith('/dashboard/nx03')) return getNx02SideMenu();
+  if (pathname.startsWith('/dashboard/nx04')) return getNx03SideMenu();
+  if (pathname.startsWith('/dashboard/nx05')) return getNx04SideMenu();
   return [];
 }

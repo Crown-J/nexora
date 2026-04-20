@@ -21,7 +21,7 @@ import { Nx02StatCard } from './Nx02StatCard';
 export type Nx02DashboardSurface = 'legacy' | 'v2';
 
 type Nx02DashboardPageProps = {
-  /** v2：`/dashboard/inventory` 語意化路由；legacy：`/dashboard/nx02` */
+  /** v2：NX03 `/dashboard/nx03/*`；庫存單據仍於 `/dashboard/nx02/*` */
   surface?: Nx02DashboardSurface;
 };
 
@@ -82,14 +82,14 @@ export function Nx02DashboardPage({ surface = 'legacy' }: Nx02DashboardPageProps
               <Nx02StatCard
                 title="作業工作台"
                 description="入庫／出庫／盤點流程節點（倉管）"
-                href="/dashboard/inventory/workspace"
+                href="/dashboard/nx03/workspace"
               >
                 <p className="text-xs text-muted-foreground">Alt+W 快捷進入</p>
               </Nx02StatCard>
               <Nx02StatCard
                 title="庫位與安全量"
                 description="庫位主檔、安全量／最高量設定"
-                href="/dashboard/inventory/setting"
+                href="/dashboard/nx03/warehouse-setting"
               >
                 <p className="text-xs text-muted-foreground">路由 v2 設定彙整頁</p>
               </Nx02StatCard>

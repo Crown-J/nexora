@@ -43,15 +43,15 @@ const INBOUND_NODES: FlowNodeDef[] = [
 ];
 
 const OUTBOUND_NODES: FlowNodeDef[] = [
-  { key: 'pick', label: '待撿貨', href: '/dashboard/nx03/workbench' },
+  { key: 'pick', label: '待撿貨', href: '/dashboard/nx04/domestic' },
   {
     key: 'abnormal',
     label: '異常',
     href: '/dashboard/nx02/shortage',
     badgeFrom: (d) => d.shortage.openCount,
   },
-  { key: 'pack', label: '包貨', href: '/dashboard/nx03/workbench' },
-  { key: 'ship', label: '出貨', href: '/dashboard/nx03/workbench' },
+  { key: 'pack', label: '包貨', href: '/dashboard/nx04/domestic' },
+  { key: 'ship', label: '出貨', href: '/dashboard/nx04/domestic' },
   { key: 'done_out', label: '完成', href: '/dashboard/nx02/ledger' },
 ];
 
@@ -173,12 +173,12 @@ export function InventoryWorkspacePage() {
         </p>
         <ul className="mt-4 list-inside list-disc space-y-1.5 text-sm text-muted-foreground">
           <li>
-            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/inventory">
+            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/nx03/workspace">
               返回庫存模組首頁
             </Link>
           </li>
           <li>
-            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/inventory/setting">
+            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/nx03/warehouse-setting">
               庫位與安全量設定
             </Link>
           </li>

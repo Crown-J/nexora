@@ -35,52 +35,65 @@ export type DockNavItem = {
 export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: Home,         label: '首頁', href: '/dashboard' },
   { icon: Layers3,      label: '主檔', href: '/dashboard/base' },
-  { icon: ShoppingCart, label: '採購', href: '/dashboard/purchase' },
-  { icon: Package,      label: '銷貨', href: '/dashboard/sales' },
-  { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory' },
-  { icon: DollarSign,   label: '財務', href: '/dashboard/finance' },
-  { icon: BarChart3,    label: '報表', href: '/dashboard/report' },
+  { icon: ShoppingCart, label: '採購', href: '/dashboard/nx02/domestic' },
+  { icon: Package,      label: '銷貨', href: '/dashboard/nx04/domestic' },
+  { icon: Warehouse,    label: '庫存', href: '/dashboard/nx03/workspace' },
+  { icon: DollarSign,   label: '財務', href: '/dashboard/nx05/workspace' },
+  { icon: BarChart3,    label: '報表', href: '/dashboard/nx08/workspace' },
 ];
 
 /** Alt+X 開啟後，單鍵：H 首頁／B 主檔／P 採購／S 銷貨／W 庫存／M 財務／R 報表 */
 const DOCK_LETTER_TO_HREF: Record<string, string> = {
   h: '/dashboard',
   b: '/dashboard/base',
-  p: '/dashboard/purchase',
-  s: '/dashboard/sales',
-  w: '/dashboard/inventory',
-  m: '/dashboard/finance',
-  r: '/dashboard/report',
+  p: '/dashboard/nx02/domestic',
+  s: '/dashboard/nx04/domestic',
+  w: '/dashboard/nx03/workspace',
+  m: '/dashboard/nx05/workspace',
+  r: '/dashboard/nx08/workspace',
 };
 
 const DOCK_ITEM_ALT_HINT: (string | null)[] = ['H', 'B', 'P', 'S', 'W', 'M', 'R'];
 
 export function isDockActive(pathname: string, href: string): boolean {
-  if (href === '/home') return pathname === '/home';
   if (href === '/dashboard') {
-    return (
-      pathname === '/dashboard' ||
-      pathname === '/home' ||
-      pathname.startsWith('/dashboard/bulletin')
-    );
+    return pathname === '/dashboard';
   }
   if (href === '/dashboard/base') {
     return pathname.startsWith('/dashboard/base');
   }
-  if (href === '/dashboard/purchase') {
-    return pathname.startsWith('/dashboard/purchase');
+  if (href === '/dashboard/nx02/domestic') {
+    return (
+      pathname.startsWith('/dashboard/nx02/domestic') ||
+      pathname.startsWith('/dashboard/nx02/import') ||
+      pathname.startsWith('/dashboard/nx02/special') ||
+      pathname.startsWith('/dashboard/nx02/product') ||
+      pathname.startsWith('/dashboard/nx02/vendor') ||
+      pathname.startsWith('/dashboard/nx01')
+    );
   }
-  if (href === '/dashboard/sales') {
-    return pathname.startsWith('/dashboard/sales');
+  if (href === '/dashboard/nx04/domestic') {
+    return pathname.startsWith('/dashboard/nx04');
   }
-  if (href === '/dashboard/inventory') {
-    return pathname.startsWith('/dashboard/inventory');
+  if (href === '/dashboard/nx03/workspace') {
+    return (
+      pathname.startsWith('/dashboard/nx03') ||
+      pathname.startsWith('/dashboard/nx02/balance') ||
+      pathname.startsWith('/dashboard/nx02/ledger') ||
+      pathname.startsWith('/dashboard/nx02/init') ||
+      pathname.startsWith('/dashboard/nx02/stock-take') ||
+      pathname.startsWith('/dashboard/nx02/stock-setting') ||
+      pathname.startsWith('/dashboard/nx02/transfer') ||
+      pathname.startsWith('/dashboard/nx02/shortage') ||
+      pathname.startsWith('/dashboard/nx02/auto-replenish') ||
+      pathname === '/dashboard/nx02'
+    );
   }
-  if (href === '/dashboard/finance') {
-    return pathname.startsWith('/dashboard/finance');
+  if (href === '/dashboard/nx05/workspace') {
+    return pathname.startsWith('/dashboard/nx05');
   }
-  if (href === '/dashboard/report') {
-    return pathname.startsWith('/dashboard/report');
+  if (href === '/dashboard/nx08/workspace') {
+    return pathname.startsWith('/dashboard/nx08');
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

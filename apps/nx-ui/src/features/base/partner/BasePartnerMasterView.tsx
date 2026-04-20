@@ -444,9 +444,9 @@ export function BasePartnerMasterView() {
           closeDetailFull();
           return;
         }
-        if (pathname != null && pathname.startsWith('/base/')) {
+        if (pathname != null && pathname.startsWith('/dashboard/base/')) {
           e.preventDefault();
-          router.push('/base');
+          router.push('/dashboard/base');
         }
         return;
       }
