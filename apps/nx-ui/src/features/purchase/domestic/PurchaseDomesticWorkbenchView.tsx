@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX02-PO-UI-001-F01
- * 國內採購工作台：三欄（160px 流程節點｜需求緊湊卡片｜300px 待詢價）
+ * 國內採購工作台：三欄（流程節點｜需求卡片｜待詢價；字級與庫存條加大以利閱讀）
  */
 
 'use client';
@@ -28,7 +28,8 @@ import {
   defaultRfqQty,
 } from './mock-data';
 
-const PAGE_SIZE = 6;
+/** 字級放大後略減每頁筆數，避免一屏過擠 */
+const PAGE_SIZE = 5;
 
 const FLOW: { key: FlowNodeKey; label: string }[] = [
   { key: 'demand', label: '需求' },
@@ -72,19 +73,19 @@ function StockVisual({ d }: { d: MockDemand }) {
   const gap = gapToSafety(d);
 
   return (
-    <div className="w-[180px] shrink-0">
-      <div className="relative h-2 w-[120px] max-w-full rounded-full bg-muted/70">
+    <div className="w-[min(100%,12.5rem)] shrink-0 sm:w-[12.5rem]">
+      <div className="relative h-3.5 w-[min(100%,8.75rem)] max-w-full rounded-full bg-muted/70">
         <div className={cx('h-full rounded-l-full transition-[width]', barColor)} style={{ width: `${fillPct}%` }} />
         <div
-          className="pointer-events-none absolute top-[-2px] z-[1] h-[calc(100%+4px)] w-px bg-amber-600 shadow-sm"
-          style={{ left: `clamp(0px, ${safetyPct}%, calc(100% - 1px))` }}
+          className="pointer-events-none absolute top-[-3px] z-[1] h-[calc(100%+6px)] w-0.5 bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
+          style={{ left: `clamp(0px, ${safetyPct}%, calc(100% - 2px))` }}
           title="安全量位置"
         />
       </div>
-      <div className="mt-1 whitespace-nowrap font-mono text-[10px] leading-tight tabular-nums text-muted-foreground">
+      <div className="mt-1.5 whitespace-nowrap font-mono text-xs leading-snug tabular-nums text-muted-foreground">
         {d.currentStock} / {d.safetyStock} / {d.maxStock}
       </div>
-      <div className="text-[10px] font-medium text-orange-600 dark:text-orange-400">
+      <div className="text-xs font-semibold text-orange-600 dark:text-orange-400">
         缺口{gap}
         {d.unit ? ` ${d.unit}` : ''}
       </div>
@@ -105,7 +106,7 @@ function FlowNav160({
 }) {
   return (
     <nav
-      className="flex w-[160px] shrink-0 flex-col border-r border-border/50 bg-muted/20 py-3 pl-3 pr-2"
+      className="flex w-[168px] shrink-0 flex-col border-r border-border/50 bg-muted/20 py-3 pl-3 pr-2 sm:w-[176px]"
       aria-label="採購流程節點"
     >
       <ul className="relative flex flex-col">
@@ -119,35 +120,35 @@ function FlowNav160({
           const showBadge = badge > 0;
 
           return (
-            <li key={node.key} className="relative flex min-h-[44px] flex-col">
+            <li key={node.key} className="relative flex min-h-[48px] flex-col">
               {i > 0 ? (
-                <div className="absolute top-0 left-[7px] h-2 w-px -translate-y-full bg-border" aria-hidden />
+                <div className="absolute top-0 left-[9px] h-2 w-px -translate-y-full bg-border" aria-hidden />
               ) : null}
               <button
                 type="button"
                 onClick={() => setActiveNode(node.key)}
                 className={cx(
-                  'relative z-[1] flex w-full items-start gap-2 rounded-md py-1.5 pr-1 text-left text-xs transition-colors',
+                  'relative z-[1] flex w-full items-start gap-2.5 rounded-md py-2 pr-1 text-left text-sm transition-colors',
                   selected ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground hover:bg-muted/50',
                 )}
               >
-                <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center" aria-hidden>
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center" aria-hidden>
                   {selected ? (
-                    <span className="inline-block size-3 rounded-full bg-amber-500 shadow-sm ring-2 ring-amber-500/30" />
+                    <span className="inline-block size-3.5 rounded-full bg-amber-500 shadow-sm ring-2 ring-amber-500/35" />
                   ) : hollowGreen ? (
-                    <span className="inline-block size-3 rounded-full border-2 border-emerald-500 bg-transparent" />
+                    <span className="inline-block size-3.5 rounded-full border-2 border-emerald-500 bg-transparent" />
                   ) : hollowGray ? (
-                    <span className="inline-block size-3 rounded-full border border-muted-foreground/40 bg-transparent" />
+                    <span className="inline-block size-3.5 rounded-full border border-muted-foreground/45 bg-transparent" />
                   ) : (
-                    <span className="inline-block size-3 rounded-full border border-muted-foreground/50 bg-transparent" />
+                    <span className="inline-block size-3.5 rounded-full border border-muted-foreground/55 bg-transparent" />
                   )}
                 </span>
                 <span className="min-w-0 flex-1 leading-snug">
-                  <span className={cx('font-medium', selected && 'text-amber-600 dark:text-amber-400')}>
+                  <span className={cx('font-semibold', selected && 'text-amber-600 dark:text-amber-400')}>
                     {node.label}
                   </span>
                   {showBadge ? (
-                    <span className="ml-1 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-orange-500/90 px-1 text-[10px] font-semibold text-white tabular-nums">
+                    <span className="ml-1.5 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-orange-500 px-1.5 py-0.5 text-xs font-bold text-white tabular-nums">
                       {badge}
                     </span>
                   ) : null}
@@ -155,7 +156,7 @@ function FlowNav160({
               </button>
               {i < FLOW.length - 1 ? (
                 <div
-                  className="absolute top-[calc(1.125rem+6px)] left-[7px] bottom-0 w-px bg-border"
+                  className="absolute top-[calc(1.25rem+8px)] left-[9px] bottom-0 w-px bg-border"
                   aria-hidden
                 />
               ) : null}
@@ -410,8 +411,8 @@ export function PurchaseDomesticWorkbenchView() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
       <header className="shrink-0 px-1">
-        <p className="text-[10px] tracking-[0.35em] text-muted-foreground">NX02-PO-UI-001-F01</p>
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">國內採購工作台</h1>
+        <p className="text-xs tracking-[0.3em] text-muted-foreground">NX02-PO-UI-001-F01</p>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">國內採購工作台</h1>
       </header>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-row overflow-hidden rounded-xl border border-border/60 bg-card/30">
@@ -453,7 +454,7 @@ export function PurchaseDomesticWorkbenchView() {
           )}
         </section>
 
-        <aside className="flex w-[300px] shrink-0 flex-col overflow-y-auto bg-muted/15 p-3">
+        <aside className="flex w-[min(22rem,92vw)] min-w-[17.5rem] shrink-0 flex-col overflow-y-auto bg-muted/15 p-3 sm:min-w-[19rem]">
           {activeNode === 'demand' ? (
             <DemandRightPanel
               queueEntries={queueEntries}
@@ -663,8 +664,8 @@ function DemandMiddleColumn({
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="flex shrink-0 flex-wrap items-end justify-between gap-x-3 gap-y-1">
-        <h2 className="text-sm font-semibold text-foreground">採購需求</h2>
-        <p className="text-xs text-muted-foreground">
+        <h2 className="text-base font-semibold text-foreground">採購需求</h2>
+        <p className="text-sm text-muted-foreground">
           共 <span className="tabular-nums text-foreground">{totalPending}</span> 筆待處理
           {filteredTotal !== totalPending ? (
             <>
@@ -675,15 +676,15 @@ function DemandMiddleColumn({
         </p>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-        <span className="text-[11px] text-muted-foreground">篩選：</span>
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">篩選：</span>
         {FILTER_CHIPS.map((c) => (
           <Button
             key={c.key}
             type="button"
             size="sm"
             variant={demandFilter === c.key ? 'secondary' : 'outline'}
-            className="h-7 px-2 text-xs"
+            className="h-9 px-3 text-sm"
             onClick={() => setDemandFilter(c.key)}
           >
             {c.label}
@@ -694,7 +695,7 @@ function DemandMiddleColumn({
           onChange={(e) => setSearch(e.target.value)}
           placeholder="料號 / 品名"
           autoComplete="off"
-          className="ml-auto h-7 min-w-[8rem] max-w-[14rem] flex-1 text-xs"
+          className="ml-auto h-9 min-w-[10rem] max-w-[18rem] flex-1 text-sm"
           aria-label="搜尋料號品名"
         />
       </div>
@@ -702,7 +703,7 @@ function DemandMiddleColumn({
       <div
         role="listbox"
         aria-label="採購需求單列表"
-        className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden"
+        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-0.5"
       >
         {pagedDemands.map((d, idx) => {
           const checked = inQueue(d.no);
@@ -728,68 +729,68 @@ function DemandMiddleColumn({
               }}
               tabIndex={-1}
               className={cx(
-                'grid cursor-pointer grid-cols-[20px_1fr_180px_90px] items-center gap-x-2 gap-y-0 rounded-md border px-2 py-1.5 text-left transition-colors max-sm:grid-cols-1 max-sm:gap-y-2',
+                'grid cursor-pointer grid-cols-[28px_1fr_minmax(10rem,12.5rem)_6.5rem] items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-2.5 text-left transition-colors max-sm:grid-cols-1 max-sm:gap-y-3',
                 checked && 'border-amber-500/70 bg-amber-500/10 shadow-sm',
                 !checked && 'border-border/60 bg-card/50 hover:bg-muted/30',
                 focused && 'ring-1 ring-amber-500/40',
-                urgent && 'border-l-2 border-l-red-500',
+                urgent && 'border-l-[3px] border-l-red-500',
               )}
               onMouseEnter={() => setFocusIdx(idx)}
             >
               <div className="pointer-events-none flex h-full items-center justify-center" aria-hidden>
                 <span
                   className={cx(
-                    'flex size-[18px] shrink-0 items-center justify-center rounded border-2 transition-colors',
+                    'flex size-[22px] shrink-0 items-center justify-center rounded border-2 transition-colors',
                     checked
                       ? 'border-amber-500 bg-amber-500 text-black'
                       : 'border-muted-foreground/50 bg-transparent',
                   )}
                 >
-                  {checked ? <Check className="size-3.5 stroke-[3]" /> : null}
+                  {checked ? <Check className="size-4 stroke-[2.75]" /> : null}
                 </span>
               </div>
 
-              <div className="min-w-0 space-y-0.5">
-                <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0 text-[11px] leading-tight">
+              <div className="min-w-0 space-y-1">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-snug">
                   {d.source === 'system' ? (
                     <>
-                      <span className="shrink-0 rounded bg-sky-600/18 px-1 py-0.5 font-medium text-sky-900 dark:text-sky-100">
+                      <span className="shrink-0 rounded-md bg-sky-600/20 px-2 py-1 text-xs font-semibold text-sky-950 dark:text-sky-50">
                         系統自動
                       </span>
                       {d.suggestedVendor ? (
-                        <span className="max-w-[8rem] truncate text-muted-foreground">{d.suggestedVendor}</span>
+                        <span className="max-w-[10rem] truncate text-sm text-muted-foreground">{d.suggestedVendor}</span>
                       ) : null}
-                      <span className="min-w-0 truncate font-medium text-foreground">{d.partName}</span>
-                      <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{d.partCode}</span>
+                      <span className="min-w-0 truncate font-semibold text-foreground">{d.partName}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">{d.partCode}</span>
                     </>
                   ) : (
                     <>
-                      <span className="shrink-0 rounded bg-orange-500/18 px-1 py-0.5 font-medium text-orange-900 dark:text-orange-100">
+                      <span className="shrink-0 rounded-md bg-orange-500/20 px-2 py-1 text-xs font-semibold text-orange-950 dark:text-orange-50">
                         業務提交
                       </span>
                       {d.isUrgent ? (
-                        <span className="shrink-0 rounded bg-red-600/18 px-1 py-0.5 font-medium text-red-900 dark:text-red-100">
+                        <span className="shrink-0 rounded-md bg-red-600/22 px-2 py-1 text-xs font-semibold text-red-950 dark:text-red-50">
                           緊急
                         </span>
                       ) : null}
-                      <span className="max-w-[10rem] truncate text-muted-foreground">
+                      <span className="max-w-[12rem] truncate text-sm text-muted-foreground">
                         {d.salesName}｜{d.customerName ?? '—'}
                       </span>
-                      <span className="min-w-0 truncate font-medium text-foreground">{d.partName}</span>
-                      <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{d.partCode}</span>
+                      <span className="min-w-0 truncate font-semibold text-foreground">{d.partName}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">{d.partCode}</span>
                     </>
                   )}
                 </div>
                 {d.remark ? (
-                  <p className="line-clamp-2 text-[10px] italic text-muted-foreground/90">{d.remark}</p>
+                  <p className="line-clamp-2 text-xs italic leading-relaxed text-muted-foreground">{d.remark}</p>
                 ) : null}
               </div>
 
               <StockVisual d={d} />
 
               <div className="flex flex-col items-end justify-center pr-0.5 text-right">
-                <span className="text-lg font-semibold tabular-nums leading-none text-foreground">{d.qty}</span>
-                <span className="text-[9px] text-muted-foreground">需求量</span>
+                <span className="text-2xl font-bold tabular-nums leading-none tracking-tight text-foreground">{d.qty}</span>
+                <span className="mt-1 text-xs text-muted-foreground">需求量</span>
               </div>
             </div>
           );
@@ -797,7 +798,7 @@ function DemandMiddleColumn({
       </div>
 
       <div
-        className="flex shrink-0 items-center justify-center gap-0.5 border-t border-border/50 pt-2"
+        className="flex shrink-0 items-center justify-center gap-1 border-t border-border/50 pt-3"
         role="navigation"
         aria-label="分頁"
       >
@@ -805,48 +806,48 @@ function DemandMiddleColumn({
           type="button"
           size="icon"
           variant="ghost"
-          className="size-8 shrink-0"
+          className="size-9 shrink-0"
           disabled={effPage <= 1}
           onClick={() => setPage(1)}
           aria-label="第一頁"
         >
-          <ChevronsLeft className="size-4" aria-hidden />
+          <ChevronsLeft className="size-5" aria-hidden />
         </Button>
         <Button
           type="button"
           size="icon"
           variant="ghost"
-          className="size-8 shrink-0"
+          className="size-9 shrink-0"
           disabled={effPage <= 1}
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           aria-label="上一頁"
         >
-          <ChevronLeft className="size-4" aria-hidden />
+          <ChevronLeft className="size-5" aria-hidden />
         </Button>
-        <span className="min-w-[3.5rem] px-2 text-center text-xs tabular-nums text-muted-foreground">
+        <span className="min-w-[4rem] px-3 text-center text-sm font-medium tabular-nums text-muted-foreground">
           {effPage}/{totalPages}
         </span>
         <Button
           type="button"
           size="icon"
           variant="ghost"
-          className="size-8 shrink-0"
+          className="size-9 shrink-0"
           disabled={effPage >= totalPages}
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           aria-label="下一頁"
         >
-          <ChevronRight className="size-4" aria-hidden />
+          <ChevronRight className="size-5" aria-hidden />
         </Button>
         <Button
           type="button"
           size="icon"
           variant="ghost"
-          className="size-8 shrink-0"
+          className="size-9 shrink-0"
           disabled={effPage >= totalPages}
           onClick={() => setPage(totalPages)}
           aria-label="最後一頁"
         >
-          <ChevronsRight className="size-4" aria-hidden />
+          <ChevronsRight className="size-5" aria-hidden />
         </Button>
       </div>
     </div>
@@ -879,20 +880,20 @@ function DemandRightPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-foreground">待詢價清單</h2>
+        <h2 className="text-base font-semibold text-foreground">待詢價清單</h2>
         {queueEntries.length > 0 ? (
-          <span className="text-xs tabular-nums text-muted-foreground">{queueEntries.length} 筆</span>
+          <span className="text-sm tabular-nums text-muted-foreground">{queueEntries.length} 筆</span>
         ) : null}
       </div>
 
       {queueEntries.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
-          <p>尚未選取需求單</p>
-          <p className="mt-1 text-xs">← 從左側勾選需求單加入</p>
+        <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm leading-relaxed text-muted-foreground">
+          <p className="text-foreground">尚未選取需求單</p>
+          <p className="mt-2 text-sm">← 從左側勾選需求單加入</p>
         </div>
       ) : (
         <>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2.5">
             {queueEntries.map((e) => {
               const d = demandMap.get(e.no);
               if (!d) return null;
@@ -904,27 +905,27 @@ function DemandRightPanel({
                   onDragOver={onDragOverAllow}
                   onDrop={onDropRow(e.no)}
                   onDragEnd={onDragEnd}
-                  className="cursor-grab rounded-lg border border-border/50 bg-card/50 p-2.5 text-xs active:cursor-grabbing"
+                  className="cursor-grab rounded-lg border border-border/50 bg-card/50 p-3 text-sm active:cursor-grabbing"
                 >
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2.5">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <p className="font-mono font-medium text-foreground">{d.no}</p>
-                        <p className="text-foreground">
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <p className="font-mono text-sm font-semibold text-foreground">{d.no}</p>
+                        <p className="text-base font-medium leading-snug text-foreground">
                           {d.partName} × {e.qty} {d.unit ?? '個'}
                         </p>
-                        <p>
+                        <p className="text-sm">
                           {d.source === 'system' ? (
-                            <span className="rounded bg-sky-600/15 px-1 py-0.5 text-[10px] font-medium text-sky-800 dark:text-sky-200">
+                            <span className="rounded-md bg-sky-600/18 px-2 py-0.5 text-xs font-semibold text-sky-950 dark:text-sky-50">
                               系統自動
                             </span>
                           ) : (
-                            <span className="rounded bg-orange-500/15 px-1 py-0.5 text-[10px] font-medium text-orange-800 dark:text-orange-200">
+                            <span className="rounded-md bg-orange-500/18 px-2 py-0.5 text-xs font-semibold text-orange-950 dark:text-orange-50">
                               業務提交
                             </span>
                           )}
                           {d.isUrgent ? (
-                            <span className="ml-1 rounded bg-red-600/15 px-1 py-0.5 text-[10px] font-medium text-red-800 dark:text-red-200">
+                            <span className="ml-1.5 rounded-md bg-red-600/18 px-2 py-0.5 text-xs font-semibold text-red-950 dark:text-red-50">
                               緊急
                             </span>
                           ) : null}{' '}
@@ -935,22 +936,22 @@ function DemandRightPanel({
                         type="button"
                         size="icon"
                         variant="ghost"
-                        className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+                        className="size-9 shrink-0 text-base text-muted-foreground hover:text-destructive"
                         aria-label="移除"
                         onClick={() => removeFromQueue(e.no)}
                       >
                         ×
                       </Button>
                     </div>
-                    <div className="flex flex-wrap items-end gap-2 border-t border-border/30 pt-2">
-                      <Label htmlFor={`rqty-${e.no}`} className="text-[10px] text-muted-foreground">
+                    <div className="flex flex-wrap items-end gap-2 border-t border-border/30 pt-2.5">
+                      <Label htmlFor={`rqty-${e.no}`} className="text-xs text-muted-foreground">
                         詢價數量
                       </Label>
                       <Input
                         id={`rqty-${e.no}`}
                         type="number"
                         min={1}
-                        className="h-8 w-[5.25rem] text-xs tabular-nums"
+                        className="h-9 w-[6.5rem] text-sm tabular-nums"
                         value={e.qty}
                         onClick={(ev) => ev.stopPropagation()}
                         onChange={(ev) => {
@@ -962,7 +963,7 @@ function DemandRightPanel({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-[10px] text-muted-foreground"
+                        className="h-9 px-3 text-xs text-muted-foreground"
                         onClick={() => setEntryQty(e.no, defaultRfqQty(d))}
                       >
                         重設補滿
@@ -974,8 +975,8 @@ function DemandRightPanel({
             })}
           </ul>
           <div className="border-t border-border/50 pt-2">
-            <p className="mb-1 text-xs font-medium text-foreground">涉及廠商：</p>
-            <ul className="space-y-1 text-xs text-muted-foreground">
+            <p className="mb-1.5 text-sm font-medium text-foreground">涉及廠商：</p>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
               {vendorSummary.map(([v, n]) => (
                 <li key={v}>
                   {v} → {n} 個料號
@@ -983,8 +984,8 @@ function DemandRightPanel({
               ))}
             </ul>
           </div>
-          <Button type="button" className="mt-auto w-full" onClick={onCreateRfq}>
-            建立詢價單 <span className="ml-1 text-[10px] font-normal opacity-80">Alt+S</span>
+          <Button type="button" className="mt-auto h-10 w-full text-sm" onClick={onCreateRfq}>
+            建立詢價單 <span className="ml-1 text-xs font-normal opacity-80">Alt+S</span>
           </Button>
         </>
       )}
