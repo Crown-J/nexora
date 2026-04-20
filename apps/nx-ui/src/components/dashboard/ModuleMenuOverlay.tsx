@@ -19,9 +19,9 @@ type ModuleMenuOverlayProps = {
 const routes: Record<string, string> = {
   h: '/dashboard',
   b: '/dashboard/base',
-  p: '/dashboard/nx02/domestic',
+  p: '/dashboard/purchase',
   w: '/dashboard/nx03/workspace',
-  s: '/dashboard/nx04/domestic',
+  s: '/dashboard/sale',
   m: '/dashboard/nx05/workspace',
   r: '/dashboard/nx08/workspace',
 };

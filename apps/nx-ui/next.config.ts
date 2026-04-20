@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/inventory/workspace", destination: "/dashboard/nx03/workspace", permanent: true },
       { source: "/dashboard/inventory/setting", destination: "/dashboard/nx03/warehouse-setting", permanent: true },
 
-      { source: "/dashboard/sales", destination: "/dashboard/nx04/domestic", permanent: true },
+      { source: "/dashboard/sales", destination: "/dashboard/sale", permanent: true },
       { source: "/dashboard/sales/domestic", destination: "/dashboard/nx04/domestic", permanent: true },
 
       { source: "/dashboard/finance", destination: "/dashboard/nx05/workspace", permanent: true },
