@@ -14,6 +14,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import { parsePositiveInt, trimOrEmpty } from '@/shared/lib/parse';
 
 export type SplitMode = 'empty' | 'new' | 'edit';
@@ -35,7 +36,10 @@ export function useSplitUrlState(defaults?: { pageSize?: number }): SplitUrlStat
 
     const q = useMemo(() => trimOrEmpty(sp.get('q')), [sp]);
     const page = useMemo(() => parsePositiveInt(sp.get('page'), 1), [sp]);
-    const pageSize = useMemo(() => parsePositiveInt(sp.get('pageSize'), defaults?.pageSize ?? 20), [sp, defaults]);
+    const pageSize = useMemo(
+      () => clampNx01ListPageSize(parsePositiveInt(sp.get('pageSize'), defaults?.pageSize ?? 20)),
+      [sp, defaults],
+    );
     const selectedId = useMemo(() => sp.get('id') ?? '', [sp]);
     const modeParam = useMemo(() => sp.get('mode'), [sp]); // 'new' | null
 

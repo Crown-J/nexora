@@ -1,6 +1,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 
 export type RoleDto = {
@@ -46,10 +47,11 @@ export async function listRoles(params: {
   pageSize?: number;
   isActive?: boolean;
 }): Promise<PagedResult<RoleDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const qs = buildQueryString({
     search: params.q?.trim() || undefined,
     page: params.page != null ? String(params.page) : undefined,
-    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    pageSize: String(pageSize),
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });

@@ -1,6 +1,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 
 export type UserDto = {
@@ -47,6 +48,7 @@ export async function listUsers(params: {
   /** 依 nx01_user_role（已生效指派）篩選：使用者須擁有其中任一角色 */
   primaryRoleIds?: string[];
 }): Promise<PagedResult<UserDto>> {
+  const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const pr =
     params.primaryRoleIds && params.primaryRoleIds.length > 0
       ? params.primaryRoleIds.map((x) => x.trim()).filter(Boolean).join(',')
@@ -54,7 +56,7 @@ export async function listUsers(params: {
   const qs = buildQueryString({
     search: params.q?.trim() || undefined,
     page: params.page != null ? String(params.page) : undefined,
-    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    pageSize: String(pageSize),
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
     primaryRoleIds: pr,
   });

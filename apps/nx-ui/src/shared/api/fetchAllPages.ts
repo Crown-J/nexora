@@ -1,3 +1,5 @@
+import { clampNx01ListPageSize, NX01_MAX_LIST_PAGE_SIZE } from '@/shared/lib/nx01Pagination';
+
 type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };
 
 /**
@@ -8,7 +10,7 @@ export async function fetchAllPages<T>(
   fetchPage: (page: number, pageSize: number) => Promise<Paged<T>>,
   opts?: { pageSize?: number; maxPages?: number },
 ): Promise<T[]> {
-  const pageSize = Math.min(Math.max(opts?.pageSize ?? 100, 1), 100);
+  const pageSize = clampNx01ListPageSize(opts?.pageSize ?? NX01_MAX_LIST_PAGE_SIZE, NX01_MAX_LIST_PAGE_SIZE);
   const maxPages = Math.max(opts?.maxPages ?? 50, 1);
   const items: T[] = [];
   for (let page = 1; page <= maxPages; page++) {

@@ -13,6 +13,7 @@
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
+import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreateRoleBody, PagedResult, RoleDto, UpdateRoleBody } from '@/features/nx00/role/types';
 
 export type ListRoleParams = {
@@ -28,9 +29,10 @@ export type ListRoleParams = {
  * - GET /role?page=&pageSize=&q=
  */
 export async function listRole(params: ListRoleParams): Promise<PagedResult<RoleDto>> {
+    const pageSize = clampNx01ListPageSize(params.pageSize, 20);
     const query = buildQueryString({
         page: String(params.page),
-        pageSize: String(params.pageSize),
+        pageSize: String(pageSize),
         q: params.q?.trim() ? params.q.trim() : undefined,
     });
 
