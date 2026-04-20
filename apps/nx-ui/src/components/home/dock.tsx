@@ -11,6 +11,7 @@ import {
   Warehouse,
   DollarSign,
   BarChart3,
+  ChevronRight,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -19,6 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -103,6 +107,173 @@ export function isDockActive(pathname: string, href: string): boolean {
 function isEditableTarget(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false;
   return el.closest('input, textarea, select, [contenteditable="true"]') !== null;
+}
+
+const dockItemFocusCls =
+  'cursor-pointer rounded-lg p-0 outline-none focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary';
+
+function DockGridLink({ item, hint, pathname }: { item: DockNavItem; hint: string | null; pathname: string }) {
+  const active = isDockActive(pathname, item.href);
+  return (
+    <DropdownMenuItem asChild className={dockItemFocusCls}>
+      <Link
+        href={item.href}
+        className={cn(
+          'group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm transition-colors',
+          'text-foreground',
+          'data-[highlighted]:text-primary',
+          active && 'bg-primary/15 text-primary',
+          !active && 'data-[highlighted]:bg-transparent',
+        )}
+        title={hint != null ? `${item.label}（Alt+X 後 ${hint}）` : item.label}
+      >
+        <span
+          className={cn(
+            'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground',
+            'group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:bg-primary/10 group-data-[highlighted]/dockrow:text-primary',
+            active && 'border-primary/40 bg-primary/10 text-primary',
+          )}
+        >
+          <item.icon className="h-4 w-4" />
+        </span>
+        <span className="min-w-0 flex-1 font-medium group-data-[highlighted]/dockrow:text-primary">{item.label}</span>
+        {hint ? (
+          <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:text-primary sm:inline-block">
+            {hint}
+          </kbd>
+        ) : null}
+      </Link>
+    </DropdownMenuItem>
+  );
+}
+
+function DockSubLink({ href, label, kbd }: { href: string; label: string; kbd: string }) {
+  const pathname = usePathname() ?? '';
+  const active = pathname === href || pathname.startsWith(`${href}/`);
+  return (
+    <DropdownMenuItem asChild className={dockItemFocusCls}>
+      <Link
+        href={href}
+        className={cn(
+          'group/subrow flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm',
+          active ? 'bg-primary/15 text-primary' : 'text-foreground',
+        )}
+      >
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        <kbd className="shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80">{kbd}</kbd>
+      </Link>
+    </DropdownMenuItem>
+  );
+}
+
+function PurchaseCenterSub({ pathname }: { pathname: string }) {
+  const active = isDockActive(pathname, '/dashboard/purchase');
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className={cn(dockItemFocusCls, 'data-[state=open]:bg-primary/10')}>
+        <div
+          className={cn(
+            'group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm',
+            active && 'text-primary',
+          )}
+        >
+          <span
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground',
+              active && 'border-primary/40 bg-primary/10 text-primary',
+            )}
+          >
+            <ShoppingCart className="h-4 w-4" />
+          </span>
+          <span className="min-w-0 flex-1 text-left font-medium">採購</span>
+          <ChevronRight className="size-4 shrink-0 opacity-60" aria-hidden />
+          <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 sm:inline-block">P</kbd>
+        </div>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent
+        sideOffset={6}
+        className="min-w-[13rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl"
+      >
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">採購流程</DropdownMenuLabel>
+        <DockSubLink href="/dashboard/purchase/domestic" label="採購需求" kbd="R" />
+        <DockSubLink href="/dashboard/purchase/rfq" label="詢價單" kbd="F" />
+        <DockSubLink href="/dashboard/purchase/po" label="採購單" kbd="P" />
+        <DockSubLink href="/dashboard/purchase/rr" label="進貨單" kbd="I" />
+        <DockSubLink href="/dashboard/purchase" label="退貨單" kbd="B" />
+        <DropdownMenuSeparator className="bg-border/60" />
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
+        <DockSubLink href="/dashboard/purchase/product" label="產品管理" kbd="—" />
+        <DockSubLink href="/dashboard/purchase/vendor" label="供應商管理" kbd="—" />
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  );
+}
+
+function SaleCenterSub({ pathname }: { pathname: string }) {
+  const active = isDockActive(pathname, '/dashboard/sale');
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className={cn(dockItemFocusCls, 'data-[state=open]:bg-primary/10')}>
+        <div className={cn('group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm', active && 'text-primary')}>
+          <span
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground',
+              active && 'border-primary/40 bg-primary/10 text-primary',
+            )}
+          >
+            <Package className="h-4 w-4" />
+          </span>
+          <span className="min-w-0 flex-1 text-left font-medium">銷貨</span>
+          <ChevronRight className="size-4 shrink-0 opacity-60" aria-hidden />
+          <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 sm:inline-block">S</kbd>
+        </div>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent sideOffset={6} className="min-w-[12rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl">
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">銷售流程</DropdownMenuLabel>
+        <DockSubLink href="/dashboard/sale/qt" label="報價單" kbd="Q" />
+        <DockSubLink href="/dashboard/sale/so" label="銷貨單" kbd="S" />
+        <DockSubLink href="/dashboard/sale" label="銷退單" kbd="R" />
+        <DropdownMenuSeparator className="bg-border/60" />
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
+        <DockSubLink href="/dashboard/nx04/customer" label="客戶管理" kbd="—" />
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  );
+}
+
+function InventoryCenterSub({ pathname }: { pathname: string }) {
+  const active = isDockActive(pathname, '/dashboard/inventory');
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className={cn(dockItemFocusCls, 'data-[state=open]:bg-primary/10')}>
+        <div className={cn('group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm', active && 'text-primary')}>
+          <span
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground',
+              active && 'border-primary/40 bg-primary/10 text-primary',
+            )}
+          >
+            <Warehouse className="h-4 w-4" />
+          </span>
+          <span className="min-w-0 flex-1 text-left font-medium">庫存</span>
+          <ChevronRight className="size-4 shrink-0 opacity-60" aria-hidden />
+          <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 sm:inline-block">W</kbd>
+        </div>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent sideOffset={6} className="min-w-[12rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl">
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">庫存作業</DropdownMenuLabel>
+        <DockSubLink href="/dashboard/nx03/workspace" label="庫存一覽" kbd="V" />
+        <DockSubLink href="/dashboard/nx02/ledger" label="庫存台帳" kbd="L" />
+        <DockSubLink href="/dashboard/nx02/stock-take" label="盤點單" kbd="S" />
+        <DockSubLink href="/dashboard/nx02/transfer" label="調撥單" kbd="T" />
+        <DockSubLink href="/dashboard/nx02/init" label="開帳單" kbd="I" />
+        <DropdownMenuSeparator className="bg-border/60" />
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
+        <DockSubLink href="/dashboard/nx03/warehouse-setting" label="倉位/庫位管理" kbd="—" />
+        <DockSubLink href="/dashboard/purchase/product" label="產品管理" kbd="—" />
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  );
 }
 
 /** 頂欄星球本體（軌道動畫與 NEXORA 品牌一致） */
@@ -246,56 +417,17 @@ export function NavPlanetMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border/60" />
         <div className="grid max-h-[min(70vh,24rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
-          {HOME_DOCK_ITEMS.map((item, i) => {
-            const active = isDockActive(pathname, item.href);
-            const hint = DOCK_ITEM_ALT_HINT[i];
-            return (
-              <DropdownMenuItem
-                key={item.href}
-                asChild
-                className={cn(
-                  'cursor-pointer rounded-lg p-0 outline-none',
-                  /* 覆寫 shadcn 預設 accent（深色底會變成黑字，像消失）→ 金色主題 */
-                  'focus:bg-primary/15 focus:text-primary',
-                  'data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary',
-                )}
-              >
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm transition-colors',
-                    'text-foreground',
-                    'data-[highlighted]:text-primary',
-                    active && 'bg-primary/15 text-primary',
-                    !active && 'data-[highlighted]:bg-transparent',
-                  )}
-                  title={hint != null ? `${item.label}（Alt+X 後 ${hint}）` : item.label}
-                >
-                  <span
-                    className={cn(
-                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground',
-                      'group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:bg-primary/10 group-data-[highlighted]/dockrow:text-primary',
-                      active && 'border-primary/40 bg-primary/10 text-primary',
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0 flex-1 font-medium group-data-[highlighted]/dockrow:text-primary">
-                    {item.label}
-                  </span>
-                  {hint ? (
-                    <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:text-primary sm:inline-block">
-                      {hint}
-                    </kbd>
-                  ) : null}
-                </Link>
-              </DropdownMenuItem>
-            );
-          })}
+          <DockGridLink item={HOME_DOCK_ITEMS[0]!} hint={DOCK_ITEM_ALT_HINT[0]!} pathname={pathname} />
+          <DockGridLink item={HOME_DOCK_ITEMS[1]!} hint={DOCK_ITEM_ALT_HINT[1]!} pathname={pathname} />
+          <PurchaseCenterSub pathname={pathname} />
+          <SaleCenterSub pathname={pathname} />
+          <InventoryCenterSub pathname={pathname} />
+          <DockGridLink item={HOME_DOCK_ITEMS[5]!} hint={DOCK_ITEM_ALT_HINT[5]!} pathname={pathname} />
+          <DockGridLink item={HOME_DOCK_ITEMS[6]!} hint={DOCK_ITEM_ALT_HINT[6]!} pathname={pathname} />
         </div>
         <DropdownMenuSeparator className="bg-border/60" />
         <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-          Alt+X 開關選單 · 開啟時可單鍵 H B P S W M R
+          Alt+X 開關選單 · 單鍵 H B P S W M R · 採購／銷貨／庫存可展開子選單
         </p>
       </DropdownMenuContent>
     </DropdownMenu>

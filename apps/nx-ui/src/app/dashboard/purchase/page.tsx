@@ -56,18 +56,21 @@ export default function PurchaseHubPage() {
             description="向廠商詢價，等待報價回覆"
             Icon={MessageCircleQuestion}
             stepLabel="STEP 2"
+            href="/dashboard/purchase/rfq"
           />
           <HubLinkCard
             title="採購單"
             description="確認廠商報價後建立正式採購單"
             Icon={ShoppingCart}
             stepLabel="STEP 3"
+            href="/dashboard/purchase/po"
           />
           <HubLinkCard
             title="進貨單"
             description="貨物到達後執行驗收入帳"
             Icon={Truck}
             stepLabel="STEP 4"
+            href="/dashboard/purchase/rr"
           />
           <HubLinkCard
             title="退貨單"

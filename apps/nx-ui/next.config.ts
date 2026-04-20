@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
     return [
       { source: "/home", destination: "/dashboard", permanent: true },
 
+      { source: "/purchase/rfq", destination: "/dashboard/purchase/rfq", permanent: false },
+      { source: "/purchase/po", destination: "/dashboard/purchase/po", permanent: false },
+      { source: "/purchase/rr", destination: "/dashboard/purchase/rr", permanent: false },
+      { source: "/sale/qt", destination: "/dashboard/sale/qt", permanent: false },
+      { source: "/sale/so", destination: "/dashboard/sale/so", permanent: false },
+
       { source: "/base", destination: "/dashboard/base", permanent: true },
       { source: "/base/:path*", destination: "/dashboard/base/:path*", permanent: true },
       { source: "/user", destination: "/dashboard/base/users", permanent: true },

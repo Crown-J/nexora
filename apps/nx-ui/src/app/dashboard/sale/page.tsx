@@ -33,6 +33,7 @@ export default function SaleHubPage() {
             title="客戶管理"
             description="客戶主檔、等級設定、需求回饋記錄"
             Icon={Users}
+            href="/dashboard/nx04/customer"
           />
         </ModuleHubSection>
 
@@ -54,6 +55,7 @@ export default function SaleHubPage() {
             description="建立報價單傳給客戶確認"
             Icon={FileSpreadsheet}
             stepLabel="STEP 2"
+            href="/dashboard/sale/qt"
           />
           <HubLinkCard
             title="調貨單"
@@ -66,6 +68,7 @@ export default function SaleHubPage() {
             description="客戶確認後建立銷貨單，現銷客同步開發票"
             Icon={ShoppingBag}
             stepLabel="STEP 3"
+            href="/dashboard/sale/so"
           />
           <HubLinkCard
             title="銷退單"
