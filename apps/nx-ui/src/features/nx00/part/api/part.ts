@@ -3,7 +3,8 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX00-UI-NX00-PART-API-001：Part API Client（list/get/create/update/setActive）
+ * - Part API Client（list/get/create/update/setActive）
+ * - 路徑：`GET|POST|PATCH|DELETE /nx01/parts`（與 nx-api `PartController` 一致）
  */
 
 import { apiFetch } from '@/shared/api/client';
@@ -11,88 +12,90 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import type { CreatePartBody, PagedResult, PartDto, UpdatePartBody } from '@/features/nx00/part/types';
 
-const BASE = '/part';
+const BASE = '/nx01/parts';
+
+function normalizePartListPayload(raw: unknown): PagedResult<PartDto> {
+  const j = raw as Record<string, unknown>;
+  const items = (Array.isArray(j.items) ? j.items : Array.isArray(j.rows) ? j.rows : []) as PartDto[];
+  return {
+    items,
+    page: Number(j.page ?? 1),
+    pageSize: Number(j.pageSize ?? 20),
+    total: Number(j.total ?? 0),
+  };
+}
 
 export type ListPartParams = {
-    page: number;
-    pageSize: number;
-    q?: string;
+  page: number;
+  pageSize: number;
+  /** 模糊搜尋（對應後端 `search`） */
+  q?: string;
 };
 
 /**
  * @FUNCTION_CODE NX00-UI-NX00-PART-API-001-F01
- * 說明：
- * - listPart：列出零件清單（分頁）
- * - GET /part?page=&pageSize=&q=
+ * - GET /nx01/parts?page=&pageSize=&search=
  */
 export async function listPart(params: ListPartParams): Promise<PagedResult<PartDto>> {
-    const query = buildQueryString({
-        page: String(params.page),
-        pageSize: String(params.pageSize),
-        q: params.q?.trim() ? params.q.trim() : undefined,
-    });
+  const query = buildQueryString({
+    page: String(params.page),
+    pageSize: String(params.pageSize),
+    search: params.q?.trim() ? params.q.trim() : undefined,
+  });
 
-    const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });
-    await assertOk(res, 'nxui_nx00_part_list_001');
-    return (await res.json()) as PagedResult<PartDto>;
+  const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx00_part_list_001');
+  return normalizePartListPayload(await res.json());
 }
 
 /**
  * @FUNCTION_CODE NX00-UI-NX00-PART-API-001-F02
- * 說明：
- * - getPart：取得單筆零件
- * - GET /part/:id
+ * - GET /nx01/parts/:id
  */
 export async function getPart(id: string): Promise<PartDto> {
-    const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'GET' });
-    await assertOk(res, 'nxui_nx00_part_get_001');
-    return (await res.json()) as PartDto;
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx00_part_get_001');
+  return (await res.json()) as PartDto;
 }
 
 /**
  * @FUNCTION_CODE NX00-UI-NX00-PART-API-001-F03
- * 說明：
- * - createPart：建立零件
- * - POST /part
+ * - POST /nx01/parts
  */
 export async function createPart(body: CreatePartBody): Promise<PartDto> {
-    const res = await apiFetch(BASE, {
-        method: 'POST',
-        body: JSON.stringify(body),
-    });
+  const res = await apiFetch(BASE, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 
-    await assertOk(res, 'nxui_nx00_part_create_001');
-    return (await res.json()) as PartDto;
+  await assertOk(res, 'nxui_nx00_part_create_001');
+  return (await res.json()) as PartDto;
 }
 
 /**
  * @FUNCTION_CODE NX00-UI-NX00-PART-API-001-F04
- * 說明：
- * - updatePart：更新零件
- * - PUT /part/:id
+ * - PATCH /nx01/parts/:id
  */
 export async function updatePart(id: string, body: UpdatePartBody): Promise<PartDto> {
-    const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
-        method: 'PUT',
-        body: JSON.stringify(body),
-    });
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
 
-    await assertOk(res, 'nxui_nx00_part_update_001');
-    return (await res.json()) as PartDto;
+  await assertOk(res, 'nxui_nx00_part_update_001');
+  return (await res.json()) as PartDto;
 }
 
 /**
  * @FUNCTION_CODE NX00-UI-NX00-PART-API-001-F05
- * 說明：
- * - setPartActive：切換啟用狀態
- * - PATCH /part/:id/active
+ * - PATCH /nx01/parts/:id（僅 isActive）
  */
 export async function setPartActive(id: string, isActive: boolean): Promise<PartDto> {
-    const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/active`, {
-        method: 'PATCH',
-        body: JSON.stringify({ isActive }),
-    });
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isActive }),
+  });
 
-    await assertOk(res, 'nxui_nx00_part_set_active_001');
-    return (await res.json()) as PartDto;
+  await assertOk(res, 'nxui_nx00_part_set_active_001');
+  return (await res.json()) as PartDto;
 }

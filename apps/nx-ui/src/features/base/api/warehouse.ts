@@ -10,6 +10,7 @@ export type WarehouseDto = {
   remark: string | null;
   sortNo: number;
   isActive: boolean;
+  warehouseTypeId: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername?: string | null;
@@ -25,6 +26,7 @@ export type CreateWarehouseBody = {
   name: string;
   remark?: string | null;
   sortNo?: number;
+  warehouseTypeId?: string | null;
   isActive?: boolean;
 };
 
@@ -33,8 +35,22 @@ export type UpdateWarehouseBody = {
   name?: string;
   remark?: string | null;
   sortNo?: number;
+  warehouseTypeId?: string | null;
   isActive?: boolean;
 };
+
+const BASE = '/nx01/warehouses';
+
+function normalizePaged<T>(raw: unknown): PagedResult<T> {
+  const j = raw as Record<string, unknown>;
+  const items = (Array.isArray(j.items) ? j.items : Array.isArray(j.rows) ? j.rows : []) as T[];
+  return {
+    items,
+    page: Number(j.page ?? 1),
+    pageSize: Number(j.pageSize ?? 20),
+    total: Number(j.total ?? 0),
+  };
+}
 
 export async function listWarehouses(params: {
   page?: number;
@@ -45,16 +61,16 @@ export async function listWarehouses(params: {
   const qs = buildQueryString({
     page: params.page != null ? String(params.page) : undefined,
     pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
-    q: params.q?.trim() || undefined,
+    search: params.q?.trim() || undefined,
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });
-  const res = await apiFetch(`/warehouse${qs}`, { method: 'GET' });
+  const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_warehouse_list');
-  return res.json() as Promise<PagedResult<WarehouseDto>>;
+  return normalizePaged<WarehouseDto>(await res.json());
 }
 
 export async function createWarehouse(body: CreateWarehouseBody): Promise<WarehouseDto> {
-  const res = await apiFetch('/warehouse', {
+  const res = await apiFetch(BASE, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -63,8 +79,8 @@ export async function createWarehouse(body: CreateWarehouseBody): Promise<Wareho
 }
 
 export async function updateWarehouse(id: string, body: UpdateWarehouseBody): Promise<WarehouseDto> {
-  const res = await apiFetch(`/warehouse/${encodeURIComponent(id)}`, {
-    method: 'PUT',
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
     body: JSON.stringify(body),
   });
   await assertOk(res, 'nxui_base_warehouse_update');
@@ -72,7 +88,7 @@ export async function updateWarehouse(id: string, body: UpdateWarehouseBody): Pr
 }
 
 export async function setWarehouseActive(id: string, isActive: boolean): Promise<WarehouseDto> {
-  const res = await apiFetch(`/warehouse/${encodeURIComponent(id)}/active`, {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });

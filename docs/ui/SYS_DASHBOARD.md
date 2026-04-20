@@ -2,7 +2,7 @@
 
 > 路由：/dashboard
 > 最低版本：LITE
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 參考設計：C:\nexora\demo\home_v2
 
 ---
@@ -80,7 +80,7 @@
 - Dropdown 內容：
   - 標題列：「公告」+ 未讀數
   - 每則公告：`[緊急/公司/系統 badge]` + 標題 + 日期 + `>` 箭頭
-  - 底部：「查看所有公告 →」→ 跳轉 `/dashboard/nx01/bulletin`
+  - 底部：「查看所有公告 →」→ 跳轉 `/dashboard/base/bulletin`
   - 最多顯示 5 則，依 `created_at` 倒序
 - 鍵盤：`Alt+A` 開關公告 dropdown
 
@@ -305,14 +305,14 @@
 - 資料來源：`nx01_kpi_record`（達成）/ `nx01_kpi_target`（目標）
 - 進度條：金色漸層，底色微金色
 - 趨勢箭頭：vs 上月（↑綠色 / ↓紅色）
-- 「查看詳細目標」→ 跳轉 `/dashboard/nx08/monthly-report`
+- 「查看詳細目標」→ 跳轉 `/dashboard/report/monthly-report`
 
 ### 5-4 填寫工作日誌
 
 ```
 [橘金色大按鈕] 📄 填寫工作日誌
 ```
-- 點擊：跳轉 `/dashboard/nx08/daily-report`
+- 點擊：跳轉 `/dashboard/report/daily-report`
 - 已填寫：按鈕變為「✓ 今日日誌已完成 +25 XP」（綠色）
 - 填寫完成 = 今日下班打卡
 - 資料來源：`nx08_daily_report`（當日是否已填）

@@ -1,9 +1,9 @@
 # NX02_PRODUCT_WORKSPACE — 產品管理與廠商管理畫面規劃
 
-> 路由：/dashboard/nx02/product（產品管理）
->       /dashboard/nx02/vendor（廠商管理）
+> 路由：/dashboard/purchase/product（產品管理）
+>       /dashboard/purchase/vendor（廠商管理）
 > 最低版本：LITE
-> 最後更新：2026-04-13
+> 最後更新：2026-04-20
 > 對應流程：P-W04 / P-W05 / P-W06 / P-W07 / P-W08 / P-W09 / I-W04
 
 ---
@@ -13,11 +13,11 @@
 ```
 Alt+← / Alt+→ 切換：
 
-Tab 1：國內採購  /dashboard/nx02/domestic   ← 採購專員
-Tab 2：國外採購  /dashboard/nx02/import    ← 採購專員
-Tab 3：特殊採購  /dashboard/nx02/special   ← 採購專員（本文件第二章）
-Tab 4：產品管理  /dashboard/nx02/product   ← 採購組長（本文件第三章）
-Tab 5：廠商管理  /dashboard/nx02/vendor    ← 採購組長（本文件第四章）
+Tab 1：國內採購  /dashboard/purchase/domestic   ← 採購專員
+Tab 2：國外採購  /dashboard/purchase/import     ← 採購專員
+Tab 3：特殊採購  /dashboard/purchase/special    ← 採購專員（本文件第二章）
+Tab 4：產品管理  /dashboard/purchase/product    ← 採購組長（本文件第三章）
+Tab 5：廠商管理  /dashboard/purchase/vendor     ← 採購組長（本文件第四章）
 ```
 
 ---
@@ -556,7 +556,7 @@ D    舊廠商          TW   停用          -      -     🚫
 ### 5-1 NX03 庫位管理入口
 
 ```
-路由：/dashboard/nx03/warehouse-setting
+路由：/dashboard/inventory/setting
 
 Tab：[庫位管理] [安全量建議] [庫位使用率]
 ```
@@ -673,7 +673,7 @@ IC-7805  稳壓器    [30]       [90]       [體積小，可多放]   已設定�
 ## 九、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx02/
+features/purchase/
 ├── special/                        ← Tab 3：特殊採購
 │   ├── SpecialProcurementPage.tsx
 │   ├── BulkBuyForm.tsx             ← 掃貨採購單
@@ -701,7 +701,7 @@ features/nx02/
     ├── VendorEvaluation.tsx        ← 季度評鑑
     └── NegotiationLog.tsx          ← 談判記錄
 
-features/nx03/warehouse-setting/    ← 倉管端安全量建議
+features/inventory/setting/         ← 倉管端安全量建議
     ├── WarehouseSettingPage.tsx
     ├── StockSuggestion.tsx         ← 安全量建議（倉管填寫）
     └── LocationMgmt.tsx            ← 庫位管理

@@ -28,6 +28,13 @@ export type BasePartRow = {
   partGroupId: string | null;
   partGroupCode: string | null;
   partGroupName: string | null;
+  returnPolicy: string;
+  warrantyMonths: number;
+  priceA: string | null;
+  priceB: string | null;
+  priceC: string | null;
+  priceD: string | null;
+  priceUpdatedAt: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername: string | null;

@@ -48,6 +48,20 @@ const SEL = {
 
 type Row = Prisma.Nx01PartGetPayload<{ select: typeof SEL }>;
 
+function trimOrNull(s: string | undefined | null): string | null {
+  if (s === undefined || s === null) return null;
+  const t = String(s).trim();
+  return t === '' ? null : t;
+}
+
+function decimalStr(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'object' && v !== null && 'toString' in v) {
+    return (v as { toString(): string }).toString();
+  }
+  return String(v);
+}
+
 @Injectable()
 export class PartService {
   constructor(
@@ -152,12 +166,25 @@ export class PartService {
           code: dto.code.trim(),
           name: dto.name.trim(),
           isOem: dto.isOem ?? true,
+          secCode: trimOrNull(dto.secCode),
+          seg1: trimOrNull(dto.seg1),
+          seg2: trimOrNull(dto.seg2),
+          seg3: trimOrNull(dto.seg3),
+          seg4: trimOrNull(dto.seg4),
+          seg5: trimOrNull(dto.seg5),
           countryId: dto.countryId?.trim() || null,
           partBrandId: dto.partBrandId?.trim() || null,
           partGroupId: dto.partGroupId?.trim() || null,
+          type: dto.partType?.trim() || 'A',
           spec: dto.spec?.trim() || null,
           uom: dto.uom?.trim() || 'pcs',
           isActive: dto.isActive ?? true,
+          returnPolicy: dto.returnPolicy?.trim() || 'S',
+          warrantyMonths: dto.warrantyMonths ?? 0,
+          priceA: dto.priceA ?? 0,
+          priceB: dto.priceB ?? 0,
+          priceC: dto.priceC ?? 0,
+          priceD: dto.priceD ?? 0,
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -182,13 +209,40 @@ export class PartService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Part.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Part not found');
+
+    const priceTouched =
+      dto.priceA !== undefined ||
+      dto.priceB !== undefined ||
+      dto.priceC !== undefined ||
+      dto.priceD !== undefined;
+
     const row = await this.prisma.nx01Part.update({
       where: { id },
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+        ...(dto.isOem !== undefined ? { isOem: dto.isOem } : {}),
+        ...(dto.secCode !== undefined ? { secCode: trimOrNull(dto.secCode) } : {}),
+        ...(dto.seg1 !== undefined ? { seg1: trimOrNull(dto.seg1) } : {}),
+        ...(dto.seg2 !== undefined ? { seg2: trimOrNull(dto.seg2) } : {}),
+        ...(dto.seg3 !== undefined ? { seg3: trimOrNull(dto.seg3) } : {}),
+        ...(dto.seg4 !== undefined ? { seg4: trimOrNull(dto.seg4) } : {}),
+        ...(dto.seg5 !== undefined ? { seg5: trimOrNull(dto.seg5) } : {}),
+        ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),
+        ...(dto.partBrandId !== undefined ? { partBrandId: dto.partBrandId?.trim() || null } : {}),
+        ...(dto.partGroupId !== undefined ? { partGroupId: dto.partGroupId?.trim() || null } : {}),
+        ...(dto.partType !== undefined
+          ? { type: dto.partType === null || dto.partType === '' ? 'A' : dto.partType.trim() }
+          : {}),
         ...(dto.spec !== undefined ? { spec: dto.spec } : {}),
         ...(dto.uom !== undefined ? { uom: dto.uom.trim() } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        ...(dto.returnPolicy !== undefined ? { returnPolicy: dto.returnPolicy.trim() } : {}),
+        ...(dto.warrantyMonths !== undefined ? { warrantyMonths: dto.warrantyMonths } : {}),
+        ...(dto.priceA !== undefined ? { priceA: dto.priceA } : {}),
+        ...(dto.priceB !== undefined ? { priceB: dto.priceB } : {}),
+        ...(dto.priceC !== undefined ? { priceC: dto.priceC } : {}),
+        ...(dto.priceD !== undefined ? { priceD: dto.priceD } : {}),
+        ...(priceTouched ? { priceUpdatedAt: new Date(), priceUpdatedBy: user.sub } : {}),
         updatedBy: user.sub,
       },
       select: SEL,
@@ -233,6 +287,14 @@ export class PartService {
   }
 
   private mapRow(row: Row) {
-    return { ...row };
+    const { type, priceA, priceB, priceC, priceD, ...rest } = row;
+    return {
+      ...rest,
+      partType: type,
+      priceA: decimalStr(priceA),
+      priceB: decimalStr(priceB),
+      priceC: decimalStr(priceC),
+      priceD: decimalStr(priceD),
+    };
   }
 }

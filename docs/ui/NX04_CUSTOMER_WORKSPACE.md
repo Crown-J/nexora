@@ -1,8 +1,8 @@
 # NX04_CUSTOMER_WORKSPACE — 客戶管理作業畫面規劃
 
-> 路由：/dashboard/nx04/customer
+> 路由：/dashboard/sale/customer
 > 最低版本：LITE
-> 最後更新：2026-04-13
+> 最後更新：2026-04-20
 > 對應流程：S-W04_客戶開發作業.md / S-W05_客戶分級管理作業.md / S-W06_客戶需求回饋作業.md
 > 相關文件：NX04_SO_WORKSPACE.md（國內銷售，同模組）
 
@@ -12,9 +12,9 @@
 
 ```
 Alt+← / Alt+→ 切換同模組子作業：
-  國內銷售作業  /dashboard/nx04/domestic
-  國外銷售作業  /dashboard/nx04/export
-  客戶管理作業  /dashboard/nx04/customer  ← 本文件
+  國內銷售作業  /dashboard/sale/domestic
+  國外銷售作業  /dashboard/sale/export
+  客戶管理作業  /dashboard/sale/customer  ← 本文件
 
 客戶管理是銷售模組的第三個子作業
 主要使用者：業務專員 / 業務組長 / 銷售部經理
@@ -440,7 +440,7 @@ BMW N55 進氣管                          ✅ 決定引進
 ## 八、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx04/customer/
+features/sales/customer/
 ├── CustomerWorkspacePage.tsx       ← 主頁面
 ├── tabs/
 │   ├── DevelopmentTab/

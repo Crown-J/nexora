@@ -1,9 +1,9 @@
 # NX10_GAME_WORKSPACE — 遊戲化系統畫面規劃
 
-> 路由：/dashboard/nx10/workspace（桌面版）
+> 路由：/dashboard/game/workspace（桌面版）
 >       首頁 Dashboard EXP BAR（嵌入）
 > 最低版本：PRO
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：NX10-W01 遊戲化任務系統 / NX10-W02 遊戲化轉職系統
 
 ---
@@ -682,7 +682,7 @@ Exp 驗證：✅ 銅牌 I 已達標
 ## 十一、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx10/
+features/game/
 ├── workspace/
 │   ├── GameWorkspacePage.tsx       ← 主頁面
 │   └── tabs/

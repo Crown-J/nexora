@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   Link2,
   CarFront,
+  Megaphone,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -116,6 +117,16 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '已套用規則',
     statValue: '—',
     href: '/dashboard/base/role-view',
+  },
+  {
+    id: 'bulletin',
+    section: 'account',
+    title: '公告主檔',
+    description: '系統／公司公告與到期設定',
+    icon: Megaphone,
+    statLabel: '公告',
+    statValue: '—',
+    href: '/dashboard/base/bulletins',
   },
   {
     id: 'part',
@@ -259,6 +270,7 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   warehouses: '倉庫主檔',
   partner: '客戶主檔',
   partners: '客戶主檔',
+  bulletins: '公告主檔',
 };
 
 export function isValidBaseSegment(segment: string): boolean {

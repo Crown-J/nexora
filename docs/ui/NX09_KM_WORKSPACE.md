@@ -1,8 +1,8 @@
 # NX09_KM_WORKSPACE — 知識管理工作台畫面規劃
 
-> 路由：/dashboard/nx09/workspace
+> 路由：/dashboard/knowledge/workspace
 > 最低版本：PRO
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：NX09-W01~NX09-W03
 
 ---
@@ -436,7 +436,7 @@ Phase 2 技術架構：
 ## 九、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx09/workspace/
+features/knowledge/workspace/
 ├── KmWorkspacePage.tsx             ← 主頁面
 ├── tabs/
 │   ├── KmTab/

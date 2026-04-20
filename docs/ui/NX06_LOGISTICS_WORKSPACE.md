@@ -1,9 +1,9 @@
 # NX06_LOGISTICS_WORKSPACE — 物流作業工作台畫面規劃
 
-> 路由：/dashboard/nx06/workspace（物流組長桌面版）
+> 路由：/dashboard/logistics/workspace（物流組長桌面版）
 >       /driver（外務手機版，獨立路由）
 > 最低版本：LITE
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：L01_送貨作業.md / L02_調貨取貨作業.md / L03_國際物流作業.md / L04_退貨取件作業.md
 
 ---
@@ -11,7 +11,7 @@
 ## 一、角色與介面對應
 
 ```
-物流組長 → 桌面版工作台（/dashboard/nx06/workspace）
+物流組長 → 桌面版工作台（/dashboard/logistics/workspace）
            路線規劃 + 任務指派 + 整體監控
 
 外務      → 手機版（/driver）
@@ -388,8 +388,8 @@ SO-019  Bangkok Auto  EXW  等待客戶取貨
 │                         │
 │ 請倉管掃描 BOX QR Code  │
 │                         │
-│ BOX-202604-MW1-001 ✅   │
-│ BOX-202604-MW1-002 ✅   │
+│ BX-202604-MW1-001 ✅    │
+│ BX-202604-MW1-002 ✅    │
 │                         │
 │ [確認交接完成] Alt+S     │
 └─────────────────────────┘
@@ -525,7 +525,7 @@ SO-019  Bangkok Auto  EXW  等待客戶取貨
 ## 七、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx06/
+features/logistics/
 ├── workspace/                      ← 物流組長桌面版
 │   ├── LogisticsWorkspacePage.tsx  ← 主頁面
 │   ├── KpiBar/

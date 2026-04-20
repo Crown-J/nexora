@@ -1,8 +1,8 @@
 # NX07_HR_WORKSPACE — 人資作業工作台畫面規劃
 
-> 路由：/dashboard/nx07/workspace
+> 路由：/dashboard/hr/workspace
 > 最低版本：PRO
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：H-W01~H-W06
 
 ---
@@ -746,7 +746,7 @@ huang_acc   黃志豪  財務部  出納專員  2020-09-01  在職 ✅
 ## 十三、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx07/workspace/
+features/hr/workspace/
 ├── HrWorkspacePage.tsx             ← 主頁面
 ├── KpiBar/
 │   └── HrKpiBar.tsx               ← PRO only

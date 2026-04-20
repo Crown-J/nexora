@@ -159,7 +159,8 @@ export function PartnerFormPanel(props: Props) {
         }
 
         if (isEdit && detail) {
-            await onUpdate(detail.id, payload);
+            const { code: _omitCode, ...updateBody } = payload;
+            await onUpdate(detail.id, updateBody);
             setEditing(false);
         }
     };

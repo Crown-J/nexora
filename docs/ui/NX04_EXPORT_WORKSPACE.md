@@ -1,8 +1,8 @@
 # NX04_EXPORT_WORKSPACE — 國外銷貨作業工作台畫面規劃
 
-> 路由：/dashboard/nx04/export
+> 路由：/dashboard/sale/export
 > 最低版本：PLUS
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：S-W02_國外銷售主流程.md
 > 相關文件：NX04_SO_WORKSPACE.md（國內銷貨，設計基礎）
 
@@ -12,9 +12,9 @@
 
 ```
 Alt+← / Alt+→ 切換：
-  國內銷售作業（/dashboard/nx04/domestic）
-  國外銷售作業（/dashboard/nx04/export）  ← 本文件
-  客戶管理作業（/dashboard/nx04/customer）
+  國內銷售作業（/dashboard/sale/domestic）
+  國外銷售作業（/dashboard/sale/export）  ← 本文件
+  客戶管理作業（/dashboard/sale/customer）
 
 大部分設計與國內銷貨相同，本文件只記錄差異處
 相同的部分請見 NX04_SO_WORKSPACE.md
@@ -366,7 +366,7 @@ DDP（我方負責送到客戶倉庫，含關稅）：
 ## 八、元件清單（差異處）
 
 ```
-features/nx04/workspace/export/
+features/sales/workspace/export/
 ├── ExportWorkspacePage.tsx         ← 國外銷貨主頁面
 ├── stages/
 │   ├── PaymentConfirmStage.tsx     ← 付款確認（新）
@@ -378,6 +378,6 @@ features/nx04/workspace/export/
     └── LogisticsTimeline.tsx       ← 物流時間軸
 
 共用（與國內銷貨相同）：
-features/nx04/workspace/shared/
+features/sales/workspace/shared/
   DocumentList.tsx / StepPanel.tsx / DecisionSummary.tsx
 ```

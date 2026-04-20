@@ -1,8 +1,8 @@
 # NX02_IMPORT_WORKSPACE — 國外採購作業工作台畫面規劃
 
-> 路由：/dashboard/nx02/import
+> 路由：/dashboard/purchase/import
 > 最低版本：PLUS
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：P-W02_國外採購主流程.md
 > 相關文件：NX02_PO_WORKSPACE.md（國內採購，設計基礎）
 
@@ -12,8 +12,8 @@
 
 ```
 Alt+← / Alt+→ 切換：
-  國內採購作業（/dashboard/nx02/domestic）
-  國外採購作業（/dashboard/nx02/import）  ← 本文件
+  國內採購作業（/dashboard/purchase/domestic）
+  國外採購作業（/dashboard/purchase/import）  ← 本文件
 
 大部分設計與國內採購相同，本文件只記錄差異處
 相同的部分（版面/KPI BAR/手機版/元件清單）請見 NX02_PO_WORKSPACE.md
@@ -354,7 +354,7 @@ ETA：2026-05-15
 ## 七、元件清單（差異處）
 
 ```
-features/nx02/workspace/import/
+features/purchase/workspace/import/
 ├── ImportWorkspacePage.tsx         ← 國外採購主頁面
 ├── stages/
 │   ├── PreparationStage.tsx        ← 備貨付款（新）
@@ -365,6 +365,6 @@ features/nx02/workspace/import/
     └── CostAllocationPreview.tsx   ← 攤分結果即時預覽
 
 共用（與國內採購相同）：
-features/nx02/workspace/shared/
+features/purchase/workspace/shared/
   DocumentList.tsx / StepPanel.tsx / DecisionSummary.tsx
 ```

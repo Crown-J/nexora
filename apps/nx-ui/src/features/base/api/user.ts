@@ -26,19 +26,32 @@ export type UserDto = {
   updatedByName: string | null;
 };
 
+const BASE = '/nx01/users';
+
+function normalizePaged<T>(raw: unknown): PagedResult<T> {
+  const j = raw as Record<string, unknown>;
+  const items = (Array.isArray(j.items) ? j.items : Array.isArray(j.rows) ? j.rows : []) as T[];
+  return {
+    items,
+    page: Number(j.page ?? 1),
+    pageSize: Number(j.pageSize ?? 20),
+    total: Number(j.total ?? 0),
+  };
+}
+
 export async function listUsers(params: {
   q?: string;
   page?: number;
   pageSize?: number;
 }): Promise<PagedResult<UserDto>> {
   const qs = buildQueryString({
-    q: params.q?.trim() || undefined,
+    search: params.q?.trim() || undefined,
     page: params.page != null ? String(params.page) : undefined,
     pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
   });
-  const res = await apiFetch(`/user${qs}`, { method: 'GET' });
+  const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_user_list');
-  return res.json() as Promise<PagedResult<UserDto>>;
+  return normalizePaged<UserDto>(await res.json());
 }
 
 export async function createUser(body: {
@@ -49,7 +62,7 @@ export async function createUser(body: {
   phone?: string | null;
   isActive?: boolean;
 }): Promise<UserDto> {
-  const res = await apiFetch('/user', {
+  const res = await apiFetch(BASE, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -67,8 +80,8 @@ export async function updateUser(
     isActive?: boolean;
   },
 ): Promise<UserDto> {
-  const res = await apiFetch(`/user/${encodeURIComponent(id)}`, {
-    method: 'PUT',
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
     body: JSON.stringify(body),
   });
   await assertOk(res, 'nxui_base_user_update');
@@ -76,7 +89,7 @@ export async function updateUser(
 }
 
 export async function setUserActive(id: string, isActive: boolean): Promise<UserDto> {
-  const res = await apiFetch(`/user/${encodeURIComponent(id)}/active`, {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });

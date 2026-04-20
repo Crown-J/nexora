@@ -42,6 +42,7 @@ import {
   type PartnerDto,
   type PartnerType,
 } from '@/features/base/api/partner';
+import { listCustomerGrades, type CustomerGradeDto } from '@/features/base/api/customer-grade';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
 import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
@@ -77,6 +78,33 @@ const PARTNER_TYPE_FORM_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'SUP', label: '（舊）供應商' },
 ];
 
+const PAY_DOM_OPTIONS: { value: string; label: string }[] = [
+  { value: 'PREPAY', label: 'PREPAY 先付款' },
+  { value: 'NET30', label: 'NET30 月結30天' },
+  { value: 'NET60', label: 'NET60 月結60天' },
+  { value: 'NET90', label: 'NET90 月結90天' },
+];
+
+const PAY_IMP_OPTIONS: { value: string; label: string }[] = [
+  { value: 'TT', label: 'TT 電匯' },
+  { value: 'LC', label: 'LC 信用狀' },
+  { value: 'DP', label: 'DP 付款交單' },
+  { value: 'DA', label: 'DA 承兌交單' },
+];
+
+const CREDIT_STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'N', label: 'N 正常' },
+  { value: 'W', label: 'W 僅收現金' },
+  { value: 'F', label: 'F 凍結' },
+];
+
+const INCOTERM_OPTIONS: { value: string; label: string }[] = [
+  { value: 'FOB', label: 'FOB' },
+  { value: 'CIF', label: 'CIF' },
+  { value: 'EXW', label: 'EXW' },
+  { value: 'DDP', label: 'DDP' },
+];
+
 const TYPE_FILTER_OPTIONS: { value: PartnerTypeFilter; label: string }[] = [
   { value: 'all', label: '類型：全部' },
   { value: 'C', label: 'C　客戶' },
@@ -106,6 +134,15 @@ type PartnerRow = {
   mobile: string | null;
   email: string | null;
   address: string | null;
+  remark: string | null;
+  taxId: string | null;
+  paymentTermDomestic: string;
+  customerGradeId: string | null;
+  customerGradeLabel: string;
+  creditLimit: string | null;
+  creditStatus: string;
+  paymentTermImport: string | null;
+  incoterm: string | null;
   isActive: boolean;
   createdAt: string;
   createdByPerson: string;
@@ -122,6 +159,14 @@ type Draft = {
   mobile: string;
   email: string;
   address: string;
+  remark: string;
+  taxId: string;
+  paymentTermDomestic: string;
+  customerGradeId: string;
+  creditLimit: string;
+  creditStatus: string;
+  paymentTermImport: string;
+  incoterm: string;
   isActive: boolean;
 };
 
@@ -134,11 +179,17 @@ const LIST_COLS = [
   'code',
   'name',
   'partnerType',
+  'taxId',
+  'paymentTermDomestic',
+  'customerGradeLabel',
+  'creditStatus',
+  'creditLimit',
   'contactName',
   'phone',
   'mobile',
   'email',
   'address',
+  'remark',
   'isActive',
   'createdAt',
   'createdByPerson',
@@ -151,11 +202,17 @@ const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   code: { label: '客戶代碼', locked: true },
   name: { label: '客戶名稱' },
   partnerType: { label: '客戶類型' },
+  taxId: { label: '統編' },
+  paymentTermDomestic: { label: '國內付款條件' },
+  customerGradeLabel: { label: '客戶等級' },
+  creditStatus: { label: '信用狀態' },
+  creditLimit: { label: '信用額度' },
   contactName: { label: '聯絡人' },
   phone: { label: '電話' },
   mobile: { label: '手機' },
   email: { label: '信箱' },
   address: { label: '地址' },
+  remark: { label: '備註' },
   isActive: { label: '啟用' },
   createdAt: { label: '建立時間' },
   createdByPerson: { label: '建立人員' },
@@ -166,7 +223,7 @@ const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
 type ListColPref = { visibleCols: string[]; colOrder: string[] };
 
 const LIST_COL_PREF_KEY = 'base.partner.listcols';
-const LIST_COL_PREF_VERSION = 3;
+const LIST_COL_PREF_VERSION = 4;
 const DEFAULT_COL_PREF: ListColPref = { visibleCols: [...LIST_COLS], colOrder: [...LIST_COLS] };
 
 function normalizeColPref(raw: ListColPref): ListColPref {
@@ -187,6 +244,7 @@ function formatDt(iso: string | null | undefined): string {
 }
 
 function dtoToRow(d: PartnerDto): PartnerRow {
+  const gParts = [d.customerGradeCode, d.customerGradeName].filter(Boolean);
   return {
     id: d.id,
     code: d.code,
@@ -197,6 +255,15 @@ function dtoToRow(d: PartnerDto): PartnerRow {
     mobile: d.mobile ?? null,
     email: d.email ?? null,
     address: d.address ?? null,
+    remark: d.remark ?? null,
+    taxId: d.taxId ?? null,
+    paymentTermDomestic: d.paymentTermDomestic ?? 'NET30',
+    customerGradeId: d.customerGradeId ?? null,
+    customerGradeLabel: gParts.length ? gParts.join(' ') : '',
+    creditLimit: d.creditLimit ?? null,
+    creditStatus: d.creditStatus ?? 'N',
+    paymentTermImport: d.paymentTermImport ?? null,
+    incoterm: d.incoterm ?? null,
     isActive: d.isActive,
     createdAt: d.createdAt,
     createdByPerson: formatAuditPersonLabel(d.createdByUsername ?? null, d.createdByName ?? null),
@@ -215,6 +282,14 @@ function emptyDraft(): Draft {
     mobile: '',
     email: '',
     address: '',
+    remark: '',
+    taxId: '',
+    paymentTermDomestic: 'NET30',
+    customerGradeId: '',
+    creditLimit: '',
+    creditStatus: 'N',
+    paymentTermImport: 'TT',
+    incoterm: 'FOB',
     isActive: true,
   };
 }
@@ -229,6 +304,14 @@ function fromRow(r: PartnerRow): Draft {
     mobile: r.mobile ?? '',
     email: r.email ?? '',
     address: r.address ?? '',
+    remark: r.remark ?? '',
+    taxId: r.taxId ?? '',
+    paymentTermDomestic: r.paymentTermDomestic || 'NET30',
+    customerGradeId: r.customerGradeId ?? '',
+    creditLimit: r.creditLimit ?? '',
+    creditStatus: r.creditStatus || 'N',
+    paymentTermImport: r.paymentTermImport ?? 'TT',
+    incoterm: r.incoterm ?? 'FOB',
     isActive: r.isActive,
   };
 }
@@ -256,6 +339,7 @@ export function BasePartnerMasterView() {
   const [draft, setDraft] = useState<Draft>(() => emptyDraft());
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [grades, setGrades] = useState<CustomerGradeDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [colPickerOpen, setColPickerOpen] = useState(false);
@@ -296,6 +380,23 @@ export function BasePartnerMasterView() {
   }, [reload]);
 
   useEffect(() => {
+    let alive = true;
+    void (async () => {
+      try {
+        const r = await listCustomerGrades({ page: 1, pageSize: 200, isActive: true });
+        if (!alive) return;
+        setGrades(r.items);
+      } catch {
+        if (!alive) return;
+        setGrades([]);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!colPickerOpen) return;
     const onDoc = (e: MouseEvent) => {
       const el = colPickerWrapRef.current;
@@ -317,7 +418,7 @@ export function BasePartnerMasterView() {
       if (activeFilter === 'inactive' && r.isActive) return false;
       if (!k) return true;
       const blob =
-        `${r.code} ${r.name} ${partnerTypeLabel(r.partnerType)} ${r.contactName ?? ''} ${r.phone ?? ''} ${r.mobile ?? ''} ${r.email ?? ''} ${r.address ?? ''} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
+        `${r.code} ${r.name} ${partnerTypeLabel(r.partnerType)} ${r.taxId ?? ''} ${r.customerGradeLabel} ${r.remark ?? ''} ${r.contactName ?? ''} ${r.phone ?? ''} ${r.mobile ?? ''} ${r.email ?? ''} ${r.address ?? ''} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
       return blob.includes(k);
     });
   }, [rows, keyword, typeFilter, activeFilter]);
@@ -338,6 +439,18 @@ export function BasePartnerMasterView() {
       if (sk === 'mobile') return mult * (a.mobile ?? '').localeCompare(b.mobile ?? '', 'zh-Hant');
       if (sk === 'email') return mult * (a.email ?? '').localeCompare(b.email ?? '', 'zh-Hant');
       if (sk === 'address') return mult * (a.address ?? '').localeCompare(b.address ?? '', 'zh-Hant');
+      if (sk === 'remark') return mult * (a.remark ?? '').localeCompare(b.remark ?? '', 'zh-Hant');
+      if (sk === 'taxId') return mult * (a.taxId ?? '').localeCompare(b.taxId ?? '', 'en');
+      if (sk === 'paymentTermDomestic')
+        return mult * (a.paymentTermDomestic ?? '').localeCompare(b.paymentTermDomestic ?? '', 'en');
+      if (sk === 'customerGradeLabel')
+        return mult * (a.customerGradeLabel ?? '').localeCompare(b.customerGradeLabel ?? '', 'zh-Hant');
+      if (sk === 'creditStatus') return mult * (a.creditStatus ?? '').localeCompare(b.creditStatus ?? '', 'en');
+      if (sk === 'creditLimit') {
+        const na = Number(a.creditLimit ?? 0);
+        const nb = Number(b.creditLimit ?? 0);
+        return mult * (na - nb);
+      }
       if (sk === 'createdAt' || sk === 'updatedAt') {
         return mult * String(a[sk as keyof PartnerRow]).localeCompare(String(b[sk as keyof PartnerRow]));
       }
@@ -568,19 +681,27 @@ export function BasePartnerMasterView() {
     setSaving(true);
     setError(null);
     try {
-      const body = {
-        code,
-        name,
+      const creditNum = draft.creditLimit.trim() === '' ? undefined : Number(draft.creditLimit);
+      const creditLimit = creditNum !== undefined && Number.isFinite(creditNum) ? creditNum : 0;
+      const common = {
         partnerType: draft.partnerType,
         contactName: draft.contactName.trim() || null,
         phone: draft.phone.trim() || null,
         mobile: draft.mobile.trim() || null,
         email: draft.email.trim() || null,
         address: draft.address.trim() || null,
+        remark: draft.remark.trim() || null,
+        taxId: draft.taxId.trim() || null,
+        paymentTermDomestic: draft.paymentTermDomestic,
+        customerGradeId: draft.customerGradeId.trim() || null,
+        creditLimit,
+        creditStatus: draft.creditStatus,
+        paymentTermImport: draft.paymentTermImport,
+        incoterm: draft.incoterm,
         isActive: draft.isActive,
       };
       if (creating) {
-        const dto = await createPartner(body);
+        const dto = await createPartner({ code, name, ...common });
         const row = dtoToRow(dto);
         setRows((prev) => [...prev, row].sort((a, b) => a.code.localeCompare(b.code, 'en')));
         setCreating(false);
@@ -588,7 +709,7 @@ export function BasePartnerMasterView() {
         setSelectedId(row.id);
         setFocusedRowId(row.id);
       } else if (selectedId && selected) {
-        const dto = await updatePartner(selectedId, body);
+        const dto = await updatePartner(selectedId, { name, ...common });
         setRows((prev) => prev.map((r) => (r.id === selectedId ? dtoToRow(dto) : r)));
         setEditing(false);
       }
@@ -646,6 +767,42 @@ export function BasePartnerMasterView() {
         return (
           <td key={key} className="max-w-[220px] truncate px-2 py-2.5 text-xs text-muted-foreground">
             {row.address?.trim() ? row.address : '\u2014'}
+          </td>
+        );
+      case 'remark':
+        return (
+          <td key={key} className="max-w-[160px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.remark?.trim() ? row.remark : '\u2014'}
+          </td>
+        );
+      case 'taxId':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            {row.taxId?.trim() ? row.taxId : '\u2014'}
+          </td>
+        );
+      case 'paymentTermDomestic':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 font-mono text-xs text-muted-foreground">
+            {row.paymentTermDomestic || '\u2014'}
+          </td>
+        );
+      case 'customerGradeLabel':
+        return (
+          <td key={key} className="max-w-[140px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {row.customerGradeLabel?.trim() ? row.customerGradeLabel : '\u2014'}
+          </td>
+        );
+      case 'creditStatus':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {CREDIT_STATUS_OPTIONS.find((o) => o.value === row.creditStatus)?.label ?? row.creditStatus}
+          </td>
+        );
+      case 'creditLimit':
+        return (
+          <td key={key} className="max-w-[100px] truncate px-2 py-2.5 text-xs tabular-nums text-muted-foreground">
+            {row.creditLimit != null && String(row.creditLimit).trim() !== '' ? row.creditLimit : '\u2014'}
           </td>
         );
       case 'isActive':
@@ -1132,6 +1289,126 @@ export function BasePartnerMasterView() {
                   <Label htmlFor={`${titleId}-active`} className="font-normal">
                     啟用
                   </Label>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-border/60 bg-muted/5 p-4 dark:bg-muted/10">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                備註與財務條件（LITE-CORE）
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor={`${titleId}-remark`}>備註</Label>
+                  <Input
+                    id={`${titleId}-remark`}
+                    value={formValues.remark}
+                    onChange={(e) => setDraft((d) => ({ ...d, remark: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={!editing && !creating ? readonlyFieldCls : undefined}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-tax`}>統一編號</Label>
+                  <Input
+                    id={`${titleId}-tax`}
+                    value={formValues.taxId}
+                    onChange={(e) => setDraft((d) => ({ ...d, taxId: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={!editing && !creating ? readonlyFieldCls : undefined}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-cg`}>客戶等級</Label>
+                  <select
+                    id={`${titleId}-cg`}
+                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                    value={formValues.customerGradeId}
+                    disabled={!editing && !creating}
+                    onChange={(e) => setDraft((d) => ({ ...d, customerGradeId: e.target.value }))}
+                  >
+                    <option value="">（未指定）</option>
+                    {grades.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.code} — {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-payd`}>國內付款條件</Label>
+                  <select
+                    id={`${titleId}-payd`}
+                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                    value={formValues.paymentTermDomestic}
+                    disabled={!editing && !creating}
+                    onChange={(e) => setDraft((d) => ({ ...d, paymentTermDomestic: e.target.value }))}
+                  >
+                    {PAY_DOM_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-cr`}>信用額度（0=不限制）</Label>
+                  <Input
+                    id={`${titleId}-cr`}
+                    inputMode="decimal"
+                    value={formValues.creditLimit}
+                    onChange={(e) => setDraft((d) => ({ ...d, creditLimit: e.target.value }))}
+                    readOnly={!editing && !creating}
+                    className={!editing && !creating ? readonlyFieldCls : 'font-mono text-xs'}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-cs`}>信用狀態</Label>
+                  <select
+                    id={`${titleId}-cs`}
+                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                    value={formValues.creditStatus}
+                    disabled={!editing && !creating}
+                    onChange={(e) => setDraft((d) => ({ ...d, creditStatus: e.target.value }))}
+                  >
+                    {CREDIT_STATUS_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-pim`}>進口付款條件</Label>
+                  <select
+                    id={`${titleId}-pim`}
+                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                    value={formValues.paymentTermImport}
+                    disabled={!editing && !creating}
+                    onChange={(e) => setDraft((d) => ({ ...d, paymentTermImport: e.target.value }))}
+                  >
+                    {PAY_IMP_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${titleId}-inco`}>貿易條件</Label>
+                  <select
+                    id={`${titleId}-inco`}
+                    className={cn(selectCls, !editing && !creating && readonlyFieldCls)}
+                    value={formValues.incoterm}
+                    disabled={!editing && !creating}
+                    onChange={(e) => setDraft((d) => ({ ...d, incoterm: e.target.value }))}
+                  >
+                    {INCOTERM_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </section>

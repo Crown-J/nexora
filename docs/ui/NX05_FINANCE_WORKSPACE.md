@@ -1,8 +1,8 @@
 # NX05_FINANCE_WORKSPACE — 財務作業工作台畫面規劃
 
-> 路由：/dashboard/nx05/workspace
+> 路由：/dashboard/finance/workspace
 > 最低版本：LITE
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：F-W01~F-W07
 
 ---
@@ -592,7 +592,7 @@ AP 準時付款率 ████████░░   85%  目標 > 95%  ⚠️
 ### 倉管組長操作介面（NX03 → 現金申報）
 
 ```
-路由：/dashboard/nx03/cash-report
+路由：/dashboard/inventory/cash-report
 
 申報昨日收款：
 
@@ -659,7 +659,7 @@ AP 準時付款率 ████████░░   85%  目標 > 95%  ⚠️
 ## 十五、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx05/workspace/
+features/finance/workspace/
 ├── FinanceWorkspacePage.tsx        ← 主頁面
 ├── KpiBar/
 │   └── FinanceKpiBar.tsx           ← PRO only

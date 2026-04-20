@@ -1,82 +1,82 @@
 /**
- * File: apps/nx-ui/src/features/nx00/partner/types.ts
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - NX00-UI-NX00-PARTNER-TYPES-001：Partner Types（SSOT）
+ * Partner Types（SSOT，對齊 nx01_partners API）
  */
 
-/** 新制 C/S/T/V/B；舊資料 BOTH / CUST / SUP */
 export type PartnerType = 'C' | 'S' | 'T' | 'V' | 'B' | 'BOTH' | 'CUST' | 'SUP';
 
 export type PartnerDto = {
-    id: string;
-    code: string;
-    name: string;
-
-    partnerType: PartnerType;
-
-    contactName: string | null;
-    phone: string | null;
-    mobile: string | null;
-    email: string | null;
-    address: string | null;
-    remark: string | null;
-
-    isActive: boolean;
-
-    createdAt: string;
-    createdBy: string | null;
-    createdByUsername?: string | null;
-    createdByName?: string | null;
-
-    updatedAt: string | null;
-    updatedBy: string | null;
-    updatedByUsername?: string | null;
-    updatedByName?: string | null;
+  id: string;
+  code: string;
+  name: string;
+  partnerType: PartnerType;
+  contactName: string | null;
+  phone: string | null;
+  mobile: string | null;
+  email: string | null;
+  address: string | null;
+  remark: string | null;
+  isActive: boolean;
+  taxId: string | null;
+  paymentTermDomestic: string;
+  customerGradeId: string | null;
+  customerGradeCode?: string | null;
+  customerGradeName?: string | null;
+  creditLimit: string | null;
+  creditStatus: string;
+  paymentTermImport: string | null;
+  incoterm: string | null;
+  createdAt: string;
+  createdBy: string | null;
+  createdByUsername?: string | null;
+  createdByName?: string | null;
+  updatedAt: string;
+  updatedBy: string | null;
+  updatedByUsername?: string | null;
+  updatedByName?: string | null;
 };
 
 export type PagedResult<T> = {
-    items: T[];
-    page: number;
-    pageSize: number;
-    total: number;
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
 };
 
 export type CreatePartnerBody = {
-    code: string;
-    name: string;
-
-    partnerType?: PartnerType;
-
-    contactName?: string | null;
-    phone?: string | null;
-    mobile?: string | null;
-    email?: string | null;
-    address?: string | null;
-    remark?: string | null;
-
-    isActive?: boolean;
-
-    statusCode?: string;
-    remark2?: string | null;
+  code: string;
+  name: string;
+  partnerType?: PartnerType;
+  contactName?: string | null;
+  phone?: string | null;
+  mobile?: string | null;
+  email?: string | null;
+  address?: string | null;
+  remark?: string | null;
+  taxId?: string | null;
+  paymentTermDomestic?: string;
+  customerGradeId?: string | null;
+  creditLimit?: number;
+  creditStatus?: string;
+  paymentTermImport?: string;
+  incoterm?: string;
+  isActive?: boolean;
 };
 
 export type UpdatePartnerBody = {
-    code?: string;
-    name?: string;
-
-    partnerType?: PartnerType;
-
-    contactName?: string | null;
-    phone?: string | null;
-    mobile?: string | null;
-    email?: string | null;
-    address?: string | null;
-    remark?: string | null;
-
-    isActive?: boolean;
-
-    statusCode?: string;
-    remark2?: string | null;
+  name?: string;
+  partnerType?: PartnerType;
+  contactName?: string | null;
+  phone?: string | null;
+  mobile?: string | null;
+  email?: string | null;
+  address?: string | null;
+  remark?: string | null;
+  taxId?: string | null;
+  paymentTermDomestic?: string;
+  customerGradeId?: string | null;
+  creditLimit?: number;
+  creditStatus?: string;
+  paymentTermImport?: string | null;
+  incoterm?: string | null;
+  isActive?: boolean;
 };

@@ -1,13 +1,21 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsIn,
+  IsInt,
+  IsNumber,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
+
+const RETURN_POLICIES = ['F', 'S', 'R', 'N', 'W'] as const;
+const PART_TYPES = ['A', 'B', 'C', 'D'] as const;
 
 export class ListPartQueryDto extends Nx01ListQueryDto {}
 
@@ -40,6 +48,36 @@ export class CreatePartDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
+  secCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg1?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg2?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg3?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg4?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg5?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(15)
   countryId?: string;
 
@@ -47,6 +85,12 @@ export class CreatePartDto {
   @IsString()
   @MaxLength(15)
   partGroupId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  @IsIn(PART_TYPES)
+  partType?: string;
 
   @IsOptional()
   @IsString()
@@ -62,6 +106,43 @@ export class CreatePartDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  @IsIn(RETURN_POLICIES)
+  returnPolicy?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(600)
+  warrantyMonths?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceA?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceB?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceC?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceD?: number;
 }
 
 export class UpdatePartDto {
@@ -70,6 +151,62 @@ export class UpdatePartDto {
   @MinLength(1)
   @MaxLength(200)
   name?: string;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isOem?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  secCode?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg1?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg2?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg3?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg4?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  seg5?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  countryId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  partBrandId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  partGroupId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  @IsIn(PART_TYPES)
+  partType?: string | null;
 
   @IsOptional()
   @IsString()
@@ -85,4 +222,41 @@ export class UpdatePartDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  @IsIn(RETURN_POLICIES)
+  returnPolicy?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(600)
+  warrantyMonths?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceA?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceB?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceC?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  priceD?: number;
 }

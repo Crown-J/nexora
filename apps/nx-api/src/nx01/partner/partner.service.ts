@@ -23,12 +23,16 @@ const SEL = {
   isActive: true,
   taxId: true,
   paymentTermDomestic: true,
-  creditStatus: true,
+  paymentTermImport: true,
+  incoterm: true,
   customerGradeId: true,
+  creditLimit: true,
+  creditStatus: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  customerGrade: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01PartnerGetPayload<{ select: typeof SEL }>;
@@ -85,7 +89,7 @@ export class PartnerService {
     const tenantId = requireTenantId(user);
     const code = dto.code.trim();
     const dup = await this.prisma.nx01Partner.findFirst({
-      where: { code: { equals: code, mode: 'insensitive' } },
+      where: { tenantId, code: { equals: code, mode: 'insensitive' } },
       select: { id: true },
     });
     if (dup) throw new ConflictException('Partner code already exists');
@@ -102,6 +106,12 @@ export class PartnerService {
         address: dto.address?.trim() || null,
         remark: dto.remark?.trim() || null,
         taxId: dto.taxId?.trim() || null,
+        paymentTermDomestic: dto.paymentTermDomestic?.trim() || 'NET30',
+        customerGradeId: dto.customerGradeId?.trim() || null,
+        creditLimit: dto.creditLimit ?? 0,
+        creditStatus: dto.creditStatus?.trim() || 'N',
+        paymentTermImport: dto.paymentTermImport?.trim() || 'TT',
+        incoterm: dto.incoterm?.trim() || 'FOB',
         isActive: dto.isActive ?? true,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -133,7 +143,23 @@ export class PartnerService {
         ...(dto.partnerType !== undefined ? { partnerType: dto.partnerType } : {}),
         ...(dto.contactName !== undefined ? { contactName: dto.contactName } : {}),
         ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
+        ...(dto.mobile !== undefined ? { mobile: dto.mobile } : {}),
+        ...(dto.email !== undefined ? { email: dto.email } : {}),
+        ...(dto.address !== undefined ? { address: dto.address } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
+        ...(dto.taxId !== undefined ? { taxId: dto.taxId?.trim() || null } : {}),
+        ...(dto.paymentTermDomestic !== undefined
+          ? { paymentTermDomestic: dto.paymentTermDomestic.trim() }
+          : {}),
+        ...(dto.customerGradeId !== undefined
+          ? { customerGradeId: dto.customerGradeId?.trim() || null }
+          : {}),
+        ...(dto.creditLimit !== undefined ? { creditLimit: dto.creditLimit } : {}),
+        ...(dto.creditStatus !== undefined ? { creditStatus: dto.creditStatus.trim() } : {}),
+        ...(dto.paymentTermImport !== undefined
+          ? { paymentTermImport: dto.paymentTermImport?.trim() || null }
+          : {}),
+        ...(dto.incoterm !== undefined ? { incoterm: dto.incoterm?.trim() || null } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,
       },
@@ -179,6 +205,12 @@ export class PartnerService {
   }
 
   private mapRow(row: Row) {
-    return { ...row };
+    const { customerGrade, creditLimit, ...scalar } = row;
+    return {
+      ...scalar,
+      creditLimit: creditLimit == null ? null : String(creditLimit),
+      customerGradeCode: customerGrade?.code ?? null,
+      customerGradeName: customerGrade?.name ?? null,
+    };
   }
 }

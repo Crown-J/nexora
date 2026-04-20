@@ -21,19 +21,32 @@ export type RoleDto = {
   updatedByName: string | null;
 };
 
+const BASE = '/nx01/roles';
+
+function normalizePaged<T>(raw: unknown): PagedResult<T> {
+  const j = raw as Record<string, unknown>;
+  const items = (Array.isArray(j.items) ? j.items : Array.isArray(j.rows) ? j.rows : []) as T[];
+  return {
+    items,
+    page: Number(j.page ?? 1),
+    pageSize: Number(j.pageSize ?? 20),
+    total: Number(j.total ?? 0),
+  };
+}
+
 export async function listRoles(params: {
   q?: string;
   page?: number;
   pageSize?: number;
 }): Promise<PagedResult<RoleDto>> {
   const qs = buildQueryString({
-    q: params.q?.trim() || undefined,
+    search: params.q?.trim() || undefined,
     page: params.page != null ? String(params.page) : undefined,
     pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
   });
-  const res = await apiFetch(`/role${qs}`, { method: 'GET' });
+  const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_role_list');
-  return res.json() as Promise<PagedResult<RoleDto>>;
+  return normalizePaged<RoleDto>(await res.json());
 }
 
 export async function createRole(body: {
@@ -44,7 +57,7 @@ export async function createRole(body: {
   isActive?: boolean;
   sortNo?: number;
 }): Promise<RoleDto> {
-  const res = await apiFetch('/role', {
+  const res = await apiFetch(BASE, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -62,8 +75,8 @@ export async function updateRole(
     sortNo?: number;
   },
 ): Promise<RoleDto> {
-  const res = await apiFetch(`/role/${encodeURIComponent(id)}`, {
-    method: 'PUT',
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
     body: JSON.stringify(body),
   });
   await assertOk(res, 'nxui_base_role_update');
@@ -71,7 +84,7 @@ export async function updateRole(
 }
 
 export async function setRoleActive(id: string, isActive: boolean): Promise<RoleDto> {
-  const res = await apiFetch(`/role/${encodeURIComponent(id)}/active`, {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });

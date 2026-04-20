@@ -1,7 +1,7 @@
 # SYS_LAYOUT — 共用版型規則
 
 > 適用範圍：所有模組頁面
-> 最後更新：2026-04-13
+> 最後更新：2026-04-20
 > 歸納來源：所有 NX 模組畫面規劃文件
 
 ---
@@ -10,21 +10,21 @@
 
 ```
 /dashboard                          首頁儀表板
-/dashboard/nx02/domestic            國內採購作業
-/dashboard/nx02/import              國外採購作業
-/dashboard/nx02/special             特殊採購作業
-/dashboard/nx02/product             產品管理
-/dashboard/nx02/vendor              廠商管理
-/dashboard/inventory/workspace      庫存作業工作台
-/dashboard/inventory/setting        庫位管理 + 安全量建議
-/dashboard/nx04/domestic            國內銷售作業
-/dashboard/nx04/export              國外銷售作業
-/dashboard/nx04/customer            客戶管理
-/dashboard/nx05/workspace           財務作業工作台
-/dashboard/nx06/workspace           物流作業工作台
-/dashboard/nx07/workspace           人資作業工作台
-/dashboard/nx08/workspace           報表分析工作台
-/dashboard/nx09/workspace           知識管理工作台
+/dashboard/purchase/domestic         國內採購作業
+/dashboard/purchase/import           國外採購作業
+/dashboard/purchase/special          特殊採購作業
+/dashboard/purchase/product          產品管理
+/dashboard/purchase/vendor           廠商管理
+/dashboard/inventory/workspace       庫存作業工作台
+/dashboard/inventory/setting         庫位管理 + 安全量建議
+/dashboard/sale/domestic             國內銷售作業
+/dashboard/sale/export               國外銷售作業
+/dashboard/sale/customer             客戶管理
+/dashboard/finance/workspace         財務作業工作台
+/dashboard/logistics/workspace       物流作業工作台
+/dashboard/hr/workspace              人資作業工作台
+/dashboard/report/workspace          報表分析工作台
+/dashboard/knowledge/workspace       知識管理工作台
 
 手機版專屬路由：
 /m/inventory                        倉管手機版
@@ -155,9 +155,9 @@
 
 | 模組 | 子作業順序 |
 |------|-----------|
-| NX02 採購 | 國內 ← → 國外 ← → 特殊採購 ← → 產品管理 ← → 廠商管理 |
-| NX03 庫存 | 作業工作台 ← → 庫位管理 |
-| NX04 銷售 | 國內 ← → 國外 ← → 客戶管理 |
+| 採購管理 | 國內 ← → 國外 ← → 特殊採購 ← → 產品管理 ← → 廠商管理 |
+| 庫存管理 | 作業工作台 ← → 庫位管理 |
+| 銷售管理 | 國內 ← → 國外 ← → 客戶管理 |
 
 ### 層級三：流程節點
 
@@ -677,7 +677,7 @@ NX05 財務模組：
 
 各模組 Alt+1~9 對應節點：
 
-### NX02 採購
+### 採購管理
 
 | 快捷鍵 | 國內採購 | 國外採購 | 特殊採購 |
 |--------|---------|---------|---------|
@@ -691,7 +691,7 @@ NX05 財務模組：
 | `Alt+8` | 完成 | 退貨 | |
 | `Alt+9` | | 費用攤分 | |
 
-### NX03 庫存
+### 庫存管理
 
 | 快捷鍵 | 入庫 Tab | 出庫 Tab | 盤點 Tab |
 |--------|---------|---------|---------|
@@ -702,7 +702,7 @@ NX05 財務模組：
 | `Alt+5` | 分貨上架 | 完成 | 完成 |
 | `Alt+6` | 完成 | | |
 
-### NX04 銷售
+### 銷售管理
 
 | 快捷鍵 | 國內銷售 | 國外銷售 | 客戶管理 |
 |--------|---------|---------|---------|
@@ -716,7 +716,7 @@ NX05 財務模組：
 | `Alt+8` | 銷退 | 國際物流 | |
 | `Alt+9` | 保固 | 完成 | |
 
-### NX05 財務
+### 財務管理
 
 | 快捷鍵 | Tab |
 |--------|-----|
@@ -727,7 +727,7 @@ NX05 財務模組：
 | `Alt+5` | 折讓 |
 | `Alt+6` | 關帳 |
 
-### NX06 物流
+### 物流管理
 
 | 快捷鍵 | Tab |
 |--------|-----|
@@ -736,7 +736,7 @@ NX05 財務模組：
 | `Alt+3` | 已完成 |
 | `Alt+4` | 國際物流 |
 
-### NX07 人資
+### 人資管理
 
 | 快捷鍵 | Tab |
 |--------|-----|
@@ -747,7 +747,7 @@ NX05 財務模組：
 | `Alt+5` | 訓練 |
 | `Alt+6` | 人事 |
 
-### NX09 知識管理
+### 知識管理
 
 | 快捷鍵 | Tab |
 |--------|-----|

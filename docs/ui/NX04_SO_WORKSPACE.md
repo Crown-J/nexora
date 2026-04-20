@@ -1,8 +1,8 @@
 # NX04_SO_WORKSPACE — 銷貨作業工作台畫面規劃
 
-> 路由：/dashboard/nx04/workspace
+> 路由：/dashboard/sale/domestic
 > 最低版本：LITE
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 參考設計：C:\nexora\demo\sales_workspace_v1
 > 對應流程：S-W01_國內銷售主流程.md
 
@@ -649,7 +649,7 @@
 ## 八、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx04/workspace/
+features/sales/workspace/
 ├── SalesWorkspacePage.tsx          ← 主頁面，組合所有元件
 ├── KpiBar/
 │   ├── KpiBar.tsx                  ← PRO only

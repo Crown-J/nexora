@@ -17,6 +17,15 @@ export type PartnerDto = {
   address: string | null;
   remark: string | null;
   isActive: boolean;
+  taxId: string | null;
+  paymentTermDomestic: string;
+  customerGradeId: string | null;
+  customerGradeCode?: string | null;
+  customerGradeName?: string | null;
+  creditLimit: string | null;
+  creditStatus: string;
+  paymentTermImport: string | null;
+  incoterm: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername: string | null;
@@ -37,11 +46,17 @@ export type CreatePartnerBody = {
   email?: string | null;
   address?: string | null;
   remark?: string | null;
+  taxId?: string | null;
+  paymentTermDomestic?: string;
+  customerGradeId?: string | null;
+  creditLimit?: number;
+  creditStatus?: string;
+  paymentTermImport?: string;
+  incoterm?: string;
   isActive?: boolean;
 };
 
 export type UpdatePartnerBody = {
-  code?: string;
   name?: string;
   partnerType?: PartnerType;
   contactName?: string | null;
@@ -50,8 +65,28 @@ export type UpdatePartnerBody = {
   email?: string | null;
   address?: string | null;
   remark?: string | null;
+  taxId?: string | null;
+  paymentTermDomestic?: string;
+  customerGradeId?: string | null;
+  creditLimit?: number;
+  creditStatus?: string;
+  paymentTermImport?: string | null;
+  incoterm?: string | null;
   isActive?: boolean;
 };
+
+const BASE = '/nx01/partners';
+
+function normalizePagedPartner(raw: unknown): PagedResult<PartnerDto> {
+  const j = raw as Record<string, unknown>;
+  const items = (Array.isArray(j.items) ? j.items : Array.isArray(j.rows) ? j.rows : []) as PartnerDto[];
+  return {
+    items,
+    page: Number(j.page ?? 1),
+    pageSize: Number(j.pageSize ?? 20),
+    total: Number(j.total ?? 0),
+  };
+}
 
 export async function listPartners(params: {
   q?: string;
@@ -60,18 +95,18 @@ export async function listPartners(params: {
   pageSize?: number;
 }): Promise<PagedResult<PartnerDto>> {
   const qs = buildQueryString({
-    q: params.q?.trim() || undefined,
+    search: params.q?.trim() || undefined,
     partnerType: params.partnerType,
     page: params.page != null ? String(params.page) : undefined,
     pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
   });
-  const res = await apiFetch(`/partner${qs}`, { method: 'GET' });
+  const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_partner_list');
-  return res.json() as Promise<PagedResult<PartnerDto>>;
+  return normalizePagedPartner(await res.json());
 }
 
 export async function createPartner(body: CreatePartnerBody): Promise<PartnerDto> {
-  const res = await apiFetch('/partner', {
+  const res = await apiFetch(BASE, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -80,8 +115,8 @@ export async function createPartner(body: CreatePartnerBody): Promise<PartnerDto
 }
 
 export async function updatePartner(id: string, body: UpdatePartnerBody): Promise<PartnerDto> {
-  const res = await apiFetch(`/partner/${encodeURIComponent(id)}`, {
-    method: 'PUT',
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
     body: JSON.stringify(body),
   });
   await assertOk(res, 'nxui_base_partner_update');
@@ -89,7 +124,7 @@ export async function updatePartner(id: string, body: UpdatePartnerBody): Promis
 }
 
 export async function setPartnerActive(id: string, isActive: boolean): Promise<PartnerDto> {
-  const res = await apiFetch(`/partner/${encodeURIComponent(id)}/active`, {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });

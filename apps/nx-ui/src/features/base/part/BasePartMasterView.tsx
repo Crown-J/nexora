@@ -52,7 +52,7 @@ import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRo
 
 const PAGE_SIZE = 10;
 const LIST_COL_PREF_KEY = 'base.part.listcols';
-const LIST_COL_PREF_VERSION = 4;
+const LIST_COL_PREF_VERSION = 5;
 
 type ListColKey =
   | 'sku'
@@ -71,6 +71,8 @@ type ListColKey =
   | 'countryDisplay'
   | 'spec'
   | 'uom'
+  | 'returnPolicy'
+  | 'warrantyMonths'
   | 'isActive'
   | 'createdAt'
   | 'createdByPerson'
@@ -99,6 +101,8 @@ const ALL_LIST_COLS: ListColKey[] = [
   'countryDisplay',
   'spec',
   'uom',
+  'returnPolicy',
+  'warrantyMonths',
   'isActive',
   'createdAt',
   'createdByPerson',
@@ -123,6 +127,8 @@ const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
   countryDisplay: { label: '產地' },
   spec: { label: '規格' },
   uom: { label: '單位' },
+  returnPolicy: { label: '退貨政策' },
+  warrantyMonths: { label: '保固(月)' },
   isActive: { label: '啟用' },
   createdAt: { label: '建立時間' },
   createdByPerson: { label: '建立人員' },
@@ -153,6 +159,19 @@ const PART_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'C', label: 'C 組合型' },
   { value: 'D', label: 'D 拆解型' },
 ];
+
+const RETURN_POLICY_OPTIONS: { value: string; label: string }[] = [
+  { value: 'S', label: 'S 標準退貨' },
+  { value: 'F', label: 'F 自由退貨' },
+  { value: 'R', label: 'R 限制退貨' },
+  { value: 'N', label: 'N 不可退貨' },
+  { value: 'W', label: 'W 保固處理' },
+];
+
+function returnPolicyLabel(code: string | null | undefined): string {
+  const c = String(code ?? '').trim().toUpperCase();
+  return RETURN_POLICY_OPTIONS.find((o) => o.value === c)?.label ?? c;
+}
 
 function partTypeLabel(t: string | null | undefined): string {
   if (!t) return '';
@@ -192,6 +211,12 @@ type Draft = {
   seg5: string;
   countryId: string | null;
   partGroupId: string | null;
+  returnPolicy: string;
+  warrantyMonths: number;
+  priceA: string;
+  priceB: string;
+  priceC: string;
+  priceD: string;
 };
 
 function emptyDraft(): Draft {
@@ -213,6 +238,12 @@ function emptyDraft(): Draft {
     seg5: '',
     countryId: null,
     partGroupId: null,
+    returnPolicy: 'S',
+    warrantyMonths: 0,
+    priceA: '',
+    priceB: '',
+    priceC: '',
+    priceD: '',
   };
 }
 
@@ -235,6 +266,12 @@ function fromRow(r: BasePartRow): Draft {
     seg5: r.seg5 ?? '',
     countryId: r.countryId,
     partGroupId: r.partGroupId,
+    returnPolicy: r.returnPolicy ?? 'S',
+    warrantyMonths: r.warrantyMonths ?? 0,
+    priceA: r.priceA ?? '',
+    priceB: r.priceB ?? '',
+    priceC: r.priceC ?? '',
+    priceD: r.priceD ?? '',
   };
 }
 
@@ -267,6 +304,13 @@ function dtoToRow(p: PartDto): BasePartRow {
     partGroupId: p.partGroupId ?? null,
     partGroupCode: p.partGroupCode ?? null,
     partGroupName: p.partGroupName ?? null,
+    returnPolicy: p.returnPolicy ?? 'S',
+    warrantyMonths: p.warrantyMonths ?? 0,
+    priceA: p.priceA ?? null,
+    priceB: p.priceB ?? null,
+    priceC: p.priceC ?? null,
+    priceD: p.priceD ?? null,
+    priceUpdatedAt: p.priceUpdatedAt ?? null,
     createdAt: p.createdAt,
     createdBy: p.createdBy ?? null,
     createdByUsername: p.createdByUsername ?? null,
@@ -427,7 +471,7 @@ export function BasePartMasterView() {
       if (oemFilter === 'aftermarket' && r.isOem) return false;
       if (k) {
         const blob =
-          `${r.sku} ${r.codeRuleName ?? ''} ${r.name} ${r.spec} ${brandLabel(r)} ${partTypeLabel(r.partType)} ${r.secCode ?? ''} ${countryDisplay(r)} ${partGroupDisplay(r)} ${r.seg1 ?? ''} ${r.seg2 ?? ''} ${r.seg3 ?? ''} ${r.seg4 ?? ''} ${r.seg5 ?? ''} ${r.unit} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
+          `${r.sku} ${r.codeRuleName ?? ''} ${r.name} ${r.spec} ${brandLabel(r)} ${partTypeLabel(r.partType)} ${r.secCode ?? ''} ${countryDisplay(r)} ${partGroupDisplay(r)} ${r.seg1 ?? ''} ${r.seg2 ?? ''} ${r.seg3 ?? ''} ${r.seg4 ?? ''} ${r.seg5 ?? ''} ${r.unit} ${returnPolicyLabel(r.returnPolicy)} ${r.warrantyMonths ?? ''} ${r.priceA ?? ''} ${r.priceB ?? ''} ${r.createdByPerson} ${r.updatedByPerson}`.toLowerCase();
         if (!blob.includes(k)) return false;
       }
       return true;
@@ -474,6 +518,10 @@ export function BasePartMasterView() {
           return mult * (a.spec ?? '').localeCompare(b.spec ?? '', 'zh-Hant');
         case 'uom':
           return mult * a.unit.localeCompare(b.unit, 'zh-Hant');
+        case 'returnPolicy':
+          return mult * returnPolicyLabel(a.returnPolicy).localeCompare(returnPolicyLabel(b.returnPolicy), 'zh-Hant');
+        case 'warrantyMonths':
+          return mult * ((a.warrantyMonths ?? 0) - (b.warrantyMonths ?? 0));
         case 'isActive':
           return mult * ((a.isActive ? 1 : 0) - (b.isActive ? 1 : 0));
         case 'createdAt':
@@ -783,6 +831,12 @@ export function BasePartMasterView() {
         const t = s.trim();
         return t === '' ? null : t;
       };
+      const optPrice = (s: string): number | undefined => {
+        const t = s.trim();
+        if (t === '') return undefined;
+        const n = Number(t);
+        return Number.isFinite(n) ? n : undefined;
+      };
       const body = {
         code: sku,
         name: draft.name.trim() || sku,
@@ -800,6 +854,12 @@ export function BasePartMasterView() {
         seg5: trimOrNull(draft.seg5),
         countryId: draft.countryId,
         partGroupId: draft.partGroupId,
+        returnPolicy: draft.returnPolicy.trim() || 'S',
+        warrantyMonths: Number.isFinite(draft.warrantyMonths) ? draft.warrantyMonths : 0,
+        priceA: optPrice(draft.priceA),
+        priceB: optPrice(draft.priceB),
+        priceC: optPrice(draft.priceC),
+        priceD: optPrice(draft.priceD),
       };
       if (creating) {
         const dto = await createPart({ ...body, codeRuleId: crid });
@@ -910,6 +970,18 @@ export function BasePartMasterView() {
         return (
           <td key={key} className="max-w-[64px] truncate px-2 py-2.5 text-xs text-muted-foreground">
             {row.unit || '\u2014'}
+          </td>
+        );
+      case 'returnPolicy':
+        return (
+          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+            {cellDash(returnPolicyLabel(row.returnPolicy))}
+          </td>
+        );
+      case 'warrantyMonths':
+        return (
+          <td key={key} className="max-w-[72px] truncate px-2 py-2.5 text-xs tabular-nums text-muted-foreground">
+            {row.warrantyMonths ?? 0}
           </td>
         );
       case 'isActive':
@@ -1505,6 +1577,92 @@ export function BasePartMasterView() {
                       />
                       啟用
                     </label>
+                  </div>
+                </section>
+
+                <section className="space-y-3 rounded-xl border border-border/70 bg-muted/10 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">退貨、保固與建議售價（LITE-CORE）</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-retpol">退貨政策</Label>
+                      <select
+                        id="bp-retpol"
+                        className={cn(selectCls, !creating && !editing && readonlyFieldCls)}
+                        value={formValues.returnPolicy}
+                        disabled={!creating && !editing}
+                        onChange={(e) => setDraft((d) => ({ ...d, returnPolicy: e.target.value }))}
+                      >
+                        {RETURN_POLICY_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-warranty">保固月數</Label>
+                      <Input
+                        id="bp-warranty"
+                        type="number"
+                        min={0}
+                        max={600}
+                        value={formValues.warrantyMonths}
+                        onChange={(e) =>
+                          setDraft((d) => ({ ...d, warrantyMonths: Number(e.target.value) || 0 }))
+                        }
+                        readOnly={!creating && !editing}
+                        className={!creating && !editing ? readonlyFieldCls : undefined}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-pa">建議售價 A</Label>
+                      <Input
+                        id="bp-pa"
+                        inputMode="decimal"
+                        value={formValues.priceA}
+                        onChange={(e) => setDraft((d) => ({ ...d, priceA: e.target.value }))}
+                        readOnly={!creating && !editing}
+                        className={!creating && !editing ? readonlyFieldCls : 'font-mono text-xs'}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-pb">建議售價 B</Label>
+                      <Input
+                        id="bp-pb"
+                        inputMode="decimal"
+                        value={formValues.priceB}
+                        onChange={(e) => setDraft((d) => ({ ...d, priceB: e.target.value }))}
+                        readOnly={!creating && !editing}
+                        className={!creating && !editing ? readonlyFieldCls : 'font-mono text-xs'}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-pc">建議售價 C</Label>
+                      <Input
+                        id="bp-pc"
+                        inputMode="decimal"
+                        value={formValues.priceC}
+                        onChange={(e) => setDraft((d) => ({ ...d, priceC: e.target.value }))}
+                        readOnly={!creating && !editing}
+                        className={!creating && !editing ? readonlyFieldCls : 'font-mono text-xs'}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-pd">建議售價 D</Label>
+                      <Input
+                        id="bp-pd"
+                        inputMode="decimal"
+                        value={formValues.priceD}
+                        onChange={(e) => setDraft((d) => ({ ...d, priceD: e.target.value }))}
+                        readOnly={!creating && !editing}
+                        className={!creating && !editing ? readonlyFieldCls : 'font-mono text-xs'}
+                      />
+                    </div>
+                    {!creating && auditSource?.priceUpdatedAt ? (
+                      <p className="text-[11px] text-muted-foreground sm:col-span-2">
+                        建議售價最後更新：{formatDt(auditSource.priceUpdatedAt)}
+                      </p>
+                    ) : null}
                   </div>
                 </section>
               </div>

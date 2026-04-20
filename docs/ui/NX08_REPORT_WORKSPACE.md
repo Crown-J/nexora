@@ -1,8 +1,8 @@
 # NX08_REPORT_WORKSPACE — 報表分析工作台畫面規劃
 
-> 路由：/dashboard/nx08/workspace
+> 路由：/dashboard/report/workspace
 > 最低版本：PRO
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：R-W00~R-W07
 
 ---
@@ -726,7 +726,7 @@ TTQS 統計摘要：
 ## 十五、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx08/workspace/
+features/report/workspace/
 ├── ReportWorkspacePage.tsx         ← 主頁面（左側選單 + 右側內容）
 ├── Sidebar/
 │   └── ReportNavMenu.tsx           ← 群組式左側選單

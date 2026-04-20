@@ -1,8 +1,8 @@
 # NX02_PO_WORKSPACE — 採購作業工作台畫面規劃
 
-> 路由：/dashboard/nx02/workspace
+> 路由：/dashboard/purchase/domestic
 > 最低版本：LITE
-> 最後更新：2026-04-12
+> 最後更新：2026-04-20
 > 對應流程：P-W01_國內採購主流程.md
 > 參考設計：NX04_SO_WORKSPACE.md（相同作業版型）
 
@@ -629,7 +629,7 @@ PO-202604-00021
 ## 九、元件清單（供 Hank 拆分開發）
 
 ```
-features/nx02/workspace/
+features/purchase/workspace/
 ├── PurchaseWorkspacePage.tsx       ← 主頁面
 ├── KpiBar/
 │   ├── PurchaseKpiBar.tsx          ← PRO only，採購專屬 KPI
