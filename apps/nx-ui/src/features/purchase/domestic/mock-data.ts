@@ -32,14 +32,148 @@ export type MockVendor = {
   name: string;
   grade: string;
   brands: string[];
+  /** 對應 supplier 主檔聯絡人（Mock） */
+  contactName: string;
+  contactPhone: string;
 };
 
 export const MOCK_VENDORS: MockVendor[] = [
-  { id: 'v1', name: '德國汽配 GmbH', grade: 'A', brands: ['VAG', 'BOSCH', 'HELLA'] },
-  { id: 'v2', name: '台北馬勒', grade: 'A', brands: ['MANN', 'SHELL', 'CASTROL'] },
-  { id: 'v3', name: '新竹電容', grade: 'B', brands: ['MANN', 'HENGST'] },
-  { id: 'v4', name: '高雄汽配', grade: 'B', brands: ['BOSCH', 'CASTROL'] },
+  {
+    id: 'v1',
+    name: '德國汽配 GmbH',
+    grade: 'A',
+    brands: ['VAG', 'BOSCH', 'HELLA'],
+    contactName: 'Hans Schmidt',
+    contactPhone: '+49-89-00001234',
+  },
+  {
+    id: 'v2',
+    name: '台北馬勒',
+    grade: 'A',
+    brands: ['MANN', 'SHELL', 'CASTROL'],
+    contactName: '陳小姐',
+    contactPhone: '02-2500-8899',
+  },
+  {
+    id: 'v3',
+    name: '新竹電容',
+    grade: 'B',
+    brands: ['MANN', 'HENGST'],
+    contactName: '林主任',
+    contactPhone: '03-577-1020',
+  },
+  {
+    id: 'v4',
+    name: '高雄汽配',
+    grade: 'B',
+    brands: ['BOSCH', 'CASTROL'],
+    contactName: '張先生',
+    contactPhone: '07-721-5566',
+  },
 ];
+
+export type MockWarehouse = { id: string; label: string };
+
+export const MOCK_WAREHOUSES: MockWarehouse[] = [
+  { id: 'MW1', label: 'MW1 主倉' },
+  { id: 'HW1', label: 'HW1 總倉' },
+];
+
+export const MOCK_RFQ_CURRENCIES = ['TWD', 'USD', 'EUR'] as const;
+
+export type MockRfqStatusCode = 'D' | 'S' | 'R' | 'C' | 'V';
+
+export type MockRfqListRow = {
+  docNo: string;
+  date: string;
+  vendor: string;
+  itemCount: number;
+  currency: string;
+  validUntil: string;
+  status: MockRfqStatusCode;
+  createdBy: string;
+  createdAt: string;
+};
+
+export const MOCK_RFQS_INITIAL: MockRfqListRow[] = [
+  {
+    docNo: 'RF-202604-Z01-00003',
+    date: '2026-04-20',
+    vendor: '德國汽配 GmbH',
+    itemCount: 3,
+    currency: 'TWD',
+    validUntil: '2026-04-25',
+    status: 'D',
+    createdBy: '王採購',
+    createdAt: '2026-04-20 14:32',
+  },
+  {
+    docNo: 'RF-202604-Z01-00002',
+    date: '2026-04-18',
+    vendor: '台北馬勒',
+    itemCount: 2,
+    currency: 'TWD',
+    validUntil: '2026-04-23',
+    status: 'R',
+    createdBy: '王採購',
+    createdAt: '2026-04-18 10:15',
+  },
+  {
+    docNo: 'RF-202604-Z01-00001',
+    date: '2026-04-15',
+    vendor: '新竹電容',
+    itemCount: 1,
+    currency: 'TWD',
+    validUntil: '2026-04-20',
+    status: 'C',
+    createdBy: '陳採購',
+    createdAt: '2026-04-15 09:00',
+  },
+  {
+    docNo: 'RF-202604-Z01-00000',
+    date: '2026-04-10',
+    vendor: '高雄汽配',
+    itemCount: 1,
+    currency: 'TWD',
+    validUntil: '2026-04-12',
+    status: 'V',
+    createdBy: '王採購',
+    createdAt: '2026-04-10 16:00',
+  },
+];
+
+/** 新送出詢價單號（Mock，Z01 固定） */
+export function nextRfqDocNo(existing: readonly MockRfqListRow[]): string {
+  const prefix = 'RF-202604-Z01-';
+  let max = 0;
+  for (const r of existing) {
+    const m = r.docNo.match(/^RF-\d{6}-Z01-(\d{5})$/);
+    if (m) max = Math.max(max, parseInt(m[1]!, 10));
+  }
+  return `${prefix}${String(max + 1).padStart(5, '0')}`;
+}
+
+/** 登入使用者（Mock） */
+export const MOCK_RFQ_CREATOR_NAME = '王採購';
+
+export function demandGapToSafety(d: MockDemand): number {
+  return Math.max(0, d.safetyStock - d.currentStock);
+}
+
+/** TASK-0420-I 周轉率顏色（hex） */
+export function turnoverMonthsColorHex(months: number): string {
+  if (months <= 0) return '#E24B4A';
+  if (months > 3) return '#1D9E75';
+  if (months >= 1) return '#E8A020';
+  return '#E24B4A';
+}
+
+/** 緊湊列：0 顯示「已耗盡」，否則「N月」 */
+export function turnoverMonthsShortText(months: number): string {
+  if (months <= 0) return '已耗盡';
+  const m = Number.isInteger(months) ? String(months) : months.toFixed(1);
+  return `${m}月`;
+}
 
 /** 周轉文案（Mock） */
 export function turnoverMonthsLabel(months: number): string {
