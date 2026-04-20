@@ -33,6 +33,7 @@ export default function PurchaseHubPage() {
             title="產品管理"
             description="定價、安全量、品牌料號規則"
             Icon={Package}
+            href="/dashboard/purchase/product"
           />
           <HubLinkCard
             title="供應商管理"
