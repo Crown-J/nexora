@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
       { source: "/base/:path*", destination: "/dashboard/base/:path*", permanent: true },
       { source: "/user", destination: "/dashboard/base/users", permanent: true },
 
-      { source: "/dashboard/inventory", destination: "/dashboard/nx03/workspace", permanent: true },
       { source: "/dashboard/inventory/workspace", destination: "/dashboard/nx03/workspace", permanent: true },
       { source: "/dashboard/inventory/setting", destination: "/dashboard/nx03/warehouse-setting", permanent: true },
 
