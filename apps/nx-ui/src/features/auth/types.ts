@@ -9,8 +9,9 @@
 export type LoginRequest = {
   account: string;
   password: string;
-  /** 與登入頁「公司帳號」對應，送後端為 tenantCode，避免多租戶同帳號誤登 */
-  tenantCode?: string;
+  /** 與登入頁「公司帳號」對應，送後端為 tenantCode；自 2026-04-21 起改為必填，
+   *  對齊多租戶架構（同 userAccount 可在不同 tenant 共存）。 */
+  tenantCode: string;
 };
 
 export type LoginResponse = {

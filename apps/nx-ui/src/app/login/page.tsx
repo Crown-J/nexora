@@ -46,6 +46,7 @@ function buildUsernameForApi(fields: LoginFormFields): string {
 }
 
 function validateLoginForm(fields: LoginFormFields): string | null {
+  if (!fields.companyAccount.trim()) return '請輸入公司帳號';
   if (!fields.userAccount.trim()) return '請輸入使用者帳號';
   if (!fields.password) return '請輸入密碼';
   return null;
@@ -73,7 +74,7 @@ export default function LoginPage() {
       const result = await callLoginApi({
         account,
         password: normalized.password,
-        tenantCode: normalized.companyAccount || undefined,
+        tenantCode: normalized.companyAccount,
       });
 
       if (!result?.token) {
@@ -185,8 +186,8 @@ export default function LoginPage() {
                     role="status"
                     className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-left text-xs text-amber-200/90"
                   >
-                    <span className="font-semibold text-amber-100">展示模式</span>
-                    ：有需要請洽相關人員。
+                    <span className="font-semibold text-amber-100">ℹ️ 展示模式</span>
+                    ：跳過真實登入驗證（環境變數 NEXT_PUBLIC_NEXORA_RUN_MODE=demo）。
                   </div>
                 ) : null}
               </div>

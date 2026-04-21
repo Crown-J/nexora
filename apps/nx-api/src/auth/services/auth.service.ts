@@ -41,16 +41,14 @@ export class AuthService {
    * - 登入成功更新 lastLoginAt（稽核）
    * - user.tenantId 為 null 時仍可登入，租戶/方案欄位帶 null
    */
-  async login(username: string, password: string, tenantCode?: string | null) {
-    if (!username || !password) {
-      throw new BadRequestException('username/password required');
+  async login(username: string, password: string, tenantCode: string) {
+    // DTO 已保證三者皆為非空字串；此處保留執行期防禦以抵禦繞過 DTO 的情境。
+    const uname = String(username ?? '').trim();
+    const pwd = String(password ?? '');
+    const tenantCodeTrim = String(tenantCode ?? '').trim();
+    if (!uname || !pwd || !tenantCodeTrim) {
+      throw new BadRequestException('請輸入公司帳號、使用者帳號與密碼');
     }
-
-    const uname = String(username).trim();
-    if (!uname) throw new BadRequestException('username/password required');
-
-    const tenantCodeTrim =
-      tenantCode != null && String(tenantCode).trim() !== '' ? String(tenantCode).trim() : '';
 
     const userInclude = {
       tenant: true,
@@ -60,44 +58,42 @@ export class AuthService {
       },
     } as const;
 
-    let user;
-    if (tenantCodeTrim) {
-      const tenant = await this.prisma.nx99Tenant.findFirst({
-        where: {
-          code: { equals: tenantCodeTrim, mode: 'insensitive' },
-          isActive: true,
-        },
-        select: { id: true },
-      });
-      if (!tenant) {
-        throw new UnauthorizedException('Invalid username or password');
-      }
-      user = await this.prisma.nx01User.findUnique({
-        where: { tenantId_userAccount: { tenantId: tenant.id, userAccount: uname } },
-        include: userInclude,
-      });
-    } else {
-      user = await this.prisma.nx01User.findFirst({
-        where: { userAccount: uname },
-        include: userInclude,
-      });
+    // X1 方案：強制帶 tenantCode，只有 composite key 一條路徑。
+    const tenant = await this.prisma.nx99Tenant.findFirst({
+      where: { code: { equals: tenantCodeTrim, mode: 'insensitive' } },
+      select: { id: true, isActive: true },
+    });
+
+    // 情境 A：tenant 不存在 → 模糊訊息（防 enumeration attack）
+    if (!tenant) {
+      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
+    }
+    // 情境 B：tenant 已停用 → 明確訊息（使用者本來就該知道自己公司狀態）
+    if (!tenant.isActive) {
+      throw new UnauthorizedException('公司帳號已停用,請聯繫系統管理員');
     }
 
+    const user = await this.prisma.nx01User.findUnique({
+      where: { tenantId_userAccount: { tenantId: tenant.id, userAccount: uname } },
+      include: userInclude,
+    });
+
+    // 情境 C：user 不存在 → 模糊訊息
     if (!user) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
     }
-
+    // 情境 D：user 已停用 → 明確訊息
     if (!user.isActive) {
-      throw new UnauthorizedException('User is inactive');
+      throw new UnauthorizedException('使用者帳號已停用，請聯繫您的公司管理員');
     }
-
     if (!user.passwordHash || typeof user.passwordHash !== 'string') {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
     }
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
+    // 情境 E：密碼錯誤 → 模糊訊息
+    const ok = await bcrypt.compare(pwd, user.passwordHash);
     if (!ok) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
     }
 
     const scopedUserRoles = user.rev_Nx01UserRole_userId.filter((ur) => ur.tenantId === user.tenantId);

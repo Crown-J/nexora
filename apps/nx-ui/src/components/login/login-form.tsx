@@ -25,10 +25,11 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
 
   const canSubmit = useMemo(() => {
     if (isSubmitting) return false;
+    if (!formData.companyAccount.trim()) return false;
     if (!formData.userAccount.trim()) return false;
     if (!formData.password) return false;
     return true;
-  }, [formData.userAccount, formData.password, isSubmitting]);
+  }, [formData.companyAccount, formData.userAccount, formData.password, isSubmitting]);
 
   return (
     <form
@@ -41,7 +42,6 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
           className="block text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground"
         >
           公司帳號
-          <span className="normal-case tracking-normal text-muted-foreground/60 font-normal">（選填）</span>
         </label>
         <div className="relative group">
           <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
@@ -53,6 +53,7 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
             className="w-full h-12 bg-secondary/50 border border-border/50 rounded-lg pl-11 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all duration-300"
             placeholder="Company ID"
             autoComplete="organization"
+            required
           />
         </div>
       </div>

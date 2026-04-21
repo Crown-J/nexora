@@ -35,9 +35,9 @@ export async function callLoginApi(
   return apiJson<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({
+      tenantCode,
       username: payload.account,
       password: payload.password,
-      ...(tenantCode ? { tenantCode } : {}),
     }),
   });
 }
