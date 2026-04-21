@@ -1,3 +1,15 @@
+-- packages/db-core/prisma/_ddl_fragment.sql
+-- ============================================================================
+-- 這個檔案是 baseline migration (20260413120000_spec_v7_baseline) 的 source
+-- 快照，反映 baseline 建立當下的 schema 狀態。
+--
+-- ⚠️ 本檔案是歷史快照，不應與 schema.prisma 同步更新。
+--
+-- 後續 schema 變更請走新 migration，例如：
+--   - 20260421132744_fix_tenant_scoped_unique：修正 4 個表的 unique 索引
+--     (nx01_car_brand / nx01_part_group / nx05_account_code / nx10_medal_level)
+-- ============================================================================
+
 -- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 

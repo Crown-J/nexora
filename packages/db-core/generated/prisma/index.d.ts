@@ -207972,11 +207972,12 @@ export namespace Prisma {
 
   export type Nx01CarBrandWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    code?: string
+    tenantId_code?: Nx01CarBrandTenantIdCodeCompoundUniqueInput
     AND?: Nx01CarBrandWhereInput | Nx01CarBrandWhereInput[]
     OR?: Nx01CarBrandWhereInput[]
     NOT?: Nx01CarBrandWhereInput | Nx01CarBrandWhereInput[]
     tenantId?: StringFilter<"Nx01CarBrand"> | string
+    code?: StringFilter<"Nx01CarBrand"> | string
     name?: StringFilter<"Nx01CarBrand"> | string
     countryId?: StringNullableFilter<"Nx01CarBrand"> | string | null
     remark?: StringNullableFilter<"Nx01CarBrand"> | string | null
@@ -207988,7 +207989,7 @@ export namespace Prisma {
     updatedBy?: StringFilter<"Nx01CarBrand"> | string
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     country?: XOR<Nx01CountryNullableScalarRelationFilter, Nx01CountryWhereInput> | null
-  }, "id" | "code">
+  }, "id" | "tenantId_code">
 
   export type Nx01CarBrandOrderByWithAggregationInput = {
     id?: SortOrder
@@ -209429,11 +209430,12 @@ export namespace Prisma {
 
   export type Nx01PartGroupWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    code?: string
+    tenantId_code?: Nx01PartGroupTenantIdCodeCompoundUniqueInput
     AND?: Nx01PartGroupWhereInput | Nx01PartGroupWhereInput[]
     OR?: Nx01PartGroupWhereInput[]
     NOT?: Nx01PartGroupWhereInput | Nx01PartGroupWhereInput[]
     tenantId?: StringFilter<"Nx01PartGroup"> | string
+    code?: StringFilter<"Nx01PartGroup"> | string
     name?: StringFilter<"Nx01PartGroup"> | string
     sortNo?: IntFilter<"Nx01PartGroup"> | number
     isActive?: BoolFilter<"Nx01PartGroup"> | boolean
@@ -209443,7 +209445,7 @@ export namespace Prisma {
     updatedBy?: StringFilter<"Nx01PartGroup"> | string
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     rev_Nx01Part_partGroupId?: Nx01PartListRelationFilter
-  }, "id" | "code">
+  }, "id" | "tenantId_code">
 
   export type Nx01PartGroupOrderByWithAggregationInput = {
     id?: SortOrder
@@ -216309,11 +216311,12 @@ export namespace Prisma {
 
   export type Nx05AccountCodeWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    code?: string
+    tenantId_code?: Nx05AccountCodeTenantIdCodeCompoundUniqueInput
     AND?: Nx05AccountCodeWhereInput | Nx05AccountCodeWhereInput[]
     OR?: Nx05AccountCodeWhereInput[]
     NOT?: Nx05AccountCodeWhereInput | Nx05AccountCodeWhereInput[]
     tenantId?: StringFilter<"Nx05AccountCode"> | string
+    code?: StringFilter<"Nx05AccountCode"> | string
     name?: StringFilter<"Nx05AccountCode"> | string
     category?: StringFilter<"Nx05AccountCode"> | string
     isSystem?: BoolFilter<"Nx05AccountCode"> | boolean
@@ -216325,7 +216328,7 @@ export namespace Prisma {
     updatedBy?: StringFilter<"Nx05AccountCode"> | string
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     rev_Nx05Paylog_accountCodeId?: Nx05PaylogListRelationFilter
-  }, "id" | "code">
+  }, "id" | "tenantId_code">
 
   export type Nx05AccountCodeOrderByWithAggregationInput = {
     id?: SortOrder
@@ -221899,11 +221902,12 @@ export namespace Prisma {
 
   export type Nx10MedalLevelWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    levelCode?: string
+    tenantId_levelCode?: Nx10MedalLevelTenantIdLevelCodeCompoundUniqueInput
     AND?: Nx10MedalLevelWhereInput | Nx10MedalLevelWhereInput[]
     OR?: Nx10MedalLevelWhereInput[]
     NOT?: Nx10MedalLevelWhereInput | Nx10MedalLevelWhereInput[]
     tenantId?: StringFilter<"Nx10MedalLevel"> | string
+    levelCode?: StringFilter<"Nx10MedalLevel"> | string
     levelName?: StringFilter<"Nx10MedalLevel"> | string
     tier?: StringFilter<"Nx10MedalLevel"> | string
     rank?: IntFilter<"Nx10MedalLevel"> | number
@@ -221918,7 +221922,7 @@ export namespace Prisma {
     tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
     rev_Nx10EmpMedal_medalLevelId?: Nx10EmpMedalListRelationFilter
     rev_Nx10PromotionCriteria_minMedalLevelId?: Nx10PromotionCriteriaListRelationFilter
-  }, "id" | "levelCode">
+  }, "id" | "tenantId_levelCode">
 
   export type Nx10MedalLevelOrderByWithAggregationInput = {
     id?: SortOrder
@@ -243323,6 +243327,11 @@ export namespace Prisma {
     isNot?: Nx01CountryWhereInput | null
   }
 
+  export type Nx01CarBrandTenantIdCodeCompoundUniqueInput = {
+    tenantId: string
+    code: string
+  }
+
   export type Nx01CarBrandCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
@@ -244629,6 +244638,11 @@ export namespace Prisma {
 
   export type Nx01PartBrandSumOrderByAggregateInput = {
     sortNo?: SortOrder
+  }
+
+  export type Nx01PartGroupTenantIdCodeCompoundUniqueInput = {
+    tenantId: string
+    code: string
   }
 
   export type Nx01PartGroupCountOrderByAggregateInput = {
@@ -249031,6 +249045,11 @@ export namespace Prisma {
     lineAmount?: SortOrder
   }
 
+  export type Nx05AccountCodeTenantIdCodeCompoundUniqueInput = {
+    tenantId: string
+    code: string
+  }
+
   export type Nx05AccountCodeCountOrderByAggregateInput = {
     id?: SortOrder
     tenantId?: SortOrder
@@ -252301,6 +252320,11 @@ export namespace Prisma {
   export type Nx10EmpTaskLogSumOrderByAggregateInput = {
     achieveRate?: SortOrder
     expEarned?: SortOrder
+  }
+
+  export type Nx10MedalLevelTenantIdLevelCodeCompoundUniqueInput = {
+    tenantId: string
+    levelCode: string
   }
 
   export type Nx10MedalLevelCountOrderByAggregateInput = {

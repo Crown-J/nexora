@@ -212,7 +212,7 @@ model Nx01CarBrand {
   tenant    Nx99Tenant   @relation("R_Nx01CarBrand_tenantId", fields: [tenantId], references: [id])
   country   Nx01Country? @relation("R_Nx01CarBrand_countryId", fields: [countryId], references: [id])
 
-  @@unique([code])
+  @@unique([tenantId, code])
   @@map("nx01_car_brand")
 }
 
@@ -735,7 +735,7 @@ model Nx01PartGroup {
   tenant                   Nx99Tenant @relation("R_Nx01PartGroup_tenantId", fields: [tenantId], references: [id])
   rev_Nx01Part_partGroupId Nx01Part[] @relation("R_Nx01Part_partGroupId")
 
-  @@unique([code])
+  @@unique([tenantId, code])
   @@map("nx01_part_group")
 }
 
@@ -3217,7 +3217,7 @@ model Nx05AccountCode {
   tenant                       Nx99Tenant   @relation("R_Nx05AccountCode_tenantId", fields: [tenantId], references: [id])
   rev_Nx05Paylog_accountCodeId Nx05Paylog[] @relation("R_Nx05Paylog_accountCodeId")
 
-  @@unique([code])
+  @@unique([tenantId, code])
   @@map("nx05_account_code")
 }
 
@@ -5237,7 +5237,7 @@ model Nx10MedalLevel {
   rev_Nx10EmpMedal_medalLevelId             Nx10EmpMedal[]          @relation("R_Nx10EmpMedal_medalLevelId")
   rev_Nx10PromotionCriteria_minMedalLevelId Nx10PromotionCriteria[] @relation("R_Nx10PromotionCriteria_minMedalLevelId")
 
-  @@unique([levelCode])
+  @@unique([tenantId, levelCode])
   @@map("nx10_medal_level")
 }
 
