@@ -1,3 +1,7 @@
+// packages/db-core/prisma/seed/system/nx01_view.ts
+// @FUNCTION_CODE SYS-SEED-SVC-008-F01
+// 系統層：118 個畫面代碼（從 docs/spec 來源 CSV 載入）。
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { parse } from 'csv-parse/sync';
@@ -5,8 +9,7 @@ import type { PrismaClient } from '../../../generated/prisma';
 import { seedDataSystemDir } from '../lib/paths';
 import { stripUtf8Bom } from '../lib/strip-bom';
 import { viewCodeToModuleCode } from '../lib/view-module-code';
-
-const PLACEHOLDER_ACTOR = 'NX01USER0000001';
+import { SYSADMIN_USER_ID } from './constants';
 
 type ViewCsvRow = {
   view_code: string;
@@ -36,8 +39,8 @@ export async function seedNx01View(prisma: PrismaClient): Promise<void> {
         path: row.route?.trim() || '/dashboard',
         sortNo,
         isActive: true,
-        createdBy: PLACEHOLDER_ACTOR,
-        updatedBy: PLACEHOLDER_ACTOR,
+        createdBy: SYSADMIN_USER_ID,
+        updatedBy: SYSADMIN_USER_ID,
       },
       update: {
         name: row.view_name?.trim() || code,
@@ -45,7 +48,7 @@ export async function seedNx01View(prisma: PrismaClient): Promise<void> {
         path: row.route?.trim() || '/dashboard',
         sortNo,
         isActive: true,
-        updatedBy: PLACEHOLDER_ACTOR,
+        updatedBy: SYSADMIN_USER_ID,
       },
     });
     upserted += 1;
