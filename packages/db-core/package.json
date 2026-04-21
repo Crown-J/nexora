@@ -13,11 +13,12 @@
     "build": "tsc -p tsconfig.json",
     "import:parts2": "tsx scripts/import-parts2-csv.ts",
     "p0:railway-ddl": "pnpm exec tsx scripts/p0-railway-ddl-test.ts",
-    "seed:system": "tsx prisma/seed/index.ts system",
-    "seed:default": "tsx prisma/seed/index.ts default",
-    "seed:test": "tsx prisma/seed/index.ts test lite",
-    "seed:test:plus": "tsx prisma/seed/index.ts test plus",
-    "seed:test:pro": "tsx prisma/seed/index.ts test pro"
+    "seed": "tsx prisma/seed/index.ts",
+    "seed:system": "tsx prisma/seed/index.ts --mode system",
+    "seed:test": "tsx prisma/seed/index.ts --mode test --tier all",
+    "seed:test:lite": "tsx prisma/seed/index.ts --mode test --tier lite",
+    "seed:test:plus": "tsx prisma/seed/index.ts --mode test --tier plus",
+    "seed:test:pro": "tsx prisma/seed/index.ts --mode test --tier pro"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",

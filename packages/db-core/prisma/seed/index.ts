@@ -1,40 +1,86 @@
+// packages/db-core/prisma/seed/index.ts
+// @FUNCTION_CODE SYS-SEED-MAIN-001-F01
+// Seed 主入口：透過 CLI 參數控制執行範圍。
+//
+// 兩層架構：
+//   1. system 層（所有環境都跑）：SYSTEM 租戶 + SYSADMIN + 9 plans + view
+//      / currency / country / warehouse_type
+//   2. test 層（僅 NODE_ENV=development|test）：3 個測試租戶（LITE/PLUS/PRO）
+//      含各自的 applyTemplateToTenant + 測試使用者
+//
+// CLI 使用：
+//   pnpm prisma db seed                              → --mode all --tier all（預設）
+//   pnpm prisma db seed -- --mode system             → 只跑 system（PROD 部署用）
+//   pnpm prisma db seed -- --mode test --tier lite   → 只建 LITE 測試租戶
+//   pnpm prisma db seed -- --mode all --tier pro     → system + PRO 測試租戶
+
 import { disconnectPrisma, prisma } from './client';
-import { defaultSeedTierFromEnv, runDefaultSeed, runSystemSeed } from './default/index';
-import type { SeedTier } from './lib/seed-tier';
-import { seedTestLite } from './test/lite/index';
-import { seedTestPlus } from './test/plus/index';
-import { seedTestPro } from './test/pro/index';
+import { runSystemSeed } from './system';
+import { runTestSeed, type TestTier } from './test';
+
+type SeedMode = 'system' | 'test' | 'all';
+
+interface SeedArgs {
+  mode: SeedMode;
+  tier: TestTier;
+}
+
+function parseArgs(argv: readonly string[]): SeedArgs {
+  const result: SeedArgs = { mode: 'all', tier: 'all' };
+
+  for (let i = 0; i < argv.length; i++) {
+    const flag = argv[i];
+    const value = argv[i + 1];
+
+    if (flag === '--mode') {
+      if (value === 'system' || value === 'test' || value === 'all') {
+        result.mode = value;
+        i++;
+      } else {
+        throw new Error(`Invalid --mode: ${String(value)}. Use 'system' | 'test' | 'all'.`);
+      }
+    } else if (flag === '--tier') {
+      if (value === 'lite' || value === 'plus' || value === 'pro' || value === 'all') {
+        result.tier = value;
+        i++;
+      } else {
+        throw new Error(`Invalid --tier: ${String(value)}. Use 'lite' | 'plus' | 'pro' | 'all'.`);
+      }
+    }
+  }
+  return result;
+}
 
 async function main(): Promise<void> {
-  const mode = (process.argv[2] ?? 'default').toLowerCase();
-  const testVariant = (process.argv[3] ?? 'lite').toLowerCase();
+  const { mode, tier } = parseArgs(process.argv.slice(2));
 
-  console.log(`\n🌱 NEXORA db-core seed — mode=${mode}${mode === 'test' ? ` variant=${testVariant}` : ''}\n`);
+  console.log('====================================');
+  console.log('🌱 NEXORA Seed 主入口');
+  console.log(`   mode = ${mode}`);
+  console.log(`   tier = ${tier}`);
+  console.log(`   NODE_ENV = ${process.env.NODE_ENV ?? 'development'}`);
+  console.log('====================================');
 
   try {
-    if (mode === 'system') {
+    // system 層：mode=system 或 all 都會跑
+    if (mode === 'system' || mode === 'all') {
       await runSystemSeed(prisma);
-    } else if (mode === 'default') {
-      const tier = defaultSeedTierFromEnv('PRO');
-      await runDefaultSeed(prisma, tier);
-    } else if (mode === 'test') {
-      const tier: SeedTier =
-        testVariant === 'plus' ? 'PLUS' : testVariant === 'pro' ? 'PRO' : 'LITE';
-      process.env.SEED_TIER = tier;
-      await runDefaultSeed(prisma, tier);
-      if (testVariant === 'plus') await seedTestPlus(prisma);
-      else if (testVariant === 'pro') await seedTestPro(prisma);
-      else await seedTestLite(prisma);
-    } else {
-      console.error(`Unknown mode: ${mode}. Use: system | default | test [lite|plus|pro]`);
-      process.exitCode = 1;
-      return;
     }
 
-    console.log('\n🌱 Seed 完成。\n');
+    // test 層：mode=test 或 all 才跑；內部會再檢查 NODE_ENV
+    if (mode === 'test' || mode === 'all') {
+      await runTestSeed(prisma, tier);
+    }
+
+    console.log('====================================');
+    console.log('✅ NEXORA Seed 全部完成');
+    console.log('====================================');
   } finally {
     await disconnectPrisma();
   }
 }
 
-void main();
+main().catch((e) => {
+  console.error('❌ Seed 執行失敗：', e);
+  process.exit(1);
+});
