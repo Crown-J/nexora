@@ -3656,6 +3656,9 @@ model Nx06Dn {
   rev_Nx06DnStop_dnId  Nx06DnStop[]  @relation("R_Nx06DnStop_dnId")
 
   @@unique([docNo])
+  @@index([tenantId, sourceSoId], map: "nx06_dn_source_so_idx")
+  @@index([tenantId, sourceSrId], map: "nx06_dn_source_sr_idx")
+  @@index([tenantId, logisticsType], map: "nx06_dn_tenant_logistics_idx")
   @@map("nx06_dn")
 }
 
@@ -5136,6 +5139,7 @@ model Nx10CheckinLog {
   user             Nx01User   @relation("R_Nx10CheckinLog_userId", fields: [userId], references: [id])
 
   @@unique([tenantId, userId, checkinDate])
+  @@index([tenantId, userId], map: "nx10_checkin_log_tenant_id_user_id_idx")
   @@map("nx10_checkin_log")
 }
 
