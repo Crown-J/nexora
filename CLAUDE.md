@@ -353,7 +353,8 @@ Commit：[TASK-CODE] description
 5. ORM 設定用 prisma.config.ts，不是 schema.prisma
 6. 全局 ValidationPipe 已啟用，DTO 必須完整定義
 7. partner_type 單字元：C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行
-8. nx01_view / nx01_role_view 屬於 system seed，不屬於 default seed
+8. nx01_view / nx99_plan / nx01_currency / nx01_country / nx01_warehouse_type 屬 system seed（全域）；
+   nx01_role_view 由 applyTemplateToTenant 為每個租戶載入（依 tier 篩 826 筆/tenant）
 ```
 
 ---
