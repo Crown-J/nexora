@@ -330,8 +330,8 @@ SYSADMIN（NX01USER0000001）：is_active=FALSE，不開放 UI 登入，只供 D
 ## 十四、開發環境
 
 ```
-家裡：PostgreSQL Docker port 5432
-辦公室：PostgreSQL Docker port 5433（本機有衝突）
+家裡：PostgreSQL Docker port 5433
+辦公室：PostgreSQL Docker port 5433（兩邊一致，避免 .env 跨機器不一致）
 
 Git：GitHub Private（Crown-J/nexora）
 Git GUI：GitHub Desktop
