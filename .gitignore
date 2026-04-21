@@ -22,3 +22,6 @@ coverage/
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code 本地設定（每位開發者獨立、勿入 repo）
+.claude/settings.local.json
