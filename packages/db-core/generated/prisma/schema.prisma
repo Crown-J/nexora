@@ -1050,7 +1050,6 @@ model Nx01User {
   rev_Nx10SurpriseBoxLog_userId       Nx10SurpriseBoxLog[]   @relation("R_Nx10SurpriseBoxLog_userId")
 
   @@unique([tenantId, userAccount])
-  @@unique([userAccount])
   @@map("nx01_user")
 }
 

@@ -1,0 +1,31 @@
+-- packages/db-core/prisma/migrations/20260421144610_drop_global_user_account_unique/migration.sql
+-- ============================================================================
+-- Migration: drop_global_user_account_unique
+-- 建立日期：2026-04-21
+-- 任務：TASK-SEED-REFACTOR-01 Step 4 Migration 2
+--
+-- 目的：
+--   拔除 nx01_user.user_account 的全域 unique constraint，
+--   由既有的 @@unique([tenantId, userAccount]) 管控帳號唯一性。
+--
+-- 動機：
+--   1. Multi-tenancy 下每個租戶都要能有自己的 admin 帳號
+--   2. 舊設計的全域 user_account unique 是單租戶時代的歷史包袱
+--   3. auth.service.ts 的 fallback 分支配合 findFirst 無 orderBy，
+--      理論上存在跨租戶 session 誤派風險（安全漏洞 A001）
+--
+-- 配套改動（同一 task 內）：
+--   1. schema.prisma 移除 @@unique([userAccount])
+--   2. auth.service.ts 強制要求 tenantCode（X1 方案）
+--   3. LoginDto.tenantCode 改為必填 + 格式驗證
+--   4. nx-ui 登入頁 tenantCode 改為必填 + demo mode banner 文案強化
+--
+-- 業務代碼影響：
+--   - auth.service.ts:80-83 fallback 分支 → 移除，改為要求 tenantCode
+--   - 其他 6 個 query 點已正確帶 tenantId，0 影響
+--
+-- 資料衝突風險：0（現有 DB 中每個 user_account 只有 1 筆，拔 unique 後仍不衝突）
+-- ============================================================================
+
+-- DropIndex
+DROP INDEX "nx01_user_user_account_key";

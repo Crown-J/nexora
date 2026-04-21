@@ -210247,13 +210247,13 @@ export namespace Prisma {
 
   export type Nx01UserWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    userAccount?: string
     tenantId_userAccount?: Nx01UserTenantIdUserAccountCompoundUniqueInput
     AND?: Nx01UserWhereInput | Nx01UserWhereInput[]
     OR?: Nx01UserWhereInput[]
     NOT?: Nx01UserWhereInput | Nx01UserWhereInput[]
     tenantId?: StringFilter<"Nx01User"> | string
     employeeId?: StringNullableFilter<"Nx01User"> | string | null
+    userAccount?: StringFilter<"Nx01User"> | string
     passwordHash?: StringFilter<"Nx01User"> | string
     userName?: StringFilter<"Nx01User"> | string
     email?: StringNullableFilter<"Nx01User"> | string | null
@@ -210306,7 +210306,7 @@ export namespace Prisma {
     rev_Nx10PromotionRequest_userId?: Nx10PromotionRequestListRelationFilter
     rev_Nx10SprintTaskLog_userId?: Nx10SprintTaskLogListRelationFilter
     rev_Nx10SurpriseBoxLog_userId?: Nx10SurpriseBoxLogListRelationFilter
-  }, "id" | "tenantId_userAccount" | "userAccount">
+  }, "id" | "tenantId_userAccount">
 
   export type Nx01UserOrderByWithAggregationInput = {
     id?: SortOrder
