@@ -77,14 +77,14 @@ export function LedgerView({ vm }: LedgerViewProps) {
     <div className="space-y-4">
       <header className="space-y-1">
         <p className="text-xs tracking-[0.35em] text-muted-foreground">NX02</p>
-        <h1 className="text-xl font-semibold text-foreground">庫存台帳</h1>
+        <h1 className="text-lg font-semibold text-foreground md:text-xl">庫存台帳</h1>
       </header>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/80 bg-card/40 p-4">
-        <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-xs text-muted-foreground">
+      <div className="grid grid-cols-1 gap-3 rounded-xl border border-border/80 bg-card/40 p-3 sm:grid-cols-2 sm:p-4 lg:flex lg:flex-wrap lg:items-end lg:gap-3">
+        <label className="flex flex-col gap-1 text-xs text-muted-foreground sm:col-span-2 lg:min-w-[180px] lg:flex-1">
           料號／品名
           <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={qInput}
             onChange={(e) => setQInput(e.target.value)}
           />
@@ -92,7 +92,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           倉庫
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={warehouseId}
             onChange={(e) => setQuery({ warehouseId: e.target.value || null, page: '1' })}
           >
@@ -107,7 +107,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           異動類型
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={movementType}
             onChange={(e) => setQuery({ movementType: e.target.value || null, page: '1' })}
           >
@@ -120,7 +120,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           來源單據
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={sourceDocType}
             onChange={(e) => setQuery({ sourceDocType: e.target.value || null, page: '1' })}
           >
@@ -136,7 +136,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
           起始日
           <input
             type="date"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={dateFrom}
             onChange={(e) => setQuery({ dateFrom: e.target.value, page: '1' })}
           />
@@ -145,7 +145,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
           結束日
           <input
             type="date"
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={dateTo}
             onChange={(e) => setQuery({ dateTo: e.target.value, page: '1' })}
           />
@@ -159,7 +159,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
       ) : null}
       {error ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div> : null}
 
-      <div className="overflow-x-auto rounded-xl border border-border/80">
+      <div className="hidden overflow-x-auto rounded-xl border border-border/80 lg:block">
         <table className="w-full min-w-[1100px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/30">
@@ -231,6 +231,80 @@ export function LedgerView({ vm }: LedgerViewProps) {
         </table>
       </div>
 
+      <div className="space-y-2 lg:hidden">
+        {loading ? (
+          <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-center text-sm text-muted-foreground">
+            載入中…
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-center text-sm text-muted-foreground">
+            無資料
+          </div>
+        ) : (
+          rows.map((r) => (
+            <div key={r.id} className="rounded-xl border border-border/80 bg-card/40 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={cx(
+                        'inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium',
+                        movementBadgeClass(r.movementType),
+                      )}
+                    >
+                      {MOVEMENT_LABEL[r.movementType] ?? r.movementType}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {SOURCE_LABEL[r.sourceDocType] ?? r.sourceDocType}
+                    </span>
+                  </div>
+                  <div className="mt-1 font-mono text-xs text-primary">{r.partCode}</div>
+                  <div className="mt-0.5 truncate text-sm font-medium text-foreground">{r.partName}</div>
+                  <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {r.warehouseName}
+                    {r.locationName ? ` · ${r.locationName}` : ''}
+                  </div>
+                </div>
+                <div className="shrink-0 text-right">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {r.qtyIn != null ? '入庫' : r.qtyOut != null ? '出庫' : '異動'}
+                  </div>
+                  <div className="tabular-nums text-lg font-semibold text-foreground">
+                    {r.qtyIn != null
+                      ? r.qtyIn.toLocaleString('zh-TW')
+                      : r.qtyOut != null
+                        ? r.qtyOut.toLocaleString('zh-TW')
+                        : '—'}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border/40 pt-2 text-xs">
+                <div>
+                  <div className="text-muted-foreground">單位成本</div>
+                  <div className="tabular-nums text-foreground">{ntd.format(r.unitCost)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">異動總成本</div>
+                  <div className="tabular-nums text-foreground">{ntd.format(r.totalCost)}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">異動後庫存</div>
+                  <div className="tabular-nums text-foreground">{r.balanceQty.toLocaleString('zh-TW')}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">異動後均價</div>
+                  <div className="tabular-nums text-foreground">{ntd.format(r.balanceCost)}</div>
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span>{new Date(r.movementDate).toLocaleString('zh-TW')}</span>
+                <span className="font-mono">{r.sourceDocId}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="text-muted-foreground">
           第 {page} / {totalPages} 頁（共 {total} 筆）
@@ -238,7 +312,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
         <div className="flex gap-2">
           <button
             type="button"
-            className="rounded-lg border border-border px-3 py-1.5 disabled:opacity-40"
+            className="min-h-[44px] rounded-lg border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1.5"
             disabled={page <= 1}
             onClick={() => setQuery({ page: String(page - 1) })}
           >
@@ -246,7 +320,7 @@ export function LedgerView({ vm }: LedgerViewProps) {
           </button>
           <button
             type="button"
-            className="rounded-lg border border-border px-3 py-1.5 disabled:opacity-40"
+            className="min-h-[44px] rounded-lg border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1.5"
             disabled={page >= totalPages}
             onClick={() => setQuery({ page: String(page + 1) })}
           >
