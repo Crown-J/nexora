@@ -82,8 +82,8 @@ export type SaleSopState = {
   deliveryMethod: DeliveryMethod | null;
   signMethod: SignMethod | null;
   hasSigned: boolean;
-  /** STEP 8 自動生成的訂單編號（固定 mock） */
-  orderNumber: string;
+  /** 訂單編號；進 STEP 7 時由 reducer 自動生成 */
+  orderNumber: string | null;
 };
 
 export type SaleSopAction =
@@ -96,7 +96,9 @@ export type SaleSopAction =
   | { type: 'SET_CUSTOMER_DECISION'; decision: CustomerDecision }
   | { type: 'SET_DELIVERY_METHOD'; method: DeliveryMethod }
   | { type: 'SET_SIGN_METHOD'; method: SignMethod }
+  | { type: 'CLEAR_SIGN_METHOD' }
   | { type: 'COMPLETE_SIGNATURE' }
+  | { type: 'GENERATE_ORDER_NUMBER' }
   | { type: 'RESET' };
 
 export type StepMeta = {

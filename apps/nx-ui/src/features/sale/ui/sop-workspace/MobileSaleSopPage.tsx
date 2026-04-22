@@ -3,18 +3,17 @@
  * 國內銷貨 SOP 手機工作台 — 主容器（R6 demo 主力）
  *
  * 狀態：useReducer 驅動 9 步流程（全 Mock）
- * 佈局：頂部固定 ProgressHeader + 底部固定 StepWrapper 按鈕列
+ * 佈局：頂部固定 ProgressHeader；STEP 1~8 底部由 StepWrapper 管，
+ *        STEP 9 自備底部操作列（再來一次 / 回銷貨中心）
  *
- * R6 Phase 1：STEP 1~2 完整實作，3~9 用 StepPlaceholder 占位，
- * Crown 可先驗收核心戲劇點（選客戶 + 查料號 + 庫存不足救援）。
+ * 訂單編號生成時機：進 STEP 7 且尚未生成時由 reducer 產出 SO-YYMM-xxxxx。
  */
 
 'use client';
 
-import { useCallback, useReducer, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useReducer, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { MOCK_SO_NO } from './mock-data/scenario';
 import { ProgressHeader } from './components/ProgressHeader';
 import { Step1SelectCustomer } from './components/Step1SelectCustomer';
 import { Step2SearchParts } from './components/Step2SearchParts';
@@ -22,7 +21,9 @@ import { Step3QuoteList } from './components/Step3QuoteList';
 import { Step4QuoteMethod } from './components/Step4QuoteMethod';
 import { Step5CustomerDecide } from './components/Step5CustomerDecide';
 import { Step6DeliveryMethod } from './components/Step6DeliveryMethod';
-import { StepPlaceholder } from './components/StepPlaceholder';
+import { Step7SignMethod } from './components/Step7SignMethod';
+import { Step8OrderComplete } from './components/Step8OrderComplete';
+import { Step9Summary } from './components/Step9Summary';
 import type { SaleSopAction, SaleSopState, StepNumber } from './types';
 
 const initialState: SaleSopState = {
@@ -33,8 +34,15 @@ const initialState: SaleSopState = {
   deliveryMethod: null,
   signMethod: null,
   hasSigned: false,
-  orderNumber: MOCK_SO_NO,
+  orderNumber: null,
 };
+
+function generateOrderNumber(): string {
+  const now = new Date();
+  const ym = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const seq = String(Math.floor(Math.random() * 99999)).padStart(5, '0');
+  return `SO-${ym}-${seq}`;
+}
 
 function reducer(state: SaleSopState, action: SaleSopAction): SaleSopState {
   switch (action.type) {
@@ -79,9 +87,16 @@ function reducer(state: SaleSopState, action: SaleSopAction): SaleSopState {
     case 'SET_DELIVERY_METHOD':
       return { ...state, deliveryMethod: action.method };
     case 'SET_SIGN_METHOD':
-      return { ...state, signMethod: action.method };
+      // 切換簽單方式時清除既有簽名，避免先電子簽再改紙本卻留下 hasSigned=true
+      return { ...state, signMethod: action.method, hasSigned: false };
+    case 'CLEAR_SIGN_METHOD':
+      return { ...state, signMethod: null, hasSigned: false };
     case 'COMPLETE_SIGNATURE':
       return { ...state, hasSigned: true };
+    case 'GENERATE_ORDER_NUMBER':
+      // 已有時不重生（避免 re-render 跳號）
+      if (state.orderNumber) return state;
+      return { ...state, orderNumber: generateOrderNumber() };
     case 'RESET':
       return initialState;
     default:
@@ -93,6 +108,13 @@ export function MobileSaleSopPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<StepNumber>(1);
   const [state, dispatch] = useReducer(reducer, initialState);
+
+  // 進 STEP 7 時自動生成訂單號
+  useEffect(() => {
+    if (currentStep === 7 && !state.orderNumber) {
+      dispatch({ type: 'GENERATE_ORDER_NUMBER' });
+    }
+  }, [currentStep, state.orderNumber]);
 
   const handleBack = useCallback(() => {
     if (currentStep === 1) {
@@ -110,6 +132,15 @@ export function MobileSaleSopPage() {
     }
     setCurrentStep((s) => Math.min(9, s + 1) as StepNumber);
   }, [currentStep]);
+
+  const handleReset = useCallback(() => {
+    dispatch({ type: 'RESET' });
+    setCurrentStep(1);
+  }, []);
+
+  const handleReturnToHub = useCallback(() => {
+    router.push('/dashboard/sale');
+  }, [router]);
 
   let stepContent: ReactNode;
   switch (currentStep) {
@@ -168,14 +199,36 @@ export function MobileSaleSopPage() {
         />
       );
       break;
-    default:
+    case 7:
       stepContent = (
-        <StepPlaceholder
-          currentStep={currentStep}
+        <Step7SignMethod
+          state={state}
+          dispatch={dispatch}
           onBack={handleBack}
           onNext={handleNext}
         />
       );
+      break;
+    case 8:
+      stepContent = (
+        <Step8OrderComplete
+          state={state}
+          onBack={handleBack}
+          onNext={handleNext}
+        />
+      );
+      break;
+    case 9:
+      stepContent = (
+        <Step9Summary
+          state={state}
+          onReset={handleReset}
+          onReturnToHub={handleReturnToHub}
+        />
+      );
+      break;
+    default:
+      stepContent = null;
       break;
   }
 
