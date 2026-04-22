@@ -34,7 +34,7 @@ export type MasterHubCardLink = {
 };
 
 /** 主檔 hub 分區（同區卡片排在一起，避免找功能時跳來跳去） */
-export type MasterHubSectionId = 'account' | 'product' | 'geo' | 'warehouse' | 'partner';
+export type MasterHubSectionId = 'account' | 'product' | 'organization' | 'partner' | 'system';
 
 export type MasterHubCard = {
   id: string;
@@ -51,14 +51,20 @@ export type MasterHubCard = {
   links?: MasterHubCardLink[];
 };
 
-const MASTER_HUB_SECTION_ORDER: MasterHubSectionId[] = ['account', 'product', 'geo', 'warehouse', 'partner'];
+export const MASTER_HUB_SECTION_ORDER: MasterHubSectionId[] = [
+  'account',
+  'product',
+  'organization',
+  'partner',
+  'system',
+];
 
-const MASTER_HUB_SECTION_TITLES: Record<MasterHubSectionId, string> = {
+export const MASTER_HUB_SECTION_TITLES: Record<MasterHubSectionId, string> = {
   account: '帳號與權限',
   product: '產品與料號',
-  geo: '國家與幣別',
-  warehouse: '倉儲',
-  partner: '往來對象',
+  organization: '組織架構',
+  partner: '交易對象',
+  system: '系統設定',
 };
 
 export type MasterHubSectionGroup = {
@@ -120,7 +126,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   },
   {
     id: 'bulletin',
-    section: 'account',
+    section: 'system',
     title: '公告主檔',
     description: '系統／公司公告與到期設定',
     icon: Megaphone,
@@ -183,7 +189,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   },
   {
     id: 'country',
-    section: 'geo',
+    section: 'system',
     title: '國家主檔',
     description: '國家代碼與名稱（產地／廠牌國家）',
     icon: Globe,
@@ -193,7 +199,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   },
   {
     id: 'currency',
-    section: 'geo',
+    section: 'system',
     title: '幣別主檔',
     description: '幣別代碼、符號與小數位數',
     icon: CircleDollarSign,
@@ -203,7 +209,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   },
   {
     id: 'warehouse-location',
-    section: 'warehouse',
+    section: 'organization',
     title: '倉庫及庫位',
     description: '倉別設定與儲位結構',
     icon: Warehouse,
