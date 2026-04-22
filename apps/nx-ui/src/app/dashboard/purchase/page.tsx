@@ -16,6 +16,7 @@ import {
   Package,
   RotateCcw,
   ShoppingCart,
+  Sparkles,
   Truck,
   Zap,
 } from 'lucide-react';
@@ -55,7 +56,13 @@ function MasterSection() {
 
 function DomesticSection() {
   return (
-    <ModuleHubSection sectionId="purchase-domestic" title="國內採購" count={5}>
+    <ModuleHubSection sectionId="purchase-domestic" title="國內採購" count={6}>
+      <HubLinkCard
+        title="SOP 精品示範 🔥"
+        description="手機精品 UX：跟著 9 步走完採購，不漏步驟、內建防呆"
+        Icon={Sparkles}
+        href="/dashboard/purchase/sop-demo"
+      />
       <HubLinkCard
         title="需求"
         description="庫存不足或客訂時建立採購需求；國內採購工作台"
@@ -120,7 +127,8 @@ function SpecialSection() {
 }
 
 export default function PurchaseHubPage() {
-  const [active, setActive] = useState<PurchaseSectionId>('master');
+  // R5：預設進「國內採購」tab，讓手機一開採購中心就看到 SOP 精品示範入口
+  const [active, setActive] = useState<PurchaseSectionId>('domestic');
 
   return (
     <>

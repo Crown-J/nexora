@@ -469,7 +469,11 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
  * - /dashboard/purchase / /dashboard/sale / /dashboard/inventory
  *   這三個中心各自有自己的底部 Tab（MobileHubSectionTabs），子頁則沿用全站 DOCK
  */
-const HIDE_MOBILE_DOCK_PREFIXES = ['/dashboard/base'];
+const HIDE_MOBILE_DOCK_PREFIXES = [
+  '/dashboard/base',
+  // R5：SOP 精品示範有自己的固定底部操作列，避免與全站 DOCK 雙 bar 衝突
+  '/dashboard/purchase/sop-demo',
+];
 const HIDE_MOBILE_DOCK_EXACT = [
   '/dashboard/purchase',
   '/dashboard/sale',
