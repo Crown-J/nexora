@@ -461,8 +461,18 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 
-/** 在這些路徑隱藏 MobileDock（頁面會渲染自己的底部群組 Tab，避免兩個底部 bar 打架）。 */
-const HIDE_MOBILE_DOCK_PATHS = ['/dashboard/base'];
+/**
+ * 在這些路徑前綴下隱藏 MobileDock — 頁面會渲染自己的底部群組 Tab，
+ * 或是子頁本身不需要底部 DOCK（避免兩個底部 bar 打架、或主檔列表頁空間被壓）。
+ * R4-B 擴展：含子頁（/dashboard/base/* 全部隱藏 MobileDock）。
+ */
+const HIDE_MOBILE_DOCK_PREFIXES = ['/dashboard/base'];
+
+function shouldHideMobileDock(pathname: string): boolean {
+  return HIDE_MOBILE_DOCK_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
 
 /**
  * 首頁 `/dashboard` 手機：頂欄星球負責模組導覽，底欄為五項「圖示＋功能名」（與桌面快捷列語意一致，不顯示鍵位）。
@@ -481,7 +491,7 @@ export function MobileDock() {
   }, [isDashboardHome, planCtx?.planCode]);
 
   // Hook 全部呼叫後再 early return，避免破壞 React hook order
-  if (HIDE_MOBILE_DOCK_PATHS.includes(pathname)) {
+  if (shouldHideMobileDock(pathname)) {
     return null;
   }
 
