@@ -419,15 +419,36 @@ export function NavPlanetMenu() {
         <div className="grid max-h-[min(70vh,24rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
           <DockGridLink item={HOME_DOCK_ITEMS[0]!} hint={DOCK_ITEM_ALT_HINT[0]!} pathname={pathname} />
           <DockGridLink item={HOME_DOCK_ITEMS[1]!} hint={DOCK_ITEM_ALT_HINT[1]!} pathname={pathname} />
-          <PurchaseCenterSub pathname={pathname} />
-          <SaleCenterSub pathname={pathname} />
-          <InventoryCenterSub pathname={pathname} />
+          {/* 採購：桌面展開子選單；手機直接跳模組首頁 */}
+          <div className="contents lg:hidden">
+            <DockGridLink item={HOME_DOCK_ITEMS[2]!} hint={DOCK_ITEM_ALT_HINT[2]!} pathname={pathname} />
+          </div>
+          <div className="hidden lg:contents">
+            <PurchaseCenterSub pathname={pathname} />
+          </div>
+          {/* 銷貨：桌面展開子選單；手機直接跳模組首頁 */}
+          <div className="contents lg:hidden">
+            <DockGridLink item={HOME_DOCK_ITEMS[3]!} hint={DOCK_ITEM_ALT_HINT[3]!} pathname={pathname} />
+          </div>
+          <div className="hidden lg:contents">
+            <SaleCenterSub pathname={pathname} />
+          </div>
+          {/* 庫存：桌面展開子選單；手機直接跳模組首頁 */}
+          <div className="contents lg:hidden">
+            <DockGridLink item={HOME_DOCK_ITEMS[4]!} hint={DOCK_ITEM_ALT_HINT[4]!} pathname={pathname} />
+          </div>
+          <div className="hidden lg:contents">
+            <InventoryCenterSub pathname={pathname} />
+          </div>
           <DockGridLink item={HOME_DOCK_ITEMS[5]!} hint={DOCK_ITEM_ALT_HINT[5]!} pathname={pathname} />
           <DockGridLink item={HOME_DOCK_ITEMS[6]!} hint={DOCK_ITEM_ALT_HINT[6]!} pathname={pathname} />
         </div>
         <DropdownMenuSeparator className="bg-border/60" />
         <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-          Alt+X 開關選單 · 單鍵 H B P S W M R · 採購／銷貨／庫存可展開子選單
+          <span className="hidden lg:inline">
+            Alt+X 開關選單 · 單鍵 H B P S W M R · 採購／銷貨／庫存可展開子選單
+          </span>
+          <span className="lg:hidden">Alt+X 開關選單 · 單鍵 H B P S W M R</span>
         </p>
       </DropdownMenuContent>
     </DropdownMenu>
