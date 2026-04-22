@@ -61,14 +61,17 @@ export function ModuleHubSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-4" aria-labelledby={`hub-section-${sectionId}`}>
+    <section className="space-y-4" aria-label={title}>
       <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border/70 pb-2">
-        <h2 id={`hub-section-${sectionId}`} className="text-sm font-semibold tracking-wide text-foreground">
+        <h2 className="text-sm font-semibold tracking-wide text-foreground" data-section-id={sectionId}>
           {title}
         </h2>
         <span className="text-[11px] text-muted-foreground tabular-nums">{count} 項</span>
       </div>
-      <div className="flex flex-wrap justify-start gap-6">{children}</div>
+      {/* 手機：grid 1→2 欄；桌面：保留原 flex-wrap + 卡片固定 220px（R4-C） */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:flex lg:flex-wrap lg:justify-start lg:gap-6">
+        {children}
+      </div>
     </section>
   );
 }
@@ -102,6 +105,8 @@ export function HubLinkCard({
       onClick={onClickPro}
       className={cx(
         hubCardShellBaseClass,
+        // 手機 full width 覆寫原本的 w-[220px]；桌面 lg+ 回到 220px 固定寬（R4-C）
+        '!w-full lg:!w-[220px]',
         'group flex flex-col',
         motion,
         'active:scale-[0.998]',

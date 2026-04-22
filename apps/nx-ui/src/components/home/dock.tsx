@@ -462,13 +462,22 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
 }
 
 /**
- * 在這些路徑前綴下隱藏 MobileDock — 頁面會渲染自己的底部群組 Tab，
- * 或是子頁本身不需要底部 DOCK（避免兩個底部 bar 打架、或主檔列表頁空間被壓）。
- * R4-B 擴展：含子頁（/dashboard/base/* 全部隱藏 MobileDock）。
+ * 前綴匹配（含子頁全部隱藏）：
+ * - /dashboard/base 及所有 /dashboard/base/* 子頁，避免上方 icon 列 + 底部 DOCK 雙擠壓
+ *
+ * 完全匹配（只中心首頁隱藏、子頁保留 DOCK 方便跨模組跳轉）：
+ * - /dashboard/purchase / /dashboard/sale / /dashboard/inventory
+ *   這三個中心各自有自己的底部 Tab（MobileHubSectionTabs），子頁則沿用全站 DOCK
  */
 const HIDE_MOBILE_DOCK_PREFIXES = ['/dashboard/base'];
+const HIDE_MOBILE_DOCK_EXACT = [
+  '/dashboard/purchase',
+  '/dashboard/sale',
+  '/dashboard/inventory',
+];
 
 function shouldHideMobileDock(pathname: string): boolean {
+  if (HIDE_MOBILE_DOCK_EXACT.includes(pathname)) return true;
   return HIDE_MOBILE_DOCK_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
