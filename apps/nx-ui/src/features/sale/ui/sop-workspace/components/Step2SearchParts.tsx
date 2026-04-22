@@ -1,28 +1,34 @@
 // apps/nx-ui/src/features/sale/ui/sop-workspace/components/Step2SearchParts.tsx
 /**
- * STEP 2 — 查料號 / 庫存（最戲劇性的 step）
+ * STEP 2 — 查料號 / 庫存（Phase 2 穩重化 + 手風琴版）
  *
- * 對應戲劇亮點 1（當場查庫存）+ 亮點 3（庫存不足自動建議調貨）：
- * - 搜尋框 + 常用關鍵字 chips（剎車片 / 機油濾心 / ...）
- * - 結果卡：多倉位庫存、B 級客戶建議售價、歷史成交價、料號 emoji
- * - 數量 stepper：若 > 本倉庫存 → 卡片變身為「庫存不足救援」，秀多倉調貨建議
- * - 加入報價清單後，卡片變「已加入」態
+ * 對應戲劇亮點 1（當場查庫存）+ 亮點 3（庫存不足自動建議調貨）
+ *
+ * UX 結構：
+ * - 頂部已選客戶摘要（穩重、無 emoji）
+ * - 搜尋框 + 常用關鍵字 chips
+ * - 列表層：每筆料號一行（料號 font-mono + 品名 + 庫存/建議售價摘要 + chevron）
+ * - 點擊展開詳情（手風琴，同時只一個展開）：
+ *   - 料號圖片 aspect-video（點擊開 Lightbox）
+ *   - 多倉位庫存 3 格
+ *   - 報價售價可編輯（建議值 = 該客戶等級價）
+ *   - 數量 stepper + 手動輸入
+ *   - 庫存不足救援建議（數量 > 本倉時出現，AlertCircle + 淡金邊）
+ *   - 加入報價清單按鈕（金色 CTA）
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
 import {
-  AlertTriangle,
+  AlertCircle,
   BarcodeIcon,
-  CheckCircle2,
+  ChevronRight,
   Mic,
   Minus,
   Package,
   Plus,
   Search,
-  Sparkles,
-  TrendingUp,
 } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
@@ -34,8 +40,8 @@ import {
   type QuoteItem,
   type SaleSopAction,
   type SaleSopState,
-  type WarehouseKey,
 } from '../types';
+import { ImageLightbox } from './ImageLightbox';
 import { StepWrapper } from './StepWrapper';
 
 export type Step2SearchPartsProps = {
@@ -47,247 +53,301 @@ export type Step2SearchPartsProps = {
 
 const SUGGESTED_KEYWORDS = ['剎車片', '機油濾心', '空氣濾心', '火星塞'] as const;
 
-/** 依本倉庫存分類庫存狀態 */
-function stockLevel(mainStock: number): 'abundant' | 'low' | 'zero' {
-  if (mainStock === 0) return 'zero';
-  if (mainStock < 10) return 'low';
-  return 'abundant';
-}
-
-function StockRow({
-  wh,
-  qty,
-}: {
-  wh: WarehouseKey;
-  qty: number;
-}) {
-  const isZero = qty === 0;
-  const meta = WAREHOUSE_META[wh];
-  return (
-    <div className="flex items-center justify-between rounded-md bg-white/[0.03] px-2 py-1.5 text-[12px]">
-      <span className="flex items-center gap-1.5 text-white/70">
-        <Package className="h-3 w-3 text-white/40" aria-hidden />
-        {meta.label}
-      </span>
-      <span
-        className={cx(
-          'tabular-nums font-semibold',
-          isZero ? 'text-white/30' : qty >= 10 ? 'text-[#1D9E75]' : 'text-[#E8A020]',
-        )}
-      >
-        {qty} 個 {isZero ? '' : wh === 'main' ? '✅' : ''}
-      </span>
-    </div>
-  );
-}
-
-function PartCard({
+function PartDetailExpanded({
   part,
   tier,
-  existingQty,
-  onAddOrUpdate,
+  existingItem,
+  onAdd,
+  onUpdate,
   onRemove,
+  onZoom,
 }: {
   part: Part;
   tier: 'A' | 'B' | 'C' | 'D';
-  existingQty: number | null;
-  onAddOrUpdate: (qty: number) => void;
+  existingItem: QuoteItem | null;
+  onAdd: (item: QuoteItem) => void;
+  onUpdate: (partial: { quantity?: number; unitPrice?: number }) => void;
   onRemove: () => void;
+  onZoom: () => void;
 }) {
-  const [qty, setQty] = useState<number>(existingQty ?? 1);
   const suggestedPrice = part.prices[tier];
+
+  // 本地編輯狀態（未加入時使用），加入後直接走 reducer
+  const [localQty, setLocalQty] = useState<number>(existingItem?.quantity ?? 1);
+  const [localPrice, setLocalPrice] = useState<number>(existingItem?.unitPrice ?? suggestedPrice);
+
+  const qty = existingItem ? existingItem.quantity : localQty;
+  const price = existingItem ? existingItem.unitPrice : localPrice;
+
+  const setQty = (n: number) => {
+    const v = Math.max(1, Math.min(99, Math.floor(n)));
+    if (existingItem) onUpdate({ quantity: v });
+    else setLocalQty(v);
+  };
+  const setPrice = (n: number) => {
+    const v = Math.max(0, Math.floor(n));
+    if (existingItem) onUpdate({ unitPrice: v });
+    else setLocalPrice(v);
+  };
+
   const mainStock = part.stocks.main;
   const hsinchuStock = part.stocks.hsinchu;
   const taichungStock = part.stocks.taichung;
   const totalOtherStock = hsinchuStock + taichungStock;
-  const level = stockLevel(mainStock);
-
   const shortage = qty > mainStock;
   const canFullFill = qty <= mainStock + totalOtherStock;
   const otherNeed = Math.min(Math.max(0, qty - mainStock), totalOtherStock);
 
-  const inQuote = existingQty !== null;
-
-  const adjust = (delta: number) => {
-    setQty((q) => Math.max(1, Math.min(99, q + delta)));
+  const handleAddClick = () => {
+    onAdd({ sku: part.sku, quantity: qty, unitPrice: price });
   };
 
   return (
-    <article
-      className={cx(
-        'rounded-xl border p-4 transition-colors',
-        inQuote
-          ? 'border-[#1D9E75]/50 bg-[#1D9E75]/[0.06]'
-          : shortage
-            ? 'border-[#E8A020]/40 bg-[#E8A020]/[0.05]'
-            : 'border-white/10 bg-white/[0.03]',
-      )}
-    >
-      {/* 料號抬頭 */}
-      <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
-          <Package className="h-4 w-4 text-white/40" aria-hidden />
+    <div className="space-y-4 border-t border-white/10 bg-black/30 p-4">
+      {/* 圖片 aspect-video + Lightbox trigger */}
+      <button
+        type="button"
+        onClick={onZoom}
+        className="block aspect-video w-full overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-colors hover:border-white/20"
+        aria-label="放大檢視料號圖片"
+      >
+        {part.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={part.imageUrl}
+            alt={part.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <Package className="h-10 w-10 text-white/30" aria-hidden />
+          </div>
+        )}
+      </button>
+
+      {/* 適用車型 */}
+      {part.vehicleTypes.length > 0 ? (
+        <div className="text-xs text-white/60">
+          適用：{part.vehicleTypes.join(' / ')}
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {level === 'abundant' && mainStock >= 20 ? (
-              <span
-                className="inline-flex items-center rounded bg-[#1D9E75]/20 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-[#1D9E75]"
-                aria-label="庫存充足"
+      ) : null}
+
+      {/* 分隔線 */}
+      <div className="h-px bg-white/10" />
+
+      {/* 多倉位庫存 3 格 */}
+      <div>
+        <div className="mb-2 text-xs text-white/50">庫存分布</div>
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          {(
+            [
+              ['main', WAREHOUSE_META.main.label, mainStock],
+              ['hsinchu', WAREHOUSE_META.hsinchu.label, hsinchuStock],
+              ['taichung', WAREHOUSE_META.taichung.label, taichungStock],
+            ] as const
+          ).map(([key, label, qtyVal]) => (
+            <div key={key} className="rounded bg-white/5 p-2 text-center">
+              <div className="mb-1 text-white/50">{label}</div>
+              <div
+                className={cx(
+                  'tabular-nums',
+                  qtyVal === 0
+                    ? 'text-white/30'
+                    : key === 'main'
+                      ? 'text-[#1D9E75]'
+                      : 'text-white/80',
+                )}
               >
-                🏆
-              </span>
-            ) : null}
-            <h3 className="truncate text-sm font-semibold text-white/95">
-              {part.sku} {part.name}
-            </h3>
-          </div>
-          <div className="mt-0.5 text-[11px] text-white/50">
-            {part.brand} · 適用 {part.vehicleTypes.join(' / ')}
-          </div>
+                {qtyVal}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 庫存 */}
-      <div className="mt-3 flex flex-col gap-1">
-        <StockRow wh="main" qty={mainStock} />
-        <StockRow wh="hsinchu" qty={hsinchuStock} />
-        <StockRow wh="taichung" qty={taichungStock} />
-      </div>
-
-      {/* 售價 */}
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-lg border border-[#E8A020]/30 bg-[#E8A020]/[0.08] p-2.5">
-          <div className="text-[9px] uppercase tracking-wider text-[#E8A020]/90">
-            建議售價 {tier} 級
-          </div>
-          <div className="mt-0.5 text-base font-bold tabular-nums text-[#E8A020]">
-            NT$ {suggestedPrice.toLocaleString()}
-          </div>
+      {/* 售價（可編輯） */}
+      <div>
+        <div className="mb-2 text-xs text-white/50">報價</div>
+        <div className="flex items-center gap-3">
+          <div className="shrink-0 text-xs text-white/40">建議（{tier} 級）</div>
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (Number.isFinite(v)) setPrice(v);
+            }}
+            className={cx(
+              'flex-1 rounded border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white',
+              'tabular-nums',
+              'focus:border-[#E8A020]/60 focus:outline-none',
+            )}
+            inputMode="numeric"
+            aria-label="單價"
+          />
         </div>
-        <div className="rounded-lg border border-white/10 bg-black/30 p-2.5">
-          <div className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-white/40">
-            <TrendingUp className="h-2.5 w-2.5" aria-hidden />
-            歷史成交
-          </div>
-          <div className="mt-0.5 text-base font-semibold tabular-nums text-white/85">
-            NT$ {part.lastSoldPrice.toLocaleString()}
-          </div>
+        <div className="mt-1 text-xs text-white/40">
+          歷史成交：NT$ {part.lastSoldPrice.toLocaleString()}
         </div>
       </div>
 
       {/* 數量 stepper */}
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <span className="text-xs text-white/55">數量</span>
-        <div className="inline-flex items-center rounded-lg border border-white/15 bg-white/5">
+      <div>
+        <div className="mb-2 text-xs text-white/50">數量</div>
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => adjust(-1)}
+            onClick={() => setQty(qty - 1)}
             disabled={qty <= 1}
-            className="inline-flex h-9 w-9 items-center justify-center text-white/70 transition-colors hover:text-white disabled:text-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded border border-white/10 transition-colors hover:border-white/20 disabled:opacity-30"
             aria-label="減少數量"
           >
-            <Minus className="h-4 w-4" />
+            <Minus className="h-4 w-4 text-white/70" aria-hidden />
           </button>
           <input
             type="number"
             value={qty}
             onChange={(e) => {
               const v = Number(e.target.value);
-              if (Number.isFinite(v)) setQty(Math.max(1, Math.min(99, Math.floor(v))));
+              if (Number.isFinite(v)) setQty(v);
             }}
-            className="h-9 w-12 border-x border-white/15 bg-transparent text-center text-sm font-semibold tabular-nums text-white focus:outline-none"
+            className="flex-1 rounded border border-white/10 bg-white/5 px-3 py-2 text-center text-sm tabular-nums text-white focus:border-[#E8A020]/60 focus:outline-none"
             inputMode="numeric"
             aria-label="數量"
           />
           <button
             type="button"
-            onClick={() => adjust(1)}
+            onClick={() => setQty(qty + 1)}
             disabled={qty >= 99}
-            className="inline-flex h-9 w-9 items-center justify-center text-white/70 transition-colors hover:text-white disabled:text-white/20"
+            className="inline-flex h-9 w-9 items-center justify-center rounded border border-white/10 transition-colors hover:border-white/20 disabled:opacity-30"
             aria-label="增加數量"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 text-white/70" aria-hidden />
           </button>
         </div>
       </div>
 
-      {/* 庫存不足救援（亮點 3） */}
+      {/* 庫存不足救援 */}
       {shortage ? (
-        <div className="mt-3 rounded-lg border border-[#E8A020]/40 bg-[#E8A020]/[0.08] p-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#E8A020]">
-            <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-            本倉只有 {mainStock} 個，您要 {qty} 個
-          </div>
-          {canFullFill ? (
-            <>
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-white/90">
-                <Sparkles className="h-3 w-3 text-[#E8A020]" aria-hidden />
-                系統建議
+        <div className="rounded-lg border border-[#E8A020]/40 bg-[#E8A020]/5 p-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#E8A020]" aria-hidden />
+            <div className="space-y-2 text-xs">
+              <div className="text-white/80">
+                本倉僅 {mainStock} 個，您需要 {qty} 個
               </div>
-              <ul className="mt-1.5 space-y-1 text-[11px] leading-relaxed text-white/75">
-                {mainStock > 0 ? (
-                  <li>📦 本倉 {mainStock} 個（{WAREHOUSE_META.main.etaHint}）</li>
-                ) : null}
-                {otherNeed > 0 ? (
-                  <li>
-                    🚚 {hsinchuStock > 0 ? '新竹倉' : '台中倉'}調 {otherNeed} 個（
-                    {hsinchuStock > 0
-                      ? WAREHOUSE_META.hsinchu.etaHint
-                      : WAREHOUSE_META.taichung.etaHint}
-                    ）
-                  </li>
-                ) : null}
-                <li className="text-[#1D9E75]">✅ 可完整出貨！</li>
-              </ul>
-            </>
-          ) : (
-            <div className="mt-2 text-[11px] text-white/70">
-              ⚠️ 所有倉合計庫存 {mainStock + totalOtherStock} 個，仍不足 {qty - (mainStock + totalOtherStock)} 個。
-              <br />
-              建議請客戶改減量或改其他料號。
+              {canFullFill ? (
+                <>
+                  <div className="text-white/60">系統建議：</div>
+                  <div className="space-y-0.5 pl-2 text-white/70">
+                    {mainStock > 0 ? (
+                      <div>• 本倉 {mainStock} 個（{WAREHOUSE_META.main.etaHint}）</div>
+                    ) : null}
+                    {otherNeed > 0 ? (
+                      <div>
+                        • {hsinchuStock > 0 ? '新竹倉' : '台中倉'}調 {otherNeed} 個（
+                        {hsinchuStock > 0
+                          ? WAREHOUSE_META.hsinchu.etaHint
+                          : WAREHOUSE_META.taichung.etaHint}
+                        ）
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="text-[#1D9E75]">✓ 可完整出貨</div>
+                </>
+              ) : (
+                <div className="text-white/70">
+                  所有倉合計 {mainStock + totalOtherStock} 個，仍不足{' '}
+                  {qty - (mainStock + totalOtherStock)} 個；建議請客戶改減量或改其他料號。
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       ) : null}
 
-      {/* 加入報價清單 / 已加入 */}
-      <div className="mt-3 flex items-center gap-2">
-        {inQuote ? (
-          <>
-            <button
-              type="button"
-              onClick={() => onAddOrUpdate(qty)}
-              className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#1D9E75] text-sm font-semibold text-white transition-colors hover:bg-[#28b388] active:scale-[0.98]"
-            >
-              <CheckCircle2 className="h-4 w-4" aria-hidden />
-              已加入 · 更新為 {qty} 個
-            </button>
-            <button
-              type="button"
-              onClick={onRemove}
-              className="inline-flex h-10 items-center justify-center rounded-lg border border-white/20 px-3 text-xs text-white/60 transition-colors hover:bg-white/5"
-            >
-              移除
-            </button>
-          </>
-        ) : (
+      {/* 加入 / 已加入 操作 */}
+      {existingItem ? (
+        <div className="flex items-center gap-2">
+          <div className="flex-1 rounded-lg border border-[#1D9E75]/40 bg-[#1D9E75]/5 px-3 py-2 text-center text-xs text-[#1D9E75]">
+            已加入報價清單 · 自動同步本卡變更
+          </div>
           <button
             type="button"
-            onClick={() => onAddOrUpdate(qty)}
-            disabled={!canFullFill}
-            className={cx(
-              'inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-all active:scale-[0.98]',
-              canFullFill
-                ? 'bg-[#E8A020] text-black shadow-[0_4px_12px_rgba(232,160,32,0.25)]'
-                : 'cursor-not-allowed bg-white/10 text-white/40',
-            )}
+            onClick={onRemove}
+            className="inline-flex h-10 shrink-0 items-center rounded border border-white/20 px-3 text-xs text-white/60 transition-colors hover:border-[#E24B4A]/60 hover:text-[#E24B4A]"
           >
-            {canFullFill ? (shortage ? '接受此建議並加入 →' : '加入報價清單 →') : '缺貨無法下單'}
+            移除
           </button>
-        )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleAddClick}
+          disabled={!canFullFill}
+          className={cx(
+            'inline-flex h-11 w-full items-center justify-center rounded-lg text-sm font-medium transition-colors',
+            canFullFill
+              ? 'bg-[#E8A020] text-black hover:bg-[#E8A020]/90'
+              : 'cursor-not-allowed bg-white/10 text-white/40',
+          )}
+        >
+          {canFullFill ? '加入報價清單' : '缺貨無法下單'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function PartRow({
+  part,
+  tier,
+  isExpanded,
+  onToggle,
+}: {
+  part: Part;
+  tier: 'A' | 'B' | 'C' | 'D';
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const suggestedPrice = part.prices[tier];
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cx(
+        'w-full p-3 text-left transition-colors',
+        isExpanded ? 'bg-[#E8A020]/5' : 'hover:bg-white/5',
+      )}
+      aria-expanded={isExpanded}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {/* 料號 + 品名 */}
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 font-mono text-xs text-white/40">{part.sku}</span>
+            <span className="truncate text-sm text-white">{part.name}</span>
+          </div>
+          {/* 庫存摘要 + 建議售價 */}
+          <div className="mt-1 flex items-center gap-3 text-xs text-white/50">
+            <span className={part.stocks.main > 0 ? 'text-[#1D9E75]' : 'text-white/40'}>
+              本倉 {part.stocks.main}
+            </span>
+            <span>·</span>
+            <span className="tabular-nums">
+              建議 NT$ {suggestedPrice.toLocaleString()}
+            </span>
+          </div>
+        </div>
+        <ChevronRight
+          className={cx(
+            'h-4 w-4 shrink-0 text-white/40 transition-transform',
+            isExpanded && 'rotate-90',
+          )}
+          aria-hidden
+        />
       </div>
-    </article>
+    </button>
   );
 }
 
@@ -298,6 +358,8 @@ export function Step2SearchParts({
   onNext,
 }: Step2SearchPartsProps) {
   const [keyword, setKeyword] = useState('');
+  const [expandedSku, setExpandedSku] = useState<string | null>(null);
+  const [lightboxPart, setLightboxPart] = useState<Part | null>(null);
 
   const results = useMemo<Part[]>(() => {
     const kw = keyword.trim();
@@ -308,25 +370,22 @@ export function Step2SearchParts({
   const customer = state.selectedCustomer;
   const tier = customer?.tier ?? 'B';
 
-  const quoteQtyBySku = useMemo(() => {
-    const m = new Map<string, number>();
-    state.quoteItems.forEach((q) => m.set(q.sku, q.quantity));
+  const itemBySku = useMemo(() => {
+    const m = new Map<string, QuoteItem>();
+    state.quoteItems.forEach((q) => m.set(q.sku, q));
     return m;
   }, [state.quoteItems]);
 
   const totalItemsInQuote = state.quoteItems.length;
 
-  const handleAddOrUpdate = (part: Part, qty: number) => {
-    const item: QuoteItem = {
-      sku: part.sku,
-      quantity: qty,
-      unitPrice: part.prices[tier],
-    };
-    if (quoteQtyBySku.has(part.sku)) {
-      dispatch({ type: 'UPDATE_QUOTE_ITEM', sku: part.sku, quantity: qty });
-    } else {
-      dispatch({ type: 'ADD_QUOTE_ITEM', item });
-    }
+  const handleAdd = (item: QuoteItem) => {
+    dispatch({ type: 'ADD_QUOTE_ITEM', item });
+  };
+  const handleUpdate = (sku: string, partial: { quantity?: number; unitPrice?: number }) => {
+    dispatch({ type: 'UPDATE_QUOTE_ITEM', sku, ...partial });
+  };
+  const handleRemove = (sku: string) => {
+    dispatch({ type: 'REMOVE_QUOTE_ITEM', sku });
   };
 
   return (
@@ -334,7 +393,9 @@ export function Step2SearchParts({
       canProceed={totalItemsInQuote > 0}
       onBack={onBack}
       onNext={onNext}
-      nextLabel={totalItemsInQuote > 0 ? `下一步 → 建立清單（${totalItemsInQuote} 項）` : '下一步'}
+      nextLabel={
+        totalItemsInQuote > 0 ? `下一步 → 報價清單（${totalItemsInQuote} 項）` : '下一步'
+      }
       disabledHint={totalItemsInQuote > 0 ? undefined : '請先加入至少一項料號'}
     >
       {/* 已選客戶摘要（穩重版） */}
@@ -342,7 +403,7 @@ export function Step2SearchParts({
         <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 p-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono text-white/40">{customer.code}</span>
+              <span className="shrink-0 font-mono text-xs text-white/40">{customer.code}</span>
               <span className="truncate text-sm text-white">{customer.name}</span>
               <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/70">
                 {tier} 級
@@ -366,10 +427,9 @@ export function Step2SearchParts({
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="輸入料號或品名（例：剎車片、機油濾心）"
           className={cx(
-            'h-11 w-full rounded-lg border border-white/15 bg-white/[0.04] pl-9 pr-3 text-sm',
+            'h-11 w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-3 text-sm',
             'text-white placeholder:text-white/35',
-            'focus:border-[#E8A020] focus:bg-black/40 focus:outline-none focus:ring-2 focus:ring-[#E8A020]/30',
-            'transition-colors',
+            'transition-colors focus:border-[#E8A020]/60 focus:outline-none',
           )}
           aria-label="料號搜尋"
         />
@@ -379,20 +439,16 @@ export function Step2SearchParts({
       <div className="mt-2 flex items-center gap-2">
         <button
           type="button"
-          onClick={() => {
-            /* demo 視覺，無實際動作 */
-          }}
-          className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/5 text-[11px] text-white/60 transition-colors hover:bg-white/10"
+          onClick={() => {}}
+          className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white/60 transition-colors hover:border-white/20"
         >
           <BarcodeIcon className="h-3.5 w-3.5" aria-hidden />
           掃描條碼
         </button>
         <button
           type="button"
-          onClick={() => {
-            /* demo 視覺，無實際動作 */
-          }}
-          className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/5 text-[11px] text-white/60 transition-colors hover:bg-white/10"
+          onClick={() => {}}
+          className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white/60 transition-colors hover:border-white/20"
         >
           <Mic className="h-3.5 w-3.5" aria-hidden />
           語音輸入
@@ -402,20 +458,20 @@ export function Step2SearchParts({
       {/* 常用關鍵字 chips */}
       {!keyword ? (
         <div className="mt-4">
-          <div className="mb-2 text-[11px] text-white/45">常用搜尋：</div>
+          <div className="mb-2 text-xs text-white/45">常用搜尋：</div>
           <div className="flex flex-wrap gap-2">
             {SUGGESTED_KEYWORDS.map((k) => (
               <button
                 key={k}
                 type="button"
                 onClick={() => setKeyword(k)}
-                className="inline-flex h-8 items-center rounded-full border border-white/15 bg-white/[0.04] px-3 text-xs text-white/75 transition-colors hover:border-[#E8A020] hover:text-[#E8A020]"
+                className="inline-flex h-8 items-center rounded-full border border-white/10 bg-white/5 px-3 text-xs text-white/70 transition-colors hover:border-[#E8A020]/60 hover:text-[#E8A020]"
               >
                 {k}
               </button>
             ))}
           </div>
-          <p className="mt-5 text-center text-[11px] leading-relaxed text-white/35">
+          <p className="mt-5 text-center text-xs leading-relaxed text-white/35">
             目前共 {MOCK_PARTS.length} 個料號
             <br />
             輸入關鍵字開始查詢
@@ -425,7 +481,7 @@ export function Step2SearchParts({
 
       {/* 搜尋結果 */}
       {keyword && results.length === 0 ? (
-        <div className="mt-6 rounded-lg border border-dashed border-white/15 p-6 text-center text-xs text-white/50">
+        <div className="mt-6 rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
           沒有找到符合「{keyword}」的料號
         </div>
       ) : null}
@@ -433,24 +489,47 @@ export function Step2SearchParts({
       {keyword && results.length > 0 ? (
         <section className="mt-4">
           <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold text-white/85">
-              🔍 搜尋「{keyword}」 · 找到 {results.length} 項
+            <h2 className="text-sm text-white/70">
+              搜尋「{keyword}」· 找到 {results.length} 項
             </h2>
           </div>
-          <div className="flex flex-col gap-3">
-            {results.map((p) => (
-              <PartCard
-                key={p.sku}
-                part={p}
-                tier={tier}
-                existingQty={quoteQtyBySku.get(p.sku) ?? null}
-                onAddOrUpdate={(q) => handleAddOrUpdate(p, q)}
-                onRemove={() => dispatch({ type: 'REMOVE_QUOTE_ITEM', sku: p.sku })}
-              />
-            ))}
+          <div className="overflow-hidden rounded-lg border border-white/10">
+            {results.map((p, idx) => {
+              const isExpanded = expandedSku === p.sku;
+              const existing = itemBySku.get(p.sku) ?? null;
+              return (
+                <div key={p.sku}>
+                  {idx > 0 ? <div className="h-px bg-white/10" /> : null}
+                  <PartRow
+                    part={p}
+                    tier={tier}
+                    isExpanded={isExpanded}
+                    onToggle={() => setExpandedSku(isExpanded ? null : p.sku)}
+                  />
+                  {isExpanded ? (
+                    <PartDetailExpanded
+                      part={p}
+                      tier={tier}
+                      existingItem={existing}
+                      onAdd={handleAdd}
+                      onUpdate={(partial) => handleUpdate(p.sku, partial)}
+                      onRemove={() => handleRemove(p.sku)}
+                      onZoom={() => setLightboxPart(p)}
+                    />
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </section>
       ) : null}
+
+      {/* Lightbox */}
+      <ImageLightbox
+        imageUrl={lightboxPart?.imageUrl ?? null}
+        alt={lightboxPart?.name}
+        onClose={() => setLightboxPart(null)}
+      />
     </StepWrapper>
   );
 }
