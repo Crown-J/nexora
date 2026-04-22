@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   ShoppingCart,
+  Sparkles,
   Undo2,
   Users,
 } from 'lucide-react';
@@ -48,7 +49,13 @@ function MasterSection() {
 
 function DomesticSection() {
   return (
-    <ModuleHubSection sectionId="sale-domestic" title="國內銷售" count={7}>
+    <ModuleHubSection sectionId="sale-domestic" title="國內銷售" count={8}>
+      <HubLinkCard
+        title="SOP 精品示範 🔥"
+        description="手機精品 UX：業務現場跟著 9 步走完銷貨，當場查庫存、口頭報價、一鍵建單"
+        Icon={Sparkles}
+        href="/dashboard/sale/sop-demo"
+      />
       <HubLinkCard
         title="查詢"
         description="即時查詢庫存、售價、歷史成交記錄"
@@ -98,7 +105,8 @@ function DomesticSection() {
 }
 
 export default function SaleHubPage() {
-  const [active, setActive] = useState<SaleSectionId>('master');
+  // R6：預設進「國內銷售」tab，讓手機一開銷售中心就看到 SOP 精品示範入口
+  const [active, setActive] = useState<SaleSectionId>('domestic');
 
   return (
     <>

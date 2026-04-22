@@ -473,6 +473,8 @@ const HIDE_MOBILE_DOCK_PREFIXES = [
   '/dashboard/base',
   // R5：SOP 精品示範有自己的固定底部操作列，避免與全站 DOCK 雙 bar 衝突
   '/dashboard/purchase/sop-demo',
+  // R6：國內銷貨 SOP 精品示範同理
+  '/dashboard/sale/sop-demo',
 ];
 const HIDE_MOBILE_DOCK_EXACT = [
   '/dashboard/purchase',
