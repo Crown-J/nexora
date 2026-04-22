@@ -18,6 +18,10 @@ import { MOCK_SO_NO } from './mock-data/scenario';
 import { ProgressHeader } from './components/ProgressHeader';
 import { Step1SelectCustomer } from './components/Step1SelectCustomer';
 import { Step2SearchParts } from './components/Step2SearchParts';
+import { Step3QuoteList } from './components/Step3QuoteList';
+import { Step4QuoteMethod } from './components/Step4QuoteMethod';
+import { Step5CustomerDecide } from './components/Step5CustomerDecide';
+import { Step6DeliveryMethod } from './components/Step6DeliveryMethod';
 import { StepPlaceholder } from './components/StepPlaceholder';
 import type { SaleSopAction, SaleSopState, StepNumber } from './types';
 
@@ -117,6 +121,46 @@ export function MobileSaleSopPage() {
     case 2:
       stepContent = (
         <Step2SearchParts
+          state={state}
+          dispatch={dispatch}
+          onBack={handleBack}
+          onNext={handleNext}
+        />
+      );
+      break;
+    case 3:
+      stepContent = (
+        <Step3QuoteList
+          state={state}
+          dispatch={dispatch}
+          onBack={handleBack}
+          onNext={handleNext}
+        />
+      );
+      break;
+    case 4:
+      stepContent = (
+        <Step4QuoteMethod
+          state={state}
+          dispatch={dispatch}
+          onBack={handleBack}
+          onNext={handleNext}
+        />
+      );
+      break;
+    case 5:
+      stepContent = (
+        <Step5CustomerDecide
+          state={state}
+          dispatch={dispatch}
+          onBack={handleBack}
+          onNext={handleNext}
+        />
+      );
+      break;
+    case 6:
+      stepContent = (
+        <Step6DeliveryMethod
           state={state}
           dispatch={dispatch}
           onBack={handleBack}
