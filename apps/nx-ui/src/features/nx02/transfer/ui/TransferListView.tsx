@@ -33,14 +33,14 @@ export function TransferListView({ vm }: TransferListViewProps) {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div>
           <p className="text-xs tracking-[0.35em] text-muted-foreground">NX02</p>
-          <h1 className="text-xl font-semibold">調撥單</h1>
+          <h1 className="text-lg font-semibold md:text-xl">調撥單</h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <select
-            className="rounded-lg border border-border bg-background px-2 py-1.5 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-2 text-sm lg:h-9"
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
@@ -54,7 +54,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
           </select>
           <Link
             href="/dashboard/nx02/transfer/new"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground lg:min-h-0 lg:py-2"
           >
             新增調撥
           </Link>
@@ -66,7 +66,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
 
       {data ? (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border/80">
+          <div className="hidden overflow-x-auto rounded-xl border border-border/80 lg:block">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
                 <tr>
@@ -109,7 +109,44 @@ export function TransferListView({ vm }: TransferListViewProps) {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between text-sm">
+          <div className="space-y-2 lg:hidden">
+            {data.rows.length === 0 ? (
+              <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-center text-sm text-muted-foreground">
+                尚無資料
+              </div>
+            ) : (
+              data.rows.map((r) => {
+                const b = statusBadge(r.status);
+                return (
+                  <Link
+                    key={r.id}
+                    href={`/dashboard/nx02/transfer/${r.id}`}
+                    className="block rounded-xl border border-border/80 bg-card/40 p-3 transition hover:bg-card/60"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-mono text-xs text-primary">{r.docNo}</div>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1 text-sm font-medium text-foreground">
+                          <span>{r.fromWarehouseName}</span>
+                          <span className="text-muted-foreground">→</span>
+                          <span>{r.toWarehouseName}</span>
+                        </div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {r.stDate}
+                          <span className="mx-1.5">·</span>
+                          料號 <span className="tabular-nums text-foreground">{r.itemCount}</span>
+                        </div>
+                      </div>
+                      <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', b.cls)}>
+                        {b.label}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="text-muted-foreground">
               第 {data.page} / {totalPages} 頁，共 {data.total} 筆
             </span>
@@ -117,7 +154,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
               <button
                 type="button"
                 disabled={page <= 1}
-                className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                className="min-h-[44px] rounded border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 上一頁
@@ -125,7 +162,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
               <button
                 type="button"
                 disabled={page >= totalPages}
-                className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                className="min-h-[44px] rounded border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1"
                 onClick={() => setPage((p) => p + 1)}
               >
                 下一頁
