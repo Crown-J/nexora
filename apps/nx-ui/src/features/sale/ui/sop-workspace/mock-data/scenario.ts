@@ -7,12 +7,12 @@ import type { StepMeta } from '../types';
 
 export const TAX_RATE = 0.05;
 
-/** 目標毛利率門檻（對應客戶等級），STEP 3 達標顯示 ✅ */
+/** 目標毛利率門檻（對應客戶等級），STEP 3 達標顯示「達標」 */
 export const TIER_TARGET_MARGIN: Record<'A' | 'B' | 'C' | 'D', number> = {
-  A: 32,
+  A: 35,
   B: 27,
   C: 22,
-  D: 17,
+  D: 18,
 };
 
 export const STEPS_META: readonly StepMeta[] = [

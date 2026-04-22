@@ -55,11 +55,17 @@ function reducer(state: SaleSopState, action: SaleSopAction): SaleSopState {
         ...state,
         quoteItems: state.quoteItems.filter((q) => q.sku !== action.sku),
       };
-    case 'UPDATE_QUANTITY':
+    case 'UPDATE_QUOTE_ITEM':
       return {
         ...state,
         quoteItems: state.quoteItems.map((q) =>
-          q.sku === action.sku ? { ...q, quantity: action.quantity } : q,
+          q.sku === action.sku
+            ? {
+                ...q,
+                quantity: action.quantity ?? q.quantity,
+                unitPrice: action.unitPrice ?? q.unitPrice,
+              }
+            : q,
         ),
       };
     case 'SET_QUOTE_METHOD':

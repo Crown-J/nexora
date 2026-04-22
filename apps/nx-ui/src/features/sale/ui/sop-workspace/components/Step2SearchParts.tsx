@@ -125,8 +125,8 @@ function PartCard({
     >
       {/* 料號抬頭 */}
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30 text-2xl">
-          {part.imageEmoji}
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-black/30">
+          <Package className="h-4 w-4 text-white/40" aria-hidden />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -323,7 +323,7 @@ export function Step2SearchParts({
       unitPrice: part.prices[tier],
     };
     if (quoteQtyBySku.has(part.sku)) {
-      dispatch({ type: 'UPDATE_QUANTITY', sku: part.sku, quantity: qty });
+      dispatch({ type: 'UPDATE_QUOTE_ITEM', sku: part.sku, quantity: qty });
     } else {
       dispatch({ type: 'ADD_QUOTE_ITEM', item });
     }
@@ -337,16 +337,19 @@ export function Step2SearchParts({
       nextLabel={totalItemsInQuote > 0 ? `下一步 → 建立清單（${totalItemsInQuote} 項）` : '下一步'}
       disabledHint={totalItemsInQuote > 0 ? undefined : '請先加入至少一項料號'}
     >
-      {/* 已選客戶提醒 */}
+      {/* 已選客戶摘要（穩重版） */}
       {customer ? (
-        <div className="mb-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-          <div className="flex items-center justify-between gap-2 text-xs">
-            <span className="truncate text-white/90">
-              🏪 <span className="font-semibold">{customer.name}</span>
-              <span className="ml-2 text-white/50">· {tier} 級 · {customer.mainVehicle}</span>
-            </span>
-            <span className="shrink-0 text-[10px] text-[#E8A020]">建議售價自動套用</span>
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 p-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-white/40">{customer.code}</span>
+              <span className="truncate text-sm text-white">{customer.name}</span>
+              <span className="shrink-0 rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/70">
+                {tier} 級
+              </span>
+            </div>
           </div>
+          <div className="shrink-0 text-xs text-white/50">自動套 {tier} 級價</div>
         </div>
       ) : null}
 

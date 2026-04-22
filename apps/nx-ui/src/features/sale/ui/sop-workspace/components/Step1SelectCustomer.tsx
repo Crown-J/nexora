@@ -1,22 +1,22 @@
 // apps/nx-ui/src/features/sale/ui/sop-workspace/components/Step1SelectCustomer.tsx
 /**
- * STEP 1 — 選擇客戶
+ * STEP 1 — 選擇客戶（Phase 2 穩重化版本）
  *
- * 戲劇亮點 2（客戶等級自動套價）的舞台：
- * - 選完客戶，卡片變金邊展開
- * - 帶出等級 A/B/C/D、當月毛利率、主要車型、系統偏好提示
- * - 刻意「不顯示」AR / 付款條件 / 逾期 → 對應 Crown 說的權限切割
+ * 設計精神：從「蝦皮風」轉「銀行 APP 風」
+ * - 無 emoji、lucide-react 線條 icon
+ * - 金色只用於選中淡邊（/60）和 CTA
+ * - Badge 統一灰階（bg-white/10）
+ * - 字型層級扁平（不用 font-bold / text-xl+）
  *
- * UX：
- * - 上方搜尋框：依名稱 / 聯絡人 / 電話 filter
- * - 未選時：列出所有最近拜訪客戶（緊湊卡片）
- * - 選中：僅保留選中客戶大卡（含詳情），下方多一個「選其他客戶」按鈕
+ * 列表卡：客戶代碼 + 名稱 + 等級 + 聯絡人+電話 + 地址（3 行精簡）
+ * 選中詳情卡：銷售實績 3 格 + 退貨率 + 最近 2 則備註
+ * 刻意不顯示 AR/付款條件/逾期 → 業務權限切割
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowRight, Award, BarChart3, Car, Lightbulb, Search, Sparkles, User } from 'lucide-react';
+import { CheckCircle2, Search } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
@@ -30,28 +30,19 @@ export type Step1SelectCustomerProps = {
   onNext: () => void;
 };
 
-const TIER_COLOR: Record<Customer['tier'], { badge: string; label: string }> = {
-  A: { badge: 'bg-[#E8A020] text-black', label: 'A 級' },
-  B: { badge: 'bg-[#3B82F6] text-white', label: 'B 級' },
-  C: { badge: 'bg-white/20 text-white', label: 'C 級' },
-  D: { badge: 'bg-white/10 text-white/60', label: 'D 級' },
-};
-
 function TierBadge({ tier }: { tier: Customer['tier'] }) {
-  const meta = TIER_COLOR[tier];
   return (
-    <span
-      className={cx(
-        'inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wider',
-        meta.badge,
-      )}
-    >
-      {meta.label}
+    <span className="shrink-0 rounded bg-white/10 px-2 py-0.5 text-xs text-white/80">
+      {tier} 級
     </span>
   );
 }
 
-function CompactCustomerCard({
+function formatNT(amount: number): string {
+  return `NT$ ${amount.toLocaleString()}`;
+}
+
+function CompactCustomerRow({
   customer,
   onSelect,
 }: {
@@ -63,31 +54,26 @@ function CompactCustomerCard({
       type="button"
       onClick={onSelect}
       className={cx(
-        'group w-full rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left',
-        'transition-all duration-200 hover:border-white/25 hover:bg-white/[0.06] active:scale-[0.99]',
+        'w-full rounded-lg border border-white/10 bg-white/5 p-4 text-left',
+        'transition-colors hover:border-white/20 active:border-[#E8A020]/60',
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-base font-semibold text-white/95">
-              🏪 {customer.name}
-            </span>
-            <TierBadge tier={customer.tier} />
-          </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-white/55">
-            <span>{customer.contact}</span>
-            <span>·</span>
-            <span>{customer.mainVehicle}</span>
-            <span>·</span>
-            <span>上次拜訪 {customer.lastVisit}</span>
-          </div>
+      {/* 第一行：代碼 + 名稱 + 等級 */}
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 font-mono text-xs text-white/40">{customer.code}</span>
+          <span className="truncate text-base text-white">{customer.name}</span>
         </div>
-        <ArrowRight
-          className="h-4 w-4 shrink-0 text-white/30 transition-colors group-hover:text-white/70"
-          aria-hidden
-        />
+        <TierBadge tier={customer.tier} />
       </div>
+
+      {/* 第二行：聯絡人 · 電話 */}
+      <div className="mb-0.5 text-xs text-white/60">
+        {customer.contact} · {customer.phone}
+      </div>
+
+      {/* 第三行：地址 */}
+      <div className="text-xs text-white/50">{customer.address}</div>
     </button>
   );
 }
@@ -99,82 +85,90 @@ function SelectedCustomerCard({
   customer: Customer;
   onReset: () => void;
 }) {
+  const { salesStats, remarks } = customer;
+
   return (
-    <div className="rounded-2xl border-2 border-[#E8A020] bg-[#E8A020]/[0.06] p-5 shadow-[0_8px_24px_rgba(232,160,32,0.15)]">
+    <div className="space-y-4 rounded-lg border border-[#E8A020]/60 bg-[#E8A020]/5 p-5">
       {/* 已選標記 */}
-      <div className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-[#E8A020]">
-        <Sparkles className="h-3.5 w-3.5" aria-hidden />
-        已選客戶
+      <div className="flex items-center gap-2 text-xs text-[#E8A020]">
+        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+        <span>已選客戶</span>
       </div>
 
-      {/* 客戶抬頭 */}
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-bold text-white">🏪 {customer.name}</h3>
-          <div className="mt-1 text-xs text-white/60">
-            {customer.customerType} · {customer.address}
+      {/* 客戶基本資料 */}
+      <div className="space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-white/40">{customer.code}</span>
+          <span className="text-lg font-medium text-white">{customer.name}</span>
+          <TierBadge tier={customer.tier} />
+        </div>
+        <div className="text-xs text-white/60">
+          {customer.contact} · {customer.phone}
+        </div>
+        <div className="text-xs text-white/50">{customer.address}</div>
+      </div>
+
+      {/* 分隔線 */}
+      <div className="h-px bg-white/10" />
+
+      {/* 銷售實績 3 格 */}
+      <div>
+        <div className="mb-2 text-xs text-white/50">銷售實績</div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <div className="text-xs text-white/40">本日</div>
+            <div className="mt-0.5 text-sm tabular-nums text-white/90">
+              {formatNT(salesStats.today)}
+            </div>
           </div>
-        </div>
-        <TierBadge tier={customer.tier} />
-      </div>
-
-      {/* 聯絡資訊 */}
-      <div className="mt-4 grid grid-cols-1 gap-2 text-sm">
-        <div className="flex items-center gap-2 text-white/80">
-          <User className="h-4 w-4 text-white/40" aria-hidden />
-          <span>{customer.contact}</span>
-          <span className="text-white/35">·</span>
-          <span className="tabular-nums text-white/60">{customer.phone}</span>
-        </div>
-      </div>
-
-      {/* 業務指標（毛利率） */}
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-lg border border-white/10 bg-black/30 p-3">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/40">
-            <Award className="h-3 w-3" aria-hidden />
-            客戶等級
+          <div>
+            <div className="text-xs text-white/40">本月</div>
+            <div className="mt-0.5 text-sm tabular-nums text-white/90">
+              {formatNT(salesStats.month)}
+            </div>
           </div>
-          <div className="mt-1 text-xl font-bold text-[#E8A020]">{customer.tier}</div>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-black/30 p-3">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/40">
-            <BarChart3 className="h-3 w-3" aria-hidden />
-            本月毛利率
-          </div>
-          <div className="mt-1 text-xl font-bold text-[#1D9E75] tabular-nums">
-            {customer.monthlyGrossMargin}%
-          </div>
-        </div>
-      </div>
-
-      {/* 主要車型 */}
-      <div className="mt-3 rounded-lg border border-white/10 bg-black/30 p-3">
-        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/40">
-          <Car className="h-3 w-3" aria-hidden />
-          主要車型
-        </div>
-        <div className="mt-1 text-sm font-medium text-white/90">{customer.mainVehicle}</div>
-      </div>
-
-      {/* 系統提示 */}
-      <div className="mt-3 flex items-start gap-2 rounded-lg border border-[#1D9E75]/30 bg-[#1D9E75]/[0.08] p-3">
-        <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-[#1D9E75]" aria-hidden />
-        <div className="text-[11px] leading-relaxed text-white/80">
-          <div className="font-semibold text-[#1D9E75]">系統提示</div>
-          <div className="mt-0.5">
-            此客戶常買 {customer.preferredBrand}
-            <br />
-            下一步查料會自動套用 {customer.tier} 級售價
+          <div>
+            <div className="text-xs text-white/40">今年累計</div>
+            <div className="mt-0.5 text-sm tabular-nums text-white/90">
+              {formatNT(salesStats.yearly)}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 重選 */}
+      {/* 退貨率（淡色） */}
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-white/50">退貨率（近 3 個月）</span>
+        <span className="tabular-nums text-white/70">{salesStats.returnRate}%</span>
+      </div>
+
+      {/* 分隔線 */}
+      <div className="h-px bg-white/10" />
+
+      {/* 備註（最近 1~2 則） */}
+      <div>
+        <div className="mb-2 text-xs text-white/50">備註</div>
+        {remarks.length === 0 ? (
+          <div className="text-xs text-white/40">（無）</div>
+        ) : (
+          <div className="space-y-2">
+            {remarks.slice(0, 2).map((r, idx) => (
+              <div key={idx} className="border-l-2 border-white/20 pl-3">
+                <div className="text-xs text-white/40">
+                  {r.author} · {r.timeAgo}
+                </div>
+                <div className="mt-0.5 text-xs leading-relaxed text-white/80">{r.content}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 底部操作 */}
       <button
         type="button"
         onClick={onReset}
-        className="mt-4 inline-flex h-9 items-center text-xs text-white/50 transition-colors hover:text-white/80"
+        className="text-xs text-white/40 transition-colors hover:text-white/70"
       >
         ← 改選其他客戶
       </button>
@@ -193,7 +187,7 @@ export function Step1SelectCustomer({
     const kw = keyword.trim().toLowerCase();
     if (!kw) return MOCK_CUSTOMERS;
     return MOCK_CUSTOMERS.filter((c) => {
-      const hay = `${c.name} ${c.contact} ${c.phone}`.toLowerCase();
+      const hay = `${c.code} ${c.name} ${c.contact} ${c.phone}`.toLowerCase();
       return hay.includes(kw);
     });
   }, [keyword]);
@@ -225,31 +219,31 @@ export function Step1SelectCustomer({
               inputMode="search"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="輸入客戶名稱、聯絡人或電話"
+              placeholder="輸入客戶名稱、代碼或電話"
               className={cx(
-                'h-11 w-full rounded-lg border border-white/15 bg-white/[0.04] pl-9 pr-3 text-sm',
+                'h-11 w-full rounded-lg border border-white/10 bg-white/5 pl-9 pr-3 text-sm',
                 'text-white placeholder:text-white/35',
-                'focus:border-[#E8A020] focus:bg-black/40 focus:outline-none focus:ring-2 focus:ring-[#E8A020]/30',
                 'transition-colors',
+                'focus:border-[#E8A020]/60 focus:outline-none',
               )}
               aria-label="客戶搜尋"
             />
           </label>
 
-          {/* 最近拜訪 */}
+          {/* 客戶列表 */}
           <section className="mt-5">
             <div className="mb-2 flex items-baseline justify-between">
-              <h2 className="text-sm font-semibold text-white/85">最近拜訪客戶</h2>
-              <span className="text-[11px] text-white/40">共 {filtered.length} 家</span>
+              <h2 className="text-sm text-white/70">最近拜訪客戶</h2>
+              <span className="text-xs text-white/40">共 {filtered.length} 家</span>
             </div>
             {filtered.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-white/15 p-6 text-center text-xs text-white/50">
+              <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
                 沒有符合的客戶
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 {filtered.map((c) => (
-                  <CompactCustomerCard
+                  <CompactCustomerRow
                     key={c.id}
                     customer={c}
                     onSelect={() => dispatch({ type: 'SELECT_CUSTOMER', customer: c })}

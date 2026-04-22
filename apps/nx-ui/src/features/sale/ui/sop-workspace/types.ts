@@ -9,24 +9,34 @@ export type StepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type CustomerTier = 'A' | 'B' | 'C' | 'D';
 
+export type CustomerSalesStats = {
+  today: number;
+  month: number;
+  yearly: number;
+  /** 退貨率（近 3 個月，百分比） */
+  returnRate: number;
+};
+
+export type CustomerRemark = {
+  author: string;
+  timeAgo: string;
+  content: string;
+};
+
 export type Customer = {
   id: string;
+  /** 客戶代碼（首次登錄時的等級字母 + 4 碼流水號，升降級不變） */
+  code: string;
   name: string;
   contact: string;
   phone: string;
   address: string;
   tier: CustomerTier;
-  /** 當月毛利率（%） */
-  monthlyGrossMargin: number;
-  /** 主要車型，例：'VAG' / 'Toyota' / '多品牌' */
-  mainVehicle: string;
-  /** 業務側看到的偏好提示 */
-  preferredBrand: string;
-  lastVisit: string;
-  /** 保養廠 / 同行 */
   customerType: '保養廠' | '同行';
   /** 是否偏遠（影響 STEP 6 推薦物流） */
   isRemote?: boolean;
+  salesStats: CustomerSalesStats;
+  remarks: CustomerRemark[];
 };
 
 export type WarehouseKey = 'main' | 'hsinchu' | 'taichung';
@@ -40,16 +50,17 @@ export const WAREHOUSE_META: Record<WarehouseKey, { label: string; etaHint: stri
 export type Part = {
   sku: string;
   name: string;
-  /** 'VAG' / '副廠' 等 */
   brand: string;
   vehicleTypes: string[];
-  /** 圖片路徑（demo 可先用 emoji 或佔位符） */
-  imageEmoji: string;
+  /** 圖片 data URL 或檔案路徑；null 時 fallback Package icon */
+  imageUrl: string | null;
   stocks: Record<WarehouseKey, number>;
   /** 四個客戶等級對應售價 */
   prices: Record<CustomerTier, number>;
-  /** 歷史成交價（不分等級，單純上次賣出價） */
+  /** 歷史成交價（不分等級） */
   lastSoldPrice: number;
+  /** 進貨成本（毛利率計算用） */
+  unitCost: number;
 };
 
 export type QuoteItem = {
@@ -64,21 +75,14 @@ export type DeliveryMethod = 'delivery' | 'pickup' | 'shipping';
 export type SignMethod = 'electronic' | 'paper';
 
 export type SaleSopState = {
-  /** STEP 1：選中的客戶 */
   selectedCustomer: Customer | null;
-  /** STEP 3：報價清單 */
   quoteItems: QuoteItem[];
-  /** STEP 4：報價方式 */
   quoteMethod: QuoteMethod | null;
-  /** STEP 5：客戶決定 */
   customerDecision: CustomerDecision | null;
-  /** STEP 6：配送方式 */
   deliveryMethod: DeliveryMethod | null;
-  /** STEP 7：簽單方式 */
   signMethod: SignMethod | null;
-  /** STEP 7：是否完成簽名動作 */
   hasSigned: boolean;
-  /** STEP 8 自動生成的訂單編號（固定 mock，避免重繪跳動） */
+  /** STEP 8 自動生成的訂單編號（固定 mock） */
   orderNumber: string;
 };
 
@@ -87,7 +91,7 @@ export type SaleSopAction =
   | { type: 'CLEAR_CUSTOMER' }
   | { type: 'ADD_QUOTE_ITEM'; item: QuoteItem }
   | { type: 'REMOVE_QUOTE_ITEM'; sku: string }
-  | { type: 'UPDATE_QUANTITY'; sku: string; quantity: number }
+  | { type: 'UPDATE_QUOTE_ITEM'; sku: string; quantity?: number; unitPrice?: number }
   | { type: 'SET_QUOTE_METHOD'; method: QuoteMethod }
   | { type: 'SET_CUSTOMER_DECISION'; decision: CustomerDecision }
   | { type: 'SET_DELIVERY_METHOD'; method: DeliveryMethod }
