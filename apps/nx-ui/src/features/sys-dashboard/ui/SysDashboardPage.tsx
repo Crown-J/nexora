@@ -21,7 +21,18 @@ import {
   type MockTask,
   type PlanCode,
 } from '@/mocks/dashboard';
-import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+
+/**
+ * 把後端回傳的 plan code string (e.g. 'NEXORA-PRO-XL', 'NEXORA-PLUS-L')
+ * 收斂為 UI 使用的三段 PlanCode enum。
+ */
+function deriveTierFromPlanCode(planCodeStr: string | null | undefined): PlanCode {
+  const s = String(planCodeStr ?? '').toUpperCase();
+  if (s.includes('PRO')) return 'PRO';
+  if (s.includes('PLUS')) return 'PLUS';
+  return 'LITE';
+}
 import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
 import { DashboardQuickShortcuts } from '@/features/sys-dashboard/ui/DashboardQuickShortcuts';
 import { ProExpRankBar } from '@/features/sys-dashboard/ui/ProExpRankBar';
@@ -181,7 +192,10 @@ function ProHomeBody({
 }
 
 export function SysDashboardPage() {
-  const { planCode } = useDashboardHomePlan();
+  // 改用 session 實際 plan code 而非 mock context（R4-A：避免 TEST-PLUS 登入
+  // 看到 PRO 區塊 — 原本 useDashboardHomePlan 預設 'PRO' 與登入租戶無關）
+  const { planCode: sessionPlanCode } = useSessionMe();
+  const planCode = deriveTierFromPlanCode(sessionPlanCode);
   const pathname = usePathname();
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
