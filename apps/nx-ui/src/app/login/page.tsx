@@ -90,7 +90,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login-shell min-h-screen min-h-dvh bg-background relative overflow-hidden font-sans">
+    <main className="login-shell h-dvh bg-background relative overflow-hidden font-sans lg:h-auto lg:min-h-screen">
       <div className="login-stars absolute inset-0 z-0">
         <ParticleField className="w-full h-full" />
       </div>
@@ -98,14 +98,14 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-background via-transparent to-background" />
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
 
-      <div className="relative z-10 min-h-screen min-h-dvh flex flex-col lg:flex-row">
-        <div className="lg:hidden flex flex-col items-center pt-8 pb-4 px-6">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-px w-8 bg-gradient-to-r from-transparent to-accent/50" />
+      <div className="relative z-10 h-full flex flex-col lg:min-h-screen lg:flex-row">
+        <div className="lg:hidden shrink-0 flex flex-col items-center pt-4 pb-1 px-6">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="h-px w-6 bg-gradient-to-r from-transparent to-accent/50" />
             <span className="text-[10px] tracking-[0.25em] text-accent font-mono">ERP PLATFORM</span>
-            <div className="h-px w-8 bg-gradient-to-l from-transparent to-accent/50" />
+            <div className="h-px w-6 bg-gradient-to-l from-transparent to-accent/50" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             NEX
             <span className="relative inline-block">
               O
@@ -115,11 +115,11 @@ export default function LoginPage() {
             </span>
             RA
           </h1>
-          <p className="text-lg font-light tracking-[0.15em] text-foreground/80">GRID</p>
+          <p className="text-base font-light tracking-[0.15em] text-foreground/80">GRID</p>
         </div>
 
-        <div className="lg:hidden flex-1 flex items-center justify-center px-6 py-4 max-h-[35vh]">
-          <div className="w-full max-w-[280px] aspect-square">
+        <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6">
+          <div className="relative flex aspect-square max-h-full max-w-[200px] w-full items-center justify-center">
             <PlanetOrbit className="w-full h-full" />
           </div>
         </div>
@@ -166,19 +166,19 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col px-6 pb-6 lg:p-0">
-          <div className="flex-1 flex items-start lg:items-center justify-center lg:p-12">
-            <div className="w-full max-w-md space-y-6">
-              <div className="space-y-2 text-center">
+        <div className="w-full shrink-0 flex flex-col px-6 pb-2 lg:w-1/2 xl:w-2/5 lg:shrink lg:p-0 lg:pb-0">
+          <div className="flex items-start justify-center lg:flex-1 lg:items-center lg:p-12">
+            <div className="w-full max-w-md space-y-3 lg:space-y-6">
+              <div className="space-y-1 text-center lg:space-y-2">
                 <div className="hidden lg:flex items-center gap-3 justify-center">
                   <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-border to-transparent" />
                   <span className="text-xs tracking-[0.2em] text-accent font-mono">WELCOME</span>
                   <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-border to-transparent" />
                 </div>
-                <h2 className="text-xl lg:text-2xl font-semibold tracking-tight text-foreground">
+                <h2 className="text-base font-semibold tracking-tight text-foreground lg:text-2xl">
                   系統登入
                 </h2>
-                <p className="text-xs lg:text-sm text-muted-foreground">
+                <p className="hidden lg:block text-xs lg:text-sm text-muted-foreground">
                   請輸入您的帳號資訊以存取系統
                 </p>
                 {isNexoraDemoMode() ? (
@@ -192,7 +192,7 @@ export default function LoginPage() {
                 ) : null}
               </div>
 
-              <div className="login-card bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl p-5 lg:p-8 relative overflow-hidden">
+              <div className="login-card bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl p-4 lg:p-8 relative overflow-hidden">
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
                 <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl" />
 
@@ -205,7 +205,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="text-center space-y-2">
+              <div className="hidden lg:block text-center space-y-2">
                 <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
@@ -218,8 +218,16 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="pt-4 lg:p-6 border-t border-border/20 lg:border-t-0">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div className="pt-2 lg:p-6 lg:border-t-0">
+            <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground/70 font-mono lg:text-xs">
+              <span>SYS.VER 2.0.26</span>
+              <span className="hidden sm:inline">&copy; 2024 INNOVA Tech</span>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1 h-1 bg-accent rounded-full animate-pulse lg:w-1.5 lg:h-1.5 lg:bg-green-500" />
+                <span>NEXORA ONLINE</span>
+              </div>
+            </div>
+            <div className="mt-2 hidden lg:flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
               <span>&copy; 2024 INNOVA Tech</span>
               <div className="flex items-center gap-4">
                 <button type="button" className="login-link hover:text-accent transition-colors">
@@ -230,16 +238,6 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-20 px-6 py-3 bg-background/80 backdrop-blur-sm border-t border-border/20">
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground/60 font-mono">
-          <span>SYS.VER 2.0.26</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1 h-1 bg-accent rounded-full animate-pulse" />
-            <span>NEXORA ONLINE</span>
           </div>
         </div>
       </div>
