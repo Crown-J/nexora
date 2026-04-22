@@ -83,30 +83,30 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
     <div className="space-y-4">
       <header className="space-y-1">
         <p className="text-xs tracking-[0.35em] text-muted-foreground">NX02</p>
-        <h1 className="text-xl font-semibold text-foreground">庫存一覽</h1>
+        <h1 className="text-lg font-semibold text-foreground md:text-xl">庫存一覽</h1>
       </header>
 
       {summary ? (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground md:text-sm">
           共 {summary.total.toLocaleString('zh-TW')} 料號｜有庫存 {summary.inStock.toLocaleString('zh-TW')}｜零庫存{' '}
           {summary.zero.toLocaleString('zh-TW')}｜負庫存 {summary.negative.toLocaleString('zh-TW')}
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/80 bg-card/40 p-4">
-        <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-xs text-muted-foreground">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/80 bg-card/40 p-3 sm:flex-row sm:flex-wrap sm:items-end sm:p-4">
+        <label className="flex w-full min-w-[200px] flex-col gap-1 text-xs text-muted-foreground sm:flex-1">
           料號／品名
           <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm text-foreground lg:h-9"
             placeholder="輸入料號或品名搜尋…"
             value={qInput}
             onChange={(e) => setQInput(e.target.value)}
           />
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto">
           倉庫
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={warehouseId}
             onChange={(e) => setQuery({ warehouseId: e.target.value || null, page: '1' })}
           >
@@ -118,10 +118,10 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto">
           庫存狀態
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={status}
             onChange={(e) => setQuery({ status: e.target.value, page: '1' })}
           >
@@ -135,7 +135,7 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
 
       {error ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div> : null}
 
-      <div className="overflow-x-auto rounded-xl border border-border/80">
+      <div className="hidden overflow-x-auto rounded-xl border border-border/80 lg:block">
         <table className="w-full min-w-[960px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/30">
@@ -222,6 +222,96 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
         </table>
       </div>
 
+      <div className="space-y-2 lg:hidden">
+        {loading ? (
+          <div className="rounded-xl border border-border/80 bg-card/40 px-3 py-8 text-center text-sm text-muted-foreground">
+            載入中…
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="rounded-xl border border-border/80 bg-card/40 px-3 py-8 text-center text-sm text-muted-foreground">
+            無資料
+          </div>
+        ) : (
+          rows.map((r) => {
+            const low = r.minQty != null && r.minQty > 0 && r.onHandQty < r.minQty;
+            const cardTone =
+              r.onHandQty < 0
+                ? 'border-red-500/40 bg-red-500/5'
+                : r.onHandQty === 0
+                  ? 'border-border/60 bg-muted/30'
+                  : 'border-border/80 bg-card/40';
+            return (
+              <div key={r.id} className={cx('rounded-xl border p-3', cardTone)}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={ledgerHrefForPart(r.partCode)}
+                      className="font-mono text-xs text-primary underline-offset-2 hover:underline"
+                    >
+                      {r.partCode}
+                    </Link>
+                    <div className="mt-0.5 truncate text-sm font-medium text-foreground">
+                      {r.partName}
+                    </div>
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                      {r.brandName ?? '—'} · {r.warehouseName}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">可用量</div>
+                    <div className="tabular-nums text-lg font-semibold text-foreground">
+                      {r.availableQty.toLocaleString('zh-TW')}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{r.uom}</div>
+                  </div>
+                </div>
+                <div
+                  className={cx(
+                    'mt-3 grid gap-2 border-t border-border/40 pt-2 text-xs',
+                    showPlus ? 'grid-cols-4' : 'grid-cols-3',
+                  )}
+                >
+                  <div>
+                    <div className="text-muted-foreground">現存</div>
+                    <div className="tabular-nums text-foreground">{r.onHandQty.toLocaleString('zh-TW')}</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">佔用</div>
+                    <div className="tabular-nums text-foreground">{r.reservedQty.toLocaleString('zh-TW')}</div>
+                  </div>
+                  {showPlus ? (
+                    <div>
+                      <div className="text-muted-foreground">調撥中</div>
+                      <div className="tabular-nums text-foreground">{r.inTransitQty.toLocaleString('zh-TW')}</div>
+                    </div>
+                  ) : null}
+                  <div>
+                    <div className="text-muted-foreground">安全量</div>
+                    <div
+                      className={cx(
+                        'tabular-nums',
+                        low ? 'font-medium text-orange-500' : 'text-foreground',
+                      )}
+                    >
+                      {r.minQty == null ? '—' : r.minQty.toLocaleString('zh-TW')}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                  <span className="tabular-nums">庫存金額 {ntd0.format(r.stockValue)}</span>
+                  <span>{new Date(r.lastMoveAt).toLocaleString('zh-TW')}</span>
+                </div>
+                {r.onHandQty < 0 ? (
+                  <div className="mt-2 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-500">⚠ 負庫存</div>
+                ) : low ? (
+                  <div className="mt-2 rounded-md bg-orange-500/10 px-2 py-1 text-xs text-orange-500">⚠ 低於安全量</div>
+                ) : null}
+              </div>
+            );
+          })
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <span className="text-muted-foreground">
           第 {page} / {totalPages} 頁（共 {total} 筆）
@@ -229,7 +319,7 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
         <div className="flex gap-2">
           <button
             type="button"
-            className="rounded-lg border border-border px-3 py-1.5 disabled:opacity-40"
+            className="min-h-[44px] rounded-lg border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1.5"
             disabled={page <= 1}
             onClick={() => setQuery({ page: String(page - 1) })}
           >
@@ -237,7 +327,7 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
           </button>
           <button
             type="button"
-            className="rounded-lg border border-border px-3 py-1.5 disabled:opacity-40"
+            className="min-h-[44px] rounded-lg border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1.5"
             disabled={page >= totalPages}
             onClick={() => setQuery({ page: String(page + 1) })}
           >
