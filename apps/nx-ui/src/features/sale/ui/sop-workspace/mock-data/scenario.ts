@@ -31,3 +31,17 @@ export const STEPS_META: readonly StepMeta[] = [
 export const MOCK_SO_NO = 'SO-202604-00056';
 export const MOCK_PK_NO = 'PK-202604-00089';
 export const MOCK_DELIVERY_ETA_MIN = 30;
+
+/**
+ * STEP 9 業績總結固定 mock — 假想業務「王小明」的本月（不含本次）數據。
+ * 本次成交金額會在 STEP 9 再累加上去顯示「累計後」狀態。
+ */
+export const MOCK_SALES_PERSON_MONTHLY = {
+  name: '王小明',
+  monthlyTarget: 600_000,
+  monthlyActualWithoutThisDeal: 485_230,
+  monthlyMarginRate: 28.3,
+  monthlyDealCountWithoutThisDeal: 41,
+  teamRank: 3,
+  teamSize: 8,
+} as const;
