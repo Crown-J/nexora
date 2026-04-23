@@ -24,7 +24,9 @@ import {
   MobileHubSectionTabs,
   type MobileHubSectionTabDef,
 } from '@/features/layout/ui/module-hub/MobileHubSectionTabs';
+import { DocumentsSection } from './sections/DocumentsSection';
 import { StatusSection } from './sections/StatusSection';
+import { WorkstationSection } from './sections/WorkstationSection';
 
 type SaleSection = 'status' | 'workstation' | 'documents' | 'customer';
 
@@ -61,8 +63,8 @@ export function SalesHubMobile() {
       {/* 內容區：底部 pb 清出 SectionTabs（h-14 = 56px）+ safe-area 空間 */}
       <div className="pb-[calc(env(safe-area-inset-bottom)+4rem)]">
         {current === 'status' ? <StatusSection /> : null}
-        {current === 'workstation' ? <SectionPlaceholder title="工作站" /> : null}
-        {current === 'documents' ? <SectionPlaceholder title="單據管理" /> : null}
+        {current === 'workstation' ? <WorkstationSection /> : null}
+        {current === 'documents' ? <DocumentsSection /> : null}
         {current === 'customer' ? <SectionPlaceholder title="客戶維護" /> : null}
       </div>
 
