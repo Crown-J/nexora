@@ -17,7 +17,7 @@ import { Building2 } from 'lucide-react';
 import { cx } from '@/shared/lib/cx';
 
 import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
-import type { BX, BXStatus, SO } from '@/features/sale/ui/fulfillment/types';
+import { BX_STATUS_LABEL, type BX, type BXStatus, type SO } from '@/features/sale/ui/fulfillment/types';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
@@ -33,12 +33,6 @@ const BX_TONE: Record<BXStatus, DocStatusTone> = {
   pending: 'warn',
   packing: 'info',
   completed: 'success',
-};
-
-const BX_STATUS_LABEL: Record<BXStatus, string> = {
-  pending: '待包貨',
-  packing: '包貨中',
-  completed: '已完成',
 };
 
 function BXCard({

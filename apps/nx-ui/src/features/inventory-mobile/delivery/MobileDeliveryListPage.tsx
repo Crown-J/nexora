@@ -19,7 +19,7 @@ import { Building2, MapPin } from 'lucide-react';
 import { cx } from '@/shared/lib/cx';
 
 import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
-import type { DN, DNStatus, SO } from '@/features/sale/ui/fulfillment/types';
+import { DN_STATUS_LABEL, type DN, type DNStatus, type SO } from '@/features/sale/ui/fulfillment/types';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
@@ -36,13 +36,6 @@ const DN_TONE: Record<DNStatus, DocStatusTone> = {
   delivering: 'info',
   signed: 'success',
   cancelled: 'muted',
-};
-
-const DN_STATUS_LABEL: Record<DNStatus, string> = {
-  pending: '待出貨',
-  delivering: '配送中',
-  signed: '已簽收',
-  cancelled: '已取消',
 };
 
 function DNCard({

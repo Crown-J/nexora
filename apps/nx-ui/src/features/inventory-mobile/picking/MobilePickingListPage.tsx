@@ -22,7 +22,7 @@ import { Building2 } from 'lucide-react';
 import { cx } from '@/shared/lib/cx';
 
 import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
-import type { PK, PKStatus, SO } from '@/features/sale/ui/fulfillment/types';
+import { PK_STATUS_LABEL, type PK, type PKStatus, type SO } from '@/features/sale/ui/fulfillment/types';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
@@ -39,12 +39,6 @@ const PK_TONE: Record<PKStatus, DocStatusTone> = {
   pending: 'warn',
   picking: 'info',
   completed: 'success',
-};
-
-const PK_STATUS_LABEL: Record<PKStatus, string> = {
-  pending: '待撿貨',
-  picking: '撿貨中',
-  completed: '已完成',
 };
 
 function PKCard({

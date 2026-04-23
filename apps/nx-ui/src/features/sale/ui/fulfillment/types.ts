@@ -210,6 +210,25 @@ export const TI_STATUS_LABEL: Record<TIStatus, string> = {
   cancelled: '已取消',
 };
 
+export const PK_STATUS_LABEL: Record<PKStatus, string> = {
+  pending: '待撿貨',
+  picking: '撿貨中',
+  completed: '已完成',
+};
+
+export const BX_STATUS_LABEL: Record<BXStatus, string> = {
+  pending: '待包貨',
+  packing: '包貨中',
+  completed: '已完成',
+};
+
+export const DN_STATUS_LABEL: Record<DNStatus, string> = {
+  pending: '待出貨',
+  delivering: '配送中',
+  signed: '已簽收',
+  cancelled: '已取消',
+};
+
 export const SCENARIO_LABEL: Record<SupplyScenario, string> = {
   A: '本倉有貨,直接備貨',
   B: '需他倉調撥',
