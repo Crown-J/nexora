@@ -30,13 +30,15 @@ export function PlanetOrbit({ className }: { className?: string }) {
       const height = canvas.offsetHeight;
       const centerX = width / 2;
       const centerY = height / 2;
+      // R7：以桌面 w-80 (320px) 為基準自動縮放，避免手機容器把外圈軌道截掉
+      const scale = Math.min(width, height) / 320;
 
       ctx.clearRect(0, 0, width, height);
 
       const orbits = [
-        { rx: 130, ry: 50, rotation: -25, speed: 0.008, dotAngle: 0, hasGear: true },
-        { rx: 155, ry: 60, rotation: 25, speed: -0.006, dotAngle: Math.PI / 2, hasGear: false },
-        { rx: 110, ry: 42, rotation: 60, speed: 0.01, dotAngle: Math.PI, hasGear: true },
+        { rx: 130 * scale, ry: 50 * scale, rotation: -25, speed: 0.008, dotAngle: 0, hasGear: true },
+        { rx: 155 * scale, ry: 60 * scale, rotation: 25, speed: -0.006, dotAngle: Math.PI / 2, hasGear: false },
+        { rx: 110 * scale, ry: 42 * scale, rotation: 60, speed: 0.01, dotAngle: Math.PI, hasGear: true },
       ];
 
       orbits.forEach((orbit, index) => {
@@ -52,12 +54,13 @@ export function PlanetOrbit({ className }: { className?: string }) {
 
         if (orbit.hasGear) {
           const tickCount = 36;
+          const tickInset = 3 * scale;
           for (let t = 0; t < tickCount; t++) {
             const tickAngle = (t * Math.PI * 2) / tickCount;
-            const innerX = Math.cos(tickAngle) * (orbit.rx - 3);
-            const innerY = Math.sin(tickAngle) * (orbit.ry - 3);
-            const outerX = Math.cos(tickAngle) * (orbit.rx + 3);
-            const outerY = Math.sin(tickAngle) * (orbit.ry + 3);
+            const innerX = Math.cos(tickAngle) * (orbit.rx - tickInset);
+            const innerY = Math.sin(tickAngle) * (orbit.ry - tickInset);
+            const outerX = Math.cos(tickAngle) * (orbit.rx + tickInset);
+            const outerY = Math.sin(tickAngle) * (orbit.ry + tickInset);
 
             ctx.beginPath();
             ctx.moveTo(innerX, innerY);
@@ -73,7 +76,7 @@ export function PlanetOrbit({ className }: { className?: string }) {
         const dotY = Math.sin(dotAngle) * orbit.ry;
 
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
+        ctx.arc(dotX, dotY, 5 * scale, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(180, 180, 190, 1)';
         ctx.fill();
         ctx.strokeStyle = 'rgba(100, 100, 110, 0.8)';
@@ -81,26 +84,28 @@ export function PlanetOrbit({ className }: { className?: string }) {
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+        ctx.arc(dotX, dotY, 2.5 * scale, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 200, 80, 0.95)';
         ctx.fill();
 
-        const gradient = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, 15);
+        const glowRadius = 15 * scale;
+        const gradient = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, glowRadius);
         gradient.addColorStop(0, 'rgba(255, 200, 80, 0.5)');
         gradient.addColorStop(1, 'rgba(255, 200, 80, 0)');
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 15, 0, Math.PI * 2);
+        ctx.arc(dotX, dotY, glowRadius, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
 
         ctx.restore();
       });
 
-      const planetRadius = 38;
+      const planetRadius = 38 * scale;
+      const planetHighlightOffset = 12 * scale;
 
       const planetGradient = ctx.createRadialGradient(
-        centerX - 12,
-        centerY - 12,
+        centerX - planetHighlightOffset,
+        centerY - planetHighlightOffset,
         0,
         centerX,
         centerY,
@@ -121,7 +126,7 @@ export function PlanetOrbit({ className }: { className?: string }) {
       ctx.arc(centerX, centerY, planetRadius, 0, Math.PI * 2);
       ctx.clip();
 
-      const bands = [-20, -8, 8, 20];
+      const bands = [-20 * scale, -8 * scale, 8 * scale, 20 * scale];
       bands.forEach((y) => {
         ctx.beginPath();
         ctx.moveTo(centerX - planetRadius, centerY + y);
@@ -131,7 +136,8 @@ export function PlanetOrbit({ className }: { className?: string }) {
         ctx.stroke();
       });
 
-      const hexSize = 12;
+      const hexSize = 12 * scale;
+      const hexEdgeInset = 5 * scale;
       for (let row = -3; row <= 3; row++) {
         for (let col = -3; col <= 3; col++) {
           const offsetX = (row % 2) * (hexSize * 0.5);
@@ -139,7 +145,7 @@ export function PlanetOrbit({ className }: { className?: string }) {
           const hy = centerY + row * hexSize * 0.9;
           const dist = Math.sqrt((hx - centerX) ** 2 + (hy - centerY) ** 2);
 
-          if (dist < planetRadius - 5) {
+          if (dist < planetRadius - hexEdgeInset) {
             ctx.beginPath();
             for (let i = 0; i < 6; i++) {
               const angle = (i * Math.PI) / 3 - Math.PI / 6;
@@ -157,10 +163,12 @@ export function PlanetOrbit({ className }: { className?: string }) {
       }
 
       const notchCount = 24;
+      const notchInnerInset = 8 * scale;
+      const notchOuterInset = 4 * scale;
       for (let i = 0; i < notchCount; i++) {
         const angle = (i * Math.PI * 2) / notchCount;
-        const innerR = planetRadius - 8;
-        const outerR = planetRadius - 4;
+        const innerR = planetRadius - notchInnerInset;
+        const outerR = planetRadius - notchOuterInset;
         const x1 = centerX + Math.cos(angle) * innerR;
         const y1 = centerY + Math.sin(angle) * innerR;
         const x2 = centerX + Math.cos(angle) * outerR;
@@ -174,18 +182,20 @@ export function PlanetOrbit({ className }: { className?: string }) {
         ctx.stroke();
       }
 
-      const coreGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 12);
+      const coreOuter = 12 * scale;
+      const coreInner = 6 * scale;
+      const coreGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreOuter);
       coreGradient.addColorStop(0, 'rgba(255, 200, 80, 0.8)');
       coreGradient.addColorStop(0.5, 'rgba(255, 180, 60, 0.4)');
       coreGradient.addColorStop(1, 'rgba(255, 160, 40, 0)');
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, coreOuter, 0, Math.PI * 2);
       ctx.fillStyle = coreGradient;
       ctx.fill();
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, coreInner, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(255, 200, 80, 0.6)';
       ctx.lineWidth = 1.5;
       ctx.stroke();
@@ -198,12 +208,15 @@ export function PlanetOrbit({ className }: { className?: string }) {
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      const glowGradient = ctx.createRadialGradient(centerX, centerY, 30, centerX, centerY, 90);
+      const glowInner = 30 * scale;
+      const glowOuter = 90 * scale;
+      const glowArc = 80 * scale;
+      const glowGradient = ctx.createRadialGradient(centerX, centerY, glowInner, centerX, centerY, glowOuter);
       glowGradient.addColorStop(0, 'rgba(255, 200, 80, 0.15)');
       glowGradient.addColorStop(1, 'rgba(255, 200, 80, 0)');
 
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 80, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, glowArc, 0, Math.PI * 2);
       ctx.fillStyle = glowGradient;
       ctx.fill();
 

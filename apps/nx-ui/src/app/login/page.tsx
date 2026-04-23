@@ -119,7 +119,7 @@ export default function LoginPage() {
         </div>
 
         <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6">
-          <div className="relative flex aspect-square max-h-full max-w-[200px] w-full items-center justify-center">
+          <div className="relative flex aspect-square max-h-full max-w-[360px] w-full items-center justify-center">
             <PlanetOrbit className="w-full h-full" />
           </div>
         </div>

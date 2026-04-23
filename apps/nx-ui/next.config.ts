@@ -7,6 +7,7 @@ const workspaceRoot = path.resolve(currentDir, "../..");
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  devIndicators: false,
   turbopack: {
     root: workspaceRoot,
   },
