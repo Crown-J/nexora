@@ -107,11 +107,23 @@ export function StatusSection() {
 
   const monthLabel = formatMonth(new Date());
 
+  // Hotfix:selector 只取 slice,filter 搬到 useMemo;避免 React error #185 無限 loop。
   const sos = useSalesStore((s) => s.sos);
-  const activePks = useSalesStore((s) => s.pks.filter((p) => p.status !== 'completed'));
-  const activeBxs = useSalesStore((s) => s.bxs.filter((b) => b.status !== 'completed'));
-  const activeDns = useSalesStore((s) =>
-    s.dns.filter((d) => d.status !== 'signed' && d.status !== 'cancelled'),
+  const allPks = useSalesStore((s) => s.pks);
+  const allBxs = useSalesStore((s) => s.bxs);
+  const allDns = useSalesStore((s) => s.dns);
+
+  const activePks = useMemo(
+    () => allPks.filter((p) => p.status !== 'completed'),
+    [allPks],
+  );
+  const activeBxs = useMemo(
+    () => allBxs.filter((b) => b.status !== 'completed'),
+    [allBxs],
+  );
+  const activeDns = useMemo(
+    () => allDns.filter((d) => d.status !== 'signed' && d.status !== 'cancelled'),
+    [allDns],
   );
 
   const sosByNumber = useMemo(() => {

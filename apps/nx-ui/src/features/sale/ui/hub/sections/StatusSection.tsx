@@ -126,14 +126,24 @@ export function StatusSection() {
 
   const monthLabel = formatMonth(new Date());
 
-  const activeSOs = useSalesStore((s) =>
-    s.sos.filter((so) => ACTIVE_SO_STATUSES.includes(so.status)),
+  // Hotfix:selector 只取 slice(reference 穩定),filter/derive 搬到 useMemo。
+  // 原本在 selector 內 .filter() 每次回新 array 會觸發 Zustand re-render 無限
+  // loop,production build 拋 React error #185(Maximum update depth exceeded)。
+  const allSos = useSalesStore((s) => s.sos);
+  const allIts = useSalesStore((s) => s.its);
+  const allTis = useSalesStore((s) => s.tis);
+
+  const activeSOs = useMemo(
+    () => allSos.filter((so) => ACTIVE_SO_STATUSES.includes(so.status)),
+    [allSos],
   );
-  const activeIts = useSalesStore((s) =>
-    s.its.filter((it) => it.status !== 'completed' && it.status !== 'cancelled'),
+  const activeIts = useMemo(
+    () => allIts.filter((it) => it.status !== 'completed' && it.status !== 'cancelled'),
+    [allIts],
   );
-  const activeTis = useSalesStore((s) =>
-    s.tis.filter((ti) => ti.status !== 'completed' && ti.status !== 'cancelled'),
+  const activeTis = useMemo(
+    () => allTis.filter((ti) => ti.status !== 'completed' && ti.status !== 'cancelled'),
+    [allTis],
   );
 
   const salesTodos = useMemo(() => activeSOs.map(soToTodoItem), [activeSOs]);
