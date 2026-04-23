@@ -154,16 +154,6 @@ export default function LoginPage() {
               汽車零件零售 ERP 企業管理平台
             </p>
           </div>
-
-          <div className="absolute bottom-8 left-8 right-8">
-            <div className="flex items-center justify-between text-xs text-muted-foreground/50 font-mono">
-              <span>SYS.VER 2.0.26</span>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-                <span>ONLINE</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="w-full shrink-0 flex flex-col px-6 pb-2 lg:w-1/2 xl:w-2/5 lg:shrink lg:p-0 lg:pb-0">
@@ -203,39 +193,6 @@ export default function LoginPage() {
                     isSubmitting={view.isSubmitting}
                   />
                 </div>
-              </div>
-
-              <div className="hidden lg:block text-center space-y-2">
-                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    系統正常運作
-                  </span>
-                  <span className="text-border">|</span>
-                  <span className="font-mono">v1.0.0</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-2 lg:p-6 lg:border-t-0">
-            <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground/70 font-mono lg:text-xs">
-              <span>SYS.VER 2.0.26</span>
-              <span className="hidden sm:inline">&copy; 2024 INNOVA Tech</span>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1 h-1 bg-accent rounded-full animate-pulse lg:w-1.5 lg:h-1.5 lg:bg-green-500" />
-                <span>NEXORA ONLINE</span>
-              </div>
-            </div>
-            <div className="mt-2 hidden lg:flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>&copy; 2024 INNOVA Tech</span>
-              <div className="flex items-center gap-4">
-                <button type="button" className="login-link hover:text-accent transition-colors">
-                  服務條款
-                </button>
-                <button type="button" className="login-link hover:text-accent transition-colors">
-                  隱私政策
-                </button>
               </div>
             </div>
           </div>
