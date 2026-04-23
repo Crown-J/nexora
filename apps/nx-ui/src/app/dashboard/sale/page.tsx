@@ -4,6 +4,10 @@
  * 銷售中心 Hub — R7：手機版改成 4 分區架構（狀態追蹤 / 工作站 / 單據 / 客戶）。
  *
  * 桌面版維持原樣（待後續重構），手機版完全走新元件 SalesHubMobile。
+ *
+ * R7 Phase 6：桌面版 DomesticSection 移除「SOP 精品示範 🔥」入口卡。
+ *   新結構下國內銷售 = 工作站分區的項目，不再需要「特殊精品」badge。
+ *   桌面版剩下的 STEP 1~5 占位卡片保留，等後續桌面版重構處理。
  */
 
 'use client';
@@ -15,7 +19,6 @@ import {
   Search,
   ShieldCheck,
   ShoppingBag,
-  Sparkles,
   Undo2,
   Users,
 } from 'lucide-react';
@@ -38,13 +41,7 @@ function MasterSection() {
 
 function DomesticSection() {
   return (
-    <ModuleHubSection sectionId="sale-domestic" title="國內銷售" count={8}>
-      <HubLinkCard
-        title="SOP 精品示範 🔥"
-        description="手機精品 UX：業務現場跟著 9 步走完銷貨，當場查庫存、口頭報價、一鍵建單"
-        Icon={Sparkles}
-        href="/dashboard/sale/sop-demo"
-      />
+    <ModuleHubSection sectionId="sale-domestic" title="國內銷售" count={7}>
       <HubLinkCard
         title="查詢"
         description="即時查詢庫存、售價、歷史成交記錄"

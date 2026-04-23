@@ -25,9 +25,9 @@
 | Phase 2 | ✅ 完成 | 75f2191 | 4 分區架構 + 狀態追蹤分區（KPI + 待辦清單） |
 | Phase 2.5 | ✅ 完成 | 10841d3 | 移除非首頁 DOCK，SectionTabs 改貼底 |
 | Phase 3 | ✅ 完成 | 64a63f5 | 工作站分區（4 項）+ 單據管理分區（7 項）+ 10 個子路由 placeholder |
-| Phase 4 | ✅ 完成 | TBD | 客戶維護分區（3 項）+ 3 個子路由 placeholder |
-| Phase 5 | ⏳ 待做 | - | 調貨詢價 A+B 彈窗 |
-| Phase 6 | ⏳ 待做 | - | 清理（移除 SOP 精品示範入口卡）+ 整合測試 |
+| Phase 4 | ✅ 完成 | 4fd79f8 | 客戶維護分區（3 項）+ 3 個子路由 placeholder |
+| Phase 5 | ✅ 完成 | TBD (Phase 5+6) | 調貨詢價 A+B 彈窗 + FloatingToast + OOS mock part |
+| Phase 6 | ✅ 完成 | TBD (Phase 5+6) | 桌面版 DomesticSection 移除 SOP 精品示範卡 + 整合測試 |
 
 ---
 
@@ -651,7 +651,7 @@ function CustomerSection() {
 
 ---
 
-# ⏳ PART 8：SOP 工作台 — 調貨詢價彈窗（Phase 5 待做）
+# ✅ PART 8：SOP 工作台 — 調貨詢價彈窗（Phase 5 已完成）
 
 ## 8.1 觸發場景
 
@@ -778,7 +778,7 @@ const handleSelectB = () => {
 
 ---
 
-# ⏳ PART 9：移除舊「SOP 精品示範」入口卡（Phase 6）
+# ✅ PART 9：移除舊「SOP 精品示範」入口卡（Phase 6 已完成）
 
 R6 在 `/dashboard/sale` 加的「SOP 精品示範 🔥」入口卡**完全移除**。
 
@@ -879,6 +879,107 @@ Phase 6（~30 分鐘）：清理 + 整合測試
 ### Crown 驗收路徑
 ...
 ```
+
+---
+
+# 📐 最終完整架構總結（R7 完成時）
+
+## 手機版 `/dashboard/sale` 架構
+
+```
+TopBar（含星球 = 跨中心切換）
+  ↓
+SalesHubMobile（URL query ?section=... 為 source of truth）
+  ├─ StatusSection      狀態追蹤（預設）
+  │   ├─ ProKPICard      PRO 限定，依角色顯示 personal/team/company
+  │   └─ TodoGroup × 3   詢價待回覆 3 + 銷售待出貨 4 + 保固待結果 1 = 8 筆
+  ├─ WorkstationSection 工作站
+  │   └─ 4 項：國內銷售（→ SOP 工作台）/ 國外銷售 / 銷退 / 保固（後 3 項 placeholder）
+  ├─ DocumentsSection   單據管理
+  │   └─ 7 項：報價 / 調貨詢價 / 調貨 / 銷售 / 客戶訂單 / 銷退 / 保固（全 placeholder）
+  └─ CustomerSection    客戶維護
+      └─ 3 項：客戶分析 / 客戶分級 / 客戶資料（全 placeholder，帶角色 badge）
+  ↓
+MobileHubSectionTabs（showLabel=true，緊貼底部 56px）
+  [狀態追蹤] [工作站] [單據管理] [客戶維護]
+```
+
+## 路由全景
+
+```
+/dashboard/sale                        Hub（手機版 4 分區；桌面版保留原 2 section）
+/dashboard/sale?section=status         狀態追蹤（預設）
+/dashboard/sale?section=workstation    工作站
+/dashboard/sale?section=documents      單據管理
+/dashboard/sale?section=customer       客戶維護
+
+/dashboard/sale/sop-demo               R6 SOP 工作台（國內銷售入口，未動）
+
+/dashboard/sale/export                 工作站子路由 placeholder
+/dashboard/sale/return                 工作站子路由 placeholder
+/dashboard/sale/warranty               工作站子路由 placeholder
+
+/dashboard/sale/docs/quote             單據管理子路由 placeholder
+/dashboard/sale/docs/inquiry           單據管理子路由 placeholder
+/dashboard/sale/docs/transfer          單據管理子路由 placeholder
+/dashboard/sale/docs/sales             單據管理子路由 placeholder
+/dashboard/sale/docs/orders            單據管理子路由 placeholder
+/dashboard/sale/docs/return            單據管理子路由 placeholder
+/dashboard/sale/docs/warranty          單據管理子路由 placeholder
+
+/dashboard/sale/customer/analysis      客戶維護子路由 placeholder
+/dashboard/sale/customer/grading       客戶維護子路由 placeholder
+/dashboard/sale/customer/info          客戶維護子路由 placeholder
+```
+
+總計：**1 Hub + 1 SOP 工作台 + 13 個 placeholder 子路由**。
+
+## 新增檔案清單（R7 全程）
+
+```
+features/sale/ui/hub/
+├─ SalesHubMobile.tsx                    主元件（URL state + 分區切換）
+├─ sections/
+│   ├─ StatusSection.tsx
+│   ├─ WorkstationSection.tsx
+│   ├─ DocumentsSection.tsx
+│   └─ CustomerSection.tsx
+├─ components/
+│   ├─ ProKPICard.tsx
+│   ├─ TodoGroup.tsx
+│   └─ PlaceholderPage.tsx
+└─ mock-data/
+    └─ scenario.ts
+
+features/sale/ui/sop-workspace/components/
+├─ InquiryDialog.tsx                     Phase 5：A+B 並存彈窗
+└─ FloatingToast.tsx                     Phase 5：簡易 toast（不引 sonner）
+
+app/dashboard/sale/
+├─ export/page.tsx
+├─ return/page.tsx
+├─ warranty/page.tsx
+├─ docs/quote/page.tsx
+├─ docs/inquiry/page.tsx
+├─ docs/transfer/page.tsx
+├─ docs/sales/page.tsx
+├─ docs/orders/page.tsx
+├─ docs/return/page.tsx
+├─ docs/warranty/page.tsx
+└─ customer/{analysis,grading,info}/page.tsx
+```
+
+## 關鍵設計決策紀錄
+
+| 決策 | Phase | 原因 |
+|------|-------|------|
+| 手機版獨立於桌面版 | 2 | 桌面版不動（spec 禁止），手機版走全新元件 |
+| URL query 為 state source | 2 | 可分享連結、刷新保狀態、可由外部深連結進入 |
+| MobileHubSectionTabs 擴展 showLabel | 2 | 向後相容，purchase/inventory 舊用法不受影響 |
+| 非首頁移除 DOCK | 2.5 | 中心 = 角色工作台；跨中心由 TopBar 星球承擔 |
+| PlaceholderPage 加 optional title | 3 | spec 最小樣式 + UX 友善（使用者知道點到哪） |
+| InquiryDialog 作為 SOP 內部元件 | 5 | 功能屬於 SOP 工作台範疇，不在 hub 下 |
+| 自建 FloatingToast 不引 sonner | 5 | 春酒倒數，不動依賴 |
 
 ---
 

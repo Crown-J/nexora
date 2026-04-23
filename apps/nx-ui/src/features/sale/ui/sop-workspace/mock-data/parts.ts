@@ -62,6 +62,19 @@ export const MOCK_PARTS: readonly Part[] = [
     lastSoldPrice: 280,
     unitCost: 180,
   },
+  // R7 Phase 5：春酒 demo 觸發「向同行調貨詢價」彈窗用的全公司無庫存料號。
+  // 搜「剎車片」能找到，對方看到庫存全 0 會自然觸發新流程。
+  {
+    sku: 'SKU-016',
+    name: '剎車片 Skoda Superb',
+    brand: 'VAG',
+    vehicleTypes: ['Skoda Superb', 'Skoda Kodiaq'],
+    imageUrl: makePlaceholder('SKU-016', '剎車片 Skoda Superb'),
+    stocks: { main: 0, hsinchu: 0, taichung: 0 },
+    prices: { A: 580, B: 640, C: 700, D: 780 },
+    lastSoldPrice: 640,
+    unitCost: 490,
+  },
   // ── 機油濾心 ──
   {
     sku: 'SKU-020',

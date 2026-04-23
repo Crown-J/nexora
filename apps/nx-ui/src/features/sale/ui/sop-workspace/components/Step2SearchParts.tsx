@@ -20,6 +20,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   BarcodeIcon,
@@ -41,7 +42,9 @@ import {
   type SaleSopAction,
   type SaleSopState,
 } from '../types';
+import { FloatingToast, type ToastType } from './FloatingToast';
 import { ImageLightbox } from './ImageLightbox';
+import { InquiryDialog } from './InquiryDialog';
 import { StepWrapper } from './StepWrapper';
 
 export type Step2SearchPartsProps = {
@@ -61,6 +64,7 @@ function PartDetailExpanded({
   onUpdate,
   onRemove,
   onZoom,
+  onInquire,
 }: {
   part: Part;
   tier: 'A' | 'B' | 'C' | 'D';
@@ -69,6 +73,8 @@ function PartDetailExpanded({
   onUpdate: (partial: { quantity?: number; unitPrice?: number }) => void;
   onRemove: () => void;
   onZoom: () => void;
+  /** R7 Phase 5：全公司無庫存時的「向同行調貨詢價」入口 */
+  onInquire: () => void;
 }) {
   const suggestedPrice = part.prices[tier];
 
@@ -94,6 +100,8 @@ function PartDetailExpanded({
   const hsinchuStock = part.stocks.hsinchu;
   const taichungStock = part.stocks.taichung;
   const totalOtherStock = hsinchuStock + taichungStock;
+  const totalCompanyStock = mainStock + totalOtherStock;
+  const isOutOfStock = totalCompanyStock === 0;
   const shortage = qty > mainStock;
   const canFullFill = qty <= mainStock + totalOtherStock;
   const otherNeed = Math.min(Math.max(0, qty - mainStock), totalOtherStock);
@@ -266,8 +274,27 @@ function PartDetailExpanded({
         </div>
       ) : null}
 
-      {/* 加入 / 已加入 操作 */}
-      {existingItem ? (
+      {/* 加入 / 已加入 / 全公司缺貨（R7 Phase 5） */}
+      {isOutOfStock ? (
+        <div className="space-y-3">
+          <div className="flex items-start gap-2 rounded-lg border border-[#E24B4A]/40 bg-[#E24B4A]/5 p-3">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#E24B4A]" aria-hidden />
+            <div className="text-xs">
+              <div className="mb-1 text-white/80">全公司無庫存</div>
+              <div className="text-white/60">
+                可向同行調貨詢價以協助客戶取得此料號
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onInquire}
+            className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-[#E8A020]/60 text-sm text-[#E8A020] transition-colors hover:bg-[#E8A020]/10"
+          >
+            向同行調貨詢價
+          </button>
+        </div>
+      ) : existingItem ? (
         <div className="flex items-center gap-2">
           <div className="flex-1 rounded-lg border border-[#1D9E75]/40 bg-[#1D9E75]/5 px-3 py-2 text-center text-xs text-[#1D9E75]">
             已加入報價清單 · 自動同步本卡變更
@@ -357,9 +384,13 @@ export function Step2SearchParts({
   onBack,
   onNext,
 }: Step2SearchPartsProps) {
+  const router = useRouter();
   const [keyword, setKeyword] = useState('');
   const [expandedSku, setExpandedSku] = useState<string | null>(null);
   const [lightboxPart, setLightboxPart] = useState<Part | null>(null);
+  // R7 Phase 5：全公司無庫存時的詢價彈窗 + 操作 toast
+  const [inquiryPart, setInquiryPart] = useState<Part | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const results = useMemo<Part[]>(() => {
     const kw = keyword.trim();
@@ -386,6 +417,21 @@ export function Step2SearchParts({
   };
   const handleRemove = (sku: string) => {
     dispatch({ type: 'REMOVE_QUOTE_ITEM', sku });
+  };
+
+  // 選項 A：加入待辦（demo 用 toast；實體實作會寫 DB / 建詢價草稿）
+  const handleInquirySelectA = () => {
+    setInquiryPart(null);
+    setToast({
+      message: '已加入待辦清單，可至「狀態追蹤 → 詢價待回覆」查看',
+      type: 'success',
+    });
+  };
+
+  // 選項 B：立刻跳到單據管理的調貨詢價 placeholder
+  const handleInquirySelectB = () => {
+    setInquiryPart(null);
+    router.push('/dashboard/sale/docs/inquiry');
   };
 
   return (
@@ -515,6 +561,7 @@ export function Step2SearchParts({
                       onUpdate={(partial) => handleUpdate(p.sku, partial)}
                       onRemove={() => handleRemove(p.sku)}
                       onZoom={() => setLightboxPart(p)}
+                      onInquire={() => setInquiryPart(p)}
                     />
                   ) : null}
                 </div>
@@ -530,6 +577,25 @@ export function Step2SearchParts({
         alt={lightboxPart?.name}
         onClose={() => setLightboxPart(null)}
       />
+
+      {/* R7 Phase 5：全公司缺貨詢價彈窗 */}
+      {inquiryPart ? (
+        <InquiryDialog
+          part={{ sku: inquiryPart.sku, name: inquiryPart.name }}
+          onSelectA={handleInquirySelectA}
+          onSelectB={handleInquirySelectB}
+          onCancel={() => setInquiryPart(null)}
+        />
+      ) : null}
+
+      {/* Toast（選項 A 後顯示） */}
+      {toast ? (
+        <FloatingToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      ) : null}
     </StepWrapper>
   );
 }
