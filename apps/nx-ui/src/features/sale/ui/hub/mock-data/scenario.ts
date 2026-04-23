@@ -75,75 +75,8 @@ export interface TodoItem {
   partName?: string;
 }
 
-// R7 Phase 7-3:MOCK_INQUIRY_TODOS 已移除；詢價待辦改由 inquiry/store 的 RFQ 動態衍生
-// （參見 StatusSection.tsx 的 rfqToTodoItem）
-// TASK-BUSINESS-RESTRUCTURE Phase 4:詢價待辦完全從狀態追蹤移除（改由 S03 查料時主動提醒）
-
-/**
- * TASK-BUSINESS-RESTRUCTURE Phase 4:調貨進行中 mock。
- * 真實資料將於 Phase 6 建 IT store 後取代。目前維持春酒 demo 可視覺展示。
- */
-export const MOCK_TRANSFER_TODOS: TodoItem[] = [
-  {
-    id: 'it-1',
-    docNumber: 'IT-2604-00012',
-    customerCode: 'SO-2604-00054',
-    customerName: '新竹倉 → 本倉',
-    amount: 0,
-    status: '調撥中',
-    waitDays: 0,
-    partName: 'SKU-021 × 2',
-  },
-  {
-    id: 'it-2',
-    docNumber: 'TI-2604-00005',
-    customerCode: 'SO-2604-00049',
-    customerName: '同行:桃園汽材',
-    amount: 0,
-    status: '等待取貨',
-    waitDays: 1,
-    partName: 'SKU-031 × 3',
-  },
-];
-
-export const MOCK_SALES_TODOS: TodoItem[] = [
-  {
-    id: 'so-1',
-    docNumber: 'SO-2604-00054',
-    customerCode: 'B0213',
-    customerName: '台北保養廠',
-    amount: 15200,
-    status: '待撿貨',
-    waitDays: 1,
-  },
-  {
-    id: 'so-2',
-    docNumber: 'SO-2604-00056',
-    customerCode: 'A0087',
-    customerName: '新竹汽材行',
-    amount: 23800,
-    status: '待出貨',
-    waitDays: 1,
-  },
-  {
-    id: 'so-3',
-    docNumber: 'SO-2604-00049',
-    customerCode: 'D0542',
-    customerName: '桃園合興汽車',
-    amount: 6700,
-    status: '待調撥完成',
-    waitDays: 3,
-  },
-  {
-    id: 'so-4',
-    docNumber: 'SO-2604-00038',
-    customerCode: 'B0156',
-    customerName: '台中順達汽車',
-    amount: 18900,
-    status: '客戶待簽收',
-    waitDays: 1,
-  },
-];
+// 詢價 / 銷售 / 調貨待辦:TASK-BUSINESS-RESTRUCTURE Phase 7 改由 SalesStore 動態衍生。
+// 僅保留保固(尚無 store)與型別定義。
 
 export const MOCK_WARRANTY_TODOS: TodoItem[] = [
   {

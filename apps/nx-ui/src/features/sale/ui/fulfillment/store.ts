@@ -37,17 +37,21 @@ import {
 import { analyzeSO } from './sysC';
 import type {
   BX,
+  BXStatus,
   DN,
+  DNStatus,
   IT,
   ITItem,
   ITStatus,
   PK,
+  PKStatus,
   SO,
   SOItem,
   SOStatus,
   SupplyAnalysis,
   TI,
   TIItem,
+  TIStatus,
 } from './types';
 
 // ───────────────────── 建 SO 輸入 ─────────────────────
@@ -87,9 +91,19 @@ interface SalesStoreState {
   /** in_transit → completed(本倉已入庫);若 SO 其他供應條件都達標則自動建 PK */
   completeTransfer: (itId: string) => void;
 
-  // Phase 7 會接上:
-  // pickupInquiry / completeInquiry(TI 流程)
-  // completePicking / completePacking / completeDelivery(PK→BX→DN 連動)
+  // Phase 7:TI 同行調貨取貨流程
+  /** pending_pickup → picked_up(外務/倉管已取回,在路上) */
+  pickupInquiry: (tiId: string) => void;
+  /** picked_up → completed(本倉已入庫);若 SO 其他供應條件都達標則自動建 PK */
+  completeInquiry: (tiId: string) => void;
+
+  // Phase 7:PK → BX → DN 連動
+  /** pk.pending/picking → completed + 自動建 BX + SO 進 packed */
+  completePicking: (pkId: string) => void;
+  /** bx.pending → completed + 自動建 DN + SO 進 delivering */
+  completePacking: (bxId: string) => void;
+  /** dn.delivering → signed + SO 進 completed */
+  completeDelivery: (dnId: string) => void;
 }
 
 // ───────────────────── helpers ─────────────────────
@@ -345,6 +359,135 @@ export const useSalesStore = create<SalesStoreState>((set, get) => ({
           : s,
       ),
       pks: advance.pkToCreate ? [advance.pkToCreate, ...state.pks] : state.pks,
+    }));
+  },
+
+  pickupInquiry: (tiId) => {
+    set((state) => ({
+      tis: state.tis.map((ti) =>
+        ti.id === tiId && ti.status === 'pending_pickup'
+          ? { ...ti, status: 'picked_up' as TIStatus, pickedUpAt: new Date() }
+          : ti,
+      ),
+    }));
+  },
+
+  completeInquiry: (tiId) => {
+    const ti = get().tis.find((x) => x.id === tiId);
+    if (!ti || ti.status !== 'picked_up') return;
+
+    const updatedTis: TI[] = get().tis.map((x) =>
+      x.id === tiId
+        ? { ...x, status: 'completed' as TIStatus, completedAt: new Date() }
+        : x,
+    );
+
+    const so = get().sos.find((s) => s.soNumber === ti.relatedSoNumber);
+    if (!so) {
+      set({ tis: updatedTis });
+      return;
+    }
+
+    const advance = planSoAdvance(so, get().its, updatedTis);
+    if (!advance) {
+      set({ tis: updatedTis });
+      return;
+    }
+
+    set((state) => ({
+      tis: updatedTis,
+      sos: state.sos.map((s) =>
+        s.id === so.id
+          ? {
+              ...s,
+              status: advance.newStatus,
+              relatedPkNumber: advance.relatedPkNumber ?? s.relatedPkNumber,
+            }
+          : s,
+      ),
+      pks: advance.pkToCreate ? [advance.pkToCreate, ...state.pks] : state.pks,
+    }));
+  },
+
+  completePicking: (pkId) => {
+    const pk = get().pks.find((x) => x.id === pkId);
+    if (!pk) return;
+    if (pk.status === 'completed') return;
+
+    const so = get().sos.find((s) => s.soNumber === pk.relatedSoNumber);
+    if (!so) return;
+
+    // 用 SO seq 建立 BX(共享流水)
+    const bxNumber = formatDocNumber('BX', getCurrentYYMM(so.createdAt), so.seq);
+    const newBx: BX = {
+      id: generateId('bx'),
+      bxNumber,
+      seq: so.seq,
+      relatedSoNumber: so.soNumber,
+      relatedPkNumber: pk.pkNumber,
+      status: 'pending',
+      createdAt: new Date(),
+    };
+
+    set((state) => ({
+      pks: state.pks.map((x) =>
+        x.id === pkId
+          ? { ...x, status: 'completed' as PKStatus, completedAt: new Date() }
+          : x,
+      ),
+      bxs: [newBx, ...state.bxs],
+      sos: state.sos.map((s) =>
+        s.id === so.id ? { ...s, status: 'packed', relatedBxNumber: bxNumber } : s,
+      ),
+    }));
+  },
+
+  completePacking: (bxId) => {
+    const bx = get().bxs.find((x) => x.id === bxId);
+    if (!bx) return;
+    if (bx.status === 'completed') return;
+
+    const so = get().sos.find((s) => s.soNumber === bx.relatedSoNumber);
+    if (!so) return;
+
+    const dnNumber = formatDocNumber('DN', getCurrentYYMM(so.createdAt), so.seq);
+    const newDn: DN = {
+      id: generateId('dn'),
+      dnNumber,
+      seq: so.seq,
+      relatedSoNumber: so.soNumber,
+      relatedBxNumber: bx.bxNumber,
+      status: 'delivering',
+      createdAt: new Date(),
+    };
+
+    set((state) => ({
+      bxs: state.bxs.map((x) =>
+        x.id === bxId
+          ? { ...x, status: 'completed' as BXStatus, completedAt: new Date() }
+          : x,
+      ),
+      dns: [newDn, ...state.dns],
+      sos: state.sos.map((s) =>
+        s.id === so.id ? { ...s, status: 'delivering', relatedDnNumber: dnNumber } : s,
+      ),
+    }));
+  },
+
+  completeDelivery: (dnId) => {
+    const dn = get().dns.find((x) => x.id === dnId);
+    if (!dn) return;
+    if (dn.status === 'signed') return;
+
+    set((state) => ({
+      dns: state.dns.map((x) =>
+        x.id === dnId
+          ? { ...x, status: 'signed' as DNStatus, deliveredAt: new Date() }
+          : x,
+      ),
+      sos: state.sos.map((s) =>
+        s.soNumber === dn.relatedSoNumber ? { ...s, status: 'completed' as SOStatus } : s,
+      ),
     }));
   },
 }));

@@ -19,6 +19,7 @@
 | v1.1 | 2026-04-23 | 大塊 1 完成(Phase 1~4)回填 commit hash 7847be8 |
 | v1.2 | 2026-04-23 | 大塊 2 Phase 5 完成:fulfillment 模組 + SYS-C 分流 + SalesStore 骨架 |
 | v1.3 | 2026-04-23 | 大塊 2 Phase 6 完成:IT executeTransfer / completeTransfer + 手機版調撥清單 |
+| v1.4 | 2026-04-23 | 大塊 2 Phase 7 完成:TI 取貨 + PK/BX/DN 連動 + StatusSection 接 store + 庫存中心 hub stub(5 清單) |
 
 ---
 
@@ -31,8 +32,8 @@
 | Phase 3 | ✅ 完成 | 7847be8 (大塊 1) | STEP 5 重構 5 選項 + 4 sub-flow dialogs + AddMoreDialog 追加品項 |
 | Phase 4 | ✅ 完成 | 7847be8 (大塊 1) | StatusSection 待辦改為 銷售進行中 / 調貨進行中 / 保固(詢/報已移除)|
 | Phase 5 | ✅ 完成 | 1f55579 (大塊 2) | SO 備貨 4 情境分流 SYS-C + SalesStore 骨架 + Step8 建立真實 SO |
-| Phase 6 | ✅ 完成 | TBD (大塊 2) | 調撥單 IT executeTransfer / completeTransfer + 手機版調撥清單 |
-| Phase 7 | ⏳ 待做 | - | 跨中心連動（SO → PK → BX → DN）|
+| Phase 6 | ✅ 完成 | 77b99aa (大塊 2) | 調撥單 IT executeTransfer / completeTransfer + 手機版調撥清單 |
+| Phase 7 | ✅ 完成 | TBD (大塊 2) | 跨中心連動 SO→PK→BX→DN + TI 取貨 + StatusSection 接 SalesStore + 庫存中心 hub stub |
 | Phase 8 | ⏳ 待做 | - | 庫存中心 4 分區重構 |
 | Phase 9 | ⏳ 待做 | - | 庫存中心工作站 |
 | Phase 10 | ⏳ 待做 | - | 倉管 KPI + 庫位管理 + 盤點設定 |

@@ -32,6 +32,8 @@ import {
   type WarehouseKey,
 } from '@/features/sale/ui/fulfillment/types';
 
+import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
+
 type FilterValue = 'all' | ITStatus;
 
 interface FilterDef {
@@ -52,20 +54,15 @@ const WAREHOUSE_LABEL: Record<WarehouseKey, string> = {
   taichung: '台中倉',
 };
 
+const IT_TONE: Record<ITStatus, DocStatusTone> = {
+  pending: 'warn',
+  in_transit: 'info',
+  completed: 'success',
+  cancelled: 'muted',
+};
+
 function StatusBadge({ status }: { status: ITStatus }) {
-  const color =
-    status === 'pending'
-      ? 'bg-[#E8A020]/15 text-[#E8A020]'
-      : status === 'in_transit'
-        ? 'bg-[#4D8FE8]/15 text-[#4D8FE8]'
-        : status === 'completed'
-          ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
-          : 'bg-white/10 text-white/60';
-  return (
-    <span className={cx('rounded px-2 py-0.5 text-xs', color)}>
-      {IT_STATUS_LABEL[status]}
-    </span>
-  );
+  return <DocStatusBadge tone={IT_TONE[status]}>{IT_STATUS_LABEL[status]}</DocStatusBadge>;
 }
 
 function ITCard({
