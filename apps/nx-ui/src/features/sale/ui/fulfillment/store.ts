@@ -40,6 +40,7 @@ import type {
   DN,
   IT,
   ITItem,
+  ITStatus,
   PK,
   SO,
   SOItem,
@@ -80,11 +81,15 @@ interface SalesStoreState {
   /** 成立銷貨單,SYS-C 分流自動建對應單據 */
   createSO: (input: CreateSOInput) => CreateSOResult;
 
-  // Phase 6 會接上:
-  // executeTransfer / completeTransfer
-  // pickupInquiry / completeInquiry
+  // Phase 6:IT 調撥流程(他倉 → 本倉)
+  /** pending → in_transit(倉管接單) */
+  executeTransfer: (itId: string) => void;
+  /** in_transit → completed(本倉已入庫);若 SO 其他供應條件都達標則自動建 PK */
+  completeTransfer: (itId: string) => void;
+
   // Phase 7 會接上:
-  // completePicking / completePacking / completeDelivery
+  // pickupInquiry / completeInquiry(TI 流程)
+  // completePicking / completePacking / completeDelivery(PK→BX→DN 連動)
 }
 
 // ───────────────────── helpers ─────────────────────
@@ -108,6 +113,62 @@ function initialStatusByScenario(scenario: SupplyAnalysis['scenario']): SOStatus
     case 'D':
       return 'waiting_all';
   }
+}
+
+/**
+ * Phase 6/7:IT 或 TI 狀態變動後,依 SO 關聯單據整體狀況推進 SO 狀態。
+ * 若 IT + TI 都完成,自動建 PK 並回傳(透過 pkToCreate)。
+ */
+function planSoAdvance(
+  so: SO,
+  its: readonly IT[],
+  tis: readonly TI[],
+):
+  | {
+      newStatus: SOStatus;
+      pkToCreate?: PK;
+      relatedPkNumber?: string;
+    }
+  | null {
+  // 情境 A 已在 createSO 時直接建 PK、狀態為 ready_to_pick,無需推進
+  if (so.scenario === 'A') return null;
+  // 已經有 PK(或後續狀態)則不再推進
+  if (so.relatedPkNumber) return null;
+
+  const relatedIts = its.filter((it) => so.relatedItNumbers.includes(it.itNumber));
+  const relatedTis = tis.filter((ti) => so.relatedTiNumbers.includes(ti.tiNumber));
+
+  const allItsDone =
+    relatedIts.length === 0 || relatedIts.every((it) => it.status === 'completed');
+  const allTisDone =
+    relatedTis.length === 0 || relatedTis.every((ti) => ti.status === 'completed');
+
+  if (allItsDone && allTisDone) {
+    const yymm = getCurrentYYMM(so.createdAt);
+    const pkNumber = formatDocNumber('PK', yymm, so.seq);
+    const pk: PK = {
+      id: generateId('pk'),
+      pkNumber,
+      seq: so.seq,
+      relatedSoNumber: so.soNumber,
+      items: so.items,
+      status: 'pending',
+      createdAt: new Date(),
+    };
+    return {
+      newStatus: 'ready_to_pick',
+      pkToCreate: pk,
+      relatedPkNumber: pkNumber,
+    };
+  }
+
+  if (allItsDone && !allTisDone) {
+    return { newStatus: 'waiting_supplier' };
+  }
+  if (!allItsDone && allTisDone) {
+    return { newStatus: 'waiting_transfer' };
+  }
+  return { newStatus: 'waiting_all' };
 }
 
 // ───────────────────── store ─────────────────────
@@ -236,5 +297,54 @@ export const useSalesStore = create<SalesStoreState>((set, get) => ({
       its: newIts,
       tis: newTis,
     };
+  },
+
+  executeTransfer: (itId) => {
+    set((state) => ({
+      its: state.its.map((it) =>
+        it.id === itId && it.status === 'pending'
+          ? { ...it, status: 'in_transit' as ITStatus, startedAt: new Date() }
+          : it,
+      ),
+    }));
+  },
+
+  completeTransfer: (itId) => {
+    const it = get().its.find((x) => x.id === itId);
+    if (!it || it.status !== 'in_transit') return;
+
+    // 先建立新的 IT 陣列(含本次 completed 的)
+    const updatedIts: IT[] = get().its.map((x) =>
+      x.id === itId
+        ? { ...x, status: 'completed' as ITStatus, completedAt: new Date() }
+        : x,
+    );
+
+    // 再檢查該 IT 關聯的 SO 是否可推進
+    const so = get().sos.find((s) => s.soNumber === it.relatedSoNumber);
+    if (!so) {
+      set({ its: updatedIts });
+      return;
+    }
+
+    const advance = planSoAdvance(so, updatedIts, get().tis);
+    if (!advance) {
+      set({ its: updatedIts });
+      return;
+    }
+
+    set((state) => ({
+      its: updatedIts,
+      sos: state.sos.map((s) =>
+        s.id === so.id
+          ? {
+              ...s,
+              status: advance.newStatus,
+              relatedPkNumber: advance.relatedPkNumber ?? s.relatedPkNumber,
+            }
+          : s,
+      ),
+      pks: advance.pkToCreate ? [advance.pkToCreate, ...state.pks] : state.pks,
+    }));
   },
 }));
