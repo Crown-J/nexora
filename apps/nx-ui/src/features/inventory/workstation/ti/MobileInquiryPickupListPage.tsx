@@ -1,8 +1,8 @@
-// apps/nx-ui/src/features/inventory-mobile/ti/MobileInquiryPickupListPage.tsx
+// apps/nx-ui/src/features/inventory/workstation/ti/MobileInquiryPickupListPage.tsx
 /**
- * TASK-BUSINESS-RESTRUCTURE Phase 7:庫存中心 · 調貨取貨清單(TI)。
+ * 庫存中心 · 調貨取貨清單(TI)。
  *
- * 入口:/dashboard/inventory-mobile/ti
+ * 入口:/dashboard/inventory/ti(Phase 9 從 /dashboard/inventory-mobile/ti 遷來)
  *
  * 功能:
  *   - 狀態 chip:全部 / 等待取貨 / 已取回 / 已完成

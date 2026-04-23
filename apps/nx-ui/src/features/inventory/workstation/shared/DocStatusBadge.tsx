@@ -1,6 +1,6 @@
-// apps/nx-ui/src/features/inventory-mobile/shared/DocStatusBadge.tsx
+// apps/nx-ui/src/features/inventory/workstation/shared/DocStatusBadge.tsx
 /**
- * TASK-BUSINESS-RESTRUCTURE Phase 6~7:庫存中心手機版共用狀態徽章。
+ * 庫存中心手機版工作站共用狀態徽章。
  *
  * 4 種 tone 對應單據進度:
  *   warn    #E8A020  待處理 / pending 類(需要倉管動作)

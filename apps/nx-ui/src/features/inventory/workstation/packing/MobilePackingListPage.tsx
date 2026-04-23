@@ -1,8 +1,8 @@
-// apps/nx-ui/src/features/inventory-mobile/packing/MobilePackingListPage.tsx
+// apps/nx-ui/src/features/inventory/workstation/packing/MobilePackingListPage.tsx
 /**
- * TASK-BUSINESS-RESTRUCTURE Phase 7:庫存中心 · 包貨清單(BX)。
+ * 庫存中心 · 包貨清單(BX)。
  *
- * 入口:/dashboard/inventory-mobile/packing
+ * 入口:/dashboard/inventory/packing(Phase 9 從 /dashboard/inventory-mobile/packing 遷來)
  *
  * 操作:
  *   pending → [完成包貨] completePacking → BX completed + 自動建 DN

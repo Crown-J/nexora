@@ -1,14 +1,13 @@
-// apps/nx-ui/src/features/inventory-mobile/delivery/MobileDeliveryListPage.tsx
+// apps/nx-ui/src/features/inventory/workstation/delivery/MobileDeliveryListPage.tsx
 /**
- * TASK-BUSINESS-RESTRUCTURE Phase 7:庫存中心 · 送貨清單(DN)。
+ * 庫存中心 · 送貨清單(DN)。
  *
- * 入口:/dashboard/inventory-mobile/delivery
+ * 入口:/dashboard/inventory/delivery(Phase 9 從 /dashboard/inventory-mobile/delivery 遷來)
  *
  * 操作:
  *   delivering → [客戶已簽收] completeDelivery → DN signed + SO → completed
  *
- * Phase 9 / 11 會擴充「順路取調貨」指引 + 組長拖拉排序;
- * Phase 7 僅提供最小化 stub 讓 PK→BX→DN 連動可跑通。
+ * 「順路取調貨」指引 + 組長拖拉排序等擴充留給後續版本。
  */
 
 'use client';

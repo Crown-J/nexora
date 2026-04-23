@@ -2,17 +2,12 @@
 /**
  * TASK-BUSINESS-RESTRUCTURE Phase 8~9:庫存中心手機版「工作站」分區。
  *
- * 7 個作業項目(spec PART 8):
- *   - 撿貨作業(enabled,PK 清單)
- *   - 包貨作業(enabled,BX 清單)
- *   - 送貨作業(enabled,DN 清單,外務視角)
- *   - 調撥作業(enabled,IT 清單)
- *   - 調貨取貨(enabled,TI 清單)
- *   - 進貨作業(disabled,Phase 9 placeholder)
- *   - 盤點作業(disabled,Phase 9 placeholder)
+ * 7 個作業項目:
+ *   - 撿貨 / 包貨 / 送貨 / 調撥 / 調貨取貨(enabled)
+ *   - 進貨 / 盤點(enabled,但只有 placeholder「即將推出」頁)
  *
- * Phase 8:route 先指向大塊 2 建的 /dashboard/inventory-mobile/* 臨時路徑;
- * Phase 9:會遷到 /dashboard/inventory/workstation/* 並刪除舊路徑。
+ * Phase 9 把大塊 2 的 /dashboard/inventory-mobile/* 遷到 /dashboard/inventory/*,
+ * 本檔的 route 同步更新。
  */
 
 'use client';
@@ -49,7 +44,7 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '撿貨作業',
     subtitle: '倉管員',
     description: '依銷貨單撿取貨物,完成後自動建包貨單',
-    route: '/dashboard/inventory-mobile/picking',
+    route: '/dashboard/inventory/picking',
     enabled: true,
   },
   {
@@ -58,7 +53,7 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '包貨作業',
     subtitle: '倉管員',
     description: '確認數量後包裝封箱,完成後自動建送貨單',
-    route: '/dashboard/inventory-mobile/packing',
+    route: '/dashboard/inventory/packing',
     enabled: true,
   },
   {
@@ -67,7 +62,7 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '送貨作業',
     subtitle: '外務專用',
     description: '配送、客戶簽收,完成 SO',
-    route: '/dashboard/inventory-mobile/delivery',
+    route: '/dashboard/inventory/delivery',
     enabled: true,
   },
   {
@@ -76,7 +71,7 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '調撥作業',
     subtitle: '倉管員',
     description: '他倉 → 本倉調撥任務,完成後自動建撿貨單',
-    route: '/dashboard/inventory-mobile/transfer',
+    route: '/dashboard/inventory/transfer',
     enabled: true,
   },
   {
@@ -85,7 +80,7 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '調貨取貨',
     subtitle: '外務 / 倉管員',
     description: '向同行取貨並入庫,完成後自動建撿貨單',
-    route: '/dashboard/inventory-mobile/ti',
+    route: '/dashboard/inventory/ti',
     enabled: true,
   },
   {
@@ -94,8 +89,8 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '進貨作業',
     subtitle: '倉管員',
     description: '驗貨、上架(與採購對接)',
-    route: '/dashboard/inventory/workstation/receiving',
-    enabled: false,
+    route: '/dashboard/inventory/receiving',
+    enabled: true,
   },
   {
     id: 'stocktake',
@@ -103,8 +98,8 @@ const ITEMS: readonly WorkstationItemDef[] = [
     title: '盤點作業',
     subtitle: '倉管員',
     description: '定期或臨時盤點,確認帳實相符',
-    route: '/dashboard/inventory/workstation/stocktake',
-    enabled: false,
+    route: '/dashboard/inventory/stocktake',
+    enabled: true,
   },
 ];
 

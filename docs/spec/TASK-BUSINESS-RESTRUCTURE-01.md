@@ -21,6 +21,7 @@
 | v1.3 | 2026-04-23 | 大塊 2 Phase 6 完成:IT executeTransfer / completeTransfer + 手機版調撥清單 |
 | v1.4 | 2026-04-23 | 大塊 2 Phase 7 完成:TI 取貨 + PK/BX/DN 連動 + StatusSection 接 store + 庫存中心 hub stub(5 清單) |
 | v1.5 | 2026-04-23 | 大塊 3 Phase 8 完成:庫存中心 4 分區架構 InventoryHubMobile + 4 sections |
+| v1.6 | 2026-04-23 | 大塊 3 Phase 9 完成:inventory-mobile 遷到 /dashboard/inventory/* + 進貨/盤點 placeholder |
 
 ---
 
@@ -35,8 +36,8 @@
 | Phase 5 | ✅ 完成 | 1f55579 (大塊 2) | SO 備貨 4 情境分流 SYS-C + SalesStore 骨架 + Step8 建立真實 SO |
 | Phase 6 | ✅ 完成 | 77b99aa (大塊 2) | 調撥單 IT executeTransfer / completeTransfer + 手機版調撥清單 |
 | Phase 7 | ✅ 完成 | 4ef0cb2 (大塊 2) | 跨中心連動 SO→PK→BX→DN + TI 取貨 + StatusSection 接 SalesStore + 庫存中心 hub stub |
-| Phase 8 | ✅ 完成 | TBD (大塊 3) | 庫存中心 4 分區重構:InventoryHubMobile + StatusSection/WorkstationSection/DocumentsSection/WarehouseSection |
-| Phase 9 | ⏳ 待做 | - | 庫存中心工作站 |
+| Phase 8 | ✅ 完成 | a6cb00c (大塊 3) | 庫存中心 4 分區重構:InventoryHubMobile + StatusSection/WorkstationSection/DocumentsSection/WarehouseSection |
+| Phase 9 | ✅ 完成 | TBD (大塊 3) | 庫存中心工作站:大塊 2 的 /dashboard/inventory-mobile/* 遷到 /dashboard/inventory/* + 進貨/盤點 placeholder |
 | Phase 10 | ⏳ 待做 | - | 倉管 KPI + 庫位管理 + 盤點設定 |
 | Phase 11 | ⏳ 待做 | - | 組長拖拉排序儀表板 |
 | Phase 12 | ⏳ 待做 | - | 整合測試 + Mock 資料完善 |

@@ -1,9 +1,8 @@
-// apps/nx-ui/src/features/inventory-mobile/transfer/MobileTransferListPage.tsx
+// apps/nx-ui/src/features/inventory/workstation/transfer/MobileTransferListPage.tsx
 /**
- * TASK-BUSINESS-RESTRUCTURE Phase 6:庫存中心 · 調撥清單(手機版)。
+ * 庫存中心 · 調撥清單(手機版)。
  *
- * 入口:/dashboard/inventory-mobile/transfer(臨時路徑,Phase 8 庫存中心
- * 4 分區重構時會遷到 /dashboard/inventory-mobile/workstation/transfer 子節點)。
+ * 入口:/dashboard/inventory/transfer(由 Phase 9 從 /dashboard/inventory-mobile/transfer 遷來)。
  *
  * 功能:
  *   - 狀態篩選 chip:全部 / 待處理 / 調撥中 / 已完成
@@ -13,8 +12,6 @@
  *       in_transit → [完成入庫] 呼叫 completeTransfer(IT 進 completed,
  *                    若關聯 SO 所有供應條件達標則自動建 PK、SO 進 ready_to_pick)
  *       completed  → 顯示完成時間戳,無按鈕
- *
- * 庫存中心 PRO KPI / 其他作業頁等到 Phase 9~10。
  */
 
 'use client';

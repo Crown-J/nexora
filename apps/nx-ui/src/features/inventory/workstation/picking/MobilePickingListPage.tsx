@@ -1,8 +1,8 @@
-// apps/nx-ui/src/features/inventory-mobile/picking/MobilePickingListPage.tsx
+// apps/nx-ui/src/features/inventory/workstation/picking/MobilePickingListPage.tsx
 /**
- * TASK-BUSINESS-RESTRUCTURE Phase 7:庫存中心 · 撿貨清單(PK)。
+ * 庫存中心 · 撿貨清單(PK)。
  *
- * 入口:/dashboard/inventory-mobile/picking
+ * 入口:/dashboard/inventory/picking(Phase 9 從 /dashboard/inventory-mobile/picking 遷來)
  *
  * 功能:
  *   - 狀態 chip:全部 / 待撿貨 / 撿貨中 / 已完成
@@ -11,7 +11,7 @@
  *       pending / picking → [完成撿貨] completePicking
  *         → PK → completed + 自動建 BX + SO → packed
  *
- * Phase 9 會擴充為逐項掃條碼 + 庫位指引;Phase 7 僅做 stub 可跑通流程。
+ * 逐項掃條碼 + 庫位指引留給後續版本擴充。
  */
 
 'use client';
