@@ -20,7 +20,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   BarcodeIcon,
@@ -34,6 +33,8 @@ import {
 
 import { cx } from '@/shared/lib/cx';
 
+import { useRFQStore } from '@/features/sale/ui/inquiry/store';
+
 import { MOCK_PARTS, searchParts } from '../mock-data/parts';
 import {
   WAREHOUSE_META,
@@ -44,7 +45,7 @@ import {
 } from '../types';
 import { FloatingToast, type ToastType } from './FloatingToast';
 import { ImageLightbox } from './ImageLightbox';
-import { InquiryDialog } from './InquiryDialog';
+import { OutOfStockDialog } from './OutOfStockDialog';
 import { StepWrapper } from './StepWrapper';
 
 export type Step2SearchPartsProps = {
@@ -73,8 +74,8 @@ function PartDetailExpanded({
   onUpdate: (partial: { quantity?: number; unitPrice?: number }) => void;
   onRemove: () => void;
   onZoom: () => void;
-  /** R7 Phase 5：全公司無庫存時的「向同行調貨詢價」入口 */
-  onInquire: () => void;
+  /** R7 Phase 7-1：全公司無庫存時的分流決策彈窗入口,帶上當前選的數量 */
+  onInquire: (qty: number) => void;
 }) {
   const suggestedPrice = part.prices[tier];
 
@@ -235,8 +236,8 @@ function PartDetailExpanded({
         </div>
       </div>
 
-      {/* 庫存不足救援 */}
-      {shortage ? (
+      {/* 庫存不足救援（R7 Phase 7：OOS 時不顯示，改由底部「目前全公司無庫存」按鈕承擔） */}
+      {shortage && !isOutOfStock ? (
         <div className="rounded-lg border border-[#E8A020]/40 bg-[#E8A020]/5 p-3">
           <div className="flex items-start gap-2">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#E8A020]" aria-hidden />
@@ -274,26 +275,16 @@ function PartDetailExpanded({
         </div>
       ) : null}
 
-      {/* 加入 / 已加入 / 全公司缺貨（R7 Phase 5） */}
+      {/* 加入 / 已加入 / 全公司缺貨（R7 Phase 7-1：分流選單入口） */}
       {isOutOfStock ? (
-        <div className="space-y-3">
-          <div className="flex items-start gap-2 rounded-lg border border-[#E24B4A]/40 bg-[#E24B4A]/5 p-3">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#E24B4A]" aria-hidden />
-            <div className="text-xs">
-              <div className="mb-1 text-white/80">全公司無庫存</div>
-              <div className="text-white/60">
-                可向同行調貨詢價以協助客戶取得此料號
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onInquire}
-            className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-[#E8A020]/60 text-sm text-[#E8A020] transition-colors hover:bg-[#E8A020]/10"
-          >
-            向同行調貨詢價
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onInquire(qty)}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-[#E8A020]/60 text-sm text-[#E8A020] transition-colors hover:bg-[#E8A020]/10"
+        >
+          <AlertCircle className="h-4 w-4" aria-hidden />
+          <span>目前全公司無庫存</span>
+        </button>
       ) : existingItem ? (
         <div className="flex items-center gap-2">
           <div className="flex-1 rounded-lg border border-[#1D9E75]/40 bg-[#1D9E75]/5 px-3 py-2 text-center text-xs text-[#1D9E75]">
@@ -384,13 +375,16 @@ export function Step2SearchParts({
   onBack,
   onNext,
 }: Step2SearchPartsProps) {
-  const router = useRouter();
   const [keyword, setKeyword] = useState('');
   const [expandedSku, setExpandedSku] = useState<string | null>(null);
   const [lightboxPart, setLightboxPart] = useState<Part | null>(null);
-  // R7 Phase 5：全公司無庫存時的詢價彈窗 + 操作 toast
-  const [inquiryPart, setInquiryPart] = useState<Part | null>(null);
+  // R7 Phase 7-1：全公司無庫存分流決策彈窗 + 操作 toast
+  // 記錄部件 + 業務在詳情區選的數量，供選項 A/B 建立 RFQ / CO
+  const [oosDialog, setOosDialog] = useState<{ part: Part; qty: number } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const createRFQ = useRFQStore((s) => s.createRFQ);
+  const createCustomerOrder = useRFQStore((s) => s.createCustomerOrder);
 
   const results = useMemo<Part[]>(() => {
     const kw = keyword.trim();
@@ -419,19 +413,36 @@ export function Step2SearchParts({
     dispatch({ type: 'REMOVE_QUOTE_ITEM', sku });
   };
 
-  // 選項 A：加入待辦（demo 用 toast；實體實作會寫 DB / 建詢價草稿）
-  const handleInquirySelectA = () => {
-    setInquiryPart(null);
+  // R7 Phase 7-1 選項 A:向同行調貨 → 建 RFQ 詢價單（寫進 store）
+  const handleSelectInquiry = () => {
+    const snap = oosDialog;
+    setOosDialog(null);
+    if (!snap || !customer) return;
+    const rfq = createRFQ({
+      customer: { code: customer.code, name: customer.name, tier: customer.tier },
+      part: { sku: snap.part.sku, name: snap.part.name },
+      quantity: snap.qty,
+    });
     setToast({
-      message: '已加入待辦清單，可至「狀態追蹤 → 詢價待回覆」查看',
+      message: `已建立詢價單 ${rfq.rfqNumber},可至「同行調貨」處理`,
       type: 'success',
     });
   };
 
-  // 選項 B：立刻跳到單據管理的調貨詢價 placeholder
-  const handleInquirySelectB = () => {
-    setInquiryPart(null);
-    router.push('/dashboard/sale/docs/inquiry');
+  // R7 Phase 7-1 選項 B:轉客戶訂單 → 建 Customer Order（預訂單）
+  const handleSelectCustomerOrder = () => {
+    const snap = oosDialog;
+    setOosDialog(null);
+    if (!snap || !customer) return;
+    const order = createCustomerOrder({
+      customer: { code: customer.code, name: customer.name, tier: customer.tier },
+      part: { sku: snap.part.sku, name: snap.part.name },
+      quantity: snap.qty,
+    });
+    setToast({
+      message: `已建立客戶訂單 ${order.orderNumber},下次進貨時系統會提醒`,
+      type: 'success',
+    });
   };
 
   return (
@@ -561,7 +572,7 @@ export function Step2SearchParts({
                       onUpdate={(partial) => handleUpdate(p.sku, partial)}
                       onRemove={() => handleRemove(p.sku)}
                       onZoom={() => setLightboxPart(p)}
-                      onInquire={() => setInquiryPart(p)}
+                      onInquire={(qty) => setOosDialog({ part: p, qty })}
                     />
                   ) : null}
                 </div>
@@ -578,13 +589,13 @@ export function Step2SearchParts({
         onClose={() => setLightboxPart(null)}
       />
 
-      {/* R7 Phase 5：全公司缺貨詢價彈窗 */}
-      {inquiryPart ? (
-        <InquiryDialog
-          part={{ sku: inquiryPart.sku, name: inquiryPart.name }}
-          onSelectA={handleInquirySelectA}
-          onSelectB={handleInquirySelectB}
-          onCancel={() => setInquiryPart(null)}
+      {/* R7 Phase 7-1:全公司無庫存分流彈窗（A=同行調貨 / B=客戶訂單） */}
+      {oosDialog ? (
+        <OutOfStockDialog
+          part={{ sku: oosDialog.part.sku, name: oosDialog.part.name }}
+          onInquiry={handleSelectInquiry}
+          onCustomerOrder={handleSelectCustomerOrder}
+          onCancel={() => setOosDialog(null)}
         />
       ) : null}
 

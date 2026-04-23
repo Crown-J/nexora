@@ -15,7 +15,7 @@
 
 import { useRouter } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import { ChevronRight, Globe, Package, Shield, Undo2 } from 'lucide-react';
+import { ChevronRight, Globe, Package, Search, Shield, Undo2 } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
@@ -37,6 +37,15 @@ const ITEMS: readonly WorkstationItemDef[] = [
     subtitle: '9 步驟 SOP 流程',
     description: '從選客戶到訂單成立',
     route: '/dashboard/sale/sop-demo',
+    enabled: true,
+  },
+  {
+    id: 'inquiry',
+    Icon: Search,
+    title: '同行調貨',
+    subtitle: '向同行詢價、比價、採用',
+    description: '處理缺貨料號的調貨流程',
+    route: '/dashboard/sale/inquiry',
     enabled: true,
   },
   {

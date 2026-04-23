@@ -651,7 +651,14 @@ function CustomerSection() {
 
 ---
 
-# ✅ PART 8：SOP 工作台 — 調貨詢價彈窗（Phase 5 已完成）
+# ✅ PART 8：SOP 工作台 — 調貨詢價彈窗（Phase 5 已完成，Phase 7-1 已重寫）
+
+> ⚠️ **本章節已被 Phase 7-1 推翻，保留作歷史紀錄。**
+> Phase 5 原設計（A=加入待辦、B=跳 docs/inquiry）純粹是過場 UI，沒有真實建單。
+> Phase 7-1 重寫為 `OutOfStockDialog`：A=建 **RFQ 詢價單**、B=建 **客戶訂單（CO）**；
+> 兩者都會寫進 `useRFQStore`，與狀態追蹤、同行調貨列表聯動。
+> 詳見 `docs/spec/DEMO-EMERGENCY-R7-PHASE-7.md` PART 1。
+
 
 ## 8.1 觸發場景
 

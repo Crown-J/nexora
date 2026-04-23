@@ -75,35 +75,8 @@ export interface TodoItem {
   partName?: string;
 }
 
-export const MOCK_INQUIRY_TODOS: TodoItem[] = [
-  {
-    id: 'inq-1',
-    docNumber: 'RF-2604-00087',
-    customerCode: 'A0087',
-    customerName: '新竹汽材行',
-    amount: 8500,
-    status: '等待同行回覆',
-    waitDays: 2,
-  },
-  {
-    id: 'inq-2',
-    docNumber: 'RF-2604-00091',
-    customerCode: 'B0156',
-    customerName: '台中順達汽車',
-    amount: 12300,
-    status: '等待同行回覆',
-    waitDays: 5,
-  },
-  {
-    id: 'inq-3',
-    docNumber: 'RF-2604-00094',
-    customerCode: 'C0421',
-    customerName: '高雄修車場',
-    amount: 4200,
-    status: '等待同行回覆',
-    waitDays: 9,
-  },
-];
+// R7 Phase 7-3:MOCK_INQUIRY_TODOS 已移除；詢價待辦改由 inquiry/store 的 RFQ 動態衍生
+// （參見 StatusSection.tsx 的 rfqToTodoItem）
 
 export const MOCK_SALES_TODOS: TodoItem[] = [
   {
