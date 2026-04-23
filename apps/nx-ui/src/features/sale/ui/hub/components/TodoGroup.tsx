@@ -24,9 +24,22 @@ interface TodoGroupProps {
   emptyText: string;
   /** 預設展開（true） */
   defaultExpanded?: boolean;
+  /**
+   * R7 Phase 7-5:點擊單筆項目回呼（通常跳到對應單據詳情頁）。
+   *   inquiry → /dashboard/sale/inquiry/[id]
+   *   QT      → /dashboard/sale/docs/quote/[id]
+   *   無傳時項目純顯示不可點。
+   */
+  onItemClick?: (itemId: string) => void;
 }
 
-export function TodoGroup({ title, items, emptyText, defaultExpanded = true }: TodoGroupProps) {
+export function TodoGroup({
+  title,
+  items,
+  emptyText,
+  defaultExpanded = true,
+  onItemClick,
+}: TodoGroupProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
@@ -56,7 +69,11 @@ export function TodoGroup({ title, items, emptyText, defaultExpanded = true }: T
           ) : (
             <div className="divide-y divide-white/5">
               {items.map((item) => (
-                <TodoRow key={item.id} item={item} />
+                <TodoRow
+                  key={item.id}
+                  item={item}
+                  onClick={onItemClick ? () => onItemClick(item.id) : undefined}
+                />
               ))}
             </div>
           )}
@@ -66,11 +83,11 @@ export function TodoGroup({ title, items, emptyText, defaultExpanded = true }: T
   );
 }
 
-function TodoRow({ item }: { item: TodoItem }) {
+function TodoRow({ item, onClick }: { item: TodoItem; onClick?: () => void }) {
   const isWarrantyNoAmount = item.amount === 0 && !!item.partName;
 
-  return (
-    <div className="cursor-pointer p-3 transition-colors hover:bg-white/5">
+  const body = (
+    <>
       <div className="mb-1 flex items-center justify-between">
         <span className="font-mono text-xs text-white/60">{item.docNumber}</span>
         <StatusBadge status={item.status} waitDays={item.waitDays} />
@@ -89,8 +106,22 @@ function TodoRow({ item }: { item: TodoItem }) {
           </span>
         )}
       </div>
-    </div>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="block w-full p-3 text-left transition-colors hover:bg-white/5"
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return <div className="p-3">{body}</div>;
 }
 
 interface StatusBadgeProps {

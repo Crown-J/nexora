@@ -16,11 +16,12 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { ClipboardList } from 'lucide-react';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { useRFQStore } from '@/features/sale/ui/inquiry/store';
-import type { RFQ } from '@/features/sale/ui/inquiry/types';
+import type { QT, RFQ } from '@/features/sale/ui/inquiry/types';
 
 import { ProKPICard } from '../components/ProKPICard';
 import { TodoGroup } from '../components/TodoGroup';
@@ -66,7 +67,28 @@ function rfqToTodoItem(rfq: RFQ): TodoItem {
   };
 }
 
+/**
+ * QT (status=pending_customer) → TodoItem。
+ *   - amount:finalPrice × quantity（要收客戶的總額）
+ *   - waitDays:QT 建立至今
+ *   - status:'等待客戶確認'
+ */
+function qtToTodoItem(qt: QT): TodoItem {
+  const waitDays = Math.floor((Date.now() - qt.createdAt.getTime()) / DAY_MS);
+  return {
+    id: qt.id,
+    docNumber: qt.qtNumber,
+    customerCode: qt.customer.code,
+    customerName: qt.customer.name,
+    amount: qt.finalPrice * qt.quantity,
+    status: '等待客戶確認',
+    waitDays,
+    partName: qt.part.name,
+  };
+}
+
 export function StatusSection() {
+  const router = useRouter();
   const session = useSessionMe();
   const isProTier = (session.planCode ?? '').toUpperCase() === 'PRO';
 
@@ -84,6 +106,7 @@ export function StatusSection() {
 
   // 從 store 衍生詢價待辦（只要 waiting / responded 都算待處理）
   const rfqs = useRFQStore((s) => s.rfqs);
+  const qts = useRFQStore((s) => s.qts);
   const inquiryTodos = useMemo(
     () =>
       rfqs
@@ -91,9 +114,16 @@ export function StatusSection() {
         .map(rfqToTodoItem),
     [rfqs],
   );
+  const qtTodos = useMemo(
+    () => qts.filter((q) => q.status === 'pending_customer').map(qtToTodoItem),
+    [qts],
+  );
 
   const totalTodoCount =
-    inquiryTodos.length + MOCK_SALES_TODOS.length + MOCK_WARRANTY_TODOS.length;
+    inquiryTodos.length +
+    qtTodos.length +
+    MOCK_SALES_TODOS.length +
+    MOCK_WARRANTY_TODOS.length;
 
   return (
     <div className="space-y-5 px-4 pt-4">
@@ -126,6 +156,13 @@ export function StatusSection() {
           title="詢價待回覆"
           items={inquiryTodos}
           emptyText="目前沒有等待回覆的詢價"
+          onItemClick={(id) => router.push(`/dashboard/sale/inquiry/${id}`)}
+        />
+        <TodoGroup
+          title="待確認報價"
+          items={qtTodos}
+          emptyText="目前沒有等待客戶確認的報價"
+          onItemClick={(id) => router.push(`/dashboard/sale/docs/quote/${id}`)}
         />
         <TodoGroup
           title="銷售待出貨"

@@ -24,12 +24,12 @@
 
 | Phase | 狀態 | Commit | 說明 |
 |-------|------|--------|------|
-| Phase 7-1 | ✅ 完成 | TBD (7-1~7-3) | 缺貨按鈕改 OutOfStockDialog（A=建 RFQ、B=建 CO，寫入 store）|
-| Phase 7-2 | ✅ 完成 | TBD (7-1~7-3) | 工作站加「同行調貨」項目（可用，enabled=true）|
-| Phase 7-3 | ✅ 完成 | TBD (7-1~7-3) | Zustand store + RFQ types + 3 筆初始 mock + 列表頁 + StatusSection 整合 |
-| Phase 7-4 | ⏳ 待做 | - | RFQ 詳情頁（輸入同行報價、採用邏輯）|
-| Phase 7-5 | ⏳ 待做 | - | 採用後生成 QT 報價單 + 狀態追蹤新分類 |
-| Phase 7-6 | ⏳ 待做 | - | 整合測試 + 最終清理 |
+| Phase 7-1 | ✅ 完成 | d08810a | 缺貨按鈕改 OutOfStockDialog（A=建 RFQ、B=建 CO，寫入 store）|
+| Phase 7-2 | ✅ 完成 | d08810a | 工作站加「同行調貨」項目（可用，enabled=true）|
+| Phase 7-3 | ✅ 完成 | d08810a | Zustand store + RFQ types + 3 筆初始 mock + 列表頁 + StatusSection 整合 |
+| Phase 7-4 | ✅ 完成 | TBD (7-4~7-6) | RFQ 詳情頁（VendorQuoteInput / VendorQuoteItem / AdoptQuoteDialog / ConfirmDialog）|
+| Phase 7-5 | ✅ 完成 | TBD (7-4~7-6) | 採用生成 QT + StatusSection 待確認報價群組 + QT 詳情頁 + TodoGroup onItemClick |
+| Phase 7-6 | ✅ 完成 | TBD (7-4~7-6) | 靜態整合測試 + 最終 spec sync |
 
 **注意**：Phase 7 是 R7 的延伸階段，不是重啟 R7。建議一個大 commit 完成所有 7-1 ~ 7-6（約 6 小時），或分兩個 commit（7-1~7-3 為一個、7-4~7-6 為一個）。
 
