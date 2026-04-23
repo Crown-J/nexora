@@ -4,11 +4,10 @@
  *
  * 取代銷售中心的「客戶維護」——倉管不接觸客戶,改以倉位/盤點設定為第 4 分區。
  *
- * 2 個子功能(spec PART 10):
+ * 2 個子功能(Phase 10 已接頁面):
  *   - 庫位管理:建議安全量 / 最高量(坪效),採購實際設定比對
  *   - 盤點設定:週期(月/季/半年/年)+ 分區盤點 + 高價品頻率
  *
- * Phase 8:兩項 enabled=false(placeholder);Phase 10 會 enable 並連接頁面。
  * 每個項目含「角色 badge」,呼應「中心 = 角色工作台」。
  */
 
@@ -16,7 +15,7 @@
 
 import { useRouter } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import { MapPin, Settings } from 'lucide-react';
+import { ChevronRight, MapPin, Settings } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
@@ -40,7 +39,7 @@ const ITEMS: readonly WarehouseItemDef[] = [
     description: '各庫位存放料號 + 坪效建議',
     detail: '安全量 / 最高量(採購實際設定比對)',
     route: '/dashboard/inventory/warehouse/locations',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'stocktake-config',
@@ -50,7 +49,7 @@ const ITEMS: readonly WarehouseItemDef[] = [
     description: '盤點週期與範圍設定',
     detail: '月 / 季 / 半年 / 年 · 分區盤點 · 高價品頻率',
     route: '/dashboard/inventory/warehouse/stocktake-config',
-    enabled: false,
+    enabled: true,
   },
 ];
 
@@ -116,6 +115,10 @@ function WarehouseItem({ item, onClick }: WarehouseItemProps) {
           <div className="text-xs text-white/60">{item.description}</div>
           <div className="mt-0.5 text-xs text-white/40">{item.detail}</div>
         </div>
+
+        {item.enabled ? (
+          <ChevronRight className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
+        ) : null}
       </div>
     </button>
   );
