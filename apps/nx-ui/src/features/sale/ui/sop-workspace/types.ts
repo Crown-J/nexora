@@ -124,7 +124,7 @@ export type SaleSopAction =
   | { type: 'SET_SIGN_METHOD'; method: SignMethod }
   | { type: 'CLEAR_SIGN_METHOD' }
   | { type: 'COMPLETE_SIGNATURE' }
-  | { type: 'GENERATE_ORDER_NUMBER' }
+  | { type: 'SET_ORDER_NUMBER'; orderNumber: string }
   | { type: 'RESET' };
 
 export type StepMeta = {

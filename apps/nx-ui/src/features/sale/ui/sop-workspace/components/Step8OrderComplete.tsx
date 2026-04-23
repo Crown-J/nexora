@@ -1,20 +1,23 @@
 // apps/nx-ui/src/features/sale/ui/sop-workspace/components/Step8OrderComplete.tsx
 /**
- * STEP 8 — 訂單成立（demo 戲劇高潮）
+ * STEP 8 — 訂單成立(TASK-BUSINESS-RESTRUCTURE Phase 5 重構)
  *
- * 訊息：業務只做了 3 件事，其他 6 件事系統自動處理。
+ * Phase 5 前:僅用 reducer 產 placeholder SO 號 + 6 項固定自動處理文案。
+ * Phase 5 後:進 STEP 8 時呼叫 SalesStore.createSO,由 SYS-C 判斷 4 情境,
+ *   自動建立 SO / IT / TI / PK,並把真實 SO 號 dispatch 回 reducer。
+ *   自動處理清單依情境動態展示:
+ *     情境 A → 撿貨單已生成
+ *     情境 B → 調撥單已生成(他倉 → 本倉)
+ *     情境 C → 調貨單已生成(向同行取貨)
+ *     情境 D → 同時顯示調撥 + 調貨
  *
- * UX：
- * - 上半部 OrderCompleteHeader：綠色 CheckCircle2 大圈 + 訂單號 + 建立時間
- * - 中段 AutoProcessList：6 項系統自動處理逐項淡入（250ms 間隔）
- * - 下半部 YouOnlyDidThreeThings：金色 Lightbulb + 1.選客戶 2.查料 3.建單
- *
- * 動畫：各項 mount 時 opacity-0 → opacity-100（Tailwind transition，零 CSS 依賴）
+ * SOP 只會建立 stock 類型 SO(source='stock')。
+ * inquiry 類型的 SO(RFQ 採用 → QT → 客戶確認)走另一條路徑,Phase 5 範圍外。
  */
 
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Check,
   CheckCircle2,
@@ -30,18 +33,29 @@ import {
 
 import { cx } from '@/shared/lib/cx';
 
+import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
+import {
+  SCENARIO_LABEL,
+  type IT,
+  type PK,
+  type SO,
+  type SOItem,
+  type TI,
+  type WarehouseKey,
+} from '@/features/sale/ui/fulfillment/types';
+
 import { PART_BY_SKU } from '../mock-data/parts';
-import { MOCK_PK_NO, TAX_RATE } from '../mock-data/scenario';
-import type { SaleSopState } from '../types';
+import { TAX_RATE } from '../mock-data/scenario';
+import type { SaleSopAction, SaleSopState } from '../types';
 import { StepWrapper } from './StepWrapper';
 
 export type Step8OrderCompleteProps = {
   state: SaleSopState;
+  dispatch: React.Dispatch<SaleSopAction>;
   onBack: () => void;
   onNext: () => void;
 };
 
-/** 單項淡入包裝 — 進場延遲後 opacity-0 → opacity-100（transition-all 300ms） */
 function FadeInItem({ delay, children }: { delay: number; children: ReactNode }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -60,7 +74,13 @@ function FadeInItem({ delay, children }: { delay: number; children: ReactNode })
   );
 }
 
-function OrderCompleteHeader({ orderNumber }: { orderNumber: string | null }) {
+function OrderCompleteHeader({
+  orderNumber,
+  scenarioLabel,
+}: {
+  orderNumber: string | null;
+  scenarioLabel: string | null;
+}) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-[#1D9E75]/40 bg-[#1D9E75]/5 p-5 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1D9E75]/20">
@@ -68,7 +88,12 @@ function OrderCompleteHeader({ orderNumber }: { orderNumber: string | null }) {
       </div>
       <div className="text-lg text-white">訂單已建立</div>
       <div className="font-mono text-xs text-white/40">{orderNumber ?? '—'}</div>
-      <div className="text-xs text-white/50">建立時間：剛剛</div>
+      {scenarioLabel ? (
+        <div className="rounded bg-white/10 px-2 py-0.5 text-xs text-white/70">
+          {scenarioLabel}
+        </div>
+      ) : null}
+      <div className="text-xs text-white/50">建立時間:剛剛</div>
     </div>
   );
 }
@@ -79,33 +104,68 @@ type AutoProcessRow = {
   detail: string;
 };
 
-function buildRows(state: SaleSopState): AutoProcessRow[] {
+function warehouseLabel(wh: WarehouseKey): string {
+  return wh === 'main' ? '本倉' : wh === 'hsinchu' ? '新竹倉' : '台中倉';
+}
+
+function buildRows(
+  state: SaleSopState,
+  so: SO | null,
+  pk: PK | null,
+  its: readonly IT[],
+  tis: readonly TI[],
+): AutoProcessRow[] {
   const items = state.quoteItems;
   const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const tax = Math.round(subtotal * TAX_RATE);
   const total = subtotal + tax;
 
-  // 庫存預留：依 items 對各料號本倉/新竹倉分配
-  let mainReserved = 0;
-  let hsinchuReserved = 0;
-  items.forEach((i) => {
-    const part = PART_BY_SKU[i.sku];
-    if (!part) return;
-    const fromMain = Math.min(i.quantity, part.stocks.main);
-    mainReserved += fromMain;
-    const still = i.quantity - fromMain;
-    if (still > 0) {
-      hsinchuReserved += Math.min(still, part.stocks.hsinchu);
-    }
-  });
-  const stockReservedDetail =
-    hsinchuReserved > 0
-      ? `本倉 ${mainReserved} + 新竹倉 ${hsinchuReserved} 個`
-      : `本倉 ${mainReserved} 個`;
+  let stockTitle = '庫存已預留';
+  let stockDetail = '';
+  if (!so) {
+    stockDetail = '準備中';
+  } else if (so.scenario === 'A') {
+    const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+    stockDetail = `本倉 ${totalQty} 個已鎖定`;
+  } else if (so.scenario === 'B') {
+    stockTitle = '調撥單已建立';
+    stockDetail = its
+      .map((it) => {
+        const fromLabel = it.items.map((i) => warehouseLabel(i.fromWarehouse)).join(', ');
+        const qty = it.items.reduce((s, i) => s + i.quantity, 0);
+        return `${it.itNumber}\n${fromLabel} → 本倉 共 ${qty} 個`;
+      })
+      .join('\n');
+  } else if (so.scenario === 'C') {
+    stockTitle = '調貨單已建立';
+    stockDetail = tis
+      .map((ti) => {
+        const vendors = Array.from(new Set(ti.items.map((i) => i.vendorName))).join(', ');
+        const qty = ti.items.reduce((s, i) => s + i.quantity, 0);
+        return `${ti.tiNumber}\n向 ${vendors} 取貨 共 ${qty} 個`;
+      })
+      .join('\n');
+  } else {
+    stockTitle = '調撥 + 調貨並行';
+    const itLines = its.map((it) => it.itNumber).join(', ');
+    const tiLines = tis.map((ti) => ti.tiNumber).join(', ');
+    stockDetail = `${itLines}\n${tiLines}`;
+  }
+
+  let pickingTitle = '撿貨單已生成';
+  let pickingDetail: string;
+  if (!so) {
+    pickingDetail = '準備中';
+  } else if (pk) {
+    pickingDetail = `${pk.pkNumber}\n已通知倉管專員`;
+  } else {
+    pickingTitle = '撿貨單:待備齊後自動生成';
+    pickingDetail = `將於 ${so.scenario === 'B' ? '調撥' : so.scenario === 'C' ? '調貨' : '備齊'}完成後自動建立`;
+  }
 
   const deliveryDetail =
     state.deliveryMethod === 'delivery'
-      ? '外務：王大偉\n預計 30 分鐘內送達'
+      ? '外務:王大偉\n預計 30 分鐘內送達'
       : state.deliveryMethod === 'pickup'
         ? '已生成 BOX 編號\n通知客戶可來取貨'
         : state.deliveryMethod === 'shipping'
@@ -117,36 +177,20 @@ function buildRows(state: SaleSopState): AutoProcessRow[] {
     : '客戶偏好已更新';
 
   return [
-    {
-      icon: Package,
-      title: '庫存已預留',
-      detail: stockReservedDetail,
-    },
-    {
-      icon: Clipboard,
-      title: '撿貨單已生成',
-      detail: `${MOCK_PK_NO}\n已通知倉管專員`,
-    },
-    {
-      icon: Truck,
-      title: '配送任務已建立',
-      detail: deliveryDetail,
-    },
+    { icon: Package, title: stockTitle, detail: stockDetail },
+    { icon: Clipboard, title: pickingTitle, detail: pickingDetail },
+    { icon: Truck, title: '配送任務已建立', detail: deliveryDetail },
     {
       icon: Wallet,
       title: '應收帳款已建立',
-      detail: `NT$ ${total.toLocaleString()} 月結 30 天\n（會計可見）`,
+      detail: `NT$ ${total.toLocaleString()} 月結 30 天\n(會計可見)`,
     },
     {
       icon: TrendingUp,
       title: '業績已記錄',
-      detail: `本月業績 +NT$ ${total.toLocaleString()}\n本月毛利率更新：28.3%`,
+      detail: `本月業績 +NT$ ${total.toLocaleString()}\n本月毛利率更新:28.3%`,
     },
-    {
-      icon: User,
-      title: '客戶偏好已更新',
-      detail: preferredNote,
-    },
+    { icon: User, title: '客戶偏好已更新', detail: preferredNote },
   ];
 }
 
@@ -170,30 +214,13 @@ function AutoProcessRowView({ row }: { row: AutoProcessRow }) {
   );
 }
 
-function AutoProcessList({ state }: { state: SaleSopState }) {
-  const rows = useMemo(() => buildRows(state), [state]);
-
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-      <div className="mb-4 text-xs text-white/50">系統已自動處理</div>
-      <div className="flex flex-col gap-3">
-        {rows.map((r, idx) => (
-          <FadeInItem key={`${r.title}-${idx}`} delay={idx * 250}>
-            <AutoProcessRowView row={r} />
-          </FadeInItem>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function YouOnlyDidThreeThings() {
   return (
     <div className="rounded-lg border border-[#E8A020]/40 bg-[#E8A020]/5 p-4">
       <div className="flex items-start gap-3">
         <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-[#E8A020]" aria-hidden />
         <div className="flex-1 space-y-2 text-xs">
-          <div className="text-sm text-white/90">業務您只做了 3 件事：</div>
+          <div className="text-sm text-white/90">業務您只做了 3 件事:</div>
           <div className="space-y-1 pl-1 text-white/70">
             <div className="flex items-center gap-2">
               <span className="w-4 text-white/40">1.</span>
@@ -209,7 +236,7 @@ function YouOnlyDidThreeThings() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-2 leading-relaxed text-white/60">
-            其他 6 件事系統全部幫您做，回公司不用再打單、不用通知倉管、不用追進度
+            其他 6 件事系統全部幫您做,回公司不用再打單、不用通知倉管、不用追進度
           </div>
         </div>
       </div>
@@ -217,7 +244,88 @@ function YouOnlyDidThreeThings() {
   );
 }
 
-export function Step8OrderComplete({ state, onBack, onNext }: Step8OrderCompleteProps) {
+export function Step8OrderComplete({
+  state,
+  dispatch,
+  onBack,
+  onNext,
+}: Step8OrderCompleteProps) {
+  const createSO = useSalesStore((s) => s.createSO);
+  const soNumber = state.orderNumber;
+  const so = useSalesStore((s) =>
+    soNumber ? (s.sos.find((x) => x.soNumber === soNumber) ?? null) : null,
+  );
+  const pk = useSalesStore((s) =>
+    so?.relatedPkNumber
+      ? (s.pks.find((x) => x.pkNumber === so.relatedPkNumber) ?? null)
+      : null,
+  );
+  const allIts = useSalesStore((s) => s.its);
+  const allTis = useSalesStore((s) => s.tis);
+
+  const relatedIts = useMemo(
+    () =>
+      so
+        ? so.relatedItNumbers
+            .map((n) => allIts.find((x) => x.itNumber === n))
+            .filter((it): it is IT => Boolean(it))
+        : [],
+    [so, allIts],
+  );
+  const relatedTis = useMemo(
+    () =>
+      so
+        ? so.relatedTiNumbers
+            .map((n) => allTis.find((x) => x.tiNumber === n))
+            .filter((ti): ti is TI => Boolean(ti))
+        : [],
+    [so, allTis],
+  );
+
+  // 僅第一次進 STEP 8 時觸發 store.createSO;後續重新渲染不再重建
+  const didCreateRef = useRef(false);
+  useEffect(() => {
+    if (didCreateRef.current) return;
+    const customer = state.selectedCustomer;
+    if (!customer || state.quoteItems.length === 0) return;
+    didCreateRef.current = true;
+
+    const soItems: SOItem[] = state.quoteItems.map((q) => {
+      const part = PART_BY_SKU[q.sku];
+      return {
+        sku: q.sku,
+        name: part?.name ?? q.sku,
+        quantity: q.quantity,
+        unitPrice: q.unitPrice,
+        unitCost: part?.unitCost ?? 0,
+        source: 'stock',
+      };
+    });
+
+    try {
+      const r = createSO({
+        customer: {
+          code: customer.code,
+          name: customer.name,
+          tier: customer.tier,
+        },
+        items: soItems,
+      });
+      dispatch({ type: 'SET_ORDER_NUMBER', orderNumber: r.so.soNumber });
+    } catch (error) {
+      console.error('[Step8] SalesStore.createSO 失敗:', error);
+    }
+  }, [createSO, dispatch, state.quoteItems, state.selectedCustomer]);
+
+  const scenarioLabel = so
+    ? `備貨情境 ${so.scenario}:${SCENARIO_LABEL[so.scenario]}`
+    : null;
+
+  const rows = useMemo(
+    () => buildRows(state, so, pk, relatedIts, relatedTis),
+    [state, so, pk, relatedIts, relatedTis],
+  );
+
   return (
     <StepWrapper
       canProceed
@@ -227,8 +335,20 @@ export function Step8OrderComplete({ state, onBack, onNext }: Step8OrderComplete
       tone="primary"
     >
       <div className="space-y-4">
-        <OrderCompleteHeader orderNumber={state.orderNumber} />
-        <AutoProcessList state={state} />
+        <OrderCompleteHeader
+          orderNumber={state.orderNumber}
+          scenarioLabel={scenarioLabel}
+        />
+        <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+          <div className="mb-4 text-xs text-white/50">系統已自動處理</div>
+          <div className="flex flex-col gap-3">
+            {rows.map((r, idx) => (
+              <FadeInItem key={`${r.title}-${idx}`} delay={idx * 250}>
+                <AutoProcessRowView row={r} />
+              </FadeInItem>
+            ))}
+          </div>
+        </div>
         <YouOnlyDidThreeThings />
       </div>
     </StepWrapper>

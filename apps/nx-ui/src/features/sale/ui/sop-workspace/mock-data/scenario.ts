@@ -27,11 +27,6 @@ export const STEPS_META: readonly StepMeta[] = [
   { id: 9, shortLabel: '完成', title: '成交！', subtitle: '恭喜業務完成一單' },
 ];
 
-/** STEP 8 固定顯示的 mock 訂單 / 撿貨單 / 配送 ETA */
-export const MOCK_SO_NO = 'SO-202604-00056';
-export const MOCK_PK_NO = 'PK-202604-00089';
-export const MOCK_DELIVERY_ETA_MIN = 30;
-
 /**
  * STEP 9 業績總結固定 mock — 假想業務「王小明」的本月（不含本次）數據。
  * 本次成交金額會在 STEP 9 再累加上去顯示「累計後」狀態。

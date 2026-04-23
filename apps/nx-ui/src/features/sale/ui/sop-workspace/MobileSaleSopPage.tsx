@@ -6,12 +6,13 @@
  * 佈局：頂部固定 ProgressHeader；STEP 1~8 底部由 StepWrapper 管，
  *        STEP 9 自備底部操作列（再來一次 / 回銷貨中心）
  *
- * 訂單編號生成時機：進 STEP 7 且尚未生成時由 reducer 產出 SO-YYMM-xxxxx。
+ * TASK-BUSINESS-RESTRUCTURE Phase 5:訂單編號改由 Step 8 呼叫 SalesStore.createSO 注入,
+ *   不再於 Step 7 自動生成 placeholder。
  */
 
 'use client';
 
-import { useCallback, useEffect, useReducer, useState, type ReactNode } from 'react';
+import { useCallback, useReducer, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { ProgressHeader } from './components/ProgressHeader';
@@ -36,13 +37,6 @@ const initialState: SaleSopState = {
   hasSigned: false,
   orderNumber: null,
 };
-
-function generateOrderNumber(): string {
-  const now = new Date();
-  const ym = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const seq = String(Math.floor(Math.random() * 99999)).padStart(5, '0');
-  return `SO-${ym}-${seq}`;
-}
 
 function reducer(state: SaleSopState, action: SaleSopAction): SaleSopState {
   switch (action.type) {
@@ -96,10 +90,9 @@ function reducer(state: SaleSopState, action: SaleSopAction): SaleSopState {
       return { ...state, signMethod: null, hasSigned: false };
     case 'COMPLETE_SIGNATURE':
       return { ...state, hasSigned: true };
-    case 'GENERATE_ORDER_NUMBER':
-      // 已有時不重生（避免 re-render 跳號）
-      if (state.orderNumber) return state;
-      return { ...state, orderNumber: generateOrderNumber() };
+    case 'SET_ORDER_NUMBER':
+      // Phase 5:Step8 由 SalesStore 建立真實 SO 後注入單號,覆寫舊的 placeholder
+      return { ...state, orderNumber: action.orderNumber };
     case 'RESET':
       return initialState;
     default:
@@ -112,12 +105,7 @@ export function MobileSaleSopPage() {
   const [currentStep, setCurrentStep] = useState<StepNumber>(1);
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // 進 STEP 7 時自動生成訂單號
-  useEffect(() => {
-    if (currentStep === 7 && !state.orderNumber) {
-      dispatch({ type: 'GENERATE_ORDER_NUMBER' });
-    }
-  }, [currentStep, state.orderNumber]);
+  // Phase 5:訂單號由 Step8 呼叫 SalesStore.createSO 於情境判斷後一次性注入。
 
   const handleBack = useCallback(() => {
     if (currentStep === 1) {
@@ -234,6 +222,7 @@ export function MobileSaleSopPage() {
       stepContent = (
         <Step8OrderComplete
           state={state}
+          dispatch={dispatch}
           onBack={handleBack}
           onNext={handleNext}
         />
