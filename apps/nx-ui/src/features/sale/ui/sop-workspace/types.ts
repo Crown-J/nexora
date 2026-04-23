@@ -70,9 +70,34 @@ export type QuoteItem = {
 };
 
 export type QuoteMethod = 'verbal' | 'print';
-export type CustomerDecision = 'accept' | 'negotiate' | 'decline';
+
+/**
+ * TASK-BUSINESS-RESTRUCTURE Phase 3：STEP 5 客戶回應從 3 選項擴充為 5 選項。
+ *   accept_all    整張接受並下單
+ *   partial_accept 部分接受（勾選要的品項）
+ *   price_adjust  要求調整價格
+ *   consider      考慮看看（記錄為 QT,之後查料時提醒）
+ *   reject        全部不要（記錄拒絕原因）
+ * 保留 'accept' 作為漸進遷移期間的 alias（會映射到 accept_all）。
+ */
+export type CustomerDecision =
+  | 'accept_all'
+  | 'partial_accept'
+  | 'price_adjust'
+  | 'consider'
+  | 'reject';
+
 export type DeliveryMethod = 'delivery' | 'pickup' | 'shipping';
 export type SignMethod = 'electronic' | 'paper';
+
+/** Phase 3：拒絕原因代碼 */
+export type RejectReasonCode =
+  | 'price_high'
+  | 'no_matching_sku'
+  | 'bought_elsewhere'
+  | 'funding_issue'
+  | 'future_need'
+  | 'other';
 
 export type SaleSopState = {
   selectedCustomer: Customer | null;
@@ -94,6 +119,7 @@ export type SaleSopAction =
   | { type: 'UPDATE_QUOTE_ITEM'; sku: string; quantity?: number; unitPrice?: number }
   | { type: 'SET_QUOTE_METHOD'; method: QuoteMethod }
   | { type: 'SET_CUSTOMER_DECISION'; decision: CustomerDecision }
+  | { type: 'RESET_CUSTOMER_DECISION' }
   | { type: 'SET_DELIVERY_METHOD'; method: DeliveryMethod }
   | { type: 'SET_SIGN_METHOD'; method: SignMethod }
   | { type: 'CLEAR_SIGN_METHOD' }

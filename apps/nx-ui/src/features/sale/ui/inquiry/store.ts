@@ -64,6 +64,22 @@ interface RFQStoreState {
 
   /** 全部不採用結案 */
   abandonRFQ: (rfqId: string) => void;
+
+  /**
+   * TASK-BUSINESS-RESTRUCTURE Phase 3:「考慮看看」直接建立報價（source=direct）。
+   * 不走 RFQ 流程,每個 item 各建一張 QT(便於 useHistoryRecord 查單料號)。
+   * vendorCost 用進貨成本,suggestedPrice 用 cost × (1 + tierMargin/100)。
+   */
+  createDirectQTs: (input: {
+    customer: CustomerRef;
+    items: ReadonlyArray<{
+      sku: string;
+      name: string;
+      quantity: number;
+      finalPrice: number;
+      cost: number;
+    }>;
+  }) => QT[];
 }
 
 // ────────── helpers ──────────
@@ -211,5 +227,34 @@ export const useRFQStore = create<RFQStoreState>((set, get) => ({
         r.id === rfqId ? { ...r, status: 'abandoned' as const } : r,
       ),
     }));
+  },
+
+  createDirectQTs: ({ customer, items }) => {
+    const existing = get().qts.map((q) => q.qtNumber);
+    const tierMargin = TIER_TARGET_MARGIN[customer.tier];
+    // 一批 QT 使用連續流水號
+    const generated: QT[] = [];
+    items.forEach((item, index) => {
+      const qtNumber = generateDocNumber(
+        'QT',
+        existing.concat(generated.map((g) => g.qtNumber)),
+      );
+      const suggested = Math.round(item.cost * (1 + tierMargin / 100));
+      generated.push({
+        id: generateId('qt'),
+        qtNumber,
+        customer,
+        part: { sku: item.sku, name: item.name },
+        quantity: item.quantity,
+        vendorCost: item.cost,
+        suggestedPrice: suggested,
+        finalPrice: item.finalPrice,
+        source: 'direct',
+        status: 'pending_customer',
+        createdAt: new Date(Date.now() + index),
+      });
+    });
+    set((state) => ({ qts: [...generated, ...state.qts] }));
+    return generated;
   },
 }));

@@ -1,94 +1,38 @@
 // apps/nx-ui/src/features/sale/ui/hub/sections/StatusSection.tsx
 /**
- * R7 銷售中心手機版「狀態追蹤」分區（預設首頁）。
+ * 銷售中心手機版「狀態追蹤」分區（預設首頁）。
  *
  * 上半 PRO 限定 KPI 卡（3 格:業績 / 毛利率 / 退貨率）
  *   - 依 MOCK_USER_ROLE 決定 personal / team / company 版本
  *   - 非 PRO 不顯示（以 useSessionMe planCode 判斷）
  *
- * 下半待辦追蹤清單:
- *   - 詢價待回覆:R7 Phase 7-3 改為從 useRFQStore 動態衍生（跟同行調貨列表共用來源）
- *   - 銷售待出貨 / 保固待結果:仍從 hub/mock-data/scenario 讀靜態 mock
+ * 下半待辦追蹤清單（TASK-BUSINESS-RESTRUCTURE Phase 4 調整）:
+ *   - 銷售進行中:MOCK_SALES_TODOS(SO 未完成;Phase 7 會改為 store 衍生)
+ *   - 調貨進行中:MOCK_TRANSFER_TODOS(IT + TI;Phase 6/7 改為 store 衍生)
+ *   - 保固待結果:MOCK_WARRANTY_TODOS
  *
- * 未來（Phase 7-5）還會加第 4 個群組「待確認報價」（QT pending_customer）。
+ * 依 Crown 新規則,「詢價待回覆 / 待確認報價」已從待辦清單移除;
+ * 業務查料時由 useHistoryRecord 主動推播提醒(參見 Step2SearchParts)。
  */
 
 'use client';
 
-import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { ClipboardList } from 'lucide-react';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { useRFQStore } from '@/features/sale/ui/inquiry/store';
-import type { QT, RFQ } from '@/features/sale/ui/inquiry/types';
 
 import { ProKPICard } from '../components/ProKPICard';
 import { TodoGroup } from '../components/TodoGroup';
-import type { TodoItem } from '../mock-data/scenario';
 import {
   MOCK_KPI_DATA,
   MOCK_SALES_TODOS,
+  MOCK_TRANSFER_TODOS,
   MOCK_USER_ROLE,
   MOCK_WARRANTY_TODOS,
   getKPILevelByRole,
 } from '../mock-data/scenario';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/**
- * RFQ → TodoItem 轉換。
- *   - amount：
- *     已 responded → 最低同行報價 × qty（成本概估，業務用來判斷值不值得追）
- *     waiting      → 0；TodoGroup 會因 partName 存在而顯示料號名替代金額
- *   - status 文字：等待同行回覆 / N 家已回覆
- *   - waitDays：建立至今的天數，由 TodoGroup 依閾值染色
- */
-function rfqToTodoItem(rfq: RFQ): TodoItem {
-  const waitDays = Math.floor((Date.now() - rfq.createdAt.getTime()) / DAY_MS);
-  const lowestPrice =
-    rfq.vendorQuotes.length > 0
-      ? Math.min(...rfq.vendorQuotes.map((v) => v.price)) * rfq.quantity
-      : 0;
-  const statusLabel =
-    rfq.vendorQuotes.length === 0
-      ? '等待同行回覆'
-      : `${rfq.vendorQuotes.length} 家已回覆`;
-
-  return {
-    id: rfq.id,
-    docNumber: rfq.rfqNumber,
-    customerCode: rfq.sourceCustomer.code,
-    customerName: rfq.sourceCustomer.name,
-    amount: lowestPrice,
-    status: statusLabel,
-    waitDays,
-    partName: rfq.part.name,
-  };
-}
-
-/**
- * QT (status=pending_customer) → TodoItem。
- *   - amount:finalPrice × quantity（要收客戶的總額）
- *   - waitDays:QT 建立至今
- *   - status:'等待客戶確認'
- */
-function qtToTodoItem(qt: QT): TodoItem {
-  const waitDays = Math.floor((Date.now() - qt.createdAt.getTime()) / DAY_MS);
-  return {
-    id: qt.id,
-    docNumber: qt.qtNumber,
-    customerCode: qt.customer.code,
-    customerName: qt.customer.name,
-    amount: qt.finalPrice * qt.quantity,
-    status: '等待客戶確認',
-    waitDays,
-    partName: qt.part.name,
-  };
-}
-
 export function StatusSection() {
-  const router = useRouter();
   const session = useSessionMe();
   const isProTier = (session.planCode ?? '').toUpperCase() === 'PRO';
 
@@ -104,26 +48,8 @@ export function StatusSection() {
 
   const monthLabel = formatMonth(new Date());
 
-  // 從 store 衍生詢價待辦（只要 waiting / responded 都算待處理）
-  const rfqs = useRFQStore((s) => s.rfqs);
-  const qts = useRFQStore((s) => s.qts);
-  const inquiryTodos = useMemo(
-    () =>
-      rfqs
-        .filter((r) => r.status === 'waiting' || r.status === 'responded')
-        .map(rfqToTodoItem),
-    [rfqs],
-  );
-  const qtTodos = useMemo(
-    () => qts.filter((q) => q.status === 'pending_customer').map(qtToTodoItem),
-    [qts],
-  );
-
   const totalTodoCount =
-    inquiryTodos.length +
-    qtTodos.length +
-    MOCK_SALES_TODOS.length +
-    MOCK_WARRANTY_TODOS.length;
+    MOCK_SALES_TODOS.length + MOCK_TRANSFER_TODOS.length + MOCK_WARRANTY_TODOS.length;
 
   return (
     <div className="space-y-5 px-4 pt-4">
@@ -153,21 +79,14 @@ export function StatusSection() {
         </div>
 
         <TodoGroup
-          title="詢價待回覆"
-          items={inquiryTodos}
-          emptyText="目前沒有等待回覆的詢價"
-          onItemClick={(id) => router.push(`/dashboard/sale/inquiry/${id}`)}
-        />
-        <TodoGroup
-          title="待確認報價"
-          items={qtTodos}
-          emptyText="目前沒有等待客戶確認的報價"
-          onItemClick={(id) => router.push(`/dashboard/sale/docs/quote/${id}`)}
-        />
-        <TodoGroup
-          title="銷售待出貨"
+          title="銷售進行中"
           items={MOCK_SALES_TODOS}
-          emptyText="目前沒有待出貨的銷售單"
+          emptyText="目前沒有進行中的銷貨單"
+        />
+        <TodoGroup
+          title="調貨進行中"
+          items={MOCK_TRANSFER_TODOS}
+          emptyText="目前沒有進行中的調貨單"
         />
         <TodoGroup
           title="保固待結果"
@@ -175,6 +94,7 @@ export function StatusSection() {
           emptyText="目前沒有待處理的保固"
         />
       </section>
+
     </div>
   );
 }

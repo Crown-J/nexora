@@ -84,6 +84,9 @@ function reducer(state: SaleSopState, action: SaleSopAction): SaleSopState {
       return { ...state, quoteMethod: action.method };
     case 'SET_CUSTOMER_DECISION':
       return { ...state, customerDecision: action.decision };
+    case 'RESET_CUSTOMER_DECISION':
+      // Phase 1 修復:從 STEP 6 上一步回 STEP 5 時清除,避免 accept 分支的 setTimeout 迴圈。
+      return { ...state, customerDecision: null };
     case 'SET_DELIVERY_METHOD':
       return { ...state, deliveryMethod: action.method };
     case 'SET_SIGN_METHOD':
@@ -121,6 +124,11 @@ export function MobileSaleSopPage() {
       router.push('/dashboard/sale');
       return;
     }
+    // Phase 1 bug fix:從 STEP 6 回 STEP 5 時清除 customerDecision
+    // 避免 accept_all 觸發的 setTimeout 立即把使用者彈回 STEP 6
+    if (currentStep === 6) {
+      dispatch({ type: 'RESET_CUSTOMER_DECISION' });
+    }
     setCurrentStep((s) => Math.max(1, s - 1) as StepNumber);
   }, [currentStep, router]);
 
@@ -141,6 +149,17 @@ export function MobileSaleSopPage() {
   const handleReturnToHub = useCallback(() => {
     router.push('/dashboard/sale');
   }, [router]);
+
+  // Phase 3:Step5 的 consider / reject 結束 SOP;reset state + 回銷售中心
+  const handleFinishSOP = useCallback(() => {
+    dispatch({ type: 'RESET' });
+    router.push('/dashboard/sale');
+  }, [router]);
+
+  // Phase 3:Step5 的 price_adjust 確認後跳回 STEP 4 重新報價
+  const handleGoToStep = useCallback((step: StepNumber) => {
+    setCurrentStep(step);
+  }, []);
 
   let stepContent: ReactNode;
   switch (currentStep) {
@@ -186,6 +205,8 @@ export function MobileSaleSopPage() {
           dispatch={dispatch}
           onBack={handleBack}
           onNext={handleNext}
+          onFinishSOP={handleFinishSOP}
+          onGoToStep={handleGoToStep}
         />
       );
       break;

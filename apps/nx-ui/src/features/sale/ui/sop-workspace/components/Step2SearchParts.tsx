@@ -20,6 +20,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   BarcodeIcon,
@@ -36,6 +37,7 @@ import { cx } from '@/shared/lib/cx';
 import { useRFQStore } from '@/features/sale/ui/inquiry/store';
 
 import { MOCK_PARTS, searchParts } from '../mock-data/parts';
+import { useHistoryRecord, type HistoryRecord } from '../mock-data/quote-history';
 import {
   WAREHOUSE_META,
   type Part,
@@ -43,8 +45,11 @@ import {
   type SaleSopAction,
   type SaleSopState,
 } from '../types';
+import { AddMoreDialog } from './AddMoreDialog';
 import { FloatingToast, type ToastType } from './FloatingToast';
+import { HistoryQuoteAlert } from './HistoryQuoteAlert';
 import { ImageLightbox } from './ImageLightbox';
+import { MarginAlert } from './MarginAlert';
 import { OutOfStockDialog } from './OutOfStockDialog';
 import { StepWrapper } from './StepWrapper';
 
@@ -60,15 +65,18 @@ const SUGGESTED_KEYWORDS = ['剎車片', '機油濾心', '空氣濾心', '火星
 function PartDetailExpanded({
   part,
   tier,
+  customerCode,
   existingItem,
   onAdd,
   onUpdate,
   onRemove,
   onZoom,
   onInquire,
+  onViewHistory,
 }: {
   part: Part;
   tier: 'A' | 'B' | 'C' | 'D';
+  customerCode: string | null;
   existingItem: QuoteItem | null;
   onAdd: (item: QuoteItem) => void;
   onUpdate: (partial: { quantity?: number; unitPrice?: number }) => void;
@@ -76,6 +84,8 @@ function PartDetailExpanded({
   onZoom: () => void;
   /** R7 Phase 7-1：全公司無庫存時的分流決策彈窗入口,帶上當前選的數量 */
   onInquire: (qty: number) => void;
+  /** Phase 2:HistoryQuoteAlert 的「查看詳情」點擊 */
+  onViewHistory: (history: HistoryRecord) => void;
 }) {
   const suggestedPrice = part.prices[tier];
 
@@ -107,12 +117,24 @@ function PartDetailExpanded({
   const canFullFill = qty <= mainStock + totalOtherStock;
   const otherNeed = Math.min(Math.max(0, qty - mainStock), totalOtherStock);
 
+  // Phase 2:查該客戶 × 該料號的歷史記錄(RFQ / QT / 歷史報價)
+  const history = useHistoryRecord(customerCode, part.sku);
+
   const handleAddClick = () => {
     onAdd({ sku: part.sku, quantity: qty, unitPrice: price });
   };
 
   return (
     <div className="space-y-4 border-t border-white/10 bg-black/30 p-4">
+      {/* Phase 2:歷史記錄提醒(RFQ 進行中 / QT 待確認 / 30 天內歷史報價) */}
+      {history ? (
+        <HistoryQuoteAlert
+          history={history}
+          onApply={history.type === 'quote' ? (v) => setPrice(v) : undefined}
+          onView={onViewHistory}
+        />
+      ) : null}
+
       {/* 圖片 aspect-video + Lightbox trigger */}
       <button
         type="button"
@@ -197,6 +219,10 @@ function PartDetailExpanded({
         </div>
         <div className="mt-1 text-xs text-white/40">
           歷史成交：NT$ {part.lastSoldPrice.toLocaleString()}
+        </div>
+        {/* Phase 2:毛利警覺性(系統建議+目標+實際毛利,即時染色) */}
+        <div className="mt-2">
+          <MarginAlert tier={tier} cost={part.unitCost} finalPrice={price} />
         </div>
       </div>
 
@@ -375,6 +401,7 @@ export function Step2SearchParts({
   onBack,
   onNext,
 }: Step2SearchPartsProps) {
+  const router = useRouter();
   const [keyword, setKeyword] = useState('');
   const [expandedSku, setExpandedSku] = useState<string | null>(null);
   const [lightboxPart, setLightboxPart] = useState<Part | null>(null);
@@ -382,6 +409,8 @@ export function Step2SearchParts({
   // 記錄部件 + 業務在詳情區選的數量，供選項 A/B 建立 RFQ / CO
   const [oosDialog, setOosDialog] = useState<{ part: Part; qty: number } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  // Phase 3 追加品項機制:加入清單後彈出「還要查嗎?」
+  const [addMorePart, setAddMorePart] = useState<Part | null>(null);
 
   const createRFQ = useRFQStore((s) => s.createRFQ);
   const createCustomerOrder = useRFQStore((s) => s.createCustomerOrder);
@@ -405,6 +434,11 @@ export function Step2SearchParts({
 
   const handleAdd = (item: QuoteItem) => {
     dispatch({ type: 'ADD_QUOTE_ITEM', item });
+    // Phase 3 追加品項:每次加入清單後詢問「還要查嗎?」
+    const part = MOCK_PARTS.find((p) => p.sku === item.sku) ?? null;
+    setAddMorePart(part);
+    // 收起詳情讓 UI 清爽
+    setExpandedSku(null);
   };
   const handleUpdate = (sku: string, partial: { quantity?: number; unitPrice?: number }) => {
     dispatch({ type: 'UPDATE_QUOTE_ITEM', sku, ...partial });
@@ -427,6 +461,18 @@ export function Step2SearchParts({
       message: `已建立詢價單 ${rfq.rfqNumber},可至「同行調貨」處理`,
       type: 'success',
     });
+  };
+
+  // Phase 2:歷史提醒的「查看詳情」跳對應單據
+  const handleViewHistory = (history: HistoryRecord) => {
+    if (history.type === 'rfq' && history.refId) {
+      router.push(`/dashboard/sale/inquiry/${history.refId}`);
+    } else if (history.type === 'qt' && history.refId) {
+      router.push(`/dashboard/sale/docs/quote/${history.refId}`);
+    } else {
+      // type=quote 的歷史紀錄是 mock,沒有可跳頁面,就顯示提示
+      setToast({ message: `歷史報價 ${history.docNumber},暫無詳情頁`, type: 'info' });
+    }
   };
 
   // R7 Phase 7-1 選項 B:轉客戶訂單 → 建 Customer Order（預訂單）
@@ -567,12 +613,14 @@ export function Step2SearchParts({
                     <PartDetailExpanded
                       part={p}
                       tier={tier}
+                      customerCode={customer?.code ?? null}
                       existingItem={existing}
                       onAdd={handleAdd}
                       onUpdate={(partial) => handleUpdate(p.sku, partial)}
                       onRemove={() => handleRemove(p.sku)}
                       onZoom={() => setLightboxPart(p)}
                       onInquire={(qty) => setOosDialog({ part: p, qty })}
+                      onViewHistory={handleViewHistory}
                     />
                   ) : null}
                 </div>
@@ -599,7 +647,23 @@ export function Step2SearchParts({
         />
       ) : null}
 
-      {/* Toast（選項 A 後顯示） */}
+      {/* Phase 3 追加品項:加入清單後彈「還要查嗎?」 */}
+      {addMorePart ? (
+        <AddMoreDialog
+          justAddedPartName={addMorePart.name}
+          onAddMore={() => {
+            // 清空搜尋讓業務重新輸入下一個料號,並關閉 dialog
+            setAddMorePart(null);
+            setKeyword('');
+          }}
+          onFinish={() => {
+            setAddMorePart(null);
+            onNext();
+          }}
+        />
+      ) : null}
+
+      {/* Toast(選項 A/B 後、歷史提醒跳頁失敗時顯示) */}
       {toast ? (
         <FloatingToast
           message={toast.message}
