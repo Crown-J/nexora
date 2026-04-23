@@ -12,18 +12,19 @@
  * URL query 是 source of truth：?section=status|workstation|documents|customer
  * 預設 status（狀態追蹤）。
  *
- * Phase 2 只做 StatusSection；工作站 / 單據 / 客戶為 placeholder，Phase 3/4 補。
+ * Phase 4 起 4 個分區都有正式元件。
  */
 
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { FileText, Hammer, LayoutDashboard, Users, Wrench } from 'lucide-react';
+import { FileText, LayoutDashboard, Users, Wrench } from 'lucide-react';
 
 import {
   MobileHubSectionTabs,
   type MobileHubSectionTabDef,
 } from '@/features/layout/ui/module-hub/MobileHubSectionTabs';
+import { CustomerSection } from './sections/CustomerSection';
 import { DocumentsSection } from './sections/DocumentsSection';
 import { StatusSection } from './sections/StatusSection';
 import { WorkstationSection } from './sections/WorkstationSection';
@@ -65,7 +66,7 @@ export function SalesHubMobile() {
         {current === 'status' ? <StatusSection /> : null}
         {current === 'workstation' ? <WorkstationSection /> : null}
         {current === 'documents' ? <DocumentsSection /> : null}
-        {current === 'customer' ? <SectionPlaceholder title="客戶維護" /> : null}
+        {current === 'customer' ? <CustomerSection /> : null}
       </div>
 
       <MobileHubSectionTabs
@@ -75,20 +76,6 @@ export function SalesHubMobile() {
         ariaLabel="銷售中心分區切換"
         showLabel
       />
-    </div>
-  );
-}
-
-function SectionPlaceholder({ title }: { title: string }) {
-  return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/10">
-        <Hammer className="h-7 w-7 text-white/40" aria-hidden />
-      </div>
-      <div className="mb-2 text-base text-white">{title}</div>
-      <div className="max-w-xs text-xs text-white/50">
-        此分區將於後續版本推出，敬請期待。
-      </div>
     </div>
   );
 }

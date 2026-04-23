@@ -24,8 +24,8 @@
 | Phase 1 | ✅ 完成 | 2feea55 | 登入頁清理 + DOCK 視覺統一（後被 Phase 2.5 取代） |
 | Phase 2 | ✅ 完成 | 75f2191 | 4 分區架構 + 狀態追蹤分區（KPI + 待辦清單） |
 | Phase 2.5 | ✅ 完成 | 10841d3 | 移除非首頁 DOCK，SectionTabs 改貼底 |
-| Phase 3 | ✅ 完成 | TBD | 工作站分區（4 項）+ 單據管理分區（7 項）+ 10 個子路由 placeholder |
-| Phase 4 | ⏳ 待做 | - | 客戶維護分區 |
+| Phase 3 | ✅ 完成 | 64a63f5 | 工作站分區（4 項）+ 單據管理分區（7 項）+ 10 個子路由 placeholder |
+| Phase 4 | ✅ 完成 | TBD | 客戶維護分區（3 項）+ 3 個子路由 placeholder |
 | Phase 5 | ⏳ 待做 | - | 調貨詢價 A+B 彈窗 |
 | Phase 6 | ⏳ 待做 | - | 清理（移除 SOP 精品示範入口卡）+ 整合測試 |
 
@@ -592,7 +592,7 @@ export default function PlaceholderPage() {
 
 ---
 
-# ⏳ PART 7：客戶維護分區（Phase 4 待做）
+# ✅ PART 7：客戶維護分區（Phase 4 已完成）
 
 ## 7.1 整體版面
 
