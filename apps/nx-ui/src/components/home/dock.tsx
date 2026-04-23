@@ -512,6 +512,14 @@ export function MobileDock() {
     return null;
   }
 
+  // R7 Phase 2.5：中心 = 角色工作台，跨中心切換由 TopBar 星球承擔。
+  // 非首頁一律不顯示底部 DOCK，只保留首頁自定義快捷鍵。
+  // HIDE_MOBILE_DOCK_PREFIXES / HIDE_MOBILE_DOCK_EXACT / 下方非首頁 JSX 目前變成死碼，
+  // 保留是為了未來如需恢復全站 DOCK 可直接 git revert 本次修改。
+  if (!isDashboardHome) {
+    return null;
+  }
+
   if (isDashboardHome && quickShortcuts) {
     return (
       <div

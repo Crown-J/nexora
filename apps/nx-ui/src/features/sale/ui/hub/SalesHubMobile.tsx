@@ -4,8 +4,10 @@
  *
  * 結構（由上到下）：
  *   1. 分區內容（依 ?section= query 動態切換）
- *   2. SalesSectionTabs（4 分區切換 Tab，showLabel=true，位於 DOCK 上方）
- *   3. 全站 DOCK（由 dock.tsx 負責渲染，跨中心切換）
+ *   2. SectionTabs（4 分區切換 Tab，showLabel=true，緊貼螢幕底部）
+ *
+ * R7 Phase 2.5：底部 DOCK 已移除（中心 = 角色工作台，跨中心由 TopBar 星球承擔），
+ * 所以 SectionTabs 直接貼底，不再需要 offsetBottom。
  *
  * URL query 是 source of truth：?section=status|workstation|documents|customer
  * 預設 status（狀態追蹤）。
@@ -33,9 +35,6 @@ const SECTION_TABS: readonly MobileHubSectionTabDef[] = [
   { id: 'customer', label: '客戶維護', Icon: Users },
 ];
 
-/** DOCK 高度（px）— 與首頁 iOS 風格 DOCK 實測一致 */
-const DOCK_HEIGHT_PX = 74;
-
 function isSaleSection(value: string | null): value is SaleSection {
   return (
     value === 'status' ||
@@ -59,8 +58,8 @@ export function SalesHubMobile() {
 
   return (
     <div className="lg:hidden">
-      {/* 內容區：底部 pb 要夠高，清出 SectionTabs + DOCK 的空間 */}
-      <div className="pb-[140px]">
+      {/* 內容區：底部 pb 清出 SectionTabs（h-14 = 56px）+ safe-area 空間 */}
+      <div className="pb-[calc(env(safe-area-inset-bottom)+4rem)]">
         {current === 'status' ? <StatusSection /> : null}
         {current === 'workstation' ? <SectionPlaceholder title="工作站" /> : null}
         {current === 'documents' ? <SectionPlaceholder title="單據管理" /> : null}
@@ -73,7 +72,6 @@ export function SalesHubMobile() {
         onChange={handleChange}
         ariaLabel="銷售中心分區切換"
         showLabel
-        offsetBottom={DOCK_HEIGHT_PX}
       />
     </div>
   );
