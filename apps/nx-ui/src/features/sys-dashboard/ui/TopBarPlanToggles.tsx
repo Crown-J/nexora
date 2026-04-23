@@ -1,6 +1,9 @@
 /**
  * @FUNCTION_CODE NX99-SYS-DASH-UI-022-F01
  * 頂欄中央：Mock 方案 LITE / PLUS / PRO（正式版可移除，改由租戶方案決定）
+ *
+ * Demo mode：預設隱藏（demo 時由登入租戶決定方案）；
+ * 若需恢復切換，設定環境變數 NEXT_PUBLIC_SHOW_VERSION_SWITCHER=true。
  */
 
 'use client';
@@ -10,7 +13,12 @@ import type { PlanCode } from '@/mocks/dashboard';
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 
 export function TopBarPlanToggles() {
+  // hook 必須先呼叫，確保 Provider / Context state 維持一致
   const { planCode, setPlanCode } = useDashboardHomePlan();
+
+  if (process.env.NEXT_PUBLIC_SHOW_VERSION_SWITCHER !== 'true') {
+    return null;
+  }
 
   return (
     <div

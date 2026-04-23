@@ -419,15 +419,36 @@ export function NavPlanetMenu() {
         <div className="grid max-h-[min(70vh,24rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
           <DockGridLink item={HOME_DOCK_ITEMS[0]!} hint={DOCK_ITEM_ALT_HINT[0]!} pathname={pathname} />
           <DockGridLink item={HOME_DOCK_ITEMS[1]!} hint={DOCK_ITEM_ALT_HINT[1]!} pathname={pathname} />
-          <PurchaseCenterSub pathname={pathname} />
-          <SaleCenterSub pathname={pathname} />
-          <InventoryCenterSub pathname={pathname} />
+          {/* 採購：桌面展開子選單；手機直接跳模組首頁 */}
+          <div className="contents lg:hidden">
+            <DockGridLink item={HOME_DOCK_ITEMS[2]!} hint={DOCK_ITEM_ALT_HINT[2]!} pathname={pathname} />
+          </div>
+          <div className="hidden lg:contents">
+            <PurchaseCenterSub pathname={pathname} />
+          </div>
+          {/* 銷貨：桌面展開子選單；手機直接跳模組首頁 */}
+          <div className="contents lg:hidden">
+            <DockGridLink item={HOME_DOCK_ITEMS[3]!} hint={DOCK_ITEM_ALT_HINT[3]!} pathname={pathname} />
+          </div>
+          <div className="hidden lg:contents">
+            <SaleCenterSub pathname={pathname} />
+          </div>
+          {/* 庫存：桌面展開子選單；手機直接跳模組首頁 */}
+          <div className="contents lg:hidden">
+            <DockGridLink item={HOME_DOCK_ITEMS[4]!} hint={DOCK_ITEM_ALT_HINT[4]!} pathname={pathname} />
+          </div>
+          <div className="hidden lg:contents">
+            <InventoryCenterSub pathname={pathname} />
+          </div>
           <DockGridLink item={HOME_DOCK_ITEMS[5]!} hint={DOCK_ITEM_ALT_HINT[5]!} pathname={pathname} />
           <DockGridLink item={HOME_DOCK_ITEMS[6]!} hint={DOCK_ITEM_ALT_HINT[6]!} pathname={pathname} />
         </div>
         <DropdownMenuSeparator className="bg-border/60" />
         <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-          Alt+X 開關選單 · 單鍵 H B P S W M R · 採購／銷貨／庫存可展開子選單
+          <span className="hidden lg:inline">
+            Alt+X 開關選單 · 單鍵 H B P S W M R · 採購／銷貨／庫存可展開子選單
+          </span>
+          <span className="lg:hidden">Alt+X 開關選單 · 單鍵 H B P S W M R</span>
         </p>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -438,6 +459,36 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
   const base = href.split('?')[0] ?? href;
   if (!base) return false;
   return pathname === base || pathname.startsWith(`${base}/`);
+}
+
+/**
+ * 前綴匹配（含子頁全部隱藏）：
+ * - /dashboard/base 及所有 /dashboard/base/* 子頁，避免上方 icon 列 + 底部 DOCK 雙擠壓
+ *
+ * 完全匹配（只中心首頁隱藏、子頁保留 DOCK 方便跨模組跳轉）：
+ * - /dashboard/purchase / /dashboard/inventory
+ *   這兩個中心還用舊版 MobileHubSectionTabs 緊貼底部，與 DOCK 衝突所以隱藏
+ *
+ * R7：/dashboard/sale 改成 4 分區 SectionTabs + 全站 DOCK 並存
+ *   SectionTabs 以 offsetBottom=74 坐在 DOCK 上方，不需要再隱藏 DOCK
+ */
+const HIDE_MOBILE_DOCK_PREFIXES = [
+  '/dashboard/base',
+  // R5：SOP 精品示範有自己的固定底部操作列，避免與全站 DOCK 雙 bar 衝突
+  '/dashboard/purchase/sop-demo',
+  // R6：國內銷貨 SOP 精品示範同理
+  '/dashboard/sale/sop-demo',
+];
+const HIDE_MOBILE_DOCK_EXACT = [
+  '/dashboard/purchase',
+  '/dashboard/inventory',
+];
+
+function shouldHideMobileDock(pathname: string): boolean {
+  if (HIDE_MOBILE_DOCK_EXACT.includes(pathname)) return true;
+  return HIDE_MOBILE_DOCK_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 /**
@@ -455,6 +506,19 @@ export function MobileDock() {
     const plan = planCtx?.planCode ?? 'LITE';
     return getDashboardQuickShortcuts(plan);
   }, [isDashboardHome, planCtx?.planCode]);
+
+  // Hook 全部呼叫後再 early return，避免破壞 React hook order
+  if (shouldHideMobileDock(pathname)) {
+    return null;
+  }
+
+  // R7 Phase 2.5：中心 = 角色工作台，跨中心切換由 TopBar 星球承擔。
+  // 非首頁一律不顯示底部 DOCK，只保留首頁自定義快捷鍵。
+  // HIDE_MOBILE_DOCK_PREFIXES / HIDE_MOBILE_DOCK_EXACT / 下方非首頁 JSX 目前變成死碼，
+  // 保留是為了未來如需恢復全站 DOCK 可直接 git revert 本次修改。
+  if (!isDashboardHome) {
+    return null;
+  }
 
   if (isDashboardHome && quickShortcuts) {
     return (
@@ -498,21 +562,40 @@ export function MobileDock() {
     );
   }
 
+  // R7：非首頁模組 DOCK 視覺統一首頁 iOS 風格（圓角按鈕 + icon box + gradient）
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch justify-around gap-1 border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden"
+      aria-label="模組導覽"
+    >
       {HOME_DOCK_ITEMS.map((item) => {
         const active = isDockActive(pathname, item.href);
+        const Icon = item.icon;
         return (
           <Link
             key={item.href}
             href={item.href}
+            title={item.label}
+            aria-label={item.label}
             className={cn(
-              'flex flex-col items-center gap-1 rounded-lg p-2 transition-colors',
-              active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border border-border/50 p-1.5',
+              'bg-gradient-to-b from-muted/45 to-muted/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
+              'transition-colors active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              active ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            <item.icon className="h-5 w-5" />
-            <span className="text-[10px]">{item.label}</span>
+            <span
+              className={cn(
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50',
+                active ? 'border-primary/40 bg-primary/10 text-primary' : 'text-foreground',
+              )}
+            >
+              <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden />
+            </span>
+            <span className="line-clamp-2 max-w-full text-center text-[9px] font-medium leading-tight text-foreground">
+              {item.label}
+            </span>
           </Link>
         );
       })}

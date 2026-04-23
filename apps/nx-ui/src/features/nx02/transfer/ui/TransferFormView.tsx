@@ -102,13 +102,17 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-2">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">NX02</p>
-          <h1 className="text-xl font-semibold">{title}</h1>
+          <h1 className="text-lg font-semibold break-all md:text-xl">{title}</h1>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex shrink-0 flex-col items-end gap-2">
           {doc ? <span className={cx('rounded-full px-3 py-1 text-xs font-medium', b.cls)}>{b.label}</span> : null}
-          <button type="button" className="text-sm text-muted-foreground underline" onClick={backToList}>
+          <button
+            type="button"
+            className="inline-flex min-h-[44px] items-center px-2 text-sm text-muted-foreground underline lg:min-h-0"
+            onClick={backToList}
+          >
             返回列表
           </button>
         </div>
@@ -116,11 +120,11 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
 
       {error ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div> : null}
 
-      <div className="grid gap-4 rounded-xl border border-border/80 bg-card/40 p-4 md:grid-cols-2">
+      <div className="grid gap-3 rounded-xl border border-border/80 bg-card/40 p-3 md:grid-cols-2 md:gap-4 md:p-4">
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           來源倉庫
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm disabled:opacity-60"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm disabled:opacity-60 lg:h-10"
             disabled={warehousesLocked || !isDraft}
             value={fromWarehouseId}
             onChange={(e) => setFromWarehouseId(e.target.value)}
@@ -136,7 +140,7 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           目標倉庫
           <select
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm disabled:opacity-60"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm disabled:opacity-60 lg:h-10"
             disabled={warehousesLocked || !isDraft}
             value={toWarehouseId}
             onChange={(e) => setToWarehouseId(e.target.value)}
@@ -154,12 +158,12 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
           <input
             type="date"
             disabled={!isDraft}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm disabled:opacity-60"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm disabled:opacity-60 lg:h-10"
             value={stDate}
             onChange={(e) => setStDate(e.target.value)}
           />
         </label>
-        <label className="md:col-span-2 flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex flex-col gap-1 text-xs text-muted-foreground md:col-span-2">
           備註
           <textarea
             disabled={!isDraft}
@@ -170,7 +174,7 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
         </label>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border/80">
+      <div className="hidden overflow-x-auto rounded-xl border border-border/80 lg:block">
         <table className="w-full min-w-[960px] text-left text-sm">
           <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
             <tr>
@@ -299,23 +303,146 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
         </table>
       </div>
 
+      <div className="space-y-2 lg:hidden">
+        {rows.length === 0 ? (
+          <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-center text-sm text-muted-foreground">
+            尚無明細
+          </div>
+        ) : (
+          rows.map((r) => {
+            const live = doc?.items.find((it) => it.id === r.tempKey);
+            const onHand = live?.fromWarehouseOnHand ?? 0;
+            return (
+              <div key={r.tempKey} className="space-y-2 rounded-xl border border-border/80 bg-card/40 p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    {isDraft ? (
+                      <PartLookupAutocomplete
+                        partId={r.partId}
+                        partCode={r.partNo}
+                        partName={r.partName}
+                        onChange={(p) =>
+                          updateRow(r.tempKey, {
+                            partId: p?.id ?? '',
+                            partNo: p?.code ?? '',
+                            partName: p?.name ?? '',
+                          })
+                        }
+                        inputClassName="w-full"
+                      />
+                    ) : (
+                      <div className="font-mono text-xs text-primary">{r.partNo}</div>
+                    )}
+                    <div className="truncate text-xs text-muted-foreground">{r.partName || '—'}</div>
+                  </div>
+                  {isDraft ? (
+                    <button
+                      type="button"
+                      className="inline-flex min-h-[44px] shrink-0 items-center text-xs text-destructive underline"
+                      onClick={() => removeRow(r.tempKey)}
+                    >
+                      刪除
+                    </button>
+                  ) : null}
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <label className="flex flex-col gap-1 text-muted-foreground">
+                    出貨庫位
+                    {isDraft ? (
+                      <select
+                        className="h-9 rounded border border-border bg-background px-1 text-xs"
+                        value={r.fromLocationId}
+                        onChange={(e) => updateRow(r.tempKey, { fromLocationId: e.target.value })}
+                      >
+                        <option value="">（預設）</option>
+                        {fromLocs.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.code}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-foreground">{live?.fromLocationCode ?? '—'}</span>
+                    )}
+                  </label>
+                  <label className="flex flex-col gap-1 text-muted-foreground">
+                    目標庫位
+                    {isDraft ? (
+                      <select
+                        className="h-9 rounded border border-border bg-background px-1 text-xs"
+                        value={r.toLocationId}
+                        onChange={(e) => updateRow(r.tempKey, { toLocationId: e.target.value })}
+                      >
+                        <option value="">（預設）</option>
+                        {toLocs.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.code}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-foreground">{live?.toLocationCode ?? '—'}</span>
+                    )}
+                  </label>
+                  <label className="flex flex-col gap-1 text-muted-foreground">
+                    數量
+                    {isDraft ? (
+                      <input
+                        inputMode="decimal"
+                        className="h-9 rounded border border-border bg-background px-2 text-right text-xs tabular-nums"
+                        value={r.qty}
+                        onChange={(e) => updateRow(r.tempKey, { qty: e.target.value })}
+                      />
+                    ) : (
+                      <span className="tabular-nums text-foreground">{live?.qty ?? r.qty}</span>
+                    )}
+                  </label>
+                  <div className="flex flex-col gap-1 text-muted-foreground">
+                    <span>來源現存</span>
+                    <span className="tabular-nums text-foreground">{onHand}</span>
+                  </div>
+                </div>
+                {doc?.status === 'P' ? (
+                  <div className="text-xs text-muted-foreground">
+                    出庫成本{' '}
+                    <span className="tabular-nums text-foreground">{live?.unitCost?.toFixed?.(4) ?? '—'}</span>
+                  </div>
+                ) : null}
+                <div>
+                  <div className="mb-1 text-xs text-muted-foreground">備註</div>
+                  {isDraft ? (
+                    <input
+                      className="h-9 w-full rounded border border-border bg-background px-2 text-xs"
+                      value={r.remark}
+                      onChange={(e) => updateRow(r.tempKey, { remark: e.target.value })}
+                    />
+                  ) : (
+                    <div className="text-xs text-muted-foreground">{r.remark || '—'}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
       {isDraft ? (
         <button
           type="button"
-          className="rounded-lg border border-dashed border-border px-4 py-2 text-sm text-muted-foreground"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-dashed border-border px-4 text-sm text-muted-foreground lg:min-h-0 lg:py-2"
           onClick={addRow}
         >
           新增明細
         </button>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
         {isDraft ? (
           <>
             <button
               type="button"
               disabled={saving}
-              className="rounded-lg border border-border px-4 py-2 text-sm disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border px-4 text-sm disabled:opacity-50 lg:min-h-0 lg:py-2"
               onClick={() => void save()}
             >
               儲存
@@ -325,7 +452,7 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
                 <button
                   type="button"
                   disabled={saving}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50 lg:min-h-0 lg:py-2"
                   onClick={() => void post()}
                 >
                   過帳
@@ -333,7 +460,7 @@ export function TransferFormView({ vm, isNew }: TransferFormViewProps) {
                 <button
                   type="button"
                   disabled={saving}
-                  className="rounded-lg border border-destructive/50 px-4 py-2 text-sm text-destructive disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-destructive/50 px-4 text-sm text-destructive disabled:opacity-50 lg:min-h-0 lg:py-2"
                   onClick={() => void voidDoc()}
                 >
                   作廢

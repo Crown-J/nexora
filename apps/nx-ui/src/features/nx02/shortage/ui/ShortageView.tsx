@@ -68,23 +68,23 @@ export function ShortageView({ vm }: ShortageViewProps) {
     <div className="space-y-4">
       <header>
         <p className="text-xs tracking-[0.35em] text-muted-foreground">NX02</p>
-        <h1 className="text-xl font-semibold">缺貨簿</h1>
+        <h1 className="text-lg font-semibold md:text-xl">缺貨簿</h1>
       </header>
 
-      <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border/80 bg-card/40 p-4">
-        <label className="flex min-w-[200px] flex-1 flex-col gap-1 text-xs text-muted-foreground">
+      <div className="flex flex-col gap-2 rounded-xl border border-border/80 bg-card/40 p-3 sm:flex-row sm:flex-wrap sm:items-end sm:p-4">
+        <label className="flex w-full min-w-[200px] flex-col gap-1 text-xs text-muted-foreground sm:flex-1">
           料號／品名
           <input
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-3 text-sm lg:h-9"
             value={qInput}
             onChange={(e) => setQInput(e.target.value)}
             placeholder="搜尋…"
           />
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto">
           倉庫
           <select
-            className="rounded-lg border border-border bg-background px-2 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-2 text-sm lg:h-9"
             value={warehouseId}
             onChange={(e) => {
               setWarehouseId(e.target.value);
@@ -99,10 +99,10 @@ export function ShortageView({ vm }: ShortageViewProps) {
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+        <label className="flex w-full flex-col gap-1 text-xs text-muted-foreground sm:w-auto">
           狀態
           <select
-            className="rounded-lg border border-border bg-background px-2 py-2 text-sm"
+            className="h-11 rounded-lg border border-border bg-background px-2 text-sm lg:h-9"
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
@@ -116,21 +116,23 @@ export function ShortageView({ vm }: ShortageViewProps) {
             <option value="">全部</option>
           </select>
         </label>
-        <button
-          type="button"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-          onClick={() => search()}
-        >
-          搜尋
-        </button>
-        <button
-          type="button"
-          disabled={busy || selectedIds.length === 0}
-          className="rounded-lg border border-border px-4 py-2 text-sm disabled:opacity-40"
-          onClick={() => void toRfq()}
-        >
-          一鍵轉 RFQ（{selectedIds.length}）
-        </button>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <button
+            type="button"
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground sm:flex-none lg:min-h-0 lg:py-2"
+            onClick={() => search()}
+          >
+            搜尋
+          </button>
+          <button
+            type="button"
+            disabled={busy || selectedIds.length === 0}
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-border px-4 text-sm disabled:opacity-40 sm:flex-none lg:min-h-0 lg:py-2"
+            onClick={() => void toRfq()}
+          >
+            一鍵轉 RFQ（{selectedIds.length}）
+          </button>
+        </div>
       </div>
 
       {error ? <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div> : null}
@@ -138,7 +140,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
 
       {data ? (
         <>
-          <div className="overflow-x-auto rounded-xl border border-border/80">
+          <div className="hidden overflow-x-auto rounded-xl border border-border/80 lg:block">
             <table className="w-full min-w-[960px] text-left text-sm">
               <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
                 <tr>
@@ -231,7 +233,81 @@ export function ShortageView({ vm }: ShortageViewProps) {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between text-sm">
+          <div className="space-y-2 lg:hidden">
+            {data.rows.length === 0 ? (
+              <div className="rounded-xl border border-border/80 bg-card/40 p-6 text-center text-sm text-muted-foreground">
+                尚無資料
+              </div>
+            ) : (
+              data.rows.map((r) => {
+                const b = statusBadge(r.status);
+                return (
+                  <div key={r.id} className="rounded-xl border border-border/80 bg-card/40 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      {r.status === 'O' ? (
+                        <input
+                          type="checkbox"
+                          checked={Boolean(selected[r.id])}
+                          onChange={() => toggle(r.id)}
+                          className="mt-1 h-5 w-5 shrink-0"
+                        />
+                      ) : null}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-mono text-xs text-primary">{r.partNo}</div>
+                        <div className="mt-0.5 truncate text-sm font-medium text-foreground">{r.partName}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{r.warehouseName}</div>
+                      </div>
+                      <span className={cx('shrink-0 rounded-full px-2 py-0.5 text-xs font-medium', b.cls)}>
+                        {b.label}
+                      </span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-4 gap-2 border-t border-border/40 pt-2 text-xs">
+                      <div>
+                        <div className="text-muted-foreground">現存</div>
+                        <div className="tabular-nums text-foreground">{r.onHandQty}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">安全</div>
+                        <div className="tabular-nums text-foreground">{r.minQty}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">缺貨</div>
+                        <div className="tabular-nums font-medium text-destructive">{r.shortageQty}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">建議</div>
+                        <div className="tabular-nums text-foreground">{r.suggestOrderQty}</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="text-muted-foreground">{new Date(r.detectedAt).toLocaleString()}</span>
+                      <div className="flex items-center gap-3">
+                        {r.refRfqId ? (
+                          <Link
+                            href={`/dashboard/nx01/rfq/${encodeURIComponent(r.refRfqId)}`}
+                            className="font-mono text-primary underline"
+                          >
+                            {r.refRfqId}
+                          </Link>
+                        ) : null}
+                        {r.status === 'O' ? (
+                          <button
+                            type="button"
+                            className="inline-flex min-h-[36px] items-center text-muted-foreground underline"
+                            disabled={busy}
+                            onClick={() => void ignore(r.id)}
+                          >
+                            忽略
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <span className="text-muted-foreground">
               第 {data.page} / {totalPages} 頁，共 {data.total} 筆
             </span>
@@ -239,7 +315,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
               <button
                 type="button"
                 disabled={page <= 1}
-                className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                className="min-h-[44px] rounded border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               >
                 上一頁
@@ -247,7 +323,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
               <button
                 type="button"
                 disabled={page >= totalPages}
-                className="rounded border border-border px-3 py-1 disabled:opacity-40"
+                className="min-h-[44px] rounded border border-border px-4 disabled:opacity-40 lg:min-h-0 lg:px-3 lg:py-1"
                 onClick={() => setPage((p) => p + 1)}
               >
                 下一頁

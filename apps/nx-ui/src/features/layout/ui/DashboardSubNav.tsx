@@ -25,8 +25,19 @@ export function DashboardSubNav() {
 
   if (!groups.length) return null;
 
+  // R4-B：主檔子頁（/dashboard/base/* 但非 /dashboard/base 本身）手機版隱藏次選單，
+  // 避免上方一整列群組 icon 擠壓內容；桌面版維持顯示。
+  const isBaseSubPage =
+    pathname.startsWith('/dashboard/base/') && pathname !== '/dashboard/base';
+
   return (
-    <nav aria-label="模組次選單" className="space-y-3 border-b border-border/60 pb-4">
+    <nav
+      aria-label="模組次選單"
+      className={cn(
+        'space-y-3 border-b border-border/60 pb-4',
+        isBaseSubPage && 'hidden lg:block',
+      )}
+    >
       {groups.map((g) => (
         <div key={g.group} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
           <span className="shrink-0 pt-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">

@@ -27,8 +27,8 @@ import { NEXORA_DEMO_ACCESS_TOKEN } from '@/features/auth/constants';
 import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@/features/auth/demo-session';
 import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import {
-  DEMO_USER,
   demoUserToMeDto,
+  getDemoUser,
   isNextPublicDemoMode,
 } from '@/hooks/useDemoSession';
 import type { MeDto } from '@/features/auth/types';
@@ -143,7 +143,9 @@ export function useSessionMe(): UseSessionMeResult {
     async function boot() {
       if (isNextPublicDemoMode()) {
         if (!alive) return;
-        setMe(normalizeMeDto(demoUserToMeDto(DEMO_USER)));
+        // R4A-FIX：用 getDemoUser() 動態取得（讀 sessionStorage 的 tenantCode），
+        // 避免靜態 DEMO_USER 在模組載入時就鎖死 env 的 plan code
+        setMe(normalizeMeDto(demoUserToMeDto(getDemoUser())));
         setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
         return;
       }
