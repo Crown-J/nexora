@@ -1,38 +1,27 @@
 // apps/nx-ui/src/app/dashboard/sale/page.tsx
 /**
  * @FUNCTION_CODE NX04-HUB-UI-001-F01
- * 銷售中心 Hub（版型對齊 `/dashboard/base`）— R4-C 加 mobile bottom tabs。
+ * 銷售中心 Hub — R7：手機版改成 4 分區架構（狀態追蹤 / 工作站 / 單據 / 客戶）。
+ *
+ * 桌面版維持原樣（待後續重構），手機版完全走新元件 SalesHubMobile。
  */
 
 'use client';
 
-import { useState } from 'react';
 import {
   ArrowLeftRight,
   FileSpreadsheet,
-  Handshake,
   MessageCircleQuestion,
   Search,
   ShieldCheck,
   ShoppingBag,
-  ShoppingCart,
   Sparkles,
   Undo2,
   Users,
 } from 'lucide-react';
 
 import { HubLinkCard, ModuleHubSection } from '@/features/layout/ui/module-hub/hub-primitives';
-import {
-  MobileHubSectionTabs,
-  type MobileHubSectionTabDef,
-} from '@/features/layout/ui/module-hub/MobileHubSectionTabs';
-
-type SaleSectionId = 'master' | 'domestic';
-
-const SALE_TABS: readonly MobileHubSectionTabDef[] = [
-  { id: 'master', label: '客戶主檔', Icon: Handshake },
-  { id: 'domestic', label: '國內銷售', Icon: ShoppingCart },
-];
+import { SalesHubMobile } from '@/features/sale/ui/hub/SalesHubMobile';
 
 function MasterSection() {
   return (
@@ -105,37 +94,26 @@ function DomesticSection() {
 }
 
 export default function SaleHubPage() {
-  // R6：預設進「國內銷售」tab，讓手機一開銷售中心就看到 SOP 精品示範入口
-  const [active, setActive] = useState<SaleSectionId>('domestic');
-
   return (
     <>
-      <div className="w-full min-w-0 space-y-6 pb-16 lg:pb-0">
+      {/* 桌面版：維持原 2 section 結構 */}
+      <div className="hidden w-full min-w-0 space-y-6 pb-0 lg:block">
         <header className="space-y-1">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">SALES CENTER</p>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">銷售中心</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">依流程分區；點選卡片暫導向占位頁（DEMO 主線另接）。</p>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            依流程分區；點選卡片暫導向占位頁（DEMO 主線另接）。
+          </p>
         </header>
 
-        {/* 桌面：所有 section 全列 */}
-        <div className="hidden space-y-10 lg:block">
+        <div className="space-y-10">
           <MasterSection />
           <DomesticSection />
         </div>
-
-        {/* 手機：只顯示當前 Tab section */}
-        <div className="space-y-4 lg:hidden">
-          {active === 'master' ? <MasterSection /> : null}
-          {active === 'domestic' ? <DomesticSection /> : null}
-        </div>
       </div>
 
-      <MobileHubSectionTabs
-        tabs={SALE_TABS}
-        activeId={active}
-        onChange={(id) => setActive(id as SaleSectionId)}
-        ariaLabel="銷貨群組切換"
-      />
+      {/* 手機版：R7 新 4 分區架構 */}
+      <SalesHubMobile />
     </>
   );
 }

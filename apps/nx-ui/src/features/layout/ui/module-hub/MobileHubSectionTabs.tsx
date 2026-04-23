@@ -7,6 +7,9 @@
  *   <MobileHubSectionTabs tabs={PURCHASE_TABS} activeId={active} onChange={setActive} />
  *
  * 由 R3 的 base-specific MobileSectionTabs 抽象而來（R4-C）。
+ * R7 擴充：
+ *   - showLabel：true 時 icon 下方顯示文字 label（4-section 架構使用）
+ *   - offsetBottom：下方還有 fixed bar 時的位移 px（DOCK + SectionTabs 並存場景）
  */
 
 'use client';
@@ -27,6 +30,10 @@ export type MobileHubSectionTabsProps = {
   onChange: (id: string) => void;
   /** 自訂 aria-label；預設「群組切換」 */
   ariaLabel?: string;
+  /** R7：顯示 icon 下方 label 文字。預設 false，維持舊版 icon-only 行為。 */
+  showLabel?: boolean;
+  /** R7：當下方還有 fixed bar 時的位移 px。預設 0（緊貼底部）。 */
+  offsetBottom?: number;
 };
 
 export function MobileHubSectionTabs({
@@ -34,15 +41,18 @@ export function MobileHubSectionTabs({
   activeId,
   onChange,
   ariaLabel = '群組切換',
+  showLabel = false,
+  offsetBottom = 0,
 }: MobileHubSectionTabsProps) {
   return (
     <nav
       aria-label={ariaLabel}
+      style={offsetBottom > 0 ? { bottom: `${offsetBottom}px` } : undefined}
       className={cx(
         'lg:hidden',
-        'fixed bottom-0 left-0 right-0 z-40',
+        'fixed left-0 right-0 z-40',
         'h-14 border-t border-white/10 bg-black/95 backdrop-blur',
-        'pb-[env(safe-area-inset-bottom)]',
+        offsetBottom === 0 && 'bottom-0 pb-[env(safe-area-inset-bottom)]',
       )}
     >
       <div className="flex h-full items-stretch">
@@ -57,13 +67,15 @@ export function MobileHubSectionTabs({
               aria-current={isActive ? 'page' : undefined}
               title={label}
               className={cx(
-                'relative flex min-h-[56px] min-w-[44px] flex-1 flex-col items-center justify-center',
+                'relative flex min-h-[56px] min-w-[44px] flex-1 flex-col items-center justify-center gap-0.5',
                 'transition-colors',
                 isActive ? 'text-[#E8A020]' : 'text-white/60 hover:text-white/80',
               )}
             >
-              <Icon className="h-6 w-6" aria-hidden />
-              {isActive ? (
+              <Icon className={showLabel ? 'h-5 w-5' : 'h-6 w-6'} aria-hidden />
+              {showLabel ? (
+                <span className="text-[10px] leading-tight">{label}</span>
+              ) : isActive ? (
                 <span
                   aria-hidden
                   className="absolute bottom-1 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-[#E8A020]"

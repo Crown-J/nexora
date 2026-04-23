@@ -466,8 +466,11 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
  * - /dashboard/base 及所有 /dashboard/base/* 子頁，避免上方 icon 列 + 底部 DOCK 雙擠壓
  *
  * 完全匹配（只中心首頁隱藏、子頁保留 DOCK 方便跨模組跳轉）：
- * - /dashboard/purchase / /dashboard/sale / /dashboard/inventory
- *   這三個中心各自有自己的底部 Tab（MobileHubSectionTabs），子頁則沿用全站 DOCK
+ * - /dashboard/purchase / /dashboard/inventory
+ *   這兩個中心還用舊版 MobileHubSectionTabs 緊貼底部，與 DOCK 衝突所以隱藏
+ *
+ * R7：/dashboard/sale 改成 4 分區 SectionTabs + 全站 DOCK 並存
+ *   SectionTabs 以 offsetBottom=74 坐在 DOCK 上方，不需要再隱藏 DOCK
  */
 const HIDE_MOBILE_DOCK_PREFIXES = [
   '/dashboard/base',
@@ -478,7 +481,6 @@ const HIDE_MOBILE_DOCK_PREFIXES = [
 ];
 const HIDE_MOBILE_DOCK_EXACT = [
   '/dashboard/purchase',
-  '/dashboard/sale',
   '/dashboard/inventory',
 ];
 
