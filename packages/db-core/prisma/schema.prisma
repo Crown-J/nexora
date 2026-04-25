@@ -2501,14 +2501,14 @@ model Nx03StItem {
   updatedBy      String         @map("updated_by") @db.VarChar(15)
   /// 實際收到數量（目標倉確認收貨後填入）。若與qty不符需通知倉管組長處理。；啟用最低需求版本：LITE-CORE
   receivedQty    Decimal?       @map("received_qty") @db.Decimal(14, 4)
-  /// 來源銷貨明細 ID（必填，反向追蹤這個 ST 明細是為了哪張 SO 的哪個 line 而存在）。Phase 0 D3 新增。；啟用最低需求版本：PLUS
-  sourceSoItemId String         @map("source_so_item_id") @db.VarChar(15)
+  /// 來源銷貨明細 ID（可空：手動調撥無對應 SO；SO 觸發必填）。反向追蹤這個 ST 明細是為了哪張 SO 的哪個 line 而存在。Phase 0 D3 新增、2026-04-25 改 nullable（trans-table CHECK 不可行，application-layer 自律）。；啟用最低需求版本：PLUS
+  sourceSoItemId String?        @map("source_so_item_id") @db.VarChar(15)
   st             Nx03St         @relation("R_Nx03StItem_stId", fields: [stId], references: [id])
   part           Nx01Part       @relation("R_Nx03StItem_partId", fields: [partId], references: [id])
   partBrand      Nx01PartBrand? @relation("R_Nx03StItem_partBrandId", fields: [partBrandId], references: [id])
   fromLocation   Nx01Location?  @relation("R_Nx03StItem_fromLocationId", fields: [fromLocationId], references: [id])
   toLocation     Nx01Location?  @relation("R_Nx03StItem_toLocationId", fields: [toLocationId], references: [id])
-  sourceSoItem   Nx04SoItem     @relation("R_Nx03StItem_sourceSoItemId", fields: [sourceSoItemId], references: [id])
+  sourceSoItem   Nx04SoItem?    @relation("R_Nx03StItem_sourceSoItemId", fields: [sourceSoItemId], references: [id])
 
   @@index([sourceSoItemId], map: "nx03_st_item_source_so_item_idx")
   @@map("nx03_st_item")

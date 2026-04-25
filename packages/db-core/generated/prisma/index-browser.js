@@ -881,7 +881,8 @@ exports.Prisma.Nx02TiItemScalarFieldEnum = {
   createdAt: 'createdAt',
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
-  updatedBy: 'updatedBy'
+  updatedBy: 'updatedBy',
+  sourceSoItemId: 'sourceSoItemId'
 };
 
 exports.Prisma.Nx03AutoReplenishScalarFieldEnum = {
@@ -1111,7 +1112,8 @@ exports.Prisma.Nx03StItemScalarFieldEnum = {
   createdBy: 'createdBy',
   updatedAt: 'updatedAt',
   updatedBy: 'updatedBy',
-  receivedQty: 'receivedQty'
+  receivedQty: 'receivedQty',
+  sourceSoItemId: 'sourceSoItemId'
 };
 
 exports.Prisma.Nx03StockBalanceScalarFieldEnum = {
@@ -1277,6 +1279,25 @@ exports.Prisma.Nx03OutboundItemScalarFieldEnum = {
   updatedBy: 'updatedBy'
 };
 
+exports.Prisma.Nx04CoScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  warehouseId: 'warehouseId',
+  docNo: 'docNo',
+  coDate: 'coDate',
+  customerId: 'customerId',
+  partId: 'partId',
+  qty: 'qty',
+  expectedFulfillDate: 'expectedFulfillDate',
+  status: 'status',
+  sourceSoItemId: 'sourceSoItemId',
+  remark: 'remark',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.Nx04QuoteScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -1379,7 +1400,11 @@ exports.Prisma.Nx04SoItemScalarFieldEnum = {
   updatedBy: 'updatedBy',
   itemStatus: 'itemStatus',
   tiId: 'tiId',
-  stId: 'stId'
+  stId: 'stId',
+  transferSourceType: 'transferSourceType',
+  transferStatus: 'transferStatus',
+  fulfillStatus: 'fulfillStatus',
+  coId: 'coId'
 };
 
 exports.Prisma.Nx04SrScalarFieldEnum = {
@@ -2733,6 +2758,7 @@ exports.Prisma.ModelName = {
   Nx03InboundItem: 'Nx03InboundItem',
   Nx03Outbound: 'Nx03Outbound',
   Nx03OutboundItem: 'Nx03OutboundItem',
+  Nx04Co: 'Nx04Co',
   Nx04Quote: 'Nx04Quote',
   Nx04QuoteItem: 'Nx04QuoteItem',
   Nx04So: 'Nx04So',
