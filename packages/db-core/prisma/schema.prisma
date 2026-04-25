@@ -830,6 +830,7 @@ model Nx01Partner {
   rev_Nx02Demand_customerId        Nx02Demand[]        @relation("R_Nx02Demand_customerId")
   rev_Nx02Po_supplierId            Nx02Po[]            @relation("R_Nx02Po_supplierId")
   rev_Nx02Pr_supplierId            Nx02Pr[]            @relation("R_Nx02Pr_supplierId")
+  rev_Nx02Qt_inquiryPartnerId      Nx02Qt[]            @relation("R_Nx02Qt_inquiryPartnerId")
   rev_Nx02Rfq_supplierId           Nx02Rfq[]           @relation("R_Nx02Rfq_supplierId")
   rev_Nx02Rr_supplierId            Nx02Rr[]            @relation("R_Nx02Rr_supplierId")
   rev_Nx02Ti_partnerId             Nx02Ti[]            @relation("R_Nx02Ti_partnerId")
@@ -1549,6 +1550,48 @@ model Nx02PrItem {
 }
 
 /// =======================================================
+/// Nx02Qt — DB table `nx02_qt`（同行報價單；Phase 0 B5 新建）
+/// =======================================================
+model Nx02Qt {
+  /// [NX02]+[QTHD]+[7碼流水號]，EX : NX02QTHD0000001；啟用最低需求版本：LITE-CORE
+  id               String      @id @default(dbgenerated("gen_nx02_qt_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId         String      @map("tenant_id") @db.VarChar(15)
+  /// 對應詢價單 ID（FK nx02_rfq）；啟用最低需求版本：LITE-CORE
+  rfqId            String      @map("rfq_id") @db.VarChar(15)
+  /// 同行供應商 ID（FK nx01_partner，partner_type=S 同行）；啟用最低需求版本：LITE-CORE
+  inquiryPartnerId String      @map("inquiry_partner_id") @db.VarChar(15)
+  /// 同行報的單價（採購跟同行口頭問來、輸入系統）；啟用最低需求版本：LITE-CORE
+  quotedPrice      Decimal     @map("quoted_price") @db.Decimal(14, 4)
+  /// 同行可供應的數量（可能 < RFQ 要求的數量）；啟用最低需求版本：LITE-CORE
+  quotedQuantity   Decimal     @map("quoted_quantity") @db.Decimal(14, 4)
+  /// 交期天數（同行口頭跟採購說的）；啟用最低需求版本：LITE-CORE
+  leadDays         Int?        @map("lead_days")
+  /// 狀態（P=PENDING 待採購決定 / A=AGREED 採購已採用 / R=REJECTED 採購已拒絕）；啟用最低需求版本：LITE-CORE
+  status           String      @default("P") @db.VarChar(1)
+  /// 採購自由備註（例：「這家最近 cash flow 緊」）；啟用最低需求版本：LITE-CORE
+  notes            String?     @db.VarChar(200)
+  /// 拒絕原因（status=R 時必填，application 層校驗）；啟用最低需求版本：LITE-CORE
+  rejectReason     String?     @map("reject_reason") @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt        DateTime    @default(now()) @map("created_at")
+  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  createdBy        String      @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  updatedBy        String      @map("updated_by") @db.VarChar(15)
+  tenant           Nx99Tenant  @relation("R_Nx02Qt_tenantId", fields: [tenantId], references: [id])
+  rfq              Nx02Rfq     @relation("R_Nx02Qt_rfqId", fields: [rfqId], references: [id])
+  inquiryPartner   Nx01Partner @relation("R_Nx02Qt_inquiryPartnerId", fields: [inquiryPartnerId], references: [id])
+
+  @@index([tenantId, rfqId], map: "nx02_qt_tenant_rfq_idx")
+  @@index([tenantId, inquiryPartnerId], map: "nx02_qt_tenant_partner_idx")
+  @@index([tenantId, status], map: "nx02_qt_tenant_status_idx")
+  @@map("nx02_qt")
+}
+
+/// =======================================================
 /// Nx02Rfq — DB table `nx02_rfq`
 /// =======================================================
 model Nx02Rfq {
@@ -1600,6 +1643,7 @@ model Nx02Rfq {
   demand                    Nx02Demand?    @relation("R_Nx02Rfq_demandId", fields: [demandId], references: [id])
   rev_Nx02Demand_refRfqId   Nx02Demand[]   @relation("R_Nx02Demand_refRfqId")
   rev_Nx02Po_rfqId          Nx02Po[]       @relation("R_Nx02Po_rfqId")
+  rev_Nx02Qt_rfqId          Nx02Qt[]       @relation("R_Nx02Qt_rfqId")
   rev_Nx02RfqItem_rfqId     Nx02RfqItem[]  @relation("R_Nx02RfqItem_rfqId")
   rev_Nx02Rr_rfqId          Nx02Rr[]       @relation("R_Nx02Rr_rfqId")
   rev_Nx02Ti_rfqId          Nx02Ti[]       @relation("R_Nx02Ti_rfqId")
@@ -6029,6 +6073,7 @@ model Nx99Tenant {
   rev_Nx02Demand_tenantId            Nx02Demand[]            @relation("R_Nx02Demand_tenantId")
   rev_Nx02Po_tenantId                Nx02Po[]                @relation("R_Nx02Po_tenantId")
   rev_Nx02Pr_tenantId                Nx02Pr[]                @relation("R_Nx02Pr_tenantId")
+  rev_Nx02Qt_tenantId                Nx02Qt[]                @relation("R_Nx02Qt_tenantId")
   rev_Nx02Rfq_tenantId               Nx02Rfq[]               @relation("R_Nx02Rfq_tenantId")
   rev_Nx02Rr_tenantId                Nx02Rr[]                @relation("R_Nx02Rr_tenantId")
   rev_Nx02RrImport_tenantId          Nx02RrImport[]          @relation("R_Nx02RrImport_tenantId")

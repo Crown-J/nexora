@@ -710,6 +710,23 @@ exports.Prisma.Nx02PrItemScalarFieldEnum = {
   returnReason: 'returnReason'
 };
 
+exports.Prisma.Nx02QtScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  rfqId: 'rfqId',
+  inquiryPartnerId: 'inquiryPartnerId',
+  quotedPrice: 'quotedPrice',
+  quotedQuantity: 'quotedQuantity',
+  leadDays: 'leadDays',
+  status: 'status',
+  notes: 'notes',
+  rejectReason: 'rejectReason',
+  createdAt: 'createdAt',
+  createdBy: 'createdBy',
+  updatedAt: 'updatedAt',
+  updatedBy: 'updatedBy'
+};
+
 exports.Prisma.Nx02RfqScalarFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -2731,6 +2748,7 @@ exports.Prisma.ModelName = {
   Nx02PoItem: 'Nx02PoItem',
   Nx02Pr: 'Nx02Pr',
   Nx02PrItem: 'Nx02PrItem',
+  Nx02Qt: 'Nx02Qt',
   Nx02Rfq: 'Nx02Rfq',
   Nx02RfqItem: 'Nx02RfqItem',
   Nx02Rr: 'Nx02Rr',

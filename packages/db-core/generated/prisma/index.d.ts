@@ -252,6 +252,13 @@ export type Nx02Pr = $Result.DefaultSelection<Prisma.$Nx02PrPayload>
  */
 export type Nx02PrItem = $Result.DefaultSelection<Prisma.$Nx02PrItemPayload>
 /**
+ * Model Nx02Qt
+ * =======================================================
+ * Nx02Qt — DB table `nx02_qt`（同行報價單；Phase 0 B5 新建）
+ * =======================================================
+ */
+export type Nx02Qt = $Result.DefaultSelection<Prisma.$Nx02QtPayload>
+/**
  * Model Nx02Rfq
  * =======================================================
  * Nx02Rfq — DB table `nx02_rfq`
@@ -1429,6 +1436,16 @@ export class PrismaClient<
     * ```
     */
   get nx02PrItem(): Prisma.Nx02PrItemDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.nx02Qt`: Exposes CRUD operations for the **Nx02Qt** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Nx02Qts
+    * const nx02Qts = await prisma.nx02Qt.findMany()
+    * ```
+    */
+  get nx02Qt(): Prisma.Nx02QtDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.nx02Rfq`: Exposes CRUD operations for the **Nx02Rfq** model.
@@ -2927,6 +2944,7 @@ export namespace Prisma {
     Nx02PoItem: 'Nx02PoItem',
     Nx02Pr: 'Nx02Pr',
     Nx02PrItem: 'Nx02PrItem',
+    Nx02Qt: 'Nx02Qt',
     Nx02Rfq: 'Nx02Rfq',
     Nx02RfqItem: 'Nx02RfqItem',
     Nx02Rr: 'Nx02Rr',
@@ -3045,7 +3063,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "nx01AuditLog" | "nx01BrandCodeRule" | "nx01Bulletin" | "nx01CalendarEvent" | "nx01CarBrand" | "nx01Country" | "nx01Currency" | "nx01CustomerGrade" | "nx01Department" | "nx01DiscountCode" | "nx01KpiRecord" | "nx01KpiTarget" | "nx01KpiTemplate" | "nx01Location" | "nx01Part" | "nx01PartBrand" | "nx01PartGroup" | "nx01PartRelation" | "nx01Partner" | "nx01Role" | "nx01RoleView" | "nx01Team" | "nx01User" | "nx01UserRole" | "nx01UserTeam" | "nx01UserWarehouse" | "nx01View" | "nx01Warehouse" | "nx01WarehouseType" | "nx02Demand" | "nx02Po" | "nx02PoItem" | "nx02Pr" | "nx02PrItem" | "nx02Rfq" | "nx02RfqItem" | "nx02Rr" | "nx02RrImport" | "nx02RrItem" | "nx02Ti" | "nx02TiItem" | "nx03AutoReplenish" | "nx03Init" | "nx03InitItem" | "nx03Parcel" | "nx03PartStockSetting" | "nx03Pk" | "nx03PkItem" | "nx03Pl" | "nx03PlItem" | "nx03Shortage" | "nx03St" | "nx03StItem" | "nx03StockBalance" | "nx03StockLedger" | "nx03StockTake" | "nx03StockTakeItem" | "nx03Inbound" | "nx03InboundItem" | "nx03Outbound" | "nx03OutboundItem" | "nx04Co" | "nx04Quote" | "nx04QuoteItem" | "nx04So" | "nx04SoItem" | "nx04Sr" | "nx04SrItem" | "nx05AccountCode" | "nx05Allowance" | "nx05AllowanceItem" | "nx05ApLedger" | "nx05ArLedger" | "nx05Closing" | "nx05Note" | "nx05Paylog" | "nx06Dn" | "nx06DnItem" | "nx06DnStop" | "nx07Attendance" | "nx07IpWhitelist" | "nx07LeaveBalance" | "nx07LeaveRequest" | "nx07LeaveType" | "nx07OvertimeRequest" | "nx07SalaryComponent" | "nx07SalaryRecord" | "nx07SalaryRecordItem" | "nx07SalarySetting" | "nx07Schedule" | "nx07ScheduleItem" | "nx07ShiftType" | "nx07Performance" | "nx07Training" | "nx07EmployeeChange" | "nx08DailyReport" | "nx08FinanceCache" | "nx08HrCache" | "nx08InventoryCache" | "nx08MonthlyReport" | "nx08PestelRecord" | "nx08PurchaseCache" | "nx08SalesCache" | "nx08SwotRecord" | "nx09Document" | "nx09DocumentVersion" | "nx09KmArticle" | "nx09KmArticleTag" | "nx09KmFeedback" | "nx09KmTag" | "nx09Meeting" | "nx09MeetingAction" | "nx09MeetingAttendee" | "nx09MeetingMinutes" | "nx10EmpExpLog" | "nx10CheckinLog" | "nx10EmpMedal" | "nx10EmpTaskLog" | "nx10MedalLevel" | "nx10MentorshipRecord" | "nx10PromotionCriteria" | "nx10PromotionRequest" | "nx10SprintTask" | "nx10SprintTaskLog" | "nx10SurpriseBoxLog" | "nx10TaskTemplate" | "nx10TeamTask" | "nx10TeamTaskLog" | "nx98DocLink" | "nx99Plan" | "nx99ProductModule" | "nx99ProductModuleMap" | "nx99Release" | "nx99ReleaseItem" | "nx99Subscription" | "nx99SubscriptionItem" | "nx99Tenant"
+      modelProps: "nx01AuditLog" | "nx01BrandCodeRule" | "nx01Bulletin" | "nx01CalendarEvent" | "nx01CarBrand" | "nx01Country" | "nx01Currency" | "nx01CustomerGrade" | "nx01Department" | "nx01DiscountCode" | "nx01KpiRecord" | "nx01KpiTarget" | "nx01KpiTemplate" | "nx01Location" | "nx01Part" | "nx01PartBrand" | "nx01PartGroup" | "nx01PartRelation" | "nx01Partner" | "nx01Role" | "nx01RoleView" | "nx01Team" | "nx01User" | "nx01UserRole" | "nx01UserTeam" | "nx01UserWarehouse" | "nx01View" | "nx01Warehouse" | "nx01WarehouseType" | "nx02Demand" | "nx02Po" | "nx02PoItem" | "nx02Pr" | "nx02PrItem" | "nx02Qt" | "nx02Rfq" | "nx02RfqItem" | "nx02Rr" | "nx02RrImport" | "nx02RrItem" | "nx02Ti" | "nx02TiItem" | "nx03AutoReplenish" | "nx03Init" | "nx03InitItem" | "nx03Parcel" | "nx03PartStockSetting" | "nx03Pk" | "nx03PkItem" | "nx03Pl" | "nx03PlItem" | "nx03Shortage" | "nx03St" | "nx03StItem" | "nx03StockBalance" | "nx03StockLedger" | "nx03StockTake" | "nx03StockTakeItem" | "nx03Inbound" | "nx03InboundItem" | "nx03Outbound" | "nx03OutboundItem" | "nx04Co" | "nx04Quote" | "nx04QuoteItem" | "nx04So" | "nx04SoItem" | "nx04Sr" | "nx04SrItem" | "nx05AccountCode" | "nx05Allowance" | "nx05AllowanceItem" | "nx05ApLedger" | "nx05ArLedger" | "nx05Closing" | "nx05Note" | "nx05Paylog" | "nx06Dn" | "nx06DnItem" | "nx06DnStop" | "nx07Attendance" | "nx07IpWhitelist" | "nx07LeaveBalance" | "nx07LeaveRequest" | "nx07LeaveType" | "nx07OvertimeRequest" | "nx07SalaryComponent" | "nx07SalaryRecord" | "nx07SalaryRecordItem" | "nx07SalarySetting" | "nx07Schedule" | "nx07ScheduleItem" | "nx07ShiftType" | "nx07Performance" | "nx07Training" | "nx07EmployeeChange" | "nx08DailyReport" | "nx08FinanceCache" | "nx08HrCache" | "nx08InventoryCache" | "nx08MonthlyReport" | "nx08PestelRecord" | "nx08PurchaseCache" | "nx08SalesCache" | "nx08SwotRecord" | "nx09Document" | "nx09DocumentVersion" | "nx09KmArticle" | "nx09KmArticleTag" | "nx09KmFeedback" | "nx09KmTag" | "nx09Meeting" | "nx09MeetingAction" | "nx09MeetingAttendee" | "nx09MeetingMinutes" | "nx10EmpExpLog" | "nx10CheckinLog" | "nx10EmpMedal" | "nx10EmpTaskLog" | "nx10MedalLevel" | "nx10MentorshipRecord" | "nx10PromotionCriteria" | "nx10PromotionRequest" | "nx10SprintTask" | "nx10SprintTaskLog" | "nx10SurpriseBoxLog" | "nx10TaskTemplate" | "nx10TeamTask" | "nx10TeamTaskLog" | "nx98DocLink" | "nx99Plan" | "nx99ProductModule" | "nx99ProductModuleMap" | "nx99Release" | "nx99ReleaseItem" | "nx99Subscription" | "nx99SubscriptionItem" | "nx99Tenant"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -5562,6 +5580,80 @@ export namespace Prisma {
           count: {
             args: Prisma.Nx02PrItemCountArgs<ExtArgs>
             result: $Utils.Optional<Nx02PrItemCountAggregateOutputType> | number
+          }
+        }
+      }
+      Nx02Qt: {
+        payload: Prisma.$Nx02QtPayload<ExtArgs>
+        fields: Prisma.Nx02QtFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.Nx02QtFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.Nx02QtFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>
+          }
+          findFirst: {
+            args: Prisma.Nx02QtFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.Nx02QtFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>
+          }
+          findMany: {
+            args: Prisma.Nx02QtFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>[]
+          }
+          create: {
+            args: Prisma.Nx02QtCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>
+          }
+          createMany: {
+            args: Prisma.Nx02QtCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.Nx02QtCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>[]
+          }
+          delete: {
+            args: Prisma.Nx02QtDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>
+          }
+          update: {
+            args: Prisma.Nx02QtUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>
+          }
+          deleteMany: {
+            args: Prisma.Nx02QtDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.Nx02QtUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.Nx02QtUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>[]
+          }
+          upsert: {
+            args: Prisma.Nx02QtUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$Nx02QtPayload>
+          }
+          aggregate: {
+            args: Prisma.Nx02QtAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNx02Qt>
+          }
+          groupBy: {
+            args: Prisma.Nx02QtGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Nx02QtGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.Nx02QtCountArgs<ExtArgs>
+            result: $Utils.Optional<Nx02QtCountAggregateOutputType> | number
           }
         }
       }
@@ -13329,6 +13421,7 @@ export namespace Prisma {
     nx02PoItem?: Nx02PoItemOmit
     nx02Pr?: Nx02PrOmit
     nx02PrItem?: Nx02PrItemOmit
+    nx02Qt?: Nx02QtOmit
     nx02Rfq?: Nx02RfqOmit
     nx02RfqItem?: Nx02RfqItemOmit
     nx02Rr?: Nx02RrOmit
@@ -14400,6 +14493,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId: number
     rev_Nx02Po_supplierId: number
     rev_Nx02Pr_supplierId: number
+    rev_Nx02Qt_inquiryPartnerId: number
     rev_Nx02Rfq_supplierId: number
     rev_Nx02Rr_supplierId: number
     rev_Nx02Ti_partnerId: number
@@ -14422,6 +14516,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Demand_customerIdArgs
     rev_Nx02Po_supplierId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Po_supplierIdArgs
     rev_Nx02Pr_supplierId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Pr_supplierIdArgs
+    rev_Nx02Qt_inquiryPartnerId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Qt_inquiryPartnerIdArgs
     rev_Nx02Rfq_supplierId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Rfq_supplierIdArgs
     rev_Nx02Rr_supplierId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Rr_supplierIdArgs
     rev_Nx02Ti_partnerId?: boolean | Nx01PartnerCountOutputTypeCountRev_Nx02Ti_partnerIdArgs
@@ -14470,6 +14565,13 @@ export namespace Prisma {
    */
   export type Nx01PartnerCountOutputTypeCountRev_Nx02Pr_supplierIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx02PrWhereInput
+  }
+
+  /**
+   * Nx01PartnerCountOutputType without action
+   */
+  export type Nx01PartnerCountOutputTypeCountRev_Nx02Qt_inquiryPartnerIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx02QtWhereInput
   }
 
   /**
@@ -15600,6 +15702,7 @@ export namespace Prisma {
   export type Nx02RfqCountOutputType = {
     rev_Nx02Demand_refRfqId: number
     rev_Nx02Po_rfqId: number
+    rev_Nx02Qt_rfqId: number
     rev_Nx02RfqItem_rfqId: number
     rev_Nx02Rr_rfqId: number
     rev_Nx02Ti_rfqId: number
@@ -15610,6 +15713,7 @@ export namespace Prisma {
   export type Nx02RfqCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     rev_Nx02Demand_refRfqId?: boolean | Nx02RfqCountOutputTypeCountRev_Nx02Demand_refRfqIdArgs
     rev_Nx02Po_rfqId?: boolean | Nx02RfqCountOutputTypeCountRev_Nx02Po_rfqIdArgs
+    rev_Nx02Qt_rfqId?: boolean | Nx02RfqCountOutputTypeCountRev_Nx02Qt_rfqIdArgs
     rev_Nx02RfqItem_rfqId?: boolean | Nx02RfqCountOutputTypeCountRev_Nx02RfqItem_rfqIdArgs
     rev_Nx02Rr_rfqId?: boolean | Nx02RfqCountOutputTypeCountRev_Nx02Rr_rfqIdArgs
     rev_Nx02Ti_rfqId?: boolean | Nx02RfqCountOutputTypeCountRev_Nx02Ti_rfqIdArgs
@@ -15640,6 +15744,13 @@ export namespace Prisma {
    */
   export type Nx02RfqCountOutputTypeCountRev_Nx02Po_rfqIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx02PoWhereInput
+  }
+
+  /**
+   * Nx02RfqCountOutputType without action
+   */
+  export type Nx02RfqCountOutputTypeCountRev_Nx02Qt_rfqIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx02QtWhereInput
   }
 
   /**
@@ -17456,6 +17567,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId: number
     rev_Nx02Po_tenantId: number
     rev_Nx02Pr_tenantId: number
+    rev_Nx02Qt_tenantId: number
     rev_Nx02Rfq_tenantId: number
     rev_Nx02Rr_tenantId: number
     rev_Nx02RrImport_tenantId: number
@@ -17561,6 +17673,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02Demand_tenantIdArgs
     rev_Nx02Po_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02Po_tenantIdArgs
     rev_Nx02Pr_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02Pr_tenantIdArgs
+    rev_Nx02Qt_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02Qt_tenantIdArgs
     rev_Nx02Rfq_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02Rfq_tenantIdArgs
     rev_Nx02Rr_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02Rr_tenantIdArgs
     rev_Nx02RrImport_tenantId?: boolean | Nx99TenantCountOutputTypeCountRev_Nx02RrImport_tenantIdArgs
@@ -17842,6 +17955,13 @@ export namespace Prisma {
    */
   export type Nx99TenantCountOutputTypeCountRev_Nx02Pr_tenantIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: Nx02PrWhereInput
+  }
+
+  /**
+   * Nx99TenantCountOutputType without action
+   */
+  export type Nx99TenantCountOutputTypeCountRev_Nx02Qt_tenantIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx02QtWhereInput
   }
 
   /**
@@ -43310,6 +43430,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: boolean | Nx01Partner$rev_Nx02Demand_customerIdArgs<ExtArgs>
     rev_Nx02Po_supplierId?: boolean | Nx01Partner$rev_Nx02Po_supplierIdArgs<ExtArgs>
     rev_Nx02Pr_supplierId?: boolean | Nx01Partner$rev_Nx02Pr_supplierIdArgs<ExtArgs>
+    rev_Nx02Qt_inquiryPartnerId?: boolean | Nx01Partner$rev_Nx02Qt_inquiryPartnerIdArgs<ExtArgs>
     rev_Nx02Rfq_supplierId?: boolean | Nx01Partner$rev_Nx02Rfq_supplierIdArgs<ExtArgs>
     rev_Nx02Rr_supplierId?: boolean | Nx01Partner$rev_Nx02Rr_supplierIdArgs<ExtArgs>
     rev_Nx02Ti_partnerId?: boolean | Nx01Partner$rev_Nx02Ti_partnerIdArgs<ExtArgs>
@@ -43418,6 +43539,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: boolean | Nx01Partner$rev_Nx02Demand_customerIdArgs<ExtArgs>
     rev_Nx02Po_supplierId?: boolean | Nx01Partner$rev_Nx02Po_supplierIdArgs<ExtArgs>
     rev_Nx02Pr_supplierId?: boolean | Nx01Partner$rev_Nx02Pr_supplierIdArgs<ExtArgs>
+    rev_Nx02Qt_inquiryPartnerId?: boolean | Nx01Partner$rev_Nx02Qt_inquiryPartnerIdArgs<ExtArgs>
     rev_Nx02Rfq_supplierId?: boolean | Nx01Partner$rev_Nx02Rfq_supplierIdArgs<ExtArgs>
     rev_Nx02Rr_supplierId?: boolean | Nx01Partner$rev_Nx02Rr_supplierIdArgs<ExtArgs>
     rev_Nx02Ti_partnerId?: boolean | Nx01Partner$rev_Nx02Ti_partnerIdArgs<ExtArgs>
@@ -43453,6 +43575,7 @@ export namespace Prisma {
       rev_Nx02Demand_customerId: Prisma.$Nx02DemandPayload<ExtArgs>[]
       rev_Nx02Po_supplierId: Prisma.$Nx02PoPayload<ExtArgs>[]
       rev_Nx02Pr_supplierId: Prisma.$Nx02PrPayload<ExtArgs>[]
+      rev_Nx02Qt_inquiryPartnerId: Prisma.$Nx02QtPayload<ExtArgs>[]
       rev_Nx02Rfq_supplierId: Prisma.$Nx02RfqPayload<ExtArgs>[]
       rev_Nx02Rr_supplierId: Prisma.$Nx02RrPayload<ExtArgs>[]
       rev_Nx02Ti_partnerId: Prisma.$Nx02TiPayload<ExtArgs>[]
@@ -43962,6 +44085,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId<T extends Nx01Partner$rev_Nx02Demand_customerIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Demand_customerIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02DemandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Po_supplierId<T extends Nx01Partner$rev_Nx02Po_supplierIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Po_supplierIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02PoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Pr_supplierId<T extends Nx01Partner$rev_Nx02Pr_supplierIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Pr_supplierIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02PrPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rev_Nx02Qt_inquiryPartnerId<T extends Nx01Partner$rev_Nx02Qt_inquiryPartnerIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Qt_inquiryPartnerIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Rfq_supplierId<T extends Nx01Partner$rev_Nx02Rfq_supplierIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Rfq_supplierIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RfqPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Rr_supplierId<T extends Nx01Partner$rev_Nx02Rr_supplierIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Rr_supplierIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RrPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Ti_partnerId<T extends Nx01Partner$rev_Nx02Ti_partnerIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx01Partner$rev_Nx02Ti_partnerIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02TiPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -44514,6 +44638,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Nx02PrScalarFieldEnum | Nx02PrScalarFieldEnum[]
+  }
+
+  /**
+   * Nx01Partner.rev_Nx02Qt_inquiryPartnerId
+   */
+  export type Nx01Partner$rev_Nx02Qt_inquiryPartnerIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    where?: Nx02QtWhereInput
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    cursor?: Nx02QtWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx02QtScalarFieldEnum | Nx02QtScalarFieldEnum[]
   }
 
   /**
@@ -66684,6 +66832,1281 @@ export namespace Prisma {
 
 
   /**
+   * Model Nx02Qt
+   */
+
+  export type AggregateNx02Qt = {
+    _count: Nx02QtCountAggregateOutputType | null
+    _avg: Nx02QtAvgAggregateOutputType | null
+    _sum: Nx02QtSumAggregateOutputType | null
+    _min: Nx02QtMinAggregateOutputType | null
+    _max: Nx02QtMaxAggregateOutputType | null
+  }
+
+  export type Nx02QtAvgAggregateOutputType = {
+    quotedPrice: Decimal | null
+    quotedQuantity: Decimal | null
+    leadDays: number | null
+  }
+
+  export type Nx02QtSumAggregateOutputType = {
+    quotedPrice: Decimal | null
+    quotedQuantity: Decimal | null
+    leadDays: number | null
+  }
+
+  export type Nx02QtMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    rfqId: string | null
+    inquiryPartnerId: string | null
+    quotedPrice: Decimal | null
+    quotedQuantity: Decimal | null
+    leadDays: number | null
+    status: string | null
+    notes: string | null
+    rejectReason: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx02QtMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    rfqId: string | null
+    inquiryPartnerId: string | null
+    quotedPrice: Decimal | null
+    quotedQuantity: Decimal | null
+    leadDays: number | null
+    status: string | null
+    notes: string | null
+    rejectReason: string | null
+    createdAt: Date | null
+    createdBy: string | null
+    updatedAt: Date | null
+    updatedBy: string | null
+  }
+
+  export type Nx02QtCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    rfqId: number
+    inquiryPartnerId: number
+    quotedPrice: number
+    quotedQuantity: number
+    leadDays: number
+    status: number
+    notes: number
+    rejectReason: number
+    createdAt: number
+    createdBy: number
+    updatedAt: number
+    updatedBy: number
+    _all: number
+  }
+
+
+  export type Nx02QtAvgAggregateInputType = {
+    quotedPrice?: true
+    quotedQuantity?: true
+    leadDays?: true
+  }
+
+  export type Nx02QtSumAggregateInputType = {
+    quotedPrice?: true
+    quotedQuantity?: true
+    leadDays?: true
+  }
+
+  export type Nx02QtMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    rfqId?: true
+    inquiryPartnerId?: true
+    quotedPrice?: true
+    quotedQuantity?: true
+    leadDays?: true
+    status?: true
+    notes?: true
+    rejectReason?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx02QtMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    rfqId?: true
+    inquiryPartnerId?: true
+    quotedPrice?: true
+    quotedQuantity?: true
+    leadDays?: true
+    status?: true
+    notes?: true
+    rejectReason?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+  }
+
+  export type Nx02QtCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    rfqId?: true
+    inquiryPartnerId?: true
+    quotedPrice?: true
+    quotedQuantity?: true
+    leadDays?: true
+    status?: true
+    notes?: true
+    rejectReason?: true
+    createdAt?: true
+    createdBy?: true
+    updatedAt?: true
+    updatedBy?: true
+    _all?: true
+  }
+
+  export type Nx02QtAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx02Qt to aggregate.
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx02Qts to fetch.
+     */
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: Nx02QtWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx02Qts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx02Qts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Nx02Qts
+    **/
+    _count?: true | Nx02QtCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Nx02QtAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Nx02QtSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Nx02QtMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Nx02QtMaxAggregateInputType
+  }
+
+  export type GetNx02QtAggregateType<T extends Nx02QtAggregateArgs> = {
+        [P in keyof T & keyof AggregateNx02Qt]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNx02Qt[P]>
+      : GetScalarType<T[P], AggregateNx02Qt[P]>
+  }
+
+
+
+
+  export type Nx02QtGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: Nx02QtWhereInput
+    orderBy?: Nx02QtOrderByWithAggregationInput | Nx02QtOrderByWithAggregationInput[]
+    by: Nx02QtScalarFieldEnum[] | Nx02QtScalarFieldEnum
+    having?: Nx02QtScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Nx02QtCountAggregateInputType | true
+    _avg?: Nx02QtAvgAggregateInputType
+    _sum?: Nx02QtSumAggregateInputType
+    _min?: Nx02QtMinAggregateInputType
+    _max?: Nx02QtMaxAggregateInputType
+  }
+
+  export type Nx02QtGroupByOutputType = {
+    id: string
+    tenantId: string
+    rfqId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal
+    quotedQuantity: Decimal
+    leadDays: number | null
+    status: string
+    notes: string | null
+    rejectReason: string | null
+    createdAt: Date
+    createdBy: string
+    updatedAt: Date
+    updatedBy: string
+    _count: Nx02QtCountAggregateOutputType | null
+    _avg: Nx02QtAvgAggregateOutputType | null
+    _sum: Nx02QtSumAggregateOutputType | null
+    _min: Nx02QtMinAggregateOutputType | null
+    _max: Nx02QtMaxAggregateOutputType | null
+  }
+
+  type GetNx02QtGroupByPayload<T extends Nx02QtGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Nx02QtGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Nx02QtGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Nx02QtGroupByOutputType[P]>
+            : GetScalarType<T[P], Nx02QtGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type Nx02QtSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    rfqId?: boolean
+    inquiryPartnerId?: boolean
+    quotedPrice?: boolean
+    quotedQuantity?: boolean
+    leadDays?: boolean
+    status?: boolean
+    notes?: boolean
+    rejectReason?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    rfq?: boolean | Nx02RfqDefaultArgs<ExtArgs>
+    inquiryPartner?: boolean | Nx01PartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx02Qt"]>
+
+  export type Nx02QtSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    rfqId?: boolean
+    inquiryPartnerId?: boolean
+    quotedPrice?: boolean
+    quotedQuantity?: boolean
+    leadDays?: boolean
+    status?: boolean
+    notes?: boolean
+    rejectReason?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    rfq?: boolean | Nx02RfqDefaultArgs<ExtArgs>
+    inquiryPartner?: boolean | Nx01PartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx02Qt"]>
+
+  export type Nx02QtSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    rfqId?: boolean
+    inquiryPartnerId?: boolean
+    quotedPrice?: boolean
+    quotedQuantity?: boolean
+    leadDays?: boolean
+    status?: boolean
+    notes?: boolean
+    rejectReason?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+    tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    rfq?: boolean | Nx02RfqDefaultArgs<ExtArgs>
+    inquiryPartner?: boolean | Nx01PartnerDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["nx02Qt"]>
+
+  export type Nx02QtSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    rfqId?: boolean
+    inquiryPartnerId?: boolean
+    quotedPrice?: boolean
+    quotedQuantity?: boolean
+    leadDays?: boolean
+    status?: boolean
+    notes?: boolean
+    rejectReason?: boolean
+    createdAt?: boolean
+    createdBy?: boolean
+    updatedAt?: boolean
+    updatedBy?: boolean
+  }
+
+  export type Nx02QtOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "tenantId" | "rfqId" | "inquiryPartnerId" | "quotedPrice" | "quotedQuantity" | "leadDays" | "status" | "notes" | "rejectReason" | "createdAt" | "createdBy" | "updatedAt" | "updatedBy", ExtArgs["result"]["nx02Qt"]>
+  export type Nx02QtInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    rfq?: boolean | Nx02RfqDefaultArgs<ExtArgs>
+    inquiryPartner?: boolean | Nx01PartnerDefaultArgs<ExtArgs>
+  }
+  export type Nx02QtIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    rfq?: boolean | Nx02RfqDefaultArgs<ExtArgs>
+    inquiryPartner?: boolean | Nx01PartnerDefaultArgs<ExtArgs>
+  }
+  export type Nx02QtIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | Nx99TenantDefaultArgs<ExtArgs>
+    rfq?: boolean | Nx02RfqDefaultArgs<ExtArgs>
+    inquiryPartner?: boolean | Nx01PartnerDefaultArgs<ExtArgs>
+  }
+
+  export type $Nx02QtPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Nx02Qt"
+    objects: {
+      tenant: Prisma.$Nx99TenantPayload<ExtArgs>
+      rfq: Prisma.$Nx02RfqPayload<ExtArgs>
+      inquiryPartner: Prisma.$Nx01PartnerPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      /**
+       * [NX02]+[QTHD]+[7碼流水號]，EX : NX02QTHD0000001；啟用最低需求版本：LITE-CORE
+       */
+      id: string
+      /**
+       * 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+       */
+      tenantId: string
+      /**
+       * 對應詢價單 ID（FK nx02_rfq）；啟用最低需求版本：LITE-CORE
+       */
+      rfqId: string
+      /**
+       * 同行供應商 ID（FK nx01_partner，partner_type=S 同行）；啟用最低需求版本：LITE-CORE
+       */
+      inquiryPartnerId: string
+      /**
+       * 同行報的單價（採購跟同行口頭問來、輸入系統）；啟用最低需求版本：LITE-CORE
+       */
+      quotedPrice: Prisma.Decimal
+      /**
+       * 同行可供應的數量（可能 < RFQ 要求的數量）；啟用最低需求版本：LITE-CORE
+       */
+      quotedQuantity: Prisma.Decimal
+      /**
+       * 交期天數（同行口頭跟採購說的）；啟用最低需求版本：LITE-CORE
+       */
+      leadDays: number | null
+      /**
+       * 狀態（P=PENDING 待採購決定 / A=AGREED 採購已採用 / R=REJECTED 採購已拒絕）；啟用最低需求版本：LITE-CORE
+       */
+      status: string
+      /**
+       * 採購自由備註（例：「這家最近 cash flow 緊」）；啟用最低需求版本：LITE-CORE
+       */
+      notes: string | null
+      /**
+       * 拒絕原因（status=R 時必填，application 層校驗）；啟用最低需求版本：LITE-CORE
+       */
+      rejectReason: string | null
+      /**
+       * 建立時間；啟用最低需求版本：LITE-CORE
+       */
+      createdAt: Date
+      /**
+       * 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+       */
+      createdBy: string
+      /**
+       * 更新時間；啟用最低需求版本：LITE-CORE
+       */
+      updatedAt: Date
+      /**
+       * 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+       */
+      updatedBy: string
+    }, ExtArgs["result"]["nx02Qt"]>
+    composites: {}
+  }
+
+  type Nx02QtGetPayload<S extends boolean | null | undefined | Nx02QtDefaultArgs> = $Result.GetResult<Prisma.$Nx02QtPayload, S>
+
+  type Nx02QtCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<Nx02QtFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Nx02QtCountAggregateInputType | true
+    }
+
+  export interface Nx02QtDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Nx02Qt'], meta: { name: 'Nx02Qt' } }
+    /**
+     * Find zero or one Nx02Qt that matches the filter.
+     * @param {Nx02QtFindUniqueArgs} args - Arguments to find a Nx02Qt
+     * @example
+     * // Get one Nx02Qt
+     * const nx02Qt = await prisma.nx02Qt.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends Nx02QtFindUniqueArgs>(args: SelectSubset<T, Nx02QtFindUniqueArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Nx02Qt that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {Nx02QtFindUniqueOrThrowArgs} args - Arguments to find a Nx02Qt
+     * @example
+     * // Get one Nx02Qt
+     * const nx02Qt = await prisma.nx02Qt.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends Nx02QtFindUniqueOrThrowArgs>(args: SelectSubset<T, Nx02QtFindUniqueOrThrowArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx02Qt that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtFindFirstArgs} args - Arguments to find a Nx02Qt
+     * @example
+     * // Get one Nx02Qt
+     * const nx02Qt = await prisma.nx02Qt.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends Nx02QtFindFirstArgs>(args?: SelectSubset<T, Nx02QtFindFirstArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Nx02Qt that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtFindFirstOrThrowArgs} args - Arguments to find a Nx02Qt
+     * @example
+     * // Get one Nx02Qt
+     * const nx02Qt = await prisma.nx02Qt.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends Nx02QtFindFirstOrThrowArgs>(args?: SelectSubset<T, Nx02QtFindFirstOrThrowArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Nx02Qts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Nx02Qts
+     * const nx02Qts = await prisma.nx02Qt.findMany()
+     * 
+     * // Get first 10 Nx02Qts
+     * const nx02Qts = await prisma.nx02Qt.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nx02QtWithIdOnly = await prisma.nx02Qt.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends Nx02QtFindManyArgs>(args?: SelectSubset<T, Nx02QtFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Nx02Qt.
+     * @param {Nx02QtCreateArgs} args - Arguments to create a Nx02Qt.
+     * @example
+     * // Create one Nx02Qt
+     * const Nx02Qt = await prisma.nx02Qt.create({
+     *   data: {
+     *     // ... data to create a Nx02Qt
+     *   }
+     * })
+     * 
+     */
+    create<T extends Nx02QtCreateArgs>(args: SelectSubset<T, Nx02QtCreateArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Nx02Qts.
+     * @param {Nx02QtCreateManyArgs} args - Arguments to create many Nx02Qts.
+     * @example
+     * // Create many Nx02Qts
+     * const nx02Qt = await prisma.nx02Qt.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends Nx02QtCreateManyArgs>(args?: SelectSubset<T, Nx02QtCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Nx02Qts and returns the data saved in the database.
+     * @param {Nx02QtCreateManyAndReturnArgs} args - Arguments to create many Nx02Qts.
+     * @example
+     * // Create many Nx02Qts
+     * const nx02Qt = await prisma.nx02Qt.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Nx02Qts and only return the `id`
+     * const nx02QtWithIdOnly = await prisma.nx02Qt.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends Nx02QtCreateManyAndReturnArgs>(args?: SelectSubset<T, Nx02QtCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Nx02Qt.
+     * @param {Nx02QtDeleteArgs} args - Arguments to delete one Nx02Qt.
+     * @example
+     * // Delete one Nx02Qt
+     * const Nx02Qt = await prisma.nx02Qt.delete({
+     *   where: {
+     *     // ... filter to delete one Nx02Qt
+     *   }
+     * })
+     * 
+     */
+    delete<T extends Nx02QtDeleteArgs>(args: SelectSubset<T, Nx02QtDeleteArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Nx02Qt.
+     * @param {Nx02QtUpdateArgs} args - Arguments to update one Nx02Qt.
+     * @example
+     * // Update one Nx02Qt
+     * const nx02Qt = await prisma.nx02Qt.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends Nx02QtUpdateArgs>(args: SelectSubset<T, Nx02QtUpdateArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Nx02Qts.
+     * @param {Nx02QtDeleteManyArgs} args - Arguments to filter Nx02Qts to delete.
+     * @example
+     * // Delete a few Nx02Qts
+     * const { count } = await prisma.nx02Qt.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends Nx02QtDeleteManyArgs>(args?: SelectSubset<T, Nx02QtDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx02Qts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Nx02Qts
+     * const nx02Qt = await prisma.nx02Qt.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends Nx02QtUpdateManyArgs>(args: SelectSubset<T, Nx02QtUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Nx02Qts and returns the data updated in the database.
+     * @param {Nx02QtUpdateManyAndReturnArgs} args - Arguments to update many Nx02Qts.
+     * @example
+     * // Update many Nx02Qts
+     * const nx02Qt = await prisma.nx02Qt.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Nx02Qts and only return the `id`
+     * const nx02QtWithIdOnly = await prisma.nx02Qt.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends Nx02QtUpdateManyAndReturnArgs>(args: SelectSubset<T, Nx02QtUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Nx02Qt.
+     * @param {Nx02QtUpsertArgs} args - Arguments to update or create a Nx02Qt.
+     * @example
+     * // Update or create a Nx02Qt
+     * const nx02Qt = await prisma.nx02Qt.upsert({
+     *   create: {
+     *     // ... data to create a Nx02Qt
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Nx02Qt we want to update
+     *   }
+     * })
+     */
+    upsert<T extends Nx02QtUpsertArgs>(args: SelectSubset<T, Nx02QtUpsertArgs<ExtArgs>>): Prisma__Nx02QtClient<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Nx02Qts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtCountArgs} args - Arguments to filter Nx02Qts to count.
+     * @example
+     * // Count the number of Nx02Qts
+     * const count = await prisma.nx02Qt.count({
+     *   where: {
+     *     // ... the filter for the Nx02Qts we want to count
+     *   }
+     * })
+    **/
+    count<T extends Nx02QtCountArgs>(
+      args?: Subset<T, Nx02QtCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Nx02QtCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Nx02Qt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Nx02QtAggregateArgs>(args: Subset<T, Nx02QtAggregateArgs>): Prisma.PrismaPromise<GetNx02QtAggregateType<T>>
+
+    /**
+     * Group by Nx02Qt.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Nx02QtGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends Nx02QtGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: Nx02QtGroupByArgs['orderBy'] }
+        : { orderBy?: Nx02QtGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, Nx02QtGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNx02QtGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Nx02Qt model
+   */
+  readonly fields: Nx02QtFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Nx02Qt.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__Nx02QtClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    tenant<T extends Nx99TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx99TenantDefaultArgs<ExtArgs>>): Prisma__Nx99TenantClient<$Result.GetResult<Prisma.$Nx99TenantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    rfq<T extends Nx02RfqDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx02RfqDefaultArgs<ExtArgs>>): Prisma__Nx02RfqClient<$Result.GetResult<Prisma.$Nx02RfqPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    inquiryPartner<T extends Nx01PartnerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, Nx01PartnerDefaultArgs<ExtArgs>>): Prisma__Nx01PartnerClient<$Result.GetResult<Prisma.$Nx01PartnerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Nx02Qt model
+   */
+  interface Nx02QtFieldRefs {
+    readonly id: FieldRef<"Nx02Qt", 'String'>
+    readonly tenantId: FieldRef<"Nx02Qt", 'String'>
+    readonly rfqId: FieldRef<"Nx02Qt", 'String'>
+    readonly inquiryPartnerId: FieldRef<"Nx02Qt", 'String'>
+    readonly quotedPrice: FieldRef<"Nx02Qt", 'Decimal'>
+    readonly quotedQuantity: FieldRef<"Nx02Qt", 'Decimal'>
+    readonly leadDays: FieldRef<"Nx02Qt", 'Int'>
+    readonly status: FieldRef<"Nx02Qt", 'String'>
+    readonly notes: FieldRef<"Nx02Qt", 'String'>
+    readonly rejectReason: FieldRef<"Nx02Qt", 'String'>
+    readonly createdAt: FieldRef<"Nx02Qt", 'DateTime'>
+    readonly createdBy: FieldRef<"Nx02Qt", 'String'>
+    readonly updatedAt: FieldRef<"Nx02Qt", 'DateTime'>
+    readonly updatedBy: FieldRef<"Nx02Qt", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Nx02Qt findUnique
+   */
+  export type Nx02QtFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx02Qt to fetch.
+     */
+    where: Nx02QtWhereUniqueInput
+  }
+
+  /**
+   * Nx02Qt findUniqueOrThrow
+   */
+  export type Nx02QtFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx02Qt to fetch.
+     */
+    where: Nx02QtWhereUniqueInput
+  }
+
+  /**
+   * Nx02Qt findFirst
+   */
+  export type Nx02QtFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx02Qt to fetch.
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx02Qts to fetch.
+     */
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx02Qts.
+     */
+    cursor?: Nx02QtWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx02Qts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx02Qts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx02Qts.
+     */
+    distinct?: Nx02QtScalarFieldEnum | Nx02QtScalarFieldEnum[]
+  }
+
+  /**
+   * Nx02Qt findFirstOrThrow
+   */
+  export type Nx02QtFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx02Qt to fetch.
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx02Qts to fetch.
+     */
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Nx02Qts.
+     */
+    cursor?: Nx02QtWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx02Qts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx02Qts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Nx02Qts.
+     */
+    distinct?: Nx02QtScalarFieldEnum | Nx02QtScalarFieldEnum[]
+  }
+
+  /**
+   * Nx02Qt findMany
+   */
+  export type Nx02QtFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * Filter, which Nx02Qts to fetch.
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Nx02Qts to fetch.
+     */
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Nx02Qts.
+     */
+    cursor?: Nx02QtWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Nx02Qts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Nx02Qts.
+     */
+    skip?: number
+    distinct?: Nx02QtScalarFieldEnum | Nx02QtScalarFieldEnum[]
+  }
+
+  /**
+   * Nx02Qt create
+   */
+  export type Nx02QtCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Nx02Qt.
+     */
+    data: XOR<Nx02QtCreateInput, Nx02QtUncheckedCreateInput>
+  }
+
+  /**
+   * Nx02Qt createMany
+   */
+  export type Nx02QtCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Nx02Qts.
+     */
+    data: Nx02QtCreateManyInput | Nx02QtCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Nx02Qt createManyAndReturn
+   */
+  export type Nx02QtCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * The data used to create many Nx02Qts.
+     */
+    data: Nx02QtCreateManyInput | Nx02QtCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx02Qt update
+   */
+  export type Nx02QtUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Nx02Qt.
+     */
+    data: XOR<Nx02QtUpdateInput, Nx02QtUncheckedUpdateInput>
+    /**
+     * Choose, which Nx02Qt to update.
+     */
+    where: Nx02QtWhereUniqueInput
+  }
+
+  /**
+   * Nx02Qt updateMany
+   */
+  export type Nx02QtUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Nx02Qts.
+     */
+    data: XOR<Nx02QtUpdateManyMutationInput, Nx02QtUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx02Qts to update
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * Limit how many Nx02Qts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx02Qt updateManyAndReturn
+   */
+  export type Nx02QtUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * The data used to update Nx02Qts.
+     */
+    data: XOR<Nx02QtUpdateManyMutationInput, Nx02QtUncheckedUpdateManyInput>
+    /**
+     * Filter which Nx02Qts to update
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * Limit how many Nx02Qts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Nx02Qt upsert
+   */
+  export type Nx02QtUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Nx02Qt to update in case it exists.
+     */
+    where: Nx02QtWhereUniqueInput
+    /**
+     * In case the Nx02Qt found by the `where` argument doesn't exist, create a new Nx02Qt with this data.
+     */
+    create: XOR<Nx02QtCreateInput, Nx02QtUncheckedCreateInput>
+    /**
+     * In case the Nx02Qt was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<Nx02QtUpdateInput, Nx02QtUncheckedUpdateInput>
+  }
+
+  /**
+   * Nx02Qt delete
+   */
+  export type Nx02QtDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    /**
+     * Filter which Nx02Qt to delete.
+     */
+    where: Nx02QtWhereUniqueInput
+  }
+
+  /**
+   * Nx02Qt deleteMany
+   */
+  export type Nx02QtDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Nx02Qts to delete
+     */
+    where?: Nx02QtWhereInput
+    /**
+     * Limit how many Nx02Qts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Nx02Qt without action
+   */
+  export type Nx02QtDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Nx02Rfq
    */
 
@@ -66981,6 +68404,7 @@ export namespace Prisma {
     demand?: boolean | Nx02Rfq$demandArgs<ExtArgs>
     rev_Nx02Demand_refRfqId?: boolean | Nx02Rfq$rev_Nx02Demand_refRfqIdArgs<ExtArgs>
     rev_Nx02Po_rfqId?: boolean | Nx02Rfq$rev_Nx02Po_rfqIdArgs<ExtArgs>
+    rev_Nx02Qt_rfqId?: boolean | Nx02Rfq$rev_Nx02Qt_rfqIdArgs<ExtArgs>
     rev_Nx02RfqItem_rfqId?: boolean | Nx02Rfq$rev_Nx02RfqItem_rfqIdArgs<ExtArgs>
     rev_Nx02Rr_rfqId?: boolean | Nx02Rfq$rev_Nx02Rr_rfqIdArgs<ExtArgs>
     rev_Nx02Ti_rfqId?: boolean | Nx02Rfq$rev_Nx02Ti_rfqIdArgs<ExtArgs>
@@ -67077,6 +68501,7 @@ export namespace Prisma {
     demand?: boolean | Nx02Rfq$demandArgs<ExtArgs>
     rev_Nx02Demand_refRfqId?: boolean | Nx02Rfq$rev_Nx02Demand_refRfqIdArgs<ExtArgs>
     rev_Nx02Po_rfqId?: boolean | Nx02Rfq$rev_Nx02Po_rfqIdArgs<ExtArgs>
+    rev_Nx02Qt_rfqId?: boolean | Nx02Rfq$rev_Nx02Qt_rfqIdArgs<ExtArgs>
     rev_Nx02RfqItem_rfqId?: boolean | Nx02Rfq$rev_Nx02RfqItem_rfqIdArgs<ExtArgs>
     rev_Nx02Rr_rfqId?: boolean | Nx02Rfq$rev_Nx02Rr_rfqIdArgs<ExtArgs>
     rev_Nx02Ti_rfqId?: boolean | Nx02Rfq$rev_Nx02Ti_rfqIdArgs<ExtArgs>
@@ -67106,6 +68531,7 @@ export namespace Prisma {
       demand: Prisma.$Nx02DemandPayload<ExtArgs> | null
       rev_Nx02Demand_refRfqId: Prisma.$Nx02DemandPayload<ExtArgs>[]
       rev_Nx02Po_rfqId: Prisma.$Nx02PoPayload<ExtArgs>[]
+      rev_Nx02Qt_rfqId: Prisma.$Nx02QtPayload<ExtArgs>[]
       rev_Nx02RfqItem_rfqId: Prisma.$Nx02RfqItemPayload<ExtArgs>[]
       rev_Nx02Rr_rfqId: Prisma.$Nx02RrPayload<ExtArgs>[]
       rev_Nx02Ti_rfqId: Prisma.$Nx02TiPayload<ExtArgs>[]
@@ -67597,6 +69023,7 @@ export namespace Prisma {
     demand<T extends Nx02Rfq$demandArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$demandArgs<ExtArgs>>): Prisma__Nx02DemandClient<$Result.GetResult<Prisma.$Nx02DemandPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     rev_Nx02Demand_refRfqId<T extends Nx02Rfq$rev_Nx02Demand_refRfqIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$rev_Nx02Demand_refRfqIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02DemandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Po_rfqId<T extends Nx02Rfq$rev_Nx02Po_rfqIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$rev_Nx02Po_rfqIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02PoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rev_Nx02Qt_rfqId<T extends Nx02Rfq$rev_Nx02Qt_rfqIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$rev_Nx02Qt_rfqIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02RfqItem_rfqId<T extends Nx02Rfq$rev_Nx02RfqItem_rfqIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$rev_Nx02RfqItem_rfqIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RfqItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Rr_rfqId<T extends Nx02Rfq$rev_Nx02Rr_rfqIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$rev_Nx02Rr_rfqIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RrPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Ti_rfqId<T extends Nx02Rfq$rev_Nx02Ti_rfqIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx02Rfq$rev_Nx02Ti_rfqIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02TiPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -68131,6 +69558,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Nx02PoScalarFieldEnum | Nx02PoScalarFieldEnum[]
+  }
+
+  /**
+   * Nx02Rfq.rev_Nx02Qt_rfqId
+   */
+  export type Nx02Rfq$rev_Nx02Qt_rfqIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    where?: Nx02QtWhereInput
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    cursor?: Nx02QtWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx02QtScalarFieldEnum | Nx02QtScalarFieldEnum[]
   }
 
   /**
@@ -202510,6 +203961,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: boolean | Nx99Tenant$rev_Nx02Demand_tenantIdArgs<ExtArgs>
     rev_Nx02Po_tenantId?: boolean | Nx99Tenant$rev_Nx02Po_tenantIdArgs<ExtArgs>
     rev_Nx02Pr_tenantId?: boolean | Nx99Tenant$rev_Nx02Pr_tenantIdArgs<ExtArgs>
+    rev_Nx02Qt_tenantId?: boolean | Nx99Tenant$rev_Nx02Qt_tenantIdArgs<ExtArgs>
     rev_Nx02Rfq_tenantId?: boolean | Nx99Tenant$rev_Nx02Rfq_tenantIdArgs<ExtArgs>
     rev_Nx02Rr_tenantId?: boolean | Nx99Tenant$rev_Nx02Rr_tenantIdArgs<ExtArgs>
     rev_Nx02RrImport_tenantId?: boolean | Nx99Tenant$rev_Nx02RrImport_tenantIdArgs<ExtArgs>
@@ -202677,6 +204129,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: boolean | Nx99Tenant$rev_Nx02Demand_tenantIdArgs<ExtArgs>
     rev_Nx02Po_tenantId?: boolean | Nx99Tenant$rev_Nx02Po_tenantIdArgs<ExtArgs>
     rev_Nx02Pr_tenantId?: boolean | Nx99Tenant$rev_Nx02Pr_tenantIdArgs<ExtArgs>
+    rev_Nx02Qt_tenantId?: boolean | Nx99Tenant$rev_Nx02Qt_tenantIdArgs<ExtArgs>
     rev_Nx02Rfq_tenantId?: boolean | Nx99Tenant$rev_Nx02Rfq_tenantIdArgs<ExtArgs>
     rev_Nx02Rr_tenantId?: boolean | Nx99Tenant$rev_Nx02Rr_tenantIdArgs<ExtArgs>
     rev_Nx02RrImport_tenantId?: boolean | Nx99Tenant$rev_Nx02RrImport_tenantIdArgs<ExtArgs>
@@ -202787,6 +204240,7 @@ export namespace Prisma {
       rev_Nx02Demand_tenantId: Prisma.$Nx02DemandPayload<ExtArgs>[]
       rev_Nx02Po_tenantId: Prisma.$Nx02PoPayload<ExtArgs>[]
       rev_Nx02Pr_tenantId: Prisma.$Nx02PrPayload<ExtArgs>[]
+      rev_Nx02Qt_tenantId: Prisma.$Nx02QtPayload<ExtArgs>[]
       rev_Nx02Rfq_tenantId: Prisma.$Nx02RfqPayload<ExtArgs>[]
       rev_Nx02Rr_tenantId: Prisma.$Nx02RrPayload<ExtArgs>[]
       rev_Nx02RrImport_tenantId: Prisma.$Nx02RrImportPayload<ExtArgs>[]
@@ -203353,6 +204807,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId<T extends Nx99Tenant$rev_Nx02Demand_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02Demand_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02DemandPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Po_tenantId<T extends Nx99Tenant$rev_Nx02Po_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02Po_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02PoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Pr_tenantId<T extends Nx99Tenant$rev_Nx02Pr_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02Pr_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02PrPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    rev_Nx02Qt_tenantId<T extends Nx99Tenant$rev_Nx02Qt_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02Qt_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02QtPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Rfq_tenantId<T extends Nx99Tenant$rev_Nx02Rfq_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02Rfq_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RfqPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02Rr_tenantId<T extends Nx99Tenant$rev_Nx02Rr_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02Rr_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RrPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     rev_Nx02RrImport_tenantId<T extends Nx99Tenant$rev_Nx02RrImport_tenantIdArgs<ExtArgs> = {}>(args?: Subset<T, Nx99Tenant$rev_Nx02RrImport_tenantIdArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$Nx02RrImportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -204530,6 +205985,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: Nx02PrScalarFieldEnum | Nx02PrScalarFieldEnum[]
+  }
+
+  /**
+   * Nx99Tenant.rev_Nx02Qt_tenantId
+   */
+  export type Nx99Tenant$rev_Nx02Qt_tenantIdArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Nx02Qt
+     */
+    select?: Nx02QtSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Nx02Qt
+     */
+    omit?: Nx02QtOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: Nx02QtInclude<ExtArgs> | null
+    where?: Nx02QtWhereInput
+    orderBy?: Nx02QtOrderByWithRelationInput | Nx02QtOrderByWithRelationInput[]
+    cursor?: Nx02QtWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Nx02QtScalarFieldEnum | Nx02QtScalarFieldEnum[]
   }
 
   /**
@@ -207031,6 +208510,26 @@ export namespace Prisma {
   };
 
   export type Nx02PrItemScalarFieldEnum = (typeof Nx02PrItemScalarFieldEnum)[keyof typeof Nx02PrItemScalarFieldEnum]
+
+
+  export const Nx02QtScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    rfqId: 'rfqId',
+    inquiryPartnerId: 'inquiryPartnerId',
+    quotedPrice: 'quotedPrice',
+    quotedQuantity: 'quotedQuantity',
+    leadDays: 'leadDays',
+    status: 'status',
+    notes: 'notes',
+    rejectReason: 'rejectReason',
+    createdAt: 'createdAt',
+    createdBy: 'createdBy',
+    updatedAt: 'updatedAt',
+    updatedBy: 'updatedBy'
+  };
+
+  export type Nx02QtScalarFieldEnum = (typeof Nx02QtScalarFieldEnum)[keyof typeof Nx02QtScalarFieldEnum]
 
 
   export const Nx02RfqScalarFieldEnum: {
@@ -211530,6 +213029,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandListRelationFilter
     rev_Nx02Po_supplierId?: Nx02PoListRelationFilter
     rev_Nx02Pr_supplierId?: Nx02PrListRelationFilter
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtListRelationFilter
     rev_Nx02Rfq_supplierId?: Nx02RfqListRelationFilter
     rev_Nx02Rr_supplierId?: Nx02RrListRelationFilter
     rev_Nx02Ti_partnerId?: Nx02TiListRelationFilter
@@ -211577,6 +213077,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandOrderByRelationAggregateInput
     rev_Nx02Po_supplierId?: Nx02PoOrderByRelationAggregateInput
     rev_Nx02Pr_supplierId?: Nx02PrOrderByRelationAggregateInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtOrderByRelationAggregateInput
     rev_Nx02Rfq_supplierId?: Nx02RfqOrderByRelationAggregateInput
     rev_Nx02Rr_supplierId?: Nx02RrOrderByRelationAggregateInput
     rev_Nx02Ti_partnerId?: Nx02TiOrderByRelationAggregateInput
@@ -211628,6 +213129,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandListRelationFilter
     rev_Nx02Po_supplierId?: Nx02PoListRelationFilter
     rev_Nx02Pr_supplierId?: Nx02PrListRelationFilter
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtListRelationFilter
     rev_Nx02Rfq_supplierId?: Nx02RfqListRelationFilter
     rev_Nx02Rr_supplierId?: Nx02RrListRelationFilter
     rev_Nx02Ti_partnerId?: Nx02TiListRelationFilter
@@ -213623,6 +215125,114 @@ export namespace Prisma {
     returnReason?: StringWithAggregatesFilter<"Nx02PrItem"> | string
   }
 
+  export type Nx02QtWhereInput = {
+    AND?: Nx02QtWhereInput | Nx02QtWhereInput[]
+    OR?: Nx02QtWhereInput[]
+    NOT?: Nx02QtWhereInput | Nx02QtWhereInput[]
+    id?: StringFilter<"Nx02Qt"> | string
+    tenantId?: StringFilter<"Nx02Qt"> | string
+    rfqId?: StringFilter<"Nx02Qt"> | string
+    inquiryPartnerId?: StringFilter<"Nx02Qt"> | string
+    quotedPrice?: DecimalFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    leadDays?: IntNullableFilter<"Nx02Qt"> | number | null
+    status?: StringFilter<"Nx02Qt"> | string
+    notes?: StringNullableFilter<"Nx02Qt"> | string | null
+    rejectReason?: StringNullableFilter<"Nx02Qt"> | string | null
+    createdAt?: DateTimeFilter<"Nx02Qt"> | Date | string
+    createdBy?: StringFilter<"Nx02Qt"> | string
+    updatedAt?: DateTimeFilter<"Nx02Qt"> | Date | string
+    updatedBy?: StringFilter<"Nx02Qt"> | string
+    tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
+    rfq?: XOR<Nx02RfqScalarRelationFilter, Nx02RfqWhereInput>
+    inquiryPartner?: XOR<Nx01PartnerScalarRelationFilter, Nx01PartnerWhereInput>
+  }
+
+  export type Nx02QtOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    rfqId?: SortOrder
+    inquiryPartnerId?: SortOrder
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrderInput | SortOrder
+    status?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    rejectReason?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+    tenant?: Nx99TenantOrderByWithRelationInput
+    rfq?: Nx02RfqOrderByWithRelationInput
+    inquiryPartner?: Nx01PartnerOrderByWithRelationInput
+  }
+
+  export type Nx02QtWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: Nx02QtWhereInput | Nx02QtWhereInput[]
+    OR?: Nx02QtWhereInput[]
+    NOT?: Nx02QtWhereInput | Nx02QtWhereInput[]
+    tenantId?: StringFilter<"Nx02Qt"> | string
+    rfqId?: StringFilter<"Nx02Qt"> | string
+    inquiryPartnerId?: StringFilter<"Nx02Qt"> | string
+    quotedPrice?: DecimalFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    leadDays?: IntNullableFilter<"Nx02Qt"> | number | null
+    status?: StringFilter<"Nx02Qt"> | string
+    notes?: StringNullableFilter<"Nx02Qt"> | string | null
+    rejectReason?: StringNullableFilter<"Nx02Qt"> | string | null
+    createdAt?: DateTimeFilter<"Nx02Qt"> | Date | string
+    createdBy?: StringFilter<"Nx02Qt"> | string
+    updatedAt?: DateTimeFilter<"Nx02Qt"> | Date | string
+    updatedBy?: StringFilter<"Nx02Qt"> | string
+    tenant?: XOR<Nx99TenantScalarRelationFilter, Nx99TenantWhereInput>
+    rfq?: XOR<Nx02RfqScalarRelationFilter, Nx02RfqWhereInput>
+    inquiryPartner?: XOR<Nx01PartnerScalarRelationFilter, Nx01PartnerWhereInput>
+  }, "id">
+
+  export type Nx02QtOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    rfqId?: SortOrder
+    inquiryPartnerId?: SortOrder
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrderInput | SortOrder
+    status?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    rejectReason?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+    _count?: Nx02QtCountOrderByAggregateInput
+    _avg?: Nx02QtAvgOrderByAggregateInput
+    _max?: Nx02QtMaxOrderByAggregateInput
+    _min?: Nx02QtMinOrderByAggregateInput
+    _sum?: Nx02QtSumOrderByAggregateInput
+  }
+
+  export type Nx02QtScalarWhereWithAggregatesInput = {
+    AND?: Nx02QtScalarWhereWithAggregatesInput | Nx02QtScalarWhereWithAggregatesInput[]
+    OR?: Nx02QtScalarWhereWithAggregatesInput[]
+    NOT?: Nx02QtScalarWhereWithAggregatesInput | Nx02QtScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Nx02Qt"> | string
+    tenantId?: StringWithAggregatesFilter<"Nx02Qt"> | string
+    rfqId?: StringWithAggregatesFilter<"Nx02Qt"> | string
+    inquiryPartnerId?: StringWithAggregatesFilter<"Nx02Qt"> | string
+    quotedPrice?: DecimalWithAggregatesFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalWithAggregatesFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    leadDays?: IntNullableWithAggregatesFilter<"Nx02Qt"> | number | null
+    status?: StringWithAggregatesFilter<"Nx02Qt"> | string
+    notes?: StringNullableWithAggregatesFilter<"Nx02Qt"> | string | null
+    rejectReason?: StringNullableWithAggregatesFilter<"Nx02Qt"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Nx02Qt"> | Date | string
+    createdBy?: StringWithAggregatesFilter<"Nx02Qt"> | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Nx02Qt"> | Date | string
+    updatedBy?: StringWithAggregatesFilter<"Nx02Qt"> | string
+  }
+
   export type Nx02RfqWhereInput = {
     AND?: Nx02RfqWhereInput | Nx02RfqWhereInput[]
     OR?: Nx02RfqWhereInput[]
@@ -213654,6 +215264,7 @@ export namespace Prisma {
     demand?: XOR<Nx02DemandNullableScalarRelationFilter, Nx02DemandWhereInput> | null
     rev_Nx02Demand_refRfqId?: Nx02DemandListRelationFilter
     rev_Nx02Po_rfqId?: Nx02PoListRelationFilter
+    rev_Nx02Qt_rfqId?: Nx02QtListRelationFilter
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemListRelationFilter
     rev_Nx02Rr_rfqId?: Nx02RrListRelationFilter
     rev_Nx02Ti_rfqId?: Nx02TiListRelationFilter
@@ -213689,6 +215300,7 @@ export namespace Prisma {
     demand?: Nx02DemandOrderByWithRelationInput
     rev_Nx02Demand_refRfqId?: Nx02DemandOrderByRelationAggregateInput
     rev_Nx02Po_rfqId?: Nx02PoOrderByRelationAggregateInput
+    rev_Nx02Qt_rfqId?: Nx02QtOrderByRelationAggregateInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemOrderByRelationAggregateInput
     rev_Nx02Rr_rfqId?: Nx02RrOrderByRelationAggregateInput
     rev_Nx02Ti_rfqId?: Nx02TiOrderByRelationAggregateInput
@@ -213727,6 +215339,7 @@ export namespace Prisma {
     demand?: XOR<Nx02DemandNullableScalarRelationFilter, Nx02DemandWhereInput> | null
     rev_Nx02Demand_refRfqId?: Nx02DemandListRelationFilter
     rev_Nx02Po_rfqId?: Nx02PoListRelationFilter
+    rev_Nx02Qt_rfqId?: Nx02QtListRelationFilter
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemListRelationFilter
     rev_Nx02Rr_rfqId?: Nx02RrListRelationFilter
     rev_Nx02Ti_rfqId?: Nx02TiListRelationFilter
@@ -225866,6 +227479,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandListRelationFilter
     rev_Nx02Po_tenantId?: Nx02PoListRelationFilter
     rev_Nx02Pr_tenantId?: Nx02PrListRelationFilter
+    rev_Nx02Qt_tenantId?: Nx02QtListRelationFilter
     rev_Nx02Rfq_tenantId?: Nx02RfqListRelationFilter
     rev_Nx02Rr_tenantId?: Nx02RrListRelationFilter
     rev_Nx02RrImport_tenantId?: Nx02RrImportListRelationFilter
@@ -225988,6 +227602,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandOrderByRelationAggregateInput
     rev_Nx02Po_tenantId?: Nx02PoOrderByRelationAggregateInput
     rev_Nx02Pr_tenantId?: Nx02PrOrderByRelationAggregateInput
+    rev_Nx02Qt_tenantId?: Nx02QtOrderByRelationAggregateInput
     rev_Nx02Rfq_tenantId?: Nx02RfqOrderByRelationAggregateInput
     rev_Nx02Rr_tenantId?: Nx02RrOrderByRelationAggregateInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportOrderByRelationAggregateInput
@@ -226113,6 +227728,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandListRelationFilter
     rev_Nx02Po_tenantId?: Nx02PoListRelationFilter
     rev_Nx02Pr_tenantId?: Nx02PrListRelationFilter
+    rev_Nx02Qt_tenantId?: Nx02QtListRelationFilter
     rev_Nx02Rfq_tenantId?: Nx02RfqListRelationFilter
     rev_Nx02Rr_tenantId?: Nx02RrListRelationFilter
     rev_Nx02RrImport_tenantId?: Nx02RrImportListRelationFilter
@@ -228615,6 +230231,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -228660,6 +230277,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -228705,6 +230323,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -228750,6 +230369,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -231002,6 +232622,122 @@ export namespace Prisma {
     returnReason?: StringFieldUpdateOperationsInput | string
   }
 
+  export type Nx02QtCreateInput = {
+    id?: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    tenant: Nx99TenantCreateNestedOneWithoutRev_Nx02Qt_tenantIdInput
+    rfq: Nx02RfqCreateNestedOneWithoutRev_Nx02Qt_rfqIdInput
+    inquiryPartner: Nx01PartnerCreateNestedOneWithoutRev_Nx02Qt_inquiryPartnerIdInput
+  }
+
+  export type Nx02QtUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    rfqId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
+  export type Nx02QtUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutRev_Nx02Qt_tenantIdNestedInput
+    rfq?: Nx02RfqUpdateOneRequiredWithoutRev_Nx02Qt_rfqIdNestedInput
+    inquiryPartner?: Nx01PartnerUpdateOneRequiredWithoutRev_Nx02Qt_inquiryPartnerIdNestedInput
+  }
+
+  export type Nx02QtUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    rfqId?: StringFieldUpdateOperationsInput | string
+    inquiryPartnerId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type Nx02QtCreateManyInput = {
+    id?: string
+    tenantId: string
+    rfqId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
+  export type Nx02QtUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type Nx02QtUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    rfqId?: StringFieldUpdateOperationsInput | string
+    inquiryPartnerId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
   export type Nx02RfqCreateInput = {
     id?: string
     docNo: string
@@ -231026,6 +232762,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -231057,6 +232794,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -231088,6 +232826,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -231119,6 +232858,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -244676,6 +246416,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -244798,6 +246539,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -244920,6 +246662,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -245042,6 +246785,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -247079,6 +248823,12 @@ export namespace Prisma {
     none?: Nx02PrWhereInput
   }
 
+  export type Nx02QtListRelationFilter = {
+    every?: Nx02QtWhereInput
+    some?: Nx02QtWhereInput
+    none?: Nx02QtWhereInput
+  }
+
   export type Nx02RfqListRelationFilter = {
     every?: Nx02RfqWhereInput
     some?: Nx02RfqWhereInput
@@ -247132,6 +248882,10 @@ export namespace Prisma {
   }
 
   export type Nx02PrOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type Nx02QtOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -248683,6 +250437,74 @@ export namespace Prisma {
     lineAmount?: SortOrder
   }
 
+  export type Nx02RfqScalarRelationFilter = {
+    is?: Nx02RfqWhereInput
+    isNot?: Nx02RfqWhereInput
+  }
+
+  export type Nx02QtCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    rfqId?: SortOrder
+    inquiryPartnerId?: SortOrder
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrder
+    status?: SortOrder
+    notes?: SortOrder
+    rejectReason?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx02QtAvgOrderByAggregateInput = {
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrder
+  }
+
+  export type Nx02QtMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    rfqId?: SortOrder
+    inquiryPartnerId?: SortOrder
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrder
+    status?: SortOrder
+    notes?: SortOrder
+    rejectReason?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx02QtMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    rfqId?: SortOrder
+    inquiryPartnerId?: SortOrder
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrder
+    status?: SortOrder
+    notes?: SortOrder
+    rejectReason?: SortOrder
+    createdAt?: SortOrder
+    createdBy?: SortOrder
+    updatedAt?: SortOrder
+    updatedBy?: SortOrder
+  }
+
+  export type Nx02QtSumOrderByAggregateInput = {
+    quotedPrice?: SortOrder
+    quotedQuantity?: SortOrder
+    leadDays?: SortOrder
+  }
+
   export type Nx02DemandNullableScalarRelationFilter = {
     is?: Nx02DemandWhereInput | null
     isNot?: Nx02DemandWhereInput | null
@@ -248758,11 +250580,6 @@ export namespace Prisma {
     warehouseId?: SortOrder
     validUntil?: SortOrder
     demandId?: SortOrder
-  }
-
-  export type Nx02RfqScalarRelationFilter = {
-    is?: Nx02RfqWhereInput
-    isNot?: Nx02RfqWhereInput
   }
 
   export type Nx01CurrencyScalarRelationFilter = {
@@ -259605,6 +261422,13 @@ export namespace Prisma {
     connect?: Nx02PrWhereUniqueInput | Nx02PrWhereUniqueInput[]
   }
 
+  export type Nx02QtCreateNestedManyWithoutInquiryPartnerInput = {
+    create?: XOR<Nx02QtCreateWithoutInquiryPartnerInput, Nx02QtUncheckedCreateWithoutInquiryPartnerInput> | Nx02QtCreateWithoutInquiryPartnerInput[] | Nx02QtUncheckedCreateWithoutInquiryPartnerInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutInquiryPartnerInput | Nx02QtCreateOrConnectWithoutInquiryPartnerInput[]
+    createMany?: Nx02QtCreateManyInquiryPartnerInputEnvelope
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+  }
+
   export type Nx02RfqCreateNestedManyWithoutSupplierInput = {
     create?: XOR<Nx02RfqCreateWithoutSupplierInput, Nx02RfqUncheckedCreateWithoutSupplierInput> | Nx02RfqCreateWithoutSupplierInput[] | Nx02RfqUncheckedCreateWithoutSupplierInput[]
     connectOrCreate?: Nx02RfqCreateOrConnectWithoutSupplierInput | Nx02RfqCreateOrConnectWithoutSupplierInput[]
@@ -259736,6 +261560,13 @@ export namespace Prisma {
     connectOrCreate?: Nx02PrCreateOrConnectWithoutSupplierInput | Nx02PrCreateOrConnectWithoutSupplierInput[]
     createMany?: Nx02PrCreateManySupplierInputEnvelope
     connect?: Nx02PrWhereUniqueInput | Nx02PrWhereUniqueInput[]
+  }
+
+  export type Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput = {
+    create?: XOR<Nx02QtCreateWithoutInquiryPartnerInput, Nx02QtUncheckedCreateWithoutInquiryPartnerInput> | Nx02QtCreateWithoutInquiryPartnerInput[] | Nx02QtUncheckedCreateWithoutInquiryPartnerInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutInquiryPartnerInput | Nx02QtCreateOrConnectWithoutInquiryPartnerInput[]
+    createMany?: Nx02QtCreateManyInquiryPartnerInputEnvelope
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
   }
 
   export type Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput = {
@@ -259908,6 +261739,20 @@ export namespace Prisma {
     update?: Nx02PrUpdateWithWhereUniqueWithoutSupplierInput | Nx02PrUpdateWithWhereUniqueWithoutSupplierInput[]
     updateMany?: Nx02PrUpdateManyWithWhereWithoutSupplierInput | Nx02PrUpdateManyWithWhereWithoutSupplierInput[]
     deleteMany?: Nx02PrScalarWhereInput | Nx02PrScalarWhereInput[]
+  }
+
+  export type Nx02QtUpdateManyWithoutInquiryPartnerNestedInput = {
+    create?: XOR<Nx02QtCreateWithoutInquiryPartnerInput, Nx02QtUncheckedCreateWithoutInquiryPartnerInput> | Nx02QtCreateWithoutInquiryPartnerInput[] | Nx02QtUncheckedCreateWithoutInquiryPartnerInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutInquiryPartnerInput | Nx02QtCreateOrConnectWithoutInquiryPartnerInput[]
+    upsert?: Nx02QtUpsertWithWhereUniqueWithoutInquiryPartnerInput | Nx02QtUpsertWithWhereUniqueWithoutInquiryPartnerInput[]
+    createMany?: Nx02QtCreateManyInquiryPartnerInputEnvelope
+    set?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    disconnect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    delete?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    update?: Nx02QtUpdateWithWhereUniqueWithoutInquiryPartnerInput | Nx02QtUpdateWithWhereUniqueWithoutInquiryPartnerInput[]
+    updateMany?: Nx02QtUpdateManyWithWhereWithoutInquiryPartnerInput | Nx02QtUpdateManyWithWhereWithoutInquiryPartnerInput[]
+    deleteMany?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
   }
 
   export type Nx02RfqUpdateManyWithoutSupplierNestedInput = {
@@ -260174,6 +262019,20 @@ export namespace Prisma {
     update?: Nx02PrUpdateWithWhereUniqueWithoutSupplierInput | Nx02PrUpdateWithWhereUniqueWithoutSupplierInput[]
     updateMany?: Nx02PrUpdateManyWithWhereWithoutSupplierInput | Nx02PrUpdateManyWithWhereWithoutSupplierInput[]
     deleteMany?: Nx02PrScalarWhereInput | Nx02PrScalarWhereInput[]
+  }
+
+  export type Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput = {
+    create?: XOR<Nx02QtCreateWithoutInquiryPartnerInput, Nx02QtUncheckedCreateWithoutInquiryPartnerInput> | Nx02QtCreateWithoutInquiryPartnerInput[] | Nx02QtUncheckedCreateWithoutInquiryPartnerInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutInquiryPartnerInput | Nx02QtCreateOrConnectWithoutInquiryPartnerInput[]
+    upsert?: Nx02QtUpsertWithWhereUniqueWithoutInquiryPartnerInput | Nx02QtUpsertWithWhereUniqueWithoutInquiryPartnerInput[]
+    createMany?: Nx02QtCreateManyInquiryPartnerInputEnvelope
+    set?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    disconnect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    delete?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    update?: Nx02QtUpdateWithWhereUniqueWithoutInquiryPartnerInput | Nx02QtUpdateWithWhereUniqueWithoutInquiryPartnerInput[]
+    updateMany?: Nx02QtUpdateManyWithWhereWithoutInquiryPartnerInput | Nx02QtUpdateManyWithWhereWithoutInquiryPartnerInput[]
+    deleteMany?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
   }
 
   export type Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput = {
@@ -264808,6 +266667,48 @@ export namespace Prisma {
     update?: XOR<XOR<Nx01LocationUpdateToOneWithWhereWithoutRev_Nx02PrItem_locationIdInput, Nx01LocationUpdateWithoutRev_Nx02PrItem_locationIdInput>, Nx01LocationUncheckedUpdateWithoutRev_Nx02PrItem_locationIdInput>
   }
 
+  export type Nx99TenantCreateNestedOneWithoutRev_Nx02Qt_tenantIdInput = {
+    create?: XOR<Nx99TenantCreateWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUncheckedCreateWithoutRev_Nx02Qt_tenantIdInput>
+    connectOrCreate?: Nx99TenantCreateOrConnectWithoutRev_Nx02Qt_tenantIdInput
+    connect?: Nx99TenantWhereUniqueInput
+  }
+
+  export type Nx02RfqCreateNestedOneWithoutRev_Nx02Qt_rfqIdInput = {
+    create?: XOR<Nx02RfqCreateWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUncheckedCreateWithoutRev_Nx02Qt_rfqIdInput>
+    connectOrCreate?: Nx02RfqCreateOrConnectWithoutRev_Nx02Qt_rfqIdInput
+    connect?: Nx02RfqWhereUniqueInput
+  }
+
+  export type Nx01PartnerCreateNestedOneWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    create?: XOR<Nx01PartnerCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUncheckedCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+    connectOrCreate?: Nx01PartnerCreateOrConnectWithoutRev_Nx02Qt_inquiryPartnerIdInput
+    connect?: Nx01PartnerWhereUniqueInput
+  }
+
+  export type Nx99TenantUpdateOneRequiredWithoutRev_Nx02Qt_tenantIdNestedInput = {
+    create?: XOR<Nx99TenantCreateWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUncheckedCreateWithoutRev_Nx02Qt_tenantIdInput>
+    connectOrCreate?: Nx99TenantCreateOrConnectWithoutRev_Nx02Qt_tenantIdInput
+    upsert?: Nx99TenantUpsertWithoutRev_Nx02Qt_tenantIdInput
+    connect?: Nx99TenantWhereUniqueInput
+    update?: XOR<XOR<Nx99TenantUpdateToOneWithWhereWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUpdateWithoutRev_Nx02Qt_tenantIdInput>, Nx99TenantUncheckedUpdateWithoutRev_Nx02Qt_tenantIdInput>
+  }
+
+  export type Nx02RfqUpdateOneRequiredWithoutRev_Nx02Qt_rfqIdNestedInput = {
+    create?: XOR<Nx02RfqCreateWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUncheckedCreateWithoutRev_Nx02Qt_rfqIdInput>
+    connectOrCreate?: Nx02RfqCreateOrConnectWithoutRev_Nx02Qt_rfqIdInput
+    upsert?: Nx02RfqUpsertWithoutRev_Nx02Qt_rfqIdInput
+    connect?: Nx02RfqWhereUniqueInput
+    update?: XOR<XOR<Nx02RfqUpdateToOneWithWhereWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUpdateWithoutRev_Nx02Qt_rfqIdInput>, Nx02RfqUncheckedUpdateWithoutRev_Nx02Qt_rfqIdInput>
+  }
+
+  export type Nx01PartnerUpdateOneRequiredWithoutRev_Nx02Qt_inquiryPartnerIdNestedInput = {
+    create?: XOR<Nx01PartnerCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUncheckedCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+    connectOrCreate?: Nx01PartnerCreateOrConnectWithoutRev_Nx02Qt_inquiryPartnerIdInput
+    upsert?: Nx01PartnerUpsertWithoutRev_Nx02Qt_inquiryPartnerIdInput
+    connect?: Nx01PartnerWhereUniqueInput
+    update?: XOR<XOR<Nx01PartnerUpdateToOneWithWhereWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput>, Nx01PartnerUncheckedUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+  }
+
   export type Nx99TenantCreateNestedOneWithoutRev_Nx02Rfq_tenantIdInput = {
     create?: XOR<Nx99TenantCreateWithoutRev_Nx02Rfq_tenantIdInput, Nx99TenantUncheckedCreateWithoutRev_Nx02Rfq_tenantIdInput>
     connectOrCreate?: Nx99TenantCreateOrConnectWithoutRev_Nx02Rfq_tenantIdInput
@@ -264844,6 +266745,13 @@ export namespace Prisma {
     connectOrCreate?: Nx02PoCreateOrConnectWithoutRfqInput | Nx02PoCreateOrConnectWithoutRfqInput[]
     createMany?: Nx02PoCreateManyRfqInputEnvelope
     connect?: Nx02PoWhereUniqueInput | Nx02PoWhereUniqueInput[]
+  }
+
+  export type Nx02QtCreateNestedManyWithoutRfqInput = {
+    create?: XOR<Nx02QtCreateWithoutRfqInput, Nx02QtUncheckedCreateWithoutRfqInput> | Nx02QtCreateWithoutRfqInput[] | Nx02QtUncheckedCreateWithoutRfqInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutRfqInput | Nx02QtCreateOrConnectWithoutRfqInput[]
+    createMany?: Nx02QtCreateManyRfqInputEnvelope
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
   }
 
   export type Nx02RfqItemCreateNestedManyWithoutRfqInput = {
@@ -264893,6 +266801,13 @@ export namespace Prisma {
     connectOrCreate?: Nx02PoCreateOrConnectWithoutRfqInput | Nx02PoCreateOrConnectWithoutRfqInput[]
     createMany?: Nx02PoCreateManyRfqInputEnvelope
     connect?: Nx02PoWhereUniqueInput | Nx02PoWhereUniqueInput[]
+  }
+
+  export type Nx02QtUncheckedCreateNestedManyWithoutRfqInput = {
+    create?: XOR<Nx02QtCreateWithoutRfqInput, Nx02QtUncheckedCreateWithoutRfqInput> | Nx02QtCreateWithoutRfqInput[] | Nx02QtUncheckedCreateWithoutRfqInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutRfqInput | Nx02QtCreateOrConnectWithoutRfqInput[]
+    createMany?: Nx02QtCreateManyRfqInputEnvelope
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
   }
 
   export type Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput = {
@@ -264994,6 +266909,20 @@ export namespace Prisma {
     deleteMany?: Nx02PoScalarWhereInput | Nx02PoScalarWhereInput[]
   }
 
+  export type Nx02QtUpdateManyWithoutRfqNestedInput = {
+    create?: XOR<Nx02QtCreateWithoutRfqInput, Nx02QtUncheckedCreateWithoutRfqInput> | Nx02QtCreateWithoutRfqInput[] | Nx02QtUncheckedCreateWithoutRfqInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutRfqInput | Nx02QtCreateOrConnectWithoutRfqInput[]
+    upsert?: Nx02QtUpsertWithWhereUniqueWithoutRfqInput | Nx02QtUpsertWithWhereUniqueWithoutRfqInput[]
+    createMany?: Nx02QtCreateManyRfqInputEnvelope
+    set?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    disconnect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    delete?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    update?: Nx02QtUpdateWithWhereUniqueWithoutRfqInput | Nx02QtUpdateWithWhereUniqueWithoutRfqInput[]
+    updateMany?: Nx02QtUpdateManyWithWhereWithoutRfqInput | Nx02QtUpdateManyWithWhereWithoutRfqInput[]
+    deleteMany?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
+  }
+
   export type Nx02RfqItemUpdateManyWithoutRfqNestedInput = {
     create?: XOR<Nx02RfqItemCreateWithoutRfqInput, Nx02RfqItemUncheckedCreateWithoutRfqInput> | Nx02RfqItemCreateWithoutRfqInput[] | Nx02RfqItemUncheckedCreateWithoutRfqInput[]
     connectOrCreate?: Nx02RfqItemCreateOrConnectWithoutRfqInput | Nx02RfqItemCreateOrConnectWithoutRfqInput[]
@@ -265090,6 +267019,20 @@ export namespace Prisma {
     update?: Nx02PoUpdateWithWhereUniqueWithoutRfqInput | Nx02PoUpdateWithWhereUniqueWithoutRfqInput[]
     updateMany?: Nx02PoUpdateManyWithWhereWithoutRfqInput | Nx02PoUpdateManyWithWhereWithoutRfqInput[]
     deleteMany?: Nx02PoScalarWhereInput | Nx02PoScalarWhereInput[]
+  }
+
+  export type Nx02QtUncheckedUpdateManyWithoutRfqNestedInput = {
+    create?: XOR<Nx02QtCreateWithoutRfqInput, Nx02QtUncheckedCreateWithoutRfqInput> | Nx02QtCreateWithoutRfqInput[] | Nx02QtUncheckedCreateWithoutRfqInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutRfqInput | Nx02QtCreateOrConnectWithoutRfqInput[]
+    upsert?: Nx02QtUpsertWithWhereUniqueWithoutRfqInput | Nx02QtUpsertWithWhereUniqueWithoutRfqInput[]
+    createMany?: Nx02QtCreateManyRfqInputEnvelope
+    set?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    disconnect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    delete?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    update?: Nx02QtUpdateWithWhereUniqueWithoutRfqInput | Nx02QtUpdateWithWhereUniqueWithoutRfqInput[]
+    updateMany?: Nx02QtUpdateManyWithWhereWithoutRfqInput | Nx02QtUpdateManyWithWhereWithoutRfqInput[]
+    deleteMany?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
   }
 
   export type Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput = {
@@ -272792,6 +274735,13 @@ export namespace Prisma {
     connect?: Nx02PrWhereUniqueInput | Nx02PrWhereUniqueInput[]
   }
 
+  export type Nx02QtCreateNestedManyWithoutTenantInput = {
+    create?: XOR<Nx02QtCreateWithoutTenantInput, Nx02QtUncheckedCreateWithoutTenantInput> | Nx02QtCreateWithoutTenantInput[] | Nx02QtUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutTenantInput | Nx02QtCreateOrConnectWithoutTenantInput[]
+    createMany?: Nx02QtCreateManyTenantInputEnvelope
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+  }
+
   export type Nx02RfqCreateNestedManyWithoutTenantInput = {
     create?: XOR<Nx02RfqCreateWithoutTenantInput, Nx02RfqUncheckedCreateWithoutTenantInput> | Nx02RfqCreateWithoutTenantInput[] | Nx02RfqUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: Nx02RfqCreateOrConnectWithoutTenantInput | Nx02RfqCreateOrConnectWithoutTenantInput[]
@@ -273504,6 +275454,13 @@ export namespace Prisma {
     connectOrCreate?: Nx02PrCreateOrConnectWithoutTenantInput | Nx02PrCreateOrConnectWithoutTenantInput[]
     createMany?: Nx02PrCreateManyTenantInputEnvelope
     connect?: Nx02PrWhereUniqueInput | Nx02PrWhereUniqueInput[]
+  }
+
+  export type Nx02QtUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<Nx02QtCreateWithoutTenantInput, Nx02QtUncheckedCreateWithoutTenantInput> | Nx02QtCreateWithoutTenantInput[] | Nx02QtUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutTenantInput | Nx02QtCreateOrConnectWithoutTenantInput[]
+    createMany?: Nx02QtCreateManyTenantInputEnvelope
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
   }
 
   export type Nx02RfqUncheckedCreateNestedManyWithoutTenantInput = {
@@ -274414,6 +276371,20 @@ export namespace Prisma {
     update?: Nx02PrUpdateWithWhereUniqueWithoutTenantInput | Nx02PrUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: Nx02PrUpdateManyWithWhereWithoutTenantInput | Nx02PrUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: Nx02PrScalarWhereInput | Nx02PrScalarWhereInput[]
+  }
+
+  export type Nx02QtUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<Nx02QtCreateWithoutTenantInput, Nx02QtUncheckedCreateWithoutTenantInput> | Nx02QtCreateWithoutTenantInput[] | Nx02QtUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutTenantInput | Nx02QtCreateOrConnectWithoutTenantInput[]
+    upsert?: Nx02QtUpsertWithWhereUniqueWithoutTenantInput | Nx02QtUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: Nx02QtCreateManyTenantInputEnvelope
+    set?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    disconnect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    delete?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    update?: Nx02QtUpdateWithWhereUniqueWithoutTenantInput | Nx02QtUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: Nx02QtUpdateManyWithWhereWithoutTenantInput | Nx02QtUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
   }
 
   export type Nx02RfqUpdateManyWithoutTenantNestedInput = {
@@ -275844,6 +277815,20 @@ export namespace Prisma {
     deleteMany?: Nx02PrScalarWhereInput | Nx02PrScalarWhereInput[]
   }
 
+  export type Nx02QtUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<Nx02QtCreateWithoutTenantInput, Nx02QtUncheckedCreateWithoutTenantInput> | Nx02QtCreateWithoutTenantInput[] | Nx02QtUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: Nx02QtCreateOrConnectWithoutTenantInput | Nx02QtCreateOrConnectWithoutTenantInput[]
+    upsert?: Nx02QtUpsertWithWhereUniqueWithoutTenantInput | Nx02QtUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: Nx02QtCreateManyTenantInputEnvelope
+    set?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    disconnect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    delete?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    connect?: Nx02QtWhereUniqueInput | Nx02QtWhereUniqueInput[]
+    update?: Nx02QtUpdateWithWhereUniqueWithoutTenantInput | Nx02QtUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: Nx02QtUpdateManyWithWhereWithoutTenantInput | Nx02QtUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
+  }
+
   export type Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<Nx02RfqCreateWithoutTenantInput, Nx02RfqUncheckedCreateWithoutTenantInput> | Nx02RfqCreateWithoutTenantInput[] | Nx02RfqUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: Nx02RfqCreateOrConnectWithoutTenantInput | Nx02RfqCreateOrConnectWithoutTenantInput[]
@@ -277216,6 +279201,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -277337,6 +279323,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -277474,6 +279461,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -277595,6 +279583,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -277716,6 +279705,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -277837,6 +279827,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -278139,6 +280130,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -278260,6 +280252,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -278479,6 +280472,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -278600,6 +280594,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -278737,6 +280732,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -278858,6 +280854,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -278979,6 +280976,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -279100,6 +281098,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -279237,6 +281236,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -279358,6 +281358,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -279479,6 +281480,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -279600,6 +281602,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -279770,6 +281773,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -279891,6 +281895,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -281429,6 +283434,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -281550,6 +283556,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -281657,6 +283664,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -281701,6 +283709,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -281849,6 +283858,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -281970,6 +283980,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -282152,6 +284163,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -282273,6 +284285,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -282708,6 +284721,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -282829,6 +284843,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -283133,6 +285148,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -283254,6 +285270,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -283525,6 +285542,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -283646,6 +285664,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -283858,6 +285877,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -283979,6 +285999,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -284317,6 +286338,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -284438,6 +286460,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -284778,6 +286801,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -284899,6 +286923,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -285285,6 +287310,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -285406,6 +287432,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -285790,6 +287817,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -285911,6 +287939,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -286174,6 +288203,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -286295,6 +288325,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -286504,6 +288535,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -286625,6 +288657,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -287547,6 +289580,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -287668,6 +289702,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -288371,6 +290406,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -288492,6 +290528,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -290021,6 +292058,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -290142,6 +292180,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -291053,6 +293092,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -291174,6 +293214,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -291568,6 +293609,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -291689,6 +293731,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -291919,6 +293962,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -292040,6 +294084,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -292303,6 +294348,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -292424,6 +294470,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -292561,6 +294608,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -292682,6 +294730,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -293061,6 +295110,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -293182,6 +295232,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -293557,6 +295608,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -293678,6 +295730,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -293998,6 +296051,48 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type Nx02QtCreateWithoutInquiryPartnerInput = {
+    id?: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    tenant: Nx99TenantCreateNestedOneWithoutRev_Nx02Qt_tenantIdInput
+    rfq: Nx02RfqCreateNestedOneWithoutRev_Nx02Qt_rfqIdInput
+  }
+
+  export type Nx02QtUncheckedCreateWithoutInquiryPartnerInput = {
+    id?: string
+    tenantId: string
+    rfqId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
+  export type Nx02QtCreateOrConnectWithoutInquiryPartnerInput = {
+    where: Nx02QtWhereUniqueInput
+    create: XOR<Nx02QtCreateWithoutInquiryPartnerInput, Nx02QtUncheckedCreateWithoutInquiryPartnerInput>
+  }
+
+  export type Nx02QtCreateManyInquiryPartnerInputEnvelope = {
+    data: Nx02QtCreateManyInquiryPartnerInput | Nx02QtCreateManyInquiryPartnerInput[]
+    skipDuplicates?: boolean
+  }
+
   export type Nx02RfqCreateWithoutSupplierInput = {
     id?: string
     docNo: string
@@ -294021,6 +296116,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -294051,6 +296147,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -295022,6 +297119,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -295143,6 +297241,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -295375,6 +297474,42 @@ export namespace Prisma {
     approvedBy?: StringNullableFilter<"Nx02Pr"> | string | null
     rejectReason?: StringNullableFilter<"Nx02Pr"> | string | null
     paymentStatus?: StringFilter<"Nx02Pr"> | string
+  }
+
+  export type Nx02QtUpsertWithWhereUniqueWithoutInquiryPartnerInput = {
+    where: Nx02QtWhereUniqueInput
+    update: XOR<Nx02QtUpdateWithoutInquiryPartnerInput, Nx02QtUncheckedUpdateWithoutInquiryPartnerInput>
+    create: XOR<Nx02QtCreateWithoutInquiryPartnerInput, Nx02QtUncheckedCreateWithoutInquiryPartnerInput>
+  }
+
+  export type Nx02QtUpdateWithWhereUniqueWithoutInquiryPartnerInput = {
+    where: Nx02QtWhereUniqueInput
+    data: XOR<Nx02QtUpdateWithoutInquiryPartnerInput, Nx02QtUncheckedUpdateWithoutInquiryPartnerInput>
+  }
+
+  export type Nx02QtUpdateManyWithWhereWithoutInquiryPartnerInput = {
+    where: Nx02QtScalarWhereInput
+    data: XOR<Nx02QtUpdateManyMutationInput, Nx02QtUncheckedUpdateManyWithoutInquiryPartnerInput>
+  }
+
+  export type Nx02QtScalarWhereInput = {
+    AND?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
+    OR?: Nx02QtScalarWhereInput[]
+    NOT?: Nx02QtScalarWhereInput | Nx02QtScalarWhereInput[]
+    id?: StringFilter<"Nx02Qt"> | string
+    tenantId?: StringFilter<"Nx02Qt"> | string
+    rfqId?: StringFilter<"Nx02Qt"> | string
+    inquiryPartnerId?: StringFilter<"Nx02Qt"> | string
+    quotedPrice?: DecimalFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFilter<"Nx02Qt"> | Decimal | DecimalJsLike | number | string
+    leadDays?: IntNullableFilter<"Nx02Qt"> | number | null
+    status?: StringFilter<"Nx02Qt"> | string
+    notes?: StringNullableFilter<"Nx02Qt"> | string | null
+    rejectReason?: StringNullableFilter<"Nx02Qt"> | string | null
+    createdAt?: DateTimeFilter<"Nx02Qt"> | Date | string
+    createdBy?: StringFilter<"Nx02Qt"> | string
+    updatedAt?: DateTimeFilter<"Nx02Qt"> | Date | string
+    updatedBy?: StringFilter<"Nx02Qt"> | string
   }
 
   export type Nx02RfqUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -295885,6 +298020,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -296006,6 +298142,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -296509,6 +298646,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -296630,6 +298768,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -296920,6 +299059,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -297041,6 +299181,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -297258,6 +299399,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -297379,6 +299521,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -297592,6 +299735,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -297713,6 +299857,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -298149,6 +300294,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -298270,6 +300416,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -298673,6 +300820,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -298794,6 +300942,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -300835,6 +302984,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -300956,6 +303106,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -302467,6 +304618,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -302588,6 +304740,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -302883,6 +305036,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -303004,6 +305158,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -303295,6 +305450,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -303416,6 +305572,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -303705,6 +305862,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -303826,6 +305984,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -304111,6 +306270,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -304232,6 +306392,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -304585,6 +306746,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -304706,6 +306868,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -305115,6 +307278,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -305236,6 +307400,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -305633,6 +307798,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -305663,6 +307829,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -307354,6 +309521,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -307475,6 +309643,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -308605,6 +310774,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -308726,6 +310896,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -309059,6 +311230,7 @@ export namespace Prisma {
     customerGrade?: Nx01CustomerGradeCreateNestedOneWithoutRev_Nx01Partner_customerGradeIdInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -309103,6 +311275,7 @@ export namespace Prisma {
     incoterm?: string | null
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -309149,6 +311322,7 @@ export namespace Prisma {
     warehouse: Nx01WarehouseCreateNestedOneWithoutRev_Nx02Rfq_warehouseIdInput
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -309179,6 +311353,7 @@ export namespace Prisma {
     validUntil?: Date | string | null
     demandId?: string | null
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -309214,6 +311389,7 @@ export namespace Prisma {
     warehouse: Nx01WarehouseCreateNestedOneWithoutRev_Nx02Rfq_warehouseIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -309244,6 +311420,7 @@ export namespace Prisma {
     validUntil?: Date | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -309373,6 +311550,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -309494,6 +311672,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -309845,6 +312024,7 @@ export namespace Prisma {
     customerGrade?: Nx01CustomerGradeUpdateOneWithoutRev_Nx01Partner_customerGradeIdNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -309889,6 +312069,7 @@ export namespace Prisma {
     incoterm?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -309941,6 +312122,7 @@ export namespace Prisma {
     warehouse?: Nx01WarehouseUpdateOneRequiredWithoutRev_Nx02Rfq_warehouseIdNestedInput
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -309971,6 +312153,7 @@ export namespace Prisma {
     validUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -310055,6 +312238,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseCreateNestedManyWithoutTenantInput
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -310176,6 +312360,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -310283,6 +312468,7 @@ export namespace Prisma {
     customerGrade?: Nx01CustomerGradeCreateNestedOneWithoutRev_Nx01Partner_customerGradeIdInput
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -310327,6 +312513,7 @@ export namespace Prisma {
     incoterm?: string | null
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -310373,6 +312560,7 @@ export namespace Prisma {
     warehouse: Nx01WarehouseCreateNestedOneWithoutRev_Nx02Rfq_warehouseIdInput
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -310403,6 +312591,7 @@ export namespace Prisma {
     validUntil?: Date | string | null
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -310731,6 +312920,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUpdateManyWithoutTenantNestedInput
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -310852,6 +313042,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -310965,6 +313156,7 @@ export namespace Prisma {
     customerGrade?: Nx01CustomerGradeUpdateOneWithoutRev_Nx01Partner_customerGradeIdNestedInput
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -311009,6 +313201,7 @@ export namespace Prisma {
     incoterm?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -311061,6 +313254,7 @@ export namespace Prisma {
     warehouse?: Nx01WarehouseUpdateOneRequiredWithoutRev_Nx02Rfq_warehouseIdNestedInput
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -311091,6 +313285,7 @@ export namespace Prisma {
     validUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -311727,6 +313922,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseCreateNestedManyWithoutTenantInput
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -311848,6 +314044,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -312060,6 +314257,7 @@ export namespace Prisma {
     customerGrade?: Nx01CustomerGradeCreateNestedOneWithoutRev_Nx01Partner_customerGradeIdInput
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -312104,6 +314302,7 @@ export namespace Prisma {
     incoterm?: string | null
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -312306,6 +314505,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUpdateManyWithoutTenantNestedInput
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -312427,6 +314627,7 @@ export namespace Prisma {
     rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -312651,6 +314852,7 @@ export namespace Prisma {
     customerGrade?: Nx01CustomerGradeUpdateOneWithoutRev_Nx01Partner_customerGradeIdNestedInput
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -312695,6 +314897,7 @@ export namespace Prisma {
     incoterm?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -313446,6 +315649,846 @@ export namespace Prisma {
     rev_Nx04SrItem_locationId?: Nx04SrItemUncheckedUpdateManyWithoutLocationNestedInput
   }
 
+  export type Nx99TenantCreateWithoutRev_Nx02Qt_tenantIdInput = {
+    id?: string
+    code: string
+    name: string
+    nameEn?: string | null
+    status: string
+    remark?: string | null
+    sortNo: number
+    isActive: boolean
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    contactName?: string | null
+    contactEmail?: string | null
+    contactPhone?: string | null
+    timezone?: string
+    locale?: string
+    rev_Nx01AuditLog_tenantId?: Nx01AuditLogCreateNestedManyWithoutTenantInput
+    rev_Nx01BrandCodeRule_tenantId?: Nx01BrandCodeRuleCreateNestedManyWithoutTenantInput
+    rev_Nx01Bulletin_tenantId?: Nx01BulletinCreateNestedManyWithoutTenantInput
+    rev_Nx01CalendarEvent_tenantId?: Nx01CalendarEventCreateNestedManyWithoutTenantInput
+    rev_Nx01CarBrand_tenantId?: Nx01CarBrandCreateNestedManyWithoutTenantInput
+    rev_Nx01CustomerGrade_tenantId?: Nx01CustomerGradeCreateNestedManyWithoutTenantInput
+    rev_Nx01Department_tenantId?: Nx01DepartmentCreateNestedManyWithoutTenantInput
+    rev_Nx01DiscountCode_tenantId?: Nx01DiscountCodeCreateNestedManyWithoutTenantInput
+    rev_Nx01KpiRecord_tenantId?: Nx01KpiRecordCreateNestedManyWithoutTenantInput
+    rev_Nx01KpiTarget_tenantId?: Nx01KpiTargetCreateNestedManyWithoutTenantInput
+    rev_Nx01KpiTemplate_tenantId?: Nx01KpiTemplateCreateNestedManyWithoutTenantInput
+    rev_Nx01Location_tenantId?: Nx01LocationCreateNestedManyWithoutTenantInput
+    rev_Nx01Part_tenantId?: Nx01PartCreateNestedManyWithoutTenantInput
+    rev_Nx01PartBrand_tenantId?: Nx01PartBrandCreateNestedManyWithoutTenantInput
+    rev_Nx01PartGroup_tenantId?: Nx01PartGroupCreateNestedManyWithoutTenantInput
+    rev_Nx01PartRelation_tenantId?: Nx01PartRelationCreateNestedManyWithoutTenantInput
+    rev_Nx01Partner_tenantId?: Nx01PartnerCreateNestedManyWithoutTenantInput
+    rev_Nx01Role_tenantId?: Nx01RoleCreateNestedManyWithoutTenantInput
+    rev_Nx01RoleView_tenantId?: Nx01RoleViewCreateNestedManyWithoutTenantInput
+    rev_Nx01Team_tenantId?: Nx01TeamCreateNestedManyWithoutTenantInput
+    rev_Nx01User_tenantId?: Nx01UserCreateNestedManyWithoutTenantInput
+    rev_Nx01UserRole_tenantId?: Nx01UserRoleCreateNestedManyWithoutTenantInput
+    rev_Nx01UserTeam_tenantId?: Nx01UserTeamCreateNestedManyWithoutTenantInput
+    rev_Nx01UserWarehouse_tenantId?: Nx01UserWarehouseCreateNestedManyWithoutTenantInput
+    rev_Nx01Warehouse_tenantId?: Nx01WarehouseCreateNestedManyWithoutTenantInput
+    rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
+    rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
+    rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
+    rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
+    rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
+    rev_Nx02Ti_tenantId?: Nx02TiCreateNestedManyWithoutTenantInput
+    rev_Nx03AutoReplenish_tenantId?: Nx03AutoReplenishCreateNestedManyWithoutTenantInput
+    rev_Nx03Init_tenantId?: Nx03InitCreateNestedManyWithoutTenantInput
+    rev_Nx03Inbound_tenantId?: Nx03InboundCreateNestedManyWithoutTenantInput
+    rev_Nx03Outbound_tenantId?: Nx03OutboundCreateNestedManyWithoutTenantInput
+    rev_Nx03Parcel_tenantId?: Nx03ParcelCreateNestedManyWithoutTenantInput
+    rev_Nx03PartStockSetting_tenantId?: Nx03PartStockSettingCreateNestedManyWithoutTenantInput
+    rev_Nx03Pk_tenantId?: Nx03PkCreateNestedManyWithoutTenantInput
+    rev_Nx03Pl_tenantId?: Nx03PlCreateNestedManyWithoutTenantInput
+    rev_Nx03Shortage_tenantId?: Nx03ShortageCreateNestedManyWithoutTenantInput
+    rev_Nx03St_tenantId?: Nx03StCreateNestedManyWithoutTenantInput
+    rev_Nx03StockBalance_tenantId?: Nx03StockBalanceCreateNestedManyWithoutTenantInput
+    rev_Nx03StockLedger_tenantId?: Nx03StockLedgerCreateNestedManyWithoutTenantInput
+    rev_Nx03StockTake_tenantId?: Nx03StockTakeCreateNestedManyWithoutTenantInput
+    rev_Nx04Co_tenantId?: Nx04CoCreateNestedManyWithoutTenantInput
+    rev_Nx04Quote_tenantId?: Nx04QuoteCreateNestedManyWithoutTenantInput
+    rev_Nx04So_tenantId?: Nx04SoCreateNestedManyWithoutTenantInput
+    rev_Nx04Sr_tenantId?: Nx04SrCreateNestedManyWithoutTenantInput
+    rev_Nx05AccountCode_tenantId?: Nx05AccountCodeCreateNestedManyWithoutTenantInput
+    rev_Nx05Allowance_tenantId?: Nx05AllowanceCreateNestedManyWithoutTenantInput
+    rev_Nx05ApLedger_tenantId?: Nx05ApLedgerCreateNestedManyWithoutTenantInput
+    rev_Nx05ArLedger_tenantId?: Nx05ArLedgerCreateNestedManyWithoutTenantInput
+    rev_Nx05Closing_tenantId?: Nx05ClosingCreateNestedManyWithoutTenantInput
+    rev_Nx05Note_tenantId?: Nx05NoteCreateNestedManyWithoutTenantInput
+    rev_Nx05Paylog_tenantId?: Nx05PaylogCreateNestedManyWithoutTenantInput
+    rev_Nx06Dn_tenantId?: Nx06DnCreateNestedManyWithoutTenantInput
+    rev_Nx07Attendance_tenantId?: Nx07AttendanceCreateNestedManyWithoutTenantInput
+    rev_Nx07IpWhitelist_tenantId?: Nx07IpWhitelistCreateNestedManyWithoutTenantInput
+    rev_Nx07LeaveBalance_tenantId?: Nx07LeaveBalanceCreateNestedManyWithoutTenantInput
+    rev_Nx07LeaveRequest_tenantId?: Nx07LeaveRequestCreateNestedManyWithoutTenantInput
+    rev_Nx07LeaveType_tenantId?: Nx07LeaveTypeCreateNestedManyWithoutTenantInput
+    rev_Nx07OvertimeRequest_tenantId?: Nx07OvertimeRequestCreateNestedManyWithoutTenantInput
+    rev_Nx07SalaryComponent_tenantId?: Nx07SalaryComponentCreateNestedManyWithoutTenantInput
+    rev_Nx07SalaryRecord_tenantId?: Nx07SalaryRecordCreateNestedManyWithoutTenantInput
+    rev_Nx07SalarySetting_tenantId?: Nx07SalarySettingCreateNestedManyWithoutTenantInput
+    rev_Nx07Schedule_tenantId?: Nx07ScheduleCreateNestedManyWithoutTenantInput
+    rev_Nx07ShiftType_tenantId?: Nx07ShiftTypeCreateNestedManyWithoutTenantInput
+    rev_Nx07Performance_tenantId?: Nx07PerformanceCreateNestedManyWithoutTenantInput
+    rev_Nx07Training_tenantId?: Nx07TrainingCreateNestedManyWithoutTenantInput
+    rev_Nx07EmployeeChange_tenantId?: Nx07EmployeeChangeCreateNestedManyWithoutTenantInput
+    rev_Nx08DailyReport_tenantId?: Nx08DailyReportCreateNestedManyWithoutTenantInput
+    rev_Nx08FinanceCache_tenantId?: Nx08FinanceCacheCreateNestedManyWithoutTenantInput
+    rev_Nx08HrCache_tenantId?: Nx08HrCacheCreateNestedManyWithoutTenantInput
+    rev_Nx08InventoryCache_tenantId?: Nx08InventoryCacheCreateNestedManyWithoutTenantInput
+    rev_Nx08MonthlyReport_tenantId?: Nx08MonthlyReportCreateNestedManyWithoutTenantInput
+    rev_Nx08PestelRecord_tenantId?: Nx08PestelRecordCreateNestedManyWithoutTenantInput
+    rev_Nx08PurchaseCache_tenantId?: Nx08PurchaseCacheCreateNestedManyWithoutTenantInput
+    rev_Nx08SalesCache_tenantId?: Nx08SalesCacheCreateNestedManyWithoutTenantInput
+    rev_Nx08SwotRecord_tenantId?: Nx08SwotRecordCreateNestedManyWithoutTenantInput
+    rev_Nx09Document_tenantId?: Nx09DocumentCreateNestedManyWithoutTenantInput
+    rev_Nx09KmArticle_tenantId?: Nx09KmArticleCreateNestedManyWithoutTenantInput
+    rev_Nx09KmFeedback_tenantId?: Nx09KmFeedbackCreateNestedManyWithoutTenantInput
+    rev_Nx09KmTag_tenantId?: Nx09KmTagCreateNestedManyWithoutTenantInput
+    rev_Nx09Meeting_tenantId?: Nx09MeetingCreateNestedManyWithoutTenantInput
+    rev_Nx09MeetingAction_tenantId?: Nx09MeetingActionCreateNestedManyWithoutTenantInput
+    rev_Nx10EmpExpLog_tenantId?: Nx10EmpExpLogCreateNestedManyWithoutTenantInput
+    rev_Nx10CheckinLog_tenantId?: Nx10CheckinLogCreateNestedManyWithoutTenantInput
+    rev_Nx10EmpMedal_tenantId?: Nx10EmpMedalCreateNestedManyWithoutTenantInput
+    rev_Nx10EmpTaskLog_tenantId?: Nx10EmpTaskLogCreateNestedManyWithoutTenantInput
+    rev_Nx10MedalLevel_tenantId?: Nx10MedalLevelCreateNestedManyWithoutTenantInput
+    rev_Nx10MentorshipRecord_tenantId?: Nx10MentorshipRecordCreateNestedManyWithoutTenantInput
+    rev_Nx10PromotionCriteria_tenantId?: Nx10PromotionCriteriaCreateNestedManyWithoutTenantInput
+    rev_Nx10PromotionRequest_tenantId?: Nx10PromotionRequestCreateNestedManyWithoutTenantInput
+    rev_Nx10SprintTask_tenantId?: Nx10SprintTaskCreateNestedManyWithoutTenantInput
+    rev_Nx10SprintTaskLog_tenantId?: Nx10SprintTaskLogCreateNestedManyWithoutTenantInput
+    rev_Nx10SurpriseBoxLog_tenantId?: Nx10SurpriseBoxLogCreateNestedManyWithoutTenantInput
+    rev_Nx10TaskTemplate_tenantId?: Nx10TaskTemplateCreateNestedManyWithoutTenantInput
+    rev_Nx10TeamTask_tenantId?: Nx10TeamTaskCreateNestedManyWithoutTenantInput
+    rev_Nx10TeamTaskLog_tenantId?: Nx10TeamTaskLogCreateNestedManyWithoutTenantInput
+    rev_Nx98DocLink_tenantId?: Nx98DocLinkCreateNestedManyWithoutTenantInput
+    rev_Nx99Subscription_tenantId?: Nx99SubscriptionCreateNestedManyWithoutTenantInput
+  }
+
+  export type Nx99TenantUncheckedCreateWithoutRev_Nx02Qt_tenantIdInput = {
+    id?: string
+    code: string
+    name: string
+    nameEn?: string | null
+    status: string
+    remark?: string | null
+    sortNo: number
+    isActive: boolean
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    contactName?: string | null
+    contactEmail?: string | null
+    contactPhone?: string | null
+    timezone?: string
+    locale?: string
+    rev_Nx01AuditLog_tenantId?: Nx01AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01BrandCodeRule_tenantId?: Nx01BrandCodeRuleUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Bulletin_tenantId?: Nx01BulletinUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01CalendarEvent_tenantId?: Nx01CalendarEventUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01CarBrand_tenantId?: Nx01CarBrandUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01CustomerGrade_tenantId?: Nx01CustomerGradeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Department_tenantId?: Nx01DepartmentUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01DiscountCode_tenantId?: Nx01DiscountCodeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01KpiRecord_tenantId?: Nx01KpiRecordUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01KpiTarget_tenantId?: Nx01KpiTargetUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01KpiTemplate_tenantId?: Nx01KpiTemplateUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Location_tenantId?: Nx01LocationUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Part_tenantId?: Nx01PartUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01PartBrand_tenantId?: Nx01PartBrandUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01PartGroup_tenantId?: Nx01PartGroupUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01PartRelation_tenantId?: Nx01PartRelationUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Partner_tenantId?: Nx01PartnerUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Role_tenantId?: Nx01RoleUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01RoleView_tenantId?: Nx01RoleViewUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Team_tenantId?: Nx01TeamUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01User_tenantId?: Nx01UserUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01UserRole_tenantId?: Nx01UserRoleUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01UserTeam_tenantId?: Nx01UserTeamUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01UserWarehouse_tenantId?: Nx01UserWarehouseUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Ti_tenantId?: Nx02TiUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03AutoReplenish_tenantId?: Nx03AutoReplenishUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Init_tenantId?: Nx03InitUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Inbound_tenantId?: Nx03InboundUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Outbound_tenantId?: Nx03OutboundUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Parcel_tenantId?: Nx03ParcelUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03PartStockSetting_tenantId?: Nx03PartStockSettingUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Pk_tenantId?: Nx03PkUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Pl_tenantId?: Nx03PlUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03Shortage_tenantId?: Nx03ShortageUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03St_tenantId?: Nx03StUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03StockBalance_tenantId?: Nx03StockBalanceUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03StockLedger_tenantId?: Nx03StockLedgerUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx03StockTake_tenantId?: Nx03StockTakeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx04Co_tenantId?: Nx04CoUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx04Quote_tenantId?: Nx04QuoteUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx04So_tenantId?: Nx04SoUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx04Sr_tenantId?: Nx04SrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05AccountCode_tenantId?: Nx05AccountCodeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05Allowance_tenantId?: Nx05AllowanceUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05ApLedger_tenantId?: Nx05ApLedgerUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05ArLedger_tenantId?: Nx05ArLedgerUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05Closing_tenantId?: Nx05ClosingUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05Note_tenantId?: Nx05NoteUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx05Paylog_tenantId?: Nx05PaylogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx06Dn_tenantId?: Nx06DnUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07Attendance_tenantId?: Nx07AttendanceUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07IpWhitelist_tenantId?: Nx07IpWhitelistUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07LeaveBalance_tenantId?: Nx07LeaveBalanceUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07LeaveRequest_tenantId?: Nx07LeaveRequestUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07LeaveType_tenantId?: Nx07LeaveTypeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07OvertimeRequest_tenantId?: Nx07OvertimeRequestUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07SalaryComponent_tenantId?: Nx07SalaryComponentUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07SalaryRecord_tenantId?: Nx07SalaryRecordUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07SalarySetting_tenantId?: Nx07SalarySettingUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07Schedule_tenantId?: Nx07ScheduleUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07ShiftType_tenantId?: Nx07ShiftTypeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07Performance_tenantId?: Nx07PerformanceUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07Training_tenantId?: Nx07TrainingUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx07EmployeeChange_tenantId?: Nx07EmployeeChangeUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08DailyReport_tenantId?: Nx08DailyReportUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08FinanceCache_tenantId?: Nx08FinanceCacheUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08HrCache_tenantId?: Nx08HrCacheUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08InventoryCache_tenantId?: Nx08InventoryCacheUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08MonthlyReport_tenantId?: Nx08MonthlyReportUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08PestelRecord_tenantId?: Nx08PestelRecordUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08PurchaseCache_tenantId?: Nx08PurchaseCacheUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08SalesCache_tenantId?: Nx08SalesCacheUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx08SwotRecord_tenantId?: Nx08SwotRecordUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx09Document_tenantId?: Nx09DocumentUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx09KmArticle_tenantId?: Nx09KmArticleUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx09KmFeedback_tenantId?: Nx09KmFeedbackUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx09KmTag_tenantId?: Nx09KmTagUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx09Meeting_tenantId?: Nx09MeetingUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx09MeetingAction_tenantId?: Nx09MeetingActionUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10EmpExpLog_tenantId?: Nx10EmpExpLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10CheckinLog_tenantId?: Nx10CheckinLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10EmpMedal_tenantId?: Nx10EmpMedalUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10EmpTaskLog_tenantId?: Nx10EmpTaskLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10MedalLevel_tenantId?: Nx10MedalLevelUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10MentorshipRecord_tenantId?: Nx10MentorshipRecordUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10PromotionCriteria_tenantId?: Nx10PromotionCriteriaUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10PromotionRequest_tenantId?: Nx10PromotionRequestUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10SprintTask_tenantId?: Nx10SprintTaskUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10SprintTaskLog_tenantId?: Nx10SprintTaskLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10SurpriseBoxLog_tenantId?: Nx10SurpriseBoxLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10TaskTemplate_tenantId?: Nx10TaskTemplateUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10TeamTask_tenantId?: Nx10TeamTaskUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx10TeamTaskLog_tenantId?: Nx10TeamTaskLogUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx98DocLink_tenantId?: Nx98DocLinkUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx99Subscription_tenantId?: Nx99SubscriptionUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type Nx99TenantCreateOrConnectWithoutRev_Nx02Qt_tenantIdInput = {
+    where: Nx99TenantWhereUniqueInput
+    create: XOR<Nx99TenantCreateWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUncheckedCreateWithoutRev_Nx02Qt_tenantIdInput>
+  }
+
+  export type Nx02RfqCreateWithoutRev_Nx02Qt_rfqIdInput = {
+    id?: string
+    docNo: string
+    rfqDate: Date | string
+    contactName?: string | null
+    contactPhone?: string | null
+    currency?: string
+    status?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    voidedAt?: Date | string | null
+    voidedBy?: string | null
+    rfqType?: string
+    rfqReason?: string | null
+    validUntil?: Date | string | null
+    tenant: Nx99TenantCreateNestedOneWithoutRev_Nx02Rfq_tenantIdInput
+    supplier?: Nx01PartnerCreateNestedOneWithoutRev_Nx02Rfq_supplierIdInput
+    warehouse: Nx01WarehouseCreateNestedOneWithoutRev_Nx02Rfq_warehouseIdInput
+    demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
+    rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
+    rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
+    rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
+    rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
+    rev_Nx03Shortage_refRfqId?: Nx03ShortageCreateNestedManyWithoutRefRfqInput
+    rev_Nx04Quote_rfqId?: Nx04QuoteCreateNestedManyWithoutRfqInput
+  }
+
+  export type Nx02RfqUncheckedCreateWithoutRev_Nx02Qt_rfqIdInput = {
+    id?: string
+    tenantId: string
+    docNo: string
+    rfqDate: Date | string
+    supplierId?: string | null
+    contactName?: string | null
+    contactPhone?: string | null
+    currency?: string
+    status?: string
+    remark?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    voidedAt?: Date | string | null
+    voidedBy?: string | null
+    rfqType?: string
+    rfqReason?: string | null
+    warehouseId: string
+    validUntil?: Date | string | null
+    demandId?: string | null
+    rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
+    rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedCreateNestedManyWithoutRefRfqInput
+    rev_Nx04Quote_rfqId?: Nx04QuoteUncheckedCreateNestedManyWithoutRfqInput
+  }
+
+  export type Nx02RfqCreateOrConnectWithoutRev_Nx02Qt_rfqIdInput = {
+    where: Nx02RfqWhereUniqueInput
+    create: XOR<Nx02RfqCreateWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUncheckedCreateWithoutRev_Nx02Qt_rfqIdInput>
+  }
+
+  export type Nx01PartnerCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    id?: string
+    code: string
+    name: string
+    partnerType?: string
+    contactName?: string | null
+    phone?: string | null
+    mobile?: string | null
+    email?: string | null
+    address?: string | null
+    remark?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    taxId?: string | null
+    paymentTermDomestic?: string
+    creditLimit?: Decimal | DecimalJsLike | number | string | null
+    creditStatus?: string
+    paymentTermImport?: string | null
+    incoterm?: string | null
+    tenant: Nx99TenantCreateNestedOneWithoutRev_Nx01Partner_tenantIdInput
+    customerGrade?: Nx01CustomerGradeCreateNestedOneWithoutRev_Nx01Partner_customerGradeIdInput
+    rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
+    rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
+    rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
+    rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
+    rev_Nx03Parcel_toPartnerId?: Nx03ParcelCreateNestedManyWithoutToPartnerInput
+    rev_Nx04Co_customerId?: Nx04CoCreateNestedManyWithoutCustomerInput
+    rev_Nx04Quote_customerId?: Nx04QuoteCreateNestedManyWithoutCustomerInput
+    rev_Nx04So_customerId?: Nx04SoCreateNestedManyWithoutCustomerInput
+    rev_Nx04Sr_customerId?: Nx04SrCreateNestedManyWithoutCustomerInput
+    rev_Nx05Allowance_partnerId?: Nx05AllowanceCreateNestedManyWithoutPartnerInput
+    rev_Nx05ApLedger_supplierId?: Nx05ApLedgerCreateNestedManyWithoutSupplierInput
+    rev_Nx05ArLedger_customerId?: Nx05ArLedgerCreateNestedManyWithoutCustomerInput
+    rev_Nx05Note_partnerId?: Nx05NoteCreateNestedManyWithoutPartnerInput
+    rev_Nx05Paylog_partnerId?: Nx05PaylogCreateNestedManyWithoutPartnerInput
+    rev_Nx06DnStop_partnerId?: Nx06DnStopCreateNestedManyWithoutPartnerInput
+    rev_Nx08PurchaseCache_supplierId?: Nx08PurchaseCacheCreateNestedManyWithoutSupplierInput
+    rev_Nx08SalesCache_customerId?: Nx08SalesCacheCreateNestedManyWithoutCustomerInput
+  }
+
+  export type Nx01PartnerUncheckedCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    id?: string
+    tenantId: string
+    code: string
+    name: string
+    partnerType?: string
+    contactName?: string | null
+    phone?: string | null
+    mobile?: string | null
+    email?: string | null
+    address?: string | null
+    remark?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    taxId?: string | null
+    paymentTermDomestic?: string
+    customerGradeId?: string | null
+    creditLimit?: Decimal | DecimalJsLike | number | string | null
+    creditStatus?: string
+    paymentTermImport?: string | null
+    incoterm?: string | null
+    rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
+    rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
+    rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedCreateNestedManyWithoutToPartnerInput
+    rev_Nx04Co_customerId?: Nx04CoUncheckedCreateNestedManyWithoutCustomerInput
+    rev_Nx04Quote_customerId?: Nx04QuoteUncheckedCreateNestedManyWithoutCustomerInput
+    rev_Nx04So_customerId?: Nx04SoUncheckedCreateNestedManyWithoutCustomerInput
+    rev_Nx04Sr_customerId?: Nx04SrUncheckedCreateNestedManyWithoutCustomerInput
+    rev_Nx05Allowance_partnerId?: Nx05AllowanceUncheckedCreateNestedManyWithoutPartnerInput
+    rev_Nx05ApLedger_supplierId?: Nx05ApLedgerUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx05ArLedger_customerId?: Nx05ArLedgerUncheckedCreateNestedManyWithoutCustomerInput
+    rev_Nx05Note_partnerId?: Nx05NoteUncheckedCreateNestedManyWithoutPartnerInput
+    rev_Nx05Paylog_partnerId?: Nx05PaylogUncheckedCreateNestedManyWithoutPartnerInput
+    rev_Nx06DnStop_partnerId?: Nx06DnStopUncheckedCreateNestedManyWithoutPartnerInput
+    rev_Nx08PurchaseCache_supplierId?: Nx08PurchaseCacheUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx08SalesCache_customerId?: Nx08SalesCacheUncheckedCreateNestedManyWithoutCustomerInput
+  }
+
+  export type Nx01PartnerCreateOrConnectWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    where: Nx01PartnerWhereUniqueInput
+    create: XOR<Nx01PartnerCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUncheckedCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+  }
+
+  export type Nx99TenantUpsertWithoutRev_Nx02Qt_tenantIdInput = {
+    update: XOR<Nx99TenantUpdateWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUncheckedUpdateWithoutRev_Nx02Qt_tenantIdInput>
+    create: XOR<Nx99TenantCreateWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUncheckedCreateWithoutRev_Nx02Qt_tenantIdInput>
+    where?: Nx99TenantWhereInput
+  }
+
+  export type Nx99TenantUpdateToOneWithWhereWithoutRev_Nx02Qt_tenantIdInput = {
+    where?: Nx99TenantWhereInput
+    data: XOR<Nx99TenantUpdateWithoutRev_Nx02Qt_tenantIdInput, Nx99TenantUncheckedUpdateWithoutRev_Nx02Qt_tenantIdInput>
+  }
+
+  export type Nx99TenantUpdateWithoutRev_Nx02Qt_tenantIdInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    nameEn?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    sortNo?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    contactName?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    rev_Nx01AuditLog_tenantId?: Nx01AuditLogUpdateManyWithoutTenantNestedInput
+    rev_Nx01BrandCodeRule_tenantId?: Nx01BrandCodeRuleUpdateManyWithoutTenantNestedInput
+    rev_Nx01Bulletin_tenantId?: Nx01BulletinUpdateManyWithoutTenantNestedInput
+    rev_Nx01CalendarEvent_tenantId?: Nx01CalendarEventUpdateManyWithoutTenantNestedInput
+    rev_Nx01CarBrand_tenantId?: Nx01CarBrandUpdateManyWithoutTenantNestedInput
+    rev_Nx01CustomerGrade_tenantId?: Nx01CustomerGradeUpdateManyWithoutTenantNestedInput
+    rev_Nx01Department_tenantId?: Nx01DepartmentUpdateManyWithoutTenantNestedInput
+    rev_Nx01DiscountCode_tenantId?: Nx01DiscountCodeUpdateManyWithoutTenantNestedInput
+    rev_Nx01KpiRecord_tenantId?: Nx01KpiRecordUpdateManyWithoutTenantNestedInput
+    rev_Nx01KpiTarget_tenantId?: Nx01KpiTargetUpdateManyWithoutTenantNestedInput
+    rev_Nx01KpiTemplate_tenantId?: Nx01KpiTemplateUpdateManyWithoutTenantNestedInput
+    rev_Nx01Location_tenantId?: Nx01LocationUpdateManyWithoutTenantNestedInput
+    rev_Nx01Part_tenantId?: Nx01PartUpdateManyWithoutTenantNestedInput
+    rev_Nx01PartBrand_tenantId?: Nx01PartBrandUpdateManyWithoutTenantNestedInput
+    rev_Nx01PartGroup_tenantId?: Nx01PartGroupUpdateManyWithoutTenantNestedInput
+    rev_Nx01PartRelation_tenantId?: Nx01PartRelationUpdateManyWithoutTenantNestedInput
+    rev_Nx01Partner_tenantId?: Nx01PartnerUpdateManyWithoutTenantNestedInput
+    rev_Nx01Role_tenantId?: Nx01RoleUpdateManyWithoutTenantNestedInput
+    rev_Nx01RoleView_tenantId?: Nx01RoleViewUpdateManyWithoutTenantNestedInput
+    rev_Nx01Team_tenantId?: Nx01TeamUpdateManyWithoutTenantNestedInput
+    rev_Nx01User_tenantId?: Nx01UserUpdateManyWithoutTenantNestedInput
+    rev_Nx01UserRole_tenantId?: Nx01UserRoleUpdateManyWithoutTenantNestedInput
+    rev_Nx01UserTeam_tenantId?: Nx01UserTeamUpdateManyWithoutTenantNestedInput
+    rev_Nx01UserWarehouse_tenantId?: Nx01UserWarehouseUpdateManyWithoutTenantNestedInput
+    rev_Nx01Warehouse_tenantId?: Nx01WarehouseUpdateManyWithoutTenantNestedInput
+    rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
+    rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
+    rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
+    rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
+    rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
+    rev_Nx02Ti_tenantId?: Nx02TiUpdateManyWithoutTenantNestedInput
+    rev_Nx03AutoReplenish_tenantId?: Nx03AutoReplenishUpdateManyWithoutTenantNestedInput
+    rev_Nx03Init_tenantId?: Nx03InitUpdateManyWithoutTenantNestedInput
+    rev_Nx03Inbound_tenantId?: Nx03InboundUpdateManyWithoutTenantNestedInput
+    rev_Nx03Outbound_tenantId?: Nx03OutboundUpdateManyWithoutTenantNestedInput
+    rev_Nx03Parcel_tenantId?: Nx03ParcelUpdateManyWithoutTenantNestedInput
+    rev_Nx03PartStockSetting_tenantId?: Nx03PartStockSettingUpdateManyWithoutTenantNestedInput
+    rev_Nx03Pk_tenantId?: Nx03PkUpdateManyWithoutTenantNestedInput
+    rev_Nx03Pl_tenantId?: Nx03PlUpdateManyWithoutTenantNestedInput
+    rev_Nx03Shortage_tenantId?: Nx03ShortageUpdateManyWithoutTenantNestedInput
+    rev_Nx03St_tenantId?: Nx03StUpdateManyWithoutTenantNestedInput
+    rev_Nx03StockBalance_tenantId?: Nx03StockBalanceUpdateManyWithoutTenantNestedInput
+    rev_Nx03StockLedger_tenantId?: Nx03StockLedgerUpdateManyWithoutTenantNestedInput
+    rev_Nx03StockTake_tenantId?: Nx03StockTakeUpdateManyWithoutTenantNestedInput
+    rev_Nx04Co_tenantId?: Nx04CoUpdateManyWithoutTenantNestedInput
+    rev_Nx04Quote_tenantId?: Nx04QuoteUpdateManyWithoutTenantNestedInput
+    rev_Nx04So_tenantId?: Nx04SoUpdateManyWithoutTenantNestedInput
+    rev_Nx04Sr_tenantId?: Nx04SrUpdateManyWithoutTenantNestedInput
+    rev_Nx05AccountCode_tenantId?: Nx05AccountCodeUpdateManyWithoutTenantNestedInput
+    rev_Nx05Allowance_tenantId?: Nx05AllowanceUpdateManyWithoutTenantNestedInput
+    rev_Nx05ApLedger_tenantId?: Nx05ApLedgerUpdateManyWithoutTenantNestedInput
+    rev_Nx05ArLedger_tenantId?: Nx05ArLedgerUpdateManyWithoutTenantNestedInput
+    rev_Nx05Closing_tenantId?: Nx05ClosingUpdateManyWithoutTenantNestedInput
+    rev_Nx05Note_tenantId?: Nx05NoteUpdateManyWithoutTenantNestedInput
+    rev_Nx05Paylog_tenantId?: Nx05PaylogUpdateManyWithoutTenantNestedInput
+    rev_Nx06Dn_tenantId?: Nx06DnUpdateManyWithoutTenantNestedInput
+    rev_Nx07Attendance_tenantId?: Nx07AttendanceUpdateManyWithoutTenantNestedInput
+    rev_Nx07IpWhitelist_tenantId?: Nx07IpWhitelistUpdateManyWithoutTenantNestedInput
+    rev_Nx07LeaveBalance_tenantId?: Nx07LeaveBalanceUpdateManyWithoutTenantNestedInput
+    rev_Nx07LeaveRequest_tenantId?: Nx07LeaveRequestUpdateManyWithoutTenantNestedInput
+    rev_Nx07LeaveType_tenantId?: Nx07LeaveTypeUpdateManyWithoutTenantNestedInput
+    rev_Nx07OvertimeRequest_tenantId?: Nx07OvertimeRequestUpdateManyWithoutTenantNestedInput
+    rev_Nx07SalaryComponent_tenantId?: Nx07SalaryComponentUpdateManyWithoutTenantNestedInput
+    rev_Nx07SalaryRecord_tenantId?: Nx07SalaryRecordUpdateManyWithoutTenantNestedInput
+    rev_Nx07SalarySetting_tenantId?: Nx07SalarySettingUpdateManyWithoutTenantNestedInput
+    rev_Nx07Schedule_tenantId?: Nx07ScheduleUpdateManyWithoutTenantNestedInput
+    rev_Nx07ShiftType_tenantId?: Nx07ShiftTypeUpdateManyWithoutTenantNestedInput
+    rev_Nx07Performance_tenantId?: Nx07PerformanceUpdateManyWithoutTenantNestedInput
+    rev_Nx07Training_tenantId?: Nx07TrainingUpdateManyWithoutTenantNestedInput
+    rev_Nx07EmployeeChange_tenantId?: Nx07EmployeeChangeUpdateManyWithoutTenantNestedInput
+    rev_Nx08DailyReport_tenantId?: Nx08DailyReportUpdateManyWithoutTenantNestedInput
+    rev_Nx08FinanceCache_tenantId?: Nx08FinanceCacheUpdateManyWithoutTenantNestedInput
+    rev_Nx08HrCache_tenantId?: Nx08HrCacheUpdateManyWithoutTenantNestedInput
+    rev_Nx08InventoryCache_tenantId?: Nx08InventoryCacheUpdateManyWithoutTenantNestedInput
+    rev_Nx08MonthlyReport_tenantId?: Nx08MonthlyReportUpdateManyWithoutTenantNestedInput
+    rev_Nx08PestelRecord_tenantId?: Nx08PestelRecordUpdateManyWithoutTenantNestedInput
+    rev_Nx08PurchaseCache_tenantId?: Nx08PurchaseCacheUpdateManyWithoutTenantNestedInput
+    rev_Nx08SalesCache_tenantId?: Nx08SalesCacheUpdateManyWithoutTenantNestedInput
+    rev_Nx08SwotRecord_tenantId?: Nx08SwotRecordUpdateManyWithoutTenantNestedInput
+    rev_Nx09Document_tenantId?: Nx09DocumentUpdateManyWithoutTenantNestedInput
+    rev_Nx09KmArticle_tenantId?: Nx09KmArticleUpdateManyWithoutTenantNestedInput
+    rev_Nx09KmFeedback_tenantId?: Nx09KmFeedbackUpdateManyWithoutTenantNestedInput
+    rev_Nx09KmTag_tenantId?: Nx09KmTagUpdateManyWithoutTenantNestedInput
+    rev_Nx09Meeting_tenantId?: Nx09MeetingUpdateManyWithoutTenantNestedInput
+    rev_Nx09MeetingAction_tenantId?: Nx09MeetingActionUpdateManyWithoutTenantNestedInput
+    rev_Nx10EmpExpLog_tenantId?: Nx10EmpExpLogUpdateManyWithoutTenantNestedInput
+    rev_Nx10CheckinLog_tenantId?: Nx10CheckinLogUpdateManyWithoutTenantNestedInput
+    rev_Nx10EmpMedal_tenantId?: Nx10EmpMedalUpdateManyWithoutTenantNestedInput
+    rev_Nx10EmpTaskLog_tenantId?: Nx10EmpTaskLogUpdateManyWithoutTenantNestedInput
+    rev_Nx10MedalLevel_tenantId?: Nx10MedalLevelUpdateManyWithoutTenantNestedInput
+    rev_Nx10MentorshipRecord_tenantId?: Nx10MentorshipRecordUpdateManyWithoutTenantNestedInput
+    rev_Nx10PromotionCriteria_tenantId?: Nx10PromotionCriteriaUpdateManyWithoutTenantNestedInput
+    rev_Nx10PromotionRequest_tenantId?: Nx10PromotionRequestUpdateManyWithoutTenantNestedInput
+    rev_Nx10SprintTask_tenantId?: Nx10SprintTaskUpdateManyWithoutTenantNestedInput
+    rev_Nx10SprintTaskLog_tenantId?: Nx10SprintTaskLogUpdateManyWithoutTenantNestedInput
+    rev_Nx10SurpriseBoxLog_tenantId?: Nx10SurpriseBoxLogUpdateManyWithoutTenantNestedInput
+    rev_Nx10TaskTemplate_tenantId?: Nx10TaskTemplateUpdateManyWithoutTenantNestedInput
+    rev_Nx10TeamTask_tenantId?: Nx10TeamTaskUpdateManyWithoutTenantNestedInput
+    rev_Nx10TeamTaskLog_tenantId?: Nx10TeamTaskLogUpdateManyWithoutTenantNestedInput
+    rev_Nx98DocLink_tenantId?: Nx98DocLinkUpdateManyWithoutTenantNestedInput
+    rev_Nx99Subscription_tenantId?: Nx99SubscriptionUpdateManyWithoutTenantNestedInput
+  }
+
+  export type Nx99TenantUncheckedUpdateWithoutRev_Nx02Qt_tenantIdInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    nameEn?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    sortNo?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    contactName?: NullableStringFieldUpdateOperationsInput | string | null
+    contactEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    timezone?: StringFieldUpdateOperationsInput | string
+    locale?: StringFieldUpdateOperationsInput | string
+    rev_Nx01AuditLog_tenantId?: Nx01AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01BrandCodeRule_tenantId?: Nx01BrandCodeRuleUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Bulletin_tenantId?: Nx01BulletinUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01CalendarEvent_tenantId?: Nx01CalendarEventUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01CarBrand_tenantId?: Nx01CarBrandUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01CustomerGrade_tenantId?: Nx01CustomerGradeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Department_tenantId?: Nx01DepartmentUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01DiscountCode_tenantId?: Nx01DiscountCodeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01KpiRecord_tenantId?: Nx01KpiRecordUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01KpiTarget_tenantId?: Nx01KpiTargetUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01KpiTemplate_tenantId?: Nx01KpiTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Location_tenantId?: Nx01LocationUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Part_tenantId?: Nx01PartUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01PartBrand_tenantId?: Nx01PartBrandUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01PartGroup_tenantId?: Nx01PartGroupUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01PartRelation_tenantId?: Nx01PartRelationUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Partner_tenantId?: Nx01PartnerUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Role_tenantId?: Nx01RoleUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01RoleView_tenantId?: Nx01RoleViewUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Team_tenantId?: Nx01TeamUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01User_tenantId?: Nx01UserUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01UserRole_tenantId?: Nx01UserRoleUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01UserTeam_tenantId?: Nx01UserTeamUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01UserWarehouse_tenantId?: Nx01UserWarehouseUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx01Warehouse_tenantId?: Nx01WarehouseUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Ti_tenantId?: Nx02TiUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03AutoReplenish_tenantId?: Nx03AutoReplenishUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Init_tenantId?: Nx03InitUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Inbound_tenantId?: Nx03InboundUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Outbound_tenantId?: Nx03OutboundUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Parcel_tenantId?: Nx03ParcelUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03PartStockSetting_tenantId?: Nx03PartStockSettingUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Pk_tenantId?: Nx03PkUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Pl_tenantId?: Nx03PlUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03Shortage_tenantId?: Nx03ShortageUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03St_tenantId?: Nx03StUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03StockBalance_tenantId?: Nx03StockBalanceUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03StockLedger_tenantId?: Nx03StockLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx03StockTake_tenantId?: Nx03StockTakeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx04Co_tenantId?: Nx04CoUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx04Quote_tenantId?: Nx04QuoteUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx04So_tenantId?: Nx04SoUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx04Sr_tenantId?: Nx04SrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05AccountCode_tenantId?: Nx05AccountCodeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05Allowance_tenantId?: Nx05AllowanceUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05ApLedger_tenantId?: Nx05ApLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05ArLedger_tenantId?: Nx05ArLedgerUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05Closing_tenantId?: Nx05ClosingUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05Note_tenantId?: Nx05NoteUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx05Paylog_tenantId?: Nx05PaylogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx06Dn_tenantId?: Nx06DnUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07Attendance_tenantId?: Nx07AttendanceUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07IpWhitelist_tenantId?: Nx07IpWhitelistUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07LeaveBalance_tenantId?: Nx07LeaveBalanceUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07LeaveRequest_tenantId?: Nx07LeaveRequestUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07LeaveType_tenantId?: Nx07LeaveTypeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07OvertimeRequest_tenantId?: Nx07OvertimeRequestUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07SalaryComponent_tenantId?: Nx07SalaryComponentUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07SalaryRecord_tenantId?: Nx07SalaryRecordUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07SalarySetting_tenantId?: Nx07SalarySettingUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07Schedule_tenantId?: Nx07ScheduleUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07ShiftType_tenantId?: Nx07ShiftTypeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07Performance_tenantId?: Nx07PerformanceUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07Training_tenantId?: Nx07TrainingUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx07EmployeeChange_tenantId?: Nx07EmployeeChangeUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08DailyReport_tenantId?: Nx08DailyReportUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08FinanceCache_tenantId?: Nx08FinanceCacheUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08HrCache_tenantId?: Nx08HrCacheUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08InventoryCache_tenantId?: Nx08InventoryCacheUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08MonthlyReport_tenantId?: Nx08MonthlyReportUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08PestelRecord_tenantId?: Nx08PestelRecordUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08PurchaseCache_tenantId?: Nx08PurchaseCacheUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08SalesCache_tenantId?: Nx08SalesCacheUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx08SwotRecord_tenantId?: Nx08SwotRecordUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx09Document_tenantId?: Nx09DocumentUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx09KmArticle_tenantId?: Nx09KmArticleUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx09KmFeedback_tenantId?: Nx09KmFeedbackUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx09KmTag_tenantId?: Nx09KmTagUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx09Meeting_tenantId?: Nx09MeetingUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx09MeetingAction_tenantId?: Nx09MeetingActionUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10EmpExpLog_tenantId?: Nx10EmpExpLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10CheckinLog_tenantId?: Nx10CheckinLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10EmpMedal_tenantId?: Nx10EmpMedalUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10EmpTaskLog_tenantId?: Nx10EmpTaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10MedalLevel_tenantId?: Nx10MedalLevelUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10MentorshipRecord_tenantId?: Nx10MentorshipRecordUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10PromotionCriteria_tenantId?: Nx10PromotionCriteriaUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10PromotionRequest_tenantId?: Nx10PromotionRequestUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10SprintTask_tenantId?: Nx10SprintTaskUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10SprintTaskLog_tenantId?: Nx10SprintTaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10SurpriseBoxLog_tenantId?: Nx10SurpriseBoxLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10TaskTemplate_tenantId?: Nx10TaskTemplateUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10TeamTask_tenantId?: Nx10TeamTaskUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx10TeamTaskLog_tenantId?: Nx10TeamTaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx98DocLink_tenantId?: Nx98DocLinkUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx99Subscription_tenantId?: Nx99SubscriptionUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type Nx02RfqUpsertWithoutRev_Nx02Qt_rfqIdInput = {
+    update: XOR<Nx02RfqUpdateWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUncheckedUpdateWithoutRev_Nx02Qt_rfqIdInput>
+    create: XOR<Nx02RfqCreateWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUncheckedCreateWithoutRev_Nx02Qt_rfqIdInput>
+    where?: Nx02RfqWhereInput
+  }
+
+  export type Nx02RfqUpdateToOneWithWhereWithoutRev_Nx02Qt_rfqIdInput = {
+    where?: Nx02RfqWhereInput
+    data: XOR<Nx02RfqUpdateWithoutRev_Nx02Qt_rfqIdInput, Nx02RfqUncheckedUpdateWithoutRev_Nx02Qt_rfqIdInput>
+  }
+
+  export type Nx02RfqUpdateWithoutRev_Nx02Qt_rfqIdInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    docNo?: StringFieldUpdateOperationsInput | string
+    rfqDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    contactName?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    rfqType?: StringFieldUpdateOperationsInput | string
+    rfqReason?: NullableStringFieldUpdateOperationsInput | string | null
+    validUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: Nx99TenantUpdateOneRequiredWithoutRev_Nx02Rfq_tenantIdNestedInput
+    supplier?: Nx01PartnerUpdateOneWithoutRev_Nx02Rfq_supplierIdNestedInput
+    warehouse?: Nx01WarehouseUpdateOneRequiredWithoutRev_Nx02Rfq_warehouseIdNestedInput
+    demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
+    rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
+    rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
+    rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
+    rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
+    rev_Nx03Shortage_refRfqId?: Nx03ShortageUpdateManyWithoutRefRfqNestedInput
+    rev_Nx04Quote_rfqId?: Nx04QuoteUpdateManyWithoutRfqNestedInput
+  }
+
+  export type Nx02RfqUncheckedUpdateWithoutRev_Nx02Qt_rfqIdInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    docNo?: StringFieldUpdateOperationsInput | string
+    rfqDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    supplierId?: NullableStringFieldUpdateOperationsInput | string | null
+    contactName?: NullableStringFieldUpdateOperationsInput | string | null
+    contactPhone?: NullableStringFieldUpdateOperationsInput | string | null
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    voidedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    voidedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    rfqType?: StringFieldUpdateOperationsInput | string
+    rfqReason?: NullableStringFieldUpdateOperationsInput | string | null
+    warehouseId?: StringFieldUpdateOperationsInput | string
+    validUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    demandId?: NullableStringFieldUpdateOperationsInput | string | null
+    rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
+    rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedUpdateManyWithoutRefRfqNestedInput
+    rev_Nx04Quote_rfqId?: Nx04QuoteUncheckedUpdateManyWithoutRfqNestedInput
+  }
+
+  export type Nx01PartnerUpsertWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    update: XOR<Nx01PartnerUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUncheckedUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+    create: XOR<Nx01PartnerCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUncheckedCreateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+    where?: Nx01PartnerWhereInput
+  }
+
+  export type Nx01PartnerUpdateToOneWithWhereWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    where?: Nx01PartnerWhereInput
+    data: XOR<Nx01PartnerUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput, Nx01PartnerUncheckedUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput>
+  }
+
+  export type Nx01PartnerUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    partnerType?: StringFieldUpdateOperationsInput | string
+    contactName?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    mobile?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentTermDomestic?: StringFieldUpdateOperationsInput | string
+    creditLimit?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    creditStatus?: StringFieldUpdateOperationsInput | string
+    paymentTermImport?: NullableStringFieldUpdateOperationsInput | string | null
+    incoterm?: NullableStringFieldUpdateOperationsInput | string | null
+    tenant?: Nx99TenantUpdateOneRequiredWithoutRev_Nx01Partner_tenantIdNestedInput
+    customerGrade?: Nx01CustomerGradeUpdateOneWithoutRev_Nx01Partner_customerGradeIdNestedInput
+    rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
+    rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
+    rev_Nx03Parcel_toPartnerId?: Nx03ParcelUpdateManyWithoutToPartnerNestedInput
+    rev_Nx04Co_customerId?: Nx04CoUpdateManyWithoutCustomerNestedInput
+    rev_Nx04Quote_customerId?: Nx04QuoteUpdateManyWithoutCustomerNestedInput
+    rev_Nx04So_customerId?: Nx04SoUpdateManyWithoutCustomerNestedInput
+    rev_Nx04Sr_customerId?: Nx04SrUpdateManyWithoutCustomerNestedInput
+    rev_Nx05Allowance_partnerId?: Nx05AllowanceUpdateManyWithoutPartnerNestedInput
+    rev_Nx05ApLedger_supplierId?: Nx05ApLedgerUpdateManyWithoutSupplierNestedInput
+    rev_Nx05ArLedger_customerId?: Nx05ArLedgerUpdateManyWithoutCustomerNestedInput
+    rev_Nx05Note_partnerId?: Nx05NoteUpdateManyWithoutPartnerNestedInput
+    rev_Nx05Paylog_partnerId?: Nx05PaylogUpdateManyWithoutPartnerNestedInput
+    rev_Nx06DnStop_partnerId?: Nx06DnStopUpdateManyWithoutPartnerNestedInput
+    rev_Nx08PurchaseCache_supplierId?: Nx08PurchaseCacheUpdateManyWithoutSupplierNestedInput
+    rev_Nx08SalesCache_customerId?: Nx08SalesCacheUpdateManyWithoutCustomerNestedInput
+  }
+
+  export type Nx01PartnerUncheckedUpdateWithoutRev_Nx02Qt_inquiryPartnerIdInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    partnerType?: StringFieldUpdateOperationsInput | string
+    contactName?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    mobile?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    remark?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    taxId?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentTermDomestic?: StringFieldUpdateOperationsInput | string
+    customerGradeId?: NullableStringFieldUpdateOperationsInput | string | null
+    creditLimit?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    creditStatus?: StringFieldUpdateOperationsInput | string
+    paymentTermImport?: NullableStringFieldUpdateOperationsInput | string | null
+    incoterm?: NullableStringFieldUpdateOperationsInput | string | null
+    rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
+    rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
+    rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedUpdateManyWithoutToPartnerNestedInput
+    rev_Nx04Co_customerId?: Nx04CoUncheckedUpdateManyWithoutCustomerNestedInput
+    rev_Nx04Quote_customerId?: Nx04QuoteUncheckedUpdateManyWithoutCustomerNestedInput
+    rev_Nx04So_customerId?: Nx04SoUncheckedUpdateManyWithoutCustomerNestedInput
+    rev_Nx04Sr_customerId?: Nx04SrUncheckedUpdateManyWithoutCustomerNestedInput
+    rev_Nx05Allowance_partnerId?: Nx05AllowanceUncheckedUpdateManyWithoutPartnerNestedInput
+    rev_Nx05ApLedger_supplierId?: Nx05ApLedgerUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx05ArLedger_customerId?: Nx05ArLedgerUncheckedUpdateManyWithoutCustomerNestedInput
+    rev_Nx05Note_partnerId?: Nx05NoteUncheckedUpdateManyWithoutPartnerNestedInput
+    rev_Nx05Paylog_partnerId?: Nx05PaylogUncheckedUpdateManyWithoutPartnerNestedInput
+    rev_Nx06DnStop_partnerId?: Nx06DnStopUncheckedUpdateManyWithoutPartnerNestedInput
+    rev_Nx08PurchaseCache_supplierId?: Nx08PurchaseCacheUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx08SalesCache_customerId?: Nx08SalesCacheUncheckedUpdateManyWithoutCustomerNestedInput
+  }
+
   export type Nx99TenantCreateWithoutRev_Nx02Rfq_tenantIdInput = {
     id?: string
     code: string
@@ -313492,6 +316535,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
     rev_Nx02Ti_tenantId?: Nx02TiCreateNestedManyWithoutTenantInput
@@ -313613,6 +316657,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Ti_tenantId?: Nx02TiUncheckedCreateNestedManyWithoutTenantInput
@@ -313720,6 +316765,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelCreateNestedManyWithoutToPartnerInput
@@ -313764,6 +316810,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedCreateNestedManyWithoutToPartnerInput
@@ -314071,6 +317118,48 @@ export namespace Prisma {
 
   export type Nx02PoCreateManyRfqInputEnvelope = {
     data: Nx02PoCreateManyRfqInput | Nx02PoCreateManyRfqInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type Nx02QtCreateWithoutRfqInput = {
+    id?: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    tenant: Nx99TenantCreateNestedOneWithoutRev_Nx02Qt_tenantIdInput
+    inquiryPartner: Nx01PartnerCreateNestedOneWithoutRev_Nx02Qt_inquiryPartnerIdInput
+  }
+
+  export type Nx02QtUncheckedCreateWithoutRfqInput = {
+    id?: string
+    tenantId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
+  export type Nx02QtCreateOrConnectWithoutRfqInput = {
+    where: Nx02QtWhereUniqueInput
+    create: XOR<Nx02QtCreateWithoutRfqInput, Nx02QtUncheckedCreateWithoutRfqInput>
+  }
+
+  export type Nx02QtCreateManyRfqInputEnvelope = {
+    data: Nx02QtCreateManyRfqInput | Nx02QtCreateManyRfqInput[]
     skipDuplicates?: boolean
   }
 
@@ -314441,6 +317530,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
     rev_Nx02Ti_tenantId?: Nx02TiUpdateManyWithoutTenantNestedInput
@@ -314562,6 +317652,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Ti_tenantId?: Nx02TiUncheckedUpdateManyWithoutTenantNestedInput
@@ -314675,6 +317766,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUpdateManyWithoutToPartnerNestedInput
@@ -314719,6 +317811,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedUpdateManyWithoutToPartnerNestedInput
@@ -314932,6 +318025,22 @@ export namespace Prisma {
     data: XOR<Nx02PoUpdateManyMutationInput, Nx02PoUncheckedUpdateManyWithoutRfqInput>
   }
 
+  export type Nx02QtUpsertWithWhereUniqueWithoutRfqInput = {
+    where: Nx02QtWhereUniqueInput
+    update: XOR<Nx02QtUpdateWithoutRfqInput, Nx02QtUncheckedUpdateWithoutRfqInput>
+    create: XOR<Nx02QtCreateWithoutRfqInput, Nx02QtUncheckedCreateWithoutRfqInput>
+  }
+
+  export type Nx02QtUpdateWithWhereUniqueWithoutRfqInput = {
+    where: Nx02QtWhereUniqueInput
+    data: XOR<Nx02QtUpdateWithoutRfqInput, Nx02QtUncheckedUpdateWithoutRfqInput>
+  }
+
+  export type Nx02QtUpdateManyWithWhereWithoutRfqInput = {
+    where: Nx02QtScalarWhereInput
+    data: XOR<Nx02QtUpdateManyMutationInput, Nx02QtUncheckedUpdateManyWithoutRfqInput>
+  }
+
   export type Nx02RfqItemUpsertWithWhereUniqueWithoutRfqInput = {
     where: Nx02RfqItemWhereUniqueInput
     update: XOR<Nx02RfqItemUpdateWithoutRfqInput, Nx02RfqItemUncheckedUpdateWithoutRfqInput>
@@ -315036,6 +318145,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageCreateNestedManyWithoutRefRfqInput
@@ -315066,6 +318176,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedCreateNestedManyWithoutRefRfqInput
@@ -315427,6 +318538,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUpdateManyWithoutRefRfqNestedInput
@@ -315457,6 +318569,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedUpdateManyWithoutRefRfqNestedInput
@@ -315778,6 +318891,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
     rev_Nx02Ti_tenantId?: Nx02TiCreateNestedManyWithoutTenantInput
@@ -315899,6 +319013,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Ti_tenantId?: Nx02TiUncheckedCreateNestedManyWithoutTenantInput
@@ -316111,6 +319226,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelCreateNestedManyWithoutToPartnerInput
@@ -316155,6 +319271,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedCreateNestedManyWithoutToPartnerInput
@@ -316201,6 +319318,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageCreateNestedManyWithoutRefRfqInput
@@ -316231,6 +319349,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedCreateNestedManyWithoutRefRfqInput
@@ -316763,6 +319882,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
     rev_Nx02Ti_tenantId?: Nx02TiUpdateManyWithoutTenantNestedInput
@@ -316884,6 +320004,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Ti_tenantId?: Nx02TiUncheckedUpdateManyWithoutTenantNestedInput
@@ -317108,6 +320229,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUpdateManyWithoutToPartnerNestedInput
@@ -317152,6 +320274,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedUpdateManyWithoutToPartnerNestedInput
@@ -317204,6 +320327,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUpdateManyWithoutRefRfqNestedInput
@@ -317234,6 +320358,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedUpdateManyWithoutRefRfqNestedInput
@@ -317514,6 +320639,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02Ti_tenantId?: Nx02TiCreateNestedManyWithoutTenantInput
@@ -317635,6 +320761,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Ti_tenantId?: Nx02TiUncheckedCreateNestedManyWithoutTenantInput
@@ -317977,6 +321104,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02Ti_tenantId?: Nx02TiUpdateManyWithoutTenantNestedInput
@@ -318098,6 +321226,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Ti_tenantId?: Nx02TiUncheckedUpdateManyWithoutTenantNestedInput
@@ -319050,6 +322179,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -319171,6 +322301,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -319383,6 +322514,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelCreateNestedManyWithoutToPartnerInput
@@ -319427,6 +322559,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedCreateNestedManyWithoutToPartnerInput
@@ -319473,6 +322606,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageCreateNestedManyWithoutRefRfqInput
@@ -319503,6 +322637,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedCreateNestedManyWithoutRefRfqInput
@@ -319892,6 +323027,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -320013,6 +323149,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -320237,6 +323374,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUpdateManyWithoutToPartnerNestedInput
@@ -320281,6 +323419,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx03Parcel_toPartnerId?: Nx03ParcelUncheckedUpdateManyWithoutToPartnerNestedInput
@@ -320333,6 +323472,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUpdateManyWithoutRefRfqNestedInput
@@ -320363,6 +323503,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx03Shortage_refRfqId?: Nx03ShortageUncheckedUpdateManyWithoutRefRfqNestedInput
@@ -321304,6 +324445,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -321425,6 +324567,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -321772,6 +324915,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -321893,6 +325037,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -322236,6 +325381,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -322357,6 +325503,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -322643,6 +325790,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -322764,6 +325912,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -323488,6 +326637,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -323609,6 +326759,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -323979,6 +327130,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -324023,6 +327175,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -324194,6 +327347,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -324315,6 +327469,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -324709,6 +327864,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -324753,6 +327909,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -324848,6 +328005,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -324969,6 +328127,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -325332,6 +328491,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -325453,6 +328613,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -325812,6 +328973,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -325933,6 +329095,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -326283,6 +329446,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -326404,6 +329568,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -327652,6 +330817,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -327773,6 +330939,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -328150,6 +331317,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -328271,6 +331439,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -329136,6 +332305,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -329257,6 +332427,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -329587,6 +332758,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -329617,6 +332789,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -329685,6 +332858,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -329806,6 +332980,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -330154,6 +333329,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -330184,6 +333360,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -330236,6 +333413,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -330357,6 +333535,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -331032,6 +334211,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -331153,6 +334333,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -332602,6 +335783,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -332723,6 +335905,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -333086,6 +336269,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -333207,6 +336391,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -333566,6 +336751,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -333687,6 +336873,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -334117,6 +337304,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -334238,6 +337426,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -334670,6 +337859,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -334791,6 +337981,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -335093,6 +338284,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -335214,6 +338406,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -336174,6 +339367,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -336295,6 +339489,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -336581,6 +339776,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -336702,6 +339898,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -337426,6 +340623,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -337547,6 +340745,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -337833,6 +341032,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -337954,6 +341154,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -338678,6 +341879,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -338799,6 +342001,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -339011,6 +342214,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -339055,6 +342259,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -339406,6 +342611,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -339527,6 +342733,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -339751,6 +342958,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -339795,6 +343003,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -340080,6 +343289,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -340201,6 +343411,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -340413,6 +343624,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -340457,6 +343669,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -340589,6 +343802,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -340619,6 +343833,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -340823,6 +344038,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -340944,6 +344160,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -341168,6 +344385,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -341212,6 +344430,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -341362,6 +344581,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -341392,6 +344612,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -342026,6 +345247,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -342147,6 +345369,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -342359,6 +345582,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -342403,6 +345627,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -342982,6 +346207,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -343103,6 +346329,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -343327,6 +346554,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -343371,6 +346599,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -345278,6 +348507,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -345399,6 +348629,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -345611,6 +348842,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -345655,6 +348887,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -345931,6 +349164,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -346052,6 +349286,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -346276,6 +349511,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -346320,6 +349556,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -347160,6 +350397,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -347281,6 +350519,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -347478,6 +350717,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -347599,6 +350839,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -347736,6 +350977,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -347857,6 +351099,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -347964,6 +351207,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -348008,6 +351252,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -348243,6 +351488,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -348364,6 +351610,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -348477,6 +351724,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -348521,6 +351769,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -348847,6 +352096,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -348968,6 +352218,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -349286,6 +352537,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -349330,6 +352582,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -349572,6 +352825,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -349693,6 +352947,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -350035,6 +353290,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -350079,6 +353335,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -350231,6 +353488,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -350352,6 +353610,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -350534,6 +353793,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -350578,6 +353838,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -350820,6 +354081,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -350941,6 +354203,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -351135,6 +354398,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -351179,6 +354443,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -351331,6 +354596,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -351452,6 +354718,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -351589,6 +354856,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -351710,6 +354978,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -351831,6 +355100,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -351952,6 +355222,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -352059,6 +355330,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -352103,6 +355375,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -352348,6 +355621,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -352469,6 +355743,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -352582,6 +355857,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -352626,6 +355902,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -352823,6 +356100,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -352944,6 +356222,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -353051,6 +356330,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -353095,6 +356375,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -353495,6 +356776,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -353616,6 +356898,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -353729,6 +357012,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -353773,6 +357057,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -354141,6 +357426,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -354262,6 +357548,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -354859,6 +358146,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -354980,6 +358268,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -356135,6 +359424,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -356179,6 +359469,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -356465,6 +359756,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -356509,6 +359801,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -356699,6 +359992,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -356820,6 +360114,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -357103,6 +360398,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -357224,6 +360520,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -357503,6 +360800,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -357624,6 +360922,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -357866,6 +361165,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -357987,6 +361287,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -358219,6 +361520,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -358340,6 +361642,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -358631,6 +361934,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -358752,6 +362056,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -359039,6 +362344,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -359160,6 +362466,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -359451,6 +362758,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -359572,6 +362880,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -359859,6 +363168,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -359980,6 +363290,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -360201,6 +363512,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -360322,6 +363634,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -360475,6 +363788,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -360596,6 +363910,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -360844,6 +364159,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -360965,6 +364281,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -361203,6 +364520,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -361324,6 +364642,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -361540,6 +364859,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -361661,6 +364981,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -361869,6 +365190,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -361990,6 +365312,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -362264,6 +365587,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -362385,6 +365709,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -362835,6 +366160,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -362956,6 +366282,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -363204,6 +366531,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -363325,6 +366653,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -363563,6 +366892,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -363684,6 +367014,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -363902,6 +367233,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -364023,6 +367355,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -364907,6 +368240,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -365028,6 +368362,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -365205,6 +368540,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -365326,6 +368662,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -365463,6 +368800,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -365584,6 +368922,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -365943,6 +369282,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -366064,6 +369404,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -366419,6 +369760,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -366540,6 +369882,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -366677,6 +370020,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -366798,6 +370142,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -366919,6 +370264,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -367040,6 +370386,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -367374,6 +370721,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -367495,6 +370843,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -367831,6 +371180,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -367952,6 +371302,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -368200,6 +371551,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -368321,6 +371673,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -368559,6 +371912,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -368680,6 +372034,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -368817,6 +372172,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -368938,6 +372294,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -369059,6 +372416,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -369180,6 +372538,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -369428,6 +372787,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -369549,6 +372909,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -369787,6 +373148,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -369908,6 +373270,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -370271,6 +373634,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -370392,6 +373756,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -370751,6 +374116,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -370872,6 +374238,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -371120,6 +374487,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -371241,6 +374609,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -371479,6 +374848,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -371600,6 +374970,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -371737,6 +375108,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -371858,6 +375230,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -371979,6 +375352,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -372100,6 +375474,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -372207,6 +375582,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -372251,6 +375627,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -372330,6 +375707,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -372451,6 +375829,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -372564,6 +375943,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -372608,6 +375988,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -372671,6 +376052,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -372792,6 +376174,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -372899,6 +376282,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -372943,6 +376327,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -373022,6 +376407,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -373143,6 +376529,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -373256,6 +376643,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -373300,6 +376688,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -373363,6 +376752,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -373484,6 +376874,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -373621,6 +377012,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -373742,6 +377134,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -373863,6 +377256,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -373984,6 +377378,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -374196,6 +377591,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -374317,6 +377713,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -374604,6 +378001,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -374725,6 +378123,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -374953,6 +378352,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -375074,6 +378474,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -375447,6 +378848,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -375568,6 +378970,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -375861,6 +379264,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -375982,6 +379386,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -376271,6 +379676,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -376392,6 +379798,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -376553,6 +379960,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -376674,6 +380082,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -376811,6 +380220,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -376932,6 +380342,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -377290,6 +380701,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -377411,6 +380823,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -377711,6 +381124,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -377832,6 +381246,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -378150,6 +381565,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -378271,6 +381687,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -379065,6 +382482,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -379186,6 +382604,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -379434,6 +382853,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -379555,6 +382975,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -379793,6 +383214,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -379914,6 +383336,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -380162,6 +383585,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -380283,6 +383707,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -380521,6 +383946,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -380642,6 +384068,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -380931,6 +384358,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -381052,6 +384480,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -381337,6 +384766,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -381458,6 +384888,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -381749,6 +385180,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -381870,6 +385302,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -382157,6 +385590,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -382278,6 +385712,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -382495,6 +385930,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -382616,6 +386052,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -382769,6 +386206,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -382890,6 +386328,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -383249,6 +386688,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -383370,6 +386810,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -383725,6 +387166,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -383846,6 +387288,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -384168,6 +387611,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -384289,6 +387733,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -384579,6 +388024,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -384700,6 +388146,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -384989,6 +388436,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -385110,6 +388558,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -385395,6 +388844,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -385516,6 +388966,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -385685,6 +389136,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -385806,6 +389258,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -385943,6 +389396,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -386064,6 +389518,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -386349,6 +389804,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -386470,6 +389926,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -386751,6 +390208,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -386872,6 +390330,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -387120,6 +390579,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -387241,6 +390701,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -387479,6 +390940,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -387600,6 +391062,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -387769,6 +391232,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -387890,6 +391354,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -388027,6 +391492,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -388148,6 +391614,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -388424,6 +391891,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -388545,6 +392013,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -388793,6 +392262,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -388914,6 +392384,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -389193,6 +392664,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -389314,6 +392786,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -389589,6 +393062,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -389710,6 +393184,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -389847,6 +393322,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -389968,6 +393444,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -390444,6 +393921,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportCreateNestedManyWithoutTenantInput
@@ -390565,6 +394043,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedCreateNestedManyWithoutTenantInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedCreateNestedManyWithoutTenantInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedCreateNestedManyWithoutTenantInput
@@ -390856,6 +394335,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUpdateManyWithoutTenantNestedInput
@@ -390977,6 +394457,7 @@ export namespace Prisma {
     rev_Nx02Demand_tenantId?: Nx02DemandUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Po_tenantId?: Nx02PoUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Pr_tenantId?: Nx02PrUncheckedUpdateManyWithoutTenantNestedInput
+    rev_Nx02Qt_tenantId?: Nx02QtUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rfq_tenantId?: Nx02RfqUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02Rr_tenantId?: Nx02RrUncheckedUpdateManyWithoutTenantNestedInput
     rev_Nx02RrImport_tenantId?: Nx02RrImportUncheckedUpdateManyWithoutTenantNestedInput
@@ -392141,6 +395622,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiCreateNestedManyWithoutPartnerInput
@@ -392185,6 +395667,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedCreateNestedManyWithoutCustomerInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedCreateNestedManyWithoutSupplierInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedCreateNestedManyWithoutInquiryPartnerInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedCreateNestedManyWithoutSupplierInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedCreateNestedManyWithoutPartnerInput
@@ -392875,6 +396358,48 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type Nx02QtCreateWithoutTenantInput = {
+    id?: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+    rfq: Nx02RfqCreateNestedOneWithoutRev_Nx02Qt_rfqIdInput
+    inquiryPartner: Nx01PartnerCreateNestedOneWithoutRev_Nx02Qt_inquiryPartnerIdInput
+  }
+
+  export type Nx02QtUncheckedCreateWithoutTenantInput = {
+    id?: string
+    rfqId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
+  export type Nx02QtCreateOrConnectWithoutTenantInput = {
+    where: Nx02QtWhereUniqueInput
+    create: XOR<Nx02QtCreateWithoutTenantInput, Nx02QtUncheckedCreateWithoutTenantInput>
+  }
+
+  export type Nx02QtCreateManyTenantInputEnvelope = {
+    data: Nx02QtCreateManyTenantInput | Nx02QtCreateManyTenantInput[]
+    skipDuplicates?: boolean
+  }
+
   export type Nx02RfqCreateWithoutTenantInput = {
     id?: string
     docNo: string
@@ -392898,6 +396423,7 @@ export namespace Prisma {
     demand?: Nx02DemandCreateNestedOneWithoutRev_Nx02Rfq_demandIdInput
     rev_Nx02Demand_refRfqId?: Nx02DemandCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiCreateNestedManyWithoutRfqInput
@@ -392928,6 +396454,7 @@ export namespace Prisma {
     demandId?: string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedCreateNestedManyWithoutRefRfqInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedCreateNestedManyWithoutRfqInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedCreateNestedManyWithoutRfqInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedCreateNestedManyWithoutRfqInput
@@ -397082,6 +400609,22 @@ export namespace Prisma {
     data: XOR<Nx02PrUpdateManyMutationInput, Nx02PrUncheckedUpdateManyWithoutTenantInput>
   }
 
+  export type Nx02QtUpsertWithWhereUniqueWithoutTenantInput = {
+    where: Nx02QtWhereUniqueInput
+    update: XOR<Nx02QtUpdateWithoutTenantInput, Nx02QtUncheckedUpdateWithoutTenantInput>
+    create: XOR<Nx02QtCreateWithoutTenantInput, Nx02QtUncheckedCreateWithoutTenantInput>
+  }
+
+  export type Nx02QtUpdateWithWhereUniqueWithoutTenantInput = {
+    where: Nx02QtWhereUniqueInput
+    data: XOR<Nx02QtUpdateWithoutTenantInput, Nx02QtUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type Nx02QtUpdateManyWithWhereWithoutTenantInput = {
+    where: Nx02QtScalarWhereInput
+    data: XOR<Nx02QtUpdateManyMutationInput, Nx02QtUncheckedUpdateManyWithoutTenantInput>
+  }
+
   export type Nx02RfqUpsertWithWhereUniqueWithoutTenantInput = {
     where: Nx02RfqWhereUniqueInput
     update: XOR<Nx02RfqUpdateWithoutTenantInput, Nx02RfqUncheckedUpdateWithoutTenantInput>
@@ -400121,6 +403664,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -400165,6 +403709,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -404811,6 +408356,22 @@ export namespace Prisma {
     paymentStatus?: string
   }
 
+  export type Nx02QtCreateManyInquiryPartnerInput = {
+    id?: string
+    tenantId: string
+    rfqId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
   export type Nx02RfqCreateManySupplierInput = {
     id?: string
     tenantId: string
@@ -405432,6 +408993,54 @@ export namespace Prisma {
     paymentStatus?: StringFieldUpdateOperationsInput | string
   }
 
+  export type Nx02QtUpdateWithoutInquiryPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutRev_Nx02Qt_tenantIdNestedInput
+    rfq?: Nx02RfqUpdateOneRequiredWithoutRev_Nx02Qt_rfqIdNestedInput
+  }
+
+  export type Nx02QtUncheckedUpdateWithoutInquiryPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    rfqId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type Nx02QtUncheckedUpdateManyWithoutInquiryPartnerInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    rfqId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
   export type Nx02RfqUpdateWithoutSupplierInput = {
     id?: StringFieldUpdateOperationsInput | string
     docNo?: StringFieldUpdateOperationsInput | string
@@ -405455,6 +409064,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -405485,6 +409095,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -410741,6 +414352,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -410771,6 +414383,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -412926,6 +416539,7 @@ export namespace Prisma {
     warehouse?: Nx01WarehouseUpdateOneRequiredWithoutRev_Nx02Rfq_warehouseIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -412956,6 +416570,7 @@ export namespace Prisma {
     validUntil?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
@@ -413607,6 +417222,22 @@ export namespace Prisma {
     incoterm?: string | null
   }
 
+  export type Nx02QtCreateManyRfqInput = {
+    id?: string
+    tenantId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
   export type Nx02RfqItemCreateManyRfqInput = {
     id?: string
     lineNo?: number
@@ -413890,6 +417521,54 @@ export namespace Prisma {
     eta?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     paymentTermImport?: NullableStringFieldUpdateOperationsInput | string | null
     incoterm?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type Nx02QtUpdateWithoutRfqInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    tenant?: Nx99TenantUpdateOneRequiredWithoutRev_Nx02Qt_tenantIdNestedInput
+    inquiryPartner?: Nx01PartnerUpdateOneRequiredWithoutRev_Nx02Qt_inquiryPartnerIdNestedInput
+  }
+
+  export type Nx02QtUncheckedUpdateWithoutRfqInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    inquiryPartnerId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type Nx02QtUncheckedUpdateManyWithoutRfqInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    inquiryPartnerId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
   }
 
   export type Nx02RfqItemUpdateWithoutRfqInput = {
@@ -421107,6 +424786,22 @@ export namespace Prisma {
     paymentStatus?: string
   }
 
+  export type Nx02QtCreateManyTenantInput = {
+    id?: string
+    rfqId: string
+    inquiryPartnerId: string
+    quotedPrice: Decimal | DecimalJsLike | number | string
+    quotedQuantity: Decimal | DecimalJsLike | number | string
+    leadDays?: number | null
+    status?: string
+    notes?: string | null
+    rejectReason?: string | null
+    createdAt?: Date | string
+    createdBy: string
+    updatedAt?: Date | string
+    updatedBy: string
+  }
+
   export type Nx02RfqCreateManyTenantInput = {
     id?: string
     docNo: string
@@ -423377,6 +427072,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUpdateManyWithoutPartnerNestedInput
@@ -423421,6 +427117,7 @@ export namespace Prisma {
     rev_Nx02Demand_customerId?: Nx02DemandUncheckedUpdateManyWithoutCustomerNestedInput
     rev_Nx02Po_supplierId?: Nx02PoUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Pr_supplierId?: Nx02PrUncheckedUpdateManyWithoutSupplierNestedInput
+    rev_Nx02Qt_inquiryPartnerId?: Nx02QtUncheckedUpdateManyWithoutInquiryPartnerNestedInput
     rev_Nx02Rfq_supplierId?: Nx02RfqUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Rr_supplierId?: Nx02RrUncheckedUpdateManyWithoutSupplierNestedInput
     rev_Nx02Ti_partnerId?: Nx02TiUncheckedUpdateManyWithoutPartnerNestedInput
@@ -424204,6 +427901,54 @@ export namespace Prisma {
     paymentStatus?: StringFieldUpdateOperationsInput | string
   }
 
+  export type Nx02QtUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+    rfq?: Nx02RfqUpdateOneRequiredWithoutRev_Nx02Qt_rfqIdNestedInput
+    inquiryPartner?: Nx01PartnerUpdateOneRequiredWithoutRev_Nx02Qt_inquiryPartnerIdNestedInput
+  }
+
+  export type Nx02QtUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    rfqId?: StringFieldUpdateOperationsInput | string
+    inquiryPartnerId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type Nx02QtUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    rfqId?: StringFieldUpdateOperationsInput | string
+    inquiryPartnerId?: StringFieldUpdateOperationsInput | string
+    quotedPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    quotedQuantity?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    leadDays?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    rejectReason?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdBy?: StringFieldUpdateOperationsInput | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedBy?: StringFieldUpdateOperationsInput | string
+  }
+
   export type Nx02RfqUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     docNo?: StringFieldUpdateOperationsInput | string
@@ -424227,6 +427972,7 @@ export namespace Prisma {
     demand?: Nx02DemandUpdateOneWithoutRev_Nx02Rfq_demandIdNestedInput
     rev_Nx02Demand_refRfqId?: Nx02DemandUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUpdateManyWithoutRfqNestedInput
@@ -424257,6 +428003,7 @@ export namespace Prisma {
     demandId?: NullableStringFieldUpdateOperationsInput | string | null
     rev_Nx02Demand_refRfqId?: Nx02DemandUncheckedUpdateManyWithoutRefRfqNestedInput
     rev_Nx02Po_rfqId?: Nx02PoUncheckedUpdateManyWithoutRfqNestedInput
+    rev_Nx02Qt_rfqId?: Nx02QtUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02RfqItem_rfqId?: Nx02RfqItemUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Rr_rfqId?: Nx02RrUncheckedUpdateManyWithoutRfqNestedInput
     rev_Nx02Ti_rfqId?: Nx02TiUncheckedUpdateManyWithoutRfqNestedInput
