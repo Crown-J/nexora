@@ -151,6 +151,8 @@ async acquireXactLocks(tx, keys: { tenantId, partId, warehouseId }[]) {
 
 **SET LOCAL 範圍**：只在當前 transaction 有效，不污染 connection pool。
 
+**Lock timeout 觸發 log 級別**：當 catch 到 `55P03` 時 logger 必須 WARN（不是 INFO）。理由：staging / prod 出現大量 lock timeout 是系統訊號（通常代表 trigger 鏈跑慢、connection pool 卡死、或併發量超預期），需要 monitor 抓得到。實作位置：`runWithRetry` 內 `logger.warn(`Translate retry attempt=N reason=LOCK_TIMEOUT backoffMs=M`)`。普通 deadlock retry（40P01）也走同條 WARN log。
+
 ### 取捨 4（意圖 Q4）：失敗訊息 — 三層 Exception
 
 ```
@@ -535,6 +537,15 @@ export class TranslatorErrorFilter implements ExceptionFilter {
 ---
 
 ## 6. 跟既有 schema 的互動細節
+
+> ⚠️ **這個取捨依賴 D3-impl trigger 3+4 的行為。如果未來修改 trigger，必須同步檢查 translator。**
+>
+> Translator 對下列 D3 trigger 行為有預設：
+> - **Trigger 3**（`trg_nx04_so_item_dual_write`）會自動把 `(transfer_status, fulfill_status)` 雙寫成舊 `item_status` — translator INSERT line item 時不寫 `itemStatus`，依賴 trigger 補上
+> - **Trigger 4**（`trg_nx04_so_protect_source_type_t`）會強制 `nx04_so.source_type = 'S'` — translator 給什麼值都會被覆蓋
+> - **Trigger 1**（`trg_nx04_so_item_reserved_sync`）會根據 line item 變動自動算 `nx03_stock_balance.reserved_qty` — translator 傳 `reservedQty: 0`，trigger 會在 AFTER INSERT 階段同步加上正確值
+>
+> 修改其中任何一個 trigger 之前，**必須**回頭檢查 translator 的對應段落（§6.1 / §6.2 / §6.3）是否仍 valid。建議改 trigger 時搜尋 `trg_nx04_so_` 找到 D3-trigger.md 跟本 spec 兩處同步更新。
 
 ### 6.1 INSERT `nx04_so` 時
 
