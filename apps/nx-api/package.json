@@ -8,8 +8,8 @@
     "build": "nest build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:unit": "vitest run --exclude '**/*.int-spec.ts'",
-    "test:integration": "vitest run --include '**/*.int-spec.ts'"
+    "test:unit": "vitest run",
+    "test:integration": "vitest run \"src/**/*.int-spec.ts\""
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -39,6 +39,18 @@ import {
 
 const RETRY_BACKOFFS_MS = [50, 200, 800];
 
+/**
+ * 依 transferSourceType 決定 line item 的初始 transferStatus。
+ * D4 意圖 §3.5：S → 'C'（本倉夠 / 直接 completed）；T/G/B → 'P'（補貨單建好後 RefreshmentDocCreator 會立即 UPDATE 為 'I'）
+ *
+ * Exported as pure function for unit testing without NestJS DI.
+ */
+export function getInitialTransferStatus(
+  transferSourceType: 'S' | 'T' | 'G' | 'B',
+): 'P' | 'I' | 'C' {
+  return transferSourceType === 'S' ? 'C' : 'P';
+}
+
 @Injectable()
 export class Nx04SoTranslatorService {
   private readonly logger = new Logger(Nx04SoTranslatorService.name);
@@ -223,10 +235,7 @@ export class Nx04SoTranslatorService {
       const unit = new PrismaNs.Decimal(it.unitPrice);
       const lineAmount = qty.mul(unit).toDecimalPlaces(2);
 
-      // initial transferStatus（D4 意圖 §3.5）
-      // S → C (本倉夠 / 直接 completed)
-      // T/G/B → P (RefreshmentDocCreator 建好補貨單後立刻 UPDATE 為 'I')
-      const initialTransferStatus = it.transferSourceType === 'S' ? 'C' : 'P';
+      const initialTransferStatus = getInitialTransferStatus(it.transferSourceType);
 
       const created = await tx.nx04SoItem.create({
         data: {
