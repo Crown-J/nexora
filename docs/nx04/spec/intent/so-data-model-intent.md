@@ -53,6 +53,26 @@ NEXORA 從「SOP 流程式 UI」轉向「5 工作台動作式 UI」。SO 資料�
 
 關鍵：「**選哪一種**」必須是結構化選項（下拉選單），不是 free text。
 
+#### 邊界補充：補貨單的兩種來源（v1.1 補）
+
+這份意圖文件 §2.1 描述的是「**業務送 SO 觸發補貨**」這條 path。但同樣的補貨單（ST 調撥 / TI 同行調貨 / CO 客戶訂單），實際業務上有兩種來源：
+
+1. **SO 觸發**：由 translator 自動建，必有對應 SO line item（`sourceSoItemId` 必填）
+2. **手動發起**：倉管 / 採購主動建，沒有對應 SO line item（`sourceSoItemId` 不適用）
+   - 例：倉管做庫存 rebalance（把 Z01 滯銷品調到 Z02 補貨）
+   - 例：盤點後倉位優化調撥
+   - 例：未來採購可能主動跟同行屯貨（B5 範圍）
+
+**schema 必須兼容兩種**，不能假設「所有 ST/TI/CO 都源自 SO」。
+
+具體影響：
+- `nx03_st_item.sourceSoItemId` 必須允許 null（手動調撥場景）
+- `nx02_ti_item.sourceSoItemId` 暫時維持 NOT NULL（既有無手動建 TI 的 caller）
+- `nx04_co.sourceSoItemId` 必填（CO 必由 SO 觸發）
+- 填寫責任在 caller：translator 必填、手動類 service 不填
+
+這段是 v1 漏的場景，2026-04-25 D4 實作時被 transfer.service 既有 code 揭露。
+
 ### 2.2 物理庫存 vs 業務承諾的雙帳
 
 兩個視角：
@@ -227,6 +247,7 @@ NEXORA 從「SOP 流程式 UI」轉向「5 工作台動作式 UI」。SO 資料�
 | 日期 | 版本 | 變動 |
 |---|---|---|
 | 2026-04-25 | 1.0 | 初版意圖文件，取代失準的 D3 v1（1059 行 schema spec）|
+| 2026-04-25 | 1.1 | §2.1 補「補貨單兩種來源」邊界段。v1 漏掉「手動調撥」場景，由 D4 實作時 transfer.service 揭露。對應 D3 patch migration（st_item.sourceSoItemId 改 nullable）|
 
 ---
 
