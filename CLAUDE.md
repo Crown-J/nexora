@@ -361,45 +361,29 @@ Commit：[TASK-CODE] description
 
 ## 十六、docs/ 資料夾說明
 
+> 2026-04-25 重整為 v2 結構（按 NX 模組劃分，C 方案）。完整索引見 [docs/README.md](docs/README.md)。
+
 ```
-docs/spec/
-  nx_model_v2.csv            ← 模組定義（12個模組）
-  nx_table_v7.csv            ← 表格清單（124張）
-  nx01_field_v1.csv          ← NX01 主檔（378欄/29表）
-  nx02_field_v1.csv          ← NX02 採購（261欄/12表）
-  nx03_field_v1.csv          ← NX03 庫存（273欄/16表）
-  nx04_field_v1.csv          ← NX04 銷售（133欄/6表）
-  nx05_field_v1.csv          ← NX05 財務（148欄/8表）
-  nx06_field_v1.csv          ← NX06 物流（55欄/3表）
-  nx07_field_v1.csv          ← NX07 人資（188欄/13表）
-  nx08_field_v1.csv          ← NX08 分析（150欄/9表）
-  nx09_field_v1.csv          ← NX09 知識（111欄/10表）
-  nx10_field_v1.csv          ← NX10 遊戲化（160欄/13表）
-  nx98_field_v1.csv          ← NX98 共用核心（11欄/1表）
-  nx99_field_v1.csv          ← NX99 系統管理（120欄/8表）
-  doc_number_rules_v3.csv    ← 單據編號規則（22筆，BX包裹格式）
-  version_plan.csv           ← 版本定價級距（9個級距）
-  version_feature_matrix.csv ← 功能矩陣（83項）
-
-docs/workflow/
-  主流程/    ← P-W01~NX10-W02 等主流程
-  子流程/    ← I01~F05 等子流程
-  SYS-W01_初始化作業流程.md
-  SYS-W02_版本升級作業流程.md
-  SYS-W03_版本退版作業流程.md
-  SYS-W04_Onboarding_Wizard.md
-
-docs/ui/                        ← 畫面規劃文件（視覺設計規格）
-  SYS_DASHBOARD.md              ← 首頁儀表板（PRO 遊戲化版）
-  SYS_LAYOUT.md                 ← Sidebar/Layout 共用框架（待產出）
-  NX01_PART.md                  ← 零件主檔（待產出）
-  NX01_PARTNER.md               ← 交易對象（待產出）
-  NX02_RFQ.md                   ← 詢價單（待產出）
-  NX02_PO.md                    ← 採購單（待產出）
-  NX02_RR.md                    ← 進貨單（待產出）
-  ...（依序補齊 118 個 View）
-
-docs/demo/                      ← v0 設計參考檔案
-  → 實體檔案位於 C:\nexora\demo\
-  home_v2/                      ← 首頁儀表板 v0 設計稿
+docs/
+├── README.md                 ← 文件總索引、命名規則、決策樹
+├── _shared/                  ← 跨模組共用
+│   ├── decisions/            ← ADR
+│   ├── plans/                ← Master Plan
+│   ├── reference/            ← 跨模組真相來源（nx-table.csv / doc-number-rules.csv / version-* / route-table-v2.md）
+│   └── system/               ← 跨模組系統層（首頁、版型、SYS-W 流程）
+├── nx01/ ... nx10/           ← 業務模組（與 §3 模組代碼對齊）
+│   ├── reference/            ← field-definitions.csv（取代舊 nxXX_field_v1.csv）
+│   ├── spec/                 ← 設計契約（intent/ Alex 寫，impl/ Hank 寫，按需長）
+│   ├── ui/                   ← 工作台畫面規劃
+│   └── workflow/             ← 業務流程（primary/ + sub/）
+├── nx98/ + nx99/             ← 共用核心 / 系統管理
+└── archive/YYYY-MM/          ← 已完成的歷史 task log
 ```
+
+**常用入口**：
+- 模組欄位定義：`docs/nx0X/reference/field-definitions.csv`
+- 跨模組規則：`docs/_shared/reference/`（nx-table / doc-number-rules / version-*）
+- ADR / Plan：`docs/_shared/decisions/` + `docs/_shared/plans/`
+- 業務流程：`docs/nx0X/workflow/primary/` + `docs/nx0X/workflow/sub/`
+
+**demo 設計參考檔**仍在 `C:\nexora\demo\`（不在 git）。
