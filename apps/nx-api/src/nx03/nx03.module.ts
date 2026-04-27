@@ -1,3 +1,4 @@
+// apps/nx-api/src/nx03/nx03.module.ts
 import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
@@ -10,6 +11,8 @@ import { StockBalanceController } from './stock-balance/stock-balance.controller
 import { StockBalanceService } from './stock-balance/stock-balance.service';
 import { StockLedgerController } from './stock-ledger/stock-ledger.controller';
 import { StockLedgerService } from './stock-ledger/stock-ledger.service';
+import { StockReservationController } from './stock-reservation/stock-reservation.controller';
+import { Nx03StockReservationService } from './stock-reservation/stock-reservation.service';
 import { StockTakeController } from './stocktake/stocktake.controller';
 import { StockTakeService } from './stocktake/stocktake.service';
 import { TransferController } from './transfer/transfer.controller';
@@ -20,6 +23,7 @@ import { TransferService } from './transfer/transfer.service';
   controllers: [
     StockBalanceController,
     StockLedgerController,
+    StockReservationController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -28,6 +32,7 @@ import { TransferService } from './transfer/transfer.service';
   providers: [
     StockBalanceService,
     StockLedgerService,
+    Nx03StockReservationService,
     InboundService,
     OutboundService,
     StockTakeService,

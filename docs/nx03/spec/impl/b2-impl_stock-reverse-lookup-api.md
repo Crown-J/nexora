@@ -132,19 +132,26 @@ OR: [
 
 ⚠️ 注意這跟既有 [stock-balance.controller.ts](apps/nx-api/src/nx03/stock-balance/stock-balance.controller.ts) 的 `@Roles('ADMIN')` 政策**不一致**。但既有 stock-balance 的 ADMIN-only 寫法太緊（業務也應該能看自己的庫存），是另一個 issue。**B2 不動既有 controller**，按拍板開放給登入 user。如果 Alex 想趁機把 stock-balance 也放寬，另起 task。
 
-### 取捨 5（§1.4）：salespersonName 從哪拿 — **採 (b) service-side 二段 lookup**
+### 取捨 5（§1.4）：建單者名稱從哪拿 — **採 (b) service-side 二段 lookup + 命名改 creatorId/creatorName**
 
 **方案**：
 - (a) schema patch：加 `Nx04So.salespersonId String? + creator Nx01User? @relation(...)` → 為 B2 動 schema 太重
 - (b) service-side 二段 query：第一查 SoItem + relations → 收集 createdBy ids → 第二查 user.findMany IN → service 端 map 進結果（非 N+1，是 2 round-trip）
-- (c) 暫不回 salesperson，spec 標 TODO
+- (c) 暫不回，spec 標 TODO
 
 **選 b 理由**：
 - 不動 schema（B2 範圍乾淨）
 - 不是 N+1（用 `where: { id: { in: [...] } }` 一次抓所有 user）
-- 為「業務名稱」這個 nice-to-have 動 schema 不划算（將來真的用 createdBy 跨多個 service 才考慮提升 schema）
+- 為「建單者名稱」這個 nice-to-have 動 schema 不划算
 
-⚠️ 將來若 SO「業務 vs 建單者」業務語意要拆（業務老王建單 vs 業務小李負責），再起 schema patch 加 salespersonId 欄位。Phase 0 範圍 createdBy = 業務本人 = salesperson，**這個 mapping 寫進 spec 跟 service comment**。
+**⚠️ 命名改 `creatorId` / `creatorName`（Crown 拍板附帶 1）**：
+
+不叫 `salespersonId` / `salespersonName`，理由：
+- 實務 `createdBy` 不一定是「業務歸屬」（代建單 / 主管建單場景常見）
+- 「業務看到 creator 知道是建單者，不會誤以為是業務歸屬」
+- 「業務歸屬」是另一個業務語意，將來真要顯示得另起 schema patch task
+
+→ 意圖 §5.2 的 `salespersonId` / `salespersonName` 在實作層**改為 `creatorId` / `creatorName`**，跟 schema `createdBy` 語意精準對齊。意圖版這條命名屬於業務理解疏漏，spec 內以實作命名為準。
 
 ---
 
@@ -333,8 +340,8 @@ export class Nx03StockReservationService {
         expectedDeliveryDate: raw.so.expectedDeliveryDate,
         customerId: raw.so.customer.id,
         customerName: raw.so.customer.name,
-        salespersonId: raw.so.createdBy,
-        salespersonName: userMap.get(raw.so.createdBy) ?? null,
+        creatorId: raw.so.createdBy,
+        creatorName: userMap.get(raw.so.createdBy) ?? null,
       },
       refreshmentDoc,
     };
@@ -483,7 +490,7 @@ orderBy: [
 | soLineItem.expectedDeliveryDate | **Nx04So.expectedDeliveryDate**（不在 SoItem） | header level |
 | so.id/docNo/soDate/status | Nx04So.\* | 直接 |
 | so.customerId/customerName | Nx04So.customer.id/name | join nx01_partner |
-| so.salespersonId/salespersonName | Nx04So.createdBy → nx01_user lookup | 取捨 5 方案 b |
+| so.creatorId/creatorName | Nx04So.createdBy → nx01_user lookup | 取捨 5 方案 b（命名改 creator*）|
 | refreshmentDoc.transfer.\* | Nx04SoItem.st.\* | join nx03_st |
 | refreshmentDoc.inquiry.\* | Nx04SoItem.ti.\* | join nx02_ti |
 | refreshmentDoc.inquiry.inquiryPartnerName | Nx04SoItem.ti.partner.name | join nx01_partner |
@@ -546,10 +553,33 @@ Reuse B5 的 `loadOrCreateB5Fixture()`（已建 part/warehouse/customer/inquiryP
 ### 8.2 範圍外的事
 
 - `stock-balance.controller` 既有 `@Roles('ADMIN')` 是否放寬 → **不在 B2 範圍**（另起 task 評估）
-- `Nx04So.salespersonId` schema patch → **不在 B2 範圍**（將來業務語意拆「業務 vs 建單者」時做）
-- 意圖 §5.2 `vendorPartnerName` 命名 → spec 內改用 `customerName`（CO 的對象是 customer）
 - 跨倉/跨料號反查 → Phase 2 W2 完整版
 - stock_ledger 歷史 → 另一 task
+
+### 8.3 未來 task 線索（Crown 拍板附帶 2）
+
+**TODO（記給未來 W2-mini 上線後評估）**：
+
+> 如果 W2-mini 上線後業務反映「需要看到實際業務歸屬（vs 建單者）」場景——
+> 例如業務小李代主管建單給老王的客戶、或夜班代日班建單——B2 回傳的
+> `creatorId/creatorName`（= `Nx04So.createdBy`）會無法準確反映業務歸屬。
+>
+> 對應方案：起 schema patch task 加 `nx04_so.salespersonId VARCHAR(15) NOT NULL FK to nx01_user`，
+> 從 SO 建單流程強制要求選擇業務歸屬，並在 B2 回傳新增獨立 `salespersonId` /
+> `salespersonName` 欄位（跟 `creatorId` / `creatorName` 並存）。
+>
+> 觸發信號：W2-mini 用戶回饋「creator 不是我要看的人」、或 NX04 業務績效報表
+> 開始要算個人業績時。
+>
+> 此線索**不影響 B2 落地**，是給後續觀察用。
+
+意圖版 §5.2 原命名 `salespersonId` / `salespersonName` 是上述「業務歸屬」概念，但 Phase 0
+schema 沒有這個欄位、實務上跟 createdBy 也不一定相同——所以 B2 落地用 `creatorId` /
+`creatorName` 老實對齊 schema，將來真要拆業務歸屬語意再起新 task。
+
+**意圖版命名修正紀錄**：
+- §5.2 `vendorPartnerName` for type='B'：CO schema 用 `customerId`（CO = 客戶訂單、不是廠商訂單）→ spec 用 `customerName` 對齊
+- §5.2 `salespersonId/Name`：schema 沒此欄位 → spec 用 `creatorId/Name` 對齊 createdBy 真實語意
 
 ### 8.3 schema 對齊檢查（自核對）
 
