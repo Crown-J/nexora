@@ -748,7 +748,8 @@ exports.Prisma.Nx02RfqScalarFieldEnum = {
   rfqReason: 'rfqReason',
   warehouseId: 'warehouseId',
   validUntil: 'validUntil',
-  demandId: 'demandId'
+  demandId: 'demandId',
+  sourceSoItemId: 'sourceSoItemId'
 };
 
 exports.Prisma.Nx02RfqItemScalarFieldEnum = {

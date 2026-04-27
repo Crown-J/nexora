@@ -1830,8 +1830,8 @@ model Nx02RrImport {
   totalQty        Decimal      @default(0) @map("total_qty") @db.Decimal(14, 4)
   /// 每件攤分成本（total_import_cost ÷ total_qty），自動計算後寫入。；啟用最低需求版本：LITE-CORE
   costPerUnit     Decimal      @default(0) @map("cost_per_unit") @db.Decimal(14, 4)
-  /// 幣別ID（FK nx02_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId      String       @map("currency_id") @db.VarChar(10)
+  /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
+  currencyId      String       @map("currency_id") @db.VarChar(15)
   /// 備註。；啟用最低需求版本：LITE-CORE
   remark          String?      @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
@@ -1926,8 +1926,8 @@ model Nx02Ti {
   partnerId             String         @map("partner_id") @db.VarChar(15)
   /// 來源詢價單ID（FK nx02_rfq，rfq_type=P）。；啟用最低需求版本：LITE-CORE
   rfqId                 String?        @map("rfq_id") @db.VarChar(15)
-  /// 幣別ID（FK nx02_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId            String         @map("currency_id") @db.VarChar(10)
+  /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
+  currencyId            String         @map("currency_id") @db.VarChar(15)
   /// 狀態（D=草稿/S=已發出/R=已回覆/P=待驗收/C=已完成/V=作廢）。；啟用最低需求版本：LITE-CORE
   status                String         @default("D") @db.VarChar(1)
   /// 小計（明細加總，未稅）。；啟用最低需求版本：LITE-CORE
@@ -3626,7 +3626,7 @@ model Nx05Note {
   /// 票面金額。；啟用最低需求版本：LITE-CORE
   amount                Decimal      @default(0) @db.Decimal(14, 2)
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId            String       @default("TWD") @map("currency_id") @db.VarChar(10)
+  currencyId            String       @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 開票日期。；啟用最低需求版本：LITE-CORE
   issueDate             DateTime     @map("issue_date") @db.Date
   /// 到期日。；啟用最低需求版本：LITE-CORE
