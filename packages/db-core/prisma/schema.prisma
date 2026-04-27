@@ -1637,10 +1637,13 @@ model Nx02Rfq {
   validUntil                DateTime?      @map("valid_until") @db.Date
   /// 來源採購需求單ID（可空，從採購需求單發起時填入）。；啟用最低需求版本：LITE-CORE
   demandId                  String?        @map("demand_id") @db.VarChar(15)
+  /// 來源 SO line item ID（D4 translator 建同行調貨 RFQ stub 時填入，B5 採用 QT 後反查 SO line item 用）。一般詢價（rfqType='G'）為空。；啟用最低需求版本：LITE-CORE
+  sourceSoItemId            String?        @map("source_so_item_id") @db.VarChar(15)
   tenant                    Nx99Tenant     @relation("R_Nx02Rfq_tenantId", fields: [tenantId], references: [id])
   supplier                  Nx01Partner?   @relation("R_Nx02Rfq_supplierId", fields: [supplierId], references: [id])
   warehouse                 Nx01Warehouse  @relation("R_Nx02Rfq_warehouseId", fields: [warehouseId], references: [id])
   demand                    Nx02Demand?    @relation("R_Nx02Rfq_demandId", fields: [demandId], references: [id])
+  sourceSoItem              Nx04SoItem?    @relation("R_Nx02Rfq_sourceSoItemId", fields: [sourceSoItemId], references: [id])
   rev_Nx02Demand_refRfqId   Nx02Demand[]   @relation("R_Nx02Demand_refRfqId")
   rev_Nx02Po_rfqId          Nx02Po[]       @relation("R_Nx02Po_rfqId")
   rev_Nx02Qt_rfqId          Nx02Qt[]       @relation("R_Nx02Qt_rfqId")
@@ -1651,6 +1654,7 @@ model Nx02Rfq {
   rev_Nx04Quote_rfqId       Nx04Quote[]    @relation("R_Nx04Quote_rfqId")
 
   @@unique([docNo])
+  @@index([tenantId, sourceSoItemId], map: "nx02_rfq_tenant_source_so_item_idx")
   @@map("nx02_rfq")
 }
 
@@ -3184,6 +3188,7 @@ model Nx04SoItem {
   co                            Nx04Co?           @relation("R_Nx04SoItem_coId", fields: [coId], references: [id])
   rev_Nx03PkItem_refSoItemId    Nx03PkItem[]      @relation("R_Nx03PkItem_refSoItemId")
   rev_Nx04SrItem_soItemId       Nx04SrItem[]      @relation("R_Nx04SrItem_soItemId")
+  rev_Nx02Rfq_sourceSoItemId    Nx02Rfq[]         @relation("R_Nx02Rfq_sourceSoItemId")
   rev_Nx02TiItem_sourceSoItemId Nx02TiItem[]      @relation("R_Nx02TiItem_sourceSoItemId")
   rev_Nx03StItem_sourceSoItemId Nx03StItem[]      @relation("R_Nx03StItem_sourceSoItemId")
   rev_Nx04Co_sourceSoItemId     Nx04Co[]          @relation("R_Nx04Co_sourceSoItemId")

@@ -3,12 +3,10 @@
 //
 // 三種補貨單派發（D4-impl §3.4）：
 //   T (transfer) → INSERT nx03_st + nx03_st_item（sourceSoItemId 必填）→ UPDATE so_item.stId
-//   G (inquiry)  → INSERT nx02_rfq + nx02_rfq_item（stub，B5 spec 後完整化）→ so_item.tiId 留 null（B5 RFQ→TI 才填）
+//   G (inquiry)  → INSERT nx02_rfq + nx02_rfq_item（stub，sourceSoItemId 寫入給 B5 採用 QT 反查 SO line item 用）→ so_item.tiId 留 null（B5 採用 QT 才填）
 //   B (co)       → INSERT nx04_co（sourceSoItemId 必填）→ UPDATE so_item.coId
 //
 // 建好後 UPDATE line item.transferStatus = 'I'（D4 意圖 §3.5「立刻變」）
-//
-// ⚠️ G 走 stub：不建 Nx02Ti，僅 RFQ 殼。B5 spec 完成後升級。
 
 import { Injectable } from '@nestjs/common';
 import { Prisma as PrismaNs, type Prisma } from 'db-core';
@@ -158,6 +156,7 @@ export class RefreshmentDocCreator {
         warehouseId: so.warehouseId,
         rfqType: 'P', // 同行調貨詢價
         rfqReason: 'T',
+        sourceSoItemId: item.id, // B5 反查路徑：採用 QT 後透過此欄位找回對應 SO line item
         createdBy: user.sub,
         updatedBy: user.sub,
       },
