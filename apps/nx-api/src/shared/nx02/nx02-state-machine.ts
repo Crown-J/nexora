@@ -32,7 +32,10 @@ export const PrStatus = {
 } as const;
 
 const RFQ_EDGES: Record<string, Set<string>> = {
-  [RfqStatus.DRAFT]: new Set([RfqStatus.SENT, RfqStatus.CANCELLED]),
+  // B5 加邊 DRAFT → REPLIED：D4 translator 建的 stub 是 'DRAFT'，採購輸入第一個 QT
+  // 直接推到 'REPLIED'（業務跳過 SENT 中間狀態）。原本 DRAFT → SENT 邊保留以兼容
+  // 既有「先發 RFQ 再等回」的場景。
+  [RfqStatus.DRAFT]: new Set([RfqStatus.SENT, RfqStatus.REPLIED, RfqStatus.CANCELLED]),
   [RfqStatus.SENT]: new Set([RfqStatus.REPLIED, RfqStatus.CANCELLED]),
   [RfqStatus.REPLIED]: new Set([RfqStatus.CLOSED, RfqStatus.CANCELLED]),
   [RfqStatus.CLOSED]: new Set(),

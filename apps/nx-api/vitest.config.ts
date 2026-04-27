@@ -13,6 +13,9 @@ export default defineConfig({
     include: ['src/**/*.{spec,int-spec}.ts'],
     testTimeout: 60_000,
     hookTimeout: 60_000,
+    // 整合測試共用同一 DB（fixture loading + cleanup 不能並行 race）
+    // unit tests 並行收益微小，全部序列化簡化心智負擔
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
