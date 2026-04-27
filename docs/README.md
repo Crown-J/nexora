@@ -117,6 +117,7 @@ Hank  = 執行者（看 repo 全貌、對照真實狀態實作 + 寫具體細節
 3. 是「設計契約」？
    - Alex 寫的「要什麼」？ → `nxXX/spec/intent/`
    - Hank 寫的「怎麼寫」？ → `nxXX/spec/impl/`
+   - 跨模組的設計契約（不屬任一 NX 模組） → `_shared/spec/intent/` 或 `_shared/spec/impl/`
 4. 是「決策紀錄」？ → `_shared/decisions/YYYY-MM-DD_*.md`
 5. 是「計畫書」？ → `_shared/plans/YYYY-MM-DD_*.md`
 6. 是「不變的真相來源」（schema CSV、規則表）？

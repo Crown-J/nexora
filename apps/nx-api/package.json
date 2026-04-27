@@ -5,7 +5,11 @@
   "scripts": {
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "build": "nest build"
+    "build": "nest build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run \"src/**/*.int-spec.ts\""
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -28,9 +32,16 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@testcontainers/postgresql": "^11.0.3",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.16.0",
-    "typescript": "^5.9.3"
+    "@types/supertest": "^6.0.2",
+    "@vitest/coverage-v8": "^2.1.9",
+    "supertest": "^7.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

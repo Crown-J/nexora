@@ -42,6 +42,7 @@
 41,nx02,採購管理,ti,nx02_ti,調貨單表頭資料,LITE-CORE,記錄向同行調貨的主檔資料，從詢價單（同行調貨詢價）建立，包含同行資料、料號、數量與報價。支援驗收入帳後觸發庫存異動。,TIHT,NX02TIHT0000001,nx01_ti
 42,nx02,採購管理,ti_item,nx02_ti_item,調貨單明細資料,LITE-CORE,記錄調貨明細項目，包含料號、數量、單價與入庫倉庫/庫位。,TIIT,NX02TIIT0000001,nx01_ti_item
 43,nx02,採購管理,rr_import,nx02_rr_import,進口費用攤分明細,LITE-CORE,記錄進口採購每批到貨的進口費用明細（海運費/關稅/報關費/倉儲費/其他），依包裹裁積衍生費用除以數量計算每件攤分成本，自動帶入對應進貨單成本欄位。,RRIM,NX02RRIM0000001,nx01_rr_import
+43.5,nx02,採購管理,qt,nx02_qt,同行報價單,LITE-CORE,Phase 0 B5 新建。記錄同行對某張詢價單（nx02_rfq）給的報價回覆，每家同行對一張 RFQ 報一次價（unique per tenant+rfq+partner）。狀態 P=待採購決定/A=採購已採用/R=採購已拒絕。採用某 QT 系統自動建 nx02_ti 並更新 SO line item.transferStatus=completed。,QTHD,NX02QTHD0000001,
 44,nx03,庫存管理,stock_ledger,nx03_stock_ledger,庫存異動台帳,LITE-CORE,庫存異動唯一真實來源（Single Source of Truth），記錄每一次庫存變動（進貨、銷貨、盤點、調整等），支援庫存追溯與成本計算。,STLE,NX03STLE0000001,nx02_stock_ledger
 45,nx03,庫存管理,stock_balance,nx03_stock_balance,庫存餘額彙總表,LITE-CORE,依零件/倉庫/庫位彙總現有庫存數量與移動平均成本，為查詢效率優化之結果表。,STBL,NX03STBL0000001,nx02_stock_balance
 46,nx03,庫存管理,part_stock_setting,nx03_part_stock_setting,安全量/最高量設定,LITE-CORE,零件安全量與最高量設定，記錄各倉庫各料號的最低安全量與最高庫存量，供缺貨偵測與自動補貨計算使用。,PSST,NX03PSST0000001,nx02_part_stock_setting
