@@ -165,7 +165,7 @@ model Nx01CalendarEvent {
   /// 相關單據類型：RF=詢價單 / PO=採購單 / RR=進貨單 / RM=退貨單 / QT=報價單 / SO=銷貨單 / SR=銷退單；啟用最低需求版本：LITE
   orderType  String?    @map("order_type") @db.VarChar(2)
   /// 單據單號 (依 order_type 動態對應)；啟用最低需求版本：LITE
-  orderDocNo String?    @map("order_doc_no") @db.VarChar(16)
+  orderDocNo String?    @map("order_doc_no") @db.VarChar(30)
   /// 是否啟用；啟用最低需求版本：LITE
   isActive   Boolean    @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
@@ -1273,7 +1273,7 @@ model Nx02Demand {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId                     String        @map("tenant_id") @db.VarChar(15)
   /// 採購需求單號（唯一），[DR]+[年月]+[5碼流水號]，EX：DR-202604-00001；啟用最低需求版本：LITE-CORE
-  docNo                        String        @map("doc_no") @db.VarChar(16)
+  docNo                        String        @map("doc_no") @db.VarChar(30)
   /// 需求類型（S=庫存不足系統自動產生/O=客訂由銷售專員登記）。；啟用最低需求版本：LITE-CORE
   demandType                   String        @map("demand_type") @db.VarChar(1)
   /// 需求料號（FK nx02_part）。；啟用最低需求版本：LITE-CORE
@@ -1919,7 +1919,7 @@ model Nx02Ti {
   /// 入庫倉庫ID（FK nx02_warehouse）。；啟用最低需求版本：LITE-CORE
   warehouseId           String         @map("warehouse_id") @db.VarChar(15)
   /// 調貨單號（唯一），[TI]+[年月]+[倉別]+[5碼流水號]，EX：TI-202604-Z01-00001；啟用最低需求版本：LITE-CORE
-  docNo                 String         @map("doc_no") @db.VarChar(16)
+  docNo                 String         @map("doc_no") @db.VarChar(30)
   /// 調貨日期。；啟用最低需求版本：LITE-CORE
   tiDate                DateTime       @map("ti_date") @db.Date
   /// 同行供應商ID（FK nx02_partner，partner_type=C同行）。；啟用最低需求版本：LITE-CORE
@@ -2056,7 +2056,7 @@ model Nx03Init {
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
   tenantId                String         @map("tenant_id") @db.VarChar(15)
   /// 開帳單號（唯一），[IN]+[年月]+[倉別]+[5碼流水號]，EX：IN-202602-Z01-00001；啟用最低需求版本：LITE
-  docNo                   String         @map("doc_no") @db.VarChar(16)
+  docNo                   String         @map("doc_no") @db.VarChar(30)
   /// 開帳日期；啟用最低需求版本：LITE
   initDate                DateTime       @map("init_date") @db.Date
   /// 倉庫 ID (外鍵)；啟用最低需求版本：LITE
@@ -2224,7 +2224,7 @@ model Nx03Pk {
   /// 撿貨倉庫ID（FK nx01_warehouse）。；啟用最低需求版本：LITE-CORE
   warehouseId         String        @map("warehouse_id") @db.VarChar(15)
   /// 撿貨單號（唯一），[PK]+[年月]+[倉別]+[5碼流水號]，EX：PK-202604-Z01-00001；啟用最低需求版本：LITE-CORE
-  docNo               String        @map("doc_no") @db.VarChar(16)
+  docNo               String        @map("doc_no") @db.VarChar(30)
   /// 撿貨日期。；啟用最低需求版本：LITE-CORE
   pkDate              DateTime      @map("pk_date") @db.Date
   /// 觸發來源（S=銷貨單SO/T=調撥單ST）。；啟用最低需求版本：LITE-CORE
@@ -2320,7 +2320,7 @@ model Nx03Pl {
   /// 出貨倉庫ID（FK nx01_warehouse）。；啟用最低需求版本：LITE-CORE
   warehouseId         String        @map("warehouse_id") @db.VarChar(15)
   /// 包貨單號（唯一），[PL]+[年月]+[倉別]+[5碼流水號]，EX：PL-202604-Z01-00001；啟用最低需求版本：LITE-CORE
-  docNo               String        @map("doc_no") @db.VarChar(16)
+  docNo               String        @map("doc_no") @db.VarChar(30)
   /// 包貨日期。；啟用最低需求版本：LITE-CORE
   plDate              DateTime      @map("pl_date") @db.Date
   /// 來源撿貨單ID（FK nx03_pk）。；啟用最低需求版本：LITE-CORE
@@ -2889,7 +2889,7 @@ model Nx04Co {
   /// 對應倉庫 ID（FK nx01_warehouse）。；啟用最低需求版本：LITE-CORE
   warehouseId         String        @map("warehouse_id") @db.VarChar(15)
   /// 客戶訂單號（唯一），[CO]+[年月]+[倉別]+[5碼流水號]，EX：CO-202604-Z01-00001；啟用最低需求版本：LITE-CORE
-  docNo               String        @map("doc_no") @db.VarChar(20)
+  docNo               String        @map("doc_no") @db.VarChar(30)
   /// 客戶訂單日期。；啟用最低需求版本：LITE-CORE
   coDate              DateTime      @map("co_date") @db.Date
   /// 客戶 ID（FK nx01_partner，partner_type=C）。；啟用最低需求版本：LITE-CORE
@@ -3358,7 +3358,7 @@ model Nx05Allowance {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId                          String              @map("tenant_id") @db.VarChar(15)
   /// 折讓單號（唯一），[AL]-[年月]-[機構碼]-[5碼流水號]，EX：AL-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                             String              @map("doc_no") @db.VarChar(20)
+  docNo                             String              @map("doc_no") @db.VarChar(30)
   /// 折讓方向（P=進貨折讓廠商給我方/S=銷貨折讓我方給客戶）。；啟用最低需求版本：LITE-CORE
   allowanceType                     String              @map("allowance_type") @db.VarChar(1)
   /// 交易對象ID（廠商或客戶，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
@@ -3443,7 +3443,7 @@ model Nx05ApLedger {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId                  String          @map("tenant_id") @db.VarChar(15)
   /// 應付帳款單號（唯一），[AP]-[年月]-[機構碼]-[5碼流水號]，EX：AP-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                     String          @map("doc_no") @db.VarChar(20)
+  docNo                     String          @map("doc_no") @db.VarChar(30)
   /// 來源類型（PO=採購單/RR=進貨單/TI=調貨單）。PLUS前PO確認產生；LITE進貨入帳後產生。；啟用最低需求版本：LITE-CORE
   sourceType                String          @default("PO") @map("source_type") @db.VarChar(2)
   /// 來源採購單ID（可空，PLUS限定，FK nx02_po）。；啟用最低需求版本：LITE-CORE
@@ -3506,7 +3506,7 @@ model Nx05ArLedger {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId                  String          @map("tenant_id") @db.VarChar(15)
   /// 應收帳款單號（唯一），[AR]-[年月]-[機構碼]-[5碼流水號]，EX：AR-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                     String          @map("doc_no") @db.VarChar(20)
+  docNo                     String          @map("doc_no") @db.VarChar(30)
   /// 來源銷貨單ID（FK nx04_so）。；啟用最低需求版本：LITE-CORE
   soId                      String          @map("so_id") @db.VarChar(15)
   /// 客戶ID（快照自SO，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
@@ -3565,7 +3565,7 @@ model Nx05Closing {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId        String     @map("tenant_id") @db.VarChar(15)
   /// 關帳單號（唯一），[CL]-[年月]-[機構碼]-[5碼流水號]，EX：CL-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo           String     @map("doc_no") @db.VarChar(20)
+  docNo           String     @map("doc_no") @db.VarChar(30)
   /// 關帳日期（每日一筆，唯一）。；啟用最低需求版本：LITE-CORE
   closingDate     DateTime   @map("closing_date") @db.Date
   /// 關帳時間（人工執行或系統自動）。；啟用最低需求版本：LITE-CORE
@@ -3610,7 +3610,7 @@ model Nx05Note {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId              String       @map("tenant_id") @db.VarChar(15)
   /// 票據系統單號（唯一），[NT]-[年月]-[機構碼]-[5碼流水號]，EX：NT-202604-HQ0-00001。票號本身另欄填入。；啟用最低需求版本：LITE-CORE
-  docNo                 String       @map("doc_no") @db.VarChar(20)
+  docNo                 String       @map("doc_no") @db.VarChar(30)
   /// 票據類型（CK=支票/PN=本票）。；啟用最低需求版本：LITE-CORE
   noteType              String       @map("note_type") @db.VarChar(2)
   /// 方向（R=應收票據/P=應付票據）。；啟用最低需求版本：LITE-CORE
@@ -3670,7 +3670,7 @@ model Nx05Paylog {
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId              String           @map("tenant_id") @db.VarChar(15)
   /// 收付款單號（唯一），[PY]-[年月]-[機構碼]-[5碼流水號]，EX：PY-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                 String           @map("doc_no") @db.VarChar(20)
+  docNo                 String           @map("doc_no") @db.VarChar(30)
   /// 收付款類型（CR=客戶收款/CP=廠商付款/RR=廠商退款/RC=客戶退款/EX=費用支出）。；啟用最低需求版本：LITE-CORE
   payType               String           @map("pay_type") @db.VarChar(2)
   /// 收付款日期。；啟用最低需求版本：LITE-CORE
