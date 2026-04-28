@@ -18,7 +18,10 @@
     "seed:test": "tsx prisma/seed/index.ts --mode test --tier all",
     "seed:test:lite": "tsx prisma/seed/index.ts --mode test --tier lite",
     "seed:test:plus": "tsx prisma/seed/index.ts --mode test --tier plus",
-    "seed:test:pro": "tsx prisma/seed/index.ts --mode test --tier pro"
+    "seed:test:pro": "tsx prisma/seed/index.ts --mode test --tier pro",
+    "seed:demo02:lite": "tsx prisma/seed/index.ts --mode demo --tier lite",
+    "seed:demo02:plus": "tsx prisma/seed/index.ts --mode demo --tier plus",
+    "seed:demo02:pro": "tsx prisma/seed/index.ts --mode demo --tier pro"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.0",

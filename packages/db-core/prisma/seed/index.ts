@@ -15,10 +15,11 @@
 //   pnpm prisma db seed -- --mode all --tier pro     → system + PRO 測試租戶
 
 import { disconnectPrisma, prisma } from './client';
+import { runDemoSeed } from './demo';
 import { runSystemSeed } from './system';
 import { runTestSeed, type TestTier } from './test';
 
-type SeedMode = 'system' | 'test' | 'all';
+type SeedMode = 'system' | 'test' | 'demo' | 'all';
 
 interface SeedArgs {
   mode: SeedMode;
@@ -33,11 +34,11 @@ function parseArgs(argv: readonly string[]): SeedArgs {
     const value = argv[i + 1];
 
     if (flag === '--mode') {
-      if (value === 'system' || value === 'test' || value === 'all') {
+      if (value === 'system' || value === 'test' || value === 'demo' || value === 'all') {
         result.mode = value;
         i++;
       } else {
-        throw new Error(`Invalid --mode: ${String(value)}. Use 'system' | 'test' | 'all'.`);
+        throw new Error(`Invalid --mode: ${String(value)}. Use 'system' | 'test' | 'demo' | 'all'.`);
       }
     } else if (flag === '--tier') {
       if (value === 'lite' || value === 'plus' || value === 'pro' || value === 'all') {
@@ -70,6 +71,11 @@ async function main(): Promise<void> {
     // test 層：mode=test 或 all 才跑；內部會再檢查 NODE_ENV
     if (mode === 'test' || mode === 'all') {
       await runTestSeed(prisma, tier);
+    }
+
+    // demo 層：mode=demo 才跑（不在 all 內，避免每次 deploy 都建 10000+ row demo data）
+    if (mode === 'demo') {
+      await runDemoSeed(prisma, tier);
     }
 
     console.log('====================================');
