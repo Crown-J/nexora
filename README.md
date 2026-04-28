@@ -5,7 +5,7 @@
 
 - **產品**：多租戶 SaaS ERP，三個版本（LITE / PLUS / PRO）
 - **目標市場**：台灣 VAG（Volkswagen Audi Group）體系中小型汽車零件經銷商
-- **Tech Stack**：Next.js 15 + NestJS + Prisma 7 + PostgreSQL（pnpm + Turbo monorepo）
+- **Tech Stack**：Next.js 16.1.6 + NestJS + Prisma 7 + PostgreSQL（pnpm + Turbo monorepo）
 
 ## 📚 文件導航
 

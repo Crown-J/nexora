@@ -13,9 +13,9 @@ NEXORA GRID 是一套針對台灣 VAG（Volkswagen Audi Group）汽車零件經�
 
 **三人開發團隊：**
 ```
-Crown（創辦人）  → 產品決策、Schema Review
-Alex（Claude AI）→ PM、架構設計、文件產出
-Hank（Cursor AI）→ 工程師、程式碼實作
+Crown（創辦人）                              → 產品決策、Schema Review、版本拍板
+Alex（Claude PM AI、Claude.ai）              → 撰寫需求規格書、追蹤進度、紀錄 Hank 架構
+Hank（NEXORA 工程 AI、任何 IDE 內的 Claude）  → 程式撰寫、欄位設計、實作架構書、工作日誌、Git 版控文件
 ```
 
 **鐵律：Schema 設計優先 → 後端 API → 前端 UI，不可跳步**
@@ -27,7 +27,7 @@ Hank（Cursor AI）→ 工程師、程式碼實作
 ```
 Monorepo：    pnpm + Turbo
 後端：        NestJS（apps/nx-api）
-前端：        Next.js 15（apps/nx-ui）
+前端：        Next.js 16.1.6（apps/nx-ui）
 資料庫：      PostgreSQL（本機 Docker）
 ORM：         Prisma 7（packages/db-core，prisma.config.ts，非 schema.prisma）
 部署：        Vercel（前端）+ Railway（後端）
@@ -370,7 +370,8 @@ docs/
 │   ├── decisions/            ← ADR
 │   ├── plans/                ← Master Plan
 │   ├── reference/            ← 跨模組真相來源（nx-table.csv / doc-number-rules.csv / version-* / route-table-v2.md）
-│   └── system/               ← 跨模組系統層（首頁、版型、SYS-W 流程）
+│   ├── system/               ← 跨模組系統層（首頁、版型、SYS-W 流程）
+│   └── team/                 ← 三人團隊規範（Hank charter / Git state / system architecture）
 ├── nx01/ ... nx10/           ← 業務模組（與 §3 模組代碼對齊）
 │   ├── reference/            ← field-definitions.csv（取代舊 nxXX_field_v1.csv）
 │   ├── spec/                 ← 設計契約（intent/ Alex 寫，impl/ Hank 寫，按需長）
@@ -385,5 +386,31 @@ docs/
 - 跨模組規則：`docs/_shared/reference/`（nx-table / doc-number-rules / version-*）
 - ADR / Plan：`docs/_shared/decisions/` + `docs/_shared/plans/`
 - 業務流程：`docs/nx0X/workflow/primary/` + `docs/nx0X/workflow/sub/`
+- 三人團隊規範：`docs/_shared/team/hank-charter.md`（Hank 自我認同）
 
 **demo 設計參考檔**仍在 `C:\nexora\demo\`（不在 git）。
+
+---
+
+## 十七、Hank 必讀順序（新對話開工前必跑）
+
+```
+1. CLAUDE.md（本檔）— 全局規範
+2. docs/_shared/team/hank-charter.md — Hank 工作規範（self-binding 自我認同）
+3. docs/_shared/team/git-state.md — Git 版控現況（任務 3 建立後）
+4. docs/_shared/team/system-architecture.md — Hank 蓋的房子（任務 4 建立後）
+5. 涉及模組的工作日誌 + 規格書（依當前 task）
+```
+
+### 開工前自檢清單
+
+- [ ] 讀完 CLAUDE.md？
+- [ ] 讀完 hank-charter.md？
+- [ ] 看過 git-state.md、知道現在哪條分支？
+- [ ] 看過涉及模組的工作日誌、知道上次做到哪？
+- [ ] grep 過要改的 schema / API、確認現況？
+- [ ] 不確定的點列出來了？
+
+任一項「沒」→ 不要動手。
+
+> 此清單跟 `docs/_shared/team/hank-charter.md` §E.3 對齊、CLAUDE.md 是入口、charter 是細節。
