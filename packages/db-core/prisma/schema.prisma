@@ -679,8 +679,8 @@ model Nx01PartBrand {
   id                                String              @id @default(dbgenerated("gen_nx01_part_brand_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
   tenantId                          String              @map("tenant_id") @db.VarChar(15)
-  /// 品牌代碼（唯一，例：VAG、BMW、OEM）；啟用最低需求版本：LITE
-  code                              String              @db.VarChar(3)
+  /// 品牌代碼（唯一，例：VAG / BMW / OEM / TOYOTA）；啟用最低需求版本：LITE
+  code                              String              @db.VarChar(10)
   /// 品牌名稱（顯示用）；啟用最低需求版本：LITE
   name                              String              @db.VarChar(100)
   /// 品牌國家 (外鍵)；啟用最低需求版本：LITE
