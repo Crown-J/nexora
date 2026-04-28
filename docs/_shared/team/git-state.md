@@ -10,19 +10,20 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-04-28**
-> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `c7b0464`）
+> **快照時間：2026-04-28（任務 4 完成後）**
+> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `f9f8af1`）
+> **本次更新觸發：§E.2-#3「大量 commit」（doc-restructure 累計 5 commit）+ G1/G2 push**
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
 | `main` | ✅ 同步 | `6e46a4b` | dailylog 20260428 — Phase 1 雙線 |
-| `feature/wp-phase1-doc-restructure` ⭐ | ✅ 同步 | `c7b0464` | TASK-PHASE1-DOC-RESTRUCTURE-01 任務 2 完成 |
+| `feature/wp-phase1-doc-restructure` ⭐ | ✅ 同步 | `f9f8af1` | TASK-PHASE1-DOC-RESTRUCTURE-01 任務 4 完成 |
 | `feature/wp-phase1-w2-mini` | ✅ 同步 | `5a34664` | WP-PHASE1-DEMO02 customer 命名規則調整 |
 | `feature/wp-phase0-schema` | ✅ 同步 | `7652c43` | WP-PHASE0-B2 stock reverse lookup API |
-| `feature/demo-emergency` | ⚠️ **ahead 6** | `0df5a84` | TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10 |
-| `feature/home-modals-settings` | ⚠️ **無 upstream** | `76ad3ae` | 首頁 Modal / 使用者設定 / TopBar |
+| `feature/demo-emergency` | ✅ 同步 | `0df5a84` | TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10（**G1 已 push**） |
+| `feature/home-modals-settings` | ✅ 同步 | `76ad3ae` | 首頁 Modal / 使用者設定 / TopBar（**G2 已建 upstream**） |
 | `feature/NX99-multitenancy` | ✅ 同步 | `e9fc3bd` | NX-UI Redesign login/home + PWA |
 | `feature/base-master-hub` | ✅ 同步 | `3b45e2e` | 首頁 |
 | `feature/nx-ui-v0-mobile-route` | ✅ 同步 | `8a65160` | DOC dailylog structure + 20260326 |
@@ -31,7 +32,7 @@
 | `feature/sys-dashboard` | ✅ 同步 | `9096c2b` | NX01 default seed upsert keys fix |
 
 ⭐ = 當前 HEAD 所在
-⚠️ = 有未 push / 無 upstream 風險（詳見 §C）
+✅ = 全部 12 條本地分支跟 origin 同步（上版 2 條 ⚠️ 已由 G1/G2 解除）
 
 ### A.2 Tag
 
@@ -53,11 +54,11 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
-| `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01**（4 任務 + 1.5）| 進行中（任務 1/1.5/2 完成） |
+| `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01**（4 任務 + 1.5）| 進行中（任務 1/1.5/2/3/4 全完成、等 Crown 拍板） |
 | `feature/wp-phase1-w2-mini` | TASK-PHASE1-W2-MINI（W2-mini 庫存 + DEMO-02 LITE seed） | 進行中 |
 | `feature/wp-phase0-schema` | WP-PHASE0（schema + translator + APIs） | ✅ 已收官（tag `phase0-complete`） |
-| `feature/demo-emergency` | TASK-BUSINESS-RESTRUCTURE（大塊 1~3、Phase 1~10） | 進行中（⚠️ 6 commit 未 push） |
-| `feature/home-modals-settings` | UI 首頁 Modal / 使用者設定（沒明確 task code） | ⚠️ 從未 push 過、status 不明 |
+| `feature/demo-emergency` | TASK-BUSINESS-RESTRUCTURE（大塊 1~3、Phase 1~10） | 進行中（已 push 至 origin） |
+| `feature/home-modals-settings` | UI 首頁 Modal / 使用者設定（沒明確 task code） | 已 push、待 Crown 確認 status |
 | `feature/NX99-multitenancy` | NX99 多租戶 + login/home redesign | 早期（待 Crown 確認狀態） |
 | `feature/base-master-hub` | 主檔 hub / 首頁 | 早期（待 Crown 確認狀態） |
 | `feature/nx-ui-v0-mobile-route` | mobile route v0 | 早期（待 Crown 確認狀態） |
@@ -71,40 +72,14 @@ nothing to commit, working tree clean
 
 ## C. 未 Push 的本地工作
 
-### C.1 `feature/demo-emergency` — 領先 origin 6 commit ⚠️
+✅ **目前無未 push 工作。** 上版兩個風險點已解除：
 
-未 push 的 6 個 commit（按時間倒序）：
+| 上版風險 | 處理 | commit |
+|---------|------|--------|
+| `feature/demo-emergency` ahead 6 | G1：`git push origin feature/demo-emergency` | `5e7a952..0df5a84` |
+| `feature/home-modals-settings` 無 upstream | G2：`git push -u origin feature/home-modals-settings` | new branch (`76ad3ae`) |
 
-```
-0df5a84  [TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10] 倉管 KPI + 庫位管理 + 盤點設定
-bc3d23c  [TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 9]  庫存中心工作站遷移
-a6cb00c  [TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 8]  庫存中心 4 分區重構
-4ef0cb2  [TASK-BUSINESS-RESTRUCTURE 大塊 2 Phase 7]  跨中心連動 SO→PK→BX→DN
-77b99aa  [TASK-BUSINESS-RESTRUCTURE 大塊 2 Phase 6]  調撥單 IT 完整流程
-1f55579  [TASK-BUSINESS-RESTRUCTURE 大塊 2 Phase 5]  SO 備貨 4 情境分流
-```
-
-**風險：**
-- 6 commit 在本地、雲端沒備份、機器壞掉就消失
-- 跨機器（家裡 vs 辦公室）會 desync
-
-**建議：** Crown 拍板要 push 還是保持 WIP
-
-### C.2 `feature/home-modals-settings` — 完全沒 upstream ⚠️
-
-```
-76ad3ae  feat(nx-ui): 首頁事件與公告 Modal、使用者設定、TopBar 固定與 Dialog 寬度
-333cd41  [NX-UI] Stabilize home calendar styling and local dev reliability
-e9fc3bd  [NX-UI] Redesign login/home experience with PWA and theme updates  (← 也在 NX99-multitenancy 分支)
-5b497f1  [FLOW] Implement NX01/NX03 flows, UI localization, and docs
-603997a  [DOC] Add dailylog structure and 20260326 daily log
-```
-
-**風險：**
-- 整條分支沒 push、本地獨苗
-- 跟 `feature/NX99-multitenancy` 共享 commit `e9fc3bd`、可能是同源分歧
-
-**建議：** Crown 拍板要 push 還是已棄用刪除
+> ⚠️ G2 push 後該分支 status 仍待 Crown 確認（詳見 §B「待 Crown 確認狀態」）。
 
 ---
 
@@ -141,7 +116,7 @@ main (6e46a4b)
 - git log 本身就是 commit 真相、不需要在 .md 裡重複
 - 這份文件是「快照地圖」、不是「commit 紀錄簿」
 
-### E.2 觸發更新的 4 個時機
+### E.2 觸發更新的 5 個時機
 
 | # | 時機 | 為什麼 |
 |---|------|-------|
@@ -149,6 +124,7 @@ main (6e46a4b)
 | 2 | merge 回 main / 刪除分支 | 表格要拿掉舊分支 |
 | 3 | 大量 commit 後（≥ 5 個或跨 task） | 確保 §A.1 表格的 commit hash 不過期 |
 | 4 | Crown 主動詢問 Git 狀態 | 順便重新生成 |
+| 5 | **跨機器切換時更新**（家裡↔辦公室） | 換機器前先 push、新機器先讀 git-state 對齊 |
 
 ### E.3 由誰觸發？
 
@@ -164,8 +140,8 @@ main (6e46a4b)
 
 ### E.5 下次更新時機（預測）
 
-- 任務 3 / 4 各 commit 後、不更新（屬於同一個 task、沒切分支、沒 merge）
-- 任務 4 完成後 + 此分支 merge 回 main 時、更新（觸發時機 #2）
+- TASK-PHASE1-DOC-RESTRUCTURE-01 全部 4 任務完成 + 此分支 merge 回 main 時、更新（觸發時機 #2）
+- 或下次 Hank 切到家裡 / 辦公室機器時、更新（觸發時機 #5）
 
 ### E.6 不寫的東西
 
@@ -175,13 +151,11 @@ main (6e46a4b)
 
 ---
 
-## 給 Crown 的拍板事項
+## 給 Crown 的拍板事項（2026-04-28 已全數拍板）
 
-| 編號 | 議題 | 建議 |
-|-----|------|------|
-| G1 | `feature/demo-emergency` 6 commit 未 push | ☐ push 上去 / ☐ 保持 WIP / ☐ 其他 |
-| G2 | `feature/home-modals-settings` 整條沒 upstream | ☐ push / ☐ 已棄用刪除 / ☐ 其他 |
-| G3 | 6 條「早期」分支（NX99/base-master-hub/nx-ui-v0/nx03-sales-flow-hub/spec-reverse-sw01/sys-dashboard）| ☐ 留著 / ☐ 刪本地 / ☐ 刪 origin / ☐ 各別說明 |
-| G4 | E.2 觸發更新的 4 個時機 | ☐ 同意 / ☐ 改其他 |
-
-> 等你拍板。拍完我進任務 4 系統架構文件。
+| 編號 | 議題 | Crown 拍板 | 執行結果 |
+|-----|------|-----------|---------|
+| G1 | `feature/demo-emergency` 6 commit 未 push | ☑ push | ✅ 已 push（commit `5e7a952..0df5a84`） |
+| G2 | `feature/home-modals-settings` 整條沒 upstream | ☑ push | ✅ 已 push + 建 upstream tracking |
+| G3 | 6 條早期分支 | ☑ 暫不動（等所有任務完開新 task 處理） | — 留 |
+| G4 | E.2 觸發更新時機 | ☑ 同意 + 加第 5 條「跨機器切換時更新」 | ✅ 已加入 §E.2-#5 |
