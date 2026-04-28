@@ -78,8 +78,8 @@ model Nx01BrandCodeRule {
   tenantId                String        @map("tenant_id") @db.VarChar(15)
   /// 零件品牌 ID（一個品牌只有一筆規則）；啟用最低需求版本：LITE
   partBrandId             String        @map("part_brand_id") @db.VarChar(15)
-  /// 規則名稱；啟用最低需求版本：LITE
-  name                    String        @db.VarChar(15)
+  /// 規則名稱（後台介面顯示用，例：「Volkswagen 編碼規則」）；啟用最低需求版本：LITE
+  name                    String        @db.VarChar(50)
   /// 第1段字數限制（0=不使用）；啟用最低需求版本：LITE
   seg1                    Int           @default(0)
   /// 第2段字數限制（0=不使用）；啟用最低需求版本：LITE
