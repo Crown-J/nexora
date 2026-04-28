@@ -19,9 +19,28 @@ interface CustomerNameTemplate {
   contactName?: string;
 }
 
-const SHOP_PREFIXES = ['信義', '新北', '台中', '高雄', '桃園', '彰化', '台南', '基隆', '宜蘭', '花蓮'];
-const SHOP_IDENTIFIERS = ['誠信', '宏達', '大順', '佳源', '長安', '永泰', '榮昌', '富強', '興盛', '進億',
-  '東方', '美利', '國成', '泰豐', '聯興', '弘昌', '龍興', '金順', '昇發', '太平'];
+// 對齊 Crown 業界範例風格（全興汽材 / 三和零件 / 老吳輪胎）：
+//   個體戶 / 老店感、4-5 字為主、業種口語短、不是連鎖企業
+
+/** 短商號（2 字為主）— 個體戶常用 */
+const SHORT_TRADENAMES = [
+  '全興', '三和', '永昌', '福昌', '大同', '興順', '長興', '興盛',
+  '永發', '太平', '東興', '宏達', '佳源', '聯興', '富強', '進億',
+  '誠信', '長安', '大順', '榮昌', '弘昌', '龍興', '金順', '昇發',
+  '美利', '國成', '泰豐', '東和', '南興', '北信',
+];
+
+/** 姓氏（用於「{姓}記」「老{姓}」格式）*/
+const SURNAMES = ['吳', '林', '陳', '王', '張', '李', '黃', '劉', '蔡', '楊', '何', '徐', '許', '謝', '羅'];
+
+/** 名字（用於「阿{名}」格式）*/
+const GIVEN_NAMES = ['明', '雄', '強', '志', '榮', '進', '財', '國', '昌', '德'];
+
+/** 口語業種（4 個）*/
+const BUSINESS_TYPES = ['汽材', '零件', '汽修', '輪胎'];
+
+/** 地名前綴（少數使用，避免每筆都加太工整）*/
+const REGION_PREFIXES = ['北區', '南區', '東區', '中區', '信義', '中山'];
 
 export interface CustomerSpec {
   code: string;
@@ -29,6 +48,33 @@ export interface CustomerSpec {
   tier: CustomerTier;
   paymentTerm: string;
   contactName?: string;
+}
+
+/**
+ * 5 種命名格式輪流（idx % 5，對齊 Crown 範例風格）：
+ *   0. {商號}{業種}        — 全興汽材 / 三和零件
+ *   1. {姓}記{業種}         — 吳記汽材 / 林記零件
+ *   2. 老{姓}{業種}         — 老吳輪胎 / 老林汽修
+ *   3. 阿{名}{業種}         — 阿明零件 / 阿強汽修
+ *   4. {地區}{商號}{業種}   — 北區永昌汽材（少數出現的 6 字變化、避免每筆工整）
+ */
+function buildCustomerName(idx: number): string {
+  const business = BUSINESS_TYPES[idx % BUSINESS_TYPES.length];
+  const formatId = idx % 5;
+  switch (formatId) {
+    case 0:
+      return `${SHORT_TRADENAMES[idx % SHORT_TRADENAMES.length]}${business}`;
+    case 1:
+      return `${SURNAMES[idx % SURNAMES.length]}記${business}`;
+    case 2:
+      return `老${SURNAMES[(idx + 3) % SURNAMES.length]}${business}`;
+    case 3:
+      return `阿${GIVEN_NAMES[idx % GIVEN_NAMES.length]}${business}`;
+    case 4:
+      return `${REGION_PREFIXES[idx % REGION_PREFIXES.length]}${SHORT_TRADENAMES[(idx + 5) % SHORT_TRADENAMES.length]}${business}`;
+    default:
+      return `${SHORT_TRADENAMES[idx % SHORT_TRADENAMES.length]}${business}`;
+  }
 }
 
 /**
@@ -51,11 +97,8 @@ export function buildCustomers(
   let idx = 1;
 
   const buildOne = (tier: CustomerTier): CustomerSpec => {
-    const prefix = SHOP_PREFIXES[(idx - 1) % SHOP_PREFIXES.length];
-    const ident = SHOP_IDENTIFIERS[(idx - 1) % SHOP_IDENTIFIERS.length];
-    const suffix = tier === 'vip' || tier === 'good' ? '汽車材料行' : '汽修廠';
     const code = `DEMO02-${tenantCode}-CUST-${String(idx).padStart(3, '0')}`;
-    const name = `${prefix}${ident}${suffix}`;
+    const name = buildCustomerName(idx - 1); // idx 從 1 起，傳 0-based 給 buildCustomerName
     const paymentTerm =
       tier === 'vip' ? 'NET60' : tier === 'observe' ? 'PREPAY' : 'NET30';
     const contactName =
@@ -72,12 +115,12 @@ export function buildCustomers(
   return result;
 }
 
-const FAMILY_NAMES = ['王', '李', '張', '林', '陳', '劉', '黃', '吳', '蔡', '楊'];
-const GIVEN_NAMES = ['老闆', '經理', '師傅', '小哥', '先生'];
+/** Contact name 對齊個體戶口語感（{姓}老闆 / 老{姓} / {姓}師傅）*/
+const CONTACT_GIVEN_NAMES = ['老闆', '老闆娘', '師傅'];
 function buildContactName(idx: number): string {
-  const fn = FAMILY_NAMES[(idx - 1) % FAMILY_NAMES.length];
-  const gn = GIVEN_NAMES[(idx - 1) % GIVEN_NAMES.length];
-  return `${fn}${gn}`;
+  const surname = SURNAMES[(idx - 1) % SURNAMES.length];
+  const given = CONTACT_GIVEN_NAMES[(idx - 1) % CONTACT_GIVEN_NAMES.length];
+  return `${surname}${given}`;
 }
 
 /** 同行 partner 名稱清單（type='S'）*/
