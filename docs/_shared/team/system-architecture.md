@@ -46,7 +46,7 @@ src/
 ├── nx01/  主檔管理          ← 11 子模組（user/role/part/part-brand/partner/warehouse/warehouse-type/customer-grade/currency/bulletin）
 ├── nx02/  採購管理          ← 5 子模組（rfq/po/rr/qt/purchase-return）
 ├── nx03/  庫存管理          ← 7 子模組（balance/ledger/inbound/outbound/stocktake/transfer/reservation）
-├── nx04/  銷售管理          ← 3 子模組（quote/so/sales-return）+ SO translator
+├── nx04/  銷售管理          ← 3 子模組（quote/so/sales-return；SO translator 為 so/ 內子目錄、不獨立計）
 ├── nx05/  財務管理          ← 7 子模組（ar/ap/receipt/payment/note/allowance/period-close）
 ├── nx06/  物流管理          ← 4 子模組（delivery/pickup/intl-shipping/return-pickup）
 ├── nx07/  人資管理          ← 7 子模組（attendance/leave/overtime/payroll/performance/training/employee-change）
