@@ -44,7 +44,7 @@ src/
 ├── auth/                    ← JWT + tenantCode 強制（X1 改造、消滅 A001）
 ├── prisma/                  ← Prisma Client wrapper
 ├── nx01/  主檔管理          ← 11 子模組（user/role/part/part-brand/partner/warehouse/warehouse-type/customer-grade/currency/bulletin）
-├── nx02/  採購管理          ← 6 子模組（rfq/po/rr/pr/qt + purchase-return）
+├── nx02/  採購管理          ← 5 子模組（rfq/po/rr/qt/purchase-return）
 ├── nx03/  庫存管理          ← 7 子模組（balance/ledger/inbound/outbound/stocktake/transfer/reservation）
 ├── nx04/  銷售管理          ← 3 子模組（quote/so/sales-return）+ SO translator
 ├── nx05/  財務管理          ← 7 子模組（ar/ap/receipt/payment/note/allowance/period-close）
