@@ -10,16 +10,16 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-04-29（NX02 worklog 完成後）**
-> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `70da336`）
-> **本次更新觸發：§E.2-#3「大量 commit」（doc-restructure 分支累計 12 commit、跨 3 task）**
+> **快照時間：2026-04-29（NX03 worklog 完成後）**
+> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `7f56900`）
+> **本次更新觸發：§E.2-#3「大量 commit」（doc-restructure 分支累計 14 commit、跨 4 task）**
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
 | `main` | ✅ 同步 | `6e46a4b` | dailylog 20260428 — Phase 1 雙線 |
-| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 5 | `70da336` | ARCH NX02 子模組 6→5 修正（NX02 worklog 完成）|
+| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 1 | `7f56900` | TASK-PHASE1-NX03-WORKLOG NX03 庫存模組工作日誌 v1.0 |
 | `feature/wp-phase1-w2-mini` | ✅ 同步 | `5a34664` | WP-PHASE1-DEMO02 customer 命名規則調整 |
 | `feature/wp-phase0-schema` | ✅ 同步 | `7652c43` | WP-PHASE0-B2 stock reverse lookup API |
 | `feature/demo-emergency` | ✅ 同步 | `0df5a84` | TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10（**G1 已 push**） |
@@ -32,7 +32,7 @@
 | `feature/sys-dashboard` | ✅ 同步 | `9096c2b` | NX01 default seed upsert keys fix |
 
 ⭐ = 當前 HEAD 所在
-🟡 = doc-restructure 分支 ahead origin 5 個 commit（待 push、見 §C）
+🟡 = doc-restructure 分支 ahead origin 1 個 commit（待 push、見 §C）
 ✅ = 其餘 11 條本地分支跟 origin 同步
 
 ### A.2 Tag
@@ -45,7 +45,7 @@
 
 ```
 On branch feature/wp-phase1-doc-restructure
-Your branch is ahead of 'origin/feature/wp-phase1-doc-restructure' by 5 commits.
+Your branch is ahead of 'origin/feature/wp-phase1-doc-restructure' by 2 commits.
   (use "git push" to publish your local commits)
 nothing to commit, working tree clean
 ```
@@ -58,7 +58,7 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
-| `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01**（4 任務 + 1.5）+ **TASK-PHASE1-NX01-WORKLOG** + **TASK-PHASE1-NX02-WORKLOG**（共用沿用此分支）| 全部完成、等 Crown 拍板（doc-restructure ✅、NX01 ✅、NX02 ✅） |
+| `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01**（4 任務 + 1.5）+ **TASK-PHASE1-NX01/02/03-WORKLOG**（共用沿用此分支）| doc-restructure ✅、NX01 ✅、NX02 ✅、NX03 ✅、NX04~10 待續 |
 | `feature/wp-phase1-w2-mini` | TASK-PHASE1-W2-MINI（W2-mini 庫存 + DEMO-02 LITE seed） | 進行中 |
 | `feature/wp-phase0-schema` | WP-PHASE0（schema + translator + APIs） | ✅ 已收官（tag `phase0-complete`） |
 | `feature/demo-emergency` | TASK-BUSINESS-RESTRUCTURE（大塊 1~3、Phase 1~10） | 進行中（已 push 至 origin） |
@@ -76,18 +76,16 @@ nothing to commit, working tree clean
 
 ## C. 未 Push 的本地工作
 
-🟡 **`feature/wp-phase1-doc-restructure` ahead origin 5 個 commit**（GIT-STATE 自身 commit 也算進去）：
+🟡 **`feature/wp-phase1-doc-restructure` ahead origin 2 個 commit**：
 
 | commit | 摘要 |
 |--------|------|
-| `cedf4e7` | ARCH update 2026-04-29 G.5 登記 A029（apply-checkin-reward 未建立） |
-| `e7fba17` | TASK-PHASE1-NX02-WORKLOG NX02 採購模組工作日誌 v1.0 |
-| `70da336` | ARCH update 2026-04-29 NX02 子模組 6→5 修正 |
-| `(本次)`  | GIT-STATE update 2026-04-29 NX02 worklog 完成 |
+| `7f56900` | TASK-PHASE1-NX03-WORKLOG NX03 庫存模組工作日誌 v1.0 |
+| `(本次)`  | GIT-STATE update 2026-04-29 NX03 worklog 完成 |
 
-→ 立即執行 `git push origin feature/wp-phase1-doc-restructure` 即同步（含 NX01 batch 之後累積的 5 個）。
+→ 立即執行 `git push origin feature/wp-phase1-doc-restructure` 即同步。
 
-上版（5d599bf）兩個風險點已解除：
+歷史風險點全數解除：
 - `feature/demo-emergency` G1 ✅ push 完成（`0df5a84`）
 - `feature/home-modals-settings` G2 ✅ push 完成 + upstream tracking（`76ad3ae`）
 
@@ -150,8 +148,8 @@ main (6e46a4b)
 
 ### E.5 下次更新時機（預測）
 
-- 此分支 merge 回 main 時（同時收 doc-restructure + NX01-WORKLOG + NX02-WORKLOG 三 task），觸發時機 #2
-- 或 Crown 拍 NX03~NX10 worklog 進場時、累積到 ≥5 commit，觸發時機 #3
+- 此分支 merge 回 main 時（同時收 doc-restructure + NX01/02/03-WORKLOG 多 task），觸發時機 #2
+- 或 Crown 拍 NX04~NX10 worklog 進場時、累積到 ≥5 commit，觸發時機 #3
 - 或下次 Hank 切到家裡 / 辦公室機器時，觸發時機 #5
 
 ### E.6 不寫的東西
