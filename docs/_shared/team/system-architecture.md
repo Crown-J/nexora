@@ -361,12 +361,13 @@ DATABASE_URL=postgres://...:5433/nexora
 
 ### G.5 Hank 知道但 Crown / Alex 可能不知道的（觀察）
 
-> 寫文件時 grep 發現的、未編號、待 Crown 確認要不要登記為 A025+：
+> 寫文件時 grep 發現的觀察。前 4 條已由 Crown 拍登記為 A025~A028（春酒後處理）。第 5 條於 NX01 worklog 揭露、登記為 A029。
 
-- ⚠️ **前端 `features/nx00/` 殘留**：v2 模組代碼已改 NX01、`nx00/` 目錄未清理
-- ⚠️ **前端 `features/sale/` 跟 `features/sales/` 並存**：兩個近名 feature 共存、可能是同源實驗未收斂
-- ⚠️ **前端 `dashboard/{purchase|sale|inventory|finance|report}/` 跟 `dashboard/{nx02|nx04|nx03|nx05|nx08}/` 並存**：v2 路由重整過渡期、舊路由未刪
-- ⚠️ **`schema.prisma` 單檔承載 100+ models**：Prisma 7 雖支援 multi-file schema、目前未拆分（檔案 ~3000+ 行）
+- ⚠️ **A025 — 前端 `features/nx00/` 殘留**：v2 模組代碼已改 NX01、`nx00/` 目錄未清理
+- ⚠️ **A026 — 前端 `features/sale/` 跟 `features/sales/` 並存**：兩個近名 feature 共存、可能是同源實驗未收斂
+- ⚠️ **A027 — 前端 `dashboard/{purchase|sale|inventory|finance|report}/` 跟 `dashboard/{nx02|nx04|nx03|nx05|nx08}/` 並存**：v2 路由重整過渡期、舊路由未刪
+- ⚠️ **A028 — `schema.prisma` 單檔承載 100+ models**：Prisma 7 雖支援 multi-file schema、目前未拆分（檔案 ~3000+ 行）
+- ⚠️ **A029 — `template/apply-checkin-reward.ts` 從未建立**：TASK-SEED-REFACTOR-01 Step 7「情境 A」決定先不做、舊邏輯保留在 pre-`53b900d` git history（`default/nx10_checkin_reward.ts`）。觸發時機：NX10 遊戲化正式啟用時、從 git 撈回並參數化。詳見 [docs/nx01/worklog.md](../../nx01/worklog.md) 主題 4。
 
 ---
 
