@@ -10,16 +10,16 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-04-29（NX08 worklog 完成後）**
-> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `a034511`）
-> **本次更新觸發：§E.2-#3「大量 commit」（doc-restructure 分支累計 23 commit、跨 9 task、進度 8/10 = 80%）**
+> **快照時間：2026-04-29（NX09 worklog 完成後）**
+> **當前分支:`feature/wp-phase1-doc-restructure`**（HEAD = `b87acb9`）
+> **本次更新觸發：§E.2-#3「大量 commit」（doc-restructure 分支累計 25 commit、跨 10 task、進度 9/10 = 90%）**
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
 | `main` | ✅ 同步 | `6e46a4b` | dailylog 20260428 — Phase 1 雙線 |
-| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 1 | `a034511` | TASK-PHASE1-NX08-WORKLOG NX08 報表分析模組工作日誌 v1.0（跨模組聚合層 SaaS BI 首例）|
+| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 1 | `b87acb9` | TASK-PHASE1-NX09-WORKLOG NX09 知識管理模組工作日誌 v1.0（穩定模組光譜最純粹例 0 follow-up）|
 | `feature/wp-phase1-w2-mini` | ✅ 同步 | `5a34664` | WP-PHASE1-DEMO02 customer 命名規則調整 |
 | `feature/wp-phase0-schema` | ✅ 同步 | `7652c43` | WP-PHASE0-B2 stock reverse lookup API |
 | `feature/demo-emergency` | ✅ 同步 | `0df5a84` | TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10（**G1 已 push**） |
@@ -59,7 +59,7 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
-| `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01**（4 任務 + 1.5）+ **TASK-PHASE1-NX01~08-WORKLOG**（共用沿用此分支）| doc-restructure ✅、NX01~08 ✅、NX09~10 待續（進度 8/10 = 80%）|
+| `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01**（4 任務 + 1.5）+ **TASK-PHASE1-NX01~09-WORKLOG**（共用沿用此分支）| doc-restructure ✅、NX01~09 ✅、NX10 + _shared 待續（進度 9/10 = 90%）|
 | `feature/wp-phase1-w2-mini` | TASK-PHASE1-W2-MINI（W2-mini 庫存 + DEMO-02 LITE seed） | 進行中 |
 | `feature/wp-phase0-schema` | WP-PHASE0（schema + translator + APIs） | ✅ 已收官（tag `phase0-complete`） |
 | `feature/demo-emergency` | TASK-BUSINESS-RESTRUCTURE（大塊 1~3、Phase 1~10） | 進行中（已 push 至 origin） |
@@ -81,8 +81,8 @@ nothing to commit, working tree clean
 
 | commit | 摘要 |
 |--------|------|
-| `a034511` | TASK-PHASE1-NX08-WORKLOG NX08 報表分析模組工作日誌 v1.0 |
-| `(本次)`  | GIT-STATE update 2026-04-29 NX08 worklog 完成 |
+| `b87acb9` | TASK-PHASE1-NX09-WORKLOG NX09 知識管理模組工作日誌 v1.0 |
+| `(本次)`  | GIT-STATE update 2026-04-29 NX09 worklog 完成 |
 
 → 立即執行 `git push origin feature/wp-phase1-doc-restructure` 即同步。
 
@@ -149,8 +149,8 @@ main (6e46a4b)
 
 ### E.5 下次更新時機（預測）
 
-- 此分支 merge 回 main 時（同時收 doc-restructure + NX01~08-WORKLOG 多 task），觸發時機 #2
-- 或 Crown 拍 NX09/NX10/_shared worklog 進場時、累積到 ≥5 commit，觸發時機 #3
+- 此分支 merge 回 main 時（同時收 doc-restructure + NX01~09-WORKLOG 多 task），觸發時機 #2
+- 或 Crown 拍 NX10/_shared worklog 進場時、累積到 ≥5 commit，觸發時機 #3
 - 或下次 Hank 切到家裡 / 辦公室機器時，觸發時機 #5
 
 ### E.6 不寫的東西
