@@ -10,16 +10,16 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-04-29（NX10 worklog 完成後、模組 worklog 收官）**
-> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `25a596e`）
-> **本次更新觸發：§E.2-#3「大量 commit」（doc-restructure 分支累計 27 commit、跨 11 task、進度 10/10 = 100%（模組部分）+ _shared 待續）**
+> **快照時間：2026-04-29（NX08 monthly_report cleanup + worklog rename 加 nx0X 前綴）**
+> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `71f5ce1`）
+> **本次更新觸發：§E.2-#3「大量 commit」（NX08 cleanup + rename + 交叉引用更新 + nx08 主題 3 紀錄、累計 5 commit）**
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
 | `main` | ✅ 同步 | `6e46a4b` | dailylog 20260428 — Phase 1 雙線 |
-| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 1 | `25a596e` | TASK-PHASE1-NX10-WORKLOG NX10 遊戲化模組工作日誌 v1.0（集大成型 + 累計範式總表、模組 worklog 收官）|
+| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 4 | `71f5ce1` | DOC nx08-worklog 主題 3 末尾加 monthly_report 刪表紀錄 |
 | `feature/wp-phase1-w2-mini` | ✅ 同步 | `5a34664` | WP-PHASE1-DEMO02 customer 命名規則調整 |
 | `feature/wp-phase0-schema` | ✅ 同步 | `7652c43` | WP-PHASE0-B2 stock reverse lookup API |
 | `feature/demo-emergency` | ✅ 同步 | `0df5a84` | TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10（**G1 已 push**） |
@@ -32,7 +32,7 @@
 | `feature/sys-dashboard` | ✅ 同步 | `9096c2b` | NX01 default seed upsert keys fix |
 
 ⭐ = 當前 HEAD 所在
-🟡 = doc-restructure 分支 ahead origin 1 個 commit（待 push、見 §C）
+🟡 = doc-restructure 分支 ahead origin 4 個 commit（待 push、見 §C）
 ✅ = 其餘 11 條本地分支跟 origin 同步
 
 ### A.2 Tag
@@ -45,13 +45,13 @@
 
 ```
 On branch feature/wp-phase1-doc-restructure
-Your branch is ahead of 'origin/feature/wp-phase1-doc-restructure' by 2 commits.
+Your branch is ahead of 'origin/feature/wp-phase1-doc-restructure' by 5 commits.
   (use "git push" to publish your local commits)
 nothing to commit, working tree clean
 ```
 
 > ⚠️ 本次 GIT-STATE 更新後執行 `git push` 即同步、預計 push 後 §C 清空。
-> ✅ NX05 commit pattern 已恢復分軌：本次只有 [TASK-WORKLOG] + [GIT-STATE]、無 [ARCH] 因 system-architecture B.1 NX05 數量本來就正確（7 子模組）、不需修。
+> ⚠️ 本次任務含跨類型 commit：1 個 [TASK-NX08-MONTHLY-REPORT-CLEANUP]（schema + migration、已先 push f531680）+ 1 個 [TASK-WORKLOG-RENAME]（git mv 10 個 worklog）+ 3 個 [DOC]（A030 / 交叉引用 / nx08 主題 3 紀錄）+ 即將加 [GIT-STATE]（本檔）。
 
 ---
 
@@ -77,14 +77,19 @@ nothing to commit, working tree clean
 
 ## C. 未 Push 的本地工作
 
-🟡 **`feature/wp-phase1-doc-restructure` ahead origin 2 個 commit**：
+🟡 **`feature/wp-phase1-doc-restructure` ahead origin 4 個 commit**（+ 即將加 1 個 GIT-STATE）：
 
 | commit | 摘要 |
 |--------|------|
-| `25a596e` | TASK-PHASE1-NX10-WORKLOG NX10 遊戲化模組工作日誌 v1.0（模組 worklog 收官）|
-| `(本次)`  | GIT-STATE update 2026-04-29 NX10 worklog 完成 |
+| `f9823be` | DOC system-architecture A030 nx08_monthly_report cleanup |
+| `03bf701` | TASK-WORKLOG-RENAME git mv 10 個 worklog 加 nx0X 前綴 |
+| `a9dd686` | DOC 更新交叉引用 worklog 路徑加 nx0X 前綴 |
+| `71f5ce1` | DOC nx08-worklog 主題 3 末尾加 monthly_report 刪表紀錄 |
+| `(本次)`  | GIT-STATE update 2026-04-29 NX08 cleanup + worklog rename |
 
-→ 立即執行 `git push origin feature/wp-phase1-doc-restructure` 即同步。
+→ 本次 GIT-STATE commit 後執行 `git push origin feature/wp-phase1-doc-restructure` 即同步。
+
+⚠️ NX08 cleanup 的 schema + migration commit `f531680` 已先 push（Crown 拍 A 授權獨立 push）。
 
 歷史風險點全數解除：
 - `feature/demo-emergency` G1 ✅ push 完成（`0df5a84`）
@@ -99,7 +104,7 @@ nothing to commit, working tree clean
 ```
 main (6e46a4b)
   ├── feature/wp-phase1-w2-mini      (5a34664) — DEMO-02 LITE seed + 客戶命名
-  └── feature/wp-phase1-doc-restructure (c7b0464) — 文件重整（本檔所在）
+  └── feature/wp-phase1-doc-restructure (71f5ce1) — 文件重整（本檔所在）
 ```
 
 兩條從 `main` 切出、各自獨立、改動範圍不重疊：
@@ -149,7 +154,7 @@ main (6e46a4b)
 
 ### E.5 下次更新時機（預測）
 
-- 此分支 merge 回 main 時（同時收 doc-restructure + NX01~10-WORKLOG 多 task），觸發時機 #2
+- 此分支 merge 回 main 時（同時收 doc-restructure + NX01~10-WORKLOG + NX08 cleanup + worklog rename 多 task），觸發時機 #2
 - 或 Crown 拍 _shared/worklog.md 進場時、累積到 ≥5 commit，觸發時機 #3
 - 或下次 Hank 切到家裡 / 辦公室機器時，觸發時機 #5
 
