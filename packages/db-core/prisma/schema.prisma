@@ -1037,7 +1037,6 @@ model Nx01User {
   rev_Nx07ScheduleItem_swapUserId     Nx07ScheduleItem[]     @relation("R_Nx07ScheduleItem_swapUserId")
   rev_Nx08DailyReport_userId          Nx08DailyReport[]      @relation("R_Nx08DailyReport_userId")
   rev_Nx08HrCache_userId              Nx08HrCache[]          @relation("R_Nx08HrCache_userId")
-  rev_Nx08MonthlyReport_userId        Nx08MonthlyReport[]    @relation("R_Nx08MonthlyReport_userId")
   rev_Nx09KmFeedback_userId           Nx09KmFeedback[]       @relation("R_Nx09KmFeedback_userId")
   rev_Nx09Meeting_organizerId         Nx09Meeting[]          @relation("R_Nx09Meeting_organizerId")
   rev_Nx09MeetingAction_assigneeId    Nx09MeetingAction[]    @relation("R_Nx09MeetingAction_assigneeId")
@@ -4668,50 +4667,6 @@ model Nx08InventoryCache {
   @@map("nx08_inventory_cache")
 }
 
-/// =======================================================
-/// Nx08MonthlyReport — DB table `nx08_monthly_report`
-/// =======================================================
-model Nx08MonthlyReport {
-  /// [NX08]+[MRPT]+[7碼流水號]，EX : NX08MRPT0000001；啟用最低需求版本：PRO
-  id              String     @id @default(dbgenerated("gen_nx08_monthly_report_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId        String     @map("tenant_id") @db.VarChar(15)
-  /// 員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId          String     @map("user_id") @db.VarChar(15)
-  /// 報表年月（每人每月唯一，格式：YYYY-MM）。；啟用最低需求版本：PRO
-  yearMonth       String     @map("year_month") @db.VarChar(7)
-  /// 五大KPI達成率（含自評/差異分析）。；啟用最低需求版本：PRO
-  kpiSummary      String?    @map("kpi_summary") @db.Text
-  /// 本月重要事項說明（達標/未達標原因）。；啟用最低需求版本：PRO
-  achievementDesc String?    @map("achievement_desc") @db.Text
-  /// 日報表繳交率（%，系統自動統計）。；啟用最低需求版本：PRO
-  dailyReportRate Decimal    @default(0) @map("daily_report_rate") @db.Decimal(5, 2)
-  /// 本月教育訓練時數（OST/OJT/外訓）。；啟用最低需求版本：PRO
-  trainingHours   Decimal    @default(0) @map("training_hours") @db.Decimal(5, 1)
-  /// 下月KPI目標與計畫。；啟用最低需求版本：PRO
-  nextMonthGoals  String?    @map("next_month_goals") @db.Text
-  /// 提交時間。；啟用最低需求版本：PRO
-  submittedAt     DateTime?  @map("submitted_at")
-  /// 主管評分（行政指標+學習成長，佔20%）。；啟用最低需求版本：PRO
-  supervisorScore Decimal?   @map("supervisor_score") @db.Decimal(5, 2)
-  /// 主管月度回饋。；啟用最低需求版本：PRO
-  supervisorReply String?    @map("supervisor_reply") @db.Text
-  /// 主管回饋時間。；啟用最低需求版本：PRO
-  repliedAt       DateTime?  @map("replied_at")
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt       DateTime   @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy       String     @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy       String     @map("updated_by") @db.VarChar(15)
-  tenant          Nx99Tenant @relation("R_Nx08MonthlyReport_tenantId", fields: [tenantId], references: [id])
-  user            Nx01User   @relation("R_Nx08MonthlyReport_userId", fields: [userId], references: [id])
-
-  @@unique([tenantId, userId, yearMonth])
-  @@map("nx08_monthly_report")
-}
 
 /// =======================================================
 /// Nx08PestelRecord — DB table `nx08_pestel_record`
@@ -6126,7 +6081,6 @@ model Nx99Tenant {
   rev_Nx08FinanceCache_tenantId      Nx08FinanceCache[]      @relation("R_Nx08FinanceCache_tenantId")
   rev_Nx08HrCache_tenantId           Nx08HrCache[]           @relation("R_Nx08HrCache_tenantId")
   rev_Nx08InventoryCache_tenantId    Nx08InventoryCache[]    @relation("R_Nx08InventoryCache_tenantId")
-  rev_Nx08MonthlyReport_tenantId     Nx08MonthlyReport[]     @relation("R_Nx08MonthlyReport_tenantId")
   rev_Nx08PestelRecord_tenantId      Nx08PestelRecord[]      @relation("R_Nx08PestelRecord_tenantId")
   rev_Nx08PurchaseCache_tenantId     Nx08PurchaseCache[]     @relation("R_Nx08PurchaseCache_tenantId")
   rev_Nx08SalesCache_tenantId        Nx08SalesCache[]        @relation("R_Nx08SalesCache_tenantId")
