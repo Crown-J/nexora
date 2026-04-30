@@ -232,7 +232,7 @@ NX09 缺口 #3 是 #5「跨模組整合」典型例：
 - ⚠️ **「同批落地 ≠ 同類」認知**（本日誌主題 1 揭露）：Phase 編號 / commit batch 是工程組織單位、不是業務分類單位。NX08/NX09 同批 Phase5 第九批 API、但業務本質完全不同。
 - ⚠️ **「跨模組不一致不一定是 bug」認知**（本日誌主題 1 踩坑揭露）：軟刪欄位 article/document `is_active=false` vs meeting `status='X'`、是主檔風格 vs 業務單據風格的合理差異、不是 drift。讀 v7_baseline schema 時要分清楚。
 - ⚠️ **「3 個但相似度低、不抽」抽象判準延伸**（本日誌主題 1 揭露）：補強 [NX02 主題 2](../nx02/nx02-worklog.md)「3 個相似實作是抽象最佳時機」、加上「相似度高才抽、低就各自寫」判準。
-- 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進 / 「不可逆」兩種策略對比 / 「揭露缺口」5 子類型）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
+- 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進 / 「不可逆」兩種策略對比 / 「揭露缺口」5 子類型）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
 - 下一輪預期：[docs/nx10/nx10-worklog.md](../nx10/nx10-worklog.md)（NX10 遊戲化、PRO 模組、checkin/exp/medal/tasks/leaderboard、Phase5-NX10 + nx10_checkin_log 1 個 follow-up migration、預期工作量介於穩定模組跟 NX01~04 之間）
 
 ---

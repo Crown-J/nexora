@@ -98,7 +98,7 @@ Phase5 後端 4 個資源已落地、但前端只有舊 v1 「採購中心」散
 
 ## 主題 3｜TASK-0421 五單據 demo（NX02 三張：RF / PO / RR）
 
-> ⚠️ 公版 component（DocLayout / DocListView / DocDetailView / DocHeader / DocItemTable / docStatus）跨模組共用、寫進 [_shared/worklog.md](../_shared/worklog.md)（待寫）。本主題只記 NX02 三張單據的 demo 用法。
+> ⚠️ 公版 component（DocLayout / DocListView / DocDetailView / DocHeader / DocItemTable / docStatus）跨模組共用、見 [_shared/worklog.md 主題 4](../_shared/worklog.md)。本主題只記 NX02 三張單據的 demo 用法。
 
 ### 起源
 
@@ -126,7 +126,7 @@ Phase5 後端 4 個資源已落地、但前端只有舊 v1 「採購中心」散
 
 ### 對應文件
 
-- ⚠️ 公版 component 細節 → 待寫 [_shared/worklog.md](../_shared/worklog.md)
+- 公版 component 細節 → 見 [_shared/worklog.md 主題 4](../_shared/worklog.md)
 - DEMO 路徑短網址 redirect 規則：[apps/nx-ui/next.config.ts](../../apps/nx-ui/next.config.ts)
 
 ---
@@ -296,7 +296,7 @@ Nx02BaseError              ← 抽象基底
 - 本日誌沿用 [NX01 worklog](../nx01/nx01-worklog.md) 五段式結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件
 - 主題 4 demo 重構是**特殊情況**（disclaimer 三段標明 demo 階段、未來真實落地可能重寫）— 之後類似 demo / mock 工作可沿用此 disclaimer 模式
 - 主題 5 拆 5 小節（5A schema / 5B drift / 5C API / 5D error / 5E 反查鏈）— 工作量大的主題拆小節對 Alex 跨對話讀更友善
-- 跨模組或公版（D3 / D4 / B2 / TASK-BUSINESS-RESTRUCTURE / 公版 component / A002）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
+- 跨模組或公版（D3 / D4 / B2 / TASK-BUSINESS-RESTRUCTURE / 公版 component / A002）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
 - 下一輪預期：`docs/nx03/nx03-worklog.md`（主題會跟 B2 反查 + Phase5-NX03 + DEMO-R1 mobile balance 重疊）
 
 ---

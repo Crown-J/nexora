@@ -254,7 +254,7 @@ migration `20260416120000_nx06_dn_logistics_status_gps_intl` 加：
   寫缺口時要分類清楚、給 Alex 知道「該怎麼處理 / 誰處理」。
 - **「接收側設計」範式第二次套用**（NX05 → NX06）：之後 NX08 報表 / NX07 人資若有跨模組接收業務鏈、可繼續沿用、不需重新對焦
 - **混合架構**（4 controller + 1 cross-cutting service helper）是 NX06 獨有結構、其他模組沒這個 pattern、之後若遇到「N 個子模組共用同一 DB 表」可參考 NX06 切法
-- 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / A002 / 接收側設計的 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
+- 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / A002 / 接收側設計的 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
 - 下一輪預期：[docs/nx07/nx07-worklog.md](../nx07/nx07-worklog.md)（NX07 人資模組、Phase5-NX07 + 出勤/排班/薪資/績效、預期工作量視 PRO 業務複雜度而定、可能小可能中）
 
 ---

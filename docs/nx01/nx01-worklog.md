@@ -213,7 +213,7 @@ v7_baseline 的 seed 是「`default/` 一層平鋪」、22 個 CSV 檔混在一�
 ### 對應架構債 / 文件
 
 - ✅ A001（X1 是 Migration 2 + step 4 的一部分）
-- ⚠️ **A002（schema drift）** 也是本次 task 間插完成、跨多模組（NX07 status default + 4 個 index）— 詳見 `_shared/worklog.md`（待寫）、不在本日誌範圍。
+- ⚠️ **A002（schema drift）** 也是本次 task 間插完成、跨多模組（NX07 status default + 4 個 index）— 詳見 [_shared/worklog.md 主題 2](../_shared/worklog.md)、不在本日誌範圍。
 - 對應 memory：`project_task_seed_refactor.md`、`feedback_tech_debt_cleanup.md`
 - ⚠️ `template/apply-checkin-reward.ts` **從未建立**（Step 7 情境 A）— 舊邏輯保留在 `pre-53b900d` git history、未來 NX10 遊戲化啟用時撈回。
 
@@ -273,9 +273,9 @@ DEMO-02 LITE seed 第一次跑、撞兩波 P2000「值太長」：
 
 - 本日誌是「**考古手冊**」性質、按主題不按時間排
 - 寫的時候對齊 [hank-charter.md](../_shared/team/hank-charter.md) §D.2 工作日誌規範
-- 下一輪要寫的：
-  - `docs/_shared/worklog.md`（A002 schema drift 跨模組 / DEMO-02 主任務脈絡）
-  - `docs/nx02/nx02-worklog.md` ~ `docs/nx10/nx10-worklog.md`（依 Crown 拍板節奏）
+- 已寫的後續（Phase 1 收官 2026-04-29）：
+  - [_shared/worklog.md](../_shared/worklog.md)（8 主題跨模組統合 + 累計範式總表 + 工程文化範式 5 條）
+  - `docs/nx02/nx02-worklog.md` ~ `docs/nx10/nx10-worklog.md`（10/10 完成）
 - 撰寫流程：先盤點 → 列主題候選給 Crown → 拍板後再寫
 - 範本可參考本日誌結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式
 

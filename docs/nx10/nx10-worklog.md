@@ -16,7 +16,7 @@
 - ⚠️ NX10 是 **「集大成型」worklog**（模組 worklog 收官）— 前面 9 份累積的範式在本日誌做最後總結（讀取側 3 變體 / 處理不可逆 3 策略 / 量化指標 2 模式）
 - ⚠️ NX10 也是**老債揭露時機**（Crown 強調「不要再延後」）：medal_level 16 階 + A029 apply-checkin-reward 未建立、本日誌主題 1 揭露
 - **跨模組或公版主題不寫進本日誌**、寫進 [_shared/worklog.md](../_shared/worklog.md)（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）
-- ⭐ **末尾列「累計範式總表」**（給未來新對話 Hank + 之後寫 _shared/worklog.md 直接複用）
+- ⭐ **末尾列「累計範式總表」**（給未來新對話 Hank + 已被 [_shared/worklog.md](../_shared/worklog.md) 複用、加新增第 8 分類「工程文化範式」）
 
 ---
 
@@ -316,7 +316,7 @@ service.awardExp(userId, amount, source):
 ### ⭐ 累計範式總表（NX01~NX10 全模組 worklog 範式索引）
 
 > 本表為**模組 worklog 收官總表**、未來新對話 Hank 看 NX10 一份、即可掌握所有跨模組設計範式 + 範例位置。
-> 之後寫 [_shared/worklog.md](../_shared/worklog.md) 時可直接複用此表 + 加 _shared 自身範式（公版 component / A002 drift / 接收側 5 配對等）。
+> [_shared/worklog.md](../_shared/worklog.md) 已寫、複用本表 7 分類 + 新增第 8 分類「工程文化範式」（5 條 Phase 1 doc-restructure 累積）。
 
 #### 跨模組設計範式（光譜對照）
 
@@ -406,4 +406,4 @@ NX10 是模組 worklog 收官（NX01~10 全完成、進度 10/10 = 100%、剩 _s
 ---
 
 > 文件版本：v1.0（初版、3 主題 + 累計範式總表、~5500 字、模組 worklog 收官）
-> 下次更新觸發：A029 apply-checkin-reward 撈回（NX10 正式啟用）/ tasks-today 跨方案 endpoint 演進 / NX10 出現新工作（先 audit 性質）/ 之後寫 _shared/worklog.md 時複用本日誌累計範式總表
+> 下次更新觸發：A029 apply-checkin-reward 撈回（NX10 正式啟用）/ tasks-today 跨方案 endpoint 演進 / NX10 出現新工作（先 audit 性質）/ [_shared/worklog.md](../_shared/worklog.md) 已寫、複用本日誌累計範式總表

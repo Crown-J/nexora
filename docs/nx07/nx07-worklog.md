@@ -71,7 +71,7 @@ Controller 才執行
 ### 踩坑 / 學到的
 
 - **「FINANCE 全擋」不是 OOP convention、是法規驅動**：第一版我以為「角色細分」是設計選擇、實際是個資法 + 公司治理要求（財務不能看自己 / 同事薪資、是利益衝突防範）。教訓：**法規驅動的權限切割要在 worklog 寫清楚法規來源**（沿用 NX06 主題 3D 範式）— 詳見主題 4 4B 個資法段落。
-- **A002 涉及 NX07 是 v6 historical drift**：DB 存 `'N'/'P'/'D'` 字元、schema/業務 token `'NORMAL'/'DRAFT'`、靜默 mismatch — 這跟 NX02 v6 historical schema 同模式（DB 單字元、API token）、屬全跨模組 drift。本主題 migration 列表帶過、詳細處理見 [_shared/worklog.md](../_shared/worklog.md)（待寫）。
+- **A002 涉及 NX07 是 v6 historical drift**：DB 存 `'N'/'P'/'D'` 字元、schema/業務 token `'NORMAL'/'DRAFT'`、靜默 mismatch — 這跟 NX02 v6 historical schema 同模式（DB 單字元、API token）、屬全跨模組 drift。本主題 migration 列表帶過、詳細處理見 [_shared/worklog.md 主題 2](../_shared/worklog.md)。
 - **狀態機補 VOIDED 跟 NX05 paylog 同對應**：第二次套用「VOIDED 是合法狀態」設計（NX05 主題 3 第一次定義）、教訓：**範式跨模組可重複、寫 worklog 時明標「沿用」即可、不必重新對焦**。
 
 ### Migration 列表（NX07 直接相關 + 跨模組受影響）
@@ -340,7 +340,7 @@ NX07 是 NEXORA 第一個**全模組受多重法規約束**的模組。其他模
 
 - ⚠️ **「揭露缺口分性質」表格化**（NX06 範式延續、本日誌 4 個缺口都歸類）：業務鏈 / demo→prod / schema-spec 缺漏 / 規範不一致。
 
-- 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
+- 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
 - 下一輪預期：[docs/nx08/nx08-worklog.md](../nx08/nx08-worklog.md)（NX08 報表分析、PRO 模組、kpi/daily-report/monthly-report、預期工作量視 SYS-DASH-PRO 系列複雜度而定）
 
 ---

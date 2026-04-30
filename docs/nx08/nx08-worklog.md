@@ -158,7 +158,7 @@ NX08 自己擁有的只有 `daily_report` 主表（員工跟報表互動的紀�
 
 - 後端：[apps/nx-api/src/nx08/kpi-target/](../../apps/nx-api/src/nx08/kpi-target/) / `kpi-record/` / `daily-report/`
 - 跨模組對比：[NX07 主題 3](../nx07/nx07-worklog.md)（主動側設計第一次定義 + 員工生命週期主動側）
-- ⚠️ 接收側設計光譜（NX05/NX06）vs 主動側（NX07/NX08）的完整對比 → 待寫 [_shared/worklog.md](../_shared/worklog.md)
+- 接收側設計光譜（NX05/NX06）vs 主動側（NX07/NX08）的完整對比 → 見 [_shared/worklog.md 主題 6](../_shared/worklog.md)
 
 ---
 
@@ -252,7 +252,7 @@ Crown 拍 **A：刪 `nx08_monthly_report` 表**。
 - ⚠️ **「業務語意 vs 資料歸屬」分離**範式（本日誌建立、主題 1）：API 設計時 endpoint 放業務語意所在模組、Prisma model 放資料生命週期歸屬模組、兩者可分離。聚合層 NX08 特別需要這個分離思維。
 - ⚠️ **「揭露缺口分性質」範式升級**（本日誌主題 3）：「**規範不一致**」性質擴展、不只「跨模組規範不一致」（A021）、也含「**schema vs 行為不一致**」（本日誌缺口 #2）。
 - ⚠️ **「unique constraint 漏寫是 v7_baseline 黃金窗口揭露」範式**（本日誌主題 1 + 對齊 [NX01 主題 1](../nx01/nx01-worklog.md)）：v7_baseline 後 1~2 週業務測試是揭露 unique 漏寫的黃金窗口、新 schema 落地後主動跑「同 user 多筆 / 同 docNo 多筆」反向測試。
-- 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 大塊 3 倉管 KPI 已寫 NX03 / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
+- 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 大塊 3 倉管 KPI 已寫 NX03 / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
 - 下一輪預期：[docs/nx09/nx09-worklog.md](../nx09/nx09-worklog.md)（NX09 知識管理、PRO 模組、article/document/meeting、預期工作量偏小、可能第三個「穩定模組真誠揭露」案例）
 
 ---
