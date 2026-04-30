@@ -68,7 +68,7 @@ NX09 跟 NX02/03/05/07 等抽 `shared/nxXX-list-query.dto.ts` 不同、每子模
 **為什麼不抽共用**：
 - 3 個子模組查詢欄位差異大（article 有 tags、document 有 version、meeting 有 attendee）
 - 抽共用 DTO 反而要塞 N 個 optional 欄位、可讀性下降
-- 「3 個相似實作是抽象最佳時機」的反例（沿用 [NX02 主題 2](../nx02/worklog.md) 提到的時機判斷）— **3 個但相似度低、不抽**
+- 「3 個相似實作是抽象最佳時機」的反例（沿用 [NX02 主題 2](../nx02/nx02-worklog.md) 提到的時機判斷）— **3 個但相似度低、不抽**
 
 #### 1 個共用 utils（shared/nx09/）
 
@@ -92,7 +92,7 @@ NX09 跟 NX02/03/05/07 等抽 `shared/nxXX-list-query.dto.ts` 不同、每子模
 
 ### 踩坑 / 學到的
 
-- **「3 個但相似度低、不抽」的判準延伸**：[NX02 主題 2](../nx02/worklog.md) 揭露「3 個相似實作是抽象最佳時機」、本主題揭露**反例**「3 個但相似度低、不抽更易讀」。教訓：**抽象判準不只看『實作個數 ≥3』、還要看『相似度』**。3 個相似度高 → 抽；3 個相似度低 → 各自寫。
+- **「3 個但相似度低、不抽」的判準延伸**：[NX02 主題 2](../nx02/nx02-worklog.md) 揭露「3 個相似實作是抽象最佳時機」、本主題揭露**反例**「3 個但相似度低、不抽更易讀」。教訓：**抽象判準不只看『實作個數 ≥3』、還要看『相似度』**。3 個相似度高 → 抽；3 個相似度低 → 各自寫。
 - **軟刪欄位跨模組不一致是合理的、不是 drift**：第一版我以為要把 article/document/meeting 統一軟刪欄位、Crown 拍板「**主檔風格用 is_active、業務單據風格用 status='X'`、不要強制統一**」。教訓：**「跨模組不一致」不一定是 bug、要看業務語意分類**（NX01 主檔 vs NX02/3 業務單據是兩個風格）。
 - **「同批落地 ≠ 同類」是模組分類學陷阱**：寫 worklog 才意識到 NX08/NX09 雖同批 Phase5 第九批 API、但範式完全不同（聚合層 vs 純業務）。Phase 編號 / commit batch 是工程組織單位、不是業務分類單位。教訓：**讀 dailylog 看 Phase 編號分組時、要分業務本質再判斷模組類別**。
 
@@ -150,7 +150,7 @@ NX09 documents 選 append version：**KM 文件改版的歷史本身是業務資
 
 ### NEXORA 處理不可逆的兩種策略對比
 
-> Alex 觀察建議揭露：跟 [NX05 主題 3 paylog VOIDED](../nx05/worklog.md#主題-3paylog-過帳邏輯crcp--voided-沖回) 同精神「業務動作不可逆」、但**變體不同**。
+> Alex 觀察建議揭露：跟 [NX05 主題 3 paylog VOIDED](../nx05/nx05-worklog.md#主題-3paylog-過帳邏輯crcp--voided-沖回) 同精神「業務動作不可逆」、但**變體不同**。
 
 | 策略 | 範式 | 範例 | 業務語意 |
 |------|------|------|---------|
@@ -176,7 +176,7 @@ NX09 documents 選 append version：**KM 文件改版的歷史本身是業務資
 ### 對應文件
 
 - document.service：[apps/nx-api/src/nx09/document/](../../apps/nx-api/src/nx09/document/)
-- 跨模組關聯：[NX05 主題 3](../nx05/worklog.md)（paylog VOIDED 配對沖回、本主題對比變體 = 歷史鏈）
+- 跨模組關聯：[NX05 主題 3](../nx05/nx05-worklog.md)（paylog VOIDED 配對沖回、本主題對比變體 = 歷史鏈）
 - 業務流程：[docs/nx09/workflow/primary/nx09-w02-document-library.md](workflow/primary/nx09-w02-document-library.md)
 
 ---
@@ -194,7 +194,7 @@ NX09 documents 選 append version：**KM 文件改版的歷史本身是業務資
 
 > Alex 觀察建議：缺口 #3 不屬現有 4 性質、規範升級
 
-「揭露缺口分性質」範式（[NX06 主題 3+ 給未來提示](../nx06/worklog.md) 定義 4 性質）需擴展第 5 子類型：
+「揭露缺口分性質」範式（[NX06 主題 3+ 給未來提示](../nx06/nx06-worklog.md) 定義 4 性質）需擴展第 5 子類型：
 
 | 性質 | 判斷準則 | 處理路徑 |
 |------|---------|---------|
@@ -213,7 +213,7 @@ NX09 缺口 #3 是 #5「跨模組整合」典型例：
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) ~ [NX08](../nx08/worklog.md) worklog 五段式結構
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) ~ [NX08](../nx08/nx08-worklog.md) worklog 五段式結構
 - ⚠️ **「穩定模組光譜」範式**（本日誌建立、Crown 拍板）：穩定模組不是 0/1 二分、是漸進光譜：
   | 模組 | follow-up migration | 業務本質 |
   |------|--------------------|----------|
@@ -231,9 +231,9 @@ NX09 缺口 #3 是 #5「跨模組整合」典型例：
 - ⚠️ **「揭露缺口分性質」範式升級到 5 子類型**（本日誌缺口 #3 建立）：加「**跨模組整合缺口**」（兩模組已存在功能、缺 wire up、處理路徑：補 wire up、不是補 spec / schema / 改架構）。
 - ⚠️ **「同批落地 ≠ 同類」認知**（本日誌主題 1 揭露）：Phase 編號 / commit batch 是工程組織單位、不是業務分類單位。NX08/NX09 同批 Phase5 第九批 API、但業務本質完全不同。
 - ⚠️ **「跨模組不一致不一定是 bug」認知**（本日誌主題 1 踩坑揭露）：軟刪欄位 article/document `is_active=false` vs meeting `status='X'`、是主檔風格 vs 業務單據風格的合理差異、不是 drift。讀 v7_baseline schema 時要分清楚。
-- ⚠️ **「3 個但相似度低、不抽」抽象判準延伸**（本日誌主題 1 揭露）：補強 [NX02 主題 2](../nx02/worklog.md)「3 個相似實作是抽象最佳時機」、加上「相似度高才抽、低就各自寫」判準。
+- ⚠️ **「3 個但相似度低、不抽」抽象判準延伸**（本日誌主題 1 揭露）：補強 [NX02 主題 2](../nx02/nx02-worklog.md)「3 個相似實作是抽象最佳時機」、加上「相似度高才抽、低就各自寫」判準。
 - 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進 / 「不可逆」兩種策略對比 / 「揭露缺口」5 子類型）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx10/worklog.md](../nx10/worklog.md)（NX10 遊戲化、PRO 模組、checkin/exp/medal/tasks/leaderboard、Phase5-NX10 + nx10_checkin_log 1 個 follow-up migration、預期工作量介於穩定模組跟 NX01~04 之間）
+- 下一輪預期：[docs/nx10/nx10-worklog.md](../nx10/nx10-worklog.md)（NX10 遊戲化、PRO 模組、checkin/exp/medal/tasks/leaderboard、Phase5-NX10 + nx10_checkin_log 1 個 follow-up migration、預期工作量介於穩定模組跟 NX01~04 之間）
 
 ---
 

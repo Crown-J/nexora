@@ -101,7 +101,7 @@ apps/nx-api/src/nx06/
 
 ## 主題 2｜跨模組接收側：NX04 → NX06 自動建單（沿用 NX05 範式、第二次套用）
 
-> ⚠️ 本主題沿用 [NX05 主題 2](../nx05/worklog.md#主題-2跨模組業務鏈nx02--nx04--nx05-自動建單) 「接收側設計」範式。**第二次套用、確認範式可重複**。差異點：NX05 接 PO/SO、NX06 只接 SO（採購不直接觸發物流）。
+> ⚠️ 本主題沿用 [NX05 主題 2](../nx05/nx05-worklog.md#主題-2跨模組業務鏈nx02--nx04--nx05-自動建單) 「接收側設計」範式。**第二次套用、確認範式可重複**。差異點：NX05 接 PO/SO、NX06 只接 SO（採購不直接觸發物流）。
 
 ### 起源
 
@@ -145,8 +145,8 @@ apps/nx-api/src/nx06/
 ### 對應文件
 
 - 共用 helper：[apps/nx-api/src/shared/nx06/nx06-create-delivery-from-so.ts](../../apps/nx-api/src/shared/nx06/nx06-create-delivery-from-so.ts)
-- 範式來源：[NX05 主題 2](../nx05/worklog.md#主題-2跨模組業務鏈nx02--nx04--nx05-自動建單)（第一次定義「接收側設計」範式）
-- 跨模組關聯：[NX04 主題 1](../nx04/worklog.md)（SO SHIPPED 過帳同步呼叫 create-delivery）
+- 範式來源：[NX05 主題 2](../nx05/nx05-worklog.md#主題-2跨模組業務鏈nx02--nx04--nx05-自動建單)（第一次定義「接收側設計」範式）
+- 跨模組關聯：[NX04 主題 1](../nx04/nx04-worklog.md)（SO SHIPPED 過帳同步呼叫 create-delivery）
 
 ---
 
@@ -223,7 +223,7 @@ migration `20260416120000_nx06_dn_logistics_status_gps_intl` 加：
 
 - service：[apps/nx-api/src/nx06/dn-logistics.service.ts](../../apps/nx-api/src/nx06/dn-logistics.service.ts)
 - DTO：[apps/nx-api/src/nx06/dto/nx06-signature.dto.ts](../../apps/nx-api/src/nx06/dto/nx06-signature.dto.ts)
-- 跨模組關聯：[NX05 主題 3](../nx05/worklog.md)（過帳設計對齊業務本質、本主題 3A 同精神）
+- 跨模組關聯：[NX05 主題 3](../nx05/nx05-worklog.md)（過帳設計對齊業務本質、本主題 3A 同精神）
 
 ---
 
@@ -242,7 +242,7 @@ migration `20260416120000_nx06_dn_logistics_status_gps_intl` 加：
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) ~ [NX05](../nx05/worklog.md) worklog 五段式結構
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) ~ [NX05](../nx05/nx05-worklog.md) worklog 五段式結構
 - ⚠️ **「穩定模組真誠揭露」第二次套用驗證**（NX05 第一例、NX06 第二例）：之後 NX07~NX10 若工作量真的小、可繼續沿用此範式、worklog 大小反映真實工作量、不為對稱湊字數
 - ⚠️ **「揭露缺口分性質」新範式**（本日誌建立、Crown 拍板）：
   | 性質 | 範例 | 處理路徑 |
@@ -255,7 +255,7 @@ migration `20260416120000_nx06_dn_logistics_status_gps_intl` 加：
 - **「接收側設計」範式第二次套用**（NX05 → NX06）：之後 NX08 報表 / NX07 人資若有跨模組接收業務鏈、可繼續沿用、不需重新對焦
 - **混合架構**（4 controller + 1 cross-cutting service helper）是 NX06 獨有結構、其他模組沒這個 pattern、之後若遇到「N 個子模組共用同一 DB 表」可參考 NX06 切法
 - 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / A002 / 接收側設計的 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx07/worklog.md](../nx07/worklog.md)（NX07 人資模組、Phase5-NX07 + 出勤/排班/薪資/績效、預期工作量視 PRO 業務複雜度而定、可能小可能中）
+- 下一輪預期：[docs/nx07/nx07-worklog.md](../nx07/nx07-worklog.md)（NX07 人資模組、Phase5-NX07 + 出勤/排班/薪資/績效、預期工作量視 PRO 業務複雜度而定、可能小可能中）
 
 ---
 

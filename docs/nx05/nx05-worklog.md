@@ -54,7 +54,7 @@
 
 - **regex 跨多語環境的括號 escape 風險**：第一版 IPv4 regex 在某些 lib（例如 `class-validator` 內部 string 處理）會把括號 escape 錯、變成不正確的 group。教訓：**簡單問題用簡單方案**、`ip.split('.')` 一行解決、不需要 regex 高深匠氣。
 - **關帳鎖必須在 application 層、不在 trigger**：第一版想用 trigger 擋寫入、但 trigger 拋出的錯誤訊息對使用者不友善（PostgreSQL exception 看不懂）。改 application service 開頭 check `nx05-period-lock`、拋業務 exception。教訓：**錯誤訊息可讀性是 application 層責任、trigger 適合做 invariant 不適合做業務 validation**。
-- **「ADMIN 通吃」對財務模組是反 pattern**：早期 NX01~NX03 都用 `@Roles('ADMIN')` 保守做、NX05 不能跟。財務角色獨立 guard 從本主題開始、後續其他模組（B2 開放公開、見 [NX03 主題 4](../nx03/worklog.md)）也朝「角色細分」方向走、A021 是這個方向不一致的記錄。
+- **「ADMIN 通吃」對財務模組是反 pattern**：早期 NX01~NX03 都用 `@Roles('ADMIN')` 保守做、NX05 不能跟。財務角色獨立 guard 從本主題開始、後續其他模組（B2 開放公開、見 [NX03 主題 4](../nx03/nx03-worklog.md)）也朝「角色細分」方向走、A021 是這個方向不一致的記錄。
 
 ### Migration 列表（NX05 直接相關 + 跨模組受影響）
 
@@ -63,7 +63,7 @@
 | `20260413120000_spec_v7_baseline` | NX05 schema 建立（ar / ap / paylog / note / allowance / closing 等） |
 | `20260415120000_nx05_paylog_status_void_posted` | paylog 加 VOIDED 狀態（主題 3）|
 | `20260415130000_nx05_ar_ap_closing_status_currency` | AR/AP closing status + currency baseline drift fix |
-| `20260427051334_phase0_b5_drift_fix_fk_columns_widening` | 跨模組同源 widen `nx05_note.currency_id` VARCHAR(10)→(15)（**B5-Aa 主導、見 [NX02 主題 5 5B](../nx02/worklog.md)**、本日誌不重述）|
+| `20260427051334_phase0_b5_drift_fix_fk_columns_widening` | 跨模組同源 widen `nx05_note.currency_id` VARCHAR(10)→(15)（**B5-Aa 主導、見 [NX02 主題 5 5B](../nx02/nx02-worklog.md)**、本日誌不重述）|
 
 ### 對應文件
 
@@ -119,7 +119,7 @@
 ### 對應文件
 
 - 共用 helper：[apps/nx-api/src/shared/nx05/create-ap-from-po.ts](../../apps/nx-api/src/shared/nx05/create-ap-from-po.ts) / `create-ar-from-so.ts` / `sync-ap-from-po.ts`
-- 跨模組關聯：[NX02 主題 1](../nx02/worklog.md)（RR POSTED 過帳寫 ledger 同步呼叫 create-ap）/ [NX04 主題 1](../nx04/worklog.md)（SO SHIPPED 過帳呼叫 create-ar）
+- 跨模組關聯：[NX02 主題 1](../nx02/nx02-worklog.md)（RR POSTED 過帳寫 ledger 同步呼叫 create-ap）/ [NX04 主題 1](../nx04/nx04-worklog.md)（SO SHIPPED 過帳呼叫 create-ar）
 
 ---
 
@@ -169,19 +169,19 @@
 
 - 共用：[apps/nx-api/src/shared/nx05/nx05-paylog-posting.ts](../../apps/nx-api/src/shared/nx05/nx05-paylog-posting.ts)
 - 過帳通用規則對比：[CLAUDE.md §九](../../CLAUDE.md)（NX03 不可逆過帳）
-- 跨模組關聯：[NX03 主題 1](../nx03/worklog.md)（stock 過帳不可逆對比）
+- 跨模組關聯：[NX03 主題 1](../nx03/nx03-worklog.md)（stock 過帳不可逆對比）
 
 ---
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) / [NX02](../nx02/worklog.md) / [NX03](../nx03/worklog.md) / [NX04](../nx04/worklog.md) worklog 五段式結構
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) / [NX02](../nx02/nx02-worklog.md) / [NX03](../nx03/nx03-worklog.md) / [NX04](../nx04/nx04-worklog.md) worklog 五段式結構
 - ⚠️ **「穩定模組真誠揭露」範式**（本日誌新建立）：當模組工作量真的小（NX05 是首例）、worklog 反映真實樣貌、不為對齊其他 worklog 篇幅湊主題。**worklog 大小應反映模組真實工作量、不為對稱湊字數**。
 - ⚠️ **「穩定模組訊號 audit」範式**（本日誌新建立）：NX05 後續若出現新工作、要先 audit「這是跨模組受影響（B5-Aa 模式）」還是「真的 NX05 業務新增」？前者引用主導模組 worklog 不重述、後者才獨立寫主題。NX05 的穩定性本身是訊號、突然有大量 commit 要警覺。
 - **跨模組對比表格化**（本日誌主題 3 4 維度對比 NX05 vs NX03 過帳）：當兩模組設計**有意刻意不同**時、表格化對比讓教學價值最大化。沿用 NX02 主題 5 / NX03 主題 4 對比手法。
 - **「接收側設計」**範式（主題 2）：跨模組業務鏈的 helper 放接收側、業務模組只發訊號 — schema 演進友善、解耦清晰。未來 NX06 物流 / NX08 報表的跨模組接收若有類似情境可參考。
 - 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE / A002 / B5-Aa 跨模組同源 widening / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx06/worklog.md](../nx06/worklog.md)（NX06 物流模組、Phase5-NX06 + DN 送貨單 + GPS/intl-shipping、預期工作量也偏小）
+- 下一輪預期：[docs/nx06/nx06-worklog.md](../nx06/nx06-worklog.md)（NX06 物流模組、Phase5-NX06 + DN 送貨單 + GPS/intl-shipping、預期工作量也偏小）
 
 ---
 

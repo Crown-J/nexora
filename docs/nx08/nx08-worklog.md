@@ -40,7 +40,7 @@ nx08/
 ```
 
 跨模組同步點：
-- **`daily-report.complete` → 同步 NX07 `attendance.clock_out_at`** — 已寫 [NX07 主題 3B](../nx07/worklog.md#3b-nx07--nx08-attendance-同步)、本日誌不重述、僅交叉引用
+- **`daily-report.complete` → 同步 NX07 `attendance.clock_out_at`** — 已寫 [NX07 主題 3B](../nx07/nx07-worklog.md#3b-nx07--nx08-attendance-同步)、本日誌不重述、僅交叉引用
 
 #### 1 個共用 utils（shared/nx08/）
 
@@ -54,7 +54,7 @@ migration `20260417100000_nx08_daily_monthly_unique_fix` 加：
 - `daily_report (tenantId, userId, reportDate)` 複合 unique
 - 防止同一員工同一天填兩份日報、業務語意錯誤
 
-⚠️ **這個 unique 是 0417 補的、不是 v7_baseline**：揭露「v7_baseline 漏了 daily-report unique」、Phase5 落地後跑業務測試才發現有人能填兩份日報、補 migration 修。教訓：**unique constraint 漏寫是 v7_baseline 常見漏洞**（跟主題 1 NX01 tenant_code_unique 補洞同模式、見 [NX01 主題 1](../nx01/worklog.md)）。
+⚠️ **這個 unique 是 0417 補的、不是 v7_baseline**：揭露「v7_baseline 漏了 daily-report unique」、Phase5 落地後跑業務測試才發現有人能填兩份日報、補 migration 修。教訓：**unique constraint 漏寫是 v7_baseline 常見漏洞**（跟主題 1 NX01 tenant_code_unique 補洞同模式、見 [NX01 主題 1](../nx01/nx01-worklog.md)）。
 
 ### 實作歷程
 
@@ -86,7 +86,7 @@ migration `20260417100000_nx08_daily_monthly_unique_fix` 加：
   - 0415 `3f0e960` checkin single btn + monthly KPI
   - 0420 `d8eb7a0` 報表中心卡片頁 `/dashboard/report`
   - ⚠️ 屬前端 hub UI、不是 NX08 後端主軸、僅紀錄 hooking 點
-- 跨模組關聯：[NX07 主題 3B](../nx07/worklog.md)（daily-report → attendance 同步、本日誌不重述）/ [NX03 主題 3](../nx03/worklog.md)（大塊 3 倉管 KPI 屬庫存中心、本日誌不重述）
+- 跨模組關聯：[NX07 主題 3B](../nx07/nx07-worklog.md)（daily-report → attendance 同步、本日誌不重述）/ [NX03 主題 3](../nx03/nx03-worklog.md)（大塊 3 倉管 KPI 屬庫存中心、本日誌不重述）
 
 ---
 
@@ -118,7 +118,7 @@ NX08 落地時面臨核心設計問題：「報表的資料**從哪來、怎麼�
 | NX08 endpoint | 主資料源 | 跨模組 R/W | 業務語意 |
 |---------------|---------|-----------|---------|
 | `GET /nx08/daily-report` | NX08 `daily_report` 自表 | — | 員工填的日報、自身擁有 |
-| `PATCH .../complete` | NX08 自表 + **W: NX07 `attendance.clock_out_at`** | 主動側寫 NX07 | 完成日報順帶下班打卡（見 [NX07 主題 3B](../nx07/worklog.md)）|
+| `PATCH .../complete` | NX08 自表 + **W: NX07 `attendance.clock_out_at`** | 主動側寫 NX07 | 完成日報順帶下班打卡（見 [NX07 主題 3B](../nx07/nx07-worklog.md)）|
 | `GET/POST /nx08/kpi-target` | **NX01 `kpi_target`** | upsert NX01 | KPI 目標設定、操作 NX01 表 |
 | `POST /nx08/kpi-record` | **NX01 `kpi_record`** | upsert NX01（含主動寫量化指標）| KPI 實績紀錄 |
 | `GET /nx08/monthly-report .../summary` | **聚合 NX01 `kpi_record`** | read NX01（即時、見主題 3）| 月報摘要、不寫入 |
@@ -157,7 +157,7 @@ NX08 自己擁有的只有 `daily_report` 主表（員工跟報表互動的紀�
 ### 對應文件
 
 - 後端：[apps/nx-api/src/nx08/kpi-target/](../../apps/nx-api/src/nx08/kpi-target/) / `kpi-record/` / `daily-report/`
-- 跨模組對比：[NX07 主題 3](../nx07/worklog.md)（主動側設計第一次定義 + 員工生命週期主動側）
+- 跨模組對比：[NX07 主題 3](../nx07/nx07-worklog.md)（主動側設計第一次定義 + 員工生命週期主動側）
 - ⚠️ 接收側設計光譜（NX05/NX06）vs 主動側（NX07/NX08）的完整對比 → 待寫 [_shared/worklog.md](../_shared/worklog.md)
 
 ---
@@ -212,7 +212,7 @@ NX08 選即時聚合的核心理由：**業務優先 + 維護成本**。
 ### 對應文件
 
 - monthly-report：[apps/nx-api/src/nx08/monthly-report/](../../apps/nx-api/src/nx08/monthly-report/)
-- 跨模組關聯：[NX05 主題 3](../nx05/worklog.md)（過帳設計對齊業務本質、本主題同精神：設計對齊業務需求、不對齊技術完美）
+- 跨模組關聯：[NX05 主題 3](../nx05/nx05-worklog.md)（過帳設計對齊業務本質、本主題同精神：設計對齊業務需求、不對齊技術完美）
 
 ---
 
@@ -231,7 +231,7 @@ NX08 選即時聚合的核心理由：**業務優先 + 維護成本**。
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) ~ [NX07](../nx07/worklog.md) worklog 五段式結構
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) ~ [NX07](../nx07/nx07-worklog.md) worklog 五段式結構
 - ⚠️ **「跨模組聚合層」範式**（NX08 首例）：當模組業務本質是「視角組合 + read-only 聚合 + 不擁有業務原始資料」時、走 NX08 範式（SaaS BI 雛形）。NX09 知識管理 / NX10 遊戲化雖也跨模組讀、但**擁有自己的業務資料**（KM 文件 / medal/exp 紀錄）、不算聚合層。
 - ⚠️ **「主動側設計光譜內部分層」新範式**（本日誌建立）：主動側設計細分兩子範式：
   | 子範式 | 改的對象 | 業務本質 | 範例 |
@@ -241,9 +241,9 @@ NX08 選即時聚合的核心理由：**業務優先 + 維護成本**。
   選哪種：看「改的是**業務生命週期**還是**業務衡量**」。
 - ⚠️ **「業務語意 vs 資料歸屬」分離**範式（本日誌建立、主題 1）：API 設計時 endpoint 放業務語意所在模組、Prisma model 放資料生命週期歸屬模組、兩者可分離。聚合層 NX08 特別需要這個分離思維。
 - ⚠️ **「揭露缺口分性質」範式升級**（本日誌主題 3）：「**規範不一致**」性質擴展、不只「跨模組規範不一致」（A021）、也含「**schema vs 行為不一致**」（本日誌缺口 #2）。
-- ⚠️ **「unique constraint 漏寫是 v7_baseline 黃金窗口揭露」範式**（本日誌主題 1 + 對齊 [NX01 主題 1](../nx01/worklog.md)）：v7_baseline 後 1~2 週業務測試是揭露 unique 漏寫的黃金窗口、新 schema 落地後主動跑「同 user 多筆 / 同 docNo 多筆」反向測試。
+- ⚠️ **「unique constraint 漏寫是 v7_baseline 黃金窗口揭露」範式**（本日誌主題 1 + 對齊 [NX01 主題 1](../nx01/nx01-worklog.md)）：v7_baseline 後 1~2 週業務測試是揭露 unique 漏寫的黃金窗口、新 schema 落地後主動跑「同 user 多筆 / 同 docNo 多筆」反向測試。
 - 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 大塊 3 倉管 KPI 已寫 NX03 / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx09/worklog.md](../nx09/worklog.md)（NX09 知識管理、PRO 模組、article/document/meeting、預期工作量偏小、可能第三個「穩定模組真誠揭露」案例）
+- 下一輪預期：[docs/nx09/nx09-worklog.md](../nx09/nx09-worklog.md)（NX09 知識管理、PRO 模組、article/document/meeting、預期工作量偏小、可能第三個「穩定模組真誠揭露」案例）
 
 ---
 

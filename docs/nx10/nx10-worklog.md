@@ -56,7 +56,7 @@ NX10 是 NEXORA 唯一需要跨模組共用時區邏輯的模組：
 - **streak 計算**：連續簽到 7 天、跨日判斷必須對齊租戶時區
 - **leaderboard period**：「本週」是租戶時區的週一 ~ 週日
 
-util 抽成 cross-cutting（在 `nx10/` 根目錄、不在子目錄）— 跟 [NX06 主題 1 dn-logistics service helper](../nx06/worklog.md) 同模式（多子模組共用、不適合放單一子目錄）。
+util 抽成 cross-cutting（在 `nx10/` 根目錄、不在子目錄）— 跟 [NX06 主題 1 dn-logistics service helper](../nx06/nx06-worklog.md) 同模式（多子模組共用、不適合放單一子目錄）。
 
 **設計核心**：
 - 所有時區計算統一走 util、避免 5 個子模組各自寫一份
@@ -85,7 +85,7 @@ PATCH /nx10/tasks/:id/done ← PRO 限定
 
 原 PROJECT_CONTEXT spec 寫 20 階、實際只有 16 階。差異來自 spec 寫得早、實作時收斂為 4×4 矩陣（更整齊）。
 
-PROJECT_CONTEXT 已修為 16 階（[NX01 主題 4](../nx01/worklog.md) 提過、TASK-SEED-REFACTOR-01 0421 順手修）。本日誌是真相揭露完成、無後續處理。
+PROJECT_CONTEXT 已修為 16 階（[NX01 主題 4](../nx01/nx01-worklog.md) 提過、TASK-SEED-REFACTOR-01 0421 順手修）。本日誌是真相揭露完成、無後續處理。
 
 ### 1D. ⭐ 老債揭露：A029 apply-checkin-reward 從未建立
 
@@ -106,7 +106,7 @@ TASK-SEED-REFACTOR-01 Step 7「情境 A」決定 `apply-checkin-reward.ts` 先�
 
 - **時區計算「服務端統一 vs 客戶端各自處理」是核心抉擇**：第一版想客戶端傳 `clientTimezone` 服務端依此算 streak、結果跨裝置（手機 + 桌面）打卡 streak 對不齊。改服務端統一用**租戶時區**算 streak、客戶端時區只用於顯示。教訓：**業務時間（streak / period）一律服務端時區、UI 顯示才用客戶端時區**。
 - **「整模組 PRO + endpoint 例外」是合法的**：第一版我以為「PRO guard 加在 module level 就要全 endpoint PRO」、Crown 拍板「**guard 在 controller method level 可覆寫 module level**」+ tasks-today 是業務必要例外。教訓：**版本 gate 設計要看業務需求、不要被「PRO 模組」字面綁死**。
-- **「Phase5-NX10 是最後一批」不代表壓力小**：因為 NX10 是 PRO + 跨方案 + 跨模組讀取 + 時區、複雜度比前面任何一批都高。教訓：**Phase 編號是工程組織單位、業務複雜度看模組本質**（沿用 [NX09 主題 1](../nx09/worklog.md)「同批落地 ≠ 同類」認知）。
+- **「Phase5-NX10 是最後一批」不代表壓力小**：因為 NX10 是 PRO + 跨方案 + 跨模組讀取 + 時區、複雜度比前面任何一批都高。教訓：**Phase 編號是工程組織單位、業務複雜度看模組本質**（沿用 [NX09 主題 1](../nx09/nx09-worklog.md)「同批落地 ≠ 同類」認知）。
 
 ### Migration 列表（NX10 直接相關）
 
@@ -127,7 +127,7 @@ TASK-SEED-REFACTOR-01 Step 7「情境 A」決定 `apply-checkin-reward.ts` 先�
 
 ## 主題 2｜跨模組讀取：tasks 彙整 NX02~05（讀取側第三種變體）
 
-> ⭐ 跟 [NX08 主題 2 跨模組聚合層](../nx08/worklog.md) + [NX07 主題 3 主動側設計](../nx07/worklog.md) 對比、揭露 NEXORA **讀取側設計光譜**完整 3 變體。
+> ⭐ 跟 [NX08 主題 2 跨模組聚合層](../nx08/nx08-worklog.md) + [NX07 主題 3 主動側設計](../nx07/nx07-worklog.md) 對比、揭露 NEXORA **讀取側設計光譜**完整 3 變體。
 
 ### 起源
 
@@ -187,15 +187,15 @@ PATCH /nx10/tasks/:id/done
 ### 踩坑 / 學到的
 
 - **「不寫業務原始資料 + 寫自己資料」是有效的第三種讀取側設計**：第一版有人提議「NX10 改 RR.status 順便給 exp」、Crown 拍板「**業務歸業務、遊戲化歸遊戲化**、兩條軌獨立」。教訓：**跨模組設計不是非黑即白（要嘛純讀要嘛寫業務）、有第三種「讀+自寫」**。
-- **跨模組 SELECT 必須 N+1 防範**：tasks 彙整 4 個模組、每模組 SELECT 不 batched 會撞 N+1。沿用 [NX03 主題 4 B2 N+1 防範](../nx03/worklog.md) 同手法、`Promise.all` + 各模組各一次 IN。教訓：**跨模組讀取一律 batched、不 loop SELECT**。
-- **跨模組讀取 read-only、不需 transaction**：tasks 跨 4 模組 SELECT、純讀、不需 prisma.$transaction（沿用 [NX08 主題 2](../nx08/worklog.md) 教訓）。
+- **跨模組 SELECT 必須 N+1 防範**：tasks 彙整 4 個模組、每模組 SELECT 不 batched 會撞 N+1。沿用 [NX03 主題 4 B2 N+1 防範](../nx03/nx03-worklog.md) 同手法、`Promise.all` + 各模組各一次 IN。教訓：**跨模組讀取一律 batched、不 loop SELECT**。
+- **跨模組讀取 read-only、不需 transaction**：tasks 跨 4 模組 SELECT、純讀、不需 prisma.$transaction（沿用 [NX08 主題 2](../nx08/nx08-worklog.md) 教訓）。
 
 ### 對應文件
 
 - 後端：[apps/nx-api/src/nx10/tasks/](../../apps/nx-api/src/nx10/tasks/)
 - 跨模組關聯：
-  - [NX08 主題 2](../nx08/worklog.md)（聚合層、讀取側第一種變體）
-  - [NX07 主題 3](../nx07/worklog.md)（主動側、寫業務模組）
+  - [NX08 主題 2](../nx08/nx08-worklog.md)（聚合層、讀取側第一種變體）
+  - [NX07 主題 3](../nx07/nx07-worklog.md)（主動側、寫業務模組）
 
 ---
 
@@ -242,7 +242,7 @@ service.awardExp(userId, amount, source):
   4. 若 level 比 emp_medal.currentLevel 高 → UPDATE emp_medal + 觸發晉級事件
 ```
 
-每次 awardExp 重算 SUM 是 O(N) 但 N 不大（一個員工幾年也就幾千筆）— **「正確性 > 效能」設計選擇**（沿用 [NX08 主題 3 即時聚合](../nx08/worklog.md) 同精神）。未來慢可加 cache、不存 snapshot 欄位（避免 stale）。
+每次 awardExp 重算 SUM 是 O(N) 但 N 不大（一個員工幾年也就幾千筆）— **「正確性 > 效能」設計選擇**（沿用 [NX08 主題 3 即時聚合](../nx08/nx08-worklog.md) 同精神）。未來慢可加 cache、不存 snapshot 欄位（避免 stale）。
 
 ### 累積式量化 vs NX08 KPI 量化指標 + NX10 累積鏈在「處理不可逆 3 策略」中的位置
 
@@ -254,7 +254,7 @@ service.awardExp(userId, amount, source):
 | **可變性** | 可隨時改 | 不可逆、只加 |
 | **業務本質** | 績效衡量（可校正）| 遊戲化獎勵（不可剝奪）|
 
-#### B. NEXORA 處理不可逆的 3 策略對比集大成（補強 [NX09 主題 2](../nx09/worklog.md) 2 策略 → 3 策略）
+#### B. NEXORA 處理不可逆的 3 策略對比集大成（補強 [NX09 主題 2](../nx09/nx09-worklog.md) 2 策略 → 3 策略）
 
 | 策略 | 範例 | 業務本質 |
 |------|------|---------|
@@ -271,14 +271,14 @@ service.awardExp(userId, amount, source):
 
 ### 踩坑 / 學到的
 
-- **「accumulate 不是 snapshot」設計選擇要在 schema 揭露**：第一版有人問「為什麼不在 emp_medal 加個 totalExp 欄位、每次 awardExp 直接 += 就好？」— 因為 stale 風險（多 worker 並發 += 會 race）+ audit 缺口（無法回查單筆 exp 來源）。教訓：**累積數字寫 log 表 + SUM 查、不寫 snapshot 欄位**（沿用 [NX08 主題 3](../nx08/worklog.md) 同精神）。
-- **「不可逆」3 策略選擇看業務本質、不是技術完美**：3 策略各有適用場景、沒有「最好的策略」。教訓：**設計範式對偶 / 變體要看業務本質判準、不要默認套同一策略**（沿用 [NX09 主題 2](../nx09/worklog.md) 教訓）。
+- **「accumulate 不是 snapshot」設計選擇要在 schema 揭露**：第一版有人問「為什麼不在 emp_medal 加個 totalExp 欄位、每次 awardExp 直接 += 就好？」— 因為 stale 風險（多 worker 並發 += 會 race）+ audit 缺口（無法回查單筆 exp 來源）。教訓：**累積數字寫 log 表 + SUM 查、不寫 snapshot 欄位**（沿用 [NX08 主題 3](../nx08/nx08-worklog.md) 同精神）。
+- **「不可逆」3 策略選擇看業務本質、不是技術完美**：3 策略各有適用場景、沒有「最好的策略」。教訓：**設計範式對偶 / 變體要看業務本質判準、不要默認套同一策略**（沿用 [NX09 主題 2](../nx09/nx09-worklog.md) 教訓）。
 - **晉級事件可獨立成 webhook / event bus**（未來擴充）：當前只是 service 內 log 一行、未來若有 PRO 客戶想接「晉級通知 Slack」之類、晉級事件改成 event bus 即可、emp_exp_log 結構不需動。教訓：**append-only 結構對未來事件驅動擴充友善**。
 
 ### 對應文件
 
 - 後端：[apps/nx-api/src/nx10/exp/](../../apps/nx-api/src/nx10/exp/) + `medals/`
-- 跨模組對比：[NX08 主題 2](../nx08/worklog.md)（量化指標 snapshot）/ [NX05 主題 3](../nx05/worklog.md)（配對沖回）/ [NX09 主題 2](../nx09/worklog.md)（歷史鏈）
+- 跨模組對比：[NX08 主題 2](../nx08/nx08-worklog.md)（量化指標 snapshot）/ [NX05 主題 3](../nx05/nx05-worklog.md)（配對沖回）/ [NX09 主題 2](../nx09/nx09-worklog.md)（歷史鏈）
 
 ---
 
@@ -304,7 +304,7 @@ service.awardExp(userId, amount, source):
   | 聚合層 | NX08 monthly-report | 純讀視角組合 |
   | 主動側 | NX07 employee-change | 業務語意 owner 是動作發起者 |
   | **讀+自寫** ⭐ | NX10 tasks 彙整 | 跨模組讀取 + 需自己 audit |
-- ⚠️ **「NEXORA 處理不可逆的第三種策略：累積鏈」範式**（本日誌主題 3 建立、補強 [NX09 主題 2](../nx09/worklog.md) 2 策略 → 3 策略）：
+- ⚠️ **「NEXORA 處理不可逆的第三種策略：累積鏈」範式**（本日誌主題 3 建立、補強 [NX09 主題 2](../nx09/nx09-worklog.md) 2 策略 → 3 策略）：
   | 策略 | 範例 | 業務本質 |
   |------|------|---------|
   | 配對沖回 | NX05 paylog | 結果可被消除 |

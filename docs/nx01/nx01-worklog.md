@@ -275,7 +275,7 @@ DEMO-02 LITE seed 第一次跑、撞兩波 P2000「值太長」：
 - 寫的時候對齊 [hank-charter.md](../_shared/team/hank-charter.md) §D.2 工作日誌規範
 - 下一輪要寫的：
   - `docs/_shared/worklog.md`（A002 schema drift 跨模組 / DEMO-02 主任務脈絡）
-  - `docs/nx02/worklog.md` ~ `docs/nx10/worklog.md`（依 Crown 拍板節奏）
+  - `docs/nx02/nx02-worklog.md` ~ `docs/nx10/nx10-worklog.md`（依 Crown 拍板節奏）
 - 撰寫流程：先盤點 → 列主題候選給 Crown → 拍板後再寫
 - 範本可參考本日誌結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式
 

@@ -170,7 +170,7 @@ D3 落地後、後續 task 不斷對 D3 schema 加 patch（不是 D3 本身錯�
 
 - 意圖：[docs/nx04/spec/intent/so-data-model-intent.md](spec/intent/so-data-model-intent.md)
 - 實作：[docs/nx04/spec/impl/d3-impl_so-schema.md](spec/impl/d3-impl_so-schema.md) / [docs/nx04/spec/impl/d3-trigger.md](spec/impl/d3-trigger.md)
-- 跨模組影響：[NX02 主題 5](../nx02/worklog.md)（nx02_qt + nx02_rfq.source_so_item_id）/ [NX03 主題 1](../nx03/worklog.md)（nx03_st_item.source_so_item_id nullable）
+- 跨模組影響：[NX02 主題 5](../nx02/nx02-worklog.md)（nx02_qt + nx02_rfq.source_so_item_id）/ [NX03 主題 1](../nx03/nx03-worklog.md)（nx03_st_item.source_so_item_id nullable）
 
 ---
 
@@ -312,7 +312,7 @@ Crown demo 排期、要把「銷貨 SOP 整套流程」做成 mobile workspace�
 ## 主題 6｜TASK-BUSINESS-RESTRUCTURE 大塊 1 業務 SOP 重構（2026-04-23）
 
 > ⚠️ **進行中、未來持續演進。** 對齊 NX03 主題 5 production disclaimer 模式（不是 demo 拋棄式）。
-> ⚠️ BUSINESS-RESTRUCTURE **大塊 2** 跨多模組（SO→PK→BX→DN 跨中心、IT 調撥、SYS-C 4 情境）寫進 [_shared/worklog.md](../_shared/worklog.md)（待寫）。**大塊 1 純 NX04 業務 SOP** 寫進本日誌。**大塊 3** 純 NX03 已寫 [NX03 主題 3](../nx03/worklog.md)。
+> ⚠️ BUSINESS-RESTRUCTURE **大塊 2** 跨多模組（SO→PK→BX→DN 跨中心、IT 調撥、SYS-C 4 情境）寫進 [_shared/worklog.md](../_shared/worklog.md)（待寫）。**大塊 1 純 NX04 業務 SOP** 寫進本日誌。**大塊 3** 純 NX03 已寫 [NX03 主題 3](../nx03/nx03-worklog.md)。
 
 ### 起源
 
@@ -358,7 +358,7 @@ DEMO-R7 phase 7 缺貨分流 + RFQ 詳情頁落地後、Crown 揭露原 R6/R7 �
 
 ## 主題 7｜TASK-0421 兩張 demo 單據（QT / SO）— 短主題
 
-> 對應 [NX02 主題 3](../nx02/worklog.md)（NX02 三張 RF/PO/RR）。公版 component 跨模組共用、寫進 [_shared/worklog.md](../_shared/worklog.md)（待寫）。本主題只記 QT/SO 兩張 demo 用法。
+> 對應 [NX02 主題 3](../nx02/nx02-worklog.md)（NX02 三張 RF/PO/RR）。公版 component 跨模組共用、寫進 [_shared/worklog.md](../_shared/worklog.md)（待寫）。本主題只記 QT/SO 兩張 demo 用法。
 
 ### 起源
 
@@ -386,14 +386,14 @@ TASK-0421 五單據 demo、NX02 三張（RF/PO/RR）+ NX04 兩張（QT/SO）一�
 ### 對應文件
 
 - ⚠️ 公版 component 細節 → 待寫 [_shared/worklog.md](../_shared/worklog.md)
-- 跨模組關聯：[NX02 主題 3](../nx02/worklog.md)（同 TASK-0421、NX02 三張）
+- 跨模組關聯：[NX02 主題 3](../nx02/nx02-worklog.md)（同 TASK-0421、NX02 三張）
 
 ---
 
 ## 主題 8｜W2-mini Phase 1A 對接 D4 Translator（進行中）
 
 > ⚠️ **進行中、Phase 1A~1D 落地時補 v1.1。** 對齊 NX03 主題 5 production disclaimer 模式。
-> 跟 [NX03 主題 5](../nx03/worklog.md) 角度差異化：NX03 側重「庫存查詢 + 撞缺貨」、**本日誌側重「SO 開單 → D4 Translator → 4 情境分流」**。
+> 跟 [NX03 主題 5](../nx03/nx03-worklog.md) 角度差異化：NX03 側重「庫存查詢 + 撞缺貨」、**本日誌側重「SO 開單 → D4 Translator → 4 情境分流」**。
 > Store mismatch 完整對照表 NX03 主題 5 已寫、本日誌不重述、一句帶過。
 
 ### 起源
@@ -409,8 +409,8 @@ W2-mini 是「**第一個串真 API 的桌面工作站**」。從 NX04 視角：
    - B（他倉調撥）→ IT 調撥單
    - C（同行調貨）→ W4 RFQ 採購工作台
    - D（混合）→ 並行兩條跳轉
-4. **節點 5 出貨追蹤對接 B2 反查**：用 [NX03 主題 4 B2 API](../nx03/worklog.md#主題-4b2-stock-reverse-lookup-api) 顯示「這 SO 的 5 種狀態現況」。
-5. **Store mismatch**：useSalesStore 8 actions 只 1/8 對接 D4（`createSO`）、其餘保留 mock。詳細對照表見 [NX03 主題 5](../nx03/worklog.md)、本日誌不重述。
+4. **節點 5 出貨追蹤對接 B2 反查**：用 [NX03 主題 4 B2 API](../nx03/nx03-worklog.md#主題-4b2-stock-reverse-lookup-api) 顯示「這 SO 的 5 種狀態現況」。
+5. **Store mismatch**：useSalesStore 8 actions 只 1/8 對接 D4（`createSO`）、其餘保留 mock。詳細對照表見 [NX03 主題 5](../nx03/nx03-worklog.md)、本日誌不重述。
 
 ### 4 sub-phase 規劃（1A~1D）
 
@@ -435,7 +435,7 @@ W2-mini 是「**第一個串真 API 的桌面工作站**」。從 NX04 視角：
 
 - 工作站規劃：[docs/nx04/spec/intent/w2-mini-intent.md](spec/intent/w2-mini-intent.md)
 - impl spec：[docs/nx04/spec/impl/w2-mini-impl.md](spec/impl/w2-mini-impl.md)
-- 跨模組關聯：[NX03 主題 5](../nx03/worklog.md)（W2-mini 庫存查詢視角 + Store mismatch 完整對照表）/ [NX02 主題 5](../nx02/worklog.md)（B5 RFQ/QT API 對接）
+- 跨模組關聯：[NX03 主題 5](../nx03/nx03-worklog.md)（W2-mini 庫存查詢視角 + Store mismatch 完整對照表）/ [NX02 主題 5](../nx02/nx02-worklog.md)（B5 RFQ/QT API 對接）
 
 ---
 
@@ -455,13 +455,13 @@ W2-mini 是「**第一個串真 API 的桌面工作站**」。從 NX04 視角：
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) / [NX02](../nx02/worklog.md) / [NX03](../nx03/worklog.md) worklog 五段式結構
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) / [NX02](../nx02/nx02-worklog.md) / [NX03](../nx03/nx03-worklog.md) worklog 五段式結構
 - **核心主題拆 5 小節**（D3 主題 3 / D4 主題 4）— 對齊 NX02 主題 5、NX03 主題 4 範式（單主題工作量大）
 - **「中心=角色工作台」哲學跨 NX03/NX04 兩份 worklog 同步紀錄**（業務在銷售中心 vs 倉管在庫存中心）— Alex 觀察認可：**跨 worklog 哲學同步是好事**、不是重複
 - **「漸進演化」紀錄範式**（D3 主題 3E / NX01 主題 5 兩波 widening）：寫「為什麼演化到現在」比寫「最終樣子」對 Alex 寫規格更有用
 - **跨 worklog 視角差異化**（W2-mini 在 NX03 vs NX04 兩份 worklog 各從自己視角寫）— 多模組共用工作的處理策略
 - 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / A002 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx05/worklog.md](../nx05/worklog.md)（NX05 財務模組、Phase5-NX05 + AR/AP + 過帳邏輯）
+- 下一輪預期：[docs/nx05/nx05-worklog.md](../nx05/nx05-worklog.md)（NX05 財務模組、Phase5-NX05 + AR/AP + 過帳邏輯）
 
 ---
 

@@ -210,7 +210,7 @@ Phase 0 D3 雙帳資料模型把 SO 改成「主帳 + 子帳」、子帳含 type
 
 #### 第三波 DEMO-02 widening（part_brand.code / brand_code_rule.name）— 不在本日誌
 
-- 屬 NX01 schema、見 [docs/nx01/worklog.md](../nx01/worklog.md) 主題 5
+- 屬 NX01 schema、見 [docs/nx01/nx01-worklog.md](../nx01/nx01-worklog.md) 主題 5
 - 邏輯延續同精神「跑 seed 撞 P2000 → audit 同類型欄位 → 一次清光」
 
 ### 5C. API 實作（5 endpoints + 14 tests + advisory-lock）
@@ -272,7 +272,7 @@ Nx02BaseError              ← 抽象基底
 - 意圖：[docs/nx02/spec/intent/rfq-qt-api-intent.md](spec/intent/rfq-qt-api-intent.md)
 - 實作：[docs/nx02/spec/impl/b5-impl_rfq-qt-api.md](spec/impl/b5-impl_rfq-qt-api.md)
 - 對應架構債：✅ A018（currency_id × 3）、✅ A019（docNo × 13）、✅ A020（D3 nx03_st_item FK ON DELETE drift、B5-A migrate 順手修）
-- ⚠️ D3 雙帳資料模型 / D4 SYS-C Translator 細節 → 待寫 [docs/nx04/worklog.md](../nx04/worklog.md)、本日誌只記 B5 對 D3/D4 的依賴
+- ⚠️ D3 雙帳資料模型 / D4 SYS-C Translator 細節 → 待寫 [docs/nx04/nx04-worklog.md](../nx04/nx04-worklog.md)、本日誌只記 B5 對 D3/D4 的依賴
 
 ---
 
@@ -293,11 +293,11 @@ Nx02BaseError              ← 抽象基底
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01 worklog](../nx01/worklog.md) 五段式結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件
+- 本日誌沿用 [NX01 worklog](../nx01/nx01-worklog.md) 五段式結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件
 - 主題 4 demo 重構是**特殊情況**（disclaimer 三段標明 demo 階段、未來真實落地可能重寫）— 之後類似 demo / mock 工作可沿用此 disclaimer 模式
 - 主題 5 拆 5 小節（5A schema / 5B drift / 5C API / 5D error / 5E 反查鏈）— 工作量大的主題拆小節對 Alex 跨對話讀更友善
 - 跨模組或公版（D3 / D4 / B2 / TASK-BUSINESS-RESTRUCTURE / 公版 component / A002）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：`docs/nx03/worklog.md`（主題會跟 B2 反查 + Phase5-NX03 + DEMO-R1 mobile balance 重疊）
+- 下一輪預期：`docs/nx03/nx03-worklog.md`（主題會跟 B2 反查 + Phase5-NX03 + DEMO-R1 mobile balance 重疊）
 
 ---
 

@@ -147,13 +147,13 @@ GET /nx07/payroll/:id                       ← 明細看角色脫敏
 ### 對應文件
 
 - payroll.service：[apps/nx-api/src/nx07/payroll/](../../apps/nx-api/src/nx07/payroll/)
-- 跨模組對比：[NX05 主題 1](../nx05/worklog.md)（finance-access.guard 整 endpoint 擋）
+- 跨模組對比：[NX05 主題 1](../nx05/nx05-worklog.md)（finance-access.guard 整 endpoint 擋）
 
 ---
 
 ## 主題 3｜跨模組同步：NX07 主動側設計（接收側反向）+ NX07 ↔ NX08 attendance 同步
 
-> 跨 worklog 設計範式對照：[NX05 主題 2](../nx05/worklog.md) / [NX06 主題 2](../nx06/worklog.md) 是**接收側**、本主題是**主動側**。兩種範式形成完整光譜。
+> 跨 worklog 設計範式對照：[NX05 主題 2](../nx05/nx05-worklog.md) / [NX06 主題 2](../nx06/nx06-worklog.md) 是**接收側**、本主題是**主動側**。兩種範式形成完整光譜。
 
 ### 3A. employee-change：NX07 主動改 NX01 主檔
 
@@ -233,11 +233,11 @@ PATCH /nx08/daily-report/:id/complete
 
 - employee-change.service：[apps/nx-api/src/nx07/employee-change/](../../apps/nx-api/src/nx07/employee-change/)
 - nx08 daily-report：[apps/nx-api/src/nx08/daily-report/](../../apps/nx-api/src/nx08/daily-report/)
-- 跨模組關聯：[NX05 主題 2](../nx05/worklog.md)（接收側設計第一次定義）/ [NX06 主題 2](../nx06/worklog.md)（接收側第二次套用）
+- 跨模組關聯：[NX05 主題 2](../nx05/nx05-worklog.md)（接收側設計第一次定義）/ [NX06 主題 2](../nx06/nx06-worklog.md)（接收側第二次套用）
 
 ---
 
-## 主題 4｜法規驅動欄位設計（沿用 [NX06 主題 3D](../nx06/worklog.md) 法規揭露手法、子段落 4A~4D）
+## 主題 4｜法規驅動欄位設計（沿用 [NX06 主題 3D](../nx06/nx06-worklog.md) 法規揭露手法、子段落 4A~4D）
 
 ### 起源
 
@@ -308,7 +308,7 @@ NX07 是 NEXORA 第一個**全模組受多重法規約束**的模組。其他模
 ### 對應文件
 
 - 業務流程：[docs/nx07/workflow/primary/h-w03-payroll.md](workflow/primary/h-w03-payroll.md) / `h-w02-leave-overtime.md`
-- 範式來源：[NX06 主題 3D](../nx06/worklog.md)（電子簽章法 — 第一次定義「法規驅動欄位設計」範式）
+- 範式來源：[NX06 主題 3D](../nx06/nx06-worklog.md)（電子簽章法 — 第一次定義「法規驅動欄位設計」範式）
 
 ---
 
@@ -325,7 +325,7 @@ NX07 是 NEXORA 第一個**全模組受多重法規約束**的模組。其他模
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) ~ [NX06](../nx06/worklog.md) worklog 五段式結構
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) ~ [NX06](../nx06/nx06-worklog.md) worklog 五段式結構
 - ⚠️ **「跨模組設計光譜：接收側 / 主動側 / trigger 的判準」新範式**（本日誌建立、Crown 拍板）：
   | 範式 | 適用場景 | 觸發點 | helper 位置 | 範例 |
   |------|---------|--------|------------|------|
@@ -341,7 +341,7 @@ NX07 是 NEXORA 第一個**全模組受多重法規約束**的模組。其他模
 - ⚠️ **「揭露缺口分性質」表格化**（NX06 範式延續、本日誌 4 個缺口都歸類）：業務鏈 / demo→prod / schema-spec 缺漏 / 規範不一致。
 
 - 跨模組或公版（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx08/worklog.md](../nx08/worklog.md)（NX08 報表分析、PRO 模組、kpi/daily-report/monthly-report、預期工作量視 SYS-DASH-PRO 系列複雜度而定）
+- 下一輪預期：[docs/nx08/nx08-worklog.md](../nx08/nx08-worklog.md)（NX08 報表分析、PRO 模組、kpi/daily-report/monthly-report、預期工作量視 SYS-DASH-PRO 系列複雜度而定）
 
 ---
 

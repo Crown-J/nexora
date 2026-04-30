@@ -368,7 +368,7 @@ DATABASE_URL=postgres://...:5433/nexora
 - ⚠️ **A026 — 前端 `features/sale/` 跟 `features/sales/` 並存**：兩個近名 feature 共存、可能是同源實驗未收斂
 - ⚠️ **A027 — 前端 `dashboard/{purchase|sale|inventory|finance|report}/` 跟 `dashboard/{nx02|nx04|nx03|nx05|nx08}/` 並存**：v2 路由重整過渡期、舊路由未刪
 - ⚠️ **A028 — `schema.prisma` 單檔承載 100+ models**：Prisma 7 雖支援 multi-file schema、目前未拆分（檔案 ~3000+ 行）
-- ⚠️ **A029 — `template/apply-checkin-reward.ts` 從未建立**：TASK-SEED-REFACTOR-01 Step 7「情境 A」決定先不做、舊邏輯保留在 pre-`53b900d` git history（`default/nx10_checkin_reward.ts`）。觸發時機：NX10 遊戲化正式啟用時、從 git 撈回並參數化。詳見 [docs/nx01/worklog.md](../../nx01/worklog.md) 主題 4。
+- ⚠️ **A029 — `template/apply-checkin-reward.ts` 從未建立**：TASK-SEED-REFACTOR-01 Step 7「情境 A」決定先不做、舊邏輯保留在 pre-`53b900d` git history（`default/nx10_checkin_reward.ts`）。觸發時機：NX10 遊戲化正式啟用時、從 git 撈回並參數化。詳見 [docs/nx01/nx01-worklog.md](../../nx01/nx01-worklog.md) 主題 4。
 
 ---
 

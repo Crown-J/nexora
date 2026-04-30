@@ -2,7 +2,7 @@
 --
 -- TASK-NX08-MONTHLY-REPORT-CLEANUP
 -- Crown 拍 A：刪 nx08_monthly_report 表（schema 對齊行為）
--- 詳見 docs/nx08/worklog.md 主題 3、A030 已登記 system-architecture §G.1
+-- 詳見 docs/nx08/nx08-worklog.md 主題 3、A030 已登記 system-architecture §G.1
 --
 -- 行為驗證：
 --   monthly-report.service.ts list/summary 兩 endpoint 都 read nx01_kpi_record

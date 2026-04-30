@@ -68,7 +68,7 @@
 | 粒度 | GitHub 路徑 | 用途 | 撰寫節奏 |
 |------|------------|------|---------|
 | Daily | `dailylog/YYYYMMDD.md` | 「今天做了什麼」 | 每天結尾 |
-| Module | `docs/nx0X/worklog.md` | 「這模組怎麼蓋的」 | 每完成 module 工作累加 |
+| Module | `docs/nx0X/nx0X-worklog.md` | 「這模組怎麼蓋的」 | 每完成 module 工作累加 |
 | 跨模組 | `docs/_shared/worklog.md` | 「跨模組工作」 | 每完成跨模組工作累加 |
 
 > Daily（既有）+ Module（新增）兩條軌不衝突。
@@ -130,7 +130,7 @@
 ### 5-4 工作日誌粒度分兩層（daily + module）
 
 - 既有 `dailylog/YYYYMMDD.md` 不動
-- 新增 `docs/nx0X/worklog.md`（按模組累加）
+- 新增 `docs/nx0X/nx0X-worklog.md`（按模組累加）
 - 不重複、各有用途（時間軸 vs 主題軸）
 
 ### 5-5 規格書「主檔 + 子規格」結構
@@ -148,7 +148,7 @@
 | Q1 | 規格書 GitHub 位置 | `docs/nx0X/spec/intent/_overview.md` + `01-{feature}.md` | ☐ 同意 / ☐ 改 |
 | Q2 | Git 版控文件位置 | `docs/_shared/team/git-state.md` | ☐ 同意 / ☐ 改 |
 | Q3-1 | 工作日誌粒度 | daily（既有）+ module（新增） | ☐ 同意 / ☐ 只用其中一種 |
-| Q3-2 | 工作日誌位置 | `docs/nx0X/worklog.md` + `docs/_shared/worklog.md` | ☐ 同意 / ☐ 改 |
+| Q3-2 | 工作日誌位置 | `docs/nx0X/nx0X-worklog.md` + `docs/_shared/worklog.md` | ☐ 同意 / ☐ 改 |
 | Q3-3 | 系統架構書位置 | `docs/_shared/team/system-architecture.md` | ☐ 同意 / ☐ 改 |
 | Q4 | 舊檔搬遷 | (b) 只新東西用新規則、舊不動 | ☐ 同意 / ☐ 改 (a) 全搬 / ☐ 改 (c) 其他 |
 | Q5-1 | GitHub vs Claude.ai 命名 | 不強求一致、Crown 上傳時 rename | ☐ 同意 / ☐ 改 |

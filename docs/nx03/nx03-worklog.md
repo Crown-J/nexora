@@ -169,7 +169,7 @@
 
 ## 主題 4｜B2 Stock Reverse Lookup API（Phase 0 收官，2026-04-27）— 純 NX03 主導
 
-> B2 跟 NX02 B5 是同期 Phase 0 收官、兩個 API 設計關聯緊密（B2 反查的 5 種狀態包含 B5 的 RFQ/QT 接龍）— 見 [docs/nx02/worklog.md 主題 5](../nx02/worklog.md#主題-5b5-rfqqt-api--demo-02-nx02-schema-widening)。
+> B2 跟 NX02 B5 是同期 Phase 0 收官、兩個 API 設計關聯緊密（B2 反查的 5 種狀態包含 B5 的 RFQ/QT 接龍）— 見 [docs/nx02/nx02-worklog.md 主題 5](../nx02/nx02-worklog.md#主題-5b5-rfqqt-api--demo-02-nx02-schema-widening)。
 
 ### 起源
 
@@ -237,7 +237,7 @@ const userMap = new Map(users.map(u => [u.id, u]))
 
 - 意圖：[docs/nx03/spec/intent/stock-reverse-lookup-api-intent.md](spec/intent/stock-reverse-lookup-api-intent.md)
 - 實作：[docs/nx03/spec/impl/b2-impl_stock-reverse-lookup-api.md](spec/impl/b2-impl_stock-reverse-lookup-api.md)
-- 跨模組關聯：[docs/nx02/worklog.md 主題 5](../nx02/worklog.md)（B5 RFQ/QT API 同期 Phase 0 收官、本 API 反查的 G_adopted/G_pending 即 B5 接龍鎖狀態）
+- 跨模組關聯：[docs/nx02/nx02-worklog.md 主題 5](../nx02/nx02-worklog.md)（B5 RFQ/QT API 同期 Phase 0 收官、本 API 反查的 G_adopted/G_pending 即 B5 接龍鎖狀態）
 - 對應架構債：A021（B2 開放公開 vs stock-balance ADMIN-only 方向不一致、待春酒後評估）
 
 ---
@@ -319,7 +319,7 @@ W2-mini intent v1.0 §5.4 寫「actions 命名也對齊後端」、Hank catch �
 - 工作站規劃：[docs/nx04/spec/intent/w2-mini-intent.md](../nx04/spec/intent/w2-mini-intent.md)（位於 NX04 因 SO 主導）
 - impl spec：[docs/nx04/spec/impl/w2-mini-impl.md](../nx04/spec/impl/w2-mini-impl.md)
 - DEMO-02 spec：[docs/nx99/spec/intent/seed-demo-02-intent.md](../nx99/spec/intent/seed-demo-02-intent.md)
-- 跨模組關聯：對接 B2（本日誌主題 4）+ B5（[NX02 主題 5](../nx02/worklog.md)）+ D4 Translator（待寫 [NX04 worklog](../nx04/worklog.md)）
+- 跨模組關聯：對接 B2（本日誌主題 4）+ B5（[NX02 主題 5](../nx02/nx02-worklog.md)）+ D4 Translator（待寫 [NX04 worklog](../nx04/nx04-worklog.md)）
 
 ---
 
@@ -336,14 +336,14 @@ W2-mini intent v1.0 §5.4 寫「actions 命名也對齊後端」、Hank catch �
 
 ## 給未來新對話 Hank 的提示
 
-- 本日誌沿用 [NX01](../nx01/worklog.md) / [NX02](../nx02/worklog.md) worklog 五段式結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件
+- 本日誌沿用 [NX01](../nx01/nx01-worklog.md) / [NX02](../nx02/nx02-worklog.md) worklog 五段式結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件
 - **disclaimer 模式有兩種、別搞混**：
   - **NX02 主題 4 disclaimer**：「demo / mock 階段、未來真實落地可能整套重寫」（會被丟掉）
   - **NX03 主題 5 disclaimer**：「進行中、Phase 1A~1D 落地時補 v1.1」（會持續演進、不丟）
   - 寫 worklog 時看主題本質：是 demo 拋棄式、還是 production 進行式？
 - 主題 2 拆 2A 桌面 / 2B mobile 是「**不同性質工作合併在一個主題下**」的處理範式（NX02 主題 5 拆 5A~5E 是「**單一主題工作量大**」、結構不同）
 - 跨模組或公版（D3 / D4 / 過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 1+2 / A002）**不寫進本日誌**、之後寫 `_shared/worklog.md` 統合
-- 下一輪預期：[docs/nx04/worklog.md](../nx04/worklog.md)（主題會跟 D3 雙帳資料模型 + D4 SYS-C Translator + Phase5-NX04 報價/銷貨/銷退 + W2-mini 桌面骨架 1A 重疊；D3/D4 是 NX04 主導的 Phase 0 核心、本日誌主題 4 多次交叉引用）
+- 下一輪預期：[docs/nx04/nx04-worklog.md](../nx04/nx04-worklog.md)（主題會跟 D3 雙帳資料模型 + D4 SYS-C Translator + Phase5-NX04 報價/銷貨/銷退 + W2-mini 桌面骨架 1A 重疊；D3/D4 是 NX04 主導的 Phase 0 核心、本日誌主題 4 多次交叉引用）
 
 ---
 
