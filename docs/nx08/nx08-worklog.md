@@ -209,6 +209,16 @@ NX08 選即時聚合的核心理由：**業務優先 + 維護成本**。
 
 → 等 Crown 拍板（不阻塞、本日誌寫完先 push）。
 
+### ✅ 拍板結果（2026-04-29）
+
+Crown 拍 **A：刪 `nx08_monthly_report` 表**。
+
+- migration `20260429120000_nx08_drop_monthly_report`：DROP TABLE + DROP FUNCTION + DROP SEQUENCE（CASCADE）
+- schema.prisma 刪 `Nx08MonthlyReport` model + 2 個反向關聯（`Nx01User` / `Nx99Tenant`）
+- nx-api 0 處呼叫、技術上安全
+- 未來月報慢用 cache 解、不重啟用此表
+- 對應架構債：A030（已登記 [system-architecture §G.1](../_shared/team/system-architecture.md)）
+
 ### 對應文件
 
 - monthly-report：[apps/nx-api/src/nx08/monthly-report/](../../apps/nx-api/src/nx08/monthly-report/)
