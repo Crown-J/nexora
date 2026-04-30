@@ -10,16 +10,17 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-04-29（PROJECT_CONTEXT.md v1.0 進場 repo root + 分工文件 update）**
-> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `9073219`）
-> **本次更新觸發：§E.2-#3「大量 commit」（TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01 6 commit、含 archive 拼字校正 + CLAUDE.md / charter / system-architecture update、累計含本檔 6 commit 待 push）**
+> **快照時間：2026-04-29（⭐ Phase 1 doc-restructure 收官、_shared/worklog.md v1.0 完成）**
+> **當前分支：`feature/wp-phase1-doc-restructure`**（HEAD = `9c50fae`）
+> **本次更新觸發：§E.2-#3「大量 commit」（TASK-PHASE1-SHARED-WORKLOG-01 3 commit、含 _shared/worklog.md v1.0 主檔 + 10 worklog 反向索引 + 本 GIT-STATE）**
+> **⭐ Phase 1 已收官、待 Crown 拍 merge 時機**（不主動 merge main、等下一階段拍板）
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
 | `main` | ✅ 同步 | `6e46a4b` | dailylog 20260428 — Phase 1 雙線 |
-| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 5 | `9073219` | ARCH system-architecture.md B.1 nx01/nx10 子模組數量校正 |
+| `feature/wp-phase1-doc-restructure` ⭐ | 🟡 ahead 2 | `9c50fae` | DOC nxXX-worklog 末尾交叉引用 _shared 主題 |
 | `feature/wp-phase1-w2-mini` | ✅ 同步 | `5a34664` | WP-PHASE1-DEMO02 customer 命名規則調整 |
 | `feature/wp-phase0-schema` | ✅ 同步 | `7652c43` | WP-PHASE0-B2 stock reverse lookup API |
 | `feature/demo-emergency` | ✅ 同步 | `0df5a84` | TASK-BUSINESS-RESTRUCTURE 大塊 3 Phase 10（**G1 已 push**） |
@@ -32,7 +33,7 @@
 | `feature/sys-dashboard` | ✅ 同步 | `9096c2b` | NX01 default seed upsert keys fix |
 
 ⭐ = 當前 HEAD 所在
-🟡 = doc-restructure 分支 ahead origin 5 個 commit（待 push、見 §C）
+🟡 = doc-restructure 分支 ahead origin 2 個 commit（待 push、見 §C）— PROJECT_CONTEXT migrate 6 commit 已 push（commit `4b0bc89` 結束）
 ✅ = 其餘 11 條本地分支跟 origin 同步
 
 ### A.2 Tag
@@ -45,17 +46,15 @@
 
 ```
 On branch feature/wp-phase1-doc-restructure
-Your branch is ahead of 'origin/feature/wp-phase1-doc-restructure' by 6 commits.
+Your branch is ahead of 'origin/feature/wp-phase1-doc-restructure' by 3 commits.
   (use "git push" to publish your local commits)
 nothing to commit, working tree clean
 ```
 
 > ⚠️ 本次 GIT-STATE 更新後執行 `git push` 即同步、預計 push 後 §C 清空。
-> ⚠️ 本次任務 TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01 含 6 commit 全本地：
->   1 個 [TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01]（PROJECT_CONTEXT.md v1.0）
->   + 2 個 [DOC]（archive Yaro 校正 / CLAUDE.md update）
->   + 1 個 [CHARTER]（§A.1 + §D.1）
->   + 1 個 [ARCH]（system-architecture B.1）
+> ⚠️ 本次任務 TASK-PHASE1-SHARED-WORKLOG-01 含 3 commit 全本地：
+>   1 個 [TASK-PHASE1-SHARED-WORKLOG-01]（_shared/worklog.md v1.0、~10000 字 8 主題）
+>   + 1 個 [DOC]（10 nxXX-worklog 反向索引 update）
 >   + 即將加 [GIT-STATE]（本檔）
 
 ---
@@ -82,20 +81,21 @@ nothing to commit, working tree clean
 
 ## C. 未 Push 的本地工作
 
-🟡 **`feature/wp-phase1-doc-restructure` ahead origin 5 個 commit**（+ 即將加 1 個 GIT-STATE）：
+🟡 **`feature/wp-phase1-doc-restructure` ahead origin 2 個 commit**（+ 即將加 1 個 GIT-STATE）：
 
 | commit | 摘要 |
 |--------|------|
-| `7d705fe` | TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01 PROJECT_CONTEXT.md v1.0 |
-| `ed1b93a` | DOC 校正 Arco → Yaro 拼字（archive） |
-| `ab6028b` | DOC CLAUDE.md update（最後更新 + §一 + §十五#7 + §十七） |
-| `12ecb91` | CHARTER update §A.1 + §D.1 加 PROJECT_CONTEXT |
-| `9073219` | ARCH system-architecture.md B.1 nx01/nx10 子模組數量校正 |
-| `(本次)`  | GIT-STATE update 2026-04-29 PROJECT_CONTEXT migrate |
+| `df5e93c` | TASK-PHASE1-SHARED-WORKLOG-01 _shared/worklog.md v1.0 |
+| `9c50fae` | DOC nxXX-worklog 末尾交叉引用 _shared 主題 |
+| `(本次)`  | GIT-STATE update 2026-04-29 Phase 1 收官 |
 
 → 本次 GIT-STATE commit 後執行 `git push origin feature/wp-phase1-doc-restructure` 即同步。
 
-⚠️ 上批 NX08 cleanup + worklog rename（commit `f531680..2a92e1d` 共 6 commit）已 push 完成（2026-04-29 上午）。本批 PROJECT_CONTEXT migrate 6 commit 待本檔 commit 後一次 push。
+⭐ Phase 1 doc-restructure 收官完成、待 Crown 拍 merge 時機。
+
+上批 task 已 push：
+- TASK-NX08-MONTHLY-REPORT-CLEANUP + TASK-WORKLOG-RENAME（commit `f531680..2a92e1d` 共 6 commit、2026-04-29 上午）
+- TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01（commit `7d705fe..4b0bc89` 共 6 commit、2026-04-29 中午）
 
 歷史風險點全數解除：
 - `feature/demo-emergency` G1 ✅ push 完成（`0df5a84`）
@@ -110,8 +110,18 @@ nothing to commit, working tree clean
 ```
 main (6e46a4b)
   ├── feature/wp-phase1-w2-mini      (5a34664) — DEMO-02 LITE seed + 客戶命名
-  └── feature/wp-phase1-doc-restructure (9073219) — 文件重整（本檔所在）
+  └── feature/wp-phase1-doc-restructure (9c50fae) — 文件重整（本檔所在、⭐ Phase 1 收官）
 ```
+
+⭐ **Phase 1 doc-restructure 收官清單**（已完成）：
+- ✅ docs/ v2 結構（按 NX 模組劃分）
+- ✅ hank-charter.md / system-architecture.md / git-state.md（三人團隊規範）
+- ✅ NX01~NX10 worklog 10/10 + nxXX 前綴 rename
+- ✅ NX08 monthly_report cleanup（A030）
+- ✅ PROJECT_CONTEXT.md v1.0 進場 repo root
+- ✅ _shared/worklog.md v1.0（8 主題跨模組統合 + 累計範式總表 8 分類）
+
+merge 時機待 Crown 拍。
 
 兩條從 `main` 切出、各自獨立、改動範圍不重疊：
 - w2-mini 改 `packages/db-core/prisma/seed/demo/`
@@ -160,8 +170,8 @@ main (6e46a4b)
 
 ### E.5 下次更新時機（預測）
 
-- 此分支 merge 回 main 時（同時收 doc-restructure + NX01~10-WORKLOG + NX08 cleanup + worklog rename + PROJECT_CONTEXT migrate 多 task），觸發時機 #2
-- 或 Crown 拍 _shared/worklog.md 進場時、累積到 ≥5 commit，觸發時機 #3
+- ⭐ **Crown 拍 merge 時機**（同時收 doc-restructure + NX01~10-WORKLOG + NX08 cleanup + worklog rename + PROJECT_CONTEXT migrate + _shared/worklog.md 多 task），觸發時機 #2
+- 或 Phase 2 task 開始累積 ≥5 commit，觸發時機 #3
 - 或下次 Hank 切到家裡 / 辦公室機器時，觸發時機 #5
 
 ### E.6 不寫的東西
