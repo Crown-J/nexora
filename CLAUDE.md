@@ -1,7 +1,14 @@
 # NEXORA GRID — Claude Code 工作說明
 
-> 最後更新：2026-04-12
+> 最後更新：2026-04-29
 > 維護人：Crown Lin（創辦人）
+
+> 重大變動紀錄：
+> - 2026-04-29：PROJECT_CONTEXT.md 進場 repo root（§十七 必讀順序加 PROJECT_CONTEXT）
+> - 2026-04-29：§十五#7 partner_type B 加未來獨立 nx01_bank_account 註解
+> - 2026-04-29：§一 真實業務模型分拆「恆迎反面 / Yaro 正面」兩個獨立實體（對齊 PROJECT_CONTEXT §🎯）
+> - 2026-04-25：docs/ 重整為 v2 結構（按 NX 模組劃分）
+> - 2026-04-12：模組代碼 v2.0 落地（NX01~NX10 + NX98 + NX99）
 
 ---
 
@@ -9,13 +16,18 @@
 
 NEXORA GRID 是一套針對台灣 VAG（Volkswagen Audi Group）汽車零件經銷商的多租戶 SaaS ERP 系統，由 Innova IT（伊諾瓦資訊科技）開發。
 
-**真實業務模型：** 恆迎企業（5 倉：HW1 總倉 + MW1 主倉 + BW1~BW4 分倉）
+**NEXORA 設計來源（兩個獨立實體）：**
+- **負面參考：恆迎企業**（業界舊有系統反面教材）— 5 倉模型（HW1 總倉 + MW1 主倉 + BW1~BW4 分倉）參考自此
+- **design target：Yaro（亞羅企業有限公司）** — Crown 自己開的 B2B 汽車零件批發公司、NEXORA 量身打造對象、PRO tier 真實場景驗證田
+
+> 詳細業務脈絡見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §🎯。
 
 **三人開發團隊：**
 ```
 Crown（創辦人）                              → 產品決策、Schema Review、版本拍板
 Alex（Claude PM AI、Claude.ai）              → 撰寫需求規格書、追蹤進度、紀錄 Hank 架構
-Hank（NEXORA 工程 AI、任何 IDE 內的 Claude）  → 程式撰寫、欄位設計、實作架構書、工作日誌、Git 版控文件
+Hank（NEXORA 工程 AI、任何 IDE 內的 Claude）  → 程式撰寫、欄位設計、實作架構書、工作日誌、
+                                                Git 版控文件、PROJECT_CONTEXT.md
 ```
 
 **鐵律：Schema 設計優先 → 後端 API → 前端 UI，不可跳步**
@@ -352,7 +364,7 @@ Commit：[TASK-CODE] description
 4. 不要用 clsx，用 cx from @/shared/lib/cx
 5. ORM 設定用 prisma.config.ts，不是 schema.prisma
 6. 全局 ValidationPipe 已啟用，DTO 必須完整定義
-7. partner_type 單字元：C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行
+7. partner_type 單字元：C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行（架構上未來該獨立 nx01_bank_account 表）
 8. nx01_view / nx99_plan / nx01_currency / nx01_country / nx01_warehouse_type 屬 system seed（全域）；
    nx01_role_view 由 applyTemplateToTenant 為每個租戶載入（依 tier 篩 826 筆/tenant）
 ```
@@ -396,15 +408,17 @@ docs/
 
 ```
 1. CLAUDE.md（本檔）— 全局規範
-2. docs/_shared/team/hank-charter.md — Hank 工作規範（self-binding 自我認同）
-3. docs/_shared/team/git-state.md — Git 版控現況（任務 3 建立後）
-4. docs/_shared/team/system-architecture.md — Hank 蓋的房子（任務 4 建立後）
-5. 涉及模組的工作日誌 + 規格書（依當前 task）
+2. PROJECT_CONTEXT.md — 業務 + 設計哲學 + Crown 合作風格 + Alex 失誤紀錄
+3. docs/_shared/team/hank-charter.md — Hank 工作規範（self-binding 自我認同）
+4. docs/_shared/team/git-state.md — Git 版控現況
+5. docs/_shared/team/system-architecture.md — Hank 蓋的房子
+6. 涉及模組的工作日誌 + 規格書（依當前 task）
 ```
 
 ### 開工前自檢清單
 
 - [ ] 讀完 CLAUDE.md？
+- [ ] 讀完 PROJECT_CONTEXT.md？
 - [ ] 讀完 hank-charter.md？
 - [ ] 看過 git-state.md、知道現在哪條分支？
 - [ ] 看過涉及模組的工作日誌、知道上次做到哪？
