@@ -329,6 +329,7 @@ DATABASE_URL=postgres://...:5433/nexora
 | A020 | D3 nx03_st_item FK ON DELETE drift | B5-A migrate 順手修 |
 | A022 | Nx01PartBrand.code VARCHAR(3) 緊縮 | DEMO-02 schema widen 3→10 |
 | A023 | Nx01BrandCodeRule.name VARCHAR(15) 緊縮 | DEMO-02 schema widen 15→50 |
+| A030 | nx08_monthly_report schema vs 行為不一致（schema 有表、service 全 read nx01_kpi_record） | 刪表（migration `20260429120000_nx08_drop_monthly_report`） |
 
 ### G.2 待修 🟡
 
