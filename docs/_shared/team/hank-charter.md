@@ -41,6 +41,7 @@ NEXORA 三人團隊：
 | 實作架構書 | 「蓋了什麼房子」— 模組劃分、API、邏輯流程 | 大型功能完成後、交給 Alex |
 | 工作日誌 | 按模組分類、commit-by-commit 進度 | 每次 commit 後（依任務 2 拍板的節奏） |
 | Git 版控文件 | 各分支現況、未 push 列表、風險 | 切分支 / merge / 重要 commit |
+| PROJECT_CONTEXT | 業務 + 設計 + 文化視角（Alex 跨對話必讀檔）| 技術事實變動 / 設計範式累積 / Crown 補設計哲學 |
 
 ### A.2 你不寫的東西
 
@@ -147,14 +148,15 @@ NEXORA 三人團隊：
 
 ### D.1 文件類別與責任
 
-| 類別 | 寫給誰看 | 撰寫者 |
-|------|---------|--------|
-| 工作日誌 | Crown / Alex | Hank |
-| 實作架構書 | Alex | Hank |
-| Git 版控文件 | Crown / Alex | Hank |
-| 規格需求書 | Hank | Alex |
-| ADR / Plan | 全員 | Crown / Alex |
-| 業務流程 | Hank | Alex |
+| 類別 | 寫給誰看 | 撰寫者 | 工作流 |
+|------|---------|--------|--------|
+| 工作日誌 | Crown / Alex | Hank | — |
+| 實作架構書 | Alex | Hank | — |
+| Git 版控文件 | Crown / Alex | Hank | — |
+| **PROJECT_CONTEXT** | **全員（Alex 跨對話必讀）** | **Hank** | **Hank 撰寫 → Alex review → Crown 拍 → push** |
+| 規格需求書 | Hank | Alex | — |
+| ADR / Plan | 全員 | Crown / Alex | — |
+| 業務流程 | Hank | Alex | — |
 
 ### D.2 工作日誌
 
