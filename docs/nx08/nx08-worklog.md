@@ -1,4 +1,4 @@
-<!-- docs/nx08/worklog.md -->
+<!-- docs/nx08/nx08-worklog.md -->
 
 # NEXORA - NX08 - 報表分析模組工作日誌
 

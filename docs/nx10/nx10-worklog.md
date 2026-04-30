@@ -1,4 +1,4 @@
-<!-- docs/nx10/worklog.md -->
+<!-- docs/nx10/nx10-worklog.md -->
 
 # NEXORA - NX10 - 遊戲化模組工作日誌
 

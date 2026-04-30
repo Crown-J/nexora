@@ -1,4 +1,4 @@
-<!-- docs/nx07/worklog.md -->
+<!-- docs/nx07/nx07-worklog.md -->
 
 # NEXORA - NX07 - 人資模組工作日誌
 

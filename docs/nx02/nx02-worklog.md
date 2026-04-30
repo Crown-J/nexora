@@ -1,4 +1,4 @@
-<!-- docs/nx02/worklog.md -->
+<!-- docs/nx02/nx02-worklog.md -->
 
 # NEXORA - NX02 - 採購模組工作日誌
 

@@ -1,4 +1,4 @@
-<!-- docs/nx04/worklog.md -->
+<!-- docs/nx04/nx04-worklog.md -->
 
 # NEXORA - NX04 - 銷售模組工作日誌
 

@@ -1,4 +1,4 @@
-<!-- docs/nx01/worklog.md -->
+<!-- docs/nx01/nx01-worklog.md -->
 
 # NEXORA - NX01 - 共用基礎模組工作日誌
 

@@ -1,4 +1,4 @@
-<!-- docs/nx06/worklog.md -->
+<!-- docs/nx06/nx06-worklog.md -->
 
 # NEXORA - NX06 - 物流模組工作日誌
 

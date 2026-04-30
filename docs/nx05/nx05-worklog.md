@@ -1,4 +1,4 @@
-<!-- docs/nx05/worklog.md -->
+<!-- docs/nx05/nx05-worklog.md -->
 
 # NEXORA - NX05 - 財務模組工作日誌
 

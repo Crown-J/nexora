@@ -1,4 +1,4 @@
-<!-- docs/nx03/worklog.md -->
+<!-- docs/nx03/nx03-worklog.md -->
 
 # NEXORA - NX03 - 庫存模組工作日誌
 

@@ -1,4 +1,4 @@
-<!-- docs/nx09/worklog.md -->
+<!-- docs/nx09/nx09-worklog.md -->
 
 # NEXORA - NX09 - 知識管理模組工作日誌
 
