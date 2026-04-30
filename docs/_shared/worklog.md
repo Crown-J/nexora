@@ -1,0 +1,546 @@
+<!-- docs/_shared/worklog.md -->
+
+# NEXORA - SHARED - 跨模組工作日誌
+
+> 撰寫者：Hank
+> 涵蓋範圍：跨模組統合主題（不屬單一模組、需多模組視角）+ 累計範式總表（NX01~NX10 全模組）+ 工程文化範式（Phase 1 doc-restructure 累積）
+> 起算點：v7_baseline migration（2026-04-13）之後
+> 對應分支：歷史散在多 feature branch、Phase 1 doc-restructure 收官（`feature/wp-phase1-doc-restructure`）
+
+---
+
+## 結構說明
+
+- 按主題（不按時間順序）累加 8 個跨模組主題、給 Alex 跨對話讀的考古手冊
+- 每個主題下：起源 / 跨模組視角 or 配對 / 各模組連結對照表 / 統合教訓 / 對應文件
+- ⚠️ **本日誌是「集大成統合」性質**（Phase 1 收官、模組 worklog 10/10 完成後）：
+  - **不重述模組 worklog 內細節**、只統合「跨模組怎麼配合」+ 連結各 nxXX-worklog 對應主題
+  - **末尾累計範式總表**沿用 [NX10 worklog](../nx10/nx10-worklog.md) 末尾結構（7 分類）+ 新增 **第 8 分類「工程文化範式」**（Phase 1 累積 5 條）
+- 模組視角差異 + 範式集大成 = _shared 獨有價值（個別 worklog 看不到）
+
+---
+
+## 主題 1｜D3 雙帳資料模型 + D4 SYS-C Translator 跨模組視角總覽
+
+### 起源
+
+D3+D4 是 Phase 0 開幕（2026-04-25）核心 task、由 NX04 主導、但**跨 3 個模組落地**（NX02 採購 / NX03 庫存 / NX04 銷售）。NX04 worklog 主題 3+4 已完整寫 D3 設計 + D4 邏輯（5 小節 3A~3E + 4A~4E）、本主題的 _shared 獨有價值是「**3 個模組從各自視角看同一個 D3/D4 設計**」。
+
+### 1A. NX02 採購視角：D3 帶來「調貨鏈」
+
+D3 子帳 type='G'（同行調貨）觸發採購側兩個 schema 變動：
+
+1. **nx02_qt 拆表**（從 nx02_rfq 拆出）
+   - 業務本質：一張 RFQ 可對應 N 張 QT（多家供應商各自報價）
+   - migration：`20260425100300_phase0_b5_nx02_qt`
+   - 詳見：[NX02 主題 5](../nx02/nx02-worklog.md#主題-5b5-rfqqt-api--demo-02-nx02-schema-widening-phase-0-收官2026-04-25-28)
+
+2. **nx02_rfq.source_so_item_id 反查**
+   - 業務本質：「這張 RFQ 是給哪個 SO line 調貨的？」要可回溯
+   - migration：`20260427014134_phase0_b5_rfq_source_so_item`
+
+**採購側看 D3 = 多了一條「SO line → RFQ → QT → PO → RR」調貨業務鏈**。傳統採購流程沒有「源頭可回溯到銷貨單」的概念、D3 把這條鏈打通。
+
+### 1B. NX03 庫存視角：D3 帶來「調撥鏈」+ nullable 妥協
+
+D3 子帳 type='T'（公司內倉間調撥）觸發庫存側 schema 變動：
+
+- **nx03_st_item.source_so_item_id NULLABLE**
+  - 業務本質：D4 Translator stub 階段先建 IT 調撥單、SO line 還沒對應上、需 nullable
+  - migration：`20260425100200_phase0_st_item_source_so_nullable`（NOT NULL → nullable）
+  - 詳見：[NX03 主題 1](../nx03/nx03-worklog.md) Migration 列表
+
+**庫存側看 D3 = 多了一條「SO 子帳 type=T → ST 調撥單 → 移倉」鏈、nullable 是 D4 推進過程的妥協**（不是設計初衷、是業務需要先建單後 wire）。
+
+### 1C. NX04 銷售視角：D3 主導模組（連結完整版）
+
+NX04 是 D3 主導模組、主帳子帳設計 + 4 個 PostgreSQL triggers + C-strategy 兩階段 migration 都在 NX04 控制下。**完整版見 [NX04 主題 3](../nx04/nx04-worklog.md#主題-3d3-雙帳資料模型2026-04-25phase-0-開幕nx04-主導跨模組-核心)**、本日誌不重述。
+
+### 1D. D4 Translator 的「跨模組補單」機制
+
+D4 SYS-C Translator 是 NX04 內子目錄（`apps/nx-api/src/nx04/so/translator/`）、但**運作時會跨模組「補單」**：
+
+| 情境 | 主帳 | 子帳 type | D4 補單跨模組對象 |
+|------|------|----------|-----------------|
+| A | SO | S（本倉現貨）| 無補單、純 NX03 扣帳 |
+| B | SO | T（調撥）| 補 **NX03 ST 調撥單** |
+| C | SO | G（同行調貨）| 補 **NX02 RFQ + QT** |
+| D | SO | B（缺貨採購）| 補 **NX02 PO + RR**（依採購流程）|
+
+**Translator = 「業務寫一張 SO、系統自動展開為跨模組 N 張單」**。NX04 主題 4 寫了完整邏輯、本日誌只標明跨模組補單性質、不重述實作。
+
+### 跨模組教訓
+
+- **「跨模組補單」是 D4 獨有設計、傳統 ERP 業務模組各自獨立、D4 是 NEXORA 跟傳統 ERP 最大差異點**
+- **D3/D4 落地需要 3 個模組同步 schema 改動**：NX02 拆 qt + 加 source_so_item_id / NX03 改 nullable / NX04 加 type + transferStatus + triggers — 跨模組同源歷史債清理範式（Hank 拍 Alex 推、Crown 拍即可）
+- **「stub 階段」設計妥協**（NX03 nullable）：D4 推進需要先建單後 wire、schema 必須容許中間狀態。教訓：**新業務鏈落地時、先檢查中間狀態 schema 約束**
+
+### 對應文件
+
+- 規格：[docs/nx04/spec/intent/so-data-model-intent.md](../nx04/spec/intent/so-data-model-intent.md) / [d3-impl_so-schema.md](../nx04/spec/impl/d3-impl_so-schema.md) / [d3-trigger.md](../nx04/spec/impl/d3-trigger.md) / [d4-impl_translator.md](../nx04/spec/impl/d4-impl_translator.md)
+- 模組視角：[NX02 主題 5](../nx02/nx02-worklog.md) / [NX03 主題 1](../nx03/nx03-worklog.md) / [NX04 主題 3+4](../nx04/nx04-worklog.md)
+- 系統架構：[system-architecture.md §B.2~B.3](team/system-architecture.md)
+
+---
+
+## 主題 2｜A002 schema drift 統合（跨 4 模組）
+
+### 起源
+
+A002 是 v6 historical drift 的跨模組統合：DB 存單字元、schema / 業務 token 改字串、**靜默 mismatch**（沒撞 error、但 query 比對失敗）。各模組 worklog migration 列表帶過、_shared 統合「8 處 drift 全貌」。
+
+### 跨模組分布
+
+| migration | 影響模組 | drift 內容 |
+|-----------|---------|-----------|
+| `20260421152710_fix_schema_drift`（DRIFT-FIX-01）| NX01 / NX02 / NX07 / NX08 | 8 處 drift 一次性收斂 |
+
+8 處 drift 主要分兩類：
+
+1. **狀態欄位 default mismatch**（4 處）
+   - **NX07 status**：DB 存 `'N'/'P'/'D'`、API token `'NORMAL'/'POSTED'/'DRAFT'` — 詳見 [NX07 主題 1](../nx07/nx07-worklog.md)
+   - **NX08 nx08_monthly_report.status**：default mismatch — 詳見 [NX08 主題 1](../nx08/nx08-worklog.md)
+   - 其他 2 處：跨模組同模式（DB 單字元 / API token）
+
+2. **Index 漏寫**（4 處）
+   - 業務查詢必加 `WHERE tenant_id = :tenantId`、但 4 個業務表沒對應 index → query plan 退化全表掃
+   - 詳見 migration SQL（`20260421152710_fix_schema_drift` 含 4 個 `CREATE INDEX`）
+
+### 跨模組教訓
+
+- **A002 是 v6 → v7 schema 演進過程的歷史殘跡**：v7_baseline 改了狀態 ENUM token、但沒同步更新 default + 沒補 index、形成「schema vs DB vs API」三方 drift
+- **靜默 mismatch 比 loud error 更危險**：query 不報錯、業務 logic 全錯
+- **跨模組 drift 一次性收斂比逐模組修更省**：DRIFT-FIX-01 一個 migration 修 8 處、不分 8 個 commit
+
+### 對應文件
+
+- migration：`packages/db-core/prisma/migrations/20260421152710_fix_schema_drift/`
+- 各模組 migration 列表：[NX01 主題 1](../nx01/nx01-worklog.md) / [NX02 主題 1](../nx02/nx02-worklog.md) / [NX07 主題 1](../nx07/nx07-worklog.md) / [NX08 主題 1](../nx08/nx08-worklog.md)
+- 系統架構：[system-architecture.md §G.1](team/system-architecture.md)（A002 已解決條目）
+
+---
+
+## 主題 3｜過帳通用規則統合（跨 4 模組）
+
+### 起源
+
+過帳是「業務動作 → 寫 stock_ledger / paylog」的物理約束。CLAUDE.md §九 是**工程規範**、本日誌是**各模組實作位置 + 跨模組踩坑統合**。
+
+### 跨模組實作位置
+
+| 模組 | 實作位置 | 觸發點 | sourceModule / sourceDocType |
+|------|---------|--------|------------------------------|
+| NX02 | `apps/nx-api/src/nx02/rr/rr.service.ts` | RR POSTED | NX02 / I |
+| NX02 | `apps/nx-api/src/nx02/purchase-return/...` | PR POSTED | NX02 / R |
+| NX03 | `apps/nx-api/src/shared/nx03/nx03-inventory.ts`（核心 helper）| inbound POSTED / outbound SHIPPED / stocktake POSTED / transfer RECEIVED | NX03 / I,O,T,X |
+| NX04 | `apps/nx-api/src/nx04/so/so.service.ts` | SO SHIPPED | NX04 / S |
+| NX05 | `apps/nx-api/src/shared/nx05/nx05-paylog-posting.ts` | paylog CR/CP POSTED + VOIDED 沖回 | NX05 / P, V |
+
+⭐ **NX03 抽 `nx03-inventory.ts` 是跨模組統合點**：所有庫存過帳（NX02 入庫 / NX04 出庫 / NX03 自身）都呼叫這個 helper、不重複實作。
+
+### 跨模組踩坑（多模組共同）
+
+1. **必須單一 transaction**：第一版多模組都踩過「先 update header.status、再用另一個 client 寫 ledger」、結果 status 寫了但 ledger 沒寫、庫存對不上
+2. **balance + ledger 同步寫是物理約束**：分開寫不可能對齊、必須 `prisma.$transaction(async (tx) => { ... })` 內完成
+3. **移動平均成本入庫公式**：`新均價 = (舊qty × 舊avg + qty_in × unit_cost) / (舊qty + qty_in)`、出庫均價不變
+4. **stock_ledger.source\* 是跨模組反查的關鍵**：未來查 ledger 反推「這筆異動是哪個業務動作造成」、不需 join 多表
+
+### 跨模組對偶設計（NX05 paylog 跟 NX03 stock 對比）
+
+| 維度 | NX03 stock 過帳 | NX05 paylog 過帳 |
+|------|----------------|------------------|
+| 業務本質 | 物理操作（實體貨）| 數字操作（金額帳）|
+| 沖回設計 | 不可逆、開反向業務單（SR/IB）| VOIDED 直接狀態變、開反向 paylog |
+| Audit trail | 跨表審計（原單 + 反向業務單）| 雙紀錄保留（原 paylog + 反向 paylog）|
+
+詳細對比見 [NX05 主題 3](../nx05/nx05-worklog.md#主題-3paylog-過帳邏輯crcp--voided-沖回)。
+
+### 對應文件
+
+- 工程規範：[CLAUDE.md §九](../../CLAUDE.md)
+- 各模組實作：[NX02 主題 1](../nx02/nx02-worklog.md) / [NX03 主題 1](../nx03/nx03-worklog.md) / [NX04 主題 1](../nx04/nx04-worklog.md) / [NX05 主題 3](../nx05/nx05-worklog.md)
+
+---
+
+## 主題 4｜公版 component（DocLayout 等 6 個、跨 NX02/NX04 demo 用）
+
+### 起源
+
+TASK-0421（2026-04-21、5 張 demo 單據）首次抽出公版 component、跨 NX02 三張（RF/PO/RR）+ NX04 兩張（QT/SO）共 5 張單據共用。本日誌統合「6 個公版 component 全貌」+ 各模組用法對照、避免 NX02 / NX04 worklog 各自寫一遍重複。
+
+### 6 個公版 component
+
+| Component | 用途 | 位置 |
+|-----------|------|------|
+| `DocLayout` | 單據頁版型骨架（Header + Tabs + Body）| `apps/nx-ui/src/shared/ui/doc/` |
+| `DocListView` | 列表頁（filter + table + pagination）| 同上 |
+| `DocDetailView` | 詳細頁（Header + ItemTable + Footer）| 同上 |
+| `DocHeader` | 表頭（單號 / 日期 / 狀態 / 客供商）| 同上 |
+| `DocItemTable` | 明細表（鍵盤導向、多列輸入）| 同上 |
+| `docStatus` | 狀態 badge（DRAFT / POSTED / VOIDED 等）| 同上 |
+
+### 跨模組使用對照
+
+| 模組 | 單據 | FUNCTION_CODE | 詳見 |
+|------|------|--------------|------|
+| NX02 | RFQ | `NX02-RFQ-UI-001-F01` | [NX02 主題 3](../nx02/nx02-worklog.md#主題-3task-0421-五單據-demonx02-三張rf--po--rr) |
+| NX02 | PO | `NX02-PO-UI-002-F01` | 同上 |
+| NX02 | RR | `NX02-RR-UI-001-F01` | 同上 |
+| NX04 | QT | `NX04-QT-UI-001-F01` | [NX04 主題 7](../nx04/nx04-worklog.md#主題-7task-0421-兩張-demo-單據qt--so-短主題) |
+| NX04 | SO | `NX04-SO-UI-001-F01` | 同上 |
+
+### 跨模組踩坑
+
+- **第一版「太通用」反而難用**：DocItemTable 想 props 全配置（renderCell / inputClassName / disableRowDelete / ...）、結果三張單據用法都不同、每張傳 10+ props、可讀性比不抽象還差。後來收窄成「2~3 個必要 prop + barrel 匯出 + 單據自己 wrapper」
+- **mock data 命名跟 schema 對齊很重要**：第一版亂取（`供應商 / 金額`）、後來接 API 全要重命名（`partnerId / totalAmount`）
+- **「3 個相似實作是抽象最佳時機」首次驗證**：NX02 三張 RF/PO/RR 是抽象最佳輸入、不是憑空想配置（沿用後來成為「抽象判準 ≥3 + 相似度高」範式 — 見累計範式總表）
+
+### 對應文件
+
+- DEMO 路徑短網址 redirect：[apps/nx-ui/next.config.ts](../../apps/nx-ui/next.config.ts)
+- 各模組用法：[NX02 主題 3](../nx02/nx02-worklog.md) / [NX04 主題 7](../nx04/nx04-worklog.md)
+
+---
+
+## 主題 5｜TASK-BUSINESS-RESTRUCTURE 大塊 2 跨中心連動（SO→PK→BX→DN）
+
+### 起源
+
+TASK-BUSINESS-RESTRUCTURE 分 3 大塊：
+- **大塊 1**：純 NX04 業務 SOP 重構 — [NX04 主題 6](../nx04/nx04-worklog.md#主題-6task-business-restructure-大塊-1-業務-sop-重構2026-04-23)
+- **大塊 2**：**跨 3 模組（NX02/NX04/NX06）SO→PK→BX→DN 跨中心連動** — _shared 統合（本主題）
+- **大塊 3**：純 NX03 庫存中心 4 分區 — [NX03 主題 3](../nx03/nx03-worklog.md#主題-3task-business-restructure-大塊-3-庫存中心-4-分區重構2026-04-23)
+
+大塊 2 是「**一筆銷貨在不同中心的 5 張單據連動**」、本日誌統合。
+
+### 跨中心連動 4 段業務鏈
+
+```
+業務輸入                     倉管處理                       物流處理         財務處理
+    │                            │                              │                │
+    ▼                            ▼                              ▼                ▼
+   SO    ────────────────►    PK   ────────►    BX   ────►    DN    ────►    AR
+（銷貨中心、NX04）   （庫存中心、NX03）   （庫存中心、NX03）   （物流中心、NX06） （財務、NX05）
+
+共用流水號：
+  SO-202604-Z01-00061
+  PK-202604-Z01-00061
+  BX-202604-Z01-00061
+  DN-202604-Z01-00061
+  AR-202604-Z01-00061
+```
+
+### 跨中心 helper 統合
+
+| 動作 | 觸發模組 | 接收側 | helper |
+|------|---------|--------|--------|
+| SO SHIPPED → 自動建 PK 撿貨單 | NX04 | NX03 | （需 audit、可能 trigger 在 D3 內已實作）|
+| PK COMPLETED → 自動建 BX 包裹 | NX03 | NX03 | （NX03 內部）|
+| BX 完成 → 自動建 DN 送貨單 | NX03 | NX06 | `nx06-create-delivery-from-so` — 詳見 [NX06 主題 2](../nx06/nx06-worklog.md#主題-2跨模組接收側nx04--nx06-自動建單沿用-nx05-範式第二次套用) |
+| SO SHIPPED → 自動建 AR | NX04 | NX05 | `nx05-create-ar-from-so` — 詳見 [NX05 主題 2](../nx05/nx05-worklog.md#主題-2跨模組業務鏈nx02--nx04--nx05-自動建單) |
+
+⚠️ Hank 觀察：上表的「NX04→NX03 自動建 PK」具體 helper 位置我不確定（有可能已含在 D4 Translator 內、或散在 NX04 so.service 內）、需 Alex / Crown 確認補。
+
+### 共用流水號 helper
+
+`buildSharedDocNumbers(seq) → { so, pk, bx, dn, ar, ... }` — baseline § 工程模式 #5（[PROJECT_CONTEXT.md](../../PROJECT_CONTEXT.md) §🏗️ A.5）
+
+業務本質：**一筆交易跨 5 個中心、用同一個流水號降低跨組溝通成本**（業務、倉管、物流、財務看到 `SO-202604-Z01-00061` 知道是同一筆）。
+
+### 跨模組教訓
+
+- **跨中心連動 = 多個接收側設計堆疊**：SO→PK→BX→DN→AR 每一段都是一個接收側（業務模組發訊號、接收側自動建單）
+- **共用流水號是業務需求、不是技術選擇**：傳統 ERP 各中心各自編號、查全鏈要對照 N 個編號、NEXORA 用同流水號簡化
+- **大塊 2 的「Phase 7 實作前提」**：NX04→NX03 連動需 D3+D4 落地、所以大塊 2 在 Phase 0 收官後才推
+
+### 對應文件
+
+- 大塊 1：[NX04 主題 6](../nx04/nx04-worklog.md)
+- 大塊 3：[NX03 主題 3](../nx03/nx03-worklog.md)
+- NX04→NX06 連動：[NX06 主題 2](../nx06/nx06-worklog.md)
+- NX04→NX05 連動：[NX05 主題 2](../nx05/nx05-worklog.md)
+
+---
+
+## 主題 6｜接收側設計 5 必備配對（範式集大成）
+
+### 起源
+
+[NX05 主題 2](../nx05/nx05-worklog.md#主題-2跨模組業務鏈nx02--nx04--nx05-自動建單) 第一次定義「接收側設計」範式、[NX06 主題 2](../nx06/nx06-worklog.md#主題-2跨模組接收側nx04--nx06-自動建單沿用-nx05-範式第二次套用) 第二次套用驗證範式可重複。但**兩次都缺 void 對稱**、暴露「接收側設計需要的不只 create」。本主題集大成、定義**5 必備配對**。
+
+### 5 必備配對定義
+
+| 配對 | 動作 | 業務本質 | 缺口時的後果 |
+|------|------|---------|-------------|
+| **create** | 業務動作觸發 → 接收側建單 | RR POSTED → 自動建 AP / SO SHIPPED → 自動建 AR/DN | 接收側資料漏建、財務 / 物流斷鏈 |
+| **void** ⭐ | 業務動作作廢 → 接收側自動作廢 | PO 作廢 → AP VOIDED / SO 取消 → DN 取消 | 業務作廢但接收側還活、財務 / 物流數字錯（NX05/06 共同缺口）|
+| **sync** | 業務動作改動 → 接收側同步更新 | PO 改幣別 → AP 同步 / SO 改地址 → DN 同步 | 業務改動接收側 stale、跨表不一致 |
+| **lock** | 接收側過帳後 → 業務模組改動受限 | AP 過帳後 PO 不可改 / DN 簽收後 SO 不可改 | 後段已成立、改前段破壞 audit |
+| **audit** | 跨模組動作 → 寫 nx01_audit_log | 自動建單寫 audit、可追溯誰觸發 | 缺 audit 時跨模組異動無紀錄 |
+
+### NX05 / NX06 配對覆蓋對照
+
+| 配對 | NX05（接 NX02 PO + NX04 SO）| NX06（接 NX04 SO）|
+|------|----------------------------|-------------------|
+| create | ✅ create-ap-from-po / create-ar-from-so | ✅ create-delivery-from-so |
+| **void** | ❌ **缺**（PO 作廢但 AP 還活）| ❌ **缺**（SO 取消但 DN 還活）|
+| sync | ✅ sync-ap-from-po（PO 過帳前改幣別 / 金額同步）| ⚠️ 不確定（待 audit）|
+| lock | ✅ nx05-period-lock（關帳後拒寫）| ⚠️ 不確定（DN 是否 lock SO）|
+| audit | ✅ 寫 nx01_audit_log（moduleCode: NX05）| ✅ 寫 nx01_audit_log（moduleCode: NX06）|
+
+⚠️ Hank 觀察：NX06 的 sync / lock 配對覆蓋程度我不確定、需 Alex / Crown 補。
+
+### 集大成教訓
+
+- **接收側設計不是「建單就完了」、是 5 配對組合**：第一版範式只關注 create、忽略 void/sync/lock/audit、後來生 bug 才發現缺
+- **缺口的優先順序**：void > sync > audit > lock（void 缺最嚴重、財務數字錯）
+- **5 配對的 audit 統一走 nx01_audit_log**：不要各模組自己造 audit table、跨模組查最痛
+
+### 對應文件
+
+- 第一次定義：[NX05 主題 2](../nx05/nx05-worklog.md)
+- 第二次套用：[NX06 主題 2](../nx06/nx06-worklog.md)
+- 範式集大成（本日誌）：上表 5 配對
+
+---
+
+## 主題 7｜跨模組測試基礎設施演進
+
+### 起源
+
+Phase 0 D4 + B5 兩個 task 推進過程引入了測試基礎設施、跨模組踩過 race condition、本日誌統合「測試基礎設施怎麼從 unit test 演進到 int-spec」。
+
+### 演進時間線
+
+| 時間 | task | 變動 | 觸發 worklog |
+|------|------|------|------------|
+| 2026-04-25 | D4 SYS-C Translator | 引入 vitest `*.int-spec.ts` 測試模式（跑 PostgreSQL Docker、不 mock）| [NX04 主題 4](../nx04/nx04-worklog.md) |
+| 2026-04-27 | B5 RFQ/QT API | 加 `vitest.config.ts` `fileParallelism: false` | [NX02 主題 5](../nx02/nx02-worklog.md) + [NX04 主題 4](../nx04/nx04-worklog.md) |
+
+### B5 fileParallelism 踩坑
+
+**問題**：兩個 `.int-spec.ts` 並行跑、各自建 fixture（同 tenantId / 同 partnerId）、撞 unique constraint、隨機綠燈紅燈。
+
+**修法**：vitest config 加 `fileParallelism: false` — 全 int-spec 串行、單一 .ts 內 describe 並行 OK。
+
+**教訓**：
+- **integration test 用真 DB 必須串行 file 級**：unit test 可並行（pure function 無 side effect）、integration test 跨 .ts 同 DB schema 不行
+- **fixture 命名必須 unique 化**（含 tenantId / 隨機 suffix）：純串行只是 quick fix、根本解是 fixture 隔離
+- **fileParallelism: false 是「夠用就好」工程選擇**（接受 5 倍慢執行時間、換穩定）
+
+### 跨模組教訓
+
+- **測試基礎設施跟業務模組分離**：vitest config 改一處、5+ 個模組 .int-spec.ts 都受益、不要每個模組各自配
+- **「先解 race、再解 fixture」優先順序**：發現 race 直接串行救火、後續 fixture 隔離是 follow-up
+
+### 對應文件
+
+- 配置：`apps/nx-api/vitest.config.ts`
+- 涉及 worklog：[NX02 主題 5](../nx02/nx02-worklog.md) / [NX04 主題 4](../nx04/nx04-worklog.md)
+
+---
+
+## 主題 8｜unique constraint 漏寫黃金窗口（範式集大成）
+
+### 起源
+
+[NX01 主題 1](../nx01/nx01-worklog.md) 揭露 v7_baseline 4 表 `code` 全域 unique 漏 tenantId、[NX08 主題 1](../nx08/nx08-worklog.md) 揭露 nx08_daily_report 漏 `(tenantId, userId, reportDate)` unique。兩個 case 同 pattern、本日誌集大成成範式。
+
+### 兩個案例對照
+
+| 案例 | 表 | 漏的 unique | 觸發點 | 修復 migration |
+|------|---|-------------|--------|---------------|
+| NX01 主題 1 | nx01_warehouse / nx01_part_brand / nx01_partner / nx01_role | `code` 全域 unique 應為 `(tenantId, code)` | 多租戶測試（兩家租戶同 code）撞 | `20260413180000_nx01_tenant_code_unique` |
+| NX08 主題 1 | nx08_daily_report | `(tenantId, userId, reportDate)` 漏 | Phase5 落地後業務測試（同人同天填兩份）| `20260417100000_nx08_daily_monthly_unique_fix` |
+
+### 「v7_baseline 黃金窗口」範式
+
+```
+v7_baseline 落地（D+0）
+       ↓
+D+1 ~ D+14 業務測試窗口  ← ⭐ 黃金 audit window
+       ↓
+揭露 unique 漏寫
+       ↓
+追加 unique migration
+```
+
+**為什麼是 1~2 週？**
+- D+0：schema 剛落地、CRUD 跑得通就以為對
+- D+1 ~ D+7：業務人員開始試各種「同一個 X 多筆」情境（同 code 跨租戶 / 同人同天 / 同 docNo）
+- D+7 ~ D+14：累積到「為什麼能填重複？」反向揭露
+- D+15 之後：使用者習慣 workaround、unique 漏寫變成永久債
+
+### 範式應用
+
+**新 schema 落地後主動跑「反向測試」**（不只 happy path）：
+
+| 反向測試類型 | 預期結果 | 失敗時揭露 |
+|------------|---------|----------|
+| 同 user 多筆同類型 | 拒絕（unique 擋）| 漏 unique |
+| 同 docNo 多筆 | 拒絕 | 漏 unique |
+| 跨租戶同 code | 各自獨立 | 漏 tenantId 在 unique 內 |
+| 同 (tenantId, ...) 重複 | 拒絕 | 漏 composite unique |
+
+### 跨模組教訓
+
+- **unique constraint 漏寫是 v7_baseline 常見漏洞**：v7 是大型 schema 重整、每張表都新生、漏 unique 是 schema review 盲區
+- **「Phase5 落地後業務測試」是揭露黃金窗口**：在這個窗口主動跑反向測試、把 schema drift 收斂到當下、不是拖到 prod
+- **schema review 加項**：看到 `@@unique([code])` 不帶 tenantId、預設質疑（業務型錄通常都是 tenant-scoped）
+
+### 對應文件
+
+- NX01 案例：[NX01 主題 1](../nx01/nx01-worklog.md)
+- NX08 案例：[NX08 主題 1](../nx08/nx08-worklog.md)
+- 系統架構：[system-architecture.md §G.1](team/system-architecture.md)
+
+---
+
+## ⭐ 累計範式總表（Phase 1 收官、模組 worklog 10/10 + _shared 統合）
+
+> 本表為 **NEXORA 全模組設計範式索引**、Alex 跨對話讀一份即可掌握所有跨模組設計範式 + 範例位置 + 出處。
+> 沿用 [NX10 worklog 末尾](../nx10/nx10-worklog.md#給未來新對話-hank-的提示nx10-新範式--累計範式總表) 7 分類結構、新增第 8 分類「**工程文化範式**」（Phase 1 doc-restructure 累積 5 條）。
+
+### 1. 跨模組設計範式（光譜對照）
+
+| 範式 | 首次定義 | 第二次套用 | 集大成 |
+|------|---------|----------|--------|
+| 接收側設計 | NX05 主題 2 | NX06 主題 2 | **本日誌主題 6（5 必備配對）** |
+| 主動側設計 | NX07 主題 3 | NX08 主題 1 | NX10 主題 2 對比 |
+| 主動側設計光譜內部分層（業務狀態 vs 量化指標）| NX08 主題 2 | — | — |
+| 讀取側 3 變體（聚合層 / 主動側 / 讀+自寫）| NX10 主題 2 | — | NX10 主題 2 集大成 |
+| 跨模組設計光譜 3 範式判準（接收側 / 主動側 / trigger）| NX07 給未來提示 | — | **本日誌主題 6 + 主題 1** |
+
+### 2. 處理不可逆的策略（3 策略對偶）
+
+| 策略 | 首次定義 | 範例 | 業務本質 |
+|------|---------|------|---------|
+| 配對沖回 | NX05 主題 3 | paylog VOIDED | 結果可被消除 |
+| 歷史鏈 | NX09 主題 2 | document version | 演進可追 |
+| 累積鏈 | NX10 主題 3 | exp_log | 不可逆累積 |
+
+### 3. 量化指標模式（2 模式對偶）
+
+| 模式 | 首次定義 | 範例 | 可變性 |
+|------|---------|------|--------|
+| snapshot 量化 | NX08 主題 2 | KPI record | 可改 / upsert |
+| 累積式量化 | NX10 主題 3 | exp_log | 不可逆累積 |
+
+### 4. 揭露缺口分性質（5 子類型）
+
+| 子類型 | 首次定義 | 處理路徑 |
+|--------|---------|---------|
+| 業務鏈缺口 | NX06 給未來提示 | Alex 規格書補設計 |
+| demo→prod 接面缺口 | NX06 給未來提示 | 真實工作台落地時 wire up |
+| schema 缺漏 / spec 缺漏 | NX06 給未來提示 | 補 spec 或 schema migration |
+| 規範不一致（含 schema vs 行為不一致）| NX06 + NX08（升級）| 進架構債、春酒後處理 |
+| 跨模組整合缺口 | NX09 主題 缺口 #3 | 補 wire up（不是補 spec / schema / 改架構）|
+
+### 5. 穩定模組光譜（漸進、不二分）
+
+| 模組 | follow-up migration | 業務本質 |
+|------|--------------------|----------|
+| NX09 | 0 | 知識管理（最純粹）|
+| NX06 | 1 | 物流 |
+| NX10 | 1 | 遊戲化（業務複雜、但 schema 穩定）|
+| NX05 | 2 | 財務 |
+| NX01~04 | 多 | Phase 0 / 大塊重構持續演進 |
+
+### 6. 法規驅動欄位設計（範例集合）
+
+| 法規 | 模組 | 範例 |
+|------|------|------|
+| 電子簽章法 | NX06 主題 3D | DN 簽收 |
+| 勞基法 | NX07 主題 4A | attendance / overtime / leave |
+| 個資法 | NX07 主題 4B | payroll 雙層權限 + RESIGN 不刪帳號 |
+| 性別工作平等法 | NX07 主題 4C | 產假 / 育嬰留停 ENUM |
+| 勞健保條例 | NX07 主題 4D | insurance_base / 計算比例 |
+
+### 7. 其他規則化認知
+
+| 認知 | 來源 |
+|------|------|
+| 同批落地 ≠ 同類 | NX09 主題 1 |
+| 跨模組不一致不一定是 bug | NX09 主題 1 |
+| 3 個但相似度低、不抽 | NX09 主題 1（補強 NX02 主題 2）|
+| 業務語意 vs 資料歸屬分離 | NX08 主題 1 |
+| 資料分層脫敏 | NX07 主題 2 |
+| v7_baseline 黃金窗口（unique constraint 漏寫）| **本日誌主題 8 集大成**（NX01 + NX08）|
+| 業務優先 + 維護成本是設計取捨黃金組合 | NX08 主題 3 |
+| 設計取捨永遠看業務 ROI | 多份 worklog |
+| single source of truth 比 redundancy 重要 | NX08 主題 2 |
+| 模組內局部跨方案 endpoint | NX10 主題 1 1B |
+| 不同模組的 audit 各自 owns | NX10 主題 2 |
+| 漸進演化紀錄 | NX01 主題 5 / NX04 主題 3E |
+| 跨 worklog 哲學同步 | NX03/NX04「中心=角色工作台」|
+| 跨 worklog 視角差異化 | W2-mini（NX03 vs NX04）|
+| 過帳設計對齊業務本質、不能跨模組複製貼上 | **本日誌主題 3**（NX05 vs NX03 對偶）|
+| 跨中心連動共用流水號 | **本日誌主題 5**（SO/PK/BX/DN/AR）|
+
+### 8. ⭐ 工程文化範式（Phase 1 doc-restructure 累積 5 條）
+
+| # | 範式 | 來源 task | 教訓 |
+|---|------|---------|------|
+| **8.1** | **跨對話銜接 fallback** | TASK-NX08-MONTHLY-REPORT-CLEANUP（2026-04-29 Hank 斷片重啟首次驗證）| Cursor 突然更新斷對話、新 Hank 走 [hank-charter §E.2](team/hank-charter.md) 必讀順序（CLAUDE.md → PROJECT_CONTEXT → charter → git-state → system-architecture → 涉及 worklog）+ §E.3 自檢清單即可完整銜接、無記憶 fallback 路徑驗證有效 |
+| **8.2** | **文件邊界 audit** | TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01 G6 處理 | PROJECT_CONTEXT vs CLAUDE.md 23 段重疊矩陣 + 量化重疊深度（🔴×3 / 🟡×7 / 🟢×13）+ 3 策略選項（A 零重疊 / B 各完整 / C 分層折中）+ 高重疊 a/b/c 子選項。範式：**文件邊界拍板需要矩陣量化、不能憑感覺** |
+| **8.3** | **commit 拆軌紀律** | 多 task 累積（NX08 cleanup 6 commit / PROJECT_CONTEXT migrate 6 commit）| 一個邏輯單位一個 commit、跨類型不混（[TASK]+[DOC]+[CHARTER]+[ARCH]+[GIT-STATE] 各自獨立）。範式：**commit 是「未來自己讀 git log 的索引」、不是「工作打卡」** |
+| **8.4** | **Crown 拍板列選項範式** | 多 task 累積（G6 / 文件邊界 / Yaro 校正）| Hank 列選項不單一推薦：A/B/C 子選項 + Hank 推薦 + 推薦理由。範式：**抽象拍板變成具體選擇、Crown 拍時有依據、不是 yes/no 二選一** |
+| **8.5** | **「先 grep 才動」紀律** | TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01 Yaro 校正 audit + Alex 失誤 #1 對應 | 全 repo 拼字 audit grep 揭露「全 repo 只 PROJECT_CONTEXT 2 處 + 1 archive 檔有 Arco」、跟假設「全 repo 拼錯」差很大。範式：**修改前 grep 列範圍回報、不要憑假設動手**（呼應 Alex 失誤紀錄 #1「寫 spec 前必先 grep 現狀」） |
+
+---
+
+## 給未來新對話 Hank 的提示
+
+### 本日誌的特殊性
+
+- ⭐ **Phase 1 收官集大成**：模組 worklog 10/10 完成 + PROJECT_CONTEXT migrate 完成後寫的最終統合
+- **所有跨模組工作真相在此**：D3+D4 / A002 / 過帳 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / 接收側 5 配對 / 測試基礎設施 / unique 黃金窗口
+- **累計範式總表是 Alex 跨對話入口**：第 8 分類「工程文化範式」是 Phase 1 沉澱、第 1~7 分類是 NX01~NX10 累積
+
+### Phase 1 收官里程碑
+
+```
+Phase 1 doc-restructure 完成項：
+  ✅ docs/ v2 結構（按 NX 模組劃分、2026-04-25）
+  ✅ hank-charter.md v1.0（self-binding 自我認同）
+  ✅ system-architecture.md v1.0（Hank 蓋的房子）
+  ✅ git-state.md v1.0（Git 版控現況）
+  ✅ NX01~NX10 worklog 10/10 + 末尾 nxXX 前綴
+  ✅ NX08 monthly_report cleanup（A030）
+  ✅ PROJECT_CONTEXT.md v1.0 進場 repo root
+  ✅ _shared/worklog.md v1.0（本檔）
+
+下一階段（Phase 2、待 Crown 拍）：
+  - 此分支 merge 回 main 時機
+  - Phase 2 task（待 Crown 拍）
+  - multi-Hank 試跑（不主動進）
+  - PLUS / PRO seed（不主動接）
+```
+
+### 寫 _shared 主題的紀律
+
+- **不重述模組 worklog 內細節**、只統合「跨模組怎麼配合」+ 連結 nxXX-worklog 對應主題
+- **跨模組視角差異化是 _shared 獨有價值**（個別 worklog 看不到）
+- **缺口標 ⚠️ 給 Alex / Crown 補**（不假設、不擅自決）
+
+### 累計範式總表的維護
+
+- 新增範式優先進對應分類（不獨立成新分類）
+- Phase 2 後新工作如果累積範式、補進對應分類
+- 工程文化範式（第 8 分類）是 Phase 1 獨有性質、Phase 2 後新增另起分類
+
+---
+
+## 給未來新對話 Hank：本日誌的特殊性
+
+> Phase 1 收官完成後、Phase 2 還沒拍板前、新對話 Hank 讀本日誌即可掌握「**NEXORA 全部跨模組工作真相 + 30+ 範式索引**」、不必逐 NX01~NX10 一份份讀。
+>
+> 但若涉及具體模組 task、仍需讀對應 nxXX-worklog 拿到實作細節。
+
+---
+
+> 文件版本：v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
+> 下次更新觸發：
+>   - Phase 2 task 累積跨模組工作（≥3 個觸發新主題）
+>   - 累計範式總表新範式累積（個別範式直接補進對應分類、無需新主題）
+>   - Crown 拍板新跨模組設計（如 multi-Hank 機制 / PLUS/PRO seed）
