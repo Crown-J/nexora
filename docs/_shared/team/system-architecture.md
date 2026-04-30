@@ -43,20 +43,20 @@ src/
 ├── app.module.ts            ← 主入口
 ├── auth/                    ← JWT + tenantCode 強制（X1 改造、消滅 A001）
 ├── prisma/                  ← Prisma Client wrapper
-├── nx01/  主檔管理          ← 11 子模組（user/role/part/part-brand/partner/warehouse/warehouse-type/customer-grade/currency/bulletin）
-├── nx02/  採購管理          ← 5 子模組（rfq/po/rr/qt/purchase-return）
-├── nx03/  庫存管理          ← 7 子模組（balance/ledger/inbound/outbound/stocktake/transfer/reservation）
-├── nx04/  銷售管理          ← 3 子模組（quote/so/sales-return；SO translator 為 so/ 內子目錄、不獨立計）
-├── nx05/  財務管理          ← 7 子模組（ar/ap/receipt/payment/note/allowance/period-close）
-├── nx06/  物流管理          ← 4 子模組（delivery/pickup/intl-shipping/return-pickup）
-├── nx07/  人資管理          ← 7 子模組（attendance/leave/overtime/payroll/performance/training/employee-change）
-├── nx08/  報表分析          ← 4 子模組（daily-report/monthly-report/kpi-target/kpi-record）
-├── nx09/  知識管理          ← 3 子模組（article/document/meeting）
-├── nx10/  遊戲化            ← 6 子模組（exp/checkin/tasks/tasks-today/medals/leaderboard）
-└── nx99/  系統管理          ← 3 子模組（subscription/tenant/feature-flag）
+├── nx01/  主檔管理          ← 10 controller（user/role/part/part-brand/partner/warehouse/warehouse-type/customer-grade/currency/bulletin）
+├── nx02/  採購管理          ← 5 controller（rfq/po/rr/qt/purchase-return）
+├── nx03/  庫存管理          ← 7 controller（balance/ledger/inbound/outbound/stocktake/transfer/reservation）
+├── nx04/  銷售管理          ← 4 controller（quote/so/sales-return + so/translator/）
+├── nx05/  財務管理          ← 7 controller（ar/ap/receipt/payment/note/allowance/period-close）
+├── nx06/  物流管理          ← 4 controller（delivery/pickup/intl-shipping/return-pickup）
+├── nx07/  人資管理          ← 7 controller（attendance/leave/overtime/payroll/performance/training/employee-change）
+├── nx08/  報表分析          ← 4 controller（daily-report/monthly-report/kpi-target/kpi-record）
+├── nx09/  知識管理          ← 3 controller（article/document/meeting）
+├── nx10/  遊戲化            ← 5 子目錄 / 6 controller（exp/checkin/leaderboard/medals/tasks；tasks/ 內含 tasks + tasks-today 兩 controller）
+└── nx99/  系統管理          ← 3 controller（subscription/tenant/feature-flag）
 ```
 
-**API 路由命名：** `/{nxXX}/{kebab-case-resource}`、共約 60+ controller。
+**API 路由命名：** `/{nxXX}/{kebab-case-resource}`、共 **60 controller**（截至 2026-04-29、controller 算法見 [PROJECT_CONTEXT.md](../../../PROJECT_CONTEXT.md) §📋 資料層數量）。
 
 ### B.2 D3 雙帳設計（SO 資料模型 + 4 triggers）
 
@@ -163,9 +163,9 @@ src/shared/
 
 ```
 packages/db-core/prisma/
-├── schema.prisma            ← 100+ models（單檔、未拆模組）
+├── schema.prisma            ← 137 models / 6113 行（單檔、未拆模組、截至 2026-04-29）
 ├── prisma.config.ts         ← ORM 設定（v7 必用、不是 schema.prisma 內 generator）
-├── migrations/              ← 24 個 migrations（v7 baseline 起算）
+├── migrations/              ← 25 個 migrations（v7 baseline 起算）
 └── seed/                    ← 三層架構（system / template / test）
 ```
 
