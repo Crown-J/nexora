@@ -2,8 +2,8 @@
 
 # NEXORA GRID - PROJECT CONTEXT
 
-> 文件版本：v1.0
-> 最後更新：2026-04-29
+> 文件版本：v1.1
+> 最後更新：2026-05-02
 > 負責人：Crown Lin（林翰杰）
 > 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
 
@@ -282,6 +282,66 @@ className 工具：from '@/shared/lib/cx'（不用 clsx）
     → 來源：NX02 主題 2「踩坑」+ NX09 主題 1「踩坑」（補強）
 ```
 
+### 23. 擴充性原則（NEXORA 全域、Phase 2 累積）
+
+**為什麼需要：**
+NEXORA 是 SaaS、業務需求會持續變化。擴充必須有原則、避免兩個極端（過度預留 = 複雜度爆炸 / 寫死實作 = 改動成本高）。
+
+**怎麼擴充（核心 3 條）：**
+
+1. **加東西要分類、不要亂塞**
+   - 上層業務骨架（穩定、不擴充）
+   - 下層具體子模組（會擴充）
+   - 例：NX01 加郵遞區號 → 進「型錄型」分類、不發明新分類
+
+2. **擴充分 3 種類型、各走各的：**
+   - **【類型 1】加新東西**（新表 / 新欄位）
+     → 自由加（nullable / 預設值、向後相容）
+   - **【類型 2】升級既有結構**（如 1 欄位拆 6 欄位）
+     → 3 階段演進：並存 → 遷移 → 廢棄
+   - **【類型 3】改既有語意**（如欄位型別 / 業務語意改）
+     → 兩階段 migration（嚴謹流程）
+
+3. **業務真的要才加、不預留（YAGNI）**
+   - 反例：nx08_monthly_report 預留變架構債（A030）
+
+**紀律 2 條（配套保證）：**
+
+4. **擴充必須明寫紀錄**
+   - 模組規格書 § 子模組清單 update（截至 vX.X）
+   - Document Control Log 寫「vX.X 加什麼、為什麼加」
+   - 對應 worklog 主題寫業務脈絡
+
+5. **擴充不打破設計哲學紅線**
+   - § 設計哲學 15 條是紅線、擴充細節 OK、不破本質
+
+**加欄位專屬「向後相容檢查」：**
+
+- ☐ 新欄位 nullable 或預設值（既有資料不爆）
+- ☐ 新欄位是「加法」、不取代既有
+- ☐ 既有 service / API 不必動就能跑
+- ☐ 寫進文件
+
+**升級結構專屬「3 階段演進」（如 address 拆 6 欄位）：**
+
+**階段 1：並存**
+- 保留既有欄位（如 `address`）
+- 加新欄位（如 `country` / `zip` / `city` / `district` / `street_main` / `street_sub`）
+- 系統自動 concat 6 欄位、回填既有 `address`（向後相容既有 service）
+
+**階段 2：遷移**（業務真要用時觸發）
+- migration script 批次回填舊資料
+- 拆不了的留原 `address`、業務人員手動補
+
+**階段 3：廢棄**（既有完全淘汰）
+- drop column 既有欄位
+- service 移除 concat 邏輯
+- Document Control Log 紀錄
+
+⚠️ **不要跳階段、不要 once-and-done**
+
+**來源：** Phase 2 NX01 主檔規格書設計時 Crown 提「規格書要具備擴充性」（郵遞區號擴充 / address 拆 6 欄位場景）、Alex 從業界擴充性兩極端 + NEXORA Phase 0~1 踩坑（partner_type 演進 / nx08_monthly_report 預留變債 / 醫章 16 vs 20 階）累積成 7 條口訣 + 3 種類型 + 3 階段演進。
+
 ---
 
 ## 📋 資料/命名標準（具體值；規則格式見 [CLAUDE.md §五~§六](CLAUDE.md)）
@@ -523,6 +583,11 @@ Hank 工作日誌（Hank 寫、Crown 上傳到專案）：
 ---
 
 ## 文件版本
+
+- **v1.1（2026-05-02）**：加第 23 條擴充性原則（TASK-PHASE2-EXTENSIBILITY-PRINCIPLE-01）
+  - § 工程模式 B 部分加第 23 條「擴充性原則」（NEXORA 全域、Phase 2 累積）
+  - 7 條口訣（核心 3 條 + 紀律 2 條 + 加欄位向後相容檢查 + 升級結構 3 階段演進）
+  - 來源：Phase 2 NX01 主檔規格書設計時 Crown 提「規格書要具備擴充性」、Alex 從業界擴充性兩極端 + Phase 0~1 踩坑累積
 
 - **v1.0（2026-04-29）**：從 Claude.ai 專案內遷移至 GitHub repo root（TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01）
   - 加 14 條設計範式（review 累積、worklog 萃取）→ § 工程模式 B 部分
