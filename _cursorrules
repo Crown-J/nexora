@@ -28,7 +28,7 @@ NEXORA GRID 是一套汽車零件經銷商專用 ERP 系統（SaaS，多租戶�
 
 ## 技術架構
 
-- Frontend：Next.js 15 + React 18 + TypeScript（apps/nx-ui）
+- Frontend：Next.js 16.1.6 + React 18 + TypeScript（apps/nx-ui）
 - Backend：NestJS + TypeScript（apps/nx-api）
 - Database：PostgreSQL（本機 Docker）
 - ORM：Prisma 7（packages/db-core，設定在 prisma.config.ts，非 schema.prisma）

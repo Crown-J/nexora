@@ -560,7 +560,7 @@ Alex 端已有 `NEXORA_URL_STRUCTURE_v2.md`（153 個 URL），
 ### 長期願景
 - 2026 Q3：UI 完整版上線，Innova 可開始接客戶
 - 2027 Q1：第一個真實客戶簽約
-- 2028 Q3：Arco Enterprise 正式營運（NEXORA 為核心 ERP）
+- 2028 Q3：Yaro Enterprise 正式營運（NEXORA 為核心 ERP）
 
 ---
 
