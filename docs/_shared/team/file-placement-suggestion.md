@@ -110,11 +110,22 @@
 
 **5 條具體調整：**
 
-### 5-1 區分「GitHub 命名」vs「Claude.ai 命名」、不強求一致
+### 5-1 兩端統一英文 kebab-case + 模組前綴（2026-05-04 修正）
 
-- GitHub：kebab-case + 路徑歸屬（對齊既有慣例）
-- Claude.ai：中文 + `NEXORA -` 前綴（對齊 Crown / Alex 習慣）
-- Crown 上傳時手動 rename、接受兩邊不對等
+- GitHub + Claude.ai **兩端統一英文 kebab-case + 模組前綴**
+- 不再要求「兩端不對等、Crown 上傳時 rename」
+- Crown 上傳時直接用 GitHub 檔名、不轉中文
+
+**修正理由（2026-05-04 揭露）：**
+- Claude.ai 是平面結構（沒有資料夾分層）、跨對話 review 時、中文檔名 + 不同模組會誤判（e.g. 同看到「主檔規格書」但分不出哪個模組）
+- 英文 kebab-case + 模組前綴（如 `nx01-overview.md`）讓 Claude.ai 平面結構也有歸屬可辨
+- Phase 1 worklog rename（commit `03bf701`）已落地「nxXX 前綴」慣例、兩端統一是延續該紀律
+
+⚠️ **此修正跟 5-2 / 5-3 邏輯有交集**（待 Crown 拍是否同步調整）：
+- 5-2「`NEXORA -` 前綴只用在 Claude.ai」— 兩端統一後是否也取消 Claude.ai 端 `NEXORA -` 前綴？
+- 5-3「SHARED 改 `_shared`、Claude.ai 端可繼續 `NEXORA - SHARED -`」— 是否兩端都用 `_shared`？
+
+本 task 範圍只動 5-1 + 5-5、5-2 / 5-3 維持原拍板待 Crown 後續釐清。
 
 ### 5-2 `NEXORA -` 前綴只用在 Claude.ai 上傳、GitHub 不用
 
@@ -133,11 +144,17 @@
 - 新增 `docs/nx0X/nx0X-worklog.md`（按模組累加）
 - 不重複、各有用途（時間軸 vs 主題軸）
 
-### 5-5 規格書「主檔 + 子規格」結構
+### 5-5 規格書「主檔 + 子規格」結構（2026-05-04 修正命名）
 
-- 主檔：`_overview.md`（`_` 前綴排第一）
-- 子規格：`01-{feature}.md`（按功能編號）
+- 主檔：`nxXX-overview.md`（兩端對等、模組前綴）
+- 子規格：`nxXX-NN-{feature}.md`（兩端對等、模組前綴 + 編號）
 - 既有 `xxx-intent.md` 命名不衝突、繼續用
+
+**範例：**
+- `docs/nx01/spec/intent/nx01-overview.md`（NX01 主檔規格書 v1.0、2026-05-04 落地）
+- `docs/nx01/spec/intent/nx01-03-customer-supplier.md`（NX01 第 3 份子規格書）
+
+**修正理由：** 對齊 5-1「兩端統一英文 kebab-case + 模組前綴」紀律、Claude.ai 上傳時直接用 GitHub 檔名、不轉 `_overview.md`（去模組前綴會讓 Claude.ai 平面結構失去歸屬可辨）。
 
 ---
 
@@ -151,11 +168,11 @@
 | Q3-2 | 工作日誌位置 | `docs/nx0X/nx0X-worklog.md` + `docs/_shared/worklog.md` | ☐ 同意 / ☐ 改 |
 | Q3-3 | 系統架構書位置 | `docs/_shared/team/system-architecture.md` | ☐ 同意 / ☐ 改 |
 | Q4 | 舊檔搬遷 | (b) 只新東西用新規則、舊不動 | ☐ 同意 / ☐ 改 (a) 全搬 / ☐ 改 (c) 其他 |
-| Q5-1 | GitHub vs Claude.ai 命名 | 不強求一致、Crown 上傳時 rename | ☐ 同意 / ☐ 改 |
-| Q5-2 | `NEXORA -` 前綴 | 只用在 Claude.ai、GitHub 不用 | ☐ 同意 / ☐ 改 |
-| Q5-3 | `SHARED` 命名 | GitHub 用 `_shared`、Claude.ai 用 `SHARED` | ☐ 同意 / ☐ 改 |
-| Q5-4 | 工作日誌粒度 | daily + module 雙層 | ☐ 同意 / ☐ 改 |
-| Q5-5 | 規格書結構 | `_overview.md` + `NN-{feature}.md` | ☐ 同意 / ☐ 改 |
+| Q5-1 | GitHub vs Claude.ai 命名 | **兩端統一英文 kebab-case + 模組前綴**（2026-05-04 修正） | ☑ 已拍板 |
+| Q5-2 | `NEXORA -` 前綴 | 只用在 Claude.ai、GitHub 不用 | ⚠️ 跟 Q5-1 邏輯有交集、待 Crown 釐清 |
+| Q5-3 | `SHARED` 命名 | GitHub 用 `_shared`、Claude.ai 用 `SHARED` | ⚠️ 跟 Q5-1 邏輯有交集、待 Crown 釐清 |
+| Q5-4 | 工作日誌粒度 | daily + module 雙層 | ☑ 已拍板 |
+| Q5-5 | 規格書結構 | `nxXX-overview.md` + `nxXX-NN-{feature}.md`（2026-05-04 修正） | ☑ 已拍板 |
 
 ---
 
@@ -195,3 +212,13 @@ docs/_shared/team/
 ---
 
 > 等 Crown 拍板。拍完我進任務 3。
+
+---
+
+## Document Control Log
+
+| 版本 | 日期 | 撰寫者 | 變更摘要 |
+|------|------|--------|---------|
+| v1 | 2026-04-28 | Hank | 初稿（Q1~Q5 給 Crown 拍板）|
+| v1.1 | 2026-04-29 | Hank | 對應 Phase 1 worklog rename：5-4 工作日誌路徑改 `nxXX-worklog.md`（commit `a9dd686`）|
+| v2 | 2026-05-04 | Hank | TASK-PHASE2-NX01-SPEC-INTENT-OVERVIEW-01：5-1 兩端命名從「不對等」改「兩端統一英文 kebab-case + 模組前綴」/ 5-5 命名範例改 `nxXX-overview.md` + `nxXX-NN-{feature}.md` / 拍板表 Q5-1 / Q5-5 同步、Q5-2 / Q5-3 標 ⚠️ 待 Crown 釐清交集 |
