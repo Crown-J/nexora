@@ -789,7 +789,7 @@ model Nx01Partner {
   /// 交易對象名稱（公司名/店名/個人名）；啟用最低需求版本：LITE
   name                             String              @db.VarChar(120)
   /// 角色類型。( C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行)；啟用最低需求版本：LITE
-  partnerType                      String              @default("BOTH") @map("partner_type") @db.VarChar(1)
+  partnerType                      String              @default("C") @map("partner_type") @db.VarChar(1)
   /// 聯絡人（可空）；啟用最低需求版本：LITE
   contactName                      String?             @map("contact_name") @db.VarChar(50)
   /// 電話（可空）；啟用最低需求版本：LITE
