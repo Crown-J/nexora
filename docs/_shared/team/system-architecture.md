@@ -330,6 +330,7 @@ DATABASE_URL=postgres://...:5433/nexora
 | A022 | Nx01PartBrand.code VARCHAR(3) 緊縮 | DEMO-02 schema widen 3→10 |
 | A023 | Nx01BrandCodeRule.name VARCHAR(15) 緊縮 | DEMO-02 schema widen 15→50 |
 | A030 | nx08_monthly_report schema vs 行為不一致（schema 有表、service 全 read nx01_kpi_record） | 刪表（migration `20260429120000_nx08_drop_monthly_report`） |
+| A031 | nx01_partner.partner_type `@default("BOTH")` v6 historical drift（v7 規範 C/S/T/V/B、VARCHAR(1) 撞 4 字元 default、跟 A002 同模式） | 改 default → `"C"` + defensive backfill UPDATE BOTH → C（migration `20260505060156_nx01_partner_fix_partner_type_default`、伴 NX01-03 規格書 7 欄擴充 task） |
 
 ### G.2 待修 🟡
 
