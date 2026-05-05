@@ -241,6 +241,7 @@ model Nx01Country {
   rev_Nx01CarBrand_countryId  Nx01CarBrand[]  @relation("R_Nx01CarBrand_countryId")
   rev_Nx01Part_countryId      Nx01Part[]      @relation("R_Nx01Part_countryId")
   rev_Nx01PartBrand_countryId Nx01PartBrand[] @relation("R_Nx01PartBrand_countryId")
+  rev_Nx01City_countryId      Nx01City[]      @relation("R_Nx01City_countryId")
 
   @@unique([code])
   @@map("nx01_country")
@@ -6128,4 +6129,106 @@ model Nx99Tenant {
 
   @@unique([code])
   @@map("nx99_tenant")
+}
+
+/// =======================================================
+/// Nx01City — DB table `nx01_city`（NX01-09 地址型錄系統 v1.0）
+/// =======================================================
+model Nx01City {
+  /// [NX01]+[CITY]+[7碼流水號]，EX : NX01CITY0000001；啟用最低需求版本：LITE
+  id          String   @id @default(dbgenerated("gen_nx01_city_id()")) @db.VarChar(15)
+  /// 縣市代碼（如 TPE / NWT / KAO、ISO 3166-2:TW）；啟用最低需求版本：LITE
+  code        String   @db.VarChar(3)
+  /// 中文名（如 臺北市）；啟用最低需求版本：LITE
+  name        String   @db.VarChar(20)
+  /// 英文名（如 Taipei City）；啟用最低需求版本：LITE
+  nameEn      String?  @map("name_en") @db.VarChar(50)
+  /// 國家 ID（FK to nx01_country、預設 TWN 台灣、Q4 國外擴展性預留）；啟用最低需求版本：LITE
+  countryId   String   @map("country_id") @db.VarChar(15)
+  /// 排序順位（業界慣例如六都優先）；啟用最低需求版本：LITE
+  sortOrder   Int      @default(0) @map("sort_order")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive    Boolean  @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
+  createdBy   String   @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
+  updatedBy   String   @map("updated_by") @db.VarChar(15)
+
+  country                  Nx01Country    @relation("R_Nx01City_countryId", fields: [countryId], references: [id])
+  rev_Nx01District_cityId  Nx01District[] @relation("R_Nx01District_cityId")
+
+  @@unique([countryId, code])
+  @@map("nx01_city")
+}
+
+/// =======================================================
+/// Nx01District — DB table `nx01_district`（NX01-09 地址型錄系統 v1.0）
+/// =======================================================
+model Nx01District {
+  /// [NX01]+[DIST]+[7碼流水號]，EX : NX01DIST0000001；啟用最低需求版本：LITE
+  id          String   @id @default(dbgenerated("gen_nx01_district_id()")) @db.VarChar(15)
+  /// 所屬縣市 ID（FK to nx01_city）；啟用最低需求版本：LITE
+  cityId      String   @map("city_id") @db.VarChar(15)
+  /// 鄉鎮代碼（如 WSN）；啟用最低需求版本：LITE
+  code        String   @db.VarChar(5)
+  /// 中文名（如 文山區）；啟用最低需求版本：LITE
+  name        String   @db.VarChar(20)
+  /// 英文名（如 Wenshan District）；啟用最低需求版本：LITE
+  nameEn      String?  @map("name_en") @db.VarChar(50)
+  /// 區內排序；啟用最低需求版本：LITE
+  sortOrder   Int      @default(0) @map("sort_order")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive    Boolean  @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy   String   @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy   String   @map("updated_by") @db.VarChar(15)
+
+  city                     Nx01City     @relation("R_Nx01District_cityId", fields: [cityId], references: [id])
+  rev_Nx01Street_districtId Nx01Street[] @relation("R_Nx01Street_districtId")
+
+  @@unique([cityId, code])
+  @@unique([cityId, name])
+  @@map("nx01_district")
+}
+
+/// =======================================================
+/// Nx01Street — DB table `nx01_street`（NX01-09 地址型錄系統 v1.0）
+/// =======================================================
+model Nx01Street {
+  /// [NX01]+[STRT]+[7碼流水號]，EX : NX01STRT0000001；啟用最低需求版本：LITE
+  id          String   @id @default(dbgenerated("gen_nx01_street_id()")) @db.VarChar(15)
+  /// 所屬鄉鎮 ID（FK to nx01_district）；啟用最低需求版本：LITE
+  districtId  String   @map("district_id") @db.VarChar(15)
+  /// 路街名（如 羅斯福路六段）；啟用最低需求版本：LITE
+  name        String   @db.VarChar(100)
+  /// 英文名（如 Sec. 6, Roosevelt Rd.）；啟用最低需求版本：LITE
+  nameEn      String?  @map("name_en") @db.VarChar(200)
+  /// 3 碼郵遞區號（如 116）；啟用最低需求版本：LITE
+  zipcode3    String   @map("zipcode_3") @db.VarChar(3)
+  /// 3+3 完整郵遞區號（如 116-051）；啟用最低需求版本：LITE
+  zipcodeFull String   @map("zipcode_full") @db.VarChar(7)
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive    Boolean  @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt   DateTime @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy   String   @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy   String   @map("updated_by") @db.VarChar(15)
+
+  district Nx01District @relation("R_Nx01Street_districtId", fields: [districtId], references: [id])
+
+  @@unique([districtId, name])
+  @@map("nx01_street")
 }
