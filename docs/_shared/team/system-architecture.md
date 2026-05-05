@@ -331,6 +331,7 @@ DATABASE_URL=postgres://...:5433/nexora
 | A023 | Nx01BrandCodeRule.name VARCHAR(15) 緊縮 | DEMO-02 schema widen 15→50 |
 | A030 | nx08_monthly_report schema vs 行為不一致（schema 有表、service 全 read nx01_kpi_record） | 刪表（migration `20260429120000_nx08_drop_monthly_report`） |
 | A031 | nx01_partner.partner_type `@default("BOTH")` v6 historical drift（v7 規範 C/S/T/V/B、VARCHAR(1) 撞 4 字元 default、跟 A002 同模式） | 改 default → `"C"` + defensive backfill UPDATE BOTH → C（migration `20260505060156_nx01_partner_fix_partner_type_default`、伴 NX01-03 規格書 7 欄擴充 task） |
+| A033 | NX01-09 規格書 §3.1 寫 country_id 預設 'TW'（ISO 2 碼）、既有 nx01_country.code VARCHAR(3) 用 ISO 3 碼慣例（TWN/DEU/JPN）— 跟 A002 / A031 同模式（規格 vs 既有 schema 慣例 drift） | schema 補建時對齊既有 ISO 3 碼用 'TWN'、避免製造新 drift（migration `20260505074146_nx01_address_catalog_create_3_tables`、伴 NX01-09 地址型錄 task TASK-PHASE2-NX01-ADDRESS-SCHEMA-EXTEND-01） |
 
 ### G.2 待修 🟡
 
