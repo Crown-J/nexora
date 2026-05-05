@@ -281,7 +281,8 @@ model Nx01Currency {
   rev_Nx05ArLedger_currencyId     Nx05ArLedger[]     @relation("R_Nx05ArLedger_currencyId")
   rev_Nx05Note_currencyId         Nx05Note[]         @relation("R_Nx05Note_currencyId")
   rev_Nx05Paylog_currencyId       Nx05Paylog[]       @relation("R_Nx05Paylog_currencyId")
-  rev_Nx99Subscription_currencyId Nx99Subscription[] @relation("R_Nx99Subscription_currencyId")
+  rev_Nx99Subscription_currencyId   Nx99Subscription[] @relation("R_Nx99Subscription_currencyId")
+  rev_Nx01Partner_defaultCurrencyId Nx01Partner[]      @relation("R_Nx01Partner_defaultCurrencyId")
 
   @@unique([code])
   @@map("nx01_currency")
@@ -825,8 +826,24 @@ model Nx01Partner {
   paymentTermImport                String?             @default("TT") @map("payment_term_import") @db.VarChar(5)
   /// 貿易條件預設值（FOB/CIF/EXW/DDP等），建立進口採購單時自動帶入作為預設，可於採購單層級手動覆蓋。影響進口費用攤分的必填欄位判斷。；啟用最低需求版本：LITE-CORE
   incoterm                         String?             @default("FOB") @db.VarChar(5)
+  /// 公司簡稱（精簡顯示用、注音索引欄位之一）；啟用最低需求版本：LITE
+  shortName                        String?             @map("short_name") @db.VarChar(50)
+  /// 公司英文名（國際 / 進口場景顯示）；啟用最低需求版本：LITE
+  nameEn                           String?             @map("name_en") @db.VarChar(100)
+  /// 傳真號（業界仍有使用、補對齊既有 mobile）；啟用最低需求版本：LITE
+  fax                              String?             @db.VarChar(30)
+  /// 公司官網 URL；啟用最低需求版本：LITE
+  website                          String?             @db.VarChar(200)
+  /// 負責據點（業務分區 / 區域代碼）；啟用最低需求版本：LITE
+  serviceLocation                  String?             @map("service_location") @db.VarChar(50)
+  /// 業務歸屬使用者 ID（FK nx01_user、業務離職時 SET NULL、5 種 partner_type 通用）；啟用最低需求版本：LITE
+  salesUserId                      String?             @map("sales_user_id") @db.VarChar(15)
+  /// 預設交易幣別 ID（FK nx01_currency、ON DELETE RESTRICT 幣別不可刪）；啟用最低需求版本：LITE
+  defaultCurrencyId                String?             @map("default_currency_id") @db.VarChar(15)
   tenant                           Nx99Tenant          @relation("R_Nx01Partner_tenantId", fields: [tenantId], references: [id])
   customerGrade                    Nx01CustomerGrade?  @relation("R_Nx01Partner_customerGradeId", fields: [customerGradeId], references: [id])
+  salesUser                        Nx01User?           @relation("R_Nx01Partner_salesUserId", fields: [salesUserId], references: [id])
+  defaultCurrency                  Nx01Currency?       @relation("R_Nx01Partner_defaultCurrencyId", fields: [defaultCurrencyId], references: [id], onDelete: Restrict)
   rev_Nx02Demand_customerId        Nx02Demand[]        @relation("R_Nx02Demand_customerId")
   rev_Nx02Po_supplierId            Nx02Po[]            @relation("R_Nx02Po_supplierId")
   rev_Nx02Pr_supplierId            Nx02Pr[]            @relation("R_Nx02Pr_supplierId")
@@ -1050,6 +1067,7 @@ model Nx01User {
   rev_Nx10PromotionRequest_userId     Nx10PromotionRequest[] @relation("R_Nx10PromotionRequest_userId")
   rev_Nx10SprintTaskLog_userId        Nx10SprintTaskLog[]    @relation("R_Nx10SprintTaskLog_userId")
   rev_Nx10SurpriseBoxLog_userId       Nx10SurpriseBoxLog[]   @relation("R_Nx10SurpriseBoxLog_userId")
+  rev_Nx01Partner_salesUserId         Nx01Partner[]          @relation("R_Nx01Partner_salesUserId")
 
   @@unique([tenantId, userAccount])
   @@map("nx01_user")
