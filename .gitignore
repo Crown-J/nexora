@@ -4,6 +4,9 @@ dist/
 build/
 coverage/
 
+# Prisma generated artifacts（A032 順手修、TASK-PHASE2-NX01-ADDRESS-SCHEMA-EXTEND-01）
+packages/db-core/generated/
+
 # Nx / Turbo caches
 .nx/
 .turbo/
