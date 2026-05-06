@@ -1107,6 +1107,7 @@ model Nx01UserRole {
   user       Nx01User   @relation("R_Nx01UserRole_userId", fields: [userId], references: [id])
   role       Nx01Role   @relation("R_Nx01UserRole_roleId", fields: [roleId], references: [id])
 
+  @@unique([tenantId, userId, roleId])
   @@map("nx01_user_role")
 }
 
