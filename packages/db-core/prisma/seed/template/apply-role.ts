@@ -1,19 +1,23 @@
 // packages/db-core/prisma/seed/template/apply-role.ts
 // @FUNCTION_CODE SYS-TMPL-SVC-001-F02
-// 範本：每個租戶的職務角色（ALL，8 個職務含 HR_ADMIN）。
+// 範本：每個租戶的職務角色（ALL，7 個職務、對齊 NX01-02 規格書 v1.0）。
+//
+// 變更紀錄：
+//   - 2026-05-06 (TASK-PHASE2-NX01-USER-ROLE-SCHEMA-EXTEND-01)：
+//     8 筆 → 7 筆。移除 LOGISTICS（業務由 partner_type=T 處理）+ HR_ADMIN（併入 HR）、加 OWNER。
+//     對齊 NX01-02 規格書 v1.0 + Crown 拍 Q1+Q2+Q3。
 
 import type { PrismaClient } from '../../../generated/prisma';
 import type { ApplyTemplateParams } from './index';
 
 const ROLE_SPECS = [
-  { code: 'ADMIN',     name: '系統管理員', isSystem: true, sortNo: 1, description: '全系統與租戶設定' },
-  { code: 'PURCHASE',  name: '採購',       isSystem: true, sortNo: 2, description: '採購模組' },
-  { code: 'SALES',     name: '業務',       isSystem: true, sortNo: 3, description: '銷售模組' },
-  { code: 'WAREHOUSE', name: '倉管',       isSystem: true, sortNo: 4, description: '庫存／倉儲' },
-  { code: 'FINANCE',   name: '財務',       isSystem: true, sortNo: 5, description: '財務模組' },
-  { code: 'LOGISTICS', name: '物流',       isSystem: true, sortNo: 6, description: '物流模組' },
-  { code: 'HR',        name: '人資',       isSystem: true, sortNo: 7, description: '人資模組' },
-  { code: 'HR_ADMIN',  name: '人資主管',   isSystem: true, sortNo: 8, description: '人資進階權限（含薪資明細）' },
+  { code: 'SYSADMIN',   name: '系統管理員', isSystem: true, sortNo: 1, description: '全系統與租戶設定' },
+  { code: 'OWNER',      name: '負責人',     isSystem: true, sortNo: 2, description: '老闆 / 總經理、全模組總覽' },
+  { code: 'HR',         name: '人資',       isSystem: true, sortNo: 3, description: '人資模組' },
+  { code: 'SALES',      name: '業務',       isSystem: true, sortNo: 4, description: '銷售模組' },
+  { code: 'PURCHASING', name: '採購',       isSystem: true, sortNo: 5, description: '採購模組' },
+  { code: 'WAREHOUSE',  name: '倉管',       isSystem: true, sortNo: 6, description: '庫存／倉儲' },
+  { code: 'FINANCE',    name: '財務',       isSystem: true, sortNo: 7, description: '財務模組' },
 ];
 
 export async function applyRole(

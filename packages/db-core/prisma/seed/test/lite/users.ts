@@ -46,11 +46,11 @@ async function assignRole(
 
 export async function seedLiteTestUsers(prisma: PrismaClient): Promise<void> {
   // === Step 1：指派 admin 的 ADMIN 角色 ===
-  await assignRole(prisma, TEST_LITE_TENANT_ID, TEST_LITE_ADMIN_USER_ID, 'ADMIN');
+  await assignRole(prisma, TEST_LITE_TENANT_ID, TEST_LITE_ADMIN_USER_ID, 'SYSADMIN');
 
   // === Step 2：建立 4 個測試使用者 + 指派角色 ===
   const users: TestUser[] = [
-    { id: 'NX01USER9900011', userAccount: 'purchase1',  userName: '王小明（採購專員）', roleCode: 'PURCHASE'  },
+    { id: 'NX01USER9900011', userAccount: 'purchase1',  userName: '王小明（採購專員）', roleCode: 'PURCHASING'  },
     { id: 'NX01USER9900012', userAccount: 'sales1',     userName: '陳美玲（業務專員）', roleCode: 'SALES'     },
     { id: 'NX01USER9900013', userAccount: 'warehouse1', userName: '林大偉（倉管專員）', roleCode: 'WAREHOUSE' },
     { id: 'NX01USER9900014', userAccount: 'finance1',   userName: '黃志豪（財務專員）', roleCode: 'FINANCE'   },

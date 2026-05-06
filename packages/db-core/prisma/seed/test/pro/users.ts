@@ -52,16 +52,17 @@ async function assignRole(
 
 export async function seedProTestUsers(prisma: PrismaClient): Promise<void> {
   // === Step 1：指派 admin 的 ADMIN 角色 ===
-  await assignRole(prisma, TEST_PRO_TENANT_ID, TEST_PRO_ADMIN_USER_ID, 'ADMIN');
+  await assignRole(prisma, TEST_PRO_TENANT_ID, TEST_PRO_ADMIN_USER_ID, 'SYSADMIN');
 
   // === Step 2：建立 8 個測試使用者 + 指派角色 ===
   const users: TestUser[] = [
-    { id: 'NX01USER9900031', userAccount: 'purchase1',   userName: '王小明（採購專員）', roleCode: 'PURCHASE'  },
+    { id: 'NX01USER9900031', userAccount: 'purchase1',   userName: '王小明（採購專員）', roleCode: 'PURCHASING'  },
     { id: 'NX01USER9900032', userAccount: 'sales1',      userName: '陳美玲（業務專員）', roleCode: 'SALES'     },
     { id: 'NX01USER9900033', userAccount: 'warehouse1',  userName: '林大偉（倉管專員）', roleCode: 'WAREHOUSE' },
     { id: 'NX01USER9900034', userAccount: 'finance1',    userName: '黃志豪（財務專員）', roleCode: 'FINANCE'   },
-    { id: 'NX01USER9900035', userAccount: 'logistics1',  userName: '張志明（物流專員）', roleCode: 'LOGISTICS' },
-    { id: 'NX01USER9900036', userAccount: 'hr_admin',    userName: '李淑芬（人資主管）', roleCode: 'HR_ADMIN'  },
+    // NX01USER9900035 logistics1 已移除（TASK-PHASE2-NX01-USER-ROLE-SCHEMA-EXTEND-01、Crown 拍 Q1：外包物流由 partner_type=T 處理）
+    // NX01USER9900036 hr_admin role 改 HR（HR_ADMIN role 已移除、進階權限 by application 層判斷）
+    { id: 'NX01USER9900036', userAccount: 'hr_admin',    userName: '李淑芬（人資主管）', roleCode: 'HR'        },
     { id: 'NX01USER9900037', userAccount: 'sales_lead',  userName: '周建華（業務組長）', roleCode: 'SALES'     },
     { id: 'NX01USER9900038', userAccount: 'admin_clerk', userName: '劉雅婷（行政專員）', roleCode: 'HR'        },
   ];
