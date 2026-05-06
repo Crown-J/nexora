@@ -1075,6 +1075,7 @@ model Nx01User {
   rev_Nx10SprintTaskLog_userId        Nx10SprintTaskLog[]    @relation("R_Nx10SprintTaskLog_userId")
   rev_Nx10SurpriseBoxLog_userId       Nx10SurpriseBoxLog[]   @relation("R_Nx10SurpriseBoxLog_userId")
   rev_Nx01Partner_salesUserId         Nx01Partner[]          @relation("R_Nx01Partner_salesUserId")
+  rev_Nx01Warehouse_managerUserId     Nx01Warehouse[]        @relation("R_Nx01Warehouse_managerUserId")
 
   @@unique([tenantId, userAccount])
   @@unique([tenantId, email])
@@ -1223,8 +1224,13 @@ model Nx01Warehouse {
   updatedBy                             String                 @map("updated_by") @db.VarChar(15)
   /// 倉庫類型ID（FK nx01_warehouse_type，PLUS版），控制自動調撥邏輯。H=總部/M=主倉/W=分倉/S=衛星倉。；啟用最低需求版本：PLUS-CORE
   warehouseTypeId                       String?                @map("warehouse_type_id") @db.VarChar(15)
+  /// 是否主倉（同 tenant 只 1 筆 is_main=true、partial unique index 強制、LITE 強制 true、對齊 NX01-06 §3.6）；啟用最低需求版本：LITE
+  isMain                                Boolean                @default(false) @map("is_main")
+  /// 倉管主管 user ID（FK to nx01_user、ON DELETE SET NULL、業務離職時清空、對齊 NX01-06 §3）；啟用最低需求版本：LITE
+  managerUserId                         String?                @map("manager_user_id") @db.VarChar(15)
   tenant                                Nx99Tenant             @relation("R_Nx01Warehouse_tenantId", fields: [tenantId], references: [id])
   warehouseType                         Nx01WarehouseType?     @relation("R_Nx01Warehouse_warehouseTypeId", fields: [warehouseTypeId], references: [id])
+  managerUser                           Nx01User?              @relation("R_Nx01Warehouse_managerUserId", fields: [managerUserId], references: [id])
   rev_Nx01Location_warehouseId          Nx01Location[]         @relation("R_Nx01Location_warehouseId")
   rev_Nx01Team_warehouseId              Nx01Team[]             @relation("R_Nx01Team_warehouseId")
   rev_Nx01UserWarehouse_warehouseId     Nx01UserWarehouse[]    @relation("R_Nx01UserWarehouse_warehouseId")
