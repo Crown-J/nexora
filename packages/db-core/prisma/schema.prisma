@@ -1023,6 +1023,10 @@ model Nx01User {
   isActive                            Boolean                @default(true) @map("is_active")
   /// 最後登入時間；啟用最低需求版本：LITE
   lastLoginAt                         DateTime?              @map("last_login_at")
+  /// 連續失敗登入次數（達閾值鎖帳號、對齊 NX01-01 §3.6）；啟用最低需求版本：LITE
+  failedLoginCount                    Int                    @default(0) @map("failed_login_count")
+  /// 帳號鎖定到何時（nullable、unlock 後設 null、對齊 NX01-01 §3.6）；啟用最低需求版本：LITE
+  lockedUntil                         DateTime?              @map("locked_until")
   /// 建立時間。；啟用最低需求版本：LITE
   createdAt                           DateTime               @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
@@ -1073,6 +1077,7 @@ model Nx01User {
   rev_Nx01Partner_salesUserId         Nx01Partner[]          @relation("R_Nx01Partner_salesUserId")
 
   @@unique([tenantId, userAccount])
+  @@unique([tenantId, email])
   @@map("nx01_user")
 }
 
