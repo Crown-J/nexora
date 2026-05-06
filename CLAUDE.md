@@ -17,7 +17,7 @@
 NEXORA GRID 是一套針對台灣 VAG（Volkswagen Audi Group）汽車零件經銷商的多租戶 SaaS ERP 系統，由 Innova IT（伊諾瓦資訊科技）開發。
 
 **NEXORA 設計來源（兩個獨立實體）：**
-- **負面參考：恆迎企業**（業界舊有系統反面教材）— 5 倉模型（HW1 總倉 + MW1 主倉 + BW1~BW4 分倉）參考自此
+- **負面參考：恆迎企業**（業界舊有系統反面教材）— 6 倉模型（HW1 總倉 + MW1 主倉 + BW1~BW4 分倉）參考自此
 - **design target：Yaro（亞羅企業有限公司）** — Crown 自己開的 B2B 汽車零件批發公司、NEXORA 量身打造對象、PRO tier 真實場景驗證田
 
 > 詳細業務脈絡見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §🎯。
@@ -85,7 +85,7 @@ DNS：         Cloudflare（app.nexoragrid.com）
 **版本功能邊界：**
 - LITE：NX01~NX06 基礎、單倉（MW1）、無部門架構、無 PO 審核
 - PLUS：加多倉（MW1+BW1）、調撥、採購審核、基本部門架構
-- PRO：全功能含 NX07~NX10、5倉（HW1+MW1+BW1~4）、完整組織架構
+- PRO：全功能含 NX07~NX10、預設 6 倉（HW1+MW1+BW1~4）/ 上限無限、完整組織架構
 
 ---
 
@@ -320,7 +320,7 @@ packages/db-core/prisma/
 │   └── test/            ← 開發測試資料
 │       ├── lite/        ← 5人/1倉(MW1)/30料號
 │       ├── plus/        ← 15人/3倉/80料號
-│       └── pro/         ← 30人/5倉/150料號
+│       └── pro/         ← 30人/6倉/150料號
 └── seed.ts
 ```
 
@@ -428,3 +428,20 @@ docs/
 任一項「沒」→ 不要動手。
 
 > 此清單跟 `docs/_shared/team/hank-charter.md` §E.3 對齊、CLAUDE.md 是入口、charter 是細節。
+
+---
+
+## 十八、文件版本
+
+- **v1.1（2026-05-06）**：A035 family closure、4 處 PRO 倉數算術 drift 校正
+  - line 20：PRO 倉模型 5→6 校正
+  - line 88：PRO 倉數 5→6、加「預設/上限」Tier 分層
+  - line 323：seed 註解 PRO 倉數 5→6
+  - 對齊 NX01-06 v1.1 PRO 倉真相 + §7 預設/上限分層
+  - HW1+MW1+BW1+BW2+BW3+BW4 = 6 個（算術校驗）
+  - 同源 task：TASK-PHASE2-DOC-A035-CLOSURE-01、與 PROJECT_CONTEXT v1.3 同步
+
+- **v1.0**：初版（建立時間早於版本紀錄、本軌起算）
+
+> **說明**：本檔之前未維護版本紀錄、本軌為首次建立。
+> 後續觸發更新時機：Tier 真相變動 / 命名規則變動 / 工作流範式新增 / 模組架構變動。

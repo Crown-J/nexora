@@ -2,7 +2,7 @@
 
 # NEXORA GRID - PROJECT CONTEXT
 
-> 文件版本：v1.2
+> 文件版本：v1.3
 > 最後更新：2026-05-06
 > 負責人：Crown Lin（林翰杰）
 > 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
@@ -51,7 +51,7 @@ PROJECT_CONTEXT 是 **Alex 跨對話必讀的業務 + 設計 + 文化視角文�
 
 | 實體 | 角色 | 定位 |
 |------|------|------|
-| **恆迎企業** | 負面參考來源 | 業界舊有公司、存在很多系統問題、NEXORA 開發過程中的「反面教材」、揭露常見業界痛點。CLAUDE.md §一 提的 5 倉模型（HW1 + MW1 + BW1~BW4）參考自此 |
+| **恆迎企業** | 負面參考來源 | 業界舊有公司、存在很多系統問題、NEXORA 開發過程中的「反面教材」、揭露常見業界痛點。CLAUDE.md §一 提的 6 倉模型（HW1 + MW1 + BW1~BW4）參考自此 |
 | **Yaro（亞羅企業有限公司）** | design target | Crown 自己開的 B2B 汽車零件批發公司、NEXORA 實質上是為 Yaro 量身打造的新系統、PRO tier 真實場景驗證田 |
 
 兩個實體都不可省略：恆迎是「**為什麼** NEXORA 要這樣設計」、Yaro 是「NEXORA **服務誰**」。
@@ -587,6 +587,14 @@ Hank 工作日誌（Hank 寫、Crown 上傳到專案）：
 ---
 
 ## 文件版本
+
+- **v1.3（2026-05-06）**：A035 family closure、4 處 PRO 倉數算術 drift 校正（TASK-PHASE2-DOC-A035-CLOSURE-01）
+  - PROJECT_CONTEXT line 54：PRO 倉模型 5→6 校正
+  - CLAUDE.md line 20：PRO 倉模型 5→6 校正
+  - CLAUDE.md line 88：PRO 倉數 5→6、加「預設/上限」Tier 分層
+  - CLAUDE.md line 323：seed 註解 PRO 倉數 5→6
+  - 對齊 NX01-06 v1.1 PRO 倉真相 + §7 預設/上限分層
+  - HW1+MW1+BW1+BW2+BW3+BW4 = 6 個（算術校驗）
 
 - **v1.2（2026-05-06）**：校正 Roles 7 個真相（TASK-PHASE2-NX01-USER-ROLE-SCHEMA-EXTEND-01、Crown 拍 Q4）
   - § 資料/命名標準 § 事實修正 「Roles 8 個」→「7 個」+ 列出 7 種對齊 NX01-02 規格書 v1.0
