@@ -2,8 +2,8 @@
 
 # NEXORA GRID - PROJECT CONTEXT
 
-> 文件版本：v1.1
-> 最後更新：2026-05-02
+> 文件版本：v1.2
+> 最後更新：2026-05-06
 > 負責人：Crown Lin（林翰杰）
 > 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
 
@@ -397,7 +397,11 @@ B = 銀行（架構上未來該獨立 nx01_bank_account 表）
 ### 事實修正（vs 原 spec）
 
 ```
-Roles：8 個（含 HR_ADMIN、原 spec 寫 7）
+Roles：7 個（對齊 NX01-02 規格書 v1.0、TASK-PHASE2-NX01-USER-ROLE-SCHEMA-EXTEND-01）
+  SYSADMIN / OWNER / HR / SALES / PURCHASING / WAREHOUSE / FINANCE
+  （原 v6 寫 8 個含 HR_ADMIN + LOGISTICS、2026-05-06 校正：
+   HR_ADMIN 併入 HR、進階權限 by application 層判斷；
+   LOGISTICS 移除、外包物流由 partner_type=T 處理）
 Medals：16 層（4 tier × 4 rank、原 spec 寫 20）
 Prisma 7：migrate reset 不會自動跑 seed、CI/CD 必須兩個獨立指令
 Git：repo 只用 main + feature/、無 develop branch
@@ -583,6 +587,11 @@ Hank 工作日誌（Hank 寫、Crown 上傳到專案）：
 ---
 
 ## 文件版本
+
+- **v1.2（2026-05-06）**：校正 Roles 7 個真相（TASK-PHASE2-NX01-USER-ROLE-SCHEMA-EXTEND-01、Crown 拍 Q4）
+  - § 資料/命名標準 § 事實修正 「Roles 8 個」→「7 個」+ 列出 7 種對齊 NX01-02 規格書 v1.0
+  - 業務真相對齊：HR_ADMIN 併入 HR / LOGISTICS 移除（外包物流由 partner_type=T 處理）
+  - 對應 A034 紀錄、跟 schema + seed + apply-role.ts 三方一致性收斂
 
 - **v1.1（2026-05-02）**：加第 23 條擴充性原則（TASK-PHASE2-EXTENSIBILITY-PRINCIPLE-01）
   - § 工程模式 B 部分加第 23 條「擴充性原則」（NEXORA 全域、Phase 2 累積）
