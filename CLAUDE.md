@@ -1,14 +1,11 @@
 # NEXORA GRID — Claude Code 工作說明
 
-> 最後更新：2026-04-29
-> 維護人：Crown Lin（創辦人）
+> 文件版本：v1.2
+> 最後更新：2026-05-06
+> 負責人：Crown Lin（創辦人）
+> 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
 
-> 重大變動紀錄：
-> - 2026-04-29：PROJECT_CONTEXT.md 進場 repo root（§十七 必讀順序加 PROJECT_CONTEXT）
-> - 2026-04-29：§十五#7 partner_type B 加未來獨立 nx01_bank_account 註解
-> - 2026-04-29：§一 真實業務模型分拆「恆迎反面 / Yaro 正面」兩個獨立實體（對齊 PROJECT_CONTEXT §🎯）
-> - 2026-04-25：docs/ 重整為 v2 結構（按 NX 模組劃分）
-> - 2026-04-12：模組代碼 v2.0 落地（NX01~NX10 + NX98 + NX99）
+> ⚠️ 同源原則：本 header「文件版本」line 與 §十八 文件版本 段最新版本號必須同步。升版時兩處一起動、不可單動。詳細變更歷史請見 §十八。
 
 ---
 
@@ -433,15 +430,30 @@ docs/
 
 ## 十八、文件版本
 
-- **v1.1（2026-05-06）**：A035 family closure、4 處 PRO 倉數算術 drift 校正
+> ⚠️ 同源原則：本段最新版本號 = header「文件版本」line。升版時兩處一起動、不可單動。
+
+- **v1.2（2026-05-06）**：header 範式統一 + 同源原則文字化（TASK-PHASE2-DOC-A035-CLOSURE-01-FOLLOWUP）
+  - header 對齊 PROJECT_CONTEXT 範式：加「文件版本」+「負責人」+「協作」3 欄位
+  - 移除 header「重大變動紀錄」段、整併進 §十八（避免雙重維護負擔）
+  - 「最後更新」補同步 2026-05-06（上一軌漏項）
+  - 同源原則文字化（header + 本段）：未來升版必須兩處同步
+  - 對應 PROJECT_CONTEXT v1.4 同步落地
+
+- **v1.1（2026-05-06）**：A035 family closure、4 處 PRO 倉數算術 drift 校正（TASK-PHASE2-DOC-A035-CLOSURE-01）
   - line 20：PRO 倉模型 5→6 校正
   - line 88：PRO 倉數 5→6、加「預設/上限」Tier 分層
   - line 323：seed 註解 PRO 倉數 5→6
   - 對齊 NX01-06 v1.1 PRO 倉真相 + §7 預設/上限分層
   - HW1+MW1+BW1+BW2+BW3+BW4 = 6 個（算術校驗）
-  - 同源 task：TASK-PHASE2-DOC-A035-CLOSURE-01、與 PROJECT_CONTEXT v1.3 同步
+  - 同源 task：與 PROJECT_CONTEXT v1.3 同步
 
-- **v1.0**：初版（建立時間早於版本紀錄、本軌起算）
+- **v1.0**：初版（v1.x 版本紀錄起算、累積 v1.1 之前的全部變動）
+  - 2026-04-29：PROJECT_CONTEXT.md 進場 repo root（§十七 必讀順序加 PROJECT_CONTEXT）
+  - 2026-04-29：§十五#7 partner_type B 加未來獨立 nx01_bank_account 註解
+  - 2026-04-29：§一 真實業務模型分拆「恆迎反面 / Yaro 正面」兩個獨立實體（對齊 PROJECT_CONTEXT §🎯）
+  - 2026-04-25：docs/ 重整為 v2 結構（按 NX 模組劃分）
+  - 2026-04-12：模組代碼 v2.0 落地（NX01~NX10 + NX98 + NX99）
 
-> **說明**：本檔之前未維護版本紀錄、本軌為首次建立。
+> **說明**：v1.0 紀錄項是 v1.1 之前累積的早期變動（從原 header「重大變動紀錄」整併而來）。
 > 後續觸發更新時機：Tier 真相變動 / 命名規則變動 / 工作流範式新增 / 模組架構變動。
+> 升版動作：(1) §十八 加新版條目 (2) header「文件版本」line 同步改 (3) header「最後更新」line 同步改。

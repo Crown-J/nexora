@@ -2,10 +2,12 @@
 
 # NEXORA GRID - PROJECT CONTEXT
 
-> 文件版本：v1.3
+> 文件版本：v1.4
 > 最後更新：2026-05-06
 > 負責人：Crown Lin（林翰杰）
 > 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
+
+> ⚠️ 同源原則：本 header「文件版本」line 與 § 文件版本 段最新版本號必須同步。升版時兩處一起動、不可單動。詳細變更歷史請見檔尾 § 文件版本。
 
 ---
 
@@ -587,6 +589,13 @@ Hank 工作日誌（Hank 寫、Crown 上傳到專案）：
 ---
 
 ## 文件版本
+
+> ⚠️ 同源原則：本段最新版本號 = header「文件版本」line。升版時兩處一起動、不可單動。
+
+- **v1.4（2026-05-06）**：header 範式統一 + 同源原則文字化（TASK-PHASE2-DOC-A035-CLOSURE-01-FOLLOWUP）
+  - header 加同源原則註（提醒 header line 跟本段最新版本號同步）
+  - 本段加同源原則註（雙向提示、避免任一處 grep 漏掉）
+  - 對應 CLAUDE.md v1.2 同步落地（CLAUDE.md header 對齊 PROJECT_CONTEXT 範式 + 整併「重大變動紀錄」進 §十八）
 
 - **v1.3（2026-05-06）**：A035 family closure、4 處 PRO 倉數算術 drift 校正（TASK-PHASE2-DOC-A035-CLOSURE-01）
   - PROJECT_CONTEXT line 54：PRO 倉模型 5→6 校正
