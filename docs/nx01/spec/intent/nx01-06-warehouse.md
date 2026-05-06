@@ -2,11 +2,11 @@
 
 # NX01-06 - 倉庫主檔工作站子規格書
 
-> 文件版本：v1.0（Crown 拍 5 個 Q、Alex 修訂後正式版）
-> 最後更新：2026-05-05
+> 文件版本：v1.1（Crown 拍 Tier 預設 + 上限分層、Alex 修正）
+> 最後更新：2026-05-06
 > 撰寫者：Alex（Claude PM AI）
 > 審核者：Crown Lin
-> 狀態：v1.0 正式版、待 Hank push 到 docs/nx01/spec/intent/nx01-06-warehouse.md
+> 狀態：v1.1 正式版、待 Hank push（覆蓋 v1.0）
 
 ---
 
@@ -83,24 +83,26 @@ nx01_warehouse.id 命名規則:NX01WHSE + 7 位數字
   - NX01WHSE9900001 ~ 9999999    = 測試租戶 warehouse
 ```
 
-### 1.5 Tier 倉庫類型對應（對齊 CLAUDE.md §四）
+### 1.5 Tier 倉庫類型對應（對齊 CLAUDE.md §四 + Crown 拍 v1.1 預設/上限分層）
 
 ```
-LITE 單倉（1 個）:
+LITE 單倉（1 個）：
   MW1 = Main Warehouse 1（主倉）
 
-PLUS 多倉（3 個、PLUS-S/M/L 級可不同）:
+PLUS 預設 3 倉（上限 10 倉）：
   MW1 = Main Warehouse 1（主倉）
   BW1 = Branch Warehouse 1（分倉 1）
+  BW2 = Branch Warehouse 2（分倉 2）
 
-PRO 5 倉:
+PRO 預設 6 倉（無上限）：
   HW1 = Head Warehouse 1（總倉）
   MW1 = Main Warehouse 1（主倉）
   BW1~BW4 = Branch Warehouse 1~4（分倉 1~4）
 ```
 
-→ 「HW1 / MW1 / BW1~4」是 warehouse_code 命名範式（對應業界從單店到連鎖經銷）。
+→ 「HW1 / MW1 / BW1~N」是 warehouse_code 命名範式（業界從單店到連鎖經銷）。
 → 業務人員自由命名也可、走範式對齊既有 NX02 採購單號規則（[CLAUDE.md line 116](CLAUDE.md)）。
+→ 預設配置 = tier 啟用建議；上限 = tier 真實天花板（詳見 §7）。
 
 ---
 
@@ -334,31 +336,44 @@ OWNER 試圖填 warehouse_code = `MW1`、但同租戶已存在：
 
 ---
 
-## § 7. Tier 差異（對齊 CLAUDE.md §四 版本方案）
+## § 7. Tier 差異（對齊 CLAUDE.md §四 版本方案 + Crown 拍預設 + 上限）
 
-⭐ 對齊 [CLAUDE.md §四「版本方案」](CLAUDE.md) + line 86~88 既有 Tier 倉庫設計。
+⭐ 對齊 [CLAUDE.md §四「版本方案」](CLAUDE.md) + Crown 拍板「預設 + 上限」雙層設計。
 
 ### LITE（基礎版、單店）
 
-- **倉庫數：1 個**（強制 MW1 主倉、is_main=true）
+- **預設倉庫數：1 個**（MW1 主倉、is_main=true）
+- **上限：1 倉**（不可擴增、對齊 LITE 單店業務天花板）
 - 倉別類型：1 種（MW 主倉）
 - 多倉調撥：❌ 不開放
 
 ### PLUS（進階版、中型）
 
-- **倉庫數：3 個**（PLUS-S/M/L 級可不同）
-- 倉別類型：2 種（MW 主倉 + BW 分倉）
-- 範式:MW1 + BW1（+ BW2 if PLUS-L）
+- **預設倉庫數：3 個**（MW1 + BW1 + BW2、或類似配置）
+- **上限：10 倉**（業務可自行新增、對齊 PLUS 中型多倉業務天花板）
+- 倉別類型：2 種(MW 主倉 + BW 分倉)
 - 多倉調撥：✅ 開放（NX03 庫存模組）
 
 ### PRO（專業版、大型 / Yaro 主場）
 
-- **倉庫數：5 個**
+- **預設倉庫數：6 個**（HW1 + MW1 + BW1~4）
+- **上限：無限**（可自由擴增、對齊 PRO 大型企業 / 連鎖經銷需求）
 - 倉別類型：3 種（HW 總倉 + MW 主倉 + BW 分倉）
-- 範式:HW1 + MW1 + BW1~4
 - 多倉調撥：✅ 開放
 - 跨倉庫存查詢：✅ 完整
-- ⭐ 對應業界連鎖經銷（恆迎反面教材揭露的 5 倉模型）
+- ⭐ 對應業界連鎖經銷（恆迎反面教材揭露的 6 倉模型 + 自由擴增）
+
+### Tier 升級時的倉庫數處理
+
+- LITE → PLUS：既有 1 倉保留、可加到 10 倉
+- PLUS → PRO：既有倉庫保留、可無限擴增
+
+### 設計原則：預設 + 上限分層
+
+對齊 Alex 失誤紀錄候選 #31 / #50：「不該把業務固定數量當 Tier 限制」
+- 預設 = 對應 tier 業務啟動建議配置
+- 上限 = tier 規模可擴展性的真實天花板
+- 業務人員可在預設 ~ 上限間自由配置
 
 → Tier 限制由 Plan Guard 強制（[CLAUDE.md §八](CLAUDE.md)）。
 
@@ -390,6 +405,30 @@ OWNER 試圖填 warehouse_code = `MW1`、但同租戶已存在：
 |------|------|-------|---------|
 | v0.1.0 | 2026-05-05 | Alex | 初稿（NX01 第七份子規格書、對齊 spec-template + CLAUDE.md §四 Tier 倉庫設計）|
 | v1.0 | 2026-05-05 | Alex | Crown 拍 5 個 Q、修訂後正式版 |
+| v1.1 | 2026-05-06 | Alex | Crown 拍 Tier 預設 + 上限分層（PRO 6 倉真相 + PLUS 上限 10 + PRO 無限）|
+
+**v1.1 主要變更（vs v1.0）：**
+
+對應 Crown 拍板的 Tier 設計修正：
+
+- **§1.5**：PRO 從「5 倉」改「6 倉」（HW1+MW1+BW1~4 算術校正）
+- **§7 Tier 設計重整**：
+  - LITE：預設 1 倉、上限 1 倉（不可擴增）
+  - PLUS：預設 3 倉、上限 10 倉（可擴增 7 個）
+  - PRO：預設 6 倉、上限無限（可自由擴增）
+- **設計原則**：對齊 Alex 失誤紀錄候選 #31 / #50「預設 + 上限分層」精神
+
+**Alex 失誤紀錄候選（給未來新對話 Alex 跨對話讀）：**
+
+- **#50**：抄既有真相文件含「數字 + 列舉」時、必須做算術校驗
+  - 跟 #28/#32/#38/#39/#42/#43/#46/#47 同根源（沒 verify 既有真相）
+  - 但這次更嚴重：抄了本身就有問題的真相文件（CLAUDE.md「PRO 5 倉」+ 範式 6 個算術不一致）
+  - 規則升級：抄「N 倉 / N user / N role」這類「數量 + 列表」時必須做算術校驗
+
+- **#51**：v1.0 → v1.1 update 時、Alex 用 line range slicing 不慎砍掉 §2/§3/§4
+  - Hank 第 4 次救專案、揭露結構大幅減量
+  - 規則升級：incremental update 必須用 regex.sub 整段替換、不用 line slicing
+  - line slicing 在多份規格書同時 update 時、容易切錯範圍
 
 **v1.0 主要變更（vs v0.1.0）：**
 
