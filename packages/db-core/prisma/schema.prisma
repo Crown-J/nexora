@@ -1228,9 +1228,30 @@ model Nx01Warehouse {
   isMain                                Boolean                @default(false) @map("is_main")
   /// 倉管主管 user ID（FK to nx01_user、ON DELETE SET NULL、業務離職時清空、對齊 NX01-06 §3）；啟用最低需求版本：LITE
   managerUserId                         String?                @map("manager_user_id") @db.VarChar(15)
+  /// 縣市 ID（FK to nx01_city、規格書 §3.2 必填、schema nullable 階段 1 並存、application 層強制）；啟用最低需求版本：LITE
+  cityId                                String?                @map("city_id") @db.VarChar(15)
+  /// 鄉鎮市區 ID（FK to nx01_district、同上）；啟用最低需求版本：LITE
+  districtId                            String?                @map("district_id") @db.VarChar(15)
+  /// 路街 ID（FK to nx01_street、自帶 3+3 郵遞區號）；啟用最低需求版本：LITE
+  streetId                              String?                @map("street_id") @db.VarChar(15)
+  /// 巷（純數字、可空）；啟用最低需求版本：LITE
+  lane                                  Int?
+  /// 弄（純數字、可空）；啟用最低需求版本：LITE
+  alley                                 Int?
+  /// 號（規格書 §3.2 必填、schema nullable 階段 1 並存、application 層強制）；啟用最低需求版本：LITE
+  buildingNo                            Int?                   @map("building_no")
+  /// 號的子號（之 N、純數字、可空）；啟用最低需求版本：LITE
+  buildingSubNo                         Int?                   @map("building_sub_no")
+  /// 樓層（容納 B1 / 3F 等變體）；啟用最低需求版本：LITE
+  floor                                 String?                @db.VarChar(10)
+  /// 室號（容納 12 / A 等變體）；啟用最低需求版本：LITE
+  roomNo                                String?                @map("room_no") @db.VarChar(20)
   tenant                                Nx99Tenant             @relation("R_Nx01Warehouse_tenantId", fields: [tenantId], references: [id])
   warehouseType                         Nx01WarehouseType?     @relation("R_Nx01Warehouse_warehouseTypeId", fields: [warehouseTypeId], references: [id])
   managerUser                           Nx01User?              @relation("R_Nx01Warehouse_managerUserId", fields: [managerUserId], references: [id])
+  city                                  Nx01City?              @relation("R_Nx01Warehouse_cityId", fields: [cityId], references: [id])
+  district                              Nx01District?          @relation("R_Nx01Warehouse_districtId", fields: [districtId], references: [id])
+  street                                Nx01Street?            @relation("R_Nx01Warehouse_streetId", fields: [streetId], references: [id])
   rev_Nx01Location_warehouseId          Nx01Location[]         @relation("R_Nx01Location_warehouseId")
   rev_Nx01Team_warehouseId              Nx01Team[]             @relation("R_Nx01Team_warehouseId")
   rev_Nx01UserWarehouse_warehouseId     Nx01UserWarehouse[]    @relation("R_Nx01UserWarehouse_warehouseId")
@@ -6178,6 +6199,7 @@ model Nx01City {
   rev_Nx01District_cityId  Nx01District[] @relation("R_Nx01District_cityId")
   rev_Nx01PartnerBillingAddress_cityId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_cityId")
   rev_Nx01PartnerShippingAddress_cityId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_cityId")
+  rev_Nx01Warehouse_cityId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_cityId")
 
   @@unique([countryId, code])
   @@map("nx01_city")
@@ -6214,6 +6236,7 @@ model Nx01District {
   rev_Nx01Street_districtId Nx01Street[] @relation("R_Nx01Street_districtId")
   rev_Nx01PartnerBillingAddress_districtId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_districtId")
   rev_Nx01PartnerShippingAddress_districtId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_districtId")
+  rev_Nx01Warehouse_districtId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_districtId")
 
   @@unique([cityId, code])
   @@unique([cityId, name])
@@ -6250,6 +6273,7 @@ model Nx01Street {
   district Nx01District @relation("R_Nx01Street_districtId", fields: [districtId], references: [id])
   rev_Nx01PartnerBillingAddress_streetId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_streetId")
   rev_Nx01PartnerShippingAddress_streetId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_streetId")
+  rev_Nx01Warehouse_streetId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_streetId")
 
   @@unique([districtId, name])
   @@map("nx01_street")
