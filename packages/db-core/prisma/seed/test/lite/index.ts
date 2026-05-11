@@ -26,7 +26,7 @@ export async function seedLiteTestTenant(prisma: PrismaClient): Promise<void> {
     actorUserId: TEST_LITE_ADMIN_USER_ID,
   });
 
-  // 3. 建測試使用者 + 指派角色（含 admin 的 ADMIN 角色指派）
+  // 3. 建測試使用者 + 指派角色（含 admin 的 SYSADMIN 角色指派）
   await seedLiteTestUsers(prisma);
 
   console.log('✅ [TEST/LITE] LITE 測試租戶建立完成');

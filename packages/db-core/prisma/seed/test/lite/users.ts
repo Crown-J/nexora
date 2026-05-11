@@ -1,7 +1,7 @@
 // packages/db-core/prisma/seed/test/lite/users.ts
 // @FUNCTION_CODE SYS-TEST-SVC-003-F01
 // LITE 測試租戶的 4 個測試使用者：採購 / 業務 / 倉管 / 財務。
-// 同時在最前面為 admin 指派 ADMIN 角色。
+// 同時在最前面為 admin 指派 SYSADMIN 角色。
 // 注意：此函式必須在 applyTemplateToTenant 之後呼叫（需要 role 資料）。
 
 import type { PrismaClient } from '../../../../generated/prisma';

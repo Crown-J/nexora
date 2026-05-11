@@ -37,8 +37,8 @@ export type BaseRoleMemberRow = {
 export const MOCK_BASE_ROLES: BaseRoleRow[] = [
   {
     id: 'r1',
-    code: 'ADMIN',
-    name: '管理者',
+    code: 'SYSADMIN',
+    name: '系統管理員',
     description: '全系統設定與主檔維護',
     sortOrder: 10,
     isActive: true,

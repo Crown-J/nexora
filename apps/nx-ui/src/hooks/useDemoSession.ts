@@ -80,7 +80,7 @@ export function demoUserToMeDto(u: DemoUser): MeDto {
     is_active: true,
     isActive: true,
     view_permissions: null,
-    roles: ['ADMIN'],
+    roles: ['SYSADMIN'],
     last_login_at: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
   };

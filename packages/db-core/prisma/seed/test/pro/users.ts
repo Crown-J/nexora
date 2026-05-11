@@ -1,7 +1,7 @@
 // packages/db-core/prisma/seed/test/pro/users.ts
 // @FUNCTION_CODE SYS-TEST-SVC-009-F01
 // PRO 測試租戶的 8 個測試使用者。
-// 同時為 admin 指派 ADMIN 角色。
+// 同時為 admin 指派 SYSADMIN 角色。
 // 必須在 applyTemplateToTenant 之後呼叫。
 //
 // 說明：
