@@ -500,8 +500,7 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：架構級設計題的「階段 1 盤點」結束時、Alex 必須做 explicit
             「跟 NEXORA 既有設計哲學對照」檢查、避免階段 2 在錯誤框架內展開
 
-候選 #9（軌 4.5+4.6 觸發、Crown 拍 Q3 採納、軌 4.7 雙寫、編號待 Crown verify）：
-   引用 Hank 既有揭露的「數量」字眼時、開工前要求精確 grep
+#9 引用 Hank 既有揭露的「數量」字眼時、開工前要求精確 grep（軌 4.5+4.6 觸發、Crown 拍 Q3 採納、軌 4.7 雙寫、軌 4.8 Crown verify 編號）
   → 軌 4.5 觸發：Alex 引用 Hank 揭露「10+ 處」live csv、實際 118 處（11.8 倍）
   → 軌 4.6 觸發：Alex 引用 Hank 揭露「30+ 處」stale ADMIN、實際 431 處（14 倍）
   → 規則：Alex 寫 closure 指令、引用 Hank 既有揭露「N 處 / 多處」字眼時、
@@ -510,8 +509,7 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：Alex 的指令模板加「Step 1 grep -c 精確 count 先回報」步驟、
             不直接進「Step 2 開工」、避免 Hank 在估錯規模下開始 commit 拆軌
 
-候選 #10（軌 4.6 Q5 觸發、Crown 拍 D 拍真相揭露、編號待 Crown verify）：
-   規格書改寫應寫範式給 Hank、不自己改下載
+#10 規格書改寫應寫範式給 Hank、不自己改下載（軌 4.6 Q5 觸發、Crown 拍 D 拍真相揭露、軌 4.8 Crown verify 編號）
   → 軌 4.6 觸發：Crown 拍 Q5 = D 真相揭露：「Alex 不該為『掌握控制權』自己改 spec docs」
   → 規則：Alex 寫改寫範式（如「HR_ADMIN → HR 全文 replace_all、特殊情境揭露」）
          → Hank 執行（grep + Edit）+ 揭露無法處理特殊情境
