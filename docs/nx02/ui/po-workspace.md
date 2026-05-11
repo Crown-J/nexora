@@ -133,7 +133,7 @@ PLUS+ 版：審核節點顯示，採購人員視角：
 
 PLUS+ 版：採購組長視角：
   badge 數字 = 「待我審核」的單據數
-  → 角色判斷：nx01_user_role.role_code = PURCHASE + 是否為主管
+  → 角色判斷：nx01_user_role.role_code = PURCHASING + 是否為主管
 ```
 
 ### 快捷鍵

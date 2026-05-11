@@ -253,6 +253,108 @@ NEXORA 三人團隊：
 
 ---
 
+## G. 工具陷阱規則（軌 4.5~4.7 紀律雙寫）
+
+### G.1 揭露精確度紀律（A041）
+
+**規則：揭露範圍 / 數量時必附 grep -c 精確 count、不用模糊詞**
+
+⛔ 禁用詞：「N+ 處」「多處」「一些」「不少」「大量」
+
+✅ 必用範式：
+```
+$ grep -c "PATTERN" path/
+具體數字
+```
+
+**為什麼**：
+- 軌 4.5 揭露 A040「10+ 處」、實際 118 處（11.8 倍）= 救專案但低估規模
+- 軌 4.6 揭露 A042「30+ 處」、實際 431 處（14 倍）= 同模式
+- 模糊詞讓 Crown 拍範圍決策時誤判工作量、commit 拆軌策略偏差
+
+**觸發時機**：
+- 「Step 1 grep 揭露」task 開工前
+- 範圍 closure 揭露給 Crown 拍時
+- worklog / system-architecture A 系列登錄時
+
+### G.2 PowerShell write 中文檔陷阱（A046）
+
+**規則：含中文的檔案禁用 PowerShell `[System.IO.File]::WriteAllText()` batch write**
+
+⛔ 禁用：對含中文 UTF-8 檔案的 PowerShell batch（破壞為 mojibake）
+
+✅ 範式：
+- **純 ASCII 檔案**（如 controller 純英文 `@Roles('ADMIN')`、CSV 無中文）→ PowerShell batch OK
+- **含中文檔案**（註解 / docstring / display string）→ 用 Edit tool 逐個處理
+
+**為什麼**：
+- 軌 4.6 commit 1 觸發 2 例破壞（qt.controller.ts + app.controller.ts）
+- `Get-Content -Raw` 預設系統 codepage 讀、`WriteAllText` 寫回時編碼不對齊
+- git checkout HEAD 還原後改用 Edit tool 修正
+
+**檢查清單**（PowerShell batch 前必跑）：
+```
+grep -lE '[一-龿]' <target-files>
+```
+有中文檔出現 → 切 Edit tool 處理。
+
+### G.3 git add 範圍精確紀律（A047）
+
+**規則：git add 用具體檔案路徑、不用 dir 路徑（特別 dir 內含 untracked 時）**
+
+⛔ 禁用：`git add docs/nx01/spec/intent/`（含 untracked 時誤 stage）
+
+✅ 範式：
+- `git add docs/nx01/spec/intent/nx01-01-user.md`（具體檔案、無 untracked 風險）
+- 或 `git add -u docs/nx01/spec/intent/`（只 stage tracked 變動、忽略 untracked）
+
+**為什麼**：
+- 軌 4.6 commit 3 觸發 1 例（誤 stage NX01-08 + NX01-10 untracked spec、軌 3 範圍）
+- git reset --soft HEAD~ + unstage + 重新 commit 修正
+
+**檢查清單**（git add 前必跑）：
+```
+git status --short | grep '^??'
+```
+有 untracked 出現 → 確認不在本軌範圍、用具體檔案路徑或 `-u` flag。
+
+### G.4 spec docs 歷史 fact 保留範式（軌 4.6 line 75 創新、Crown 拍 Q2 採納）
+
+**規則：spec docs 描述「Phase 0 / 某 task 寫此 spec 時的歷史 fact」時、保留原文 + 加 HTML 註解說明 closure 後變化**
+
+⛔ 禁用：直接 replace_all 升級歷史 fact list（破壞「N 個 role」歷史事實）
+
+✅ 範式：
+```markdown
+意圖 §6 Q5 要求「寫入限 PURCHASE_ADMIN role」。但 apply-role.ts:8-17 只 seed 了 8 個 role：ADMIN / **PURCHASE** / SALES / WAREHOUSE / FINANCE / LOGISTICS / HR / HR_ADMIN — 沒有 PURCHASE_ADMIN。
+<!-- A034/A040/A042 closure 後：8 role → 7 role（SYSADMIN/OWNER/PURCHASING/SALES/WAREHOUSE/FINANCE/HR、移除 LOGISTICS/HR_ADMIN、補 OWNER）。本段保留 Phase 0 寫此 spec 時的真相、勿覆蓋歷史描述 -->
+```
+
+**為什麼**：
+- 軌 4.6 line 75 觸發（b5-impl spec 描述「Phase 0 寫此 spec 時 8 role 真相」）
+- 全 replace 會破壞「8 個」歷史 fact、未來讀者誤以為「7 role 從一開始就是 7」
+- 兼顧歷史真實性 + closure 透明度
+
+**適用情境**：
+- spec docs 描述「Phase X 寫此 spec 時的狀態」
+- 取捨討論「當時為什麼選 X、現在升級為 Y」歷史思考
+- worklog 思考歷程紀錄（A048 family、屬 Phase G 紀律保留）
+
+**不適用情境**：
+- live impl spec 描述「當前 controller 用 ...」→ 全 replace 升級
+- 表格 role 欄位 / code 範例 → 全 replace 升級
+
+### G.5 範式速查表
+
+| 規則 | 觸發時機 | 動作 |
+|------|---------|------|
+| A041 揭露精確 | 揭露範圍 / 數量 | `grep -c` 精確 count、禁模糊詞 |
+| A046 PowerShell | 編輯含中文檔 | 切 Edit tool 處理 |
+| A047 git add 精確 | dir 內有 untracked | 用具體檔案路徑或 `-u` |
+| G.4 歷史 fact 保留 | spec docs 歷史描述 | 加 HTML 註解、不 replace |
+
+---
+
 ## 結語
 
 這份 charter 是 self-binding 文件。
