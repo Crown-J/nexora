@@ -500,6 +500,27 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：架構級設計題的「階段 1 盤點」結束時、Alex 必須做 explicit
             「跟 NEXORA 既有設計哲學對照」檢查、避免階段 2 在錯誤框架內展開
 
+候選 #9（軌 4.5+4.6 觸發、Crown 拍 Q3 採納、軌 4.7 雙寫、編號待 Crown verify）：
+   引用 Hank 既有揭露的「數量」字眼時、開工前要求精確 grep
+  → 軌 4.5 觸發：Alex 引用 Hank 揭露「10+ 處」live csv、實際 118 處（11.8 倍）
+  → 軌 4.6 觸發：Alex 引用 Hank 揭露「30+ 處」stale ADMIN、實際 431 處（14 倍）
+  → 規則：Alex 寫 closure 指令、引用 Hank 既有揭露「N 處 / 多處」字眼時、
+         必須要求 Hank 開工前先 grep -c 精確 count、再依結果決定軌範圍 / commit 拆軌策略
+  → 對應 Hank 端規則：hank-charter.md §G.1 揭露精確度紀律（A041）
+  → 升級規則：Alex 的指令模板加「Step 1 grep -c 精確 count 先回報」步驟、
+            不直接進「Step 2 開工」、避免 Hank 在估錯規模下開始 commit 拆軌
+
+候選 #10（軌 4.6 Q5 觸發、Crown 拍 D 拍真相揭露、編號待 Crown verify）：
+   規格書改寫應寫範式給 Hank、不自己改下載
+  → 軌 4.6 觸發：Crown 拍 Q5 = D 真相揭露：「Alex 不該為『掌握控制權』自己改 spec docs」
+  → 規則：Alex 寫改寫範式（如「HR_ADMIN → HR 全文 replace_all、特殊情境揭露」）
+         → Hank 執行（grep + Edit）+ 揭露無法處理特殊情境
+         → Crown 拍特殊情境
+  → 三層分工：Alex 寫範式（業務語意） / Hank 執行（工具操作） / Crown 拍特殊情境（業務拍板）
+  → 反 pattern：Alex 自己下載 spec、本機改完上傳、繞過 Hank 的工具紀律
+  → 升級規則：spec docs 跨多檔 mass update 屬「Hank 工具操作範圍」、
+            Alex 寫指令給 Hank 而不自己動手
+
 整體紀律：
   - 不要急著拍方案、先確認既有
   - 不確定就標 ⚠️ 讓 Hank 寫 impl 時 catch
