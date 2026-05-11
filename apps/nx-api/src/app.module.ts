@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { FileUploadModule } from './shared/file-upload/file-upload.module';
 import { Nx01Module } from './nx01/nx01.module';
 import { Nx02Module } from './nx02/nx02.module';
 import { Nx03Module } from './nx03/nx03.module';
@@ -22,6 +23,7 @@ import { Nx99Module } from './nx99/nx99.module';
   imports: [
     PrismaModule,
     AuthModule,
+    FileUploadModule,
     Nx99Module,
     Nx01Module,
     Nx02Module,

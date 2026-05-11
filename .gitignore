@@ -7,6 +7,10 @@ coverage/
 # Prisma generated artifacts（A032 順手修、TASK-PHASE2-NX01-ADDRESS-SCHEMA-EXTEND-01）
 packages/db-core/generated/
 
+# File upload（FileUploadModule 階段 1 本地 stub 存放、TASK-FILE-UPLOAD-FOUNDATION-01）
+.uploads/
+apps/nx-api/.uploads/
+
 # Nx / Turbo caches
 .nx/
 .turbo/
