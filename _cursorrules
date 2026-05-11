@@ -228,7 +228,7 @@ import { getToken, setToken, clearToken } from '@/features/auth/token';
  * - NX02-RFQ-API-CTL-001：RFQ CRUD endpoints
  *
  * Notes:
- * - Guard: JwtAuthGuard + RolesGuard(ADMIN, PURCHASE)
+ * - Guard: JwtAuthGuard + RolesGuard(ADMIN, PURCHASING)
  * - Base path: /nx02/rfq
  */
 ```

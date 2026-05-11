@@ -324,7 +324,7 @@ reject_reason 自動填系統訊息（避免 partial CHECK 失敗）：
 | Q2：QT 採用後能反悔嗎 | (a) 不能反悔，要走 TI 取消單流程 | §4.4 已寫進 |
 | Q3：RFQ 逾期機制 | Phase 0 不做，採購自己手動 cancel 即可 | 不做 |
 | Q4：歷史 RFQ/QT 保留 | 永久保留，未來看 DB 大小再決定 archive | 不做 |
-| Q5：API access control | 視 endpoint 不同：查 list 開放、寫入限 PURCHASE_ADMIN role | 由 Hank 實作時對應既有 auth 慣例 |
+| Q5：API access control | 視 endpoint 不同：查 list 開放、寫入限 PURCHASING_ADMIN role | 由 Hank 實作時對應既有 auth 慣例 |
 | Q6：QT 是覆蓋 update 還是堆疊 insert（v2 新增）| 堆疊 insert 保留歷史（schema 已無 unique）| §3.2 / §5.1 已寫進 |
 
 ---
@@ -382,7 +382,7 @@ D4 已經寫好的 `Nx04AdvisoryLock`、`runWithRetry`、`TranslatorBaseError` �
 
 按拍板結果：
 - 查 list（§3.1）：開放給所有登入 user
-- 新增 QT / 採用 QT / 拒絕 QT / 取消 RFQ（§3.2~3.5）：限 PURCHASE_ADMIN role
+- 新增 QT / 採用 QT / 拒絕 QT / 取消 RFQ（§3.2~3.5）：限 PURCHASING_ADMIN role
 
 對應既有 auth middleware / role guard 機制決定怎麼實作。
 
