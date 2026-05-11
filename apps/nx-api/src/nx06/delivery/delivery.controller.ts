@@ -13,7 +13,7 @@ import { CreateDeliveryDto, PatchDeliveryDto, PatchDnLocationDto } from './deliv
 
 @Controller('nx06/delivery')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class DeliveryController {
   constructor(private readonly svc: DnLogisticsService) {}
 

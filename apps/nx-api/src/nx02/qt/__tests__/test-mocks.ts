@@ -67,7 +67,7 @@ export function makeService() {
 export const fakeUser = {
   sub: 'NX01USER0000001',
   username: 'sysadmin',
-  roles: ['ADMIN'],
+  roles: ['SYSADMIN'],
   tenantId: 'NX99TENT0000001',
   tenantCode: 'TEST',
   planCode: 'LITE',

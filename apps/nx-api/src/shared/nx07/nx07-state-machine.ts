@@ -126,6 +126,9 @@ export function assertEmployeeChangeTransition(from: string, to: string): void {
 }
 
 export function canViewPayrollSalaryDetail(roleCodes: string[]): boolean {
+  // A042 closure：role 命名對齊 A034 後 7 role 真相
+  //   原 'ADMIN' / 'HR_ADMIN' 不存在於新 schema
+  //   新範式：SYSADMIN / OWNER 全通行 + HR 可看（HR_ADMIN 進階權限併入 HR）
   const upper = roleCodes.map((r) => String(r).trim().toUpperCase());
-  return upper.includes('ADMIN') || upper.includes('HR_ADMIN');
+  return upper.includes('SYSADMIN') || upper.includes('OWNER') || upper.includes('HR');
 }

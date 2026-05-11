@@ -12,7 +12,7 @@ import { QuoteService } from './quote.service';
 
 @Controller('nx04/quote')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class QuoteController {
   constructor(private readonly svc: QuoteService) {}
 

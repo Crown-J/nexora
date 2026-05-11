@@ -12,7 +12,7 @@ import { TransferService } from './transfer.service';
 
 @Controller('nx03/transfer')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class TransferController {
   constructor(private readonly svc: TransferService) {}
 

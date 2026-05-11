@@ -11,7 +11,7 @@ import { CreateBulletinDto, ListBulletinQueryDto, UpdateBulletinDto } from './dt
 
 @Controller('nx01/bulletins')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class BulletinController {
   constructor(private readonly svc: BulletinService) {}
 

@@ -13,7 +13,7 @@ import { NoteService } from './note.service';
 
 @Controller('nx05/note')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class NoteController {
   constructor(private readonly svc: NoteService) {}
 

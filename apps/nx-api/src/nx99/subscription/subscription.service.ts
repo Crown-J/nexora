@@ -22,7 +22,8 @@ export class SubscriptionService {
 
   private resolveTenantFilter(user: RequestUser, query: ListSubscriptionsQueryDto): string {
     const tid = query.tenantId?.trim();
-    const isAdmin = (user.roles ?? []).some((r) => String(r).trim().toUpperCase() === 'ADMIN');
+    // A042 closure：跨租戶查 subscription 限 SYSADMIN（NEXORA team）；OWNER 屬單租戶不跨
+    const isAdmin = (user.roles ?? []).some((r) => String(r).trim().toUpperCase() === 'SYSADMIN');
     if (!user.tenantId) {
       if (!tid) throw new BadRequestException('tenantId query is required');
       return tid;
@@ -81,7 +82,8 @@ export class SubscriptionService {
       },
     });
     if (!row) throw new NotFoundException('Subscription not found');
-    const isAdmin = (user.roles ?? []).some((r) => String(r).trim().toUpperCase() === 'ADMIN');
+    // A042 closure：跨租戶查 subscription 限 SYSADMIN（NEXORA team）；OWNER 屬單租戶不跨
+    const isAdmin = (user.roles ?? []).some((r) => String(r).trim().toUpperCase() === 'SYSADMIN');
     if (!isAdmin && user.tenantId && row.tenantId !== user.tenantId) {
       throw new ForbiddenException('Cannot access another tenant subscription');
     }

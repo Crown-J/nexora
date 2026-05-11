@@ -13,7 +13,7 @@ import { CreateIntlShippingDto, PatchIntlShippingDto } from './intl-shipping.dto
 
 @Controller('nx06/intl-shipping')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class IntlShippingController {
   constructor(private readonly svc: DnLogisticsService) {}
 

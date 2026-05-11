@@ -1,7 +1,7 @@
 // packages/db-core/prisma/seed/test/plus/users.ts
 // @FUNCTION_CODE SYS-TEST-SVC-006-F01
 // PLUS 測試租戶的 6 個測試使用者：採購 / 業務 / 倉管 / 財務 / 物流 / 人資。
-// 同時為 admin 指派 ADMIN 角色。
+// 同時為 admin 指派 SYSADMIN 角色。
 // 必須在 applyTemplateToTenant 之後呼叫。
 
 import type { PrismaClient } from '../../../../generated/prisma';

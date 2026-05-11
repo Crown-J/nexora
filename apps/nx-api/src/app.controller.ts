@@ -37,14 +37,14 @@ export class AppController {
    *
    * 說明：
    * - 必須登入（JWT）
-   * - 必須具備 ADMIN 角色
+   * - 必須具備 SYSADMIN / OWNER 角色（A042 closure）
    * - 用來驗證 RBAC / JWT 是否可用（不暴露敏感欄位）
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles('SYSADMIN', 'OWNER')
   @Get('/debug/rbac/admin')
   async adminPing() {
-    return { ok: true, role: 'ADMIN', ts: new Date().toISOString() };
+    return { ok: true, role: 'SYSADMIN', ts: new Date().toISOString() };
   }
 
   /**
@@ -56,7 +56,7 @@ export class AppController {
    * - ⚠️ 路徑放在 /debug，避免和正式 /users 衝突
    */
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles('SYSADMIN', 'OWNER')
   @Get('/debug/users')
   async debugUsers() {
     return this.prisma.nx01User.findMany({

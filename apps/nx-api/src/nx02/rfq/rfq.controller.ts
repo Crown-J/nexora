@@ -12,7 +12,7 @@ import { RfqService } from './rfq.service';
 
 @Controller('nx02/rfq')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class RfqController {
   constructor(private readonly svc: RfqService) {}
 

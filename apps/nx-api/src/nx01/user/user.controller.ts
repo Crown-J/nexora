@@ -11,7 +11,7 @@ import { UserService } from './user.service';
 
 @Controller('nx01/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class UserController {
   constructor(private readonly svc: UserService) {}
 

@@ -13,7 +13,7 @@ import { CreateArDto, PatchArDto } from './dto/ar.dto';
 
 @Controller('nx05/ar')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class ArController {
   constructor(private readonly svc: ArService) {}
 

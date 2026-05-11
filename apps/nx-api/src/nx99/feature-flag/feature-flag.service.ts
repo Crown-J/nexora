@@ -16,7 +16,8 @@ export class FeatureFlagService {
 
   private resolveTargetTenantId(user: RequestUser, query: ListFeatureFlagsQueryDto): string {
     const q = query.tenantId?.trim();
-    const isAdmin = (user.roles ?? []).some((r) => String(r).trim().toUpperCase() === 'ADMIN');
+    // A042 closure：跨租戶查 feature-flag 限 SYSADMIN（NEXORA team）；OWNER 屬單租戶不跨
+    const isAdmin = (user.roles ?? []).some((r) => String(r).trim().toUpperCase() === 'SYSADMIN');
     if (!user.tenantId) {
       if (!q) throw new BadRequestException('tenantId query is required');
       return q;

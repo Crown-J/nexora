@@ -11,7 +11,7 @@ import { SubscriptionService } from './subscription.service';
 
 @Controller('nx99/subscriptions')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 

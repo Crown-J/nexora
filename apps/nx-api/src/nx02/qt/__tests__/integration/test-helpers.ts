@@ -379,7 +379,7 @@ export function makeRequestUser(fixture: B5Fixture) {
   return {
     sub: fixture.userId,
     username: 'b5-integration-test',
-    roles: ['ADMIN'],
+    roles: ['SYSADMIN'],
     tenantId: fixture.tenantId,
     tenantCode: 'TEST-LITE',
     planCode: 'LITE',

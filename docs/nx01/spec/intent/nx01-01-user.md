@@ -54,7 +54,7 @@ user 是 NEXORA 全模組引用最廣的主檔之一：
 - user 透過登入產生 session、其他模組透過 session 識別 user
 
 **設計哲學對齊：**
-- 設計哲學 #1「中心 = 角色工作台」：user 是「**HR_ADMIN 工作站的核心主檔**」
+- 設計哲學 #1「中心 = 角色工作台」：user 是「**HR 工作站的核心主檔**」
 - 設計哲學 #13「強制資料溯源」：所有業務動作都記錄 user 是誰
 - 設計哲學 #12「智能預設」：登入後自動帶 createdBy / updatedBy
 
@@ -63,7 +63,7 @@ user 是 NEXORA 全模組引用最廣的主檔之一：
 | 角色 | 用此子模組做什麼 | 多常用 |
 |------|---------------|-------|
 | BUSINESS_OWNER | 看公司全 user 列表、批准新員工帳號 | 每月 |
-| HR_ADMIN | 維護 user（新增 / 停用 / 改 role）⭐ | 每週 |
+| HR | 維護 user（新增 / 停用 / 改 role）⭐ | 每週 |
 | 業務 / 採購 / 倉管 | 看自己 profile（read-only）| 不常 |
 | SYSADMIN | 跨租戶查看 / 處理特殊問題 | 不常 |
 | user 自己 | 改自己密碼 / profile 部分欄位 | 偶爾 |
@@ -133,7 +133,7 @@ nx01_user.id 命名規則:NX01USER + 7 位數字
 **動作：**
 - [編輯]
 - [停用] / [啟用]
-- [重設密碼]（HR_ADMIN 強制重設）
+- [重設密碼]（HR 強制重設）
 - [真刪除]（⚠️ Q1 拍）
 
 ### 2.3 編輯頁（`/master/user/:id/edit`）
@@ -143,7 +143,7 @@ nx01_user.id 命名規則:NX01USER + 7 位數字
 - 帳號設定：username（編輯時不可改）/ password（重設用）
 - 權限分配：role 多選（連結 NX01-02 角色權限工作站）
 
-⚠️ HR_ADMIN 不能改自己的 role（避免提權）
+⚠️ HR 不能改自己的 role（避免提權）
 
 ### 2.4 user profile 頁（`/profile`）
 
@@ -191,7 +191,7 @@ nx01_user.id 命名規則:NX01USER + 7 位數字
 | `email` | ✅ | Email 格式 | (tenantId, email) unique |
 | `mobile` | ❌ | 手機格式 | 選填 |
 | `department_id` | ❌ | FK to nx01_department | 部門歸屬（NX01 暫保留 schema、未來啟用）|
-| `isActive` | ✅ | boolean | 系統自動 / HR_ADMIN 控制 |
+| `isActive` | ✅ | boolean | 系統自動 / HR 控制 |
 
 ### 3.3 跨主檔連動
 
@@ -234,13 +234,13 @@ user 引用其他 NX01 主檔：
 - 最少 10 位
 - 必含大小寫 + 數字 + 特殊字元
 - 3 個月過期、強制改密
-- 失敗 5 次鎖定 30 分鐘 / 10 次鎖到 HR_ADMIN 解鎖（對齊 §3.7）
+- 失敗 5 次鎖定 30 分鐘 / 10 次鎖到 HR 解鎖（對齊 §3.7）
 
 ### 3.7 帳號鎖定規則
 
 failed_login_count 累計：
 - 達 5 次 → 鎖定 30 分鐘
-- 達 10 次 → 鎖定到 HR_ADMIN 解鎖
+- 達 10 次 → 鎖定到 HR 解鎖
 - 成功登入 → reset count
 
 ---
@@ -254,17 +254,17 @@ failed_login_count 累計：
 | 欄位 | 業務語意 | 必填 | 預設值 | 來源 |
 |------|---------|-----|-------|------|
 | `id` | 系統 ID（NX01USER + 7 位數）| ✅ | 系統自動 | ID 範圍標準 §1.4 |
-| `username` | 登入帳號（如 `john.doe`）| ✅ | 無 | HR_ADMIN 填 |
+| `username` | 登入帳號（如 `john.doe`）| ✅ | 無 | HR 填 |
 | `password_hash` | 密碼 hash（bcrypt）| ✅ | 無 | 系統自動 hash |
-| `display_name` | 顯示名（如「林翰杰」）| ✅ | 無 | HR_ADMIN 填 |
-| `email` | 主要 Email | ✅ | 無 | HR_ADMIN 填 |
-| `mobile` | 手機 | ❌ | null | HR_ADMIN 填 |
+| `display_name` | 顯示名（如「林翰杰」）| ✅ | 無 | HR 填 |
+| `email` | 主要 Email | ✅ | 無 | HR 填 |
+| `mobile` | 手機 | ❌ | null | HR 填 |
 | `department_id` | 部門 ID（FK）| ❌ | null | 待 NX01 部門啟用 |
 | `tenantId` | 多租戶歸屬 | ✅ | 系統自動 | 系統自動 |
 | `last_login_at` | 最後登入時間 | ❌ | null | 系統自動 |
 | `failed_login_count` | 失敗登入次數 | ✅ | 0 | 系統自動 |
 | `locked_until` | 鎖定到何時 | ❌ | null | 系統自動 |
-| `isActive` | 是否啟用 | ✅ | true | HR_ADMIN 控制 |
+| `isActive` | 是否啟用 | ✅ | true | HR 控制 |
 
 ### 4.2 系統自動欄位（不可改）
 
@@ -275,7 +275,7 @@ failed_login_count 累計：
 | `createdAt` / `updatedAt` | 系統時間戳 |
 | `createdBy` / `updatedBy` | 操作者（從登入 user 帶）|
 
-⚠️ user 表自己的 createdBy / updatedBy = 當前登入 HR_ADMIN（不是 user 自己）
+⚠️ user 表自己的 createdBy / updatedBy = 當前登入 HR（不是 user 自己）
 
 ### 4.3 注音索引欄位（系統自動同步）
 
@@ -288,10 +288,10 @@ failed_login_count 累計：
 
 ## § 5. 工作流程
 
-### 5.1 HR_ADMIN 新增 user（標準流程）
+### 5.1 HR 新增 user（標準流程）
 
 ```
-1. HR_ADMIN 進列表頁、點 [新增]
+1. HR 進列表頁、點 [新增]
 2. 填基本資訊（username / display_name / email / 手機）
 3. 設定密碼（系統提示複雜度規則）
 4. 分配 role（多選、至少 1 個、連結 NX01-02）
@@ -321,23 +321,23 @@ failed_login_count 累計：
 
 ### 5.3 異常：user 撞 unique（username 或 email）
 
-HR_ADMIN 試圖新增 username = `john`、但同租戶已有：
+HR 試圖新增 username = `john`、但同租戶已有：
 
 - UI 即時驗證、紅字提示「此 username 已被使用」
-- 不可儲存、HR_ADMIN 改 username
+- 不可儲存、HR 改 username
 
 ### 5.4 異常：user 離職處理
 
 ⭐ Q1 拍板（B）：詳細離職轉手流程（落地版）
 
 ```
-1. HR_ADMIN 進此 user 詳細頁
+1. HR 進此 user 詳細頁
 2. 點 [停用 + 離職處理]
 3. 系統跳「離職轉手清單」:
    - 此 user 負責的 partner 數量
    - 此 user 進行中的業務單據（QT/SO 等）
    - 此 user 待處理事項
-4. HR_ADMIN 選擇接手 user（多選 + 各分配比例）
+4. HR 選擇接手 user（多選 + 各分配比例）
 5. 系統自動:
    - 該 user.isActive = false
    - 該 user 所有 partner.sales_user_id 改為接手 user
@@ -347,19 +347,19 @@ HR_ADMIN 試圖新增 username = `john`、但同租戶已有：
 7. 業務歷史紀錄保留
 ```
 
-### 5.5 異常：HR_ADMIN 試圖改自己的 role
+### 5.5 異常：HR 試圖改自己的 role
 
 ```
-1. HR_ADMIN 進自己 detail 頁、點 [編輯]
+1. HR 進自己 detail 頁、點 [編輯]
 2. 試圖改 role（如把自己降級為一般業務）
 3. 系統 401:「不可改自己的 role、避免提權問題」
-4. 跳訊息「請其他 HR_ADMIN 或 BUSINESS_OWNER 協助」
+4. 跳訊息「請其他 HR 或 BUSINESS_OWNER 協助」
 ```
 
 ### 5.6 跨角色協作：BUSINESS_OWNER 批准
 
-⚠️ Q：是否要 BUSINESS_OWNER 批准 HR_ADMIN 新建 user?
-- 業務真實:小公司不必（HR_ADMIN 直接建）
+⚠️ Q：是否要 BUSINESS_OWNER 批准 HR 新建 user?
+- 業務真實:小公司不必（HR 直接建）
 - 大公司可能需要（避免人事權集中）
 - Alex 推薦:預設不必、但提供「待批准」可選功能
 
@@ -371,18 +371,18 @@ HR_ADMIN 試圖新增 username = `john`、但同租戶已有：
 |------|---|---|------|------|------|---------|
 | SYSADMIN | ✅（跨租戶）| ✅ | ✅ | ✅ | ✅ | ✅ |
 | BUSINESS_OWNER | ✅（自己租戶全部）| ✅ | ✅ | ✅ | ❌ | ✅ |
-| HR_ADMIN | ✅（自己租戶全部）| ✅（不能改自己 role）| ✅ | ✅ | ❌ | ✅ |
+| HR | ✅（自己租戶全部）| ✅（不能改自己 role）| ✅ | ✅ | ❌ | ✅ |
 | 業務 / 採購 / 倉管 | ✅（自己 profile）| ✅（部分欄位）| ❌ | ❌ | ❌ | ✅ |
 
 **關鍵權限規則：**
 
-⭐ **HR_ADMIN 是 user 主檔的主要維護人**：
-- 不是 BUSINESS_OWNER（雖然有權、通常委派給 HR_ADMIN）
+⭐ **HR 是 user 主檔的主要維護人**：
+- 不是 BUSINESS_OWNER（雖然有權、通常委派給 HR）
 - 不是 SYSADMIN（跨租戶角色、不直接維護單一租戶）
 
 ⭐ **避免提權問題**：
-- HR_ADMIN 不能改自己的 role
-- 同 HR_ADMIN 之間可互改 role（互相制衡）
+- HR 不能改自己的 role
+- 同 HR 之間可互改 role（互相制衡）
 
 ⭐ **user 自己權限**：
 - 可改 display_name / 手機 / 個人偏好 / 密碼
@@ -403,14 +403,14 @@ HR_ADMIN 試圖新增 username = `john`、但同租戶已有：
   - LITE-M：6~10 人（小型多人團隊）
 - 部門架構：無
 - 多部門功能：不開放
-- HR_ADMIN 角色：可指派、但通常 BUSINESS_OWNER 兼任
+- HR 角色：可指派、但通常 BUSINESS_OWNER 兼任
 
 ### PLUS（進階版、中型 / 多倉）
 
 - **user 數：5~30 人**（內部子級分 S/M/L）
 - 部門架構：基本（可建多部門、user 歸屬部門）
 - 多部門功能：開放
-- HR_ADMIN 可批次匯入
+- HR 可批次匯入
 
 ### PRO（專業版、大型 / 多廠 / 海外、Yaro 主場）
 
@@ -434,7 +434,7 @@ HR_ADMIN 試圖新增 username = `john`、但同租戶已有：
 
 ### 8.1 是否需注音索引
 
-✅ 需要（HR_ADMIN / BUSINESS_OWNER 會打注音搜 user）
+✅ 需要（HR / BUSINESS_OWNER 會打注音搜 user）
 
 ### 8.2 trigger 來源欄位
 

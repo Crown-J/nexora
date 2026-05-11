@@ -14,7 +14,7 @@ import { Nx07LeaveService } from './leave.service';
 
 @Controller('nx07/leave')
 @UseGuards(JwtAuthGuard, Nx07ProPlanGuard, Nx07NoFinanceGuard, RolesGuard)
-@Roles('ADMIN', 'HR', 'HR_ADMIN')
+@Roles('SYSADMIN', 'OWNER', 'HR')
 export class Nx07LeaveController {
   constructor(private readonly svc: Nx07LeaveService) {}
 

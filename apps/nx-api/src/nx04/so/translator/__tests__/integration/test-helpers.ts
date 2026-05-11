@@ -94,7 +94,7 @@ export function makeRequestUser(seed: TestSeed): RequestUser {
   return {
     sub: seed.userId,
     username: 'integration-test',
-    roles: ['ADMIN'],
+    roles: ['SYSADMIN'],
     tenantId: seed.tenantId,
     tenantCode: null,
     planCode: 'LITE',

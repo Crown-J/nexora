@@ -11,7 +11,7 @@ import { StockLedgerService } from './stock-ledger.service';
 
 @Controller('nx03/stock-ledger')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class StockLedgerController {
   constructor(private readonly svc: StockLedgerService) {}
 

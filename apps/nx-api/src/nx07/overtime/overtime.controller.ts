@@ -14,7 +14,7 @@ import { Nx07OvertimeService } from './overtime.service';
 
 @Controller('nx07/overtime')
 @UseGuards(JwtAuthGuard, Nx07ProPlanGuard, Nx07NoFinanceGuard, RolesGuard)
-@Roles('ADMIN', 'HR', 'HR_ADMIN')
+@Roles('SYSADMIN', 'OWNER', 'HR')
 export class Nx07OvertimeController {
   constructor(private readonly svc: Nx07OvertimeService) {}
 

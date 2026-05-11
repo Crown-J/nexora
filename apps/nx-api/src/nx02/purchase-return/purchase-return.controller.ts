@@ -17,7 +17,7 @@ import { PurchaseReturnService } from './purchase-return.service';
 
 @Controller('nx02/purchase-return')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PurchaseReturnController {
   constructor(private readonly svc: PurchaseReturnService) {}
 

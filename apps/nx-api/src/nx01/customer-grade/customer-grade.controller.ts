@@ -11,7 +11,7 @@ import { ListCustomerGradeQueryDto } from './dto/customer-grade.dto';
 
 @Controller('nx01/customer-grades')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class CustomerGradeController {
   constructor(private readonly svc: CustomerGradeService) {}
 

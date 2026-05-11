@@ -17,7 +17,7 @@ import { SalesReturnService } from './sales-return.service';
 
 @Controller('nx04/sales-return')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class SalesReturnController {
   constructor(private readonly svc: SalesReturnService) {}
 

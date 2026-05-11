@@ -11,7 +11,7 @@ import { TenantService } from './tenant.service';
 
 @Controller('nx99/tenants')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {}
 

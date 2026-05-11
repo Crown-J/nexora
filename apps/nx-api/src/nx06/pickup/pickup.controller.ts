@@ -13,7 +13,7 @@ import { CreatePickupDto, PatchPickupDto } from './pickup.dto';
 
 @Controller('nx06/pickup')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PickupController {
   constructor(private readonly svc: DnLogisticsService) {}
 

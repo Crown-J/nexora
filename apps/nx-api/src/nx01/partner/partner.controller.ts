@@ -11,7 +11,7 @@ import { PartnerService } from './partner.service';
 
 @Controller('nx01/partners')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PartnerController {
   constructor(private readonly svc: PartnerService) {}
 
