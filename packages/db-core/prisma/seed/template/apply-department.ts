@@ -1,9 +1,15 @@
 // packages/db-core/prisma/seed/template/apply-department.ts
 // @FUNCTION_CODE SYS-TMPL-SVC-009-F01
 // 範本：部門（PLUS+）。LITE skip。
-// PLUS：4 個（採購/業務/倉儲/財務）
+// PLUS：4 個（產品/業務/倉儲/財務）
 // PRO：6 個（PLUS 4 個 + 物流/人資）
 // schema 無 unique，採 findFirst+update/create pattern。
+//
+// ⚠️ A039 closure（TASK-A039-DEPARTMENT-RENAME-01）：
+// 「採購部」原 code='PURCHASE'、改為 code='PRODUCT' / name='產品部'。
+// 業界真相：汽車零件業「研究產品 + 採購」同一批人 = 產品部門 = 業界 muscle memory。
+// 對應 migration `20260506180000_nx01_department_rename_purchase_to_product` 處理既有資料。
+// 紀律：nx01_role.code='PURCHASING' 不同步改名（role / department 命名解耦）。
 
 import type { PrismaClient } from '../../../generated/prisma';
 import type { SeedTier } from '../lib/seed-tier';
@@ -18,7 +24,7 @@ interface DepartmentRow {
 function departmentRowsForTier(tier: SeedTier): DepartmentRow[] {
   if (tier === 'PRO') {
     return [
-      { code: 'PURCHASE',  name: '採購部', sortNo: 1 },
+      { code: 'PRODUCT',   name: '產品部', sortNo: 1 },
       { code: 'SALES',     name: '業務部', sortNo: 2 },
       { code: 'WAREHOUSE', name: '倉儲部', sortNo: 3 },
       { code: 'FINANCE',   name: '財務部', sortNo: 4 },
@@ -28,7 +34,7 @@ function departmentRowsForTier(tier: SeedTier): DepartmentRow[] {
   }
   // PLUS：4 部門
   return [
-    { code: 'PURCHASE',  name: '採購部', sortNo: 1 },
+    { code: 'PRODUCT',   name: '產品部', sortNo: 1 },
     { code: 'SALES',     name: '業務部', sortNo: 2 },
     { code: 'WAREHOUSE', name: '倉儲部', sortNo: 3 },
     { code: 'FINANCE',   name: '財務部', sortNo: 4 },

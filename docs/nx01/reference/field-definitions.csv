@@ -299,8 +299,8 @@ nx01_warehouse_type,6,sort_no,PLUS-CORE,INT,False,False,True,False,,,排序用�
 nx01_warehouse_type,7,is_active,PLUS-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
 nx01_department,1,id,LITE-CORE,VARCHAR(15),True,False,True,False,,,[NX01]+[DEPT]+[7碼流水號]，EX : NX01DEPT0000001
 nx01_department,2,tenant_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）。
-nx01_department,3,code,LITE-CORE,VARCHAR(20),False,False,True,False,,,部門代碼（租戶內唯一），例：PURCHASE/SALES/WAREHOUSE。
-nx01_department,4,name,LITE-CORE,VARCHAR(50),False,False,True,False,,,部門名稱，例：採購部/業務部/倉管部。
+nx01_department,3,code,LITE-CORE,VARCHAR(20),False,False,True,False,,,部門代碼（租戶內唯一），例：PRODUCT/SALES/WAREHOUSE。
+nx01_department,4,name,LITE-CORE,VARCHAR(50),False,False,True,False,,,部門名稱，例：產品部/業務部/倉管部。
 nx01_department,5,sort_no,LITE-CORE,INT,False,False,True,False,,0,排序用。
 nx01_department,6,is_active,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否啟用。
 nx01_department,7,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW(),建立時間。

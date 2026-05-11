@@ -330,9 +330,9 @@ model Nx01Department {
   id                                     String               @id @default(dbgenerated("gen_nx01_department_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
   tenantId                               String               @map("tenant_id") @db.VarChar(15)
-  /// 部門代碼（租戶內唯一），例：PURCHASE/SALES/WAREHOUSE。；啟用最低需求版本：LITE-CORE
+  /// 部門代碼（租戶內唯一），例：PRODUCT/SALES/WAREHOUSE。；啟用最低需求版本：LITE-CORE
   code                                   String               @db.VarChar(20)
-  /// 部門名稱，例：採購部/業務部/倉管部。；啟用最低需求版本：LITE-CORE
+  /// 部門名稱，例：產品部/業務部/倉管部。；啟用最低需求版本：LITE-CORE
   name                                   String               @db.VarChar(50)
   /// 排序用。；啟用最低需求版本：LITE-CORE
   sortNo                                 Int                  @default(0) @map("sort_no")
