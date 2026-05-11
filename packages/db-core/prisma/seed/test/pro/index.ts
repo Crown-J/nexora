@@ -4,6 +4,7 @@
 
 import type { PrismaClient } from '../../../../generated/prisma';
 import { applyTemplateToTenant } from '../../template';
+import { applyUserTeam } from '../../template/apply-user-team';
 import { TEST_PRO_ADMIN_USER_ID, TEST_PRO_TENANT_ID } from '../constants';
 import { seedProTenant } from './tenant';
 import { seedProTestUsers } from './users';
@@ -20,6 +21,13 @@ export async function seedProTestTenant(prisma: PrismaClient): Promise<void> {
   });
 
   await seedProTestUsers(prisma);
+
+  // user_team mapping + leader 指派（必須在 seedUsers 之後、A037 軌 2 closure）
+  await applyUserTeam(prisma, {
+    tenantId: TEST_PRO_TENANT_ID,
+    tier: 'PRO',
+    actorUserId: TEST_PRO_ADMIN_USER_ID,
+  });
 
   console.log('✅ [TEST/PRO] PRO 測試租戶建立完成');
 }

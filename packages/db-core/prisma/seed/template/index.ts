@@ -23,6 +23,8 @@ import { applyMedalLevel } from './apply-medal-level';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
 import { applyRole } from './apply-role';
+import { applyTeam } from './apply-team';
+import { applyUserTeam } from './apply-user-team';
 import { applyWarehouse } from './apply-warehouse';
 import { applyWelcomeBulletin } from './apply-welcome-bulletin';
 
@@ -55,6 +57,7 @@ export async function applyTemplateToTenant(
   // === PLUS+ ===
   if (tier === 'PLUS' || tier === 'PRO') {
     await applyDepartment(prisma, params);
+    await applyTeam(prisma, params);  // ⚠️ 必須在 applyDepartment 之後（讀 department 建對應 team）
   }
 
   // === PRO 專屬 ===

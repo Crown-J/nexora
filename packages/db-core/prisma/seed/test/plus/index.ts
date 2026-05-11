@@ -4,6 +4,7 @@
 
 import type { PrismaClient } from '../../../../generated/prisma';
 import { applyTemplateToTenant } from '../../template';
+import { applyUserTeam } from '../../template/apply-user-team';
 import { TEST_PLUS_ADMIN_USER_ID, TEST_PLUS_TENANT_ID } from '../constants';
 import { seedPlusTenant } from './tenant';
 import { seedPlusTestUsers } from './users';
@@ -20,6 +21,13 @@ export async function seedPlusTestTenant(prisma: PrismaClient): Promise<void> {
   });
 
   await seedPlusTestUsers(prisma);
+
+  // user_team mapping + leader 指派（必須在 seedUsers 之後、A037 軌 2 closure）
+  await applyUserTeam(prisma, {
+    tenantId: TEST_PLUS_TENANT_ID,
+    tier: 'PLUS',
+    actorUserId: TEST_PLUS_ADMIN_USER_ID,
+  });
 
   console.log('✅ [TEST/PLUS] PLUS 測試租戶建立完成');
 }
