@@ -70,13 +70,13 @@ CANCELLED → {}
 
 → **取捨點 §2.2**（Alex review）：要動 D4 既有 stub status（改成 'SENT'）還是加 state machine 邊（DRAFT → REPLIED）？
 
-### 1.5 PURCHASE_ADMIN role 不存在
+### 1.5 PURCHASING_ADMIN role 不存在
 
-意圖 §6 Q5 要求「寫入限 PURCHASE_ADMIN role」。但 [apply-role.ts:8-17](packages/db-core/prisma/seed/template/apply-role.ts#L8-L17) 只 seed 了 8 個 role：ADMIN / **PURCHASE** / SALES / WAREHOUSE / FINANCE / LOGISTICS / HR / HR_ADMIN — 沒有 PURCHASE_ADMIN。
+意圖 §6 Q5 要求「寫入限 PURCHASING_ADMIN role」。但 [apply-role.ts:8-17](packages/db-core/prisma/seed/template/apply-role.ts#L8-L17) 只 seed 了 8 個 role：ADMIN / **PURCHASING** / SALES / WAREHOUSE / FINANCE / LOGISTICS / HR / HR_ADMIN — 沒有 PURCHASING_ADMIN。
 
 既有 nx02 controller 都用 `@Roles('ADMIN')`，沒任何子模組做更細的角色控制。
 
-→ **取捨點 §2.3**（Alex review）：B5 寫入 endpoint 用既有 `@Roles('ADMIN', 'PURCHASE')` 還是新增 PURCHASE_ADMIN role？
+→ **取捨點 §2.3**（Alex review）：B5 寫入 endpoint 用既有 `@Roles('ADMIN', 'PURCHASING')` 還是新增 PURCHASING_ADMIN role？
 
 ### 1.6 `allocDocNo` 不支援 'TI'
 
@@ -123,17 +123,17 @@ D4 內 [refreshment-doc-creator.ts:217-222](apps/nx-api/src/nx04/so/translator/r
 - 若 RFQ.status 已是 REPLIED：第二個 QT 進來不再推進，只 insert QT。
 - 若 RFQ.status 是 CLOSED / CANCELLED：reject add（不能再加 QT 進已關閉的 RFQ）。
 
-### 取捨 3（§1.5）：PURCHASE_ADMIN role — **採方案 b（用既有 PURCHASE + ADMIN）**
+### 取捨 3（§1.5）：PURCHASING_ADMIN role — **採方案 b（用既有 PURCHASING + ADMIN）**
 
-**方案 a**：新增 `PURCHASE_ADMIN` role 進 apply-role.ts。
-**方案 b（推薦）**：B5 寫入 endpoint 用 `@Roles('ADMIN', 'PURCHASE')`，list endpoint 不加 @Roles（任何登入者可看）。
+**方案 a**：新增 `PURCHASING_ADMIN` role 進 apply-role.ts。
+**方案 b（推薦）**：B5 寫入 endpoint 用 `@Roles('ADMIN', 'PURCHASING')`，list endpoint 不加 @Roles（任何登入者可看）。
 
 **選 b 理由**：
-- 跟意圖 §6 Q5「視 endpoint 不同：查 list 開放、寫入限 PURCHASE_ADMIN」精神一致 — Phase 0 不引入新 role，避免 seed / 權限矩陣同步成本。
-- 既有 nx02 全部用 `@Roles('ADMIN')` 寫得太緊（採購人員根本進不去 RFQ controller），B5 比照「ADMIN + PURCHASE」也算順手把採購人員放進來。RolesGuard 第 56-58 行有 ADMIN 全通行邏輯，所以實際 effect 是「採購 + 系管」可寫。
-- 將來真的需要區分「採購主管」vs「採購助理」（例如「只有採購主管能採用 QT」），再起 ADR 加 PURCHASE_ADMIN，B5 先不過度設計。
+- 跟意圖 §6 Q5「視 endpoint 不同：查 list 開放、寫入限 PURCHASING_ADMIN」精神一致 — Phase 0 不引入新 role，避免 seed / 權限矩陣同步成本。
+- 既有 nx02 全部用 `@Roles('ADMIN')` 寫得太緊（採購人員根本進不去 RFQ controller），B5 比照「ADMIN + PURCHASING」也算順手把採購人員放進來。RolesGuard 第 56-58 行有 ADMIN 全通行邏輯，所以實際 effect 是「採購 + 系管」可寫。
+- 將來真的需要區分「採購主管」vs「採購助理」（例如「只有採購主管能採用 QT」），再起 ADR 加 PURCHASING_ADMIN，B5 先不過度設計。
 
-⚠️ 反過來推：「需不需要在這次同 PR 把既有 RfqController 從 `@Roles('ADMIN')` 放寬到 `@Roles('ADMIN', 'PURCHASE')`」？我傾向**不動既有 RfqController**（不在 B5 範圍）— 但給 Alex 確認。
+⚠️ 反過來推：「需不需要在這次同 PR 把既有 RfqController 從 `@Roles('ADMIN')` 放寬到 `@Roles('ADMIN', 'PURCHASING')`」？我傾向**不動既有 RfqController**（不在 B5 範圍）— 但給 Alex 確認。
 
 ### 取捨 4（§1.6）：TI 單號分配 — **採方案 a（擴 `allocDocNo` 加 'TI'）**
 
@@ -484,30 +484,30 @@ export class QtController {
     return this.svc.listRfqsForPurchase(user, q);
   }
 
-  // §3.2 add QT — 寫入限 ADMIN/PURCHASE
+  // §3.2 add QT — 寫入限 ADMIN/PURCHASING
   @Post('qt')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('ADMIN', 'PURCHASING')
   addQt(@CurrentUser() user, @Body() dto: CreateQtDto) {
     return this.svc.addQt(user, dto);
   }
 
   // §3.3 adopt QT
   @Post('qt/:id/adopt')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('ADMIN', 'PURCHASING')
   adoptQt(@CurrentUser() user, @Param('id') qtId: string) {
     return this.svc.adoptQt(user, { qtId });
   }
 
   // §3.4 reject QT
   @Post('qt/:id/reject')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('ADMIN', 'PURCHASING')
   rejectQt(@CurrentUser() user, @Param('id') qtId: string, @Body() dto: { rejectReason: string }) {
     return this.svc.rejectQt(user, { qtId, rejectReason: dto.rejectReason });
   }
 
   // §3.5 cancel RFQ
   @Post('rfq/:id/cancel')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('ADMIN', 'PURCHASING')
   cancelRfq(@CurrentUser() user, @Param('id') rfqId: string, @Body() dto: { cancelReason: string }) {
     return this.svc.cancelRfq(user, { rfqId, cancelReason: dto.cancelReason });
   }
@@ -607,7 +607,7 @@ export class QtAlreadyAgreedError extends Nx02ConflictError { ... }
 |---|---|---|---|---|
 | 1 | error class + advisory lock 命名解耦 D4 | §2.1 | 方案 a（B5 自寫 nx02-* 命名）| 程式碼配置 |
 | 2 | RFQ stub status 對齊 — 加 state machine 邊 | §2.2 | 方案 a（加 DRAFT → REPLIED 邊）| state-machine.ts |
-| 3 | PURCHASE_ADMIN role | §2.3 | 方案 b（用 ADMIN + PURCHASE）| controller @Roles |
+| 3 | PURCHASING_ADMIN role | §2.3 | 方案 b（用 ADMIN + PURCHASING）| controller @Roles |
 | 4 | TI 單號分配 | §2.4 | 方案 a（擴 allocDocNo 加 'TI'）| shared/nx02 |
 | 5 | **SO 反查路徑（B5 關鍵）** | §3.4 | 方案 i（加 nx02_rfq.source_so_item_id + 升級 D4 stub）| **schema patch + D4 升級** |
 | 6 | RfqService.softDelete vs B5 cancelRfq | §3.8 | 分開（既有 softDelete 不動）| controller route |
