@@ -5,8 +5,8 @@
  * Purpose:
  * - JWT 驗證 + 注入 roles 到 req.user
  * - NX99-T3：validate 回傳 tenantId / tenantCode / planCode 供 API 識別租戶與方案
- * - **跨租戶平台**：僅當 nx01_user.tenantId 為 null 且具 ADMIN 職務時，租戶欄位為 null
- * - **租戶內 ADMIN**（如 DEMO 的 admin）：仍帶該租戶 tenantId，列表／查詢僅限該公司
+ * - **跨租戶平台**：僅當 nx01_user.tenantId 為 null 且具 SYSADMIN 職務時，租戶欄位為 null（A042 closure）
+ * - **租戶內 OWNER**（如 DEMO 的 admin user）：仍帶該租戶 tenantId，列表／查詢僅限該公司
  *
  * Notes:
  * - validate 回傳物件會掛到 req.user
@@ -78,8 +78,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
     const roles = urRows.map((r) => r.role.code);
 
+    /** 僅 SYSADMIN 為跨租戶平台、OWNER 屬單租戶不跨（A042 closure）*/
     const isCrossTenantPlatform =
-      roles.some((c) => String(c).trim().toUpperCase() === 'ADMIN') && userRow.tenantId == null;
+      roles.some((c) => String(c).trim().toUpperCase() === 'SYSADMIN') && userRow.tenantId == null;
 
     let tenantId: string | null;
     let tenantCode: string | null;

@@ -13,7 +13,7 @@ import { PeriodCloseService } from './period-close.service';
 
 @Controller('nx05/period-close')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PeriodCloseController {
   constructor(private readonly svc: PeriodCloseService) {}
 

@@ -12,7 +12,7 @@ import { SoService } from './so.service';
 
 @Controller('nx04/so')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class SoController {
   constructor(private readonly svc: SoService) {}
 

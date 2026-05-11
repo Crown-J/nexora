@@ -13,7 +13,7 @@ import { ReceiptService } from './receipt.service';
 
 @Controller('nx05/receipt')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class ReceiptController {
   constructor(private readonly svc: ReceiptService) {}
 

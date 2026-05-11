@@ -10,7 +10,7 @@
  * - 驗證帳密、簽發 JWT
  * - /auth/me 用 sub 查 nx01_user 回傳使用者資訊
  * - Prisma 回傳 camelCase 欄位（isActive/passwordHash/displayName...）
- * - tenant_id 為 null 時仍可登入；僅「無租戶＋ADMIN」簽出無租戶 JWT，其餘租戶 admin 帶 tenantId
+ * - tenant_id 為 null 時仍可登入；僅「無租戶＋SYSADMIN」簽出無租戶 JWT，其餘租戶 OWNER 帶 tenantId（A042 closure）
  */
 
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
@@ -97,9 +97,9 @@ export class AuthService {
     }
 
     const scopedUserRoles = user.rev_Nx01UserRole_userId.filter((ur) => ur.tenantId === user.tenantId);
-    /** 僅「無租戶綁定」的 ADMIN 為跨租戶平台；租戶內 admin 帳號仍帶 tenantId 以隔離資料 */
+    /** 僅「無租戶綁定」的 SYSADMIN 為跨租戶平台；租戶內 OWNER 仍帶 tenantId 以隔離資料（A042 closure：原 ADMIN→SYSADMIN、OWNER 屬單租戶不跨）*/
     const isCrossTenantPlatform =
-      scopedUserRoles.some((ur) => String(ur.role?.code ?? '').trim().toUpperCase() === 'ADMIN') &&
+      scopedUserRoles.some((ur) => String(ur.role?.code ?? '').trim().toUpperCase() === 'SYSADMIN') &&
       user.tenantId == null;
 
     let subscription: { plan: { code: string } } | null = null;
@@ -206,10 +206,11 @@ export class AuthService {
       ? user.rev_Nx01UserRole_userId.filter((ur) => ur.tenantId === user.tenantId)
       : user.rev_Nx01UserRole_userId;
     const roles = roleRowsForMe.map((ur) => ur.role.code);
-    /** 與 Guard 一致：掛 ADMIN 職務者 view_permissions 為 null（前端視為全開） */
-    const isPlatformAdminForPerms = roleRowsForMe.some(
-      (ur) => String(ur.role.code).trim().toUpperCase() === 'ADMIN',
-    );
+    /** 與 Guard 一致：掛 SYSADMIN / OWNER 職務者 view_permissions 為 null（前端視為全開、A042 closure）*/
+    const isPlatformAdminForPerms = roleRowsForMe.some((ur) => {
+      const code = String(ur.role.code).trim().toUpperCase();
+      return code === 'SYSADMIN' || code === 'OWNER';
+    });
 
     const merged = await this.viewPerm.mergeForProfile({
       tenantId: user.tenantId,

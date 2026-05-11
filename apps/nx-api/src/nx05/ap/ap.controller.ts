@@ -13,7 +13,7 @@ import { PatchApDto } from './dto/ap.dto';
 
 @Controller('nx05/ap')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class ApController {
   constructor(private readonly svc: ApService) {}
 

@@ -11,7 +11,7 @@ import { PartBrandService } from './part-brand.service';
 
 @Controller('nx01/part-brands')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PartBrandController {
   constructor(private readonly svc: PartBrandService) {}
 

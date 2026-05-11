@@ -14,7 +14,7 @@ import { Nx07PayrollService } from './payroll.service';
 
 @Controller('nx07/payroll')
 @UseGuards(JwtAuthGuard, Nx07ProPlanGuard, Nx07NoFinanceGuard, RolesGuard)
-@Roles('ADMIN', 'HR', 'HR_ADMIN')
+@Roles('SYSADMIN', 'OWNER', 'HR')
 export class Nx07PayrollController {
   constructor(private readonly svc: Nx07PayrollService) {}
 

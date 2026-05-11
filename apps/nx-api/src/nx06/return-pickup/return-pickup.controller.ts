@@ -13,7 +13,7 @@ import { CreateReturnPickupDto, PatchReturnPickupDto } from './return-pickup.dto
 
 @Controller('nx06/return-pickup')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class ReturnPickupController {
   constructor(private readonly svc: DnLogisticsService) {}
 

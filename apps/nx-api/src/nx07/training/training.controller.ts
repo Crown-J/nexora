@@ -14,7 +14,7 @@ import { Nx07TrainingService } from './training.service';
 
 @Controller('nx07/training')
 @UseGuards(JwtAuthGuard, Nx07ProPlanGuard, Nx07NoFinanceGuard, RolesGuard)
-@Roles('ADMIN', 'HR', 'HR_ADMIN')
+@Roles('SYSADMIN', 'OWNER', 'HR')
 export class Nx07TrainingController {
   constructor(private readonly svc: Nx07TrainingService) {}
 

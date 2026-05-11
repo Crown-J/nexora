@@ -12,7 +12,7 @@ import { InboundService } from './inbound.service';
 
 @Controller('nx03/inbound')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class InboundController {
   constructor(private readonly svc: InboundService) {}
 

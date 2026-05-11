@@ -1,6 +1,7 @@
 /**
  * 依 nx01_role_view 合併「目前 JWT 使用者＋租戶」之畫面權限（多職務 OR）。
- * - 凡 JWT roles 含 **ADMIN**（租戶內系統管理員或平台）：merge 回傳 null → 略過 Guard（租戶資料範圍仍依 **tenantId**）
+ * - 凡 JWT roles 含 **SYSADMIN / OWNER**：merge 回傳 null → 略過 Guard（租戶資料範圍仍依 **tenantId**）
+ *   ⚠️ A042 closure：A034 將 role.code 'ADMIN' → 'SYSADMIN'、補 OWNER 對齊 NX01-02 規格 7 role 真相
  * - nx01_role_view 無 can_toggle_active：以 canUpdate || canDelete 對應 toggleActive
  */
 
@@ -23,17 +24,20 @@ export type MergedNx01ViewPerms = {
 export class ViewPermissionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private rolesIncludeAdmin(roles: string[] | undefined): boolean {
-    return (roles ?? []).some((r) => String(r).trim().toUpperCase() === 'ADMIN');
+  private rolesIncludeSuperAdmin(roles: string[] | undefined): boolean {
+    return (roles ?? []).some((r) => {
+      const c = String(r).trim().toUpperCase();
+      return c === 'SYSADMIN' || c === 'OWNER';
+    });
   }
 
-  private async userHasActiveAdminAssignment(userId: string, tenantId: string | null): Promise<boolean> {
+  private async userHasActiveSuperAdminAssignment(userId: string, tenantId: string | null): Promise<boolean> {
     const row = await this.prisma.nx01UserRole.findFirst({
       where: {
         userId,
         isActive: true,
         ...(tenantId ? { tenantId } : {}),
-        role: { code: 'ADMIN', isActive: true },
+        role: { code: { in: ['SYSADMIN', 'OWNER'] }, isActive: true },
       },
       select: { id: true },
     });
@@ -41,8 +45,8 @@ export class ViewPermissionService {
   }
 
   async mergeForRequestUser(user: RequestUser): Promise<Record<string, MergedNx01ViewPerms> | null> {
-    if (this.rolesIncludeAdmin(user.roles)) return null;
-    if (await this.userHasActiveAdminAssignment(user.sub, user.tenantId ?? null)) return null;
+    if (this.rolesIncludeSuperAdmin(user.roles)) return null;
+    if (await this.userHasActiveSuperAdminAssignment(user.sub, user.tenantId ?? null)) return null;
     const tid = user.tenantId;
     if (!tid) return {};
 

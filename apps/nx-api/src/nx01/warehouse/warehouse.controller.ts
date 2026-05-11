@@ -11,7 +11,7 @@ import { WarehouseService } from './warehouse.service';
 
 @Controller('nx01/warehouses')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class WarehouseController {
   constructor(private readonly svc: WarehouseService) {}
 

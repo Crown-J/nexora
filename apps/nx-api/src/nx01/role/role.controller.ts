@@ -11,7 +11,7 @@ import { RoleService } from './role.service';
 
 @Controller('nx01/roles')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class RoleController {
   constructor(private readonly svc: RoleService) {}
 

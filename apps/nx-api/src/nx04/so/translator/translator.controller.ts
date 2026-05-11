@@ -1,5 +1,5 @@
 // apps/nx-api/src/nx04/so/translator/translator.controller.ts
-// D4 翻譯器 controller — POST /nx04/so/translate
+// D4 蝧餉陌??controller ??POST /nx04/so/translate
 
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 
@@ -14,7 +14,7 @@ import { Nx04SoTranslatorService } from './translator.service';
 
 @Controller('nx04/so')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class SoTranslatorController {
   constructor(private readonly svc: Nx04SoTranslatorService) {}
 

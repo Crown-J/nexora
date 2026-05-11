@@ -55,7 +55,7 @@ D('B2 stock-reservation — multi-tenant isolation (intent v1.1 §5.5)', () => {
     const liteUser = {
       sub: fixture.userId,
       username: 'lite-tester',
-      roles: ['ADMIN'],
+      roles: ['SYSADMIN'],
       tenantId: fixture.tenantId,
       tenantCode: 'TEST-LITE',
       planCode: 'LITE',
@@ -69,7 +69,7 @@ D('B2 stock-reservation — multi-tenant isolation (intent v1.1 §5.5)', () => {
     const alienUser = {
       sub: fixture.userId,
       username: 'alien-tester',
-      roles: ['ADMIN'],
+      roles: ['SYSADMIN'],
       tenantId: 'NX99TANT9999999', // 不存在的 tenant
       tenantCode: 'ALIEN',
       planCode: 'LITE',

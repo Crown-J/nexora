@@ -21,13 +21,13 @@ export class Nx10ExpController {
   }
 
   @Post('award')
-  @Roles('ADMIN')
+  @Roles('SYSADMIN', 'OWNER')
   award(@CurrentUser() user: RequestUser, @Body() dto: Nx10ExpAwardDto) {
     return this.svc.award(user, dto);
   }
 
   @Get(':userId')
-  @Roles('ADMIN')
+  @Roles('SYSADMIN', 'OWNER')
   getOne(@CurrentUser() user: RequestUser, @Param('userId') userId: string) {
     return this.svc.getByUserId(user, userId);
   }

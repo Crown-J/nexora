@@ -52,8 +52,12 @@ export class RolesGuard implements CanActivate {
       .filter((r) => r.role.isActive)
       .map((r) => r.role.code);
 
-    // 🔥 ADMIN 覆蓋邏輯
-    if (roleCodes.some((c) => String(c).trim().toUpperCase() === 'ADMIN')) {
+    // 🔥 SYSADMIN / OWNER 全通行邏輯（A042 closure、Crown 拍 Q1）
+    // - SYSADMIN：系統管理（NEXORA team 跨租戶）
+    // - OWNER：客戶最高權限（單租戶內 admin）
+    // A034 將 role.code 'ADMIN' → 'SYSADMIN' 後、原 'ADMIN' 全通行邏輯永遠 false、production guard 失效。
+    const SUPER_ROLES = new Set(['SYSADMIN', 'OWNER']);
+    if (roleCodes.some((c) => SUPER_ROLES.has(String(c).trim().toUpperCase()))) {
       return true;
     }
 

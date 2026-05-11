@@ -11,7 +11,7 @@ import { StockBalanceService } from './stock-balance.service';
 
 @Controller('nx03/stock-balance')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class StockBalanceController {
   constructor(private readonly svc: StockBalanceService) {}
 

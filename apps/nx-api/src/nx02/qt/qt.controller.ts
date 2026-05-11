@@ -1,9 +1,14 @@
 // apps/nx-api/src/nx02/qt/qt.controller.ts
 // B5 RFQ/QT API controller
 //
-// Access control（B5-impl §2.3 拍板方案 b）：
+// Access control（B5-impl §2.3 拍板方案 b、A040 + A042 closure 後更新）：
 //   list 開放給所有登入 user（採購工作台「我有哪些 RFQ 可以處理」需查得到）
-//   寫入 endpoint 限 ADMIN/PURCHASE（RolesGuard ADMIN 全通行邏輯已 cover 系管）
+//   寫入 endpoint 限 SYSADMIN / OWNER / PURCHASING（RolesGuard SYSADMIN+OWNER 全通行邏輯已 cover）
+//
+// ⚠️ 命名收斂歷史：
+//   A034：role.code 'ADMIN' → 'SYSADMIN'、'PURCHASE' → 'PURCHASING'
+//   A040：本檔 stale 'PURCHASE' 引用 closure（軌 4.5）
+//   A042：本檔 stale 'ADMIN' 引用 closure + 加 'OWNER' 對齊 7 role 真相（軌 4.6）
 
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 
@@ -32,23 +37,23 @@ export class QtController {
     return this.svc.listRfqsForPurchase(user, q);
   }
 
-  /** §3.2 新增 QT — 限 PURCHASE / ADMIN */
+  /** §3.2 新增 QT — 限 PURCHASING / SYSADMIN / OWNER */
   @Post('qt')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('SYSADMIN', 'OWNER', 'PURCHASING')
   addQt(@CurrentUser() user: RequestUser, @Body() dto: CreateQtDto) {
     return this.svc.addQt(user, dto);
   }
 
-  /** §3.3 採用 QT — 限 PURCHASE / ADMIN */
+  /** §3.3 採用 QT — 限 PURCHASING / SYSADMIN / OWNER */
   @Post('qt/:id/adopt')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('SYSADMIN', 'OWNER', 'PURCHASING')
   adoptQt(@CurrentUser() user: RequestUser, @Param('id') qtId: string) {
     return this.svc.adoptQt(user, qtId);
   }
 
-  /** §3.4 拒絕單筆 QT — 限 PURCHASE / ADMIN */
+  /** §3.4 拒絕單筆 QT — 限 PURCHASING / SYSADMIN / OWNER */
   @Post('qt/:id/reject')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('SYSADMIN', 'OWNER', 'PURCHASING')
   rejectQt(
     @CurrentUser() user: RequestUser,
     @Param('id') qtId: string,
@@ -57,9 +62,9 @@ export class QtController {
     return this.svc.rejectQt(user, qtId, dto);
   }
 
-  /** §3.5 取消整個 RFQ — 限 PURCHASE / ADMIN */
+  /** §3.5 取消整個 RFQ — 限 PURCHASING / SYSADMIN / OWNER */
   @Post('rfq/:id/cancel')
-  @Roles('ADMIN', 'PURCHASE')
+  @Roles('SYSADMIN', 'OWNER', 'PURCHASING')
   cancelRfq(
     @CurrentUser() user: RequestUser,
     @Param('id') rfqId: string,

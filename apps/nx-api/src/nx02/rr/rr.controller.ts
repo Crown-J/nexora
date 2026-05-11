@@ -12,7 +12,7 @@ import { RrService } from './rr.service';
 
 @Controller('nx02/rr')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class RrController {
   constructor(private readonly svc: RrService) {}
 

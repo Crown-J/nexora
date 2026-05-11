@@ -13,7 +13,7 @@ import { PaymentService } from './payment.service';
 
 @Controller('nx05/payment')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PaymentController {
   constructor(private readonly svc: PaymentService) {}
 

@@ -11,7 +11,7 @@ import { CreateCurrencyDto, ListCurrencyQueryDto, UpdateCurrencyDto } from './dt
 
 @Controller('nx01/currencies')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class CurrencyController {
   constructor(private readonly svc: CurrencyService) {}
 

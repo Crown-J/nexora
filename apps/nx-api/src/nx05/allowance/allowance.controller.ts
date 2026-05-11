@@ -13,7 +13,7 @@ import { CreateAllowanceDto, PatchAllowanceDto } from './dto/allowance.dto';
 
 @Controller('nx05/allowance')
 @UseGuards(JwtAuthGuard, RolesGuard, Nx05FinanceAccessGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class AllowanceController {
   constructor(private readonly svc: AllowanceService) {}
 

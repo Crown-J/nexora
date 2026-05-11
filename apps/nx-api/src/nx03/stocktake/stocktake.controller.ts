@@ -12,7 +12,7 @@ import { StockTakeService } from './stocktake.service';
 
 @Controller('nx03/stocktake')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class StockTakeController {
   constructor(private readonly svc: StockTakeService) {}
 

@@ -11,7 +11,7 @@ import { FeatureFlagService } from './feature-flag.service';
 
 @Controller('nx99/feature-flags')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class FeatureFlagController {
   constructor(private readonly featureFlagService: FeatureFlagService) {}
 

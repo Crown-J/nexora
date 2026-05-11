@@ -12,7 +12,7 @@ import { PoService } from './po.service';
 
 @Controller('nx02/po')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PoController {
   constructor(private readonly svc: PoService) {}
 

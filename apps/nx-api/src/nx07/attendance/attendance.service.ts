@@ -51,7 +51,8 @@ export class Nx07AttendanceService {
 
   private assertAdminOrSelf(user: RequestUser, targetUserId: string) {
     const roles = (user.roles ?? []).map((r) => String(r).trim().toUpperCase());
-    if (roles.includes('ADMIN') || roles.includes('HR') || roles.includes('HR_ADMIN')) return;
+    // A042 closure：role 命名對齊 A034 後 7 role 真相（SYSADMIN/OWNER/HR、HR_ADMIN 已 removed 併入 HR）
+    if (roles.includes('SYSADMIN') || roles.includes('OWNER') || roles.includes('HR')) return;
     if (user.sub !== targetUserId) throw new ForbiddenException('Can only punch for self');
   }
 

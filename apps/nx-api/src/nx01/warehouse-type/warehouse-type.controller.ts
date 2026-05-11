@@ -11,7 +11,7 @@ import { WarehouseTypeService } from './warehouse-type.service';
 
 @Controller('nx01/warehouse-types')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class WarehouseTypeController {
   constructor(private readonly svc: WarehouseTypeService) {}
 

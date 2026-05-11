@@ -14,7 +14,7 @@ import { Nx07EmployeeChangeService } from './employee-change.service';
 
 @Controller('nx07/employee-change')
 @UseGuards(JwtAuthGuard, Nx07ProPlanGuard, Nx07NoFinanceGuard, RolesGuard)
-@Roles('ADMIN', 'HR', 'HR_ADMIN')
+@Roles('SYSADMIN', 'OWNER', 'HR')
 export class Nx07EmployeeChangeController {
   constructor(private readonly svc: Nx07EmployeeChangeService) {}
 
