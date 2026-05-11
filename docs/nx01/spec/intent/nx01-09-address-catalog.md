@@ -437,7 +437,7 @@ migration 處理:
 | SYSADMIN | ✅（跨租戶）| ✅ | ✅ | ✅ | ❌（保護歷史引用）|
 | BUSINESS_OWNER | ✅（read-only、下拉選用）| ❌ | ❌ | ❌ | ❌ |
 | 業務 / 採購 / 倉管 | ✅（read-only、下拉選用）| ❌ | ❌ | ❌ | ❌ |
-| HR_ADMIN | ✅（read-only）| ❌ | ❌ | ❌ | ❌ |
+| HR | ✅（read-only）| ❌ | ❌ | ❌ | ❌ |
 
 **關鍵權限規則：**
 

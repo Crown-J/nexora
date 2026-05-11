@@ -98,7 +98,7 @@ NX01 的核心使用者：
 | 角色 | 用 NX01 做什麼 | 多常用 |
 |------|--------------|-------|
 | BUSINESS_OWNER（老闆 / 總經理） | 設定主檔、看公告 | 每週 |
-| HR_ADMIN（人資主管） | 維護 user / role | 每月 |
+| HR（人資主管） | 維護 user / role | 每月 |
 | 業務 / 採購 | 維護 partner（自己負責的客戶 / 供應商）| 每天 |
 | 倉管 | 維護 part 部分欄位（庫存相關）| 每天 |
 | 業務 / 倉管 | 用注音碼快搜（ㄅㄓㄑ → 避震器）| 每天 |
@@ -151,8 +151,8 @@ D. 索引型     系統自動維護、業務人員無感
 
 | # | 表名 | 業務語意 | 分類 | 主要維護人 |
 |---|------|---------|------|----------|
-| 1 | nx01_user | 系統使用者帳號 | A 主檔 | HR_ADMIN |
-| 2 | nx01_role | 角色權限 | A 主檔 | HR_ADMIN |
+| 1 | nx01_user | 系統使用者帳號 | A 主檔 | HR |
+| 2 | nx01_role | 角色權限 | A 主檔 | HR |
 | 3 | nx01_part | 料號主檔 | A 主檔 | 採購 / 倉管 |
 | 4 | nx01_part_brand | 部品品牌 | B 型錄 | SYSADMIN / BUSINESS_OWNER |
 | 5 | nx01_partner | 客戶 / 供應商主檔（含 5 種類型 C/S/T/V/B）| A 主檔 | 業務 / 採購 |
@@ -160,7 +160,7 @@ D. 索引型     系統自動維護、業務人員無感
 | 7 | nx01_warehouse_type | 倉別類型 | B 型錄 | SYSADMIN |
 | 8 | nx01_customer_grade | 客戶等級 | B 型錄 | BUSINESS_OWNER |
 | 9 | nx01_currency | 幣別 | B 型錄 | SYSADMIN（全域）|
-| 10 | nx01_bulletin | 內部公告 | C 通知 | BUSINESS_OWNER / HR_ADMIN |
+| 10 | nx01_bulletin | 內部公告 | C 通知 | BUSINESS_OWNER / HR |
 
 #### 🟡 schema 已建未實作（11 個）
 
@@ -406,9 +406,9 @@ NX01 主檔不能「真刪除」、只能停用（`isActive = false`）：
 
 - 可看 / 改：自己租戶內所有 NX01 主檔
 - 主要維護：warehouse / customer_grade / bulletin / car_brand / part_brand
-- 通常會委派給 HR_ADMIN / 業務 / 採購
+- 通常會委派給 HR / 業務 / 採購
 
-### 4.3 HR_ADMIN（人資主管）
+### 4.3 HR（人資主管）
 
 - 可看 / 改：user / role
 - 不可看 / 改：part / partner（不是人資業務）

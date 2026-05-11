@@ -51,7 +51,8 @@
 
 ### 1.4 既有 SO controller 路由結構
 
-`@Controller('nx04/so')` + `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles('ADMIN')`。新翻譯器走 `@Controller('nx04/so')` 同 prefix 不同子路徑（避免兩支 controller 撞 base path）。詳見 §4.5。
+`@Controller('nx04/so')` + `@UseGuards(JwtAuthGuard, RolesGuard)` + `@Roles('SYSADMIN', 'OWNER')`。新翻譯器走 `@Controller('nx04/so')` 同 prefix 不同子路徑（避免兩支 controller 撞 base path）。詳見 §4.5。 <!-- A042 closure: ADMIN → SYSADMIN+OWNER -->
+
 
 ### 1.5 既有 SO 路由 sop-demo 已用，不能改
 
@@ -457,7 +458,7 @@ export interface TranslateSoResult {
 // apps/nx-api/src/nx04/so/translator/translator.controller.ts
 @Controller('nx04/so')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN', 'SALES')  // 業務角色也能用
+@Roles('SYSADMIN', 'OWNER', 'SALES')  // 業務角色也能用（A042 closure：ADMIN → SYSADMIN+OWNER）
 export class SoTranslatorController {
   constructor(private readonly svc: Nx04SoTranslatorService) {}
 
