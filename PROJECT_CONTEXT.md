@@ -519,6 +519,33 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：spec docs 跨多檔 mass update 屬「Hank 工具操作範圍」、
             Alex 寫指令給 Hank 而不自己動手
 
+#11 PROJECT_CONTEXT 編號不擅自定（軌 4.7 + 軌 4.8 觸發、Q5D' 落地）
+  → 規則：Alex 寫「PROJECT_CONTEXT 加 Alex 失誤紀錄條目」指令時、
+         不擅自定編號、必須請 Hank 標「候選 #N」+ 等 Crown verify
+  → 觸發紀錄：軌 4.7 候選 #9 / #10 揭露時、Hank 守紀律標「候選」等 Crown verify、
+            Alex 一度誤以為可自動編號
+  → 對應 Hank 端：charter §G「不擅自定編號」紀律
+  → 升級規則：Alex 寫條目指令必明示「候選 #N、待 Crown verify」字眼、
+            不假設可跳過 Crown 拍板環節
+
+#12 技術實作 Hank 自決、不問 Crown（NX01-11 Q4 觸發、Crown 拍真相揭露）
+  → 規則：給 Crown 的拍板題、必須是「業務結果差異」、不是「技術實作差異」
+         當選項只是「DB 結構怎麼存 / 程式怎麼寫」、沒有業務語意差異、
+         必須改寫成「Hank 自決 + 揭露理由」、不問 Crown
+  → 觸發紀錄：NX01-11 v0.1.0 Q4 問 Crown「JSON vs 子表」、
+            Crown 揭露「過程交給 Hank、我只說要的結果」業界 muscle memory 真相
+  → 三層分工：Crown 業務拍板 / Alex 業務語意 / Hank 工具操作 + 技術實作
+  → 升級規則：Alex 寫 spec Q&A 前、必先 self-check「這是業務題還是技術題」、
+            技術題直接交 Hank、不上 Crown
+
+#13 業界 muscle memory 否定的「擔憂」不寫進 spec（NX01-11 Q5 觸發、Crown 拍真相揭露）
+  → 規則：寫 spec 時假設「業界可能撞 X」的擔憂、不該存在於規格書（過度防呆）
+         Crown 業界 muscle memory 真相 = 不會發生、那 v1.0 就直接不做這個檢查
+  → 觸發紀錄：NX01-11 v0.1.0 Q5 問「part_code_2 跨品牌 unique 檢查」、
+            Crown 揭露「恆迎 18 年沒發生過」、Alex 過度防呆
+  → 升級規則：Alex 寫業務檢核欄位前、必先業界 muscle memory check（問 Crown / 看 PROJECT_CONTEXT §🎯）、
+            業界沒發生過的不寫、Crown 拍才加
+
 候選 #14（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 採納、編號待 Crown verify）：
    Alex 寫紀律規則時必須明示「適用時機完整列表」、不假設 Hank 自動擴張理解
   → 軌 4.6 觸發：A047「git add 用具體檔案路徑」只在 commit 階段明示、未擴張到 merge resolution 階段
@@ -536,6 +563,15 @@ Phase 0~1 累積 8 次同類失誤：
          手段失靈時、找替代手段達成原目的、不死守「手段本身」
   → 反 pattern：Alex / Hank 把「手段」當「目的」、規則違反時只想「revert / rm 恢復手段執行」
   → 升級規則：Alex 寫紀律規則時必明示「目的」、Hank 違反時必問「目的是什麼、替代手段是什麼」
+
+#16 Alex 揭露失誤候選必當輪落地、不堆積（本對話累積觸發、Q5D' 補登）
+  → 規則：Alex 揭露 Alex 失誤候選時、必須立即在當輪指令裡讓 Hank 寫進 PROJECT_CONTEXT、
+         不該堆積到下一輪才補
+  → 反 pattern：「Alex 持續揭露失誤但失誤從不落地」= backlog drift、
+                跨對話交接會散失
+  → 觸發紀錄：本對話 #11~#15 揭露時未即時落地、累積到 Q5D' 才補
+  → 升級規則：Alex 揭露失誤瞬間、當輪指令必含「Hank 寫進 PROJECT_CONTEXT」step、
+            不留到下一輪
 
 整體紀律：
   - 不要急著拍方案、先確認既有
