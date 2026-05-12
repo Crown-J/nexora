@@ -116,32 +116,145 @@ model Nx01BrandCodeRule {
 /// =======================================================
 model Nx01Bulletin {
   /// [NX01]+[BULL]+[7碼流水號]，EX : NX01BULL0000001；啟用最低需求版本：LITE
-  id        String     @id @default(dbgenerated("gen_nx01_bulletin_id()")) @db.VarChar(15)
+  id               String                  @id @default(dbgenerated("gen_nx01_bulletin_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  tenantId         String                  @map("tenant_id") @db.VarChar(15)
   /// 公告標題；啟用最低需求版本：LITE
-  title     String     @db.VarChar(100)
-  /// 公告內容（多行文字）；啟用最低需求版本：LITE
-  content   String?    @db.Text
-  /// 公告類型：S=SYSTEM / C=COMPANY / R=REMIND；啟用最低需求版本：LITE
-  type      String     @default("C") @db.VarChar(1)
-  /// 是否置頂；啟用最低需求版本：LITE
-  isPinned  Boolean    @default(false) @map("is_pinned")
+  title            String                  @db.VarChar(100)
+  /// 公告內容（rich text、HTML 5000 字內）；啟用最低需求版本：LITE
+  content          String?                 @db.Text
+  /// 公告類型（v0 遺留：S=SYSTEM / C=COMPANY / R=REMIND）。v1.0 改用 category_id；本欄位保留 backward compat、後續 task 廢棄。
+  type             String                  @default("C") @db.VarChar(1)
+  /// 分類 FK（連 nx01_bulletin_category、v1.0 對齊 audience_logic 對象範圍）；啟用最低需求版本：LITE
+  categoryId       String?                 @map("category_id") @db.VarChar(15)
+  /// 重要等級：normal=一般 / important=重要（第一次登入跳 modal） / urgent=緊急（每次登入跳）；啟用最低需求版本：LITE
+  importance       String                  @default("normal") @db.VarChar(20)
+  /// 補充指定 user IDs（在 category 對象範圍外、額外加掛指定 user）；啟用最低需求版本：LITE
+  audienceUserIds  String[]                @map("audience_user_ids") @db.VarChar(15)
+  /// 發布時間（預設 now、PRO 可排程未來）；啟用最低需求版本：LITE
+  publishAt        DateTime                @default(now()) @map("publish_at")
+  /// 狀態：draft=草稿 / scheduled=排程中 / published=已發布 / withdrawn=撤回 / expired=過期；啟用最低需求版本：LITE
+  status           String                  @default("draft") @db.VarChar(20)
+  /// 是否置頂（v0 遺留欄位、保留 backward compat、v1.0 spec 未提）；啟用最低需求版本：LITE
+  isPinned         Boolean                 @default(false) @map("is_pinned")
   /// 到期時間（NULL = 永久顯示）；啟用最低需求版本：LITE
-  expiredAt DateTime?  @map("expired_at")
+  expiredAt        DateTime?               @map("expired_at")
+  /// 已讀人數（trigger 自動更新、來自 nx01_bulletin_read_log count）；啟用最低需求版本：LITE
+  readCount        Int                     @default(0) @map("read_count")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive  Boolean    @default(true) @map("is_active")
+  isActive         Boolean                 @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt DateTime   @default(now()) @map("created_at")
+  createdAt        DateTime                @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy String     @map("created_by") @db.VarChar(15)
+  createdBy        String                  @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  updatedAt        DateTime                @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy String     @map("updated_by") @db.VarChar(15)
-  tenant    Nx99Tenant @relation("R_Nx01Bulletin_tenantId", fields: [tenantId], references: [id])
+  updatedBy        String                  @map("updated_by") @db.VarChar(15)
+  tenant           Nx99Tenant              @relation("R_Nx01Bulletin_tenantId", fields: [tenantId], references: [id])
+  category         Nx01BulletinCategory?   @relation("R_Nx01Bulletin_categoryId", fields: [categoryId], references: [id])
+  rev_Attachment   Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_bulletinId")
+  rev_ReadLog      Nx01BulletinReadLog[]   @relation("R_Nx01BulletinReadLog_bulletinId")
 
   @@map("nx01_bulletin")
+}
+
+/// =======================================================
+/// Nx01BulletinCategory — DB table `nx01_bulletin_category`
+/// 公告分類表（v1.0 子表、Tier 差異走 tier_required 不寫死 enum）
+/// =======================================================
+model Nx01BulletinCategory {
+  /// [NX01]+[BCAT]+[7碼流水號]，EX : NX01BCAT0000001；啟用最低需求版本：LITE
+  id            String         @id @default(dbgenerated("gen_nx01_bulletin_category_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId      String         @map("tenant_id") @db.VarChar(15)
+  /// 分類代碼（all / system / mgmt / product / sales / warehouse / finance / 自訂）；啟用最低需求版本：LITE
+  code          String         @db.VarChar(30)
+  /// 分類名稱（顯示用）；啟用最低需求版本：LITE
+  name          String         @db.VarChar(50)
+  /// 對象範圍邏輯 enum（tenant_all / system_all / leaders_all / by_team_id）；啟用最低需求版本：LITE
+  audienceLogic String         @map("audience_logic") @db.VarChar(20)
+  /// 對應 team FK（audience_logic = by_team_id 時必填）；啟用最低需求版本：PLUS
+  teamId        String?        @map("team_id") @db.VarChar(15)
+  /// 此分類所需最低 Tier（LITE / PLUS / PRO）；啟用最低需求版本：LITE
+  tierRequired  String         @default("LITE") @map("tier_required") @db.VarChar(10)
+  /// 是否系統預設（true = 不可刪、false = user 自訂）；啟用最低需求版本：LITE
+  isSystem      Boolean        @default(false) @map("is_system")
+  /// 排序；啟用最低需求版本：LITE
+  sortOrder     Int            @default(0) @map("sort_order")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive      Boolean        @default(true) @map("is_active")
+  /// 建立時間。；啟用最低需求版本：LITE
+  createdAt     DateTime       @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy     String         @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy     String         @map("updated_by") @db.VarChar(15)
+  tenant        Nx99Tenant     @relation("R_Nx01BulletinCategory_tenantId", fields: [tenantId], references: [id])
+  team          Nx01Team?      @relation("R_Nx01BulletinCategory_teamId", fields: [teamId], references: [id])
+  rev_Bulletin  Nx01Bulletin[] @relation("R_Nx01Bulletin_categoryId")
+
+  @@unique([tenantId, code])
+  @@map("nx01_bulletin_category")
+}
+
+/// =======================================================
+/// Nx01BulletinAttachment — DB table `nx01_bulletin_attachment`
+/// 公告附件子表（v1.0 範式 C、接軌 1 file-upload service、storage_key 跨 backend 通用）
+/// =======================================================
+model Nx01BulletinAttachment {
+  /// [NX01]+[BATT]+[7碼流水號]，EX : NX01BATT0000001；啟用最低需求版本：LITE
+  id              String       @id @default(dbgenerated("gen_nx01_bulletin_attachment_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵、軌 1 FileUploadService.upload() tenantId prefix 強制驗證對齊）；啟用最低需求版本：LITE
+  tenantId        String       @map("tenant_id") @db.VarChar(15)
+  /// 公告 FK；啟用最低需求版本：LITE
+  bulletinId      String       @map("bulletin_id") @db.VarChar(15)
+  /// 檔案在 storage 的 key（範式：{tenantId}/{module}/{yyyy}/{mm}/{uuid}{ext}、階段 1 本地路徑、階段 2 R2 object key）；啟用最低需求版本：LITE
+  storageKey      String       @map("storage_key") @db.VarChar(500)
+  /// MIME 類型（application/pdf / image/png 等）；啟用最低需求版本：LITE
+  mimeType        String       @map("mime_type") @db.VarChar(100)
+  /// 檔案大小（bytes）；啟用最低需求版本：LITE
+  fileSize        Int          @map("file_size")
+  /// 上傳時原始檔名；啟用最低需求版本：LITE
+  origFilename    String       @map("orig_filename") @db.VarChar(255)
+  /// 上傳者 FK；啟用最低需求版本：LITE
+  uploaderUserId  String       @map("uploader_user_id") @db.VarChar(15)
+  /// 上傳時間；啟用最低需求版本：LITE
+  createdAt       DateTime     @default(now()) @map("created_at")
+  tenant          Nx99Tenant   @relation("R_Nx01BulletinAttachment_tenantId", fields: [tenantId], references: [id])
+  bulletin        Nx01Bulletin @relation("R_Nx01BulletinAttachment_bulletinId", fields: [bulletinId], references: [id], onDelete: Cascade)
+  uploader        Nx01User     @relation("R_Nx01BulletinAttachment_uploaderUserId", fields: [uploaderUserId], references: [id])
+
+  @@index([bulletinId])
+  @@map("nx01_bulletin_attachment")
+}
+
+/// =======================================================
+/// Nx01BulletinReadLog — DB table `nx01_bulletin_read_log`
+/// 公告已讀紀錄（v1.0 § 4.4、PK = (bulletin_id, user_id) 同 user 對同公告只記一筆）
+/// =======================================================
+model Nx01BulletinReadLog {
+  /// [NX01]+[BRLG]+[7碼流水號]，EX : NX01BRLG0000001；啟用最低需求版本：LITE
+  id              String       @id @default(dbgenerated("gen_nx01_bulletin_read_log_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId        String       @map("tenant_id") @db.VarChar(15)
+  /// 公告 FK；啟用最低需求版本：LITE
+  bulletinId      String       @map("bulletin_id") @db.VarChar(15)
+  /// 已讀者 FK；啟用最低需求版本：LITE
+  userId          String       @map("user_id") @db.VarChar(15)
+  /// 已讀時間；啟用最低需求版本：LITE
+  readAt          DateTime     @default(now()) @map("read_at")
+  /// 閱讀時間（modal 開啟 → 點「我已閱讀」毫秒數）；啟用最低需求版本：LITE
+  readDurationMs  Int?         @map("read_duration_ms")
+  tenant          Nx99Tenant   @relation("R_Nx01BulletinReadLog_tenantId", fields: [tenantId], references: [id])
+  bulletin        Nx01Bulletin @relation("R_Nx01BulletinReadLog_bulletinId", fields: [bulletinId], references: [id], onDelete: Cascade)
+  user            Nx01User     @relation("R_Nx01BulletinReadLog_userId", fields: [userId], references: [id])
+
+  @@unique([bulletinId, userId])
+  @@index([userId])
+  @@map("nx01_bulletin_read_log")
 }
 
 /// =======================================================
@@ -988,9 +1101,10 @@ model Nx01Team {
   department                Nx01Department @relation("R_Nx01Team_departmentId", fields: [departmentId], references: [id])
   parentTeam                Nx01Team?      @relation("R_Nx01Team_parentTeamId", fields: [parentTeamId], references: [id])
   warehouse                 Nx01Warehouse? @relation("R_Nx01Team_warehouseId", fields: [warehouseId], references: [id])
-  rev_Nx01Team_parentTeamId Nx01Team[]     @relation("R_Nx01Team_parentTeamId")
-  rev_Nx01UserTeam_teamId   Nx01UserTeam[] @relation("R_Nx01UserTeam_teamId")
-  rev_Nx07Schedule_teamId   Nx07Schedule[] @relation("R_Nx07Schedule_teamId")
+  rev_Nx01Team_parentTeamId        Nx01Team[]             @relation("R_Nx01Team_parentTeamId")
+  rev_Nx01UserTeam_teamId          Nx01UserTeam[]         @relation("R_Nx01UserTeam_teamId")
+  rev_Nx01BulletinCategory_teamId  Nx01BulletinCategory[] @relation("R_Nx01BulletinCategory_teamId")
+  rev_Nx07Schedule_teamId          Nx07Schedule[]         @relation("R_Nx07Schedule_teamId")
 
   @@map("nx01_team")
 }
@@ -1047,6 +1161,8 @@ model Nx01User {
   rev_Nx01UserRole_userId             Nx01UserRole[]         @relation("R_Nx01UserRole_userId")
   rev_Nx01UserTeam_userId             Nx01UserTeam[]         @relation("R_Nx01UserTeam_userId")
   rev_Nx01UserWarehouse_userId        Nx01UserWarehouse[]    @relation("R_Nx01UserWarehouse_userId")
+  rev_Nx01BulletinAttachment_uploader Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_uploaderUserId")
+  rev_Nx01BulletinReadLog_userId      Nx01BulletinReadLog[]  @relation("R_Nx01BulletinReadLog_userId")
   rev_Nx06Dn_driverUserId             Nx06Dn[]               @relation("R_Nx06Dn_driverUserId")
   rev_Nx07Attendance_userId           Nx07Attendance[]       @relation("R_Nx07Attendance_userId")
   rev_Nx07Performance_subjectUserId   Nx07Performance[]      @relation("R_Nx07Performance_subjectUserId")
@@ -6062,6 +6178,9 @@ model Nx99Tenant {
   rev_Nx01AuditLog_tenantId          Nx01AuditLog[]          @relation("R_Nx01AuditLog_tenantId")
   rev_Nx01BrandCodeRule_tenantId     Nx01BrandCodeRule[]     @relation("R_Nx01BrandCodeRule_tenantId")
   rev_Nx01Bulletin_tenantId          Nx01Bulletin[]          @relation("R_Nx01Bulletin_tenantId")
+  rev_Nx01BulletinCategory_tenantId  Nx01BulletinCategory[]  @relation("R_Nx01BulletinCategory_tenantId")
+  rev_Nx01BulletinAttachment_tenantId Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_tenantId")
+  rev_Nx01BulletinReadLog_tenantId   Nx01BulletinReadLog[]   @relation("R_Nx01BulletinReadLog_tenantId")
   rev_Nx01CalendarEvent_tenantId     Nx01CalendarEvent[]     @relation("R_Nx01CalendarEvent_tenantId")
   rev_Nx01CarBrand_tenantId          Nx01CarBrand[]          @relation("R_Nx01CarBrand_tenantId")
   rev_Nx01CustomerGrade_tenantId     Nx01CustomerGrade[]     @relation("R_Nx01CustomerGrade_tenantId")

@@ -14,6 +14,7 @@ import type { SeedTier } from '../lib/seed-tier';
 import { seedNx01RoleView } from '../system/nx01_role_view';
 
 import { applyAccountCode } from './apply-account-code';
+import { applyBulletinCategory } from './apply-bulletin-category';
 import { applyCarBrand } from './apply-car-brand';
 import { applyCustomerGrade } from './apply-customer-grade';
 import { applyDepartment } from './apply-department';
@@ -68,6 +69,9 @@ export async function applyTemplateToTenant(
 
   // === 權限矩陣（依 tier 載入對應 role_view）===
   await seedNx01RoleView(prisma, { tenantId, actorUserId, tier });
+
+  // === ALL：公告分類（LITE 2 / PLUS+PRO 7、依賴 applyTeam 已建 default team）===
+  await applyBulletinCategory(prisma, params);
 
   // === 歡迎公告（最後一步）===
   await applyWelcomeBulletin(prisma, params);
