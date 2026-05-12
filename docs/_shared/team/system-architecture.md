@@ -357,6 +357,7 @@ DATABASE_URL=postgres://...:5433/nexora
 | A015 | 桌面版 `InventoryCenterHub` orphan | R8 桌面版重構 |
 | A021 | `stock-balance.controller` 仍用 `@Roles('ADMIN')` 跟 B2 開放方向不一致 | 留另一 task 評估 |
 | A024 | customers-catalog 第一版命名工整連鎖感 | 已修模板（commit 5a34664）、待 Crown preview 確認 |
+| A053 | NX01-08 軌 3 commit 3 `downloadAttachment` controller endpoint 用 base64 + metadata return 替代 NestJS `@Res()` StreamableFile（避開 `@types/express` 未裝的型別依賴）。軌 3 已知限制：未來 NX01-08 真實附件下載量大（如 PDF / 大圖檔）時、base64 encoding 會 inflate response payload ~33%、應升級為直接 binary streaming。範圍：1 endpoint（`GET /nx01/bulletins/attachments/:id/download`、commit `a3c335f`）| 🟡 中度、未來軌處理：(1) 裝 `@types/express` + `@types/multer` devDep；(2) 改用 NestJS `StreamableFile` + `@Res({ passthrough: true })` 範式；(3) controller return type 改 `StreamableFile`；(4) 順帶評估其他模組（NX07 / 未來 NX02 / NX05 / NX09 附件）統一範式。觸發時機：真實附件流量增長 OR 整合 Cloudflare R2（軌 1 階段 2）時順手做 |
 
 ### G.3 順手清 🟢
 
