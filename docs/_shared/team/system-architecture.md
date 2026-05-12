@@ -357,6 +357,7 @@ DATABASE_URL=postgres://...:5433/nexora
 | A015 | 桌面版 `InventoryCenterHub` orphan | R8 桌面版重構 |
 | A021 | `stock-balance.controller` 仍用 `@Roles('ADMIN')` 跟 B2 開放方向不一致 | 留另一 task 評估 |
 | A024 | customers-catalog 第一版命名工整連鎖感 | 已修模板（commit 5a34664）、待 Crown preview 確認 |
+| A038 | 既有「直接放 url 欄位」附件範式 vs NX01-08 軌 3「子表 + storage_key」附件範式並存 drift。當前範圍：`nx07_leave_request.attachment_url`（line 4100）× 1 處用 VARCHAR(500) 直接放 url、無 audit / mime / size 紀錄、跟軌 3 建立的 `nx01_bulletin_attachment` 子表範式不一致；範圍粗估其他模組（NX02 採購 / NX05 票據掃描 / NX09 文件庫等）未來引入附件時若沿用「直接 url 欄位」範式、不一致會擴大。Hank 軌 4.5 NX01-08 諮詢時揭露（候選）、軌 3 commit 3 落地子表範式 → 升級為實質 drift | 🟡 中度、留各模組獨立 task 處理（NX07 attachment_url → nx07_leave_attachment 子表、伴 NX07 規格書升級時 closure；NX02 / NX05 / NX09 未來引入附件時走子表範式、不再加新 url 欄位）。軌 3 範圍限「揭露登錄」、不擅自跨模組遷移（紀律守住）。對應 hank-charter §G.4「歷史 fact 保留」範式：A038 不破壞既有 attachment_url 欄位、平行建立子表範式、新模組走子表、舊欄位逐 task 升級 |
 
 ### G.3 順手清 🟢
 

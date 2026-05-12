@@ -546,8 +546,7 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：Alex 寫業務檢核欄位前、必先業界 muscle memory check（問 Crown / 看 PROJECT_CONTEXT §🎯）、
             業界沒發生過的不寫、Crown 拍才加
 
-候選 #14（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 採納、編號待 Crown verify）：
-   Alex 寫紀律規則時必須明示「適用時機完整列表」、不假設 Hank 自動擴張理解
+#14 Alex 寫紀律規則時必須明示「適用時機完整列表」、不假設 Hank 自動擴張理解（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 採納、軌 3 commit 3 Crown verify 編號）
   → 軌 4.6 觸發：A047「git add 用具體檔案路徑」只在 commit 階段明示、未擴張到 merge resolution 階段
   → Hank 軌 4.6 merge resolution 用 `git add -A`、誤把 3 個 untracked spec 吸進 merge commit
   → 規則：Alex 寫工作流紀律（如 hank-charter §G）時、必須明示「適用時機完整列表」、
@@ -555,8 +554,7 @@ Phase 0~1 累積 8 次同類失誤：
   → 對應升級：A047 → A052（git add 從 commit 階段紀律升級為「任何 git add 時機」紀律）
   → 升級規則：Alex 寫 §G 規則時加「適用時機清單」+「不適用情境清單」雙列、消除「自動擴張」假設
 
-候選 #15（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 真相揭露、編號待 Crown verify）：
-   Alex 推薦補救方案時必先問「規則目的是什麼」、不堅持「規則手段本身」
+#15 Alex 推薦補救方案時必先問「規則目的是什麼」、不堅持「規則手段本身」（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 真相揭露、軌 3 commit 3 Crown verify 編號）
   → 軌 4.6 觸發：3 spec 誤入 main 後、Hank 提 3 選項（revert / git rm / 接受）都聚焦「手段」
   → Crown 提選項 D「接受 + 補說明 worklog 達成原紀律目的」= 揭露「紀律目的 vs 手段」分層思考
   → 規則：規則設定時有「目的」（如「不要亂掉、未來交接讀懂」）跟「手段」（如「分開 commit」）
