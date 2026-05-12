@@ -2,8 +2,8 @@
 
 # NEXORA GRID - PROJECT CONTEXT
 
-> 文件版本：v1.4
-> 最後更新：2026-05-06
+> 文件版本：v1.5
+> 最後更新：2026-05-12
 > 負責人：Crown Lin（林翰杰）
 > 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
 
@@ -571,6 +571,60 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：Alex 揭露失誤瞬間、當輪指令必含「Hank 寫進 PROJECT_CONTEXT」step、
             不留到下一輪
 
+#17 drift 揭露第一反應「插隊 vs backlog」分類、不 default 插隊（軌 4 family closure 觸發、Crown 拍補登）
+  → 觸發：軌 4 family closure 期間、子規格書進度只 +12%、Crown 揭露
+         「進度有點越來越慢、需要盡快將 NX01 完成」、Alex 反省 drift 滾雪球失控
+  → 規則：Hank 揭露新 drift 時、Alex 第一反應必先分類
+         「真實 production blocker（插隊）」vs「未來會 blocker（backlog）」、
+         不 default 插隊處理
+  → 反 pattern：Alex 看到 drift 就立刻開新軌、累積成 family closure、
+                 排擠主軌規格書進度
+  → 升級規則：Alex 寫指令前自查「這是 blocker 還是 backlog」、
+            backlog 揭露完進 A 系列追蹤、不立即開軌
+
+#18 Crown 揭露「狀態」真相必先 grep verify、不假設（對話接力觸發、Crown 拍補登）
+  → 觸發：對話接力時 Alex 誤判「Claude 專案內檔案是最新」、
+         實際 git-state.md 已 stale 10 天
+  → 規則：Crown 揭露「X 是最新 / Y 已完成 / Z 還沒做」狀態時、
+         Alex 必先用 view / grep verify 對應 source of truth、
+         不憑文件記憶或對話歷史假設
+  → 反 pattern：Alex 看到 Claude 專案有檔案就假設是最新版、
+                 不去 cross-check git commit / worklog
+  → 升級規則：Alex 進場第一件事必先 verify
+            「main HEAD / 最新 commit / 規格書版本」三項真相
+
+#19 列選項給 Crown 拍時必揭露「可能不完整」（本對話多次觸發、Crown 拍補登）
+  → 觸發：本對話多次列 (A)/(B)/(C) 選項給 Crown、缺第四象限揭露
+  → 規則：Alex 列選項給 Crown 拍板時、必在選項結尾加揭露
+         「以上選項可能不完整、Crown 有別的考量直接說」
+  → 反 pattern：Alex 列 3 選項當成完整決策空間、Crown 被迫在 3 個裡選
+                 即便心裡想的是第 4 個
+  → 升級規則：所有選項列表結尾固定加「#19 鐵律揭露」段、
+            消除「Crown 必須三選一」假設
+
+#20 Alex 不該推薦違反 Crown 既有明確拍板的選項、只能揭露真相給 Crown 重拍（對話接力觸發、Crown 拍補登）
+  → 觸發：對話接力文件 Alex 推薦違反「NX01 closure 才換 NX02」拍板的選項
+  → 規則：Crown 已明確拍板的決策（如「NX01 全 closure 才進 NX02」）、
+         Alex 後續不該推薦違反該拍板的方案；
+         真有變更必要、揭露新真相給 Crown、由 Crown 主動重拍、Alex 不主推
+  → 反 pattern：Alex 自認「情境變了」就主動推翻 Crown 既有拍板
+  → 升級規則：Alex 寫推薦前自查「這個推薦有沒有違反任何既有拍板」、
+            有就改成「揭露真相 + 標明違反某拍板 + 等 Crown 重拍」
+
+#21 Alex 引用 schema 表數量字眼必先 Hank grep、不憑文件記憶（NX01 諮詢觸發、Crown 拍補登）
+  → 觸發：NX01 諮詢時 Alex 列「11 張表」、Hank grep 真相 15 張
+         （漏算已建 controller 的 customer_grade / currency /
+          warehouse_type / part 等表）
+  → 規則：Alex 列「N 張表 / M 個欄位 / K 個 controller」等 schema 數量時、
+         必先委託 Hank grep -c 精確 count、再寫進指令 / 規格書、
+         不憑 overview / 既有規格書記憶
+  → 反 pattern：Alex 從 nx01-overview.md 文字版面數表名、忽略
+                 「overview 寫的時間 vs schema 真實狀態」的 drift
+  → 升級規則：Alex 寫含 schema 數量的指令前、固定加
+            「Step 1：Hank 先 grep -c 精確 count」步驟
+            （對齊既有 #9 規則升級版、#9 針對「Hank 既有揭露的數量字眼」、
+             #21 針對「Alex 自己引用 schema 真相的數量字眼」）
+
 整體紀律：
   - 不要急著拍方案、先確認既有
   - 不確定就標 ⚠️ 讓 Hank 寫 impl 時 catch
@@ -662,6 +716,16 @@ Hank 工作日誌（Hank 寫、Crown 上傳到專案）：
 ## 文件版本
 
 > ⚠️ 同源原則：本段最新版本號 = header「文件版本」line。升版時兩處一起動、不可單動。
+
+- **v1.5（2026-05-12）**：補登 Alex 失誤紀錄 #17~#21（TASK-PROJECT-CONTEXT-FAILURE-17-21）
+  - § Alex 失誤紀錄加 5 條：
+    - #17 drift 揭露第一反應「插隊 vs backlog」分類
+    - #18 Crown 揭露「狀態」真相必先 grep verify
+    - #19 列選項給 Crown 拍時揭露「可能不完整」
+    - #20 不推薦違反 Crown 既有明確拍板的選項
+    - #21 引用 schema 表數量字眼必先 Hank grep
+  - header line 文件版本同步升 v1.5（同源原則）
+  - 觸發紀錄：本對話接力 + NX01 諮詢累積觸發、對齊 #16 鐵律當輪落地
 
 - **v1.4（2026-05-06）**：header 範式統一 + 同源原則文字化（TASK-PHASE2-DOC-A035-CLOSURE-01-FOLLOWUP）
   - header 加同源原則註（提醒 header line 跟本段最新版本號同步）
