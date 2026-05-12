@@ -519,6 +519,24 @@ Phase 0~1 累積 8 次同類失誤：
   → 升級規則：spec docs 跨多檔 mass update 屬「Hank 工具操作範圍」、
             Alex 寫指令給 Hank 而不自己動手
 
+候選 #14（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 採納、編號待 Crown verify）：
+   Alex 寫紀律規則時必須明示「適用時機完整列表」、不假設 Hank 自動擴張理解
+  → 軌 4.6 觸發：A047「git add 用具體檔案路徑」只在 commit 階段明示、未擴張到 merge resolution 階段
+  → Hank 軌 4.6 merge resolution 用 `git add -A`、誤把 3 個 untracked spec 吸進 merge commit
+  → 規則：Alex 寫工作流紀律（如 hank-charter §G）時、必須明示「適用時機完整列表」、
+         不假設 Hank 會把規則自動擴張到類似情境（merge / rebase / cherry-pick / etc）
+  → 對應升級：A047 → A052（git add 從 commit 階段紀律升級為「任何 git add 時機」紀律）
+  → 升級規則：Alex 寫 §G 規則時加「適用時機清單」+「不適用情境清單」雙列、消除「自動擴張」假設
+
+候選 #15（軌 4 family closure 階段 1 觸發、Crown 拍 Q5D 真相揭露、編號待 Crown verify）：
+   Alex 推薦補救方案時必先問「規則目的是什麼」、不堅持「規則手段本身」
+  → 軌 4.6 觸發：3 spec 誤入 main 後、Hank 提 3 選項（revert / git rm / 接受）都聚焦「手段」
+  → Crown 提選項 D「接受 + 補說明 worklog 達成原紀律目的」= 揭露「紀律目的 vs 手段」分層思考
+  → 規則：規則設定時有「目的」（如「不要亂掉、未來交接讀懂」）跟「手段」（如「分開 commit」）
+         手段失靈時、找替代手段達成原目的、不死守「手段本身」
+  → 反 pattern：Alex / Hank 把「手段」當「目的」、規則違反時只想「revert / rm 恢復手段執行」
+  → 升級規則：Alex 寫紀律規則時必明示「目的」、Hank 違反時必問「目的是什麼、替代手段是什麼」
+
 整體紀律：
   - 不要急著拍方案、先確認既有
   - 不確定就標 ⚠️ 讓 Hank 寫 impl 時 catch

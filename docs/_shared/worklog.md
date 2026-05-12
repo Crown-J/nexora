@@ -539,6 +539,94 @@ Phase 1 doc-restructure 完成項：
 
 ---
 
+## 主題 9｜軌 4 family 8 PR closure + NX01-08/10/11 規格書誤入 e84b45c merge 揭露
+
+### 起源
+
+Phase 2 期間累積 8 PR 的「role / department 命名重構 + Hank 工作流規則升級」family closure。
+起源於 Hank 軌 4.5 諮詢 NX01-08 公告系統時觸發的命名連鎖 drift 揭露：
+- 軌 4 範圍揭露 → A039 業界真相校正（PURCHASE → PRODUCT department）
+- 軌 4.5 揭露 → A040 PURCHASING role stale 引用（118 處 live seed、🔴 production blocker）
+- 軌 4.6 揭露 → A042 ADMIN/HR_ADMIN/LOGISTICS family（431 處跨檔、🔴 production blocker）
+- 軌 4.7 揭露 → A043+A045+A046+A047 漏網 + 工作流紀律雙寫
+- 軌 4.8 → Alex 失誤紀錄 #9/#10 編號 Crown verify
+- 軌 1 / 軌 2 → file-upload 階段 1 + A037 isLeader closure 鋪 NX01-08 路
+
+### 跨軌統計
+
+| 軌 | task | merge commit | 處理範圍 | 變動規模 |
+|----|------|------|---------|---------|
+| 軌 1 | TASK-FILE-UPLOAD-FOUNDATION-01 | `06402d1` | 階段 1 本地 stub、IFileStorage 抽象 | 13 檔 / +822 |
+| 軌 4 | TASK-A039-DEPARTMENT-RENAME-01 | `baf6ac5` | 業界真相 PURCHASE → PRODUCT | 5 檔 / +40 -7 + 1 migration |
+| 軌 4.5 | TASK-A040-PURCHASE-ROLE-STALE-CLOSURE-01 | `9603f4b` | A040 family closure（118 處 live seed）| 9 檔 / +161 -155 |
+| 軌 4.6 | TASK-A042-OLD-ROLE-STALE-CLOSURE-01 | `e84b45c` | A042 family（431 處）+ 7 conflict resolution | 82 檔 / +1037 -504 + 3 spec 誤入 |
+| 軌 4.7 | TASK-A043-A045-A046-A047-LEFTOVERS-AND-CHARTER-01 | `dac43ab` | 漏網 + charter §G 紀律雙寫 | 5 檔 / +129 |
+| 軌 4.8 | TASK-ALEX-FAILURE-NUMBERING-VERIFY-01 | `641834c` | Alex 失誤 #9/#10 編號 verify | 1 檔 / +2 -4 |
+| 軌 2 | TASK-A037-ISLEADER-CLOSURE-01 | `b14ae55` | user_team 從零建 + audience-query helper | 9 檔 / +484 -2 |
+| **合計** | role/department 命名重構 family | 7 merge commit + 12 PR commit | 4 軌 family closure | **~124 檔 / ~2675 行變動** |
+
+### 累計 §G.1 entry（9 個跨軌）
+
+A036 → A037 → A039 → A040 → A042 → A043 → A045 → A046 → A047
+（Q2 §G.1 純加 conflict 自決授權套用 4 次、依編號 sortby）
+
+### Merge resolution 統計
+
+Crown 拍 Q2~Q4 三層授權範式：
+- **Q2 §G.1 純加 conflict 自決**：4 次套用（merge 3/4/5/7）
+- **Q3 qt.controller.ts superset**：1 次套用（merge 4）
+- **Q4 跨檔 superset**：5 次套用（merge 4 的 b5-impl + nx01_role_view.csv + 3 dead csv）
+
+### 🔴 NX01-08 / NX01-10 / NX01-11 規格書誤入 e84b45c merge
+
+**原本規劃（紀律規則）**：
+- Crown 提供的 NX01-08 v1.0（軌 4.5 諮詢階段放）
+- NX01-10 v1.0（軌 4.6 期間放）
+- NX01-11 v1.0（階段 1 開工時放）
+- 紀律：「⛔ NX01-08 / NX01-10 / NX01-11 規格書 untracked 維持」全部軌（1~4.8）守住
+
+**實際情況（紀律失守）**：
+- merge 4（軌 4.6）conflict resolution 時、Hank 用 `git add -A` 範式 stage 全 working tree
+- 當時 3 個 untracked spec 一起被吸進 `e84b45c` merge commit
+- 已 push origin/main、共 1152 行 spec 內容跟著進入
+
+**根因**：
+- A047 規則（git add 具體檔案路徑）只在「commit 階段」套用、未擴張到「merge resolution 階段」
+- merge resolution 處理 conflict 時 Hank 為求效率用 `-A`、忘了 A047 紀律
+- 屬「規則適用時機認知不全」 — 候選 A052
+
+**Crown 拍板（選項 D）**：
+- ⛔ 不 revert（風險高、其他 4 merge 已 stack）
+- ⛔ 不 git rm（spec 內容沒丟、history 不乾淨）
+- ✅ **接受 + 補說明 commit**（本主題）
+- 紀律目的「不要亂掉、未來交接讀懂」用替代手段達成、不堅持「分開 commit」手段本身
+
+**A052 規則升級**：
+- hank-charter §G 加 A052：git add 任何時機（含 merge resolution / rebase / cherry-pick）必用具體檔案路徑、不用 `-A` 或 dir 路徑
+- 觸發紀錄：本軌 merge resolution
+
+### 軌 3 範圍調整
+
+- spec 已在 main、軌 3 不再 commit spec docs
+- 軌 3 範圍 = **純 schema 升級 + 程式碼（service / controller / migration / unit test）+ §G.1 + UI**
+- 階段 3「NX01-10/11 commit 時機 Hank 自決」自動消失（已 commit）
+
+### 跨模組教訓
+
+1. **紀律規則需明示「適用時機完整列表」**：A047 只在 commit 階段提、merge/rebase 階段失守
+2. **手段 vs 目的分層思考**：規則目的「不要亂掉」+ 手段「分開 commit」、手段失靈不必死守、找替代手段達成目的
+3. **Hank 為求效率用 `-A` 是反射動作**：規則需強化「禁用 -A 任何時機」、不是「特定階段禁用」
+4. **單 PR 拆軌策略 vs 多 PR merge 策略不同**：單 PR 內守 A047 OK、多 PR merge 時複雜度跳升、A052 補足
+
+### 對應文件
+
+- 軌 1~4.8 + 軌 2 各 PR commit message + §G.1 entry
+- hank-charter §G.5 / §G.6（A052 新規則）
+- PROJECT_CONTEXT Alex 失誤候選 #14 / #15（Crown verify 編號）
+- system-architecture §G.1 A052 entry
+
+---
+
 > 文件版本：v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
 > 下次更新觸發：
 >   - Phase 2 task 累積跨模組工作（≥3 個觸發新主題）

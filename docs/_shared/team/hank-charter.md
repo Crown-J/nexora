@@ -350,8 +350,52 @@ git status --short | grep '^??'
 |------|---------|------|
 | A041 揭露精確 | 揭露範圍 / 數量 | `grep -c` 精確 count、禁模糊詞 |
 | A046 PowerShell | 編輯含中文檔 | 切 Edit tool 處理 |
-| A047 git add 精確 | dir 內有 untracked | 用具體檔案路徑或 `-u` |
+| A047 git add 精確（commit 階段）| dir 內有 untracked | 用具體檔案路徑或 `-u` |
+| A052 git add 精確（全階段）| **任何 git add 時機**（commit / merge resolution / rebase / cherry-pick）| 用具體檔案路徑、禁用 `-A` |
 | G.4 歷史 fact 保留 | spec docs 歷史描述 | 加 HTML 註解、不 replace |
+
+### G.6 git add 全階段範圍精確紀律（A052、A047 升級）
+
+**規則：git add 任何時機（含 merge resolution / rebase / cherry-pick）必用具體檔案路徑、不用 `-A` 或 dir 路徑**
+
+⛔ 禁用：`git add -A`、`git add .`、`git add <dir>/`（特別 dir 內含 untracked 時）
+
+✅ 範式：
+```bash
+# Commit 階段
+git add path/to/file1 path/to/file2
+
+# Merge resolution 階段
+git add path/to/conflict-file
+
+# 大量 conflict 時也用具體檔案、不偷懶用 -A
+for f in $(git diff --name-only --diff-filter=U); do
+  git add "$f"
+done
+```
+
+**為什麼擴張到全階段（A047 → A052）**：
+- A047 規則只在「commit 階段」明示、未擴張到 merge resolution
+- 軌 4.6 merge resolution 觸發 1 例（`git add -A` 誤把 NX01-08/10/11 三個 untracked spec 一起 stage 進 `e84b45c` merge commit、1152 行誤入 main）
+- Crown 拍 Q5 採選項 D 接受 + 補說明 worklog 達成原紀律目的、規則本身升級為 A052
+- 屬「規則適用時機認知不全」、A047 補洞
+
+**檢查清單**（任何 git add 操作前必跑）：
+```bash
+git status --short | grep '^??'
+```
+有 untracked 出現 → 確認不在本軌範圍 → 用具體檔案路徑或 `git add -u <dir>`（只 stage tracked 變動）。
+
+**為什麼禁 `-A` 任何時機**：
+- merge resolution 反射動作常想用 `-A` 「全部 stage 上去 commit」
+- 但 working tree 可能含當時 untracked 的其他 task 檔案（如 Crown 放的下一軌 spec）
+- 用 -A 等同把「不該屬本軌」的檔案吸進本 merge commit
+- 觸發後不可 revert（已 push）= 失誤永久進入 git history
+
+**A052 是 A047 嚴格升級**：
+- A047 = commit 階段紀律
+- A052 = 全階段紀律（含 merge / rebase / cherry-pick）
+- 兩條同時生效、互相不替代、§G.5 速查表雙列
 
 ---
 
