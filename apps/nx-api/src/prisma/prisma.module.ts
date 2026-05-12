@@ -8,13 +8,24 @@
 
 import { Global, Module } from '@nestjs/common';
 
+import { Nx01AudienceQueryService } from '../shared/nx01/audience-query.service';
 import { ViewPermissionService } from '../shared/rbac/view-permission.service';
 import { Nx01AuditLogWriterService } from '../shared/services/nx01-audit-log-writer.service';
 import { PrismaService } from './prisma.service';
 
 @Global()
 @Module({
-  providers: [PrismaService, ViewPermissionService, Nx01AuditLogWriterService],
-  exports: [PrismaService, ViewPermissionService, Nx01AuditLogWriterService],
+  providers: [
+    PrismaService,
+    ViewPermissionService,
+    Nx01AuditLogWriterService,
+    Nx01AudienceQueryService,
+  ],
+  exports: [
+    PrismaService,
+    ViewPermissionService,
+    Nx01AuditLogWriterService,
+    Nx01AudienceQueryService,
+  ],
 })
 export class PrismaModule {}
