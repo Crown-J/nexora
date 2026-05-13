@@ -14,6 +14,8 @@ import { PartController } from './part/part.controller';
 import { PartService } from './part/part.service';
 import { PartnerController } from './partner/partner.controller';
 import { PartnerService } from './partner/partner.service';
+import { PhoneticDictionaryController } from './phonetic-dictionary/phonetic-dictionary.controller';
+import { PhoneticDictionaryService } from './phonetic-dictionary/phonetic-dictionary.service';
 import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
 import { UserController } from './user/user.controller';
@@ -36,6 +38,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     UserController,
     RoleController,
     BulletinController,
+    PhoneticDictionaryController,
   ],
   providers: [
     CurrencyService,
@@ -48,6 +51,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     UserService,
     RoleService,
     BulletinService,
+    PhoneticDictionaryService,
   ],
 })
 export class Nx01Module {}
