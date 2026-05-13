@@ -330,6 +330,7 @@ model Nx01CarBrand {
   tenant                            Nx99Tenant          @relation("R_Nx01CarBrand_tenantId", fields: [tenantId], references: [id])
   country                           Nx01Country?        @relation("R_Nx01CarBrand_countryId", fields: [countryId], references: [id])
   rev_Nx01BrandCodeRule_carBrandId  Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_carBrandId")
+  rev_Nx01Engine_carBrandId         Nx01Engine[]        @relation("R_Nx01Engine_carBrandId")
 
   @@unique([tenantId, code])
   @@map("nx01_car_brand")
@@ -6199,6 +6200,7 @@ model Nx99Tenant {
   rev_Nx01PartBrand_tenantId         Nx01PartBrand[]         @relation("R_Nx01PartBrand_tenantId")
   rev_Nx01PartGroup_tenantId         Nx01PartGroup[]         @relation("R_Nx01PartGroup_tenantId")
   rev_Nx01PartRelation_tenantId      Nx01PartRelation[]      @relation("R_Nx01PartRelation_tenantId")
+  rev_Nx01Engine_tenantId            Nx01Engine[]            @relation("R_Nx01Engine_tenantId")
   rev_Nx01Partner_tenantId           Nx01Partner[]           @relation("R_Nx01Partner_tenantId")
   rev_Nx01PhoneticIndex_tenantId     Nx01PhoneticIndex[]     @relation("R_Nx01PhoneticIndex_tenantId")
   rev_Nx01Role_tenantId              Nx01Role[]              @relation("R_Nx01Role_tenantId")
@@ -6588,4 +6590,50 @@ model Nx01PhoneticIndex {
   @@unique([tenantId, sourceTable, sourceId])
   @@index([tenantId, phoneticCode])
   @@map("nx01_phonetic_index")
+}
+
+/// =======================================================
+/// Nx01Engine — DB table `nx01_engine`
+/// 引擎主檔（A 主檔、車輛分類維度核心、被 NX01-13 model 引用）
+/// 對應規格：docs/nx01/spec/intent/nx01-14-engine.md v1.0
+/// =======================================================
+model Nx01Engine {
+  /// [NX01]+[ENGN]+[7碼流水號]，EX : NX01ENGN0000001；啟用最低需求版本：LITE
+  id             String        @id @default(dbgenerated("gen_nx01_engine_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId       String        @map("tenant_id") @db.VarChar(15)
+  /// 引擎代碼（業界縮寫 / 數字代碼、tenant 內 unique、例：EA888 / 2GR-FE / N20）；啟用最低需求版本：LITE
+  code           String        @db.VarChar(30)
+  /// 引擎名稱（業務描述、可中英混、例：EA888 第三代 2.0T）；啟用最低需求版本：LITE
+  name           String        @db.VarChar(100)
+  /// 排氣量 cc（EV 可空、規格 §3.2）；啟用最低需求版本：LITE
+  displacementCc Int?          @map("displacement_cc")
+  /// 缸數配置（直 4 / V6 / V8 / H4 / H6、業界常用字串、EV 可空）；啟用最低需求版本：LITE
+  cylinderConfig String?       @map("cylinder_config") @db.VarChar(20)
+  /// 燃料類型（1=汽油 / 2=柴油 / 3=Hybrid / 4=EV、Crown 拍 Q1=C）；啟用最低需求版本：LITE
+  fuelType       Int           @default(1) @map("fuel_type") @db.SmallInt
+  /// 增壓方式（1=NA 自然進氣 / 2=TC 渦輪 / 3=SC 機械 / 4=TC+SC 雙增壓、EV 可空、Crown 拍 Q2=A）；啟用最低需求版本：LITE
+  aspirationType Int?          @default(1) @map("aspiration_type") @db.SmallInt
+  /// 關聯車型品牌 FK（可空、業界 EA888=VAG / 2GR=TOY / N20=BMW、跨品牌通用留空、Crown 拍 Q3=A）；啟用最低需求版本：LITE
+  carBrandId     String?       @map("car_brand_id") @db.VarChar(15)
+  /// 備註說明；啟用最低需求版本：LITE
+  remark         String?       @db.VarChar(200)
+  /// 排序用（下拉選單顯示順序）；啟用最低需求版本：LITE
+  sortNo         Int           @default(0) @map("sort_no")
+  /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
+  isActive       Boolean       @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt      DateTime      @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy      String        @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy      String        @map("updated_by") @db.VarChar(15)
+  tenant         Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
+  carBrand       Nx01CarBrand? @relation("R_Nx01Engine_carBrandId", fields: [carBrandId], references: [id])
+
+  @@unique([tenantId, code])
+  @@index([tenantId, fuelType])
+  @@map("nx01_engine")
 }
