@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
+import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
 import { BulletinService } from './bulletin/bulletin.service';
 import { CarBrandController } from './car-brand/car-brand.controller';
@@ -42,6 +44,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     BulletinController,
     PhoneticDictionaryController,
     CarBrandController,
+    BrandCodeRuleController,
   ],
   providers: [
     CurrencyService,
@@ -56,6 +59,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     BulletinService,
     PhoneticDictionaryService,
     CarBrandService,
+    BrandCodeRuleService,
   ],
 })
 export class Nx01Module {}
