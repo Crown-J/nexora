@@ -6195,6 +6195,7 @@ model Nx99Tenant {
   rev_Nx01PartGroup_tenantId         Nx01PartGroup[]         @relation("R_Nx01PartGroup_tenantId")
   rev_Nx01PartRelation_tenantId      Nx01PartRelation[]      @relation("R_Nx01PartRelation_tenantId")
   rev_Nx01Partner_tenantId           Nx01Partner[]           @relation("R_Nx01Partner_tenantId")
+  rev_Nx01PhoneticIndex_tenantId     Nx01PhoneticIndex[]     @relation("R_Nx01PhoneticIndex_tenantId")
   rev_Nx01Role_tenantId              Nx01Role[]              @relation("R_Nx01Role_tenantId")
   rev_Nx01RoleView_tenantId          Nx01RoleView[]          @relation("R_Nx01RoleView_tenantId")
   rev_Nx01Team_tenantId              Nx01Team[]              @relation("R_Nx01Team_tenantId")
@@ -6509,4 +6510,77 @@ model Nx01PartnerShippingAddress {
 
   @@unique([partnerId, label])
   @@map("nx01_partner_shipping_address")
+}
+
+/// =======================================================
+/// Nx01PhoneticDictionary — DB table `nx01_phonetic_dictionary`
+/// 全域字典（無 tenantId）、SYSADMIN 維護、漢字 → 注音對照表
+/// 對應規格：docs/nx01/spec/intent/nx01-10-phonetic-search.md v1.0 §4.1
+/// =======================================================
+model Nx01PhoneticDictionary {
+  /// [NX01]+[PHDC]+[7碼流水號]，EX : NX01PHDC0000001；啟用最低需求版本：LITE
+  id               String   @id @default(dbgenerated("gen_nx01_phonetic_dictionary_id()")) @db.VarChar(15)
+  /// 漢字（單字元、全域 unique）；啟用最低需求版本：LITE
+  character        String   @db.VarChar(4)
+  /// 主要注音（如 ㄅㄧˋ）；啟用最低需求版本：LITE
+  primaryPhonetic  String   @map("primary_phonetic") @db.VarChar(10)
+  /// 替代注音陣列（多音字、0~5 個）；啟用最低需求版本：LITE
+  altPhonetics     String[] @map("alt_phonetics") @default([])
+  /// 主要聲母（從 primary_phonetic 抽出、如 ㄅ）；啟用最低需求版本：LITE
+  primaryInitial   String   @map("primary_initial") @db.VarChar(2)
+  /// 使用頻率（多音字優先序、系統統計）；啟用最低需求版本：LITE
+  usageFreq        Int      @default(0) @map("usage_freq")
+  /// 是否啟用（SYSADMIN 可停用錯字）；啟用最低需求版本：LITE
+  isActive         Boolean  @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt        DateTime @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy        String   @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy        String   @map("updated_by") @db.VarChar(15)
+
+  @@unique([character])
+  @@index([primaryInitial])
+  @@map("nx01_phonetic_dictionary")
+}
+
+/// =======================================================
+/// Nx01PhoneticIndex — DB table `nx01_phonetic_index`
+/// 跨主檔注音碼索引、trigger 維護、每租戶獨立
+/// 對應規格：docs/nx01/spec/intent/nx01-10-phonetic-search.md v1.0 §4.2
+/// =======================================================
+model Nx01PhoneticIndex {
+  /// [NX01]+[PHIX]+[7碼流水號]，EX : NX01PHIX0000001；啟用最低需求版本：LITE
+  id            String     @id @default(dbgenerated("gen_nx01_phonetic_index_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId      String     @map("tenant_id") @db.VarChar(15)
+  /// 來源表名（如 nx01_part / nx01_partner / nx01_user）；啟用最低需求版本：LITE
+  sourceTable   String     @map("source_table") @db.VarChar(50)
+  /// 來源主檔 ID（軟連結、不用 FK constraint）；啟用最低需求版本：LITE
+  sourceId      String     @map("source_id") @db.VarChar(15)
+  /// 來源欄位名（如 name / display_name）；啟用最低需求版本：LITE
+  sourceField   String     @map("source_field") @db.VarChar(50)
+  /// 來源文字（快搜時顯示用）；啟用最低需求版本：LITE
+  sourceText    String     @map("source_text") @db.VarChar(500)
+  /// 聲母碼（如 ㄅㄓㄑ、前綴匹配用）；啟用最低需求版本：LITE
+  phoneticCode  String     @map("phonetic_code") @db.VarChar(50)
+  /// 完整注音（如 ㄅㄧˋ ㄓㄣˋ ㄑㄧˋ、顯示用）；啟用最低需求版本：LITE
+  phoneticFull  String     @map("phonetic_full") @db.VarChar(200)
+  /// 是否業務人員手動改（手動改後 trigger 不再覆蓋）；啟用最低需求版本：LITE
+  isManual      Boolean    @default(false) @map("is_manual")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt     DateTime   @default(now()) @map("created_at")
+  /// 建立人（trigger=SYSADMIN ID / 手動改=該使用者）；啟用最低需求版本：LITE
+  createdBy     String     @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy     String     @map("updated_by") @db.VarChar(15)
+  tenant        Nx99Tenant @relation("R_Nx01PhoneticIndex_tenantId", fields: [tenantId], references: [id])
+
+  @@unique([tenantId, sourceTable, sourceId])
+  @@index([tenantId, phoneticCode])
+  @@map("nx01_phonetic_index")
 }
