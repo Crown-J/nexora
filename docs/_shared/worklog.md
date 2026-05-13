@@ -703,8 +703,50 @@ Hank 接 NX01-12 諮詢時揭露 3 重 drift：
 
 ---
 
-> 文件版本：v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
-> 上一版 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
+## 主題 11｜NX01-14 engine 主檔落地（TASK-NX01-14-IMPL、2026-05-13）
+
+### 起源
+
+對齊 Crown 通知「Alex 進場 NX01-14 草稿」+ 上軌 NX01-12/15 落地後接續推進。NX01-14 引擎主檔 = 車輛分類最後一個維度、A 主檔複雜度、Crown 拍 Q1=C / Q2~Q5=A 對齊 NX01-12/15 範式。
+
+### 設計決策
+
+1. **空 seed 進**（Crown Q4=A）：每品牌引擎命名差異大、無業界通用 seed 值、tenant 自加業務日常引擎（VAG=EA888/EA211 / TOY=2GR-FE / BMW=N20）
+2. **fuelType / aspirationType 用 SmallInt + class-validator**：對齊既有 partner_type/warehouseType.code 範式、不用 Prisma enum、業務層 enum 轉換在 types.ts FUEL_TYPE_OPTIONS / ASPIRATION_TYPE_OPTIONS 集中管理（Hank 自決 F2）
+3. **EV 業務檢核走純 schema nullable、不在 service 強制**：規格 §3.2「EV 可空」非「EV 必空」、給 OWNER 彈性（Hank 自決 F4）
+4. **不接注音索引**：Crown 業界 muscle memory 拍板（NX01-12/15 同範式）、車輛分類軸用英文/數字代碼（EA888 / 2GR-FE / N20）
+5. **carBrandId ON DELETE SET NULL**：規格 §3.5 軟刪除範式、車型品牌停用不阻擋引擎業務（Hank 自決 F3）
+6. **commit 拆軌 3 子**：schema / 後端 / 前端 各獨立 commit（對齊 NX01-12 範式）
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 軌前 SPEC | `0a6e3ef` | nx01-14-engine.md v1.0 規格落地 | +359、1 檔 |
+| 1 | `04b6bdb` | schema + migration（含 SmallInt enum + index + 2 FK） | +138、2 檔 |
+| 2 | `f235c99` | 後端 controller + service + DTO + module 註冊 | +415、4 檔 |
+| 3 | `c8f4eea` | 前端 types + API client + MasterView + page | +626、4 檔 |
+| **總計** | — | — | **+1538、11 檔** |
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-14-engine.md` v1.0
+- migration：`20260513150000_nx01_14_engine_create`
+- 後端：`apps/nx-api/src/nx01/engine/`
+- 前端：`apps/nx-ui/src/features/nx01/engine/` + `apps/nx-ui/src/app/dashboard/base/engine/`
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A065 | EngineMasterView carBrandId 改 dropdown 選單（目前暫填 ID、需 carBrand list API 整合）|
+| 跨軌 | NX01-13 model schema 落地時加 `engine_id` FK nullable（規格 §11 拍板、Crown 業界 muscle memory）|
+
+---
+
+> 文件版本：v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
+> 上一版 v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
+> 更早 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
 > 下次更新觸發：
 >   - Phase 2 task 累積跨模組工作（≥3 個觸發新主題）
 >   - 累計範式總表新範式累積（個別範式直接補進對應分類、無需新主題）
