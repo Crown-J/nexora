@@ -303,12 +303,16 @@ model Nx01CarBrand {
   id        String       @id @default(dbgenerated("gen_nx01_car_brand_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
   tenantId  String       @map("tenant_id") @db.VarChar(15)
-  /// 品牌代碼（唯一，例：MANN、BOSCH、OEM）；啟用最低需求版本：LITE
+  /// 品牌代碼（業界縮寫、tenant 內 unique、例：VAG / POR / BMW / BEN）；啟用最低需求版本：LITE
   code      String       @db.VarChar(30)
-  /// 品牌名稱（顯示用）；啟用最低需求版本：LITE
+  /// 品牌中文名（顯示用、例：福斯集團 / 保時捷）；啟用最低需求版本：LITE
   name      String       @db.VarChar(100)
+  /// 品牌英文名（國際對照、跨國採購單據引用、例：Volkswagen AG / Porsche）；啟用最低需求版本：LITE
+  nameEn    String?      @map("name_en") @db.VarChar(100)
   /// 品牌國家 (外鍵)；啟用最低需求版本：LITE
   countryId String?      @map("country_id") @db.VarChar(15)
+  /// 品牌 Logo URL（規格 v1.0 Q1=B：schema 預留、v1.0 UI 不渲染、v2.0+ 業務需求再開）；啟用最低需求版本：LITE
+  logoUrl   String?      @map("logo_url") @db.VarChar(500)
   /// 備註說明；啟用最低需求版本：LITE
   remark    String?      @db.VarChar(200)
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
