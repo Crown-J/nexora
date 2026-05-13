@@ -2,8 +2,8 @@
 
 # NEXORA GRID - PROJECT CONTEXT
 
-> 文件版本：v1.5
-> 最後更新：2026-05-12
+> 文件版本：v1.6
+> 最後更新：2026-05-13
 > 負責人：Crown Lin（林翰杰）
 > 協作：Alex（Claude PM AI）+ Hank（NEXORA 工程 AI）
 
@@ -625,6 +625,20 @@ Phase 0~1 累積 8 次同類失誤：
             （對齊既有 #9 規則升級版、#9 針對「Hank 既有揭露的數量字眼」、
              #21 針對「Alex 自己引用 schema 真相的數量字眼」）
 
+#22 Alex 引用「NX0X-YY 模組 v1.0」時必先 grep schema / controller / seed verify 落地真相（NX01-10/12/15 三軌落地觸發、Crown 拍 Q5 補登）
+  → 觸發：本軌 NX01-12 規格書 §8 / §11 寫「NX01-10 v1.0 / NX01-11 v1.0」、
+         Hank verify 真相揭露兩者都 spec-only（schema 部分建 / controller 全未建 /
+         seed 全未建）、Alex 假設「spec v1.0 = 落地 v1.0」造成跨軌依賴假設失敗、
+         本軌 NX01-12 諮詢插隊三模組同步落地軌
+  → 規則：Alex 引用 NX0X-YY 模組「已 v1.0」時、必先 grep schema / controller / seed
+         verify 落地真相、不假設 spec v1.0 = 落地 v1.0
+  → 反 pattern：Alex 讀規格書 Document Control Log 看到「v1.0」就假設後端 schema +
+                 controller + seed 全部落地、跨規格書「§跨軌依賴」段直接寫依賴關係、
+                 給 Hank 排程拍 plan 時用空頭支票
+  → 升級規則：Alex 寫規格書 §跨軌依賴段前、必先 grep verify 真實落地狀態、
+            或委託 Hank 諮詢回報精確 count（對齊 A041 揭露精確紀律）、
+            無 schema / controller / seed 落地的 NX0X-YY 必明示「spec-only、impl pending」
+
 整體紀律：
   - 不要急著拍方案、先確認既有
   - 不確定就標 ⚠️ 讓 Hank 寫 impl 時 catch
@@ -716,6 +730,13 @@ Hank 工作日誌（Hank 寫、Crown 上傳到專案）：
 ## 文件版本
 
 > ⚠️ 同源原則：本段最新版本號 = header「文件版本」line。升版時兩處一起動、不可單動。
+
+- **v1.6（2026-05-13）**：補登 Alex 失誤紀錄 #22（TASK-NX01-12-IMPL-v2 軌前 SPEC commit）
+  - § Alex 失誤紀錄加 1 條：
+    - #22 引用「NX0X-YY 模組 v1.0」時必先 grep schema / controller / seed verify 落地真相
+  - header line 文件版本同步升 v1.6（同源原則）
+  - 觸發紀錄：本軌 NX01-12 諮詢觸發、Hank verify 揭露 NX01-10/11 spec-only、
+    Crown 拍 Q5 範圍擴大為三模組同步落地 + #22 當輪落地（對齊 #16 鐵律）
 
 - **v1.5（2026-05-12）**：補登 Alex 失誤紀錄 #17~#21（TASK-PROJECT-CONTEXT-FAILURE-17-21）
   - § Alex 失誤紀錄加 5 條：
