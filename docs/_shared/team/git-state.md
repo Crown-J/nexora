@@ -10,16 +10,20 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-02（⭐ Phase 1 已 merge main、tag `phase1-complete`）**
-> **當前分支：`main`**（HEAD = `5d4dbac`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/wp-phase1-doc-restructure 完整 merge、--no-ff 保留軌跡）**
-> **⭐ Phase 1 doc-restructure 正式落地、Phase 2 軌 1（Alex 寫 NX01 主檔規格書）開始**
+> **快照時間：2026-05-13（⭐ TASK-NX01-12-IMPL-v2 三模組同步落地軌 merge）**
+> **當前分支：`main`**（HEAD = `5beec09`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-12-car-brand 11 commit 完整 merge、--no-ff）**
+> **⭐ NX01-10 phonetic 基礎設施 + NX01-11 schema 對齊 + NX01-12 schema/seed/controller 全落地、11 commit / +3220/-70 / 27 檔**
+>
+> ⚠️ **本檔 minimal update**（2026-05-02 → 2026-05-13）：本軌專注 NX01-10/11/12 三模組分支登錄、其他既有分支狀態 + 中間 merge（Alex 失誤 #17~#21、NX01-08 軌 3 等）full audit 留後續軌
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `5d4dbac` | **MERGE Phase 1 doc-restructure 收官** |
+| `main` ⭐ | ✅ 同步 | `5beec09` | **MERGE NX01-10/11/12 三模組同步落地（TASK-NX01-12-IMPL-v2、11 commit）** |
+| `feature/nx01-12-car-brand` | ✅ 同步、**已 merge main、可考慮刪除** | `8b0a6bc` | NX01-10/11/12 + 2 spec + worklog 主題 10 + PROJECT_CONTEXT v1.6 #22 |
+| `feature/alex-failure-17-21` | ✅ 同步、**已 merge main、可考慮刪除** | `ae70773` | Alex 失誤紀錄 #17~#21 補登 + PROJECT_CONTEXT v1.5 |
 | `feature/wp-phase1-doc-restructure` | ✅ 同步、**已 merge main、可考慮刪除** | `b20dfb9` | GIT-STATE update 2026-04-29 Phase 1 收官 |
 | `feature/wp-phase1-w2-mini` | ✅ 同步 | `5a34664` | WP-PHASE1-DEMO02 customer 命名規則調整 |
 | `feature/wp-phase0-schema` | ✅ 同步 | `7652c43` | WP-PHASE0-B2 stock reverse lookup API |
@@ -63,6 +67,8 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
+| `feature/nx01-12-car-brand` | **TASK-NX01-12-IMPL-v2**（NX01-10 phonetic 基礎設施 + NX01-11 schema FK 翻轉 + NX01-12 schema/seed/controller + 2 spec + worklog 主題 10 + PROJECT_CONTEXT v1.6 #22） | ✅ 全部收官、merge main（11 commit、+3220/-70、27 檔） |
+| `feature/alex-failure-17-21` | **TASK-PROJECT-CONTEXT-FAILURE-17-21**（Alex 失誤 #17~#21 補登 + PROJECT_CONTEXT v1.5）| ✅ 收官、merge main（merge commit `e9f0efe`）|
 | `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01** + **TASK-PHASE1-NX01~10-WORKLOG** + **TASK-NX08-MONTHLY-REPORT-CLEANUP** + **TASK-WORKLOG-RENAME** + **TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01** + **TASK-PHASE1-SHARED-WORKLOG-01** + **TASK-PHASE1-MERGE-MAIN-01** | ✅ 全部收官、merge main、tag `phase1-complete` |
 | `feature/wp-phase1-w2-mini` | TASK-PHASE1-W2-MINI（W2-mini 庫存 + DEMO-02 LITE seed） | 進行中 |
 | `feature/wp-phase0-schema` | WP-PHASE0（schema + translator + APIs） | ✅ 已收官（tag `phase0-complete`） |
