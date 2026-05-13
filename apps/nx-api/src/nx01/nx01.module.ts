@@ -4,6 +4,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 import { BulletinController } from './bulletin/bulletin.controller';
 import { BulletinService } from './bulletin/bulletin.service';
+import { CarBrandController } from './car-brand/car-brand.controller';
+import { CarBrandService } from './car-brand/car-brand.service';
 import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
@@ -39,6 +41,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleController,
     BulletinController,
     PhoneticDictionaryController,
+    CarBrandController,
   ],
   providers: [
     CurrencyService,
@@ -52,6 +55,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleService,
     BulletinService,
     PhoneticDictionaryService,
+    CarBrandService,
   ],
 })
 export class Nx01Module {}
