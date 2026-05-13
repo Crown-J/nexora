@@ -14,6 +14,7 @@ import type { SeedTier } from '../lib/seed-tier';
 import { seedNx01RoleView } from '../system/nx01_role_view';
 
 import { applyAccountCode } from './apply-account-code';
+import { applyBrandCodeRule } from './apply-brand-code-rule';
 import { applyBulletinCategory } from './apply-bulletin-category';
 import { applyCarBrand } from './apply-car-brand';
 import { applyCustomerGrade } from './apply-customer-grade';
@@ -46,6 +47,7 @@ export async function applyTemplateToTenant(
   // === ALL：所有版本皆需 ===
   await applyRole(prisma, params);
   await applyCarBrand(prisma, params);
+  await applyBrandCodeRule(prisma, params); // ⚠️ 必須在 applyCarBrand 之後（FK car_brand_id）
   await applyPartGroup(prisma, params);
   await applyPartBrand(prisma, params);
   await applyCustomerGrade(prisma, params);

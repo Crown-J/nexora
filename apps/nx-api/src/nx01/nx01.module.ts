@@ -2,8 +2,12 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
+import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
 import { BulletinService } from './bulletin/bulletin.service';
+import { CarBrandController } from './car-brand/car-brand.controller';
+import { CarBrandService } from './car-brand/car-brand.service';
 import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
@@ -14,6 +18,8 @@ import { PartController } from './part/part.controller';
 import { PartService } from './part/part.service';
 import { PartnerController } from './partner/partner.controller';
 import { PartnerService } from './partner/partner.service';
+import { PhoneticDictionaryController } from './phonetic-dictionary/phonetic-dictionary.controller';
+import { PhoneticDictionaryService } from './phonetic-dictionary/phonetic-dictionary.service';
 import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
 import { UserController } from './user/user.controller';
@@ -36,6 +42,9 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     UserController,
     RoleController,
     BulletinController,
+    PhoneticDictionaryController,
+    CarBrandController,
+    BrandCodeRuleController,
   ],
   providers: [
     CurrencyService,
@@ -48,6 +57,9 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     UserService,
     RoleService,
     BulletinService,
+    PhoneticDictionaryService,
+    CarBrandService,
+    BrandCodeRuleService,
   ],
 })
 export class Nx01Module {}

@@ -627,7 +627,84 @@ Crown 拍 Q2~Q4 三層授權範式：
 
 ---
 
-> 文件版本：v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
+## 主題 10｜NX01-10/11/12 三模組同步落地軌（TASK-NX01-12-IMPL-v2、2026-05-13）
+
+### 起源
+
+Hank 接 NX01-12 諮詢時揭露 3 重 drift：
+1. NX01-11 schema `partBrandId` FK `Nx01PartBrand` vs 規格 v1.0 §1.3 `carBrandId` FK `Nx01CarBrand`、業務語意翻轉（零件品牌軸 → 車輛品牌軸）
+2. NX01-10 規格 v1.0 「已落地」實際 spec-only（schema 全未建、controller / seed 都 0）
+3. NX01-12 既有 seed 5 個 VAG 子品牌（VW/AUDI/SKODA/SEAT/PORSCHE、全 countryId=TWN）vs 規格 §4.3 4 主流（VAG/POR/BMW/BEN、全 DEU）= 業界 muscle memory 錯誤
+
+→ Crown 拍 Q1~Q5 範圍擴大「三模組同步落地、避免 NX01-13/05 後續軌卡 spec-only 依賴」。
+
+### 設計決策
+
+1. **拓樸順序（FK 依賴方向）**：NX01-10 schema → NX01-11 schema rename → NX01-12 schema+seed+controller → NX01-11 controller+seed
+2. **NX01-11 走擴充原則 #23 類型 3「改既有語意」嚴謹 migration**：DROP FK + RENAME column + ADD FK + 補欄位 + 砍 columnar SEG + 加 JSON SEG（既有無資料、安全）
+3. **NX01-10 字典資料留空、trigger function 不 attach 主檔**：Crown 拍 Q3=C 字典留 A057、F9 自決 part/partner trigger 留 A061
+4. **車輛分類軸不接注音索引**：Crown 業界 muscle memory 揭露（業界料號用英文縮寫 VAG/DSG/SUV/4WD、注音 ROI 低）、本軌 impl 不接、規格 v1.1 修訂 A060
+5. **commit 拆軌**：4 主軌 + 4 子 commit + 1 軌前 SPEC = 11 commit（依任務性質拆 schema/後端/前端/seed 各自獨立）
+6. **NX01-11 SEG 結構 JSON vs columnar 取捨**：選 JSON（規格 §4.2 對齊、彈性 + 未來易擴展、既有 columnar 5 個 Int 不夠表達 length_min/max/charset/required/description）
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 軌前 SPEC | `c1f9e70` | 2 spec + PROJECT_CONTEXT v1.6 #22 | +924/-2、3 檔 |
+| 1.A | `6d712c8` | NX01-10 schema + trigger functions | +275、2 檔 |
+| 1.B | `151d5df` | NX01-10 後端 controller + service + DTO + module | +271、4 檔 |
+| 1.C | `fb77aba` | NX01-10 SYSADMIN 字典 UI + API client | +490、4 檔 |
+| 2 | `63254d4` | NX01-11 schema partBrandId → carBrandId + test-helpers | +148/-42、3 檔 |
+| 3.A | `6b584d5` | NX01-12 schema + nameEn + logoUrl | +29/-2、2 檔 |
+| 3.B | `d43a8b8` | apply-car-brand seed 校正 4 主流 | +56/-14、1 檔 |
+| 3.C | `9d138e3` | NX01-12 後端 + seed code lock + isSystemSeed | +369、4 檔 |
+| 3.D | `2224b53` | 前端 nx00/car-brand API client 對齊新後端 | +16/-9、1 檔 |
+| 4 | `e559204` | NX01-11 後端 + 4 規則 seed + applyTemplateToTenant 註冊 | +564、6 檔 |
+| **總計** | — | — | **+3142/-69、30 檔** |
+
+### 踩坑
+
+#### A063 候選失誤：Hank schema rename 揭露範圍紀律不全
+
+- **觸發**：上輪 §⚠️6 揭露 NX01-11 partBrandId → carBrandId「既有 schema 無資料、無下游引用衝擊」、實際漏算 6 處 `test-helpers.ts` 引用 + 1 處 `part.dto.ts` 註解
+- **規則**：Hank schema rename 揭露前必 grep 全 repo（含 `apps/nx-api/src/.../__tests__/` 範圍）、不只看 schema 內 reverse @relation
+- **補救**：commit 2 順手清 test-helpers（feedback_tech_debt_cleanup 三條件滿足）
+
+#### v1.0 spec vs impl drift（注音範圍）
+
+- NX01-12 §8 寫接 phonetic / NX01-15 §8 寫接 / NX01-10 §8.2 不含車輛分類軸 ⇒ Crown 業界 muscle memory 拍板車輛分類軸不接、impl 不接
+- 對齊 #15 紀律：規則目的（規格先 commit 再 impl）達成、手段（內容完全對齊）暫保留、A060 後續軌 Alex 寫 v1.1 修訂落地
+
+#### nx00 前端範式殘留（A025 family）
+
+- 既有 `features/nx00/car-brand` 殘留、Crown 拍 Q2=A 清 route 部分（`/car-brand` → `/nx01/car-brands`）
+- 完整 `features/nx00` → `features/nx01` 遷移屬 A059 後續軌（含 part-brand 同源範式遷移）
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-10/11/12-*.md` + `nx01-15-vehicle-classification.md`
+- PROJECT_CONTEXT v1.6 #22（Alex 失誤紀錄）
+- nx01-worklog.md 待加主題 6（NX01 模組自己累積、本軌軌後 TODO）
+- A057~A064 後續軌 backlog（system-architecture §G.2 待加）
+
+### 後續軌（A 系列 backlog）
+
+| # | 描述 |
+|---|------|
+| A057 | NX01-10 字典資料匯入（Crown 拍 License 後、教育部 CC BY-ND 3.0 議題） |
+| A058 | NX01-11 規則編輯頁 + 規則預覽 modal UI |
+| A059 | `features/nx00` → `features/nx01` 完整範式遷移（含 part-brand 同源） |
+| A060 | NX01-10/12/15 v1.1 注音範圍對齊修訂（Alex 主軌、Hank 代發） |
+| A061 | NX01-10 主檔 trigger attach（part/partner/user）+ 字典實裝 |
+| A062 | NX01-10 SYSADMIN 字典維護頁 UX 升級（用 BaseMasterPage 完整範式）|
+| A063 | Hank schema rename 揭露範圍紀律候選（上文記載、本軌觸發）|
+| A064 | BaseBrandLikeMasterView 加 isSystemSeed code lock UI 邏輯 |
+
+---
+
+> 文件版本：v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
+> 上一版 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
 > 下次更新觸發：
 >   - Phase 2 task 累積跨模組工作（≥3 個觸發新主題）
 >   - 累計範式總表新範式累積（個別範式直接補進對應分類、無需新主題）
