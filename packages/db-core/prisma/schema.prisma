@@ -73,41 +73,42 @@ model Nx01AuditLog {
 /// =======================================================
 model Nx01BrandCodeRule {
   /// [NX01]+[BCOR]+[7碼流水號]，EX : NX01BCOR0000001；啟用最低需求版本：LITE
-  id                      String        @id @default(dbgenerated("gen_nx01_brand_code_rule_id()")) @db.VarChar(15)
+  id                      String       @id @default(dbgenerated("gen_nx01_brand_code_rule_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                String        @map("tenant_id") @db.VarChar(15)
-  /// 零件品牌 ID（一個品牌只有一筆規則）；啟用最低需求版本：LITE
-  partBrandId             String        @map("part_brand_id") @db.VarChar(15)
-  /// 規則名稱；啟用最低需求版本：LITE
-  name                    String        @db.VarChar(15)
-  /// 第1段字數限制（0=不使用）；啟用最低需求版本：LITE
-  seg1                    Int           @default(0)
-  /// 第2段字數限制（0=不使用）；啟用最低需求版本：LITE
-  seg2                    Int           @default(0)
-  /// 第3段字數限制（0=不使用）；啟用最低需求版本：LITE
-  seg3                    Int           @default(0)
-  /// 第4段字數限制（0=不使用）；啟用最低需求版本：LITE
-  seg4                    Int           @default(0)
-  /// 第5段字數限制（0=不使用）；啟用最低需求版本：LITE
-  seg5                    Int           @default(0)
-  /// 料號組合格式；啟用最低需求版本：LITE
-  codeFormat              String        @default("1-2-3-4-5") @map("code_format") @db.VarChar(20)
-  /// 料號排列順序，例：VAG=23145；啟用最低需求版本：LITE
-  brandSort               String        @default("12345") @map("brand_sort") @db.VarChar(5)
+  tenantId                String       @map("tenant_id") @db.VarChar(15)
+  /// 車型品牌 ID（FK Nx01CarBrand、一個品牌只有一筆規則、規格 v1.0 §1.3）；啟用最低需求版本：LITE
+  carBrandId              String       @map("car_brand_id") @db.VarChar(15)
+  /// 規則名稱（描述用）；啟用最低需求版本：LITE
+  name                    String       @db.VarChar(50)
+  /// 規則描述；啟用最低需求版本：LITE
+  description             String?      @db.VarChar(200)
+  /// SEG 數量（1~10）；啟用最低需求版本：LITE
+  segCount                Int          @default(5) @map("seg_count")
+  /// SEG 定義陣列（JSON、每筆含 seg_no/name/length_min/length_max/charset/required/description、規格 §4.2）；啟用最低需求版本：LITE
+  segDefinitions          Json         @map("seg_definitions")
+  /// SEG 分隔符（如 · / - / 空白、tenant 可改、規格 §5.3）；啟用最低需求版本：LITE
+  separator               String       @default("·") @db.VarChar(1)
+  /// 來源代碼前綴（預設 #、tenant 可改）；啟用最低需求版本：LITE
+  sourceCodePrefix        String       @default("#") @map("source_code_prefix") @db.VarChar(1)
+  /// 來源代碼結構（v1.0 固定 BRAND3+COUNTRY3）；啟用最低需求版本：LITE
+  sourceCodeFormat        String       @default("BRAND3+COUNTRY3") @map("source_code_format") @db.VarChar(30)
+  /// 範例 part_code_2（UI 預覽用、規格 §2.2）；啟用最低需求版本：LITE
+  examplePartCode         String?      @map("example_part_code") @db.VarChar(100)
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive                Boolean       @default(true) @map("is_active")
+  isActive                Boolean      @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt               DateTime      @default(now()) @map("created_at")
+  createdAt               DateTime     @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy               String        @map("created_by") @db.VarChar(15)
+  createdBy               String       @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt               DateTime      @updatedAt @map("updated_at")
+  updatedAt               DateTime     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy               String        @map("updated_by") @db.VarChar(15)
-  tenant                  Nx99Tenant    @relation("R_Nx01BrandCodeRule_tenantId", fields: [tenantId], references: [id])
-  partBrand               Nx01PartBrand @relation("R_Nx01BrandCodeRule_partBrandId", fields: [partBrandId], references: [id])
-  rev_Nx01Part_codeRuleId Nx01Part[]    @relation("R_Nx01Part_codeRuleId")
+  updatedBy               String       @map("updated_by") @db.VarChar(15)
+  tenant                  Nx99Tenant   @relation("R_Nx01BrandCodeRule_tenantId", fields: [tenantId], references: [id])
+  carBrand                Nx01CarBrand @relation("R_Nx01BrandCodeRule_carBrandId", fields: [carBrandId], references: [id])
+  rev_Nx01Part_codeRuleId Nx01Part[]   @relation("R_Nx01Part_codeRuleId")
 
+  @@unique([tenantId, carBrandId])
   @@map("nx01_brand_code_rule")
 }
 
@@ -322,8 +323,9 @@ model Nx01CarBrand {
   updatedAt DateTime     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
   updatedBy String       @map("updated_by") @db.VarChar(15)
-  tenant    Nx99Tenant   @relation("R_Nx01CarBrand_tenantId", fields: [tenantId], references: [id])
-  country   Nx01Country? @relation("R_Nx01CarBrand_countryId", fields: [countryId], references: [id])
+  tenant                            Nx99Tenant          @relation("R_Nx01CarBrand_tenantId", fields: [tenantId], references: [id])
+  country                           Nx01Country?        @relation("R_Nx01CarBrand_countryId", fields: [countryId], references: [id])
+  rev_Nx01BrandCodeRule_carBrandId  Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_carBrandId")
 
   @@unique([tenantId, code])
   @@map("nx01_car_brand")
@@ -816,7 +818,6 @@ model Nx01PartBrand {
   updatedBy                         String              @map("updated_by") @db.VarChar(15)
   tenant                            Nx99Tenant          @relation("R_Nx01PartBrand_tenantId", fields: [tenantId], references: [id])
   country                           Nx01Country?        @relation("R_Nx01PartBrand_countryId", fields: [countryId], references: [id])
-  rev_Nx01BrandCodeRule_partBrandId Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_partBrandId")
   rev_Nx01Part_partBrandId          Nx01Part[]          @relation("R_Nx01Part_partBrandId")
   rev_Nx03StItem_partBrandId        Nx03StItem[]        @relation("R_Nx03StItem_partBrandId")
 
