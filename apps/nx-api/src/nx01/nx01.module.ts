@@ -12,6 +12,8 @@ import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
 import { CustomerGradeService } from './customer-grade/customer-grade.service';
+import { EngineController } from './engine/engine.controller';
+import { EngineService } from './engine/engine.service';
 import { PartBrandController } from './part-brand/part-brand.controller';
 import { PartBrandService } from './part-brand/part-brand.service';
 import { PartController } from './part/part.controller';
@@ -45,6 +47,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PhoneticDictionaryController,
     CarBrandController,
     BrandCodeRuleController,
+    EngineController,
   ],
   providers: [
     CurrencyService,
@@ -60,6 +63,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PhoneticDictionaryService,
     CarBrandService,
     BrandCodeRuleService,
+    EngineService,
   ],
 })
 export class Nx01Module {}
