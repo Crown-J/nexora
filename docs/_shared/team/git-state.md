@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-13（⭐ TASK-NX01-12-IMPL-v2 三模組同步落地軌 merge）**
-> **當前分支：`main`**（HEAD = `5beec09`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-12-car-brand 11 commit 完整 merge、--no-ff）**
-> **⭐ NX01-10 phonetic 基礎設施 + NX01-11 schema 對齊 + NX01-12 schema/seed/controller 全落地、11 commit / +3220/-70 / 27 檔**
+> **快照時間：2026-05-13（⭐ TASK-NX01-14-IMPL engine 主檔落地軌 merge）**
+> **當前分支：`main`**（HEAD = `57e4ae8`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-14-engine 4 commit 完整 merge、--no-ff）**
+> **⭐ NX01-14 engine 主檔落地、4 commit / +1582/-2 / 12 檔（含 spec + schema + 後端 + 前端）**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 → 2026-05-13）：本軌專注 NX01-10/11/12 三模組分支登錄、其他既有分支狀態 + 中間 merge（Alex 失誤 #17~#21、NX01-08 軌 3 等）full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 → 2026-05-13、本軌再次最小變動）：累積 3 軌 merge（Alex 失誤 #17~#21 / NX01-12 三模組 / NX01-14 engine）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `5beec09` | **MERGE NX01-10/11/12 三模組同步落地（TASK-NX01-12-IMPL-v2、11 commit）** |
+| `main` ⭐ | ✅ 同步 | `57e4ae8` | **MERGE NX01-14 engine 主檔落地（TASK-NX01-14-IMPL、4 commit）** |
+| `feature/nx01-14-engine` | ✅ 同步、**已 merge main、可考慮刪除** | `f7d41b0` | NX01-14 engine spec + schema + 後端 + 前端 + worklog 主題 11 |
 | `feature/nx01-12-car-brand` | ✅ 同步、**已 merge main、可考慮刪除** | `8b0a6bc` | NX01-10/11/12 + 2 spec + worklog 主題 10 + PROJECT_CONTEXT v1.6 #22 |
 | `feature/alex-failure-17-21` | ✅ 同步、**已 merge main、可考慮刪除** | `ae70773` | Alex 失誤紀錄 #17~#21 補登 + PROJECT_CONTEXT v1.5 |
 | `feature/wp-phase1-doc-restructure` | ✅ 同步、**已 merge main、可考慮刪除** | `b20dfb9` | GIT-STATE update 2026-04-29 Phase 1 收官 |
@@ -67,6 +68,7 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
+| `feature/nx01-14-engine` | **TASK-NX01-14-IMPL**（NX01-14 engine 主檔 spec + schema + 後端 + 前端 + worklog 主題 11）| ✅ 全部收官、merge main（4 commit、+1582/-2、12 檔）|
 | `feature/nx01-12-car-brand` | **TASK-NX01-12-IMPL-v2**（NX01-10 phonetic 基礎設施 + NX01-11 schema FK 翻轉 + NX01-12 schema/seed/controller + 2 spec + worklog 主題 10 + PROJECT_CONTEXT v1.6 #22） | ✅ 全部收官、merge main（11 commit、+3220/-70、27 檔） |
 | `feature/alex-failure-17-21` | **TASK-PROJECT-CONTEXT-FAILURE-17-21**（Alex 失誤 #17~#21 補登 + PROJECT_CONTEXT v1.5）| ✅ 收官、merge main（merge commit `e9f0efe`）|
 | `feature/wp-phase1-doc-restructure` | **TASK-PHASE1-DOC-RESTRUCTURE-01** + **TASK-PHASE1-NX01~10-WORKLOG** + **TASK-NX08-MONTHLY-REPORT-CLEANUP** + **TASK-WORKLOG-RENAME** + **TASK-PHASE1-PROJECT-CONTEXT-MIGRATE-01** + **TASK-PHASE1-SHARED-WORKLOG-01** + **TASK-PHASE1-MERGE-MAIN-01** | ✅ 全部收官、merge main、tag `phase1-complete` |
