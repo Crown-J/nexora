@@ -1040,7 +1040,59 @@ NX01-17 verify 軌揭露 5 條 drift（Q5 UI + 4 小）+ Hank 失誤候選（自
 
 ---
 
-> 文件版本：v1.7（主題 16 加入、NX01-17 Q5 UI 接通 + 4 drift + charter §G.7/§G.8 升級、2026-05-15）
+## 主題 17｜NX01-17 R 同款 modal 補做（TASK-NX01-17-MODAL-IMPL、2026-05-15、路線 A）
+
+### 起源
+
+Crown 拍 R 同款 modal 走獨立軌 + 路線 A：改 Nx00FlatMasterView 加 onAfterCreate prop（generic 唯一 caller）+ BasePartRelationMasterView 接 reverseHint UX。本軌目標：NX01-17 規格 v1.0 達成 100%。
+
+### 設計決策
+
+1. **路線 A 選定理由**：generic 1 caller（part-relation 唯一）、改造範圍可控、§G.8 紀律守住（caller 唯一 = 無擴散）
+2. **onAfterCreate prop optional**：generic 向後相容、舊 caller 不破壞
+3. **return Promise 支援 await**：caller 可跑 async（fetch + window.confirm + fetch）
+4. **modal UX 用 native window.confirm**：對齊 NX01-10/NX01-07 簡化範式、不引入 custom modal component（避免擴散）
+5. **hint 查失敗靜默處理**：主關係已建、reverseHint nice-to-have、查失敗不影響主流程
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 1 | `9b01313` | Nx00FlatMasterView 加 onAfterCreate prop（generic 改造）| +11、1 檔 |
+| 2 | `a1ed2d4` | BasePartRelationMasterView 接 onAfterCreate + handleRSameReverseHint | +62、1 檔 |
+| **總計** | — | — | **+73、2 檔** |
+
+### 踩坑
+
+#### A066 + 修補成功
+
+- commit 1 改 generic 時、Edit 不小心暫時把 slideDetailSubtitle 改 `_prefix`（可能 break caller line 183）
+- 立即發現、Edit 修正回 `slideDetailSubtitle`
+- 又出現一次 重複 destructure（onAfterCreate 加錯位置）、Edit 再修
+- §G.7 紀律守住：每次 Edit 前先 Read 對應段、3 次 Edit 後成功
+
+#### §G.8 紀律守住
+
+- 改 generic 前 grep verify caller = 1（part-relation 唯一）
+- 改造範圍 +11 行 generic + +62 行 caller、無擴散
+- 對齊本軌 charter 升級條目精神
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-17-part-version-relation.md` v1.0 §2.2.3 + §5.3 R 同款 modal flow 100% 達成
+- 規格 §10.8 HTML 註解（A071）可廢除（本軌完整實作）
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A067 family 部分收斂 | part_relation UI + R 同款 modal 完整、A067 規模縮減為其他模組（part_group / country / currency 等）|
+| 跨軌 | window.confirm UX 升級到 BaseConfirmDialog（A067 整體升級時順手）|
+
+---
+
+> 文件版本：v1.8（主題 17 加入、NX01-17 R 同款 modal 路線 A 補做、2026-05-15）
+> 上一版 v1.7（主題 16 加入、NX01-17 Q5 UI 接通 + 4 drift + charter §G.7/§G.8 升級、2026-05-15）
 > 上一版 v1.6（主題 15 加入、NX01-17 part_version + part_relation + 軸 1 升 SmallInt、2026-05-15）
 > 上一版 v1.5（主題 14 加入、NX01-05 part 主檔最後整合節點落地、2026-05-14）
 > 上一版 v1.4（主題 13 加入、NX01-07 基礎型錄 5 表合一精煉落地、2026-05-14）
