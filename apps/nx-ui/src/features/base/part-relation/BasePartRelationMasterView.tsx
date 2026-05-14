@@ -7,12 +7,13 @@ import { Nx00FlatMasterView, type FlatFieldDef } from '@/features/base/nx00-flat
 import { listPart } from '@/features/nx00/part/api/part';
 import type { PartDto } from '@/features/nx00/part/types';
 
+// 規格 §1.3 + §4.2 Crown Q3=B-小範圍：relationType 升 SmallInt（1=改號 / 2=同款 / 3=改版換周邊 / 4=組合包 / 5=拆解包）
 const REL_OPTS = [
-  { value: 'S', label: 'S 改號' },
-  { value: 'R', label: 'R 同款' },
-  { value: 'C', label: 'C 改版換周邊' },
-  { value: 'B', label: 'B 組合包' },
-  { value: 'F', label: 'F 拆解包' },
+  { value: '1', label: '1 改號' },
+  { value: '2', label: '2 同款' },
+  { value: '3', label: '3 改版換周邊' },
+  { value: '4', label: '4 組合包' },
+  { value: '5', label: '5 拆解包' },
 ];
 
 const FIELDS: FlatFieldDef[] = [
@@ -165,7 +166,7 @@ function PartRelationEndpointsBlock(props: {
 export function BasePartRelationMasterView() {
   return (
     <Nx00FlatMasterView
-      basePath="/part-relation"
+      basePath="/nx01/part-relations"
       prefKey="base.partRelation"
       listErrorCode="nxui_base_pare_list"
       fields={FIELDS}

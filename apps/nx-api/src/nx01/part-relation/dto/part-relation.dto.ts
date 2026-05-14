@@ -71,6 +71,25 @@ export class CreatePartRelationDto {
   isActive?: boolean;
 }
 
+/** 規格 §3.3.2：UI 在 create 後呼叫此 DTO 查 reverseHint */
+export class CheckReverseHintDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(15)
+  partIdFrom!: string;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(15)
+  partIdTo!: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(RELATION_TYPE_MIN)
+  @Max(RELATION_TYPE_MAX)
+  relationType!: number;
+}
+
 export class UpdatePartRelationDto {
   @IsOptional()
   @Type(() => Number)
