@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⭐ TASK-NX01-17-MODAL-IMPL R 同款 modal 路線 A merge、NX01-17 規格 v1.0 達成 100%）**
-> **當前分支：`main`**（HEAD = `2403ea8`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-17-r-modal 3 commit、--no-ff）**
-> **⭐ NX01-17 R 同款 modal 完整實作：Nx00FlatMasterView 加 onAfterCreate prop + BasePartRelationMasterView handleRSameReverseHint + window.confirm UX、3 commit / +126/-1 / 3 檔**
+> **快照時間：2026-05-15（⭐⭐ TASK-NX01-16-IMPL part_model 戰略表 merge、NX01 17 份子規格書 + impl 全 closure）**
+> **當前分支：`main`**（HEAD = `906636a`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-16-part-model 5 commit、--no-ff）**
+> **⭐⭐ NX01-16 part_model 完整實作：schema + migration + 後端 + 前端 + reference drift、5 commit / +1185 / 13 檔。NX01 17 份子規格書 + impl 全 closure、Yaro 戰略田驗證主檔層收尾**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 10 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05 / NX01-17 / NX01-17-UI / NX01-17-MODAL）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 11 軌 merge（+ NX01-16）、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（12 條）
+### A.1 本地分支總覽（13 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `2403ea8` | **MERGE NX01-17 R 同款 modal 路線 A（TASK-NX01-17-MODAL-IMPL、2 commit、規格 100% 達成）** |
+| `main` ⭐ | ✅ 同步 | `906636a` | **⭐⭐ MERGE NX01-16 part_model 戰略表（TASK-NX01-16-IMPL、5 commit、NX01 全 closure）** |
+| `feature/nx01-16-part-model` | ✅ 同步、**已 merge main、可考慮刪除** | `e598ad4` | NX01-16 spec + schema + 後端 + 前端 + reference drift + worklog 主題 18 |
 | `feature/nx01-17-r-modal` | ✅ 同步、**已 merge main、可考慮刪除** | `8769eef` | R 同款 modal 路線 A：generic onAfterCreate prop + caller handler + worklog 主題 17 |
 | `feature/nx01-17-ui-and-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `d11cffa` | Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級 + worklog 主題 16 |
 | `feature/nx01-17-part-version-relation` | ✅ 同步、**已 merge main、可考慮刪除** | `2fb31ac` | 軸 1 字母 enum SmallInt + part_version + part_relation 後端 + worklog 主題 15 |
