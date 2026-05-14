@@ -6,6 +6,67 @@ import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { Nx00FlatMasterView, type FlatFieldDef } from '@/features/base/nx00-flat-master/Nx00FlatMasterView';
 import { listPart } from '@/features/nx00/part/api/part';
 import type { PartDto } from '@/features/nx00/part/types';
+import { apiFetch } from '@/shared/api/client';
+import { assertOk } from '@/shared/api/http';
+
+/** 規格 §2.2.3 + Crown Q2=C：R 同款 modal handler（TASK-NX01-17-MODAL-IMPL）*/
+const RELATION_TYPE_SAME = 2;
+
+type ReverseHintResponse = {
+  suggested: boolean;
+  existing: boolean;
+  message: string;
+};
+
+async function handleRSameReverseHint(created: Record<string, unknown>): Promise<void> {
+  const relationType = Number(created.relationType);
+  if (relationType !== RELATION_TYPE_SAME) return;
+
+  const partIdFrom = String(created.partIdFrom ?? '');
+  const partIdTo = String(created.partIdTo ?? '');
+  if (!partIdFrom || !partIdTo) return;
+
+  // Step 1：查 reverseHint（後端 service.checkReverseHint）
+  let hint: ReverseHintResponse;
+  try {
+    const res = await apiFetch('/nx01/part-relations/check-reverse-hint', {
+      method: 'POST',
+      body: JSON.stringify({ partIdFrom, partIdTo, relationType }),
+    });
+    await assertOk(res, 'nxui_part_relation_reverse_hint');
+    hint = (await res.json()) as ReverseHintResponse;
+  } catch {
+    // hint 查失敗、靜默結束（UI 已建好主關係、reverseHint 是 nice-to-have）
+    return;
+  }
+
+  if (!hint.suggested || hint.existing) return;
+
+  // Step 2：window.confirm 提示用戶（對齊 NX01-10 簡化版 UX 範式）
+  const ok = window.confirm(
+    `${hint.message}\n\n按「確定」建立反向關係（B→A）、「取消」保留單向。`,
+  );
+  if (!ok) return;
+
+  // Step 3：用戶確認、POST 建反向關係（partIdFrom=B, partIdTo=A, relationType=2）
+  try {
+    const res = await apiFetch('/nx01/part-relations', {
+      method: 'POST',
+      body: JSON.stringify({
+        partIdFrom: partIdTo,
+        partIdTo: partIdFrom,
+        relationType: RELATION_TYPE_SAME,
+      }),
+    });
+    await assertOk(res, 'nxui_part_relation_reverse_create');
+    // 反向建立成功、提示用戶（generic list 不會自動 refetch、可選擇）
+    window.alert('反向關係 B→A 已建立、請手動重整列表');
+  } catch (e) {
+    window.alert(
+      `反向關係建立失敗：${e instanceof Error ? e.message : '未知錯誤'}`,
+    );
+  }
+}
 
 // 規格 §1.3 + §4.2 Crown Q3=B-小範圍：relationType 升 SmallInt（1=改號 / 2=同款 / 3=改版換周邊 / 4=組合包 / 5=拆解包）
 const REL_OPTS = [
@@ -190,6 +251,7 @@ export function BasePartRelationMasterView() {
       renderDetailExtras={({ draft, setDraft, creating, selected }) => (
         <PartRelationEndpointsBlock draft={draft} setDraft={setDraft} creating={creating} selected={selected} />
       )}
+      onAfterCreate={handleRSameReverseHint}
     />
   );
 }
