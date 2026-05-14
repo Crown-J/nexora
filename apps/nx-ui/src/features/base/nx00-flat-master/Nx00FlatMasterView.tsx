@@ -73,6 +73,14 @@ export type Nx00FlatMasterProps = {
   /** 自訂側欄標題（預設 code／新增） */
   slideDetailTitle?: (ctx: { creating: boolean; selected: Record<string, unknown> | null }) => ReactNode;
   slideDetailSubtitle?: (ctx: { creating: boolean; selected: Record<string, unknown> | null }) => ReactNode | null;
+  /**
+   * create 成功後的 hook（NX01-17 R 同款 modal 範式、TASK-NX01-17-MODAL-IMPL 加）
+   * - 傳入 dto = 後端 POST response（已寫入 state、selectedId 設好）
+   * - caller 可在此跑 follow-up 邏輯（如 reverseHint check + window.confirm + 建反向）
+   * - return Promise 等待完成、避免 race condition
+   * - 對齊 §G.8 紀律：generic 1 caller（part-relation 唯一）改造範圍可控
+   */
+  onAfterCreate?: (created: Record<string, unknown>) => void | Promise<void>;
 };
 
 type SortDir = 'asc' | 'desc';
@@ -132,6 +140,7 @@ export function Nx00FlatMasterView({
   renderDetailExtras,
   slideDetailTitle,
   slideDetailSubtitle,
+  onAfterCreate,
 }: Nx00FlatMasterProps) {
   const upper = useMemo(() => new Set(upperCaseFields), [upperCaseFields]);
 
@@ -373,6 +382,8 @@ export function Nx00FlatMasterView({
         const d = rowToDraft(dto, fields);
         setDraft(d);
         setBaseline(d);
+        // NX01-17 onAfterCreate hook：caller 可在此跑 follow-up（如 R 同款 modal）
+        if (onAfterCreate) await onAfterCreate(dto);
       } else if (selectedId) {
         const res = await apiFetch(`${basePath}/${encodeURIComponent(selectedId)}`, {
           method: 'PUT',
