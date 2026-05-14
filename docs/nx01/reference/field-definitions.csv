@@ -186,6 +186,18 @@ nx01_part_relation,9,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建�
 nx01_part_relation,10,created_by,LITE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
 nx01_part_relation,11,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
 nx01_part_relation,12,updated_by,LITE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx01_part_model,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX01]+[PAMO]+[7碼流水號]，EX : NX01PAMO0000001
+nx01_part_model,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
+nx01_part_model,3,part_id,LITE,VARCHAR(15),False,True,True,True,nx01_part,,料件 ID（外鍵；unique 含 (tenantId, partId, modelId)）
+nx01_part_model,4,model_id,LITE,VARCHAR(15),False,True,True,True,nx01_model,,車型 ID（外鍵；unique 含 (tenantId, partId, modelId)）
+nx01_part_model,5,fit_level,LITE,SMALLINT,False,False,True,False,,1,適配等級（1=原廠 / 2=副廠等效 / 3=通用替代、Q3=B SmallInt enum）
+nx01_part_model,6,remark,LITE,VARCHAR(200),False,False,False,False,,,備註（業務人員手記）
+nx01_part_model,7,sort_no,LITE,INT,False,False,True,False,,0,排序
+nx01_part_model,8,is_active,LITE,BOOLEAN,False,False,True,False,,TRUE,是否啟用
+nx01_part_model,9,created_at,LITE,TIMESTAMP,False,False,True,False,,NOW,建立時間。
+nx01_part_model,10,created_by,LITE,VARCHAR(15),False,False,True,True,nx01_user,,建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
+nx01_part_model,11,updated_at,LITE,TIMESTAMP,False,False,True,False,,NOW,更新時間。
+nx01_part_model,12,updated_by,LITE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
 nx01_partner,1,id,LITE,VARCHAR(15),True,True,True,False,,GEN,[NX01]+[PTNR]+[7碼流水號]，EX : NX01PTNR0000001
 nx01_partner,2,tenant_id,LITE,VARCHAR(15),False,False,True,True,nx99_tenant,,租戶 ID（外鍵）
 nx01_partner,3,code,LITE,VARCHAR(30),False,True,True,False,,,交易對象代碼（唯一），例：C0001、S0003、BP0008
