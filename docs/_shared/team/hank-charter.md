@@ -397,6 +397,58 @@ git status --short | grep '^??'
 - A052 = 全階段紀律（含 merge / rebase / cherry-pick）
 - 兩條同時生效、互相不替代、§G.5 速查表雙列
 
+### G.7 Edit/Write tool 對既有檔案前必先 Read（A066、2026-05-15 NX01-17 軌 closure 確認）
+
+**規則：Edit / Write tool 對既有檔案前必先用 Read tool 讀過、否則 tool 會擋下並拋 `File has not been read yet`**
+
+⛔ 反 pattern：
+- 連續 Edit 多檔、其中某檔本對話沒 Read 過 → 被擋下、commit 部分成功 + 部分失敗
+- 假設「之前 Read 過就還算」→ tool 不認可（context refresh / session 差異）
+
+✅ 範式：
+- 對既有檔案準備 Edit 前、先 Read 取得最新狀態（即使 grep 已看過內容）
+- 對既有檔案重複字串（如 CreatePartDto + UpdatePartDto 結尾相同），改用 `replace_all=true` 處理
+- Write tool 對既有檔案同樣紀律（不只是 new file 用 Write）
+
+**為什麼**：
+- NX01-07 軌 commit 3-fix（A066 候選首次）：customer-grade.dto.ts + controller 沒 Read 就 Write 被擋、commit 3 部分 stage、需 commit 3-fix 補
+- NX01-17 軌 commit 5-fix（A066 連續觸發）：nx01.module.ts + part.dto.ts (UpdatePartDto changeReason) 被擋、需 commit 5-fix 補
+- 部分 commit 造成 split-state、生產風險（後端 nest 啟動掛、UI 編譯掛）
+
+**檢查清單**（Edit/Write 對既有檔案前必跑）：
+```
+1. 該檔本對話 Read 過嗎？沒 → Read first
+2. 該檔近期被改過嗎（commit / 其他 Edit）？是 → Re-Read 取最新
+3. old_string 是否重複（CreateDto + UpdateDto 結尾相同）？是 → replace_all=true
+```
+
+### G.8 範圍擴散時揭露不擅自（NX01-17 UI 軌觸發、Crown 明示紀律）
+
+**規則：發現範圍超出 Crown 明確拍板時、必須揭露給 Crown 重拍、不可自決縮減 / 擴張**
+
+⛔ 反 pattern（NX01-17 軌 F5 觸發）：
+- Crown Q5=A 拍「本軌接通既有 UI」
+- Hank impl 階段發現 generic component 改造風險擴散
+- 自決縮減為「跳過、走 A071 後續軌」、未走 Crown 重拍
+- 結果：Hank 失誤候選、規格 vs impl drift 揭露才補
+
+✅ 範式：
+- 揭露真相給 Crown：「規格 Q?=? 拍板含 X、實際範圍 Y（揭露 grep 精確 count）、是否重拍？」
+- 列 N 條可選路線（含工作量 / 風險評估）、Crown 拍才繼續
+- 對齊 Alex 失誤 #20 反向版（Crown 拍板的 Hank 不擅自縮減 / 改寫）
+
+**檢查清單**（impl 階段發現範圍擴散時必跑）：
+```
+1. 範圍是否超出 Crown 明拍範圍？是 → 揭露不擅自
+2. 範圍是否含 generic component 改造（影響其他 caller）？是 → grep -c 精確 count 影響
+3. 工作量是否爆（>20 行 / >2 commit）？是 → 列 N 條路線給 Crown
+4. 自決縮減屬「擅自改 Crown 拍板範圍」？是 → 揭露 + 等 Crown 重拍
+```
+
+**對應 Alex 失誤紀錄**：
+- Alex #20「不推薦違反 Crown 既有明確拍板的選項、只能揭露真相給 Crown 重拍」
+- 本紀律是 #20 對 Hank 角色的鏡像版
+
 ---
 
 ## 結語

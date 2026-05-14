@@ -981,7 +981,67 @@ Hank §10 NX01-17 諮詢揭露 part_relation UI ↔ 後端 drift（A067 family�
 
 ---
 
-> 文件版本：v1.6（主題 15 加入、NX01-17 part_version + part_relation + 軸 1 升 SmallInt、2026-05-15）
+## 主題 16｜NX01-17 Q5 UI 接通 + 4 個小 drift 補正 + hank-charter §G.7/§G.8 升級（TASK-NX01-17-UI-IMPL、2026-05-15）
+
+### 起源
+
+NX01-17 verify 軌揭露 5 條 drift（Q5 UI + 4 小）+ Hank 失誤候選（自決縮減 Q5 範圍走 A071）。Crown 拍 Q5=B「本對話下軌補做」+ 4 drift 全補 + Hank 失誤候選走 hank-charter §G 紀律升級。
+
+### 設計決策
+
+1. **4 drift 合 1 commit**：邏輯獨立、範圍小（~15 行）、拆 4 commit 過粒度
+2. **Q5 UI 拆 2 commit**：先 commit 2 接通真實後端（basePath + REL_OPTS）+ R 同款 modal 4 路線揭露給 Crown 下軌拍
+3. **後端 service.create 拆 wrapper**：response 對齊 Nx00FlatMasterView generic、reverseHint 走 separate endpoint POST /check-reverse-hint
+4. **R 同款 modal 不擅自**：對齊 §G.8 範圍擴散揭露紀律、不擅自改 1012 行 generic、等 Crown 拍 4 路線
+5. **hank-charter §G 升 2 條紀律**：G.7 Edit/Write 前必 Read（A066 範式化）+ G.8 範圍擴散揭露（本軌 Hank 失誤候選）
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 1 | `339eae3` | 4 drift 補正（isActive guard / part.create version 1 / 2 role 對齊）| +24/-6、4 檔 |
+| 2 | `1d61824` | UI 接通真實後端：後端 wrapper 拆 + UI basePath/REL_OPTS + check-reverse-hint endpoint | +82/-35、4 檔 |
+| **總計（impl）** | — | — | **+106/-41、8 檔** |
+
+### 踩坑
+
+#### A066 連續觸發（hank-charter §G.7 升級觸發）
+
+- 本軌 commit 1 對 part.service.ts 沒先 Read 就 Edit、Edit 被擋一次
+- 補救：先 Read 再 Edit、繼續完成
+- charter §G.7 加紀律升級條目（範式化檢查清單 + 反 pattern + 對應 NX01-07/NX01-17 兩次觸發）
+
+#### §G.8 範圍擴散揭露紀律觸發（Hank 失誤候選範式化）
+
+- Crown 明示「Hank 失誤候選紀錄走 hank-charter §G、不佔 Alex 失誤 #23 編號」
+- 本軌觸發：NX01-17 軌 F5「Q5 UI 跳過揭露 A071」= 自決縮減 Crown 明拍範圍
+- charter §G.8 加紀律升級條目（範式化檢查清單 + 對應 Alex #20 鏡像版）
+
+#### R 同款 modal 4 路線揭露給 Crown 下軌
+
+- Nx00FlatMasterView 1012 行 generic 無 onAfterCreate hook
+- 4 路線：A 改 generic / B 完全改寫 / C setInterval hack / D 跳過
+- Hank 推薦 A（generic 只 1 caller、改造範圍可控）
+- 對齊 §G.8 紀律、等 Crown 拍
+
+### 對應文件
+
+- charter 升級：[hank-charter.md §G.7 + §G.8](../_shared/team/hank-charter.md)
+- 後端：3 個檔（part-relation/{service,controller,dto}）+ 1 檔（part-version controller @Roles）+ 1 檔（part service.create writePartVersion）
+- 前端：1 個檔（BasePartRelationMasterView basePath + REL_OPTS）
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| 跨軌 | R 同款 modal UX 完整實作（Crown 拍 4 路線後處理）|
+| A067 family 部分收斂 | part_relation UI 已接通、A067 規模縮減為其他模組（part_group / country / currency 等）|
+| A071 廢除 vs 改 | 本軌 commit 2 接通 80% 規格、Q2=C modal UX 留下軌、A071 改名「R 同款 modal UX」|
+
+---
+
+> 文件版本：v1.7（主題 16 加入、NX01-17 Q5 UI 接通 + 4 drift + charter §G.7/§G.8 升級、2026-05-15）
+> 上一版 v1.6（主題 15 加入、NX01-17 part_version + part_relation + 軸 1 升 SmallInt、2026-05-15）
 > 上一版 v1.5（主題 14 加入、NX01-05 part 主檔最後整合節點落地、2026-05-14）
 > 上一版 v1.4（主題 13 加入、NX01-07 基礎型錄 5 表合一精煉落地、2026-05-14）
 > 更早 v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
