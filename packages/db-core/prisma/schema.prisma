@@ -793,6 +793,11 @@ model Nx01Part {
   rev_Nx06DnItem_partId           Nx06DnItem[]           @relation("R_Nx06DnItem_partId")
   rev_Nx08InventoryCache_partId   Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_partId")
 
+  @@unique([tenantId, code, countryId])
+  @@index([tenantId, code])
+  @@index([tenantId, name])
+  @@index([tenantId, partBrandId])
+  @@index([tenantId, partGroupId])
   @@map("nx01_part")
 }
 
