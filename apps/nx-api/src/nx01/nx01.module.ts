@@ -24,6 +24,8 @@ import { PartBrandController } from './part-brand/part-brand.controller';
 import { PartBrandService } from './part-brand/part-brand.service';
 import { PartGroupController } from './part-group/part-group.controller';
 import { PartGroupService } from './part-group/part-group.service';
+import { PartRelationController } from './part-relation/part-relation.controller';
+import { PartRelationService } from './part-relation/part-relation.service';
 import { PartController } from './part/part.controller';
 import { PartService } from './part/part.service';
 import { PartnerController } from './partner/partner.controller';
@@ -63,6 +65,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     ModelTypeController,
     ModelController,
     PartGroupController,
+    PartRelationController,
   ],
   providers: [
     CurrencyService,
@@ -84,6 +87,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     ModelTypeService,
     ModelService,
     PartGroupService,
+    PartRelationService,
   ],
 })
 export class Nx01Module {}
