@@ -16,6 +16,8 @@ import { DrivetrainController } from './drivetrain/drivetrain.controller';
 import { DrivetrainService } from './drivetrain/drivetrain.service';
 import { EngineController } from './engine/engine.controller';
 import { EngineService } from './engine/engine.service';
+import { ModelController } from './model/model.controller';
+import { ModelService } from './model/model.service';
 import { ModelTypeController } from './model-type/model-type.controller';
 import { ModelTypeService } from './model-type/model-type.service';
 import { PartBrandController } from './part-brand/part-brand.controller';
@@ -57,6 +59,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     TransmissionController,
     DrivetrainController,
     ModelTypeController,
+    ModelController,
   ],
   providers: [
     CurrencyService,
@@ -76,6 +79,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     TransmissionService,
     DrivetrainService,
     ModelTypeService,
+    ModelService,
   ],
 })
 export class Nx01Module {}
