@@ -917,7 +917,72 @@ Hank §5.3 NX01-05 諮詢揭露 production blocker：part.service.ts 仍引用�
 
 ---
 
-> 文件版本：v1.5（主題 14 加入、NX01-05 part 主檔最後整合節點落地、2026-05-14）
+## 主題 15｜NX01-17 part_version + part_relation + 軸 1 字母 enum 升 SmallInt（TASK-NX01-17-IMPL、2026-05-15）
+
+### 起源
+
+Hank §10 NX01-17 諮詢揭露 part_relation UI ↔ 後端 drift（A067 family）+ schema 缺 unique + 5 拍板 Q 候選。Crown 拍 8 Q（part_version 全 snapshot / R 同款 reverseHint / 軸 1 字母 enum → SmallInt 最小範圍 / 自關聯 guard / unique + index 補）+ 雙軸範圍。
+
+### 設計決策
+
+1. **軸 1 範圍 = A 最小**（Hank 推薦）：只升 part.type + part_relation.relationType、其餘 NX01 7 個 / NX02~NX08 ~106 個技術 enum 留 A069/A070 後續軌
+2. **part_version 全 snapshot（Q1=A）**：每次 part.update 同 tx 寫 9 欄位 snapshot、versionNo MAX+1、effectiveTo 連續演進
+3. **R 同款 reverseHint（Q2=C）**：API 回傳 hint flag、UI modal 用戶決定建反向、service 不自動建
+4. **part_relation read-only fix → 完整 CRUD**：補 controller + service + DTO + 自關聯 + 跨 tenant guard（Q5=A + Q7=A）
+5. **part_version read-only API**：write 由 part.service.update tx 同步、不暴露外部 CRUD
+6. **UI 跳過揭露 A071**：既有 UI generic re-export 改動風險擴散、留後續軌統一升級
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 1 | `4fb2b6f` | 軸 1 part.type + relationType VARCHAR(1) → SmallInt + migration data 轉換 | +78/-4、2 檔 |
+| 2 | `e51bcad` | part_version 新建 schema + migration | +129、2 檔 |
+| 3 | `1abfe44` | part_relation 補 @@unique + 3 index migration | +33、2 檔 |
+| 4 | `dee7d97` | part_relation 後端 + R 同款 reverseHint + 自關聯 guard | +419、4 檔 |
+| 5 | `4862bc1` | part_version 後端 + part.update tx 同步寫 version + 軸 1 type 對齊 | +231/-14、5 檔 |
+| 5-fix | `90683a0` | 補 stage漏（A066 連續觸發、nx01.module + dto.changeReason）| +16、2 檔 |
+| **總計** | — | — | **+906/-18、17 檔（不含 UI、不含規格書）** |
+
+### 踩坑
+
+#### A066 紀律連續觸發（NX01-07 軌首次、本軌再次）
+
+- **觸發**：commit 5 對 nx01.module.ts + part.dto.ts (CreatePartDto + UpdatePartDto changeReason) 多處 Edit 被擋
+- **規則升級候選**：Edit tool 對既有檔案前**必先 Read**、replace_all 重複字串時必標明
+- **本軌補救**：commit 5-fix Read 後 Edit + replace_all=true 處理 priceD 結尾兩處共用
+
+#### 軸 1 範圍評估後選 A 最小（規則目的範式 #15）
+
+- 125 VARCHAR(1~3) 候選欄位、115 個技術 enum
+- 全範圍升級跨 8 模組 30+ commit、ROI 失衡
+- 替代手段：本軌只升 NX01-17 用到的 2 欄、其他模組進規格書時順手升
+
+#### UI 接通延後揭露 A071（規則目的範式 #15）
+
+- Crown Q5=A 拍接通既有 UI、但 BasePartRelationMasterView 是 generic Nx00FlatMasterView re-export
+- 改動 generic 風險擴散到其他主檔
+- 本軌只動後端、UI 接通進 A071 後續軌（A067 family）
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-17-part-version-relation.md` v1.0（Alex 平行寫、Hank 代發另軌）
+- 3 migrations：軸 1 字母 enum / part_version 新建 / part_relation unique+index
+- 後端：3 個新模組（part-relation/ + part-version/ + part-version snapshot 寫入邏輯）
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A069 | NX01 模組其他 7 個技術 enum 升 SmallInt（NX01 全 closure 後、進 NX02 前）|
+| A070 | NX02~NX08 約 106 個技術 enum 升 SmallInt（各模組規格書落地時順手升）|
+| A071 | NX01-17 UI 接通真實後端（part-relation Nx00FlatMasterView generic 改造、A067 family 收斂）|
+| 跨軌 NX01-05 軌 | UpdatePartDto.changeReason 業務應接到 UI 收集（本軌只後端、UI 待處理）|
+
+---
+
+> 文件版本：v1.6（主題 15 加入、NX01-17 part_version + part_relation + 軸 1 升 SmallInt、2026-05-15）
+> 上一版 v1.5（主題 14 加入、NX01-05 part 主檔最後整合節點落地、2026-05-14）
 > 上一版 v1.4（主題 13 加入、NX01-07 基礎型錄 5 表合一精煉落地、2026-05-14）
 > 更早 v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
 > 更早 v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
