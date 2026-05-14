@@ -231,7 +231,7 @@ export class PartService {
     const row = await this.prisma.$transaction(async (tx) => {
       const codeRuleId = await this.resolveCodeRuleId(tx, tenantId, dto.codeRuleId);
       await this.validateUnkReservedNotUsed(tx, tenantId, dto.partBrandId, dto.countryId);
-      return tx.nx01Part.create({
+      const created = await tx.nx01Part.create({
         data: {
           tenantId,
           codeRuleId,
@@ -262,6 +262,9 @@ export class PartService {
         },
         select: SEL,
       });
+      // drift #3 補：規格 §5.2「首次 part create：寫 version 1」
+      await this.writePartVersionSnapshot(tx, tenantId, user.sub, created, null);
+      return created;
     });
     await this.audit.write({
       tenantId,

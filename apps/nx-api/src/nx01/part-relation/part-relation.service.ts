@@ -59,7 +59,7 @@ export class PartRelationService {
     };
   }
 
-  /** Q7=A：自關聯 + 跨 tenant 防護 */
+  /** Q7=A：自關聯 + 跨 tenant + isActive 防護（規格 §3.3.1 4 項全做） */
   private async validatePartReferences(
     tx: Prisma.TransactionClient,
     tenantId: string,
@@ -70,11 +70,24 @@ export class PartRelationService {
       throw new BadRequestException('partIdFrom 不可等於 partIdTo（自關聯禁止、規格 §3.2 + Q7=A）');
     }
     const [from, to] = await Promise.all([
-      tx.nx01Part.findFirst({ where: { id: partIdFrom, tenantId }, select: { id: true } }),
-      tx.nx01Part.findFirst({ where: { id: partIdTo, tenantId }, select: { id: true } }),
+      tx.nx01Part.findFirst({
+        where: { id: partIdFrom, tenantId },
+        select: { id: true, isActive: true },
+      }),
+      tx.nx01Part.findFirst({
+        where: { id: partIdTo, tenantId },
+        select: { id: true, isActive: true },
+      }),
     ]);
     if (!from) throw new NotFoundException(`partIdFrom not found for tenant: ${partIdFrom}`);
     if (!to) throw new NotFoundException(`partIdTo not found for tenant: ${partIdTo}`);
+    // drift #2 補：規格 §3.3.1 isActive 檢核（不能對停用料建新關係）
+    if (!from.isActive) {
+      throw new BadRequestException(`partIdFrom ${partIdFrom} 已停用、不可建新關係`);
+    }
+    if (!to.isActive) {
+      throw new BadRequestException(`partIdTo ${partIdTo} 已停用、不可建新關係`);
+    }
   }
 
   private whereList(

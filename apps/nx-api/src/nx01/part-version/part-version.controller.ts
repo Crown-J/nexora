@@ -14,7 +14,8 @@ import { PartVersionService } from './part-version.service';
 
 @Controller('nx01/part-versions')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SYSADMIN', 'OWNER', 'PURCHASING')
+// drift #4 補：規格 §6.1 「PURCHASING / SALES / WAREHOUSE / FINANCE / HR 皆可看 read-only」
+@Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES', 'WAREHOUSE', 'FINANCE', 'HR')
 export class PartVersionController {
   constructor(private readonly svc: PartVersionService) {}
 

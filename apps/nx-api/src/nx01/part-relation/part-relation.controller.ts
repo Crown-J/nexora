@@ -17,7 +17,8 @@ import { PartRelationService } from './part-relation.service';
 
 @Controller('nx01/part-relations')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SYSADMIN', 'OWNER', 'PURCHASING')
+// drift #5 補：規格 §6.2 PURCHASING + SALES 都可 CRUD
+@Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES')
 export class PartRelationController {
   constructor(private readonly svc: PartRelationService) {}
 
