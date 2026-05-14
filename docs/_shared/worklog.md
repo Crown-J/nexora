@@ -744,9 +744,56 @@ Hank 接 NX01-12 諮詢時揭露 3 重 drift：
 
 ---
 
-> 文件版本：v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
-> 上一版 v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
-> 更早 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
+## 主題 12｜NX01-13 model + NX01-15 三表同步落地軌（TASK-NX01-13-IMPL、2026-05-13）
+
+### 起源
+
+本軌觸發 #22 鐵律：Hank verify 揭露 NX01-15 三表規格 v1.0 但 impl 未落地（schema 0 / controller 0）、NX01-13 規格 §跨軌依賴 5 FK 含 3 個 NX01-15 表、Hank 寫 NX01-13 必先補 NX01-15 schema。Crown 指令範圍擴張為 4 表同軌（類似 NX01-12-IMPL-v2 三模組同軌範式）。
+
+### 設計決策
+
+1. **拓樸順序**：NX01-15 schema → seed → 後端 → UI → NX01-13 schema → 後端 → UI（依 FK 依賴方向、5 FK 全部下游表先建）
+2. **NX01-15 三表 commit 拆 4 子**：schema / seed / 後端 (3 套) / UI (合 vehicle-classification feature)
+3. **NX01-13 commit 拆 3 子**：schema (含 5 FK)/ 後端 (含年份業務檢核) / UI (FK 暫填 ID)
+4. **NX01-15 UI 抽象判準觸發**：drivetrain + model_type 結構完全相同（6 業務欄位）+ 個數 ≥3 但實質只 2 個一致 → 共用 SimpleCatalogMasterView (variant + itemLabel prop)、transmission 獨立（多 transmissionType / gearCount / carBrandId）
+5. **carBrandId NN vs 4 個分類 FK nullable**：Crown Q3=A + 業界 muscle memory「車型必有品牌、詳細分類選填」、ON DELETE RESTRICT (carBrand) vs SET NULL (4 分類)
+6. **年份業務檢核走 service 層**：modelYearFrom 1900~當前年+5 / modelYearTo 1900~當前年+10 + ≥From、不寫 DB CHECK（PROJECT_CONTEXT §G #12 application 層 validation）
+7. **5 FK UI 暫填 ID 字串、A065 後續軌升級下拉聯動**：本軌簡化版、避免本軌 UI 範圍爆炸
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 軌前 SPEC | `174bf90` | nx01-13-model.md v1.0 | +409、1 檔 |
+| 1 | `71bfff9` | NX01-15 三表 schema + migration | +265、2 檔 |
+| 2 | `492d4aa` | NX01-15 三表 seed apply + applyTemplateToTenant 註冊 | +149、4 檔 |
+| 3 | `88768ef` | NX01-15 三表後端 (3 套 controller + service + DTO + module) | +1009、10 檔 |
+| 4 | `b1d42d8` | NX01-15 三表 UI (vehicle-classification feature 合一) | +1049、8 檔 |
+| 5 | `6b276fa` | NX01-13 schema + 5 FK + migration | +174/-2、2 檔 |
+| 6 | `e5a896e` | NX01-13 後端 + 年份業務檢核 | +471、4 檔 |
+| 7 | `19a8d0e` | NX01-13 UI + types + API client | +611、4 檔 |
+| **總計** | — | — | **+4137/-2、35 檔** |
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-13-model.md` v1.0
+- 3 個 migration：`20260513160000` (NX01-15 三表) + `20260513170000` (NX01-13)
+- 後端：4 個新 controller (transmission/drivetrain/model-type/model)
+- 前端：2 個新 feature folder (vehicle-classification 含 transmission + simple-catalog / model)
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A065 | 多 FK UI dropdown 聯動升級（NX01-13 model 5 FK + NX01-14 engine carBrandId + NX01-15 transmission carBrandId、目前全暫填 ID 字串）|
+| 跨軌 | NX01-16 part_model schema 落地時加 `model_id` FK（part ↔ model 戰略表）|
+
+---
+
+> 文件版本：v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
+> 上一版 v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
+> 更早 v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
+> 最早 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
 > 下次更新觸發：
 >   - Phase 2 task 累積跨模組工作（≥3 個觸發新主題）
 >   - 累計範式總表新範式累積（個別範式直接補進對應分類、無需新主題）

@@ -20,12 +20,15 @@ import { applyCarBrand } from './apply-car-brand';
 import { applyCustomerGrade } from './apply-customer-grade';
 import { applyDepartment } from './apply-department';
 import { applyDiscountCode } from './apply-discount-code';
+import { applyDrivetrain } from './apply-drivetrain';
 import { applyLeaveType } from './apply-leave-type';
 import { applyMedalLevel } from './apply-medal-level';
+import { applyModelType } from './apply-model-type';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
 import { applyRole } from './apply-role';
 import { applyTeam } from './apply-team';
+import { applyTransmission } from './apply-transmission';
 import { applyUserTeam } from './apply-user-team';
 import { applyWarehouse } from './apply-warehouse';
 import { applyWelcomeBulletin } from './apply-welcome-bulletin';
@@ -48,6 +51,9 @@ export async function applyTemplateToTenant(
   await applyRole(prisma, params);
   await applyCarBrand(prisma, params);
   await applyBrandCodeRule(prisma, params); // ⚠️ 必須在 applyCarBrand 之後（FK car_brand_id）
+  await applyTransmission(prisma, params);  // ⚠️ NX01-15、carBrandId 可空、依賴 carBrand 已建（部分 row 用）
+  await applyDrivetrain(prisma, params);    // ⚠️ NX01-15、無 FK 依賴
+  await applyModelType(prisma, params);     // ⚠️ NX01-15、無 FK 依賴
   await applyPartGroup(prisma, params);
   await applyPartBrand(prisma, params);
   await applyCustomerGrade(prisma, params);
