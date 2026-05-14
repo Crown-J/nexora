@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⭐ TASK-NX01-17-IMPL part_version + part_relation + 軸 1 字母 enum → SmallInt merge）**
-> **當前分支：`main`**（HEAD = `4319204`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-17-part-version-relation 6 commit、--no-ff）**
-> **⭐ NX01-17 雙軸落地：軸 1 字母 enum 升 SmallInt（最小範圍 part.type + relationType）+ 軸 2 part_version 新建 + part_relation 補 unique/index + 後端 CRUD、6 commit / +906/-18 / 17 檔（不含 UI 跳過 A071）**
+> **快照時間：2026-05-15（⭐ TASK-NX01-17-UI-IMPL Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級 merge）**
+> **當前分支：`main`**（HEAD = `a7fbb3d`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-17-ui-and-drift-fix 3 commit、--no-ff）**
+> **⭐ NX01-17 Q5 UI 接通真實後端（basePath + REL_OPTS SmallInt）+ 4 drift 補正（isActive guard / part.create version 1 / 2 role 對齊）+ hank-charter §G.7（A066 範式化）/ §G.8（範圍擴散揭露）升級、3 commit / +219/-42 / 10 檔**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 8 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05 / NX01-17）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 9 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05 / NX01-17 / NX01-17-UI）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `4319204` | **MERGE NX01-17 part_version + part_relation + 軸 1 字母 enum（TASK-NX01-17-IMPL、6 commit）** |
+| `main` ⭐ | ✅ 同步 | `a7fbb3d` | **MERGE NX01-17 Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級（TASK-NX01-17-UI-IMPL、3 commit）** |
+| `feature/nx01-17-ui-and-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `d11cffa` | Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級 + worklog 主題 16 |
 | `feature/nx01-17-part-version-relation` | ✅ 同步、**已 merge main、可考慮刪除** | `2fb31ac` | 軸 1 字母 enum SmallInt + part_version + part_relation 後端 + worklog 主題 15 |
 | `feature/nx01-05-part` | ✅ 同步、**已 merge main、可考慮刪除** | `5cd62ae` | NX01-05 spec + schema unique+4 index + service 重設計 + UNK guard + previewCode + worklog 主題 14 |
 | `feature/nx01-11-part-service-hotfix` | ✅ 同步、**已 merge main、可考慮刪除** | `fb1dae4` | 🔴 Production blocker hotfix：part.service auto-vivify 廢棄、codeRuleId NN |
