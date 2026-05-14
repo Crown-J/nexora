@@ -792,6 +792,7 @@ model Nx01Part {
   rev_Nx04SrItem_partId           Nx04SrItem[]           @relation("R_Nx04SrItem_partId")
   rev_Nx06DnItem_partId           Nx06DnItem[]           @relation("R_Nx06DnItem_partId")
   rev_Nx08InventoryCache_partId   Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_partId")
+  rev_Nx01PartVersion_partId      Nx01PartVersion[]      @relation("R_Nx01PartVersion_partId")
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId, code])
@@ -6208,6 +6209,7 @@ model Nx99Tenant {
   rev_Nx01PartBrand_tenantId         Nx01PartBrand[]         @relation("R_Nx01PartBrand_tenantId")
   rev_Nx01PartGroup_tenantId         Nx01PartGroup[]         @relation("R_Nx01PartGroup_tenantId")
   rev_Nx01PartRelation_tenantId      Nx01PartRelation[]      @relation("R_Nx01PartRelation_tenantId")
+  rev_Nx01PartVersion_tenantId       Nx01PartVersion[]       @relation("R_Nx01PartVersion_tenantId")
   rev_Nx01Drivetrain_tenantId        Nx01Drivetrain[]        @relation("R_Nx01Drivetrain_tenantId")
   rev_Nx01Engine_tenantId            Nx01Engine[]            @relation("R_Nx01Engine_tenantId")
   rev_Nx01Model_tenantId             Nx01Model[]             @relation("R_Nx01Model_tenantId")
@@ -6822,4 +6824,53 @@ model Nx01Model {
   @@index([tenantId, carBrandId])
   @@index([tenantId, modelYearFrom])
   @@map("nx01_model")
+}
+
+/// =======================================================
+/// Nx01PartVersion — DB table `nx01_part_version`
+/// 料號版本紀錄（全 snapshot 範式、Q1=A 拍板）
+/// 對應規格：docs/nx01/spec/intent/nx01-17-part-version-relation.md v1.0
+/// =======================================================
+model Nx01PartVersion {
+  /// [NX01]+[PAVE]+[7碼流水號]；啟用最低需求版本：LITE
+  id                    String     @id @default(dbgenerated("gen_nx01_part_version_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId              String     @map("tenant_id") @db.VarChar(15)
+  /// 對應 part FK；啟用最低需求版本：LITE
+  partId                String     @map("part_id") @db.VarChar(15)
+  /// 版本號（每 part 從 1 起算、連續編號）；啟用最低需求版本：LITE
+  versionNo             Int        @map("version_no")
+  /// 生效起始日；啟用最低需求版本：LITE
+  effectiveFrom         DateTime   @map("effective_from")
+  /// 結束日（nullable、現役留空）；啟用最低需求版本:LITE
+  effectiveTo           DateTime?  @map("effective_to")
+
+  /// 完整 snapshot 9 欄位（Q1=A 拍板：每次 part update 完整 copy）
+  codeSnapshot          String     @map("code_snapshot") @db.VarChar(50)
+  nameSnapshot          String     @map("name_snapshot") @db.VarChar(200)
+  partBrandIdSnapshot   String?    @map("part_brand_id_snapshot") @db.VarChar(15)
+  countryIdSnapshot     String?    @map("country_id_snapshot") @db.VarChar(15)
+  specSnapshot          String?    @map("spec_snapshot") @db.VarChar(200)
+  priceASnapshot        Decimal?   @map("price_a_snapshot") @db.Decimal(14, 4)
+  priceBSnapshot        Decimal?   @map("price_b_snapshot") @db.Decimal(14, 4)
+  priceCSnapshot        Decimal?   @map("price_c_snapshot") @db.Decimal(14, 4)
+  priceDSnapshot        Decimal?   @map("price_d_snapshot") @db.Decimal(14, 4)
+
+  /// 變動原因（業務人員填、稽核用）；啟用最低需求版本：LITE
+  changeReason          String?    @map("change_reason") @db.VarChar(500)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt             DateTime   @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy             String     @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt             DateTime   @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy             String     @map("updated_by") @db.VarChar(15)
+  tenant                Nx99Tenant @relation("R_Nx01PartVersion_tenantId", fields: [tenantId], references: [id])
+  part                  Nx01Part   @relation("R_Nx01PartVersion_partId", fields: [partId], references: [id])
+
+  @@unique([tenantId, partId, versionNo])
+  @@index([tenantId, partId])
+  @@index([tenantId, effectiveFrom])
+  @@map("nx01_part_version")
 }
