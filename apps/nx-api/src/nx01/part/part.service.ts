@@ -69,44 +69,45 @@ export class PartService {
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
+  /**
+   * 🔴 HOTFIX (TASK-NX01-11-PART-SERVICE-HOTFIX、2026-05-14)：
+   *   NX01-12-IMPL-v2 commit 2 將 `nx01_brand_code_rule.partBrandId` rename 為 `carBrandId`
+   *   (FK 從 part_brand 軸翻為 car_brand 軸)、本檔 line 92/102 漏 sync、編譯掛。
+   *
+   *   舊 auto-vivify path（依 partBrandId 自動建 brand_code_rule）已不對齊新業務語意：
+   *     - dto.partBrandId 是「零件廠商 ID」（如 BOSCH）
+   *     - brand_code_rule.carBrandId 是「車型品牌 ID」（如 VAG）
+   *     - 兩者完全不同 ID 集合、auto-vivify 業務破裂
+   *
+   *   Hotfix 策略：強制 codeRuleId 必填、auto-vivify path 廢棄
+   *   完整重設計（含 Q5=A 業務流程）留 TASK-NX01-05-IMPL 主軌：
+   *     - 業務必先建 brand_code_rule、part 建立時引用 codeRuleId
+   *     - 規格 docs/nx01/spec/intent/nx01-05-part.md §3 / §5
+   *
+   *   partBrandId 參數保留簽名相容性（caller 傳但本 fn 不再用）
+   *   A063 失誤候選：NX01-12-IMPL-v2 commit 2「test-helpers 順手清」漏 part.service.ts
+   */
   private async resolveCodeRuleId(
     tx: Prisma.TransactionClient,
     tenantId: string,
-    userId: string,
-    partBrandId: string | undefined,
+    _userId: string,
+    _partBrandId: string | undefined,
     codeRuleId: string | undefined,
   ): Promise<string> {
-    if (codeRuleId?.trim()) {
-      const r = await tx.nx01BrandCodeRule.findFirst({
-        where: { id: codeRuleId.trim(), tenantId },
-        select: { id: true },
-      });
-      if (!r) throw new NotFoundException('codeRuleId not found for tenant');
-      return r.id;
+    if (!codeRuleId?.trim()) {
+      throw new BadRequestException(
+        'codeRuleId is required. The auto-vivify path via partBrandId is deprecated ' +
+          'after NX01-11 schema rename (partBrandId → carBrandId). ' +
+          'Please create a brand_code_rule first and pass codeRuleId explicitly. ' +
+          'Full redesign tracked in TASK-NX01-05-IMPL.',
+      );
     }
-    if (!partBrandId?.trim()) {
-      throw new BadRequestException('Either codeRuleId or partBrandId is required');
-    }
-    const pb = partBrandId.trim();
-    const existing = await tx.nx01BrandCodeRule.findFirst({
-      where: { tenantId, partBrandId: pb },
+    const r = await tx.nx01BrandCodeRule.findFirst({
+      where: { id: codeRuleId.trim(), tenantId },
       select: { id: true },
     });
-    if (existing) return existing.id;
-    const brand = await tx.nx01PartBrand.findFirst({ where: { id: pb, tenantId }, select: { code: true } });
-    if (!brand) throw new NotFoundException('partBrandId not found');
-    const name = brand.code.length > 15 ? brand.code.slice(0, 15) : brand.code;
-    const created = await tx.nx01BrandCodeRule.create({
-      data: {
-        tenantId,
-        partBrandId: pb,
-        name,
-        createdBy: userId,
-        updatedBy: userId,
-      },
-      select: { id: true },
-    });
-    return created.id;
+    if (!r) throw new NotFoundException('codeRuleId not found for tenant');
+    return r.id;
   }
 
   private whereList(tenantId: string, q: ListPartQueryDto): Prisma.Nx01PartWhereInput {
