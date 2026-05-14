@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-14（⭐ TASK-NX01-05-IMPL part 最後整合節點 + hotfix 軌 merge）**
-> **當前分支：`main`**（HEAD = `343ad30`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（hotfix + NX01-05 主軌雙 merge、--no-ff）**
-> **⭐ NX01-05 part 最後整合節點 + 前置 hotfix 軌 + worklog 主題 14 / 主軌 +835/-31 / 7 檔**
+> **快照時間：2026-05-15（⭐ TASK-NX01-17-IMPL part_version + part_relation + 軸 1 字母 enum → SmallInt merge）**
+> **當前分支：`main`**（HEAD = `4319204`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-17-part-version-relation 6 commit、--no-ff）**
+> **⭐ NX01-17 雙軸落地：軸 1 字母 enum 升 SmallInt（最小範圍 part.type + relationType）+ 軸 2 part_version 新建 + part_relation 補 unique/index + 後端 CRUD、6 commit / +906/-18 / 17 檔（不含 UI 跳過 A071）**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 7 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 8 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05 / NX01-17）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `343ad30` | **MERGE NX01-05 part 主檔（TASK-NX01-05-IMPL、含 NX01-11 hotfix 前置軌）** |
+| `main` ⭐ | ✅ 同步 | `4319204` | **MERGE NX01-17 part_version + part_relation + 軸 1 字母 enum（TASK-NX01-17-IMPL、6 commit）** |
+| `feature/nx01-17-part-version-relation` | ✅ 同步、**已 merge main、可考慮刪除** | `2fb31ac` | 軸 1 字母 enum SmallInt + part_version + part_relation 後端 + worklog 主題 15 |
 | `feature/nx01-05-part` | ✅ 同步、**已 merge main、可考慮刪除** | `5cd62ae` | NX01-05 spec + schema unique+4 index + service 重設計 + UNK guard + previewCode + worklog 主題 14 |
 | `feature/nx01-11-part-service-hotfix` | ✅ 同步、**已 merge main、可考慮刪除** | `fb1dae4` | 🔴 Production blocker hotfix：part.service auto-vivify 廢棄、codeRuleId NN |
 | `feature/nx01-07-base-catalog` | ✅ 同步、**已 merge main、可考慮刪除** | `e00dbde` | NX01-07 spec + customer_grade unique + part_group 後端 + customer_grade UI + worklog 主題 13 |
@@ -72,6 +73,7 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
+| `feature/nx01-17-part-version-relation` | **TASK-NX01-17-IMPL**（軸 1 字母 enum 升 SmallInt 最小範圍 part.type+relationType + 軸 2 part_version 新建 + part_relation 補 unique/index/CRUD + R 同款 reverseHint + worklog 主題 15）| ✅ 全部收官、merge main（6 commit、+906/-18、17 檔不含 UI 跳過 A071）|
 | `feature/nx01-05-part` | **TASK-NX01-05-IMPL**（NX01-05 part 最後整合節點：schema unique + 4 index + service 重設計 + UNK guard + previewCode + worklog 主題 14）| ✅ 全部收官、merge main（3 commit、+835/-31、7 檔不含 UI）|
 | `feature/nx01-11-part-service-hotfix` | **🔴 HOTFIX-NX01-11-PART-SERVICE**（A063 升級觸發、NX01-12-IMPL-v2 commit 2 漏 sync、編譯掛修補）| ✅ 收官、merge main（1 commit、+31/-30、1 檔）|
 | `feature/nx01-07-base-catalog` | **TASK-NX01-07-IMPL**（NX01-07 基礎型錄精煉：part_group 後端新建 + customer_grade schema unique + PATCH + 前端 UI + worklog 主題 13）| ✅ 全部收官、merge main（5 commit、+1369/-16、14 檔）|
