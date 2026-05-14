@@ -1091,7 +1091,92 @@ Crown 拍 R 同款 modal 走獨立軌 + 路線 A：改 Nx00FlatMasterView 加 on
 
 ---
 
-> 文件版本：v1.8（主題 17 加入、NX01-17 R 同款 modal 路線 A 補做、2026-05-15）
+## 主題 18｜NX01-16 part_model 戰略表落地 ⭐⭐ NX01 17 份子規格書收尾（TASK-NX01-16-IMPL、2026-05-15）
+
+### 起源
+
+NX01-16 = NX01 17 份子規格書最後 1 份、戰略表 ⭐⭐（Yaro 30 年知識結構化核心、料件 ↔ 車型適配關聯）。
+Alex 寫 v1.0 規格、Crown 拍 Q1~Q7（Q1/Q2/Q4/Q5/Q6/Q7=A、Q3=B）。
+本軌完成後、NX01 主檔層 17 份規格書 + impl 全 closure、Yaro 戰略田驗證所需主檔層收尾。
+
+### 設計決策
+
+1. **unique 範圍走 Q1=A**：(tenantId, partId, modelId)、1 料 + 1 車 = 1 行
+   - Crown 業界 muscle memory：改款處理走拆 model（NX01-13 modelYearFrom/To 已支援）、
+     part_model 純關聯不混業務邏輯、年份範圍走 model 那邊
+2. **fitLevel SmallInt enum（Q3=B）**：1=原廠 / 2=副廠等效 / 3=通用替代
+   - 對齊 NEXORA 字母 enum → SmallInt 升級範式（NX01-14/15/17 已 100% 對齊）
+   - 業務日常戰略決策結構化（原廠優先、副廠等效次選、通用替代慎選）
+3. **獨立 /master/part-model 列表頁（Q2=A）**：generic Nx00FlatMasterView 框架重用
+4. **本軌不嵌入 part 編輯頁適配 section（Q4=A）**：拆軌降風險、後續軌 A073 補
+5. **料件反查車型單向（Q7=A）**：generic 列表頁 partCode filter 即可、雙向反查後續軌 A072
+6. **prefix PAMO（Q6=A）**：對齊 PABR/PAGR/PARE 既有 4 字範式
+7. **空 seed（Q5=A）**：Yaro 30 年資料走獨立匯入軌（NX01 全 closure 後啟動）
+8. **service 業務檢核 3 guard**：跨 tenant + isActive 雙端 + unique
+9. **5 commit 拆軌**（SPEC + impl 4）：SPEC 獨立 commit、impl schema / 後端 / 前端 / reference
+
+### 實作歷程
+
+| # | commit hash | 變更 | 規模 |
+|---|------------|------|------|
+| SPEC | `8ccb212` | nx01-16-part-model.md v1.0（main 上、Crown 紀律：規格書獨立 commit）| +361、1 檔 |
+| 1 | `fb3a927` | schema + migration + Nx01Part/Nx01Model reverse + 3 tenant reverse | +149、2 檔 |
+| 2 | `3d178ef` | 後端 controller + service + DTO + module（fitLevel SmallInt + 5 role）| +386、4 檔 |
+| 3 | `1ee5505` | 前端 UI feature + generic 接通 + master-cards + menu nav | +276、4 檔 |
+| 4 | `e5039f1` | reference drift 補登（nx-table.csv + field-definitions.csv、A067 部分收斂）| +13、2 檔 |
+| **總計** | — | — | **+1185、13 檔** |
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-16-part-model.md` v1.0（361 行）
+- migration：`20260515130000_nx01_16_part_model_create`（含 sequence + gen_id + table + 1 UNIQUE + 2 INDEX + 3 FK）
+- 後端：`apps/nx-api/src/nx01/part-model/`（dto + service + controller）
+- 前端：`apps/nx-ui/src/features/base/part-model/BasePartModelMasterView.tsx`
+       + `apps/nx-ui/src/app/dashboard/base/part-model/page.tsx`
+- nav：master-cards.ts + menu.nx00.ts 兩處註冊
+
+### Audit drift 真相揭露（修正本軌 audit §7 誤判）
+
+1. **doc-number-rules.csv false positive**：
+   - audit 誤判：「無 PAMO/PMOD prefix → drift」
+   - 真相：此檔僅追蹤【業務單據 prefix】（RF/PO/SL/DR 等）、不追蹤主檔 ID prefix
+   - 本軌不動此檔、揭露給後續審查校正
+
+2. ⭐ **更大 A067 family drift 揭露（A074 候選編號、非本軌 scope）**：
+   - field-definitions.csv 自 NX01-13/14/15/17 落地起、5+ 表全 0 row：
+     * nx01_engine（NX01-14）/ nx01_model（NX01-13）
+     * nx01_transmission / drivetrain / model_type（NX01-15）
+     * nx01_part_version（NX01-17）
+     * nx01_phonetic_dictionary / phonetic_index（NX01-10）
+   - 另：nx01_part_relation row 181 relation_type 仍 VARCHAR(1)、NX01-17 已升 SmallInt 1~5
+   - 屬獨立 sweep 軌、本軌不擴範圍（§G.8 揭露不擅自）
+
+### 環境揭露
+
+- prisma validate ✅ 通過
+- prisma generate ✅ Client 生成
+- prisma migrate deploy ❌ DB 未開（localhost:5433 不通、CI / production deploy 時自動 apply）
+- nx-api tsc --noEmit ✅ 通過
+- nx-ui tsc --noEmit ✅ 通過
+
+### 戰略意義（⭐⭐ NX01 全 closure）
+
+⭐⭐ NX01 17 份子規格書 + impl 全 closure
+⭐⭐ Yaro 戰略田驗證所需 NX01 主檔層收尾（2028 開業前完成路徑明確）
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A072 | 車型反查料件雙向 UI（規格 §2.3 揭露、後續軌）|
+| A073 | part 編輯頁適配 section UX 升級（規格 §2.4 揭露、後續軌）|
+| A074 | field-definitions.csv 全模組 drift 大掃描（A067 family、本軌揭露）|
+| 戰略軌 | Yaro 30 年資料匯入軌（PRO tier 戰略、NX01 全 closure 後啟動）|
+
+---
+
+> 文件版本：v1.9（主題 18 加入、NX01-16 part_model 戰略表落地 ⭐⭐ NX01 全 closure、2026-05-15）
+> 上一版 v1.8（主題 17 加入、NX01-17 R 同款 modal 路線 A 補做、2026-05-15）
 > 上一版 v1.7（主題 16 加入、NX01-17 Q5 UI 接通 + 4 drift + charter §G.7/§G.8 升級、2026-05-15）
 > 上一版 v1.6（主題 15 加入、NX01-17 part_version + part_relation + 軸 1 升 SmallInt、2026-05-15）
 > 上一版 v1.5（主題 14 加入、NX01-05 part 主檔最後整合節點落地、2026-05-14）

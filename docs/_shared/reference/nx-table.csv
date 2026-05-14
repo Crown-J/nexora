@@ -14,6 +14,7 @@
 13,nx01,主檔管理,car_brand,nx01_car_brand,汽車品牌,LITE-CORE,汽車品牌資料維護，用於分類與報表統計。,CABR,NX01CABR0000001,nx00_car_brand
 14,nx01,主檔管理,brand_code_rule,nx01_brand_code_rule,編碼規則檔,LITE-CORE,零件編碼規則主檔，定義各品牌的料號編碼格式與規則，確保料號格式一致性與可辨識性。,BCOR,NX01BCOR0000001,nx00_brand_code_rule
 15,nx01,主檔管理,part_relation,nx01_part_relation,零件關聯表,LITE-CORE,專車族群主檔，包含族群名稱與料號匹配條件,PARE,NX01PARE0000001,nx00_part_relation
+15.5,nx01,主檔管理,part_model,nx01_part_model,料件車型適配,LITE-CORE,料件 ↔ 車型適配關聯表（戰略表 ⭐⭐、Yaro 30 年知識結構化核心）。1 料 + 1 車 = 1 行、附適配等級 fitLevel SmallInt（1=原廠 / 2=副廠等效 / 3=通用替代）。NX01-16 規格落地。,PAMO,NX01PAMO0000001,
 16,nx01,主檔管理,warehouse,nx01_warehouse,倉庫主檔,LITE-CORE,倉庫資料維護（即使 LITE 為單倉架構仍保留），為未來多倉升級預留基礎。,WARE,NX01WARE0000001,nx00_warehouse
 17,nx01,主檔管理,warehouse_type,nx01_warehouse_type,倉庫類型主檔,PLUS-CORE,倉庫類型主檔，定義系統預設倉庫類型代碼（H=總部/M=主倉/W=分倉/S=衛星倉），搭配 flow_mode 控制集中或分倉管理邏輯。,WHTP,NX01WHTP0000001,nx00_warehouse_type
 18,nx01,主檔管理,location,nx01_location,庫位主檔,LITE-CORE,倉庫內庫位資料，支援庫存精準定位與盤點管理。,LOCA,NX01LOCA0000001,nx00_location

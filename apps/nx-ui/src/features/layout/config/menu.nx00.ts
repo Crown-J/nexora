@@ -47,6 +47,7 @@ export function getNx00SideMenu(): SideMenuGroup[] {
         { key: 'base.part-group',      label: '零件族群',   href: '/dashboard/base/part-group' },
         { key: 'base.brand-code-rule', label: '品牌料號規則', href: '/dashboard/base/brand-code-rule' },
         { key: 'base.part-relation',   label: '零件關聯',   href: '/dashboard/base/part-relation' },
+        { key: 'base.part-model',      label: '料件車型適配', href: '/dashboard/base/part-model' },
       ],
     },
     {

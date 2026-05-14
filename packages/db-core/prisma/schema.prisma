@@ -793,6 +793,7 @@ model Nx01Part {
   rev_Nx06DnItem_partId           Nx06DnItem[]           @relation("R_Nx06DnItem_partId")
   rev_Nx08InventoryCache_partId   Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_partId")
   rev_Nx01PartVersion_partId      Nx01PartVersion[]      @relation("R_Nx01PartVersion_partId")
+  rev_Nx01PartModel_partId        Nx01PartModel[]        @relation("R_Nx01PartModel_partId")
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId, code])
@@ -6214,6 +6215,7 @@ model Nx99Tenant {
   rev_Nx01PartGroup_tenantId         Nx01PartGroup[]         @relation("R_Nx01PartGroup_tenantId")
   rev_Nx01PartRelation_tenantId      Nx01PartRelation[]      @relation("R_Nx01PartRelation_tenantId")
   rev_Nx01PartVersion_tenantId       Nx01PartVersion[]       @relation("R_Nx01PartVersion_tenantId")
+  rev_Nx01PartModel_tenantId         Nx01PartModel[]         @relation("R_Nx01PartModel_tenantId")
   rev_Nx01Drivetrain_tenantId        Nx01Drivetrain[]        @relation("R_Nx01Drivetrain_tenantId")
   rev_Nx01Engine_tenantId            Nx01Engine[]            @relation("R_Nx01Engine_tenantId")
   rev_Nx01Model_tenantId             Nx01Model[]             @relation("R_Nx01Model_tenantId")
@@ -6823,6 +6825,7 @@ model Nx01Model {
   transmission    Nx01Transmission? @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
   drivetrain      Nx01Drivetrain?   @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
   modelType       Nx01ModelType?    @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
+  rev_Nx01PartModel_modelId Nx01PartModel[] @relation("R_Nx01PartModel_modelId")
 
   @@unique([tenantId, code])
   @@index([tenantId, carBrandId])
@@ -6877,4 +6880,44 @@ model Nx01PartVersion {
   @@index([tenantId, partId])
   @@index([tenantId, effectiveFrom])
   @@map("nx01_part_version")
+}
+
+/// =======================================================
+/// Nx01PartModel — DB table `nx01_part_model`
+/// 料號車型適配（A 主檔、戰略表 ⭐⭐、Yaro 30 年知識結構化核心）
+/// 對應規格：docs/nx01/spec/intent/nx01-16-part-model.md v1.0
+/// =======================================================
+model Nx01PartModel {
+  /// [NX01]+[PAMO]+[7碼流水號]，EX : NX01PAMO0000001；啟用最低需求版本：LITE
+  id         String     @id @default(dbgenerated("gen_nx01_part_model_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId   String     @map("tenant_id") @db.VarChar(15)
+  /// 料件 FK（必填、規格 §3.2 Q1=A）；啟用最低需求版本：LITE
+  partId     String     @map("part_id") @db.VarChar(15)
+  /// 車型 FK（必填、規格 §3.2 Q1=A）；啟用最低需求版本：LITE
+  modelId    String     @map("model_id") @db.VarChar(15)
+  /// 適配等級（1=原廠 / 2=副廠等效 / 3=通用替代、Q3=B SmallInt enum）；啟用最低需求版本：LITE
+  fitLevel   Int        @default(1) @map("fit_level") @db.SmallInt
+  /// 備註說明（業務人員手記）；啟用最低需求版本：LITE
+  remark     String?    @db.VarChar(200)
+  /// 排序用；啟用最低需求版本：LITE
+  sortNo     Int        @default(0) @map("sort_no")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive   Boolean    @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt  DateTime   @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy  String     @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy  String     @map("updated_by") @db.VarChar(15)
+  tenant     Nx99Tenant @relation("R_Nx01PartModel_tenantId", fields: [tenantId], references: [id])
+  part       Nx01Part   @relation("R_Nx01PartModel_partId", fields: [partId], references: [id])
+  model      Nx01Model  @relation("R_Nx01PartModel_modelId", fields: [modelId], references: [id])
+
+  @@unique([tenantId, partId, modelId])
+  @@index([tenantId, partId])
+  @@index([tenantId, modelId])
+  @@map("nx01_part_model")
 }
