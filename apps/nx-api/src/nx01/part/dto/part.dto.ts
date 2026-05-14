@@ -173,6 +173,12 @@ export class CreatePartDto {
   @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   priceD?: number;
+
+  /** 變動原因（業務人員填、寫入 part_version.changeReason、規格 §5 / Q1=A） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  changeReason?: string;
 }
 
 export class UpdatePartDto {
@@ -290,4 +296,10 @@ export class UpdatePartDto {
   @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   priceD?: number;
+
+  /** 變動原因（業務人員填、寫入 part_version.changeReason、規格 §5 / Q1=A） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  changeReason?: string;
 }
