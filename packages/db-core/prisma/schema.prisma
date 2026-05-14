@@ -902,6 +902,10 @@ model Nx01PartRelation {
   relPartIdFrom Nx01Part   @relation("R_Nx01PartRelation_partIdFrom", fields: [partIdFrom], references: [id])
   relPartIdTo   Nx01Part   @relation("R_Nx01PartRelation_partIdTo", fields: [partIdTo], references: [id])
 
+  @@unique([tenantId, partIdFrom, partIdTo, relationType])
+  @@index([tenantId, partIdFrom])
+  @@index([tenantId, partIdTo])
+  @@index([tenantId, relationType])
   @@map("nx01_part_relation")
 }
 
