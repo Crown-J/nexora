@@ -70,36 +70,18 @@ export class PartService {
   ) {}
 
   /**
-   * 🔴 HOTFIX (TASK-NX01-11-PART-SERVICE-HOTFIX、2026-05-14)：
-   *   NX01-12-IMPL-v2 commit 2 將 `nx01_brand_code_rule.partBrandId` rename 為 `carBrandId`
-   *   (FK 從 part_brand 軸翻為 car_brand 軸)、本檔 line 92/102 漏 sync、編譯掛。
-   *
-   *   舊 auto-vivify path（依 partBrandId 自動建 brand_code_rule）已不對齊新業務語意：
-   *     - dto.partBrandId 是「零件廠商 ID」（如 BOSCH）
-   *     - brand_code_rule.carBrandId 是「車型品牌 ID」（如 VAG）
-   *     - 兩者完全不同 ID 集合、auto-vivify 業務破裂
-   *
-   *   Hotfix 策略：強制 codeRuleId 必填、auto-vivify path 廢棄
-   *   完整重設計（含 Q5=A 業務流程）留 TASK-NX01-05-IMPL 主軌：
-   *     - 業務必先建 brand_code_rule、part 建立時引用 codeRuleId
-   *     - 規格 docs/nx01/spec/intent/nx01-05-part.md §3 / §5
-   *
-   *   partBrandId 參數保留簽名相容性（caller 傳但本 fn 不再用）
-   *   A063 失誤候選：NX01-12-IMPL-v2 commit 2「test-helpers 順手清」漏 part.service.ts
+   * 規格 §3 / §5 + Crown Q5=A 拍板：
+   *   業務必先建 brand_code_rule、part 建立時 codeRuleId 必填
+   *   auto-vivify 已正式拿掉（hotfix 暫保留簽名相容、本軌正式清理）
    */
   private async resolveCodeRuleId(
     tx: Prisma.TransactionClient,
     tenantId: string,
-    _userId: string,
-    _partBrandId: string | undefined,
     codeRuleId: string | undefined,
   ): Promise<string> {
     if (!codeRuleId?.trim()) {
       throw new BadRequestException(
-        'codeRuleId is required. The auto-vivify path via partBrandId is deprecated ' +
-          'after NX01-11 schema rename (partBrandId → carBrandId). ' +
-          'Please create a brand_code_rule first and pass codeRuleId explicitly. ' +
-          'Full redesign tracked in TASK-NX01-05-IMPL.',
+        'codeRuleId is required. 業務必先在 brand_code_rule 建規則、再建 part（Q5=A）',
       );
     }
     const r = await tx.nx01BrandCodeRule.findFirst({
@@ -108,6 +90,100 @@ export class PartService {
     });
     if (!r) throw new NotFoundException('codeRuleId not found for tenant');
     return r.id;
+  }
+
+  /**
+   * Crown Q9=C：UNK 為系統保留字、tenant 不可用作 partBrand.code / country.code。
+   * service 端 guard：若 dto 傳入的 partBrandId / countryId 對應 row code === 'UNK'、拒絕。
+   * （未來軌建議在 part-brand / country create 端也加 guard、本軌不跨範圍）
+   */
+  private async validateUnkReservedNotUsed(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    partBrandId: string | null | undefined,
+    countryId: string | null | undefined,
+  ): Promise<void> {
+    if (partBrandId?.trim()) {
+      const pb = await tx.nx01PartBrand.findFirst({
+        where: { id: partBrandId.trim(), tenantId },
+        select: { code: true },
+      });
+      if (!pb) throw new NotFoundException('partBrandId not found for tenant');
+      if (pb.code === 'UNK') {
+        throw new BadRequestException('partBrand.code "UNK" 為系統保留字、不可作為 part 引用');
+      }
+    }
+    if (countryId?.trim()) {
+      const c = await tx.nx01Country.findUnique({
+        where: { id: countryId.trim() },
+        select: { code: true },
+      });
+      if (!c) throw new NotFoundException('countryId not found');
+      if (c.code === 'UNK') {
+        throw new BadRequestException('country.code "UNK" 為系統保留字、不可作為 part 引用');
+      }
+    }
+  }
+
+  /**
+   * Crown Q7=B 拍板：part.code 拼接邏輯走後端 service（業務集中、一致性）
+   * Crown 業界 muscle memory：
+   *   - 雨刷案例 BOSCH 副廠走 VAG 編碼：VAG-5H9 955 427 9B9 #BOSCHN
+   *   - 沙漏場來路不明：VAG-5H9 955 427 9B9 #UNKUNK
+   * 格式：{carBrand.code}-{segs joined by separator} {sourceCodePrefix}{BRAND3}{COUNTRY3}
+   *   - BRAND3 = partBrand.code 前 3 字 / UNK 佔位
+   *   - COUNTRY3 = country.code（ISO 3 碼）/ UNK 佔位
+   */
+  async previewCode(input: {
+    tenantId: string;
+    codeRuleId: string;
+    segs: (string | null | undefined)[]; // up to 5 segs
+    partBrandId?: string | null;
+    countryId?: string | null;
+  }): Promise<string> {
+    const rule = await this.prisma.nx01BrandCodeRule.findFirst({
+      where: { id: input.codeRuleId, tenantId: input.tenantId },
+      select: {
+        separator: true,
+        sourceCodePrefix: true,
+        carBrand: { select: { code: true } },
+      },
+    });
+    if (!rule) throw new NotFoundException('codeRuleId not found for tenant');
+
+    const segs = input.segs
+      .slice(0, 5)
+      .map((s) => (s == null ? '' : String(s).trim()))
+      .filter((s) => s !== '');
+    const segPart = segs.join(rule.separator);
+
+    let brand3 = 'UNK';
+    if (input.partBrandId?.trim()) {
+      const pb = await this.prisma.nx01PartBrand.findFirst({
+        where: { id: input.partBrandId.trim(), tenantId: input.tenantId },
+        select: { code: true },
+      });
+      if (pb && pb.code !== 'UNK') {
+        brand3 = pb.code.slice(0, 3).toUpperCase().padEnd(3, 'X');
+      }
+    }
+
+    let country3 = 'UNK';
+    if (input.countryId?.trim()) {
+      const c = await this.prisma.nx01Country.findUnique({
+        where: { id: input.countryId.trim() },
+        select: { code: true },
+      });
+      if (c && c.code !== 'UNK') {
+        country3 = c.code.toUpperCase().padEnd(3, 'X');
+      }
+    }
+
+    const sourceCode = `${rule.sourceCodePrefix}${brand3}${country3}`;
+    const carBrandCode = rule.carBrand?.code ?? '';
+    return segPart
+      ? `${carBrandCode}-${segPart} ${sourceCode}`
+      : `${carBrandCode} ${sourceCode}`;
   }
 
   private whereList(tenantId: string, q: ListPartQueryDto): Prisma.Nx01PartWhereInput {
@@ -153,13 +229,8 @@ export class PartService {
   async create(user: RequestUser, dto: CreatePartDto) {
     const tenantId = requireTenantId(user);
     const row = await this.prisma.$transaction(async (tx) => {
-      const codeRuleId = await this.resolveCodeRuleId(
-        tx,
-        tenantId,
-        user.sub,
-        dto.partBrandId,
-        dto.codeRuleId,
-      );
+      const codeRuleId = await this.resolveCodeRuleId(tx, tenantId, dto.codeRuleId);
+      await this.validateUnkReservedNotUsed(tx, tenantId, dto.partBrandId, dto.countryId);
       return tx.nx01Part.create({
         data: {
           tenantId,
@@ -210,6 +281,18 @@ export class PartService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Part.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Part not found');
+
+    // Q9=C UNK guard：只在 dto 傳新值時驗（不重驗既有 row）
+    if (dto.partBrandId !== undefined || dto.countryId !== undefined) {
+      await this.prisma.$transaction(async (tx) => {
+        await this.validateUnkReservedNotUsed(
+          tx,
+          tenantId,
+          dto.partBrandId,
+          dto.countryId,
+        );
+      });
+    }
 
     const priceTouched =
       dto.priceA !== undefined ||
