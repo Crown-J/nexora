@@ -9,6 +9,7 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import {
+  CheckReverseHintDto,
   CreatePartRelationDto,
   ListPartRelationQueryDto,
   UpdatePartRelationDto,
@@ -33,13 +34,25 @@ export class PartRelationController {
   }
 
   /**
-   * Crown Q2=C：create 回傳 { data, reverseHint }
-   *   data：建立的 PartRelation
-   *   reverseHint：R 同款時建議建反向、UI modal 提示用戶決定
+   * 規格 §2.2.1：create 回傳 PartRelation 直接（對齊 Nx00FlatMasterView generic）
+   *   reverseHint 改走 POST /check-reverse-hint endpoint
    */
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() dto: CreatePartRelationDto) {
     return this.svc.create(user, dto);
+  }
+
+  /**
+   * 規格 §2.2.3 + §3.3.2 Q2=C：UI create 成功後呼叫此 endpoint 查 reverseHint
+   *   relationType=2 + 反向不存在 → UI window.confirm 提示「建議建反向關係 B→A？」
+   */
+  @Post('check-reverse-hint')
+  checkReverseHint(@CurrentUser() user: RequestUser, @Body() dto: CheckReverseHintDto) {
+    return this.svc.checkReverseHint(user, {
+      partIdFrom: dto.partIdFrom,
+      partIdTo: dto.partIdTo,
+      relationType: dto.relationType,
+    });
   }
 
   @Patch(':id')

@@ -132,9 +132,9 @@ export class PartRelationService {
   }
 
   /**
-   * Crown Q2=C：R 同款建立後、API 回傳 reverseHint flag
-   *   UI 收到 hint 顯示 modal「是否建反向關係 B→A？」、用戶自決
-   *   service 不自動建反向（避免業務人員意外）
+   * 規格 §5.3 + Crown Q2=C：純建關係、return PartRelation 直接
+   *   reverseHint 改走 separate endpoint POST /:id/reverse-hint
+   *   理由：對齊 Nx00FlatMasterView generic response shape、UI 接通可用既有 generic
    */
   async create(user: RequestUser, dto: CreatePartRelationDto) {
     const tenantId = requireTenantId(user);
@@ -185,30 +185,44 @@ export class PartRelationService {
       afterData: row as object,
     });
 
-    // Q2=C reverseHint：R 同款（2）建議建反向、檢查反向是否已存在
-    const reverseHint: { suggested: boolean; existing: boolean; message: string } = {
-      suggested: false,
-      existing: false,
-      message: '',
-    };
-    if (row.relationType === RELATION_TYPE_SAME) {
-      const reverseExisting = await this.prisma.nx01PartRelation.findFirst({
-        where: {
-          tenantId,
-          partIdFrom: row.partIdTo,
-          partIdTo: row.partIdFrom,
-          relationType: RELATION_TYPE_SAME,
-        },
-        select: { id: true },
-      });
-      reverseHint.suggested = true;
-      reverseHint.existing = !!reverseExisting;
-      reverseHint.message = reverseExisting
-        ? '反向關係 B→A 已存在、無需重複建'
-        : '建議建反向關係 B→A（R 同款業務語意對稱）';
-    }
+    return this.mapRow(row);
+  }
 
-    return { data: this.mapRow(row), reverseHint };
+  /**
+   * 規格 §2.2.3 + §3.3.2 Q2=C：R 同款 reverseHint 查詢（UI create 成功後呼叫）
+   *   input：partIdFrom / partIdTo / relationType
+   *   output：reverseHint { suggested / existing / message }
+   *   業務流程：UI POST /nx01/part-relations/check-reverse-hint
+   *           → 若 suggested=true && !existing、UI window.confirm 提示用戶決定
+   */
+  async checkReverseHint(
+    user: RequestUser,
+    input: { partIdFrom: string; partIdTo: string; relationType: number },
+  ): Promise<{ suggested: boolean; existing: boolean; message: string }> {
+    const tenantId = requireTenantId(user);
+    if (input.relationType !== RELATION_TYPE_SAME) {
+      return {
+        suggested: false,
+        existing: false,
+        message: '僅 R 同款（relationType=2）有 reverseHint',
+      };
+    }
+    const reverseExisting = await this.prisma.nx01PartRelation.findFirst({
+      where: {
+        tenantId,
+        partIdFrom: input.partIdTo,
+        partIdTo: input.partIdFrom,
+        relationType: RELATION_TYPE_SAME,
+      },
+      select: { id: true },
+    });
+    return {
+      suggested: true,
+      existing: !!reverseExisting,
+      message: reverseExisting
+        ? '反向關係 B→A 已存在、無需重複建'
+        : '建議建反向關係 B→A（R 同款業務語意對稱）',
+    };
   }
 
   async update(user: RequestUser, id: string, dto: UpdatePartRelationDto) {
