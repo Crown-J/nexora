@@ -332,6 +332,7 @@ model Nx01CarBrand {
   rev_Nx01BrandCodeRule_carBrandId  Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_carBrandId")
   rev_Nx01Engine_carBrandId         Nx01Engine[]        @relation("R_Nx01Engine_carBrandId")
   rev_Nx01Transmission_carBrandId   Nx01Transmission[]  @relation("R_Nx01Transmission_carBrandId")
+  rev_Nx01Model_carBrandId          Nx01Model[]         @relation("R_Nx01Model_carBrandId")
 
   @@unique([tenantId, code])
   @@map("nx01_car_brand")
@@ -6203,6 +6204,7 @@ model Nx99Tenant {
   rev_Nx01PartRelation_tenantId      Nx01PartRelation[]      @relation("R_Nx01PartRelation_tenantId")
   rev_Nx01Drivetrain_tenantId        Nx01Drivetrain[]        @relation("R_Nx01Drivetrain_tenantId")
   rev_Nx01Engine_tenantId            Nx01Engine[]            @relation("R_Nx01Engine_tenantId")
+  rev_Nx01Model_tenantId             Nx01Model[]             @relation("R_Nx01Model_tenantId")
   rev_Nx01ModelType_tenantId         Nx01ModelType[]         @relation("R_Nx01ModelType_tenantId")
   rev_Nx01Partner_tenantId           Nx01Partner[]           @relation("R_Nx01Partner_tenantId")
   rev_Nx01PhoneticIndex_tenantId     Nx01PhoneticIndex[]     @relation("R_Nx01PhoneticIndex_tenantId")
@@ -6634,8 +6636,9 @@ model Nx01Engine {
   updatedAt      DateTime      @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
   updatedBy      String        @map("updated_by") @db.VarChar(15)
-  tenant         Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
-  carBrand       Nx01CarBrand? @relation("R_Nx01Engine_carBrandId", fields: [carBrandId], references: [id])
+  tenant            Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
+  carBrand          Nx01CarBrand? @relation("R_Nx01Engine_carBrandId", fields: [carBrandId], references: [id])
+  rev_Nx01Model_engineId Nx01Model[] @relation("R_Nx01Model_engineId")
 
   @@unique([tenantId, code])
   @@index([tenantId, fuelType])
@@ -6680,6 +6683,7 @@ model Nx01Transmission {
   updatedBy         String        @map("updated_by") @db.VarChar(15)
   tenant            Nx99Tenant    @relation("R_Nx01Transmission_tenantId", fields: [tenantId], references: [id])
   carBrand          Nx01CarBrand? @relation("R_Nx01Transmission_carBrandId", fields: [carBrandId], references: [id])
+  rev_Nx01Model_transmissionId Nx01Model[] @relation("R_Nx01Model_transmissionId")
 
   @@unique([tenantId, code])
   @@map("nx01_transmission")
@@ -6716,6 +6720,7 @@ model Nx01Drivetrain {
   /// 更新人；啟用最低需求版本：LITE
   updatedBy String     @map("updated_by") @db.VarChar(15)
   tenant    Nx99Tenant @relation("R_Nx01Drivetrain_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01Model_drivetrainId Nx01Model[] @relation("R_Nx01Model_drivetrainId")
 
   @@unique([tenantId, code])
   @@map("nx01_drivetrain")
@@ -6752,7 +6757,63 @@ model Nx01ModelType {
   /// 更新人；啟用最低需求版本：LITE
   updatedBy String     @map("updated_by") @db.VarChar(15)
   tenant    Nx99Tenant @relation("R_Nx01ModelType_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01Model_modelTypeId Nx01Model[] @relation("R_Nx01Model_modelTypeId")
 
   @@unique([tenantId, code])
   @@map("nx01_model_type")
+}
+
+/// =======================================================
+/// Nx01Model — DB table `nx01_model`
+/// 車型主檔（A 主檔、30 年資料承接核心、被 NX01-16 part_model 戰略引用）
+/// 對應規格：docs/nx01/spec/intent/nx01-13-model.md v1.0
+/// =======================================================
+model Nx01Model {
+  /// [NX01]+[MODL]+[7碼流水號]；啟用最低需求版本：LITE
+  id              String            @id @default(dbgenerated("gen_nx01_model_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId        String            @map("tenant_id") @db.VarChar(15)
+  /// 車型代碼（業界縮寫、tenant 內 unique、例：G7-GTI / CAMRY-XV70 / F30）；啟用最低需求版本：LITE
+  code            String            @db.VarChar(30)
+  /// 車型全名（正式名稱、報表/客戶單據用、例：Golf 7 GTI）；啟用最低需求版本：LITE
+  name            String            @db.VarChar(100)
+  /// 車型品牌 FK（必填、規格 §3.2 Crown Q3=A）；啟用最低需求版本：LITE
+  carBrandId      String            @map("car_brand_id") @db.VarChar(15)
+  /// 起始年份（必填、業務檢核 ≥ 1900 + ≤ 當前年+5、規格 §3.3）；啟用最低需求版本：LITE
+  modelYearFrom   Int               @map("model_year_from")
+  /// 結束年份（可空、現役留空、若填必 ≥ modelYearFrom、規格 §3.3）；啟用最低需求版本：LITE
+  modelYearTo     Int?              @map("model_year_to")
+  /// 引擎 FK（可空、Crown 業界 muscle memory：詳細分類進階用戶選填）；啟用最低需求版本：LITE
+  engineId        String?           @map("engine_id") @db.VarChar(15)
+  /// 變速箱 FK（可空）；啟用最低需求版本：LITE
+  transmissionId  String?           @map("transmission_id") @db.VarChar(15)
+  /// 傳動方式 FK（可空）；啟用最低需求版本：LITE
+  drivetrainId    String?           @map("drivetrain_id") @db.VarChar(15)
+  /// 車體類型 FK（可空）；啟用最低需求版本：LITE
+  modelTypeId     String?           @map("model_type_id") @db.VarChar(15)
+  /// 備註說明；啟用最低需求版本：LITE
+  remark          String?           @db.VarChar(200)
+  /// 排序用；啟用最低需求版本：LITE
+  sortNo          Int               @default(0) @map("sort_no")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive        Boolean           @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt       DateTime          @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy       String            @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy       String            @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant        @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
+  carBrand        Nx01CarBrand      @relation("R_Nx01Model_carBrandId", fields: [carBrandId], references: [id])
+  engine          Nx01Engine?       @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
+  transmission    Nx01Transmission? @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
+  drivetrain      Nx01Drivetrain?   @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
+  modelType       Nx01ModelType?    @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
+
+  @@unique([tenantId, code])
+  @@index([tenantId, carBrandId])
+  @@index([tenantId, modelYearFrom])
+  @@map("nx01_model")
 }
