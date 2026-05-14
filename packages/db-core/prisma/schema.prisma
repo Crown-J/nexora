@@ -441,6 +441,7 @@ model Nx01CustomerGrade {
   rev_Nx01Partner_customerGradeId Nx01Partner[] @relation("R_Nx01Partner_customerGradeId")
   rev_Nx04Quote_customerGradeId   Nx04Quote[]   @relation("R_Nx04Quote_customerGradeId")
 
+  @@unique([tenantId, code])
   @@map("nx01_customer_grade")
 }
 

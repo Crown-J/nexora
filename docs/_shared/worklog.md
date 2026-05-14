@@ -790,8 +790,71 @@ Hank 接 NX01-12 諮詢時揭露 3 重 drift：
 
 ---
 
-> 文件版本：v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
-> 上一版 v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
+## 主題 13｜NX01-07 基礎型錄 5 表合一精煉落地（TASK-NX01-07-IMPL、2026-05-14）
+
+### 起源
+
+Hank §6 諮詢揭露 5 表後端範式 3 軸分裂（完整 CRUD / read-only / 缺）+ UI 真實接通 drift。Crown 拍精煉範圍：只動 part_group（補後端、接通既有 UI）+ customer_grade（補 PATCH、補 schema unique）、其他 3 表保現況。
+
+### 設計決策
+
+1. **拒絕全 5 表都動的誘惑、走精煉路徑**：part_brand / currency / warehouse_type 已運作、不動避免擾動本軌（Crown Q4=A）
+2. **customer_grade code lock 走 DTO whitelist 防護、不走 SYSTEM_SEED_CODES hardcode**：
+   - DTO 不含 code 欄位、ValidationPipe forbidNonWhitelisted 自動防護
+   - 優於 NX01-12 hardcode 範式（無需維護 enum 清單）
+3. **customer_grade 不開放 create / delete**：規格 §6 未明示開放、A/B/C/D 4 級由 seed 維護（對齊 warehouse_type read-only 範式）
+4. **schema @@unique 補加策略**：dev DB 既有資料無重複（apply-customer-grade upsert 保護）、production 未部署、安全直接加
+5. **part_group UI 本軌不動**：既有 BasePartGroupApiMasterView 是 generic `BaseNx00ModalCodeMasterView` 的 re-export、改動風險擴散到其他主檔（A067 後續軌驗證真實 API 接通）
+6. **commit 拆軌 4 子**：schema unique / part_group 後端 / customer_grade 後端升級 / 前端 UI
+
+### 實作歷程
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 軌前 SPEC | `08c57b0` | nx01-07-base-catalog.md v1.0 | +579、1 檔 |
+| 1 | `4a1dbed` | customer_grade schema 補 @@unique + migration | +27、2 檔 |
+| 2 | `92e36bb` | part_group 後端新建（DTO + service + controller + module）| +279、4 檔 |
+| 3 | `6a451b9` | customer_grade service 升級補 update + audit log | +79/-14、1 檔 |
+| 3-fix | `25e776b` | 補 stage dto + controller（Hank Write 失誤候選 A066）| +69/-2、2 檔 |
+| 4 | `ace28d0` | customer_grade UI 新建（types + api + MasterView + page）| +336、4 檔 |
+| **總計** | — | — | **+1369/-16、14 檔** |
+
+### 踩坑
+
+#### A066 候選失誤：Hank Write tool 對既有檔案前必先 Read
+
+- **觸發**：commit 3 一次 stage 3 檔（service + dto + controller）、Write tool 對既有 dto / controller 被擋（File has not been read yet）、commit 3 只成功 stage service
+- **補救**：commit 3-fix Read 兩檔 + Write + 補 stage
+- **規則**：Hank Write tool 對既有檔案前**必先 Read**、否則部分 commit 失敗造成 split-state
+- **升級**：對齊 hank-charter §G commit 拆軌紀律、留 A066 後續軌登錄
+
+#### part_group UI ↔ 後端 drift 揭露但本軌不收
+
+- 規格 Q3=A 拍「接通既有 UI」、但既有 UI 是 generic `BaseNx00ModalCodeMasterView` re-export
+- 改動該 generic 會影響其他主檔（風險擴散）
+- 本軌只建後端、留 A067「BasePartGroupApiMasterView 真實 API 接通驗證」後續軌
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-07-base-catalog.md` v1.0
+- 1 migration：`20260514100000_nx01_customer_grade_add_unique`
+- 2 後端 modules：new part-group/ + 升級 customer-grade/
+- 1 前端 feature：new features/nx01/customer-grade/
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A066 | Hank Write tool 對既有檔案前必先 Read（紀律規則升級、hank-charter §G）|
+| A067 | BasePartGroupApiMasterView 真實 API 接通驗證（既有 generic re-export 可能走 mock）|
+| 跨軌 | customer_grade.marginPct 業務檢核接線到 NX02 報價 / NX04 銷貨（規格揭露但本軌不處理）|
+| 跨軌 | A059 currency endpoint 單數 drift 統一複數慣例（規格揭露但本軌不處理）|
+
+---
+
+> 文件版本：v1.4（主題 13 加入、NX01-07 基礎型錄 5 表合一精煉落地、2026-05-14）
+> 上一版 v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
+> 更早 v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
 > 更早 v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
 > 最早 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）
 > 下次更新觸發：
