@@ -728,8 +728,8 @@ model Nx01Part {
   countryId                       String?                @map("country_id") @db.VarChar(15)
   /// 零件品牌（可空，因為有些料號可能還沒補齊）；啟用最低需求版本：LITE
   partBrandId                     String?                @map("part_brand_id") @db.VarChar(15)
-  /// 零件類型 (A=專用型 / B=通用型 / C=組合型 / D=拆解型)；啟用最低需求版本：LITE
-  type                            String?                @default("A") @db.VarChar(1)
+  /// 零件類型 (1=專用型 / 2=通用型 / 3=組合型 / 4=拆解型、軸 1 升 SmallInt、對齊 NX01-14/15 範式)；啟用最低需求版本：LITE
+  type                            Int?                   @default(1) @db.SmallInt
   /// 零件種類 id (外鍵)；啟用最低需求版本：LITE
   partGroupId                     String?                @map("part_group_id") @db.VarChar(15)
   /// 規格/備註（例：MANN / 含墊片 / 06L…適用）；啟用最低需求版本：LITE
@@ -881,8 +881,8 @@ model Nx01PartRelation {
   partIdFrom    String     @map("part_id_from") @db.VarChar(15)
   /// 目標零件 ID (外鍵)；啟用最低需求版本：LITE
   partIdTo      String     @map("part_id_to") @db.VarChar(15)
-  /// S=改號 / R=同款 / C=改版換周邊 / B=組合包 / F=拆解包；啟用最低需求版本：LITE
-  relationType  String     @map("relation_type") @db.VarChar(1)
+  /// 關係類型 (1=改號 / 2=同款 / 3=改版換周邊 / 4=組合包 / 5=拆解包、軸 1 升 SmallInt、對齊 NX01-14/15 範式)；啟用最低需求版本：LITE
+  relationType  Int        @map("relation_type") @db.SmallInt
   /// 備註；啟用最低需求版本：LITE
   remark        String?    @db.VarChar(200)
   /// 排序；啟用最低需求版本：LITE
