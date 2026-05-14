@@ -12,8 +12,12 @@ import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
 import { CustomerGradeService } from './customer-grade/customer-grade.service';
+import { DrivetrainController } from './drivetrain/drivetrain.controller';
+import { DrivetrainService } from './drivetrain/drivetrain.service';
 import { EngineController } from './engine/engine.controller';
 import { EngineService } from './engine/engine.service';
+import { ModelTypeController } from './model-type/model-type.controller';
+import { ModelTypeService } from './model-type/model-type.service';
 import { PartBrandController } from './part-brand/part-brand.controller';
 import { PartBrandService } from './part-brand/part-brand.service';
 import { PartController } from './part/part.controller';
@@ -24,6 +28,8 @@ import { PhoneticDictionaryController } from './phonetic-dictionary/phonetic-dic
 import { PhoneticDictionaryService } from './phonetic-dictionary/phonetic-dictionary.service';
 import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
+import { TransmissionController } from './transmission/transmission.controller';
+import { TransmissionService } from './transmission/transmission.service';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { WarehouseController } from './warehouse/warehouse.controller';
@@ -48,6 +54,9 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     CarBrandController,
     BrandCodeRuleController,
     EngineController,
+    TransmissionController,
+    DrivetrainController,
+    ModelTypeController,
   ],
   providers: [
     CurrencyService,
@@ -64,6 +73,9 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     CarBrandService,
     BrandCodeRuleService,
     EngineService,
+    TransmissionService,
+    DrivetrainService,
+    ModelTypeService,
   ],
 })
 export class Nx01Module {}
