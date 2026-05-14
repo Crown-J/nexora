@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-13（⭐ TASK-NX01-14-IMPL engine 主檔落地軌 merge）**
-> **當前分支：`main`**（HEAD = `57e4ae8`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-14-engine 4 commit 完整 merge、--no-ff）**
-> **⭐ NX01-14 engine 主檔落地、4 commit / +1582/-2 / 12 檔（含 spec + schema + 後端 + 前端）**
+> **快照時間：2026-05-13（⭐ TASK-NX01-13-IMPL NX01-13 + NX01-15 三表同步落地軌 merge）**
+> **當前分支：`main`**（HEAD = `e002c76`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-13-model 8 commit 完整 merge、--no-ff、4 表 schema）**
+> **⭐ NX01-13 model + NX01-15 三表（transmission/drivetrain/model_type）同步落地、8 commit / +4187/-5 / 34 檔**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 → 2026-05-13、本軌再次最小變動）：累積 3 軌 merge（Alex 失誤 #17~#21 / NX01-12 三模組 / NX01-14 engine）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 4 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 engine / NX01-13 + NX01-15 三表）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `57e4ae8` | **MERGE NX01-14 engine 主檔落地（TASK-NX01-14-IMPL、4 commit）** |
+| `main` ⭐ | ✅ 同步 | `e002c76` | **MERGE NX01-13 + NX01-15 三表同步落地（TASK-NX01-13-IMPL、8 commit、4 表）** |
+| `feature/nx01-13-model` | ✅ 同步、**已 merge main、可考慮刪除** | `17e646f` | NX01-13 model + NX01-15 三表 spec + schema + 後端 + 前端 + worklog 主題 12 |
 | `feature/nx01-14-engine` | ✅ 同步、**已 merge main、可考慮刪除** | `f7d41b0` | NX01-14 engine spec + schema + 後端 + 前端 + worklog 主題 11 |
 | `feature/nx01-12-car-brand` | ✅ 同步、**已 merge main、可考慮刪除** | `8b0a6bc` | NX01-10/11/12 + 2 spec + worklog 主題 10 + PROJECT_CONTEXT v1.6 #22 |
 | `feature/alex-failure-17-21` | ✅ 同步、**已 merge main、可考慮刪除** | `ae70773` | Alex 失誤紀錄 #17~#21 補登 + PROJECT_CONTEXT v1.5 |
@@ -68,6 +69,7 @@ nothing to commit, working tree clean
 
 | 分支 | 對應 Task | 狀態 |
 |------|----------|------|
+| `feature/nx01-13-model` | **TASK-NX01-13-IMPL**（NX01-13 model + NX01-15 三表前置 spec + schema + 後端 + 前端 + worklog 主題 12、#22 鐵律觸發本軌擴張）| ✅ 全部收官、merge main（8 commit、+4187/-5、34 檔）|
 | `feature/nx01-14-engine` | **TASK-NX01-14-IMPL**（NX01-14 engine 主檔 spec + schema + 後端 + 前端 + worklog 主題 11）| ✅ 全部收官、merge main（4 commit、+1582/-2、12 檔）|
 | `feature/nx01-12-car-brand` | **TASK-NX01-12-IMPL-v2**（NX01-10 phonetic 基礎設施 + NX01-11 schema FK 翻轉 + NX01-12 schema/seed/controller + 2 spec + worklog 主題 10 + PROJECT_CONTEXT v1.6 #22） | ✅ 全部收官、merge main（11 commit、+3220/-70、27 檔） |
 | `feature/alex-failure-17-21` | **TASK-PROJECT-CONTEXT-FAILURE-17-21**（Alex 失誤 #17~#21 補登 + PROJECT_CONTEXT v1.5）| ✅ 收官、merge main（merge commit `e9f0efe`）|
