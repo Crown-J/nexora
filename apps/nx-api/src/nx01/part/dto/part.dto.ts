@@ -15,7 +15,13 @@ import {
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 
 const RETURN_POLICIES = ['F', 'S', 'R', 'N', 'W'] as const;
-const PART_TYPES = ['A', 'B', 'C', 'D'] as const;
+
+/**
+ * 軸 1：part.type 升 SmallInt（1=專用 / 2=通用 / 3=組合 / 4=拆解）
+ * 對齊 NX01-14 fuelType / NX01-15 transmissionType SmallInt 範式
+ */
+const PART_TYPE_MIN = 1;
+const PART_TYPE_MAX = 4;
 
 export class ListPartQueryDto extends Nx01ListQueryDto {}
 
@@ -110,10 +116,11 @@ export class CreatePartDto {
   partGroupId?: string;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(1)
-  @IsIn(PART_TYPES)
-  partType?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(PART_TYPE_MIN)
+  @Max(PART_TYPE_MAX)
+  partType?: number;
 
   @IsOptional()
   @IsString()
@@ -226,10 +233,11 @@ export class UpdatePartDto {
   partGroupId?: string | null;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(1)
-  @IsIn(PART_TYPES)
-  partType?: string | null;
+  @Type(() => Number)
+  @IsInt()
+  @Min(PART_TYPE_MIN)
+  @Max(PART_TYPE_MAX)
+  partType?: number;
 
   @IsOptional()
   @IsString()

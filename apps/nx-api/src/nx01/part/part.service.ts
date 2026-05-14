@@ -247,7 +247,7 @@ export class PartService {
           countryId: dto.countryId?.trim() || null,
           partBrandId: dto.partBrandId?.trim() || null,
           partGroupId: dto.partGroupId?.trim() || null,
-          type: dto.partType?.trim() || 'A',
+          type: dto.partType ?? 1,
           spec: dto.spec?.trim() || null,
           uom: dto.uom?.trim() || 'pcs',
           isActive: dto.isActive ?? true,
@@ -277,6 +277,56 @@ export class PartService {
     return this.mapRow(row);
   }
 
+  /**
+   * Crown Q1=A：part.update 同 tx 同步寫 part_version snapshot
+   *   - versionNo = MAX + 1（per partId）
+   *   - effectiveFrom = 當下、effectiveTo = null
+   *   - 上一版的 effectiveTo 更新為當下（業務語意：版本有效期間連續）
+   *   - changeReason 從 dto.changeReason 傳入（業務人員填、稽核用）
+   */
+  private async writePartVersionSnapshot(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    userId: string,
+    partRow: Row,
+    changeReason: string | null,
+  ): Promise<void> {
+    const now = new Date();
+    // 找上一版（同 partId、effectiveTo IS NULL）+ 更新 effectiveTo
+    await tx.nx01PartVersion.updateMany({
+      where: { tenantId, partId: partRow.id, effectiveTo: null },
+      data: { effectiveTo: now, updatedBy: userId },
+    });
+    // 找 MAX versionNo
+    const latest = await tx.nx01PartVersion.findFirst({
+      where: { tenantId, partId: partRow.id },
+      orderBy: { versionNo: 'desc' },
+      select: { versionNo: true },
+    });
+    const nextVersionNo = (latest?.versionNo ?? 0) + 1;
+    await tx.nx01PartVersion.create({
+      data: {
+        tenantId,
+        partId: partRow.id,
+        versionNo: nextVersionNo,
+        effectiveFrom: now,
+        effectiveTo: null,
+        codeSnapshot: partRow.code,
+        nameSnapshot: partRow.name,
+        partBrandIdSnapshot: partRow.partBrandId,
+        countryIdSnapshot: partRow.countryId,
+        specSnapshot: partRow.spec,
+        priceASnapshot: partRow.priceA,
+        priceBSnapshot: partRow.priceB,
+        priceCSnapshot: partRow.priceC,
+        priceDSnapshot: partRow.priceD,
+        changeReason,
+        createdBy: userId,
+        updatedBy: userId,
+      },
+    });
+  }
+
   async update(user: RequestUser, id: string, dto: UpdatePartDto) {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Part.findFirst({ where: { id, tenantId }, select: SEL });
@@ -300,7 +350,9 @@ export class PartService {
       dto.priceC !== undefined ||
       dto.priceD !== undefined;
 
-    const row = await this.prisma.nx01Part.update({
+    // Q1=A：part.update 同 tx 寫 part_version snapshot
+    const row = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.nx01Part.update({
       where: { id },
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
@@ -314,9 +366,7 @@ export class PartService {
         ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),
         ...(dto.partBrandId !== undefined ? { partBrandId: dto.partBrandId?.trim() || null } : {}),
         ...(dto.partGroupId !== undefined ? { partGroupId: dto.partGroupId?.trim() || null } : {}),
-        ...(dto.partType !== undefined
-          ? { type: dto.partType === null || dto.partType === '' ? 'A' : dto.partType.trim() }
-          : {}),
+        ...(dto.partType !== undefined ? { type: dto.partType } : {}),
         ...(dto.spec !== undefined ? { spec: dto.spec } : {}),
         ...(dto.uom !== undefined ? { uom: dto.uom.trim() } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
@@ -330,6 +380,18 @@ export class PartService {
         updatedBy: user.sub,
       },
       select: SEL,
+      });
+
+      // Q1=A: 寫 part_version snapshot（同 tx）
+      await this.writePartVersionSnapshot(
+        tx,
+        tenantId,
+        user.sub,
+        updated,
+        dto.changeReason?.trim() || null,
+      );
+
+      return updated;
     });
     await this.audit.write({
       tenantId,
