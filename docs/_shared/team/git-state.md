@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⭐ TASK-NX01-17-UI-IMPL Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級 merge）**
-> **當前分支：`main`**（HEAD = `a7fbb3d`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-17-ui-and-drift-fix 3 commit、--no-ff）**
-> **⭐ NX01-17 Q5 UI 接通真實後端（basePath + REL_OPTS SmallInt）+ 4 drift 補正（isActive guard / part.create version 1 / 2 role 對齊）+ hank-charter §G.7（A066 範式化）/ §G.8（範圍擴散揭露）升級、3 commit / +219/-42 / 10 檔**
+> **快照時間：2026-05-15（⭐ TASK-NX01-17-MODAL-IMPL R 同款 modal 路線 A merge、NX01-17 規格 v1.0 達成 100%）**
+> **當前分支：`main`**（HEAD = `2403ea8`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-17-r-modal 3 commit、--no-ff）**
+> **⭐ NX01-17 R 同款 modal 完整實作：Nx00FlatMasterView 加 onAfterCreate prop + BasePartRelationMasterView handleRSameReverseHint + window.confirm UX、3 commit / +126/-1 / 3 檔**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 9 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05 / NX01-17 / NX01-17-UI）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 10 軌 merge（#17~#21 / NX01-12 三模組 / NX01-14 / NX01-13+15 / NX01-07 / NX01-11 hotfix / NX01-05 / NX01-17 / NX01-17-UI / NX01-17-MODAL）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（12 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `a7fbb3d` | **MERGE NX01-17 Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級（TASK-NX01-17-UI-IMPL、3 commit）** |
+| `main` ⭐ | ✅ 同步 | `2403ea8` | **MERGE NX01-17 R 同款 modal 路線 A（TASK-NX01-17-MODAL-IMPL、2 commit、規格 100% 達成）** |
+| `feature/nx01-17-r-modal` | ✅ 同步、**已 merge main、可考慮刪除** | `8769eef` | R 同款 modal 路線 A：generic onAfterCreate prop + caller handler + worklog 主題 17 |
 | `feature/nx01-17-ui-and-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `d11cffa` | Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級 + worklog 主題 16 |
 | `feature/nx01-17-part-version-relation` | ✅ 同步、**已 merge main、可考慮刪除** | `2fb31ac` | 軸 1 字母 enum SmallInt + part_version + part_relation 後端 + worklog 主題 15 |
 | `feature/nx01-05-part` | ✅ 同步、**已 merge main、可考慮刪除** | `5cd62ae` | NX01-05 spec + schema unique+4 index + service 重設計 + UNK guard + previewCode + worklog 主題 14 |
