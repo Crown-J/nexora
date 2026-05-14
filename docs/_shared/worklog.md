@@ -852,8 +852,74 @@ Hank §6 諮詢揭露 5 表後端範式 3 軸分裂（完整 CRUD / read-only / 
 
 ---
 
-> 文件版本：v1.4（主題 13 加入、NX01-07 基礎型錄 5 表合一精煉落地、2026-05-14）
-> 上一版 v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
+## 主題 14｜NX01-05 part 主檔最後整合節點 + 前置 hotfix（TASK-NX01-05-IMPL、2026-05-14）
+
+### 起源
+
+Hank §5.3 NX01-05 諮詢揭露 production blocker：part.service.ts 仍引用已 rename 為 carBrandId 的 partBrandId（A063 失誤升級觸發）。Crown 拍前置獨立 hotfix 軌 + 主軌 NX01-05 完整 impl（Q1~Q9 全 A + UNK 佔位）。part 是最後整合節點、業務影響全 NEXORA（25 條 reverse、5 業務模組）。
+
+### 設計決策
+
+1. **hotfix 跟主軌分軌**：hotfix 最小修補（auto-vivify 廢棄 + codeRuleId 強制必填）、主軌完整重設計（schema + service + UNK guard + previewCode）
+2. **Q7=B previewCode 後端集中**：拼接邏輯走 service.previewCode、前端 onChange 即時呼叫 POST /nx01/parts/preview-code
+3. **Q9=C UNK 佔位策略**：partBrand / country 可空、後端 service 拼接時自動填 'UNK'（6 字元字數一致）；service validateUnkReservedNotUsed guard 拒絕 tenant 使用 code='UNK' 的 row（系統保留字）
+4. **UI 升級延後**：既有 features/nx00/part/ UI 結構複雜（PartFormPanel + PartSplitView 已實作）、改動風險擴散、A068 後續軌完整升級（含 codeRule 動態 SEG / partBrand+country 下拉 / UNK preview）
+5. **跨軌接線不本軌**：Q6=A 拍板、returnPolicy / warrantyMonths / priceA~D 接線分別交 NX02 / NX03 / NX04 軌
+
+### 實作歷程
+
+**前置 hotfix 軌**（feature/nx01-11-part-service-hotfix）：
+
+| commit | hash | 範圍 |
+|--------|------|------|
+| 1 | `fb1dae4` | part.service.ts resolveCodeRuleId 編譯掛修補（auto-vivify 廢棄、codeRuleId NN）|
+| merge main | `da800e9` | --no-ff merge |
+
+**主軌**（feature/nx01-05-part）：
+
+| commit | hash | 範圍 | 規模 |
+|--------|------|------|------|
+| 軌前 SPEC | `ad8ebf0` | nx01-05-part.md v1.0（619 行）| +619、1 檔 |
+| 1 | `8bcfad2` | schema 補 @@unique(tenantId, code, countryId) + 4 index migration | +53、2 檔 |
+| 2 | `51886c7` | service 重設計 + UNK guard + previewCode + controller endpoint + DTO | +160/-31、3 檔 |
+| **總計**（含 hotfix） | — | — | **+835/-32、7 檔（不含 UI）** |
+
+### 踩坑
+
+#### A063 升級觸發：NX01-12-IMPL-v2 commit 2 「test-helpers 順手清」漏項
+
+- **觸發**：上軌 commit 2 將 brand_code_rule.partBrandId rename → carBrandId、順手清 test-helpers 6 處引用、但**漏 part.service.ts line 92/102 + part.dto.ts line 23 註解**
+- **規則**：Hank schema rename 「順手清」必 grep 全 repo（含 service / dto / controller、不只 test/）
+- **本軌修補**：前置 hotfix 軌獨立、不擴張 NX01-05 主軌範圍
+
+#### UI 升級範圍評估後延後（Hank 自決 + 對齊規則目的）
+
+- Crown 規格實作範圍 5「UI 升級」目的 = part 業務人員可用 + 對齊 §2
+- 既有 features/nx00/part/ 6 檔（PartFormPanel + PartSplitView + api + types + hooks + meta）結構複雜
+- 改動風險擴散 + A059 後續軌（nx00 → nx01 遷移）會整體處理
+- 替代手段：本軌只動後端、UI 完整升級進 A068 後續軌、達成原規則部分目的
+
+### 對應文件
+
+- spec：`docs/nx01/spec/intent/nx01-05-part.md` v1.0
+- 1 migration：`20260514110000_nx01_part_add_unique_and_indexes`
+- 後端修補：`apps/nx-api/src/nx01/part/` 3 檔（service / controller / dto）
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A068 | part UI 完整升級對齊規格 §2（codeRule 動態 SEG / partBrand+country 下拉 / UNK preview / priceA~D 戰略 + audit）|
+| 跨軌（NX02 軌）| returnPolicy F/S/R/N/W 接 NX03 PKitem 包貨流程 + warrantyMonths 接 NX02 RrItem 進貨驗收自動算 warranty_expired_at |
+| 跨軌（NX04 軌）| priceA~D 接 customer_grade.marginPct 業務檢核（報價 / 銷貨）|
+| A061 | NX01-10 phonetic_index trigger attach 主檔（part / partner / user）|
+| 業務 guard 跨範圍 | part-brand / country create 端加 UNK 保留字 guard（本軌只在 part service 端 guard）|
+
+---
+
+> 文件版本：v1.5（主題 14 加入、NX01-05 part 主檔最後整合節點落地、2026-05-14）
+> 上一版 v1.4（主題 13 加入、NX01-07 基礎型錄 5 表合一精煉落地、2026-05-14）
+> 更早 v1.3（主題 12 加入、NX01-13 + NX01-15 三表同步落地軌、2026-05-13）
 > 更早 v1.2（主題 11 加入、NX01-14 engine 主檔落地、2026-05-13）
 > 更早 v1.1（主題 10 加入、NX01-10/11/12 三模組同步落地軌、2026-05-13）
 > 最早 v1.0（Phase 1 收官、8 主題 + 累計範式總表第 8 分類「工程文化範式」加 5 條）

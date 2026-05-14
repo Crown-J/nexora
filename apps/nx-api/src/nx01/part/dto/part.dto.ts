@@ -19,8 +19,31 @@ const PART_TYPES = ['A', 'B', 'C', 'D'] as const;
 
 export class ListPartQueryDto extends Nx01ListQueryDto {}
 
+/**
+ * Crown Q7=B：part.code 預覽 DTO
+ * 前端 onChange 即時呼叫 POST /nx01/parts/preview-code、回 { code: string }
+ */
+export class PreviewPartCodeDto {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(15)
+  codeRuleId!: string;
+
+  @IsOptional() @IsString() @MaxLength(10) seg1?: string;
+  @IsOptional() @IsString() @MaxLength(10) seg2?: string;
+  @IsOptional() @IsString() @MaxLength(10) seg3?: string;
+  @IsOptional() @IsString() @MaxLength(10) seg4?: string;
+  @IsOptional() @IsString() @MaxLength(10) seg5?: string;
+
+  @IsOptional() @IsString() @MaxLength(15) partBrandId?: string;
+  @IsOptional() @IsString() @MaxLength(15) countryId?: string;
+}
+
 export class CreatePartDto {
-  /** 若省略則需帶 partBrandId，由後端自動建立或沿用 nx01_brand_code_rule */
+  /**
+   * 規格 §3 + Crown Q5=A 拍板：codeRuleId 必填（業務先建 brand_code_rule、再建 part）
+   * @IsOptional 保 DTO 形式相容、但 service 強制檢核（非空檢查 + verify 存在）
+   */
   @IsOptional()
   @IsString()
   @MaxLength(15)
