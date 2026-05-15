@@ -30,12 +30,12 @@ NX01 主檔規格書 = NX01 模組的「**業務骨架 + 共通規則 + 完整�
 - 跨模組業務邏輯（屬其他模組規格書 + _team/worklog.md）
 
 **📚 工程規範索引：**
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 必填欄位：見 [CLAUDE.md](CLAUDE.md) §六
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
-- Plan Guard：見 [CLAUDE.md](CLAUDE.md) §八
-- 過帳邏輯通用規則：見 [CLAUDE.md](CLAUDE.md) §九
-- 重要開發原則：見 [CLAUDE.md](CLAUDE.md) §十五
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 必填欄位：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.5
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
+- Plan Guard：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.7
+- 過帳邏輯通用規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.3.1
+- 重要開發原則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.6
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 - 擴充性原則：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) § 工程模式 #23
 
@@ -298,7 +298,7 @@ D 索引型 |   0    |    1      |   1  |   2
 
 所有 NX01 主檔表都帶 `tenantId`、跨租戶資料完全隔離。
 
-詳見 [CLAUDE.md §七 多租戶隔離](CLAUDE.md)。
+詳見 [PROJECT_RULES.md §III.2.6 多租戶隔離](../../../PROJECT_RULES.md)。
 
 **全域型錄例外**（不帶 tenantId、所有租戶共用）：
 - `nx01_currency`（國際幣別 ISO 標準）
@@ -328,7 +328,7 @@ NX01 主檔不能「真刪除」、只能停用（`isActive = false`）：
 - `code` unique 範圍 = `(tenantId, code)`（不是全域）
 - `name` 欄位：中文 / 英文皆可、長度上限 50 字元
 
-詳見 [CLAUDE.md §五 DB / Prisma / ID 命名規則](CLAUDE.md)。
+詳見 [PROJECT_RULES.md §III.2 DB / Prisma / ID 命名規則](../../../PROJECT_RULES.md)。
 
 ### 3.4 必填欄位規則
 
@@ -339,7 +339,7 @@ NX01 主檔不能「真刪除」、只能停用（`isActive = false`）：
 
 業務必填欄位由各子規格書定義。
 
-詳見 [CLAUDE.md §六 必填欄位規則](CLAUDE.md)。
+詳見 [PROJECT_RULES.md §III.2.5 必填欄位規則](../../../PROJECT_RULES.md)。
 
 ### 3.5 與其他模組的依賴方向
 
@@ -473,7 +473,7 @@ NX01 主檔層面的 tier 差異：
   - 進階功能（自動補貨 / 路線優化 / 自動配單 / 資產殘值 / 自動推預算）:✅ 完整開放
 ```
 
-→ Tier 差異會影響 Plan Guard 設計（[CLAUDE.md §八](CLAUDE.md)）。
+→ Tier 差異會影響 Plan Guard 設計（[PROJECT_RULES.md §III.2.7](../../../PROJECT_RULES.md)）。
 
 ---
 
@@ -508,7 +508,7 @@ NX01 主檔層面的 tier 差異：
 
 **未來：** 銀行架構上應獨立 `nx01_bank_account` 表（屬性不同：分行 / 帳號 / SWIFT）。
 
-詳見 [CLAUDE.md §十五#7](CLAUDE.md) partner_type B 註解。
+詳見 [PROJECT_RULES.md §III.6#7](../../../PROJECT_RULES.md) partner_type B 註解。
 
 ### 6.4 擴充性踩坑預期
 

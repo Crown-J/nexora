@@ -92,7 +92,7 @@
 
 - `id` = 系統 ID（無業務 unique）
 - 公告無「業務 code」概念、純流水 ID 即可
-- 對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則：tenant scoped 必含 `tenantId`
+- 對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則：tenant scoped 必含 `tenantId`
 
 ## 3.2 業務檢核
 

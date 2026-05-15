@@ -31,8 +31,8 @@ NX01-09 = NX01 主檔模組的「**地址型錄系統**」子規格書。
 
 **📚 工程規範索引：**
 - 主檔規格書：見 [docs/nx01/spec/intent/nx01-overview.md](docs/nx01/spec/intent/nx01-overview.md)
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 - 擴充性原則：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) § 工程模式 #23
 
@@ -286,7 +286,7 @@ nx01_street
 
 ### 4.4 系統自動欄位
 
-對齊 [CLAUDE.md §六](CLAUDE.md)：
+對齊 [PROJECT_RULES.md §III.2.5](../../../PROJECT_RULES.md)：
 
 | 欄位 | 業務語意 |
 |------|---------|

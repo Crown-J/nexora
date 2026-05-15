@@ -96,7 +96,7 @@
 
 - PK = `id`
 - unique = `(tenantId, code)`（每租戶內、品牌代碼唯一）
-- 對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則：tenant scoped
+- 對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則：tenant scoped
 - 系統 seed 4 個主流品牌（VAG / POR / BMW / BEN）apply 到所有 tenant
 - 跨租戶代碼撞名不檢查（業界 muscle memory 對齊 NX01-11：恆迎 18 年沒發生過、不過度防呆）
 

@@ -98,7 +98,7 @@ NX01-10 注音快搜系統 = NEXORA **業務人員 muscle memory 級快搜基礎
 **`nx01_phonetic_index`**：
 - PK = `id`
 - unique = `(tenantId, source_table, source_id)`（每筆主檔一筆索引）
-- 對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則：跨主檔索引、tenant scoped
+- 對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則：跨主檔索引、tenant scoped
 
 ## 3.2 業務檢核
 

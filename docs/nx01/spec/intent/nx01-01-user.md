@@ -34,9 +34,9 @@ user 是 NEXORA 全模組引用最廣的主檔之一：
 
 **📚 工程規範索引：**
 - 主檔規格書：見 [docs/nx01/spec/intent/nx01-overview.md](docs/nx01/spec/intent/nx01-overview.md)
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 必填欄位：見 [CLAUDE.md](CLAUDE.md) §六
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 必填欄位：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.5
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 - 擴充性原則：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) § 工程模式 #23
 
@@ -120,7 +120,7 @@ nx01_user.id 命名規則:NX01USER + 7 位數字
 - 進階篩選：role / 部門 / 建立時間 / 狀態
 - 動作：[新增] / [編輯] / [停用] / [重設密碼] / [批次匯入]
 
-⭐ 對齊 [CLAUDE.md §四 版本方案](CLAUDE.md) Tier user 上限（詳見 §7）
+⭐ 對齊 [PROJECT_RULES.md §I.1.2](../../../PROJECT_RULES.md) Tier user 上限（詳見 §7）
 
 ### 2.2 詳細頁（`/master/user/:id`）
 
@@ -179,7 +179,7 @@ nx01_user.id 命名規則:NX01USER + 7 位數字
 - `(tenantId, username)` UNIQUE（同租戶內 username 唯一、跨租戶可同名）
 - `(tenantId, email)` UNIQUE（同租戶內 email 唯一）
 
-對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則 + 多租戶隔離。
+對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則 + 多租戶隔離。
 
 ### 3.2 業務檢核
 
@@ -268,7 +268,7 @@ failed_login_count 累計：
 
 ### 4.2 系統自動欄位（不可改）
 
-對齊 [CLAUDE.md §六](CLAUDE.md)：
+對齊 [PROJECT_RULES.md §III.2.5](../../../PROJECT_RULES.md)：
 
 | 欄位 | 業務語意 |
 |------|---------|
@@ -392,9 +392,9 @@ HR 試圖新增 username = `john`、但同租戶已有：
 
 ---
 
-## § 7. Tier 差異（對齊 CLAUDE.md §四 版本方案）
+## § 7. Tier 差異（對齊 PROJECT_RULES.md §I.1.2 版本方案）
 
-⭐ 對齊 [CLAUDE.md §四「版本方案」](CLAUDE.md) 真相、不擅自定義 user 上限。
+⭐ 對齊 [PROJECT_RULES.md §I.1.2「版本方案」](../../../PROJECT_RULES.md) 真相、不擅自定義 user 上限。
 
 ### LITE（基礎版、單店 / 小團隊）
 
@@ -426,7 +426,7 @@ HR 試圖新增 username = `john`、但同租戶已有：
 - PLUS → PRO：既有 user 全保留、新增空間從 30 變 100
 - 對齊 NX01-04 §7 「升級無痛」精神
 
-→ Tier 限制由 Plan Guard 強制（[CLAUDE.md §八](CLAUDE.md)）。
+→ Tier 限制由 Plan Guard 強制（[PROJECT_RULES.md §III.2.7](../../../PROJECT_RULES.md)）。
 
 ---
 
@@ -468,7 +468,7 @@ HR 試圖新增 username = `john`、但同租戶已有：
 - **Q2（密碼規則）**：B 中等（10 位 + 大小寫 + 數字 + 特殊、3 個月過期）
 - **Q3（user 跨租戶搬遷）**：A 不支援（YAGNI、對齊既有設計、罕見場景）
 - **Q4（user vs employee 關係）**：C 暫不規劃（NX07 人資模組未啟用）
-- **Q5（LITE user 上限）**：⭐ 對齊 CLAUDE.md §四「版本方案」真相
+- **Q5（LITE user 上限）**：⭐ 對齊 PROJECT_RULES.md §I.1.2「版本方案」真相
   - LITE 1~10 人（S:1~5 / M:6~10）
   - PLUS 5~30 人（S/M/L）
   - PRO 10~100 人（S/M/L/XL）
@@ -476,9 +476,9 @@ HR 試圖新增 username = `john`、但同租戶已有：
 
 **Alex 失誤紀錄（給未來新對話的 Alex 跨對話讀）：**
 
-- 失誤候選 #39:Alex 寫 Tier 差異時、沒 grep CLAUDE.md §四「版本方案」真相
+- 失誤候選 #39:Alex 寫 Tier 差異時、沒 grep PROJECT_RULES.md §I.1.2「版本方案」真相
   - 跟失誤候選 #28 / #32 / #38 同根源（沒 grep 既有 NEXORA 真相文件）
-  - 規則升級:Tier 差異段落必須先 grep CLAUDE.md §四
+  - 規則升級:Tier 差異段落必須先 grep PROJECT_RULES.md §I.1.2
 
 ---
 

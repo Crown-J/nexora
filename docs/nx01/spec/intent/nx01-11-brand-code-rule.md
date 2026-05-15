@@ -109,7 +109,7 @@
 
 - PK = `id`
 - unique = `(tenantId, car_brand_id)` （每租戶內、一個品牌一條規則）
-- 對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則：tenant scoped
+- 對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則：tenant scoped
 - system seed 4 個主流品牌（VAG / POR / BMW / BEN）apply 到所有 tenant、tenant 可調呈現格式 + 加副廠規則
 
 ## 3.2 業務檢核
