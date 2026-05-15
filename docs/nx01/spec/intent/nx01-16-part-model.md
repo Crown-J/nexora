@@ -25,6 +25,10 @@
 - **30 年知識結構化核心** ⭐⭐
 - Yaro 戰略資產轉型關鍵（業務員 muscle memory → 系統 query）
 - NX01 17 份子規格書最後 1 份、本軌落地後 NX01 主檔層收尾
+<!-- 注：下行「田驗證」字眼為 v1.0 拍板當時敘事（Crown 2026-05-14 拍板版）。
+     Crown 2026-05-15 揭露 Yaro 角色翻轉真相（見 PROJECT_CONTEXT.md v2.1 §1.4）：
+     Yaro 是 Crown 計畫成立的真實 B2B 企業、使用自家 NEXORA、跟恆迎同類型業務、不是田驗證實驗田。
+     本歷史 fact 對齊 PROJECT_RULES §III.8.4 G.4 範式保留、不 replace 原文。 -->
 - PRO tier Yaro 2028 開業前完成田驗證的關鍵戰略表
 
 ## 1.2 業界改革（v1.0 核心揭露）
@@ -293,6 +297,7 @@
 | 版本 | 日期 | 撰寫 | 變更摘要 |
 |------|------|------|---------|
 | v1.0 | 2026-05-14 | Alex | 初版拍板版、11 段完整。Crown 拍 Q1~Q7：Q1=A（unique = (tenantId, partId, modelId)）/ Q2=A（獨立列表頁 generic 框架）/ Q3=B（fitLevel SmallInt enum：1=原廠 / 2=副廠等效 / 3=通用替代）/ Q4=A（本軌不做 part 編輯頁適配 section、後續軌補）/ Q5=A（空表進、Yaro 資料獨立匯入軌）/ Q6=A（prefix PAMO）/ Q7=A（料件反查車型單向、雙向後續軌）。整合 Hank §1~§12 諮詢真相揭露：(1) NX01-16 是 17 份子規格書最後 1 份、上游 5 表全綠燈、無 #22 鐵律觸發。(2) Crown 業界 muscle memory 揭露：改款處理走拆 model、part_model 純關聯不混業務邏輯、年份範圍走 model 那邊。(3) 戰略地位：30 年知識結構化核心、Yaro 戰略資產轉型關鍵。(4) reference 3 處 drift（nx-table.csv / doc-number-rules.csv / field-definitions.csv 缺 part_model 條目、A067 family 順手補）。本規格書直接走 v1.0、未經 v0.1.0、依拓樸排序最後 1 份、Crown 業界 muscle memory + Hank audit 真相已沉澱可直接拍板。|
+| v1.0-historical-note | 2026-05-15 | Hank | G.4 範式歷史 fact 保留軌（TASK-NX01-16-HISTORICAL-FACT-PRESERVE）。Crown 2026-05-15 揭露 Yaro 角色翻轉真相（PROJECT_CONTEXT.md v2.1 §1.4）：Yaro 是 Crown 計畫的真實 B2B 企業、不是田驗證實驗田。本規格書 v1.0 拍板當時（2026-05-14）的「田驗證」字眼為歷史敘事、line 28 + line 352 兩處保留原文不動、各加 HTML 註解校正、對齊 PROJECT_RULES §III.8.4 G.4 範式（spec docs 歷史 fact 不 replace、加 HTML 註解說明 closure 後變化）。本條目非 v1.1 改版、只是補歷史校正紀錄。 |
 
 ---
 
@@ -349,6 +354,10 @@
 - **commit 4**：Nx01Part / Nx01Model reverse 接線
 - **commit 5**：reference 3 處 drift 順手補（A067 family）
 
+<!-- 注：下行「Yaro 戰略田驗證」字眼為 v1.0 拍板當時敘事（Crown 2026-05-14 拍板版）。
+     Crown 2026-05-15 揭露 Yaro 角色翻轉真相（見 PROJECT_CONTEXT.md v2.1 §1.4）：
+     Yaro 是 Crown 計畫成立的真實 B2B 企業、使用自家 NEXORA、跟恆迎同類型業務、不是田驗證實驗田。
+     本歷史 fact 對齊 PROJECT_RULES §III.8.4 G.4 範式保留、不 replace 原文。 -->
 ⭐ 本軌完成後 NX01 17 份子規格書 + impl 全 closure、Yaro 戰略田驗證所需 NX01 主檔層收尾。
 
 ---
