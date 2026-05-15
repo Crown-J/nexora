@@ -1249,7 +1249,96 @@ Hank 接力做 docs/ 重組 + Part III 撰寫 + 廢棄舊檔 + 交叉引用更�
 
 ---
 
-> 文件版本：v1.10（主題 19 加入、docs/ 平鋪重組 + 規範合一戰略 milestone ⭐⭐、2026-05-15）
+## 主題 20｜NX01 模組架構書 + 上傳清單 + A075 sweep + 失誤 #23~#25 補登（TASK-NX01-SUMMARY-AND-FINAL-CLEANUP、2026-05-15）⭐⭐
+
+### 起源
+
+主題 19 docs/ 平鋪重組 + 規範合一戰略 milestone 完成後、本對話最後一軌完整收尾。
+Crown 拍板 6 軸合一：
+1. NX01 模組架構書（18 spec / 8237 行 → 1 summary 壓縮）
+2. A075 §X 章節錨點 sweep（NX01 specs 引用 CLAUDE.md §五~§十六 全清）
+3. .cursorrules 補建（Cursor IDE 自動讀取慣例不破）
+4. Claude.AI 上傳清理清單（Crown 痛點完整解決）
+5. 多 Cursor 段更新（Crown 拍板放棄、走穩健單軌）
+6. 失誤候選 #23/#24/#25 完整登錄
+
+### 設計決策
+
+1. **summary 8 維度壓縮範式**：業務語意 / 表名 ID prefix / 戰略地位 / Crown 拍板 Q / 業界 muscle memory / seed 範式 / 落地 hash / 跨軌依賴 — 每子模組 20~30 行、為 NX02~NX10 SUMMARY 樹立範式
+2. **業界 muscle memory 12 條清單**：Crown 18 年 + 恆迎 30 年累積、給 NX03 接力參考、避免新模組重新發明輪子
+3. **A075 sed 三模式**：[CLAUDE.md §X](path) / [CLAUDE.md](path) §X / 純文字 CLAUDE.md §X、順序紀律 §十X 在 §十 之前避免部分匹配吃掉
+4. **G.4 範式守住**：殘 7 處 CLAUDE.md 引用（line number 歷史 / Document Control Log / 歷史錯誤描述）保留不動
+5. **.cursorrules 新建範式**：Hank 必讀順序 7 步 + 工具紀律速查 6 條 + 自檢清單 7 項
+6. **upload-cleanup-list 5 段結構**：可下架 / 可下架 NX01 / 必保留 / 未來模組範式 / 變動觸發
+7. **多 Cursor 段升級「未啟動 + 願景保留」**：Crown 拍板理由完整落地、未來啟動條件 + 紀律骨架雙存
+8. **失誤 #23/#24/#25 三條完整登錄**：#23 TL;DR 紀律從 stub 升級完整版 / #24 #18 強化版 / #25 #20 強化版
+
+### 實作歷程
+
+| # | commit hash | 變更 | 規模 |
+|---|------------|------|------|
+| 1 | `856938c` | NX01 模組架構書 nx01-summary.md（404 行、壓縮 -95%）| +404、1 檔 |
+| 2 | `b31ed22` | A075 §X 章節錨點 sweep（12 檔、3 種模式、§四~§十六）| +59/-59、12 檔 |
+| 3 | `f6d9592` | .cursorrules 新建 + upload-cleanup-list.md | +157、2 檔 |
+| 4 | `9adceee` | 多 Cursor 段更新 + 失誤 #23/#24/#25 完整登錄 | +61/-24、2 檔 |
+| **總計** | — | — | **+681/-83、17 檔** |
+
+### 對應文件
+
+- 模組架構書：`docs/nx01/nx01-summary.md`（404 行、壓縮 -95%）
+- §X sweep：12 spec 全更新（new anchors PROJECT_RULES §III）
+- Cursor 入口：`.cursorrules`（41 行、Hank 必讀順序 + 工具紀律速查）
+- 上傳清單：`docs/_team/upload-cleanup-list.md`（113 行、5 段結構）
+- 多 Cursor 段：PROJECT_RULES §I.7.3 + PROJECT_CONTEXT §7.3 雙更新
+- 失誤紀錄：PROJECT_RULES §I.5 #24/#25 補 + §II.3.2 #23 升級完整版
+
+### 揭露真相
+
+**A075 sweep 範圍 grep verify**：
+- §五~§十六 章節錨點殘留：0 處 ✅
+- §四 殘留：0 處 ✅
+- 新增 PROJECT_RULES §III 引用：23 處
+- 殘 7 處 CLAUDE.md 全屬 G.4 歷史 fact 保留（line number / Document Control Log）
+
+**壓縮率精確**（A041）：
+- NX01 18 spec / 8237 行 → nx01-summary.md 404 行
+- 壓縮率：404 / 8237 = **4.9%**（-95%）
+
+**.cursorrules 補建 verify**：
+- 本軌前 `.cursorrules` 不存在（系統 reminder 揭露「歷史殘留」、實際已 git rm）
+- 本軌新建 41 行、對齊 Cursor IDE 自動讀取慣例
+
+### 戰略意義（⭐⭐ 本對話跨度完整收尾）
+
+- ⭐⭐ NX01 模組層完整收尾：規格 17 + impl + summary（跨對話接力 ready）
+- ⭐⭐ Claude.AI 上傳清單 ready：35 → 14 上傳檔（-60%）、Crown 找檔痛點完整解決
+- ⭐⭐ 失誤紀錄堆積落地：#23/#24/#25 三條（Part I 13 共通 + Part II 12 Alex = 25 條完整）
+- ⭐⭐ Cursor IDE 入口對齊：CLAUDE.md root stub + .cursorrules 雙保險
+- A075 章節錨點 drift 全清（NX01 內部 0 殘留）
+
+### 後續軌 backlog
+
+| # | 描述 | 性質 |
+|---|------|------|
+| A074 | field-definitions.csv 全模組 drift 大掃描 | reference cleanup |
+| 戰略軌 | NX02~NX10 各模組 closure 後撰寫 nxXX-summary.md（沿用本軌範式）| 模組接力 |
+| 戰略軌 | NX03 庫存（範圍 A 完整 closure）開工軌 | 下一模組 |
+| 戰略軌 | Yaro 30 年資料匯入軌（PRO tier 戰略）| NX01 全 closure 後啟動 |
+
+### 本對話跨度收尾統計
+
+本對話累積 8 軌 + 4 軸 docs 重組 + 本軌 6 軸 final cleanup：
+- 主題 10~20 共 11 個跨模組 task log（NX01 全軌跡）
+- NX01 17 子規格書 + impl 全 closure（2026-05-15 ⭐⭐）
+- 規範合一 milestone（4 檔 → 2 檔、釋放 -18%）
+- docs/ 平鋪重組（78 子層 → 25、-68%）
+- Claude.AI 上傳釋放（35 → 14 檔、-60%）
+- Alex 失誤紀錄 #1~#25 全落地
+
+---
+
+> 文件版本：v1.11（主題 20 加入、NX01-SUMMARY-AND-FINAL-CLEANUP 完整收尾 ⭐⭐、2026-05-15）
+> 上一版 v1.10（主題 19 加入、docs/ 平鋪重組 + 規範合一戰略 milestone ⭐⭐、2026-05-15）
 > 上一版 v1.9（主題 18 加入、NX01-16 part_model 戰略表落地 ⭐⭐ NX01 全 closure、2026-05-15）
 > 上一版 v1.8（主題 17 加入、NX01-17 R 同款 modal 路線 A 補做、2026-05-15）
 > 上一版 v1.7（主題 16 加入、NX01-17 Q5 UI 接通 + 4 drift + charter §G.7/§G.8 升級、2026-05-15）
