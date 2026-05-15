@@ -1131,7 +1131,56 @@ git status --short | grep '^??'
 4. 自決縮減屬「擅自改 Crown 拍板範圍」？是 → 揭露 + 等 Crown 重拍
 ```
 
-### III.8.7 紀律速查表
+### III.8.7 verify 既有狀態必通配 grep、不單檔 ls（G.9、對齊 §I.5 失誤 #18 + #24 強化版）
+
+**規則：對「目前 / 現況 / 是否存在」斷言、必先通配 grep（find -iname / glob `*keyword*`）、不單檔 ls / stat**
+
+⛔ 反 pattern：
+- `ls -la .cursorrules`（單檔）得「No such file or directory」→ 推論「cursor 相關檔案不存在」
+- 跳「本軌補建」分支、未查近似命名（如 `_cursorrules`、`.cursor/rules/*.mdc`）
+- 結果：本軌新建 `.cursorrules`（44 行）跟既有 `_cursorrules`（432 行）並存、內容 70% 重複既有真相來源
+
+✅ 範式：
+```bash
+# 開工前必跑（通配查全貌）：
+find . -maxdepth N -iname "*keyword*" -not -path "./node_modules/*" -not -path "./.git/*"
+# 或：
+ls -la *keyword* 2>&1
+# 或：
+git ls-files | grep -i keyword
+```
+
+→ 揭露全貌（含同義 / 近似 / dot prefix / 歷史殘留）→ 確認真相再決定動作
+
+**為什麼**（觸發紀錄）：
+- TASK-NX01-SUMMARY-AND-FINAL-CLEANUP 軸 3「.cursorrules verify」觸發：
+  - Hank 只 `ls -la .cursorrules`（單檔）、未通配 `*cursor*`
+  - 漏既有 root `_cursorrules`（432 行、`d4ba39c` 2026-05-11 起存在）
+  - 本軌新建 `.cursorrules`（44 行）跟既有 `_cursorrules` 並存 + 內容大量重複 PROJECT_RULES
+- 屬「verify 既有狀態」失誤（#18 + #24 強化版、針對 Hank 工具紀律補洞）
+
+**適用時機**：
+- 開工前自檢「是否存在」類查詢（§III.9）
+- 規範 / 設定檔 verify（如 `.cursorrules` / `.env` / `tsconfig.json` 等可能多版本檔）
+- 任何「新建 vs 既存」分支判斷前
+- 跨對話接續真相 verify（new chat 新 Hank 不憑歷史記憶）
+
+**對齊紀律**：
+- §I.5 失誤 **#18**（揭露狀態必先 grep verify、不憑記憶）
+- §I.5 失誤 **#24**（不憑局部訊息推論全貌、grep 通配補洞）
+- §III.9 開工前自檢清單「grep 過要改的 schema / API、確認現況」升級為「verify 既有狀態必通配 grep」
+
+**檢查清單**（verify 既有狀態前必跑）：
+```
+1. 查詢「是否存在 X」斷言前、是否用通配（find -iname 或 glob）？
+   - 否 → 改用通配查全貌
+2. 通配結果是否含近似命名（dot prefix / 無前綴 / 大小寫變化）？
+   - 是 → 全部列入「既存清單」、避免漏
+3. 既存清單跟「新建假設」是否衝突？
+   - 是 → 揭露給 Crown 拍（對齊 G.8 範圍擴散揭露不擅自）
+```
+
+### III.8.8 紀律速查表
 
 | 規則 | 觸發時機 | 動作 |
 |------|---------|------|
@@ -1141,6 +1190,7 @@ git status --short | grep '^??'
 | G.4 歷史 fact 保留 | spec docs 歷史描述 | 加 HTML 註解、不 replace |
 | A066 Read-before-Edit | Edit/Write 既有檔案 | 先 Read、必要時 replace_all=true |
 | G.8 範圍擴散揭露 | impl 階段發現超範圍 | 揭露 + 等 Crown 重拍、不擅自縮減 |
+| **G.9 verify 通配 grep** | **「是否存在」斷言前** | **通配 grep（find -iname）、禁單檔 ls** |
 
 ---
 

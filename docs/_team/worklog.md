@@ -1337,7 +1337,77 @@ Crown 拍板 6 軸合一：
 
 ---
 
-> 文件版本：v1.11（主題 20 加入、NX01-SUMMARY-AND-FINAL-CLEANUP 完整收尾 ⭐⭐、2026-05-15）
+## 主題 21｜_cursorrules 廢除 + Hank 工具紀律 §G.9 登錄（TASK-CURSOR-RULES-CLEANUP、2026-05-15）⚠️ 補正軌
+
+### 起源
+
+主題 20 TASK-NX01-SUMMARY-AND-FINAL-CLEANUP 軸 3「.cursorrules verify」失誤觸發：
+- Hank 只 `ls -la .cursorrules`（單檔）→ 得「No such file」→ 推論「不存在」→ 跳「本軌補建」分支
+- **漏既有 root `_cursorrules`**（432 行、`d4ba39c` 2026-05-11 起存在、PROJECT_CONTEXT v1.6 line 660 已揭露為「歷史殘留」）
+- 結果：本軌新建 `.cursorrules`（44 行）跟既有 `_cursorrules`（432 行）並存 + 內容 70% 重複 PROJECT_RULES
+
+Crown 拍板路線 A（補正）+ §G.9 登錄（不用 Alex #26 編號、走 Hank 工具紀律）。
+
+### 設計決策
+
+1. **路線 A：保 `.cursorrules`（44 行 stub）+ 廢 `_cursorrules`（432 行完整版）**
+   - 對齊規範合一精神（PROJECT_RULES 為真相、Cursor / Claude 入口 stub 指向）
+   - Cursor IDE 新版本（dot prefix）+ Claude Code 雙入口對齊
+2. **#26 候選改走 §G.9 Hank 工具紀律**：避免 Alex 失誤編號膨脹、Hank 工具紀律歸 Part III §G
+3. **§III.8 速查表 renumber**：原 §III.8.7 速查表 → §III.8.8、保編號連續
+
+### 實作歷程
+
+| # | commit hash | 變更 | 規模 |
+|---|------------|------|------|
+| 1 | `241931f` | git rm _cursorrules（432 行廢、history 保留）| -432、1 檔 |
+| 2 | `b30b4d1` | PROJECT_RULES §III.8.7 §G.9 新增 + 速查表 renumber | +51/-1、1 檔 |
+| **總計** | — | — | **+51/-433、2 檔** |
+
+### §G.9 條目重點
+
+**規則**：對「目前 / 現況 / 是否存在」斷言、必先通配 grep（find -iname / glob `*keyword*`）、不單檔 ls / stat
+
+**反 pattern**：ls 單檔得「No such file」→ 推論「不存在」→ 跳本軌補建分支
+
+**正 pattern**：`find . -iname "*keyword*"` 通配 → 揭露全貌（含 dot prefix / 無前綴 / 歷史殘留）→ 確認真相再決定動作
+
+**對齊**：#18（不憑記憶 grep verify）+ #24（不憑局部訊息推論全貌）+ §III.9 開工前自檢 + G.8 範圍擴散揭露
+
+**檢查清單 3 條**：通配 → 近似清單 → 衝突揭露
+
+### 對應文件
+
+- 廢除：`_cursorrules`（root、432 行、git history 保留 3 commit）
+- 新增條目：`docs/PROJECT_RULES.md §III.8.7`（G.9、47 行條目）
+- 保留：`.cursorrules`（root、44 行、Cursor IDE 入口）
+- 保留：`CLAUDE.md`（root、16 行、Claude Code 入口）
+
+### 戰略意義
+
+- ⚠️ Hank 工具紀律補洞：#18 + #24 強化版針對「verify 既有狀態」場景
+- ⭐ 規範合一精神落實：Cursor / Claude 兩個 root entry 入口 stub、不重述細節、純指向 PROJECT_RULES
+- ⭐ Claude.AI 上傳 verify 流程可恢復：Crown 可開始清空 Claude.AI 專案重新上傳
+- §III.8 紀律由 6 條 + 速查表 → 7 條 + 速查表（G.9 強化）
+
+### 觸發失誤 + 自我吸收
+
+⚠️ 本對話 Hank 觸發 §G.9 失誤、即時補登 + 自我吸收（對齊 #16 鐵律「揭露當輪落地」）：
+- 失誤揭露：軸 3 verify 漏通配 grep
+- Crown 拍板：補正軌（路線 A）+ §G.9 條目登錄
+- 補正落地：本主題 21 軌 closure（commit `241931f` + `b30b4d1`）
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| 戰略軌 | NX03 庫存（範圍 A 完整 closure）開工軌 |
+| 戰略軌 | NX02~NX10 各模組 closure 後 nxXX-summary.md（沿用 NX01 範式）|
+
+---
+
+> 文件版本：v1.12（主題 21 加入、_cursorrules 廢除 + §G.9 登錄補正軌、2026-05-15）
+> 上一版 v1.11（主題 20 加入、NX01-SUMMARY-AND-FINAL-CLEANUP 完整收尾 ⭐⭐、2026-05-15）
 > 上一版 v1.10（主題 19 加入、docs/ 平鋪重組 + 規範合一戰略 milestone ⭐⭐、2026-05-15）
 > 上一版 v1.9（主題 18 加入、NX01-16 part_model 戰略表落地 ⭐⭐ NX01 全 closure、2026-05-15）
 > 上一版 v1.8（主題 17 加入、NX01-17 R 同款 modal 路線 A 補做、2026-05-15）
