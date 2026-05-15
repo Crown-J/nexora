@@ -25,7 +25,7 @@ NX99 tenant（多租戶根）
 ```
 
 **戰略意義**：
-- ⭐⭐ Yaro 戰略田驗證所需主檔層、2028 開業前完成
+- ⭐⭐ Yaro 開業前完成主檔層、Crown 用自家 NEXORA 經營亞羅的基礎
 - ⭐ 業界 30 年「業務員 muscle memory」→ 系統結構化查詢的核心改革
 - ⭐ 多租戶 SaaS：所有業務表 tenant_id 隔離、跨 tenant 完全阻絕
 
@@ -49,7 +49,7 @@ NX99 tenant（多租戶根）
                   └─→ NX01-15 vehicle-classification（transmission / drivetrain / model_type）
                   └─→ NX01-13 model（5 FK：car_brand + engine + 三分類）
 
-戰略層（最後落地、Yaro 30 年知識結構化核心）：
+戰略層（最後落地、30 年業界知識結構化核心、亞羅開業優先實施）：
   NX01-11 brand-code-rule ─→ NX01-05 part ─→ NX01-17 part-version + part-relation
                                        └─→ NX01-16 part-model ⭐⭐（料件↔車型適配）
 ```
@@ -239,7 +239,7 @@ NX99 tenant（多租戶根）
 
 ## NX01-16 part-model（料件車型適配）⭐⭐
 
-- **業務語意**：料件 ↔ 車型適配關聯表、30 年知識結構化核心、Yaro 戰略資產轉型關鍵
+- **業務語意**：料件 ↔ 車型適配關聯表、30 年業界知識結構化核心、亞羅開業優先實施
 - **表名**：`nx01_part_model`、ID prefix PAMO
 - **戰略地位**：⭐⭐ NX01 17 份子規格書最後 1 份、NX01 主檔層收尾
 - **Crown 拍板（v1.0）**：Q1=A unique=(tenantId, partId, modelId) 1料1車1行 / Q3=B fitLevel SmallInt enum（1=原廠 / 2=副廠等效 / 3=通用替代）/ Q4=A 本軌不嵌 part 編輯頁適配 section（後續軌 A073）/ Q5=A 空表進
