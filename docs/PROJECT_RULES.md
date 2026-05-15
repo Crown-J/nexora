@@ -85,9 +85,9 @@ Hank (Claude in Cursor IDE)
 |---|---|---|
 | 伊諾瓦資訊（Innova IT）| Crown 創辦人、NEXORA 開發母體 | 已成立 |
 | **NEXORA GRID** | 多租戶 SaaS ERP、汽車零件業（首發 VAG 生態圈）| 開發中、2028 上線 |
-| 亞羅企業（Yaro Enterprise）| Crown 計畫汽車零件批發/分銷實體、NEXORA PRO tier 田驗證 | 2028 launch |
+| 亞羅企業（Yaro Enterprise）| Crown 計畫成立的 B2B 汽車零件批發/分銷企業、使用自家 NEXORA、跟恆迎同類型業務 | 2028 launch |
 
-⭐ Yaro 是 NEXORA 戰略田驗證關鍵：階段 1 燃油車零件（規劃中）→ 階段 2 電動車零件（3~5 年）→ 階段 3 工業 / 機器人（5~10 年）。
+⭐ Yaro 是 Crown 計畫的真實企業、使用自家 NEXORA 的正常商業循環、不是試點實驗田。階段 1 燃油車零件（規劃中）→ 階段 2 電動車零件（3~5 年）→ 階段 3 工業 / 機器人（5~10 年）。詳細真相見 [PROJECT_CONTEXT.md §1.1 恆迎 + §1.4 Yaro](./PROJECT_CONTEXT.md)。
 
 ### I.1.2 NEXORA 三 tier 方案
 
