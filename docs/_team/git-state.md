@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⚠️ TASK-YARO-NARRATIVE-DRIFT-FIX merge、補正軌：PROJECT_RULES + nx01-summary 對齊 PROJECT_CONTEXT v2.1）**
+> **快照時間：2026-05-15（⚠️ TASK-NX01-16-HISTORICAL-FACT-PRESERVE merge、G.4 範式歷史 fact 保留軌）**
 > **當前分支：`main`**（HEAD = 待 merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/yaro-narrative-drift-fix 2 commit + 軌後、--no-ff）**
-> **⚠️ Yaro 敘事補正：規範類 + 模組架構書「田驗證」字眼校正、對齊 PROJECT_CONTEXT v2.1 翻轉真相**
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-16-historical-fact-preserve 1 commit + 軌後、--no-ff）**
+> **⚠️ G.4 範式落地：nx01-16 規格書 2 處原文保留 + HTML 註解校正、規範類「田驗證」字眼 0 殘留完整循環收尾**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 15 軌 merge（+ YARO-DRIFT-FIX）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 16 軌 merge（+ NX01-16-HISTORICAL）、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（17 條）
+### A.1 本地分支總覽（18 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE Yaro 敘事 drift 補正軌（TASK-YARO-NARRATIVE-DRIFT-FIX、2 commit + 軌後）** |
+| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE nx01-16 G.4 範式歷史 fact 保留軌（TASK-NX01-16-HISTORICAL-FACT-PRESERVE、1 commit + 軌後）** |
+| `feature/nx01-16-historical-fact-preserve` | ✅ 同步、**已 merge main、可考慮刪除** | `b71fa07` | nx01-16 加 HTML 註解 × 2 + DCL v1.0-historical-note + worklog 主題 23 |
 | `feature/yaro-narrative-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `75cc2bf` | PROJECT_RULES + nx01-summary Yaro 字眼補正 + worklog 主題 22 |
 | `feature/cursor-rules-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `0a80839` | git rm _cursorrules + PROJECT_RULES §III.8.7 §G.9 + worklog 主題 21 |
 | `feature/nx01-summary-and-final-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `6c6dc49` | NX01 summary + A075 sweep + .cursorrules + upload-list + 多 Cursor + #23~#25 + worklog 主題 20 |
