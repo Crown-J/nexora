@@ -13,7 +13,7 @@
 
 - 按主題（不按時間順序）累加、給 Alex 跨對話讀的考古手冊
 - 同一主題下多個 commit 用「YYYY-MM-DD commit_hash | 摘要」記錄
-- 寫「為什麼這樣蓋」「踩過什麼坑」、不寫「現在長什麼樣」（那是 [system-architecture.md](../_shared/team/system-architecture.md) 的事）
+- 寫「為什麼這樣蓋」「踩過什麼坑」、不寫「現在長什麼樣」（那是 [system-architecture.md](../_team/system-architecture.md) 的事）
 - ⚠️ 標記未確認 / 待 Crown / Alex 補充的項目
 
 ---
@@ -43,7 +43,7 @@
 - **schema 全域 unique 是 v7 baseline 的常見漏洞**。整個 v7 baseline 寫的時候沒系統性審視「這個 unique 該不該加 tenantId」、第一天就要補一輪。教訓：Schema review 時看到 `@@unique([code])` 不帶 tenantId、預設質疑（業務型錄通常都是 tenant-scoped）。
 - **Prisma 7 的 unique 是 `CREATE UNIQUE INDEX`、不是 `ADD CONSTRAINT`**。手寫 migration 想 drop 舊 unique 要用 `DROP INDEX`、不是 `DROP CONSTRAINT`。
 - **Cursor agent 跑 `prisma migrate reset` 會卡住**。Prisma 7 對 AI agent 加了 `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` 安全機制、用 `DROP SCHEMA public CASCADE` + `migrate deploy` 繞過更穩。
-- ⚠️ **後端「14 子模組」是文件說法、實作只有 11**。原任務指令誤寫、Crown 已確認、本日誌統一用 11；[system-architecture.md](../_shared/team/system-architecture.md) §B.1 同步修正。
+- ⚠️ **後端「14 子模組」是文件說法、實作只有 11**。原任務指令誤寫、Crown 已確認、本日誌統一用 11；[system-architecture.md](../_team/system-architecture.md) §B.1 同步修正。
 
 ### 對應文件
 
@@ -138,7 +138,7 @@ v7_baseline 留了一個**跨租戶 session 誤派**的 hole：`Nx01User.userAcc
 
 ### 對應架構債
 
-- ✅ A001（已解決）— 對應 [system-architecture.md](../_shared/team/system-architecture.md) §G.1
+- ✅ A001（已解決）— 對應 [system-architecture.md](../_team/system-architecture.md) §G.1
 - 對應 memory：`project_task_seed_refactor.md`（X1 是 Step 4 的一部分）
 
 ---
@@ -213,7 +213,7 @@ v7_baseline 的 seed 是「`default/` 一層平鋪」、22 個 CSV 檔混在一�
 ### 對應架構債 / 文件
 
 - ✅ A001（X1 是 Migration 2 + step 4 的一部分）
-- ⚠️ **A002（schema drift）** 也是本次 task 間插完成、跨多模組（NX07 status default + 4 個 index）— 詳見 [_shared/worklog.md 主題 2](../_shared/worklog.md)、不在本日誌範圍。
+- ⚠️ **A002（schema drift）** 也是本次 task 間插完成、跨多模組（NX07 status default + 4 個 index）— 詳見 [_team/worklog.md 主題 2](../_team/worklog.md)、不在本日誌範圍。
 - 對應 memory：`project_task_seed_refactor.md`、`feedback_tech_debt_cleanup.md`
 - ⚠️ `template/apply-checkin-reward.ts` **從未建立**（Step 7 情境 A）— 舊邏輯保留在 `pre-53b900d` git history、未來 NX10 遊戲化啟用時撈回。
 
@@ -249,7 +249,7 @@ DEMO-02 LITE seed 第一次跑、撞兩波 P2000「值太長」：
 
 ### 對應架構債 / 文件
 
-- ✅ A022 / A023（已解決）— [system-architecture.md](../_shared/team/system-architecture.md) §G.1
+- ✅ A022 / A023（已解決）— [system-architecture.md](../_team/system-architecture.md) §G.1
 - DEMO-02 主任務屬 NX99（跨模組）、本日誌只記 NX01 schema 改動的部分
 - ⚠️ A024（customers-catalog 真實感）已修模板、待 Crown preview — 屬 DEMO-02 / NX99 範圍、不在本日誌
 
@@ -263,7 +263,7 @@ DEMO-02 LITE seed 第一次跑、撞兩波 P2000「值太長」：
 | `20260413180000_nx01_tenant_code_unique` | 主題 1 | 4 表 unique 改 tenant-scoped（首輪補洞） |
 | `20260421132744_fix_tenant_scoped_unique` | 主題 4 | 4 表 unique（template apply 撞號 → 第二輪補洞） |
 | `20260421144610_drop_global_user_account_unique` | 主題 3 | A001 修復 |
-| `20260421152710_fix_schema_drift` | （A002，跨模組）| ⚠️ 不在本日誌、待 `_shared/worklog.md` |
+| `20260421152710_fix_schema_drift` | （A002，跨模組）| ⚠️ 不在本日誌、待 `_team/worklog.md` |
 | `20260428044853_phase1_widen_part_brand_code` | 主題 5 | A022 修復 |
 | `20260428062337_phase1_widen_brand_code_rule_name` | 主題 5 | A023 修復 |
 
@@ -272,9 +272,9 @@ DEMO-02 LITE seed 第一次跑、撞兩波 P2000「值太長」：
 ## 給未來新對話 Hank 的提示
 
 - 本日誌是「**考古手冊**」性質、按主題不按時間排
-- 寫的時候對齊 [hank-charter.md](../_shared/team/hank-charter.md) §D.2 工作日誌規範
+- 寫的時候對齊 [hank-charter.md](../PROJECT_RULES.md) §D.2 工作日誌規範
 - 已寫的後續（Phase 1 收官 2026-04-29）：
-  - [_shared/worklog.md](../_shared/worklog.md)（8 主題跨模組統合 + 累計範式總表 + 工程文化範式 5 條）
+  - [_team/worklog.md](../_team/worklog.md)（8 主題跨模組統合 + 累計範式總表 + 工程文化範式 5 條）
   - `docs/nx02/nx02-worklog.md` ~ `docs/nx10/nx10-worklog.md`（10/10 完成）
 - 撰寫流程：先盤點 → 列主題候選給 Crown → 拍板後再寫
 - 範本可參考本日誌結構：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式

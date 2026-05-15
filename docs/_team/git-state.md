@@ -1,4 +1,4 @@
-<!-- docs/_shared/team/git-state.md -->
+<!-- docs/_team/git-state.md -->
 
 # NEXORA - Git 版控文件
 
@@ -136,14 +136,14 @@ main (5d4dbac, ⭐ Phase 1 落地、tag phase1-complete)
 - ✅ NX01~NX10 worklog 10/10 + nxXX 前綴 rename
 - ✅ NX08 monthly_report cleanup（A030）
 - ✅ PROJECT_CONTEXT.md v1.0 進場 repo root
-- ✅ _shared/worklog.md v1.0（8 主題跨模組統合 + 累計範式總表 8 分類）
+- ✅ _team/worklog.md v1.0（8 主題跨模組統合 + 累計範式總表 8 分類）
 - ✅ Yaro 拼字校正全 repo
 
 ⚠️ `feature/wp-phase1-doc-restructure` 已完整 merge main、本地分支可刪、待 Crown 拍（不主動刪、紀律守住）。
 
 `feature/wp-phase1-w2-mini` 仍進行中（Phase 1 軌 2、DEMO-02 LITE seed）、跟 doc-restructure 改動範圍不重疊：
 - w2-mini 改 `packages/db-core/prisma/seed/demo/`
-- doc-restructure 改 `docs/_shared/team/` + `CLAUDE.md` + `README.md` + `_cursorrules` + `PROJECT_CONTEXT.md`
+- doc-restructure 改 `docs/_team/` + `CLAUDE.md` + `README.md` + `_cursorrules` + `PROJECT_CONTEXT.md`
 
 **w2-mini 完成後 merge 回 main、不會 conflict**（範圍隔離已驗證）。
 

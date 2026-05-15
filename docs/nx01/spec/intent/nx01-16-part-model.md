@@ -318,8 +318,8 @@
    - part 編輯頁 section 不做（Q4=A）
 
 6. reference 文件 drift 順手補（A067 family）
-   - docs/_shared/reference/nx-table.csv 加 part_model row
-   - docs/_shared/reference/doc-number-rules.csv 加 PAMO prefix
+   - docs/_reference/nx-table.csv 加 part_model row
+   - docs/_reference/doc-number-rules.csv 加 PAMO prefix
    - docs/nx01/reference/field-definitions.csv 加 part_model 欄位定義
 
 7. Nx01Part / Nx01Model reverse 接線

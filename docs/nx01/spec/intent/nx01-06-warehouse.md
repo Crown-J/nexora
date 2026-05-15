@@ -14,7 +14,7 @@
 
 NX01-06 = NX01 主檔模組的「**倉庫主檔工作站**」子規格書。
 
-對齊 [docs/_shared/template/spec-template.md](docs/_shared/template/spec-template.md) 9 段範本結構。
+對齊 [docs/_template/spec-template.md](docs/_template/spec-template.md) 9 段範本結構。
 
 **範圍：**
 - `nx01_warehouse`（倉庫主檔）

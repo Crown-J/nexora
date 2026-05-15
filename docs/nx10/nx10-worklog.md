@@ -15,8 +15,8 @@
 - 每個主題下：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式
 - ⚠️ NX10 是 **「集大成型」worklog**（模組 worklog 收官）— 前面 9 份累積的範式在本日誌做最後總結（讀取側 3 變體 / 處理不可逆 3 策略 / 量化指標 2 模式）
 - ⚠️ NX10 也是**老債揭露時機**（Crown 強調「不要再延後」）：medal_level 16 階 + A029 apply-checkin-reward 未建立、本日誌主題 1 揭露
-- **跨模組或公版主題不寫進本日誌**、寫進 [_shared/worklog.md](../_shared/worklog.md)（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）
-- ⭐ **末尾列「累計範式總表」**（給未來新對話 Hank + 已被 [_shared/worklog.md](../_shared/worklog.md) 複用、加新增第 8 分類「工程文化範式」）
+- **跨模組或公版主題不寫進本日誌**、寫進 [_team/worklog.md](../_team/worklog.md)（過帳通用規則 / 公版 component / A002 schema drift / 接收側設計 5 個必備配對 / 跨模組測試基礎設施演進）
+- ⭐ **末尾列「累計範式總表」**（給未來新對話 Hank + 已被 [_team/worklog.md](../_team/worklog.md) 複用、加新增第 8 分類「工程文化範式」）
 
 ---
 
@@ -89,7 +89,7 @@ PROJECT_CONTEXT 已修為 16 階（[NX01 主題 4](../nx01/nx01-worklog.md) 提�
 
 ### 1D. ⭐ 老債揭露：A029 apply-checkin-reward 從未建立
 
-TASK-SEED-REFACTOR-01 Step 7「情境 A」決定 `apply-checkin-reward.ts` 先不做、舊邏輯保留在 `pre-53b900d` git history（`default/nx10_checkin_reward.ts`）。已登記 [system-architecture §G.5 A029](../_shared/team/system-architecture.md)。
+TASK-SEED-REFACTOR-01 Step 7「情境 A」決定 `apply-checkin-reward.ts` 先不做、舊邏輯保留在 `pre-53b900d` git history（`default/nx10_checkin_reward.ts`）。已登記 [system-architecture §G.5 A029](../_team/system-architecture.md)。
 
 未來處理路徑：**NX10 遊戲化正式啟用時、從 git history 撈回並參數化**（不是寫新邏輯、是復活舊邏輯）。
 
@@ -121,7 +121,7 @@ TASK-SEED-REFACTOR-01 Step 7「情境 A」決定 `apply-checkin-reward.ts` 先�
 - 業務流程：[docs/nx10/workflow/primary/nx10-w01-quest-system.md](workflow/primary/nx10-w01-quest-system.md) / `w02-job-class-system.md`
 - 業務真相來源：[dailylog/20260414.md](../../dailylog/20260414.md) Phase5-NX10 段落
 - **前端 SYS-DASH-PRO 系列**：0415 `fc09fab` exp bar / `3f0e960` checkin button / `306a1f3` attendance panel
-- 對應架構債：A029（apply-checkin-reward 從未建立、見 [system-architecture §G.5](../_shared/team/system-architecture.md)）
+- 對應架構債：A029（apply-checkin-reward 從未建立、見 [system-architecture §G.5](../_team/system-architecture.md)）
 
 ---
 
@@ -316,17 +316,17 @@ service.awardExp(userId, amount, source):
 ### ⭐ 累計範式總表（NX01~NX10 全模組 worklog 範式索引）
 
 > 本表為**模組 worklog 收官總表**、未來新對話 Hank 看 NX10 一份、即可掌握所有跨模組設計範式 + 範例位置。
-> [_shared/worklog.md](../_shared/worklog.md) 已寫、複用本表 7 分類 + 新增第 8 分類「工程文化範式」（5 條 Phase 1 doc-restructure 累積）。
+> [_team/worklog.md](../_team/worklog.md) 已寫、複用本表 7 分類 + 新增第 8 分類「工程文化範式」（5 條 Phase 1 doc-restructure 累積）。
 
 #### 跨模組設計範式（光譜對照）
 
 | 範式 | 首次定義 | 第二次套用 | 集大成 |
 |------|---------|----------|--------|
-| 接收側設計 | NX05 主題 2 | NX06 主題 2 | _shared/worklog.md（5 必備配對統合）|
+| 接收側設計 | NX05 主題 2 | NX06 主題 2 | _team/worklog.md（5 必備配對統合）|
 | 主動側設計 | NX07 主題 3 | NX08 主題 1 | NX10 主題 2 對比 |
 | 主動側設計光譜內部分層（業務狀態 vs 量化指標）| NX08 主題 2 | — | — |
 | 讀取側 3 變體（聚合層 / 主動側 / 讀+自寫）| NX10 主題 2 | — | NX10 主題 2 集大成 |
-| 跨模組設計光譜 3 範式判準（接收側 / 主動側 / trigger）| NX07 給未來提示 | — | _shared/worklog.md |
+| 跨模組設計光譜 3 範式判準（接收側 / 主動側 / trigger）| NX07 給未來提示 | — | _team/worklog.md |
 
 #### 處理不可逆的策略（3 策略對偶）
 
@@ -398,12 +398,12 @@ service.awardExp(userId, amount, source):
 
 NX10 是模組 worklog 收官（NX01~10 全完成、進度 10/10 = 100%、剩 _shared）：
 - 集大成性質、不是純粹單模組紀錄
-- 末尾累計範式總表是給後續 _shared/worklog.md 直接複用的索引
+- 末尾累計範式總表是給後續 _team/worklog.md 直接複用的索引
 - 寫 _shared 時：(a) 跨模組統合範式（接收側 5 配對 / 公版 component / A002 drift / BUSINESS-RESTRUCTURE 大塊 1+2 / 過帳通用規則 / 跨模組測試基礎設施演進）(b) 從本日誌複製累計範式總表 + 加 _shared 自身範式
 
-⛔ **不主動進 _shared/worklog.md、不主動接 PLUS / PRO seed**、等 Crown 拍板。
+⛔ **不主動進 _team/worklog.md、不主動接 PLUS / PRO seed**、等 Crown 拍板。
 
 ---
 
 > 文件版本：v1.0（初版、3 主題 + 累計範式總表、~5500 字、模組 worklog 收官）
-> 下次更新觸發：A029 apply-checkin-reward 撈回（NX10 正式啟用）/ tasks-today 跨方案 endpoint 演進 / NX10 出現新工作（先 audit 性質）/ [_shared/worklog.md](../_shared/worklog.md) 已寫、複用本日誌累計範式總表
+> 下次更新觸發：A029 apply-checkin-reward 撈回（NX10 正式啟用）/ tasks-today 跨方案 endpoint 演進 / NX10 出現新工作（先 audit 性質）/ [_team/worklog.md](../_team/worklog.md) 已寫、複用本日誌累計範式總表

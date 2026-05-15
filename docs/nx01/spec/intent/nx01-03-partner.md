@@ -14,7 +14,7 @@
 
 NX01-03 = NX01 主檔模組的「**客戶/供應商主檔工作站**」子規格書。
 
-對齊 [docs/_shared/template/spec-template.md](docs/_shared/template/spec-template.md) 9 段範本結構。
+對齊 [docs/_template/spec-template.md](docs/_template/spec-template.md) 9 段範本結構。
 
 **範圍：**
 - `nx01_partner` 主檔（涵蓋 5 種 partner_type：C/S/T/V/B 通用）

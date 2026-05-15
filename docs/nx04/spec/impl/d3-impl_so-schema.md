@@ -284,7 +284,7 @@ ORDER BY so.created_at;
 
 #### 新建 `nx04_co` 客戶訂單表
 
-意圖規格 3.1 第 4 種來源「客戶訂單」需要新表。對應 CLAUDE.md §16 還沒列入 `nx_table_v7.csv`，⚠️ migration 之後 Alex 要補進 `_shared/reference/nx-table.csv`。
+意圖規格 3.1 第 4 種來源「客戶訂單」需要新表。對應 CLAUDE.md §16 還沒列入 `nx_table_v7.csv`，⚠️ migration 之後 Alex 要補進 `_reference/nx-table.csv`。
 
 ```prisma
 /// =======================================================
