@@ -32,8 +32,8 @@ role 是 NEXORA 全模組權限執行單位：
 **📚 工程規範索引：**
 - 主檔規格書：見 [docs/nx01/spec/intent/nx01-overview.md](docs/nx01/spec/intent/nx01-overview.md)
 - user 主檔：見 [docs/nx01/spec/intent/nx01-01-user.md](docs/nx01/spec/intent/nx01-01-user.md)
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 - 擴充性原則：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) § 工程模式 #23
 
@@ -372,9 +372,9 @@ role 不建注音索引（型錄性質、業務人員不打 role 注音搜）。
 
 ---
 
-## § 7. Tier 差異（對齊 CLAUDE.md §四 版本方案）
+## § 7. Tier 差異（對齊 PROJECT_RULES.md §I.1.2 版本方案）
 
-⭐ 對齊 [CLAUDE.md §四「版本方案」](CLAUDE.md) 真相、不擅自定義 user 數上限。
+⭐ 對齊 [PROJECT_RULES.md §I.1.2「版本方案」](../../../PROJECT_RULES.md) 真相、不擅自定義 user 數上限。
 
 ### LITE（基礎版）
 
@@ -401,7 +401,7 @@ role 不建注音索引（型錄性質、業務人員不打 role 注音搜）。
 - 跨部門 role 共享：✅ 開放
 - OWNER 階層繼承：✅（對齊 §6 Q3 拍板）
 
-→ Tier 限制由 Plan Guard 強制（[CLAUDE.md §八](CLAUDE.md)）。
+→ Tier 限制由 Plan Guard 強制（[PROJECT_RULES.md §III.2.7](../../../PROJECT_RULES.md)）。
 
 ---
 

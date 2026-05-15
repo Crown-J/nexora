@@ -23,10 +23,10 @@ NX01-03 = NX01 主檔模組的「**客戶/供應商主檔工作站**」子規格
 
 **📚 工程規範索引：**
 - 主檔規格書：見 [docs/nx01/spec/intent/nx01-overview.md](docs/nx01/spec/intent/nx01-overview.md)
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 必填欄位：見 [CLAUDE.md](CLAUDE.md) §六
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
-- Plan Guard：見 [CLAUDE.md](CLAUDE.md) §八
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 必填欄位：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.5
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
+- Plan Guard：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.7
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 - 擴充性原則：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) § 工程模式 #23
 
@@ -143,7 +143,7 @@ partner 是 NEXORA 引用次數最多的主檔之一：
 - `code` unique 範圍 = `(tenantId, code)`（多租戶 scoped）
 - `tax_id`（統編）unique 範圍 = `(tenantId, tax_id)`（同租戶內統編不可重複）
 
-對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則 + nx01-overview §3.1。
+對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則 + nx01-overview §3.1。
 
 ### 3.2 業務檢核
 
@@ -240,7 +240,7 @@ partner 引用其他 NX01 主檔：
 
 ### 4.2 系統自動欄位（不可改）
 
-對齊 [CLAUDE.md §六](CLAUDE.md)：
+對齊 [PROJECT_RULES.md §III.2.5](../../../PROJECT_RULES.md)：
 
 | 欄位 | 業務語意 |
 |------|---------|
@@ -409,7 +409,7 @@ partner 跟地址表的關係：
 - 多幣別無限
 - 30 年資料庫遷移服務（加值）：協助匯入 30 年恆迎客戶資料
 
-→ Tier 限制由 Plan Guard 強制（[CLAUDE.md §八](CLAUDE.md)）。
+→ Tier 限制由 Plan Guard 強制（[PROJECT_RULES.md §III.2.7](../../../PROJECT_RULES.md)）。
 
 ---
 

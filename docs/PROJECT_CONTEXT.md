@@ -343,12 +343,16 @@ NX08 經營分析（報表 / KPI）
 - 工作站 = 動作 / SOP = 教學材料 / SYS-C = 翻譯層
 - legacy SOP 9 步流程保留在 /sop-demo 教學模式
 
-## 7.3 多 Cursor 協作願景（Crown 揭露）
+## 7.3 多 Cursor 協作願景（Crown 揭露、當前不啟動）
 
-- 未來會同時用多個 Cursor 協作任務
-- Alex 從「整合者」升級到「多 Cursor 總調度者 + 跨軌一致性守門員」
-- 啟動時機：未定、Crown 依專案推進節奏決定
-- 紀律見 PROJECT_RULES §I.7.3
+⚠️ **2026-05-15 Crown 拍板：多 Cursor 不啟動、單軌作業**
+
+- 當前範式：單 Cursor 開工、Alex 串連 Crown → Hank、穩健優先
+- 未來路徑選項：多 Cursor 並行（Alex 從「整合者」升級到「多 Cursor 總調度者 + 跨軌一致性守門員」）
+- 啟動條件（保留）：Crown 駕馭心智頻寬 + 業務時程逼到需提速時觸發
+- 紀律骨架見 PROJECT_RULES §I.7.3（未來啟動後依此執行、現階段不依此行動）
+
+⭐ Crown 拍板理由：AI 速度太快、多軌並行心智負荷可能過重；單軌時程已來得及 Yaro 2028 launch。
 
 ---
 

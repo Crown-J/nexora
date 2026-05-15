@@ -31,9 +31,9 @@ NX01-04 = NX01 主檔模組的「**客戶地址管理子模組**」子規格書�
 **📚 工程規範索引：**
 - 主檔規格書：見 [docs/nx01/spec/intent/nx01-overview.md](docs/nx01/spec/intent/nx01-overview.md)
 - partner 主檔：見 [docs/nx01/spec/intent/nx01-03-partner.md](docs/nx01/spec/intent/nx01-03-partner.md)
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 必填欄位：見 [CLAUDE.md](CLAUDE.md) §六
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 必填欄位：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.5
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 - 擴充性原則：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) § 工程模式 #23
 
@@ -147,7 +147,7 @@ NX01-04 = NX01 主檔模組的「**客戶地址管理子模組**」子規格書�
 
 **`nx01_partner_billing_address`：**
 - `partner_id` UNIQUE（強制一對一、每個 partner 只能 1 筆收帳地址）
-- 對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則 + 多租戶隔離
+- 對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則 + 多租戶隔離
 
 **`nx01_partner_shipping_address`：**
 - 一個 partner 多筆送貨地址、不限制總數（但 PRO tier 也不限）
@@ -268,7 +268,7 @@ NX01-04 = NX01 主檔模組的「**客戶地址管理子模組**」子規格書�
 
 ### 4.3 系統自動欄位（不可改）
 
-對齊 [CLAUDE.md §六](CLAUDE.md)：
+對齊 [PROJECT_RULES.md §III.2.5](../../../PROJECT_RULES.md)：
 
 | 欄位 | 業務語意 |
 |------|---------|
@@ -463,7 +463,7 @@ partner 主檔停用 / 真刪時：
 | PLUS | 沒有路線優化 |
 | PRO | ✅ 路線優化系統（軌 2 進階功能 roadmap、用 shipping_address 地理座標）|
 
-→ Tier 限制由 Plan Guard 強制（[CLAUDE.md §八](CLAUDE.md)）。
+→ Tier 限制由 Plan Guard 強制（[PROJECT_RULES.md §III.2.7](../../../PROJECT_RULES.md)）。
 
 ---
 

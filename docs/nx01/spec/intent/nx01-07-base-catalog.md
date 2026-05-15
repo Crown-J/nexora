@@ -544,7 +544,7 @@
    - 本軌不改（影響全 9 業務模組前端引用）、A059 後續軌統一處理
 
 7. warehouse_type seed 業務 muscle memory verify
-   - 既有 seed H/M/W/S 4 筆 + flowMode、規格書內容對齊 CLAUDE.md §四 6 倉模型
+   - 既有 seed H/M/W/S 4 筆 + flowMode、規格書內容對齊 PROJECT_RULES.md §I.1.2 6 倉模型
    - Hank verify 既有 seed flowMode 對應跟規格書 §4.6 一致
 
 ---

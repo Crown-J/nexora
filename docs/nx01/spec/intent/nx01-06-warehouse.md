@@ -24,7 +24,7 @@ NX01-06 = NX01 主檔模組的「**倉庫主檔工作站**」子規格書。
 
 **戰略意義：**
 
-對齊 [CLAUDE.md §四「版本方案」](CLAUDE.md) Tier 設計核心：
+對齊 [PROJECT_RULES.md §I.1.2「版本方案」](../../../PROJECT_RULES.md) Tier 設計核心：
 - LITE：單倉（MW1）
 - PLUS：多倉（MW1+BW1）
 - PRO：5 倉（HW1+MW1+BW1~4）
@@ -33,8 +33,8 @@ NX01-06 = NX01 主檔模組的「**倉庫主檔工作站**」子規格書。
 
 **📚 工程規範索引：**
 - 主檔規格書：見 [docs/nx01/spec/intent/nx01-overview.md](docs/nx01/spec/intent/nx01-overview.md)
-- 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
-- 多租戶隔離：見 [CLAUDE.md](CLAUDE.md) §七
+- 命名規則：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2
+- 多租戶隔離：見 [PROJECT_RULES.md](../../../PROJECT_RULES.md) §III.2.6
 - 設計哲學：見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) §💎
 
 ---
@@ -83,7 +83,7 @@ nx01_warehouse.id 命名規則:NX01WHSE + 7 位數字
   - NX01WHSE9900001 ~ 9999999    = 測試租戶 warehouse
 ```
 
-### 1.5 Tier 倉庫類型對應（對齊 CLAUDE.md §四 + Crown 拍 v1.1 預設/上限分層）
+### 1.5 Tier 倉庫類型對應（對齊 PROJECT_RULES.md §I.1.2 + Crown 拍 v1.1 預設/上限分層）
 
 ```
 LITE 單倉（1 個）：
@@ -151,7 +151,7 @@ PRO 預設 6 倉（無上限）：
 - `id` UNIQUE（系統 ID）
 - `(tenantId, warehouse_code)` UNIQUE（同租戶內 warehouse_code 唯一）
 
-對齊 [CLAUDE.md §五](CLAUDE.md) 命名規則 + 多租戶隔離。
+對齊 [PROJECT_RULES.md §III.2](../../../PROJECT_RULES.md) 命名規則 + 多租戶隔離。
 
 ### 3.2 業務檢核
 
@@ -224,7 +224,7 @@ PRO 預設 6 倉（無上限）：
 
 ### 4.2 系統自動欄位（不可改）
 
-對齊 [CLAUDE.md §六](CLAUDE.md)：
+對齊 [PROJECT_RULES.md §III.2.5](../../../PROJECT_RULES.md)：
 
 | 欄位 | 業務語意 |
 |------|---------|
@@ -336,9 +336,9 @@ OWNER 試圖填 warehouse_code = `MW1`、但同租戶已存在：
 
 ---
 
-## § 7. Tier 差異（對齊 CLAUDE.md §四 版本方案 + Crown 拍預設 + 上限）
+## § 7. Tier 差異（對齊 PROJECT_RULES.md §I.1.2 版本方案 + Crown 拍預設 + 上限）
 
-⭐ 對齊 [CLAUDE.md §四「版本方案」](CLAUDE.md) + Crown 拍板「預設 + 上限」雙層設計。
+⭐ 對齊 [PROJECT_RULES.md §I.1.2「版本方案」](../../../PROJECT_RULES.md) + Crown 拍板「預設 + 上限」雙層設計。
 
 ### LITE（基礎版、單店）
 
@@ -375,7 +375,7 @@ OWNER 試圖填 warehouse_code = `MW1`、但同租戶已存在：
 - 上限 = tier 規模可擴展性的真實天花板
 - 業務人員可在預設 ~ 上限間自由配置
 
-→ Tier 限制由 Plan Guard 強制（[CLAUDE.md §八](CLAUDE.md)）。
+→ Tier 限制由 Plan Guard 強制（[PROJECT_RULES.md §III.2.7](../../../PROJECT_RULES.md)）。
 
 ---
 
@@ -403,7 +403,7 @@ OWNER 試圖填 warehouse_code = `MW1`、但同租戶已存在：
 
 | 版本 | 日期 | 撰寫者 | 變更摘要 |
 |------|------|-------|---------|
-| v0.1.0 | 2026-05-05 | Alex | 初稿（NX01 第七份子規格書、對齊 spec-template + CLAUDE.md §四 Tier 倉庫設計）|
+| v0.1.0 | 2026-05-05 | Alex | 初稿（NX01 第七份子規格書、對齊 spec-template + PROJECT_RULES.md §I.1.2 Tier 倉庫設計）|
 | v1.0 | 2026-05-05 | Alex | Crown 拍 5 個 Q、修訂後正式版 |
 | v1.1 | 2026-05-06 | Alex | Crown 拍 Tier 預設 + 上限分層（PRO 6 倉真相 + PLUS 上限 10 + PRO 無限）|
 
