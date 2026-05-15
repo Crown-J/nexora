@@ -1471,7 +1471,69 @@ Crown 拍板「全部修正成正確的、對齊 PROJECT_CONTEXT v2.1」。
 
 ---
 
-> 文件版本：v1.13（主題 22 加入、Yaro 敘事 drift 補正軌、2026-05-15）
+## 主題 23｜nx01-16 規格書 G.4 範式歷史 fact 保留軌（TASK-NX01-16-HISTORICAL-FACT-PRESERVE、2026-05-15）⚠️ 補正軌
+
+### 起源
+
+主題 22 TASK-YARO-NARRATIVE-DRIFT-FIX 軌中 §G.9 通配 grep 揭露 nx01-16-part-model.md 規格書內 2 處「田驗證」殘留（line 28 + line 352）、Hank §G.8 範圍擴散揭露不擅自、列 3 條候選路線（a/b/c）給 Crown 拍。
+
+Crown 拍板路線 **b（G.4 範式保留）**：規格書 = 歷史拍板版、不該事後 replace、加 HTML 註解校正即可。
+
+對齊範式：worklog 主題 18/19 內文「田驗證」字眼保留同精神、皆屬「Phase X 拍板當時敘事」歷史 fact。
+
+### 設計決策
+
+1. **G.4 範式核心落實**：保留 line 28 + line 352 原文不動、各前面加 HTML 註解校正
+2. **HTML 註解 4 行範式**：
+   - 第 1 行：標明「v1.0 拍板當時敘事」+ 拍板日期
+   - 第 2 行：Crown 後續揭露真相 + 交叉引用 PROJECT_CONTEXT.md v2.1 §1.4
+   - 第 3 行：校正後正確敘事
+   - 第 4 行：G.4 範式聲明 + 規則出處
+3. **Document Control Log 加 v1.0-historical-note 條目**：
+   - 非 v1.1 改版（規格書內容語意未變、只補歷史校正紀錄）
+   - 註明範式 + Crown 揭露時間 + G.4 引用
+4. **「regard 條目不升版本」紀律**：歷史 fact 校正不算 spec 改版、避免 v1.x 編號膨脹
+
+### 實作歷程
+
+| # | commit hash | 變更 | 規模 |
+|---|------------|------|------|
+| 1 | `a95679f` | nx01-16 加 HTML 註解 × 2 + DCL v1.0-historical-note 條目 | +9、1 檔 |
+
+### §G.9 通配 grep verify 結果（A041 精確）
+
+本軌完成後全 repo「田驗證」分佈：
+
+| 檔案 | grep -c count | 性質 |
+|------|-------------|------|
+| `nx01-16-part-model.md` | 7 | 2 原文（line 32 + 361、G.4 保留）+ 5 註解/DCL（line 28 + 30 + 300 + 357 + 359、校正聲明）|
+| `PROJECT_CONTEXT.md` | 1 | DCL v2.1 自身校正歷史紀錄（meta）|
+| `git-state.md` | 1 | 軌摘要動態紀錄 |
+| `worklog.md` | 11 | 主題 18/19/20/22 跨主題敘事紀錄（G.4）|
+| **PROJECT_RULES.md** | **0** | ✅ 規範類 0 殘留 |
+| **nx01-summary.md** | **0** | ✅ 模組架構書 0 殘留 |
+| **CLAUDE.md** | **0** | ✅ stub 0 殘留 |
+| **.cursorrules** | **0** | ✅ Cursor 入口 0 殘留 |
+
+⭐ 規範類 + 模組架構書「田驗證」字眼完全清理、業務真相敘事檔案 G.4 範式保留歷史拍板版原貌。
+
+### 戰略意義
+
+- ⚠️ G.4 範式真實落地、規格書歷史拍板版 + Crown 後續校正雙層敘事兼容
+- ⭐ 範式為未來 spec docs 歷史 fact 校正樹立先例（避免 replace 破壞歷史）
+- ⭐ §G.8 範圍擴散揭露 → Crown 拍 → §G.4 範式落地的完整循環驗證
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| 戰略軌 | NX03 庫存（範圍 A 完整 closure）開工軌 |
+| 戰略軌 | NX02~NX10 各模組 closure 後 nxXX-summary.md（沿用 NX01 範式）|
+
+---
+
+> 文件版本：v1.14（主題 23 加入、nx01-16 G.4 範式歷史 fact 保留補正軌、2026-05-15）
+> 上一版 v1.13（主題 22 加入、Yaro 敘事 drift 補正軌、2026-05-15）
 > 上一版 v1.12（主題 21 加入、_cursorrules 廢除 + §G.9 登錄補正軌、2026-05-15）
 > 上一版 v1.11（主題 20 加入、NX01-SUMMARY-AND-FINAL-CLEANUP 完整收尾 ⭐⭐、2026-05-15）
 > 上一版 v1.10（主題 19 加入、docs/ 平鋪重組 + 規範合一戰略 milestone ⭐⭐、2026-05-15）
