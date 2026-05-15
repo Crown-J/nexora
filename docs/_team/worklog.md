@@ -1406,7 +1406,73 @@ Crown 拍板路線 A（補正）+ §G.9 登錄（不用 Alex #26 編號、走 Ha
 
 ---
 
-> 文件版本：v1.12（主題 21 加入、_cursorrules 廢除 + §G.9 登錄補正軌、2026-05-15）
+## 主題 22｜PROJECT_RULES + nx01-summary Yaro 敘事 drift 補正軌（TASK-YARO-NARRATIVE-DRIFT-FIX、2026-05-15）⚠️ 補正軌
+
+### 起源
+
+Alex verify 14 檔上傳狀態時、揭露 2 處 Yaro 敘事 drift：
+
+- Alex 寫 PROJECT_RULES.md Part I + Hank 寫 nx01-summary.md 時、PROJECT_CONTEXT 還是 v2.0 舊版「田驗證」描述
+- 之後 Alex 寫 PROJECT_CONTEXT v2.1（2026-05-15）翻轉真相：Yaro 不是田驗證、是 Crown 計畫真實 B2B 企業
+- 結果規範類 PROJECT_RULES 跟 模組架構書 nx01-summary 跟 v2.1 不對齊
+
+Crown 拍板「全部修正成正確的、對齊 PROJECT_CONTEXT v2.1」。
+
+### 設計決策
+
+1. **PROJECT_RULES.md §I.1.1 修 2 處**：line 88（業務實體表 Yaro row）+ line 90（戰略地位描述）
+2. **nx01-summary.md 修 3 處**：line 28（戰略意義）+ line 52（拓樸戰略層）+ line 242（NX01-16 業務語意）
+3. **字眼策略**：「田驗證」→「試點實驗田」（否定句強調 + grep 0 殘留）/「Yaro 戰略田驗證關鍵」→「Crown 計畫的真實企業」/「Yaro 戰略資產轉型關鍵」→「亞羅開業優先實施」
+4. **G.4 範式守住**：worklog 主題 18 / 19 內文「田驗證」字眼保留（歷史 fact、PROJECT_CONTEXT v2.1 已校正紀錄）
+5. **PROJECT_CONTEXT Document Control Log v2.1 自身變更紀錄保留**：line 415 描述「移除田驗證字眼歷史」、屬 v2.1 必要 meta 紀錄
+
+### 實作歷程
+
+| # | commit hash | 變更 | 規模 |
+|---|------------|------|------|
+| 1 | `fd36b60` | PROJECT_RULES.md §I.1.1 Yaro 敘事補正（line 88 + 90）| +2/-2、1 檔 |
+| 2 | `da5b4eb` | nx01-summary.md Yaro 字眼補正（line 28 + 52 + 242）| +3/-3、1 檔 |
+| **總計** | — | — | **+5/-5、2 檔** |
+
+### §G.9 通配 grep verify 結果
+
+**修前**：8 處「田驗證」字眼（PROJECT_RULES 2 / nx01-summary 1 / nx01-16-part-model 2 / PROJECT_CONTEXT 1 / worklog 2）
+
+**修後**：5 處殘留、其中：
+- ✅ 預期 G.4 保留（3 處）：
+  - `PROJECT_CONTEXT.md:415`（Document Control Log v2.1 自身校正紀錄）
+  - `worklog.md:1100 + 1165`（主題 18 / 19 歷史段、Crown task 明示保留）
+- ⚠️ 範圍擴散揭露（2 處、§G.8 觸發、Crown 拍未列、本軌未動）：
+  - `nx01-16-part-model.md:28 + 352`（規格書內 Yaro 田驗證字眼）
+
+### §G.8 範圍擴散揭露給 Crown 拍
+
+⚠️ Hank 軌中通配 grep 揭露 nx01-16-part-model.md 規格書內 2 處「田驗證」字眼、Crown task 未列、本軌未擅自動。
+
+**待 Crown 拍 3 條路線**：
+- (a) 後續軌補修（nx01-16 規格書本軌不動、開獨立補正軌）
+- (b) G.4 範式保留（規格書屬歷史拍板版、加 HTML 註解校正、不 replace 原文）
+- (c) 本軌補修（追加 commit 3、納入本軌）
+
+⚠️ #19 揭露不完整：以上選項可能不完整、Crown 有別的考量直接說。
+
+### 戰略意義
+
+- ⚠️ 規範類檔 + 模組架構書 Yaro 敘事跟 PROJECT_CONTEXT v2.1 對齊
+- ⭐ §G.9 通配 grep verify 範式發揮作用、揭露範圍擴散
+- ⭐ §G.8 範圍擴散揭露不擅自、報 Crown 拍 nx01-16 處理路線
+
+### 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| 戰略軌 | NX03 庫存（範圍 A 完整 closure）開工軌 |
+| Crown 拍 | nx01-16-part-model.md 田驗證字眼路線（a/b/c）|
+
+---
+
+> 文件版本：v1.13（主題 22 加入、Yaro 敘事 drift 補正軌、2026-05-15）
+> 上一版 v1.12（主題 21 加入、_cursorrules 廢除 + §G.9 登錄補正軌、2026-05-15）
 > 上一版 v1.11（主題 20 加入、NX01-SUMMARY-AND-FINAL-CLEANUP 完整收尾 ⭐⭐、2026-05-15）
 > 上一版 v1.10（主題 19 加入、docs/ 平鋪重組 + 規範合一戰略 milestone ⭐⭐、2026-05-15）
 > 上一版 v1.9（主題 18 加入、NX01-16 part_model 戰略表落地 ⭐⭐ NX01 全 closure、2026-05-15）
