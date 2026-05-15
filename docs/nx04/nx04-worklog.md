@@ -15,7 +15,7 @@
 - 每個主題下：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式
 - 工作量大的核心主題（D3 / D4）拆 5 小節、沿用 NX02 主題 5、NX03 主題 4 範式
 - ⚠️ 標記未確認 / 待 Crown / Alex 補充
-- **跨模組或公版主題不寫進本日誌**、寫進 [_shared/worklog.md](../_shared/worklog.md)（過帳通用規則 / 公版 component / TASK-BUSINESS-RESTRUCTURE 大塊 2 / A002 drift / 跨模組測試基礎設施演進）
+- **跨模組或公版主題不寫進本日誌**、寫進 [_team/worklog.md](../_team/worklog.md)（過帳通用規則 / 公版 component / TASK-BUSINESS-RESTRUCTURE 大塊 2 / A002 drift / 跨模組測試基礎設施演進）
 
 ---
 
@@ -29,7 +29,7 @@
 
 1. **3 子模組劃分**：`quote / so / sales-return`、translator 是 so/ 內**子目錄**（後 0425 D4 加）、不算獨立 controller。⚠️ system-architecture B.1 原寫「3 + SO translator」、本日誌揭露後順手修為「3 子模組（含 SO translator 子目錄）」。
 2. **POST `/nx04/so/from-quote/:quoteId`**：從 QT 開 SO 的捷徑路徑、避免使用者手動複製 QT 內容到 SO。理由：QT 採用 → SO 是業務最常見動作、做專屬 endpoint 比通用 POST + body 還清楚。
-3. **SHIPPED 過帳寫 ledger**：SO 狀態 `SHIPPED` 時於單一 transaction 呼叫 `applyQtyOutWithLedger`、`sourceModule=NX04 / sourceDocType=S`。對齊 [CLAUDE.md §九] 通用過帳規則（細節見 [_shared/worklog.md](../_shared/worklog.md)）。
+3. **SHIPPED 過帳寫 ledger**：SO 狀態 `SHIPPED` 時於單一 transaction 呼叫 `applyQtyOutWithLedger`、`sourceModule=NX04 / sourceDocType=S`。對齊 [CLAUDE.md §九] 通用過帳規則（細節見 [_team/worklog.md](../_team/worklog.md)）。
 4. **sales-return 同批多筆數量驗證**：同一張 SR 多個 item 各退一部分、總和不可超過原 SO 對應 item 已出貨量。理由：避免「分批退貨各自驗證 OK、加總超量」漏洞。
 5. **`Decimal` 用 `String(...)` 建構**：避免 JS number 精度損失（`0.1 + 0.2 !== 0.3`）。所有金額 / 折扣 / 稅額一律 `new Decimal(String(value))`。
 
@@ -47,7 +47,7 @@
 ### 對應文件
 
 - 後端：[apps/nx-api/src/nx04/](../../apps/nx-api/src/nx04/)
-- 過帳通用規則：[CLAUDE.md §九](../../CLAUDE.md) + [_shared/worklog.md 主題 3](../_shared/worklog.md)
+- 過帳通用規則：[CLAUDE.md §九](../../CLAUDE.md) + [_team/worklog.md 主題 3](../_team/worklog.md)
 
 ---
 
@@ -235,7 +235,7 @@ D4 是 nx-api 第一個寫單元測試的模組（之前用 fetch script 驗證 
 - `pnpm test` 跑 unit + integration（兩種 spec naming：`*.spec.ts` / `*.int-spec.ts`）
 - 26 unit tests for D4 translator（純函式邏輯）
 
-⚠️ B5（NX02 主題 5）後續加 `fileParallelism: false`（兩個 .int-spec.ts 並行 race 撞 fixture）— 跨模組測試基礎設施演進、已寫進 [_shared/worklog.md 主題 7](../_shared/worklog.md) 統合。
+⚠️ B5（NX02 主題 5）後續加 `fileParallelism: false`（兩個 .int-spec.ts 並行 race 撞 fixture）— 跨模組測試基礎設施演進、已寫進 [_team/worklog.md 主題 7](../_team/worklog.md) 統合。
 
 #### trigger coupling 警告（D4-impl spec amend）
 
@@ -312,7 +312,7 @@ Crown demo 排期、要把「銷貨 SOP 整套流程」做成 mobile workspace�
 ## 主題 6｜TASK-BUSINESS-RESTRUCTURE 大塊 1 業務 SOP 重構（2026-04-23）
 
 > ⚠️ **進行中、未來持續演進。** 對齊 NX03 主題 5 production disclaimer 模式（不是 demo 拋棄式）。
-> ⚠️ BUSINESS-RESTRUCTURE **大塊 2** 跨多模組（SO→PK→BX→DN 跨中心、IT 調撥、SYS-C 4 情境）見 [_shared/worklog.md 主題 5](../_shared/worklog.md)。**大塊 1 純 NX04 業務 SOP** 寫進本日誌。**大塊 3** 純 NX03 已寫 [NX03 主題 3](../nx03/nx03-worklog.md)。
+> ⚠️ BUSINESS-RESTRUCTURE **大塊 2** 跨多模組（SO→PK→BX→DN 跨中心、IT 調撥、SYS-C 4 情境）見 [_team/worklog.md 主題 5](../_team/worklog.md)。**大塊 1 純 NX04 業務 SOP** 寫進本日誌。**大塊 3** 純 NX03 已寫 [NX03 主題 3](../nx03/nx03-worklog.md)。
 
 ### 起源
 
@@ -358,7 +358,7 @@ DEMO-R7 phase 7 缺貨分流 + RFQ 詳情頁落地後、Crown 揭露原 R6/R7 �
 
 ## 主題 7｜TASK-0421 兩張 demo 單據（QT / SO）— 短主題
 
-> 對應 [NX02 主題 3](../nx02/nx02-worklog.md)（NX02 三張 RF/PO/RR）。公版 component 跨模組共用、見 [_shared/worklog.md 主題 4](../_shared/worklog.md)。本主題只記 QT/SO 兩張 demo 用法。
+> 對應 [NX02 主題 3](../nx02/nx02-worklog.md)（NX02 三張 RF/PO/RR）。公版 component 跨模組共用、見 [_team/worklog.md 主題 4](../_team/worklog.md)。本主題只記 QT/SO 兩張 demo 用法。
 
 ### 起源
 
@@ -385,7 +385,7 @@ TASK-0421 五單據 demo、NX02 三張（RF/PO/RR）+ NX04 兩張（QT/SO）一�
 
 ### 對應文件
 
-- 公版 component 細節 → 見 [_shared/worklog.md 主題 4](../_shared/worklog.md)
+- 公版 component 細節 → 見 [_team/worklog.md 主題 4](../_team/worklog.md)
 - 跨模組關聯：[NX02 主題 3](../nx02/nx02-worklog.md)（同 TASK-0421、NX02 三張）
 
 ---
@@ -460,7 +460,7 @@ W2-mini 是「**第一個串真 API 的桌面工作站**」。從 NX04 視角：
 - **「中心=角色工作台」哲學跨 NX03/NX04 兩份 worklog 同步紀錄**（業務在銷售中心 vs 倉管在庫存中心）— Alex 觀察認可：**跨 worklog 哲學同步是好事**、不是重複
 - **「漸進演化」紀錄範式**（D3 主題 3E / NX01 主題 5 兩波 widening）：寫「為什麼演化到現在」比寫「最終樣子」對 Alex 寫規格更有用
 - **跨 worklog 視角差異化**（W2-mini 在 NX03 vs NX04 兩份 worklog 各從自己視角寫）— 多模組共用工作的處理策略
-- 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / A002 / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
+- 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 2 / A002 / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_team/worklog.md](../_team/worklog.md) 統合
 - 下一輪預期：[docs/nx05/nx05-worklog.md](../nx05/nx05-worklog.md)（NX05 財務模組、Phase5-NX05 + AR/AP + 過帳邏輯）
 
 ---

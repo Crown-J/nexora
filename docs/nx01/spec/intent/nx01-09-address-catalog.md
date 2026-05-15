@@ -14,7 +14,7 @@
 
 NX01-09 = NX01 主檔模組的「**地址型錄系統**」子規格書。
 
-對齊 [docs/_shared/template/spec-template.md](docs/_shared/template/spec-template.md) 9 段範本結構。
+對齊 [docs/_template/spec-template.md](docs/_template/spec-template.md) 9 段範本結構。
 
 **範圍：**
 - `nx01_city`（縣市型錄、約 22 筆）

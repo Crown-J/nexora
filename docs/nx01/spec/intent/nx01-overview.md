@@ -27,7 +27,7 @@ NX01 主檔規格書 = NX01 模組的「**業務骨架 + 共通規則 + 完整�
 - 各資料表欄位細節（屬下個階段「欄位細節」、子規格書 NX01-XX）
 - 各子模組畫面 / API（屬子規格書）
 - schema 細節（屬 Hank 實作架構書 + nx01-worklog）
-- 跨模組業務邏輯（屬其他模組規格書 + _shared/worklog.md）
+- 跨模組業務邏輯（屬其他模組規格書 + _team/worklog.md）
 
 **📚 工程規範索引：**
 - 命名規則：見 [CLAUDE.md](CLAUDE.md) §五
@@ -489,7 +489,7 @@ NX01 主檔層面的 tier 差異：
 - Schema review 時看到 `@@unique([code])` 不帶 tenantId、預設質疑
 - v7_baseline 後 1~2 週是「**黃金 audit 窗口**」、業務測試會揭露所有 unique 缺漏
 
-詳見 [_shared/worklog.md 主題 8](docs/_shared/worklog.md)、[nx01-worklog 主題 1](docs/nx01/nx01-worklog.md)。
+詳見 [_team/worklog.md 主題 8](docs/_team/worklog.md)、[nx01-worklog 主題 1](docs/nx01/nx01-worklog.md)。
 
 ### 6.2 partner_type 單字元定案史
 
@@ -744,7 +744,7 @@ v1.0 通過後、進「欄位細節」階段：
 6. 重複以上、累積 10 份子規格書（NX01-01 ~ NX01-11）= 階段 B 完成 = NX01 規格書 v1.0 落地
 ```
 
-**Multi-Hank 試跑啟動時機：** _shared/worklog.md 完成 + NX01 第一份子規格書（如 NX01-03 客戶/供應商主檔工作站）寫完 → Crown 開兩個 Cursor、Hank-Frontend / Hank-Backend 並行試跑。
+**Multi-Hank 試跑啟動時機：** _team/worklog.md 完成 + NX01 第一份子規格書（如 NX01-03 客戶/供應商主檔工作站）寫完 → Crown 開兩個 Cursor、Hank-Frontend / Hank-Backend 並行試跑。
 
 詳見 [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) Phase 2 規劃。
 

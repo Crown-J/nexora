@@ -248,7 +248,7 @@ W2-mini 業務送出 SO（含 1 個 transfer 明細）
 
 | 項目 | 對應文件 |
 |---|---|
-| 路由表本身 | docs/_shared/reference/route-table-v2.md |
+| 路由表本身 | docs/_reference/route-table-v2.md |
 | 工作台內部 state | 各工作台 spec |
 | Translator 邏輯 | D4 |
 | Schema | D3 |
@@ -262,7 +262,7 @@ W2-mini 業務送出 SO（含 1 個 transfer 明細）
 
 完成 Phase 1 W2-mini 實作時，**順帶**產出：
 
-- `docs/_shared/spec/intent/navigation-context-policy.md`（本意圖版的對應 impl spec，可能很短）
+- `docs/nx04/spec/intent/navigation-context-policy.md`（本意圖版的對應 impl spec，可能很短）
   - **或**：直接在 W2-mini spec 內處理，本意圖版只當 reference
   - 由你判斷
 - 4 條 policy 在 W2-mini → W6 場景的具體實作

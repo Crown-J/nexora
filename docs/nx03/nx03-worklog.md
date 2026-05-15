@@ -13,9 +13,9 @@
 
 - 按主題（不按時間順序）累加、給 Alex 跨對話讀的考古手冊
 - 每個主題下：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式
-- 寫「為什麼這樣蓋」「踩過什麼坑」、不寫「現在長什麼樣」（[system-architecture.md](../_shared/team/system-architecture.md) 的事）
+- 寫「為什麼這樣蓋」「踩過什麼坑」、不寫「現在長什麼樣」（[system-architecture.md](../_team/system-architecture.md) 的事）
 - ⚠️ 標記未確認 / 待 Crown / Alex 補充
-- **跨模組或公版主題不寫進本日誌**、寫進 [_shared/worklog.md](../_shared/worklog.md)（D3 雙帳 / D4 Translator / 過帳邏輯通用規則 / 公版 component / TASK-BUSINESS-RESTRUCTURE 大塊 1+2 / A002 drift / A020 nx03_st_item FK ON DELETE drift）
+- **跨模組或公版主題不寫進本日誌**、寫進 [_team/worklog.md](../_team/worklog.md)（D3 雙帳 / D4 Translator / 過帳邏輯通用規則 / 公版 component / TASK-BUSINESS-RESTRUCTURE 大塊 1+2 / A002 drift / A020 nx03_st_item FK ON DELETE drift）
 
 ---
 
@@ -27,7 +27,7 @@
 
 ### 設計決策
 
-1. **過帳跨模組通用規則統一抽 `nx03-inventory.ts`**：所有過帳（inbound POSTED / outbound SHIPPED / stocktake POSTED / transfer RECEIVED）用單一 helper `applyQtyInWithLedger / applyQtyOutWithLedger`、強制單一 `prisma.$transaction` 內 balance + ledger 一起寫。**過帳邏輯通用規則跨模組共用**、依 [CLAUDE.md §九] 實作於 `apps/nx-api/src/shared/nx03/nx03-inventory.ts`、規範細節見 [_shared/worklog.md](../_shared/worklog.md)。
+1. **過帳跨模組通用規則統一抽 `nx03-inventory.ts`**：所有過帳（inbound POSTED / outbound SHIPPED / stocktake POSTED / transfer RECEIVED）用單一 helper `applyQtyInWithLedger / applyQtyOutWithLedger`、強制單一 `prisma.$transaction` 內 balance + ledger 一起寫。**過帳邏輯通用規則跨模組共用**、依 [CLAUDE.md §九] 實作於 `apps/nx-api/src/shared/nx03/nx03-inventory.ts`、規範細節見 [_team/worklog.md](../_team/worklog.md)。
 2. **stock_ledger.source\* 識別跨模組來源**：每筆 ledger 寫 `sourceModule`（NX02/NX03/NX04 等）+ `sourceDocType`（單字元 I/O/T/X/S/R/P）。理由：未來查 ledger 反推「這筆異動是哪個業務動作造成」、不需 join 多表。
 3. **transfer 屬 PLUS+ feature**：`@UseGuards(planSupportsNx02PlusFeatures)`（雖然名字寫 nx02、實際是 PLUS feature gate）、LITE 不能用調撥。
 4. **單據前綴對齊 v3 規則**：`IB-` 入庫 / `OB-` 出庫 / `SL-` 庫存台帳 / `ST-` 盤點 / `XF-` 調撥（後 0427 B5 加 `TI-` 屬 NX02 採購、不在本日誌）。
@@ -44,7 +44,7 @@
 |-----------|------|
 | `20260413120000_spec_v7_baseline` | NX03 schema 建立（stock-balance / ledger / stocktake / transfer / location 等） |
 | `20260415120000_nx03_inbound_outbound_phase5` | 4 個新表 + 盤點/調撥狀態 token 化 + doc_no 擴欄 |
-| `20260425100200_phase0_st_item_source_so_nullable` | st_item.source_so_item_id 從 NOT NULL 改 nullable（**D4 主導、見 _shared/worklog.md**）|
+| `20260425100200_phase0_st_item_source_so_nullable` | st_item.source_so_item_id 從 NOT NULL 改 nullable（**D4 主導、見 _team/worklog.md**）|
 
 ### 踩坑 / 學到的
 
@@ -56,7 +56,7 @@
 ### 對應文件
 
 - 後端：[apps/nx-api/src/nx03/](../../apps/nx-api/src/nx03/) + [shared/nx03/](../../apps/nx-api/src/shared/nx03/)
-- 過帳通用規則：[CLAUDE.md §九](../../CLAUDE.md) + [_shared/worklog.md 主題 3](../_shared/worklog.md)
+- 過帳通用規則：[CLAUDE.md §九](../../CLAUDE.md) + [_team/worklog.md 主題 3](../_team/worklog.md)
 - 對應架構債：A021（stock-balance.controller @Roles('ADMIN') vs B2 開放方向不一致）
 
 ---
@@ -123,7 +123,7 @@
 
 ## 主題 3｜TASK-BUSINESS-RESTRUCTURE 大塊 3 庫存中心 4 分區重構（2026-04-23）
 
-> ⚠️ **BUSINESS-RESTRUCTURE 大塊 1+2 跨多模組（NX02/04/06）見 [_shared/worklog.md 主題 5](../_shared/worklog.md)**。**大塊 3 純 NX03 庫存、寫進本日誌**。Crown 拍板（NX03 worklog Q1）。
+> ⚠️ **BUSINESS-RESTRUCTURE 大塊 1+2 跨多模組（NX02/04/06）見 [_team/worklog.md 主題 5](../_team/worklog.md)**。**大塊 3 純 NX03 庫存、寫進本日誌**。Crown 拍板（NX03 worklog Q1）。
 
 ### 起源
 
@@ -162,7 +162,7 @@
 
 ### 對應文件
 
-- 銷售中心 4 分區範本（被本主題複用）：見 [_shared/worklog.md 主題 5](../_shared/worklog.md) BUSINESS-RESTRUCTURE 大塊 1+2
+- 銷售中心 4 分區範本（被本主題複用）：見 [_team/worklog.md 主題 5](../_team/worklog.md) BUSINESS-RESTRUCTURE 大塊 1+2
 - 對應架構債：✅ A007（store 拆分、大塊 2 落實）/ 🔴 A014（Zustand selector 規範、本主題 hotfix 揭露）/ 🟢 A015（InventoryCenterHub orphan 桌面版）/ 🟢 A016（PlaceholderPage 跨 feature import）/ 🔴 A017（prod build 流程）
 
 ---
@@ -342,7 +342,7 @@ W2-mini intent v1.0 §5.4 寫「actions 命名也對齊後端」、Hank catch �
   - **NX03 主題 5 disclaimer**：「進行中、Phase 1A~1D 落地時補 v1.1」（會持續演進、不丟）
   - 寫 worklog 時看主題本質：是 demo 拋棄式、還是 production 進行式？
 - 主題 2 拆 2A 桌面 / 2B mobile 是「**不同性質工作合併在一個主題下**」的處理範式（NX02 主題 5 拆 5A~5E 是「**單一主題工作量大**」、結構不同）
-- 跨模組或公版（D3 / D4 / 過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 1+2 / A002）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
+- 跨模組或公版（D3 / D4 / 過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE 大塊 1+2 / A002）**不寫進本日誌**、已寫進 [_team/worklog.md](../_team/worklog.md) 統合
 - 下一輪預期：[docs/nx04/nx04-worklog.md](../nx04/nx04-worklog.md)（主題會跟 D3 雙帳資料模型 + D4 SYS-C Translator + Phase5-NX04 報價/銷貨/銷退 + W2-mini 桌面骨架 1A 重疊；D3/D4 是 NX04 主導的 Phase 0 核心、本日誌主題 4 多次交叉引用）
 
 ---

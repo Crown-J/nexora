@@ -14,7 +14,7 @@
 - 按主題（不按時間順序）累加 3 個主題、給 Alex 跨對話讀的考古手冊
 - 每個主題下：起源 / 設計決策 / 實作歷程 / 踩坑 / 對應文件 五段式
 - ⚠️ **NX05 工作量比 NX01~NX04 都小**（Phase5 落地後即穩定）— 反映真實樣貌、不湊主題
-- **跨模組或公版主題不寫進本日誌**、寫進 [_shared/worklog.md](../_shared/worklog.md)（過帳通用規則 / A002 drift / B5-Aa 跨模組同源 widening）
+- **跨模組或公版主題不寫進本日誌**、寫進 [_team/worklog.md](../_team/worklog.md)（過帳通用規則 / A002 drift / B5-Aa 跨模組同源 widening）
 
 ---
 
@@ -69,7 +69,7 @@
 
 - 後端：[apps/nx-api/src/nx05/](../../apps/nx-api/src/nx05/) + [shared/nx05/](../../apps/nx-api/src/shared/nx05/)
 - 業務真相來源：[dailylog/20260413.md](../../dailylog/20260413.md) + [20260415.md](../../dailylog/20260415.md)（Phase5-NX05 段落）
-- 過帳通用規則：[CLAUDE.md §九](../../CLAUDE.md) + [_shared/worklog.md 主題 3](../_shared/worklog.md)
+- 過帳通用規則：[CLAUDE.md §九](../../CLAUDE.md) + [_team/worklog.md 主題 3](../_team/worklog.md)
 - 對應架構債：A021（finance-access.guard 角色細分 vs 其他模組 ADMIN-only 不一致）
 
 ---
@@ -180,7 +180,7 @@
 - ⚠️ **「穩定模組訊號 audit」範式**（本日誌新建立）：NX05 後續若出現新工作、要先 audit「這是跨模組受影響（B5-Aa 模式）」還是「真的 NX05 業務新增」？前者引用主導模組 worklog 不重述、後者才獨立寫主題。NX05 的穩定性本身是訊號、突然有大量 commit 要警覺。
 - **跨模組對比表格化**（本日誌主題 3 4 維度對比 NX05 vs NX03 過帳）：當兩模組設計**有意刻意不同**時、表格化對比讓教學價值最大化。沿用 NX02 主題 5 / NX03 主題 4 對比手法。
 - **「接收側設計」**範式（主題 2）：跨模組業務鏈的 helper 放接收側、業務模組只發訊號 — schema 演進友善、解耦清晰。未來 NX06 物流 / NX08 報表的跨模組接收若有類似情境可參考。
-- 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE / A002 / B5-Aa 跨模組同源 widening / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_shared/worklog.md](../_shared/worklog.md) 統合
+- 跨模組或公版（過帳通用規則 / 公版 component / BUSINESS-RESTRUCTURE / A002 / B5-Aa 跨模組同源 widening / 跨模組測試基礎設施演進）**不寫進本日誌**、已寫進 [_team/worklog.md](../_team/worklog.md) 統合
 - 下一輪預期：[docs/nx06/nx06-worklog.md](../nx06/nx06-worklog.md)（NX06 物流模組、Phase5-NX06 + DN 送貨單 + GPS/intl-shipping、預期工作量也偏小）
 
 ---

@@ -1,4 +1,4 @@
-<!-- docs/_shared/worklog.md -->
+<!-- docs/_team/worklog.md -->
 
 # NEXORA - SHARED - 跨模組工作日誌
 
@@ -508,7 +508,7 @@ Phase 1 doc-restructure 完成項：
   ✅ NX01~NX10 worklog 10/10 + 末尾 nxXX 前綴
   ✅ NX08 monthly_report cleanup（A030）
   ✅ PROJECT_CONTEXT.md v1.0 進場 repo root
-  ✅ _shared/worklog.md v1.0（本檔）
+  ✅ _team/worklog.md v1.0（本檔）
 
 下一階段（Phase 2、待 Crown 拍）：
   - 此分支 merge 回 main 時機
@@ -1026,7 +1026,7 @@ NX01-17 verify 軌揭露 5 條 drift（Q5 UI + 4 小）+ Hank 失誤候選（自
 
 ### 對應文件
 
-- charter 升級：[hank-charter.md §G.7 + §G.8](../_shared/team/hank-charter.md)
+- charter 升級：[hank-charter.md §G.7 + §G.8](../PROJECT_RULES.md)
 - 後端：3 個檔（part-relation/{service,controller,dto}）+ 1 檔（part-version controller @Roles）+ 1 檔（part service.create writePartVersion）
 - 前端：1 個檔（BasePartRelationMasterView basePath + REL_OPTS）
 

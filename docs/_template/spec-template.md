@@ -1,4 +1,4 @@
-<!-- docs/_shared/template/spec-template.md -->
+<!-- docs/_template/spec-template.md -->
 
 # NEXORA - 子規格書範本基準檔
 
@@ -379,7 +379,7 @@ PRO（Yaro 主場）:
 
 | 版本 | 日期 | 撰寫者 | 變更摘要 |
 |------|------|-------|---------|
-| v1.0 | 2026-05-04 | Alex | 初版、Crown 拍 B+C（位置 _shared/template/ + 結構 + 假範例 nx01_color_palette）|
+| v1.0 | 2026-05-04 | Alex | 初版、Crown 拍 B+C（位置 _template/ + 結構 + 假範例 nx01_color_palette）|
 
 ---
 

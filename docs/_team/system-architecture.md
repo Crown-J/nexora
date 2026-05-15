@@ -1,4 +1,4 @@
-<!-- docs/_shared/team/system-architecture.md -->
+<!-- docs/_team/system-architecture.md -->
 
 # NEXORA - 系統架構文件
 
@@ -13,7 +13,7 @@
 
 ```
 nexora/
-├── CLAUDE.md                ← 全局工作規範（PROJECT_CONTEXT 入口）
+├── CLAUDE.md                ← stub（15 行、指向 docs/PROJECT_RULES.md、Cursor IDE 自動讀入口）
 ├── README.md                ← 專案總覽
 ├── _cursorrules             ← Cursor IDE 規範
 ├── apps/
@@ -21,16 +21,21 @@ nexora/
 │   └── nx-api/              ← NestJS 後端（→ Railway）
 ├── packages/
 │   └── db-core/             ← Prisma 7 schema + migrations + seed
-├── docs/                    ← v2 結構（按 NX 模組）
-│   ├── _shared/             ← 跨模組（decisions/plans/reference/system/team）
-│   ├── nx01/ ... nx10/      ← 各業務模組（reference/spec/ui/workflow）
-│   ├── nx98/ + nx99/        ← 共用核心 / 系統管理
-│   └── archive/YYYY-MM/     ← 歷史 task log
+├── docs/                    ← v3 平鋪結構（2026-05-15 重組）
+│   ├── PROJECT_CONTEXT.md   ← 專案介紹（業務 + 三人團隊）
+│   ├── PROJECT_RULES.md     ← 規範合一（Part I 共通 + Part II Alex + Part III Hank）
+│   ├── _team/               ← 三人團隊動態（git-state / system-architecture / worklog）
+│   ├── _reference/          ← 跨模組真相表
+│   ├── _template/           ← 規格書範本
+│   ├── _system/             ← 系統層（含 sys-w workflow）
+│   ├── _archive/            ← 一次性歷史 ADR / Plan / 歸檔
+│   ├── nx01/ ... nx10/      ← 各業務模組（worklog + spec + ui + workflow + reference）
+│   └── nx98/ + nx99/        ← 共用核心 / 系統管理
 ├── dailylog/                ← 每日工作日誌（YYYYMMDD.md）
 └── demo/                    ← 設計參考檔（不在 git）
 ```
 
-詳見 [CLAUDE.md](../../../CLAUDE.md) §十一~十六。
+詳見 [PROJECT_RULES.md §III.4](../PROJECT_RULES.md) 資料夾結構 + Seed 三層。
 
 ---
 
@@ -83,7 +88,7 @@ translator-error.ts            ← 自訂錯誤型別
 
 ### B.4 D5 Navigation Policy
 
-> 詳見 [docs/_shared/spec/intent/navigation-context-policy.md](../spec/intent/navigation-context-policy.md)
+> 詳見 [docs/nx04/spec/intent/navigation-context-policy.md](../spec/intent/navigation-context-policy.md)
 
 ⚠️ 未在 nx-api / nx-ui 裡 grep 出明顯對應實作位置、可能落在 layout 層。Alex / Crown 確認。
 
@@ -117,7 +122,7 @@ src/app/
 └── m/ + driver/             ← 手機版（倉管 / 外務）
 ```
 
-⚠️ `dashboard/{nx01-10}` vs `dashboard/{purchase|sale|inventory|finance|report}` 兩條路由並存、是 v2 重整過渡期狀態。詳細決議見 [docs/_shared/decisions/2026-04-24_workstation-pivot.md](../decisions/2026-04-24_workstation-pivot.md)。
+⚠️ `dashboard/{nx01-10}` vs `dashboard/{purchase|sale|inventory|finance|report}` 兩條路由並存、是 v2 重整過渡期狀態。詳細決議見 [docs/_archive/2026-04-24_workstation-pivot.md](../decisions/2026-04-24_workstation-pivot.md)。
 
 ### C.2 Features/ 結構
 
@@ -344,7 +349,7 @@ DATABASE_URL=postgres://...:5433/nexora
 | A045 | A039 family closure 漏網（Hank 軌 4.6 揭露）：`seed-data/default/nx01_department.csv` line 2 `PURCHASE,採購部` stale department.code、屬 A039 family（PURCHASE → PRODUCT）但軌 4 範圍未含 default csv（軌 4 只動 apply-department.ts + schema.prisma + field-definitions.csv）、Hank 守紀律未動、揭露給 Crown 拍。同時揭露 line 5 LOGISTICS,物流部 屬 A042 Q4 拍「department 保留、role 移除」業務真相、本軌不動 | Crown 拍軌 4.7 進 A039 family 收尾 + A042 Q4 業務真相強化：Hank 軌 4.7 grep -c 精確 1 處 PURCHASE（對齊軌 4.6 揭露）、Edit 升級 PURCHASE/採購部/Purchasing Dept. → PRODUCT/產品部/Product Dept.；LOGISTICS 保留（業務真相）；TASK-A043-A045-A046-A047-LEFTOVERS-AND-CHARTER-01 commit 1 收斂 |
 | A046 | Hank 工具陷阱規則候選（軌 4.6 觸發、Crown 拍 Q3 採納）：PowerShell `[System.IO.File]::WriteAllText()` 對含中文 UTF-8 檔案破壞為 mojibake、軌 4.6 commit 1 觸發 2 例（qt.controller.ts + app.controller.ts）、git checkout HEAD 還原後 Edit 修正 | Crown 拍 Q3 雙寫工作流規則：hank-charter.md 加 A046 紀律段（「PowerShell write 中文檔禁用、含中文檔改用 Edit tool 逐個處理」）；TASK-A043-A045-A046-A047-LEFTOVERS-AND-CHARTER-01 commit 2 收斂 |
 | A047 | Hank 工具陷阱規則候選（軌 4.6 觸發、Crown 拍 Q3 採納）：`git add <dir>` 誤 stage dir 內 untracked 檔案、軌 4.6 commit 3 觸發 1 例（NX01-08 + NX01-10 spec untracked 被誤 stage）、git reset --soft HEAD~ + unstage + 重新 commit 修正 | Crown 拍 Q3 雙寫工作流規則：hank-charter.md 加 A047 紀律段（「git add 用具體檔案路徑、不用 dir 路徑、特別 dir 內含 untracked 時必用檔案路徑」）；TASK-A043-A045-A046-A047-LEFTOVERS-AND-CHARTER-01 commit 2 收斂 |
-| A052 | A047 升級紀律失守揭露（軌 4 family closure 階段 1 merge 4 觸發、Crown 拍 Q5D 採納）：A047「git add 具體檔案路徑」只在 commit 階段明示、未擴張到 merge resolution / rebase / cherry-pick 階段；Hank 軌 4.6 merge resolution 用 `git add -A` 範式 stage 7 個 conflict file、誤把當時 untracked 的 3 個 NX01 spec（NX01-08 + NX01-10 + NX01-11、共 1152 行）一起吸進 `e84b45c` merge commit、已 push origin/main。違反紀律「⛔ NX01-08/10/11 spec untracked 維持」全部軌（1~4.8）守住、merge 4 失守 | Crown 拍 Q5D「接受 + 補說明 worklog」達成原紀律目的（不要亂掉、未來交接讀懂）、不堅持「分開 commit」手段本身：(1) hank-charter §G.6 加 A052 規則（git add 任何時機必用具體檔案路徑、禁用 `-A`）+ §G.5 速查表雙列；(2) PROJECT_CONTEXT Alex 失誤候選 #14（紀律規則需明示適用時機完整列表）+ #15（規則目的 vs 手段分層思考）；(3) docs/_shared/worklog.md 主題 9 補完整 closure 紀錄；(4) 不 revert e84b45c（風險高 + 其他 4 merge 已 stack）、軌 3 範圍縮減（spec 已在 main 不再 commit）；TASK-WORKLOG-A052-Q5D-CLOSURE 收斂 |
+| A052 | A047 升級紀律失守揭露（軌 4 family closure 階段 1 merge 4 觸發、Crown 拍 Q5D 採納）：A047「git add 具體檔案路徑」只在 commit 階段明示、未擴張到 merge resolution / rebase / cherry-pick 階段；Hank 軌 4.6 merge resolution 用 `git add -A` 範式 stage 7 個 conflict file、誤把當時 untracked 的 3 個 NX01 spec（NX01-08 + NX01-10 + NX01-11、共 1152 行）一起吸進 `e84b45c` merge commit、已 push origin/main。違反紀律「⛔ NX01-08/10/11 spec untracked 維持」全部軌（1~4.8）守住、merge 4 失守 | Crown 拍 Q5D「接受 + 補說明 worklog」達成原紀律目的（不要亂掉、未來交接讀懂）、不堅持「分開 commit」手段本身：(1) hank-charter §G.6 加 A052 規則（git add 任何時機必用具體檔案路徑、禁用 `-A`）+ §G.5 速查表雙列；(2) PROJECT_CONTEXT Alex 失誤候選 #14（紀律規則需明示適用時機完整列表）+ #15（規則目的 vs 手段分層思考）；(3) docs/_team/worklog.md 主題 9 補完整 closure 紀錄；(4) 不 revert e84b45c（風險高 + 其他 4 merge 已 stack）、軌 3 範圍縮減（spec 已在 main 不再 commit）；TASK-WORKLOG-A052-Q5D-CLOSURE 收斂 |
 
 ### G.2 待修 🟡
 

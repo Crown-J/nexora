@@ -14,7 +14,7 @@
 
 NX01-04 = NX01 主檔模組的「**客戶地址管理子模組**」子規格書。
 
-對齊 [docs/_shared/template/spec-template.md](docs/_shared/template/spec-template.md) 9 段範本結構。
+對齊 [docs/_template/spec-template.md](docs/_template/spec-template.md) 9 段範本結構。
 
 **範圍：**
 - `nx01_partner_billing_address` 主檔（收帳地址、一對一）

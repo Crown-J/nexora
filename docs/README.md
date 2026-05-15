@@ -63,12 +63,12 @@ docs/
 
 | 類型 | 位置 | 寫者 | 何時讀 |
 |---|---|---|---|
-| **ADR**（決策紀錄） | `_shared/decisions/` | Alex | 想知道某個架構決策的「為什麼」 |
-| **Plan**（roadmap） | `_shared/plans/` | Alex | 想知道 Phase 排序、時程、依賴 |
+| **ADR**（決策紀錄） | `_archive/` | Alex | 想知道某個架構決策的「為什麼」 |
+| **Plan**（roadmap） | `_archive/` | Alex | 想知道 Phase 排序、時程、依賴 |
 | **Spec/Intent**（意圖） | `nxXX/spec/intent/` | Alex | 想知道某個功能要達成什麼效果 |
 | **Spec/Impl**（實作） | `nxXX/spec/impl/` | Hank | 想知道 schema、API、translator 的具體寫法 |
-| **Reference**（真相來源） | `_shared/reference/`、`nxXX/reference/` | 共同維護 | 查欄位定義、單據編號規則、版本方案 |
-| **UI 工作台** | `nxXX/ui/`、`_shared/system/` | Alex + Hank | 想知道某個頁面的版面跟操作流 |
+| **Reference**（真相來源） | `_reference/`、`nxXX/reference/` | 共同維護 | 查欄位定義、單據編號規則、版本方案 |
+| **UI 工作台** | `nxXX/ui/`、`_system/` | Alex + Hank | 想知道某個頁面的版面跟操作流 |
 | **Workflow** | `nxXX/workflow/` | Crown 主導 | 想知道業務作業的 SOP |
 
 ---
@@ -92,7 +92,7 @@ Hank  = 執行者（看 repo 全貌、對照真實狀態實作 + 寫具體細節
 
 對應到資料夾：
 - Crown 拍板 ADR/Plan、定義 workflow
-- Alex 寫 `_shared/decisions/`、`_shared/plans/`、各 `nxXX/spec/intent/`
+- Alex 寫 `_archive/`、`_archive/`、各 `nxXX/spec/intent/`
 - Hank 寫各 `nxXX/spec/impl/`、`nxXX/reference/master-field-matrix.md` 類對照表
 
 ---
@@ -101,7 +101,7 @@ Hank  = 執行者（看 repo 全貌、對照真實狀態實作 + 寫具體細節
 
 文件互相引用時用相對路徑：
 ```markdown
-[Workstation Pivot ADR](../_shared/decisions/2026-04-24_workstation-pivot.md)
+[Workstation Pivot ADR](../_archive/2026-04-24_workstation-pivot.md)
 [NX04 SO 工作台](./ui/so-workspace.md)        ← 同模組
 [NX02 採購主流程](../nx02/workflow/primary/p-w01-domestic-purchase.md)  ← 跨模組
 ```
@@ -113,15 +113,15 @@ Hank  = 執行者（看 repo 全貌、對照真實狀態實作 + 寫具體細節
 ## 七、新加文件時的決策樹
 
 1. 是「業務作業 SOP」？ → `nxXX/workflow/primary|sub/`
-2. 是「畫面規劃」？ → `nxXX/ui/`（跨模組共用 → `_shared/system/`）
+2. 是「畫面規劃」？ → `nxXX/ui/`（跨模組共用 → `_system/`）
 3. 是「設計契約」？
    - Alex 寫的「要什麼」？ → `nxXX/spec/intent/`
    - Hank 寫的「怎麼寫」？ → `nxXX/spec/impl/`
    - 跨模組的設計契約（不屬任一 NX 模組） → `_shared/spec/intent/` 或 `_shared/spec/impl/`
-4. 是「決策紀錄」？ → `_shared/decisions/YYYY-MM-DD_*.md`
-5. 是「計畫書」？ → `_shared/plans/YYYY-MM-DD_*.md`
+4. 是「決策紀錄」？ → `_archive/YYYY-MM-DD_*.md`
+5. 是「計畫書」？ → `_archive/YYYY-MM-DD_*.md`
 6. 是「不變的真相來源」（schema CSV、規則表）？
-   - 跨模組？ → `_shared/reference/`
+   - 跨模組？ → `_reference/`
    - 單模組？ → `nxXX/reference/`
 7. 已完成的 task log？ → `archive/YYYY-MM/`
 
@@ -130,9 +130,9 @@ Hank  = 執行者（看 repo 全貌、對照真實狀態實作 + 寫具體細節
 ## 八、相關文件
 
 - [CLAUDE.md](../CLAUDE.md) — 工程說明（Tech Stack、命名規則、開發鐵律）
-- [_shared/reference/route-table-v2.md](_shared/reference/route-table-v2.md) — 路由標準表 v2.0
-- [_shared/reference/nx-table.csv](_shared/reference/nx-table.csv) — 124 張表格清單
-- [_shared/reference/version-feature-matrix.csv](_shared/reference/version-feature-matrix.csv) — 83 項功能 × 3 版本對應
+- [_reference/route-table-v2.md](_reference/route-table-v2.md) — 路由標準表 v2.0
+- [_reference/nx-table.csv](_reference/nx-table.csv) — 124 張表格清單
+- [_reference/version-feature-matrix.csv](_reference/version-feature-matrix.csv) — 83 項功能 × 3 版本對應
 
 ---
 

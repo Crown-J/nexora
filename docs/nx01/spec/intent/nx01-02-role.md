@@ -14,7 +14,7 @@
 
 NX01-02 = NX01 主檔模組的「**角色權限工作站**」子規格書。
 
-對齊 [docs/_shared/template/spec-template.md](docs/_shared/template/spec-template.md) 9 段範本結構。
+對齊 [docs/_template/spec-template.md](docs/_template/spec-template.md) 9 段範本結構。
 
 **範圍：**
 - `nx01_role`（角色主檔、7 種 role）
