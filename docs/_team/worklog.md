@@ -1175,7 +1175,82 @@ Alex 寫 v1.0 規格、Crown 拍 Q1~Q7（Q1/Q2/Q4/Q5/Q6/Q7=A、Q3=B）。
 
 ---
 
-> 文件版本：v1.9（主題 18 加入、NX01-16 part_model 戰略表落地 ⭐⭐ NX01 全 closure、2026-05-15）
+## 主題 19｜docs/ 平鋪重組 + 規範合一戰略 milestone（TASK-DOCS-RESTRUCTURE-AND-RULES-COMPLETE、2026-05-15）⭐⭐
+
+### 起源
+
+Crown 揭露 2 個痛點：
+1. docs/ 太多資料夾和檔案、Claude.AI 上傳要找半天、後期難管理
+2. 規範 4 份檔案（CLAUDE.md + PROJECT_CONTEXT.md 紀律段 + hank-charter.md + file-placement-suggestion.md）散落、有重複條目
+
+3 軌 Hank audit 累積（DOC-AUDIT / RULES-AUDIT / DOCS-RESTRUCTURE-AND-RULES-DEDUPE）後、
+Crown 拍 Q1=B（中度路徑、規範合一 + docs/ 平鋪、釋放 57%）/ Q2=A（三章式合一）/
+Q3=A（Alex 失誤 #1~#22 重分類 [共通] 11 + [Alex] 11）/ Q4=A（root CLAUDE.md 保留 stub 指向）。
+
+Alex 先撰寫 PROJECT_RULES.md Part I + II（563 行）+ PROJECT_CONTEXT.md v2.1（縮版 417 行）、
+Hank 接力做 docs/ 重組 + Part III 撰寫 + 廢棄舊檔 + 交叉引用更新（4 軸完整收尾）。
+
+### 設計決策
+
+1. **頂層平鋪 5 個 `_` 前綴**：原 `_shared/` 7 子層 → `_team/` + `_reference/` + `_template/` + `_system/` + `_archive/`（-28% + 視覺扁平）
+2. **規範合一三章式（Crown Q2=A）**：PROJECT_RULES.md 結構 Part I 共通 / Part II Alex / Part III Hank、Alex 寫 I+II、Hank 寫 III
+3. **CLAUDE.md 保 stub 不全 rm（Crown Q4=A）**：root stub 15 行對齊 Cursor / Claude Code 自動讀取慣例
+4. **hank-charter.md 廢、內容併入 Part III**：A046 / A052 / A066 / G.4 / G.7 / G.8 等工具陷阱規則完整保留
+5. **file-placement-suggestion.md 歸檔**：ADR 性質、Q5-1/5-4/5-5 拍板過程歷史紀錄、不刪、mv 進 _archive 改名 `2026-04-28_file-placement-decisions.md`
+6. **歷史 fact 保留範式 G.4**：_archive/ + dailylog/ 完全不動、worklog 歷史段「hank-charter §E.2 必讀順序」等文字保留（描述當時真相）
+7. **git mv 全程保 history**：單一原子 commit 25 rename 全 100% similarity 偵測、git log --follow 可追
+8. **POSIX sed 批次處理**：避開 PowerShell A046 中文檔陷阱、25 個 .md 跨引用 sed 一次清完
+9. **dedupe with Part I 共通段**：Part III 重複條目用「對齊 §I.X.Y」交叉引用、不雙寫
+
+### 實作歷程
+
+| # | commit hash | 變更 | 規模 |
+|---|------------|------|------|
+| 軌前 | `e80079e` | Alex 兩份檔進場 + 廢舊 root PROJECT_CONTEXT.md v1.6 | +980/-787、3 檔 |
+| 1 | `6948fe5` | docs/ 平鋪 git mv 大軌（25 rename 100% similarity）| 0 內容變更 |
+| 2 | `09a0e7c` | 廢 stale 3 檔（version-plan + nx-model + hank-charter）| -485 |
+| 3 | `8d74ac6` | PROJECT_RULES Part III 撰寫（606 行、10 章節）| +619/-14 |
+| 4 | `5c5e1fc` | CLAUDE.md → stub 15 行（保 Cursor 入口）| +11/-454 |
+| 5 | `af9248e` | 交叉引用 sed 批次（25 檔）+ system-arch 文件樹修 | +107/-102 |
+| 6 | `020633d` | README.md 完整 rewrite 對齊 v3 平鋪結構 | +100/-79 |
+| **總計** | — | — | **+1817/-1936、~60 檔** |
+
+### 對應文件
+
+- 規範合一：`docs/PROJECT_RULES.md` v1.0（Part I + II + III、共 1168 行）
+- 專案介紹：`docs/PROJECT_CONTEXT.md` v2.1（縮版 417 行、Crown 揭露恆迎背景真相校正）
+- 入口 stub：`CLAUDE.md`（root、15 行、指向 PROJECT_RULES.md）
+- 平鋪結構：`docs/_team/` + `_reference/` + `_template/` + `_system/` + `_archive/`
+- 索引：`docs/README.md` v3 完整 rewrite
+
+### 戰略意義（⭐⭐ milestone）
+
+- ⭐⭐ docs/ 簡化：78 子層 → 25 / 152 檔 → 95、頂層平鋪 + 5 個 `_` 前綴頂層
+- ⭐⭐ 規範合一：4 份檔（1,932 行）→ 2 份檔（PROJECT_RULES 1,168 + PROJECT_CONTEXT 417 = 1,585 行、-18%）
+- ⭐⭐ Claude.AI 上傳空間釋放 ~57%（35 檔 → 14 檔常駐）
+- ⭐⭐ Alex / Hank 雙端紀律單一真相、跨對話跨工具一致
+- Crown 上傳找檔痛點解決：5 個固定位置（PROJECT_CONTEXT + PROJECT_RULES + _team/3 檔）
+
+### 殘留 / 後續軌 backlog
+
+| # | 描述 |
+|---|------|
+| A075 | CLAUDE.md §X 章節錨點 drift cleanup（NX01-XX 規格內仍引用 §五~§十六、需改 §III.2~§III.4）|
+| A074 | field-definitions.csv 全模組 drift 大掃描（上軌揭露、後續獨立 sweep）|
+| 軌 3 | docs/ 模組層扁平化（ui/ + workflow/primary + sub 合併、Crown Q1=B 不含、後續軌）|
+| 軌 4 | NX01_SUMMARY + 各 nxXX-summary.md 撰寫（Alex 寫該模組規格時同步）|
+
+### 環境揭露
+
+- POSIX sed batch（25 檔）：UTF-8 完整保留、無 A046 中文陷阱
+- git mv 25 個 rename：100% similarity 全偵測、history 完整可 --follow
+- _archive/ + dailylog/ 0 動：歷史 fact 保留範式 G.4 守住
+- A066 Read-before-Edit：commit 4/5/6 每個 Edit 前必 Read、無被擋下案例
+
+---
+
+> 文件版本：v1.10（主題 19 加入、docs/ 平鋪重組 + 規範合一戰略 milestone ⭐⭐、2026-05-15）
+> 上一版 v1.9（主題 18 加入、NX01-16 part_model 戰略表落地 ⭐⭐ NX01 全 closure、2026-05-15）
 > 上一版 v1.8（主題 17 加入、NX01-17 R 同款 modal 路線 A 補做、2026-05-15）
 > 上一版 v1.7（主題 16 加入、NX01-17 Q5 UI 接通 + 4 drift + charter §G.7/§G.8 升級、2026-05-15）
 > 上一版 v1.6（主題 15 加入、NX01-17 part_version + part_relation + 軸 1 升 SmallInt、2026-05-15）
