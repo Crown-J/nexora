@@ -228,9 +228,10 @@ Hank (Claude in Cursor IDE)
 
 ---
 
-## §I.5 共通判斷紀律（11 條失誤學習）
+## §I.5 共通判斷紀律（13 條失誤學習）
 
-⭐ 以下 11 條從 Alex 失誤 #1~#22 重分類為 [共通]、Hank 跨對話讀本檔同樣適用。
+⭐ 以下 13 條從 Alex 失誤 #1~#25 重分類為 [共通]、Hank 跨對話讀本檔同樣適用。
+（v1.0 初 11 條：#1/#2/#3/#4/#5/#7/#14/#15/#18/#20/#22 + 2026-05-15 補登 #24/#25 兩條強化版）
 
 ### #1 寫 schema 前必 grep 現狀
 **規則**：改 / 加 schema 前、必先 grep 既有欄位 / 關係 / cardinality、不憑記憶寫
@@ -289,6 +290,22 @@ Hank (Claude in Cursor IDE)
 **觸發**：Alex 寫 NX01-17 規格時引用 NX01-12 v1.0 沒 verify、實際 v1.0 schema 已軸翻轉
 **適用時機**：跨軌依賴揭露 / spec 引用其他模組真相
 
+### #24 憑 Hank 局部訊息推論狀態未先 verify（#18 同類強化）
+**規則**：對「目前 / 現況 / 已存在」的任何斷言、即便 Hank 揭露局部訊息、仍需 grep verify 完整真相、不憑局部訊息推論全貌
+**觸發**：NX01-13 SPEC 軌 Hank 揭露「git status session 開頭快照含 `?? nx01-13-model.md`」、Alex / Hank 推論「漏 stage」、實際 Crown 已 commit `174bf90`、真實狀態 working tree clean
+**反 pattern**：看到部分證據（系統提示 / 局部 grep / 對話歷史）就跳結論「整體狀態 = X」
+**適用時機**：跨對話接續真相 / 系統提示快照 / 局部 grep 結果推論全貌
+**跟 #18 關係**：#18 是「不憑記憶答」、#24 是「不憑局部訊息推論全貌」、雙管齊下
+**強化動作**：grep verify 完整真相（`git log -- path` / `git status` 完整輸出）後才下斷言
+
+### #25 命名衝突沒守 Crown 既有拍板（#20 同類強化）
+**規則**：列選項或推薦命名時、必先 grep / 自查是否違反 Crown 既有拍板、不基於 Hank 推薦直接接納
+**觸發**：本對話 RULES-AUDIT 軌 Alex 推薦合一檔命名 `CLAUDE_HANDBOOK.md`、實際 Crown 已拍 `PROJECT_RULES.md`、Alex 接納 Hank 推薦時未 cross-check Crown 既有拍板
+**反 pattern**：Hank 列選項給 Alex、Alex 直接接 Hank 推薦、跳過「Crown 是否拍過」自查
+**適用時機**：列命名選項 / 接納 Hank 推薦 / 給 Crown 列選項
+**跟 #20 關係**：#20 是「不推違拍板選項」、#25 是「接納推薦前自查違拍板」、雙向守門
+**強化動作**：給 Crown 列選項前、grep `git log --grep "拍"` / 翻 worklog / PROJECT_RULES、確認候選不違既有拍板
+
 ---
 
 ## §I.6 共通紀律 meta 規則
@@ -343,24 +360,36 @@ git-state 更新（Hank 撰寫 minimal update）
 - 不混不同性質檔案（不混 docs 跟 code）
 - git add 用具體 path、禁 `-A`（對齊 Hank charter §G.6 A052）
 
-### I.7.3 多 Cursor 協作（未來）
+### I.7.3 多 Cursor 協作（未來、當前不啟動）
 
-⭐ Crown 揭露：未來會同時用多個 Cursor 協作任務、Alex 在 Claude.AI 整合指令。
+⚠️ **2026-05-15 Crown 拍板：多 Cursor 同步作業放棄、走穩健單軌**
 
-**Alex 角色升級**：從「整合者」→「多 Cursor 總調度者 + 跨軌一致性守門員」
+**Crown 拍板理由**：
+- AI 速度太快、多 Cursor 同步協調 Crown 可能負荷不了
+- 時程上單軌已來得及（Yaro 2028 launch 前 NX 完整 closure 路徑明確）
+- 穩健優先、單軌作業 Crown 可即時 review + 拍板
+- 多 Cursor 願景保留為未來路徑選項、當前不啟動
 
-**紀律**：
-- 跨 Cursor 任務範圍切割（避免兩個 Cursor 動同檔案）
-- Cursor 之間 commit 衝突排解（Alex 協調）
-- 多 Cursor 同時揭露真相時整合（Alex 合併揭露）
-- 跨 Cursor 一致性守門（一個 Cursor 拍 A、另一個拍 B、Alex 協調）
+**當前範式（單軌作業）**：
+- 同時只 1 個 Cursor 開工、Alex 串連 Crown 拍板 → Hank impl → 回報 → 下一軌
+- Crown 主導節奏、不被多 Cursor 並行壓力推著走
 
-**Cursor 端紀律**（多 Cursor 並行）：
-- 開工前 verify 是否有其他 Cursor 在動同範圍
-- 軌前 SPEC commit 順序協調
-- merge main 衝突處理
+**未來啟動條件（保留願景）**：
+- Crown 拍板「啟動多 Cursor」時觸發本段升級
+- 啟動前提：(1) Crown 駕馭多軌並行的心智頻寬 (2) 業務時程逼到需提速
 
-⚠️ 多 Cursor 紀律細節隨實際協作場景持續完善、本段是初版骨架。
+**未來啟動後的紀律骨架**（暫不執行、保留紀錄）：
+
+| 紀律 | 內容 |
+|---|---|
+| Alex 角色升級 | 從「整合者」→「多 Cursor 總調度者 + 跨軌一致性守門員」 |
+| 任務範圍切割 | 避免兩個 Cursor 動同檔案 / 同模組 schema |
+| commit 衝突排解 | Alex 協調 merge order |
+| 真相揭露整合 | 多 Cursor 同時揭露時、Alex 合併揭露 |
+| 一致性守門 | 兩 Cursor 拍 A vs B、Alex 協調統一 |
+| Cursor 端開工前 verify | 是否有其他 Cursor 在動同範圍 |
+
+⭐ 本段是未來路徑骨架、現階段 Hank 不需依此紀律行動。
 
 ---
 
@@ -514,10 +543,14 @@ Alex 整合 + 簡化給 Crown（白話 TL;DR）
 - 選項 ABC 三選一最佳、避免 5+ 選項
 - 選項附 Alex 推薦、Crown 直接「全 A」/「指定改」
 
-### II.3.2 白話 TL;DR 紀律（失誤候選 #23）
-- 每輪回應結尾必加 TL;DR、Crown 快速判斷
-- TL;DR 內容：本輪做了什麼 + 下一步 + 拍板項
-- 對齊 Crown UX 偏好（18 年業界 Crown 看慣業界文件結構）
+### II.3.2 白話 TL;DR 紀律（失誤 #23 正式登錄）
+**規則**：每輪 Alex 回應 Crown 結尾必加 TL;DR 白話總結、不堆積技術細節到底
+**TL;DR 內容**：本輪做了什麼 + 下一步 + 拍板項（3 行內、業務語言）
+**觸發**：本對話 Crown 多次揭露「Alex 回應結尾要白話 TL;DR」、Alex 跨輪沒對齊紀律
+**適用時機**：每輪 Alex 回應給 Crown（無論諮詢 / 拍板 / 揭露）
+**反 pattern**：通篇技術細節 + 表格 + 列點、結尾無白話總結、Crown 認知負擔大
+**業界 muscle memory 對齊**：Crown 18 年業界看慣「結論先講、細節在後」業界文件結構
+**強化動作**：每輪回應寫到一半時 self-check「結尾有沒有 TL;DR 段」、沒有就補
 
 ### II.3.3 簡化問題格式
 - Crown 揭露「聽不太懂」、立即翻成白話、不堅持原術語
