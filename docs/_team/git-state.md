@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⚠️ TASK-CURSOR-RULES-CLEANUP merge、補正軌：_cursorrules 廢除 + §G.9 登錄）**
-> **當前分支：`main`**（HEAD = `0c7b973`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/cursor-rules-cleanup 2 commit + 軌後、--no-ff）**
-> **⚠️ Hank 工具紀律補洞：軸 3 verify 漏通配 grep 失誤 → 路線 A 補正（廢 _cursorrules 432 行）+ §G.9 登錄（#18+#24 強化版）**
+> **快照時間：2026-05-15（⚠️ TASK-YARO-NARRATIVE-DRIFT-FIX merge、補正軌：PROJECT_RULES + nx01-summary 對齊 PROJECT_CONTEXT v2.1）**
+> **當前分支：`main`**（HEAD = 待 merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/yaro-narrative-drift-fix 2 commit + 軌後、--no-ff）**
+> **⚠️ Yaro 敘事補正：規範類 + 模組架構書「田驗證」字眼校正、對齊 PROJECT_CONTEXT v2.1 翻轉真相**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 14 軌 merge（+ CURSOR-RULES-CLEANUP）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 15 軌 merge（+ YARO-DRIFT-FIX）、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（16 條）
+### A.1 本地分支總覽（17 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `0c7b973` | **⚠️ MERGE _cursorrules 廢除 + §G.9 登錄補正軌（TASK-CURSOR-RULES-CLEANUP、2 commit + 軌後）** |
+| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE Yaro 敘事 drift 補正軌（TASK-YARO-NARRATIVE-DRIFT-FIX、2 commit + 軌後）** |
+| `feature/yaro-narrative-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `75cc2bf` | PROJECT_RULES + nx01-summary Yaro 字眼補正 + worklog 主題 22 |
 | `feature/cursor-rules-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `0a80839` | git rm _cursorrules + PROJECT_RULES §III.8.7 §G.9 + worklog 主題 21 |
 | `feature/nx01-summary-and-final-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `6c6dc49` | NX01 summary + A075 sweep + .cursorrules + upload-list + 多 Cursor + #23~#25 + worklog 主題 20 |
 | `feature/docs-restructure-and-rules-complete` | ✅ 同步、**已 merge main、可考慮刪除** | `95c6abc` | docs/ 平鋪 + Part III + CLAUDE stub + 交叉引用 + README + worklog 主題 19 |
