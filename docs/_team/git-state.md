@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⭐⭐ TASK-NX01-SUMMARY-AND-FINAL-CLEANUP merge、本對話跨度完整收尾）**
-> **當前分支：`main`**（HEAD = `d25842a`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-summary-and-final-cleanup 5 commit + 軌後、--no-ff）**
-> **⭐⭐ NX01 模組架構書（壓縮 -95%）+ A075 sweep + .cursorrules + 上傳清單 + 多 Cursor 段更新 + 失誤 #23~#25、17 檔變更 / +771/-84、本對話跨度結尾**
+> **快照時間：2026-05-15（⚠️ TASK-CURSOR-RULES-CLEANUP merge、補正軌：_cursorrules 廢除 + §G.9 登錄）**
+> **當前分支：`main`**（HEAD = `0c7b973`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/cursor-rules-cleanup 2 commit + 軌後、--no-ff）**
+> **⚠️ Hank 工具紀律補洞：軸 3 verify 漏通配 grep 失誤 → 路線 A 補正（廢 _cursorrules 432 行）+ §G.9 登錄（#18+#24 強化版）**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 13 軌 merge（+ NX01-SUMMARY）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 14 軌 merge（+ CURSOR-RULES-CLEANUP）、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（15 條）
+### A.1 本地分支總覽（16 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `d25842a` | **⭐⭐ MERGE NX01 模組架構書 + final cleanup（TASK-NX01-SUMMARY、5 commit + 軌後、本對話跨度結尾）** |
+| `main` ⭐ | ✅ 同步 | `0c7b973` | **⚠️ MERGE _cursorrules 廢除 + §G.9 登錄補正軌（TASK-CURSOR-RULES-CLEANUP、2 commit + 軌後）** |
+| `feature/cursor-rules-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `0a80839` | git rm _cursorrules + PROJECT_RULES §III.8.7 §G.9 + worklog 主題 21 |
 | `feature/nx01-summary-and-final-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `6c6dc49` | NX01 summary + A075 sweep + .cursorrules + upload-list + 多 Cursor + #23~#25 + worklog 主題 20 |
 | `feature/docs-restructure-and-rules-complete` | ✅ 同步、**已 merge main、可考慮刪除** | `95c6abc` | docs/ 平鋪 + Part III + CLAUDE stub + 交叉引用 + README + worklog 主題 19 |
 | `feature/nx01-16-part-model` | ✅ 同步、**已 merge main、可考慮刪除** | `e598ad4` | NX01-16 spec + schema + 後端 + 前端 + reference drift + worklog 主題 18 |
