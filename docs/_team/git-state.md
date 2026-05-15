@@ -10,18 +10,19 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⭐⭐ TASK-NX01-16-IMPL part_model 戰略表 merge、NX01 17 份子規格書 + impl 全 closure）**
-> **當前分支：`main`**（HEAD = `906636a`、merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-16-part-model 5 commit、--no-ff）**
-> **⭐⭐ NX01-16 part_model 完整實作：schema + migration + 後端 + 前端 + reference drift、5 commit / +1185 / 13 檔。NX01 17 份子規格書 + impl 全 closure、Yaro 戰略田驗證主檔層收尾**
+> **快照時間：2026-05-15（⭐⭐ TASK-DOCS-RESTRUCTURE-AND-RULES-COMPLETE merge、docs/ 平鋪重組 + 規範合一戰略 milestone）**
+> **當前分支：`main`**（HEAD = `f291035`、merge commit）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/docs-restructure-and-rules-complete 7 commit + 軌後、--no-ff）**
+> **⭐⭐ docs/ 簡化（78 子層 → 25）+ 規範合一（4 檔 1932 行 → 2 檔 1585 行）+ Claude.AI 釋放 ~57%（35 檔 → 14 檔常駐）、52 檔變更 / +1870/-1899**
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 11 軌 merge（+ NX01-16）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 12 軌 merge（+ DOCS-RESTRUCTURE）、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（13 條）
+### A.1 本地分支總覽（14 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `906636a` | **⭐⭐ MERGE NX01-16 part_model 戰略表（TASK-NX01-16-IMPL、5 commit、NX01 全 closure）** |
+| `main` ⭐ | ✅ 同步 | `f291035` | **⭐⭐ MERGE docs/ 平鋪重組 + 規範合一（TASK-DOCS-RESTRUCTURE、7 commit + 軌後、戰略 milestone）** |
+| `feature/docs-restructure-and-rules-complete` | ✅ 同步、**已 merge main、可考慮刪除** | `95c6abc` | docs/ 平鋪 + Part III + CLAUDE stub + 交叉引用 + README + worklog 主題 19 |
 | `feature/nx01-16-part-model` | ✅ 同步、**已 merge main、可考慮刪除** | `e598ad4` | NX01-16 spec + schema + 後端 + 前端 + reference drift + worklog 主題 18 |
 | `feature/nx01-17-r-modal` | ✅ 同步、**已 merge main、可考慮刪除** | `8769eef` | R 同款 modal 路線 A：generic onAfterCreate prop + caller handler + worklog 主題 17 |
 | `feature/nx01-17-ui-and-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `d11cffa` | Q5 UI 接通 + 4 drift 補正 + charter §G.7/§G.8 升級 + worklog 主題 16 |
