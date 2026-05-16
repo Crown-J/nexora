@@ -4,7 +4,9 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 
 import { ArCalculatorService } from './auto-replenish/ar-calculator.service';
+import { ArSchedulerService } from './auto-replenish/ar-scheduler.service';
 import { ArSuggestionWriterService } from './auto-replenish/ar-suggestion-writer.service';
+import { AutoReplenishController } from './auto-replenish/auto-replenish.controller';
 import { PartReplacementService } from './auto-replenish/part-replacement.service';
 import { BrandAllocationRuleController } from './brand-allocation-rule/brand-allocation-rule.controller';
 import { BrandAllocationRuleService } from './brand-allocation-rule/brand-allocation-rule.service';
@@ -45,6 +47,7 @@ import { TransferService } from './transfer/transfer.service';
     StockReservationController,
     PartStockSettingController,
     BrandAllocationRuleController,
+    AutoReplenishController,
     InitController,
     DisposalController,
     ConversionController,
@@ -65,6 +68,7 @@ import { TransferService } from './transfer/transfer.service';
     PartReplacementService,
     ArCalculatorService,
     ArSuggestionWriterService,
+    ArSchedulerService,
     InitService,
     DisposalService,
     ConversionService,
