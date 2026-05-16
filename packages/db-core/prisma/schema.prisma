@@ -2119,7 +2119,7 @@ model Nx02Ti {
   docNo                 String         @map("doc_no") @db.VarChar(30)
   /// 調貨日期。；啟用最低需求版本：LITE-CORE
   tiDate                DateTime       @map("ti_date") @db.Date
-  /// 同行供應商ID（FK nx02_partner，partner_type=C同行）。；啟用最低需求版本：LITE-CORE
+  /// 同行供應商ID（FK nx01_partner，partner_type=S 同行、對齊 Nx02Qt line 1759 + qt.service.ts:436 業界事實、NX03-IMPL-01 Phase 4 commit 1 順手修原 C 錯誤）。；啟用最低需求版本：LITE-CORE
   partnerId             String         @map("partner_id") @db.VarChar(15)
   /// 來源詢價單ID（FK nx02_rfq，rfq_type=P）。；啟用最低需求版本：LITE-CORE
   rfqId                 String?        @map("rfq_id") @db.VarChar(15)

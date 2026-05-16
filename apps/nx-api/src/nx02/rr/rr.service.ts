@@ -13,6 +13,7 @@ import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { assertRrStatusTransition, RrStatus } from '../../shared/nx02/nx02-state-machine';
+import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateRrDto, CreateRrItemDto, PatchRrItemDto, UpdateRrDto } from './dto/rr.dto';
@@ -25,6 +26,7 @@ const RR_SEL = {
   supplierId: true,
   rfqId: true,
   poId: true,
+  tiId: true,
   currencyId: true,
   status: true,
   subtotal: true,
@@ -112,8 +114,28 @@ export class RrService {
   }
 
   /**
-   * RR 過帳：更新 nx03_stock_balance、寫入 nx03_stock_ledger（採購入庫 P / NX02）。
-   * 使用者需求中的「nx03_stock_txn」對應本 schema 之 stock_ledger。
+   * M1 配套：取 part 當下最新 active version（effectiveTo IS NULL、versionNo desc）
+   * Q-S1=B 漸進：partVersion 表為 null 也 OK（NX01-17 未完全 backfill 既有 part）
+   */
+  private async loadActivePartVersionId(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    partId: string,
+  ): Promise<string | null> {
+    const v = await tx.nx01PartVersion.findFirst({
+      where: { tenantId, partId, effectiveTo: null },
+      orderBy: { versionNo: 'desc' },
+      select: { id: true },
+    });
+    return v?.id ?? null;
+  }
+
+  /**
+   * RR 過帳：透過 applyQtyInWithLedger helper 寫 stock_balance + stock_ledger。
+   *   - source 判 tiId：rr.tiId != null → 'G'（同行調貨入庫、Phase 4 d 方案）；null → 'P'（採購進貨）
+   *   - partVersionId 帶入（M1 配套、每 item load active version）
+   *   - 保留 Nx02PoItem.receivedQty update（PO 進度回填）
+   * 升級自 NX03-IMPL-01 Phase 4 commit 1（自 inline upsert 換 helper、語意對齊 stocktake/init service 範式）。
    */
   private async applyRrPosting(tx: Prisma.TransactionClient, rr: Prisma.Nx02RrGetPayload<{ select: typeof RR_SEL }>, userId: string) {
     const items = await tx.nx02RrItem.findMany({
@@ -122,86 +144,33 @@ export class RrService {
     });
     if (!items.length) throw new BadRequestException('RR has no items to post');
 
+    const sourceDocType = rr.tiId ? 'G' : 'P';
     let postedQty = new PrismaNs.Decimal(0);
     for (const item of items) {
       const qtyIn = item.actualQty != null ? new PrismaNs.Decimal(item.actualQty) : new PrismaNs.Decimal(item.qty);
       if (qtyIn.lte(0)) continue;
       postedQty = postedQty.add(qtyIn);
       const unitCost = new PrismaNs.Decimal(item.unitCost);
-      const partId = item.partId;
-      const warehouseId = rr.warehouseId;
-      const locationId = item.locationId;
+      const partVersionId = await this.loadActivePartVersionId(tx, rr.tenantId, item.partId);
 
-      const bid = await tx.nx03StockBalance.findFirst({
-        where: { tenantId: rr.tenantId, partId, warehouseId },
-      });
-      const oldQ = bid ? new PrismaNs.Decimal(bid.onHandQty) : new PrismaNs.Decimal(0);
-      const oldA = bid ? new PrismaNs.Decimal(bid.avgCost) : new PrismaNs.Decimal(0);
-      const newQ = oldQ.add(qtyIn);
-      const newAvg = newQ.gt(0)
-        ? oldQ.mul(oldA).add(qtyIn.mul(unitCost)).div(newQ)
-        : unitCost;
-      const reserved = bid ? new PrismaNs.Decimal(bid.reservedQty) : new PrismaNs.Decimal(0);
-      const inTransit = bid ? new PrismaNs.Decimal(bid.inTransitQty) : new PrismaNs.Decimal(0);
-      const avail = newQ.sub(reserved);
-      const stockValue = newQ.mul(newAvg).toDecimalPlaces(2);
-      const now = new Date();
-
-      await tx.nx03StockBalance.upsert({
-        where: {
-          tenantId_partId_warehouseId: { tenantId: rr.tenantId, partId, warehouseId },
-        },
-        create: {
-          tenantId: rr.tenantId,
-          partId,
-          warehouseId,
-          onHandQty: qtyIn,
-          reservedQty: 0,
-          availableQty: qtyIn,
-          inTransitQty: 0,
-          avgCost: newAvg,
-          stockValue,
-          lastInAt: now,
-          lastMoveAt: now,
-          isActive: true,
-          createdBy: userId,
-          updatedBy: userId,
-        },
-        update: {
-          onHandQty: newQ,
-          avgCost: newAvg,
-          availableQty: avail,
-          stockValue,
-          lastInAt: now,
-          lastMoveAt: now,
-          updatedBy: userId,
-        },
-      });
-
-      await tx.nx03StockLedger.create({
-        data: {
-          tenantId: rr.tenantId,
-          movementDate: now,
-          partId,
-          warehouseId,
-          locationId,
-          movementType: 'I',
-          qtyIn,
-          qtyOut: new PrismaNs.Decimal(0),
-          unitCost,
-          totalCost: qtyIn.mul(unitCost).toDecimalPlaces(2),
-          balanceQty: newQ,
-          balanceCost: newAvg,
-          sourceModule: 'NX02',
-          sourceDocType: 'P',
-          sourceDocId: rr.id,
-          sourceItemId: item.id,
-        },
+      await applyQtyInWithLedger(tx, {
+        tenantId: rr.tenantId,
+        userId,
+        partId: item.partId,
+        warehouseId: rr.warehouseId,
+        locationId: item.locationId,
+        qtyIn,
+        unitCost,
+        sourceModule: 'NX02',
+        sourceDocType,
+        sourceDocId: rr.id,
+        sourceItemId: item.id,
+        partVersionId,
       });
 
       if (rr.poId) {
         const pol = await tx.nx02PoItem.findFirst({
-          where: { poId: rr.poId, partId },
+          where: { poId: rr.poId, partId: item.partId },
           orderBy: { lineNo: 'asc' },
         });
         if (pol) {
