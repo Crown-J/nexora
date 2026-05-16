@@ -47,6 +47,24 @@ export const DisposalStatus = {
   VOIDED: 'VOIDED',
 } as const;
 
+// Nx03Pk.status VarChar(1)：P=待撿貨 / C=撿貨中 / F=已完成 / V=作廢（schema 既有 enum）
+// 撿貨 = 待辦工作清單（非業務單據）、不寫 ledger
+export const PkStatus = {
+  PENDING: 'P',
+  COUNTING: 'C',
+  FINISHED: 'F',
+  VOIDED: 'V',
+} as const;
+
+// Nx03Pl.status VarChar(1)：P=待包貨 / C=包貨中 / F=已完成 / S=已寄出 / V=作廢
+export const PlStatus = {
+  PENDING: 'P',
+  COUNTING: 'C',
+  FINISHED: 'F',
+  SHIPPED: 'S',
+  VOIDED: 'V',
+} as const;
+
 const INBOUND_EDGES: Record<string, Set<string>> = {
   [InboundStatus.DRAFT]: new Set([InboundStatus.INSPECTING, InboundStatus.CANCELLED]),
   [InboundStatus.INSPECTING]: new Set([InboundStatus.POSTED, InboundStatus.REJECTED, InboundStatus.CANCELLED]),
@@ -90,6 +108,21 @@ const DISPOSAL_EDGES: Record<string, Set<string>> = {
   [DisposalStatus.VOIDED]: new Set(),
 };
 
+const PK_EDGES: Record<string, Set<string>> = {
+  [PkStatus.PENDING]: new Set([PkStatus.COUNTING, PkStatus.VOIDED]),
+  [PkStatus.COUNTING]: new Set([PkStatus.FINISHED, PkStatus.VOIDED]),
+  [PkStatus.FINISHED]: new Set(),
+  [PkStatus.VOIDED]: new Set(),
+};
+
+const PL_EDGES: Record<string, Set<string>> = {
+  [PlStatus.PENDING]: new Set([PlStatus.COUNTING, PlStatus.VOIDED]),
+  [PlStatus.COUNTING]: new Set([PlStatus.FINISHED, PlStatus.VOIDED]),
+  [PlStatus.FINISHED]: new Set([PlStatus.SHIPPED]),
+  [PlStatus.SHIPPED]: new Set(),
+  [PlStatus.VOIDED]: new Set(),
+};
+
 export function assertInboundStatusTransition(from: string, to: string): void {
   const edges = INBOUND_EDGES[from];
   if (!edges || !edges.has(to)) {
@@ -129,5 +162,19 @@ export function assertDisposalStatusTransition(from: string, to: string): void {
   const edges = DISPOSAL_EDGES[from];
   if (!edges || !edges.has(to)) {
     throw new BadRequestException(`Invalid disposal status transition: ${from} -> ${to}`);
+  }
+}
+
+export function assertPkStatusTransition(from: string, to: string): void {
+  const edges = PK_EDGES[from];
+  if (!edges || !edges.has(to)) {
+    throw new BadRequestException(`Invalid pk status transition: ${from} -> ${to}`);
+  }
+}
+
+export function assertPlStatusTransition(from: string, to: string): void {
+  const edges = PL_EDGES[from];
+  if (!edges || !edges.has(to)) {
+    throw new BadRequestException(`Invalid pl status transition: ${from} -> ${to}`);
   }
 }

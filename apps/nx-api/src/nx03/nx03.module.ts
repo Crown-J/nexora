@@ -13,6 +13,8 @@ import { OutboundController } from './outbound/outbound.controller';
 import { OutboundService } from './outbound/outbound.service';
 import { PartStockSettingController } from './part-stock-setting/part-stock-setting.controller';
 import { PartStockSettingService } from './part-stock-setting/part-stock-setting.service';
+import { PkController } from './pk/pk.controller';
+import { PkService } from './pk/pk.service';
 import { StockBalanceController } from './stock-balance/stock-balance.controller';
 import { StockBalanceService } from './stock-balance/stock-balance.service';
 import { StockLedgerController } from './stock-ledger/stock-ledger.controller';
@@ -33,6 +35,7 @@ import { TransferService } from './transfer/transfer.service';
     PartStockSettingController,
     InitController,
     DisposalController,
+    PkController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -45,6 +48,7 @@ import { TransferService } from './transfer/transfer.service';
     PartStockSettingService,
     InitService,
     DisposalService,
+    PkService,
     InboundService,
     OutboundService,
     StockTakeService,
