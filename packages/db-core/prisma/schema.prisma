@@ -690,6 +690,7 @@ model Nx01Location {
   rev_Nx03StockTakeItem_locationId Nx03StockTakeItem[] @relation("R_Nx03StockTakeItem_locationId")
   rev_Nx03InboundItem_locationId   Nx03InboundItem[]   @relation("R_Nx03InboundItem_locationId")
   rev_Nx03OutboundItem_locationId  Nx03OutboundItem[]  @relation("R_Nx03OutboundItem_locationId")
+  rev_Nx03DisposalItem_locationId  Nx03DisposalItem[]  @relation("R_Nx03DisposalItem_locationId")
   rev_Nx04SoItem_locationId        Nx04SoItem[]        @relation("R_Nx04SoItem_locationId")
   rev_Nx04SrItem_locationId        Nx04SrItem[]        @relation("R_Nx04SrItem_locationId")
 
@@ -786,6 +787,7 @@ model Nx01Part {
   rev_Nx03StockTakeItem_partId    Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_partId")
   rev_Nx03InboundItem_partId      Nx03InboundItem[]      @relation("R_Nx03InboundItem_partId")
   rev_Nx03OutboundItem_partId     Nx03OutboundItem[]     @relation("R_Nx03OutboundItem_partId")
+  rev_Nx03DisposalItem_partId     Nx03DisposalItem[]     @relation("R_Nx03DisposalItem_partId")
   rev_Nx04Co_partId               Nx04Co[]               @relation("R_Nx04Co_partId")
   rev_Nx04QuoteItem_partId        Nx04QuoteItem[]        @relation("R_Nx04QuoteItem_partId")
   rev_Nx04SoItem_partId           Nx04SoItem[]           @relation("R_Nx04SoItem_partId")
@@ -1401,6 +1403,7 @@ model Nx01Warehouse {
   rev_Nx03Init_warehouseId              Nx03Init[]             @relation("R_Nx03Init_warehouseId")
   rev_Nx03Inbound_warehouseId           Nx03Inbound[]          @relation("R_Nx03Inbound_warehouseId")
   rev_Nx03Outbound_warehouseId          Nx03Outbound[]         @relation("R_Nx03Outbound_warehouseId")
+  rev_Nx03Disposal_warehouseId          Nx03Disposal[]         @relation("R_Nx03Disposal_warehouseId")
   rev_Nx03Parcel_fromWarehouseId        Nx03Parcel[]           @relation("R_Nx03Parcel_fromWarehouseId")
   rev_Nx03Parcel_toWarehouseId          Nx03Parcel[]           @relation("R_Nx03Parcel_toWarehouseId")
   rev_Nx03PartStockSetting_warehouseId  Nx03PartStockSetting[] @relation("R_Nx03PartStockSetting_warehouseId")
@@ -3077,6 +3080,99 @@ model Nx03OutboundItem {
   location   Nx01Location @relation("R_Nx03OutboundItem_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_outbound_item")
+}
+
+/// =======================================================
+/// Nx03Disposal — DB table `nx03_disposal`
+/// 報廢單表頭（NX03-IMPL-01 M3、Crown Q-B1=A 不簽核、倉管直接過帳）
+/// 對應 overview §3.3 #8 報廢出庫、source=W
+/// =======================================================
+model Nx03Disposal {
+  /// [NX03]+[DSHD]+[7碼流水號]，EX : NX03DSHD0000001；啟用最低需求版本：LITE
+  id           String             @id @default(dbgenerated("gen_nx03_disposal_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId     String             @map("tenant_id") @db.VarChar(15)
+  /// 報廢單號（唯一），[DS]+[年月]+[倉別]+[5碼流水號]，EX：DS-202605-Z01-00001；啟用最低需求版本：LITE
+  docNo        String             @map("doc_no") @db.VarChar(30)
+  /// 報廢倉庫；啟用最低需求版本：LITE
+  warehouseId  String             @map("warehouse_id") @db.VarChar(15)
+  /// 報廢日期；啟用最低需求版本：LITE
+  disposalDate DateTime           @map("disposal_date") @db.Date
+  /// 狀態（DRAFT / POSTED / VOIDED）；啟用最低需求版本：LITE
+  status       String             @default("DRAFT") @db.VarChar(30)
+  /// 備註；啟用最低需求版本：LITE
+  remark       String?            @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt    DateTime           @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy    String             @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy    String             @map("updated_by") @db.VarChar(15)
+  /// 過帳時間（POSTED 才有）；啟用最低需求版本：LITE
+  postedAt     DateTime?          @map("posted_at")
+  /// 過帳人（POSTED 才有）；啟用最低需求版本：LITE
+  postedBy     String?            @map("posted_by") @db.VarChar(15)
+  /// 作廢時間；啟用最低需求版本：LITE
+  voidedAt     DateTime?          @map("voided_at")
+  /// 作廢人；啟用最低需求版本：LITE
+  voidedBy     String?            @map("voided_by") @db.VarChar(15)
+  tenant       Nx99Tenant         @relation("R_Nx03Disposal_tenantId", fields: [tenantId], references: [id])
+  warehouse    Nx01Warehouse      @relation("R_Nx03Disposal_warehouseId", fields: [warehouseId], references: [id])
+  items        Nx03DisposalItem[] @relation("R_Nx03DisposalItem_disposalId")
+
+  @@unique([docNo])
+  @@map("nx03_disposal")
+}
+
+/// =======================================================
+/// Nx03DisposalItem — DB table `nx03_disposal_item`
+/// 報廢單明細（disposalReason A=損壞 / B=過期 / C=瑕疵 / D=其他、Hank 自決 enum、待 Crown review 可調）
+/// =======================================================
+model Nx03DisposalItem {
+  /// [NX03]+[DSIT]+[7碼流水號]，EX : NX03DSIT0000001；啟用最低需求版本：LITE
+  id             String           @id @default(dbgenerated("gen_nx03_disposal_item_id()")) @db.VarChar(15)
+  /// 對應報廢單表頭 ID；啟用最低需求版本：LITE
+  disposalId     String           @map("disposal_id") @db.VarChar(15)
+  /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
+  lineNo         Int              @default(1) @map("line_no")
+  /// 零件 ID；啟用最低需求版本：LITE
+  partId         String           @map("part_id") @db.VarChar(15)
+  /// 料號快照；啟用最低需求版本：LITE
+  partNo         String           @map("part_no") @db.VarChar(50)
+  /// 品名快照；啟用最低需求版本：LITE
+  partName       String           @map("part_name") @db.VarChar(200)
+  /// 過帳當下 part 版本快照 FK（M1 配套、Q-S1=B 既有 null、新 row 帶入）；啟用最低需求版本：LITE
+  partVersionId  String?          @map("part_version_id") @db.VarChar(15)
+  /// 報廢庫位；啟用最低需求版本：LITE
+  locationId     String           @map("location_id") @db.VarChar(15)
+  /// 報廢數量（>0）；啟用最低需求版本：LITE
+  qty            Decimal          @default(0) @db.Decimal(14, 4)
+  /// 報廢單位成本（過帳時抓 stock_balance.avg_cost）；啟用最低需求版本：LITE
+  unitCost       Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  /// 報廢總成本（qty × unit_cost）；啟用最低需求版本：LITE
+  totalCost      Decimal          @default(0) @map("total_cost") @db.Decimal(14, 2)
+  /// 報廢原因（A=損壞/B=過期/C=瑕疵/D=其他）；啟用最低需求版本：LITE
+  disposalReason String           @map("disposal_reason") @db.VarChar(1)
+  /// 報廢說明（reason=D 其他時必填、application-layer 自律）；啟用最低需求版本：LITE
+  disposalRemark String?          @map("disposal_remark") @db.VarChar(200)
+  /// 備註；啟用最低需求版本：LITE
+  remark         String?          @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt      DateTime         @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy      String           @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy      String           @map("updated_by") @db.VarChar(15)
+  disposal       Nx03Disposal     @relation("R_Nx03DisposalItem_disposalId", fields: [disposalId], references: [id], onDelete: Cascade)
+  part           Nx01Part         @relation("R_Nx03DisposalItem_partId", fields: [partId], references: [id])
+  partVersion    Nx01PartVersion? @relation("R_Nx03DisposalItem_partVersionId", fields: [partVersionId], references: [id])
+  location       Nx01Location     @relation("R_Nx03DisposalItem_locationId", fields: [locationId], references: [id])
+
+  @@map("nx03_disposal_item")
 }
 
 /// =======================================================
@@ -6254,6 +6350,7 @@ model Nx99Tenant {
   rev_Nx03Init_tenantId                   Nx03Init[]                   @relation("R_Nx03Init_tenantId")
   rev_Nx03Inbound_tenantId                Nx03Inbound[]                @relation("R_Nx03Inbound_tenantId")
   rev_Nx03Outbound_tenantId               Nx03Outbound[]               @relation("R_Nx03Outbound_tenantId")
+  rev_Nx03Disposal_tenantId               Nx03Disposal[]               @relation("R_Nx03Disposal_tenantId")
   rev_Nx03Parcel_tenantId                 Nx03Parcel[]                 @relation("R_Nx03Parcel_tenantId")
   rev_Nx03PartStockSetting_tenantId       Nx03PartStockSetting[]       @relation("R_Nx03PartStockSetting_tenantId")
   rev_Nx03Pk_tenantId                     Nx03Pk[]                     @relation("R_Nx03Pk_tenantId")
@@ -6889,6 +6986,7 @@ model Nx01PartVersion {
   rev_Nx03InitItem_partVersionId      Nx03InitItem[]      @relation("R_Nx03InitItem_partVersionId")
   rev_Nx03StItem_partVersionId        Nx03StItem[]        @relation("R_Nx03StItem_partVersionId")
   rev_Nx03StockTakeItem_partVersionId Nx03StockTakeItem[] @relation("R_Nx03StockTakeItem_partVersionId")
+  rev_Nx03DisposalItem_partVersionId  Nx03DisposalItem[]  @relation("R_Nx03DisposalItem_partVersionId")
 
   @@unique([tenantId, partId, versionNo])
   @@index([tenantId, partId])
