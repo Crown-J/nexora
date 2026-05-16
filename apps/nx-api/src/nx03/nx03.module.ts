@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { ArCalculatorService } from './auto-replenish/ar-calculator.service';
 import { BrandAllocationRuleController } from './brand-allocation-rule/brand-allocation-rule.controller';
 import { BrandAllocationRuleService } from './brand-allocation-rule/brand-allocation-rule.service';
 import { ConversionController } from './conversion/conversion.controller';
@@ -59,6 +60,7 @@ import { TransferService } from './transfer/transfer.service';
     Nx03StockReservationService,
     PartStockSettingService,
     BrandAllocationRuleService,
+    ArCalculatorService,
     InitService,
     DisposalService,
     ConversionService,
