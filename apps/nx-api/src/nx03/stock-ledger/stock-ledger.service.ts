@@ -37,6 +37,17 @@ export class StockLedgerService {
     if (q.partId?.trim()) where.partId = q.partId.trim();
     if (q.sourceModule?.trim()) where.sourceModule = q.sourceModule.trim();
     if (q.sourceDocType?.trim()) where.sourceDocType = q.sourceDocType.trim();
+    if (q.movementType) where.movementType = q.movementType;
+    if (q.dateFrom || q.dateTo) {
+      where.movementDate = {};
+      if (q.dateFrom) where.movementDate.gte = new Date(q.dateFrom);
+      if (q.dateTo) {
+        // end-of-day inclusive：23:59:59.999
+        const end = new Date(q.dateTo);
+        end.setHours(23, 59, 59, 999);
+        where.movementDate.lte = end;
+      }
+    }
     return where;
   }
 
