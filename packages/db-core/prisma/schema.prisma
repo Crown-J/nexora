@@ -2381,34 +2381,40 @@ model Nx03Parcel {
 /// =======================================================
 model Nx03PartStockSetting {
   /// [NX03]+[PSST]+[7碼流水號]，EX : NX03PSST0000001；啟用最低需求版本：LITE
-  id          String        @id @default(dbgenerated("gen_nx03_part_stock_setting_id()")) @db.VarChar(15)
+  id                    String        @id @default(dbgenerated("gen_nx03_part_stock_setting_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）(@@unique([tenantId, partId, warehouseId]))；啟用最低需求版本：LITE
-  tenantId    String        @map("tenant_id") @db.VarChar(15)
+  tenantId              String        @map("tenant_id") @db.VarChar(15)
   /// 零件 ID (@@unique([tenantId, partId, warehouseId]))；啟用最低需求版本：LITE
-  partId      String        @map("part_id") @db.VarChar(15)
+  partId                String        @map("part_id") @db.VarChar(15)
   /// 倉庫 ID (@@unique([tenantId, partId, warehouseId]))；啟用最低需求版本：LITE
-  warehouseId String        @map("warehouse_id") @db.VarChar(15)
+  warehouseId           String        @map("warehouse_id") @db.VarChar(15)
   /// 安全量（低於此值觸發缺貨警示）；啟用最低需求版本：LITE
-  minQty      Decimal       @default(0) @map("min_qty") @db.Decimal(14, 4)
+  minQty                Decimal       @default(0) @map("min_qty") @db.Decimal(14, 4)
   /// 最高量（建議補貨目標上限，0=不限制）；啟用最低需求版本：LITE
-  maxQty      Decimal       @default(0) @map("max_qty") @db.Decimal(14, 4)
+  maxQty                Decimal       @default(0) @map("max_qty") @db.Decimal(14, 4)
   /// 建議補貨量（max_qty - on_hand_qty，0=不限制）；啟用最低需求版本：LITE
-  reorderQty  Decimal       @default(0) @map("reorder_qty") @db.Decimal(14, 4)
+  reorderQty            Decimal       @default(0) @map("reorder_qty") @db.Decimal(14, 4)
   /// 是否啟用（通常 TRUE；若某庫位停用可控制）；啟用最低需求版本：LITE
-  isActive    Boolean       @default(true) @map("is_active")
+  isActive              Boolean       @default(true) @map("is_active")
   /// 備註；啟用最低需求版本：LITE
-  remark      String?       @db.VarChar(200)
+  remark                String?       @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt   DateTime      @default(now()) @map("created_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy   String        @map("created_by") @db.VarChar(15)
+  createdBy             String        @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy   String        @map("updated_by") @db.VarChar(15)
-  tenant      Nx99Tenant    @relation("R_Nx03PartStockSetting_tenantId", fields: [tenantId], references: [id])
-  part        Nx01Part      @relation("R_Nx03PartStockSetting_partId", fields: [partId], references: [id])
-  warehouse   Nx01Warehouse @relation("R_Nx03PartStockSetting_warehouseId", fields: [warehouseId], references: [id])
+  updatedBy             String        @map("updated_by") @db.VarChar(15)
+  /// AR 自動補貨計算頻率（天數、null=每天）。Crown Q-AR2 倉層級彈性頻率、AR-IMPL-01 M1 落地；啟用最低需求版本：PLUS
+  calculationFrequency  Int?          @map("calculation_frequency")
+  /// AR 自動補貨最後計算時間（scheduler 用、判斷下次該不該跑）；啟用最低需求版本：PLUS
+  lastCalculatedAt      DateTime?     @map("last_calculated_at")
+  /// AR 平均出貨計算窗口（天數、null=預設 90 天）。Crown Q-B2 升級倉層級彈性窗口；啟用最低需求版本：PLUS
+  calculationWindowDays Int?          @map("calculation_window_days")
+  tenant                Nx99Tenant    @relation("R_Nx03PartStockSetting_tenantId", fields: [tenantId], references: [id])
+  part                  Nx01Part      @relation("R_Nx03PartStockSetting_partId", fields: [partId], references: [id])
+  warehouse             Nx01Warehouse @relation("R_Nx03PartStockSetting_warehouseId", fields: [warehouseId], references: [id])
 
   @@map("nx03_part_stock_setting")
 }
