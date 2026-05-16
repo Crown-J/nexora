@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { BrandAllocationRuleController } from './brand-allocation-rule/brand-allocation-rule.controller';
+import { BrandAllocationRuleService } from './brand-allocation-rule/brand-allocation-rule.service';
 import { ConversionController } from './conversion/conversion.controller';
 import { ConversionService } from './conversion/conversion.service';
 import { DisposalController } from './disposal/disposal.controller';
@@ -39,6 +41,7 @@ import { TransferService } from './transfer/transfer.service';
     StockLedgerController,
     StockReservationController,
     PartStockSettingController,
+    BrandAllocationRuleController,
     InitController,
     DisposalController,
     ConversionController,
@@ -55,6 +58,7 @@ import { TransferService } from './transfer/transfer.service';
     StockLedgerService,
     Nx03StockReservationService,
     PartStockSettingService,
+    BrandAllocationRuleService,
     InitService,
     DisposalService,
     ConversionService,
