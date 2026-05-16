@@ -39,6 +39,14 @@ export const InitStatus = {
   VOIDED: 'V',
 } as const;
 
+// Nx03Disposal.status VarChar(30)：DRAFT / POSTED / VOIDED
+// Crown Q-B1=a 不簽核、倉管直接過帳：DRAFT → POSTED 一步到位（對齊 Init 範式）
+export const DisposalStatus = {
+  DRAFT: 'DRAFT',
+  POSTED: 'POSTED',
+  VOIDED: 'VOIDED',
+} as const;
+
 const INBOUND_EDGES: Record<string, Set<string>> = {
   [InboundStatus.DRAFT]: new Set([InboundStatus.INSPECTING, InboundStatus.CANCELLED]),
   [InboundStatus.INSPECTING]: new Set([InboundStatus.POSTED, InboundStatus.REJECTED, InboundStatus.CANCELLED]),
@@ -76,6 +84,12 @@ const INIT_EDGES: Record<string, Set<string>> = {
   [InitStatus.VOIDED]: new Set(),
 };
 
+const DISPOSAL_EDGES: Record<string, Set<string>> = {
+  [DisposalStatus.DRAFT]: new Set([DisposalStatus.POSTED, DisposalStatus.VOIDED]),
+  [DisposalStatus.POSTED]: new Set(),
+  [DisposalStatus.VOIDED]: new Set(),
+};
+
 export function assertInboundStatusTransition(from: string, to: string): void {
   const edges = INBOUND_EDGES[from];
   if (!edges || !edges.has(to)) {
@@ -108,5 +122,12 @@ export function assertInitStatusTransition(from: string, to: string): void {
   const edges = INIT_EDGES[from];
   if (!edges || !edges.has(to)) {
     throw new BadRequestException(`Invalid init status transition: ${from} -> ${to}`);
+  }
+}
+
+export function assertDisposalStatusTransition(from: string, to: string): void {
+  const edges = DISPOSAL_EDGES[from];
+  if (!edges || !edges.has(to)) {
+    throw new BadRequestException(`Invalid disposal status transition: ${from} -> ${to}`);
   }
 }
