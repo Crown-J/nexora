@@ -348,8 +348,8 @@ export class ConversionService {
 
   /**
    * 過帳：依 conversionType 分派
-   *   M 重組：mergePosting（commit 1 完整）
-   *   D 分解：disassemblePosting（commit 2 補）
+   *   M 重組：mergePosting
+   *   D 分解：disassemblePosting（Crown Q-B2=priceA + costRatio override）
    */
   private async applyConversionPosting(
     tx: Prisma.TransactionClient,
@@ -359,11 +359,150 @@ export class ConversionService {
     if (cv.conversionType === 'M') {
       await this.applyMergePosting(tx, cv, userId);
     } else if (cv.conversionType === 'D') {
-      throw new BadRequestException(
-        'Disassemble (D) posting not implemented yet (Phase 6 commit 2 will add)',
-      );
+      await this.applyDisassemblePosting(tx, cv, userId);
     } else {
       throw new BadRequestException(`Unknown conversionType: ${cv.conversionType}`);
+    }
+  }
+
+  /**
+   * 分解 D 過帳（Crown Q-B2=priceA + costRatio override）：
+   *   input (1) → applyQtyOutWithLedger source=D（helper 用 avgCost）
+   *   inputTotalCost = input.qty × current avgCost（再 fetch 一次確保 fresh）
+   *   outputs (N) unitCost 計算：
+   *     - 全 costRatio 非 null：manual mode、unitCost = inputTotalCost × costRatio / output.qty
+   *       （Σ costRatio 必須 = 1.0、容差 0.000001）
+   *     - 全 costRatio null：auto mode、用 part.priceA 比例
+   *       weight_i = output_i.priceA × output_i.qty
+   *       unitCost_i = inputTotalCost × weight_i / Σ weight / output_i.qty
+   *     - mixed：throw（要嘛全 manual 要嘛全 auto）
+   *   outputs 各走 applyQtyInWithLedger source=D
+   *   partVersionId 帶入兩面（M1 配套）
+   */
+  private async applyDisassemblePosting(
+    tx: Prisma.TransactionClient,
+    cv: Prisma.Nx03ConversionGetPayload<{ select: typeof CV_SEL }>,
+    userId: string,
+  ) {
+    const inputs = await tx.nx03ConversionInput.findMany({
+      where: { conversionId: cv.id },
+      select: { ...CV_INPUT_SEL },
+    });
+    if (inputs.length !== 1) {
+      throw new BadRequestException(`Disassemble inputs must be 1 row, got ${inputs.length}`);
+    }
+    const input = inputs[0];
+
+    const outputs = await tx.nx03ConversionOutput.findMany({
+      where: { conversionId: cv.id },
+      select: { ...CV_OUTPUT_SEL },
+    });
+    if (!outputs.length) throw new BadRequestException('Disassemble has no outputs');
+
+    // Step 1: input 出庫（helper 用 avgCost）+ 計算 inputTotalCost
+    const inQty = new PrismaNs.Decimal(input.qty);
+    if (inQty.lte(0)) throw new BadRequestException('Disassemble input qty must be > 0');
+    const inputUnitCost = await this.resolveUnitCost(tx, cv.tenantId, cv.warehouseId, input.partId);
+    const inputTotalCost = inQty.mul(inputUnitCost);
+
+    await applyQtyOutWithLedger(tx, {
+      tenantId: cv.tenantId,
+      userId,
+      partId: input.partId,
+      warehouseId: cv.warehouseId,
+      locationId: input.locationId,
+      qtyOut: inQty,
+      sourceModule: 'NX03',
+      sourceDocType: 'D',
+      sourceDocId: cv.id,
+      sourceItemId: input.id,
+      partVersionId: input.partVersionId,
+    });
+    await tx.nx03ConversionInput.update({
+      where: { id: input.id },
+      data: {
+        unitCost: inputUnitCost,
+        totalCost: inputTotalCost.toDecimalPlaces(2),
+        updatedBy: userId,
+      },
+    });
+
+    // Step 2: 判斷 cost mode（manual / auto / mixed）
+    const allManual = outputs.every((o) => o.costRatio != null);
+    const allAuto = outputs.every((o) => o.costRatio == null);
+    if (!allManual && !allAuto) {
+      throw new BadRequestException(
+        'Disassemble outputs costRatio must be all-manual or all-auto (mixed mode not allowed)',
+      );
+    }
+
+    // Step 3: 計算每 output 的 allocatedCost
+    let weights: PrismaNs.Decimal[] = [];
+    let totalWeight = new PrismaNs.Decimal(0);
+
+    if (allManual) {
+      // manual: weight = costRatio、Σ 必須 ≈ 1.0
+      weights = outputs.map((o) => new PrismaNs.Decimal(o.costRatio!));
+      totalWeight = weights.reduce((acc, w) => acc.add(w), new PrismaNs.Decimal(0));
+      const epsilon = new PrismaNs.Decimal('0.000001');
+      if (totalWeight.sub(1).abs().gt(epsilon)) {
+        throw new BadRequestException(
+          `Disassemble manual mode: Σ costRatio must equal 1.0 (got ${totalWeight.toString()})`,
+        );
+      }
+    } else {
+      // auto: weight = part.priceA × output.qty
+      for (const o of outputs) {
+        const part = await tx.nx01Part.findFirst({
+          where: { id: o.partId, tenantId: cv.tenantId },
+          select: { priceA: true },
+        });
+        const priceA = part?.priceA ? new PrismaNs.Decimal(part.priceA) : new PrismaNs.Decimal(0);
+        const w = priceA.mul(new PrismaNs.Decimal(o.qty));
+        weights.push(w);
+        totalWeight = totalWeight.add(w);
+      }
+      if (totalWeight.lte(0)) {
+        throw new BadRequestException(
+          'Disassemble auto mode: Σ (priceA × qty) must be > 0、所有 output part.priceA 必須非 0',
+        );
+      }
+    }
+
+    // Step 4: outputs 入庫
+    for (let i = 0; i < outputs.length; i++) {
+      const o = outputs[i];
+      const outQty = new PrismaNs.Decimal(o.qty);
+      if (outQty.lte(0)) continue;
+      const w = weights[i];
+      const allocatedCost = allManual
+        ? inputTotalCost.mul(w) // manual: ratio 直接 × totalCost
+        : inputTotalCost.mul(w).div(totalWeight); // auto: 加權
+      const outUnitCost = allocatedCost.div(outQty).toDecimalPlaces(4);
+      const outTotalCost = allocatedCost.toDecimalPlaces(2);
+
+      await applyQtyInWithLedger(tx, {
+        tenantId: cv.tenantId,
+        userId,
+        partId: o.partId,
+        warehouseId: cv.warehouseId,
+        locationId: o.locationId,
+        qtyIn: outQty,
+        unitCost: outUnitCost,
+        sourceModule: 'NX03',
+        sourceDocType: 'D',
+        sourceDocId: cv.id,
+        sourceItemId: o.id,
+        partVersionId: o.partVersionId,
+      });
+      await tx.nx03ConversionOutput.update({
+        where: { id: o.id },
+        data: {
+          unitCost: outUnitCost,
+          totalCost: outTotalCost,
+          updatedBy: userId,
+        },
+      });
     }
   }
 
