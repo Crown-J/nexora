@@ -1638,3 +1638,93 @@ Crown 跨 6 輪需求討論 16 題拍板 closure（2026-05-15）、Hank AUDIT-01
 
 ⭐ Crown 拍板「branch merge main 拍板 → NX03 全 closure」、進 NX04 銷貨 / NX05 財務 / 自動補貨 B 軌等下游 task。
 
+---
+
+## 主題 25｜AR 自動補貨建議單 B 軌全 closure（TASK-AR-IMPL-01、2026-05-16）⭐⭐⭐
+
+### 起源
+
+NX03 範圍 A closure（v0.3.0-nx03-closure、main HEAD 50b53815）後、Crown 立即啟動 AR B 軌。
+Hank AR-AUDIT-01 v2 揭露：
+- 既有 Nx02Demand（demandType=S 庫存不足）可直接作為「採購建議單」載體、不需新表
+- 既有 Nx03Shortage 已有 refRfqId 接通 RFQ
+- 廠牌維度真相：Nx01Part.isOem + partBrandId + Nx01PartModel.fitLevel 三層完整支援
+- 兩層分類 + 副廠池銷貨比例彙整、既有 schema 100% 支援
+
+Crown 跨 2 輪需求討論共 11 題拍板 closure（2026-05-16）→ Alex 寫 ar-overview v0.1.0 → Hank 跨 8 Phase 13 commit 落地。
+
+**戰略意義**：
+- ⭐⭐⭐ 業界中小企業 ERP 第一個能做「智能品牌替代補貨」
+- ⭐⭐ Yaro 產品 / 倉管部門核心戰略工具
+- ⭐ NX03 範圍 B 戰略軌、NEXORA 業務模組第二大里程碑
+
+### 設計決策
+
+1. **拓樸 4 層對齊 NX01/NX03 範式**：基礎 / 計算引擎 / 建議單管理 / 跨模組接點
+2. **2 軌 migration**：M1 PartStockSetting +3 欄 / M2 BrandAllocationRule 新表
+3. **走既有 Nx02Demand 不新建**（Crown Q-AR5 + AR-AUDIT-01 v2 推薦）
+4. **配比規則 modelId 級**（Crown Q-B1=A 同 model 配比一致）
+5. **manual 覆寫 system**（Crown Q-S1=A 採購策略優先）
+6. **混合 scheduled + on-demand**（Crown Q-C1=D cron 主 + 手動補強）
+7. **替代品牌走 application 層**（Crown Q-AR-設計-2=b 不擴 PartRelation）
+8. **平均出貨排除調撥**（Crown Q-AR3、純 source=S、X 不算）
+9. **UI 本軌 stub、獨立軌 backlog**（Crown Q-U1=A、對齊 NX03 範式）
+
+### 實作歷程（A041 = 13 commit / 2 migration / 命中 plan 估 10~12 上界）
+
+| Phase | commit 範圍 | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | 1 | plan v0.1.0 + 9 拍板 Q | 1 |
+| Phase 1 | 2 | M1 + M2 schema（Hank 自跑 migrate dev）| 2 |
+| Phase 2 | 1 | L1 BrandAllocationRule CRUD（5 endpoints）| 1 |
+| Phase 3 | 3 | L2 計算引擎 Stage 1+2 / 3+4 / replace helper | 3 |
+| Phase 4 | 2 | L3 ArSuggestionWriter / Scheduler+Controller | 2 |
+| Phase 5 | 1 | L4 跨模組 verify report | 1 |
+| Phase 6 | 1 | UI stub placeholder | 1 |
+| Phase 7 | 1 | summary + worklog（本主題）| 1 |
+| 收尾 | 1 | pre-merge / merge / push（待 Crown 拍）| - |
+
+### 跨模組視角總覽（AR 觸發 / 被觸發）
+
+| 跨模組關係 | AR 角色 | 對應 service / 接點 |
+|---|---|---|
+| NX03 → AR | 上游（讀）| stock_balance / stock_ledger(S) / part_stock_setting |
+| NX01 → AR | 上游（讀）| part / part_model / part_brand / model |
+| AR → Nx02Demand | 觸發者 | ArSuggestionWriter.runForWarehouse → tx.nx02Demand.create × N |
+| Demand → RFQ → Po → Rr | 既有 NX02 採購鏈 | demand.refRfqId / rfq.demandId 雙向 |
+| Rr → NX03 入庫 | 觸發鏈終點 | rr.service.applyRrPosting → applyQtyInWithLedger source=P |
+
+### 統合教訓
+
+1. **AR-AUDIT-01 v2 揭露 schema 真相 → 不需新 schema 路徑**：
+   - 既有 Nx02Demand demandType=S = 業界「採購建議單」載體
+   - 既有 fitLevel + isOem = 廠牌兩層分類 + 替代 100% 支援
+   - 只需 2 migration（M1 + M2）、跟 NX03 4 migration 大幅縮
+2. **計算引擎 4 階段清晰分離 + type export**：Stage 1~4 各自獨立 method + ShortageCandidate / ForecastResult / AllocationResult / BrandBreakdown 4 type、外部 service 可組合
+3. **PartReplacementService 解耦 calculator**：Stage 4 用 partReplacement.findAftermarketAlternatives、語意清且可重用
+4. **manual 覆寫 system 在 service 層解**：classifyByOemAftermarket 先找 source='M' 再 'S' 再 fallback DEFAULT、Crown Q-S1=A 完整對應
+5. **不擴 @nestjs/schedule 依賴**：純 HTTP run-due endpoint、外部 cron / k8s CronJob 觸發、降部署複雜度
+
+### 對應文件
+
+- 業務需求：`docs/auto-replenish/spec/intent/ar-overview.md` v0.1.0
+- 模組架構書：`docs/auto-replenish/ar-summary.md` v1.0（本主題後產出）
+- audit：`docs/auto-replenish/ar-audit-01.md`
+- impl plan：`docs/auto-replenish/spec/impl/ar-impl-01-plan.md`
+- Phase 5 verify：`docs/auto-replenish/spec/impl/ar-impl-01-phase5-verify.md`
+
+### A026 backlog 開單揭露（AR 範圍）
+
+1. @nestjs/schedule cron decorator 註冊（外部 cron 替代）
+2. per-setting calculationFrequency 細粒度 due 判斷
+3. ArRunResult 持久化 batch log 表
+4. N+1 query 優化（Stage 1 / Stage 4）
+5. leadTimeDays schema 欄
+6. **TASK-AR-IMPL-02-TEST** 獨立軌
+7. **TASK-AR-IMPL-UI-01** UI 獨立軌（倉管調整 / 產品決策）
+8. 預測性補貨（範圍 B 後續軌）
+9. 跨倉自動調撥建議（NX03 範圍）
+10. 客戶分級補貨策略
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v0.4.0-ar-closure」、進 NX04 銷貨 / NX05 財務 / TASK-AR-IMPL-02-TEST / TASK-AR-IMPL-UI-01 等下游 task。
+
