@@ -144,6 +144,21 @@ export class RrService {
     });
     if (!items.length) throw new BadRequestException('RR has no items to post');
 
+    // Phase 7 commit 2 guard：同行調貨入庫（tiId!=null）supplier 必須是同行 partner_type='S'
+    // 對齊 AUDIT-04 B5 partner_type guard + Phase 4 commit 1 backlog
+    // schema 真相：partner_type VarChar(1) 單字元 enum、'S'=同行 / 'V'=供應商 / 'C'=客戶 / 'T'=外包物流 / 'B'=銀行
+    if (rr.tiId) {
+      const supplier = await tx.nx01Partner.findFirst({
+        where: { id: rr.supplierId, tenantId: rr.tenantId },
+        select: { partnerType: true },
+      });
+      if (!supplier || supplier.partnerType !== 'S') {
+        throw new BadRequestException(
+          `RR with tiId (同行調貨入庫) supplierId partnerType must be 'S' (同行), got '${supplier?.partnerType ?? 'not found'}'`,
+        );
+      }
+    }
+
     const sourceDocType = rr.tiId ? 'G' : 'P';
     let postedQty = new PrismaNs.Decimal(0);
     for (const item of items) {

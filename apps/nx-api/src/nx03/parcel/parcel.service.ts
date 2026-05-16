@@ -164,16 +164,18 @@ export class ParcelService {
       }
       this.assertTriageConsistency(dto.parcelType, dto);
 
-      // 校驗 toPartnerId 必須 partnerType 含 'T'（寄貨時、application 自律）
+      // 校驗 toPartnerId 必須 partnerType === 'T' 物流外包（寄貨時、application 自律）
+      // Phase 7 commit 2 修：原 .includes('T') 寫法為 commit 6 bug
+      // schema 真相：partner_type VarChar(1) 單字元 enum、嚴格 === 比較
       if (dto.parcelType === 'C' && dto.toPartnerId) {
         const partner = await tx.nx01Partner.findFirst({
           where: { id: dto.toPartnerId.trim(), tenantId },
           select: { id: true, partnerType: true },
         });
         if (!partner) throw new BadRequestException('toPartnerId not found in tenant');
-        if (!partner.partnerType?.includes('T')) {
+        if (partner.partnerType !== 'T') {
           throw new BadRequestException(
-            `parcelType=C 寄貨: toPartnerId partnerType must contain 'T' (物流外包)、got '${partner.partnerType}'`,
+            `parcelType=C 寄貨: toPartnerId partnerType must be 'T' (物流外包), got '${partner.partnerType}'`,
           );
         }
       }
