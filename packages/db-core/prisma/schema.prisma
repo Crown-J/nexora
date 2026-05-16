@@ -2908,6 +2908,10 @@ model Nx03StockTake {
   approvedAt                        DateTime?           @map("approved_at")
   /// 負責人核准人（使用者ID）。；啟用最低需求版本：LITE-CORE
   approvedBy                        String?             @map("approved_by") @db.VarChar(15)
+  /// 動態盤點 snapshot 起點時間（M2、Q-B3=A 不凍結業務、application 層即時聚合 stock_ledger 計算 deltaQty 的時間範圍 lower bound）；啟用最低需求版本：LITE
+  snapshotStartedAt                 DateTime?           @map("snapshot_started_at")
+  /// 動態盤點 snapshot 終點時間（M2、deltaQty 計算時間範圍 upper bound、null 表盤點未結束）；啟用最低需求版本：LITE
+  snapshotEndedAt                   DateTime?           @map("snapshot_ended_at")
   tenant                            Nx99Tenant          @relation("R_Nx03StockTake_tenantId", fields: [tenantId], references: [id])
   warehouse                         Nx01Warehouse       @relation("R_Nx03StockTake_warehouseId", fields: [warehouseId], references: [id])
   rev_Nx03StockTakeItem_stockTakeId Nx03StockTakeItem[] @relation("R_Nx03StockTakeItem_stockTakeId")
@@ -2921,58 +2925,66 @@ model Nx03StockTake {
 /// =======================================================
 model Nx03StockTakeItem {
   /// [NX03]+[STTI]+[7碼流水號]，EX : NX03STTI0000001；啟用最低需求版本：LITE
-  id            String           @id @default(dbgenerated("gen_nx03_stock_take_item_id()")) @db.VarChar(15)
+  id                 String           @id @default(dbgenerated("gen_nx03_stock_take_item_id()")) @db.VarChar(15)
   /// 對應盤點單表頭 ID；啟用最低需求版本：LITE
-  stockTakeId   String           @map("stock_take_id") @db.VarChar(15)
+  stockTakeId        String           @map("stock_take_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
-  lineNo        Int              @default(1) @map("line_no")
+  lineNo             Int              @default(1) @map("line_no")
   /// 零件 ID；啟用最低需求版本：LITE
-  partId        String           @map("part_id") @db.VarChar(15)
+  partId             String           @map("part_id") @db.VarChar(15)
   /// 零件料號快照；啟用最低需求版本：LITE
-  partNo        String           @map("part_no") @db.VarChar(50)
+  partNo             String           @map("part_no") @db.VarChar(50)
   /// 零件名稱快照；啟用最低需求版本：LITE
-  partName      String           @map("part_name") @db.VarChar(200)
+  partName           String           @map("part_name") @db.VarChar(200)
   /// 盤點倉庫 ID（通常等於表頭倉庫）；啟用最低需求版本：LITE
-  warehouseId   String           @map("warehouse_id") @db.VarChar(15)
+  warehouseId        String           @map("warehouse_id") @db.VarChar(15)
   /// 盤點庫位 ID；啟用最低需求版本：LITE
-  locationId    String           @map("location_id") @db.VarChar(15)
+  locationId         String           @map("location_id") @db.VarChar(15)
   /// 系統數量（盤點當下抓 balance.on_hand_qty 快照）；啟用最低需求版本：LITE
-  systemQty     Decimal          @default(0) @map("system_qty") @db.Decimal(14, 4)
+  systemQty          Decimal          @default(0) @map("system_qty") @db.Decimal(14, 4)
   /// 盤點數量（使用者輸入）；啟用最低需求版本：LITE
-  countedQty    Decimal          @default(0) @map("counted_qty") @db.Decimal(14, 4)
+  countedQty         Decimal          @default(0) @map("counted_qty") @db.Decimal(14, 4)
   /// 差異數量（counted_qty - system_qty）；啟用最低需求版本：LITE
-  diffQty       Decimal          @default(0) @map("diff_qty") @db.Decimal(14, 4)
+  diffQty            Decimal          @default(0) @map("diff_qty") @db.Decimal(14, 4)
   /// 調整成本（預設抓 balance.avg_cost 快照）；啟用最低需求版本：LITE
-  unitCost      Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  unitCost           Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 差異金額（abs(diff_qty) * unit_cost，或 diff_qty * unit_cost 由你決定）；啟用最低需求版本：LITE
-  diffCost      Decimal          @default(0) @map("diff_cost") @db.Decimal(14, 2)
+  diffCost           Decimal          @default(0) @map("diff_cost") @db.Decimal(14, 2)
   /// 調整類型。( I=IN, O=OUT, N=NONE )  ※ diff_qty=0 時 NONE）；啟用最低需求版本：LITE
-  adjustType    String           @default("N") @map("adjust_type") @db.VarChar(1)
+  adjustType         String           @default("N") @map("adjust_type") @db.VarChar(1)
   /// 狀態。( O=OPEN, P=POSTED, S=SKIPPED )；啟用最低需求版本：LITE
-  status        String           @default("O") @db.VarChar(1)
+  status             String           @default("O") @db.VarChar(1)
   /// 備註；啟用最低需求版本：LITE
-  remark        String?          @db.VarChar(200)
+  remark             String?          @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt     DateTime         @default(now()) @map("created_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy     String           @map("created_by") @db.VarChar(15)
+  createdBy          String           @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt     DateTime         @updatedAt @map("updated_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy     String           @map("updated_by") @db.VarChar(15)
+  updatedBy          String           @map("updated_by") @db.VarChar(15)
   /// 每筆實際填入時間點（即時差異計算的關鍵欄位）。系統在此時間點計算該料號的真實差異，避免盤點期間進出貨造成的誤差。；啟用最低需求版本：LITE-CORE
-  countedAt     DateTime?        @map("counted_at")
+  countedAt          DateTime?        @map("counted_at")
   /// 差異處置方式（W=報廢/R=零件重組/D=瑕疵品/U=中古件）。diff_qty≠0時必填。；啟用最低需求版本：LITE-CORE
-  disposeType   String?          @map("dispose_type") @db.VarChar(1)
+  disposeType        String?          @map("dispose_type") @db.VarChar(1)
   /// 處置說明（diff_qty≠0時必填）。例：外觀損壞無法銷售、拆解後可利用零件。；啟用最低需求版本：LITE-CORE
-  disposeRemark String?          @map("dispose_remark") @db.VarChar(200)
+  disposeRemark      String?          @map("dispose_remark") @db.VarChar(200)
   /// 過帳當下 part 版本快照 FK（NX01-17 範式、AUDIT-04 B2 配套、Q-S1=B 既有歷史 row 留 null、新 row 過帳時帶入）；啟用最低需求版本：LITE
-  partVersionId String?          @map("part_version_id") @db.VarChar(15)
-  stockTake     Nx03StockTake    @relation("R_Nx03StockTakeItem_stockTakeId", fields: [stockTakeId], references: [id])
-  part          Nx01Part         @relation("R_Nx03StockTakeItem_partId", fields: [partId], references: [id])
-  partVersion   Nx01PartVersion? @relation("R_Nx03StockTakeItem_partVersionId", fields: [partVersionId], references: [id])
-  warehouse     Nx01Warehouse    @relation("R_Nx03StockTakeItem_warehouseId", fields: [warehouseId], references: [id])
-  location      Nx01Location     @relation("R_Nx03StockTakeItem_locationId", fields: [locationId], references: [id])
+  partVersionId      String?          @map("part_version_id") @db.VarChar(15)
+  /// 動態盤點 snapshot 鎖定基準量（M2、盤點啟動瞬間 balance.onHandQty 快照、Q-S2=A 既有 systemQty 並存漸進）；啟用最低需求版本：LITE
+  snapshotQty        Decimal          @default(0) @map("snapshot_qty") @db.Decimal(14, 4)
+  /// 動態盤點期間異動加總（M2、Q-B3=A application 層即時聚合 stock_ledger BETWEEN snapshotStartedAt AND snapshotEndedAt）；啟用最低需求版本：LITE
+  deltaQty           Decimal          @default(0) @map("delta_qty") @db.Decimal(14, 4)
+  /// 動態盤點公式應有量（M2、= snapshotQty + deltaQty、即時算）；啟用最低需求版本：LITE
+  formulaExpectedQty Decimal          @default(0) @map("formula_expected_qty") @db.Decimal(14, 4)
+  /// 動態盤點真實誤差（M2、= countedQty - formulaExpectedQty、寫帳基準、≠0 才寫 ledger source=T）；啟用最低需求版本：LITE
+  realDiffQty        Decimal          @default(0) @map("real_diff_qty") @db.Decimal(14, 4)
+  stockTake          Nx03StockTake    @relation("R_Nx03StockTakeItem_stockTakeId", fields: [stockTakeId], references: [id])
+  part               Nx01Part         @relation("R_Nx03StockTakeItem_partId", fields: [partId], references: [id])
+  partVersion        Nx01PartVersion? @relation("R_Nx03StockTakeItem_partVersionId", fields: [partVersionId], references: [id])
+  warehouse          Nx01Warehouse    @relation("R_Nx03StockTakeItem_warehouseId", fields: [warehouseId], references: [id])
+  location           Nx01Location     @relation("R_Nx03StockTakeItem_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_stock_take_item")
 }
