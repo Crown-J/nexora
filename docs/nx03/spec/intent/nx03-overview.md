@@ -399,12 +399,17 @@ NX03 4 大戰略特色、業界中小企業 ERP 第一個能做：
 
 ### 8.2 範圍 A closure 標準
 
-- 11 業務情境全 schema + service + endpoint + 測試
-- 撿包出貨 SOP 全 SOP 接通
+- 11 業務情境全 schema + service + endpoint
+- 撿包出貨 SOP 全接通（v1.1：退貨除外、走 helper 直接過帳）
 - 跨模組接點（NX02 / NX04 / NX06）service 層全接通
-- 強制溯源 10 種 source 全測試 fixture
+- 強制溯源 10 種 source 全 service writer ✓（test fixture 列獨立軌、見下）
 - 動態盤點機制完整落地
 - 重組 / 分解成本算法完整落地
+
+⚠️ **test fixture 列獨立軌 `TASK-NX03-IMPL-02-TEST`**（v1.1 補註、Crown Q-Phase7-commit3=C）：
+- 範圍：10 種 source 全 fixture + 動態盤點 snapshot+delta + 重組/分解 auto/manual 雙模式
+- 估 30+ test files / ~1500 行
+- 不阻擋 NX03 範圍 A closure（service 已 verify ✓）
 
 ### 8.3 範圍 A 不涵蓋
 
@@ -472,6 +477,7 @@ NX03 4 大戰略特色、業界中小企業 ERP 第一個能做：
 |---|---|---|
 | v0.1.0 | 2026-05-15 | 首版、整合 Crown 6 輪需求討論 16 題拍板 + Hank AUDIT-01~04 揭露 |
 | v1.0 | 2026-05-15 | Crown 拍板 closure、§0 補 Hank impl 對齊原則、標題升 v1.0、移除「子規格書撰寫基底」暗示 |
+| v1.1 | 2026-05-16 | Phase 5 mini-verify Q-MV1=B 校正：(1) §5.1 撿貨觸發來源 v1.0 寫「銷貨/調撥/退貨」實際 schema 不支援退貨來源（Nx03Pk.triggerSource 只 S/T、PkItem 無 refSrId/refPrId FK）、改為「銷貨/調撥」+ 退貨直接 helper 過帳註解；(2) §8.2 closure 標準補註 test fixture 列獨立軌 TASK-NX03-IMPL-02-TEST（Crown Q-Phase7-commit3=C）、不阻擋本軌 closure。撰寫：Hank。 |
 
 ---
 
