@@ -5,6 +5,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 import { InboundController } from './inbound/inbound.controller';
 import { InboundService } from './inbound/inbound.service';
+import { InitController } from './init/init.controller';
+import { InitService } from './init/init.service';
 import { OutboundController } from './outbound/outbound.controller';
 import { OutboundService } from './outbound/outbound.service';
 import { PartStockSettingController } from './part-stock-setting/part-stock-setting.controller';
@@ -27,6 +29,7 @@ import { TransferService } from './transfer/transfer.service';
     StockLedgerController,
     StockReservationController,
     PartStockSettingController,
+    InitController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -37,6 +40,7 @@ import { TransferService } from './transfer/transfer.service';
     StockLedgerService,
     Nx03StockReservationService,
     PartStockSettingService,
+    InitService,
     InboundService,
     OutboundService,
     StockTakeService,

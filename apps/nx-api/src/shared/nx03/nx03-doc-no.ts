@@ -1,9 +1,10 @@
 import type { Prisma } from 'db-core';
 
-export type Nx03DocKind = 'IB' | 'OB' | 'SL' | 'ST';
+export type Nx03DocKind = 'IB' | 'OB' | 'SL' | 'ST' | 'IN';
 
 /**
  * NX03 單號：[類型]-[YYYYMM]-[倉庫碼]-[5 碼流水]
+ *   IB=Inbound / OB=Outbound / SL=StockTake / ST=Transfer / IN=Init
  */
 export async function allocNx03DocNo(
   tx: Prisma.TransactionClient,
@@ -34,11 +35,17 @@ export async function allocNx03DocNo(
               orderBy: { docNo: 'desc' },
               select: { docNo: true },
             })
-          : await tx.nx03St.findFirst({
-              where: { tenantId, docNo: { startsWith: prefix } },
-              orderBy: { docNo: 'desc' },
-              select: { docNo: true },
-            });
+          : kind === 'ST'
+            ? await tx.nx03St.findFirst({
+                where: { tenantId, docNo: { startsWith: prefix } },
+                orderBy: { docNo: 'desc' },
+                select: { docNo: true },
+              })
+            : await tx.nx03Init.findFirst({
+                where: { tenantId, docNo: { startsWith: prefix } },
+                orderBy: { docNo: 'desc' },
+                select: { docNo: true },
+              });
 
   let next = 1;
   if (last?.docNo) {

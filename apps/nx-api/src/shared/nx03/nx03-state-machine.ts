@@ -31,6 +31,14 @@ export const TransferStatus = {
   CANCELLED: 'CANCELLED',
 } as const;
 
+// Nx03Init.status VarChar(1)：D=DRAFT / P=POSTED / V=VOIDED
+// Crown Q-Phase3-1=a 不簽核、倉管直接過帳：D → P 一步到位、無中間 INSPECTING
+export const InitStatus = {
+  DRAFT: 'D',
+  POSTED: 'P',
+  VOIDED: 'V',
+} as const;
+
 const INBOUND_EDGES: Record<string, Set<string>> = {
   [InboundStatus.DRAFT]: new Set([InboundStatus.INSPECTING, InboundStatus.CANCELLED]),
   [InboundStatus.INSPECTING]: new Set([InboundStatus.POSTED, InboundStatus.REJECTED, InboundStatus.CANCELLED]),
@@ -62,6 +70,12 @@ const TRANSFER_EDGES: Record<string, Set<string>> = {
   [TransferStatus.CANCELLED]: new Set(),
 };
 
+const INIT_EDGES: Record<string, Set<string>> = {
+  [InitStatus.DRAFT]: new Set([InitStatus.POSTED, InitStatus.VOIDED]),
+  [InitStatus.POSTED]: new Set(),
+  [InitStatus.VOIDED]: new Set(),
+};
+
 export function assertInboundStatusTransition(from: string, to: string): void {
   const edges = INBOUND_EDGES[from];
   if (!edges || !edges.has(to)) {
@@ -87,5 +101,12 @@ export function assertTransferStatusTransition(from: string, to: string): void {
   const edges = TRANSFER_EDGES[from];
   if (!edges || !edges.has(to)) {
     throw new BadRequestException(`Invalid transfer status transition: ${from} -> ${to}`);
+  }
+}
+
+export function assertInitStatusTransition(from: string, to: string): void {
+  const edges = INIT_EDGES[from];
+  if (!edges || !edges.has(to)) {
+    throw new BadRequestException(`Invalid init status transition: ${from} -> ${to}`);
   }
 }
