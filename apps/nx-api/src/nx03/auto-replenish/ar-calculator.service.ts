@@ -15,6 +15,8 @@ import { Prisma as PrismaNs } from 'db-core';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
+import { PartReplacementService } from './part-replacement.service';
+
 /** 預設平均出貨計算窗口（天數、PartStockSetting.calculationWindowDays 為 null 時用）。 */
 export const DEFAULT_CALCULATION_WINDOW_DAYS = 90;
 
@@ -75,7 +77,10 @@ export type AftermarketBrandBreakdown = {
 
 @Injectable()
 export class ArCalculatorService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly partReplacement: PartReplacementService,
+  ) {}
 
   /**
    * Stage 1 偵測需求：找 onHand < safetyQty 的所有 part × warehouse 組合
@@ -291,31 +296,23 @@ export class ArCalculatorService {
     if (!modelId) return [];
     if (allocation.aftermarketQty.lte(0)) return [];
 
-    // 1. 找 model 下所有 isOem=false 的 parts
-    const aftermarketParts = await this.prisma.nx01PartModel.findMany({
-      where: {
-        tenantId,
-        modelId,
-        isActive: true,
-        part: { isOem: false, isActive: true },
-      },
-      select: {
-        partId: true,
-        part: { select: { partBrandId: true } },
-      },
-    });
-    if (!aftermarketParts.length) return [];
+    // 1. 找 model 下副廠池（fitLevel=2 副廠等效、isOem=false、commit 3 refactor 用 PartReplacementService）
+    const aftermarketReplacements = await this.partReplacement.findAftermarketAlternatives(
+      tenantId,
+      modelId,
+    );
+    if (!aftermarketReplacements.length) return [];
 
     // 2. 對每 part 算 windowDays 內 source=S 銷貨
     const since = new Date();
     since.setDate(since.getDate() - windowDays);
 
     const shippedByPart: Array<{ partId: string; partBrandId: string | null; shipped: PrismaNs.Decimal }> = [];
-    for (const pm of aftermarketParts) {
+    for (const rep of aftermarketReplacements) {
       const agg = await this.prisma.nx03StockLedger.aggregate({
         where: {
           tenantId,
-          partId: pm.partId,
+          partId: rep.partId,
           sourceDocType: 'S',
           movementType: 'O',
           movementDate: { gte: since },
@@ -323,8 +320,8 @@ export class ArCalculatorService {
         _sum: { qtyOut: true },
       });
       shippedByPart.push({
-        partId: pm.partId,
-        partBrandId: pm.part.partBrandId,
+        partId: rep.partId,
+        partBrandId: rep.partBrandId,
         shipped: new PrismaNs.Decimal(agg._sum.qtyOut ?? 0),
       });
     }
