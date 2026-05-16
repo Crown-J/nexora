@@ -18,6 +18,7 @@ import {
   prDbToApi,
   PrStatus,
 } from '../../shared/nx02/nx02-state-machine';
+import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -129,6 +130,67 @@ export class PurchaseReturnService {
       where: { id: prId },
       data: { subtotal: sub, taxAmount: tax, totalAmount: total },
     });
+  }
+
+  /**
+   * M1 配套：取 part 當下最新 active version（effectiveTo IS NULL、versionNo desc）
+   * Q-S1=B 漸進：partVersion 表為 null 也 OK（NX01-17 未完全 backfill 既有 part）
+   */
+  private async loadActivePartVersionId(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    partId: string,
+  ): Promise<string | null> {
+    const v = await tx.nx01PartVersion.findFirst({
+      where: { tenantId, partId, effectiveTo: null },
+      orderBy: { versionNo: 'desc' },
+      select: { id: true },
+    });
+    return v?.id ?? null;
+  }
+
+  /**
+   * PR 過帳：透過 applyQtyOutWithLedger 寫 stock_balance + stock_ledger（退供應商出庫、source=R）
+   *   - unitCost 走 stock_balance.avgCost（helper 內部自動抓、出庫成本標準）
+   *   - partVersionId 帶入（M1 配套）
+   *   - AP 沖帳邏輯不在本 commit 範圍（屬 NX05、Phase 7 跨模組接點）
+   * NX03-IMPL-01 Phase 5 commit 2：修隱性 bug「PR 純改 status 不扣帳」、補完 source=R 過帳路徑
+   */
+  private async applyPrPosting(tx: Prisma.TransactionClient, pr: PrHead, userId: string) {
+    const items = await tx.nx02PrItem.findMany({
+      where: { prId: pr.id },
+      select: { ...PR_ITEM_SEL },
+    });
+    if (!items.length) throw new BadRequestException('Purchase return has no items to post');
+
+    let postedQty = new PrismaNs.Decimal(0);
+    for (const item of items) {
+      const qtyOut = new PrismaNs.Decimal(item.qty);
+      if (qtyOut.lte(0)) continue;
+      // schema 允許 locationId nullable、過帳業務上必填（沒庫位無法定位實體出庫位置）
+      if (!item.locationId) {
+        throw new BadRequestException(
+          `Purchase return item ${item.id} (line ${item.lineNo}) missing locationId, cannot post`,
+        );
+      }
+      postedQty = postedQty.add(qtyOut);
+      const partVersionId = await this.loadActivePartVersionId(tx, pr.tenantId, item.partId);
+
+      await applyQtyOutWithLedger(tx, {
+        tenantId: pr.tenantId,
+        userId,
+        partId: item.partId,
+        warehouseId: pr.warehouseId,
+        locationId: item.locationId,
+        qtyOut,
+        sourceModule: 'NX02',
+        sourceDocType: 'R',
+        sourceDocId: pr.id,
+        sourceItemId: item.id,
+        partVersionId,
+      });
+    }
+    if (postedQty.lte(0)) throw new BadRequestException('Posted quantity must be > 0');
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {
@@ -282,21 +344,34 @@ export class PurchaseReturnService {
     }
     const taxRate =
       dto.taxRate !== undefined ? new PrismaNs.Decimal(dto.taxRate) : new PrismaNs.Decimal(existing.taxRate);
-    const postedPatch =
-      dto.status === PrStatus.POSTED && prDbToApi(existing.status) === PrStatus.DRAFT
-        ? { postedAt: new Date(), postedBy: user.sub }
-        : {};
-    await this.prisma.nx02Pr.update({
-      where: { id },
-      data: {
-        ...(dto.prDate !== undefined ? { prDate: new Date(dto.prDate) } : {}),
-        ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
-        ...(dto.status !== undefined ? { status: nextDb, ...postedPatch } : {}),
-        ...(dto.taxRate !== undefined ? { taxRate } : {}),
-        updatedBy: user.sub,
-      },
+    const isPosting = dto.status === PrStatus.POSTED && prDbToApi(existing.status) === PrStatus.DRAFT;
+
+    // Phase 5 commit 2 修隱性 bug：POSTED transition 必須過帳（applyPrPosting）、
+    // 原既有 impl 只 update header.status 不扣庫存帳、為 production 隱性 bug
+    // 整個 update 改包進 $transaction、確保 PR 過帳 + ledger + header status 原子
+    await this.prisma.$transaction(async (tx) => {
+      if (isPosting) {
+        const head = await tx.nx02Pr.findFirst({ where: { id, tenantId }, select: PR_SEL });
+        if (!head) throw new NotFoundException('Purchase return not found');
+        await this.applyPrPosting(tx, head, user.sub);
+      }
+      await tx.nx02Pr.update({
+        where: { id },
+        data: {
+          ...(dto.prDate !== undefined ? { prDate: new Date(dto.prDate) } : {}),
+          ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
+          ...(dto.status !== undefined
+            ? {
+                status: nextDb,
+                ...(isPosting ? { postedAt: new Date(), postedBy: user.sub } : {}),
+              }
+            : {}),
+          ...(dto.taxRate !== undefined ? { taxRate } : {}),
+          updatedBy: user.sub,
+        },
+      });
+      if (dto.taxRate !== undefined) await this.recalcPrTotals(tx, id, taxRate);
     });
-    if (dto.taxRate !== undefined) await this.recalcPrTotals(this.prisma, id, taxRate);
     const full = await this.prisma.nx02Pr.findFirst({
       where: { id },
       select: { ...PR_SEL, rev_Nx02PrItem_prId: { orderBy: { lineNo: 'asc' }, select: PR_ITEM_SEL } },

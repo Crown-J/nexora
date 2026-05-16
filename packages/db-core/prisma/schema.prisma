@@ -117,45 +117,45 @@ model Nx01BrandCodeRule {
 /// =======================================================
 model Nx01Bulletin {
   /// [NX01]+[BULL]+[7碼流水號]，EX : NX01BULL0000001；啟用最低需求版本：LITE
-  id               String                  @id @default(dbgenerated("gen_nx01_bulletin_id()")) @db.VarChar(15)
+  id              String                   @id @default(dbgenerated("gen_nx01_bulletin_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId         String                  @map("tenant_id") @db.VarChar(15)
+  tenantId        String                   @map("tenant_id") @db.VarChar(15)
   /// 公告標題；啟用最低需求版本：LITE
-  title            String                  @db.VarChar(100)
+  title           String                   @db.VarChar(100)
   /// 公告內容（rich text、HTML 5000 字內）；啟用最低需求版本：LITE
-  content          String?                 @db.Text
+  content         String?                  @db.Text
   /// 公告類型（v0 遺留：S=SYSTEM / C=COMPANY / R=REMIND）。v1.0 改用 category_id；本欄位保留 backward compat、後續 task 廢棄。
-  type             String                  @default("C") @db.VarChar(1)
+  type            String                   @default("C") @db.VarChar(1)
   /// 分類 FK（連 nx01_bulletin_category、v1.0 對齊 audience_logic 對象範圍）；啟用最低需求版本：LITE
-  categoryId       String?                 @map("category_id") @db.VarChar(15)
+  categoryId      String?                  @map("category_id") @db.VarChar(15)
   /// 重要等級：normal=一般 / important=重要（第一次登入跳 modal） / urgent=緊急（每次登入跳）；啟用最低需求版本：LITE
-  importance       String                  @default("normal") @db.VarChar(20)
+  importance      String                   @default("normal") @db.VarChar(20)
   /// 補充指定 user IDs（在 category 對象範圍外、額外加掛指定 user）；啟用最低需求版本：LITE
-  audienceUserIds  String[]                @map("audience_user_ids") @db.VarChar(15)
+  audienceUserIds String[]                 @map("audience_user_ids") @db.VarChar(15)
   /// 發布時間（預設 now、PRO 可排程未來）；啟用最低需求版本：LITE
-  publishAt        DateTime                @default(now()) @map("publish_at")
+  publishAt       DateTime                 @default(now()) @map("publish_at")
   /// 狀態：draft=草稿 / scheduled=排程中 / published=已發布 / withdrawn=撤回 / expired=過期；啟用最低需求版本：LITE
-  status           String                  @default("draft") @db.VarChar(20)
+  status          String                   @default("draft") @db.VarChar(20)
   /// 是否置頂（v0 遺留欄位、保留 backward compat、v1.0 spec 未提）；啟用最低需求版本：LITE
-  isPinned         Boolean                 @default(false) @map("is_pinned")
+  isPinned        Boolean                  @default(false) @map("is_pinned")
   /// 到期時間（NULL = 永久顯示）；啟用最低需求版本：LITE
-  expiredAt        DateTime?               @map("expired_at")
+  expiredAt       DateTime?                @map("expired_at")
   /// 已讀人數（trigger 自動更新、來自 nx01_bulletin_read_log count）；啟用最低需求版本：LITE
-  readCount        Int                     @default(0) @map("read_count")
+  readCount       Int                      @default(0) @map("read_count")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive         Boolean                 @default(true) @map("is_active")
+  isActive        Boolean                  @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt        DateTime                @default(now()) @map("created_at")
+  createdAt       DateTime                 @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy        String                  @map("created_by") @db.VarChar(15)
+  createdBy       String                   @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt        DateTime                @updatedAt @map("updated_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy        String                  @map("updated_by") @db.VarChar(15)
-  tenant           Nx99Tenant              @relation("R_Nx01Bulletin_tenantId", fields: [tenantId], references: [id])
-  category         Nx01BulletinCategory?   @relation("R_Nx01Bulletin_categoryId", fields: [categoryId], references: [id])
-  rev_Attachment   Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_bulletinId")
-  rev_ReadLog      Nx01BulletinReadLog[]   @relation("R_Nx01BulletinReadLog_bulletinId")
+  updatedBy       String                   @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant               @relation("R_Nx01Bulletin_tenantId", fields: [tenantId], references: [id])
+  category        Nx01BulletinCategory?    @relation("R_Nx01Bulletin_categoryId", fields: [categoryId], references: [id])
+  rev_Attachment  Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_bulletinId")
+  rev_ReadLog     Nx01BulletinReadLog[]    @relation("R_Nx01BulletinReadLog_bulletinId")
 
   @@map("nx01_bulletin")
 }
@@ -207,26 +207,26 @@ model Nx01BulletinCategory {
 /// =======================================================
 model Nx01BulletinAttachment {
   /// [NX01]+[BATT]+[7碼流水號]，EX : NX01BATT0000001；啟用最低需求版本：LITE
-  id              String       @id @default(dbgenerated("gen_nx01_bulletin_attachment_id()")) @db.VarChar(15)
+  id             String       @id @default(dbgenerated("gen_nx01_bulletin_attachment_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵、軌 1 FileUploadService.upload() tenantId prefix 強制驗證對齊）；啟用最低需求版本：LITE
-  tenantId        String       @map("tenant_id") @db.VarChar(15)
+  tenantId       String       @map("tenant_id") @db.VarChar(15)
   /// 公告 FK；啟用最低需求版本：LITE
-  bulletinId      String       @map("bulletin_id") @db.VarChar(15)
+  bulletinId     String       @map("bulletin_id") @db.VarChar(15)
   /// 檔案在 storage 的 key（範式：{tenantId}/{module}/{yyyy}/{mm}/{uuid}{ext}、階段 1 本地路徑、階段 2 R2 object key）；啟用最低需求版本：LITE
-  storageKey      String       @map("storage_key") @db.VarChar(500)
+  storageKey     String       @map("storage_key") @db.VarChar(500)
   /// MIME 類型（application/pdf / image/png 等）；啟用最低需求版本：LITE
-  mimeType        String       @map("mime_type") @db.VarChar(100)
+  mimeType       String       @map("mime_type") @db.VarChar(100)
   /// 檔案大小（bytes）；啟用最低需求版本：LITE
-  fileSize        Int          @map("file_size")
+  fileSize       Int          @map("file_size")
   /// 上傳時原始檔名；啟用最低需求版本：LITE
-  origFilename    String       @map("orig_filename") @db.VarChar(255)
+  origFilename   String       @map("orig_filename") @db.VarChar(255)
   /// 上傳者 FK；啟用最低需求版本：LITE
-  uploaderUserId  String       @map("uploader_user_id") @db.VarChar(15)
+  uploaderUserId String       @map("uploader_user_id") @db.VarChar(15)
   /// 上傳時間；啟用最低需求版本：LITE
-  createdAt       DateTime     @default(now()) @map("created_at")
-  tenant          Nx99Tenant   @relation("R_Nx01BulletinAttachment_tenantId", fields: [tenantId], references: [id])
-  bulletin        Nx01Bulletin @relation("R_Nx01BulletinAttachment_bulletinId", fields: [bulletinId], references: [id], onDelete: Cascade)
-  uploader        Nx01User     @relation("R_Nx01BulletinAttachment_uploaderUserId", fields: [uploaderUserId], references: [id])
+  createdAt      DateTime     @default(now()) @map("created_at")
+  tenant         Nx99Tenant   @relation("R_Nx01BulletinAttachment_tenantId", fields: [tenantId], references: [id])
+  bulletin       Nx01Bulletin @relation("R_Nx01BulletinAttachment_bulletinId", fields: [bulletinId], references: [id], onDelete: Cascade)
+  uploader       Nx01User     @relation("R_Nx01BulletinAttachment_uploaderUserId", fields: [uploaderUserId], references: [id])
 
   @@index([bulletinId])
   @@map("nx01_bulletin_attachment")
@@ -238,20 +238,20 @@ model Nx01BulletinAttachment {
 /// =======================================================
 model Nx01BulletinReadLog {
   /// [NX01]+[BRLG]+[7碼流水號]，EX : NX01BRLG0000001；啟用最低需求版本：LITE
-  id              String       @id @default(dbgenerated("gen_nx01_bulletin_read_log_id()")) @db.VarChar(15)
+  id             String       @id @default(dbgenerated("gen_nx01_bulletin_read_log_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId        String       @map("tenant_id") @db.VarChar(15)
+  tenantId       String       @map("tenant_id") @db.VarChar(15)
   /// 公告 FK；啟用最低需求版本：LITE
-  bulletinId      String       @map("bulletin_id") @db.VarChar(15)
+  bulletinId     String       @map("bulletin_id") @db.VarChar(15)
   /// 已讀者 FK；啟用最低需求版本：LITE
-  userId          String       @map("user_id") @db.VarChar(15)
+  userId         String       @map("user_id") @db.VarChar(15)
   /// 已讀時間；啟用最低需求版本：LITE
-  readAt          DateTime     @default(now()) @map("read_at")
+  readAt         DateTime     @default(now()) @map("read_at")
   /// 閱讀時間（modal 開啟 → 點「我已閱讀」毫秒數）；啟用最低需求版本：LITE
-  readDurationMs  Int?         @map("read_duration_ms")
-  tenant          Nx99Tenant   @relation("R_Nx01BulletinReadLog_tenantId", fields: [tenantId], references: [id])
-  bulletin        Nx01Bulletin @relation("R_Nx01BulletinReadLog_bulletinId", fields: [bulletinId], references: [id], onDelete: Cascade)
-  user            Nx01User     @relation("R_Nx01BulletinReadLog_userId", fields: [userId], references: [id])
+  readDurationMs Int?         @map("read_duration_ms")
+  tenant         Nx99Tenant   @relation("R_Nx01BulletinReadLog_tenantId", fields: [tenantId], references: [id])
+  bulletin       Nx01Bulletin @relation("R_Nx01BulletinReadLog_bulletinId", fields: [bulletinId], references: [id], onDelete: Cascade)
+  user           Nx01User     @relation("R_Nx01BulletinReadLog_userId", fields: [userId], references: [id])
 
   @@unique([bulletinId, userId])
   @@index([userId])
@@ -300,39 +300,39 @@ model Nx01CalendarEvent {
 /// =======================================================
 model Nx01CarBrand {
   /// [NX01]+[CABR]+[7碼流水號]，EX : NX01CABR0000001；啟用最低需求版本：LITE
-  id        String       @id @default(dbgenerated("gen_nx01_car_brand_id()")) @db.VarChar(15)
+  id                               String              @id @default(dbgenerated("gen_nx01_car_brand_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId  String       @map("tenant_id") @db.VarChar(15)
+  tenantId                         String              @map("tenant_id") @db.VarChar(15)
   /// 品牌代碼（業界縮寫、tenant 內 unique、例：VAG / POR / BMW / BEN）；啟用最低需求版本：LITE
-  code      String       @db.VarChar(30)
+  code                             String              @db.VarChar(30)
   /// 品牌中文名（顯示用、例：福斯集團 / 保時捷）；啟用最低需求版本：LITE
-  name      String       @db.VarChar(100)
+  name                             String              @db.VarChar(100)
   /// 品牌英文名（國際對照、跨國採購單據引用、例：Volkswagen AG / Porsche）；啟用最低需求版本：LITE
-  nameEn    String?      @map("name_en") @db.VarChar(100)
+  nameEn                           String?             @map("name_en") @db.VarChar(100)
   /// 品牌國家 (外鍵)；啟用最低需求版本：LITE
-  countryId String?      @map("country_id") @db.VarChar(15)
+  countryId                        String?             @map("country_id") @db.VarChar(15)
   /// 品牌 Logo URL（規格 v1.0 Q1=B：schema 預留、v1.0 UI 不渲染、v2.0+ 業務需求再開）；啟用最低需求版本：LITE
-  logoUrl   String?      @map("logo_url") @db.VarChar(500)
+  logoUrl                          String?             @map("logo_url") @db.VarChar(500)
   /// 備註說明；啟用最低需求版本：LITE
-  remark    String?      @db.VarChar(200)
+  remark                           String?             @db.VarChar(200)
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
-  isActive  Boolean      @default(true) @map("is_active")
+  isActive                         Boolean             @default(true) @map("is_active")
   /// 排序用（下拉選單顯示順序）；啟用最低需求版本：LITE
-  sortNo    Int          @default(0) @map("sort_no")
+  sortNo                           Int                 @default(0) @map("sort_no")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt DateTime     @default(now()) @map("created_at")
+  createdAt                        DateTime            @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy String       @map("created_by") @db.VarChar(15)
+  createdBy                        String              @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt DateTime     @updatedAt @map("updated_at")
+  updatedAt                        DateTime            @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy String       @map("updated_by") @db.VarChar(15)
-  tenant                            Nx99Tenant          @relation("R_Nx01CarBrand_tenantId", fields: [tenantId], references: [id])
-  country                           Nx01Country?        @relation("R_Nx01CarBrand_countryId", fields: [countryId], references: [id])
-  rev_Nx01BrandCodeRule_carBrandId  Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_carBrandId")
-  rev_Nx01Engine_carBrandId         Nx01Engine[]        @relation("R_Nx01Engine_carBrandId")
-  rev_Nx01Transmission_carBrandId   Nx01Transmission[]  @relation("R_Nx01Transmission_carBrandId")
-  rev_Nx01Model_carBrandId          Nx01Model[]         @relation("R_Nx01Model_carBrandId")
+  updatedBy                        String              @map("updated_by") @db.VarChar(15)
+  tenant                           Nx99Tenant          @relation("R_Nx01CarBrand_tenantId", fields: [tenantId], references: [id])
+  country                          Nx01Country?        @relation("R_Nx01CarBrand_countryId", fields: [countryId], references: [id])
+  rev_Nx01BrandCodeRule_carBrandId Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_carBrandId")
+  rev_Nx01Engine_carBrandId        Nx01Engine[]        @relation("R_Nx01Engine_carBrandId")
+  rev_Nx01Transmission_carBrandId  Nx01Transmission[]  @relation("R_Nx01Transmission_carBrandId")
+  rev_Nx01Model_carBrandId         Nx01Model[]         @relation("R_Nx01Model_carBrandId")
 
   @@unique([tenantId, code])
   @@map("nx01_car_brand")
@@ -374,36 +374,36 @@ model Nx01Country {
 /// =======================================================
 model Nx01Currency {
   /// [NX01]+[CURR]+[7碼流水號]，EX : NX01CURR0000001；啟用最低需求版本：LITE
-  id                              String             @id @default(dbgenerated("gen_nx01_currency_id()")) @db.VarChar(15)
+  id                                String             @id @default(dbgenerated("gen_nx01_currency_id()")) @db.VarChar(15)
   /// 幣別代碼，例：TWD、EUR、JPY；啟用最低需求版本：LITE
-  code                            String             @db.VarChar(3)
+  code                              String             @db.VarChar(3)
   /// 幣別名稱，例：新台幣、歐元；啟用最低需求版本：LITE
-  name                            String             @db.VarChar(100)
+  name                              String             @db.VarChar(100)
   /// 符號，例：$、€、?；啟用最低需求版本：LITE
-  symbol                          String?            @db.VarChar(5)
+  symbol                            String?            @db.VarChar(5)
   /// 小數位數（TWD=0, USD=2）；啟用最低需求版本：LITE
-  decimalPlaces                   Int                @default(2) @map("decimal_places")
+  decimalPlaces                     Int                @default(2) @map("decimal_places")
   /// 排序；啟用最低需求版本：LITE
-  sortNo                          Int                @default(0) @map("sort_no")
+  sortNo                            Int                @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive                        Boolean            @default(true) @map("is_active")
+  isActive                          Boolean            @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt                       DateTime           @default(now()) @map("created_at")
+  createdAt                         DateTime           @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy                       String             @map("created_by") @db.VarChar(15)
+  createdBy                         String             @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt                       DateTime           @updatedAt @map("updated_at")
+  updatedAt                         DateTime           @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy                       String             @map("updated_by") @db.VarChar(15)
-  rev_Nx02RfqItem_currencyId      Nx02RfqItem[]      @relation("R_Nx02RfqItem_currencyId")
-  rev_Nx02RrImport_currencyId     Nx02RrImport[]     @relation("R_Nx02RrImport_currencyId")
-  rev_Nx02Ti_currencyId           Nx02Ti[]           @relation("R_Nx02Ti_currencyId")
-  rev_Nx04Quote_currencyId        Nx04Quote[]        @relation("R_Nx04Quote_currencyId")
-  rev_Nx04So_currencyId           Nx04So[]           @relation("R_Nx04So_currencyId")
-  rev_Nx05ApLedger_currencyId     Nx05ApLedger[]     @relation("R_Nx05ApLedger_currencyId")
-  rev_Nx05ArLedger_currencyId     Nx05ArLedger[]     @relation("R_Nx05ArLedger_currencyId")
-  rev_Nx05Note_currencyId         Nx05Note[]         @relation("R_Nx05Note_currencyId")
-  rev_Nx05Paylog_currencyId       Nx05Paylog[]       @relation("R_Nx05Paylog_currencyId")
+  updatedBy                         String             @map("updated_by") @db.VarChar(15)
+  rev_Nx02RfqItem_currencyId        Nx02RfqItem[]      @relation("R_Nx02RfqItem_currencyId")
+  rev_Nx02RrImport_currencyId       Nx02RrImport[]     @relation("R_Nx02RrImport_currencyId")
+  rev_Nx02Ti_currencyId             Nx02Ti[]           @relation("R_Nx02Ti_currencyId")
+  rev_Nx04Quote_currencyId          Nx04Quote[]        @relation("R_Nx04Quote_currencyId")
+  rev_Nx04So_currencyId             Nx04So[]           @relation("R_Nx04So_currencyId")
+  rev_Nx05ApLedger_currencyId       Nx05ApLedger[]     @relation("R_Nx05ApLedger_currencyId")
+  rev_Nx05ArLedger_currencyId       Nx05ArLedger[]     @relation("R_Nx05ArLedger_currencyId")
+  rev_Nx05Note_currencyId           Nx05Note[]         @relation("R_Nx05Note_currencyId")
+  rev_Nx05Paylog_currencyId         Nx05Paylog[]       @relation("R_Nx05Paylog_currencyId")
   rev_Nx99Subscription_currencyId   Nx99Subscription[] @relation("R_Nx99Subscription_currencyId")
   rev_Nx01Partner_defaultCurrencyId Nx01Partner[]      @relation("R_Nx01Partner_defaultCurrencyId")
 
@@ -646,52 +646,55 @@ model Nx01KpiTemplate {
 /// =======================================================
 model Nx01Location {
   /// [NX01]+[LOCA]+[7碼流水號]，EX : NX01LOCA0000001；啟用最低需求版本：LITE
-  id                               String              @id @default(dbgenerated("gen_nx01_location_id()")) @db.VarChar(15)
+  id                                  String                 @id @default(dbgenerated("gen_nx01_location_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                         String              @map("tenant_id") @db.VarChar(15)
+  tenantId                            String                 @map("tenant_id") @db.VarChar(15)
   /// 所屬倉庫 ID；啟用最低需求版本：LITE
-  warehouseId                      String              @map("warehouse_id") @db.VarChar(15)
+  warehouseId                         String                 @map("warehouse_id") @db.VarChar(15)
   /// 庫位代碼（倉內唯一），例：A-01-01、B2-03；啟用最低需求版本：LITE
-  code                             String              @db.VarChar(30)
+  code                                String                 @db.VarChar(30)
   /// 庫位名稱（選填），例：靠門口、二樓左側；啟用最低需求版本：LITE
-  name                             String?             @db.VarChar(100)
+  name                                String?                @db.VarChar(100)
   /// 區域（選填），例：A區、B區；啟用最低需求版本：LITE
-  zone                             String?             @db.VarChar(20)
+  zone                                String?                @db.VarChar(20)
   /// 架號（選填），例：R01；啟用最低需求版本：LITE
-  rack                             String?             @db.VarChar(20)
+  rack                                String?                @db.VarChar(20)
   /// 層（選填），例：1、2、3；啟用最低需求版本：LITE
-  levelNo                          Int?                @map("level_no")
+  levelNo                             Int?                   @map("level_no")
   /// 格（選填），例：01、02；啟用最低需求版本：LITE
-  binNo                            String?             @map("bin_no") @db.VarChar(20)
+  binNo                               String?                @map("bin_no") @db.VarChar(20)
   /// 備註（選填）；啟用最低需求版本：LITE
-  remark                           String?             @db.VarChar(200)
+  remark                              String?                @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo                           Int                 @default(0) @map("sort_no")
+  sortNo                              Int                    @default(0) @map("sort_no")
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
-  isActive                         Boolean             @default(true) @map("is_active")
+  isActive                            Boolean                @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt                        DateTime            @default(now()) @map("created_at")
+  createdAt                           DateTime               @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy                        String              @map("created_by") @db.VarChar(15)
+  createdBy                           String                 @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt                        DateTime            @updatedAt @map("updated_at")
+  updatedAt                           DateTime               @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy                        String              @map("updated_by") @db.VarChar(15)
-  tenant                           Nx99Tenant          @relation("R_Nx01Location_tenantId", fields: [tenantId], references: [id])
-  warehouse                        Nx01Warehouse       @relation("R_Nx01Location_warehouseId", fields: [warehouseId], references: [id])
-  rev_Nx02PrItem_locationId        Nx02PrItem[]        @relation("R_Nx02PrItem_locationId")
-  rev_Nx02RrItem_locationId        Nx02RrItem[]        @relation("R_Nx02RrItem_locationId")
-  rev_Nx02TiItem_locationId        Nx02TiItem[]        @relation("R_Nx02TiItem_locationId")
-  rev_Nx03InitItem_locationId      Nx03InitItem[]      @relation("R_Nx03InitItem_locationId")
-  rev_Nx03PkItem_locationId        Nx03PkItem[]        @relation("R_Nx03PkItem_locationId")
-  rev_Nx03StItem_fromLocationId    Nx03StItem[]        @relation("R_Nx03StItem_fromLocationId")
-  rev_Nx03StItem_toLocationId      Nx03StItem[]        @relation("R_Nx03StItem_toLocationId")
-  rev_Nx03StockLedger_locationId   Nx03StockLedger[]   @relation("R_Nx03StockLedger_locationId")
-  rev_Nx03StockTakeItem_locationId Nx03StockTakeItem[] @relation("R_Nx03StockTakeItem_locationId")
-  rev_Nx03InboundItem_locationId   Nx03InboundItem[]   @relation("R_Nx03InboundItem_locationId")
-  rev_Nx03OutboundItem_locationId  Nx03OutboundItem[]  @relation("R_Nx03OutboundItem_locationId")
-  rev_Nx04SoItem_locationId        Nx04SoItem[]        @relation("R_Nx04SoItem_locationId")
-  rev_Nx04SrItem_locationId        Nx04SrItem[]        @relation("R_Nx04SrItem_locationId")
+  updatedBy                           String                 @map("updated_by") @db.VarChar(15)
+  tenant                              Nx99Tenant             @relation("R_Nx01Location_tenantId", fields: [tenantId], references: [id])
+  warehouse                           Nx01Warehouse          @relation("R_Nx01Location_warehouseId", fields: [warehouseId], references: [id])
+  rev_Nx02PrItem_locationId           Nx02PrItem[]           @relation("R_Nx02PrItem_locationId")
+  rev_Nx02RrItem_locationId           Nx02RrItem[]           @relation("R_Nx02RrItem_locationId")
+  rev_Nx02TiItem_locationId           Nx02TiItem[]           @relation("R_Nx02TiItem_locationId")
+  rev_Nx03InitItem_locationId         Nx03InitItem[]         @relation("R_Nx03InitItem_locationId")
+  rev_Nx03PkItem_locationId           Nx03PkItem[]           @relation("R_Nx03PkItem_locationId")
+  rev_Nx03StItem_fromLocationId       Nx03StItem[]           @relation("R_Nx03StItem_fromLocationId")
+  rev_Nx03StItem_toLocationId         Nx03StItem[]           @relation("R_Nx03StItem_toLocationId")
+  rev_Nx03StockLedger_locationId      Nx03StockLedger[]      @relation("R_Nx03StockLedger_locationId")
+  rev_Nx03StockTakeItem_locationId    Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_locationId")
+  rev_Nx03InboundItem_locationId      Nx03InboundItem[]      @relation("R_Nx03InboundItem_locationId")
+  rev_Nx03OutboundItem_locationId     Nx03OutboundItem[]     @relation("R_Nx03OutboundItem_locationId")
+  rev_Nx03DisposalItem_locationId     Nx03DisposalItem[]     @relation("R_Nx03DisposalItem_locationId")
+  rev_Nx03ConversionInput_locationId  Nx03ConversionInput[]  @relation("R_Nx03ConversionInput_locationId")
+  rev_Nx03ConversionOutput_locationId Nx03ConversionOutput[] @relation("R_Nx03ConversionOutput_locationId")
+  rev_Nx04SoItem_locationId           Nx04SoItem[]           @relation("R_Nx04SoItem_locationId")
+  rev_Nx04SrItem_locationId           Nx04SrItem[]           @relation("R_Nx04SrItem_locationId")
 
   @@map("nx01_location")
 }
@@ -786,6 +789,9 @@ model Nx01Part {
   rev_Nx03StockTakeItem_partId    Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_partId")
   rev_Nx03InboundItem_partId      Nx03InboundItem[]      @relation("R_Nx03InboundItem_partId")
   rev_Nx03OutboundItem_partId     Nx03OutboundItem[]     @relation("R_Nx03OutboundItem_partId")
+  rev_Nx03DisposalItem_partId     Nx03DisposalItem[]     @relation("R_Nx03DisposalItem_partId")
+  rev_Nx03ConversionInput_partId  Nx03ConversionInput[]  @relation("R_Nx03ConversionInput_partId")
+  rev_Nx03ConversionOutput_partId Nx03ConversionOutput[] @relation("R_Nx03ConversionOutput_partId")
   rev_Nx04Co_partId               Nx04Co[]               @relation("R_Nx04Co_partId")
   rev_Nx04QuoteItem_partId        Nx04QuoteItem[]        @relation("R_Nx04QuoteItem_partId")
   rev_Nx04SoItem_partId           Nx04SoItem[]           @relation("R_Nx04SoItem_partId")
@@ -808,33 +814,33 @@ model Nx01Part {
 /// =======================================================
 model Nx01PartBrand {
   /// [NX01]+[PABR]+[7碼流水號]，EX : NX01PABR0000001；啟用最低需求版本：LITE
-  id                                String              @id @default(dbgenerated("gen_nx01_part_brand_id()")) @db.VarChar(15)
+  id                         String       @id @default(dbgenerated("gen_nx01_part_brand_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                          String              @map("tenant_id") @db.VarChar(15)
+  tenantId                   String       @map("tenant_id") @db.VarChar(15)
   /// 品牌代碼（唯一，例：VAG、BMW、OEM）；啟用最低需求版本：LITE
-  code                              String              @db.VarChar(3)
+  code                       String       @db.VarChar(3)
   /// 品牌名稱（顯示用）；啟用最低需求版本：LITE
-  name                              String              @db.VarChar(100)
+  name                       String       @db.VarChar(100)
   /// 品牌國家 (外鍵)；啟用最低需求版本：LITE
-  countryId                         String?             @map("country_id") @db.VarChar(15)
+  countryId                  String?      @map("country_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
-  remark                            String?             @db.VarChar(200)
+  remark                     String?      @db.VarChar(200)
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
-  isActive                          Boolean             @default(true) @map("is_active")
+  isActive                   Boolean      @default(true) @map("is_active")
   /// 排序用（下拉選單顯示順序）；啟用最低需求版本：LITE
-  sortNo                            Int                 @default(0) @map("sort_no")
+  sortNo                     Int          @default(0) @map("sort_no")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt                         DateTime            @default(now()) @map("created_at")
+  createdAt                  DateTime     @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy                         String              @map("created_by") @db.VarChar(15)
+  createdBy                  String       @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt                         DateTime            @updatedAt @map("updated_at")
+  updatedAt                  DateTime     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy                         String              @map("updated_by") @db.VarChar(15)
-  tenant                            Nx99Tenant          @relation("R_Nx01PartBrand_tenantId", fields: [tenantId], references: [id])
-  country                           Nx01Country?        @relation("R_Nx01PartBrand_countryId", fields: [countryId], references: [id])
-  rev_Nx01Part_partBrandId          Nx01Part[]          @relation("R_Nx01Part_partBrandId")
-  rev_Nx03StItem_partBrandId        Nx03StItem[]        @relation("R_Nx03StItem_partBrandId")
+  updatedBy                  String       @map("updated_by") @db.VarChar(15)
+  tenant                     Nx99Tenant   @relation("R_Nx01PartBrand_tenantId", fields: [tenantId], references: [id])
+  country                    Nx01Country? @relation("R_Nx01PartBrand_countryId", fields: [countryId], references: [id])
+  rev_Nx01Part_partBrandId   Nx01Part[]   @relation("R_Nx01Part_partBrandId")
+  rev_Nx03StItem_partBrandId Nx03StItem[] @relation("R_Nx03StItem_partBrandId")
 
   @@unique([tenantId, code])
   @@map("nx01_part_brand")
@@ -915,89 +921,89 @@ model Nx01PartRelation {
 /// =======================================================
 model Nx01Partner {
   /// [NX01]+[PTNR]+[7碼流水號]，EX : NX01PTNR0000001；啟用最低需求版本：LITE
-  id                               String              @id @default(dbgenerated("gen_nx01_partner_id()")) @db.VarChar(15)
+  id                                       String                       @id @default(dbgenerated("gen_nx01_partner_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                         String              @map("tenant_id") @db.VarChar(15)
+  tenantId                                 String                       @map("tenant_id") @db.VarChar(15)
   /// 交易對象代碼（唯一），例：C0001、S0003、BP0008；啟用最低需求版本：LITE
-  code                             String              @db.VarChar(30)
+  code                                     String                       @db.VarChar(30)
   /// 交易對象名稱（公司名/店名/個人名）；啟用最低需求版本：LITE
-  name                             String              @db.VarChar(120)
+  name                                     String                       @db.VarChar(120)
   /// 角色類型。( C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行)；啟用最低需求版本：LITE
-  partnerType                      String              @default("C") @map("partner_type") @db.VarChar(1)
+  partnerType                              String                       @default("C") @map("partner_type") @db.VarChar(1)
   /// 聯絡人（可空）；啟用最低需求版本：LITE
-  contactName                      String?             @map("contact_name") @db.VarChar(50)
+  contactName                              String?                      @map("contact_name") @db.VarChar(50)
   /// 電話（可空）；啟用最低需求版本：LITE
-  phone                            String?             @db.VarChar(30)
+  phone                                    String?                      @db.VarChar(30)
   /// 手機（可空）；啟用最低需求版本：LITE
-  mobile                           String?             @db.VarChar(30)
+  mobile                                   String?                      @db.VarChar(30)
   /// Email（可空）；啟用最低需求版本：LITE
-  email                            String?             @db.VarChar(100)
+  email                                    String?                      @db.VarChar(100)
   /// 地址（可空）；啟用最低需求版本：LITE
-  address                          String?             @db.VarChar(200)
+  address                                  String?                      @db.VarChar(200)
   /// 備註（例：習慣月結、送貨時間、黑名單原因等）；啟用最低需求版本：LITE
-  remark                           String?             @db.VarChar(200)
+  remark                                   String?                      @db.VarChar(200)
   /// 是否啟用（停用後不可再開單）；啟用最低需求版本：LITE
-  isActive                         Boolean             @default(true) @map("is_active")
+  isActive                                 Boolean                      @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt                        DateTime            @default(now()) @map("created_at")
+  createdAt                                DateTime                     @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy                        String              @map("created_by") @db.VarChar(15)
+  createdBy                                String                       @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt                        DateTime            @updatedAt @map("updated_at")
+  updatedAt                                DateTime                     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy                        String              @map("updated_by") @db.VarChar(15)
+  updatedBy                                String                       @map("updated_by") @db.VarChar(15)
   /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
-  taxId                            String?             @map("tax_id") @db.VarChar(20)
+  taxId                                    String?                      @map("tax_id") @db.VarChar(20)
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
-  paymentTermDomestic              String              @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
+  paymentTermDomestic                      String                       @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
   /// 客戶等級ID（FK nx01_customer_grade），供報價單定價邏輯使用。僅客戶類型（partner_type=C）填寫。；啟用最低需求版本：LITE-CORE
-  customerGradeId                  String?             @map("customer_grade_id") @db.VarChar(15)
+  customerGradeId                          String?                      @map("customer_grade_id") @db.VarChar(15)
   /// 信用額度（客戶用），0=不限制。已用額度超過80%警示，超過100%通知負責人。負責人可設定口頭警告/僅收現金/凍結三種處置方式。；啟用最低需求版本：LITE-CORE
-  creditLimit                      Decimal?            @default(0) @map("credit_limit") @db.Decimal(15, 2)
+  creditLimit                              Decimal?                     @default(0) @map("credit_limit") @db.Decimal(15, 2)
   /// 信用狀態（N=正常/W=僅收現金/F=凍結）。凍結時業務無法建立新SO，系統直接擋單。由負責人設定。；啟用最低需求版本：LITE-CORE
-  creditStatus                     String              @default("N") @map("credit_status") @db.VarChar(1)
+  creditStatus                             String                       @default("N") @map("credit_status") @db.VarChar(1)
   /// 進口付款條件預設值（TT=電匯T/T/LC=信用狀L/C/DP=付款交單D/P/DA=承兌交單D/A）。建立進口採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
-  paymentTermImport                String?             @default("TT") @map("payment_term_import") @db.VarChar(5)
+  paymentTermImport                        String?                      @default("TT") @map("payment_term_import") @db.VarChar(5)
   /// 貿易條件預設值（FOB/CIF/EXW/DDP等），建立進口採購單時自動帶入作為預設，可於採購單層級手動覆蓋。影響進口費用攤分的必填欄位判斷。；啟用最低需求版本：LITE-CORE
-  incoterm                         String?             @default("FOB") @db.VarChar(5)
+  incoterm                                 String?                      @default("FOB") @db.VarChar(5)
   /// 公司簡稱（精簡顯示用、注音索引欄位之一）；啟用最低需求版本：LITE
-  shortName                        String?             @map("short_name") @db.VarChar(50)
+  shortName                                String?                      @map("short_name") @db.VarChar(50)
   /// 公司英文名（國際 / 進口場景顯示）；啟用最低需求版本：LITE
-  nameEn                           String?             @map("name_en") @db.VarChar(100)
+  nameEn                                   String?                      @map("name_en") @db.VarChar(100)
   /// 傳真號（業界仍有使用、補對齊既有 mobile）；啟用最低需求版本：LITE
-  fax                              String?             @db.VarChar(30)
+  fax                                      String?                      @db.VarChar(30)
   /// 公司官網 URL；啟用最低需求版本：LITE
-  website                          String?             @db.VarChar(200)
+  website                                  String?                      @db.VarChar(200)
   /// 負責據點（業務分區 / 區域代碼）；啟用最低需求版本：LITE
-  serviceLocation                  String?             @map("service_location") @db.VarChar(50)
+  serviceLocation                          String?                      @map("service_location") @db.VarChar(50)
   /// 業務歸屬使用者 ID（FK nx01_user、業務離職時 SET NULL、5 種 partner_type 通用）；啟用最低需求版本：LITE
-  salesUserId                      String?             @map("sales_user_id") @db.VarChar(15)
+  salesUserId                              String?                      @map("sales_user_id") @db.VarChar(15)
   /// 預設交易幣別 ID（FK nx01_currency、ON DELETE RESTRICT 幣別不可刪）；啟用最低需求版本：LITE
-  defaultCurrencyId                String?             @map("default_currency_id") @db.VarChar(15)
-  tenant                           Nx99Tenant          @relation("R_Nx01Partner_tenantId", fields: [tenantId], references: [id])
-  customerGrade                    Nx01CustomerGrade?  @relation("R_Nx01Partner_customerGradeId", fields: [customerGradeId], references: [id])
-  salesUser                        Nx01User?           @relation("R_Nx01Partner_salesUserId", fields: [salesUserId], references: [id])
-  defaultCurrency                  Nx01Currency?       @relation("R_Nx01Partner_defaultCurrencyId", fields: [defaultCurrencyId], references: [id], onDelete: Restrict)
-  rev_Nx02Demand_customerId        Nx02Demand[]        @relation("R_Nx02Demand_customerId")
-  rev_Nx02Po_supplierId            Nx02Po[]            @relation("R_Nx02Po_supplierId")
-  rev_Nx02Pr_supplierId            Nx02Pr[]            @relation("R_Nx02Pr_supplierId")
-  rev_Nx02Qt_inquiryPartnerId      Nx02Qt[]            @relation("R_Nx02Qt_inquiryPartnerId")
-  rev_Nx02Rfq_supplierId           Nx02Rfq[]           @relation("R_Nx02Rfq_supplierId")
-  rev_Nx02Rr_supplierId            Nx02Rr[]            @relation("R_Nx02Rr_supplierId")
-  rev_Nx02Ti_partnerId             Nx02Ti[]            @relation("R_Nx02Ti_partnerId")
-  rev_Nx03Parcel_toPartnerId       Nx03Parcel[]        @relation("R_Nx03Parcel_toPartnerId")
-  rev_Nx04Co_customerId            Nx04Co[]            @relation("R_Nx04Co_customerId")
-  rev_Nx04Quote_customerId         Nx04Quote[]         @relation("R_Nx04Quote_customerId")
-  rev_Nx04So_customerId            Nx04So[]            @relation("R_Nx04So_customerId")
-  rev_Nx04Sr_customerId            Nx04Sr[]            @relation("R_Nx04Sr_customerId")
-  rev_Nx05Allowance_partnerId      Nx05Allowance[]     @relation("R_Nx05Allowance_partnerId")
-  rev_Nx05ApLedger_supplierId      Nx05ApLedger[]      @relation("R_Nx05ApLedger_supplierId")
-  rev_Nx05ArLedger_customerId      Nx05ArLedger[]      @relation("R_Nx05ArLedger_customerId")
-  rev_Nx05Note_partnerId           Nx05Note[]          @relation("R_Nx05Note_partnerId")
-  rev_Nx05Paylog_partnerId         Nx05Paylog[]        @relation("R_Nx05Paylog_partnerId")
-  rev_Nx06DnStop_partnerId         Nx06DnStop[]        @relation("R_Nx06DnStop_partnerId")
-  rev_Nx08PurchaseCache_supplierId Nx08PurchaseCache[] @relation("R_Nx08PurchaseCache_supplierId")
-  rev_Nx08SalesCache_customerId    Nx08SalesCache[]    @relation("R_Nx08SalesCache_customerId")
+  defaultCurrencyId                        String?                      @map("default_currency_id") @db.VarChar(15)
+  tenant                                   Nx99Tenant                   @relation("R_Nx01Partner_tenantId", fields: [tenantId], references: [id])
+  customerGrade                            Nx01CustomerGrade?           @relation("R_Nx01Partner_customerGradeId", fields: [customerGradeId], references: [id])
+  salesUser                                Nx01User?                    @relation("R_Nx01Partner_salesUserId", fields: [salesUserId], references: [id])
+  defaultCurrency                          Nx01Currency?                @relation("R_Nx01Partner_defaultCurrencyId", fields: [defaultCurrencyId], references: [id], onDelete: Restrict)
+  rev_Nx02Demand_customerId                Nx02Demand[]                 @relation("R_Nx02Demand_customerId")
+  rev_Nx02Po_supplierId                    Nx02Po[]                     @relation("R_Nx02Po_supplierId")
+  rev_Nx02Pr_supplierId                    Nx02Pr[]                     @relation("R_Nx02Pr_supplierId")
+  rev_Nx02Qt_inquiryPartnerId              Nx02Qt[]                     @relation("R_Nx02Qt_inquiryPartnerId")
+  rev_Nx02Rfq_supplierId                   Nx02Rfq[]                    @relation("R_Nx02Rfq_supplierId")
+  rev_Nx02Rr_supplierId                    Nx02Rr[]                     @relation("R_Nx02Rr_supplierId")
+  rev_Nx02Ti_partnerId                     Nx02Ti[]                     @relation("R_Nx02Ti_partnerId")
+  rev_Nx03Parcel_toPartnerId               Nx03Parcel[]                 @relation("R_Nx03Parcel_toPartnerId")
+  rev_Nx04Co_customerId                    Nx04Co[]                     @relation("R_Nx04Co_customerId")
+  rev_Nx04Quote_customerId                 Nx04Quote[]                  @relation("R_Nx04Quote_customerId")
+  rev_Nx04So_customerId                    Nx04So[]                     @relation("R_Nx04So_customerId")
+  rev_Nx04Sr_customerId                    Nx04Sr[]                     @relation("R_Nx04Sr_customerId")
+  rev_Nx05Allowance_partnerId              Nx05Allowance[]              @relation("R_Nx05Allowance_partnerId")
+  rev_Nx05ApLedger_supplierId              Nx05ApLedger[]               @relation("R_Nx05ApLedger_supplierId")
+  rev_Nx05ArLedger_customerId              Nx05ArLedger[]               @relation("R_Nx05ArLedger_customerId")
+  rev_Nx05Note_partnerId                   Nx05Note[]                   @relation("R_Nx05Note_partnerId")
+  rev_Nx05Paylog_partnerId                 Nx05Paylog[]                 @relation("R_Nx05Paylog_partnerId")
+  rev_Nx06DnStop_partnerId                 Nx06DnStop[]                 @relation("R_Nx06DnStop_partnerId")
+  rev_Nx08PurchaseCache_supplierId         Nx08PurchaseCache[]          @relation("R_Nx08PurchaseCache_supplierId")
+  rev_Nx08SalesCache_customerId            Nx08SalesCache[]             @relation("R_Nx08SalesCache_customerId")
   rev_Nx01PartnerBillingAddress_partnerId  Nx01PartnerBillingAddress?   @relation("R_Nx01PartnerBillingAddress_partnerId")
   rev_Nx01PartnerShippingAddress_partnerId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_partnerId")
 
@@ -1092,39 +1098,39 @@ model Nx01RoleView {
 /// =======================================================
 model Nx01Team {
   /// [NX01]+[TEAM]+[7碼流水號]，EX : NX01TEAM0000001；啟用最低需求版本：LITE-CORE
-  id                        String         @id @default(dbgenerated("gen_nx01_team_id()")) @db.VarChar(15)
+  id                              String                 @id @default(dbgenerated("gen_nx01_team_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId                  String         @map("tenant_id") @db.VarChar(15)
+  tenantId                        String                 @map("tenant_id") @db.VarChar(15)
   /// 所屬部門ID（FK nx01_department）。；啟用最低需求版本：LITE-CORE
-  departmentId              String         @map("department_id") @db.VarChar(15)
+  departmentId                    String                 @map("department_id") @db.VarChar(15)
   /// 父層組別ID（自我關聯，NULL表示第一層組別）。支援無限層級，預設兩層。；啟用最低需求版本：LITE-CORE
-  parentTeamId              String?        @map("parent_team_id") @db.VarChar(15)
+  parentTeamId                    String?                @map("parent_team_id") @db.VarChar(15)
   /// 組別代碼（租戶內唯一），例：TAIPEI/XINZHUANG。；啟用最低需求版本：LITE-CORE
-  code                      String         @db.VarChar(20)
+  code                            String                 @db.VarChar(20)
   /// 組別名稱，例：台北組/新莊組。；啟用最低需求版本：LITE-CORE
-  name                      String         @db.VarChar(50)
+  name                            String                 @db.VarChar(50)
   /// 關聯倉庫ID（倉管組別填入，FK nx01_warehouse）。；啟用最低需求版本：LITE-CORE
-  warehouseId               String?        @map("warehouse_id") @db.VarChar(15)
+  warehouseId                     String?                @map("warehouse_id") @db.VarChar(15)
   /// 排序用。；啟用最低需求版本：LITE-CORE
-  sortNo                    Int            @default(0) @map("sort_no")
+  sortNo                          Int                    @default(0) @map("sort_no")
   /// 是否啟用。；啟用最低需求版本：LITE-CORE
-  isActive                  Boolean        @default(true) @map("is_active")
+  isActive                        Boolean                @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                 DateTime       @default(now()) @map("created_at")
+  createdAt                       DateTime               @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                 String         @map("created_by") @db.VarChar(15)
+  createdBy                       String                 @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                 DateTime       @updatedAt @map("updated_at")
+  updatedAt                       DateTime               @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                 String         @map("updated_by") @db.VarChar(15)
-  tenant                    Nx99Tenant     @relation("R_Nx01Team_tenantId", fields: [tenantId], references: [id])
-  department                Nx01Department @relation("R_Nx01Team_departmentId", fields: [departmentId], references: [id])
-  parentTeam                Nx01Team?      @relation("R_Nx01Team_parentTeamId", fields: [parentTeamId], references: [id])
-  warehouse                 Nx01Warehouse? @relation("R_Nx01Team_warehouseId", fields: [warehouseId], references: [id])
-  rev_Nx01Team_parentTeamId        Nx01Team[]             @relation("R_Nx01Team_parentTeamId")
-  rev_Nx01UserTeam_teamId          Nx01UserTeam[]         @relation("R_Nx01UserTeam_teamId")
-  rev_Nx01BulletinCategory_teamId  Nx01BulletinCategory[] @relation("R_Nx01BulletinCategory_teamId")
-  rev_Nx07Schedule_teamId          Nx07Schedule[]         @relation("R_Nx07Schedule_teamId")
+  updatedBy                       String                 @map("updated_by") @db.VarChar(15)
+  tenant                          Nx99Tenant             @relation("R_Nx01Team_tenantId", fields: [tenantId], references: [id])
+  department                      Nx01Department         @relation("R_Nx01Team_departmentId", fields: [departmentId], references: [id])
+  parentTeam                      Nx01Team?              @relation("R_Nx01Team_parentTeamId", fields: [parentTeamId], references: [id])
+  warehouse                       Nx01Warehouse?         @relation("R_Nx01Team_warehouseId", fields: [warehouseId], references: [id])
+  rev_Nx01Team_parentTeamId       Nx01Team[]             @relation("R_Nx01Team_parentTeamId")
+  rev_Nx01UserTeam_teamId         Nx01UserTeam[]         @relation("R_Nx01UserTeam_teamId")
+  rev_Nx01BulletinCategory_teamId Nx01BulletinCategory[] @relation("R_Nx01BulletinCategory_teamId")
+  rev_Nx07Schedule_teamId         Nx07Schedule[]         @relation("R_Nx07Schedule_teamId")
 
   @@map("nx01_team")
 }
@@ -1134,84 +1140,84 @@ model Nx01Team {
 /// =======================================================
 model Nx01User {
   /// [NX01]+[USER]+[7碼流水號]，EX : NX01USER0000001；啟用最低需求版本：LITE
-  id                                  String                 @id @default(dbgenerated("gen_nx01_user_id()")) @db.VarChar(15)
+  id                                  String                   @id @default(dbgenerated("gen_nx01_user_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                            String                 @map("tenant_id") @db.VarChar(15)
+  tenantId                            String                   @map("tenant_id") @db.VarChar(15)
   /// 員工主檔 ID（外鍵）；啟用最低需求版本：PRO
-  employeeId                          String?                @map("employee_id") @db.VarChar(15)
+  employeeId                          String?                  @map("employee_id") @db.VarChar(15)
   /// 使用者登入帳號（唯一），建議只允許英數與部分符號（如 . _ -）；啟用最低需求版本：LITE
-  userAccount                         String                 @map("user_account") @db.VarChar(50)
+  userAccount                         String                   @map("user_account") @db.VarChar(50)
   /// 密碼雜湊值（不可存明碼）。；啟用最低需求版本：LITE
-  passwordHash                        String                 @map("password_hash") @db.VarChar(255)
+  passwordHash                        String                   @map("password_hash") @db.VarChar(255)
   /// 顯示名稱（姓名/暱稱）；啟用最低需求版本：LITE
-  userName                            String                 @map("user_name") @db.VarChar(50)
+  userName                            String                   @map("user_name") @db.VarChar(50)
   /// Email（可選填；未來可用於通知/重設密碼）；啟用最低需求版本：LITE
-  email                               String?                @db.VarChar(100)
+  email                               String?                  @db.VarChar(100)
   /// 電話（可選填）；啟用最低需求版本：LITE
-  phone                               String?                @db.VarChar(20)
+  phone                               String?                  @db.VarChar(20)
   /// 人資主檔同步：主要職務角色（選填，與 nx01_user_role 並存）；啟用最低需求版本：PRO
-  roleId                              String?                @map("role_id") @db.VarChar(15)
+  roleId                              String?                  @map("role_id") @db.VarChar(15)
   /// 人資主檔同步：部門（選填）；啟用最低需求版本：PRO
-  departmentId                        String?                @map("department_id") @db.VarChar(15)
+  departmentId                        String?                  @map("department_id") @db.VarChar(15)
   /// 是否啟用（停用後不可登入）；啟用最低需求版本：LITE
-  isActive                            Boolean                @default(true) @map("is_active")
+  isActive                            Boolean                  @default(true) @map("is_active")
   /// 最後登入時間；啟用最低需求版本：LITE
-  lastLoginAt                         DateTime?              @map("last_login_at")
+  lastLoginAt                         DateTime?                @map("last_login_at")
   /// 連續失敗登入次數（達閾值鎖帳號、對齊 NX01-01 §3.6）；啟用最低需求版本：LITE
-  failedLoginCount                    Int                    @default(0) @map("failed_login_count")
+  failedLoginCount                    Int                      @default(0) @map("failed_login_count")
   /// 帳號鎖定到何時（nullable、unlock 後設 null、對齊 NX01-01 §3.6）；啟用最低需求版本：LITE
-  lockedUntil                         DateTime?              @map("locked_until")
+  lockedUntil                         DateTime?                @map("locked_until")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt                           DateTime               @default(now()) @map("created_at")
+  createdAt                           DateTime                 @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy                           String                 @map("created_by") @db.VarChar(15)
+  createdBy                           String                   @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt                           DateTime               @updatedAt @map("updated_at")
+  updatedAt                           DateTime                 @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy                           String                 @map("updated_by") @db.VarChar(15)
-  tenant                              Nx99Tenant             @relation("R_Nx01User_tenantId", fields: [tenantId], references: [id])
-  hrRole                              Nx01Role?              @relation("R_Nx01User_hrRoleId", fields: [roleId], references: [id])
-  hrDepartment                        Nx01Department?        @relation("R_Nx01User_hrDepartmentId", fields: [departmentId], references: [id])
-  createdByUser                       Nx01User?              @relation("Nx01UserCreatedBy", fields: [createdBy], references: [id])
-  updatedByUser                       Nx01User?              @relation("Nx01UserUpdatedBy", fields: [updatedBy], references: [id])
-  usersCreated                        Nx01User[]             @relation("Nx01UserCreatedBy")
-  usersUpdated                        Nx01User[]             @relation("Nx01UserUpdatedBy")
-  rev_Nx01KpiRecord_userId            Nx01KpiRecord[]        @relation("R_Nx01KpiRecord_userId")
-  rev_Nx01KpiTarget_userId            Nx01KpiTarget[]        @relation("R_Nx01KpiTarget_userId")
-  rev_Nx01UserRole_userId             Nx01UserRole[]         @relation("R_Nx01UserRole_userId")
-  rev_Nx01UserTeam_userId             Nx01UserTeam[]         @relation("R_Nx01UserTeam_userId")
-  rev_Nx01UserWarehouse_userId        Nx01UserWarehouse[]    @relation("R_Nx01UserWarehouse_userId")
+  updatedBy                           String                   @map("updated_by") @db.VarChar(15)
+  tenant                              Nx99Tenant               @relation("R_Nx01User_tenantId", fields: [tenantId], references: [id])
+  hrRole                              Nx01Role?                @relation("R_Nx01User_hrRoleId", fields: [roleId], references: [id])
+  hrDepartment                        Nx01Department?          @relation("R_Nx01User_hrDepartmentId", fields: [departmentId], references: [id])
+  createdByUser                       Nx01User?                @relation("Nx01UserCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser                       Nx01User?                @relation("Nx01UserUpdatedBy", fields: [updatedBy], references: [id])
+  usersCreated                        Nx01User[]               @relation("Nx01UserCreatedBy")
+  usersUpdated                        Nx01User[]               @relation("Nx01UserUpdatedBy")
+  rev_Nx01KpiRecord_userId            Nx01KpiRecord[]          @relation("R_Nx01KpiRecord_userId")
+  rev_Nx01KpiTarget_userId            Nx01KpiTarget[]          @relation("R_Nx01KpiTarget_userId")
+  rev_Nx01UserRole_userId             Nx01UserRole[]           @relation("R_Nx01UserRole_userId")
+  rev_Nx01UserTeam_userId             Nx01UserTeam[]           @relation("R_Nx01UserTeam_userId")
+  rev_Nx01UserWarehouse_userId        Nx01UserWarehouse[]      @relation("R_Nx01UserWarehouse_userId")
   rev_Nx01BulletinAttachment_uploader Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_uploaderUserId")
-  rev_Nx01BulletinReadLog_userId      Nx01BulletinReadLog[]  @relation("R_Nx01BulletinReadLog_userId")
-  rev_Nx06Dn_driverUserId             Nx06Dn[]               @relation("R_Nx06Dn_driverUserId")
-  rev_Nx07Attendance_userId           Nx07Attendance[]       @relation("R_Nx07Attendance_userId")
-  rev_Nx07Performance_subjectUserId   Nx07Performance[]      @relation("R_Nx07Performance_subjectUserId")
-  rev_Nx07Performance_reviewerUserId  Nx07Performance[]      @relation("R_Nx07Performance_reviewerUserId")
-  rev_Nx07EmployeeChange_targetUserId Nx07EmployeeChange[]   @relation("R_Nx07EmployeeChange_targetUserId")
-  rev_Nx07LeaveBalance_userId         Nx07LeaveBalance[]     @relation("R_Nx07LeaveBalance_userId")
-  rev_Nx07LeaveRequest_userId         Nx07LeaveRequest[]     @relation("R_Nx07LeaveRequest_userId")
-  rev_Nx07OvertimeRequest_userId      Nx07OvertimeRequest[]  @relation("R_Nx07OvertimeRequest_userId")
-  rev_Nx07SalaryRecord_userId         Nx07SalaryRecord[]     @relation("R_Nx07SalaryRecord_userId")
-  rev_Nx07SalarySetting_userId        Nx07SalarySetting[]    @relation("R_Nx07SalarySetting_userId")
-  rev_Nx07ScheduleItem_userId         Nx07ScheduleItem[]     @relation("R_Nx07ScheduleItem_userId")
-  rev_Nx07ScheduleItem_swapUserId     Nx07ScheduleItem[]     @relation("R_Nx07ScheduleItem_swapUserId")
-  rev_Nx08DailyReport_userId          Nx08DailyReport[]      @relation("R_Nx08DailyReport_userId")
-  rev_Nx08HrCache_userId              Nx08HrCache[]          @relation("R_Nx08HrCache_userId")
-  rev_Nx09KmFeedback_userId           Nx09KmFeedback[]       @relation("R_Nx09KmFeedback_userId")
-  rev_Nx09Meeting_organizerId         Nx09Meeting[]          @relation("R_Nx09Meeting_organizerId")
-  rev_Nx09MeetingAction_assigneeId    Nx09MeetingAction[]    @relation("R_Nx09MeetingAction_assigneeId")
-  rev_Nx09MeetingAttendee_userId      Nx09MeetingAttendee[]  @relation("R_Nx09MeetingAttendee_userId")
-  rev_Nx10EmpExpLog_userId            Nx10EmpExpLog[]        @relation("R_Nx10EmpExpLog_userId")
-  rev_Nx10CheckinLog_userId           Nx10CheckinLog[]       @relation("R_Nx10CheckinLog_userId")
-  rev_Nx10EmpMedal_userId             Nx10EmpMedal[]         @relation("R_Nx10EmpMedal_userId")
-  rev_Nx10EmpTaskLog_userId           Nx10EmpTaskLog[]       @relation("R_Nx10EmpTaskLog_userId")
-  rev_Nx10MentorshipRecord_mentorId   Nx10MentorshipRecord[] @relation("R_Nx10MentorshipRecord_mentorId")
-  rev_Nx10MentorshipRecord_menteeId   Nx10MentorshipRecord[] @relation("R_Nx10MentorshipRecord_menteeId")
-  rev_Nx10PromotionRequest_userId     Nx10PromotionRequest[] @relation("R_Nx10PromotionRequest_userId")
-  rev_Nx10SprintTaskLog_userId        Nx10SprintTaskLog[]    @relation("R_Nx10SprintTaskLog_userId")
-  rev_Nx10SurpriseBoxLog_userId       Nx10SurpriseBoxLog[]   @relation("R_Nx10SurpriseBoxLog_userId")
-  rev_Nx01Partner_salesUserId         Nx01Partner[]          @relation("R_Nx01Partner_salesUserId")
-  rev_Nx01Warehouse_managerUserId     Nx01Warehouse[]        @relation("R_Nx01Warehouse_managerUserId")
+  rev_Nx01BulletinReadLog_userId      Nx01BulletinReadLog[]    @relation("R_Nx01BulletinReadLog_userId")
+  rev_Nx06Dn_driverUserId             Nx06Dn[]                 @relation("R_Nx06Dn_driverUserId")
+  rev_Nx07Attendance_userId           Nx07Attendance[]         @relation("R_Nx07Attendance_userId")
+  rev_Nx07Performance_subjectUserId   Nx07Performance[]        @relation("R_Nx07Performance_subjectUserId")
+  rev_Nx07Performance_reviewerUserId  Nx07Performance[]        @relation("R_Nx07Performance_reviewerUserId")
+  rev_Nx07EmployeeChange_targetUserId Nx07EmployeeChange[]     @relation("R_Nx07EmployeeChange_targetUserId")
+  rev_Nx07LeaveBalance_userId         Nx07LeaveBalance[]       @relation("R_Nx07LeaveBalance_userId")
+  rev_Nx07LeaveRequest_userId         Nx07LeaveRequest[]       @relation("R_Nx07LeaveRequest_userId")
+  rev_Nx07OvertimeRequest_userId      Nx07OvertimeRequest[]    @relation("R_Nx07OvertimeRequest_userId")
+  rev_Nx07SalaryRecord_userId         Nx07SalaryRecord[]       @relation("R_Nx07SalaryRecord_userId")
+  rev_Nx07SalarySetting_userId        Nx07SalarySetting[]      @relation("R_Nx07SalarySetting_userId")
+  rev_Nx07ScheduleItem_userId         Nx07ScheduleItem[]       @relation("R_Nx07ScheduleItem_userId")
+  rev_Nx07ScheduleItem_swapUserId     Nx07ScheduleItem[]       @relation("R_Nx07ScheduleItem_swapUserId")
+  rev_Nx08DailyReport_userId          Nx08DailyReport[]        @relation("R_Nx08DailyReport_userId")
+  rev_Nx08HrCache_userId              Nx08HrCache[]            @relation("R_Nx08HrCache_userId")
+  rev_Nx09KmFeedback_userId           Nx09KmFeedback[]         @relation("R_Nx09KmFeedback_userId")
+  rev_Nx09Meeting_organizerId         Nx09Meeting[]            @relation("R_Nx09Meeting_organizerId")
+  rev_Nx09MeetingAction_assigneeId    Nx09MeetingAction[]      @relation("R_Nx09MeetingAction_assigneeId")
+  rev_Nx09MeetingAttendee_userId      Nx09MeetingAttendee[]    @relation("R_Nx09MeetingAttendee_userId")
+  rev_Nx10EmpExpLog_userId            Nx10EmpExpLog[]          @relation("R_Nx10EmpExpLog_userId")
+  rev_Nx10CheckinLog_userId           Nx10CheckinLog[]         @relation("R_Nx10CheckinLog_userId")
+  rev_Nx10EmpMedal_userId             Nx10EmpMedal[]           @relation("R_Nx10EmpMedal_userId")
+  rev_Nx10EmpTaskLog_userId           Nx10EmpTaskLog[]         @relation("R_Nx10EmpTaskLog_userId")
+  rev_Nx10MentorshipRecord_mentorId   Nx10MentorshipRecord[]   @relation("R_Nx10MentorshipRecord_mentorId")
+  rev_Nx10MentorshipRecord_menteeId   Nx10MentorshipRecord[]   @relation("R_Nx10MentorshipRecord_menteeId")
+  rev_Nx10PromotionRequest_userId     Nx10PromotionRequest[]   @relation("R_Nx10PromotionRequest_userId")
+  rev_Nx10SprintTaskLog_userId        Nx10SprintTaskLog[]      @relation("R_Nx10SprintTaskLog_userId")
+  rev_Nx10SurpriseBoxLog_userId       Nx10SurpriseBoxLog[]     @relation("R_Nx10SurpriseBoxLog_userId")
+  rev_Nx01Partner_salesUserId         Nx01Partner[]            @relation("R_Nx01Partner_salesUserId")
+  rev_Nx01Warehouse_managerUserId     Nx01Warehouse[]          @relation("R_Nx01Warehouse_managerUserId")
 
   @@unique([tenantId, userAccount])
   @@unique([tenantId, email])
@@ -1401,6 +1407,8 @@ model Nx01Warehouse {
   rev_Nx03Init_warehouseId              Nx03Init[]             @relation("R_Nx03Init_warehouseId")
   rev_Nx03Inbound_warehouseId           Nx03Inbound[]          @relation("R_Nx03Inbound_warehouseId")
   rev_Nx03Outbound_warehouseId          Nx03Outbound[]         @relation("R_Nx03Outbound_warehouseId")
+  rev_Nx03Disposal_warehouseId          Nx03Disposal[]         @relation("R_Nx03Disposal_warehouseId")
+  rev_Nx03Conversion_warehouseId        Nx03Conversion[]       @relation("R_Nx03Conversion_warehouseId")
   rev_Nx03Parcel_fromWarehouseId        Nx03Parcel[]           @relation("R_Nx03Parcel_fromWarehouseId")
   rev_Nx03Parcel_toWarehouseId          Nx03Parcel[]           @relation("R_Nx03Parcel_toWarehouseId")
   rev_Nx03PartStockSetting_warehouseId  Nx03PartStockSetting[] @relation("R_Nx03PartStockSetting_warehouseId")
@@ -2111,7 +2119,7 @@ model Nx02Ti {
   docNo                 String         @map("doc_no") @db.VarChar(30)
   /// 調貨日期。；啟用最低需求版本：LITE-CORE
   tiDate                DateTime       @map("ti_date") @db.Date
-  /// 同行供應商ID（FK nx02_partner，partner_type=C同行）。；啟用最低需求版本：LITE-CORE
+  /// 同行供應商ID（FK nx01_partner，partner_type=S 同行、對齊 Nx02Qt line 1759 + qt.service.ts:436 業界事實、NX03-IMPL-01 Phase 4 commit 1 順手修原 C 錯誤）。；啟用最低需求版本：LITE-CORE
   partnerId             String         @map("partner_id") @db.VarChar(15)
   /// 來源詢價單ID（FK nx02_rfq，rfq_type=P）。；啟用最低需求版本：LITE-CORE
   rfqId                 String?        @map("rfq_id") @db.VarChar(15)
@@ -2283,38 +2291,41 @@ model Nx03Init {
 /// =======================================================
 model Nx03InitItem {
   /// [NX03]+[INIT]+[7碼流水號]，EX : NX03INIT0000001；啟用最低需求版本：LITE
-  id         String        @id @default(dbgenerated("gen_nx03_init_item_id()")) @db.VarChar(15)
+  id            String           @id @default(dbgenerated("gen_nx03_init_item_id()")) @db.VarChar(15)
   /// 對應開帳單表頭 ID；啟用最低需求版本：LITE
-  initId     String        @map("init_id") @db.VarChar(15)
+  initId        String           @map("init_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
-  lineNo     Int           @default(1) @map("line_no")
+  lineNo        Int              @default(1) @map("line_no")
   /// 零件 ID；啟用最低需求版本：LITE
-  partId     String        @map("part_id") @db.VarChar(15)
+  partId        String           @map("part_id") @db.VarChar(15)
   /// 料號快照（歷史查價/避免主檔改動）；啟用最低需求版本：LITE
-  partNo     String        @map("part_no") @db.VarChar(50)
+  partNo        String           @map("part_no") @db.VarChar(50)
   /// 品名快照；啟用最低需求版本：LITE
-  partName   String        @map("part_name") @db.VarChar(200)
+  partName      String           @map("part_name") @db.VarChar(200)
+  /// 過帳當下 part 版本快照 FK（NX01-17 範式、AUDIT-04 B2 配套、Q-S1=B 既有歷史 row 留 null、新 row 帶入）；啟用最低需求版本：LITE
+  partVersionId String?          @map("part_version_id") @db.VarChar(15)
   /// 開帳庫位；啟用最低需求版本：LITE
-  locationId String?       @map("location_id") @db.VarChar(15)
+  locationId    String?          @map("location_id") @db.VarChar(15)
   /// 開帳數量（>0）；啟用最低需求版本：LITE
-  qty        Decimal       @default(0) @db.Decimal(14, 4)
+  qty           Decimal          @default(0) @db.Decimal(14, 4)
   /// 開帳均價（>0）；啟用最低需求版本：LITE
-  unitCost   Decimal       @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  unitCost      Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 開帳總價（qty × unit_cost）；啟用最低需求版本：LITE
-  totalCost  Decimal       @map("total_cost") @db.Decimal(14, 2)
+  totalCost     Decimal          @map("total_cost") @db.Decimal(14, 2)
   /// 備註；啟用最低需求版本：LITE
-  remark     String?       @db.VarChar(200)
+  remark        String?          @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt  DateTime      @default(now()) @map("created_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy  String        @map("created_by") @db.VarChar(15)
+  createdBy     String           @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt  DateTime      @updatedAt @map("updated_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy  String        @map("updated_by") @db.VarChar(15)
-  init       Nx03Init      @relation("R_Nx03InitItem_initId", fields: [initId], references: [id])
-  part       Nx01Part      @relation("R_Nx03InitItem_partId", fields: [partId], references: [id])
-  location   Nx01Location? @relation("R_Nx03InitItem_locationId", fields: [locationId], references: [id])
+  updatedBy     String           @map("updated_by") @db.VarChar(15)
+  init          Nx03Init         @relation("R_Nx03InitItem_initId", fields: [initId], references: [id])
+  part          Nx01Part         @relation("R_Nx03InitItem_partId", fields: [partId], references: [id])
+  partVersion   Nx01PartVersion? @relation("R_Nx03InitItem_partVersionId", fields: [partVersionId], references: [id])
+  location      Nx01Location?    @relation("R_Nx03InitItem_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_init_item")
 }
@@ -2705,47 +2716,50 @@ model Nx03St {
 /// =======================================================
 model Nx03StItem {
   /// [NX03]+[STIT]+[7碼流水號]，EX : NX03STIT0000001；啟用最低需求版本：PLUS
-  id             String         @id @default(dbgenerated("gen_nx03_st_item_id()")) @db.VarChar(15)
+  id             String           @id @default(dbgenerated("gen_nx03_st_item_id()")) @db.VarChar(15)
   /// 對應調撥單表頭 ID；啟用最低需求版本：PLUS
-  stId           String         @map("st_id") @db.VarChar(15)
+  stId           String           @map("st_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）；啟用最低需求版本：PLUS
-  lineNo         Int            @default(1) @map("line_no")
+  lineNo         Int              @default(1) @map("line_no")
   /// 零件 ID；啟用最低需求版本：PLUS
-  partId         String         @map("part_id") @db.VarChar(15)
+  partId         String           @map("part_id") @db.VarChar(15)
   /// 料號快照（歷史查價/避免主檔改動）；啟用最低需求版本：PLUS
-  partNo         String         @map("part_no") @db.VarChar(50)
+  partNo         String           @map("part_no") @db.VarChar(50)
   /// 品名快照；啟用最低需求版本：PLUS
-  partName       String         @map("part_name") @db.VarChar(200)
+  partName       String           @map("part_name") @db.VarChar(200)
   /// 品牌（可空）；啟用最低需求版本：PLUS
-  partBrandId    String?        @map("part_brand_id") @db.VarChar(15)
+  partBrandId    String?          @map("part_brand_id") @db.VarChar(15)
   /// 出貨庫位；啟用最低需求版本：PLUS
-  fromLocationId String?        @map("from_location_id") @db.VarChar(15)
+  fromLocationId String?          @map("from_location_id") @db.VarChar(15)
   /// 目標庫位；啟用最低需求版本：PLUS
-  toLocationId   String?        @map("to_location_id") @db.VarChar(15)
+  toLocationId   String?          @map("to_location_id") @db.VarChar(15)
   /// 銷貨數量；啟用最低需求版本：PLUS
-  qty            Decimal        @default(0) @db.Decimal(14, 4)
+  qty            Decimal          @default(0) @db.Decimal(14, 4)
   /// 出庫成本（過帳時寫入；預設抓 stock_balance.avg_cost）；啟用最低需求版本：PLUS
-  unitCost       Decimal        @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  unitCost       Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 備註；啟用最低需求版本：PLUS
-  remark         String?        @db.VarChar(200)
+  remark         String?          @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：PLUS
-  createdAt      DateTime       @default(now()) @map("created_at")
+  createdAt      DateTime         @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PLUS
-  createdBy      String         @map("created_by") @db.VarChar(15)
+  createdBy      String           @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：PLUS
-  updatedAt      DateTime       @updatedAt @map("updated_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PLUS
-  updatedBy      String         @map("updated_by") @db.VarChar(15)
+  updatedBy      String           @map("updated_by") @db.VarChar(15)
   /// 實際收到數量（目標倉確認收貨後填入）。若與qty不符需通知倉管組長處理。；啟用最低需求版本：LITE-CORE
-  receivedQty    Decimal?       @map("received_qty") @db.Decimal(14, 4)
+  receivedQty    Decimal?         @map("received_qty") @db.Decimal(14, 4)
   /// 來源銷貨明細 ID（可空：手動調撥無對應 SO；SO 觸發必填）。反向追蹤這個 ST 明細是為了哪張 SO 的哪個 line 而存在。Phase 0 D3 新增、2026-04-25 改 nullable（trans-table CHECK 不可行，application-layer 自律）。；啟用最低需求版本：PLUS
-  sourceSoItemId String?        @map("source_so_item_id") @db.VarChar(15)
-  st             Nx03St         @relation("R_Nx03StItem_stId", fields: [stId], references: [id])
-  part           Nx01Part       @relation("R_Nx03StItem_partId", fields: [partId], references: [id])
-  partBrand      Nx01PartBrand? @relation("R_Nx03StItem_partBrandId", fields: [partBrandId], references: [id])
-  fromLocation   Nx01Location?  @relation("R_Nx03StItem_fromLocationId", fields: [fromLocationId], references: [id])
-  toLocation     Nx01Location?  @relation("R_Nx03StItem_toLocationId", fields: [toLocationId], references: [id])
-  sourceSoItem   Nx04SoItem?    @relation("R_Nx03StItem_sourceSoItemId", fields: [sourceSoItemId], references: [id])
+  sourceSoItemId String?          @map("source_so_item_id") @db.VarChar(15)
+  /// 過帳當下 part 版本快照 FK（NX01-17 範式、AUDIT-04 B2 配套、Q-S1=B 既有歷史 row 留 null、新 row 帶入）；啟用最低需求版本：PLUS
+  partVersionId  String?          @map("part_version_id") @db.VarChar(15)
+  st             Nx03St           @relation("R_Nx03StItem_stId", fields: [stId], references: [id])
+  part           Nx01Part         @relation("R_Nx03StItem_partId", fields: [partId], references: [id])
+  partVersion    Nx01PartVersion? @relation("R_Nx03StItem_partVersionId", fields: [partVersionId], references: [id])
+  partBrand      Nx01PartBrand?   @relation("R_Nx03StItem_partBrandId", fields: [partBrandId], references: [id])
+  fromLocation   Nx01Location?    @relation("R_Nx03StItem_fromLocationId", fields: [fromLocationId], references: [id])
+  toLocation     Nx01Location?    @relation("R_Nx03StItem_toLocationId", fields: [toLocationId], references: [id])
+  sourceSoItem   Nx04SoItem?      @relation("R_Nx03StItem_sourceSoItemId", fields: [sourceSoItemId], references: [id])
 
   @@index([sourceSoItemId], map: "nx03_st_item_source_so_item_idx")
   @@map("nx03_st_item")
@@ -2804,45 +2818,48 @@ model Nx03StockBalance {
 /// =======================================================
 model Nx03StockLedger {
   /// [NX03]+[STLE]+[7碼流水號]，EX : NX03STLE0000001；啟用最低需求版本：LITE
-  id            String        @id @default(dbgenerated("gen_nx03_stock_ledger_id()")) @db.VarChar(15)
+  id            String           @id @default(dbgenerated("gen_nx03_stock_ledger_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId      String        @map("tenant_id") @db.VarChar(15)
+  tenantId      String           @map("tenant_id") @db.VarChar(15)
   /// 異動時間；啟用最低需求版本：LITE
-  movementDate  DateTime      @default(now()) @map("movement_date")
+  movementDate  DateTime         @default(now()) @map("movement_date")
   /// 零件 ID；啟用最低需求版本：LITE
-  partId        String        @map("part_id") @db.VarChar(15)
+  partId        String           @map("part_id") @db.VarChar(15)
   /// 倉庫 ID；啟用最低需求版本：LITE
-  warehouseId   String        @map("warehouse_id") @db.VarChar(15)
+  warehouseId   String           @map("warehouse_id") @db.VarChar(15)
   /// 庫位 ID；啟用最低需求版本：LITE
-  locationId    String        @map("location_id") @db.VarChar(15)
+  locationId    String           @map("location_id") @db.VarChar(15)
   /// 異動類型。( I=IN, O=OUT, A=ADJUST )；啟用最低需求版本：LITE
-  movementType  String        @map("movement_type") @db.VarChar(1)
+  movementType  String           @map("movement_type") @db.VarChar(1)
   /// 入庫數量；啟用最低需求版本：LITE
-  qtyIn         Decimal       @default(0) @map("qty_in") @db.Decimal(14, 4)
+  qtyIn         Decimal          @default(0) @map("qty_in") @db.Decimal(14, 4)
   /// 出庫數量；啟用最低需求版本：LITE
-  qtyOut        Decimal       @default(0) @map("qty_out") @db.Decimal(14, 4)
+  qtyOut        Decimal          @default(0) @map("qty_out") @db.Decimal(14, 4)
   /// 異動單位成本；啟用最低需求版本：LITE
-  unitCost      Decimal       @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  unitCost      Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 異動總成本（qty差 * unit_cost）；啟用最低需求版本：LITE
-  totalCost     Decimal       @default(0) @map("total_cost") @db.Decimal(14, 2)
+  totalCost     Decimal          @default(0) @map("total_cost") @db.Decimal(14, 2)
   /// 異動後庫存數量（可選擇存或即時計算）；啟用最低需求版本：LITE
-  balanceQty    Decimal       @default(0) @map("balance_qty") @db.Decimal(14, 4)
+  balanceQty    Decimal          @default(0) @map("balance_qty") @db.Decimal(14, 4)
   /// 異動後平均成本（移動平均）；啟用最低需求版本：LITE
-  balanceCost   Decimal       @default(0) @map("balance_cost") @db.Decimal(14, 4)
+  balanceCost   Decimal          @default(0) @map("balance_cost") @db.Decimal(14, 4)
   /// 來源模組：NX02（採購）/ NX03（庫存）/ NX04（銷售）；啟用最低需求版本：LITE
-  sourceModule  String        @map("source_module") @db.VarChar(10)
+  sourceModule  String           @map("source_module") @db.VarChar(10)
   /// 來源單據類型（P=進貨RR / S=銷貨SO / T=盤點 / I=開帳存 / X=調撥 / R=退貨）；啟用最低需求版本：LITE
-  sourceDocType String        @map("source_doc_type") @db.VarChar(1)
+  sourceDocType String           @map("source_doc_type") @db.VarChar(1)
   /// 來源單據 ID；啟用最低需求版本：LITE
-  sourceDocId   String        @map("source_doc_id") @db.VarChar(15)
+  sourceDocId   String           @map("source_doc_id") @db.VarChar(15)
   /// 來源明細 ID；啟用最低需求版本：LITE
-  sourceItemId  String?       @map("source_item_id") @db.VarChar(15)
+  sourceItemId  String?          @map("source_item_id") @db.VarChar(15)
+  /// 過帳當下 part 版本快照 FK（NX01-17 範式、AUDIT-04 B2+B6 配套、Q-S1=B 既有歷史 row 留 null、新 row helper 帶入）；啟用最低需求版本：LITE
+  partVersionId String?          @map("part_version_id") @db.VarChar(15)
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt     DateTime      @default(now()) @map("created_at")
-  tenant        Nx99Tenant    @relation("R_Nx03StockLedger_tenantId", fields: [tenantId], references: [id])
-  part          Nx01Part      @relation("R_Nx03StockLedger_partId", fields: [partId], references: [id])
-  warehouse     Nx01Warehouse @relation("R_Nx03StockLedger_warehouseId", fields: [warehouseId], references: [id])
-  location      Nx01Location  @relation("R_Nx03StockLedger_locationId", fields: [locationId], references: [id])
+  createdAt     DateTime         @default(now()) @map("created_at")
+  tenant        Nx99Tenant       @relation("R_Nx03StockLedger_tenantId", fields: [tenantId], references: [id])
+  part          Nx01Part         @relation("R_Nx03StockLedger_partId", fields: [partId], references: [id])
+  partVersion   Nx01PartVersion? @relation("R_Nx03StockLedger_partVersionId", fields: [partVersionId], references: [id])
+  warehouse     Nx01Warehouse    @relation("R_Nx03StockLedger_warehouseId", fields: [warehouseId], references: [id])
+  location      Nx01Location     @relation("R_Nx03StockLedger_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_stock_ledger")
 }
@@ -2891,6 +2908,10 @@ model Nx03StockTake {
   approvedAt                        DateTime?           @map("approved_at")
   /// 負責人核准人（使用者ID）。；啟用最低需求版本：LITE-CORE
   approvedBy                        String?             @map("approved_by") @db.VarChar(15)
+  /// 動態盤點 snapshot 起點時間（M2、Q-B3=A 不凍結業務、application 層即時聚合 stock_ledger 計算 deltaQty 的時間範圍 lower bound）；啟用最低需求版本：LITE
+  snapshotStartedAt                 DateTime?           @map("snapshot_started_at")
+  /// 動態盤點 snapshot 終點時間（M2、deltaQty 計算時間範圍 upper bound、null 表盤點未結束）；啟用最低需求版本：LITE
+  snapshotEndedAt                   DateTime?           @map("snapshot_ended_at")
   tenant                            Nx99Tenant          @relation("R_Nx03StockTake_tenantId", fields: [tenantId], references: [id])
   warehouse                         Nx01Warehouse       @relation("R_Nx03StockTake_warehouseId", fields: [warehouseId], references: [id])
   rev_Nx03StockTakeItem_stockTakeId Nx03StockTakeItem[] @relation("R_Nx03StockTakeItem_stockTakeId")
@@ -2904,55 +2925,66 @@ model Nx03StockTake {
 /// =======================================================
 model Nx03StockTakeItem {
   /// [NX03]+[STTI]+[7碼流水號]，EX : NX03STTI0000001；啟用最低需求版本：LITE
-  id            String        @id @default(dbgenerated("gen_nx03_stock_take_item_id()")) @db.VarChar(15)
+  id                 String           @id @default(dbgenerated("gen_nx03_stock_take_item_id()")) @db.VarChar(15)
   /// 對應盤點單表頭 ID；啟用最低需求版本：LITE
-  stockTakeId   String        @map("stock_take_id") @db.VarChar(15)
+  stockTakeId        String           @map("stock_take_id") @db.VarChar(15)
   /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
-  lineNo        Int           @default(1) @map("line_no")
+  lineNo             Int              @default(1) @map("line_no")
   /// 零件 ID；啟用最低需求版本：LITE
-  partId        String        @map("part_id") @db.VarChar(15)
+  partId             String           @map("part_id") @db.VarChar(15)
   /// 零件料號快照；啟用最低需求版本：LITE
-  partNo        String        @map("part_no") @db.VarChar(50)
+  partNo             String           @map("part_no") @db.VarChar(50)
   /// 零件名稱快照；啟用最低需求版本：LITE
-  partName      String        @map("part_name") @db.VarChar(200)
+  partName           String           @map("part_name") @db.VarChar(200)
   /// 盤點倉庫 ID（通常等於表頭倉庫）；啟用最低需求版本：LITE
-  warehouseId   String        @map("warehouse_id") @db.VarChar(15)
+  warehouseId        String           @map("warehouse_id") @db.VarChar(15)
   /// 盤點庫位 ID；啟用最低需求版本：LITE
-  locationId    String        @map("location_id") @db.VarChar(15)
+  locationId         String           @map("location_id") @db.VarChar(15)
   /// 系統數量（盤點當下抓 balance.on_hand_qty 快照）；啟用最低需求版本：LITE
-  systemQty     Decimal       @default(0) @map("system_qty") @db.Decimal(14, 4)
+  systemQty          Decimal          @default(0) @map("system_qty") @db.Decimal(14, 4)
   /// 盤點數量（使用者輸入）；啟用最低需求版本：LITE
-  countedQty    Decimal       @default(0) @map("counted_qty") @db.Decimal(14, 4)
+  countedQty         Decimal          @default(0) @map("counted_qty") @db.Decimal(14, 4)
   /// 差異數量（counted_qty - system_qty）；啟用最低需求版本：LITE
-  diffQty       Decimal       @default(0) @map("diff_qty") @db.Decimal(14, 4)
+  diffQty            Decimal          @default(0) @map("diff_qty") @db.Decimal(14, 4)
   /// 調整成本（預設抓 balance.avg_cost 快照）；啟用最低需求版本：LITE
-  unitCost      Decimal       @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  unitCost           Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 差異金額（abs(diff_qty) * unit_cost，或 diff_qty * unit_cost 由你決定）；啟用最低需求版本：LITE
-  diffCost      Decimal       @default(0) @map("diff_cost") @db.Decimal(14, 2)
+  diffCost           Decimal          @default(0) @map("diff_cost") @db.Decimal(14, 2)
   /// 調整類型。( I=IN, O=OUT, N=NONE )  ※ diff_qty=0 時 NONE）；啟用最低需求版本：LITE
-  adjustType    String        @default("N") @map("adjust_type") @db.VarChar(1)
+  adjustType         String           @default("N") @map("adjust_type") @db.VarChar(1)
   /// 狀態。( O=OPEN, P=POSTED, S=SKIPPED )；啟用最低需求版本：LITE
-  status        String        @default("O") @db.VarChar(1)
+  status             String           @default("O") @db.VarChar(1)
   /// 備註；啟用最低需求版本：LITE
-  remark        String?       @db.VarChar(200)
+  remark             String?          @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt     DateTime      @default(now()) @map("created_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy     String        @map("created_by") @db.VarChar(15)
+  createdBy          String           @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy     String        @map("updated_by") @db.VarChar(15)
+  updatedBy          String           @map("updated_by") @db.VarChar(15)
   /// 每筆實際填入時間點（即時差異計算的關鍵欄位）。系統在此時間點計算該料號的真實差異，避免盤點期間進出貨造成的誤差。；啟用最低需求版本：LITE-CORE
-  countedAt     DateTime?     @map("counted_at")
+  countedAt          DateTime?        @map("counted_at")
   /// 差異處置方式（W=報廢/R=零件重組/D=瑕疵品/U=中古件）。diff_qty≠0時必填。；啟用最低需求版本：LITE-CORE
-  disposeType   String?       @map("dispose_type") @db.VarChar(1)
+  disposeType        String?          @map("dispose_type") @db.VarChar(1)
   /// 處置說明（diff_qty≠0時必填）。例：外觀損壞無法銷售、拆解後可利用零件。；啟用最低需求版本：LITE-CORE
-  disposeRemark String?       @map("dispose_remark") @db.VarChar(200)
-  stockTake     Nx03StockTake @relation("R_Nx03StockTakeItem_stockTakeId", fields: [stockTakeId], references: [id])
-  part          Nx01Part      @relation("R_Nx03StockTakeItem_partId", fields: [partId], references: [id])
-  warehouse     Nx01Warehouse @relation("R_Nx03StockTakeItem_warehouseId", fields: [warehouseId], references: [id])
-  location      Nx01Location  @relation("R_Nx03StockTakeItem_locationId", fields: [locationId], references: [id])
+  disposeRemark      String?          @map("dispose_remark") @db.VarChar(200)
+  /// 過帳當下 part 版本快照 FK（NX01-17 範式、AUDIT-04 B2 配套、Q-S1=B 既有歷史 row 留 null、新 row 過帳時帶入）；啟用最低需求版本：LITE
+  partVersionId      String?          @map("part_version_id") @db.VarChar(15)
+  /// 動態盤點 snapshot 鎖定基準量（M2、盤點啟動瞬間 balance.onHandQty 快照、Q-S2=A 既有 systemQty 並存漸進）；啟用最低需求版本：LITE
+  snapshotQty        Decimal          @default(0) @map("snapshot_qty") @db.Decimal(14, 4)
+  /// 動態盤點期間異動加總（M2、Q-B3=A application 層即時聚合 stock_ledger BETWEEN snapshotStartedAt AND snapshotEndedAt）；啟用最低需求版本：LITE
+  deltaQty           Decimal          @default(0) @map("delta_qty") @db.Decimal(14, 4)
+  /// 動態盤點公式應有量（M2、= snapshotQty + deltaQty、即時算）；啟用最低需求版本：LITE
+  formulaExpectedQty Decimal          @default(0) @map("formula_expected_qty") @db.Decimal(14, 4)
+  /// 動態盤點真實誤差（M2、= countedQty - formulaExpectedQty、寫帳基準、≠0 才寫 ledger source=T）；啟用最低需求版本：LITE
+  realDiffQty        Decimal          @default(0) @map("real_diff_qty") @db.Decimal(14, 4)
+  stockTake          Nx03StockTake    @relation("R_Nx03StockTakeItem_stockTakeId", fields: [stockTakeId], references: [id])
+  part               Nx01Part         @relation("R_Nx03StockTakeItem_partId", fields: [partId], references: [id])
+  partVersion        Nx01PartVersion? @relation("R_Nx03StockTakeItem_partVersionId", fields: [partVersionId], references: [id])
+  warehouse          Nx01Warehouse    @relation("R_Nx03StockTakeItem_warehouseId", fields: [warehouseId], references: [id])
+  location           Nx01Location     @relation("R_Nx03StockTakeItem_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_stock_take_item")
 }
@@ -3065,6 +3097,242 @@ model Nx03OutboundItem {
   location   Nx01Location @relation("R_Nx03OutboundItem_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_outbound_item")
+}
+
+/// =======================================================
+/// Nx03Disposal — DB table `nx03_disposal`
+/// 報廢單表頭（NX03-IMPL-01 M3、Crown Q-B1=A 不簽核、倉管直接過帳）
+/// 對應 overview §3.3 #8 報廢出庫、source=W
+/// =======================================================
+model Nx03Disposal {
+  /// [NX03]+[DSHD]+[7碼流水號]，EX : NX03DSHD0000001；啟用最低需求版本：LITE
+  id           String             @id @default(dbgenerated("gen_nx03_disposal_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId     String             @map("tenant_id") @db.VarChar(15)
+  /// 報廢單號（唯一），[DS]+[年月]+[倉別]+[5碼流水號]，EX：DS-202605-Z01-00001；啟用最低需求版本：LITE
+  docNo        String             @map("doc_no") @db.VarChar(30)
+  /// 報廢倉庫；啟用最低需求版本：LITE
+  warehouseId  String             @map("warehouse_id") @db.VarChar(15)
+  /// 報廢日期；啟用最低需求版本：LITE
+  disposalDate DateTime           @map("disposal_date") @db.Date
+  /// 狀態（DRAFT / POSTED / VOIDED）；啟用最低需求版本：LITE
+  status       String             @default("DRAFT") @db.VarChar(30)
+  /// 備註；啟用最低需求版本：LITE
+  remark       String?            @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt    DateTime           @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy    String             @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy    String             @map("updated_by") @db.VarChar(15)
+  /// 過帳時間（POSTED 才有）；啟用最低需求版本：LITE
+  postedAt     DateTime?          @map("posted_at")
+  /// 過帳人（POSTED 才有）；啟用最低需求版本：LITE
+  postedBy     String?            @map("posted_by") @db.VarChar(15)
+  /// 作廢時間；啟用最低需求版本：LITE
+  voidedAt     DateTime?          @map("voided_at")
+  /// 作廢人；啟用最低需求版本：LITE
+  voidedBy     String?            @map("voided_by") @db.VarChar(15)
+  tenant       Nx99Tenant         @relation("R_Nx03Disposal_tenantId", fields: [tenantId], references: [id])
+  warehouse    Nx01Warehouse      @relation("R_Nx03Disposal_warehouseId", fields: [warehouseId], references: [id])
+  items        Nx03DisposalItem[] @relation("R_Nx03DisposalItem_disposalId")
+
+  @@unique([docNo])
+  @@map("nx03_disposal")
+}
+
+/// =======================================================
+/// Nx03DisposalItem — DB table `nx03_disposal_item`
+/// 報廢單明細（disposalReason A=損壞 / B=過期 / C=瑕疵 / D=其他、Hank 自決 enum、待 Crown review 可調）
+/// =======================================================
+model Nx03DisposalItem {
+  /// [NX03]+[DSIT]+[7碼流水號]，EX : NX03DSIT0000001；啟用最低需求版本：LITE
+  id             String           @id @default(dbgenerated("gen_nx03_disposal_item_id()")) @db.VarChar(15)
+  /// 對應報廢單表頭 ID；啟用最低需求版本：LITE
+  disposalId     String           @map("disposal_id") @db.VarChar(15)
+  /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
+  lineNo         Int              @default(1) @map("line_no")
+  /// 零件 ID；啟用最低需求版本：LITE
+  partId         String           @map("part_id") @db.VarChar(15)
+  /// 料號快照；啟用最低需求版本：LITE
+  partNo         String           @map("part_no") @db.VarChar(50)
+  /// 品名快照；啟用最低需求版本：LITE
+  partName       String           @map("part_name") @db.VarChar(200)
+  /// 過帳當下 part 版本快照 FK（M1 配套、Q-S1=B 既有 null、新 row 帶入）；啟用最低需求版本：LITE
+  partVersionId  String?          @map("part_version_id") @db.VarChar(15)
+  /// 報廢庫位；啟用最低需求版本：LITE
+  locationId     String           @map("location_id") @db.VarChar(15)
+  /// 報廢數量（>0）；啟用最低需求版本：LITE
+  qty            Decimal          @default(0) @db.Decimal(14, 4)
+  /// 報廢單位成本（過帳時抓 stock_balance.avg_cost）；啟用最低需求版本：LITE
+  unitCost       Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  /// 報廢總成本（qty × unit_cost）；啟用最低需求版本：LITE
+  totalCost      Decimal          @default(0) @map("total_cost") @db.Decimal(14, 2)
+  /// 報廢原因（A=損壞/B=過期/C=瑕疵/D=其他）；啟用最低需求版本：LITE
+  disposalReason String           @map("disposal_reason") @db.VarChar(1)
+  /// 報廢說明（reason=D 其他時必填、application-layer 自律）；啟用最低需求版本：LITE
+  disposalRemark String?          @map("disposal_remark") @db.VarChar(200)
+  /// 備註；啟用最低需求版本：LITE
+  remark         String?          @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt      DateTime         @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy      String           @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy      String           @map("updated_by") @db.VarChar(15)
+  disposal       Nx03Disposal     @relation("R_Nx03DisposalItem_disposalId", fields: [disposalId], references: [id], onDelete: Cascade)
+  part           Nx01Part         @relation("R_Nx03DisposalItem_partId", fields: [partId], references: [id])
+  partVersion    Nx01PartVersion? @relation("R_Nx03DisposalItem_partVersionId", fields: [partVersionId], references: [id])
+  location       Nx01Location     @relation("R_Nx03DisposalItem_locationId", fields: [locationId], references: [id])
+
+  @@map("nx03_disposal_item")
+}
+
+/// =======================================================
+/// Nx03Conversion — DB table `nx03_conversion`
+/// 重組 / 分解轉換單表頭（NX03-IMPL-01 M4）
+/// conversionType: M=merge 重組（N inputs → 1 output）/ D=disassemble 分解（1 input → N outputs）
+/// 對應 overview §3.3 #9 重組 source=M / #10 分解 source=D
+/// 對應拍板 Q-M4-1=a 重組 output unitCost = Σ (input.unitCost × input.qty) 加權公式（service 層 impl）
+/// =======================================================
+model Nx03Conversion {
+  /// [NX03]+[CVHD]+[7碼流水號]，EX : NX03CVHD0000001；啟用最低需求版本：LITE
+  id             String                 @id @default(dbgenerated("gen_nx03_conversion_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId       String                 @map("tenant_id") @db.VarChar(15)
+  /// 轉換單號（唯一），[CV]+[年月]+[倉別]+[5碼流水號]，EX：CV-202605-Z01-00001；啟用最低需求版本：LITE
+  docNo          String                 @map("doc_no") @db.VarChar(30)
+  /// 操作倉庫；啟用最低需求版本：LITE
+  warehouseId    String                 @map("warehouse_id") @db.VarChar(15)
+  /// 轉換日期；啟用最低需求版本：LITE
+  conversionDate DateTime               @map("conversion_date") @db.Date
+  /// 轉換類型（M=merge 重組 / D=disassemble 分解）；啟用最低需求版本：LITE
+  conversionType String                 @map("conversion_type") @db.VarChar(1)
+  /// 狀態（DRAFT / POSTED / VOIDED）；啟用最低需求版本：LITE
+  status         String                 @default("DRAFT") @db.VarChar(30)
+  /// 備註；啟用最低需求版本：LITE
+  remark         String?                @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt      DateTime               @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy      String                 @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy      String                 @map("updated_by") @db.VarChar(15)
+  /// 過帳時間（POSTED 才有）；啟用最低需求版本：LITE
+  postedAt       DateTime?              @map("posted_at")
+  /// 過帳人（POSTED 才有）；啟用最低需求版本：LITE
+  postedBy       String?                @map("posted_by") @db.VarChar(15)
+  /// 作廢時間；啟用最低需求版本：LITE
+  voidedAt       DateTime?              @map("voided_at")
+  /// 作廢人；啟用最低需求版本：LITE
+  voidedBy       String?                @map("voided_by") @db.VarChar(15)
+  tenant         Nx99Tenant             @relation("R_Nx03Conversion_tenantId", fields: [tenantId], references: [id])
+  warehouse      Nx01Warehouse          @relation("R_Nx03Conversion_warehouseId", fields: [warehouseId], references: [id])
+  inputs         Nx03ConversionInput[]  @relation("R_Nx03ConversionInput_conversionId")
+  outputs        Nx03ConversionOutput[] @relation("R_Nx03ConversionOutput_conversionId")
+
+  @@unique([docNo])
+  @@map("nx03_conversion")
+}
+
+/// =======================================================
+/// Nx03ConversionInput — DB table `nx03_conversion_input`
+/// 轉換輸入明細（重組：N rows / 分解：1 row、application 層校驗 invariant）
+/// =======================================================
+model Nx03ConversionInput {
+  /// [NX03]+[CVIN]+[7碼流水號]，EX : NX03CVIN0000001；啟用最低需求版本：LITE
+  id            String           @id @default(dbgenerated("gen_nx03_conversion_input_id()")) @db.VarChar(15)
+  /// 對應轉換單表頭 ID；啟用最低需求版本：LITE
+  conversionId  String           @map("conversion_id") @db.VarChar(15)
+  /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
+  lineNo        Int              @default(1) @map("line_no")
+  /// 零件 ID；啟用最低需求版本：LITE
+  partId        String           @map("part_id") @db.VarChar(15)
+  /// 料號快照；啟用最低需求版本：LITE
+  partNo        String           @map("part_no") @db.VarChar(50)
+  /// 品名快照；啟用最低需求版本：LITE
+  partName      String           @map("part_name") @db.VarChar(200)
+  /// 過帳當下 part 版本快照 FK（M1 配套、Q-S1=B 既有 null、新 row 帶入）；啟用最低需求版本：LITE
+  partVersionId String?          @map("part_version_id") @db.VarChar(15)
+  /// 輸入庫位（從哪取料）；啟用最低需求版本：LITE
+  locationId    String           @map("location_id") @db.VarChar(15)
+  /// 輸入數量（>0、過帳時走 helper.applyQtyOutWithLedger source=M/D）；啟用最低需求版本：LITE
+  qty           Decimal          @default(0) @db.Decimal(14, 4)
+  /// 輸入單位成本（過帳時抓 stock_balance.avg_cost）；啟用最低需求版本：LITE
+  unitCost      Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  /// 輸入總成本（qty × unit_cost、重組時加總為 output unitCost 的加權基礎）；啟用最低需求版本：LITE
+  totalCost     Decimal          @default(0) @map("total_cost") @db.Decimal(14, 2)
+  /// 備註；啟用最低需求版本：LITE
+  remark        String?          @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt     DateTime         @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy     String           @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy     String           @map("updated_by") @db.VarChar(15)
+  conversion    Nx03Conversion   @relation("R_Nx03ConversionInput_conversionId", fields: [conversionId], references: [id], onDelete: Cascade)
+  part          Nx01Part         @relation("R_Nx03ConversionInput_partId", fields: [partId], references: [id])
+  partVersion   Nx01PartVersion? @relation("R_Nx03ConversionInput_partVersionId", fields: [partVersionId], references: [id])
+  location      Nx01Location     @relation("R_Nx03ConversionInput_locationId", fields: [locationId], references: [id])
+
+  @@map("nx03_conversion_input")
+}
+
+/// =======================================================
+/// Nx03ConversionOutput — DB table `nx03_conversion_output`
+/// 轉換輸出明細（重組：1 row / 分解：N rows、application 層校驗 invariant）
+/// 重組 output.unitCost = Σ (input.unitCost × input.qty)（Q-M4-1=a 加權、service 層算）
+/// 分解 output.unitCost = input.totalCost × priceA_ratio（auto）或 costRatio（人工指定）
+/// =======================================================
+model Nx03ConversionOutput {
+  /// [NX03]+[CVOT]+[7碼流水號]，EX : NX03CVOT0000001；啟用最低需求版本：LITE
+  id            String           @id @default(dbgenerated("gen_nx03_conversion_output_id()")) @db.VarChar(15)
+  /// 對應轉換單表頭 ID；啟用最低需求版本：LITE
+  conversionId  String           @map("conversion_id") @db.VarChar(15)
+  /// 明細行號（1,2,3…）；啟用最低需求版本：LITE
+  lineNo        Int              @default(1) @map("line_no")
+  /// 零件 ID；啟用最低需求版本：LITE
+  partId        String           @map("part_id") @db.VarChar(15)
+  /// 料號快照；啟用最低需求版本：LITE
+  partNo        String           @map("part_no") @db.VarChar(50)
+  /// 品名快照；啟用最低需求版本：LITE
+  partName      String           @map("part_name") @db.VarChar(200)
+  /// 過帳當下 part 版本快照 FK（M1 配套、Q-S1=B 既有 null、新 row 帶入）；啟用最低需求版本：LITE
+  partVersionId String?          @map("part_version_id") @db.VarChar(15)
+  /// 輸出庫位（入哪儲位）；啟用最低需求版本：LITE
+  locationId    String           @map("location_id") @db.VarChar(15)
+  /// 輸出數量（>0、過帳時走 helper.applyQtyInWithLedger source=M/D）；啟用最低需求版本：LITE
+  qty           Decimal          @default(0) @db.Decimal(14, 4)
+  /// 輸出單位成本（重組 = Σ 加權 input；分解 = input.totalCost × ratio、service 算）；啟用最低需求版本：LITE
+  unitCost      Decimal          @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  /// 輸出總成本（qty × unit_cost）；啟用最低需求版本：LITE
+  totalCost     Decimal          @default(0) @map("total_cost") @db.Decimal(14, 2)
+  /// 成本分攤比例（分解時可選、0~1.0、null=auto 按 part.priceA 比例、非 null=人工指定）；啟用最低需求版本：LITE
+  costRatio     Decimal?         @map("cost_ratio") @db.Decimal(8, 6)
+  /// 備註；啟用最低需求版本：LITE
+  remark        String?          @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt     DateTime         @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy     String           @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy     String           @map("updated_by") @db.VarChar(15)
+  conversion    Nx03Conversion   @relation("R_Nx03ConversionOutput_conversionId", fields: [conversionId], references: [id], onDelete: Cascade)
+  part          Nx01Part         @relation("R_Nx03ConversionOutput_partId", fields: [partId], references: [id])
+  partVersion   Nx01PartVersion? @relation("R_Nx03ConversionOutput_partVersionId", fields: [partVersionId], references: [id])
+  location      Nx01Location     @relation("R_Nx03ConversionOutput_locationId", fields: [locationId], references: [id])
+
+  @@map("nx03_conversion_output")
 }
 
 /// =======================================================
@@ -4857,7 +5125,6 @@ model Nx08InventoryCache {
   @@map("nx08_inventory_cache")
 }
 
-
 /// =======================================================
 /// Nx08PestelRecord — DB table `nx08_pestel_record`
 /// =======================================================
@@ -6162,152 +6429,154 @@ model Nx99SubscriptionItem {
 /// =======================================================
 model Nx99Tenant {
   /// [NX99]+[TANT]+[7碼流水號]，EX : NX99TANT0000001；啟用最低需求版本：LITE-CORE
-  id                                 String                  @id @default(dbgenerated("gen_nx99_tenant_id()")) @db.VarChar(15)
+  id                                      String                       @id @default(dbgenerated("gen_nx99_tenant_id()")) @db.VarChar(15)
   /// 租戶代碼（唯一），可作公司代碼/登入識別碼；啟用最低需求版本：LITE-CORE
-  code                               String                  @db.VarChar(30)
+  code                                    String                       @db.VarChar(30)
   /// 租戶名稱（公司名稱）；啟用最低需求版本：LITE-CORE
-  name                               String                  @db.VarChar(100)
+  name                                    String                       @db.VarChar(100)
   /// 租戶英文名稱（公司名稱）；啟用最低需求版本：LITE-CORE
-  nameEn                             String?                 @map("name_en") @db.VarChar(100)
+  nameEn                                  String?                      @map("name_en") @db.VarChar(100)
   /// 租戶狀態。( A=ACTIVE, S=SUSPENDED, C=CLOSED )；啟用最低需求版本：LITE-CORE
-  status                             String                  @db.VarChar(1)
+  status                                  String                       @db.VarChar(1)
   /// 備註；啟用最低需求版本：LITE-CORE
-  remark                             String?                 @db.VarChar(200)
+  remark                                  String?                      @db.VarChar(200)
   /// 排序；啟用最低需求版本：LITE-CORE
-  sortNo                             Int                     @map("sort_no")
+  sortNo                                  Int                          @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE-CORE
-  isActive                           Boolean                 @map("is_active")
+  isActive                                Boolean                      @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                          DateTime                @default(now()) @map("created_at")
+  createdAt                               DateTime                     @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                          String                  @map("created_by") @db.VarChar(15)
+  createdBy                               String                       @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                          DateTime                @updatedAt @map("updated_at")
+  updatedAt                               DateTime                     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                          String                  @map("updated_by") @db.VarChar(15)
+  updatedBy                               String                       @map("updated_by") @db.VarChar(15)
   /// 租戶主要聯絡人姓名。；啟用最低需求版本：LITE-CORE
-  contactName                        String?                 @map("contact_name") @db.VarChar(50)
+  contactName                             String?                      @map("contact_name") @db.VarChar(50)
   /// 租戶聯絡 Email（系統通知用）。；啟用最低需求版本：LITE-CORE
-  contactEmail                       String?                 @map("contact_email") @db.VarChar(100)
+  contactEmail                            String?                      @map("contact_email") @db.VarChar(100)
   /// 租戶聯絡電話。；啟用最低需求版本：LITE-CORE
-  contactPhone                       String?                 @map("contact_phone") @db.VarChar(30)
+  contactPhone                            String?                      @map("contact_phone") @db.VarChar(30)
   /// 時區設定（預設 Asia/Taipei），影響關帳時間計算。；啟用最低需求版本：LITE-CORE
-  timezone                           String                  @default("Asia/Taipei") @db.VarChar(50)
+  timezone                                String                       @default("Asia/Taipei") @db.VarChar(50)
   /// 語系設定（預設 zh-TW）。；啟用最低需求版本：LITE-CORE
-  locale                             String                  @default("zh-TW") @db.VarChar(10)
-  rev_Nx01AuditLog_tenantId          Nx01AuditLog[]          @relation("R_Nx01AuditLog_tenantId")
-  rev_Nx01BrandCodeRule_tenantId     Nx01BrandCodeRule[]     @relation("R_Nx01BrandCodeRule_tenantId")
-  rev_Nx01Bulletin_tenantId          Nx01Bulletin[]          @relation("R_Nx01Bulletin_tenantId")
-  rev_Nx01BulletinCategory_tenantId  Nx01BulletinCategory[]  @relation("R_Nx01BulletinCategory_tenantId")
-  rev_Nx01BulletinAttachment_tenantId Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_tenantId")
-  rev_Nx01BulletinReadLog_tenantId   Nx01BulletinReadLog[]   @relation("R_Nx01BulletinReadLog_tenantId")
-  rev_Nx01CalendarEvent_tenantId     Nx01CalendarEvent[]     @relation("R_Nx01CalendarEvent_tenantId")
-  rev_Nx01CarBrand_tenantId          Nx01CarBrand[]          @relation("R_Nx01CarBrand_tenantId")
-  rev_Nx01CustomerGrade_tenantId     Nx01CustomerGrade[]     @relation("R_Nx01CustomerGrade_tenantId")
-  rev_Nx01Department_tenantId        Nx01Department[]        @relation("R_Nx01Department_tenantId")
-  rev_Nx01DiscountCode_tenantId      Nx01DiscountCode[]      @relation("R_Nx01DiscountCode_tenantId")
-  rev_Nx01KpiRecord_tenantId         Nx01KpiRecord[]         @relation("R_Nx01KpiRecord_tenantId")
-  rev_Nx01KpiTarget_tenantId         Nx01KpiTarget[]         @relation("R_Nx01KpiTarget_tenantId")
-  rev_Nx01KpiTemplate_tenantId       Nx01KpiTemplate[]       @relation("R_Nx01KpiTemplate_tenantId")
-  rev_Nx01Location_tenantId          Nx01Location[]          @relation("R_Nx01Location_tenantId")
-  rev_Nx01Part_tenantId              Nx01Part[]              @relation("R_Nx01Part_tenantId")
-  rev_Nx01PartBrand_tenantId         Nx01PartBrand[]         @relation("R_Nx01PartBrand_tenantId")
-  rev_Nx01PartGroup_tenantId         Nx01PartGroup[]         @relation("R_Nx01PartGroup_tenantId")
-  rev_Nx01PartRelation_tenantId      Nx01PartRelation[]      @relation("R_Nx01PartRelation_tenantId")
-  rev_Nx01PartVersion_tenantId       Nx01PartVersion[]       @relation("R_Nx01PartVersion_tenantId")
-  rev_Nx01PartModel_tenantId         Nx01PartModel[]         @relation("R_Nx01PartModel_tenantId")
-  rev_Nx01Drivetrain_tenantId        Nx01Drivetrain[]        @relation("R_Nx01Drivetrain_tenantId")
-  rev_Nx01Engine_tenantId            Nx01Engine[]            @relation("R_Nx01Engine_tenantId")
-  rev_Nx01Model_tenantId             Nx01Model[]             @relation("R_Nx01Model_tenantId")
-  rev_Nx01ModelType_tenantId         Nx01ModelType[]         @relation("R_Nx01ModelType_tenantId")
-  rev_Nx01Partner_tenantId           Nx01Partner[]           @relation("R_Nx01Partner_tenantId")
-  rev_Nx01PhoneticIndex_tenantId     Nx01PhoneticIndex[]     @relation("R_Nx01PhoneticIndex_tenantId")
-  rev_Nx01Role_tenantId              Nx01Role[]              @relation("R_Nx01Role_tenantId")
-  rev_Nx01Transmission_tenantId      Nx01Transmission[]      @relation("R_Nx01Transmission_tenantId")
-  rev_Nx01RoleView_tenantId          Nx01RoleView[]          @relation("R_Nx01RoleView_tenantId")
-  rev_Nx01Team_tenantId              Nx01Team[]              @relation("R_Nx01Team_tenantId")
-  rev_Nx01User_tenantId              Nx01User[]              @relation("R_Nx01User_tenantId")
-  rev_Nx01UserRole_tenantId          Nx01UserRole[]          @relation("R_Nx01UserRole_tenantId")
-  rev_Nx01UserTeam_tenantId          Nx01UserTeam[]          @relation("R_Nx01UserTeam_tenantId")
-  rev_Nx01UserWarehouse_tenantId     Nx01UserWarehouse[]     @relation("R_Nx01UserWarehouse_tenantId")
-  rev_Nx01Warehouse_tenantId         Nx01Warehouse[]         @relation("R_Nx01Warehouse_tenantId")
-  rev_Nx02Demand_tenantId            Nx02Demand[]            @relation("R_Nx02Demand_tenantId")
-  rev_Nx02Po_tenantId                Nx02Po[]                @relation("R_Nx02Po_tenantId")
-  rev_Nx02Pr_tenantId                Nx02Pr[]                @relation("R_Nx02Pr_tenantId")
-  rev_Nx02Qt_tenantId                Nx02Qt[]                @relation("R_Nx02Qt_tenantId")
-  rev_Nx02Rfq_tenantId               Nx02Rfq[]               @relation("R_Nx02Rfq_tenantId")
-  rev_Nx02Rr_tenantId                Nx02Rr[]                @relation("R_Nx02Rr_tenantId")
-  rev_Nx02RrImport_tenantId          Nx02RrImport[]          @relation("R_Nx02RrImport_tenantId")
-  rev_Nx02Ti_tenantId                Nx02Ti[]                @relation("R_Nx02Ti_tenantId")
-  rev_Nx03AutoReplenish_tenantId     Nx03AutoReplenish[]     @relation("R_Nx03AutoReplenish_tenantId")
-  rev_Nx03Init_tenantId              Nx03Init[]              @relation("R_Nx03Init_tenantId")
-  rev_Nx03Inbound_tenantId           Nx03Inbound[]           @relation("R_Nx03Inbound_tenantId")
-  rev_Nx03Outbound_tenantId          Nx03Outbound[]          @relation("R_Nx03Outbound_tenantId")
-  rev_Nx03Parcel_tenantId            Nx03Parcel[]            @relation("R_Nx03Parcel_tenantId")
-  rev_Nx03PartStockSetting_tenantId  Nx03PartStockSetting[]  @relation("R_Nx03PartStockSetting_tenantId")
-  rev_Nx03Pk_tenantId                Nx03Pk[]                @relation("R_Nx03Pk_tenantId")
-  rev_Nx03Pl_tenantId                Nx03Pl[]                @relation("R_Nx03Pl_tenantId")
-  rev_Nx03Shortage_tenantId          Nx03Shortage[]          @relation("R_Nx03Shortage_tenantId")
-  rev_Nx03St_tenantId                Nx03St[]                @relation("R_Nx03St_tenantId")
-  rev_Nx03StockBalance_tenantId      Nx03StockBalance[]      @relation("R_Nx03StockBalance_tenantId")
-  rev_Nx03StockLedger_tenantId       Nx03StockLedger[]       @relation("R_Nx03StockLedger_tenantId")
-  rev_Nx03StockTake_tenantId         Nx03StockTake[]         @relation("R_Nx03StockTake_tenantId")
-  rev_Nx04Co_tenantId                Nx04Co[]                @relation("R_Nx04Co_tenantId")
-  rev_Nx04Quote_tenantId             Nx04Quote[]             @relation("R_Nx04Quote_tenantId")
-  rev_Nx04So_tenantId                Nx04So[]                @relation("R_Nx04So_tenantId")
-  rev_Nx04Sr_tenantId                Nx04Sr[]                @relation("R_Nx04Sr_tenantId")
-  rev_Nx05AccountCode_tenantId       Nx05AccountCode[]       @relation("R_Nx05AccountCode_tenantId")
-  rev_Nx05Allowance_tenantId         Nx05Allowance[]         @relation("R_Nx05Allowance_tenantId")
-  rev_Nx05ApLedger_tenantId          Nx05ApLedger[]          @relation("R_Nx05ApLedger_tenantId")
-  rev_Nx05ArLedger_tenantId          Nx05ArLedger[]          @relation("R_Nx05ArLedger_tenantId")
-  rev_Nx05Closing_tenantId           Nx05Closing[]           @relation("R_Nx05Closing_tenantId")
-  rev_Nx05Note_tenantId              Nx05Note[]              @relation("R_Nx05Note_tenantId")
-  rev_Nx05Paylog_tenantId            Nx05Paylog[]            @relation("R_Nx05Paylog_tenantId")
-  rev_Nx06Dn_tenantId                Nx06Dn[]                @relation("R_Nx06Dn_tenantId")
-  rev_Nx07Attendance_tenantId        Nx07Attendance[]        @relation("R_Nx07Attendance_tenantId")
-  rev_Nx07IpWhitelist_tenantId       Nx07IpWhitelist[]       @relation("R_Nx07IpWhitelist_tenantId")
-  rev_Nx07LeaveBalance_tenantId      Nx07LeaveBalance[]      @relation("R_Nx07LeaveBalance_tenantId")
-  rev_Nx07LeaveRequest_tenantId      Nx07LeaveRequest[]      @relation("R_Nx07LeaveRequest_tenantId")
-  rev_Nx07LeaveType_tenantId         Nx07LeaveType[]         @relation("R_Nx07LeaveType_tenantId")
-  rev_Nx07OvertimeRequest_tenantId   Nx07OvertimeRequest[]   @relation("R_Nx07OvertimeRequest_tenantId")
-  rev_Nx07SalaryComponent_tenantId   Nx07SalaryComponent[]   @relation("R_Nx07SalaryComponent_tenantId")
-  rev_Nx07SalaryRecord_tenantId      Nx07SalaryRecord[]      @relation("R_Nx07SalaryRecord_tenantId")
-  rev_Nx07SalarySetting_tenantId     Nx07SalarySetting[]     @relation("R_Nx07SalarySetting_tenantId")
-  rev_Nx07Schedule_tenantId          Nx07Schedule[]          @relation("R_Nx07Schedule_tenantId")
-  rev_Nx07ShiftType_tenantId         Nx07ShiftType[]         @relation("R_Nx07ShiftType_tenantId")
-  rev_Nx07Performance_tenantId       Nx07Performance[]       @relation("R_Nx07Performance_tenantId")
-  rev_Nx07Training_tenantId          Nx07Training[]          @relation("R_Nx07Training_tenantId")
-  rev_Nx07EmployeeChange_tenantId    Nx07EmployeeChange[]    @relation("R_Nx07EmployeeChange_tenantId")
-  rev_Nx08DailyReport_tenantId       Nx08DailyReport[]       @relation("R_Nx08DailyReport_tenantId")
-  rev_Nx08FinanceCache_tenantId      Nx08FinanceCache[]      @relation("R_Nx08FinanceCache_tenantId")
-  rev_Nx08HrCache_tenantId           Nx08HrCache[]           @relation("R_Nx08HrCache_tenantId")
-  rev_Nx08InventoryCache_tenantId    Nx08InventoryCache[]    @relation("R_Nx08InventoryCache_tenantId")
-  rev_Nx08PestelRecord_tenantId      Nx08PestelRecord[]      @relation("R_Nx08PestelRecord_tenantId")
-  rev_Nx08PurchaseCache_tenantId     Nx08PurchaseCache[]     @relation("R_Nx08PurchaseCache_tenantId")
-  rev_Nx08SalesCache_tenantId        Nx08SalesCache[]        @relation("R_Nx08SalesCache_tenantId")
-  rev_Nx08SwotRecord_tenantId        Nx08SwotRecord[]        @relation("R_Nx08SwotRecord_tenantId")
-  rev_Nx09Document_tenantId          Nx09Document[]          @relation("R_Nx09Document_tenantId")
-  rev_Nx09KmArticle_tenantId         Nx09KmArticle[]         @relation("R_Nx09KmArticle_tenantId")
-  rev_Nx09KmFeedback_tenantId        Nx09KmFeedback[]        @relation("R_Nx09KmFeedback_tenantId")
-  rev_Nx09KmTag_tenantId             Nx09KmTag[]             @relation("R_Nx09KmTag_tenantId")
-  rev_Nx09Meeting_tenantId           Nx09Meeting[]           @relation("R_Nx09Meeting_tenantId")
-  rev_Nx09MeetingAction_tenantId     Nx09MeetingAction[]     @relation("R_Nx09MeetingAction_tenantId")
-  rev_Nx10EmpExpLog_tenantId         Nx10EmpExpLog[]         @relation("R_Nx10EmpExpLog_tenantId")
-  rev_Nx10CheckinLog_tenantId        Nx10CheckinLog[]        @relation("R_Nx10CheckinLog_tenantId")
-  rev_Nx10EmpMedal_tenantId          Nx10EmpMedal[]          @relation("R_Nx10EmpMedal_tenantId")
-  rev_Nx10EmpTaskLog_tenantId        Nx10EmpTaskLog[]        @relation("R_Nx10EmpTaskLog_tenantId")
-  rev_Nx10MedalLevel_tenantId        Nx10MedalLevel[]        @relation("R_Nx10MedalLevel_tenantId")
-  rev_Nx10MentorshipRecord_tenantId  Nx10MentorshipRecord[]  @relation("R_Nx10MentorshipRecord_tenantId")
-  rev_Nx10PromotionCriteria_tenantId Nx10PromotionCriteria[] @relation("R_Nx10PromotionCriteria_tenantId")
-  rev_Nx10PromotionRequest_tenantId  Nx10PromotionRequest[]  @relation("R_Nx10PromotionRequest_tenantId")
-  rev_Nx10SprintTask_tenantId        Nx10SprintTask[]        @relation("R_Nx10SprintTask_tenantId")
-  rev_Nx10SprintTaskLog_tenantId     Nx10SprintTaskLog[]     @relation("R_Nx10SprintTaskLog_tenantId")
-  rev_Nx10SurpriseBoxLog_tenantId    Nx10SurpriseBoxLog[]    @relation("R_Nx10SurpriseBoxLog_tenantId")
-  rev_Nx10TaskTemplate_tenantId      Nx10TaskTemplate[]      @relation("R_Nx10TaskTemplate_tenantId")
-  rev_Nx10TeamTask_tenantId          Nx10TeamTask[]          @relation("R_Nx10TeamTask_tenantId")
-  rev_Nx10TeamTaskLog_tenantId       Nx10TeamTaskLog[]       @relation("R_Nx10TeamTaskLog_tenantId")
-  rev_Nx98DocLink_tenantId           Nx98DocLink[]           @relation("R_Nx98DocLink_tenantId")
-  rev_Nx99Subscription_tenantId      Nx99Subscription[]      @relation("R_Nx99Subscription_tenantId")
+  locale                                  String                       @default("zh-TW") @db.VarChar(10)
+  rev_Nx01AuditLog_tenantId               Nx01AuditLog[]               @relation("R_Nx01AuditLog_tenantId")
+  rev_Nx01BrandCodeRule_tenantId          Nx01BrandCodeRule[]          @relation("R_Nx01BrandCodeRule_tenantId")
+  rev_Nx01Bulletin_tenantId               Nx01Bulletin[]               @relation("R_Nx01Bulletin_tenantId")
+  rev_Nx01BulletinCategory_tenantId       Nx01BulletinCategory[]       @relation("R_Nx01BulletinCategory_tenantId")
+  rev_Nx01BulletinAttachment_tenantId     Nx01BulletinAttachment[]     @relation("R_Nx01BulletinAttachment_tenantId")
+  rev_Nx01BulletinReadLog_tenantId        Nx01BulletinReadLog[]        @relation("R_Nx01BulletinReadLog_tenantId")
+  rev_Nx01CalendarEvent_tenantId          Nx01CalendarEvent[]          @relation("R_Nx01CalendarEvent_tenantId")
+  rev_Nx01CarBrand_tenantId               Nx01CarBrand[]               @relation("R_Nx01CarBrand_tenantId")
+  rev_Nx01CustomerGrade_tenantId          Nx01CustomerGrade[]          @relation("R_Nx01CustomerGrade_tenantId")
+  rev_Nx01Department_tenantId             Nx01Department[]             @relation("R_Nx01Department_tenantId")
+  rev_Nx01DiscountCode_tenantId           Nx01DiscountCode[]           @relation("R_Nx01DiscountCode_tenantId")
+  rev_Nx01KpiRecord_tenantId              Nx01KpiRecord[]              @relation("R_Nx01KpiRecord_tenantId")
+  rev_Nx01KpiTarget_tenantId              Nx01KpiTarget[]              @relation("R_Nx01KpiTarget_tenantId")
+  rev_Nx01KpiTemplate_tenantId            Nx01KpiTemplate[]            @relation("R_Nx01KpiTemplate_tenantId")
+  rev_Nx01Location_tenantId               Nx01Location[]               @relation("R_Nx01Location_tenantId")
+  rev_Nx01Part_tenantId                   Nx01Part[]                   @relation("R_Nx01Part_tenantId")
+  rev_Nx01PartBrand_tenantId              Nx01PartBrand[]              @relation("R_Nx01PartBrand_tenantId")
+  rev_Nx01PartGroup_tenantId              Nx01PartGroup[]              @relation("R_Nx01PartGroup_tenantId")
+  rev_Nx01PartRelation_tenantId           Nx01PartRelation[]           @relation("R_Nx01PartRelation_tenantId")
+  rev_Nx01PartVersion_tenantId            Nx01PartVersion[]            @relation("R_Nx01PartVersion_tenantId")
+  rev_Nx01PartModel_tenantId              Nx01PartModel[]              @relation("R_Nx01PartModel_tenantId")
+  rev_Nx01Drivetrain_tenantId             Nx01Drivetrain[]             @relation("R_Nx01Drivetrain_tenantId")
+  rev_Nx01Engine_tenantId                 Nx01Engine[]                 @relation("R_Nx01Engine_tenantId")
+  rev_Nx01Model_tenantId                  Nx01Model[]                  @relation("R_Nx01Model_tenantId")
+  rev_Nx01ModelType_tenantId              Nx01ModelType[]              @relation("R_Nx01ModelType_tenantId")
+  rev_Nx01Partner_tenantId                Nx01Partner[]                @relation("R_Nx01Partner_tenantId")
+  rev_Nx01PhoneticIndex_tenantId          Nx01PhoneticIndex[]          @relation("R_Nx01PhoneticIndex_tenantId")
+  rev_Nx01Role_tenantId                   Nx01Role[]                   @relation("R_Nx01Role_tenantId")
+  rev_Nx01Transmission_tenantId           Nx01Transmission[]           @relation("R_Nx01Transmission_tenantId")
+  rev_Nx01RoleView_tenantId               Nx01RoleView[]               @relation("R_Nx01RoleView_tenantId")
+  rev_Nx01Team_tenantId                   Nx01Team[]                   @relation("R_Nx01Team_tenantId")
+  rev_Nx01User_tenantId                   Nx01User[]                   @relation("R_Nx01User_tenantId")
+  rev_Nx01UserRole_tenantId               Nx01UserRole[]               @relation("R_Nx01UserRole_tenantId")
+  rev_Nx01UserTeam_tenantId               Nx01UserTeam[]               @relation("R_Nx01UserTeam_tenantId")
+  rev_Nx01UserWarehouse_tenantId          Nx01UserWarehouse[]          @relation("R_Nx01UserWarehouse_tenantId")
+  rev_Nx01Warehouse_tenantId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_tenantId")
+  rev_Nx02Demand_tenantId                 Nx02Demand[]                 @relation("R_Nx02Demand_tenantId")
+  rev_Nx02Po_tenantId                     Nx02Po[]                     @relation("R_Nx02Po_tenantId")
+  rev_Nx02Pr_tenantId                     Nx02Pr[]                     @relation("R_Nx02Pr_tenantId")
+  rev_Nx02Qt_tenantId                     Nx02Qt[]                     @relation("R_Nx02Qt_tenantId")
+  rev_Nx02Rfq_tenantId                    Nx02Rfq[]                    @relation("R_Nx02Rfq_tenantId")
+  rev_Nx02Rr_tenantId                     Nx02Rr[]                     @relation("R_Nx02Rr_tenantId")
+  rev_Nx02RrImport_tenantId               Nx02RrImport[]               @relation("R_Nx02RrImport_tenantId")
+  rev_Nx02Ti_tenantId                     Nx02Ti[]                     @relation("R_Nx02Ti_tenantId")
+  rev_Nx03AutoReplenish_tenantId          Nx03AutoReplenish[]          @relation("R_Nx03AutoReplenish_tenantId")
+  rev_Nx03Init_tenantId                   Nx03Init[]                   @relation("R_Nx03Init_tenantId")
+  rev_Nx03Inbound_tenantId                Nx03Inbound[]                @relation("R_Nx03Inbound_tenantId")
+  rev_Nx03Outbound_tenantId               Nx03Outbound[]               @relation("R_Nx03Outbound_tenantId")
+  rev_Nx03Disposal_tenantId               Nx03Disposal[]               @relation("R_Nx03Disposal_tenantId")
+  rev_Nx03Conversion_tenantId             Nx03Conversion[]             @relation("R_Nx03Conversion_tenantId")
+  rev_Nx03Parcel_tenantId                 Nx03Parcel[]                 @relation("R_Nx03Parcel_tenantId")
+  rev_Nx03PartStockSetting_tenantId       Nx03PartStockSetting[]       @relation("R_Nx03PartStockSetting_tenantId")
+  rev_Nx03Pk_tenantId                     Nx03Pk[]                     @relation("R_Nx03Pk_tenantId")
+  rev_Nx03Pl_tenantId                     Nx03Pl[]                     @relation("R_Nx03Pl_tenantId")
+  rev_Nx03Shortage_tenantId               Nx03Shortage[]               @relation("R_Nx03Shortage_tenantId")
+  rev_Nx03St_tenantId                     Nx03St[]                     @relation("R_Nx03St_tenantId")
+  rev_Nx03StockBalance_tenantId           Nx03StockBalance[]           @relation("R_Nx03StockBalance_tenantId")
+  rev_Nx03StockLedger_tenantId            Nx03StockLedger[]            @relation("R_Nx03StockLedger_tenantId")
+  rev_Nx03StockTake_tenantId              Nx03StockTake[]              @relation("R_Nx03StockTake_tenantId")
+  rev_Nx04Co_tenantId                     Nx04Co[]                     @relation("R_Nx04Co_tenantId")
+  rev_Nx04Quote_tenantId                  Nx04Quote[]                  @relation("R_Nx04Quote_tenantId")
+  rev_Nx04So_tenantId                     Nx04So[]                     @relation("R_Nx04So_tenantId")
+  rev_Nx04Sr_tenantId                     Nx04Sr[]                     @relation("R_Nx04Sr_tenantId")
+  rev_Nx05AccountCode_tenantId            Nx05AccountCode[]            @relation("R_Nx05AccountCode_tenantId")
+  rev_Nx05Allowance_tenantId              Nx05Allowance[]              @relation("R_Nx05Allowance_tenantId")
+  rev_Nx05ApLedger_tenantId               Nx05ApLedger[]               @relation("R_Nx05ApLedger_tenantId")
+  rev_Nx05ArLedger_tenantId               Nx05ArLedger[]               @relation("R_Nx05ArLedger_tenantId")
+  rev_Nx05Closing_tenantId                Nx05Closing[]                @relation("R_Nx05Closing_tenantId")
+  rev_Nx05Note_tenantId                   Nx05Note[]                   @relation("R_Nx05Note_tenantId")
+  rev_Nx05Paylog_tenantId                 Nx05Paylog[]                 @relation("R_Nx05Paylog_tenantId")
+  rev_Nx06Dn_tenantId                     Nx06Dn[]                     @relation("R_Nx06Dn_tenantId")
+  rev_Nx07Attendance_tenantId             Nx07Attendance[]             @relation("R_Nx07Attendance_tenantId")
+  rev_Nx07IpWhitelist_tenantId            Nx07IpWhitelist[]            @relation("R_Nx07IpWhitelist_tenantId")
+  rev_Nx07LeaveBalance_tenantId           Nx07LeaveBalance[]           @relation("R_Nx07LeaveBalance_tenantId")
+  rev_Nx07LeaveRequest_tenantId           Nx07LeaveRequest[]           @relation("R_Nx07LeaveRequest_tenantId")
+  rev_Nx07LeaveType_tenantId              Nx07LeaveType[]              @relation("R_Nx07LeaveType_tenantId")
+  rev_Nx07OvertimeRequest_tenantId        Nx07OvertimeRequest[]        @relation("R_Nx07OvertimeRequest_tenantId")
+  rev_Nx07SalaryComponent_tenantId        Nx07SalaryComponent[]        @relation("R_Nx07SalaryComponent_tenantId")
+  rev_Nx07SalaryRecord_tenantId           Nx07SalaryRecord[]           @relation("R_Nx07SalaryRecord_tenantId")
+  rev_Nx07SalarySetting_tenantId          Nx07SalarySetting[]          @relation("R_Nx07SalarySetting_tenantId")
+  rev_Nx07Schedule_tenantId               Nx07Schedule[]               @relation("R_Nx07Schedule_tenantId")
+  rev_Nx07ShiftType_tenantId              Nx07ShiftType[]              @relation("R_Nx07ShiftType_tenantId")
+  rev_Nx07Performance_tenantId            Nx07Performance[]            @relation("R_Nx07Performance_tenantId")
+  rev_Nx07Training_tenantId               Nx07Training[]               @relation("R_Nx07Training_tenantId")
+  rev_Nx07EmployeeChange_tenantId         Nx07EmployeeChange[]         @relation("R_Nx07EmployeeChange_tenantId")
+  rev_Nx08DailyReport_tenantId            Nx08DailyReport[]            @relation("R_Nx08DailyReport_tenantId")
+  rev_Nx08FinanceCache_tenantId           Nx08FinanceCache[]           @relation("R_Nx08FinanceCache_tenantId")
+  rev_Nx08HrCache_tenantId                Nx08HrCache[]                @relation("R_Nx08HrCache_tenantId")
+  rev_Nx08InventoryCache_tenantId         Nx08InventoryCache[]         @relation("R_Nx08InventoryCache_tenantId")
+  rev_Nx08PestelRecord_tenantId           Nx08PestelRecord[]           @relation("R_Nx08PestelRecord_tenantId")
+  rev_Nx08PurchaseCache_tenantId          Nx08PurchaseCache[]          @relation("R_Nx08PurchaseCache_tenantId")
+  rev_Nx08SalesCache_tenantId             Nx08SalesCache[]             @relation("R_Nx08SalesCache_tenantId")
+  rev_Nx08SwotRecord_tenantId             Nx08SwotRecord[]             @relation("R_Nx08SwotRecord_tenantId")
+  rev_Nx09Document_tenantId               Nx09Document[]               @relation("R_Nx09Document_tenantId")
+  rev_Nx09KmArticle_tenantId              Nx09KmArticle[]              @relation("R_Nx09KmArticle_tenantId")
+  rev_Nx09KmFeedback_tenantId             Nx09KmFeedback[]             @relation("R_Nx09KmFeedback_tenantId")
+  rev_Nx09KmTag_tenantId                  Nx09KmTag[]                  @relation("R_Nx09KmTag_tenantId")
+  rev_Nx09Meeting_tenantId                Nx09Meeting[]                @relation("R_Nx09Meeting_tenantId")
+  rev_Nx09MeetingAction_tenantId          Nx09MeetingAction[]          @relation("R_Nx09MeetingAction_tenantId")
+  rev_Nx10EmpExpLog_tenantId              Nx10EmpExpLog[]              @relation("R_Nx10EmpExpLog_tenantId")
+  rev_Nx10CheckinLog_tenantId             Nx10CheckinLog[]             @relation("R_Nx10CheckinLog_tenantId")
+  rev_Nx10EmpMedal_tenantId               Nx10EmpMedal[]               @relation("R_Nx10EmpMedal_tenantId")
+  rev_Nx10EmpTaskLog_tenantId             Nx10EmpTaskLog[]             @relation("R_Nx10EmpTaskLog_tenantId")
+  rev_Nx10MedalLevel_tenantId             Nx10MedalLevel[]             @relation("R_Nx10MedalLevel_tenantId")
+  rev_Nx10MentorshipRecord_tenantId       Nx10MentorshipRecord[]       @relation("R_Nx10MentorshipRecord_tenantId")
+  rev_Nx10PromotionCriteria_tenantId      Nx10PromotionCriteria[]      @relation("R_Nx10PromotionCriteria_tenantId")
+  rev_Nx10PromotionRequest_tenantId       Nx10PromotionRequest[]       @relation("R_Nx10PromotionRequest_tenantId")
+  rev_Nx10SprintTask_tenantId             Nx10SprintTask[]             @relation("R_Nx10SprintTask_tenantId")
+  rev_Nx10SprintTaskLog_tenantId          Nx10SprintTaskLog[]          @relation("R_Nx10SprintTaskLog_tenantId")
+  rev_Nx10SurpriseBoxLog_tenantId         Nx10SurpriseBoxLog[]         @relation("R_Nx10SurpriseBoxLog_tenantId")
+  rev_Nx10TaskTemplate_tenantId           Nx10TaskTemplate[]           @relation("R_Nx10TaskTemplate_tenantId")
+  rev_Nx10TeamTask_tenantId               Nx10TeamTask[]               @relation("R_Nx10TeamTask_tenantId")
+  rev_Nx10TeamTaskLog_tenantId            Nx10TeamTaskLog[]            @relation("R_Nx10TeamTaskLog_tenantId")
+  rev_Nx98DocLink_tenantId                Nx98DocLink[]                @relation("R_Nx98DocLink_tenantId")
+  rev_Nx99Subscription_tenantId           Nx99Subscription[]           @relation("R_Nx99Subscription_tenantId")
   rev_Nx01PartnerBillingAddress_tenantId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_tenantId")
   rev_Nx01PartnerShippingAddress_tenantId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_tenantId")
 
@@ -6320,30 +6589,30 @@ model Nx99Tenant {
 /// =======================================================
 model Nx01City {
   /// [NX01]+[CITY]+[7碼流水號]，EX : NX01CITY0000001；啟用最低需求版本：LITE
-  id          String   @id @default(dbgenerated("gen_nx01_city_id()")) @db.VarChar(15)
+  id        String   @id @default(dbgenerated("gen_nx01_city_id()")) @db.VarChar(15)
   /// 縣市代碼（如 TPE / NWT / KAO、ISO 3166-2:TW）；啟用最低需求版本：LITE
-  code        String   @db.VarChar(3)
+  code      String   @db.VarChar(3)
   /// 中文名（如 臺北市）；啟用最低需求版本：LITE
-  name        String   @db.VarChar(20)
+  name      String   @db.VarChar(20)
   /// 英文名（如 Taipei City）；啟用最低需求版本：LITE
-  nameEn      String?  @map("name_en") @db.VarChar(50)
+  nameEn    String?  @map("name_en") @db.VarChar(50)
   /// 國家 ID（FK to nx01_country、預設 TWN 台灣、Q4 國外擴展性預留）；啟用最低需求版本：LITE
-  countryId   String   @map("country_id") @db.VarChar(15)
+  countryId String   @map("country_id") @db.VarChar(15)
   /// 排序順位（業界慣例如六都優先）；啟用最低需求版本：LITE
-  sortOrder   Int      @default(0) @map("sort_order")
+  sortOrder Int      @default(0) @map("sort_order")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive    Boolean  @default(true) @map("is_active")
+  isActive  Boolean  @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy   String   @map("created_by") @db.VarChar(15)
+  createdBy String   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy   String   @map("updated_by") @db.VarChar(15)
+  updatedBy String   @map("updated_by") @db.VarChar(15)
 
-  country                  Nx01Country    @relation("R_Nx01City_countryId", fields: [countryId], references: [id])
-  rev_Nx01District_cityId  Nx01District[] @relation("R_Nx01District_cityId")
+  country                               Nx01Country                  @relation("R_Nx01City_countryId", fields: [countryId], references: [id])
+  rev_Nx01District_cityId               Nx01District[]               @relation("R_Nx01District_cityId")
   rev_Nx01PartnerBillingAddress_cityId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_cityId")
   rev_Nx01PartnerShippingAddress_cityId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_cityId")
   rev_Nx01Warehouse_cityId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_cityId")
@@ -6357,30 +6626,30 @@ model Nx01City {
 /// =======================================================
 model Nx01District {
   /// [NX01]+[DIST]+[7碼流水號]，EX : NX01DIST0000001；啟用最低需求版本：LITE
-  id          String   @id @default(dbgenerated("gen_nx01_district_id()")) @db.VarChar(15)
+  id        String   @id @default(dbgenerated("gen_nx01_district_id()")) @db.VarChar(15)
   /// 所屬縣市 ID（FK to nx01_city）；啟用最低需求版本：LITE
-  cityId      String   @map("city_id") @db.VarChar(15)
+  cityId    String   @map("city_id") @db.VarChar(15)
   /// 鄉鎮代碼（如 WSN）；啟用最低需求版本：LITE
-  code        String   @db.VarChar(5)
+  code      String   @db.VarChar(5)
   /// 中文名（如 文山區）；啟用最低需求版本：LITE
-  name        String   @db.VarChar(20)
+  name      String   @db.VarChar(20)
   /// 英文名（如 Wenshan District）；啟用最低需求版本：LITE
-  nameEn      String?  @map("name_en") @db.VarChar(50)
+  nameEn    String?  @map("name_en") @db.VarChar(50)
   /// 區內排序；啟用最低需求版本：LITE
-  sortOrder   Int      @default(0) @map("sort_order")
+  sortOrder Int      @default(0) @map("sort_order")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive    Boolean  @default(true) @map("is_active")
+  isActive  Boolean  @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy   String   @map("created_by") @db.VarChar(15)
+  createdBy String   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy   String   @map("updated_by") @db.VarChar(15)
+  updatedBy String   @map("updated_by") @db.VarChar(15)
 
-  city                     Nx01City     @relation("R_Nx01District_cityId", fields: [cityId], references: [id])
-  rev_Nx01Street_districtId Nx01Street[] @relation("R_Nx01Street_districtId")
+  city                                      Nx01City                     @relation("R_Nx01District_cityId", fields: [cityId], references: [id])
+  rev_Nx01Street_districtId                 Nx01Street[]                 @relation("R_Nx01Street_districtId")
   rev_Nx01PartnerBillingAddress_districtId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_districtId")
   rev_Nx01PartnerShippingAddress_districtId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_districtId")
   rev_Nx01Warehouse_districtId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_districtId")
@@ -6417,7 +6686,7 @@ model Nx01Street {
   /// 更新人；啟用最低需求版本：LITE
   updatedBy   String   @map("updated_by") @db.VarChar(15)
 
-  district Nx01District @relation("R_Nx01Street_districtId", fields: [districtId], references: [id])
+  district                                Nx01District                 @relation("R_Nx01Street_districtId", fields: [districtId], references: [id])
   rev_Nx01PartnerBillingAddress_streetId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_streetId")
   rev_Nx01PartnerShippingAddress_streetId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_streetId")
   rev_Nx01Warehouse_streetId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_streetId")
@@ -6426,49 +6695,48 @@ model Nx01Street {
   @@map("nx01_street")
 }
 
-
 /// =======================================================
 /// Nx01PartnerBillingAddress — DB table `nx01_partner_billing_address`（NX01-04 客戶地址 v1.0）
 /// =======================================================
 model Nx01PartnerBillingAddress {
   /// [NX01]+[PBAD]+[7碼流水號]，EX : NX01PBAD0000001；啟用最低需求版本：LITE
-  id              String   @id @default(dbgenerated("gen_nx01_partner_billing_address_id()")) @db.VarChar(15)
+  id             String   @id @default(dbgenerated("gen_nx01_partner_billing_address_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId        String   @map("tenant_id") @db.VarChar(15)
+  tenantId       String   @map("tenant_id") @db.VarChar(15)
   /// 客戶 ID（FK to nx01_partner、UNIQUE 一對一、ON DELETE CASCADE）；啟用最低需求版本：LITE
-  partnerId       String   @map("partner_id") @db.VarChar(15)
+  partnerId      String   @map("partner_id") @db.VarChar(15)
   /// 縣市 ID（FK to nx01_city）；啟用最低需求版本：LITE
-  cityId          String   @map("city_id") @db.VarChar(15)
+  cityId         String   @map("city_id") @db.VarChar(15)
   /// 鄉鎮市區 ID（FK to nx01_district）；啟用最低需求版本：LITE
-  districtId      String   @map("district_id") @db.VarChar(15)
+  districtId     String   @map("district_id") @db.VarChar(15)
   /// 路街 ID（FK to nx01_street、自帶 3+3 郵遞區號）；啟用最低需求版本：LITE
-  streetId        String   @map("street_id") @db.VarChar(15)
+  streetId       String   @map("street_id") @db.VarChar(15)
   /// 巷（純數字、可空）；啟用最低需求版本：LITE
-  lane            Int?
+  lane           Int?
   /// 弄（純數字、可空）；啟用最低需求版本：LITE
-  alley           Int?
+  alley          Int?
   /// 號（必填、純數字）；啟用最低需求版本：LITE
-  buildingNo      Int      @map("building_no")
+  buildingNo     Int      @map("building_no")
   /// 號的子號（之 N、純數字、可空）；啟用最低需求版本：LITE
-  buildingSubNo   Int?     @map("building_sub_no")
+  buildingSubNo  Int?     @map("building_sub_no")
   /// 樓層（容納 B1 / 3F 等變體）；啟用最低需求版本：LITE
-  floor           String?  @db.VarChar(10)
+  floor          String?  @db.VarChar(10)
   /// 室號（容納 12 / A 等變體）；啟用最低需求版本：LITE
-  roomNo          String?  @map("room_no") @db.VarChar(20)
+  roomNo         String?  @map("room_no") @db.VarChar(20)
   /// 收件人；啟用最低需求版本：LITE
-  recipientName   String   @map("recipient_name") @db.VarChar(50)
+  recipientName  String   @map("recipient_name") @db.VarChar(50)
   /// 收件電話；啟用最低需求版本：LITE
-  recipientPhone  String   @map("recipient_phone") @db.VarChar(30)
+  recipientPhone String   @map("recipient_phone") @db.VarChar(30)
   /// 備註（業務人員填）；啟用最低需求版本：LITE
-  note            String?  @db.VarChar(200)
+  note           String?  @db.VarChar(200)
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt       DateTime @default(now()) @map("created_at")
+  createdAt      DateTime @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy       String   @map("created_by") @db.VarChar(15)
+  createdBy      String   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy       String   @map("updated_by") @db.VarChar(15)
+  updatedBy      String   @map("updated_by") @db.VarChar(15)
 
   tenant   Nx99Tenant   @relation("R_Nx01PartnerBillingAddress_tenantId", fields: [tenantId], references: [id])
   partner  Nx01Partner  @relation("R_Nx01PartnerBillingAddress_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
@@ -6485,49 +6753,49 @@ model Nx01PartnerBillingAddress {
 /// =======================================================
 model Nx01PartnerShippingAddress {
   /// [NX01]+[PSAD]+[7碼流水號]，EX : NX01PSAD0000001；啟用最低需求版本：LITE
-  id              String   @id @default(dbgenerated("gen_nx01_partner_shipping_address_id()")) @db.VarChar(15)
+  id             String   @id @default(dbgenerated("gen_nx01_partner_shipping_address_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId        String   @map("tenant_id") @db.VarChar(15)
+  tenantId       String   @map("tenant_id") @db.VarChar(15)
   /// 客戶 ID（FK to nx01_partner、ON DELETE CASCADE、一對多）；啟用最低需求版本：LITE
-  partnerId       String   @map("partner_id") @db.VarChar(15)
+  partnerId      String   @map("partner_id") @db.VarChar(15)
   /// 地址標籤（如「台北倉」、同 partner 內 unique）；啟用最低需求版本：LITE
-  label           String   @db.VarChar(50)
+  label          String   @db.VarChar(50)
   /// 是否預設送貨地址（同 partner 只能 1 筆 true、partial unique index 強制）；啟用最低需求版本：LITE
-  isDefault       Boolean  @default(false) @map("is_default")
+  isDefault      Boolean  @default(false) @map("is_default")
   /// 是否啟用（停用後不可選、既有 DN 仍 snapshot 顯示）；啟用最低需求版本：LITE
-  isActive        Boolean  @default(true) @map("is_active")
+  isActive       Boolean  @default(true) @map("is_active")
   /// 縣市 ID（FK to nx01_city）；啟用最低需求版本：LITE
-  cityId          String   @map("city_id") @db.VarChar(15)
+  cityId         String   @map("city_id") @db.VarChar(15)
   /// 鄉鎮市區 ID（FK to nx01_district）；啟用最低需求版本：LITE
-  districtId      String   @map("district_id") @db.VarChar(15)
+  districtId     String   @map("district_id") @db.VarChar(15)
   /// 路街 ID（FK to nx01_street、自帶 3+3 郵遞區號）；啟用最低需求版本：LITE
-  streetId        String   @map("street_id") @db.VarChar(15)
+  streetId       String   @map("street_id") @db.VarChar(15)
   /// 巷（純數字、可空）；啟用最低需求版本：LITE
-  lane            Int?
+  lane           Int?
   /// 弄（純數字、可空）；啟用最低需求版本：LITE
-  alley           Int?
+  alley          Int?
   /// 號（必填、純數字）；啟用最低需求版本：LITE
-  buildingNo      Int      @map("building_no")
+  buildingNo     Int      @map("building_no")
   /// 號的子號（之 N、純數字、可空）；啟用最低需求版本：LITE
-  buildingSubNo   Int?     @map("building_sub_no")
+  buildingSubNo  Int?     @map("building_sub_no")
   /// 樓層（容納 B1 / 3F 等變體）；啟用最低需求版本：LITE
-  floor           String?  @db.VarChar(10)
+  floor          String?  @db.VarChar(10)
   /// 室號（容納 12 / A 等變體）；啟用最低需求版本：LITE
-  roomNo          String?  @map("room_no") @db.VarChar(20)
+  roomNo         String?  @map("room_no") @db.VarChar(20)
   /// 收件人；啟用最低需求版本：LITE
-  recipientName   String   @map("recipient_name") @db.VarChar(50)
+  recipientName  String   @map("recipient_name") @db.VarChar(50)
   /// 收件電話；啟用最低需求版本：LITE
-  recipientPhone  String   @map("recipient_phone") @db.VarChar(30)
+  recipientPhone String   @map("recipient_phone") @db.VarChar(30)
   /// 備註（業務人員填）；啟用最低需求版本：LITE
-  note            String?  @db.VarChar(200)
+  note           String?  @db.VarChar(200)
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt       DateTime @default(now()) @map("created_at")
+  createdAt      DateTime @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy       String   @map("created_by") @db.VarChar(15)
+  createdBy      String   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy       String   @map("updated_by") @db.VarChar(15)
+  updatedBy      String   @map("updated_by") @db.VarChar(15)
 
   tenant   Nx99Tenant   @relation("R_Nx01PartnerShippingAddress_tenantId", fields: [tenantId], references: [id])
   partner  Nx01Partner  @relation("R_Nx01PartnerShippingAddress_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
@@ -6546,27 +6814,27 @@ model Nx01PartnerShippingAddress {
 /// =======================================================
 model Nx01PhoneticDictionary {
   /// [NX01]+[PHDC]+[7碼流水號]，EX : NX01PHDC0000001；啟用最低需求版本：LITE
-  id               String   @id @default(dbgenerated("gen_nx01_phonetic_dictionary_id()")) @db.VarChar(15)
+  id              String   @id @default(dbgenerated("gen_nx01_phonetic_dictionary_id()")) @db.VarChar(15)
   /// 漢字（單字元、全域 unique）；啟用最低需求版本：LITE
-  character        String   @db.VarChar(4)
+  character       String   @db.VarChar(4)
   /// 主要注音（如 ㄅㄧˋ）；啟用最低需求版本：LITE
-  primaryPhonetic  String   @map("primary_phonetic") @db.VarChar(10)
+  primaryPhonetic String   @map("primary_phonetic") @db.VarChar(10)
   /// 替代注音陣列（多音字、0~5 個）；啟用最低需求版本：LITE
-  altPhonetics     String[] @map("alt_phonetics") @default([])
+  altPhonetics    String[] @default([]) @map("alt_phonetics")
   /// 主要聲母（從 primary_phonetic 抽出、如 ㄅ）；啟用最低需求版本：LITE
-  primaryInitial   String   @map("primary_initial") @db.VarChar(2)
+  primaryInitial  String   @map("primary_initial") @db.VarChar(2)
   /// 使用頻率（多音字優先序、系統統計）；啟用最低需求版本：LITE
-  usageFreq        Int      @default(0) @map("usage_freq")
+  usageFreq       Int      @default(0) @map("usage_freq")
   /// 是否啟用（SYSADMIN 可停用錯字）；啟用最低需求版本：LITE
-  isActive         Boolean  @default(true) @map("is_active")
+  isActive        Boolean  @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt        DateTime @default(now()) @map("created_at")
+  createdAt       DateTime @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy        String   @map("created_by") @db.VarChar(15)
+  createdBy       String   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy        String   @map("updated_by") @db.VarChar(15)
+  updatedBy       String   @map("updated_by") @db.VarChar(15)
 
   @@unique([character])
   @@index([primaryInitial])
@@ -6580,32 +6848,32 @@ model Nx01PhoneticDictionary {
 /// =======================================================
 model Nx01PhoneticIndex {
   /// [NX01]+[PHIX]+[7碼流水號]，EX : NX01PHIX0000001；啟用最低需求版本：LITE
-  id            String     @id @default(dbgenerated("gen_nx01_phonetic_index_id()")) @db.VarChar(15)
+  id           String     @id @default(dbgenerated("gen_nx01_phonetic_index_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId      String     @map("tenant_id") @db.VarChar(15)
+  tenantId     String     @map("tenant_id") @db.VarChar(15)
   /// 來源表名（如 nx01_part / nx01_partner / nx01_user）；啟用最低需求版本：LITE
-  sourceTable   String     @map("source_table") @db.VarChar(50)
+  sourceTable  String     @map("source_table") @db.VarChar(50)
   /// 來源主檔 ID（軟連結、不用 FK constraint）；啟用最低需求版本：LITE
-  sourceId      String     @map("source_id") @db.VarChar(15)
+  sourceId     String     @map("source_id") @db.VarChar(15)
   /// 來源欄位名（如 name / display_name）；啟用最低需求版本：LITE
-  sourceField   String     @map("source_field") @db.VarChar(50)
+  sourceField  String     @map("source_field") @db.VarChar(50)
   /// 來源文字（快搜時顯示用）；啟用最低需求版本：LITE
-  sourceText    String     @map("source_text") @db.VarChar(500)
+  sourceText   String     @map("source_text") @db.VarChar(500)
   /// 聲母碼（如 ㄅㄓㄑ、前綴匹配用）；啟用最低需求版本：LITE
-  phoneticCode  String     @map("phonetic_code") @db.VarChar(50)
+  phoneticCode String     @map("phonetic_code") @db.VarChar(50)
   /// 完整注音（如 ㄅㄧˋ ㄓㄣˋ ㄑㄧˋ、顯示用）；啟用最低需求版本：LITE
-  phoneticFull  String     @map("phonetic_full") @db.VarChar(200)
+  phoneticFull String     @map("phonetic_full") @db.VarChar(200)
   /// 是否業務人員手動改（手動改後 trigger 不再覆蓋）；啟用最低需求版本：LITE
-  isManual      Boolean    @default(false) @map("is_manual")
+  isManual     Boolean    @default(false) @map("is_manual")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt     DateTime   @default(now()) @map("created_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
   /// 建立人（trigger=SYSADMIN ID / 手動改=該使用者）；啟用最低需求版本：LITE
-  createdBy     String     @map("created_by") @db.VarChar(15)
+  createdBy    String     @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt     DateTime   @updatedAt @map("updated_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy     String     @map("updated_by") @db.VarChar(15)
-  tenant        Nx99Tenant @relation("R_Nx01PhoneticIndex_tenantId", fields: [tenantId], references: [id])
+  updatedBy    String     @map("updated_by") @db.VarChar(15)
+  tenant       Nx99Tenant @relation("R_Nx01PhoneticIndex_tenantId", fields: [tenantId], references: [id])
 
   @@unique([tenantId, sourceTable, sourceId])
   @@index([tenantId, phoneticCode])
@@ -6619,40 +6887,40 @@ model Nx01PhoneticIndex {
 /// =======================================================
 model Nx01Engine {
   /// [NX01]+[ENGN]+[7碼流水號]，EX : NX01ENGN0000001；啟用最低需求版本：LITE
-  id             String        @id @default(dbgenerated("gen_nx01_engine_id()")) @db.VarChar(15)
+  id                     String        @id @default(dbgenerated("gen_nx01_engine_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId       String        @map("tenant_id") @db.VarChar(15)
+  tenantId               String        @map("tenant_id") @db.VarChar(15)
   /// 引擎代碼（業界縮寫 / 數字代碼、tenant 內 unique、例：EA888 / 2GR-FE / N20）；啟用最低需求版本：LITE
-  code           String        @db.VarChar(30)
+  code                   String        @db.VarChar(30)
   /// 引擎名稱（業務描述、可中英混、例：EA888 第三代 2.0T）；啟用最低需求版本：LITE
-  name           String        @db.VarChar(100)
+  name                   String        @db.VarChar(100)
   /// 排氣量 cc（EV 可空、規格 §3.2）；啟用最低需求版本：LITE
-  displacementCc Int?          @map("displacement_cc")
+  displacementCc         Int?          @map("displacement_cc")
   /// 缸數配置（直 4 / V6 / V8 / H4 / H6、業界常用字串、EV 可空）；啟用最低需求版本：LITE
-  cylinderConfig String?       @map("cylinder_config") @db.VarChar(20)
+  cylinderConfig         String?       @map("cylinder_config") @db.VarChar(20)
   /// 燃料類型（1=汽油 / 2=柴油 / 3=Hybrid / 4=EV、Crown 拍 Q1=C）；啟用最低需求版本：LITE
-  fuelType       Int           @default(1) @map("fuel_type") @db.SmallInt
+  fuelType               Int           @default(1) @map("fuel_type") @db.SmallInt
   /// 增壓方式（1=NA 自然進氣 / 2=TC 渦輪 / 3=SC 機械 / 4=TC+SC 雙增壓、EV 可空、Crown 拍 Q2=A）；啟用最低需求版本：LITE
-  aspirationType Int?          @default(1) @map("aspiration_type") @db.SmallInt
+  aspirationType         Int?          @default(1) @map("aspiration_type") @db.SmallInt
   /// 關聯車型品牌 FK（可空、業界 EA888=VAG / 2GR=TOY / N20=BMW、跨品牌通用留空、Crown 拍 Q3=A）；啟用最低需求版本：LITE
-  carBrandId     String?       @map("car_brand_id") @db.VarChar(15)
+  carBrandId             String?       @map("car_brand_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
-  remark         String?       @db.VarChar(200)
+  remark                 String?       @db.VarChar(200)
   /// 排序用（下拉選單顯示順序）；啟用最低需求版本：LITE
-  sortNo         Int           @default(0) @map("sort_no")
+  sortNo                 Int           @default(0) @map("sort_no")
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
-  isActive       Boolean       @default(true) @map("is_active")
+  isActive               Boolean       @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt      DateTime      @default(now()) @map("created_at")
+  createdAt              DateTime      @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy      String        @map("created_by") @db.VarChar(15)
+  createdBy              String        @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt      DateTime      @updatedAt @map("updated_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy      String        @map("updated_by") @db.VarChar(15)
-  tenant            Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
-  carBrand          Nx01CarBrand? @relation("R_Nx01Engine_carBrandId", fields: [carBrandId], references: [id])
-  rev_Nx01Model_engineId Nx01Model[] @relation("R_Nx01Model_engineId")
+  updatedBy              String        @map("updated_by") @db.VarChar(15)
+  tenant                 Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
+  carBrand               Nx01CarBrand? @relation("R_Nx01Engine_carBrandId", fields: [carBrandId], references: [id])
+  rev_Nx01Model_engineId Nx01Model[]   @relation("R_Nx01Model_engineId")
 
   @@unique([tenantId, code])
   @@index([tenantId, fuelType])
@@ -6666,38 +6934,38 @@ model Nx01Engine {
 /// =======================================================
 model Nx01Transmission {
   /// [NX01]+[TRMS]+[7碼流水號]；啟用最低需求版本：LITE
-  id                String        @id @default(dbgenerated("gen_nx01_transmission_id()")) @db.VarChar(15)
+  id                           String        @id @default(dbgenerated("gen_nx01_transmission_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId          String        @map("tenant_id") @db.VarChar(15)
+  tenantId                     String        @map("tenant_id") @db.VarChar(15)
   /// 變速箱代碼（業界縮寫、tenant 內 unique、例：MT / AT / DCT / CVT / DSG7 / ZF8AT）；啟用最低需求版本：LITE
-  code              String        @db.VarChar(30)
+  code                         String        @db.VarChar(30)
   /// 變速箱中文名；啟用最低需求版本：LITE
-  name              String        @db.VarChar(100)
+  name                         String        @db.VarChar(100)
   /// 變速箱英文名（國際對照）；啟用最低需求版本：LITE
-  nameEn            String?       @map("name_en") @db.VarChar(100)
+  nameEn                       String?       @map("name_en") @db.VarChar(100)
   /// 變速箱類型（1=手排 / 2=自排 / 3=雙離合 / 4=CVT / 5=AMT / 6=其他、規格 §3.2.1）；啟用最低需求版本：LITE
-  transmissionType  Int           @map("transmission_type") @db.SmallInt
+  transmissionType             Int           @map("transmission_type") @db.SmallInt
   /// 檔位數（手排 / 自排 / 雙離合可填、CVT 為 null）；啟用最低需求版本：LITE
-  gearCount         Int?          @map("gear_count")
+  gearCount                    Int?          @map("gear_count")
   /// 關聯車型品牌 FK（可空、跨品牌通用引擎留空）；啟用最低需求版本：LITE
-  carBrandId        String?       @map("car_brand_id") @db.VarChar(15)
+  carBrandId                   String?       @map("car_brand_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
-  remark            String?       @db.VarChar(200)
+  remark                       String?       @db.VarChar(200)
   /// 排序用（下拉顯示順序）；啟用最低需求版本：LITE
-  sortNo            Int           @default(0) @map("sort_no")
+  sortNo                       Int           @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive          Boolean       @default(true) @map("is_active")
+  isActive                     Boolean       @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt         DateTime      @default(now()) @map("created_at")
+  createdAt                    DateTime      @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy         String        @map("created_by") @db.VarChar(15)
+  createdBy                    String        @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt         DateTime      @updatedAt @map("updated_at")
+  updatedAt                    DateTime      @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy         String        @map("updated_by") @db.VarChar(15)
-  tenant            Nx99Tenant    @relation("R_Nx01Transmission_tenantId", fields: [tenantId], references: [id])
-  carBrand          Nx01CarBrand? @relation("R_Nx01Transmission_carBrandId", fields: [carBrandId], references: [id])
-  rev_Nx01Model_transmissionId Nx01Model[] @relation("R_Nx01Model_transmissionId")
+  updatedBy                    String        @map("updated_by") @db.VarChar(15)
+  tenant                       Nx99Tenant    @relation("R_Nx01Transmission_tenantId", fields: [tenantId], references: [id])
+  carBrand                     Nx01CarBrand? @relation("R_Nx01Transmission_carBrandId", fields: [carBrandId], references: [id])
+  rev_Nx01Model_transmissionId Nx01Model[]   @relation("R_Nx01Model_transmissionId")
 
   @@unique([tenantId, code])
   @@map("nx01_transmission")
@@ -6710,30 +6978,30 @@ model Nx01Transmission {
 /// =======================================================
 model Nx01Drivetrain {
   /// [NX01]+[DTRN]+[7碼流水號]；啟用最低需求版本：LITE
-  id        String     @id @default(dbgenerated("gen_nx01_drivetrain_id()")) @db.VarChar(15)
+  id                         String      @id @default(dbgenerated("gen_nx01_drivetrain_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  tenantId                   String      @map("tenant_id") @db.VarChar(15)
   /// 傳動代碼（業界縮寫、tenant 內 unique、例：FF / FR / 4WD / AWD）；啟用最低需求版本：LITE
-  code      String     @db.VarChar(30)
+  code                       String      @db.VarChar(30)
   /// 傳動中文名；啟用最低需求版本：LITE
-  name      String     @db.VarChar(100)
+  name                       String      @db.VarChar(100)
   /// 傳動英文名（國際對照、Front-Engine Front-Wheel Drive 等）；啟用最低需求版本：LITE
-  nameEn    String?    @map("name_en") @db.VarChar(100)
+  nameEn                     String?     @map("name_en") @db.VarChar(100)
   /// 備註說明；啟用最低需求版本：LITE
-  remark    String?    @db.VarChar(200)
+  remark                     String?     @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo    Int        @default(0) @map("sort_no")
+  sortNo                     Int         @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive  Boolean    @default(true) @map("is_active")
+  isActive                   Boolean     @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt DateTime   @default(now()) @map("created_at")
+  createdAt                  DateTime    @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy String     @map("created_by") @db.VarChar(15)
+  createdBy                  String      @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  updatedAt                  DateTime    @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy String     @map("updated_by") @db.VarChar(15)
-  tenant    Nx99Tenant @relation("R_Nx01Drivetrain_tenantId", fields: [tenantId], references: [id])
+  updatedBy                  String      @map("updated_by") @db.VarChar(15)
+  tenant                     Nx99Tenant  @relation("R_Nx01Drivetrain_tenantId", fields: [tenantId], references: [id])
   rev_Nx01Model_drivetrainId Nx01Model[] @relation("R_Nx01Model_drivetrainId")
 
   @@unique([tenantId, code])
@@ -6747,30 +7015,30 @@ model Nx01Drivetrain {
 /// =======================================================
 model Nx01ModelType {
   /// [NX01]+[MDTP]+[7碼流水號]；啟用最低需求版本：LITE
-  id        String     @id @default(dbgenerated("gen_nx01_model_type_id()")) @db.VarChar(15)
+  id                        String      @id @default(dbgenerated("gen_nx01_model_type_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  tenantId                  String      @map("tenant_id") @db.VarChar(15)
   /// 車體類型代碼（業界縮寫、tenant 內 unique、例：SED / HAT / SUV / CPE / MPV）；啟用最低需求版本：LITE
-  code      String     @db.VarChar(30)
+  code                      String      @db.VarChar(30)
   /// 車體類型中文名（轎車 / 掀背 / 休旅車 / 跑車 / 多功能廂式）；啟用最低需求版本：LITE
-  name      String     @db.VarChar(100)
+  name                      String      @db.VarChar(100)
   /// 車體類型英文名（Sedan / Hatchback / SUV / Coupe / MPV）；啟用最低需求版本：LITE
-  nameEn    String?    @map("name_en") @db.VarChar(100)
+  nameEn                    String?     @map("name_en") @db.VarChar(100)
   /// 備註說明；啟用最低需求版本：LITE
-  remark    String?    @db.VarChar(200)
+  remark                    String?     @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo    Int        @default(0) @map("sort_no")
+  sortNo                    Int         @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive  Boolean    @default(true) @map("is_active")
+  isActive                  Boolean     @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt DateTime   @default(now()) @map("created_at")
+  createdAt                 DateTime    @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy String     @map("created_by") @db.VarChar(15)
+  createdBy                 String      @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  updatedAt                 DateTime    @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy String     @map("updated_by") @db.VarChar(15)
-  tenant    Nx99Tenant @relation("R_Nx01ModelType_tenantId", fields: [tenantId], references: [id])
+  updatedBy                 String      @map("updated_by") @db.VarChar(15)
+  tenant                    Nx99Tenant  @relation("R_Nx01ModelType_tenantId", fields: [tenantId], references: [id])
   rev_Nx01Model_modelTypeId Nx01Model[] @relation("R_Nx01Model_modelTypeId")
 
   @@unique([tenantId, code])
@@ -6784,48 +7052,48 @@ model Nx01ModelType {
 /// =======================================================
 model Nx01Model {
   /// [NX01]+[MODL]+[7碼流水號]；啟用最低需求版本：LITE
-  id              String            @id @default(dbgenerated("gen_nx01_model_id()")) @db.VarChar(15)
+  id                        String            @id @default(dbgenerated("gen_nx01_model_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId        String            @map("tenant_id") @db.VarChar(15)
+  tenantId                  String            @map("tenant_id") @db.VarChar(15)
   /// 車型代碼（業界縮寫、tenant 內 unique、例：G7-GTI / CAMRY-XV70 / F30）；啟用最低需求版本：LITE
-  code            String            @db.VarChar(30)
+  code                      String            @db.VarChar(30)
   /// 車型全名（正式名稱、報表/客戶單據用、例：Golf 7 GTI）；啟用最低需求版本：LITE
-  name            String            @db.VarChar(100)
+  name                      String            @db.VarChar(100)
   /// 車型品牌 FK（必填、規格 §3.2 Crown Q3=A）；啟用最低需求版本：LITE
-  carBrandId      String            @map("car_brand_id") @db.VarChar(15)
+  carBrandId                String            @map("car_brand_id") @db.VarChar(15)
   /// 起始年份（必填、業務檢核 ≥ 1900 + ≤ 當前年+5、規格 §3.3）；啟用最低需求版本：LITE
-  modelYearFrom   Int               @map("model_year_from")
+  modelYearFrom             Int               @map("model_year_from")
   /// 結束年份（可空、現役留空、若填必 ≥ modelYearFrom、規格 §3.3）；啟用最低需求版本：LITE
-  modelYearTo     Int?              @map("model_year_to")
+  modelYearTo               Int?              @map("model_year_to")
   /// 引擎 FK（可空、Crown 業界 muscle memory：詳細分類進階用戶選填）；啟用最低需求版本：LITE
-  engineId        String?           @map("engine_id") @db.VarChar(15)
+  engineId                  String?           @map("engine_id") @db.VarChar(15)
   /// 變速箱 FK（可空）；啟用最低需求版本：LITE
-  transmissionId  String?           @map("transmission_id") @db.VarChar(15)
+  transmissionId            String?           @map("transmission_id") @db.VarChar(15)
   /// 傳動方式 FK（可空）；啟用最低需求版本：LITE
-  drivetrainId    String?           @map("drivetrain_id") @db.VarChar(15)
+  drivetrainId              String?           @map("drivetrain_id") @db.VarChar(15)
   /// 車體類型 FK（可空）；啟用最低需求版本：LITE
-  modelTypeId     String?           @map("model_type_id") @db.VarChar(15)
+  modelTypeId               String?           @map("model_type_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
-  remark          String?           @db.VarChar(200)
+  remark                    String?           @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo          Int               @default(0) @map("sort_no")
+  sortNo                    Int               @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive        Boolean           @default(true) @map("is_active")
+  isActive                  Boolean           @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt       DateTime          @default(now()) @map("created_at")
+  createdAt                 DateTime          @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy       String            @map("created_by") @db.VarChar(15)
+  createdBy                 String            @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt       DateTime          @updatedAt @map("updated_at")
+  updatedAt                 DateTime          @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy       String            @map("updated_by") @db.VarChar(15)
-  tenant          Nx99Tenant        @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
-  carBrand        Nx01CarBrand      @relation("R_Nx01Model_carBrandId", fields: [carBrandId], references: [id])
-  engine          Nx01Engine?       @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
-  transmission    Nx01Transmission? @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
-  drivetrain      Nx01Drivetrain?   @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
-  modelType       Nx01ModelType?    @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
-  rev_Nx01PartModel_modelId Nx01PartModel[] @relation("R_Nx01PartModel_modelId")
+  updatedBy                 String            @map("updated_by") @db.VarChar(15)
+  tenant                    Nx99Tenant        @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
+  carBrand                  Nx01CarBrand      @relation("R_Nx01Model_carBrandId", fields: [carBrandId], references: [id])
+  engine                    Nx01Engine?       @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
+  transmission              Nx01Transmission? @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
+  drivetrain                Nx01Drivetrain?   @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
+  modelType                 Nx01ModelType?    @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
+  rev_Nx01PartModel_modelId Nx01PartModel[]   @relation("R_Nx01PartModel_modelId")
 
   @@unique([tenantId, code])
   @@index([tenantId, carBrandId])
@@ -6840,41 +7108,48 @@ model Nx01Model {
 /// =======================================================
 model Nx01PartVersion {
   /// [NX01]+[PAVE]+[7碼流水號]；啟用最低需求版本：LITE
-  id                    String     @id @default(dbgenerated("gen_nx01_part_version_id()")) @db.VarChar(15)
+  id            String    @id @default(dbgenerated("gen_nx01_part_version_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId              String     @map("tenant_id") @db.VarChar(15)
+  tenantId      String    @map("tenant_id") @db.VarChar(15)
   /// 對應 part FK；啟用最低需求版本：LITE
-  partId                String     @map("part_id") @db.VarChar(15)
+  partId        String    @map("part_id") @db.VarChar(15)
   /// 版本號（每 part 從 1 起算、連續編號）；啟用最低需求版本：LITE
-  versionNo             Int        @map("version_no")
+  versionNo     Int       @map("version_no")
   /// 生效起始日；啟用最低需求版本：LITE
-  effectiveFrom         DateTime   @map("effective_from")
+  effectiveFrom DateTime  @map("effective_from")
   /// 結束日（nullable、現役留空）；啟用最低需求版本:LITE
-  effectiveTo           DateTime?  @map("effective_to")
+  effectiveTo   DateTime? @map("effective_to")
 
   /// 完整 snapshot 9 欄位（Q1=A 拍板：每次 part update 完整 copy）
-  codeSnapshot          String     @map("code_snapshot") @db.VarChar(50)
-  nameSnapshot          String     @map("name_snapshot") @db.VarChar(200)
-  partBrandIdSnapshot   String?    @map("part_brand_id_snapshot") @db.VarChar(15)
-  countryIdSnapshot     String?    @map("country_id_snapshot") @db.VarChar(15)
-  specSnapshot          String?    @map("spec_snapshot") @db.VarChar(200)
-  priceASnapshot        Decimal?   @map("price_a_snapshot") @db.Decimal(14, 4)
-  priceBSnapshot        Decimal?   @map("price_b_snapshot") @db.Decimal(14, 4)
-  priceCSnapshot        Decimal?   @map("price_c_snapshot") @db.Decimal(14, 4)
-  priceDSnapshot        Decimal?   @map("price_d_snapshot") @db.Decimal(14, 4)
+  codeSnapshot        String   @map("code_snapshot") @db.VarChar(50)
+  nameSnapshot        String   @map("name_snapshot") @db.VarChar(200)
+  partBrandIdSnapshot String?  @map("part_brand_id_snapshot") @db.VarChar(15)
+  countryIdSnapshot   String?  @map("country_id_snapshot") @db.VarChar(15)
+  specSnapshot        String?  @map("spec_snapshot") @db.VarChar(200)
+  priceASnapshot      Decimal? @map("price_a_snapshot") @db.Decimal(14, 4)
+  priceBSnapshot      Decimal? @map("price_b_snapshot") @db.Decimal(14, 4)
+  priceCSnapshot      Decimal? @map("price_c_snapshot") @db.Decimal(14, 4)
+  priceDSnapshot      Decimal? @map("price_d_snapshot") @db.Decimal(14, 4)
 
   /// 變動原因（業務人員填、稽核用）；啟用最低需求版本：LITE
-  changeReason          String?    @map("change_reason") @db.VarChar(500)
+  changeReason                           String?                @map("change_reason") @db.VarChar(500)
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt             DateTime   @default(now()) @map("created_at")
+  createdAt                              DateTime               @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy             String     @map("created_by") @db.VarChar(15)
+  createdBy                              String                 @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt             DateTime   @updatedAt @map("updated_at")
+  updatedAt                              DateTime               @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy             String     @map("updated_by") @db.VarChar(15)
-  tenant                Nx99Tenant @relation("R_Nx01PartVersion_tenantId", fields: [tenantId], references: [id])
-  part                  Nx01Part   @relation("R_Nx01PartVersion_partId", fields: [partId], references: [id])
+  updatedBy                              String                 @map("updated_by") @db.VarChar(15)
+  tenant                                 Nx99Tenant             @relation("R_Nx01PartVersion_tenantId", fields: [tenantId], references: [id])
+  part                                   Nx01Part               @relation("R_Nx01PartVersion_partId", fields: [partId], references: [id])
+  rev_Nx03StockLedger_partVersionId      Nx03StockLedger[]      @relation("R_Nx03StockLedger_partVersionId")
+  rev_Nx03InitItem_partVersionId         Nx03InitItem[]         @relation("R_Nx03InitItem_partVersionId")
+  rev_Nx03StItem_partVersionId           Nx03StItem[]           @relation("R_Nx03StItem_partVersionId")
+  rev_Nx03StockTakeItem_partVersionId    Nx03StockTakeItem[]    @relation("R_Nx03StockTakeItem_partVersionId")
+  rev_Nx03DisposalItem_partVersionId     Nx03DisposalItem[]     @relation("R_Nx03DisposalItem_partVersionId")
+  rev_Nx03ConversionInput_partVersionId  Nx03ConversionInput[]  @relation("R_Nx03ConversionInput_partVersionId")
+  rev_Nx03ConversionOutput_partVersionId Nx03ConversionOutput[] @relation("R_Nx03ConversionOutput_partVersionId")
 
   @@unique([tenantId, partId, versionNo])
   @@index([tenantId, partId])
@@ -6889,32 +7164,32 @@ model Nx01PartVersion {
 /// =======================================================
 model Nx01PartModel {
   /// [NX01]+[PAMO]+[7碼流水號]，EX : NX01PAMO0000001；啟用最低需求版本：LITE
-  id         String     @id @default(dbgenerated("gen_nx01_part_model_id()")) @db.VarChar(15)
+  id        String     @id @default(dbgenerated("gen_nx01_part_model_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId   String     @map("tenant_id") @db.VarChar(15)
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
   /// 料件 FK（必填、規格 §3.2 Q1=A）；啟用最低需求版本：LITE
-  partId     String     @map("part_id") @db.VarChar(15)
+  partId    String     @map("part_id") @db.VarChar(15)
   /// 車型 FK（必填、規格 §3.2 Q1=A）；啟用最低需求版本：LITE
-  modelId    String     @map("model_id") @db.VarChar(15)
+  modelId   String     @map("model_id") @db.VarChar(15)
   /// 適配等級（1=原廠 / 2=副廠等效 / 3=通用替代、Q3=B SmallInt enum）；啟用最低需求版本：LITE
-  fitLevel   Int        @default(1) @map("fit_level") @db.SmallInt
+  fitLevel  Int        @default(1) @map("fit_level") @db.SmallInt
   /// 備註說明（業務人員手記）；啟用最低需求版本：LITE
-  remark     String?    @db.VarChar(200)
+  remark    String?    @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo     Int        @default(0) @map("sort_no")
+  sortNo    Int        @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive   Boolean    @default(true) @map("is_active")
+  isActive  Boolean    @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt  DateTime   @default(now()) @map("created_at")
+  createdAt DateTime   @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy  String     @map("created_by") @db.VarChar(15)
+  createdBy String     @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt  DateTime   @updatedAt @map("updated_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy  String     @map("updated_by") @db.VarChar(15)
-  tenant     Nx99Tenant @relation("R_Nx01PartModel_tenantId", fields: [tenantId], references: [id])
-  part       Nx01Part   @relation("R_Nx01PartModel_partId", fields: [partId], references: [id])
-  model      Nx01Model  @relation("R_Nx01PartModel_modelId", fields: [modelId], references: [id])
+  updatedBy String     @map("updated_by") @db.VarChar(15)
+  tenant    Nx99Tenant @relation("R_Nx01PartModel_tenantId", fields: [tenantId], references: [id])
+  part      Nx01Part   @relation("R_Nx01PartModel_partId", fields: [partId], references: [id])
+  model     Nx01Model  @relation("R_Nx01PartModel_modelId", fields: [modelId], references: [id])
 
   @@unique([tenantId, partId, modelId])
   @@index([tenantId, partId])

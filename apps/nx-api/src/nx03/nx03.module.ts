@@ -3,10 +3,24 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { ConversionController } from './conversion/conversion.controller';
+import { ConversionService } from './conversion/conversion.service';
+import { DisposalController } from './disposal/disposal.controller';
+import { DisposalService } from './disposal/disposal.service';
 import { InboundController } from './inbound/inbound.controller';
 import { InboundService } from './inbound/inbound.service';
+import { InitController } from './init/init.controller';
+import { InitService } from './init/init.service';
 import { OutboundController } from './outbound/outbound.controller';
 import { OutboundService } from './outbound/outbound.service';
+import { PartStockSettingController } from './part-stock-setting/part-stock-setting.controller';
+import { PartStockSettingService } from './part-stock-setting/part-stock-setting.service';
+import { ParcelController } from './parcel/parcel.controller';
+import { ParcelService } from './parcel/parcel.service';
+import { PkController } from './pk/pk.controller';
+import { PkService } from './pk/pk.service';
+import { PlController } from './pl/pl.controller';
+import { PlService } from './pl/pl.service';
 import { StockBalanceController } from './stock-balance/stock-balance.controller';
 import { StockBalanceService } from './stock-balance/stock-balance.service';
 import { StockLedgerController } from './stock-ledger/stock-ledger.controller';
@@ -24,6 +38,13 @@ import { TransferService } from './transfer/transfer.service';
     StockBalanceController,
     StockLedgerController,
     StockReservationController,
+    PartStockSettingController,
+    InitController,
+    DisposalController,
+    ConversionController,
+    PkController,
+    PlController,
+    ParcelController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -33,6 +54,13 @@ import { TransferService } from './transfer/transfer.service';
     StockBalanceService,
     StockLedgerService,
     Nx03StockReservationService,
+    PartStockSettingService,
+    InitService,
+    DisposalService,
+    ConversionService,
+    PkService,
+    PlService,
+    ParcelService,
     InboundService,
     OutboundService,
     StockTakeService,

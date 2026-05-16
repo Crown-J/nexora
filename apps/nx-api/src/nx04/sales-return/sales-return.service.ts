@@ -204,6 +204,12 @@ export class SalesReturnService {
         select: { avgCost: true },
       });
       const unitCost = bid ? new PrismaNs.Decimal(bid.avgCost) : new PrismaNs.Decimal(soItem.unitPrice);
+      // M1 配套：load active part_version snapshot 帶入 ledger（NX03-IMPL-01 Phase 4 commit 2）
+      const partVersion = await tx.nx01PartVersion.findFirst({
+        where: { tenantId, partId: item.partId, effectiveTo: null },
+        orderBy: { versionNo: 'desc' },
+        select: { id: true },
+      });
       await applyQtyInWithLedger(tx, {
         tenantId,
         userId,
@@ -216,6 +222,7 @@ export class SalesReturnService {
         sourceDocType: 'R',
         sourceDocId: srId,
         sourceItemId: item.id,
+        partVersionId: partVersion?.id ?? null,
       });
     }
   }

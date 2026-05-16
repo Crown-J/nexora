@@ -177,6 +177,12 @@ export class SoService {
       const locId =
         item.locationId?.trim() ||
         (await requireDefaultLocationId(tx, so.tenantId, item.warehouseId));
+      // M1 配套：load active part_version snapshot 帶入 ledger（NX03-IMPL-01 Phase 5 commit 1）
+      const partVersion = await tx.nx01PartVersion.findFirst({
+        where: { tenantId: so.tenantId, partId: item.partId, effectiveTo: null },
+        orderBy: { versionNo: 'desc' },
+        select: { id: true },
+      });
       await applyQtyOutWithLedger(tx, {
         tenantId: so.tenantId,
         userId,
@@ -188,6 +194,7 @@ export class SoService {
         sourceDocType: 'S',
         sourceDocId: so.id,
         sourceItemId: item.id,
+        partVersionId: partVersion?.id ?? null,
       });
     }
   }

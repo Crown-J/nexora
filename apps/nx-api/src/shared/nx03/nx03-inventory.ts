@@ -12,6 +12,10 @@ export type QtyLedgerParams = {
   sourceDocType: string;
   sourceDocId: string;
   sourceItemId: string | null;
+  // NX03-IMPL-01 M1：過帳當下 part 版本快照（NX01-17 範式、AUDIT-04 B2+B6 配套）
+  // Q-S1=B 漸進範式：optional、既有 8 callsite 不傳就寫 null（透明 break、不破壞）
+  // 後續 Phase 4 升級各 caller 帶入當下 partVersionId
+  partVersionId?: string | null;
 };
 
 /** 入庫／調撥入：更新 nx03_stock_balance 並寫 ledger（movement I）。 */
@@ -85,6 +89,7 @@ export async function applyQtyInWithLedger(
       sourceDocType: p.sourceDocType,
       sourceDocId: p.sourceDocId,
       sourceItemId: p.sourceItemId ?? undefined,
+      partVersionId: p.partVersionId ?? undefined,
     },
   });
 }
@@ -141,6 +146,7 @@ export async function applyQtyOutWithLedger(
       sourceDocType: p.sourceDocType,
       sourceDocId: p.sourceDocId,
       sourceItemId: p.sourceItemId ?? undefined,
+      partVersionId: p.partVersionId ?? undefined,
     },
   });
 }

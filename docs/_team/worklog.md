@@ -1551,3 +1551,90 @@ Crown 拍板路線 **b（G.4 範式保留）**：規格書 = 歷史拍板版、�
 >   - Phase 2 task 累積跨模組工作（≥3 個觸發新主題）
 >   - 累計範式總表新範式累積（個別範式直接補進對應分類、無需新主題）
 >   - Crown 拍板新跨模組設計（如 multi-Hank 機制 / PLUS/PRO seed）
+
+---
+
+## 主題 24｜NX03 庫存模組重塑全 closure（TASK-NX03-IMPL-01、2026-05-15 ~ 16）⭐⭐⭐
+
+### 起源
+
+Crown 跨 6 輪需求討論 16 題拍板 closure（2026-05-15）、Hank AUDIT-01~04 schema 真相 verify、Alex overview v1.0 業務需求落地 → Hank 跨 8 Phase 26 commit 重塑 NX03 庫存模組（NEXORA 業務模組第一彈）。
+
+**戰略意義**：
+- ⭐⭐ Yaro 倉管部門工作台、實體進銷存核心
+- ⭐⭐⭐ #13 強制溯源完整落地：10 種 source 全 service writer ✓、業界第一個能查「這顆料從哪來、為什麼動」
+- ⭐⭐ 動態盤點不凍結業務（snapshot + delta 公式回推）、業界改革核心
+- ⭐ NX01 主檔 17 子模組 closure 後第一個業務模組重塑
+
+### 設計決策
+
+1. **拓樸 4 層對齊 NX01 範式**：基礎 / 實體單據 / 工作流 / 戰略接點
+2. **plan §3 4 軌 migration**：M1 part_version snapshot / M2 動態盤點 / M3 報廢 / M4 重組分解
+3. **10 種 source 字母分布**：P / G / S / R / T / I / X / W / M / D（每個 source 都有對應 service writer）
+4. **撿包 SOP 退貨除外**（v1.1 校正）：schema `Nx03Pk.triggerSource` enum 只 S/T、退貨直接 helper 過帳
+5. **Conversion 共用 service 雙路徑分派**（Crown Q-Phase6-1=c）：M 加權 / D auto (priceA) + manual (costRatio override)
+6. **partVersionId M1 配套 Q-S1=B 漸進**：新 row 帶入、既有歷史 row 留 null
+7. **Phase 5 commit 2 修隱性 bug**：PR 過帳邏輯整套補建（原 service 純改 status 不扣帳、production bug）
+
+### 實作歷程（A041 = 26 commit / 4 migration）
+
+| Phase | commit 範圍 | 主軸 | 規模 |
+|---|---|---|---|
+| Day-1 | commit 1~2 | 依據文件落地 + 拓樸/migration 計畫 | 2 commit |
+| Day-2 | commit 3~7 | M1/M2/M3/M4 schema + helper | 5 commit / 4 migration |
+| Phase 2 | commit 1~2 | L1 service（StockBalance/Ledger/PartStockSetting）| 2 commit |
+| Phase 3 | commit 1~2 | L2 service（Init + StockTake M2 升級）| 2 commit |
+| Phase 4 | commit 1~3 | L3 入庫 4 種（rr/sr/transfer + Q-MV1=d 不動 schema）| 3 commit |
+| Phase 5 | commit 1~6 | L3 出庫 4 種 + 撿包 SOP（含 PR 修隱性 bug）| 6 commit |
+| Phase 6 | commit 1~2 | L3 轉換（共用 service、M 加權 + D auto/manual）| 2 commit |
+| Phase 7 | commit 1~2 | L4 跨模組 verify + guard 補強 | 2 commit |
+| Phase 8 | commit 1~2 (+ §5.1 補) | overview v1.1 + summary + worklog | 2~3 commit |
+
+### 跨模組視角總覽（NX03 觸發 / 被觸發）
+
+| 跨模組關係 | NX03 角色 | 對應 service / 接點 |
+|---|---|---|
+| NX02 RR 進貨 → NX03 入庫 | 被觸發者（source=P）| rr.service.applyRrPosting（升級含 G/P 分流 + partVersionId）|
+| NX02 RR 同行調貨 → NX03 入庫 | 被觸發者（source=G、Phase 4 新支援）| 同上、rr.tiId != null 判 |
+| NX02 PR 退供應商 → NX03 出庫 | 被觸發者（source=R、Phase 5 補 bug）| purchase-return.service.applyPrPosting（新建）|
+| NX04 SO 銷貨 → NX03 出庫 | 被觸發者（source=S）| so.service.applyShipment（升 partVersionId）|
+| NX04 SR 銷退 → NX03 入庫 | 被觸發者（source=R）| sales-return.service（升 partVersionId）|
+| NX03 Parcel → NX06 DN | 觸發者（出 export）| schema `Nx06DnItem.parcelId` FK 通、NX06 query 後建 DN |
+| NX03 StockBalance → NX08 InventoryCache | 觸發者（period 重算）| schema 通、重算屬 NX08 範圍 backlog |
+
+### 統合教訓
+
+1. **Crown 紀律「先 stop 回報、不擅自推進」價值極高**：
+   - Phase 4 commit 2 揭露既有 PR service 0 過帳邏輯（隱性 bug）→ Crown 拍 A 擴大範圍補建
+   - Phase 5 mini-verify 揭露退貨來源 schema 不支援撿包 → Crown 拍 B overview v1.1 校正
+   - Phase 7 verify 揭露 Inbound/Outbound source enum 衝突 → A026 backlog M5
+2. **既有 service grep verify 必做**：
+   - rr.service applyRrPosting 既有 inline 邏輯缺 inTransitQty 保留（順手修）
+   - parcel.service `.includes('T')` 寫法錯誤（順手修為 `=== 'T'`、partner_type VarChar(1) 真相）
+   - schema 註解 partner_type='S' vs 'C' 同行 drift（順手修 line 2122）
+3. **A041 精確 count 多次救命**：grep -c 揭露既有 service 真實狀態、避免重複建單
+4. **partVersionId 漸進範式（Q-S1=B）**：optional 參數、helper 8 個 callsite 0 break
+5. **Conversion 共用 service 對齊範式**：Crown Q-Phase6-1=c 推薦 c 共用、降低 endpoint 數量、邏輯內部分派
+
+### 對應文件
+
+- 業務需求：`docs/nx03/spec/intent/nx03-overview.md` v1.1
+- 模組架構書：`docs/nx03/nx03-summary.md` v1.0（本主題後產出）
+- 4 份 audit：`docs/nx03/nx03-audit-01.md` ~ `04.md`
+- impl plan：`docs/nx03/spec/impl/nx03-impl-01-plan.md` v0.1.0
+- Phase 4 verify：`docs/nx03/nx03-impl-01-phase4-verify.md`
+- Phase 5 mini-verify：`docs/nx03/nx03-impl-01-phase5-mini-verify.md`
+- Phase 7 verify：`docs/nx03/spec/impl/nx03-impl-01-phase7-verify.md`
+
+### A026 backlog 開單揭露（NX03 範圍）
+
+1. Nx03Inbound / Outbound 4 表 + service 整批廢棄（Phase 5 殘留、source enum 衝突）
+2. `TASK-NX03-IMPL-02-TEST` 獨立軌（test fixture 30+ files / ~1500 行）
+3. partVersionId 既有歷史 row 回填策略（Q-S1=B 留 null 後續評估）
+4. partner_type schema 註解 drift 全面掃描（跨模組）
+5. StItem create 路徑加 partVersionId snap（漸進完整化）
+6. RR 狀態流支援「TI 來源 RR」application-layer guard（NX02 範圍延伸）
+7. 配送 D → NX06 DN 自動 trigger hook（NX06 範圍）
+
+⭐ Crown 拍板「branch merge main 拍板 → NX03 全 closure」、進 NX04 銷貨 / NX05 財務 / 自動補貨 B 軌等下游 task。
+

@@ -130,6 +130,14 @@ export class TransferService {
             ? new PrismaNs.Decimal(bid.avgCost)
             : new PrismaNs.Decimal(0);
 
+      // M1 配套：load active part_version snapshot 帶入兩個 ledger row（out + in、同 partId 共用）
+      const partVersion = await tx.nx01PartVersion.findFirst({
+        where: { tenantId: st.tenantId, partId: item.partId, effectiveTo: null },
+        orderBy: { versionNo: 'desc' },
+        select: { id: true },
+      });
+      const partVersionId = partVersion?.id ?? null;
+
       await applyQtyOutWithLedger(tx, {
         tenantId: st.tenantId,
         userId,
@@ -141,6 +149,7 @@ export class TransferService {
         sourceDocType: 'X',
         sourceDocId: st.id,
         sourceItemId: item.id,
+        partVersionId,
       });
 
       await applyQtyInWithLedger(tx, {
@@ -155,6 +164,7 @@ export class TransferService {
         sourceDocType: 'X',
         sourceDocId: st.id,
         sourceItemId: item.id,
+        partVersionId,
       });
     }
   }
