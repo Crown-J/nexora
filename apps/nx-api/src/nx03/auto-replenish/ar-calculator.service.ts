@@ -47,6 +47,32 @@ export type ForecastResult = {
   forecastQty: PrismaNs.Decimal;
 };
 
+/** Stage 3 兩層分類結果：總需求拆 OE + 副廠。 */
+export type AllocationResult = {
+  forecast: ForecastResult;
+  oemQty: PrismaNs.Decimal;
+  aftermarketQty: PrismaNs.Decimal;
+  oemRatio: PrismaNs.Decimal;
+  aftermarketRatio: PrismaNs.Decimal;
+  /** 配比規則來源：S=system / M=manual / DEFAULT=找不到規則用 0.5:0.5。 */
+  ruleSource: 'S' | 'M' | 'DEFAULT';
+  /** 套用的 BrandAllocationRule id（null=DEFAULT fallback）。 */
+  ruleId: string | null;
+};
+
+/** Stage 4 副廠池分配結果：每副廠 part 一行。 */
+export type AftermarketBrandBreakdown = {
+  partId: string;
+  /** 該 part 的品牌（null = 無 partBrandId、罕見）。 */
+  partBrandId: string | null;
+  /** 該 part 近 windowDays 內 source=S 銷貨量。 */
+  shippedInWindow: PrismaNs.Decimal;
+  /** 該 part 佔副廠池銷貨比例（0.0~1.0）。 */
+  shareRatio: PrismaNs.Decimal;
+  /** aftermarketQty × shareRatio（4 位精度）。 */
+  suggestedQty: PrismaNs.Decimal;
+};
+
 @Injectable()
 export class ArCalculatorService {
   constructor(private readonly prisma: PrismaService) {}
@@ -182,5 +208,158 @@ export class ArCalculatorService {
       leadTimeDays,
       forecastQty,
     };
+  }
+
+  /**
+   * Stage 3 兩層分類分配：總需求 × BrandAllocationRule → OE 量 + 副廠量
+   *
+   *   - Crown Q-S1=A manual 優先：先找 source='M' active rule、再找 'S' active rule
+   *   - rule valid 期間判：validFrom <= today AND (validTo IS NULL OR today <= validTo)
+   *   - modelId=null 或找不到 rule：fallback 0.5:0.5（ruleSource='DEFAULT'）
+   *   - 同 model 多 manual rule 取最新 validFrom（schema unique 限同 validFrom）
+   *
+   * @param tenantId 租戶
+   * @param forecast Stage 2 產出
+   */
+  async classifyByOemAftermarket(
+    tenantId: string,
+    forecast: ForecastResult,
+  ): Promise<AllocationResult> {
+    const { modelId } = forecast.candidate;
+    let oemRatio = new PrismaNs.Decimal('0.5');
+    let aftermarketRatio = new PrismaNs.Decimal('0.5');
+    let ruleSource: 'S' | 'M' | 'DEFAULT' = 'DEFAULT';
+    let ruleId: string | null = null;
+
+    if (modelId) {
+      const today = new Date();
+      // Crown Q-S1=A manual 優先：先 M、再 S
+      for (const sourcePriority of ['M', 'S'] as const) {
+        const rule = await this.prisma.nx03BrandAllocationRule.findFirst({
+          where: {
+            tenantId,
+            modelId,
+            source: sourcePriority,
+            isActive: true,
+            validFrom: { lte: today },
+            OR: [{ validTo: null }, { validTo: { gte: today } }],
+          },
+          orderBy: { validFrom: 'desc' }, // 同 source 多版本取最新
+          select: { id: true, oemRatio: true, aftermarketRatio: true, source: true },
+        });
+        if (rule) {
+          oemRatio = new PrismaNs.Decimal(rule.oemRatio);
+          aftermarketRatio = new PrismaNs.Decimal(rule.aftermarketRatio);
+          ruleSource = sourcePriority;
+          ruleId = rule.id;
+          break;
+        }
+      }
+    }
+
+    const oemQty = forecast.forecastQty.mul(oemRatio).toDecimalPlaces(4);
+    const aftermarketQty = forecast.forecastQty.mul(aftermarketRatio).toDecimalPlaces(4);
+
+    return {
+      forecast,
+      oemQty,
+      aftermarketQty,
+      oemRatio,
+      aftermarketRatio,
+      ruleSource,
+      ruleId,
+    };
+  }
+
+  /**
+   * Stage 4 副廠池內按銷貨比例分配：副廠量 × 各 part 近 N 天銷貨佔比
+   *
+   *   - 找 modelId 下所有 isOem=false 的 parts（副廠池）
+   *   - 對每 part 算 windowDays 內 source=S 銷貨量
+   *   - shareRatio = part_shipped / total_aftermarket_shipped
+   *   - 全副廠池銷貨 = 0 時：均分（avoid div by 0）
+   *   - modelId=null：回 []（無跨品牌池可分）
+   *
+   * @param tenantId 租戶
+   * @param allocation Stage 3 產出
+   */
+  async distributeAftermarketPool(
+    tenantId: string,
+    allocation: AllocationResult,
+  ): Promise<AftermarketBrandBreakdown[]> {
+    const { modelId, windowDays } = allocation.forecast.candidate;
+    if (!modelId) return [];
+    if (allocation.aftermarketQty.lte(0)) return [];
+
+    // 1. 找 model 下所有 isOem=false 的 parts
+    const aftermarketParts = await this.prisma.nx01PartModel.findMany({
+      where: {
+        tenantId,
+        modelId,
+        isActive: true,
+        part: { isOem: false, isActive: true },
+      },
+      select: {
+        partId: true,
+        part: { select: { partBrandId: true } },
+      },
+    });
+    if (!aftermarketParts.length) return [];
+
+    // 2. 對每 part 算 windowDays 內 source=S 銷貨
+    const since = new Date();
+    since.setDate(since.getDate() - windowDays);
+
+    const shippedByPart: Array<{ partId: string; partBrandId: string | null; shipped: PrismaNs.Decimal }> = [];
+    for (const pm of aftermarketParts) {
+      const agg = await this.prisma.nx03StockLedger.aggregate({
+        where: {
+          tenantId,
+          partId: pm.partId,
+          sourceDocType: 'S',
+          movementType: 'O',
+          movementDate: { gte: since },
+        },
+        _sum: { qtyOut: true },
+      });
+      shippedByPart.push({
+        partId: pm.partId,
+        partBrandId: pm.part.partBrandId,
+        shipped: new PrismaNs.Decimal(agg._sum.qtyOut ?? 0),
+      });
+    }
+
+    // 3. 加總 + 算佔比 + 分配
+    const totalShipped = shippedByPart.reduce(
+      (acc, r) => acc.add(r.shipped),
+      new PrismaNs.Decimal(0),
+    );
+
+    const breakdowns: AftermarketBrandBreakdown[] = [];
+    if (totalShipped.lte(0)) {
+      // 全副廠池銷貨 = 0：均分（避免 div by 0、業界 fallback）
+      const evenShare = new PrismaNs.Decimal(1).div(shippedByPart.length);
+      for (const r of shippedByPart) {
+        breakdowns.push({
+          partId: r.partId,
+          partBrandId: r.partBrandId,
+          shippedInWindow: r.shipped,
+          shareRatio: evenShare,
+          suggestedQty: allocation.aftermarketQty.mul(evenShare).toDecimalPlaces(4),
+        });
+      }
+    } else {
+      for (const r of shippedByPart) {
+        const shareRatio = r.shipped.div(totalShipped);
+        breakdowns.push({
+          partId: r.partId,
+          partBrandId: r.partBrandId,
+          shippedInWindow: r.shipped,
+          shareRatio,
+          suggestedQty: allocation.aftermarketQty.mul(shareRatio).toDecimalPlaces(4),
+        });
+      }
+    }
+    return breakdowns;
   }
 }
