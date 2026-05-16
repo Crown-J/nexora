@@ -7,6 +7,8 @@ import { InboundController } from './inbound/inbound.controller';
 import { InboundService } from './inbound/inbound.service';
 import { OutboundController } from './outbound/outbound.controller';
 import { OutboundService } from './outbound/outbound.service';
+import { PartStockSettingController } from './part-stock-setting/part-stock-setting.controller';
+import { PartStockSettingService } from './part-stock-setting/part-stock-setting.service';
 import { StockBalanceController } from './stock-balance/stock-balance.controller';
 import { StockBalanceService } from './stock-balance/stock-balance.service';
 import { StockLedgerController } from './stock-ledger/stock-ledger.controller';
@@ -24,6 +26,7 @@ import { TransferService } from './transfer/transfer.service';
     StockBalanceController,
     StockLedgerController,
     StockReservationController,
+    PartStockSettingController,
     InboundController,
     OutboundController,
     StockTakeController,
@@ -33,6 +36,7 @@ import { TransferService } from './transfer/transfer.service';
     StockBalanceService,
     StockLedgerService,
     Nx03StockReservationService,
+    PartStockSettingService,
     InboundService,
     OutboundService,
     StockTakeService,
