@@ -1,11 +1,11 @@
 import type { Prisma } from 'db-core';
 
-export type Nx03DocKind = 'IB' | 'OB' | 'SL' | 'ST' | 'IN' | 'DS' | 'PK' | 'PL';
+export type Nx03DocKind = 'IB' | 'OB' | 'SL' | 'ST' | 'IN' | 'DS' | 'PK' | 'PL' | 'CV';
 
 /**
  * NX03 單號：[類型]-[YYYYMM]-[倉庫碼]-[5 碼流水]
  *   IB=Inbound / OB=Outbound / SL=StockTake / ST=Transfer / IN=Init / DS=Disposal /
- *   PK=Pick (撿貨單) / PL=Pack (包貨單)
+ *   PK=Pick (撿貨單) / PL=Pack (包貨單) / CV=Conversion (重組 M / 分解 D)
  */
 export async function allocNx03DocNo(
   tx: Prisma.TransactionClient,
@@ -60,11 +60,17 @@ export async function allocNx03DocNo(
                       orderBy: { docNo: 'desc' },
                       select: { docNo: true },
                     })
-                  : await tx.nx03Pl.findFirst({
-                      where: { tenantId, docNo: { startsWith: prefix } },
-                      orderBy: { docNo: 'desc' },
-                      select: { docNo: true },
-                    });
+                  : kind === 'PL'
+                    ? await tx.nx03Pl.findFirst({
+                        where: { tenantId, docNo: { startsWith: prefix } },
+                        orderBy: { docNo: 'desc' },
+                        select: { docNo: true },
+                      })
+                    : await tx.nx03Conversion.findFirst({
+                        where: { tenantId, docNo: { startsWith: prefix } },
+                        orderBy: { docNo: 'desc' },
+                        select: { docNo: true },
+                      });
 
   let next = 1;
   if (last?.docNo) {

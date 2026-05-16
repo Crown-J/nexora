@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { ConversionController } from './conversion/conversion.controller';
+import { ConversionService } from './conversion/conversion.service';
 import { DisposalController } from './disposal/disposal.controller';
 import { DisposalService } from './disposal/disposal.service';
 import { InboundController } from './inbound/inbound.controller';
@@ -39,6 +41,7 @@ import { TransferService } from './transfer/transfer.service';
     PartStockSettingController,
     InitController,
     DisposalController,
+    ConversionController,
     PkController,
     PlController,
     ParcelController,
@@ -54,6 +57,7 @@ import { TransferService } from './transfer/transfer.service';
     PartStockSettingService,
     InitService,
     DisposalService,
+    ConversionService,
     PkService,
     PlService,
     ParcelService,

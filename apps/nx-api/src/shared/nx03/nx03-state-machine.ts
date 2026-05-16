@@ -65,6 +65,14 @@ export const PlStatus = {
   VOIDED: 'V',
 } as const;
 
+// Nx03Conversion.status VarChar(30)：DRAFT / POSTED / VOIDED（對齊 Disposal 範式）
+// conversionType M=merge 重組 / D=disassemble 分解（不在 status enum、是另一欄）
+export const ConversionStatus = {
+  DRAFT: 'DRAFT',
+  POSTED: 'POSTED',
+  VOIDED: 'VOIDED',
+} as const;
+
 const INBOUND_EDGES: Record<string, Set<string>> = {
   [InboundStatus.DRAFT]: new Set([InboundStatus.INSPECTING, InboundStatus.CANCELLED]),
   [InboundStatus.INSPECTING]: new Set([InboundStatus.POSTED, InboundStatus.REJECTED, InboundStatus.CANCELLED]),
@@ -123,6 +131,12 @@ const PL_EDGES: Record<string, Set<string>> = {
   [PlStatus.VOIDED]: new Set(),
 };
 
+const CONVERSION_EDGES: Record<string, Set<string>> = {
+  [ConversionStatus.DRAFT]: new Set([ConversionStatus.POSTED, ConversionStatus.VOIDED]),
+  [ConversionStatus.POSTED]: new Set(),
+  [ConversionStatus.VOIDED]: new Set(),
+};
+
 export function assertInboundStatusTransition(from: string, to: string): void {
   const edges = INBOUND_EDGES[from];
   if (!edges || !edges.has(to)) {
@@ -176,5 +190,12 @@ export function assertPlStatusTransition(from: string, to: string): void {
   const edges = PL_EDGES[from];
   if (!edges || !edges.has(to)) {
     throw new BadRequestException(`Invalid pl status transition: ${from} -> ${to}`);
+  }
+}
+
+export function assertConversionStatusTransition(from: string, to: string): void {
+  const edges = CONVERSION_EDGES[from];
+  if (!edges || !edges.has(to)) {
+    throw new BadRequestException(`Invalid conversion status transition: ${from} -> ${to}`);
   }
 }
