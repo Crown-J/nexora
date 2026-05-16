@@ -2381,34 +2381,40 @@ model Nx03Parcel {
 /// =======================================================
 model Nx03PartStockSetting {
   /// [NX03]+[PSST]+[7碼流水號]，EX : NX03PSST0000001；啟用最低需求版本：LITE
-  id          String        @id @default(dbgenerated("gen_nx03_part_stock_setting_id()")) @db.VarChar(15)
+  id                    String        @id @default(dbgenerated("gen_nx03_part_stock_setting_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）(@@unique([tenantId, partId, warehouseId]))；啟用最低需求版本：LITE
-  tenantId    String        @map("tenant_id") @db.VarChar(15)
+  tenantId              String        @map("tenant_id") @db.VarChar(15)
   /// 零件 ID (@@unique([tenantId, partId, warehouseId]))；啟用最低需求版本：LITE
-  partId      String        @map("part_id") @db.VarChar(15)
+  partId                String        @map("part_id") @db.VarChar(15)
   /// 倉庫 ID (@@unique([tenantId, partId, warehouseId]))；啟用最低需求版本：LITE
-  warehouseId String        @map("warehouse_id") @db.VarChar(15)
+  warehouseId           String        @map("warehouse_id") @db.VarChar(15)
   /// 安全量（低於此值觸發缺貨警示）；啟用最低需求版本：LITE
-  minQty      Decimal       @default(0) @map("min_qty") @db.Decimal(14, 4)
+  minQty                Decimal       @default(0) @map("min_qty") @db.Decimal(14, 4)
   /// 最高量（建議補貨目標上限，0=不限制）；啟用最低需求版本：LITE
-  maxQty      Decimal       @default(0) @map("max_qty") @db.Decimal(14, 4)
+  maxQty                Decimal       @default(0) @map("max_qty") @db.Decimal(14, 4)
   /// 建議補貨量（max_qty - on_hand_qty，0=不限制）；啟用最低需求版本：LITE
-  reorderQty  Decimal       @default(0) @map("reorder_qty") @db.Decimal(14, 4)
+  reorderQty            Decimal       @default(0) @map("reorder_qty") @db.Decimal(14, 4)
   /// 是否啟用（通常 TRUE；若某庫位停用可控制）；啟用最低需求版本：LITE
-  isActive    Boolean       @default(true) @map("is_active")
+  isActive              Boolean       @default(true) @map("is_active")
   /// 備註；啟用最低需求版本：LITE
-  remark      String?       @db.VarChar(200)
+  remark                String?       @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt   DateTime      @default(now()) @map("created_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy   String        @map("created_by") @db.VarChar(15)
+  createdBy             String        @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy   String        @map("updated_by") @db.VarChar(15)
-  tenant      Nx99Tenant    @relation("R_Nx03PartStockSetting_tenantId", fields: [tenantId], references: [id])
-  part        Nx01Part      @relation("R_Nx03PartStockSetting_partId", fields: [partId], references: [id])
-  warehouse   Nx01Warehouse @relation("R_Nx03PartStockSetting_warehouseId", fields: [warehouseId], references: [id])
+  updatedBy             String        @map("updated_by") @db.VarChar(15)
+  /// AR 自動補貨計算頻率（天數、null=每天）。Crown Q-AR2 倉層級彈性頻率、AR-IMPL-01 M1 落地；啟用最低需求版本：PLUS
+  calculationFrequency  Int?          @map("calculation_frequency")
+  /// AR 自動補貨最後計算時間（scheduler 用、判斷下次該不該跑）；啟用最低需求版本：PLUS
+  lastCalculatedAt      DateTime?     @map("last_calculated_at")
+  /// AR 平均出貨計算窗口（天數、null=預設 90 天）。Crown Q-B2 升級倉層級彈性窗口；啟用最低需求版本：PLUS
+  calculationWindowDays Int?          @map("calculation_window_days")
+  tenant                Nx99Tenant    @relation("R_Nx03PartStockSetting_tenantId", fields: [tenantId], references: [id])
+  part                  Nx01Part      @relation("R_Nx03PartStockSetting_partId", fields: [partId], references: [id])
+  warehouse             Nx01Warehouse @relation("R_Nx03PartStockSetting_warehouseId", fields: [warehouseId], references: [id])
 
   @@map("nx03_part_stock_setting")
 }
@@ -3333,6 +3339,50 @@ model Nx03ConversionOutput {
   location      Nx01Location     @relation("R_Nx03ConversionOutput_locationId", fields: [locationId], references: [id])
 
   @@map("nx03_conversion_output")
+}
+
+/// =======================================================
+/// Nx03BrandAllocationRule — DB table `nx03_brand_allocation_rule`
+/// AR 自動補貨配比規則（AR-IMPL-01 M2、Crown Q-AR-設計-1=a 新建主檔）
+/// modelId 級配比（Crown Q-B1=A）：同 model 一條配比規則、適用該 model 下所有 parts
+/// source 雙來源（Crown Q-S1=A manual 覆寫 system）：S=system 自動 / M=manual 手動
+/// 支援歷史版本：unique [tenantId, modelId, validFrom]、validTo 可空（現役留空）
+/// =======================================================
+model Nx03BrandAllocationRule {
+  /// [NX03]+[BALR]+[7碼流水號]，EX : NX03BALR0000001；啟用最低需求版本：PLUS
+  id               String     @id @default(dbgenerated("gen_nx03_brand_allocation_rule_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：PLUS
+  tenantId         String     @map("tenant_id") @db.VarChar(15)
+  /// 車型 FK（必填、配比規則 modelId 級 Crown Q-B1=A）；啟用最低需求版本：PLUS
+  modelId          String     @map("model_id") @db.VarChar(15)
+  /// OE 正廠採購比例（0.0000~1.0000、與 aftermarketRatio 兩者 Σ 應 = 1.0、application 自律校驗）；啟用最低需求版本：PLUS
+  oemRatio         Decimal    @default(0.5) @map("oem_ratio") @db.Decimal(5, 4)
+  /// 副廠採購比例（0.0000~1.0000）；啟用最低需求版本：PLUS
+  aftermarketRatio Decimal    @default(0.5) @map("aftermarket_ratio") @db.Decimal(5, 4)
+  /// 配比來源（S=system 自動算 / M=manual 手動覆寫、Q-S1=A manual 覆寫 system）；啟用最低需求版本：PLUS
+  source           String     @default("S") @db.VarChar(1)
+  /// 生效起期（必填）；啟用最低需求版本：PLUS
+  validFrom        DateTime   @map("valid_from") @db.Date
+  /// 生效迄期（null=現役、application 層校驗 validFrom ≤ validTo）；啟用最低需求版本：PLUS
+  validTo          DateTime?  @map("valid_to") @db.Date
+  /// 是否啟用；啟用最低需求版本：PLUS
+  isActive         Boolean    @default(true) @map("is_active")
+  /// 備註；啟用最低需求版本：PLUS
+  remark           String?    @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：PLUS
+  createdAt        DateTime   @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：PLUS
+  createdBy        String     @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：PLUS
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：PLUS
+  updatedBy        String     @map("updated_by") @db.VarChar(15)
+  tenant           Nx99Tenant @relation("R_Nx03BrandAllocationRule_tenantId", fields: [tenantId], references: [id])
+  model            Nx01Model  @relation("R_Nx03BrandAllocationRule_modelId", fields: [modelId], references: [id])
+
+  @@unique([tenantId, modelId, validFrom])
+  @@index([tenantId, modelId])
+  @@map("nx03_brand_allocation_rule")
 }
 
 /// =======================================================
@@ -6512,6 +6562,7 @@ model Nx99Tenant {
   rev_Nx03Outbound_tenantId               Nx03Outbound[]               @relation("R_Nx03Outbound_tenantId")
   rev_Nx03Disposal_tenantId               Nx03Disposal[]               @relation("R_Nx03Disposal_tenantId")
   rev_Nx03Conversion_tenantId             Nx03Conversion[]             @relation("R_Nx03Conversion_tenantId")
+  rev_Nx03BrandAllocationRule_tenantId    Nx03BrandAllocationRule[]    @relation("R_Nx03BrandAllocationRule_tenantId")
   rev_Nx03Parcel_tenantId                 Nx03Parcel[]                 @relation("R_Nx03Parcel_tenantId")
   rev_Nx03PartStockSetting_tenantId       Nx03PartStockSetting[]       @relation("R_Nx03PartStockSetting_tenantId")
   rev_Nx03Pk_tenantId                     Nx03Pk[]                     @relation("R_Nx03Pk_tenantId")
@@ -7052,48 +7103,49 @@ model Nx01ModelType {
 /// =======================================================
 model Nx01Model {
   /// [NX01]+[MODL]+[7碼流水號]；啟用最低需求版本：LITE
-  id                        String            @id @default(dbgenerated("gen_nx01_model_id()")) @db.VarChar(15)
+  id                                  String                    @id @default(dbgenerated("gen_nx01_model_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId                  String            @map("tenant_id") @db.VarChar(15)
+  tenantId                            String                    @map("tenant_id") @db.VarChar(15)
   /// 車型代碼（業界縮寫、tenant 內 unique、例：G7-GTI / CAMRY-XV70 / F30）；啟用最低需求版本：LITE
-  code                      String            @db.VarChar(30)
+  code                                String                    @db.VarChar(30)
   /// 車型全名（正式名稱、報表/客戶單據用、例：Golf 7 GTI）；啟用最低需求版本：LITE
-  name                      String            @db.VarChar(100)
+  name                                String                    @db.VarChar(100)
   /// 車型品牌 FK（必填、規格 §3.2 Crown Q3=A）；啟用最低需求版本：LITE
-  carBrandId                String            @map("car_brand_id") @db.VarChar(15)
+  carBrandId                          String                    @map("car_brand_id") @db.VarChar(15)
   /// 起始年份（必填、業務檢核 ≥ 1900 + ≤ 當前年+5、規格 §3.3）；啟用最低需求版本：LITE
-  modelYearFrom             Int               @map("model_year_from")
+  modelYearFrom                       Int                       @map("model_year_from")
   /// 結束年份（可空、現役留空、若填必 ≥ modelYearFrom、規格 §3.3）；啟用最低需求版本：LITE
-  modelYearTo               Int?              @map("model_year_to")
+  modelYearTo                         Int?                      @map("model_year_to")
   /// 引擎 FK（可空、Crown 業界 muscle memory：詳細分類進階用戶選填）；啟用最低需求版本：LITE
-  engineId                  String?           @map("engine_id") @db.VarChar(15)
+  engineId                            String?                   @map("engine_id") @db.VarChar(15)
   /// 變速箱 FK（可空）；啟用最低需求版本：LITE
-  transmissionId            String?           @map("transmission_id") @db.VarChar(15)
+  transmissionId                      String?                   @map("transmission_id") @db.VarChar(15)
   /// 傳動方式 FK（可空）；啟用最低需求版本：LITE
-  drivetrainId              String?           @map("drivetrain_id") @db.VarChar(15)
+  drivetrainId                        String?                   @map("drivetrain_id") @db.VarChar(15)
   /// 車體類型 FK（可空）；啟用最低需求版本：LITE
-  modelTypeId               String?           @map("model_type_id") @db.VarChar(15)
+  modelTypeId                         String?                   @map("model_type_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
-  remark                    String?           @db.VarChar(200)
+  remark                              String?                   @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo                    Int               @default(0) @map("sort_no")
+  sortNo                              Int                       @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive                  Boolean           @default(true) @map("is_active")
+  isActive                            Boolean                   @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt                 DateTime          @default(now()) @map("created_at")
+  createdAt                           DateTime                  @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy                 String            @map("created_by") @db.VarChar(15)
+  createdBy                           String                    @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt                 DateTime          @updatedAt @map("updated_at")
+  updatedAt                           DateTime                  @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy                 String            @map("updated_by") @db.VarChar(15)
-  tenant                    Nx99Tenant        @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
-  carBrand                  Nx01CarBrand      @relation("R_Nx01Model_carBrandId", fields: [carBrandId], references: [id])
-  engine                    Nx01Engine?       @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
-  transmission              Nx01Transmission? @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
-  drivetrain                Nx01Drivetrain?   @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
-  modelType                 Nx01ModelType?    @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
-  rev_Nx01PartModel_modelId Nx01PartModel[]   @relation("R_Nx01PartModel_modelId")
+  updatedBy                           String                    @map("updated_by") @db.VarChar(15)
+  tenant                              Nx99Tenant                @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
+  carBrand                            Nx01CarBrand              @relation("R_Nx01Model_carBrandId", fields: [carBrandId], references: [id])
+  engine                              Nx01Engine?               @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
+  transmission                        Nx01Transmission?         @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
+  drivetrain                          Nx01Drivetrain?           @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
+  modelType                           Nx01ModelType?            @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
+  rev_Nx01PartModel_modelId           Nx01PartModel[]           @relation("R_Nx01PartModel_modelId")
+  rev_Nx03BrandAllocationRule_modelId Nx03BrandAllocationRule[] @relation("R_Nx03BrandAllocationRule_modelId")
 
   @@unique([tenantId, code])
   @@index([tenantId, carBrandId])
