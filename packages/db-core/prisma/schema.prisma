@@ -4348,6 +4348,16 @@ model Nx06Dn {
   departedAt           DateTime?     @map("departed_at")
   /// 全部任務完成時間。；啟用最低需求版本：LITE-CORE
   completedAt          DateTime?     @map("completed_at")
+  /// 藍牙印表機裝置 ID（外務員手機 App 配對寫入、NX06-IMPL-01 Phase 1 M2 新增、Crown Q7=a 拍板熱感印表機支援）。；啟用最低需求版本：LITE-CORE
+  printerDeviceId      String?       @map("printer_device_id") @db.VarChar(50)
+  /// 列印時間追蹤（熱感印表機列印後寫入、NX06-IMPL-01 Phase 1 M2 新增）。；啟用最低需求版本：LITE-CORE
+  printedAt            DateTime?     @map("printed_at")
+  /// Lalamove API 訂單 ID（半自動整合、NX06-IMPL-01 Phase 1 M2 新增、Crown Q6=b 拍板）。；啟用最低需求版本：LITE-CORE
+  lalamoveOrderId      String?       @map("lalamove_order_id") @db.VarChar(50)
+  /// Lalamove 追蹤碼。；啟用最低需求版本：LITE-CORE
+  lalamoveTrackingNo   String?       @map("lalamove_tracking_no") @db.VarChar(50)
+  /// Lalamove webhook 最新狀態（PENDING/ASSIGNING/PICKED_UP/COMPLETED/CANCELLED）。；啟用最低需求版本：LITE-CORE
+  lalamoveCallbackStatus String?     @map("lalamove_callback_status") @db.VarChar(30)
   /// 備註（含臨時收件等口頭回報記錄）。；啟用最低需求版本：LITE-CORE
   remark               String?       @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
@@ -4407,6 +4417,8 @@ model Nx06DnItem {
   exceptionType   String?     @map("exception_type") @db.VarChar(1)
   /// 異常說明（delivery_status=E時必填）。；啟用最低需求版本：LITE-CORE
   exceptionReason String?     @map("exception_reason") @db.VarChar(200)
+  /// 配送成本內部記錄（對外不顯示、自家油錢估算 or Lalamove API 回傳實際費用）。NX06-IMPL-01 Phase 1 M1 新增（Crown Q8/Q9=a 拍板汽配業界客戶不另收運費、內部記錄）。；啟用最低需求版本：LITE-CORE
+  internalCost    Decimal?    @map("internal_cost") @db.Decimal(14, 2)
   /// 備註。；啟用最低需求版本：LITE-CORE
   remark          String?     @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE

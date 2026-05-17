@@ -1,0 +1,35 @@
+-- packages/db-core/prisma/migrations/20260518300000_nx06_impl_01_m1_dn_item_internal_cost/migration.sql
+-- ============================================================================
+-- Migration: nx06_impl_01_m1_dn_item_internal_cost
+-- 建立日期：2026-05-18
+-- 任務：TASK-NX06-IMPL-01 Phase 1 M1（配送成本內部記錄）
+-- 對應 plan：docs/nx06/spec/impl/nx06-impl-01-plan.md §3 M1
+-- 對應 overview：docs/nx06/spec/intent/nx06-overview.md §7 配送成本記錄
+-- 對應拍板：
+--   - Crown Q8/Q9=a 配送成本內部記錄、對外不顯示
+--   - 業界 muscle memory：客戶不另收運費（含在貨價）、內部需記錄（油錢 / Lalamove）
+--   - Crown Q-RHYTHM-2 全自主、Hank 自跑
+--
+-- 範圍（A041 = 1 ALTER TABLE ADD COLUMN）：
+--   1. internal_cost DECIMAL(14,2) NULL（對外不顯示、內部成本記錄）
+--
+-- 業務語意：
+--   - 自家配送：油錢估算（距離 × 單價、application 算）
+--   - Lalamove 配送：Lalamove API 回傳實際費用
+--   - 對外 SO/DN SEL 不 expose internalCost（DnSEL 不含此欄）
+--   - 對內 NX05 Paylog payType=EX 入帳（後續 Phase 4 helper wire）
+--
+-- 漸進範式：
+--   - 既有 row 全 null、不影響既有 DN 流
+--   - 後續 service 升級時 application 寫入（dn-logistics.service Phase 3）
+--   - NX05 Paylog EX wire 為跨模組接點（Phase 4）
+--
+-- 風險：低（純加欄、nullable、無 backfill、無 SEL 變動）
+-- ============================================================================
+
+ALTER TABLE "nx06_dn_item" ADD COLUMN "internal_cost" DECIMAL(14, 2);
+
+-- ============================================================================
+-- 完成：Nx06DnItem +internal_cost（配送成本內部記錄、對外不顯示）
+-- 後續：M2 nx06_dn +printer 2 + Lalamove 3 欄
+-- ============================================================================
