@@ -5,6 +5,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { Nx02ErrorFilter } from '../shared/filters/nx02-error.filter';
 
+import { PartnerPartController } from './partner-part/partner-part.controller';
+import { PartnerPartService } from './partner-part/partner-part.service';
 import { PoController } from './po/po.controller';
 import { PoService } from './po/po.service';
 import { PurchaseReturnController } from './purchase-return/purchase-return.controller';
@@ -24,6 +26,7 @@ import { RrService } from './rr/rr.service';
     RrController,
     PurchaseReturnController,
     QtController,
+    PartnerPartController,
   ],
   providers: [
     RfqService,
@@ -31,6 +34,7 @@ import { RrService } from './rr/rr.service';
     RrService,
     PurchaseReturnService,
     Nx02QtService,
+    PartnerPartService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
 })
