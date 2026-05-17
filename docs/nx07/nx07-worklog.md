@@ -345,5 +345,62 @@ NX07 是 NEXORA 第一個**全模組受多重法規約束**的模組。其他模
 
 ---
 
-> 文件版本：v1.0（初版、4 主題、~5800 字、PRO + 雙重權限 + 法規驅動）
-> 下次更新觸發：薪資計算 helper 補上 / 勞健保級距表配置 / NX07 業務 spec 寫完 / NX07 出現新工作（先 audit 性質）
+---
+
+## 主題 5｜NX07-IMPL-01 治理補齊 + 跨模組 wire + 醫療管理（TASK-NX07-IMPL-01、2026-05-17）⭐⭐⭐
+
+### 起源
+
+NEXORA v1.0.0 達成（NX08 closure）後 Crown 啟動 NX07（業務模組第 9 軌、剩 3 之一）。⚠️ NX07 特殊：backend 已最完整（16 model / 37 endpoint）+ frontend 最落後（1 placeholder）+ 治理檔落後 2 階段 → 本軌 = **治理補齊 + 跨模組 wire + UI stub + 醫療管理補強**、不是建新模組。
+
+NX07-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（b/a/a/a/b、全照推）→ Hank 自決 8 Q-H + 6 Phase 7 commit 落地。
+
+### 設計決策
+
+1. 既有 16 model + 37 endpoint 0 動（Q-RHYTHM-2 紀律 + Crown Q5=b）
+2. 醫療管理 2 新表（MedicalRecord + Injury、Crown Q1=b 亞羅特色 ⭐）
+3. NX04 業績 wire = service-level + 手動觸發（Hank Q-H2、對齊 NX05 ArStatement / NX08 ETL 範式、不裝 cron）
+4. NX05 Paylog wire = helper + wire 入 payroll.service.patch CONFIRMED transition（Hank Q-H3）
+5. payroll.patch wire try/catch wrap（helper 失敗不阻擋 salary CONFIRMED、plan §7 風險 mitigation）
+6. UI 7+1 placeholder + menu.nx07（8 items 單 group）+ side-menu wire
+7. 雙層脫敏 + 主動側既有範式 0 動
+
+### 實作歷程（7 commit / 6 Phase / 命中 plan 估 8-10 預算）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `6afd0e1` | plan v0.1.0 + overview v0.1.0 |
+| 1 | `43564a2` | M1 醫療 2 表 + M2 drift 結算 |
+| 2 | `4bac922` | Nx07MedicalService + Controller（9 endpoint）|
+| 3 | `6a53ded` | SalaryAccrualService.applyKpiBonus（NX04 wire ⭐⭐⭐）|
+| 4 | `134c340` | createPaylogFromConfirmedSalary helper + wire payroll.patch（NX05 wire ⭐⭐⭐）|
+| 5 | （Phase 5）| UI 7+1 placeholder + menu.nx07 + side-menu wire |
+| 6 | （本 commit）| summary v1.0 + worklog 主題 5 + _team 主題 29 + merge-verify |
+
+### 踩坑
+
+1. **accountCode 6130 vs 6111**：Crown spec 提薪資科目 6130、實際 NX05 seed 是 6111（薪資支出）。helper 用 seed 真實值，commit message + plan §5 揭露。教訓：規格與 seed 不符時用 seed、commit 揭露。
+2. **partnerId nullable for salary paylog**：員工非 Partner，nx05_paylog.partnerId schema 已 nullable（EX 費用支出同樣 nullable）。
+3. **Prisma drift 結算第三次**（NX06 + NX08 教訓）：M1 SQL constraint 自訂名 → auto-gen M2 drift。處理流程 rename + resolve --applied + DELETE 舊 record。
+
+### 對應文件
+
+- plan：[spec/impl/nx07-impl-01-plan.md](spec/impl/nx07-impl-01-plan.md)
+- overview v0.1.0：[spec/intent/nx07-overview.md](spec/intent/nx07-overview.md)
+- audit-01：[nx07-audit-01.md](nx07-audit-01.md)
+- summary v1.0：[nx07-summary.md](nx07-summary.md)
+- merge verify：[spec/impl/nx07-impl-01-merge-verify.md](spec/impl/nx07-impl-01-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-01 後 +6）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 5  | 班表系統 3 表全空（Crown Q5=b 後續軌）| 業務鏈 |
+| 6  | 員工主檔擴充未做（學歷 / 證照）| 業務功能擴充 |
+| 7  | IpWhitelist + GPS attendance.checkin wire 0 | demo→prod 接面 |
+| 8  | 7 schema-only model endpoint 全 0（leave-type / salary-component / salary-setting 等）| 業務功能擴充 |
+| 9  | NX06 DnHandover → 動態交接獎金 wire 0 | 跨模組擴充 |
+| 10 | accountCode 6130 vs 6111 spec drift | spec-seed 不一致 |
+
+> 文件版本：v2.0（+ 主題 5 NX07-IMPL-01 落地紀錄、Q-RHYTHM-2 第五次落地）
+> 下次更新觸發：NX07-IMPL-UI-01 / NX07-IMPL-02-SCHEDULE / 員工擴充 / 後續軌

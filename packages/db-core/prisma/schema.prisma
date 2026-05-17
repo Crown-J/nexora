@@ -1209,6 +1209,8 @@ model Nx01User {
   rev_Nx07SalarySetting_userId        Nx07SalarySetting[]      @relation("R_Nx07SalarySetting_userId")
   rev_Nx07ScheduleItem_userId         Nx07ScheduleItem[]       @relation("R_Nx07ScheduleItem_userId")
   rev_Nx07ScheduleItem_swapUserId     Nx07ScheduleItem[]       @relation("R_Nx07ScheduleItem_swapUserId")
+  rev_Nx07MedicalRecord_userId        Nx07MedicalRecord[]      @relation("R_Nx07MedicalRecord_userId")
+  rev_Nx07Injury_userId               Nx07Injury[]             @relation("R_Nx07Injury_userId")
   rev_Nx08DailyReport_userId          Nx08DailyReport[]        @relation("R_Nx08DailyReport_userId")
   rev_Nx08HrCache_userId              Nx08HrCache[]            @relation("R_Nx08HrCache_userId")
   rev_Nx09KmFeedback_userId           Nx09KmFeedback[]         @relation("R_Nx09KmFeedback_userId")
@@ -6698,6 +6700,8 @@ model Nx99Tenant {
   rev_Nx07SalaryComponent_tenantId        Nx07SalaryComponent[]        @relation("R_Nx07SalaryComponent_tenantId")
   rev_Nx07SalaryRecord_tenantId           Nx07SalaryRecord[]           @relation("R_Nx07SalaryRecord_tenantId")
   rev_Nx07SalarySetting_tenantId          Nx07SalarySetting[]          @relation("R_Nx07SalarySetting_tenantId")
+  rev_Nx07MedicalRecord_tenantId          Nx07MedicalRecord[]          @relation("R_Nx07MedicalRecord_tenantId")
+  rev_Nx07Injury_tenantId                 Nx07Injury[]                 @relation("R_Nx07Injury_tenantId")
   rev_Nx07Schedule_tenantId               Nx07Schedule[]               @relation("R_Nx07Schedule_tenantId")
   rev_Nx07ShiftType_tenantId              Nx07ShiftType[]              @relation("R_Nx07ShiftType_tenantId")
   rev_Nx07Performance_tenantId            Nx07Performance[]            @relation("R_Nx07Performance_tenantId")
@@ -7540,4 +7544,86 @@ model Nx08DeliveryCacheSnapshot {
   @@index([dnId], map: "nx08_delivery_cache_snapshot_dn_idx")
   @@index([tenantId, snapshotDate], map: "nx08_delivery_cache_snapshot_tenant_dt_idx")
   @@map("nx08_delivery_cache_snapshot")
+}
+
+/// =======================================================
+/// Nx07MedicalRecord — DB table `nx07_medical_record`
+/// =======================================================
+/// 員工醫療紀錄（年度健檢 / 特殊作業健康管理、Crown Q1=b 亞羅特色 ⭐）。NX07-IMPL-01 M1 新增。
+model Nx07MedicalRecord {
+  /// [NX07]+[MDRC]+[7碼流水號]，EX : NX07MDRC0000001；啟用最低需求版本：PRO
+  id             String     @id @default(dbgenerated("gen_nx07_medical_record_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId       String     @map("tenant_id") @db.VarChar(15)
+  /// 員工 ID（FK nx01_user）；啟用最低需求版本：PRO
+  userId         String     @map("user_id") @db.VarChar(15)
+  /// 紀錄日期；啟用最低需求版本：PRO
+  recordDate     DateTime   @map("record_date") @db.Date
+  /// 紀錄類型（ANNUAL 年度健檢 / SPECIAL 特殊作業健檢 / FOLLOWUP 追蹤健檢）；啟用最低需求版本：PRO
+  recordType     String     @default("ANNUAL") @map("record_type") @db.VarChar(20)
+  /// 體檢項目 + 結果（JSON 字串、後續軌升結構化）；啟用最低需求版本：PRO
+  examItems      String?    @map("exam_items") @db.Text
+  /// 結論；啟用最低需求版本：PRO
+  conclusion     String?    @db.VarChar(500)
+  /// 醫師建議；啟用最低需求版本：PRO
+  recommendation String?    @db.Text
+  /// 醫師姓名；啟用最低需求版本：PRO
+  doctorName     String?    @map("doctor_name") @db.VarChar(50)
+  /// 醫院名稱；啟用最低需求版本：PRO
+  hospitalName   String?    @map("hospital_name") @db.VarChar(100)
+  /// 附件 URL（後續軌啟動上傳）；啟用最低需求版本：PRO
+  attachmentUrl  String?    @map("attachment_url") @db.VarChar(500)
+  /// 備註；啟用最低需求版本：PRO
+  remark         String?    @db.VarChar(200)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  createdBy      String     @map("created_by") @db.VarChar(15)
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  updatedBy      String     @map("updated_by") @db.VarChar(15)
+  tenant         Nx99Tenant @relation("R_Nx07MedicalRecord_tenantId", fields: [tenantId], references: [id])
+  user           Nx01User   @relation("R_Nx07MedicalRecord_userId", fields: [userId], references: [id])
+
+  @@index([userId], map: "nx07_medical_record_user_idx")
+  @@index([tenantId, recordDate], map: "nx07_medical_record_tenant_dt_idx")
+  @@map("nx07_medical_record")
+}
+
+/// =======================================================
+/// Nx07Injury — DB table `nx07_injury`
+/// =======================================================
+/// 職災追蹤（汽配業常見：搬料 / 切割 / 化學 / 工具意外、亞羅特色業界改革候選 ⭐⭐⭐）。NX07-IMPL-01 M1 新增。
+model Nx07Injury {
+  /// [NX07]+[INJU]+[7碼流水號]，EX : NX07INJU0000001；啟用最低需求版本：PRO
+  id              String     @id @default(dbgenerated("gen_nx07_injury_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId        String     @map("tenant_id") @db.VarChar(15)
+  /// 員工 ID（FK nx01_user）；啟用最低需求版本：PRO
+  userId          String     @map("user_id") @db.VarChar(15)
+  /// 職災發生日期；啟用最低需求版本：PRO
+  injuryDate      DateTime   @map("injury_date") @db.Date
+  /// 職災類型（LIFT 搬料 / CUT 切割 / CHEM 化學 / MACHINE 機械 / ERGO 姿勢職業病 / OTHER）；啟用最低需求版本：PRO
+  injuryType      String?    @map("injury_type") @db.VarChar(50)
+  /// 部位 / 地點；啟用最低需求版本：PRO
+  injuryLocation  String?    @map("injury_location") @db.VarChar(200)
+  /// 病況描述；啟用最低需求版本：PRO
+  description     String?    @db.Text
+  /// 狀態（REPORTED 通報 / TREATING 治療中 / RECOVERED 康復 / DISABLED 失能 / FATAL 死亡）；啟用最低需求版本：PRO
+  status          String     @default("REPORTED") @db.VarChar(20)
+  /// 康復時間；啟用最低需求版本：PRO
+  recoveryAt      DateTime?  @map("recovery_at")
+  /// 保險理賠金額；啟用最低需求版本：PRO
+  insuranceClaim  Decimal?   @map("insurance_claim") @db.Decimal(10, 2)
+  /// 附件 URL；啟用最低需求版本：PRO
+  attachmentUrl   String?    @map("attachment_url") @db.VarChar(500)
+  /// 備註；啟用最低需求版本：PRO
+  remark          String?    @db.VarChar(200)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  createdBy       String     @map("created_by") @db.VarChar(15)
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  updatedBy       String     @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant @relation("R_Nx07Injury_tenantId", fields: [tenantId], references: [id])
+  user            Nx01User   @relation("R_Nx07Injury_userId", fields: [userId], references: [id])
+
+  @@index([userId], map: "nx07_injury_user_idx")
+  @@index([tenantId, status], map: "nx07_injury_tenant_status_idx")
+  @@map("nx07_injury")
 }

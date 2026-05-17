@@ -15,6 +15,7 @@ import { getNx02SideMenu } from '@/features/layout/config/menu.nx02';
 import { getNx03SideMenu } from '@/features/layout/config/menu.nx03';
 import { getNx04SideMenu } from '@/features/layout/config/menu.nx04';
 import { getNx06SideMenu } from '@/features/layout/config/menu.nx06';
+import { getNx07SideMenu } from '@/features/layout/config/menu.nx07';
 import { getNx08SideMenu } from '@/features/layout/config/menu.nx08';
 
 /**
@@ -44,6 +45,7 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   if (pathname.startsWith('/dashboard/nx04')) return getNx03SideMenu();
   if (pathname.startsWith('/dashboard/nx05')) return getNx04SideMenu();
   if (pathname.startsWith('/dashboard/nx06')) return getNx06SideMenu();
+  if (pathname.startsWith('/dashboard/nx07')) return getNx07SideMenu();
   if (pathname.startsWith('/dashboard/nx08')) return getNx08SideMenu();
   return [];
 }
