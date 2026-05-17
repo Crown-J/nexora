@@ -458,5 +458,83 @@ NEXORA v1.2.0（NX09 EIP closure）後 Crown 啟動 NX10（業務模組最後 1 
 | 3 | UI 純 stub、6 placeholder 無真實 chart/animation | UI 獨立軌 |
 | 4 | schema @@unique([code]) global vs 服務 tenantId filter 設計不一致（本軌透過 A029 撈回露出）| schema-spec 不一致 |
 
-> 文件版本：v2.0（+ 主題 4 NX10-IMPL-01 八角基礎軌、Q-RHYTHM-2 第七次落地、業務模組 11/11）
-> 下次更新觸發：IMPL-02 社交+使命+跨模組 wire / UI 真實 / 後續軌
+## 主題 5｜NX10-IMPL-02 社交+使命+跨模組 wire 軌 Q-RHYTHM-2 落地（TASK-NX10-IMPL-02、2026-05-17）⭐⭐⭐ 八角 8 角完整化
+
+### 起源
+
+緊接 IMPL-01 closure（v1.3.0、8e6e103）後 Crown 啟動 IMPL-02、目標：八角剩 3 角（#1 使命 / #3 賦權 / #5 社交）+ 3 跨模組 helper wire（業界改革 ⭐⭐⭐）。5 schema-only model 既有 schema 100% 完整（IMPL-01 audit 揭露）、本軌 **0 migration**、純 service + endpoint + wire 升級。Q-RHYTHM-2 第八次落地。
+
+### 設計決策
+
+1. **0 schema migration**（5 schema-only model 既有完整、純 service 升級）
+2. **TeamTask service**（驅動力 #5）— targetType AT/KP/DR/OT、taskCycle W/M、團隊達標全員 Exp
+3. **Mentorship service**（#5 + #1）— HR_ADMIN 指派配對、結束 issueReward 500 Exp 給 mentor
+4. **Promotion 3 階審核 service** ⭐⭐⭐（#3 + #2 + #1）— 階段 1 系統驗證（醫章/帶新人/在職）+ 階段 2 OWNER 推薦 + 階段 3 HR_ADMIN 審核 → execute 寫 NX01 user.roleId
+5. **3 跨模組 helper + wire**（業界改革 ⭐⭐⭐）：
+   - createRewardFromHandover ⭐⭐⭐ → NX06 dynamic-handover COMPLETED 雙方各 25 Exp
+   - updateRankingFromPerformance → NX04 SO SHIPPED tier-based Exp（>10萬+50/>1萬+20/+5）
+   - applyMedalBonusToSalary → NX07 applyKpiBonus 醫章 tier ×1~×1.2 加碼
+6. **try/catch wrap 紀律**：3 wire 全部 isolated、helper 失敗不阻擋上游主流程
+7. **冪等紀律**：reason/calcBasis prefix 標記去重（HANDOVER:/SO_SHIPPED:/MEDAL-BONUS:）
+8. UI 4 placeholder + menu.nx10 6→10 items
+
+### 實作歷程（5 commit / 5 Phase / 命中 plan 估 9-11 預算 55%）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `b9476da` | plan v0.1.0（8 functions + 0 migration）|
+| 2-4 合併 | `d966358` | TeamTask + Mentorship + Promotion 3 階審核 + module wire |
+| 5 | `ea479ec` | 3 cross-module helper + wire ⭐⭐⭐ |
+| 6 | `7661a9a` | UI 4 placeholder + menu.nx10 10 items + workspace desc 升 |
+| 7 | （本 commit）| summary v2.0 + worklog 主題 5 + _team 主題 32 + merge-verify |
+
+### 踩坑
+
+1. **Nx10MentorshipRecord + Nx10PromotionRequest 需 createdBy/updatedBy**：service create 漏寫導致 tsc P2025 type error。修：補 createdBy: user.sub, updatedBy: user.sub 兩處。教訓：schema 必填欄 prisma generate 後 type 嚴格、create 必須帶齊。
+2. **helper 注入策略**：3 helper 中 2 個（handover/performance）需 Nx10ExpService（applyExpChange 內部要 tx）、1 個（salary medal bonus）純 tx 即可（不依賴 service）。設計：上游服務 inject ExpService + 透過 NX06/NX04 模組 import Nx10Module（NX07 不需 import、helper 純 tx）。
+3. **applyMedalBonusToSalary 無 MEDAL_BONUS component**：schema 無預設 MEDAL_BONUS component、helper fallback 用 `compType='A' + isSystem` 第一個系統加項 component、再 fallback 用 KPI item 的 component。教訓：跨模組 wire 需 graceful fallback、不能 hard-require seed。
+
+### 對應文件
+
+- plan：[spec/impl/nx10-impl-02-plan.md](spec/impl/nx10-impl-02-plan.md)
+- overview v1.0：[spec/intent/nx10-overview.md](spec/intent/nx10-overview.md)
+- audit-01：[nx10-audit-01.md](nx10-audit-01.md)
+- summary v2.0：[nx10-summary.md](nx10-summary.md)
+- merge verify：[spec/impl/nx10-impl-02-merge-verify.md](spec/impl/nx10-impl-02-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-02 後 +3、IMPL-01 揭露 +4 全 closure 1+2 兩項）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 5 | 系統範本 MEDAL_BONUS component seed 未建（applyMedalBonusToSalary 走 fallback）| seed 補完 |
+| 6 | `/dashboard/nx10/handover-reward` 無 endpoint 直接觸發、純 wire 視覺化（缺 GET 動態交接 Exp 歷史 endpoint）| endpoint 補完 |
+| 7 | Promotion 階段 1 系統驗證簡化版（minTenureMonths 跳過、KpiRate 跳過、noPenaltyDays 跳過）| 驗證升級軌 |
+
+### 範式集大成（IMPL-02 補章）
+
+#### A. 跨模組 wire 4 範式對比集大成（補強 NX07 主題 3 主動側設計 + NX08 主題 1）
+
+| 範式 | 模組 | 觸發點 | 性質 | 失敗策略 |
+|---|---|---|---|---|
+| 同步寫入（強耦合）| NX05 ar/ap createFromShipped | so/po 轉狀態時 | 主流程必成 | 拋例外、上游 rollback |
+| 異步 wire（弱耦合）| NX06 createDeliveryDn | so SHIPPED 後 | wire 失敗 = 副作用補單可寫 | try/catch、log warn 不阻擋 |
+| 主動側 ETL（pull）| NX07 applyKpiBonus | 手動觸發 | 月底批次 | 不影響業務即時 |
+| **遊戲化 wire（新）⭐** | **NX10 helper × 3** | **業務動作完成後** | **wire 失敗 = 玩家少拿 Exp、不影響核心業務** | **try/catch + 冪等 prefix、可重跑** |
+
+⭐ 教訓：**跨模組 wire 失敗策略隨業務本質分**、不是統一策略。遊戲化 wire 失敗最容忍（玩家少 Exp ≠ 業務缺漏）、財務 wire 失敗最嚴格（缺單會出帳對不上）。
+
+#### B. 冪等 prefix 範式集大成（補強 NX05 主題 2 接收側設計）
+
+| 模組 | prefix 欄位 | 範例 |
+|---|---|---|
+| NX05 paylog 從薪資 | remark `SAL:<docNo>` | createPaylogFromConfirmedSalary |
+| NX06 dn 從 so | remark `SO:<docNo>` | createDeliveryDnFromShippedSo |
+| NX07 KPI 加給 | calcBasis `KPI-AUTO:` | applyKpiBonus |
+| **NX10 handover** | **reason `HANDOVER:<handoverId>`** | **createRewardFromHandover** |
+| **NX10 SO 業績** | **reason `SO_SHIPPED:<docNo>`** | **updateRankingFromPerformance** |
+| **NX10 medal 加碼** | **calcBasis `MEDAL-BONUS:`** | **applyMedalBonusToSalary** |
+
+⭐ 教訓：**冪等 prefix 是跨模組 wire 第一道防線**（second is FK unique）。所有 wire helper 必須 prefix 標記、查重再寫、重跑可信。
+
+> 文件版本：v3.0（+ 主題 5 NX10-IMPL-02 社交+使命+跨模組 wire 軌、Q-RHYTHM-2 第八次落地、八角 8 角完整化）
+> 下次更新觸發：UI 真實 / unit test / NX08 cross-module dashboard 後續軌

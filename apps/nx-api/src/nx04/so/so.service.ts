@@ -8,6 +8,7 @@ import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { Nx10ExpService } from '../../nx10/exp/nx10-exp.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
@@ -23,6 +24,7 @@ import { autoCreateTransferFromSo } from '../../shared/nx03/nx03-auto-transfer-f
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createArFromShippedSo } from '../../shared/nx05/nx05-create-ar-from-so';
 import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
+import { updateRankingFromPerformance } from '../../shared/nx10/nx10-update-ranking-from-performance';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 // NX04-IMPL-01 Phase 3 commit 3a：授信擋單接點（Crown Q7 + Q-C4=A）
 import { CreditGuardService } from '../credit-guard/credit-guard.service';
@@ -104,6 +106,8 @@ export class SoService {
     private readonly audit: Nx01AuditLogWriterService,
     // NX04-IMPL-01 Phase 3 commit 3a：授信擋單 inject（Crown Q7 4 機制）
     private readonly creditGuard: CreditGuardService,
+    // NX10-IMPL-02 Phase 5：業績排行榜 wire
+    private readonly expService: Nx10ExpService,
   ) {}
 
   private whereList(tenantId: string, q: Nx04ListQueryDto): Prisma.Nx04SoWhereInput {
@@ -568,6 +572,16 @@ export class SoService {
       if (dto.status === SoStatus.SHIPPED && headBefore.status === SoStatus.PICKING) {
         await createArFromShippedSo(tx, { tenantId, soId: id, userId: user.sub });
         await createDeliveryDnFromShippedSo(tx, { tenantId, soId: id, userId: user.sub });
+        // NX10 wire：業績 tier-based Exp 排行榜獎勵（try/catch 隔離）
+        try {
+          await updateRankingFromPerformance(tx, this.expService, {
+            tenantId,
+            soId: id,
+            actorUserId: user.sub,
+          });
+        } catch (err) {
+          console.warn(`[NX10 wire] updateRankingFromPerformance failed for SO ${id}:`, err);
+        }
       }
       const full = await tx.nx04So.findFirst({
         where: { id },

@@ -3,6 +3,7 @@
 
 import { Module } from '@nestjs/common';
 
+import { Nx10Module } from '../nx10/nx10.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 import { DeliveryController } from './delivery/delivery.controller';
@@ -27,7 +28,7 @@ import { WebPushController } from './web-push/web-push.controller';
 import { WebPushService } from './web-push/web-push.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, Nx10Module],
   controllers: [
     DeliveryController,
     PickupController,

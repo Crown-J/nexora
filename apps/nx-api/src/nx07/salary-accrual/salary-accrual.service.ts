@@ -22,6 +22,7 @@ import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
+import { applyMedalBonusToSalary } from '../../shared/nx10/nx10-apply-medal-bonus-to-salary';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 
@@ -143,6 +144,24 @@ export class Nx07SalaryAccrualService {
       afterData: { applied: created, performanceAmount: performanceAmount.toString(), soCount: soAgg._count._all } as object,
     });
 
+    // NX10 wire：醫章 tier 加碼倍率（try/catch 隔離、wire 失敗不阻擋 KPI 加給主流程）
+    let medalBonus: Awaited<ReturnType<typeof applyMedalBonusToSalary>> | null = null;
+    try {
+      medalBonus = await this.prisma.$transaction(async (tx) =>
+        applyMedalBonusToSalary(tx, {
+          tenantId,
+          salaryRecordId: salary.id,
+          userId: salary.userId,
+          actorUserId: user.sub,
+        }),
+      );
+    } catch (err) {
+      console.warn(
+        `[NX10 wire] applyMedalBonusToSalary failed for salary ${salary.id}:`,
+        err,
+      );
+    }
+
     return {
       ok: true,
       reform: '業界改革 #2 NX04 業績 → NX07 薪資加給 wire',
@@ -153,6 +172,7 @@ export class Nx07SalaryAccrualService {
       soCount: soAgg._count._all,
       appliedCount: created.length,
       applied: created,
+      medalBonus,
     };
   }
 }
