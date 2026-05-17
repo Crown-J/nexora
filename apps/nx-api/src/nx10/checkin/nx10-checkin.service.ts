@@ -82,8 +82,10 @@ export class Nx10CheckinService {
       else if (lastYmd) newStreak = 1;
 
       const streakKey = Math.min(newStreak, 7);
+      // A029 撈回（IMPL-01 Phase 4）：STREAK_D{N} 任務範本走系統 tenant 持有（schema @@unique([code]) 是 global、自然全 tenant 共享）
+      // 移除 tenantId filter（既有 code 'STREAK_D1'~'STREAK_D7' M2 seed 落在 NX99TANT0000000、不在 user.tenantId）
       const tpl = await tx.nx10TaskTemplate.findFirst({
-        where: { tenantId: user.tenantId!, code: `STREAK_D${streakKey}`, isActive: true },
+        where: { code: `STREAK_D${streakKey}`, isActive: true },
       });
       if (!tpl) throw new NotFoundException(`Missing task_template STREAK_D${streakKey}`);
       const expEarned = tpl.expBase;

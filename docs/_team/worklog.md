@@ -2306,3 +2306,79 @@ NX09-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（Q1=全要 / Q2=b 拆軌 / 
 
 ⭐⭐⭐ **NEXORA 主版本 v1.2 達成**（EIP 重戰場升級、業界中小汽配 ERP 第一個 SystemManual + Postgres FTS）= **8 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08 / NX07 / NX09）+ EIP 統一查詢入口落地。剩 NX10 遊戲化（10/11 → 11/11）。
 
+---
+
+## 主題 31｜NX10 八角基礎軌 Q-RHYTHM-2 落地（TASK-NX10-IMPL-01、2026-05-17）⭐⭐⭐ 業務模組 11/11 100%
+
+### 起源
+
+NEXORA v1.2.0（NX09 EIP closure）後 Crown 啟動 NX10（**業務模組最後 1 軌**、本軌 closure 即 **11/11 100%**）。⚠️ Crown 揭露設計哲學：**NX10 = Yu-kai Chou 八角框架（Octalysis Framework）**、9 schema-only model 對應 8 角驅動力、非隨機功能。NX10-AUDIT-01 9 段揭露（含 Crown 16 vs schema 真實 20 medal levels drift 修正）+ Crown 4 戰略題拍板（a/b/a/a）→ Hank Q-RHYTHM-2 第七次落地。
+
+本軌（IMPL-01）= 八角基礎軌、對應驅動力 #2 #4 #6 #7 #8（成就/佔有/稀缺/好奇/損失）；下軌（IMPL-02）對應 #1 #3 #5（使命/賦權/社交）+ 跨模組 wire。
+
+**戰略意義**：
+- ⭐⭐⭐ 業務模組 11/11 100% 達成（NEXORA 業務全模組落地）
+- ⭐⭐⭐ 八角框架完整落地（中小汽配 ERP 業界第一個完整 gamification）
+- ⭐⭐ 驚喜寶箱 + 衝刺（業界 gamification 經典範式）
+- ⭐ A029 老債撈回（worklog 主題 1D）
+
+### 設計決策
+
+1. 既有 14 model + 11 endpoint 0 動（Crown「既有 100% 保留」+ Q-RHYTHM-2 紀律）
+2. 醫章 20 levels seed（修正 Crown 16 vs schema 真實 20）
+3. SurpriseBox 驅動力 #7 新建（隨機 boxType 30%E/30%R/40%N + 隨機 Exp）
+4. Sprint 驅動力 #6 新建（限時挑戰、3 sprintType WS/ME/QR）
+5. A029 撈回（M2 seed 7 STREAK + checkin.service tenantId filter 移除）
+6. 0 跨模組 wire（Crown Q3=a 留 IMPL-02）
+7. UI 6 placeholder + menu.nx10 + side-menu wire
+
+### 實作歷程（7 commit / 6 Phase / 命中 plan 估 7-8 預算）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | 1 | plan v0.1.0 + overview v0.1.0（八角框架）| 1 |
+| Phase 1 | 1 | M1 seed（20 medal + 5 TaskTemplate）| 1 |
+| Phase 2-4 合併 | 1 | M2 STREAK seed + A029 撈回 + SurpriseBox + Sprint + module wire | 1 |
+| Phase 5 | 1 | UI 5+1 placeholder + menu.nx10 + side-menu wire | 1 |
+| Phase 6 | 1 | summary v1.0 + worklog 主題 4 + _team 主題 31（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v1.3.0（待 Crown）| - |
+
+### 跨模組視角總覽（本軌 0 跨模組 wire）
+
+⭐ Crown Q3=a 拍板對齊：本軌純 NX10 內部 + NX01 主檔 FK（跨模組 wire 留 IMPL-02 後續軌）。
+
+| IMPL-02 跨模組 wire 候選 | 八角驅動力 | 業界改革等級 |
+|---|---|---|
+| NX06 DnHandover → NX10 動態交接獎勵 | #5 社交 | ⭐⭐⭐ 業界第一 |
+| NX04 SO 業績 → NX10 排行榜 | #2 成就 | ⭐⭐ |
+| NX07 SalaryComponent → NX10 業績加成 | #4 佔有 + #1 使命 | ⭐⭐ |
+| NX09 KmArticle → NX10 學習任務 | #2 成就 | ⭐ |
+
+### 統合教訓
+
+1. **Q-RHYTHM-2 第七次驗證穩定**（NX05 12 / NX06-IMPL-01 8 / NX06-IMPL-02 7 / NX08 6 / NX07 7 / NX09 7 / NX10 7 commit）：節奏穩定、Hank 自決越成熟。
+2. **「穩定模組升級紀律」第七次套用**：既有 backend 0 改、純加強 + 治理檔補齊範式定型 7 次。
+3. **0 prisma drift 罕見**（連 4 軌 NX06+NX08+NX07+NX09 drift 後本軌 0 drift）：純 INSERT seed 無 constraint 名稱差異、新範式建立「純 seed migration 0 drift」。
+4. **VARCHAR 寬度檢查新風險條目**：VARCHAR(10) 限制踩坑（PLATINUM_III 11 字）、新增 plan §7 風險範式「seed 前 grep schema VARCHAR 寬度」。
+5. **A029 老債撈回新範式**：「老債」實際是「schema 設計（global unique）vs 服務查詢（tenantId filter）的不一致」、撈回 = seed + service line fix（純 additive）。
+
+### 對應文件
+
+- 業務需求：`docs/nx10/spec/intent/nx10-overview.md` v0.1.0
+- 模組架構書：`docs/nx10/nx10-summary.md` v1.0
+- audit-01：`docs/nx10/nx10-audit-01.md`
+- impl plan：`docs/nx10/spec/impl/nx10-impl-01-plan.md`
+- merge verify：`docs/nx10/spec/impl/nx10-impl-01-merge-verify.md`
+
+### A026 backlog 開單揭露（IMPL-01 範圍）
+
+1. **TASK-NX10-IMPL-02-SOCIAL-MISSION** ⭐⭐⭐（團隊任務 + 帶新人 + 轉職 + 跨模組 wire 含 NX06 動態交接獎勵 ⭐⭐⭐）
+2. **TASK-NX10-IMPL-UI-01**（UI 真實勳章 panel + 排行榜 chart + 任務列表 + 驚喜寶箱動畫 + 衝刺倒數計時器）
+3. **TASK-NX10-IMPL-02-TEST**（service + Sprint/SurpriseBox unit test）
+4. **TASK-NX10-IMPL-03-CROSS-MODULE-DASHBOARD**（NX08 OwnerDashboard 加 NX10 員工成長 dashboard）
+5. **TASK-NX10-SCHEMA-DRIFT-AUDIT**（schema global code unique vs 服務 tenantId filter 不一致釐清）
+
+⭐⭐⭐ **Q-RHYTHM-2 第七次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐⭐⭐ 等 Crown 拍板「branch merge main + push + tag v1.3.0-nx10-gamification-closure」、**業務模組 11/11 100% 達成**（NEXORA 業務全模組落地里程碑）、NEXORA 主版本 v1.3 達成 ⭐⭐⭐。
+

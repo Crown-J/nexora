@@ -405,5 +405,58 @@ NX10 是模組 worklog 收官（NX01~10 全完成、進度 10/10 = 100%、剩 _s
 
 ---
 
-> 文件版本：v1.0（初版、3 主題 + 累計範式總表、~5500 字、模組 worklog 收官）
-> 下次更新觸發：A029 apply-checkin-reward 撈回（NX10 正式啟用）/ tasks-today 跨方案 endpoint 演進 / NX10 出現新工作（先 audit 性質）/ [_team/worklog.md](../_team/worklog.md) 已寫、複用本日誌累計範式總表
+---
+
+## 主題 4｜NX10-IMPL-01 八角基礎軌 Q-RHYTHM-2 落地（TASK-NX10-IMPL-01、2026-05-17）⭐⭐⭐ 業務模組 11/11 100%
+
+### 起源
+
+NEXORA v1.2.0（NX09 EIP closure）後 Crown 啟動 NX10（業務模組最後 1 軌、本軌 closure 即 11/11 100%）。⚠️ Crown 揭露設計哲學：**NX10 = Yu-kai Chou 八角框架（Octalysis Framework）**、9 schema-only model 對應 8 角驅動力、非隨機功能。NX10-AUDIT-01 9 段揭露（含 Crown 16 vs 真實 20 medal levels drift 修正）+ Crown 4 戰略題拍板（a/b/a/a）→ Hank 自決 8 Q-H + 6 Phase 7 commit 落地。
+
+本軌（IMPL-01）對應驅動力 #2 #4 #6 #7 #8（成就/佔有/稀缺/好奇/損失）；下軌（IMPL-02）對應 #1 #3 #5（使命/賦權/社交）+ 跨模組 wire。
+
+### 設計決策
+
+1. 既有 14 model + 11 endpoint 0 動（Crown「既有 100% 保留」+ Q-RHYTHM-2 紀律）
+2. 醫章 20 levels seed（修正 Crown 16 vs schema 真實 20）
+3. SurpriseBox 驅動力 #7 新建（業界 gamification 經典、隨機 boxType 30%E/30%R/40%N + 隨機 Exp 範圍）
+4. Sprint 驅動力 #6 新建（限時挑戰、3 sprintType WS/ME/QR）
+5. A029 撈回（M2 seed 7 STREAK + checkin.service tenantId filter 移除）
+6. 0 跨模組 wire（Crown Q3=a 留 IMPL-02）
+7. UI 6 placeholder + menu.nx10 + side-menu wire
+
+### 實作歷程（7 commit / 6 Phase / 命中 plan 估 7-8 預算）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `b39de95` | plan v0.1.0 + overview v0.1.0（八角框架）|
+| 1 | `414ed89` | M1 seed（20 medal + 5 TaskTemplate）|
+| 2-4 合併 | 1 | M2 STREAK seed + A029 撈回 + SurpriseBox + Sprint + module wire |
+| 5 | 1 | UI 5+1 placeholder + menu + wire |
+| 6 | （本 commit）| summary v1.0 + worklog 主題 4 + _team 主題 31 + merge-verify |
+
+### 踩坑
+
+1. **VARCHAR(10) 限制 PLATINUM_III/DIAMOND_III 超 10 chars**：縮寫 PLAT_*/DIA_* 對應 tier 完整名。教訓：seed 寫入前先 grep schema VARCHAR 寬度（新增風險條目、plan §7 未涵蓋）。
+2. **A029 真相揭露**：既有 checkin.service 已 wire applyExpChange（line 91-99）、缺的只是 STREAK_D{N} seed + tenantId filter 不一致。「老債」實際是「schema global code unique vs 服務 tenantId filter 的設計不一致」。
+3. **0 prisma drift**（連 4 軌 NX06+NX08+NX07+NX09 drift 後本軌罕見 0 drift）：純 INSERT seed 無 constraint 名稱差異。
+
+### 對應文件
+
+- plan：[spec/impl/nx10-impl-01-plan.md](spec/impl/nx10-impl-01-plan.md)
+- overview v0.1.0：[spec/intent/nx10-overview.md](spec/intent/nx10-overview.md)
+- audit-01：[nx10-audit-01.md](nx10-audit-01.md)
+- summary v1.0：[nx10-summary.md](nx10-summary.md)
+- merge verify：[spec/impl/nx10-impl-01-merge-verify.md](spec/impl/nx10-impl-01-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-01 後 +4）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 1 | 7 schema-only model 留 IMPL-02（TeamTask/Log + Mentorship + Promotion 全套）| 業務功能擴充 |
+| 2 | 0 跨模組 wire（NX06/NX04/NX07/NX09 → NX10）| 業務鏈 IMPL-02 |
+| 3 | UI 純 stub、6 placeholder 無真實 chart/animation | UI 獨立軌 |
+| 4 | schema @@unique([code]) global vs 服務 tenantId filter 設計不一致（本軌透過 A029 撈回露出）| schema-spec 不一致 |
+
+> 文件版本：v2.0（+ 主題 4 NX10-IMPL-01 八角基礎軌、Q-RHYTHM-2 第七次落地、業務模組 11/11）
+> 下次更新觸發：IMPL-02 社交+使命+跨模組 wire / UI 真實 / 後續軌
