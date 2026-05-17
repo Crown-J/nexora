@@ -74,12 +74,26 @@ export class QuoteService {
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
+  /**
+   * Quote 列表 query
+   * NX04-IMPL-01 Phase 3 commit 3b：對齊 Crown Q9 純記錄 + 多業務員共享
+   *   - tenant-wide 列表（不按 createdBy 過濾、業務員 A 可看業務員 B 的報價歷史）
+   *   - 純記錄 / 不簽核（既有 status DRAFT→SENT→ACCEPTED 業務員自行標、無系統強制簽核）
+   *   - search 擴：docNo / remark / customer.code/name / 任一 item.partNo/partName
+   */
   private whereList(tenantId: string, q: Nx04ListQueryDto): Prisma.Nx04QuoteWhereInput {
     const where: Prisma.Nx04QuoteWhereInput = { tenantId, voidedAt: null };
     if (q.status?.trim()) where.status = q.status.trim();
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
+      where.OR = [
+        { docNo: { contains: s, mode: 'insensitive' } },
+        { remark: { contains: s, mode: 'insensitive' } },
+        { customer: { code: { contains: s, mode: 'insensitive' } } },
+        { customer: { name: { contains: s, mode: 'insensitive' } } },
+        { rev_Nx04QuoteItem_quoteId: { some: { partNo: { contains: s, mode: 'insensitive' } } } },
+        { rev_Nx04QuoteItem_quoteId: { some: { partName: { contains: s, mode: 'insensitive' } } } },
+      ];
     }
     return where;
   }
