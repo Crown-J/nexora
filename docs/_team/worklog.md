@@ -2000,5 +2000,18 @@ NX06-IMPL-01（v0.8.0）closure 後 Crown 立即啟動 IMPL-02（同日連跑）
 
 ⭐⭐⭐ **Q-RHYTHM-2 第三次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 4 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
 
-⭐ 等 Crown 拍板「branch merge main + push + tag v0.9.0-nx06-routing-closure」、NX06 範圍 A 全 closure 達成（IMPL-01 物流基礎 + IMPL-02 路線優化）= NEXORA 業務閉環第一階段戰略完成 ⭐⭐⭐。
+### A026 補登（Crown 拍板 merge 時 6 項）
+
+對齊 [NX06-IMPL-02 merge-verify §8 後續軌預告](../nx06/spec/impl/nx06-impl-02-merge-verify.md)：
+
+1. **TASK-NX06-GOOGLE-MAPS-WIRE**：Crown 申請 Google Cloud API key 到後設 `GOOGLE_MAPS_API_KEY` + `GOOGLE_MAPS_API_ENABLED=true` 啟用 real Distance Matrix API
+2. **TASK-NX06-WEB-PUSH-WIRE**：`pnpm add web-push` + VAPID key 生成 + 設 `WEB_PUSH_ENABLED=true` 啟用 real push send
+3. **TASK-NX06-DRIFT-AUDIT**：M4 pre-existing drift 來源追溯（nx01_warehouse FK / nx01_partner_shipping_address 索引 / nx01_brand_code_rule DEFAULT / RenameIndex × N 等、釐清前軌哪一波 schema vs SQL 偏差）
+4. **TASK-NX06-IMPL-UI-01**：UI 真實 component（地圖 + 外務員 PWA + route view、IMPL-01+02 共 12 placeholder 全升真實 UI）
+5. **TASK-NX06-IMPL-03**：客戶端配送通知（範圍 B 戰略軌、line / SMS / email）
+6. **TASK-NX06-IMPL-04**：dashboard SSE 升級（規模化後 polling → SSE）
+
+✅ **2026-05-17 closure**：merge 完成、push origin main、tag `v0.9.0-nx06-routing-closure` 落地。
+
+⭐⭐⭐ **NEXORA 業務閉環第一階段戰略完成**（採購 + 庫存 + 銷貨 + 自動補貨 + 財務 + 物流基礎 + 物流路線優化）= 5 個 ⭐⭐⭐ 戰略軌 closure 累積（NX03 / AR / NX04 / NX05 / NX06）。
 
