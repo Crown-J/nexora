@@ -400,9 +400,24 @@ export class SalesReturnService {
       throw new BadRequestException('rejectReason is required when rejecting sales return');
     }
 
+    // NX04-IMPL-01 Phase 3 commit 3c：returnAction R/D/X 入口分流（Crown Q-C3=A、仿 NX02 returnMode 範式）
+    //   R/D → 既有 applySrPosting 入庫 source=R（貨退回、ledger 沖回）+ Phase 4 NX05 Allowance bridge
+    //   X 換新 → skip ledger（貨未實際回到我方倉、業務員手動建新 SO 換新）
+    const returnAction = dto.returnAction ?? 'R'; // default R 退錢（業界常態）
+    const skipLedger =
+      dto.status === SalesReturnStatus.POSTED && returnAction === 'X';
+
     return this.prisma.$transaction(async (tx) => {
       if (dto.status === SalesReturnStatus.POSTED && existing.status === SalesReturnStatus.INSPECTING) {
-        await this.applySrPosting(tx, id, tenantId, user.sub);
+        if (skipLedger) {
+          // X 換新：仍校驗 items 存在、但不沖庫存
+          const items = await tx.nx04SrItem.findMany({ where: { srId: id }, select: { id: true } });
+          if (!items.length) throw new BadRequestException('Sales return has no items to post');
+          // TODO Phase 4：X 換新可選擇自動建新 SO（業務員手動先做、後續軌補）
+        } else {
+          await this.applySrPosting(tx, id, tenantId, user.sub);
+          // TODO Phase 4：R/D 路徑加 NX05 Allowance bridge call（allowanceType='S' 銷貨折讓）
+        }
       }
       await tx.nx04Sr.update({
         where: { id },
