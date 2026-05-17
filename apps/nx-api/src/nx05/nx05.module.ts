@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { AccountCodeController } from './account-code/account-code.controller';
+import { AccountCodeService } from './account-code/account-code.service';
 import { AllowanceController } from './allowance/allowance.controller';
 import { AllowanceService } from './allowance/allowance.service';
 import { ApController } from './ap/ap.controller';
@@ -28,6 +30,7 @@ import { Nx05FinanceAccessGuard } from '../shared/nx05/nx05-finance-access.guard
     NoteController,
     AllowanceController,
     PeriodCloseController,
+    AccountCodeController,
   ],
   providers: [
     ArService,
@@ -37,6 +40,7 @@ import { Nx05FinanceAccessGuard } from '../shared/nx05/nx05-finance-access.guard
     NoteService,
     AllowanceService,
     PeriodCloseService,
+    AccountCodeService,
     Nx05FinanceAccessGuard,
   ],
 })
