@@ -10,6 +10,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
+import { createAllowanceFromSalesReturn } from '../../shared/nx05/nx05-create-allowance-from-sr';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
 import { requireDefaultLocationId } from '../../shared/nx04/nx04-location';
 import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
@@ -413,10 +414,16 @@ export class SalesReturnService {
           // X 換新：仍校驗 items 存在、但不沖庫存
           const items = await tx.nx04SrItem.findMany({ where: { srId: id }, select: { id: true } });
           if (!items.length) throw new BadRequestException('Sales return has no items to post');
-          // TODO Phase 4：X 換新可選擇自動建新 SO（業務員手動先做、後續軌補）
+          // X 換新後續軌：自動建新 SO 換新（業務員手動先做、後續軌可補）
         } else {
+          // R/D 路徑：既有 ledger 入庫（source=R）+ NX05 Allowance bridge（Phase 4 commit 4a 落地）
           await this.applySrPosting(tx, id, tenantId, user.sub);
-          // TODO Phase 4：R/D 路徑加 NX05 Allowance bridge call（allowanceType='S' 銷貨折讓）
+          await createAllowanceFromSalesReturn(tx, {
+            tenantId,
+            srId: id,
+            userId: user.sub,
+            returnAction, // R 退錢 / D 折讓
+          });
         }
       }
       await tx.nx04Sr.update({
