@@ -15,10 +15,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { Nx10ExpService } from '../../nx10/exp/nx10-exp.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { estimateDurationSec, haversineKm } from '../../shared/nx06/nx06-haversine';
+import { createRewardFromHandover } from '../../shared/nx10/nx10-create-reward-from-handover';
 
 import type {
   CreateHandoverDto,
@@ -34,6 +36,7 @@ export class DynamicHandoverService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    private readonly expService: Nx10ExpService,
   ) {}
 
   /**
@@ -265,6 +268,23 @@ export class DynamicHandoverService {
         where: { id: existing.dnId },
         data: { driverUserId: existing.toDriverId, updatedBy: user.sub },
       });
+
+      // NX10 wire：fromDriver + toDriver 各 25 Exp 動態交接協作獎勵（業界改革 ⭐⭐⭐）
+      // try/catch 隔離：wire 失敗不阻擋 handover.updateStatus 主流程
+      try {
+        await this.prisma.$transaction(async (tx) => {
+          await createRewardFromHandover(tx, this.expService, {
+            tenantId,
+            handoverId: existing.id,
+            actorUserId: user.sub,
+          });
+        });
+      } catch (err) {
+        console.warn(
+          `[NX10 wire] createRewardFromHandover failed for handover ${existing.id}:`,
+          err,
+        );
+      }
     }
 
     await this.audit.write({
