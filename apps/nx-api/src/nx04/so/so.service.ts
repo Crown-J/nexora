@@ -19,6 +19,7 @@ import {
   QuoteStatus,
   SoStatus,
 } from '../../shared/nx04/nx04-state-machine';
+import { autoCreateTransferFromSo } from '../../shared/nx03/nx03-auto-transfer-from-so';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createArFromShippedSo } from '../../shared/nx05/nx05-create-ar-from-so';
 import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
@@ -532,6 +533,15 @@ export class SoService {
         select: { id: true, tenantId: true, status: true },
       });
       if (!headBefore) throw new NotFoundException('SO not found');
+
+      // NX04-IMPL-01 Phase 4 commit 4b：DRAFT → CONFIRMED 自動調撥強制（Crown Q-C1=C 兩階段第二段）
+      // - scan SoItems、目標倉缺貨 → 從最近倉庫支援、自動建 NX03 ST 調撥單
+      // - SoItem.stId 已存在 / transferStatus='C' → 冪等 skip
+      // - 無倉庫支援 → throw BadRequest 提示業務員手動處理
+      if (dto.status === SoStatus.CONFIRMED && headBefore.status === SoStatus.DRAFT) {
+        await autoCreateTransferFromSo(tx, { tenantId, soId: id, userId: user.sub });
+      }
+
       if (dto.status === SoStatus.SHIPPED && headBefore.status === SoStatus.PICKING) {
         await this.applySoShipping(tx, { id: headBefore.id, tenantId: headBefore.tenantId }, user.sub);
       }
