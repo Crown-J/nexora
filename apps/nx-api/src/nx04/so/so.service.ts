@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -22,6 +23,8 @@ import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createArFromShippedSo } from '../../shared/nx05/nx05-create-ar-from-so';
 import { createDeliveryDnFromShippedSo } from '../../shared/nx06/nx06-create-delivery-from-so';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
+// NX04-IMPL-01 Phase 3 commit 3a：授信擋單接點（Crown Q7 + Q-C4=A）
+import { CreditGuardService } from '../credit-guard/credit-guard.service';
 
 import type { CreateSoDto, CreateSoItemDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
 
@@ -98,6 +101,8 @@ export class SoService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    // NX04-IMPL-01 Phase 3 commit 3a：授信擋單 inject（Crown Q7 4 機制）
+    private readonly creditGuard: CreditGuardService,
   ) {}
 
   private whereList(tenantId: string, q: Nx04ListQueryDto): Prisma.Nx04SoWhereInput {
@@ -110,13 +115,23 @@ export class SoService {
     return where;
   }
 
+  /**
+   * 校驗 customerId 為 partner_type='C' 客戶 + isActive、並回傳 partner 完整資訊
+   * NX04-IMPL-01 Phase 3 commit 3a 升：加 defaultWarehouseId（M1 配套）+ creditLimit/creditStatus（授信用）
+   */
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
     const p = await tx.nx01Partner.findFirst({
       where: { id: partnerId, tenantId, isActive: true, partnerType: 'C' },
-      select: { id: true, paymentTermDomestic: true },
+      select: {
+        id: true,
+        paymentTermDomestic: true,
+        defaultWarehouseId: true,
+        creditLimit: true,
+        creditStatus: true,
+      },
     });
     if (!p) throw new BadRequestException('customerId must be an active partner with partnerType=C');
-    return p.paymentTermDomestic;
+    return p;
   }
 
   private lineAmount(qty: PrismaNs.Decimal, unit: PrismaNs.Decimal) {
@@ -233,15 +248,42 @@ export class SoService {
   async create(user: RequestUser, dto: CreateSoDto) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
-      const paymentTerm = await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
+      const customer = await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
+
+      // NX04-IMPL-01 Phase 3 commit 3a 接點 1：客戶預設據點 fallback
+      // dto.warehouseId 為主、無 → fallback customer.defaultWarehouseId（M1 配套）
+      const effectiveWhId = dto.warehouseId?.trim() || customer.defaultWarehouseId;
+      if (!effectiveWhId) {
+        throw new BadRequestException(
+          'warehouseId required (dto or customer.defaultWarehouseId both empty)',
+        );
+      }
       const wh = await tx.nx01Warehouse.findFirst({
-        where: { id: dto.warehouseId.trim(), tenantId },
+        where: { id: effectiveWhId, tenantId },
         select: { id: true, code: true },
       });
       if (!wh) throw new BadRequestException('warehouseId invalid');
+
       const currencyId = await resolveCurrencyId(tx, dto.currencyId);
       const taxRate = new PrismaNs.Decimal(dto.taxRate);
       const docNo = await allocNx04DocNo(tx, tenantId, 'SO', wh.code);
+
+      // NX04-IMPL-01 Phase 3 commit 3a 接點 4：授信擋單呼叫（Crown Q-C4=A 4 機制順序）
+      // 預估 SO 總額（含稅、tx 外呼叫 service 不行、用 dto.items 預算）
+      const estimatedSubtotal = (dto.items ?? []).reduce(
+        (acc, it) => acc.add(new PrismaNs.Decimal(it.qty).mul(new PrismaNs.Decimal(it.unitPriceSnapshot))),
+        new PrismaNs.Decimal(0),
+      );
+      const estimatedTotal = estimatedSubtotal.add(estimatedSubtotal.mul(taxRate).div(100)).toDecimalPlaces(2);
+      // CreditGuard 4 機制 check（黑名單→額度→逾期→付款條件）
+      // 注意：creditGuard.check 不在 tx 內、純查詢 + decide
+      const creditResult = await this.creditGuard.check(user, {
+        customerId: customer.id,
+        soAmount: Number(estimatedTotal.toString()),
+        paymentTerm: customer.paymentTermDomestic ?? undefined,
+      });
+      const paymentTerm = creditResult.adjustedPaymentTerm;
+
       const so = await tx.nx04So.create({
         data: {
           tenantId,
@@ -363,7 +405,8 @@ export class SoService {
         today.setHours(0, 0, 0, 0);
         if (vu < today) throw new BadRequestException('Quote has expired (validUntil)');
       }
-      const paymentTerm = await this.assertCustomerC(tx, tenantId, q.customerId);
+      const customer = await this.assertCustomerC(tx, tenantId, q.customerId);
+      const paymentTerm = customer.paymentTermDomestic;
       const wh = await tx.nx01Warehouse.findFirst({
         where: { id: q.warehouseId, tenantId },
         select: { code: true },
@@ -581,7 +624,19 @@ export class SoService {
     const head = await this.prisma.nx04So.findFirst({ where: { id: soId, tenantId }, select: SO_SEL });
     if (!head) throw new NotFoundException('SO not found');
     if (head.cancelledAt) throw new BadRequestException('SO is cancelled');
-    this.assertSoItemsEditable(head.status);
+
+    // NX04-IMPL-01 Phase 3 commit 3a 接點 3：配送中部分鎖（Crown Q-C2=A 4 項鎖、備註可改）
+    // SHIPPED 階段：禁改 qty / unitPrice / locationId（量/地址鎖）、允許 remark
+    if (head.status === SoStatus.SHIPPED) {
+      if (dto.qty !== undefined || dto.unitPriceSnapshot !== undefined || dto.locationId !== undefined) {
+        throw new ForbiddenException(
+          'SO is SHIPPED (配送中)：qty / unitPrice / locationId 已鎖、只允許改 remark',
+        );
+      }
+      // 純改 remark → 跳過 assertSoItemsEditable、允許更新
+    } else {
+      this.assertSoItemsEditable(head.status);
+    }
     const existing = await this.prisma.nx04SoItem.findFirst({ where: { id: itemId, soId }, select: SO_ITEM_SEL });
     if (!existing) throw new NotFoundException('SO item not found');
     if (dto.locationId !== undefined) {
