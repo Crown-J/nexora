@@ -2108,3 +2108,92 @@ NX06-IMPL-02 closure（v0.9.0、業務閉環第一階段全 closure）後 Crown 
 
 ⭐⭐⭐ **NEXORA 主版本 v1.0 達成**（業務閉環第一階段 + 報表分析全 closure、production-ready milestone）= **6 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08）+ 3 業界改革 dashboard 入口完整。
 
+---
+
+## 主題 29｜NX07 人資模組治理補齊 + 跨模組 wire（TASK-NX07-IMPL-01、2026-05-17）⭐⭐⭐ 業務閉環完整化最後一塊
+
+### 起源
+
+NEXORA v1.0.0（NX08 closure）後 Crown 啟動 NX07（業務模組第 9 軌、剩 3 之一）。⚠️ NX07 特殊：**backend 已最完整（16 model / 37 endpoint）、frontend 最落後（1 placeholder）、治理檔落後 2 階段** → 本軌 = 治理補齊 + 跨模組 wire + UI stub + 醫療管理補強（不是建新模組）。
+
+NX07-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（b/a/a/a/b 全照推）→ Alex 寫 nx07-overview v0.1.0 → Hank Q-RHYTHM-2 第五次落地、7 commit / 6 Phase。
+
+**戰略意義**：
+- ⭐⭐⭐ NX04 業績 → NX07 薪資加給 wire（業界中小汽配 ERP 第一個）
+- ⭐⭐⭐ NX07 薪資 → NX05 Paylog wire（業務閉環完整化最後一塊：採購 + 銷貨 + **發薪** 三大現金流 100% 接入）
+- ⭐ 醫療管理 + 職災追蹤（亞羅特色、汽配業勞工健康）
+
+### 設計決策
+
+1. 既有 16 model + 37 endpoint 0 動（Q-RHYTHM-2 紀律 + Crown Q5=b）
+2. 醫療管理 2 新表（MedicalRecord + Injury）
+3. NX04→NX07 wire = service-level + 手動觸發（對齊 NX05 ArStatement / NX08 ETL 範式）
+4. NX07→NX05 Paylog wire = helper + wire 入 payroll.service.patch CONFIRMED transition
+5. payroll.patch wire try/catch wrap（helper 失敗不阻擋 salary CONFIRMED）
+6. UI 7+1 placeholder + menu.nx07（8 items 單 group）+ side-menu wire
+7. 雙層脫敏 + 主動側既有範式 0 動（穩定模組升級紀律第五次套用）
+
+### 實作歷程（7 commit / 6 Phase / 命中 plan 估 8-10 預算）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | 1 | plan v0.1.0 + overview v0.1.0 | 1 |
+| Phase 1 | 1 | M1 醫療 2 表 + M2 drift 結算 | 1 |
+| Phase 2 | 1 | Nx07MedicalService + Controller（9 endpoint）| 1 |
+| Phase 3 | 1 | SalaryAccrualService.applyKpiBonus ⭐⭐⭐ | 1 |
+| Phase 4 | 1 | createPaylogFromConfirmedSalary helper + wire payroll.patch ⭐⭐⭐ | 1 |
+| Phase 5 | 1 | UI 7+1 placeholder + menu.nx07 + side-menu wire | 1 |
+| Phase 6 | 1 | summary v1.0 + worklog 主題 5 + _team 主題 29（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v1.1.0（待 Crown）| - |
+
+### 業務閉環完整化最後一塊里程碑 ⭐⭐⭐
+
+NEXORA 三大現金流 100% wire 進 NX05 Paylog：
+
+| 現金流 | wire helper | 落地軌 / tag |
+|---|---|---|
+| **採購** | createApFromConfirmedPo + createApFromPostedRr + createApFromPostedTi | v0.5.0-nx02-closure |
+| **銷貨** | createArFromShippedSo + createAllowanceFromSalesReturn | v0.6.0-nx04 + v0.7.0-nx05 |
+| **發薪** | **createPaylogFromConfirmedSalary** | **本軌 v1.1.0 ⭐⭐⭐** |
+
+### 跨模組視角總覽
+
+| 跨模組關係 | NX07 角色 | wire 範式 |
+|---|---|---|
+| NX01 User → NX07 | 員工身份（既有 11 reverse FK）| - |
+| NX01 KpiTemplate → NX07 SalaryComponent | KPI 規則模板 | 既有 FK + 本軌 wire 用 |
+| NX04 SO → NX07 SalaryRecord（業績獎金）⭐⭐⭐ | 接收（service-level query 計算）| Nx07SalaryAccrualService.applyKpiBonus |
+| NX07 SalaryRecord → NX05 Paylog（發薪）⭐⭐⭐ | 觸發（helper wire 入 payroll.patch）| createPaylogFromConfirmedSalary |
+| NX01 Department → NX07 | 部門結構 | 既有 employee-change.newDepartmentId |
+
+### 統合教訓
+
+1. **Q-RHYTHM-2 第五次驗證穩定**（NX05 12 / NX06-IMPL-01 8 / NX06-IMPL-02 7 / NX08 6 / NX07 7 commit）：每軌規模平均、Hank 自決越成熟。
+2. **「穩定模組升級紀律」第五次套用**：既有 backend 0 改、純加強 + 跨模組 wire + 治理檔補齊範式定型。
+3. **service-level wire vs helper wire 範式分離**：query-heavy 跨模組（NX04→NX07）走 service-level；過帳鏈 wire（NX07→NX05）走 helper + 注入既有 service。
+4. **業務閉環完整化第三大現金流接入里程碑**：NEXORA 至此真正成為「三大現金流全閉環的中小汽配 ERP」。
+5. **治理檔範式定型 7 軌**（NX02/03/04/05/06/08/07）：plan → audit → impl plan → summary → merge-verify → worklog 流程穩定。
+
+### 對應文件
+
+- 業務需求：`docs/nx07/spec/intent/nx07-overview.md` v0.1.0
+- 模組架構書：`docs/nx07/nx07-summary.md` v1.0（本主題後產出）
+- audit-01：`docs/nx07/nx07-audit-01.md`
+- impl plan：`docs/nx07/spec/impl/nx07-impl-01-plan.md`
+- merge verify：`docs/nx07/spec/impl/nx07-impl-01-merge-verify.md`
+
+### A026 backlog 開單揭露（IMPL-01 範圍）
+
+1. **TASK-NX07-IMPL-UI-01**：UI 真實表單（員工 / 出勤 / 薪資 form + 個人 + 主管 dashboard）
+2. **TASK-NX07-IMPL-02-SCHEDULE**：班表系統完整化（schedule × 3 表 endpoint + UI）
+3. **TASK-NX07-IMPL-03-EMPLOYEE-PROFILE**：員工主檔擴充（學歷 / 證照 / 緊急聯絡人）
+4. **TASK-NX07-IMPL-04-IP-WHITELIST**：IpWhitelist + GPS attendance.checkin wire
+5. **TASK-NX07-IMPL-05-SCHEMA-ENDPOINT**：7 schema-only model endpoint 補齊
+6. **TASK-NX07-IMPL-06-HANDOVER-BONUS**：NX06 DnHandover → 動態交接獎金 wire
+7. **TASK-NX07-IMPL-02-TEST**：service + helper unit test
+8. **accountCode 6130 vs 6111 spec-seed drift verify**（Crown spec vs seed）
+
+⭐⭐⭐ **Q-RHYTHM-2 第五次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐⭐⭐ 等 Crown 拍板「branch merge main + push + tag v1.1.0-nx07-closure」、業務閉環完整化第三大現金流接入達成（採購 + 銷貨 + 發薪 100%）、NEXORA 主版本 v1.1 達成 ⭐⭐⭐。
+
