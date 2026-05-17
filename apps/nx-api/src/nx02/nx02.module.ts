@@ -13,6 +13,8 @@ import { PriceComparisonController } from './price-comparison/price-comparison.c
 import { PriceComparisonService } from './price-comparison/price-comparison.service';
 import { PurchaseReturnController } from './purchase-return/purchase-return.controller';
 import { PurchaseReturnService } from './purchase-return/purchase-return.service';
+import { PurchaseStageController } from './purchase-stage/purchase-stage.controller';
+import { PurchaseStageService } from './purchase-stage/purchase-stage.service';
 import { PurchaseSuggestionController } from './purchase-suggestion/purchase-suggestion.controller';
 import { PurchaseSuggestionService } from './purchase-suggestion/purchase-suggestion.service';
 import { QtController } from './qt/qt.controller';
@@ -33,6 +35,7 @@ import { RrService } from './rr/rr.service';
     PartnerPartController,
     PurchaseSuggestionController,
     PriceComparisonController,
+    PurchaseStageController,
   ],
   providers: [
     RfqService,
@@ -43,6 +46,7 @@ import { RrService } from './rr/rr.service';
     PartnerPartService,
     PurchaseSuggestionService,
     PriceComparisonService,
+    PurchaseStageService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
 })
