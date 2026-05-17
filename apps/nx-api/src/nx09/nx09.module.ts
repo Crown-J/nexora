@@ -1,5 +1,5 @@
 // apps/nx-api/src/nx09/nx09.module.ts
-// NX09 EIP 企業資訊平台 module（既有 3 service + IMPL-01 SystemManual + FTS）
+// NX09 EIP 企業資訊平台 module（IMPL-01 6 子模組 + IMPL-02 VinLookup + RepairSop 亞羅特色）
 
 import { Module } from '@nestjs/common';
 
@@ -17,6 +17,8 @@ import { Nx09SubTablesController } from './sub-tables/sub-tables.controller';
 import { Nx09SubTablesService } from './sub-tables/sub-tables.service';
 import { Nx09SystemManualController } from './system-manual/system-manual.controller';
 import { Nx09SystemManualService } from './system-manual/system-manual.service';
+import { Nx09VinLookupController } from './vin-lookup/nx09-vin-lookup.controller';
+import { Nx09VinLookupService } from './vin-lookup/nx09-vin-lookup.service';
 
 @Module({
   imports: [PrismaModule],
@@ -27,6 +29,7 @@ import { Nx09SystemManualService } from './system-manual/system-manual.service';
     Nx09SystemManualController,
     Nx09FulltextSearchController,
     Nx09SubTablesController,
+    Nx09VinLookupController,
   ],
   providers: [
     Nx09ArticleService,
@@ -35,6 +38,7 @@ import { Nx09SystemManualService } from './system-manual/system-manual.service';
     Nx09SystemManualService,
     Nx09FulltextSearchService,
     Nx09SubTablesService,
+    Nx09VinLookupService,
   ],
 })
 export class Nx09Module {}
