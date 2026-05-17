@@ -20,6 +20,7 @@ import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
 import { allocNx05DocNo, orgCodeFromDocNo } from './nx05-doc-no';
+import { assertFinancePeriodMutable } from './nx05-period-lock';
 
 const PR_ALLOWANCE_REMARK_PREFIX = 'PR:';
 
@@ -67,6 +68,9 @@ export async function createAllowanceFromPurchaseReturn(
     select: { id: true },
   });
   if (dup) return dup.id;
+
+  // 2.5 FinancePeriod 校驗（NX05-IMPL-01 Phase 4 補強 A026 backlog 既知邊界、對齊既有 allowance.service line 122 範式）
+  await assertFinancePeriodMutable(tx, p.tenantId, pr.prDate);
 
   // 3. 找對應 AP（從 PR.rrId → Rr.poId → ApLedger.poId 反推、可能 null）
   let refApId: string | null = null;
