@@ -1,7 +1,7 @@
 // apps/nx-api/src/nx06/dn-ops/dn-ops.controller.ts
 // NX06 DnOps controller（跨 DN 的 stop/item 層級操作：異常 + 內部成本）
 
-import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
@@ -51,5 +51,11 @@ export class DnOpsController {
     @Body() dto: SetItemInternalCostDto,
   ) {
     return this.svc.setItemInternalCost(user, itemId, dto);
+  }
+
+  /** 倉管組長地圖視圖：列出所有 active DN（NX06-IMPL-02 Phase 4、dashboard polling 10s 呼叫）。 */
+  @Get('map/active')
+  listActiveForMap(@CurrentUser() user: RequestUser) {
+    return this.svc.listActiveForMap(user);
   }
 }

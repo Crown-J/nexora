@@ -930,6 +930,36 @@ export class DnLogisticsService {
     });
   }
 
+  /**
+   * 倉管組長地圖視圖：列出所有 active DN（含 lastLat/Lng + driver name）。
+   * NX06-IMPL-02 Phase 4 新增 / dashboard polling 10 秒呼叫。
+   */
+  async listActiveForMap(user: RequestUser) {
+    const tenantId = requireTenantId(user);
+    const rows = await this.prisma.nx06Dn.findMany({
+      where: {
+        tenantId,
+        status: { in: ['DRAFT', 'DISPATCHED', 'IN_TRANSIT', 'CUSTOMS', 'ARRIVED'] },
+      },
+      orderBy: [{ routeBatchId: 'asc' }, { routeOrderInSequence: 'asc' }, { docNo: 'asc' }],
+      select: {
+        id: true,
+        docNo: true,
+        status: true,
+        logisticsType: true,
+        driverUserId: true,
+        driverUser: { select: { id: true, userName: true } },
+        lastLat: true,
+        lastLng: true,
+        lastLocationAt: true,
+        routeBatchId: true,
+        routeOrderInSequence: true,
+        estimatedDurationSec: true,
+      },
+    });
+    return { ok: true, ts: new Date().toISOString(), count: rows.length, rows };
+  }
+
   async remove(user: RequestUser, id: string, kind: LogisticsKindValue) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {

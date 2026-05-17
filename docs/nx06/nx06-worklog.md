@@ -333,5 +333,60 @@ Crown 跨 13 題拍板 closure（Q-RHYTHM-2 第二次落地、Crown + Alex 全�
 | 7 | stop 異常未自動推進 DN 主檔狀態 | **業務邏輯精度缺口** | 後續軌加聚合規則 |
 | 8 | dispatch 單 driver（無 co-driver）| **業務功能擴充** | 後續軌 |
 
-> 文件版本：v1.1（+ 主題 4 NX06-IMPL-01 落地紀錄）
-> 下次更新觸發：NX06-IMPL-02 路線優化 / NX06-IMPL-UI-01 / Lalamove real API 啟動 / NX03 Parcel → DnItem 半自動 wire
+---
+
+## 主題 5｜NX06-IMPL-02 路線優化 + 動態交接 Q-RHYTHM-2 落地（TASK-NX06-IMPL-02、2026-05-17）⭐⭐⭐
+
+### 起源
+
+NX06-IMPL-01 closure（v0.8.0）後 Crown 立即啟動 IMPL-02。NX06-AUDIT-02 5 段技術選型 verify + Crown 5 戰略題拍板（Q1=100/日 / Q2=c iOS+Android PWA + Web Push 16.4+ / Q3=a 不做客戶推播 / Q4=a polling 10s / Q5=a 同軌全部）→ Hank 自決 8 Q-H + 跨 7 Phase 7 commit 落地。
+
+### 設計決策
+
+1. **schema 衝擊最小**（3 軌新 schema + 1 軌 drift 結算）
+2. **dn-logistics.service 0 動既有路徑**（+1 method listActiveForMap 純 additive）
+3. **OR-Tools 改 pure-js heuristic**（NN + load-balanced greedy、亞羅 100/日 規模夠用）
+4. **Google Maps + web-push 全 env toggle mock fallback**（同 Lalamove 範式）
+5. **動態交接 3 步驟**：半徑 + 任務量 + ETA、半自動倉管組長拍板
+6. **PWA infra 既有完整**（manifest + sw.js + PwaRegister + icons）、僅升 sw.js v2 push handler + 加客戶端訂閱 helper
+7. **M4 drift 結算誠實揭露**：M2/M3 constraint 重命名 + pre-existing drift（accumulated、A026 backlog）
+
+### 實作歷程（7 commit / 7 Phase / 命中 plan 估 14 預算 50%）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `dae2bc3` | plan v0.1.0 + overview v0.2.0 |
+| 1 | `a4f53d6` | 4 migration（M1 路線欄 / M2 handover / M3 push / M4 drift）|
+| 2-4 | 合併 | 4 service + 2 helper + dn-logistics listActiveForMap + module wire |
+| 5 | `ab3e8fb` | sw.js v2 + 客戶端訂閱 helper |
+| 6 | `47400db` | UI 7 placeholder + menu.nx06 升 2 group / 13 items |
+| 7 | （本 commit）| summary v0.2.0 + worklog + merge-verify |
+
+### 踩坑
+
+1. **OR-Tools npm native binding 風險 → pure-js heuristic**（NN + greedy load-balanced）。教訓：100/日 規模 heuristic 足夠、不為理論最佳化引入安裝風險。
+2. **Prisma auto-gen drift migration** 包入 constraint 重命名 + pre-existing drift：rename M4 + header 揭露。教訓：constraint 名照 Prisma 慣例避免 auto-gen drift；發現 auto-gen 包入 pre-existing drift 要誠實揭露不要隱藏。
+3. **TS error Uint8Array → BufferSource**：改 `new ArrayBuffer + Uint8Array view`（DOM API 嚴格 type 用 ArrayBuffer interop）。
+4. **PrismaModule @Global 已 provide Nx01AuditLogWriterService**：移除重複 provide。
+
+### 對應文件
+
+- plan：[spec/impl/nx06-impl-02-plan.md](spec/impl/nx06-impl-02-plan.md)
+- overview v0.2.0：[spec/intent/nx06-overview-v02.md](spec/intent/nx06-overview-v02.md)
+- audit-02：[nx06-audit-02.md](nx06-audit-02.md)
+- summary v0.2.0：[nx06-summary.md § 9](nx06-summary.md)
+- merge verify：[spec/impl/nx06-impl-02-merge-verify.md](spec/impl/nx06-impl-02-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-02 後 +6）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 9  | DN 起點假設 lastLat/Lng 已填（無 geocode address） | 演算法精度 |
+| 10 | OR-Tools 完整 VRP solver 未裝 | 規模化候選 |
+| 11 | web-push real send 未 wire | 外部依賴 |
+| 12 | Email fallback iOS 15- 未 wire | 業務鏈 |
+| 13 | dispatch heartbeat 沒專用 endpoint（reuse /delivery/:id/location）| 業務語意混淆 |
+| 14 | M4 包入 pre-existing drift | drift 可追溯性 |
+
+> 文件版本：v1.2（+ 主題 5 NX06-IMPL-02 落地紀錄、6 新缺口）
+> 下次更新觸發：NX06-IMPL-UI-01 / Lalamove real API / Google Maps wire / web-push wire / 客戶端推播範圍 B

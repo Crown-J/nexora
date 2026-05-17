@@ -1195,6 +1195,9 @@ model Nx01User {
   rev_Nx01BulletinAttachment_uploader Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_uploaderUserId")
   rev_Nx01BulletinReadLog_userId      Nx01BulletinReadLog[]    @relation("R_Nx01BulletinReadLog_userId")
   rev_Nx06Dn_driverUserId             Nx06Dn[]                 @relation("R_Nx06Dn_driverUserId")
+  rev_Nx06DnHandover_fromDriverId     Nx06DnHandover[]         @relation("R_Nx06DnHandover_fromDriverId")
+  rev_Nx06DnHandover_toDriverId       Nx06DnHandover[]         @relation("R_Nx06DnHandover_toDriverId")
+  rev_Nx06PushSubscription_userId     Nx06PushSubscription[]   @relation("R_Nx06PushSubscription_userId")
   rev_Nx07Attendance_userId           Nx07Attendance[]         @relation("R_Nx07Attendance_userId")
   rev_Nx07Performance_subjectUserId   Nx07Performance[]        @relation("R_Nx07Performance_subjectUserId")
   rev_Nx07Performance_reviewerUserId  Nx07Performance[]        @relation("R_Nx07Performance_reviewerUserId")
@@ -4358,6 +4361,12 @@ model Nx06Dn {
   lalamoveTrackingNo   String?       @map("lalamove_tracking_no") @db.VarChar(50)
   /// Lalamove webhook 最新狀態（PENDING/ASSIGNING/PICKED_UP/COMPLETED/CANCELLED）。；啟用最低需求版本：LITE-CORE
   lalamoveCallbackStatus String?     @map("lalamove_callback_status") @db.VarChar(30)
+  /// 多車場景：在某外務員 batch 內的順序（1, 2, 3, ...）。NX06-IMPL-02 M1 新增；啟用最低需求版本：LITE-CORE
+  routeOrderInSequence Int?          @map("route_order_in_sequence")
+  /// Google Maps Distance Matrix 預估配送時長（秒）。NX06-IMPL-02 M1 新增；啟用最低需求版本：LITE-CORE
+  estimatedDurationSec Int?          @map("estimated_duration_sec")
+  /// 路線優化 batch ID（multi-DN 一次優化批次）。NX06-IMPL-02 M1 新增；啟用最低需求版本：LITE-CORE
+  routeBatchId         String?       @map("route_batch_id") @db.VarChar(15)
   /// 備註（含臨時收件等口頭回報記錄）。；啟用最低需求版本：LITE-CORE
   remark               String?       @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
@@ -4373,8 +4382,9 @@ model Nx06Dn {
   driverUser           Nx01User      @relation("R_Nx06Dn_driverUserId", fields: [driverUserId], references: [id])
   sourceSo             Nx04So?       @relation("R_Nx06Dn_sourceSoId", fields: [sourceSoId], references: [id])
   sourceSr             Nx04Sr?       @relation("R_Nx06Dn_sourceSrId", fields: [sourceSrId], references: [id])
-  rev_Nx06DnItem_dnId  Nx06DnItem[]  @relation("R_Nx06DnItem_dnId")
-  rev_Nx06DnStop_dnId  Nx06DnStop[]  @relation("R_Nx06DnStop_dnId")
+  rev_Nx06DnItem_dnId     Nx06DnItem[]     @relation("R_Nx06DnItem_dnId")
+  rev_Nx06DnStop_dnId     Nx06DnStop[]     @relation("R_Nx06DnStop_dnId")
+  rev_Nx06DnHandover_dnId Nx06DnHandover[] @relation("R_Nx06DnHandover_dnId")
 
   @@unique([docNo])
   @@index([tenantId, sourceSoId], map: "nx06_dn_source_so_idx")
@@ -6674,6 +6684,8 @@ model Nx99Tenant {
   rev_Nx05Note_tenantId                   Nx05Note[]                   @relation("R_Nx05Note_tenantId")
   rev_Nx05Paylog_tenantId                 Nx05Paylog[]                 @relation("R_Nx05Paylog_tenantId")
   rev_Nx06Dn_tenantId                     Nx06Dn[]                     @relation("R_Nx06Dn_tenantId")
+  rev_Nx06DnHandover_tenantId             Nx06DnHandover[]             @relation("R_Nx06DnHandover_tenantId")
+  rev_Nx06PushSubscription_tenantId       Nx06PushSubscription[]       @relation("R_Nx06PushSubscription_tenantId")
   rev_Nx07Attendance_tenantId             Nx07Attendance[]             @relation("R_Nx07Attendance_tenantId")
   rev_Nx07IpWhitelist_tenantId            Nx07IpWhitelist[]            @relation("R_Nx07IpWhitelist_tenantId")
   rev_Nx07LeaveBalance_tenantId           Nx07LeaveBalance[]           @relation("R_Nx07LeaveBalance_tenantId")
@@ -7337,4 +7349,88 @@ model Nx01PartModel {
   @@index([tenantId, partId])
   @@index([tenantId, modelId])
   @@map("nx01_part_model")
+}
+
+/// =======================================================
+/// Nx06DnHandover — DB table `nx06_dn_handover`
+/// =======================================================
+/// 動態任務轉派紀錄（亞羅簡化版半徑+任務量+ETA、半自動倉管組長拍板）。NX06-IMPL-02 M2 新增。
+model Nx06DnHandover {
+  /// [NX06]+[DNHO]+[7碼流水號]，EX : NX06DNHO0000001；啟用最低需求版本：LITE-CORE
+  id              String       @id @default(dbgenerated("gen_nx06_dn_handover_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId        String       @map("tenant_id") @db.VarChar(15)
+  /// 對應 DN ID；啟用最低需求版本：LITE-CORE
+  dnId            String       @map("dn_id") @db.VarChar(15)
+  /// 原外務員 user_id；啟用最低需求版本：LITE-CORE
+  fromDriverId    String       @map("from_driver_id") @db.VarChar(15)
+  /// 接手外務員 user_id；啟用最低需求版本：LITE-CORE
+  toDriverId      String       @map("to_driver_id") @db.VarChar(15)
+  /// 交接地點推薦 lat；啟用最低需求版本：LITE-CORE
+  handoverLat     Decimal?     @map("handover_lat") @db.Decimal(12, 8)
+  /// 交接地點推薦 lng；啟用最低需求版本：LITE-CORE
+  handoverLng     Decimal?     @map("handover_lng") @db.Decimal(12, 8)
+  /// 交接地點地址（人類可讀）；啟用最低需求版本：LITE-CORE
+  handoverAddress String?      @map("handover_address") @db.VarChar(200)
+  /// 狀態（SUGGESTED 演算法建議 / ACCEPTED 兩外務同意 / REJECTED 拒絕 / COMPLETED 交接完成 / CANCELLED 取消）；啟用最低需求版本：LITE-CORE
+  status          String       @default("SUGGESTED") @db.VarChar(20)
+  /// 演算法推薦理由（如：半徑 3.2km / from 任務 5 to 任務 2 / ETA 短 15 分鐘）；啟用最低需求版本：LITE-CORE
+  reason          String?      @db.VarChar(200)
+  /// 建議發起人 user_id（倉管組長）；啟用最低需求版本：LITE-CORE
+  suggestedBy     String       @map("suggested_by") @db.VarChar(15)
+  /// 建議時間；啟用最低需求版本：LITE-CORE
+  suggestedAt     DateTime     @default(now()) @map("suggested_at")
+  /// 接受時間；啟用最低需求版本：LITE-CORE
+  acceptedAt      DateTime?    @map("accepted_at")
+  /// 完成交接時間；啟用最低需求版本：LITE-CORE
+  completedAt     DateTime?    @map("completed_at")
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt       DateTime     @default(now()) @map("created_at")
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE-CORE
+  updatedBy       String       @map("updated_by") @db.VarChar(15)
+  dn              Nx06Dn       @relation("R_Nx06DnHandover_dnId", fields: [dnId], references: [id])
+  fromDriver      Nx01User     @relation("R_Nx06DnHandover_fromDriverId", fields: [fromDriverId], references: [id])
+  toDriver        Nx01User     @relation("R_Nx06DnHandover_toDriverId", fields: [toDriverId], references: [id])
+  tenant          Nx99Tenant   @relation("R_Nx06DnHandover_tenantId", fields: [tenantId], references: [id])
+
+  @@index([dnId], map: "idx_handover_dn")
+  @@index([tenantId, status], map: "idx_handover_status")
+  @@map("nx06_dn_handover")
+}
+
+/// =======================================================
+/// Nx06PushSubscription — DB table `nx06_push_subscription`
+/// =======================================================
+/// Web Push 訂閱（外務員 PWA + 倉管組長瀏覽器）。NX06-IMPL-02 M3 新增。
+model Nx06PushSubscription {
+  /// [NX06]+[PSUB]+[7碼流水號]，EX : NX06PSUB0000001；啟用最低需求版本：LITE-CORE
+  id          String       @id @default(dbgenerated("gen_nx06_push_subscription_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId    String       @map("tenant_id") @db.VarChar(15)
+  /// 訂閱 user_id；啟用最低需求版本：LITE-CORE
+  userId      String       @map("user_id") @db.VarChar(15)
+  /// Web Push API 推播 endpoint URL；啟用最低需求版本：LITE-CORE
+  endpoint    String       @db.VarChar(500)
+  /// VAPID 公鑰（subscription 內含）；啟用最低需求版本：LITE-CORE
+  p256dhKey   String       @map("p256dh_key") @db.VarChar(200)
+  /// subscription auth secret；啟用最低需求版本：LITE-CORE
+  authKey     String       @map("auth_key") @db.VarChar(100)
+  /// 瀏覽器識別（debugging 用）；啟用最低需求版本：LITE-CORE
+  userAgent   String?      @map("user_agent") @db.VarChar(500)
+  /// 是否啟用（取消訂閱後設 false）；啟用最低需求版本：LITE-CORE
+  isActive    Boolean      @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt   DateTime     @default(now()) @map("created_at")
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE-CORE
+  updatedBy   String       @map("updated_by") @db.VarChar(15)
+  user        Nx01User     @relation("R_Nx06PushSubscription_userId", fields: [userId], references: [id])
+  tenant      Nx99Tenant   @relation("R_Nx06PushSubscription_tenantId", fields: [tenantId], references: [id])
+
+  @@unique([endpoint], map: "idx_push_endpoint")
+  @@index([tenantId, userId, isActive], map: "idx_push_user_active")
+  @@map("nx06_push_subscription")
 }
