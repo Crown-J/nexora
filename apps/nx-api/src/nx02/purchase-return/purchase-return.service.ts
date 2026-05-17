@@ -18,6 +18,7 @@ import {
   prDbToApi,
   PrStatus,
 } from '../../shared/nx02/nx02-state-machine';
+import { createAllowanceFromPurchaseReturn } from '../../shared/nx05/nx05-create-allowance-from-pr';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -171,13 +172,21 @@ export class PurchaseReturnService {
     if (!items.length) throw new BadRequestException('Purchase return has no items to post');
 
     // returnMode 入口分流（Crown Q19=d 多種並存）
-    // A=折讓不退：貨留、不扣庫存、僅記錄退貨單頭（Phase 5 NX05 Allowance bridge 寫入折讓單）
+    // A=折讓不退：貨留、不扣庫存、寫 Nx05Allowance（Phase 5 commit 5a 落地、Crown Q-5a-1=a inline helper）
     if (pr.returnMode === 'A') {
       // 校驗：至少 1 個 item qty > 0（折讓金額來源）
       const hasQty = items.some((it) => new PrismaNs.Decimal(it.qty).gt(0));
       if (!hasQty) throw new BadRequestException('Allowance-mode purchase return must have qty > 0 items');
       // 折讓模式不沖庫存、不需 locationId（貨還在原倉位）
-      // TODO Phase 5：呼叫 NX05 Allowance bridge service 寫入 Nx05Allowance + Item（allowanceType='P' 進貨折讓、refApId 串既有 AP）
+      // Phase 5 commit 5a：呼叫 inline helper 寫 Nx05Allowance allowanceType='P' 進貨折讓
+      //   - refApId 從 PR.rrId → Rr.poId → ApLedger.poId 反推
+      //   - disposalMethod='O' 沖銷 AP（折讓抵應付）
+      //   - 冪等：remark prefix 'PR:<docNo>' 去重
+      await createAllowanceFromPurchaseReturn(tx, {
+        tenantId: pr.tenantId,
+        prId: pr.id,
+        userId,
+      });
       return;
     }
 
