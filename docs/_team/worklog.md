@@ -2195,5 +2195,21 @@ NEXORA 三大現金流 100% wire 進 NX05 Paylog：
 
 ⭐⭐⭐ **Q-RHYTHM-2 第五次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
 
-⭐⭐⭐ 等 Crown 拍板「branch merge main + push + tag v1.1.0-nx07-closure」、業務閉環完整化第三大現金流接入達成（採購 + 銷貨 + 發薪 100%）、NEXORA 主版本 v1.1 達成 ⭐⭐⭐。
+### A026 補登（Crown 拍板 merge 時 9 項）
+
+對齊 [NX07-IMPL-01 merge-verify §7](../nx07/spec/impl/nx07-impl-01-merge-verify.md) + Crown 補登：
+
+1. **accountCode 6111 vs 6130 spec drift verify**（Alex overview 失誤、Hank 用 seed 真實值 6111 修正、透明揭露、production 前複查）
+2. **payroll.patch CONFIRMED 多建 Paylog DRAFT production 前 verify**（既有 NX07 SalaryRecord CONFIRMED 路徑會多寫 nx05_paylog DRAFT、會計手動 POSTED、純 additive 但需 production 前 query 現有 CONFIRMED salary 確認流程順暢）
+3. **TASK-NX07-IMPL-UI-01**（UI 真實表單：員工 / 出勤 / 薪資 + 個人 + 主管 dashboard）
+4. **TASK-NX07-IMPL-02-SCHEDULE**（班表系統完整化：schedule × 3 表 endpoint + UI）
+5. **TASK-NX07-IMPL-03-EMPLOYEE-PROFILE**（員工主檔擴充：學歷 / 證照 / 緊急聯絡人）
+6. **TASK-NX07-IMPL-04-IP-WHITELIST**（IpWhitelist + GPS attendance.checkin wire）
+7. **TASK-NX07-IMPL-05-SCHEMA-ENDPOINT**（7 schema-only model endpoint 補齊）
+8. **TASK-NX07-IMPL-06-HANDOVER-BONUS**（NX06 DnHandover → 動態交接獎金 wire）
+9. **TASK-NX07-IMPL-02-TEST**（service + helper unit test）
+
+✅ **2026-05-17 closure**：merge 完成、push origin main、tag `v1.1.0-nx07-closure` 落地。
+
+⭐⭐⭐ **NEXORA 主版本 v1.1 達成**（業務閉環完整化第三大現金流接入 NX05 Paylog、採購 + 銷貨 + 發薪 100%）= **7 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08 / NX07）+ 3 業界改革 wire（NX04→NX07 業績獎金 + NX07→NX05 Paylog 發薪 + 醫療管理 + 職災追蹤）。
 
