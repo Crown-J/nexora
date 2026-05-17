@@ -8,6 +8,8 @@ import { Nx07EmployeeChangeController } from './employee-change/employee-change.
 import { Nx07EmployeeChangeService } from './employee-change/employee-change.service';
 import { Nx07LeaveController } from './leave/leave.controller';
 import { Nx07LeaveService } from './leave/leave.service';
+import { Nx07MedicalController } from './medical/medical.controller';
+import { Nx07MedicalService } from './medical/medical.service';
 import { Nx07OvertimeController } from './overtime/overtime.controller';
 import { Nx07OvertimeService } from './overtime/overtime.service';
 import { Nx07PayrollController } from './payroll/payroll.controller';
@@ -27,6 +29,7 @@ import { Nx07TrainingService } from './training/training.service';
     Nx07PerformanceController,
     Nx07TrainingController,
     Nx07EmployeeChangeController,
+    Nx07MedicalController,
   ],
   providers: [
     Nx07AttendanceService,
@@ -36,6 +39,7 @@ import { Nx07TrainingService } from './training/training.service';
     Nx07PerformanceService,
     Nx07TrainingService,
     Nx07EmployeeChangeService,
+    Nx07MedicalService,
   ],
 })
 export class Nx07Module {}
