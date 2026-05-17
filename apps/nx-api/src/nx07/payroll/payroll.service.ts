@@ -5,6 +5,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { createPaylogFromConfirmedSalary } from '../../shared/nx05/nx05-create-paylog-from-salary';
 import { Nx07ListQueryDto } from '../../shared/nx07/nx07-list-query.dto';
 import { assertPayrollTransition } from '../../shared/nx07/nx07-state-machine';
 import { canViewPayrollSalaryDetail } from '../../shared/nx07/nx07-state-machine';
@@ -148,6 +149,29 @@ export class Nx07PayrollService {
       },
       select: HEAD_NO_ITEMS,
     });
+    // NX07-IMPL-01 Phase 4：CONFIRMED 時自動建 NX05 Paylog DRAFT（業務閉環完整化 ⭐⭐⭐）
+    let paylogId: string | null = null;
+    if (next === 'CONFIRMED') {
+      try {
+        paylogId = await createPaylogFromConfirmedSalary(this.prisma, {
+          tenantId,
+          salaryRecordId: id,
+          userId: user.sub,
+        });
+      } catch (e) {
+        // helper 失敗不阻擋薪資 CONFIRMED（plan §7 風險 mitigation）
+        // 揭露：audit log 記錄、不 throw
+        await this.audit.write({
+          tenantId,
+          actorUserId: user.sub,
+          moduleCode: 'NX07',
+          action: 'UPDATE',
+          entityTable: 'nx07_salary_record',
+          entityId: id,
+          summary: `Paylog wire 失敗（薪資 CONFIRMED 成功、但 Paylog 建立失敗、HR 需手動補建）: ${(e as Error).message}`,
+        });
+      }
+    }
     await this.audit.write({
       tenantId,
       actorUserId: user.sub,
@@ -156,7 +180,7 @@ export class Nx07PayrollService {
       entityTable: 'nx07_salary_record',
       entityId: id,
       entityCode: `${existing.yearMonth}/${existing.userId}`,
-      summary: `薪資狀態 ${existing.status} -> ${next}`,
+      summary: `薪資狀態 ${existing.status} -> ${next}${paylogId ? `（自動建 Paylog ${paylogId}）` : ''}`,
       beforeData: existing as object,
       afterData: row as object,
     });
