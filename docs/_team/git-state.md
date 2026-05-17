@@ -10,12 +10,12 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-17（⭐⭐⭐ TASK-NX10-IMPL-02 merge、八角框架 8/8 完整化 + 3 跨模組 wire / NEXORA v1.4 達成）**
-> **當前分支：`main`**（HEAD = `9f332d2`、merge feature/nx10-social-mission）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx10-social-mission 5 commit + 軌後、--no-ff、Q-RHYTHM-2 第八次落地）**
-> **⭐⭐⭐ Hank 自跑收尾完成**：merge + push + tag `v1.4.0-nx10-social-mission-closure` + push tag origin
+> **快照時間：2026-05-18（⭐⭐⭐ TASK-NX09-IMPL-02 merge、NX09 雙軌完整化 + 3 業界改革落地 / NEXORA v1.5 達成）**
+> **當前分支：`main`**（HEAD = `f9a75bd`、merge feature/nx09-yaro-feature）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx09-yaro-feature 7 commit + 軌後、--no-ff、Q-RHYTHM-2 第九次落地）**
+> **⭐⭐⭐ Hank 自跑收尾完成**：merge + push + tag `v1.5.0-nx09-yaro-feature-closure` + push tag origin
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 17 軌 merge（+ NX10-IMPL-02）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 18 軌 merge（+ NX09-IMPL-02）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（18 條）
 
