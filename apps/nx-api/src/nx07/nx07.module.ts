@@ -16,6 +16,8 @@ import { Nx07PayrollController } from './payroll/payroll.controller';
 import { Nx07PayrollService } from './payroll/payroll.service';
 import { Nx07PerformanceController } from './performance/performance.controller';
 import { Nx07PerformanceService } from './performance/performance.service';
+import { Nx07SalaryAccrualController } from './salary-accrual/salary-accrual.controller';
+import { Nx07SalaryAccrualService } from './salary-accrual/salary-accrual.service';
 import { Nx07TrainingController } from './training/training.controller';
 import { Nx07TrainingService } from './training/training.service';
 
@@ -30,6 +32,7 @@ import { Nx07TrainingService } from './training/training.service';
     Nx07TrainingController,
     Nx07EmployeeChangeController,
     Nx07MedicalController,
+    Nx07SalaryAccrualController,
   ],
   providers: [
     Nx07AttendanceService,
@@ -40,6 +43,7 @@ import { Nx07TrainingService } from './training/training.service';
     Nx07TrainingService,
     Nx07EmployeeChangeService,
     Nx07MedicalService,
+    Nx07SalaryAccrualService,
   ],
 })
 export class Nx07Module {}
