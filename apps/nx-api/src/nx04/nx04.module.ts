@@ -7,6 +7,8 @@ import { TranslatorErrorFilter } from '../shared/filters/translator-error.filter
 import { CreditGuardController } from './credit-guard/credit-guard.controller';
 import { CreditGuardService } from './credit-guard/credit-guard.service';
 import { QuoteController } from './quote/quote.controller';
+import { SalesPerformanceController } from './sales-performance/sales-performance.controller';
+import { SalesPerformanceService } from './sales-performance/sales-performance.service';
 import { QuoteService } from './quote/quote.service';
 import { SalesReturnController } from './sales-return/sales-return.controller';
 import { SalesReturnService } from './sales-return/sales-return.service';
@@ -25,6 +27,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     SoTranslatorController,
     SalesReturnController,
     CreditGuardController,
+    SalesPerformanceController,
   ],
   providers: [
     QuoteService,
@@ -34,6 +37,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     TransferSourceResolver,
     RefreshmentDocCreator,
     CreditGuardService,
+    SalesPerformanceService,
     { provide: APP_FILTER, useClass: TranslatorErrorFilter },
   ],
 })
