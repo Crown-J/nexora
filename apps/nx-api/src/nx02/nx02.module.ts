@@ -9,6 +9,8 @@ import { PartnerPartController } from './partner-part/partner-part.controller';
 import { PartnerPartService } from './partner-part/partner-part.service';
 import { PoController } from './po/po.controller';
 import { PoService } from './po/po.service';
+import { PriceComparisonController } from './price-comparison/price-comparison.controller';
+import { PriceComparisonService } from './price-comparison/price-comparison.service';
 import { PurchaseReturnController } from './purchase-return/purchase-return.controller';
 import { PurchaseReturnService } from './purchase-return/purchase-return.service';
 import { PurchaseSuggestionController } from './purchase-suggestion/purchase-suggestion.controller';
@@ -30,6 +32,7 @@ import { RrService } from './rr/rr.service';
     QtController,
     PartnerPartController,
     PurchaseSuggestionController,
+    PriceComparisonController,
   ],
   providers: [
     RfqService,
@@ -39,6 +42,7 @@ import { RrService } from './rr/rr.service';
     Nx02QtService,
     PartnerPartService,
     PurchaseSuggestionService,
+    PriceComparisonService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
 })
