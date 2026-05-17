@@ -1,12 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+
+import { NX09_DOCUMENT_CATEGORIES } from '../../shared/nx09/nx09-categories';
 
 export class CreateDocumentDto {
   @IsString()
   @MaxLength(200)
   title!: string;
 
+  /** Document 分類（CR 章則彙編 / SP SOP / JD 工作說明書 / FM 表單 / OT 其他）。 */
   @IsString()
+  @IsIn(NX09_DOCUMENT_CATEGORIES as unknown as string[])
   @MaxLength(2)
   docCategory!: string;
 

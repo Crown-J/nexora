@@ -237,5 +237,62 @@ NX09 缺口 #3 是 #5「跨模組整合」典型例：
 
 ---
 
-> 文件版本：v1.0（初版、2 主題、~3700 字、穩定模組光譜最純粹例）
-> 下次更新觸發：document version diff 補上 / meeting 整合 calendar_event wire up / KM 全文搜尋 / NX09 出現新工作（先 audit 性質）
+---
+
+## 主題 3｜NX09-IMPL-01 EIP 重戰場升級 Q-RHYTHM-2 落地（TASK-NX09-IMPL-01、2026-05-17）⭐⭐⭐
+
+### 起源
+
+NEXORA v1.1.0（NX07 closure）後 Crown 啟動 NX09。⚠️ Crown 重戰場升級揭露：NX09 = **EIP 企業資訊平台**（不是純小知識庫、業界 ERP 標配 SystemManual）。NX09-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（Q1=全要 / Q2=b 拆軌 / Q3=b Postgres FTS / Q4=a 全員+角色 / Q5=b SystemManual 新表）→ Hank 自決 8 Q-H + 7 Phase 7 commit 落地。
+
+⚠️ 特殊狀態：overview v1.0 由 Hank 從 Crown TASK-NX09-IMPL-01 prompt 直接 formalize（Alex 本輪未寫）。Crown prompt 已含完整業務規格。
+
+### 設計決策
+
+1. 既有 10 model + 15 endpoint 0 動（Crown「既有 15 endpoint 100% 保留」+ Q-RHYTHM-2 紀律）
+2. SystemManual 新表（業界 ERP 標配 SAP/Oracle/MS Dynamics 對標、featureKey 命名規範 /^[a-z0-9]+(\.[a-z0-9]+)+$/）
+3. Postgres FTS 純原生（不裝 Elasticsearch、tsvector + simple 分詞 + GIN + trigger）
+4. KmArticle DTO @IsIn 純擴（9 enum = 既有 6 + 新 3 FQ/AN/TR、純強化 validation）
+5. 3 子表 core endpoint only（KmFeedback 含 helpfulCount auto increment、Hank Q-H3 避免本軌膨脹）
+6. UI 6 placeholder + menu.nx09（1 group）+ side-menu wire（同 NX02-08 範式）
+7. Hank 從 Crown TASK formalize overview（Alex 本輪未寫範式建立）
+
+### 實作歷程（7 commit / 7 Phase / 命中 plan 估 8-9 預算 + Crown 估 12-15 預算 60%）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `c7affd3` | overview v1.0（從 Crown formalize）+ plan v0.1.0 |
+| 1 | `e7eab11` | M1 SystemManual + M2 FTS tsvector + M3 drift |
+| 2-4 合併 | 1 | DTO @IsIn 擴 + SystemManual + FTS + module wire |
+| 5 | `48d2c84` | 3 子表 core endpoint |
+| 6 | 1 | UI 5+1 placeholder + menu.nx09 + side-menu wire |
+| 7 | （本 commit）| summary v1.0 + worklog 主題 3 + _team 主題 30 + merge-verify |
+
+### 踩坑
+
+1. **overview v1.0 缺**：Alex 本輪未寫 spec、Hank 從 Crown TASK prompt formalize。教訓：Crown TASK 完整時 Hank 可自決 formalize、不 stop。
+2. **Prisma 對 tsvector 不完整支援**：用 `Unsupported("tsvector")?` + service 走 `$queryRaw` + `PrismaNs.sql` tagged template（plan §7 風險 mitigation）。
+3. **tsvector backfill 既有 row**：M2 SQL 含 `UPDATE ... SET search_vector = to_tsvector(...)`（避免 trigger 只寫新 row）。
+4. **Prisma drift 第四次**（NX06+NX08+NX07 教訓）：M1 SQL constraint 自訂名 → auto-gen M3。處理流程 rename + resolve --applied + DELETE 舊 record 標準化。
+5. **featureKey 命名 regex 定**：未來防擴散、Crown 揭露範式 `模組.功能.動作`。
+
+### 對應文件
+
+- plan：[spec/impl/nx09-impl-01-plan.md](spec/impl/nx09-impl-01-plan.md)
+- overview v1.0：[spec/intent/nx09-overview.md](spec/intent/nx09-overview.md)
+- audit-01：[nx09-audit-01.md](nx09-audit-01.md)
+- summary v1.0：[nx09-summary.md](nx09-summary.md)
+- merge verify：[spec/impl/nx09-impl-01-merge-verify.md](spec/impl/nx09-impl-01-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-01 後 +5）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 3 | 「？」按鈕 UI wire 0（後續軌 TASK-NX09-IMPL-UI-MANUAL-WIRE）| UI 接面缺口 |
+| 4 | RAG Phase 2 向量化未做（TASK-NX09-IMPL-04-RAG）| AI 戰略候選 |
+| 5 | 亞羅特色（VIN / 維修 SOP）IMPL-02 後續軌 | 業界改革候選 |
+| 6 | 跨模組接點 0（NX07/NX04/NX02/NX08 → NX09）| 業務鏈缺口 |
+| 7 | 會議 4 子表 endpoint 0（Attendee/Minutes/Action）| 業務功能擴充 |
+
+> 文件版本：v2.0（+ 主題 3 NX09-IMPL-01 EIP 重戰場升級紀錄、Q-RHYTHM-2 第六次落地）
+> 下次更新觸發：IMPL-02 亞羅特色 / RAG Phase 2 / UI wire / Meeting 子表補齊
