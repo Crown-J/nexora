@@ -1,6 +1,6 @@
 import type { Prisma } from 'db-core';
 
-export type Nx05DocKind = 'AR' | 'AP' | 'RC' | 'CP' | 'NT' | 'AL' | 'CL';
+export type Nx05DocKind = 'AR' | 'AP' | 'RC' | 'CP' | 'EX' | 'NT' | 'AL' | 'CL';
 
 /**
  * 單號：[類型]-[YYYYMM]-[機構碼]-[5 碼流水]
@@ -13,8 +13,8 @@ export async function allocNx05DocNo(
 ): Promise<string> {
   const y = new Date();
   const yyyymm = `${y.getFullYear()}${String(y.getMonth() + 1).padStart(2, '0')}`;
-  /** 收付款單號一律 PY-（nx05_field_v1）；RC/CP 僅區分 pay_type。 */
-  const docPrefix = kind === 'RC' || kind === 'CP' ? 'PY' : kind;
+  /** 收付款單號一律 PY-（nx05_field_v1）；RC/CP/EX 僅區分 pay_type。 */
+  const docPrefix = kind === 'RC' || kind === 'CP' || kind === 'EX' ? 'PY' : kind;
   const prefix = `${docPrefix}-${yyyymm}-${orgCode}-`;
 
   const last =
@@ -30,7 +30,7 @@ export async function allocNx05DocNo(
             orderBy: { docNo: 'desc' },
             select: { docNo: true },
           })
-        : kind === 'RC' || kind === 'CP'
+        : kind === 'RC' || kind === 'CP' || kind === 'EX'
           ? await tx.nx05Paylog.findFirst({
               where: { tenantId, docNo: { startsWith: prefix } },
               orderBy: { docNo: 'desc' },

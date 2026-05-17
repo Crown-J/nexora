@@ -11,6 +11,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createAllowanceFromSalesReturn } from '../../shared/nx05/nx05-create-allowance-from-sr';
+import { createReturnPickupFromPostedSr } from '../../shared/nx06/nx06-create-return-pickup-from-sr';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
 import { requireDefaultLocationId } from '../../shared/nx04/nx04-location';
 import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
@@ -423,6 +424,12 @@ export class SalesReturnService {
             srId: id,
             userId: user.sub,
             returnAction, // R 退錢 / D 折讓
+          });
+          // NX06-IMPL-01 Phase 4：R/D 自動建 NX06 RETURN_PICKUP DN 草稿（冪等、無客戶地址則 skip 不 throw）
+          await createReturnPickupFromPostedSr(tx, {
+            tenantId,
+            srId: id,
+            userId: user.sub,
           });
         }
       }
