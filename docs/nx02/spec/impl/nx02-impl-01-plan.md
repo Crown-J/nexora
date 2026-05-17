@@ -1,11 +1,12 @@
 <!-- docs/nx02/spec/impl/nx02-impl-01-plan.md -->
 
-# TASK-NX02-IMPL-01 — 拓樸排序 + Migration 拆軌計畫（v0.1.0）
+# TASK-NX02-IMPL-01 — 拓樸排序 + Migration 拆軌計畫（v0.1.1）
 
-> 性質：實作前置計畫文件、待 Alex/Crown review 拍板後才動 schema
+> 性質：實作前置計畫文件、Crown 拍板 closure（v0.1.1 反映拍板）
 > 撰寫者：Hank
-> 日期：2026-05-17
+> 日期：2026-05-17（v0.1.0）/ 2026-05-17（v0.1.1 拍板更新）
 > 分支：`feature/nx02-purchase`（自 main HEAD `52af3e9` 切出）
+> 拍板狀態：✅ Q-T1 / Q-M1 / Q-S1 / Q-S2 / Q-S3 / Q-C1 / Q-C2 / Q-C3 / Q-C4 全 ✅ 照 Hank/Alex 推 / Q-U1 = c 全 stub / Q-X1 = c audit-01 加註提示
 > 對應依據：[nx02-overview v0.1.0](../intent/nx02-overview.md) + [nx02-audit-01](../../nx02-audit-01.md) + [nx02-audit-02](../../nx02-audit-02.md)
 > 紀律：對齊 NX03-IMPL-01 / AR-IMPL-01 範式（§II.1.1 拓樸決策先送 review + §I.5 #22 schema verify + §I.6.5 A041 精確）
 
@@ -198,10 +199,10 @@ commit 數：1
 | Phase 3 — L2 既有 service 升級 | 2~3 | (1) po.service 升 3 接點（paymentTerm 帶入 + 主管審核 + 6 階段預設）（2) purchase-return.service 升 returnMode 分流（3) rfq.service 升 PDF/text endpoint |
 | Phase 4 — L3 新 service | 3 | (1) PurchaseSuggestionService（採購建議單、含 partner_part fallback）（2) PriceComparisonService（比價分析）（3) PurchaseStageService（國外 6 階段流轉）|
 | Phase 5 — L4 跨模組 verify + role_view | 2 | (1) NX05 ApLedger 接點 verify + bridge service（2) NX03 verify + role_view 調整（QT/TI → SALES）|
-| Phase 6 — UI 層（5 placeholder 承接）| 2~3 | (1) domestic + import + special（採購工作台 3 視角）（2) product（比價 + RFQ）（3) vendor（partner_part 維護）|
-| Phase 7 — 收尾 | 1~2 | nx02-summary 新建 + worklog 主題 + Phase 5 verify report |
+| Phase 6 — UI stub 層（Q-U1=c）| 1 | 5 placeholder 全 stub 接 NX02 API（純 stub、實 UI 獨立軌 backlog）|
+| Phase 7 — 收尾 | 2~3 | (1) nx02-summary 新建 + worklog 主題（2) Phase 5 verify report（3) audit-01 §5.3 加註提示（Q-X1=c）|
 
-**總計估計：16~20 commit / 4 migration / 5~8 工作日**（介於 NX03 21~25 與 AR 10~12 之間、合理）
+**總計估計：14~17 commit / 4 migration / 5~7 工作日**（Q-U1=c + Q-X1=c 拍板後修正）
 
 ---
 
@@ -309,23 +310,21 @@ C. 全留 PURCHASING、role 不調整（過渡）
 
 Hank 推薦 **A** 對齊 Crown Q2 揭露 + overview §2.1「同行調貨歸銷售」。
 
-### Q-U1 UI 拓樸範圍
+### Q-U1 UI 拓樸範圍 ✅ Crown 拍板 = c
 
-A. **本軌 5 placeholder 全 functional**（Hank 推薦、Phase 6 落地）
-B. 本軌 3 個 functional + 2 個 placeholder（vendor + product 較複雜延後）
-C. 本軌全 placeholder、UI 留獨立軌（對齊 AR Q-U1=A）
+A. 本軌 5 placeholder 全 functional（Hank 原推薦）
+B. 本軌 3 個 functional + 2 個 placeholder（折衷）
+**C. ✅ 本軌全 stub、UI 留獨立軌**（對齊 AR Q-U1=A、Crown 拍板）
 
-Hank 推薦 **B** 折衷：domestic / import / special 3 個採購工作台 functional（核心 SOP）、product 比價 + vendor 主檔 留 stub（後續軌）。
+⭐ **Crown 拍板 C**：對齊 AR 範式（service 為主、UI 獨立軌 backlog）、commit 估數從 16~20 → **14~17**（Phase 6 從 2~3 commit → 1 commit 純 stub）。
 
-⭐ **B 推薦原因**：5 個 functional 估 commit 數溢出、影響本軌 closure 時程。對齊 AR Q-U1=A 保守策略。
+### Q-X1 NX02-AUDIT-01 §5.3 partner 維度錯誤修正時機 ✅ Crown 拍板 = c
 
-### Q-X1 NX02-AUDIT-01 §5.3 partner 維度錯誤修正時機？
-
-A. **本軌 Phase 7 收尾一併修**（順手、Hank 推薦）
+A. 本軌 Phase 7 收尾一併修
 B. 獨立 commit 早修（Phase 0 後）
-C. 留 audit-02 揭露備案、audit-01 不回改（既存事實留檔）
+**C. ✅ audit-01 §5.3 加註提示**（Crown 拍板、cross-ref 指向 audit-02 §3.5 修正）
 
-Hank 推薦 **C** 對齊 audit-02 §3.5 已揭露策略（歷史 fact 保留、修正記錄在 audit-02）、本軌 0 touch。
+⭐ **Crown 拍板 C**：audit-01 §5.3 表頭/表尾加 ⚠️ 註記指向 audit-02 §3.5 修正、表內既有事實 0 改、修正落 audit-02 不回改。本軌 Phase 7 收尾一 commit 加註提示（純 doc 註解、無 schema 影響）。
 
 ---
 
@@ -362,11 +361,13 @@ Hank 推薦 **C** 對齊 audit-02 §3.5 已揭露策略（歷史 fact 保留、�
 
 ## §8 下次接續工作建議
 
-待 Alex/Crown review §6 拍板 Q 後：
+✅ Crown 拍板 closure（2026-05-17）：
 
-1. **如全部 ✅ 認可** → 進 Phase 1 M1（國內付款條件補齊 migration）
-2. **如有 ⚠️ 重排** → 修正本計畫 v0.2.0、再次送 review
-3. **如新增情境揭露** → 評估是否影響 12 業務功能拓樸、必要時加 audit-03
+1. ✅ 9 題照推（Q-T1 / Q-M1 / Q-S1 / Q-S2 / Q-S3 / Q-C1 / Q-C2 / Q-C3 / Q-C4）
+2. ✅ Q-U1 = c（全 stub、UI 獨立軌、commit 估降至 14~17）
+3. ✅ Q-X1 = c（audit-01 §5.3 加註提示、Phase 7 收尾處理）
+
+**下一步**：進 Phase 1 M1（國內付款條件補齊 migration SQL）→ 寫好 stop 給 Crown review → 拍板後 Hank 自跑 migrate。
 
 ---
 
