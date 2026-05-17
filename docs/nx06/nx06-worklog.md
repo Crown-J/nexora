@@ -261,3 +261,77 @@ migration `20260416120000_nx06_dn_logistics_status_gps_intl` 加：
 
 > 文件版本：v1.0（初版、3 主題、~4500 字、穩定模組真誠揭露第二例）
 > 下次更新觸發：return-pickup 自動建單補上 / intl-shipping 業務 spec 寫完 / GPS 前端地圖落地 / NX06 出現新工作（先 audit 性質）
+
+---
+
+## 主題 4｜NX06-IMPL-01 物流基礎軌 Q-RHYTHM-2 落地（TASK-NX06-IMPL-01、2026-05-17）⭐⭐⭐
+
+### 起源
+
+NX05 Q-RHYTHM-2 首次落地驗證成功後（v0.7.0-nx05-closure），Crown 立即啟動 NX06 物流基礎軌作 NEXORA 業務閉環第一階段最後一塊拼圖。
+
+NX06-AUDIT-01 揭露 3 結構真相：
+- 既有 3 model 設計已成熟（4 物流類型 + GPS + 簽收 + 國際 + 異常欄）
+- 既有 dn-logistics.service 797 lines + 4 controller + 21 endpoint
+- 缺口：印表機 / Lalamove / 配送成本 / 配單 service / 跨模組 SR/Parcel/PaylogEX helper / UI menu / side-menu wire
+
+Crown 跨 13 題拍板 closure（Q-RHYTHM-2 第二次落地、Crown + Alex 全程預批、Hank 全軌連跑）→ Alex 寫 nx06-impl-01-plan v0.1.0 → Hank 跨 6 Phase 8 commit 落地（2026-05-17）。
+
+### 設計決策（13 拍板 Q）
+
+完整拍板見 `docs/nx06/spec/impl/nx06-impl-01-plan.md`，關鍵 7 條：
+
+1. **schema 衝擊最小**（2 migration、6 欄 nullable、ALTER ADD COLUMN）
+2. **dn-logistics.service 不動既有路徑**（Phase 3 邊界：+3 method、0 替換）
+3. **Lalamove 純 service shell + 環境變數可關**（`LALAMOVE_API_ENABLED` 預設 false）
+4. **印表機純 backend**（藍牙 SDK 屬前端軌）
+5. **3 cross-module helper 1 wire + 2 pure export**（SR 立即生效、Parcel/PaylogEX 後續軌）
+6. **NX05 Nx05DocKind 加 'EX' 擴充**（reuse PY-prefix）
+7. **UI 純 stub 5 placeholder**（Crown Q-U1=c、UI 獨立軌 backlog）
+
+### 實作歷程（8 commit / 2 migration / 命中 plan 估 12 commit 預算 67%）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| Phase 0 | `0c1c61e` | nx06-impl-01-plan.md v0.1.0（Q-RHYTHM-2 + 4-layer + 12 commit estimate）|
+| Phase 1 M1 | `a69aa90` | DnItem.internalCost Decimal(14,2) |
+| Phase 1 M2 | `e6762c1` | Dn 加 printerDeviceId + printedAt + lalamove×3（5 欄）|
+| Phase 2 | `d7a24a3` | L1 新建 3 service（Dispatch / PrinterIntegration / LalamoveIntegration）|
+| Phase 3 | `07febc3` | L2 dn-logistics 升級（SEL 補欄 + 3 method 異常/成本）+ DnOpsController |
+| Phase 4 | `7ce607c` | L4 3 helper（SR wire + 2 pure export）+ NX05 docKind EX |
+| Phase 5 | `45af765` | UI 5 placeholder + menu.nx06.ts + side-menu wire |
+| Phase 6 | （本 commit）| summary + worklog（本主題）+ merge-verify |
+
+### 踩坑
+
+1. **dispatch.service.ts Nx01User.name field 不存在 → 改 userName**
+   - 第一版 select { id, name } / return { driver.name } → tsc fail
+   - 教訓：Nx01User schema 用 `userName`（@map user_name）不是 `name`、寫 service 前先看 schema model relation 命名
+2. **NX06DnItem/DnStop 關聯名 用 `dn` 不是 `rev_xxx`**
+   - 第一版 markStopException 寫 `rev_Nx06DnStop_dnId: { tenantId }` → tsc fail
+   - 反向關聯（從 dn 看 stops）才用 `rev_xxx`，正向（從 stop 看 dn）用 `dn`
+3. **Nx06Dn item/stop exception 狀態用 'E' 不是 'X'**
+   - 第一版誤寫 status='X' → 與 schema docstring 不符（P=待/D=已到/C=完成/E=異常）
+   - 教訓：寫 status 字面值前先看 schema 欄位 docstring
+4. **Nx03Parcel 沒獨立 ParcelItem 表 → 走 Nx03PlItem.parcelId**
+   - 第一版 helper 寫 `rev_Nx03ParcelItem_parcelId` → 不存在
+   - 教訓：cross-module helper 前先 grep schema model 結構、不要假設對稱命名
+
+### 對應文件
+
+- plan：[docs/nx06/spec/impl/nx06-impl-01-plan.md](spec/impl/nx06-impl-01-plan.md)
+- summary：[docs/nx06/nx06-summary.md](nx06-summary.md) v1.0（本軌後產出）
+- merge verify：[docs/nx06/spec/impl/nx06-merge-verify.md](spec/impl/nx06-merge-verify.md)
+- 跨模組關聯：[_team/worklog.md 主題 26](../_team/worklog.md)（Q-RHYTHM-2 第二次落地集大成）
+
+### 揭露的設計缺口（NX06-IMPL-01 後新增）
+
+| # | 缺口 | 性質 | 處理路徑 |
+|---|------|------|---------|
+| 5 | DN cost 攤分策略（webhook actualFee 寫第一筆 item、應按 qty 加權）| **業務邏輯精度缺口** | TASK-NX06-IMPL-02 路線優化 |
+| 6 | Lalamove webhook 無 signature 校驗 | **安全缺口** | real API 啟動前 HMAC 校驗 |
+| 7 | stop 異常未自動推進 DN 主檔狀態 | **業務邏輯精度缺口** | 後續軌加聚合規則 |
+| 8 | dispatch 單 driver（無 co-driver）| **業務功能擴充** | 後續軌 |
+
+> 文件版本：v1.1（+ 主題 4 NX06-IMPL-01 落地紀錄）
+> 下次更新觸發：NX06-IMPL-02 路線優化 / NX06-IMPL-UI-01 / Lalamove real API 啟動 / NX03 Parcel → DnItem 半自動 wire

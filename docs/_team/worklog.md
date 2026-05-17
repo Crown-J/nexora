@@ -1826,3 +1826,91 @@ Crown 跨 2 輪需求討論共 11 題拍板 closure（2026-05-16）→ Alex 寫 
 
 ⭐ 等 Crown 拍板「branch merge main + push + tag v0.7.0-nx05-closure」、進 TASK-NX05-IMPL-UI-01 / TASK-NX05-IMPL-02-TEST / TASK-NX05-DEMO-CLEANUP / TASK-NX05-NOTE-PAYLOG / NX05 範圍 B（401 報表）等下游 task。
 
+---
+
+## 主題 26｜NX06 物流模組基礎軌全 closure（TASK-NX06-IMPL-01、2026-05-17）⭐⭐⭐
+
+### 起源
+
+NX05 v0.7.0 closure 後、Crown 立即啟動 NX06 物流基礎軌（NEXORA 業務閉環第一階段最後一塊拼圖）。
+Hank NX06-AUDIT-01 揭露：
+- 既有 3 model（Dn / DnStop / DnItem）設計成熟、4 物流類型 + GPS + 簽收 + 國際 + 異常欄全完整
+- 既有 11 ts file（dn-logistics.service 797 lines + 4 controller + DTOs）+ 0 test
+- 缺口：印表機 / Lalamove / 配送成本 / 配單 / 跨模組 helper SR/Parcel/PaylogEX / UI menu
+
+Crown 跨 13 題拍板 closure（Q-RHYTHM-2 第二次落地、Crown + Alex 全程預批、Hank 全軌連跑）→ Hank 跨 6 Phase 8 commit 落地（2026-05-17）。
+
+**戰略意義**：
+- ⭐⭐ Lalamove API 半自動整合（業界改革：傳統手動 call 司機 → 半自動派單）
+- ⭐⭐ 件項層級異常追蹤（W=送錯 / Q=數量 / D=破損 / O=其他）
+- ⭐⭐ 配送成本內部記錄（汽配業界客戶不另收運費、月底會計入帳）
+- ⭐ NEXORA 業務閉環第一階段全 closure（採購 + 庫存 + 銷貨 + 自動補貨 + 財務 + 物流）
+
+### 設計決策
+
+1. **schema 衝擊最小**（既有 3 model 設計成熟、僅 2 migration 補 1+5 欄、ALTER ADD COLUMN nullable）
+2. **dn-logistics.service 不動既有 createXxx/patchDn/簽收路徑**（Phase 3 邊界守住、僅 +3 method 異常+成本）
+3. **Lalamove 純 service shell + 環境變數可關**（`LALAMOVE_API_ENABLED` 預設 false = mock）
+4. **熱感印表機純 backend 標記**（藍牙 SDK 屬前端 mobile UI 軌）
+5. **3 cross-module helper 中 1 wire + 2 pure export**（SR wire 入 sales-return.service / Parcel + PaylogEX 後續軌啟動）
+6. **NX05 Nx05DocKind 加 'EX' kind 擴充**（reuse PY-prefix + nx05Paylog 查詢路徑、既有 RC/CP 0 動）
+7. **UI 純 stub 5 placeholder + menu.nx06.ts**（Crown Q-U1=c 拍板、TASK-NX06-IMPL-UI-01 獨立軌 backlog）
+
+### 實作歷程（8 commit / 2 migration / 命中 plan 估 12 commit 預算 67%）
+
+| Phase | commit 範圍 | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | 1 | plan v0.1.0 + 13 拍板 Q | 1 |
+| Phase 1 | 2 | M1 (DnItem.internalCost) + M2 (Dn 5 欄 印表機+Lalamove) | 2 |
+| Phase 2 | 1 | L1 新建 3 service + DnOps controller 預留 | 1 |
+| Phase 3 | 1 | L2 dn-logistics.service 升級（DN/ITEM SEL 補欄 + 3 method）+ DnOps | 1 |
+| Phase 4 | 1 | L4 3 cross-module helper + sales-return wire + NX05 docKind EX | 1 |
+| Phase 5 | 1 | UI 5 placeholder + menu.nx06.ts + side-menu wire | 1 |
+| Phase 6 | 1 | summary + worklog（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | pre-merge / merge / push（待 Crown 拍）| - |
+
+### 跨模組視角總覽（NX06 觸發 / 被觸發）
+
+| 跨模組關係 | NX06 角色 | 對應 service / 接點 |
+|---|---|---|
+| NX04 SO SHIPPED → NX06 DELIVERY | 接收 | createDeliveryDnFromShippedSo（既有 wire）|
+| NX04 SR POSTED+R/D → NX06 RETURN_PICKUP | 接收 | createReturnPickupFromPostedSr（本軌 wire）|
+| NX03 Parcel → NX06 DnItem | 接收（pure export 不 wire）| createDnItemsFromParcel |
+| NX06 DN COMPLETED → NX05 PaylogEX | 觸發（pure export 不 wire）| createPaylogExFromDnCost |
+| Lalamove webhook → NX06 DnItem.internalCost | 接收 | LalamoveIntegrationService.handleWebhook |
+
+### 統合教訓
+
+1. **schema 真相揭露 → 衝擊最小**：audit-01 揭露既有 3 model 已含 4 物流類型 + GPS + 簽收 + 國際 + 異常欄，本軌僅補 6 欄 nullable，避免 schema 結構大改。
+2. **Q-RHYTHM-2 第二次驗證**：NX05 12 commit / NX06 8 commit，pattern 穩定（plan → M1+M2 → L1 → L2 → L4 → UI → docs）。
+3. **dn-logistics.service 邊界守住**：既有 950+ lines service 升級 +3 method、0 動既有 createXxx/patchDn/簽收路徑、避免重構債滾雪球。
+4. **cross-module helper wire 策略**：1 wire（SR）+ 2 pure export（Parcel + PaylogEX），降低本軌外部依賴、後續軌可獨立啟動。
+5. **Lalamove + 印表機外部整合**：service shell + env toggle + 邊界明確（webhook endpoint 屬 DevOps、藍牙 SDK 屬前端），避免本軌綁外部基礎建設。
+
+### 對應文件
+
+- 業務需求：`docs/nx06/spec/intent/nx06-overview.md`
+- 模組架構書：`docs/nx06/nx06-summary.md` v1.0（本主題後產出）
+- audit：`docs/nx06/nx06-audit-01.md`
+- impl plan：`docs/nx06/spec/impl/nx06-impl-01-plan.md`
+- merge verify：`docs/nx06/spec/impl/nx06-merge-verify.md`
+
+### A026 backlog 開單揭露（NX06 範圍）
+
+1. **TASK-NX06-IMPL-02 路線優化**（dual-track 預告、Crown 拍板啟動條件 = 本軌 closure）
+   - GPS 軌跡 vs 單點權衡（本軌單點、後續軌可能加軌跡 schema）
+   - Lalamove real API 啟動（環境變數 + 公網 webhook endpoint + Lalamove 商家 API key）
+   - DN COMPLETED → NX05 PaylogEX wire 入 patchDn 終態 hook
+   - NX03 Parcel → DnItem attach 流程（半自動 wire）
+2. **TASK-NX06-IMPL-UI-01 UI 獨立軌**：5 placeholder → 真實工作台 + GPS 地圖 component + 藍牙 SDK 對接
+3. **TASK-NX06-IMPL-02-TEST**：service shell + helper unit test
+4. **DN cost 攤分策略**（目前 webhook COMPLETED + actualFee 只寫第一筆 item.internalCost、應按 qty 加權攤分）
+5. **Lalamove webhook 認證**（目前無 signature 校驗、production 啟動前須加 HMAC 校驗）
+6. **stop 異常 vs DN 整體狀態解耦**（目前 stop.status='E' 不自動推進 DN 主檔狀態、後續軌可加聚合規則）
+7. **配單 dispatch 多司機支援**（目前單一 driverUserId、後續軌可加 co-driver）
+8. **internalCost 對單一 item 限制**（目前 SetItemInternalCost 單 item、若 DN 多 stop 多 item 需批次 API）
+
+⭐⭐⭐ **Q-RHYTHM-2 第二次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 8 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v0.8.0-nx06-closure」、進 TASK-NX06-IMPL-02（路線優化）/ TASK-NX06-IMPL-UI-01 / TASK-NX06-IMPL-02-TEST 等下游 task。
+

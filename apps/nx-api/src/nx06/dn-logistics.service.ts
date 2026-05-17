@@ -43,6 +43,7 @@ const ITEM_SEL = {
   deliveryStatus: true,
   exceptionType: true,
   exceptionReason: true,
+  internalCost: true,
   remark: true,
   createdAt: true,
   updatedAt: true,
@@ -94,6 +95,11 @@ const DN_SEL = {
   sourceSrId: true,
   departedAt: true,
   completedAt: true,
+  printerDeviceId: true,
+  printedAt: true,
+  lalamoveOrderId: true,
+  lalamoveTrackingNo: true,
+  lalamoveCallbackStatus: true,
   remark: true,
   createdAt: true,
   createdBy: true,
@@ -762,6 +768,165 @@ export class DnLogisticsService {
         afterData: { lastLat: lat, lastLng: lng, lastLocationAt: ts.toISOString() } as object,
       });
       return full;
+    });
+  }
+
+  /**
+   * 標記停點異常（NX06-IMPL-01 新增、overview §3.1 #6）
+   *   - 寫 nx06_dn_stop.exceptionRemark + status='E'
+   *   - 不改 DN 主檔 status（DN 整體狀態仍由 patchDn 推進）
+   */
+  async markStopException(
+    user: RequestUser,
+    stopId: string,
+    dto: { exceptionRemark: string },
+  ) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const stop = await tx.nx06DnStop.findFirst({
+        where: { id: stopId, dn: { tenantId } },
+        select: { id: true, dnId: true, stopNo: true, status: true },
+      });
+      if (!stop) throw new NotFoundException('Stop not found');
+      const remark = dto.exceptionRemark?.trim();
+      if (!remark) throw new BadRequestException('exceptionRemark required');
+
+      await tx.nx06DnStop.update({
+        where: { id: stop.id },
+        data: { status: 'E', exceptionRemark: remark, updatedBy: user.sub },
+      });
+
+      const dn = await tx.nx06Dn.findUnique({
+        where: { id: stop.dnId },
+        select: { docNo: true, logisticsType: true },
+      });
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX06',
+        action: 'UPDATE',
+        entityTable: 'nx06_dn_stop',
+        entityId: stop.id,
+        entityCode: dn ? `${dn.docNo}#${stop.stopNo}` : stop.id,
+        summary: `停點異常標記：${remark.slice(0, 50)}`,
+        beforeData: { status: stop.status } as object,
+        afterData: { status: 'E', exceptionRemark: remark } as object,
+      });
+      return { ok: true, stopId: stop.id, status: 'E', exceptionRemark: remark };
+    });
+  }
+
+  /**
+   * 標記件項異常（NX06-IMPL-01 新增、overview §3.1 #6）
+   *   - 寫 nx06_dn_item.exceptionType + exceptionReason + deliveryStatus='E'
+   *   - exceptionType 單字元 enum：W=送錯料號 / Q=數量不符 / D=貨物損壞 / O=其他
+   */
+  async markItemException(
+    user: RequestUser,
+    itemId: string,
+    dto: { exceptionType: string; exceptionReason?: string },
+  ) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const item = await tx.nx06DnItem.findFirst({
+        where: { id: itemId, dn: { tenantId } },
+        select: { id: true, dnId: true, lineNo: true, deliveryStatus: true, exceptionType: true },
+      });
+      if (!item) throw new NotFoundException('Item not found');
+      const exType = dto.exceptionType?.trim();
+      if (!exType || !['W', 'Q', 'D', 'O'].includes(exType)) {
+        throw new BadRequestException('exceptionType must be one of W / Q / D / O');
+      }
+
+      await tx.nx06DnItem.update({
+        where: { id: item.id },
+        data: {
+          deliveryStatus: 'E',
+          exceptionType: exType,
+          exceptionReason: dto.exceptionReason?.trim() || null,
+          updatedBy: user.sub,
+        },
+      });
+
+      const dn = await tx.nx06Dn.findUnique({
+        where: { id: item.dnId },
+        select: { docNo: true },
+      });
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX06',
+        action: 'UPDATE',
+        entityTable: 'nx06_dn_item',
+        entityId: item.id,
+        entityCode: dn ? `${dn.docNo}#L${item.lineNo}` : item.id,
+        summary: `件項異常標記：${exType}`,
+        beforeData: {
+          deliveryStatus: item.deliveryStatus,
+          exceptionType: item.exceptionType,
+        } as object,
+        afterData: {
+          deliveryStatus: 'E',
+          exceptionType: exType,
+          exceptionReason: dto.exceptionReason?.trim() || null,
+        } as object,
+      });
+      return {
+        ok: true,
+        itemId: item.id,
+        deliveryStatus: 'E',
+        exceptionType: exType,
+      };
+    });
+  }
+
+  /**
+   * 設定件項內部成本（NX06-IMPL-01 新增、overview §3.1 #10 成本追蹤）
+   *   - 寫 nx06_dn_item.internalCost（Decimal 14,2）
+   *   - 手動寫入路徑（Lalamove webhook 自動寫入路徑見 LalamoveIntegrationService）
+   */
+  async setItemInternalCost(
+    user: RequestUser,
+    itemId: string,
+    dto: { internalCost: string },
+  ) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const item = await tx.nx06DnItem.findFirst({
+        where: { id: itemId, dn: { tenantId } },
+        select: { id: true, dnId: true, lineNo: true, internalCost: true },
+      });
+      if (!item) throw new NotFoundException('Item not found');
+      const raw = dto.internalCost?.trim();
+      if (!raw) throw new BadRequestException('internalCost required');
+      const numCheck = Number(raw);
+      if (!Number.isFinite(numCheck) || numCheck < 0) {
+        throw new BadRequestException('internalCost must be a non-negative number');
+      }
+      const next = new PrismaNs.Decimal(raw);
+
+      await tx.nx06DnItem.update({
+        where: { id: item.id },
+        data: { internalCost: next, updatedBy: user.sub },
+      });
+
+      const dn = await tx.nx06Dn.findUnique({
+        where: { id: item.dnId },
+        select: { docNo: true },
+      });
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX06',
+        action: 'UPDATE',
+        entityTable: 'nx06_dn_item',
+        entityId: item.id,
+        entityCode: dn ? `${dn.docNo}#L${item.lineNo}` : item.id,
+        summary: `件項內部成本設定：${raw}`,
+        beforeData: { internalCost: item.internalCost } as object,
+        afterData: { internalCost: raw } as object,
+      });
+      return { ok: true, itemId: item.id, internalCost: raw };
     });
   }
 
