@@ -2380,5 +2380,38 @@ NEXORA v1.2.0（NX09 EIP closure）後 Crown 啟動 NX10（**業務模組最後 
 
 ⭐⭐⭐ **Q-RHYTHM-2 第七次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
 
-⭐⭐⭐ 等 Crown 拍板「branch merge main + push + tag v1.3.0-nx10-gamification-closure」、**業務模組 11/11 100% 達成**（NEXORA 業務全模組落地里程碑）、NEXORA 主版本 v1.3 達成 ⭐⭐⭐。
+### A026 補登（Crown 拍板 merge 時 5 項）
+
+對齊 [NX10-IMPL-01 merge-verify §7](../nx10/spec/impl/nx10-impl-01-merge-verify.md) + Crown 補登：
+
+1. **VARCHAR(10) 縮寫 PLAT_/DIA_ UI 完整名對應**（UI 軌處理 PLATINUM/DIAMOND 完整名顯示）
+2. **TASK-NX10-IMPL-02-SOCIAL-MISSION** ⭐⭐⭐（八角 #1 #3 #5 + 跨模組 wire：NX06 動態交接獎勵 + NX04 業績 + NX07 薪資加成 + 團隊任務 + 帶新人 + 轉職）
+3. **TASK-NX10-IMPL-UI-01**（UI 真實勳章 panel + 排行榜 chart + 任務列表 + 驚喜寶箱動畫 + 衝刺倒數計時器）
+4. **TASK-NX10-IMPL-02-TEST**（service + Sprint/SurpriseBox unit test）
+5. **TASK-NX10-IMPL-03-CROSS-MODULE-DASHBOARD**（NX08 OwnerDashboard 加 NX10 員工成長 dashboard）
+
+✅ **2026-05-17 closure**：merge 完成、push origin main、tag `v1.3.0-nx10-gamification-closure` 落地。
+
+⭐⭐⭐ **NEXORA 主版本 v1.3 達成 + 業務模組 11/11 IMPL-01 階段 100%**（NEXORA 業務全模組落地里程碑）= **9 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08 / NX07 / NX09 / NX10）+ 八角框架 5 角完整落地（驚喜寶箱 #7 + 衝刺 #6 + 醫章 20 levels #2 + 點數 #4 + 排行 #2#8）。
+
+---
+
+## ⭐⭐⭐ 模組覆蓋進度總表（v1.3 達成時點）
+
+| # | 軌 | 模組 | tag | 狀態 |
+|---|---|---|---|---|
+| 1 | NX03 | 庫存 | v0.3.0 | ✅ |
+| 2 | AR | 自動補貨 | v0.4.0 | ✅ |
+| 3 | NX02 | 採購 | v0.5.0 | ✅ |
+| 4 | NX04 | 銷貨 | v0.6.0 | ✅ |
+| 5 | NX05 | 財務 | v0.7.0 | ✅ |
+| 6 | NX06 | 物流基礎 | v0.8.0 | ✅ |
+| 7 | NX06 | 路線優化 + 動態交接 | v0.9.0 | ✅ |
+| 8 | NX08 | 報表分析 | v1.0.0 | ✅ |
+| 9 | NX07 | 人資 | v1.1.0 | ✅ |
+| 10 | NX09 | EIP 企業資訊平台 | v1.2.0 | ✅ |
+| 11 | NX10 | 八角遊戲化 | v1.3.0 | ✅ **本軌 closure ⭐⭐⭐** |
+
+⭐⭐⭐ **業務模組 IMPL-01 階段 11/11 100% 達成**、Q-RHYTHM-2 7 次落地驗證穩定。
+🔵 後續軌池：NX06-IMPL-02（已 closure）+ NX10-IMPL-02（八角 #1#3#5 + 跨模組 wire）+ 各模組 UI 真實獨立軌 + 跨模組 dashboard 整合 + test 軌。
 
