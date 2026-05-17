@@ -1728,3 +1728,23 @@ Crown 跨 2 輪需求討論共 11 題拍板 closure（2026-05-16）→ Alex 寫 
 
 ⭐ 等 Crown 拍板「branch merge main + push + tag v0.4.0-ar-closure」、進 NX04 銷貨 / NX05 財務 / TASK-AR-IMPL-02-TEST / TASK-AR-IMPL-UI-01 等下游 task。
 
+### A026 backlog 開單揭露（NX02 範圍）
+
+對齊 [docs/nx02/spec/impl/nx02-merge-verify.md](../nx02/spec/impl/nx02-merge-verify.md) §4.2 邊界揭露：
+
+1. **`nx05-create-allowance-from-pr.ts` 缺 `assertFinancePeriodMutable` 校驗**
+   - 既有 `nx05/allowance/allowance.service.ts` line 122 有 financePeriod guard、新 inline helper 0
+   - 影響：PR POSTED 落在已關帳期、helper 仍會寫入 Allowance（既有 service 會擋）
+   - 風險：低（業務責任歸 PR 過帳時機）
+   - 後續軌：補強 helper 加 `assertFinancePeriodMutable` 對齊既有 service
+
+2. **`remark` dedup `PR:<docNo>` 前綴假衝突**
+   - inline helper 用 `remark.startsWith('PR:<docNo>')` 做去重
+   - 既有 `nx05/allowance/allowance.service` 業務手動建單 remark 自由輸入、若正好以此 prefix 開頭會誤判 dup
+   - 風險：極低（業務手動輸入不會用此慣例）
+   - 後續軌：移除依賴 remark dedup、改純依賴 schema docNo unique
+
+完整 backlog 10 項（含 UI 獨立軌 / 供應商評核 / forecast / 預付款 / 寄賣 / stage_history / TEST 軌 / DEMO-CLEANUP / NX08 cache / Allowance 工作流）見 [docs/nx02/nx02-summary.md §8](../nx02/nx02-summary.md#-8-backloga026-子項對齊-overview-10--plan-53)。
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v0.5.0-nx02-closure」、進 TASK-NX02-IMPL-UI-01 / TASK-NX02-IMPL-02-TEST / TASK-NX02-DEMO-CLEANUP / NX02 範圍 B（供應商評核）等下游 task。
+

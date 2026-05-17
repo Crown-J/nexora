@@ -178,7 +178,16 @@ export class PoService {
   async create(user: RequestUser, dto: CreatePoDto) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
-      const sup = await tx.nx01Partner.findFirst({ where: { id: dto.supplierId, tenantId }, select: { id: true } });
+      // NX02-IMPL-01 Phase 3 升：supplier load 帶付款條件 + incoterm（建單自動帶入、可手動覆寫）
+      const sup = await tx.nx01Partner.findFirst({
+        where: { id: dto.supplierId, tenantId },
+        select: {
+          id: true,
+          paymentTermDomestic: true,
+          paymentTermImport: true,
+          incoterm: true,
+        },
+      });
       if (!sup) throw new NotFoundException('supplierId not found');
       if (dto.rfqId) {
         const rfq = await tx.nx02Rfq.findFirst({ where: { id: dto.rfqId, tenantId }, select: { id: true } });
@@ -188,6 +197,12 @@ export class PoService {
       const docNo = await allocDocNo(tx, tenantId, 'PO', whCode);
       const taxRate = new PrismaNs.Decimal(dto.taxRate ?? 5);
       const currId = await resolveCurrencyId(tx, dto.currencyId ?? 'TWD');
+
+      // NX02-IMPL-01 Phase 3 升：採購類型分流（D/I/B）+ 付款條件帶入 + 國外 stage=1
+      const purchaseType = dto.purchaseType ?? 'D';
+      const isImport = purchaseType === 'I';
+      const isDomestic = purchaseType === 'D' || purchaseType === 'B';
+
       const po = await tx.nx02Po.create({
         data: {
           tenantId,
@@ -202,6 +217,14 @@ export class PoService {
           taxAmount: new PrismaNs.Decimal(0),
           totalAmount: new PrismaNs.Decimal(0),
           remark: dto.remark?.trim() || null,
+          purchaseType,
+          // 國內付款條件（D/B 模式）帶入、I 模式留 null
+          paymentTermDomestic: isDomestic ? sup.paymentTermDomestic : null,
+          // 國外付款條件 + incoterm（I 模式）帶入、D/B 模式留 null
+          paymentTermImport: isImport ? sup.paymentTermImport : null,
+          incoterm: isImport ? sup.incoterm : null,
+          // 國外採購 6 階段預設 stage=1 備貨中（M2 配套、Crown Q-S1=A SmallInt）
+          purchaseStage: isImport ? 1 : null,
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -264,6 +287,8 @@ export class PoService {
     const taxRate =
       dto.taxRate !== undefined ? new PrismaNs.Decimal(dto.taxRate) : new PrismaNs.Decimal(existing.taxRate);
     return this.prisma.$transaction(async (tx) => {
+      // NX02-IMPL-01 Phase 3 升：DRAFT → CONFIRMED 自動寫 approvedAt + approvedBy（既有 schema 欄、業務語意「主管審核」）
+      const isApproving = nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
       await tx.nx02Po.update({
         where: { id },
         data: {
@@ -272,11 +297,12 @@ export class PoService {
           ...(dto.expectedDate !== undefined ? { expectedDate: dto.expectedDate ? new Date(dto.expectedDate) : null } : {}),
           ...(dto.status !== undefined ? { status: nextStatus } : {}),
           ...(dto.taxRate !== undefined ? { taxRate } : {}),
+          ...(isApproving ? { approvedAt: new Date(), approvedBy: user.sub } : {}),
           updatedBy: user.sub,
         },
       });
       if (dto.taxRate !== undefined) await this.recalcPoTotals(tx, id, taxRate);
-      if (nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED) {
+      if (isApproving) {
         await createApFromConfirmedPo(tx, { tenantId, poId: id, userId: user.sub });
       }
       await syncApLedgerFromPo(tx, { tenantId, poId: id, userId: user.sub });

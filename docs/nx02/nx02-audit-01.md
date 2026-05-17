@@ -344,6 +344,9 @@ grep "partVersionId\|isOem\|fitLevel\|partModel\|part_model" apps/nx-api/src/nx0
 
 ### 5.3 partner 維度對齊
 
+> ⚠️ **本節 partnerType 縮寫不準確**：見 [audit-02 §3.5 修正](./nx02-audit-02.md#35-audit-01-53-partner-維度小錯誤修正) — schema 真實 enum 為 `C/S/T/V/B`（5 種：客戶/零件供應商/外包物流/一般廠商/銀行）、本節 `SUP/BOTH/CUS` 為英文意譯非 schema code。歷史 fact 保留、修正記錄在 audit-02。
+> Q-X1=c 拍板（TASK-NX02-IMPL-01 Phase 7 commit 7c）：audit-01 §5.3 加註提示、不回改表格內容、cross-ref 指向 audit-02 §3.5。
+
 | 用途 | partnerType | NX02 引用 |
 |---|---|---|
 | 供應商 | `SUP` / `BOTH` | Po.supplierId / Rfq.supplierId / Rr.supplierId / Pr.supplierId |
@@ -351,6 +354,10 @@ grep "partVersionId\|isOem\|fitLevel\|partModel\|part_model" apps/nx-api/src/nx0
 | 客戶 | `CUS` | Demand.customerId（demandType=O 客訂）|
 
 ⭐ **NX02 完整覆蓋 NX01 partner 三大類**、Qt/Ti 模型開創「同行 partner」業務語意（業界中小 ERP 少見、NEXORA 戰略特色）。
+
+> ⚠️ schema 真相補充（audit-02 §3.5 完整對照）：
+> - `S` 既是「零件供應商」（PO/RFQ/RR/PR.supplierId）也是「同行供應商」（Qt.inquiryPartnerId、Ti.partnerId）、partner_type=S 不細分（Crown Q-PP-2=a）
+> - 5 enum 完整：C=客戶 / S=零件供應商 / T=外包物流 / V=一般廠商 / B=銀行
 
 ⚠️ 揭露可能不完整、Crown / Alex 想補的直接說。
 

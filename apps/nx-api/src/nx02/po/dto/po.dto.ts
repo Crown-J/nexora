@@ -3,12 +3,16 @@ import {
   ArrayMinSize,
   IsArray,
   IsDateString,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+
+/** 採購類型（D=國內一般 / I=國外進口 / B=掃貨 Bulk）。對齊 schema nx02_po.purchase_type default 'D'、overview §3.2 + Crown Q2。 */
+const PURCHASE_TYPES = ['D', 'I', 'B'] as const;
 
 export class CreatePoItemDto {
   @IsString()
@@ -63,6 +67,12 @@ export class CreatePoDto {
   @IsString()
   @MaxLength(200)
   remark?: string;
+
+  /** 採購類型（D 國內 / I 國外 / B 掃貨、default 'D'、NX02-IMPL-01 Phase 3 新增 dto 控制）。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(PURCHASE_TYPES as unknown as string[])
+  purchaseType?: 'D' | 'I' | 'B';
 
   @IsArray()
   @ArrayMinSize(1)

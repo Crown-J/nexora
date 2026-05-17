@@ -18,6 +18,7 @@ import {
   prDbToApi,
   PrStatus,
 } from '../../shared/nx02/nx02-state-machine';
+import { createAllowanceFromPurchaseReturn } from '../../shared/nx05/nx05-create-allowance-from-pr';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -43,6 +44,7 @@ const PR_SEL = {
   taxAmount: true,
   totalAmount: true,
   remark: true,
+  returnMode: true,
   voidedAt: true,
   voidedBy: true,
   postedAt: true,
@@ -150,11 +152,17 @@ export class PurchaseReturnService {
   }
 
   /**
-   * PR 過帳：透過 applyQtyOutWithLedger 寫 stock_balance + stock_ledger（退供應商出庫、source=R）
+   * PR 過帳：returnMode 分流（NX02-IMPL-01 Phase 3 commit 3b 升）
+   *   - F/P（全退/部分退）→ 走 applyQtyOutWithLedger 寫 stock_balance + stock_ledger source=R
+   *   - A（折讓不退）→ skip ledger（貨保留）、Phase 5 跨模組 bridge 寫 Nx05Allowance（本軌僅入口分流、實 NX05 寫入 Phase 5）
+   *
+   * 既有範式（F/P 共用）：
    *   - unitCost 走 stock_balance.avgCost（helper 內部自動抓、出庫成本標準）
    *   - partVersionId 帶入（M1 配套）
-   *   - AP 沖帳邏輯不在本 commit 範圍（屬 NX05、Phase 7 跨模組接點）
-   * NX03-IMPL-01 Phase 5 commit 2：修隱性 bug「PR 純改 status 不扣帳」、補完 source=R 過帳路徑
+   *   - AP 沖帳邏輯屬 NX05、Phase 5 跨模組接點處理
+   *
+   * NX03-IMPL-01 Phase 5 commit 2 歷史：修隱性 bug「PR 純改 status 不扣帳」、補完 source=R 過帳路徑
+   * NX02-IMPL-01 Phase 3 commit 3b：加 returnMode A 分流（折讓不退、貨留 + 不扣帳）
    */
   private async applyPrPosting(tx: Prisma.TransactionClient, pr: PrHead, userId: string) {
     const items = await tx.nx02PrItem.findMany({
@@ -163,6 +171,26 @@ export class PurchaseReturnService {
     });
     if (!items.length) throw new BadRequestException('Purchase return has no items to post');
 
+    // returnMode 入口分流（Crown Q19=d 多種並存）
+    // A=折讓不退：貨留、不扣庫存、寫 Nx05Allowance（Phase 5 commit 5a 落地、Crown Q-5a-1=a inline helper）
+    if (pr.returnMode === 'A') {
+      // 校驗：至少 1 個 item qty > 0（折讓金額來源）
+      const hasQty = items.some((it) => new PrismaNs.Decimal(it.qty).gt(0));
+      if (!hasQty) throw new BadRequestException('Allowance-mode purchase return must have qty > 0 items');
+      // 折讓模式不沖庫存、不需 locationId（貨還在原倉位）
+      // Phase 5 commit 5a：呼叫 inline helper 寫 Nx05Allowance allowanceType='P' 進貨折讓
+      //   - refApId 從 PR.rrId → Rr.poId → ApLedger.poId 反推
+      //   - disposalMethod='O' 沖銷 AP（折讓抵應付）
+      //   - 冪等：remark prefix 'PR:<docNo>' 去重
+      await createAllowanceFromPurchaseReturn(tx, {
+        tenantId: pr.tenantId,
+        prId: pr.id,
+        userId,
+      });
+      return;
+    }
+
+    // F/P 模式：既有 ledger 沖帳邏輯
     let postedQty = new PrismaNs.Decimal(0);
     for (const item of items) {
       const qtyOut = new PrismaNs.Decimal(item.qty);
@@ -256,6 +284,7 @@ export class PurchaseReturnService {
           taxAmount: new PrismaNs.Decimal(0),
           totalAmount: new PrismaNs.Decimal(0),
           remark: dto.remark?.trim() || null,
+          returnMode: dto.returnMode ?? 'P', // Crown Q-S2=A default 'P' 部分退
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -360,6 +389,7 @@ export class PurchaseReturnService {
         data: {
           ...(dto.prDate !== undefined ? { prDate: new Date(dto.prDate) } : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
+          ...(dto.returnMode !== undefined ? { returnMode: dto.returnMode } : {}),
           ...(dto.status !== undefined
             ? {
                 status: nextDb,

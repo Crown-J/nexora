@@ -1,0 +1,43 @@
+-- packages/db-core/prisma/migrations/20260517120000_nx02_impl_01_m3_pr_return_mode/migration.sql
+-- ============================================================================
+-- Migration: nx02_impl_01_m3_pr_return_mode
+-- 建立日期：2026-05-17
+-- 任務：TASK-NX02-IMPL-01 Phase 1 M3（退貨類型 enum 補齊 Nx02Pr）
+-- 對應 plan：docs/nx02/spec/impl/nx02-impl-01-plan.md §3 M3
+-- 對應 overview：docs/nx02/spec/intent/nx02-overview.md §3.8 + §8.1 #9
+-- 對應拍板：
+--   - Crown Q-S2=A VARCHAR(1) default 'P' 部分退（業界常態、對齊既有 Pr/Po/Qt 1-char enum 風格）
+--   - Crown Q19=d 多種並存（全退/部分退/折讓不退 業界常態）
+--   - 業務需求：退貨範式 3 種並存（全部退/部分退/折讓不退）
+--
+-- 範圍（A041 = 1 ALTER TABLE ADD COLUMN、純加欄、有 default）：
+--   1. return_mode VARCHAR(1) NOT NULL DEFAULT 'P'  退貨類型 enum
+--
+-- 業務語意：
+--   - return_mode 3 enum：
+--     F = 全部退（整單退換新、品項錯誤、廠商換新、走既有 ledger 沖庫存 source=R）
+--     P = 部分退（瑕疵率高、其餘收、Pr 部分明細、走既有 ledger 沖、預設值）
+--     A = 折讓不退（保留貨、廠商折讓現金、Pr + Nx05Allowance 沖帳、不沖庫存）
+--   - 既有 Nx02Pr 配套（無需新增）：
+--     paymentStatus U/P（line 1692、未付/已付決定帳務沖銷或廠商退款）
+--     rrId nullable FK（line 1654、退貨來源進貨單）
+--     status D/P/V（line 1658、草稿/過帳/作廢）
+--   - 既有 Nx05Allowance.allowanceType='P' 進貨折讓（line 3869~3870）↔ A 走此鏈
+--
+-- 漸進範式：
+--   - 既有 row 全 'P' default 部分退（業界使用率最高、影響面最小）
+--   - 新單建立時 application 層按業務情境寫 F / P / A
+--   - service 入口 returnMode 分流：
+--     F/P → 既有 purchase-return.service 走 applyQtyOutWithLedger source=R
+--     A   → 新分支不沖庫存、直接寫 Nx05Allowance（Phase 3 + Phase 5 service 升級）
+--   - 屬 LITE-CORE 級欄位（業界基本需求）
+--
+-- 風險：低（純加欄、有 default、無 backfill SQL 需求、Postgres 自動套 default）
+-- ============================================================================
+
+ALTER TABLE "nx02_pr" ADD COLUMN "return_mode" VARCHAR(1) NOT NULL DEFAULT 'P';
+
+-- ============================================================================
+-- 完成：Nx02Pr +1 退貨類型 enum 欄
+-- 後續：M4 partner ↔ part 中間表新建（audit-02 path C、source S/M 仿 AR）
+-- ============================================================================

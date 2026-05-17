@@ -1,0 +1,36 @@
+-- packages/db-core/prisma/migrations/20260517100000_nx02_impl_01_m1_po_payment_term_domestic/migration.sql
+-- ============================================================================
+-- Migration: nx02_impl_01_m1_po_payment_term_domestic
+-- 建立日期：2026-05-17
+-- 任務：TASK-NX02-IMPL-01 Phase 1 M1（國內付款條件補齊 Nx02Po）
+-- 對應 plan：docs/nx02/spec/impl/nx02-impl-01-plan.md §3 M1
+-- 對應 overview：docs/nx02/spec/intent/nx02-overview.md §3.5 + §8.1 #10
+-- 對應拍板：
+--   - Crown Q-M1=A 4 軌 migration 拆軌認可
+--   - Crown Q-impl=B Phase 完成 stop
+--   - 業務需求：付款條件補國內（淨 N 天/月結/預付/分期）
+--
+-- 範圍（A041 = 1 ALTER TABLE ADD COLUMN、純加欄、無 FK）：
+--   1. payment_term_domestic VARCHAR(10) NULL  國內付款條件、null=未指定、新單從 partner 帶入
+--
+-- 業務語意：
+--   - 既有 Nx01Partner.payment_term_domestic（line 958）已備 default 'NET30'（PREPAY/NET30/NET60/NET90 等）
+--   - 既有 Nx01Partner.payment_term_import（line 966）已備 default 'TT'
+--   - 既有 Nx02Po.payment_term_import（line 1577）已備 進口付款條件
+--   - 缺：Nx02Po 國內付款條件欄、本軌補齊
+--   - 建單時 application 層從 supplier.payment_term_domestic 帶入、可手動覆寫
+--
+-- 漸進範式：
+--   - 既有 row 全 null、不影響既有 PO 流（fallback：service 層 fallback 'NET30' 或讀 partner）
+--   - VARCHAR(10) 對齊既有 Nx01Partner.payment_term_domestic 寬度（line 958）
+--   - 屬 LITE-CORE 級欄位（國內採購基本需求）
+--
+-- 風險：低（純加欄、nullable、無 default constraint、無 backfill）
+-- ============================================================================
+
+ALTER TABLE "nx02_po" ADD COLUMN "payment_term_domestic" VARCHAR(10);
+
+-- ============================================================================
+-- 完成：Nx02Po +1 國內付款條件欄
+-- 後續：M2 國外採購 6 階段配套欄（purchaseStage + 4 時間欄）
+-- ============================================================================
