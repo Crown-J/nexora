@@ -301,5 +301,119 @@ Nx02BaseError              ← 抽象基底
 
 ---
 
-> 文件版本：v1.0（初版）
-> 下次更新觸發：NX02 有新工作（migration / 新 controller / 採購流程 spec 改動）
+## 主題 6｜TASK-NX02-IMPL-01 採購模組重塑（A 軌、2026-05-16~17、17 commit / 4 migration）
+
+### 起源
+
+NX03 範圍 A closure（v0.3.0、2026-05-16）+ AR 範圍 B closure（v0.4.0）後、Crown 拍板 NX02 採購模組第三戰略軌。Hank 跑 AUDIT-01（schema 真相）+ AUDIT-02（partner ↔ part 關係）verify → Alex 寫 overview v0.1.0 整合 Crown 4 輪 18 題拍板 → Hank 寫 plan v0.1.0 → Crown 拍板 9 題照推 + Q-U1=c 全 stub + Q-X1=c audit-01 加註 → plan v0.1.1 開工。
+
+### 設計決策
+
+1. **partner ↔ part 混合範式（Crown Q-PP-1=C）**：對齊 AR「系統建議為主、手動為輔」哲學
+   - M4 Nx02PartnerPart 主檔 explicit 定義「廠商可供應料件」（戰略合作、長期合約）
+   - PurchaseSuggestionService fallback 歷史 PoItem 90 天推算（Crown Q-PS-1=b）
+   - source S/M 雙來源（仿 AR BrandAllocationRule Q-S1=A）
+   - **業界對標 SAP/Oracle Vendor Catalog、但保持 NEXORA 輕量化**
+
+2. **國外採購 6 階段 strict 推進 + 任意回退（Crown Q-C3=A + Q-C3-detail=b）**：
+   - M2 Nx02Po +purchaseStage SmallInt（NX01-17 範式）+ 4 時間欄
+   - 推進嚴格 +1（不可跳階）、回退不限範圍（業務修錯）
+   - 推進寫對應時間欄、回退不清除歷史時間（fact 保留）
+
+3. **退貨 3 種並存（Crown Q19=d + Q-S2=A）**：
+   - M3 Nx02Pr +returnMode VarChar(1) default 'P'（業界常態）
+   - F/P → 既有 ledger 沖庫存 source=R
+   - A 折讓不退 → Phase 5 inline helper 寫 Nx05Allowance（Crown Q-5a-1=a 避免 NX05 service 跨模組污染）
+
+4. **同行調貨業務歸 NX04 SALES（Crown Q-C4=A + Q-5b-1=a）**：
+   - QT/TI schema 仍在 nx02、純 role_view 調整（@Roles +SALES、保留 OWNER + PURCHASING）
+   - 業務語意：同行調貨是銷售動作（D4 銷貨翻譯流）、不是純採購
+
+5. **UI 全 stub（Crown Q-U1=c）**：對齊 AR Q-U1=A 範式
+   - Phase 6 5 placeholder 加 API hint + backend closure 標示
+   - UI 獨立軌 TASK-NX02-IMPL-UI-01 backlog（避免本軌 commit 估溢出）
+
+6. **比價 3 維度全落地（Crown Q-C2=A）**：
+   - PriceComparisonService D1 歷史均價 + D2 新品/特價 + D3 量大彈性折扣（1-99/100-499/500+ 分桶）
+   - PartnerPart meta 補充（採購員快速參考）
+   - 避免本軌不全落地、後續重塑
+
+### 實作歷程
+
+| Phase | commit 範圍 | sha 範圍 | 主軸 |
+|---|---|---|---|
+| 0 | 2 | 1ee786d ~ 7bafb5f | Alex overview v0.1.0 + Hank plan v0.1.0 → Crown 拍板 → plan v0.1.1 |
+| 1 | 4 | 2a53ea7 ~ 1450c09 | M1 國內付款 / M2 國外 6 階段 / M3 退貨類型 / M4 PartnerPart 新表（4 軌全 stop review Crown 拍板後 Hank 自跑）|
+| 2 | 1 | 42723f0 | L1 PartnerPartService CRUD + 5 endpoints |
+| 3 | 3 | 31e329b ~ f28518e | L2 既有升級：po +付款條件帶入+主管審核+國外 stage=1 / pr returnMode 分流 / rfq +exportRfq |
+| 4 | 3 | a8798c9 ~ 4712dc9 | L3 新 3 service：PurchaseSuggestion / PriceComparison / PurchaseStage |
+| 5 | 2 | fd50592 ~ b392198 | L4 NX05 Allowance bridge inline helper + role_view +SALES + verify report |
+| 6 | 1 | 00cec3a | UI 5 stub placeholder 升 desc + API hint |
+| 7 | 3 | 4931b21 ~ ... | summary 新建 + 本主題 + audit-01 §5.3 加註 |
+
+### 踩坑
+
+1. **prisma v7 `db execute` 不接受 `--schema` 參數**：原 NX03 範式用 `--schema` 跑、prisma v7 需在 db-core 目錄走 prisma.config.ts。
+   - 對策：`cd packages/db-core && npx prisma db execute --file ...`、prisma.config.ts 自動 load 設定
+   - 後續軌應沿用此模式
+
+2. **`PriceComparisonService` Prisma where spread 覆寫 bug**：
+   - 原寫 `{ po: {...}, ...(supplierId ? { po: {...含 supplierId } } : {}) }`、後者 spread 覆寫前者
+   - 修：先構 `poWhere` 物件再嵌入、避免重複 key spread
+
+3. **`Nx02PartnerPart` model 註冊 4 個位置**：
+   - schema.prisma 加 model
+   - Nx99Tenant + Nx01Partner + Nx01Part 各加 reverse @relation（3 處）
+   - 漏一個會 prisma generate fail
+   - 對策：grep 既有 reverse 確定位置、批次 Edit
+
+4. **退貨類型 A 折讓不退的 NX05 跨模組界線**：
+   - 原 plan 3b 想直接呼叫 NX05 Allowance 寫入、但會跨模組污染 service
+   - Crown Q-5a-1=a 拍板：分離 inline helper（shared/nx05/）、avoid service 跨界
+   - 對齊既有 nx05-create-ap-from-po.ts 範式
+
+### 統合教訓
+
+1. **AUDIT-01 + 02 schema 真相 verify 階段是關鍵投資**：
+   - audit 揭露既有 schema 缺口（國內付款條件 / 國外 6 階段 / 退貨類型 / partner-part 中間表）= 4 軌 migration 精準對應
+   - 沒 audit、可能誤改既有欄位 / 重複設計、commit 數溢出
+   - 對齊 NX03/AR 範式：「先 audit → overview → plan → impl」4 階段精準
+
+2. **stop review SQL 範式繼承 NX03/AR 完整有效**：
+   - 每軌 migration SQL 寫好 stop、Crown 拍板「SQL=A」後 Hank 自跑 db execute + migrate resolve
+   - 4 軌 0 衝突 0 backfill 風險、純加欄/新表低風險
+   - tsc 0 error per commit 基準完整守住
+
+3. **L 分層拓樸 + Phase 完成 stop 節奏對齊 NX03/AR 範式**：
+   - L1 schema → L2 既有升 → L3 新 service → L4 跨模組 + role_view → UI stub → 收尾
+   - 17 commit 命中 plan §4 估「14~17」略上界（合理）
+   - 每 Phase 完成 stop、Crown 拍板「Phase N=A 開工」才推進、避免擅自越權
+
+4. **混合範式（主檔 + 歷史 fallback）對齊 NEXORA 哲學**：
+   - AR BrandAllocationRule（modelId 級 + manual M 覆寫）
+   - NX02 PartnerPart（partnerId+partId 級 + 90 天 PoItem 推算 fallback）
+   - 業界對標 SAP Vendor Catalog 但輕量化、保留 schema 簡潔
+   - 後續模組（NX04 客戶折扣 / NX09 維修庫存）可參考同範式
+
+### 對應文件
+
+- 業務需求：[nx02-overview.md](./spec/intent/nx02-overview.md) v0.1.0
+- 實作計畫：[nx02-impl-01-plan.md](./spec/impl/nx02-impl-01-plan.md) v0.1.1
+- Phase 5 verify：[nx02-impl-01-phase5-verify.md](./spec/impl/nx02-impl-01-phase5-verify.md)
+- AUDIT-01：[nx02-audit-01.md](./nx02-audit-01.md)
+- AUDIT-02：[nx02-audit-02.md](./nx02-audit-02.md)
+- 模組架構書：[nx02-summary.md](./nx02-summary.md) v1.0
+
+### Migration 全列表（4 軌、A041）
+
+| Migration | 主題 | 性質 |
+|-----------|------|------|
+| `20260517100000_nx02_impl_01_m1_po_payment_term_domestic` | 主題 6 | Nx02Po +國內付款條件欄 |
+| `20260517110000_nx02_impl_01_m2_po_purchase_stage_columns` | 主題 6 | Nx02Po +5 國外 6 階段配套欄 |
+| `20260517120000_nx02_impl_01_m3_pr_return_mode` | 主題 6 | Nx02Pr +returnMode F/P/A enum |
+| `20260517130000_nx02_impl_01_m4_partner_part_create` | 主題 6 | Nx02PartnerPart 中間表新建 |
+
+---
+
+> 文件版本：v1.1（主題 6 新增）
+> 下次更新觸發：NX02 有新工作（migration / 新 controller / 採購流程 spec 改動 / UI 獨立軌 TASK-NX02-IMPL-UI-01 開工）
