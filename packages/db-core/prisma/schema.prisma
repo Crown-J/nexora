@@ -1702,6 +1702,8 @@ model Nx02Pr {
   rejectReason        String?       @map("reject_reason") @db.VarChar(200)
   /// 付款狀態（U=未付款/P=已付款）。決定退貨後帳務處理方式：未付款沖銷AP；已付款產生應收廠商退款。；啟用最低需求版本：LITE-CORE
   paymentStatus       String        @default("U") @map("payment_status") @db.VarChar(1)
+  /// 退貨類型（F=全部退/P=部分退預設/A=折讓不退）。F/P 走既有 ledger 沖庫存 source=R；A 走 Nx05Allowance（allowanceType=P 進貨折讓）不沖庫存。NX02-IMPL-01 Phase 1 M3 補齊（Crown Q19=d 多種並存、Q-S2=A default 'P' 業界常態）。；啟用最低需求版本：LITE-CORE
+  returnMode          String        @default("P") @map("return_mode") @db.VarChar(1)
   tenant              Nx99Tenant    @relation("R_Nx02Pr_tenantId", fields: [tenantId], references: [id])
   warehouse           Nx01Warehouse @relation("R_Nx02Pr_warehouseId", fields: [warehouseId], references: [id])
   supplier            Nx01Partner   @relation("R_Nx02Pr_supplierId", fields: [supplierId], references: [id])
