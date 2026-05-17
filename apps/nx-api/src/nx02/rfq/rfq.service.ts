@@ -130,6 +130,98 @@ export class RfqService {
     return { ...rest, items: rev_Nx02RfqItem_rfqId };
   }
 
+  /**
+   * NX02-IMPL-01 Phase 3 commit 3c：RFQ 文字/JSON 匯出（廠商不登入、採購員 copy 出去寄 email）
+   * 對齊 overview §3.6 廠商溝通範式 + Crown Q18「採購員手動 email 來往」
+   *
+   * 用途：
+   *   - format=text → 純文字、適合 email 內文直接貼
+   *   - format=json → 結構化、前端可生成 PDF 或自訂 layout
+   *
+   * 不寄 email、不寫檔、不存附件 → 純 query + format 輸出
+   */
+  async exportRfq(user: RequestUser, id: string) {
+    const tenantId = requireTenantId(user);
+    const row = await this.prisma.nx02Rfq.findFirst({
+      where: { id, tenantId },
+      select: {
+        ...RFQ_SEL,
+        supplier: { select: { code: true, name: true, contactName: true, phone: true, email: true } },
+        warehouse: { select: { code: true, name: true } },
+        rev_Nx02RfqItem_rfqId: { orderBy: { lineNo: 'asc' }, select: ITEM_SEL },
+      },
+    });
+    if (!row) throw new NotFoundException('RFQ not found');
+
+    const { rev_Nx02RfqItem_rfqId, supplier, warehouse, ...rfq } = row;
+
+    // 結構化 payload（前端可用、JSON 格式直返）
+    const payload = {
+      docNo: rfq.docNo,
+      rfqDate: rfq.rfqDate,
+      validUntil: rfq.validUntil,
+      rfqType: rfq.rfqType,
+      currency: rfq.currency,
+      supplier: supplier
+        ? {
+            code: supplier.code,
+            name: supplier.name,
+            contactName: rfq.contactName ?? supplier.contactName,
+            phone: rfq.contactPhone ?? supplier.phone,
+            email: supplier.email,
+          }
+        : null,
+      warehouse: warehouse ? { code: warehouse.code, name: warehouse.name } : null,
+      remark: rfq.remark,
+      items: rev_Nx02RfqItem_rfqId.map((it) => ({
+        lineNo: it.lineNo,
+        partNo: it.partNo,
+        partName: it.partName,
+        qty: it.qty.toString(),
+        leadTimeDays: it.leadTimeDays,
+        remark: it.remark,
+      })),
+    };
+
+    // 純文字 format（業界 muscle memory：採購員 copy 貼 email 內文）
+    const lines: string[] = [];
+    lines.push(`詢價單 ${payload.docNo}`);
+    lines.push(`日期：${payload.rfqDate.toISOString().slice(0, 10)}`);
+    if (payload.validUntil) lines.push(`有效期限：${payload.validUntil.toISOString().slice(0, 10)}`);
+    lines.push('');
+    if (payload.supplier) {
+      lines.push(`廠商：${payload.supplier.name} (${payload.supplier.code})`);
+      if (payload.supplier.contactName) lines.push(`聯絡人：${payload.supplier.contactName}`);
+      if (payload.supplier.phone) lines.push(`電話：${payload.supplier.phone}`);
+      if (payload.supplier.email) lines.push(`Email：${payload.supplier.email}`);
+      lines.push('');
+    }
+    if (payload.warehouse) {
+      lines.push(`入庫倉：${payload.warehouse.name} (${payload.warehouse.code})`);
+      lines.push('');
+    }
+    lines.push('───────────────────────────────────────');
+    lines.push('明細：');
+    lines.push('───────────────────────────────────────');
+    for (const it of payload.items) {
+      lines.push(`${it.lineNo}. ${it.partNo}  ${it.partName}`);
+      lines.push(`   數量：${it.qty} (${payload.currency})${it.leadTimeDays ? `  交期：${it.leadTimeDays} 天` : ''}`);
+      if (it.remark) lines.push(`   備註：${it.remark}`);
+    }
+    lines.push('───────────────────────────────────────');
+    if (payload.remark) {
+      lines.push('');
+      lines.push(`備註：${payload.remark}`);
+    }
+    lines.push('');
+    lines.push('煩請回覆單價 + 交期、謝謝。');
+
+    return {
+      text: lines.join('\n'),
+      payload,
+    };
+  }
+
   async create(user: RequestUser, dto: CreateRfqDto) {
     const tenantId = requireTenantId(user);
     return this.prisma.$transaction(async (tx) => {
