@@ -4077,6 +4077,7 @@ model Nx05ApLedger {
   currency                  Nx01Currency    @relation("R_Nx05ApLedger_currencyId", fields: [currencyId], references: [id])
   rev_Nx05Allowance_refApId Nx05Allowance[] @relation("R_Nx05Allowance_refApId")
   rev_Nx05Paylog_apId       Nx05Paylog[]    @relation("R_Nx05Paylog_apId")
+  rev_Nx08ApCacheSnapshot_apLedgerId Nx08ApCacheSnapshot[] @relation("R_Nx08ApCacheSnapshot_apLedgerId")
 
   @@unique([docNo])
   @@map("nx05_ap_ledger")
@@ -4136,6 +4137,7 @@ model Nx05ArLedger {
   currency                  Nx01Currency    @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
   rev_Nx05Allowance_refArId Nx05Allowance[] @relation("R_Nx05Allowance_refArId")
   rev_Nx05Paylog_arId       Nx05Paylog[]    @relation("R_Nx05Paylog_arId")
+  rev_Nx08ArCacheSnapshot_arLedgerId Nx08ArCacheSnapshot[] @relation("R_Nx08ArCacheSnapshot_arLedgerId")
 
   @@unique([docNo])
   @@map("nx05_ar_ledger")
@@ -4385,6 +4387,7 @@ model Nx06Dn {
   rev_Nx06DnItem_dnId     Nx06DnItem[]     @relation("R_Nx06DnItem_dnId")
   rev_Nx06DnStop_dnId     Nx06DnStop[]     @relation("R_Nx06DnStop_dnId")
   rev_Nx06DnHandover_dnId Nx06DnHandover[] @relation("R_Nx06DnHandover_dnId")
+  rev_Nx08DeliveryCacheSnapshot_dnId Nx08DeliveryCacheSnapshot[] @relation("R_Nx08DeliveryCacheSnapshot_dnId")
 
   @@unique([docNo])
   @@index([tenantId, sourceSoId], map: "nx06_dn_source_so_idx")
@@ -6708,6 +6711,9 @@ model Nx99Tenant {
   rev_Nx08PurchaseCache_tenantId          Nx08PurchaseCache[]          @relation("R_Nx08PurchaseCache_tenantId")
   rev_Nx08SalesCache_tenantId             Nx08SalesCache[]             @relation("R_Nx08SalesCache_tenantId")
   rev_Nx08SwotRecord_tenantId             Nx08SwotRecord[]             @relation("R_Nx08SwotRecord_tenantId")
+  rev_Nx08ApCacheSnapshot_tenantId        Nx08ApCacheSnapshot[]        @relation("R_Nx08ApCacheSnapshot_tenantId")
+  rev_Nx08ArCacheSnapshot_tenantId        Nx08ArCacheSnapshot[]        @relation("R_Nx08ArCacheSnapshot_tenantId")
+  rev_Nx08DeliveryCacheSnapshot_tenantId  Nx08DeliveryCacheSnapshot[]  @relation("R_Nx08DeliveryCacheSnapshot_tenantId")
   rev_Nx09Document_tenantId               Nx09Document[]               @relation("R_Nx09Document_tenantId")
   rev_Nx09KmArticle_tenantId              Nx09KmArticle[]              @relation("R_Nx09KmArticle_tenantId")
   rev_Nx09KmFeedback_tenantId             Nx09KmFeedback[]             @relation("R_Nx09KmFeedback_tenantId")
@@ -7433,4 +7439,105 @@ model Nx06PushSubscription {
   @@unique([endpoint], map: "idx_push_endpoint")
   @@index([tenantId, userId, isActive], map: "idx_push_user_active")
   @@map("nx06_push_subscription")
+}
+
+/// =======================================================
+/// Nx08ApCacheSnapshot — DB table `nx08_ap_cache_snapshot`
+/// =======================================================
+/// per Nx05ApLedger doc-level 快照（後續 ETL 寫入、本軌 0 writer）。NX08-IMPL-01 M1 新增。
+model Nx08ApCacheSnapshot {
+  /// [NX08]+[APCS]+[7碼流水號]，EX : NX08APCS0000001；啟用最低需求版本：PRO
+  id             String       @id @default(dbgenerated("gen_nx08_ap_cache_snapshot_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId       String       @map("tenant_id") @db.VarChar(15)
+  /// 對應 AP ledger ID；啟用最低需求版本：PRO
+  apLedgerId     String       @map("ap_ledger_id") @db.VarChar(15)
+  /// 快照時間；啟用最低需求版本：PRO
+  snapshotDate   DateTime     @default(now()) @map("snapshot_date")
+  /// 原始金額；啟用最低需求版本：PRO
+  originalAmount Decimal      @default(0) @map("original_amount") @db.Decimal(14, 2)
+  /// 已付金額；啟用最低需求版本：PRO
+  paidAmount     Decimal      @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  /// 餘額；啟用最低需求版本：PRO
+  balanceAmount  Decimal      @default(0) @map("balance_amount") @db.Decimal(14, 2)
+  /// 快照時刻狀態；啟用最低需求版本：PRO
+  statusAt       String       @map("status_at") @db.VarChar(20)
+  /// 逾期天數（snapshot_date - due_date）；啟用最低需求版本：PRO
+  overdueDays    Int          @default(0) @map("overdue_days")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  tenant         Nx99Tenant   @relation("R_Nx08ApCacheSnapshot_tenantId", fields: [tenantId], references: [id])
+  apLedger       Nx05ApLedger @relation("R_Nx08ApCacheSnapshot_apLedgerId", fields: [apLedgerId], references: [id])
+
+  @@index([apLedgerId], map: "nx08_ap_cache_snapshot_ap_idx")
+  @@index([tenantId, snapshotDate], map: "nx08_ap_cache_snapshot_tenant_dt_idx")
+  @@map("nx08_ap_cache_snapshot")
+}
+
+/// =======================================================
+/// Nx08ArCacheSnapshot — DB table `nx08_ar_cache_snapshot`
+/// =======================================================
+/// per Nx05ArLedger doc-level 快照（後續 ETL 寫入、本軌 0 writer）。NX08-IMPL-01 M1 新增。
+model Nx08ArCacheSnapshot {
+  /// [NX08]+[ARCS]+[7碼流水號]，EX : NX08ARCS0000001；啟用最低需求版本：PRO
+  id             String       @id @default(dbgenerated("gen_nx08_ar_cache_snapshot_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId       String       @map("tenant_id") @db.VarChar(15)
+  /// 對應 AR ledger ID；啟用最低需求版本：PRO
+  arLedgerId     String       @map("ar_ledger_id") @db.VarChar(15)
+  /// 快照時間；啟用最低需求版本：PRO
+  snapshotDate   DateTime     @default(now()) @map("snapshot_date")
+  /// 原始金額；啟用最低需求版本：PRO
+  originalAmount Decimal      @default(0) @map("original_amount") @db.Decimal(14, 2)
+  /// 已付金額；啟用最低需求版本：PRO
+  paidAmount     Decimal      @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  /// 餘額；啟用最低需求版本：PRO
+  balanceAmount  Decimal      @default(0) @map("balance_amount") @db.Decimal(14, 2)
+  /// 快照時刻狀態；啟用最低需求版本：PRO
+  statusAt       String       @map("status_at") @db.VarChar(20)
+  /// 逾期天數；啟用最低需求版本：PRO
+  overdueDays    Int          @default(0) @map("overdue_days")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  tenant         Nx99Tenant   @relation("R_Nx08ArCacheSnapshot_tenantId", fields: [tenantId], references: [id])
+  arLedger       Nx05ArLedger @relation("R_Nx08ArCacheSnapshot_arLedgerId", fields: [arLedgerId], references: [id])
+
+  @@index([arLedgerId], map: "nx08_ar_cache_snapshot_ar_idx")
+  @@index([tenantId, snapshotDate], map: "nx08_ar_cache_snapshot_tenant_dt_idx")
+  @@map("nx08_ar_cache_snapshot")
+}
+
+/// =======================================================
+/// Nx08DeliveryCacheSnapshot — DB table `nx08_delivery_cache_snapshot`
+/// =======================================================
+/// per Nx06Dn doc-level 快照（含 handover_count 統計、後續 ETL 寫入、本軌 0 writer）。NX08-IMPL-01 M1 新增。
+model Nx08DeliveryCacheSnapshot {
+  /// [NX08]+[DLCS]+[7碼流水號]，EX : NX08DLCS0000001；啟用最低需求版本：PRO
+  id              String     @id @default(dbgenerated("gen_nx08_delivery_cache_snapshot_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId        String     @map("tenant_id") @db.VarChar(15)
+  /// 對應 DN ID；啟用最低需求版本：PRO
+  dnId            String     @map("dn_id") @db.VarChar(15)
+  /// 快照時間；啟用最低需求版本：PRO
+  snapshotDate    DateTime   @default(now()) @map("snapshot_date")
+  /// 當時 driver；啟用最低需求版本：PRO
+  driverUserId    String?    @map("driver_user_id") @db.VarChar(15)
+  /// 快照時刻 DN 狀態；啟用最低需求版本：PRO
+  statusAt        String     @map("status_at") @db.VarChar(20)
+  /// 物流類型；啟用最低需求版本：PRO
+  logisticsType   String     @map("logistics_type") @db.VarChar(20)
+  /// 累積動態交接次數；啟用最低需求版本：PRO
+  handoverCount   Int        @default(0) @map("handover_count")
+  /// items internalCost 加總；啟用最低需求版本：PRO
+  internalCostSum Decimal    @default(0) @map("internal_cost_sum") @db.Decimal(14, 2)
+  /// 配送預估時長（秒）；啟用最低需求版本：PRO
+  durationSec     Int?       @map("duration_sec")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  tenant          Nx99Tenant @relation("R_Nx08DeliveryCacheSnapshot_tenantId", fields: [tenantId], references: [id])
+  dn              Nx06Dn     @relation("R_Nx08DeliveryCacheSnapshot_dnId", fields: [dnId], references: [id])
+
+  @@index([dnId], map: "nx08_delivery_cache_snapshot_dn_idx")
+  @@index([tenantId, snapshotDate], map: "nx08_delivery_cache_snapshot_tenant_dt_idx")
+  @@map("nx08_delivery_cache_snapshot")
 }

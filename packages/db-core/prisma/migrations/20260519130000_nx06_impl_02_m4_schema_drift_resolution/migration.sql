@@ -1,13 +1,3 @@
--- NX06-IMPL-02 Phase 1 M4：schema drift 結算（Prisma migrate dev 自動產出）
--- 對齊：M1+M2+M3 套用後、prisma 偵測 schema.prisma 與 hand-written SQL 之間差異、自動產生本檔結算
--- 內容性質（誠實揭露）：
---   1. M2/M3 我的 CONSTRAINT 自訂名 → Prisma convention 名（fk_handover_dn → nx06_dn_handover_dn_id_fkey 等）
---   2. 累積自前軌的 pre-existing drift cleanup（nx01_warehouse FK / nx01_partner_shipping_address 索引 / nx01_brand_code_rule DEFAULT 移除 / RenameIndex × N）
--- 風險：低
---   - constraint/index 名變更不影響行為（FK 邏輯不變）
---   - pre-existing drift 多為前軌 schema.prisma vs 早期 SQL 偏差、Prisma 認為應對齊
--- A026 backlog：本檔包含 pre-existing drift，後續軌可寫獨立 drift-audit 釐清來源
-
 -- DropForeignKey
 ALTER TABLE "nx01_warehouse" DROP CONSTRAINT "nx01_warehouse_city_id_fkey";
 

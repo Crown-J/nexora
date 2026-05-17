@@ -257,5 +257,60 @@ Crown 拍 **A：刪 `nx08_monthly_report` 表**。
 
 ---
 
-> 文件版本：v1.0（初版、3 主題、~5200 字、跨模組聚合層 + SaaS BI 雛形）
-> 下次更新觸發：Crown 拍 Q3 末選項 A/B（刪表 vs 補寫入）/ KPI 計算 helper 補上 / BCG/TOWS/HPA 高階分析 schema / NX08 出現新工作（先 audit 性質）
+---
+
+## 主題 4｜NX08-IMPL-01 報表 IMPL Q-RHYTHM-2 落地（TASK-NX08-IMPL-01、2026-05-17）⭐⭐⭐
+
+### 起源
+
+NX06-IMPL-02 closure（v0.9.0、業務閉環第一階段戰略全 closure）後 Crown 啟動 NX08。NX08-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（Q1=c / Q2=b / Q3=a / Q4=b / Q5=b）→ Hank 自決 8 Q-H + 5 Phase 6 commit 落地。
+
+### 設計決策
+
+1. Cache 0 writer（Q1=c）：既有 8 + 3 新 doc-level 全 schema-only、後續軌啟動 ETL
+2. 3 doc-level Cache snapshot（解 audit-01 §5.2 揭露的 0 業務模組接點缺口）
+3. 7 角色 dashboard + 3 業界改革 inline（Hank Q-H5：不另抽 service、內嵌對應角色）
+4. 即時 SQL 聚合（對齊既有 monthly-report 範式、不依賴 Cache）
+5. ETL HTTP endpoint shell（Q4=b 外部 cron、Hank Q-H4 mock 同 Lalamove 範式）
+6. UI 純 stub 21 placeholder（Q3=a 同 NX02-06 範式）
+7. 既有 4 service + 12 endpoint 0 動（穩定模組升級紀律第四次套用）
+
+### 實作歷程（6 commit / 5 Phase / 命中 plan 估 8-10 預算 ✓）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `53f1993` | plan v0.1.0 + overview v0.1.0 |
+| 1 | `60e376c` | M1 3 doc-level Cache + M2 drift 結算 + 修 NX06 M4 header |
+| 2-3 合併 | 1 | 7 dashboard service + 3 業界改革 inline + ETL controller + module wire |
+| 4 | 1 | UI 22 placeholder + menu.nx08（8 group）+ side-menu wire |
+| 5 | （本 commit）| summary v1.0 + worklog 主題 4 + _team 主題 28 + merge-verify |
+
+### 踩坑
+
+1. **Prisma checksum mismatch（NX06 M4 header）**：之前 NX06-IMPL-02 M4 加 header → prisma migrate dev 阻擋。revert header、揭露走 commit message + worklog。教訓：prisma migration 應用後**絕不修改檔案內容（包括註解）**。
+2. **Nx04So 無 salesRepId 欄**：第一版誤用 `salesRepId` → tsc fail。改用 `createdBy`（SO 建立者 = 業務員 proxy）。教訓：寫 dashboard query 前先 grep 真實 schema 欄位。
+3. **Nx02PoItem 是 unitCost 不是 unitPrice**：採購語意「成本」、銷貨語意「售價」、命名約定不同。
+4. **prisma groupBy with take 必須有 orderBy**：type-level 強制。
+5. **Nx01KpiTarget 沒 kpiName/periodType**（在 kpiTemplate join + periodYear + periodValue）：fix join select。
+
+### 對應文件
+
+- plan：[spec/impl/nx08-impl-01-plan.md](spec/impl/nx08-impl-01-plan.md)
+- overview v0.1.0：[spec/intent/nx08-overview.md](spec/intent/nx08-overview.md)
+- audit-01：[nx08-audit-01.md](nx08-audit-01.md)
+- summary v1.0：[nx08-summary.md](nx08-summary.md)
+- merge verify：[spec/impl/nx08-impl-01-merge-verify.md](spec/impl/nx08-impl-01-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-01 後 +6）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 5  | Cache 11 表全 0 writer（既有 8 + 新 3、Q1=c 拍板）| 後續軌候選 |
+| 6  | dashboard 即時 SQL 聚合性能（大資料量未測）| 規模化 |
+| 7  | BCG matrix top quartile 切點簡化（Q1 切而非真實 BCG market share）| 演算法精度 |
+| 8  | UI 21 placeholder 0 真實 chart（Q3=a 拍板對齊）| UI 獨立軌 |
+| 9  | ETL endpoint 3 全 mock shell | wire 軌 |
+| 10 | 客戶端 extranet 0（Q5=b 拍板）| 範圍 B |
+
+> 文件版本：v2.0（+ 主題 4 NX08-IMPL-01 落地紀錄、Q-RHYTHM-2 第四次落地）
+> 下次更新觸發：NX08-IMPL-UI-01 / NX08-IMPL-02-CACHE / Crown dashboard 分權調整 / extranet 範圍 B 啟動

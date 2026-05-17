@@ -2015,3 +2015,82 @@ NX06-IMPL-01（v0.8.0）closure 後 Crown 立即啟動 IMPL-02（同日連跑）
 
 ⭐⭐⭐ **NEXORA 業務閉環第一階段戰略完成**（採購 + 庫存 + 銷貨 + 自動補貨 + 財務 + 物流基礎 + 物流路線優化）= 5 個 ⭐⭐⭐ 戰略軌 closure 累積（NX03 / AR / NX04 / NX05 / NX06）。
 
+---
+
+## 主題 28｜NX08 報表分析模組 IMPL Q-RHYTHM-2 落地（TASK-NX08-IMPL-01、2026-05-17）⭐⭐⭐ 業務閉環延伸第 8 軌
+
+### 起源
+
+NX06-IMPL-02 closure（v0.9.0、業務閉環第一階段全 closure）後 Crown 立即啟動 NX08 報表分析（業務模組第 8 軌）。NX08-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（全照推 Q1=c / Q2=b / Q3=a / Q4=b / Q5=b）→ Alex 寫 nx08-overview v0.1.0 → Hank Q-RHYTHM-2 第四次落地、6 commit / 5 Phase 全軌連跑。
+
+**戰略意義**：
+- ⭐⭐⭐ NEXORA 業務閉環延伸第 8 軌、Crown 看 NEXORA 的入口
+- ⭐⭐⭐ 3 業界改革 dashboard（AR 命中率 + DnHandover 動態交接 + BCG matrix 自動標記）
+- ⭐⭐ 7 角色 × 21 dashboard + ETL HTTP endpoint 範式
+
+### 設計決策
+
+1. Cache 0 writer（Q1=c）：8 既有 + 3 新 doc-level Cache 全 schema-only、後續軌 ETL
+2. 即時 SQL 聚合範式（對齊既有 monthly-report、不依賴 Cache）
+3. 7 角色 dashboard + 3 業界改革 inline（不另抽 service、內嵌對應角色）
+4. ETL HTTP endpoint shell（外部 cron 範式、不裝 @nestjs/schedule、mock 同 Lalamove）
+5. UI 純 stub 21 placeholder + menu.nx08 8 group + side-menu wire（同 NX02-06 範式）
+6. 既有 4 service + 12 endpoint 0 動（穩定模組升級紀律第四次驗證）
+7. 3 doc-level Cache snapshot 解 audit-01 §5.2 揭露的 0 業務模組接點缺口
+
+### 實作歷程（6 commit / 5 Phase / 命中 plan 估 8-10 預算 ✓）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | 1 | plan v0.1.0 + overview v0.1.0 | 1 |
+| Phase 1 | 1 | M1 3 doc-level Cache + M2 drift 結算 + 修 NX06 M4 header | 1 |
+| Phase 2-3 合併 | 1 | 7 dashboard + 3 業界改革 inline + ETL + module wire | 1 |
+| Phase 4 | 1 | UI 22 placeholder + menu.nx08 + side-menu wire | 1 |
+| Phase 5 | 1 | summary v1.0 + worklog 主題 4 + _team 主題 28（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v1.0.0（待 Crown）| - |
+
+### 跨模組視角總覽（NX08 純 read-only 聚合）
+
+| 跨模組關係 | NX08 角色 | 對應 service |
+|---|---|---|
+| NX02 採購 → NX08 | read | PurchasingDashboard.poStats / arRecallHitRate |
+| NX03 庫存 → NX08 | read | WarehouseStaffDashboard.turnover / dormant / lowStockAlert |
+| NX04 銷貨 → NX08 | read | SalesRepDashboard + OwnerDashboard + StrategyDashboard.bcgMatrix |
+| NX05 財務 → NX08 | read | FinanceDashboard.{ar,ap,cashFlow} |
+| NX06 物流 → NX08 | read | WarehouseLeadDashboard.{deliveryCost,routeEfficiency,handoverStats ⭐⭐⭐} |
+| AR 自動補貨 → NX08 | read | PurchasingDashboard.arRecallHitRate ⭐⭐⭐ |
+| NX01 KPI → NX08 | read | OwnerDashboard.kpiGap / SalesRepDashboard.personalSales |
+
+⭐ **本軌 0 cross-module helper 變動**（純 read-only、上游 production 行為 0 改變）。
+
+### 統合教訓
+
+1. **Q-RHYTHM-2 第四次驗證穩定**（NX05 12 / NX06-IMPL-01 8 / NX06-IMPL-02 7 / NX08 6 commit）：每次更省、Hank 自決越來越乾淨。
+2. **「即時 SQL 聚合先行、Cache 後續軌」範式**：保守落地（不為效能 premature optimization）+ Q-RHYTHM-2 Hank Q-H 自決 mock 範式套用 4 次（Lalamove / Google Maps / web-push / ETL）。
+3. **業界改革 inline 不另抽 service**（Hank Q-H5）：避免過度切割、業務語意明確、3 個改革 method 落在 3 個不同角色 dashboard（warehouseLead/purchasing/strategy）。
+4. **Prisma checksum 教訓**（從 NX06 M4 + 本軌 fix）：migration 應用後不可修改檔案內容（包括註解）、揭露走外部路徑（commit message / worklog / merge-verify）。
+5. **doc-level snapshot Cache 範式新建**（per-doc 而非 per-partner-aggregated）：解決 audit-01 揭露的 0 業務模組接點、為後續軌 ETL writer 做 schema 準備。
+
+### 對應文件
+
+- 業務需求：`docs/nx08/spec/intent/nx08-overview.md` v0.1.0
+- 模組架構書：`docs/nx08/nx08-summary.md` v1.0（本主題後產出）
+- audit-01：`docs/nx08/nx08-audit-01.md`
+- impl plan：`docs/nx08/spec/impl/nx08-impl-01-plan.md`
+- merge verify：`docs/nx08/spec/impl/nx08-impl-01-merge-verify.md`
+
+### A026 backlog 開單揭露（IMPL-01 範圍）
+
+1. **TASK-NX08-IMPL-UI-01**：UI 真實 chart（21 placeholder → Recharts / Chart.js）
+2. **TASK-NX08-IMPL-02-CACHE**：ETL writer 啟動（refresh-cache 真實寫入 11 Cache）
+3. **TASK-NX08-IMPL-02-TEST**：service + ETL unit test
+4. **TASK-NX08-IMPL-03-EXTRANET**：客戶端 portal（範圍 B、Crown Q5=b 後續軌）
+5. **TASK-NX08-IMPL-04-DESIGNER**：自訂報表設計器（PRO 級候選）
+6. **TASK-NX08-IMPL-05-AI**：AI 預測分析（銷售 / 庫存 / 客戶流失）
+7. **dashboard 即時 SQL 聚合性能 verify**（規模化後）
+8. **BCG matrix 演算法精度升級**（true market share、非 top-quartile proxy）
+
+⭐⭐⭐ **Q-RHYTHM-2 第四次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 6 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v1.0.0-nx08-closure」、業務閉環延伸第 8 軌全 closure 達成、NEXORA 主版本 v1.0 達成 ⭐⭐⭐。
+
