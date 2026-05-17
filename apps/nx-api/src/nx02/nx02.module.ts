@@ -11,6 +11,8 @@ import { PoController } from './po/po.controller';
 import { PoService } from './po/po.service';
 import { PurchaseReturnController } from './purchase-return/purchase-return.controller';
 import { PurchaseReturnService } from './purchase-return/purchase-return.service';
+import { PurchaseSuggestionController } from './purchase-suggestion/purchase-suggestion.controller';
+import { PurchaseSuggestionService } from './purchase-suggestion/purchase-suggestion.service';
 import { QtController } from './qt/qt.controller';
 import { Nx02QtService } from './qt/qt.service';
 import { RfqController } from './rfq/rfq.controller';
@@ -27,6 +29,7 @@ import { RrService } from './rr/rr.service';
     PurchaseReturnController,
     QtController,
     PartnerPartController,
+    PurchaseSuggestionController,
   ],
   providers: [
     RfqService,
@@ -35,6 +38,7 @@ import { RrService } from './rr/rr.service';
     PurchaseReturnService,
     Nx02QtService,
     PartnerPartService,
+    PurchaseSuggestionService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
 })
