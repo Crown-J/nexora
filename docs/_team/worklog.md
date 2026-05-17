@@ -1782,3 +1782,47 @@ Crown 跨 2 輪需求討論共 11 題拍板 closure（2026-05-16）→ Alex 寫 
 
 ⭐ 等 Crown 拍板「branch merge main + push + tag v0.6.0-nx04-closure」、進 TASK-NX04-IMPL-UI-01 / TASK-NX04-IMPL-02-TEST / TASK-NX04-DEMO-CLEANUP / NX04 範圍 B（PRO KPI 業績）等下游 task。
 
+### A026 backlog 開單揭露（NX05 範圍）
+
+對齊 [docs/nx05/spec/impl/nx05-merge-verify.md](../nx05/spec/impl/nx05-merge-verify.md) §5.2 主要風險 + Q-RHYTHM-2 首次落地：
+
+1. **FinancePeriod 校驗 production 前 verify**
+   - 風險：本軌補強 2 Allowance helper +assertFinancePeriodMutable、production 既有 PR/SR POSTED 在已關帳期間呼叫會 throw
+   - 影響：production 既有 PR/SR POSTED 流可能在關帳期間被擋
+   - 後續軌：merge 前 query 既有 Closing CLOSED 期間 PR/SR POSTED 紀錄分佈
+   - mitigation：若有歷史紀錄、改 Closing.status='OPEN' reopen 或回滾此校驗
+
+2. **AccountCode application 層 seed-on-tenant-create**
+   - 本軌：純 INSERT 對既有所有 tenant、新 tenant 開戶後無 seed
+   - 風險：低（新 tenant 開戶後手動跑 seed 或加 application 層 hook）
+   - 後續軌：NEXORA tenant 開戶流加 AccountCode seed hook（NX99 tenant.service 升）
+
+3. **note.service CLEARED 觸發 Paylog**（Phase 3c 揭露）
+   - 本軌：純文件揭露、留 TASK-NX05-NOTE-PAYLOG 獨立軌
+   - 風險：低（業務員手動建 Paylog 沖 AR/AP 仍可運作）
+   - 後續軌：升 note.service.update CLEARED 分流自動建 Paylog
+
+4. **createApFromPostedRr / Ti 純 export 不 wire**
+   - 本軌：2 新 helper 純 export、不 wire 到 NX02 既有 rr.service / TI 處理流（避免改 NX02 production）
+   - 風險：低（LITE 路徑 / TI 過帳 目前手動 path、helper 待 wire）
+   - 後續軌：NX02 LITE 路徑 / TI service 啟動時 wire 2 helper
+
+5. **cron decorator 註冊（AR 對帳單每月 1 號）**
+   - 本軌：純 endpoint、cron 留 backlog
+   - 對齊 AR M1 範式（@nestjs/schedule 或外部 cron）
+   - 後續軌：cron decorator + 自動 trigger logic
+
+6. **全 7 子模組 0 test spec**
+   - 本軌：純加 3 新 service / 2 helper、未補 test
+   - 後續軌：TASK-NX05-IMPL-02-TEST 獨立軌（補 7+3 service 全 0 spec 缺口）
+
+7. **features/finance/FinanceCenterHub.tsx 命名孤兒**
+   - 本軌：純 文件揭露、留 TASK-NX05-DEMO-CLEANUP 獨立軌
+   - 風險：低（pivot 後殘留、不影響 production）
+
+完整 backlog 14 項見 [docs/nx05/nx05-summary.md §8](../nx05/nx05-summary.md)。
+
+⭐⭐⭐ **Q-RHYTHM-2 首次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 12 commit / 1 migration / 1~2 小時 → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v0.7.0-nx05-closure」、進 TASK-NX05-IMPL-UI-01 / TASK-NX05-IMPL-02-TEST / TASK-NX05-DEMO-CLEANUP / TASK-NX05-NOTE-PAYLOG / NX05 範圍 B（401 報表）等下游 task。
+
