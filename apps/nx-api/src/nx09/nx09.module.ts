@@ -13,6 +13,8 @@ import { Nx09FulltextSearchController } from './fulltext-search/fulltext-search.
 import { Nx09FulltextSearchService } from './fulltext-search/fulltext-search.service';
 import { Nx09MeetingController } from './meeting/meeting.controller';
 import { Nx09MeetingService } from './meeting/meeting.service';
+import { Nx09SubTablesController } from './sub-tables/sub-tables.controller';
+import { Nx09SubTablesService } from './sub-tables/sub-tables.service';
 import { Nx09SystemManualController } from './system-manual/system-manual.controller';
 import { Nx09SystemManualService } from './system-manual/system-manual.service';
 
@@ -24,6 +26,7 @@ import { Nx09SystemManualService } from './system-manual/system-manual.service';
     Nx09MeetingController,
     Nx09SystemManualController,
     Nx09FulltextSearchController,
+    Nx09SubTablesController,
   ],
   providers: [
     Nx09ArticleService,
@@ -31,6 +34,7 @@ import { Nx09SystemManualService } from './system-manual/system-manual.service';
     Nx09MeetingService,
     Nx09SystemManualService,
     Nx09FulltextSearchService,
+    Nx09SubTablesService,
   ],
 })
 export class Nx09Module {}
