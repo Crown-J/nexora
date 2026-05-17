@@ -5481,10 +5481,13 @@ model Nx09Document {
   updatedAt                          DateTime              @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
   updatedBy                          String                @map("updated_by") @db.VarChar(15)
+  /// Postgres tsvector FTS 索引欄、由 trigger 自動寫入；啟用最低需求版本：PRO
+  searchVector                       Unsupported("tsvector")? @map("search_vector")
   tenant                             Nx99Tenant            @relation("R_Nx09Document_tenantId", fields: [tenantId], references: [id])
   dept                               Nx01Department?       @relation("R_Nx09Document_deptId", fields: [deptId], references: [id])
   rev_Nx09DocumentVersion_documentId Nx09DocumentVersion[] @relation("R_Nx09DocumentVersion_documentId")
 
+  @@index([searchVector], map: "nx09_document_fts_idx", type: Gin)
   @@map("nx09_document")
 }
 
@@ -5555,11 +5558,14 @@ model Nx09KmArticle {
   updatedAt                      DateTime           @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
   updatedBy                      String             @map("updated_by") @db.VarChar(15)
+  /// Postgres tsvector FTS 索引欄、由 trigger 自動寫入；啟用最低需求版本：PRO
+  searchVector                   Unsupported("tsvector")? @map("search_vector")
   tenant                         Nx99Tenant         @relation("R_Nx09KmArticle_tenantId", fields: [tenantId], references: [id])
   dept                           Nx01Department?    @relation("R_Nx09KmArticle_deptId", fields: [deptId], references: [id])
   rev_Nx09KmArticleTag_articleId Nx09KmArticleTag[] @relation("R_Nx09KmArticleTag_articleId")
   rev_Nx09KmFeedback_articleId   Nx09KmFeedback[]   @relation("R_Nx09KmFeedback_articleId")
 
+  @@index([searchVector], map: "nx09_km_article_fts_idx", type: Gin)
   @@map("nx09_km_article")
 }
 
@@ -6724,6 +6730,7 @@ model Nx99Tenant {
   rev_Nx09KmTag_tenantId                  Nx09KmTag[]                  @relation("R_Nx09KmTag_tenantId")
   rev_Nx09Meeting_tenantId                Nx09Meeting[]                @relation("R_Nx09Meeting_tenantId")
   rev_Nx09MeetingAction_tenantId          Nx09MeetingAction[]          @relation("R_Nx09MeetingAction_tenantId")
+  rev_Nx09SystemManual_tenantId           Nx09SystemManual[]           @relation("R_Nx09SystemManual_tenantId")
   rev_Nx10EmpExpLog_tenantId              Nx10EmpExpLog[]              @relation("R_Nx10EmpExpLog_tenantId")
   rev_Nx10CheckinLog_tenantId             Nx10CheckinLog[]             @relation("R_Nx10CheckinLog_tenantId")
   rev_Nx10EmpMedal_tenantId               Nx10EmpMedal[]               @relation("R_Nx10EmpMedal_tenantId")
@@ -7626,4 +7633,47 @@ model Nx07Injury {
   @@index([userId], map: "nx07_injury_user_idx")
   @@index([tenantId, status], map: "nx07_injury_tenant_status_idx")
   @@map("nx07_injury")
+}
+
+/// =======================================================
+/// Nx09SystemManual — DB table `nx09_system_manual`
+/// =======================================================
+/// NEXORA 系統操作手冊（業界 ERP 標配 SAP/Oracle/MS Dynamics 對標）。NX09-IMPL-01 M1 新增。
+/// featureKey 命名規範：模組.功能.動作（如 nx04.so.create / nx05.ar.statement）
+model Nx09SystemManual {
+  /// [NX09]+[SYMA]+[7碼流水號]，EX : NX09SYMA0000001；啟用最低需求版本：PRO
+  id            String     @id @default(dbgenerated("gen_nx09_system_manual_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId      String     @map("tenant_id") @db.VarChar(15)
+  /// feature 對應 key、命名規範：模組.功能.動作；啟用最低需求版本：PRO
+  featureKey    String     @map("feature_key") @db.VarChar(50)
+  /// 手冊標題；啟用最低需求版本：PRO
+  title         String     @db.VarChar(200)
+  /// markdown 內文；啟用最低需求版本：PRO
+  content       String?    @db.Text
+  /// 操作步驟 JSON 字串陣列；啟用最低需求版本：PRO
+  steps         String?    @db.Text
+  /// screenshot URL JSON 字串陣列；啟用最低需求版本：PRO
+  screenshots   String?    @db.Text
+  /// 手冊分類（GENERAL / FAQ / TROUBLESHOOT）；啟用最低需求版本：PRO
+  category      String     @default("GENERAL") @db.VarChar(30)
+  /// 版本號；啟用最低需求版本：PRO
+  version       String     @default("1.0") @db.VarChar(10)
+  /// 是否啟用；啟用最低需求版本：PRO
+  isActive      Boolean    @default(true) @map("is_active")
+  /// 備註；啟用最低需求版本：PRO
+  remark        String?    @db.VarChar(500)
+  /// Postgres tsvector FTS 索引欄、由 trigger 自動寫入（service 走 $queryRawUnsafe 查詢）；啟用最低需求版本：PRO
+  searchVector  Unsupported("tsvector")? @map("search_vector")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  createdBy     String     @map("created_by") @db.VarChar(15)
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  updatedBy     String     @map("updated_by") @db.VarChar(15)
+  tenant        Nx99Tenant @relation("R_Nx09SystemManual_tenantId", fields: [tenantId], references: [id])
+
+  @@unique([featureKey], map: "nx09_system_manual_feature_key_key")
+  @@index([tenantId], map: "nx09_system_manual_tenant_idx")
+  @@index([tenantId, category], map: "nx09_system_manual_category_idx")
+  @@index([searchVector], map: "nx09_system_manual_fts_idx", type: Gin)
+  @@map("nx09_system_manual")
 }
