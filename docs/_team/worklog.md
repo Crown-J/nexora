@@ -1925,3 +1925,80 @@ Crown 跨 13 題拍板 closure（Q-RHYTHM-2 第二次落地、Crown + Alex 全�
 
 ⭐ 後續軌啟動：TASK-NX06-IMPL-02（路線優化）/ TASK-NX06-IMPL-UI-01 / TASK-NX06-IMPL-02-TEST / TASK-NX06-LALAMOVE-WIRE / TASK-NX06-PRINTER-WIRE。
 
+---
+
+## 主題 27｜NX06 路線優化 + 動態任務轉派全 closure（TASK-NX06-IMPL-02、2026-05-17）⭐⭐⭐ 業界改革候選最強
+
+### 起源
+
+NX06-IMPL-01（v0.8.0）closure 後 Crown 立即啟動 IMPL-02（同日連跑）。NX06-AUDIT-02 5 段技術選型 verify + Crown 5 戰略題拍板（Q1=100/日 → 需 VRP / Q2=c iOS+Android PWA / Q3=a 不做客戶推播 / Q4=a polling 10s / Q5=a 同軌全部）→ Alex 寫 overview v0.2.0 + 18 拍板 → Hank Q-RHYTHM-2 第三次落地、7 commit 全軌連跑。
+
+**戰略意義**：
+- ⭐⭐⭐ 中小汽配 ERP 業界第一個動態任務轉派（Crowdsourced Routing 簡化版）
+- ⭐⭐ 亞羅核心競爭力（送貨快速 = 市場差異化）
+- ⭐⭐ NEXORA 業務閉環第一階段最強拼圖（NX06 範圍 A 全 closure）
+
+### 設計決策
+
+1. **schema 衝擊小**（3 軌新 schema + 1 軌 drift 結算）
+2. **dn-logistics.service 0 動既有路徑**（純 additive listActiveForMap method）
+3. **OR-Tools 改 pure-js heuristic**（避免 npm 安裝風險、100/日 規模 NN + greedy 夠用）
+4. **Google Maps + web-push 全 env toggle mock fallback**（同 Lalamove 範式、Crown 後續軌補 key）
+5. **動態交接 3 步驟演算法**：半徑 5km + 任務量平衡 + ETA、半自動倉管組長拍板
+6. **PWA infra 既有完整**（前軌已建）、僅升 sw.js v2 push handler + 加客戶端訂閱 helper
+7. **M4 drift 結算誠實揭露**（auto-gen 含 pre-existing drift、不隱藏）
+
+### 實作歷程（7 commit / 7 Phase / 命中 plan 估 14 預算 50% ✓）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | 1 | plan v0.1.0 + overview v0.2.0 | 1 |
+| Phase 1 | 1 | 4 migration（M1+M2+M3+M4）| 1 |
+| Phase 2-4 | 1（合併）| 4 service + 2 helper + dn-logistics + module | 1 |
+| Phase 5 | 1 | sw.js v2 + push subscription helper | 1 |
+| Phase 6 | 1 | UI 7 placeholder + menu 升 | 1 |
+| Phase 7 | 1 | summary v0.2.0 + worklog + merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v0.9.0（待 Crown）| - |
+
+### 跨模組視角總覽（NX06-IMPL-02 觸發 / 被觸發）
+
+| 跨模組關係 | NX06 角色 | 對應 service |
+|---|---|---|
+| 純 NX06 內部 | 全 self-contained | 0 cross-module helper 變動 |
+| 既有 IMPL-01 4 helper 0 動 | 對前軌 0 影響 | createDeliveryFromSo / createReturnPickupFromSr / createDnItemFromParcel / createPaylogFromDnCost |
+
+⭐ **本軌 0 跨模組 wire**（路線優化是 NX06 純內部演算法、無需外部模組接點）。
+
+### 統合教訓
+
+1. **Q-RHYTHM-2 第三次驗證**：NX05 12 commit / NX06-IMPL-01 8 commit / NX06-IMPL-02 7 commit、節奏穩定、Hank 自決越來越乾淨
+2. **schema 衝擊估算範式**：audit-02 揭露既有 lastLat/Lng 已備 → 演算法只需 3 新欄 + 2 新表、避免大改 schema
+3. **外部 API 整合 mock 範式套用第三次**（Lalamove / Google Maps / web-push）：service shell + env toggle、Crown API key 不阻擋封測
+4. **dn-logistics.service 邊界三次守住**（IMPL-01 Phase 3 不動既有 / IMPL-01 Phase 4 不動既有 / IMPL-02 Phase 4 +1 method 純 additive）：穩定模組升級的安全範式
+5. **drift 結算誠實揭露**（M4 包入 pre-existing drift、不隱藏、留 A026 backlog drift-audit 軌）：避免技術債靜默累積
+
+### 對應文件
+
+- 業務需求：`docs/nx06/spec/intent/nx06-overview-v02.md` v0.2.0
+- 模組架構書：`docs/nx06/nx06-summary.md` § 9（本主題後產出）
+- audit-02：`docs/nx06/nx06-audit-02.md`
+- impl plan：`docs/nx06/spec/impl/nx06-impl-02-plan.md`
+- merge verify：`docs/nx06/spec/impl/nx06-impl-02-merge-verify.md`
+
+### A026 backlog 開單揭露（IMPL-02 範圍）
+
+1. **TASK-NX06-GOOGLE-MAPS-WIRE**：Crown 申請 Google Cloud API key + 設 GOOGLE_MAPS_API_ENABLED=true
+2. **TASK-NX06-WEB-PUSH-WIRE**：install web-push npm + VAPID key 生成 + 設 WEB_PUSH_ENABLED=true
+3. **TASK-NX06-EMAIL-FALLBACK**：iOS 15- 用戶 Email 推播 fallback（封測後評估設備分佈）
+4. **TASK-NX06-GEOCODE-ADDRESS**：DN.stop.address → lat/lng（取代 lastLat/Lng 假設、提升演算法精度）
+5. **TASK-NX06-OR-TOOLS-WIRE**：規模升級（> 200/日）後裝完整 VRP solver
+6. **TASK-NX06-DRIVER-HEARTBEAT**：dispatch heartbeat 獨立 endpoint（業務語意分離）
+7. **TASK-NX06-DRIFT-AUDIT**：M4 pre-existing drift 來源追溯
+8. **TASK-NX06-IMPL-UI-01**：UI 真實 component（地圖 / 外務員 PWA / route view、IMPL-01+02 12 placeholder 全升）
+9. **TASK-NX06-IMPL-03**：客戶端配送通知（範圍 B 戰略軌）
+10. **TASK-NX06-IMPL-04**：dashboard SSE 升級（規模化後）
+
+⭐⭐⭐ **Q-RHYTHM-2 第三次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 4 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v0.9.0-nx06-routing-closure」、NX06 範圍 A 全 closure 達成（IMPL-01 物流基礎 + IMPL-02 路線優化）= NEXORA 業務閉環第一階段戰略完成 ⭐⭐⭐。
+
