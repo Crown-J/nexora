@@ -2213,3 +2213,79 @@ NEXORA 三大現金流 100% wire 進 NX05 Paylog：
 
 ⭐⭐⭐ **NEXORA 主版本 v1.1 達成**（業務閉環完整化第三大現金流接入 NX05 Paylog、採購 + 銷貨 + 發薪 100%）= **7 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08 / NX07）+ 3 業界改革 wire（NX04→NX07 業績獎金 + NX07→NX05 Paylog 發薪 + 醫療管理 + 職災追蹤）。
 
+---
+
+## 主題 30｜NX09 EIP 重戰場升級 Q-RHYTHM-2 落地（TASK-NX09-IMPL-01、2026-05-17）⭐⭐⭐ 業界 ERP 標配 SystemManual + Postgres FTS
+
+### 起源
+
+NEXORA v1.1.0（NX07 closure）後 Crown 啟動 NX09（業務模組第 10 軌、剩 NX09 + NX10、9/11 → 10/11）。⚠️ Crown 重戰場升級揭露：**NX09 = EIP 企業資訊平台**（不是純小知識庫）。
+
+本軌特殊：backend 完整（10 model / 15 endpoint、worklog 揭露「最純粹穩定模組」、0 follow-up migration）+ frontend 最落後（1 placeholder）+ 治理檔落後 2 階段 → 本軌 = EIP 補強 + 既有升級 + 治理補齊 + UI stub。
+
+NX09-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（Q1=全要 / Q2=b 拆軌 / Q3=b FTS / Q4=a 全員+角色 / Q5=b SystemManual 新表）→ Hank Q-RHYTHM-2 第六次落地。
+
+⚠️ 特殊狀態：overview v1.0 由 Hank 從 Crown TASK formalize（Alex 本輪未寫）。新範式建立：「Crown TASK 完整時 Hank 可自決 formalize、不 stop」。
+
+**戰略意義**：
+- ⭐⭐⭐ SystemManual 內建系統操作手冊（業界 SAP/Oracle/MS Dynamics 標配、中小汽配 ERP 第一個）
+- ⭐⭐⭐ Postgres FTS 全文搜尋（純 Postgres 原生、不裝 Elasticsearch、中小 ERP 罕見）
+- ⭐⭐ EIP 統一查詢入口
+
+### 設計決策
+
+1. 既有 10 model + 15 endpoint 0 動（Crown「既有 100% 保留」+ Q-RHYTHM-2 紀律）
+2. SystemManual 新表（featureKey UNIQUE + 命名 regex `模組.功能.動作`）
+3. Postgres FTS 純原生（tsvector + simple + GIN + trigger + backfill）
+4. KmArticle DTO @IsIn 純擴（9 enum、純強化 validation）
+5. 3 子表 core endpoint only（Hank Q-H3 避免本軌膨脹）
+6. UI 6 placeholder + menu.nx09 + side-menu wire（同 NX02-08 範式）
+7. Hank 從 Crown TASK formalize overview（Alex 本輪未寫範式建立）
+
+### 實作歷程（7 commit / 7 Phase / 命中 plan 估 8-9 預算）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| 0 | 1 | overview v1.0（從 Crown formalize）+ plan v0.1.0 | 1 |
+| 1 | 1 | M1 SystemManual + M2 FTS tsvector + M3 drift | 1 |
+| 2-4 合併 | 1 | DTO @IsIn 擴 + SystemManual + FTS + module wire | 1 |
+| 5 | 1 | 3 子表 core endpoint | 1 |
+| 6 | 1 | UI 5+1 placeholder + menu.nx09 + side-menu wire | 1 |
+| 7 | 1 | summary v1.0 + worklog 主題 3 + _team 主題 30（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v1.2.0（待 Crown）| - |
+
+### 跨模組視角總覽（本軌 0 跨模組 wire）
+
+⭐ 本軌純 NX09 內部 + NX01 主檔 FK（Crown Q2=b 拆軌：跨模組接點留 IMPL-02 後續軌）。
+
+### 統合教訓
+
+1. **Q-RHYTHM-2 第六次驗證穩定**（NX05 12 / NX06-IMPL-01 8 / NX06-IMPL-02 7 / NX08 6 / NX07 7 / NX09 7 commit）：節奏穩定、Hank 自決越成熟。
+2. **「穩定模組升級紀律」第六次套用**：既有 backend 0 改、純加強 + 治理檔補齊範式定型 6 次。
+3. **「Alex spec 缺、Hank 從 Crown TASK formalize」新範式建立**（本軌首例）：Crown TASK 完整含拍板 + 範圍 + 細節時、Hank 可自決 formalize 為 spec/intent/overview。spec 缺不 stop、Crown prompt 即 spec 源頭。
+4. **Prisma drift 結算第四次**（NX06 + NX08 + NX07 + NX09）：標準化處理流程（rename M2/M3/M4 + resolve --applied + DELETE 舊 record）。
+5. **Postgres FTS 替代 Elasticsearch 範式**：tsvector + `Unsupported()` + `$queryRaw` + `PrismaNs.sql` tagged template 對 Prisma 不完整支援的 PG 特性。
+
+### 對應文件
+
+- 業務需求：`docs/nx09/spec/intent/nx09-overview.md` v1.0
+- 模組架構書：`docs/nx09/nx09-summary.md` v1.0
+- audit-01：`docs/nx09/nx09-audit-01.md`
+- impl plan：`docs/nx09/spec/impl/nx09-impl-01-plan.md`
+- merge verify：`docs/nx09/spec/impl/nx09-impl-01-merge-verify.md`
+
+### A026 backlog 開單揭露（IMPL-01 範圍）
+
+1. **TASK-NX09-IMPL-02-YARO-FEATURE**（亞羅特色 VIN / 維修 SOP / 故障代碼 ⭐⭐⭐）
+2. **TASK-NX09-IMPL-03-CROSS-WIRE**（跨模組接點 NX07/NX04/NX02/NX08）
+3. **TASK-NX09-IMPL-04-RAG**（Phase 2 RAG 向量化、pgvector / OpenAI embedding ⭐）
+4. **TASK-NX09-IMPL-UI-01**（UI 真實 chart + 文件閱讀器 + 全文搜尋 UI）
+5. **TASK-NX09-IMPL-UI-MANUAL-WIRE**（NEXORA UI「？」按鈕 wire SystemManual ⭐）
+6. **TASK-NX09-IMPL-AUTO-VERSION**（DocumentVersion 自動寫入 + KM viewCount writer）
+7. **TASK-NX09-IMPL-MEETING-FULL**（會議子表 endpoint 補齊：Attendee / Minutes / Action）
+8. **TASK-NX09-IMPL-02-TEST**（service + FTS unit test）
+
+⭐⭐⭐ **Q-RHYTHM-2 第六次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 3 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
+
+⭐⭐⭐ 等 Crown 拍板「branch merge main + push + tag v1.2.0-nx09-eip-closure」、EIP 重戰場升級達成（業界 ERP 標配 SystemManual + Postgres FTS、業界中小汽配 ERP 第一個）、NEXORA 主版本 v1.2 達成 ⭐⭐⭐。
+
