@@ -333,6 +333,7 @@ model Nx01CarBrand {
   rev_Nx01Engine_carBrandId        Nx01Engine[]        @relation("R_Nx01Engine_carBrandId")
   rev_Nx01Transmission_carBrandId  Nx01Transmission[]  @relation("R_Nx01Transmission_carBrandId")
   rev_Nx01Model_carBrandId         Nx01Model[]         @relation("R_Nx01Model_carBrandId")
+  rev_Nx09VinLookup_carBrandId     Nx09VinLookup[]     @relation("R_Nx09VinLookup_carBrandId")
 
   @@unique([tenantId, code])
   @@map("nx01_car_brand")
@@ -6731,6 +6732,8 @@ model Nx99Tenant {
   rev_Nx09Meeting_tenantId                Nx09Meeting[]                @relation("R_Nx09Meeting_tenantId")
   rev_Nx09MeetingAction_tenantId          Nx09MeetingAction[]          @relation("R_Nx09MeetingAction_tenantId")
   rev_Nx09SystemManual_tenantId           Nx09SystemManual[]           @relation("R_Nx09SystemManual_tenantId")
+  rev_Nx09VinLookup_tenantId              Nx09VinLookup[]              @relation("R_Nx09VinLookup_tenantId")
+  rev_Nx09RepairSop_tenantId              Nx09RepairSop[]              @relation("R_Nx09RepairSop_tenantId")
   rev_Nx10EmpExpLog_tenantId              Nx10EmpExpLog[]              @relation("R_Nx10EmpExpLog_tenantId")
   rev_Nx10CheckinLog_tenantId             Nx10CheckinLog[]             @relation("R_Nx10CheckinLog_tenantId")
   rev_Nx10EmpMedal_tenantId               Nx10EmpMedal[]               @relation("R_Nx10EmpMedal_tenantId")
@@ -7265,6 +7268,8 @@ model Nx01Model {
   modelType                           Nx01ModelType?            @relation("R_Nx01Model_modelTypeId", fields: [modelTypeId], references: [id])
   rev_Nx01PartModel_modelId           Nx01PartModel[]           @relation("R_Nx01PartModel_modelId")
   rev_Nx03BrandAllocationRule_modelId Nx03BrandAllocationRule[] @relation("R_Nx03BrandAllocationRule_modelId")
+  rev_Nx09VinLookup_modelId           Nx09VinLookup[]           @relation("R_Nx09VinLookup_modelId")
+  rev_Nx09RepairSop_carModelFilter    Nx09RepairSop[]           @relation("R_Nx09RepairSop_carModelFilter")
 
   @@unique([tenantId, code])
   @@index([tenantId, carBrandId])
@@ -7361,6 +7366,7 @@ model Nx01PartModel {
   tenant    Nx99Tenant @relation("R_Nx01PartModel_tenantId", fields: [tenantId], references: [id])
   part      Nx01Part   @relation("R_Nx01PartModel_partId", fields: [partId], references: [id])
   model     Nx01Model  @relation("R_Nx01PartModel_modelId", fields: [modelId], references: [id])
+  rev_Nx09RepairSopPartModel_partModelId Nx09RepairSopPartModel[] @relation("R_Nx09RepairSopPartModel_partModelId")
 
   @@unique([tenantId, partId, modelId])
   @@index([tenantId, partId])
@@ -7676,4 +7682,126 @@ model Nx09SystemManual {
   @@index([tenantId, category], map: "nx09_system_manual_category_idx")
   @@index([searchVector], map: "nx09_system_manual_fts_idx", type: Gin)
   @@map("nx09_system_manual")
+}
+
+/// =======================================================
+/// Nx09VinLookup — DB table `nx09_vin_lookup`
+/// =======================================================
+/// VIN 17 碼結構化主檔（NHTSA decode + 手動建檔混合、業界改革 ⭐⭐⭐）。NX09-IMPL-02 M1 新增。
+model Nx09VinLookup {
+  /// [NX09]+[VINL]+[7碼流水號]，EX : NX09VINL0000001；啟用最低需求版本：PRO
+  id              String        @id @default(dbgenerated("gen_nx09_vin_lookup_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：PRO
+  tenantId        String        @map("tenant_id") @db.VarChar(15)
+  /// VIN 17 碼國際標準（ISO 3779 / SAE J853）；啟用最低需求版本：PRO
+  vin             String        @db.VarChar(17)
+  /// 車型品牌 FK（NHTSA Make 對照或業務員手動指定、可空）；啟用最低需求版本：PRO
+  carBrandId      String?       @map("car_brand_id") @db.VarChar(15)
+  /// 車型 FK（業務員手動關聯後即可走 PartModel 鏈、可空）；啟用最低需求版本：PRO
+  modelId         String?       @map("model_id") @db.VarChar(15)
+  /// 資料來源（API=NHTSA / MANUAL=業務員手動）；啟用最低需求版本：PRO
+  source          String        @default("MANUAL") @db.VarChar(10)
+  /// NHTSA decode 時間（API 來源才有）；啟用最低需求版本：PRO
+  decodedAt       DateTime?     @map("decoded_at")
+  /// NHTSA decode 原始 JSON（debug + 補錄用）；啟用最低需求版本：PRO
+  rawApiResponse  String?       @map("raw_api_response") @db.Text
+  /// 業務員備註；啟用最低需求版本：PRO
+  notes           String?       @db.VarChar(500)
+  /// 是否啟用；啟用最低需求版本：PRO
+  isActive        Boolean       @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：PRO
+  createdAt       DateTime      @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：PRO
+  createdBy       String        @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：PRO
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：PRO
+  updatedBy       String        @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant    @relation("R_Nx09VinLookup_tenantId",   fields: [tenantId],   references: [id])
+  carBrand        Nx01CarBrand? @relation("R_Nx09VinLookup_carBrandId", fields: [carBrandId], references: [id])
+  model           Nx01Model?    @relation("R_Nx09VinLookup_modelId",    fields: [modelId],    references: [id])
+
+  @@unique([tenantId, vin], map: "nx09_vin_lookup_tenant_vin_key")
+  @@index([tenantId], map: "nx09_vin_lookup_tenant_idx")
+  @@index([tenantId, modelId], map: "nx09_vin_lookup_model_idx")
+  @@index([tenantId, source], map: "nx09_vin_lookup_source_idx")
+  @@map("nx09_vin_lookup")
+}
+
+/// =======================================================
+/// Nx09RepairSop — DB table `nx09_repair_sop`
+/// =======================================================
+/// 維修 SOP 結構化主檔（步驟 + 工具 + 注意事項 + 預估時間、業界改革 ⭐⭐⭐）。NX09-IMPL-02 M1 新增。
+model Nx09RepairSop {
+  /// [NX09]+[RPSP]+[7碼流水號]，EX : NX09RPSP0000001；啟用最低需求版本：PRO
+  id                              String                    @id @default(dbgenerated("gen_nx09_repair_sop_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：PRO
+  tenantId                        String                    @map("tenant_id") @db.VarChar(15)
+  /// SOP 代碼（tenant 內 unique、例：OIL-CHG-001）；啟用最低需求版本：PRO
+  code                            String                    @db.VarChar(30)
+  /// SOP 標題；啟用最低需求版本：PRO
+  title                           String                    @db.VarChar(200)
+  /// 維修分類（ENGINE/BRAKE/ELECTRIC/MAINTAIN/SUSPENSION/AC/TRANS/OTHER）；啟用最低需求版本：PRO
+  category                        String                    @default("OTHER") @db.VarChar(20)
+  /// 步驟 JSON 陣列：[{seq, description, tool, warning, imageUrl}]；啟用最低需求版本：PRO
+  steps                           String                    @db.Text
+  /// 工具 JSON 陣列；啟用最低需求版本：PRO
+  tools                           String?                   @db.Text
+  /// 注意事項 JSON 陣列；啟用最低需求版本：PRO
+  warnings                        String?                   @db.Text
+  /// 預估時間（分鐘）；啟用最低需求版本：PRO
+  estimatedMinutes                Int?                      @map("estimated_minutes")
+  /// 照片 URL JSON 陣列；啟用最低需求版本：PRO
+  photos                          String?                   @db.Text
+  /// 適用車型過濾（可空 = 通用、FK Nx01Model）；啟用最低需求版本：PRO
+  carModelFilter                  String?                   @map("car_model_filter") @db.VarChar(15)
+  /// 維修難度（1-5、預設 1 簡易）；啟用最低需求版本：PRO
+  difficulty                      Int                       @default(1) @db.SmallInt
+  /// 是否啟用；啟用最低需求版本：PRO
+  isActive                        Boolean                   @default(true) @map("is_active")
+  /// 備註；啟用最低需求版本：PRO
+  remark                          String?                   @db.VarChar(500)
+  /// 建立時間；啟用最低需求版本：PRO
+  createdAt                       DateTime                  @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：PRO
+  createdBy                       String                    @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：PRO
+  updatedAt                       DateTime                  @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：PRO
+  updatedBy                       String                    @map("updated_by") @db.VarChar(15)
+  tenant                          Nx99Tenant                @relation("R_Nx09RepairSop_tenantId",       fields: [tenantId],       references: [id])
+  carModel                        Nx01Model?                @relation("R_Nx09RepairSop_carModelFilter", fields: [carModelFilter], references: [id])
+  rev_Nx09RepairSopPartModel_sop  Nx09RepairSopPartModel[]  @relation("R_Nx09RepairSopPartModel_repairSopId")
+
+  @@unique([tenantId, code], map: "nx09_repair_sop_tenant_code_key")
+  @@index([tenantId], map: "nx09_repair_sop_tenant_idx")
+  @@index([tenantId, category], map: "nx09_repair_sop_category_idx")
+  @@index([tenantId, carModelFilter], map: "nx09_repair_sop_car_model_idx")
+  @@map("nx09_repair_sop")
+}
+
+/// =======================================================
+/// Nx09RepairSopPartModel — DB table `nx09_repair_sop_part_model`
+/// =======================================================
+/// RepairSop ↔ Nx01PartModel link 表（業界改革 ⭐⭐⭐ 雙向查詢：查料件→看 SOP / 查 SOP→看料件）。NX09-IMPL-02 M1 新增。
+model Nx09RepairSopPartModel {
+  /// [NX09]+[RSPM]+[7碼流水號]，EX : NX09RSPM0000001；啟用最低需求版本：PRO
+  id            String        @id @default(dbgenerated("gen_nx09_repair_sop_part_model_id()")) @db.VarChar(15)
+  /// RepairSop FK；啟用最低需求版本：PRO
+  repairSopId   String        @map("repair_sop_id") @db.VarChar(15)
+  /// PartModel FK（cross-ref NX01PartModel）；啟用最低需求版本：PRO
+  partModelId   String        @map("part_model_id") @db.VarChar(15)
+  /// 為什麼這料件適用此 SOP（業務員備註）；啟用最低需求版本：PRO
+  notes         String?       @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：PRO
+  createdAt     DateTime      @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：PRO
+  createdBy     String        @map("created_by") @db.VarChar(15)
+  repairSop     Nx09RepairSop @relation("R_Nx09RepairSopPartModel_repairSopId", fields: [repairSopId], references: [id])
+  partModel     Nx01PartModel @relation("R_Nx09RepairSopPartModel_partModelId", fields: [partModelId], references: [id])
+
+  @@unique([repairSopId, partModelId], map: "nx09_repair_sop_part_model_uniq_key")
+  @@index([repairSopId], map: "nx09_repair_sop_part_model_sop_idx")
+  @@index([partModelId], map: "nx09_repair_sop_part_model_part_model_idx")
+  @@map("nx09_repair_sop_part_model")
 }
