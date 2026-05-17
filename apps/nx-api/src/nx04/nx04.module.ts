@@ -4,6 +4,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TranslatorErrorFilter } from '../shared/filters/translator-error.filter';
 
+import { CoEstimateController } from './co-estimate/co-estimate.controller';
+import { CoEstimateService } from './co-estimate/co-estimate.service';
 import { CreditGuardController } from './credit-guard/credit-guard.controller';
 import { CreditGuardService } from './credit-guard/credit-guard.service';
 import { QuoteController } from './quote/quote.controller';
@@ -28,6 +30,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     SalesReturnController,
     CreditGuardController,
     SalesPerformanceController,
+    CoEstimateController,
   ],
   providers: [
     QuoteService,
@@ -38,6 +41,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     RefreshmentDocCreator,
     CreditGuardService,
     SalesPerformanceService,
+    CoEstimateService,
     { provide: APP_FILTER, useClass: TranslatorErrorFilter },
   ],
 })
