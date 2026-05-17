@@ -9,6 +9,7 @@ import { DeliveryController } from './delivery/delivery.controller';
 import { DispatchController } from './dispatch/dispatch.controller';
 import { DispatchService } from './dispatch/dispatch.service';
 import { DnLogisticsService } from './dn-logistics.service';
+import { DnOpsController } from './dn-ops/dn-ops.controller';
 import { IntlShippingController } from './intl-shipping/intl-shipping.controller';
 import { LalamoveIntegrationController } from './lalamove-integration/lalamove-integration.controller';
 import { LalamoveIntegrationService } from './lalamove-integration/lalamove-integration.service';
@@ -27,6 +28,7 @@ import { ReturnPickupController } from './return-pickup/return-pickup.controller
     DispatchController,
     PrinterIntegrationController,
     LalamoveIntegrationController,
+    DnOpsController,
   ],
   providers: [
     DnLogisticsService,
