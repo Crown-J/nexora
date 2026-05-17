@@ -778,6 +778,7 @@ model Nx01Part {
   rev_Nx02RfqItem_partId          Nx02RfqItem[]          @relation("R_Nx02RfqItem_partId")
   rev_Nx02RrItem_partId           Nx02RrItem[]           @relation("R_Nx02RrItem_partId")
   rev_Nx02TiItem_partId           Nx02TiItem[]           @relation("R_Nx02TiItem_partId")
+  rev_Nx02PartnerPart_partId      Nx02PartnerPart[]      @relation("R_Nx02PartnerPart_partId")
   rev_Nx03InitItem_partId         Nx03InitItem[]         @relation("R_Nx03InitItem_partId")
   rev_Nx03PartStockSetting_partId Nx03PartStockSetting[] @relation("R_Nx03PartStockSetting_partId")
   rev_Nx03PkItem_partId           Nx03PkItem[]           @relation("R_Nx03PkItem_partId")
@@ -991,6 +992,7 @@ model Nx01Partner {
   rev_Nx02Rfq_supplierId                   Nx02Rfq[]                    @relation("R_Nx02Rfq_supplierId")
   rev_Nx02Rr_supplierId                    Nx02Rr[]                     @relation("R_Nx02Rr_supplierId")
   rev_Nx02Ti_partnerId                     Nx02Ti[]                     @relation("R_Nx02Ti_partnerId")
+  rev_Nx02PartnerPart_partnerId            Nx02PartnerPart[]            @relation("R_Nx02PartnerPart_partnerId")
   rev_Nx03Parcel_toPartnerId               Nx03Parcel[]                 @relation("R_Nx03Parcel_toPartnerId")
   rev_Nx04Co_customerId                    Nx04Co[]                     @relation("R_Nx04Co_customerId")
   rev_Nx04Quote_customerId                 Nx04Quote[]                  @relation("R_Nx04Quote_customerId")
@@ -1509,6 +1511,61 @@ model Nx02Demand {
 
   @@unique([docNo])
   @@map("nx02_demand")
+}
+
+/// =======================================================
+/// Nx02PartnerPart — DB table `nx02_partner_part`（partner ↔ part 中間表、NX02-IMPL-01 Phase 1 M4 新建）
+/// audit-02 後記 path C 混合範式（Crown Q-PP-1=C）
+/// source 雙來源（Crown Q-S1 範式仿 AR BrandAllocationRule）：S=system 自動 / M=manual 手動
+/// 採購建議單列表先查主檔 → fallback Nx02PoItem 歷史推算（PurchaseSuggestionService）
+/// 支援歷史版本：unique [tenantId, partnerId, partId, validFrom]、validTo 可空（現役留空）
+/// =======================================================
+model Nx02PartnerPart {
+  /// [NX02]+[PNPT]+[7碼流水號]，EX : NX02PNPT0000001；啟用最低需求版本：LITE-CORE
+  id              String      @id @default(dbgenerated("gen_nx02_partner_part_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId        String      @map("tenant_id") @db.VarChar(15)
+  /// 廠商 ID（FK nx01_partner、application 層 guard partner_type='S' 零件供應商、Crown Q-PP-2=a 不在 DB 強制）；啟用最低需求版本：LITE-CORE
+  partnerId       String      @map("partner_id") @db.VarChar(15)
+  /// 料件 ID（FK nx01_part）；啟用最低需求版本：LITE-CORE
+  partId          String      @map("part_id") @db.VarChar(15)
+  /// 主要供應商標記（採購建議單列表排序、true=主要、false=次要備援）；啟用最低需求版本：LITE-CORE
+  isPrimary       Boolean     @default(false) @map("is_primary")
+  /// 廠商料號（Crown Q-PP-3=b 選填、業界 muscle memory 雙料號對應、如 Bosch 自有編號 vs 我方 partNo）；啟用最低需求版本：LITE-CORE
+  supplierPartNo  String?     @map("supplier_part_no") @db.VarChar(50)
+  /// 預設單價（採購建議單預設值、無歷史時 fallback）；啟用最低需求版本：LITE-CORE
+  defaultUnitCost Decimal?    @map("default_unit_cost") @db.Decimal(14, 4)
+  /// 預設交期（天數）；啟用最低需求版本：LITE-CORE
+  defaultLeadDays Int?        @map("default_lead_days")
+  /// 最小訂購量 MOQ；啟用最低需求版本：LITE-CORE
+  moq             Decimal?    @db.Decimal(14, 4)
+  /// 來源（S=system 自動同步 / M=manual 手動維護、仿 AR BrandAllocationRule Q-S1=A 雙來源並存）；啟用最低需求版本：LITE-CORE
+  source          String      @default("S") @db.VarChar(1)
+  /// 生效起期（可空、null=從建立時即生效）；啟用最低需求版本：LITE-CORE
+  validFrom       DateTime?   @map("valid_from") @db.Date
+  /// 生效迄期（null=現役、application 層校驗 validFrom ≤ validTo）；啟用最低需求版本：LITE-CORE
+  validTo         DateTime?   @map("valid_to") @db.Date
+  /// 是否啟用；啟用最低需求版本：LITE-CORE
+  isActive        Boolean     @default(true) @map("is_active")
+  /// 備註；啟用最低需求版本：LITE-CORE
+  remark          String?     @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt       DateTime    @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE-CORE
+  createdBy       String      @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE-CORE
+  updatedBy       String      @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant  @relation("R_Nx02PartnerPart_tenantId", fields: [tenantId], references: [id])
+  partner         Nx01Partner @relation("R_Nx02PartnerPart_partnerId", fields: [partnerId], references: [id])
+  part            Nx01Part    @relation("R_Nx02PartnerPart_partId", fields: [partId], references: [id])
+
+  @@unique([tenantId, partnerId, partId, validFrom], map: "nx02_partner_part_tenant_partner_part_valid_from_key")
+  @@index([tenantId, partnerId], map: "nx02_partner_part_tenant_partner_idx")
+  @@index([tenantId, partId], map: "nx02_partner_part_tenant_part_idx")
+  @@index([tenantId, isPrimary], map: "nx02_partner_part_tenant_is_primary_idx")
+  @@map("nx02_partner_part")
 }
 
 /// =======================================================
@@ -6570,6 +6627,7 @@ model Nx99Tenant {
   rev_Nx02Rr_tenantId                     Nx02Rr[]                     @relation("R_Nx02Rr_tenantId")
   rev_Nx02RrImport_tenantId               Nx02RrImport[]               @relation("R_Nx02RrImport_tenantId")
   rev_Nx02Ti_tenantId                     Nx02Ti[]                     @relation("R_Nx02Ti_tenantId")
+  rev_Nx02PartnerPart_tenantId            Nx02PartnerPart[]            @relation("R_Nx02PartnerPart_tenantId")
   rev_Nx03AutoReplenish_tenantId          Nx03AutoReplenish[]          @relation("R_Nx03AutoReplenish_tenantId")
   rev_Nx03Init_tenantId                   Nx03Init[]                   @relation("R_Nx03Init_tenantId")
   rev_Nx03Inbound_tenantId                Nx03Inbound[]                @relation("R_Nx03Inbound_tenantId")
