@@ -10,12 +10,12 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-15（⚠️ TASK-NX01-16-HISTORICAL-FACT-PRESERVE merge、G.4 範式歷史 fact 保留軌）**
-> **當前分支：`main`**（HEAD = 待 merge commit）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-16-historical-fact-preserve 1 commit + 軌後、--no-ff）**
-> **⚠️ G.4 範式落地：nx01-16 規格書 2 處原文保留 + HTML 註解校正、規範類「田驗證」字眼 0 殘留完整循環收尾**
+> **快照時間：2026-05-17（⭐⭐⭐ TASK-NX10-IMPL-02 merge、八角框架 8/8 完整化 + 3 跨模組 wire / NEXORA v1.4 達成）**
+> **當前分支：`main`**（HEAD = `9f332d2`、merge feature/nx10-social-mission）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx10-social-mission 5 commit + 軌後、--no-ff、Q-RHYTHM-2 第八次落地）**
+> **⭐⭐⭐ Hank 自跑收尾完成**：merge + push + tag `v1.4.0-nx10-social-mission-closure` + push tag origin
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 16 軌 merge（+ NX01-16-HISTORICAL）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 17 軌 merge（+ NX10-IMPL-02）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（18 條）
 
