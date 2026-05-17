@@ -1575,6 +1575,8 @@ model Nx02Po {
   eta                   DateTime?      @db.Date
   /// 本張採購單的進口付款條件（TT/LC/DP/DA），從廠商主檔預設帶入，可手動覆蓋。僅進口採購（purchase_type=I）時使用。；啟用最低需求版本：LITE-CORE
   paymentTermImport     String?        @map("payment_term_import") @db.VarChar(5)
+  /// 本張採購單的國內付款條件（PREPAY/NET30/NET60/NET90/INSTALLMENT），從廠商主檔 nx01_partner.payment_term_domestic 預設帶入，可手動覆蓋。國內採購（purchase_type=D/B）時使用。NX02-IMPL-01 Phase 1 M1 補齊（既有僅 import 對應、業界需求補國內）。；啟用最低需求版本：LITE-CORE
+  paymentTermDomestic   String?        @map("payment_term_domestic") @db.VarChar(10)
   /// 本張採購單的貿易條件（FOB/CIF/EXW/DDP等），從廠商主檔預設帶入，可手動覆蓋。影響 nx02_rr_import 中進口費用欄位的必填判斷：FOB/EXW需填運費；CIF運費由賣方含；DDP所有費用由賣方含。；啟用最低需求版本：LITE-CORE
   incoterm              String?        @default("FOB") @db.VarChar(5)
   tenant                Nx99Tenant     @relation("R_Nx02Po_tenantId", fields: [tenantId], references: [id])
