@@ -2287,5 +2287,22 @@ NX09-AUDIT-01 9 段揭露 + Crown 5 戰略題拍板（Q1=全要 / Q2=b 拆軌 / 
 
 ⭐⭐⭐ **Q-RHYTHM-2 第六次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 3 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
 
-⭐⭐⭐ 等 Crown 拍板「branch merge main + push + tag v1.2.0-nx09-eip-closure」、EIP 重戰場升級達成（業界 ERP 標配 SystemManual + Postgres FTS、業界中小汽配 ERP 第一個）、NEXORA 主版本 v1.2 達成 ⭐⭐⭐。
+### A026 補登（Crown 拍板 merge 時 10 項）
+
+對齊 [NX09-IMPL-01 merge-verify §7](../nx09/spec/impl/nx09-impl-01-merge-verify.md) + Crown 補登：
+
+1. **overview formalize 紀律演進**（Hank 自決 formalize、Crown TASK 即 spec 源頭、新範式建立）
+2. **tsvector trigger production 前 verify**（既有 KmArticle/Document INSERT/UPDATE 行為、production migration 前複查）
+3. **TASK-NX09-IMPL-02-YARO-FEATURE**（VIN / 維修 SOP / 故障代碼、亞羅特色 ⭐⭐⭐）
+4. **TASK-NX09-IMPL-03-CROSS-WIRE**（跨模組接點 NX07 / NX04 / NX02 / NX08 → NX09）
+5. **TASK-NX09-IMPL-04-RAG**（Phase 2 RAG 向量化、pgvector / OpenAI embedding ⭐）
+6. **TASK-NX09-IMPL-UI-01**（UI 真實表單 + 文件閱讀器 + 全文搜尋 UI）
+7. **TASK-NX09-IMPL-UI-MANUAL-WIRE**（NEXORA UI「？」按鈕 wire SystemManual ⭐）
+8. **TASK-NX09-IMPL-AUTO-VERSION**（DocumentVersion 自動寫入 + KM viewCount writer）
+9. **TASK-NX09-IMPL-MEETING-FULL**（會議子表 endpoint 補齊：Attendee / Minutes / Action）
+10. **TASK-NX09-IMPL-02-TEST**（service + FTS unit test）
+
+✅ **2026-05-17 closure**：merge 完成、push origin main、tag `v1.2.0-nx09-eip-closure` 落地。
+
+⭐⭐⭐ **NEXORA 主版本 v1.2 達成**（EIP 重戰場升級、業界中小汽配 ERP 第一個 SystemManual + Postgres FTS）= **8 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08 / NX07 / NX09）+ EIP 統一查詢入口落地。剩 NX10 遊戲化（10/11 → 11/11）。
 
