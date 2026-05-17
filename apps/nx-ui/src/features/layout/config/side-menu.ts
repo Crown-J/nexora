@@ -14,6 +14,7 @@ import { getNx01SideMenu } from '@/features/layout/config/menu.nx01';
 import { getNx02SideMenu } from '@/features/layout/config/menu.nx02';
 import { getNx03SideMenu } from '@/features/layout/config/menu.nx03';
 import { getNx04SideMenu } from '@/features/layout/config/menu.nx04';
+import { getNx06SideMenu } from '@/features/layout/config/menu.nx06';
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-004-F01
@@ -41,5 +42,6 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   if (pathname.startsWith('/dashboard/nx03')) return getNx02SideMenu();
   if (pathname.startsWith('/dashboard/nx04')) return getNx03SideMenu();
   if (pathname.startsWith('/dashboard/nx05')) return getNx04SideMenu();
+  if (pathname.startsWith('/dashboard/nx06')) return getNx06SideMenu();
   return [];
 }
