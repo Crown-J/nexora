@@ -2092,5 +2092,19 @@ NX06-IMPL-02 closure（v0.9.0、業務閉環第一階段全 closure）後 Crown 
 
 ⭐⭐⭐ **Q-RHYTHM-2 第四次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 6 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
 
-⭐ 等 Crown 拍板「branch merge main + push + tag v1.0.0-nx08-closure」、業務閉環延伸第 8 軌全 closure 達成、NEXORA 主版本 v1.0 達成 ⭐⭐⭐。
+### A026 補登（Crown 拍板 merge 時 7 項）
+
+對齊 [NX08-IMPL-01 merge-verify §8](../nx08/spec/impl/nx08-impl-01-merge-verify.md) + Crown 補登：
+
+1. **commit `b4f4139` message drift**（Phase 2-3 合併 commit 開頭誤寫 "TASK-NX08-IMPL-02"、實際是 IMPL-01 Phase 2-3、內容正確不阻擋、純文字 drift、揭露在此供 git log 查詢時參考）
+2. **TASK-NX08-IMPL-UI-01**：UI 真實 chart（21 placeholder → Recharts / Chart.js）
+3. **TASK-NX08-IMPL-02-CACHE**：ETL writer 啟動（refresh-cache 真實寫入 11 Cache）
+4. **TASK-NX08-IMPL-02-TEST**：service + ETL unit test
+5. **TASK-NX08-IMPL-03-EXTRANET**：客戶端 portal（範圍 B、Crown Q5=b 後續軌）
+6. **TASK-NX08-IMPL-04-DESIGNER**：自訂報表設計器（PRO 級候選）
+7. **TASK-NX08-IMPL-05-AI**：AI 預測分析（銷售 / 庫存 / 客戶流失）
+
+✅ **2026-05-17 closure**：merge 完成、push origin main、tag `v1.0.0-nx08-closure` 落地。
+
+⭐⭐⭐ **NEXORA 主版本 v1.0 達成**（業務閉環第一階段 + 報表分析全 closure、production-ready milestone）= **6 個 ⭐⭐⭐ 戰略軌 closure 累積**（NX03 / AR / NX04 / NX05 / NX06 IMPL-01+02 / NX08）+ 3 業界改革 dashboard 入口完整。
 
