@@ -1912,5 +1912,16 @@ Crown 跨 13 題拍板 closure（Q-RHYTHM-2 第二次落地、Crown + Alex 全�
 
 ⭐⭐⭐ **Q-RHYTHM-2 第二次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 8 commit / 2 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge。
 
-⭐ 等 Crown 拍板「branch merge main + push + tag v0.8.0-nx06-closure」、進 TASK-NX06-IMPL-02（路線優化）/ TASK-NX06-IMPL-UI-01 / TASK-NX06-IMPL-02-TEST 等下游 task。
+### A026 補登（Crown 拍板 merge 時新增）
+
+9. **TASK-NX06-LALAMOVE-WIRE**（封測二階）：申請 Lalamove 沙盒帳號 + 商家 API key + 公網 webhook endpoint + HMAC 校驗 → 設 `LALAMOVE_API_ENABLED=true` 啟用 real API
+10. **TASK-NX06-PRINTER-WIRE**（封測二階）：採購熱感印表機（Brother / Epson / 漢印 / 芝商熱敏、NTD 2000~5000）+ 前端藍牙 SDK 對接 + 實地測試列印格式
+11. **SR POSTED R/D 自動建 RETURN_PICKUP DN 草稿 production 前 verify**：merge 前 Crown 接受 mock + 框架、production 前 verify
+    - query 既有 SR POSTED + R/D 路徑分佈（會多寫 nx06_dn DRAFT 筆數）
+    - verify 客戶主檔地址覆蓋率（無地址會 skip、不 throw）
+    - verify 倉管組長後續手動 PATCH driverUserId / dispatch 流程順暢度
+
+✅ **2026-05-17 18:00 closure**：merge 完成、push 到 origin main、tag `v0.8.0-nx06-closure` 落地。
+
+⭐ 後續軌啟動：TASK-NX06-IMPL-02（路線優化）/ TASK-NX06-IMPL-UI-01 / TASK-NX06-IMPL-02-TEST / TASK-NX06-LALAMOVE-WIRE / TASK-NX06-PRINTER-WIRE。
 
