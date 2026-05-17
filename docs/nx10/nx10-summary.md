@@ -2,13 +2,13 @@
 
 # NX10 八角遊戲化 — 模組架構書（給 Claude.AI 上傳簡化版）
 
-> 文件版本：v1.0
+> 文件版本：v2.0（IMPL-02 closure、八角 8 角完整化、Q-RHYTHM-2 第八次落地）
 > 最後更新：2026-05-17
-> 撰寫：Hank（整合 TASK-NX10-IMPL-01 7 Phase commit + AUDIT-01 + overview v0.1.0）
+> 撰寫：Hank（整合 TASK-NX10-IMPL-01 + IMPL-02 全 commit + AUDIT-01 + overview v1.0）
 > 性質：模組層 summary、跨對話接力 Hank / Alex 必讀
 > 完整子規格在 `docs/nx10/spec/intent/nx10-overview.md`
-> 戰略定位：⭐⭐⭐ 業務模組最後 1 軌（本軌 closure 後達 **11/11 100%**）+ 八角框架完整落地
-> Q-RHYTHM-2 第七次落地：Crown + Alex 預批、Hank 全軌連跑
+> 戰略定位：⭐⭐⭐ 八角 8 角完整化 + 3 跨模組 wire 業界改革（NX06 動態交接獎勵 ⭐⭐⭐ + NX04 業績排行 + NX07 醫章加碼）
+> Q-RHYTHM-2 第八次落地：Crown + Alex 預批、Hank 全軌連跑
 
 ---
 
@@ -23,18 +23,18 @@
 
 ## 1.2 八角驅動力對應 NEXORA 落地
 
-| # | 八角驅動力 | NEXORA 落地 | 本軌 / 後續軌 |
+| # | 八角驅動力 | NEXORA 落地 | 落地軌 |
 |---|---|---|---|
-| 1 | 史詩意義與使命感 | 公司大目標連動（轉職機制）| IMPL-02 |
+| 1 | **史詩意義與使命感** | **帶新人 + 轉職機制**（mentorship + promotion）| **IMPL-02 ✅** |
 | 2 | **發展與成就** | **醫章 20 levels + 排行榜** | **IMPL-01 ✅** |
-| 3 | 賦權與創造力 | 轉職機制 | IMPL-02 |
+| 3 | **賦權與創造力** | **轉職 3 階審核** ⭐⭐⭐ | **IMPL-02 ✅** |
 | 4 | **所有權與佔有** | **點數累積 + 醫章收集** | **IMPL-01 ✅** |
-| 5 | 社交影響與關聯 | 團隊任務 + 帶新人 + 動態交接 wire | IMPL-02 |
+| 5 | **社交影響與關聯** | **團隊任務 + 帶新人 + 動態交接 wire** ⭐⭐⭐ | **IMPL-02 ✅** |
 | 6 | **稀缺與渴望** | **衝刺（限時挑戰）** ⭐ | **IMPL-01 ✅** |
 | 7 | **不可預期與好奇** | **驚喜寶箱** ⭐ | **IMPL-01 ✅** |
 | 8 | **損失與避免** | **排名下降 + 任務過期** | **IMPL-01 ✅** |
 
-⭐⭐⭐ 本軌（IMPL-01）落地 5 大驅動力（#2 #4 #6 #7 #8）。
+⭐⭐⭐ IMPL-01 + IMPL-02 落地 **8/8 全部驅動力**、八角框架完整化。
 
 ## 1.3 7 業務功能（對齊 overview v0.1.0 §3.1）
 
@@ -166,12 +166,52 @@ menu.nx10.ts（getNx10SideMenu）1 group / 6 items + side-menu.ts 加 nx10 路�
 
 # § 8. 後續軌（IMPL-02 + UI）
 
-- **TASK-NX10-IMPL-02-SOCIAL-MISSION** ⭐⭐⭐：團隊任務 + 帶新人 + 轉職 + 跨模組 wire（NX06 動態交接獎勵 ⭐⭐⭐ + NX04 業績 + NX07 薪資加成）
+- **TASK-NX10-IMPL-02-SOCIAL-MISSION** ⭐⭐⭐ **✅ 已完成**：團隊任務 + 帶新人 + 轉職 + 跨模組 wire（NX06 動態交接獎勵 ⭐⭐⭐ + NX04 業績 + NX07 薪資加成）
 - TASK-NX10-IMPL-UI-01：UI 真實勳章 panel + 排行榜 chart + 任務列表 + 驚喜寶箱動畫
-- TASK-NX10-IMPL-02-TEST：service + Sprint/SurpriseBox unit test
+- TASK-NX10-IMPL-02-TEST：service + Sprint/SurpriseBox + Mentorship/Promotion unit test
 - TASK-NX10-IMPL-03-CROSS-MODULE-DASHBOARD：NX08 OwnerDashboard 加 NX10 員工成長 dashboard
 
 ---
 
-> 文件版本：v1.0（IMPL-01 closure、Q-RHYTHM-2 第七次落地、業務模組 11/11 達成）
-> 下次更新觸發：IMPL-02 社交+使命+跨模組 wire / UI 真實 / 後續軌啟動
+# § 9. IMPL-02 升級揭露（v2.0 補章）
+
+## 9.1 新增 3 service / 3 controller / 16 endpoint
+
+| service | controller | 路由 | endpoint 數 | 八角驅動力 |
+|---|---|---|---|---|
+| Nx10TeamTaskService | controller | /nx10/team-task | 5（list / :id / me / POST / PATCH）| **#5 社交** |
+| Nx10MentorshipService | controller | /nx10/mentorship | 4（me / POST + PATCH + issueReward）| **#5 + #1** |
+| Nx10PromotionService ⭐⭐⭐ | controller | /nx10/promotion | 7（criteria + me + apply + recommend + review + execute + POST criteria）| **#3 + #2 + #1** |
+
+⭐ A041 真實：**10 controller / 34 endpoint**（IMPL-01 7/18 + IMPL-02 3/16）。
+
+## 9.2 新增 3 跨模組 helper（業界改革 ⭐⭐⭐）
+
+| helper | file | wire 入 | 業務 |
+|---|---|---|---|
+| createRewardFromHandover ⭐⭐⭐ | shared/nx10/nx10-create-reward-from-handover.ts | nx06 dynamic-handover.service.updateStatus COMPLETED | fromDriver + toDriver 各 25 Exp 協作獎勵 |
+| updateRankingFromPerformance | shared/nx10/nx10-update-ranking-from-performance.ts | nx04 so.service.update SHIPPED | tier-based Exp（>10萬+50 / >1萬+20 / 其他+5）|
+| applyMedalBonusToSalary | shared/nx10/nx10-apply-medal-bonus-to-salary.ts | nx07 salary-accrual.service.applyKpiBonus end | 醫章 tier ×1~×1.2 薪資加碼 |
+
+紀律：全部 try/catch wrap、helper 失敗不阻擋上游主流程、冪等 prefix 去重。
+
+## 9.3 IMPL-02 commit 真相（5 commit / 5 Phase）
+
+| Phase | commit | 範圍 |
+|---|---|---|
+| 0 plan | `b9476da` | plan v0.1.0（7-Phase + 8 functions + 0 migration）|
+| 2-4 合併 | `d966358` | TeamTask + Mentorship + Promotion 3 階審核 + module wire |
+| 5 wire | `ea479ec` | 3 helper + 3 wire（NX06/NX04/NX07）⭐⭐⭐ |
+| 6 UI | `7661a9a` | 4 placeholder + menu.nx10 10 items + workspace desc |
+| 7 docs | （本 commit）| summary v2.0 + worklog 主題 5 + _team 主題 32 + merge-verify |
+
+⭐ 5 commit + 1 收尾 = 6、命中 plan 估 9-11 預算 55% + Crown 估 8-12 預算 50-75%。
+
+## 9.4 IMPL-02 schema 0 動
+
+5 schema-only model 既有 schema 100% 完整（TeamTask + Mentorship + PromotionCriteria + PromotionRequest + TeamTaskLog）、**IMPL-02 全軌 0 migration**、純 service + endpoint 升級。
+
+---
+
+> 文件版本：v2.0（IMPL-02 closure、八角 8 角完整化、Q-RHYTHM-2 第八次落地）
+> 下次更新觸發：UI 真實 / unit test / NX08 cross-module dashboard 後續軌啟動

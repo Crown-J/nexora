@@ -2415,3 +2415,80 @@ NEXORA v1.2.0（NX09 EIP closure）後 Crown 啟動 NX10（**業務模組最後 
 ⭐⭐⭐ **業務模組 IMPL-01 階段 11/11 100% 達成**、Q-RHYTHM-2 7 次落地驗證穩定。
 🔵 後續軌池：NX06-IMPL-02（已 closure）+ NX10-IMPL-02（八角 #1#3#5 + 跨模組 wire）+ 各模組 UI 真實獨立軌 + 跨模組 dashboard 整合 + test 軌。
 
+---
+
+## 主題 32｜NX10 社交+使命+跨模組 wire 軌 Q-RHYTHM-2 落地（TASK-NX10-IMPL-02、2026-05-17）⭐⭐⭐ 八角 8 角完整化
+
+### 起源
+
+緊接 IMPL-01 closure（v1.3.0、`8e6e103`）後 Crown 啟動 IMPL-02、目標：八角剩 3 角（#1 使命 / #3 賦權 / #5 社交）+ 3 跨模組 helper wire（業界改革 ⭐⭐⭐）。5 schema-only model 既有 schema 100% 完整（IMPL-01 audit 揭露）、本軌 **0 migration**、純 service + endpoint + wire 升級。**Q-RHYTHM-2 第八次落地**。
+
+戰略意義：
+- ⭐⭐⭐ 八角框架 **8/8 完整化**（IMPL-01 5 角 + 本軌 3 角、業界第一個完整 gamification）
+- ⭐⭐⭐ 3 跨模組 wire 業界改革（NX06 動態交接獎勵 + NX04 業績排行 + NX07 醫章加碼）
+- ⭐⭐ 轉職 3 階審核（業界中小汽配 ERP 首套系統化轉職機制）
+- ⭐ Q-RHYTHM-2 第八次驗證、5 commit 連跑、命中 plan 估 9-11 預算 55%
+
+### 設計決策
+
+1. **0 schema migration**（5 schema-only model 既有完整、純 service 升級、A041 估 0 軌精準命中）
+2. **TeamTask service**（驅動力 #5）— targetType AT/KP/DR/OT、taskCycle W/M、團隊達標全員 Exp
+3. **Mentorship service**（#5 + #1）— HR_ADMIN 指派配對、結束 issueReward 500 Exp 給 mentor
+4. **Promotion 3 階審核 service** ⭐⭐⭐（#3 + #2 + #1）— 階段 1 系統驗證 + 階段 2 OWNER 推薦 + 階段 3 HR_ADMIN 審核 → execute 寫 NX01 user.roleId
+5. **3 跨模組 helper + wire**（業界改革 ⭐⭐⭐）：
+   - createRewardFromHandover ⭐⭐⭐ → NX06 dynamic-handover COMPLETED 雙方各 25 Exp
+   - updateRankingFromPerformance → NX04 SO SHIPPED tier-based Exp（>10萬+50/>1萬+20/+5）
+   - applyMedalBonusToSalary → NX07 applyKpiBonus 醫章 tier ×1~×1.2 加碼
+6. **try/catch wrap 紀律**：3 wire 全部 isolated、helper 失敗不阻擋上游主流程
+7. **冪等紀律**：reason/calcBasis prefix 標記去重（HANDOVER:/SO_SHIPPED:/MEDAL-BONUS:）
+8. UI 4 placeholder + menu.nx10 6→10 items
+
+### 實作歷程（5 commit / 5 Phase / 命中 plan 估 9-11 預算 55%）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | `b9476da` | plan v0.1.0（8 functions + 0 migration）| 1 |
+| Phase 2-4 合併 | `d966358` | TeamTask + Mentorship + Promotion 3 階審核 + module wire | 1 |
+| Phase 5 | `ea479ec` | 3 cross-module helper + wire ⭐⭐⭐ | 1 |
+| Phase 6 | `7661a9a` | UI 4 placeholder + menu.nx10 10 items + workspace desc | 1 |
+| Phase 7 | （本 commit）| summary v2.0 + worklog 主題 5 + _team 主題 32（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v1.4.0（待 Crown）| - |
+
+### 跨模組視角總覽（本軌 ⭐⭐⭐ 3 wire 落地）
+
+本軌 = **NEXORA 跨模組 wire 集大成軌**、3 wire 串起 NX04 / NX06 / NX07 → NX10：
+
+| wire | helper | 上游 → 下游 | 業界改革等級 |
+|---|---|---|---|
+| 1 | createRewardFromHandover | NX06 handover COMPLETED → 雙方 +25 Exp | ⭐⭐⭐ 業界第一 |
+| 2 | updateRankingFromPerformance | NX04 SO SHIPPED → tier-based +5/+20/+50 Exp | ⭐⭐ |
+| 3 | applyMedalBonusToSalary | NX07 KPI 加給 end → 醫章 tier ×1~×1.2 加碼 | ⭐⭐ |
+
+剩餘候選（後續軌 IMPL-03+）：
+- NX09 KmArticle → 學習任務 Exp wire（#2 成就 ⭐）
+
+### 統合教訓（Q-RHYTHM-2 第八次落地）
+
+1. **Q-RHYTHM-2 第八次驗證穩定**（NX05 12 / NX06-01 8 / NX06-02 7 / NX08 6 / NX07 7 / NX09 7 / NX10-01 7 / NX10-02 5 commit）：節奏穩定、Hank 自決越成熟、IMPL-02 軌規模本身比 IMPL-01 小。
+2. **「IMPL-02 模式」初次驗證**：當模組 IMPL-01 已 closure + schema 完整、IMPL-02 = 純 service 升級 + 跨模組 wire（0 migration、5 commit 完成）、規模約 IMPL-01 70%。可作為「成熟模組深化軌」標準範式。
+3. **跨模組 wire 失敗策略 4 範式集大成**（見 NX10 worklog 主題 5 §A）：遊戲化 wire（try/catch + 冪等）= 最容忍策略、與財務 wire（同步 + 強耦合）對照分明。
+4. **冪等 prefix 範式集大成**（見 NX10 worklog 主題 5 §B）：6 helper 全部 prefix 標記、跨模組 wire 第一道防線。
+
+### 對應文件
+
+- 業務需求：`docs/nx10/spec/intent/nx10-overview.md` v1.0
+- 模組架構書：`docs/nx10/nx10-summary.md` v2.0
+- audit-01：`docs/nx10/nx10-audit-01.md`
+- impl plan：`docs/nx10/spec/impl/nx10-impl-02-plan.md`
+- merge verify：`docs/nx10/spec/impl/nx10-impl-02-merge-verify.md`
+- 主題：`docs/nx10/nx10-worklog.md` 主題 5
+
+### A026 backlog 開單揭露（IMPL-02 範圍）
+
+1. **TASK-NX10-SEED-MEDAL-BONUS-COMPONENT**（系統範本 MEDAL_BONUS component seed、本軌 applyMedalBonusToSalary 走 fallback）
+2. **TASK-NX10-IMPL-HANDOVER-REWARD-API**（GET 動態交接 Exp 歷史 endpoint、配合 UI placeholder 真實化）
+3. **TASK-NX10-PROMOTION-VERIFY-FULL**（Promotion 階段 1 系統驗證升級：minTenureMonths / KpiRate / noPenaltyDays 真實實作）
+4. **TASK-NX10-IMPL-02-TEST**（TeamTask + Mentorship + Promotion + 3 helper unit test）
+
+⭐⭐⭐ **Q-RHYTHM-2 第八次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 5 commit / 0 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge → tag v1.4.0-nx10-social-mission-closure。
+
