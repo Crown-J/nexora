@@ -294,5 +294,85 @@ NEXORA v1.1.0（NX07 closure）後 Crown 啟動 NX09。⚠️ Crown 重戰場升
 | 6 | 跨模組接點 0（NX07/NX04/NX02/NX08 → NX09）| 業務鏈缺口 |
 | 7 | 會議 4 子表 endpoint 0（Attendee/Minutes/Action）| 業務功能擴充 |
 
-> 文件版本：v2.0（+ 主題 3 NX09-IMPL-01 EIP 重戰場升級紀錄、Q-RHYTHM-2 第六次落地）
-> 下次更新觸發：IMPL-02 亞羅特色 / RAG Phase 2 / UI wire / Meeting 子表補齊
+## 主題 4｜NX09-IMPL-02 亞羅特色軌 Q-RHYTHM-2 落地（TASK-NX09-IMPL-02、2026-05-18）⭐⭐⭐ 3 業界改革候選全落地
+
+### 起源
+
+緊接 NEXORA v1.4（NX10 雙軌全 closure、八角 8/8 完整化）後 Crown 啟動深化期第二軌：NX09 亞羅汽配特色（VIN/維修 SOP）。NX09-AUDIT-02 8 段業界專業真相 verify（含 5 重大揭露：NX01 vehicle chain 完整 / schema 0 VIN / KmArticle 6 enum 無 REPAIR 預留 / Partslink = 紙上計畫 / IMPL-01 26 endpoint）+ Crown 7 戰略題拍板（c/a/a/b/b/a/a）→ Hank Q-RHYTHM-2 第九次落地。
+
+戰略意義：
+- ⭐⭐⭐ **3 業界改革候選全落地**：VIN NHTSA + 手動混合 / 維修 SOP 結構化 / RepairSop↔PartModel 內部 wire 雙向查詢
+- ⭐⭐ NX09 雙軌完整化（IMPL-01 EIP + IMPL-02 亞羅特色）= 第二個雙軌完整模組（前 NX10）
+- ⭐ 既有 NX01 vehicle chain（CarBrand → Model → PartModel）完整化價值兌現（NX01-12~16 落地後 NX09-IMPL-02 直接走、不重建）
+
+### 設計決策
+
+1. **0 既有 schema ALTER**（3 新表 + 4 reverse relations、Crown「既有 IMPL-01 26 endpoint 100% 保留」）
+2. VinLookup 主檔（VIN 17 字 UNIQUE per tenant + carBrandId/modelId 對齊 NX01 vehicle chain + source API/MANUAL + rawApiResponse）
+3. NHTSA vPIC API 整合（純 fetch + ENV gate + 5s timeout + AbortController + graceful fallback、範式對齊 nx06 google-maps-client）
+4. case-insensitive Make 比對 Nx01CarBrand.nameEn（NHTSA 查不到時 carBrandId 留 null、業務員後補）
+5. RepairSop 主檔（code unique + 8 category enum + steps/tools/warnings/photos JSON + carModelFilter FK + difficulty 1-5）
+6. RepairSopPartModel link 表（FK 完整性 + UNIQUE sopId+partModelId + index 兩端、業界改革 ⭐⭐⭐ 雙向 wire）
+7. 4 子表 endpoint 全補（ArticleTag 3 / MeetingAction 5 / MeetingAttendee 4 / MeetingMinutes 5 = 17 endpoint）
+8. UI 4 placeholder + menu.nx09 升 6→10 items
+
+### 實作歷程（7 commit / 6 Phase / 命中 plan 估 8 預算 100%）
+
+| Phase | commit | 主軸 |
+|---|---|---|
+| 0 | `c80b613` | plan v0.1.0 + overview v0.2.0 連帶 commit |
+| 1 | `5ea30d7` | M1 3 新表（VinLookup + RepairSop + link）+ M2 constraint naming drift |
+| 2 | `7cd2c97` | 4 子表 endpoint 補（17 new endpoint）|
+| 3 | `ebf3fd5` | VinLookup + NHTSA client + 8 endpoint（業界改革 ⭐⭐⭐）|
+| 4+5 合併 | `31b2d6e` | RepairSop CRUD 6 + 雙向 wire 4（業界改革 ⭐⭐⭐）|
+| 6 | `25ac493` | UI 4 placeholder + menu.nx09 10 items + workspace desc |
+| 7 | （本 commit）| summary v2.0 + worklog 主題 4 + _team 主題 33 + merge-verify |
+
+### 踩坑
+
+1. **Prisma constraint naming drift（第 5 次同模式）**：M1 hand-written 用 `_fkey`、Prisma 預設 `_id_fkey`、auto-gen 第二個 migration。修：rename auto-gen 為 M2 + `prisma migrate resolve --applied` + 刪舊記錄。範式已定型「純 INSERT/CREATE migration 後 + ALTER 既有則無 drift；CREATE TABLE + FK 帶 hand-written 必走 M2 對齊」。
+2. **NHTSA API 亞洲車型覆蓋率低**：本軌純走 graceful fallback `source='MANUAL'`、後續軌 TASK-NX09-IMPL-VIN-API-FALLBACK 補（亞洲車型補充）。
+3. **Phase 4 + 5 合併 commit**：兩 Phase 圍繞同 RepairSop entity（service 已含 wire 方法）、強拆會回頭刪。對齊 NX10 IMPL-02 Phase 2-4 合併範式。
+
+### 對應文件
+
+- plan：[spec/impl/nx09-impl-02-plan.md](spec/impl/nx09-impl-02-plan.md)
+- overview v0.2.0：[spec/intent/nx09-overview.md](spec/intent/nx09-overview.md)
+- audit-02：[nx09-audit-02.md](nx09-audit-02.md)
+- summary v2.0：[nx09-summary.md](nx09-summary.md)
+- merge verify：[spec/impl/nx09-impl-02-merge-verify.md](spec/impl/nx09-impl-02-merge-verify.md)
+
+### 揭露的設計缺口（IMPL-02 後 +4、IMPL-01 揭露 5+6+7 closure）
+
+| # | 缺口 | 性質 |
+|---|------|------|
+| 8 | NHTSA 亞洲車型覆蓋率低（VAG 70% / 亞系 20% / 歐美 10% 中亞系易查不到）| API 補充軌 |
+| 9 | RepairSop seed 0（業務員首日無範例可參考）| seed 後續軌 |
+| 10 | DTC（OBD-II 故障代碼）library 0 | 進階 wire 後續軌 |
+| 11 | RepairSop 步驟順序拖拽 UI 0（純 JSON 編輯）| UI 真實軌 |
+
+### 範式集大成（IMPL-02 補章）
+
+#### A. HTTP client 範式集大成（NX06 + NX09 雙軌）
+
+| client | 模組 | 範式 | API key | fallback |
+|---|---|---|---|---|
+| nx06-google-maps-client | NX06 路線優化 | 純 fetch + env key | 需 key | Haversine + URBAN_AVG_KMH mock |
+| **nx06-lalamove-integration** | NX06 物流整合 | env key + auth header | 需 key | mock fallback |
+| **nx09-nhtsa-client** ⭐新 | NX09 VIN decode | 純 fetch + env toggle | **無 key** | graceful empty + source='MANUAL' |
+
+⭐ 教訓：**HTTP client 失敗策略隨業務本質分**：付費 API（Maps/Lalamove）= mock fallback 保 demo；免費 API（NHTSA）= graceful empty + 上游 fallback 路徑（手動建檔）。
+
+#### B. link 表範式集大成（4 例）
+
+| link 表 | 主檔 | 範式 |
+|---|---|---|
+| `Nx01PartModel`（partId + modelId）| 料件 ↔ 車型適配 | UNIQUE + index 兩端 + fitLevel 業務欄 |
+| `Nx09KmArticleTag`（articleId + tagId）| KM 文章 ↔ 標籤 | 純 link、無業務欄 |
+| `Nx10TeamTask`（已 IMPL-02、SOP 風格 link）| - | - |
+| **`Nx09RepairSopPartModel`**（sopId + partModelId）⭐新 | 維修 SOP ↔ 料件 | UNIQUE + index 兩端 + notes 業務欄 |
+
+⭐ 教訓：**link 表 vs JSON 陣列選擇看 FK 完整性 + 反向查詢需求**。RepairSop↔PartModel 必要雙向查（業務員查料件→看 SOP / 查 SOP→看料件）、走 link 表勝過 JSON。
+
+> 文件版本：v3.0（+ 主題 4 NX09-IMPL-02 亞羅特色軌、Q-RHYTHM-2 第九次落地、雙軌完整化第二例）
+> 下次更新觸發：IMPL-03 跨模組 wire / RAG Phase 2 / UI 真實 / 後續軌

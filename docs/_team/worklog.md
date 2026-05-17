@@ -2492,3 +2492,98 @@ NEXORA v1.2.0（NX09 EIP closure）後 Crown 啟動 NX10（**業務模組最後 
 
 ⭐⭐⭐ **Q-RHYTHM-2 第八次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 5 commit / 0 migration → stop 給 Crown + Alex 驗收 → Crown 拍板 merge → tag v1.4.0-nx10-social-mission-closure。
 
+---
+
+## 主題 33｜NX09 亞羅汽配特色軌（VIN + 維修 SOP）Q-RHYTHM-2 落地（TASK-NX09-IMPL-02、2026-05-18）⭐⭐⭐ 3 業界改革候選全落地
+
+### 起源
+
+緊接 NEXORA v1.4（NX10 雙軌全 closure、八角 8/8 完整化）後 Crown 啟動深化期第二軌：NX09 亞羅汽配特色（VIN/維修 SOP）。NX09-AUDIT-02 8 段業界專業真相 verify（含 Partslink = 紙上計畫 / NHTSA 真實免費 / NX01-16 PartModel 已落地等 5 重大揭露）+ Crown 7 戰略題拍板 closure（c/a/a/b/b/a/a）→ Hank Q-RHYTHM-2 第九次落地。
+
+戰略意義：
+- ⭐⭐⭐ **3 業界改革候選全落地**：VIN NHTSA 混合 / 維修 SOP 結構化 / RepairSop↔PartModel 內部 wire 雙向查詢
+- ⭐⭐⭐ NX09 雙軌完整化（IMPL-01 EIP + IMPL-02 亞羅特色）= **第二個雙軌完整模組**（前 NX10）
+- ⭐⭐ NX01-12~16 vehicle chain 完整化價值兌現（NX01 主檔層 → NX09 業務層直接走、不重建 schema）
+- ⭐ Q-RHYTHM-2 第九次穩定驗證、7 commit 連跑、命中 plan 估 8 預算 100%
+
+### 設計決策
+
+1. **0 既有 schema ALTER**（3 新表 + 4 reverse relations、既有 IMPL-01 26 endpoint 100% 保留）
+2. VinLookup 主檔（VIN 17 字 UNIQUE per tenant + 對齊 NX01 vehicle chain FK + source API/MANUAL + rawApiResponse）
+3. **NHTSA vPIC API 整合**（純 fetch + ENV NHTSA_API_ENABLED + 5s AbortController timeout + graceful fallback）
+4. **case-insensitive Make 比對 Nx01CarBrand.nameEn**（NHTSA Make 對照 NEXORA 車型品牌）
+5. RepairSop 主檔（code unique + 8 category enum + steps/tools/warnings/photos JSON + carModelFilter FK + difficulty 1-5）
+6. **RepairSopPartModel link 表**（FK 完整性 + UNIQUE 兩端 + index 兩端、雙向 wire ⭐⭐⭐）
+7. 4 子表 endpoint 全補（ArticleTag 3 + MeetingAction 5 + MeetingAttendee 4 + MeetingMinutes 5 = 17 endpoint）
+8. UI 4 placeholder + menu.nx09 6→10 items
+
+### 實作歷程（7 commit / 6 Phase / 命中 plan 估 8 預算 100%）
+
+| Phase | commit | 主軸 | 規模 |
+|---|---|---|---|
+| Phase 0 | `c80b613` | plan v0.1.0 + overview v0.2.0（Alex 寫）連帶 commit | 1 |
+| Phase 1 | `5ea30d7` | M1 3 新表 + M2 constraint naming drift（第 5 次同範式）| 1 |
+| Phase 2 | `7cd2c97` | 4 子表 endpoint 補（+17 endpoint）| 1 |
+| Phase 3 | `ebf3fd5` | VinLookup + NHTSA client + 8 endpoint ⭐⭐⭐ | 1 |
+| Phase 4+5 合併 | `31b2d6e` | RepairSop CRUD 6 + 雙向 wire 4 = 10 endpoint ⭐⭐⭐ | 1 |
+| Phase 6 | `25ac493` | UI 4 placeholder + menu.nx09 10 items + workspace desc | 1 |
+| Phase 7 | （本 commit）| summary v2.0 + worklog 主題 4 + _team 主題 33（本主題）+ merge-verify | 1 |
+| 收尾 | 1 | merge / push / tag v1.5.0（待 Crown）| - |
+
+### 跨模組視角總覽（本軌 0 跨模組 wire、純 NX09 內部 + NX01 上游讀）
+
+對齊 Crown Q5=b 拍板：本軌純內部 wire（RepairSop↔PartModel）+ NX01 vehicle chain 上游讀。跨模組 wire 全留 IMPL-03。
+
+| 接點 | 本軌 |
+|---|---|
+| NX01 CarBrand / Model / PartModel | ✅ 上游 read-only（VinLookup + RepairSop carModelFilter + link 表）|
+| NX07 Training → NX09 Document | ❌ IMPL-03 |
+| NX04 SR → NX09 KmArticle | ❌ IMPL-03 |
+| NX08 dashboard → NX09 KM 熱門 | ❌ IMPL-03 |
+
+### 統合教訓（Q-RHYTHM-2 第九次落地）
+
+1. **Q-RHYTHM-2 第九次穩定驗證**（NX05 12 / NX06-01 8 / NX06-02 7 / NX08 6 / NX07 7 / NX09-01 7 / NX10-01 7 / NX10-02 5 / **NX09-02 7** commit）：節奏穩定、Hank 自決越成熟。
+2. **「IMPL-02 軌」第二次驗證**（前 NX10-IMPL-02）：當 IMPL-01 closure + schema 完整 + 業務需求清晰、IMPL-02 規模約 IMPL-01 60-80%。範式定型為「成熟模組深化軌」。
+3. **HTTP client 範式集大成**（NX06 Google Maps + Lalamove + NX09 NHTSA = 3 例）：付費 API mock fallback / 免費 API graceful empty + 業務員 fallback 路徑。
+4. **link 表 vs JSON 陣列選擇判準**：FK 完整性 + 反向查詢需求 → link 表勝過 JSON。NX01PartModel / Nx09KmArticleTag / Nx09RepairSopPartModel 三例對齊。
+5. **Prisma constraint naming drift 第 5 次同範式**：「純 INSERT/seed migration 0 drift；CREATE TABLE + FK 帶 hand-written 必走 M2 對齊」定型 5 次。
+
+### 對應文件
+
+- 業務需求：`docs/nx09/spec/intent/nx09-overview.md` v0.2.0
+- 模組架構書：`docs/nx09/nx09-summary.md` v2.0
+- audit-02：`docs/nx09/nx09-audit-02.md`
+- impl plan：`docs/nx09/spec/impl/nx09-impl-02-plan.md`
+- merge verify：`docs/nx09/spec/impl/nx09-impl-02-merge-verify.md`
+- 主題：`docs/nx09/nx09-worklog.md` 主題 4
+
+### A026 backlog 開單揭露（IMPL-02 範圍）
+
+1. **TASK-NX09-IMPL-03-CROSS-WIRE** ⭐⭐⭐（NX07 Training / NX04 SR / NX02 PR / NX08 dashboard → NX09 wire）
+2. **TASK-NX09-IMPL-04-RAG** ⭐（pgvector + OpenAI embedding 向量化）
+3. **TASK-NX09-IMPL-VIN-API-FALLBACK**（亞洲車型補充：VSCC / 其他第三方 API）
+4. **TASK-NX09-IMPL-DTC-LIBRARY**（OBD-II DTC 故障代碼庫 → RepairSop wire）
+5. **TASK-NX09-IMPL-UI-01**（真實 UI + 文件閱讀器 + 全文搜尋 UI + VIN 查詢面板 + 維修 SOP 步驟編輯器）
+6. **TASK-NX09-IMPL-UI-MANUAL-WIRE**（「？」按鈕全站 wire SystemManual、IMPL-01 backlog 沿用）
+7. **TASK-NX09-IMPL-AUTO-VERSION**（DocumentVersion 自動寫入 + KmArticle viewCount writer）
+8. **TASK-NX09-IMPL-REPAIRSOP-SEED**（業務員首日範例 SOP seed）
+9. **TASK-NX09-IMPL-02-TEST**（VinLookup + RepairSop + NHTSA + 雙向 wire unit test）
+
+⭐⭐⭐ **Q-RHYTHM-2 第九次落地完成**：Crown + Alex 預批 + Hank 全軌連跑 7 commit / 1 主 migration（+ 1 drift 對齊）→ stop 給 Crown + Alex 驗收 → Crown 拍板 merge → tag v1.5.0-nx09-yaro-feature-closure。
+
+### A026 補登候選
+
+1. **NHTSA 亞洲車型實測覆蓋率紀錄**（production 上線後 7 天統計、判斷是否啟動 VIN-API-FALLBACK）
+2. **RepairSop seed 案例**（業界改革落地需「首日可用」、無 seed = 業務員無範例）
+3. **VIN 17 字 checksum 校驗**（業界進階）— 本軌只驗 length=17、未驗 checksum
+
+### NEXORA 模組覆蓋進度更新
+
+| 模組 | IMPL-01 | IMPL-02 | tag |
+|---|---|---|---|
+| NX09 | ✅ v1.2.0-nx09-eip-closure | ✅ **v1.5.0-nx09-yaro-feature-closure（待 Crown）** | - |
+| NX10 | ✅ v1.3.0 | ✅ v1.4.0 | - |
+
+⭐⭐⭐ **雙軌完整化模組 2/11**（NX09 + NX10）。後續軌雙軌完整化候選：NX06（已 IMPL-02 closure、IMPL-03 待）。
+

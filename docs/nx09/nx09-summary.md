@@ -2,13 +2,13 @@
 
 # NX09 EIP 企業資訊平台 — 模組架構書（給 Claude.AI 上傳簡化版）
 
-> 文件版本：v1.0
-> 最後更新：2026-05-17
-> 撰寫：Hank（整合 TASK-NX09-IMPL-01 7 Phase commit + AUDIT-01 + overview v1.0）
+> 文件版本：v2.0（IMPL-01 + IMPL-02 完整化 closure、Q-RHYTHM-2 第九次落地）
+> 最後更新：2026-05-18
+> 撰寫：Hank（整合 TASK-NX09-IMPL-01 + IMPL-02 全 commit + AUDIT-01 + AUDIT-02 + overview v0.2.0）
 > 性質：模組層 summary、跨對話接力 Hank / Alex 必讀
 > 完整子規格在 `docs/nx09/spec/intent/nx09-overview.md`
-> 戰略定位：NEXORA v1.1 後第二個收尾軌（剩 NX09 + NX10、本軌 9/11 → 10/11）+ 業界 ERP 標配 SystemManual
-> Q-RHYTHM-2 第六次落地：Crown + Alex 預批、Hank 全軌連跑
+> 戰略定位：⭐⭐⭐ EIP 基礎（IMPL-01）+ 亞羅汽配特色（IMPL-02 VIN/維修 SOP）+ 3 業界改革候選 ⭐⭐⭐ 全落地
+> Q-RHYTHM-2 第九次落地：Crown + Alex 預批、Hank 全軌連跑
 
 ---
 
@@ -188,18 +188,73 @@ menu.nx09.ts（getNx09SideMenu）1 group / 6 items + side-menu.ts 加 nx09 路�
 
 ---
 
-# § 9. 後續軌（IMPL-02 + 4 UI/wire 軌）
+# § 9. 後續軌（IMPL-03+）
 
-- TASK-NX09-IMPL-02-YARO-FEATURE：亞羅特色（VIN / 維修 SOP / 故障代碼）⭐⭐⭐
+- **TASK-NX09-IMPL-02-YARO-FEATURE** ⭐⭐⭐ **✅ 已 closure**（IMPL-02 軌）
+- **TASK-NX09-IMPL-MEETING-FULL** ✅ 已 closure（IMPL-02 4 子表 endpoint 補完）
 - TASK-NX09-IMPL-03-CROSS-WIRE：跨模組接點（NX07 / NX04 / NX02 / NX08 → NX09）
 - TASK-NX09-IMPL-04-RAG：Phase 2 RAG 向量化（pgvector / OpenAI embedding）⭐
+- TASK-NX09-IMPL-VIN-API-FALLBACK：亞洲車型補充（VSCC / 其他第三方 API）
 - TASK-NX09-IMPL-UI-01：UI 真實 chart + 文件閱讀器 + 全文搜尋 UI
 - TASK-NX09-IMPL-UI-MANUAL-WIRE：NEXORA UI「？」按鈕 wire SystemManual ⭐
 - TASK-NX09-IMPL-AUTO-VERSION：DocumentVersion 自動寫入 + KM viewCount writer
-- TASK-NX09-IMPL-MEETING-FULL：會議子表 endpoint 補齊（Attendee / Minutes / Action）
-- TASK-NX09-IMPL-02-TEST：service + FTS unit test
+- TASK-NX09-IMPL-DTC-LIBRARY：故障代碼（OBD-II DTC）→ RepairSop wire
+- TASK-NX09-IMPL-02-TEST：service + FTS + VIN/RepairSop unit test
 
 ---
 
-> 文件版本：v1.0（IMPL-01 closure、Q-RHYTHM-2 第六次落地、EIP 重戰場升級）
-> 下次更新觸發：IMPL-02 亞羅特色 / RAG Phase 2 / UI wire / Meeting 子表 endpoint 補齊
+# § 10. IMPL-02 升級揭露（v2.0 補章）
+
+## 10.1 新增 2 service / 2 controller / 35 endpoint
+
+| service | controller | 路由 | endpoint 數 | 業界改革 |
+|---|---|---|---|---|
+| Nx09VinLookupService ⭐⭐⭐ | controller | /nx09/vin-lookup | 8（list + :id + by-vin/:vin + decode + POST + PATCH + DELETE + :id/parts）| **VIN NHTSA + 手動混合** |
+| Nx09RepairSopService ⭐⭐⭐ | controller | /nx09/repair-sop | 10（CRUD 6 + wire 4）| **維修 SOP 結構化 + 雙向 wire** |
+| Nx09SubTablesService 升 | controller 升 | /nx09 | +17（既有 4 → 21、4 子表 CRUD 補）| - |
+
+⭐ A041 真實 IMPL-02 後：**8 controller / 61 endpoint**（IMPL-01 6/26 + IMPL-02 +2 controller +35 endpoint）。
+
+## 10.2 新增 1 shared helper
+
+- `shared/nx09/nx09-nhtsa-client.ts`（純 fetch + ENV NHTSA_API_ENABLED + 5s timeout + graceful fallback）
+- 範式對齊 `shared/nx06/nx06-google-maps-client.ts`
+
+## 10.3 schema 真相（IMPL-02 後 14 model）
+
+3 軌 migration 累積：IMPL-01 3 軌 + IMPL-02 2 軌：
+
+| 軌 | migration | 範圍 |
+|---|---|---|
+| M1 | `nx09_impl_02_m1_vin_lookup_and_repair_sop` | 3 新表（VinLookup + RepairSop + RepairSopPartModel link）+ 3 ID generator function |
+| M2 | `nx09_impl_02_m2_constraint_naming_alignment` | drift resolution（`_fkey` → `_id_fkey`、對齊既有 NX06-IMPL-02 / NX07 / NX08 範式）|
+
+NX01 vehicle chain 0 動（CarBrand / Model / PartModel 既有 schema 100% 保留、reverse relations 純 additive）。
+
+## 10.4 IMPL-02 commit 真相（7 commit / 6 Phase + 1 收尾）
+
+| Phase | commit | 範圍 |
+|---|---|---|
+| 0 plan | `c80b613` | plan v0.1.0 + overview v0.2.0 連帶 commit |
+| 1 schema | `5ea30d7` | M1 3 新表 + M2 constraint naming drift |
+| 2 子表 | `7cd2c97` | 4 子表 endpoint 補（ArticleTag 3 + MeetingAction 5 + MeetingAttendee 4 + MeetingMinutes 5 = 17）|
+| 3 VinLookup | `ebf3fd5` | VinLookup service + NHTSA client + 8 endpoint |
+| 4+5 合併 | `31b2d6e` | RepairSop CRUD 6 + RepairSop↔PartModel 雙向 wire 4 = 10 endpoint |
+| 6 UI | `25ac493` | 4 placeholder + menu.nx09 6→10 items + workspace desc |
+| 7 docs | （本 commit）| summary v2.0 + worklog 主題 3 + _team 主題 33 + merge-verify |
+| 收尾 | merge / push / tag | v1.5.0-nx09-yaro-feature-closure（待 Crown）|
+
+⭐ 7 commit + 1 收尾 = 8、命中 plan 估 8 預算 100% + audit-02 §6.1 推薦組合 100% + Crown 估 7-10 預算 100%。
+
+## 10.5 業界改革 3 落地 ⭐⭐⭐
+
+| # | 改革 | 落地點 |
+|---|---|---|
+| 1 | **VIN NHTSA + 手動混合** | shared/nx09-nhtsa-client + VinLookup service decode endpoint |
+| 2 | **維修 SOP 結構化** | RepairSop service（steps/tools/warnings/photos JSON + carModelFilter + difficulty）|
+| 3 | **RepairSop ↔ PartModel 內部 wire 雙向查詢** | listSopsByPartModel（業務員查料件→看 SOP 業界第一）+ listPartsBySop |
+
+---
+
+> 文件版本：v2.0（IMPL-01 + IMPL-02 雙軌完整化 closure、Q-RHYTHM-2 第九次落地、8 controller / 61 endpoint）
+> 下次更新觸發：IMPL-03 跨模組 wire / RAG Phase 2 / UI 真實 / 後續軌啟動
