@@ -1,0 +1,38 @@
+-- packages/db-core/prisma/migrations/20260518110000_nx04_impl_01_m2_tenant_credit_overdue_days_threshold/migration.sql
+-- ============================================================================
+-- Migration: nx04_impl_01_m2_tenant_credit_overdue_days_threshold
+-- 建立日期：2026-05-18
+-- 任務：TASK-NX04-IMPL-01 Phase 1 M2（系統參數：客戶授信逾期天數閾值）
+-- 對應 plan：docs/nx04/spec/impl/nx04-impl-01-plan.md §3 M2
+-- 對應 overview：docs/nx04/spec/intent/nx04-overview.md §4.2 預期未付自動轉現金
+-- 對應拍板：
+--   - Crown Q-M1=A 2 軌 migration 認可
+--   - Crown Q-S2=a 逾期閾值 tenant 層級（不分 per customer）
+--   - Crown Q3 拍板：用戶可調 15 / 30 / 45 / 60 天等
+--   - 業界 muscle memory：業界半月 standard、避免持續累積應收
+--
+-- 範圍（A041 = 1 ALTER TABLE ADD COLUMN、純加欄、NOT NULL + default）：
+--   1. credit_overdue_days_threshold INT NOT NULL DEFAULT 15
+--      逾期應收警示閾值（天數）、超過此天數既有 AR 未付 → SO 自動轉現金銷售
+--
+-- 業務語意：
+--   - 觸發條件：客戶既有 AR 未付超過 N 天（N 從 tenant.credit_overdue_days_threshold 讀）
+--   - 動作：CreditGuardService 自動將該客戶後續 SO paymentTerm 切「現金銷售」
+--   - 業界對標：半月 standard（預設 15 天）、用戶可調 30/45/60
+--   - tenant 層級系統參數（Q-S2=a 拍板、非 per customer 細粒度、後續軌可升）
+--
+-- 漸進範式：
+--   - 既有 row Postgres 自動套 default 15（業界半月 standard）
+--   - 業務人員可在租戶設定 UI 手動調整（後續 UI 軌、本軌純 schema 落地 + service 讀取）
+--   - 屬 LITE-CORE 級欄位（客戶授信擋單基本配套）
+--   - 無 backfill SQL 需求（NOT NULL + default 既有 row 自動套）
+--
+-- 風險：低（純加欄、有 default、Postgres 自動套既有 row）
+-- ============================================================================
+
+ALTER TABLE "nx99_tenant" ADD COLUMN "credit_overdue_days_threshold" INTEGER NOT NULL DEFAULT 15;
+
+-- ============================================================================
+-- 完成：Nx99Tenant +1 系統參數欄（逾期天數閾值、預設 15 天）
+-- 後續：Phase 2 L1 新建 3 service（CreditGuard 讀此欄、SalesPerformance、CoEstimate）
+-- ============================================================================

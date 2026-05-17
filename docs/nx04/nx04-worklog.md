@@ -465,5 +465,135 @@ W2-mini 是「**第一個串真 API 的桌面工作站**」。從 NX04 視角：
 
 ---
 
-> 文件版本：v1.0（初版、含進行中 W2-mini Phase 1A prep）
+## 主題 9｜TASK-NX04-IMPL-01 銷貨模組重塑（A 軌、2026-05-17~18、14 commit / 2 migration）
+
+### 起源
+
+NX02 採購範圍 A closure（v0.5.0、2026-05-17）後、Crown 拍板 NX04 銷貨模組第四戰略軌。Hank 跑 AUDIT-01（schema + 既有 demo verify）→ Alex 寫 overview v0.1.0 整合 Crown 5 輪 18 題拍板 → Hank 寫 plan v0.1.0 → Alex 守門 7 題 / Crown 拍 3 戰略題 → plan 全綠燈開工。
+
+⭐ **新紀律 Q-RHYTHM-1=d 啟用**：schema migration Crown review、service impl phase Alex 守門、Crown 休息至 final merge。
+
+### 設計決策（6 項戰略對齊）
+
+1. **客戶授信擋單 4 機制 + 逾期自動轉現金（Crown Q3 + Q7 + Q-C4=A）**：
+   - M2 Nx99Tenant +creditOverdueDaysThreshold default 15（業界半月 standard、tenant 層級用戶可調）
+   - CreditGuardService 4 機制執行順序：黑名單 → 額度 → 逾期 → 付款條件
+   - 逾期觸發 → 強制 paymentTerm='CASH'（不擋 SO、純改條件）
+   - 業界改革候選 ⭐⭐⭐
+
+2. **客戶預設據點 + CONFIRMED 自動調撥（Crown Q-NX04-A=B + Q-C1=C）**：
+   - M1 Nx01Partner +defaultWarehouseId FK SET NULL（NX01 升版）
+   - so.service create fallback：dto.warehouseId → customer.defaultWarehouseId
+   - Phase 4b autoCreateTransferFromSo helper：CONFIRMED transit 缺貨自動建 NX03 ST
+   - 最近倉算法 warehouse.sortNo asc（業務手動指定、後續軌可升地理距離）
+   - 業界改革候選 ⭐⭐⭐
+
+3. **客訂預估價系統算（Crown Q-NX04-C=B）**：
+   - CoEstimateService 公式：max(歷史成本 × (1 + marginPct/100), part 等級 priceA~D)
+   - 對齊 NX02 PriceComparisonService 90 天 weighted avg 範式
+   - 3 種 basis 標記透明化（historical_cost_plus_margin / part_grade_price / no_data_available）
+   - 業界改革候選 ⭐⭐⭐
+
+4. **配送中部分鎖（Crown Q-C2=A）**：
+   - patchItem SHIPPED 階段 ForbiddenException（qty / unitPrice / locationId 鎖）
+   - 既有 update SHIPPED 階段已 guard deliveryType / deliveryAddress
+   - 允許 remark + 業務員改
+   - 業界改革候選 ⭐⭐
+
+5. **銷退退款 3 種並存（Crown Q10 + Q-C3=A）**：
+   - DTO +returnAction R/D/X（純 in-memory、A026 backlog 列 schema 持久化）
+   - R 退錢 + D 折讓 → 走 NX05 Allowance bridge（disposalMethod R / D）
+   - X 換新 → skip ledger + skip Allowance
+   - 仿 NX02 returnMode F/P/A 範式
+   - 業界改革候選 ⭐⭐
+
+6. **UI 全 stub + menu drift 修（Crown Q-U1=c + Q-X1=A）**：
+   - 3 placeholder 升 desc + API hint（對齊 NX02 範式）
+   - menu.nx04.ts 嚴重 drift 修正（既有 NX05 財務內容 → NX04 銷貨）
+   - 3 sales namespace 殘留留 TASK-NX04-DEMO-CLEANUP 獨立軌
+
+### 實作歷程
+
+| Phase | commit | sha | 主軸 |
+|---|---|---|---|
+| 0 | 1 | 67538cb | plan v0.1.0（Alex 7 + Crown 3 拍板 closure）|
+| 1 | 2 | 1a68956 / 290c151 | M1 partner +defaultWarehouseId / M2 tenant +creditOverdueDaysThreshold（2 軌 stop Crown review SQL）|
+| 2 | 3 | 04b08b6 / cb619ee / 6479656 | L2 新 3 service：CreditGuard / SalesPerformance / CoEstimate |
+| 3 | 3 | 143a71f / 4d867e7 / 95fc313 | L3 既有升：so 4 接點 / quote 共享 / sr returnAction 分流 |
+| 4 | 2 | 76615b8 / 4bce139 | L4 helper：Allowance bridge (SR R/D) + autoTransfer (SO CONFIRMED) |
+| 5 | 1 | b235bf7 | 跨模組 verify 報告（NX03/NX02/NX05/NX06 + 10 source）|
+| 6 | 1 | b1f7852 | UI 3 stub + menu.nx04.ts drift 修 |
+| 7 | 2 | d03651f / ... | summary + worklog（本主題）|
+
+### 踩坑
+
+1. **CreditGuard query 在 tx 內 vs tx 外**：
+   - 原想在 prisma.$transaction tx 內呼叫 creditGuard.check、但 service inject pattern 不接 tx 參數
+   - 對策：creditGuard.check 用 this.prisma 純查詢、不寫 DB、安全在 tx 外呼叫（無事務污染）
+   - 教訓：純 read-only service 不需要 tx 參與、可在 tx 外執行
+
+2. **配送中部分鎖 vs assertSoItemsEditable 衝突**：
+   - 既有 assertSoItemsEditable 擋 SHIPPED 階段、會擋整個 patchItem
+   - Crown Q-C2=A 拍板「備註可改」、需要拆
+   - 對策：SHIPPED 階段拆分支、含 qty/unitPrice/locationId throw、純 remark 允許
+
+3. **SR returnAction schema 衝突揭露**：
+   - plan §1 表寫「SR +0 schema、純 dto」
+   - NX02 對比是 schema 加 returnMode 欄、本軌 NX04 純 in-memory dto
+   - 後果：SR row 無法持久化 returnAction、查詢時不知過去退款方式
+   - 對策：本軌純 dto、A026 backlog 列 schema 持久化、Alex 升級為「2 commit Phase 4 含自動調撥」時順手揭露
+
+4. **autoCreateTransferFromSo 跨模組界線**：
+   - 寫 ST 屬 NX03 業務、但本軌需要 SO CONFIRMED 階段觸發
+   - 對齊 NX02 Phase 5 commit 5a inline helper 範式（避免 NX03 ST service 跨模組污染）
+   - 對策：放 shared/nx03/ 而非 NX04 service、inline helper、純 prisma create 不依賴 NX03 service
+
+5. **menu.nx04.ts drift 完整度**：
+   - 既有 NX05 財務 內容、href 全指 /dashboard/nx05/*
+   - 不是 「小錯誤」、是 pivot 後完全沒改的 stale 檔
+   - 對策：整檔重寫對齊 NX04（4 items：home / domestic / return / customer）
+
+### 統合教訓
+
+1. **Q-RHYTHM-1=d 新節奏成效**：
+   - Crown 只 review 2 schema migration（M1 + M2）+ final merge
+   - Alex 守 7 拍板題 + Phase 2~7 review、Crown 真休息
+   - 對 Hank 心理負擔減輕（Alex 範式內節奏明確）
+   - 後續軌建議延續：戰略題 / schema 變動才升 Crown
+
+2. **NX04 schema 衝擊比 NX02 小**：
+   - NX02：4 軌 migration（po +6 欄 + pr +1 欄 + PartnerPart 新表）
+   - NX04：2 軌 migration（partner +1 + tenant +1）
+   - 原因：NX04 既有 7 model（D3+D4 demo 已設計成熟）、本軌純加配套欄
+   - 教訓：模組設計成熟度直接影響重塑 schema 衝擊面
+
+3. **inline helper 範式跨軌複用**：
+   - NX02 Phase 5 commit 5a：nx05-create-allowance-from-pr.ts
+   - NX04 Phase 4 commit 4a：nx05-create-allowance-from-sr.ts（鏡像）
+   - NX04 Phase 4 commit 4b：nx03-auto-transfer-from-so.ts（仿 RefreshmentDocCreator.createSt）
+   - 教訓：第 3 個相似實作時、inline helper 範式已成熟、寫起來流暢
+
+4. **客戶授信 + 自動調撥 + 客訂預估價是 NEXORA 戰略 ⭐⭐⭐ 群**：
+   - 3 項業界改革候選堆疊在 NX04 一軌、戰略密度最高
+   - 對齊 overview §6.4「業務員不憑經驗、系統算」哲學
+   - 後續可延伸：客戶分級補貨（VIP 庫存優先）、銷售提成計算（PRO 候選）
+
+### 對應文件
+
+- 業務需求：[nx04-overview.md](./spec/intent/nx04-overview.md) v0.1.0
+- 實作計畫：[nx04-impl-01-plan.md](./spec/impl/nx04-impl-01-plan.md) v0.1.0
+- Phase 5 verify：[nx04-impl-01-phase5-verify.md](./spec/impl/nx04-impl-01-phase5-verify.md)
+- AUDIT-01：[nx04-audit-01.md](./nx04-audit-01.md)
+- 模組架構書：[nx04-summary.md](./nx04-summary.md) v1.0
+
+### Migration 全列表（2 軌、A041）
+
+| Migration | 主題 | 性質 |
+|-----------|------|------|
+| `20260518100000_nx04_impl_01_m1_partner_default_warehouse_id` | 主題 9 | Nx01Partner +defaultWarehouseId FK（NX01 升版）|
+| `20260518110000_nx04_impl_01_m2_tenant_credit_overdue_days_threshold` | 主題 9 | Nx99Tenant +系統參數欄 default 15 |
+
+---
+
+> 文件版本：v1.1（主題 9 新增、IMPL-01 14 commit 完整實作歷程）
 > 下次更新觸發：W2-mini Phase 1A~1D 落地 / D3/D4 後續 patch / NX04 業務新 spec

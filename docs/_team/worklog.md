@@ -1748,3 +1748,37 @@ Crown 跨 2 輪需求討論共 11 題拍板 closure（2026-05-16）→ Alex 寫 
 
 ⭐ 等 Crown 拍板「branch merge main + push + tag v0.5.0-nx02-closure」、進 TASK-NX02-IMPL-UI-01 / TASK-NX02-IMPL-02-TEST / TASK-NX02-DEMO-CLEANUP / NX02 範圍 B（供應商評核）等下游 task。
 
+### A026 backlog 開單揭露（NX04 範圍）
+
+對齊 [docs/nx04/spec/impl/nx04-merge-verify.md](../nx04/spec/impl/nx04-merge-verify.md) §5.2 主要風險 + production 前 verify 拍板：
+
+1. **CreditGuard 4 機制 production 前 verify customer creditStatus 分佈**
+   - 風險：既有客戶 creditStatus='F' 凍結 / unpaidAr 超 creditLimit → SO 建單 throw Forbidden
+   - 影響：production 既有黑名單 / 超額客戶 SO 流被切斷
+   - 後續軌：merge 前 query Nx01Partner GROUP BY creditStatus、SUM unpaidAr vs creditLimit 分佈
+   - mitigation：若分佈高風險、短期 disable so.service.create 內 creditGuard.check call
+
+2. **autoTransfer production 前 verify partId × warehouse 倉庫支援覆蓋度**
+   - 風險：SO DRAFT→CONFIRMED transit 因部分料件無倉庫支援 throw BadRequest
+   - 影響：業務員需手動處理（不是 production 立即斷裂、是 transit 流被擋）
+   - 後續軌：query stock_balance GROUP BY partId、評估「無倉庫支援」料件比例
+   - mitigation：若覆蓋度低、短期 disable autoCreateTransferFromSo call
+
+3. **nx05-create-allowance-from-sr.ts 缺 assertFinancePeriodMutable 校驗**
+   - 仿 NX02 既知邊界（同 nx05-create-allowance-from-pr.ts、之前已登 A026）
+   - 風險：低（業務責任歸 SR 過帳時機）
+   - 後續軌：補強 helper 加 financePeriod guard 對齊既有 NX05 Allowance service
+
+4. **SR returnAction schema 持久化**（Phase 3c 揭露）
+   - 本軌純 dto in-memory、SR row 無法持久化 returnAction
+   - 風險：低（業務語意上 R/D/X 只在 POSTED transit 即時分流、過帳後查歷史可從 Nx05Allowance.disposalMethod 反推）
+   - 後續軌：可加 schema 欄持久化、對齊 NX02 returnMode F/P/A 範式
+
+5. **autoCreateTransferFromSo 多倉湊 + 地理距離算法**
+   - 本軌純單一最近倉（warehouse.sortNo asc）、不足直接 throw
+   - 後續軌：多倉湊（從 N 個倉湊 qty）+ 地理距離計算（取代 sortNo）
+
+完整 backlog 13 項見 [docs/nx04/nx04-summary.md §8](../nx04/nx04-summary.md#-8-backloga026-子項對齊-overview-1314--plan-53--phase-5-verify-8)。
+
+⭐ 等 Crown 拍板「branch merge main + push + tag v0.6.0-nx04-closure」、進 TASK-NX04-IMPL-UI-01 / TASK-NX04-IMPL-02-TEST / TASK-NX04-DEMO-CLEANUP / NX04 範圍 B（PRO KPI 業績）等下游 task。
+

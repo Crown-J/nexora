@@ -981,10 +981,13 @@ model Nx01Partner {
   salesUserId                              String?                      @map("sales_user_id") @db.VarChar(15)
   /// 預設交易幣別 ID（FK nx01_currency、ON DELETE RESTRICT 幣別不可刪）；啟用最低需求版本：LITE
   defaultCurrencyId                        String?                      @map("default_currency_id") @db.VarChar(15)
+  /// 客戶預設取貨據點（FK nx01_warehouse、ON DELETE SET NULL、業界 muscle memory：客戶習慣取貨倉、SO 建單自動帶入、無庫存自動 NX03 ST 調撥）。NX04-IMPL-01 Phase 1 M1 新增。；啟用最低需求版本：LITE-CORE
+  defaultWarehouseId                       String?                      @map("default_warehouse_id") @db.VarChar(15)
   tenant                                   Nx99Tenant                   @relation("R_Nx01Partner_tenantId", fields: [tenantId], references: [id])
   customerGrade                            Nx01CustomerGrade?           @relation("R_Nx01Partner_customerGradeId", fields: [customerGradeId], references: [id])
   salesUser                                Nx01User?                    @relation("R_Nx01Partner_salesUserId", fields: [salesUserId], references: [id])
   defaultCurrency                          Nx01Currency?                @relation("R_Nx01Partner_defaultCurrencyId", fields: [defaultCurrencyId], references: [id], onDelete: Restrict)
+  defaultWarehouse                         Nx01Warehouse?               @relation("R_Nx01Partner_defaultWarehouseId", fields: [defaultWarehouseId], references: [id], onDelete: SetNull)
   rev_Nx02Demand_customerId                Nx02Demand[]                 @relation("R_Nx02Demand_customerId")
   rev_Nx02Po_supplierId                    Nx02Po[]                     @relation("R_Nx02Po_supplierId")
   rev_Nx02Pr_supplierId                    Nx02Pr[]                     @relation("R_Nx02Pr_supplierId")
@@ -1428,6 +1431,7 @@ model Nx01Warehouse {
   rev_Nx04So_warehouseId                Nx04So[]               @relation("R_Nx04So_warehouseId")
   rev_Nx04SoItem_warehouseId            Nx04SoItem[]           @relation("R_Nx04SoItem_warehouseId")
   rev_Nx04Sr_warehouseId                Nx04Sr[]               @relation("R_Nx04Sr_warehouseId")
+  rev_Nx01Partner_defaultWarehouseId    Nx01Partner[]          @relation("R_Nx01Partner_defaultWarehouseId")
   rev_Nx06Dn_warehouseId                Nx06Dn[]               @relation("R_Nx06Dn_warehouseId")
   rev_Nx06DnStop_warehouseId            Nx06DnStop[]           @relation("R_Nx06DnStop_warehouseId")
   rev_Nx07IpWhitelist_warehouseId       Nx07IpWhitelist[]      @relation("R_Nx07IpWhitelist_warehouseId")
@@ -6573,6 +6577,8 @@ model Nx99Tenant {
   updatedAt                               DateTime                     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy                               String                       @map("updated_by") @db.VarChar(15)
+  /// 客戶授信逾期天數閾值（預設 15 天、業界半月 standard、用戶可調 30/45/60）。CreditGuardService 讀此欄、超過此天數既有 AR 未付 → SO paymentTerm 自動轉現金銷售。NX04-IMPL-01 Phase 1 M2 新增（Crown Q-S2=a tenant 層級拍板）。；啟用最低需求版本：LITE-CORE
+  creditOverdueDaysThreshold              Int                          @default(15) @map("credit_overdue_days_threshold")
   /// 租戶主要聯絡人姓名。；啟用最低需求版本：LITE-CORE
   contactName                             String?                      @map("contact_name") @db.VarChar(50)
   /// 租戶聯絡 Email（系統通知用）。；啟用最低需求版本：LITE-CORE
