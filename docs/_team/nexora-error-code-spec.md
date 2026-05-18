@@ -1,14 +1,14 @@
 <!-- docs/_team/nexora-error-code-spec.md -->
 
-# NEXORA 錯誤代碼統一規範 v1.1
+# NEXORA 錯誤代碼統一規範 v1.2
 
 > **性質**：架構級規範文件（NEXORA 全棧跨模組統一標準）
 > **撰寫者**：Alex（NEXORA 專案 PM AI）
 > **拍板者**：Crown（NEXORA 創辦人）
 > **日期**：2026-05-18
-> **版本**：v1.1（對齊 Hank NEXORA-CODE-NAMING-AUDIT 5 校正）
+> **版本**：v1.2（對齊 Crown 真實業務測試 UI 校正 + 蘋果版本範式落地）
 > **戰略定位**：NEXORA 第 19 業界改革候選 ⭐⭐⭐（跨模組統一錯誤代碼制度、業界中小汽配 ERP 多無）
-> **影響範圍**：NEXORA 全 11 模組 + Auth + System + Networking、所有後續軌錯誤訊息對齊
+> **影響範圍**：NEXORA 全 11 模組 + Auth + System + Networking + 版本管理、所有後續軌錯誤訊息 + UI 字級 + 版本顯示對齊
 
 ---
 
@@ -296,23 +296,37 @@ throw new HttpException({
 }, HttpStatus.UNAUTHORIZED);
 ```
 
-### 7.3 Frontend UI 顯示格式
+### 7.3 Frontend UI 顯示格式（v1.2 字級校正）
 
-對齊 Crown「方便客服協助處理」：
+對齊 Crown「方便客服協助處理」+ Crown 真實業務測試揭露「字太小看不到」：
 
 ```
 [Toast / Dialog / Inline 提示]
 
-登入失敗
-請確認公司帳號、使用者帳號與密碼
+❌ 登入失敗                              ← 16px + 圖示
+請確認公司帳號、使用者帳號與密碼         ← 16px
 
-[錯誤代碼：AU-001]
+[錯誤代碼：AU-001]                       ← 13px
 ```
 
+⭐ **v1.2 校正字級規範**（對齊業界 SaaS + NEXORA「使用者導向 = 容易上手」哲學）：
+
+| 元素 | 字級 | 業界對標 |
+|---|---|---|
+| **錯誤訊息主文字** | **16px** | Gmail 15px / Stripe 14px |
+| **錯誤代碼** | **13px** | Stripe 12px / Salesforce 13px |
+| 視覺強調 | ❌ 圖示 | 業界 SaaS 範式 |
+| 訊息區 padding | 12~16px | 顯眼但不突兀 |
+
+⚠️ **v1.1 → v1.2 校正**：
+- 原 v1.1：「錯誤代碼字較小（如 12px）」
+- 校正 v1.2：訊息 16px / 代碼 13px、對齊業界 SaaS 範式
+- 對齊 Crown 真實業務測試揭露（A026 #6 closure）
+
 ⚠️ **顯示位置**：
-- 錯誤代碼放在訊息**最下方**、字較小（如 12px）
-- 不干擾主要訊息閱讀
-- 但 Crown / 員工 / 客服可快速看到
+- 錯誤代碼放在訊息**最下方**、字略小不干擾
+- ❌ 圖示在訊息**最上方**、視覺強調
+- Crown / 員工 / 客服可快速看到
 
 ### 7.4 Backend Log 格式
 
@@ -472,6 +486,108 @@ SY-xxx  System
 
 ---
 
+## §13 版本號顯示規範（v1.2 新增、蘋果範式）
+
+對齊 Crown 拍板蘋果版本邏輯 + Crown 真實業務測試揭露需加版本號：
+
+### 13.1 戰略定位
+
+對齊累積真相：
+- 業界 SaaS 範式（Salesforce / Slack 登入畫面顯示版本）
+- 客服 / 員工溝通需要（知道使用者用什麼版本）
+- 對齊 NEXORA NX99_release 既有架構
+
+### 13.2 蘋果範式對標
+
+```
+蘋果 iOS / macOS 版本生命週期範式：
+├─ Developer Beta    →  iOS 18.0 beta 1, beta 2...
+├─ Public Beta       →  iOS 18.0 public beta
+├─ Release Candidate →  iOS 18.0 RC
+├─ 正式版            →  iOS 18.0（純版本號、無後綴）
+└─ 修補版            →  iOS 18.0.1, 18.0.2...
+
+NEXORA 對齊：
+├─ 測試版           →  v1.5.0 beta
+├─ 正式版           →  v1.5.0
+└─ 修補版           →  v1.5.0 / v1.5.1（語意化版本）
+```
+
+⭐ **核心精神**：版本號本身揭露成熟度、不需查表。
+
+### 13.3 格式規範
+
+```
+正式版：v{x.y.z}            （如 v1.5.0、無後綴）
+測試版：v{x.y.z} beta       （如 v1.5.0 beta）
+```
+
+### 13.4 顯示位置
+
+**登入畫面**：logo 下方品牌區
+- 位於「汽車零件零售 ERP 企業管理平台」副標之下
+- 對齊既有 NEXORA layout
+
+**其他畫面**（後續軌擴展）：
+- Top bar 右側下拉選單
+- Footer / About 頁
+
+### 13.5 字級 + 顏色
+
+| 元素 | 規範 |
+|---|---|
+| **字級** | 14px（對齊「容易看到」UX 哲學）|
+| **正式版顏色** | amber #FFB800（NEXORA 主色）|
+| **beta 版顏色** | 偏灰 / 偏黃（提示測試性質、不過度警告）|
+
+### 13.6 環境判斷邏輯
+
+```typescript
+// 環境變數
+NEXT_PUBLIC_NEXORA_VERSION_SUFFIX=beta   // 測試版
+NEXT_PUBLIC_NEXORA_VERSION_SUFFIX=        // 正式版（空 / undefined）
+
+// 版本號來源
+const version = require('./package.json').version;  // 如 "1.5.0"
+const suffix = process.env.NEXT_PUBLIC_NEXORA_VERSION_SUFFIX;
+
+// 顯示
+const versionDisplay = suffix
+  ? `v${version} ${suffix}`     // "v1.5.0 beta"
+  : `v${version}`;              // "v1.5.0"
+```
+
+### 13.7 預設環境
+
+| 環境 | suffix | 顯示 |
+|---|---|---|
+| 本機開發 | beta | v1.5.0 beta |
+| 目前 Railway / Vercel（無真實客戶）| beta | v1.5.0 beta |
+| 後續封測一階（亞羅）| beta | v1.5.0 beta |
+| 後續首位客戶簽約後 | (空) | v1.5.0 |
+
+⚠️ **正式版觸發**：Crown 戰略決策（首位客戶簽約 / 封測一階完成）。
+
+### 13.8 資料來源（兩階段）
+
+**階段 1：硬編（v1.2 落地）**
+- `package.json` version 欄位讀取
+- 環境變數 `NEXT_PUBLIC_NEXORA_VERSION_SUFFIX` 判斷
+- SSR build time 注入
+
+**階段 2：NX99_release API 動態（後續軌升級）**
+- fetch 最新 release
+- 業界改革候選 ⭐
+- 後續軌：TASK-VERSION-DYNAMIC-FETCH
+
+### 13.9 進階互動（後續軌）
+
+- 點擊版本號 → 跳 Changelog（業界範式）
+- Top bar 整合（全 NEXORA 一致顯示）
+- 環境警告（測試 vs 正式視覺差異）
+
+---
+
 ## §12 文件變更歷史
 
 | 版本 | 日期 | 變更摘要 |
@@ -479,8 +595,11 @@ SY-xxx  System
 | v1.0 | 2026-05-18 | 首版、Crown 拍板（Q1=b 6 字格式 / Q2=a 12 模組縮寫 / Q3=a 5 區分配）+ Auth 7 代碼初版 |
 | **v1.1** | **2026-05-18** | **對齊 Hank NEXORA-CODE-NAMING-AUDIT 5 校正**：(1) +NW Networking 模組 = 13 縮寫 / (2) §3.1 字母 reserve table / (3) §5.3 §5.5 Auth 補 AU-301~304 + AU-501 = 12 代碼 / (4) §7.1 NexoraErrorResponse TypeScript interface / (5) §10 既有 2 hack 清理 mapping |
 
+| **v1.2** | **2026-05-18** | **對齊 Crown 真實業務測試 UI 校正 + 蘋果版本範式**：(1) §7.3 字級校正（訊息 16px / 代碼 13px / ❌ 圖示 / padding）/ (2) 新增 §13 版本號顯示規範（蘋果範式、v1.5.0 / v1.5.0 beta、環境變數判斷、後續軌 NX99_release API 動態升級） |
+
 ---
 
-> **本文件是 NEXORA 架構級規範、所有後續軌錯誤訊息必對齊**
+> **本文件是 NEXORA 架構級規範、所有後續軌錯誤訊息 + UI 字級 + 版本顯示必對齊**
 > **NEXORA 業界改革第 19 候選 ⭐⭐⭐**（跨模組統一錯誤代碼制度、業界中小汽配 ERP 多無）
 > **3 層命名範式協同**（@FUNCTION_CODE / @CODE / XX-NNN）零衝突
+> **v1.2 對齊 Crown 真實業務測試 + 蘋果版本範式**
