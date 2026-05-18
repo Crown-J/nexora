@@ -20,7 +20,7 @@ import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
-import { getVersionDisplay, isBetaVersion } from '@/lib/version';
+import { getVersionParts } from '@/lib/version';
 import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
 
 // TASK-AUTH-ERROR-CODE：對齊規範 v1.1 §5.3 §7
@@ -57,6 +57,25 @@ function validateLoginForm(fields: LoginFormFields): NexoraClientError | null {
   if (!fields.userAccount.trim()) return { errorCode: 'AU-302', message: '請輸入使用者帳號。' };
   if (!fields.password) return { errorCode: 'AU-303', message: '請輸入密碼。' };
   return null;
+}
+
+/**
+ * 版本號頁尾元件（規範 v1.3 §13.4 §13.5）。
+ * 範式：'NEXORA GRID | v1.5.1 beta' — 三段 design token 對齊 4 主題
+ *   - brand 'NEXORA GRID'：text-muted-foreground
+ *   - version 'v1.5.1'：text-primary（amber 主色、4 主題自動切換）
+ *   - suffix 'beta'：text-muted-foreground（偏灰、提示測試性質）
+ */
+function LoginVersionFooter() {
+  const { brand, version, suffix } = getVersionParts();
+  return (
+    <p className="mt-4 text-center font-mono text-sm tracking-[0.1em] text-muted-foreground">
+      <span>{brand}</span>
+      <span className="mx-2 opacity-50">|</span>
+      <span className="text-primary">{version}</span>
+      {suffix ? <span className="ml-2 text-muted-foreground">{suffix}</span> : null}
+    </p>
+  );
 }
 
 export default function LoginPage() {
@@ -127,15 +146,6 @@ export default function LoginPage() {
             RA
           </h1>
           <p className="text-base font-light tracking-[0.15em] text-foreground/80">GRID</p>
-          {/* 規範 v1.2 §13：版本號（mobile 版、放在 GRID 副標下方）*/}
-          <p
-            className={
-              'mt-1 font-mono text-[13px] tracking-[0.15em] ' +
-              (isBetaVersion() ? 'text-amber-300/60' : 'text-accent')
-            }
-          >
-            {getVersionDisplay()}
-          </p>
         </div>
 
         <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6">
@@ -172,15 +182,6 @@ export default function LoginPage() {
             </p>
             <p className="mt-4 text-sm text-muted-foreground tracking-wide">
               汽車零件零售 ERP 企業管理平台
-            </p>
-            {/* 規範 v1.2 §13：版本號顯示（蘋果範式、14px、amber 正式 / 偏黃灰 beta）*/}
-            <p
-              className={
-                'mt-3 font-mono text-sm tracking-[0.15em] ' +
-                (isBetaVersion() ? 'text-amber-300/60' : 'text-accent')
-              }
-            >
-              {getVersionDisplay()}
             </p>
           </div>
         </div>
@@ -223,6 +224,9 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
+
+              {/* 規範 v1.3 §13.4 §13.5：版本號移到登入按鈕下方、品牌+版本+suffix 3 段 design token */}
+              <LoginVersionFooter />
             </div>
           </div>
         </div>
