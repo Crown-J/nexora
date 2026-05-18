@@ -34,7 +34,7 @@ type LoginViewState = {
 function getError(err: unknown): NexoraClientError {
   return toNexoraClientError(err, {
     errorCode: 'AU-999',
-    message: '帳號或密碼錯誤 / 或 API 無回應',
+    message: '請確認公司帳號、使用者帳號及密碼。',
   });
 }
 
@@ -52,9 +52,10 @@ function buildUsernameForApi(fields: LoginFormFields): string {
 }
 
 function validateLoginForm(fields: LoginFormFields): NexoraClientError | null {
-  if (!fields.companyAccount.trim()) return { errorCode: 'AU-301', message: '請輸入公司帳號' };
-  if (!fields.userAccount.trim()) return { errorCode: 'AU-302', message: '請輸入使用者帳號' };
-  if (!fields.password) return { errorCode: 'AU-303', message: '請輸入密碼' };
+  // 對齊規範 v1.3 §7.3.4：訊息結尾加「。」+ 文案統一「公司帳號、使用者帳號及密碼」範式
+  if (!fields.companyAccount.trim()) return { errorCode: 'AU-301', message: '請輸入公司帳號。' };
+  if (!fields.userAccount.trim()) return { errorCode: 'AU-302', message: '請輸入使用者帳號。' };
+  if (!fields.password) return { errorCode: 'AU-303', message: '請輸入密碼。' };
   return null;
 }
 
@@ -87,7 +88,7 @@ export default function LoginPage() {
         // AU-501：登入流程異常（規範 v1.1 §5.5、既有 hack [nxui_nx00_auth_login_flow_001] 清理）
         throw new Error(JSON.stringify({
           errorCode: 'AU-501',
-          message: '登入流程異常、請重試或聯繫管理員',
+          message: '登入流程異常，請重試或聯繫管理員。',
         }));
       }
       setToken(result.token);

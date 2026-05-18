@@ -114,18 +114,19 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
       </div>
 
       {errorMsg ? (
-        // 對齊規範 v1.2 §7.3：訊息 16px / 代碼 13px / ❌ 圖示 / padding 14px
+        // 對齊規範 v1.3 §7.3：warning 橘（4 主題 design token、避免 destructive 紅過度警告）
+        // 字級保留 v1.2 校正：text-base 16px / text-xs 13px / p-3.5 14px / lucide XCircle 20px
         <div
           role="alert"
-          className="rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-destructive"
+          className="rounded-lg border border-warning/40 bg-warning/10 p-3.5 text-warning"
         >
           <div className="flex items-start gap-2">
             <XCircle className="mt-0.5 size-5 shrink-0" aria-hidden />
-            <p className="text-base leading-snug">{errorMsg.message}</p>
+            <div className="flex-1">
+              <p className="text-base leading-snug">{errorMsg.message}</p>
+              <p className="mt-1 text-xs opacity-70">[Error Code : {errorMsg.errorCode}]</p>
+            </div>
           </div>
-          <p className="mt-2 pl-7 text-[13px] text-destructive/70">
-            [錯誤代碼：{errorMsg.errorCode}]
-          </p>
         </div>
       ) : null}
 

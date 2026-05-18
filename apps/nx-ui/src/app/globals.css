@@ -61,7 +61,7 @@
   --color-primary-bg: rgba(232, 160, 32, 0.15);
   --color-success: #1d9e75;
   --color-danger: #e24b4a;
-  --color-warning: #e8a020;
+  --warning: #e8a020;
   --color-meeting: #378add;
 }
 
@@ -148,7 +148,7 @@ html:not(.light)[data-nx-palette='steel'] {
   --color-primary-bg: rgba(255, 184, 0, 0.14);
   --color-success: #1d9e75;
   --color-danger: #e24b4a;
-  --color-warning: #ffb800;
+  --warning: #ffb800;
   --color-meeting: #8e8e8e;
 }
 
@@ -211,6 +211,8 @@ html.light:not([data-nx-palette]) {
   --nx-scroll-thumb-hover: oklch(0.68 0.012 258);
   --nx-exp-gradient: linear-gradient(90deg, oklch(0.62 0.12 73), oklch(0.72 0.13 75));
   --nx-glow-primary: 0 0 10px rgba(200, 150, 20, 0.35), 0 0 20px rgba(200, 150, 20, 0.18);
+  /** 規範 v1.3 §7.3.3 warning 4 主題色票 — light + classic */
+  --warning: oklch(0.5 0.12 73);
 }
 
 html.light[data-nx-palette='steel'] {
@@ -255,7 +257,7 @@ html.light[data-nx-palette='steel'] {
   --nx-glow-primary: 0 0 10px rgba(184, 134, 0, 0.28), 0 0 20px rgba(184, 134, 0, 0.12);
   --color-primary-light: #e8c040;
   --color-primary-bg: rgba(184, 134, 0, 0.1);
-  --color-warning: #b88600;
+  --warning: #b88600;
   --color-meeting: #64748b;
 }
 
@@ -297,6 +299,8 @@ html.light select {
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  /** 規範 v1.3 §7.3：warning 橘 4 主題 design token（使用者操作問題、登入失敗等）*/
+  --color-warning: var(--warning);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
