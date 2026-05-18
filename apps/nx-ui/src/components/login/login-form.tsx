@@ -118,7 +118,10 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
           role="alert"
           className="rounded-lg border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          {errorMsg.message}
+          <div>{errorMsg.message}</div>
+          <div className="mt-1 text-[11px] text-destructive/70">
+            [錯誤代碼：{errorMsg.errorCode}]
+          </div>
         </div>
       ) : null}
 
