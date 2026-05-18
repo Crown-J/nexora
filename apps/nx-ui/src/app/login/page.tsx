@@ -20,16 +20,21 @@ import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
+import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
 
+// TASK-AUTH-ERROR-CODE：對齊規範 v1.1 §5.3 §7
+// AU-301 公司空 / AU-302 使用者空 / AU-303 密碼空
+// AU-999 fallback（fetch 異常 / 無回應、後續軌補精準碼）
 type LoginViewState = {
   isSubmitting: boolean;
-  errorMsg: string | null;
+  errorMsg: NexoraClientError | null;
 };
 
-function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return '帳號或密碼錯誤 / 或 API 無回應';
+function getError(err: unknown): NexoraClientError {
+  return toNexoraClientError(err, {
+    errorCode: 'AU-999',
+    message: '帳號或密碼錯誤 / 或 API 無回應',
+  });
 }
 
 function normalizeFields(fields: LoginFormFields): LoginFormFields {
@@ -45,10 +50,10 @@ function buildUsernameForApi(fields: LoginFormFields): string {
   return u;
 }
 
-function validateLoginForm(fields: LoginFormFields): string | null {
-  if (!fields.companyAccount.trim()) return '請輸入公司帳號';
-  if (!fields.userAccount.trim()) return '請輸入使用者帳號';
-  if (!fields.password) return '請輸入密碼';
+function validateLoginForm(fields: LoginFormFields): NexoraClientError | null {
+  if (!fields.companyAccount.trim()) return { errorCode: 'AU-301', message: '請輸入公司帳號' };
+  if (!fields.userAccount.trim()) return { errorCode: 'AU-302', message: '請輸入使用者帳號' };
+  if (!fields.password) return { errorCode: 'AU-303', message: '請輸入密碼' };
   return null;
 }
 
@@ -83,7 +88,7 @@ export default function LoginPage() {
       setToken(result.token);
       router.replace('/dashboard');
     } catch (e: unknown) {
-      setView((prev) => ({ ...prev, errorMsg: getErrorMessage(e) }));
+      setView((prev) => ({ ...prev, errorMsg: getError(e) }));
     } finally {
       setView((prev) => ({ ...prev, isSubmitting: false }));
     }
