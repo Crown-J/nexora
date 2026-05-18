@@ -1,14 +1,14 @@
 <!-- docs/_team/nexora-error-code-spec.md -->
 
-# NEXORA 錯誤代碼統一規範 v1.2
+# NEXORA 錯誤代碼統一規範 v1.3
 
 > **性質**：架構級規範文件（NEXORA 全棧跨模組統一標準）
 > **撰寫者**：Alex（NEXORA 專案 PM AI）
 > **拍板者**：Crown（NEXORA 創辦人）
 > **日期**：2026-05-18
-> **版本**：v1.2（對齊 Crown 真實業務測試 UI 校正 + 蘋果版本範式落地）
+> **版本**：v1.3（對齊 Hank NX-THEME-AUDIT 4 主題真相 + 顏色語意分級）
 > **戰略定位**：NEXORA 第 19 業界改革候選 ⭐⭐⭐（跨模組統一錯誤代碼制度、業界中小汽配 ERP 多無）
-> **影響範圍**：NEXORA 全 11 模組 + Auth + System + Networking + 版本管理、所有後續軌錯誤訊息 + UI 字級 + 版本顯示對齊
+> **影響範圍**：NEXORA 全 11 模組 + Auth + System + Networking + 版本管理 + 4 主題系統
 
 ---
 
@@ -296,37 +296,92 @@ throw new HttpException({
 }, HttpStatus.UNAUTHORIZED);
 ```
 
-### 7.3 Frontend UI 顯示格式（v1.2 字級校正）
+### 7.3 Frontend UI 顯示格式（v1.3 顏色分級 + 4 主題 design token）
 
-對齊 Crown「方便客服協助處理」+ Crown 真實業務測試揭露「字太小看不到」：
+對齊 Crown「方便客服協助處理」+ Crown 真實業務測試揭露 + Hank NX-THEME-AUDIT 4 主題真相：
+
+#### 7.3.1 NEXORA 4 主題系統
+
+對齊 Hank verify 揭露：
 
 ```
-[Toast / Dialog / Inline 提示]
+NEXORA 主題 = 2 軸 × 2 值 = 4 種組合：
 
-❌ 登入失敗                              ← 16px + 圖示
-請確認公司帳號、使用者帳號與密碼         ← 16px
+明度軸（html.light class）：
+  - dark（無 class、預設）
+  - light（class="light"）
 
-[錯誤代碼：AU-001]                       ← 13px
+色票風格軸（data-nx-palette）：
+  - steel（預設）
+  - classic
 ```
 
-⭐ **v1.2 校正字級規範**（對齊業界 SaaS + NEXORA「使用者導向 = 容易上手」哲學）：
+4 組合：dark+steel（預設）/ dark+classic / light+steel / light+classic
 
-| 元素 | 字級 | 業界對標 |
-|---|---|---|
-| **錯誤訊息主文字** | **16px** | Gmail 15px / Stripe 14px |
-| **錯誤代碼** | **13px** | Stripe 12px / Salesforce 13px |
-| 視覺強調 | ❌ 圖示 | 業界 SaaS 範式 |
-| 訊息區 padding | 12~16px | 顯眼但不突兀 |
+⭐ **所有錯誤訊息 UI 必對齊既有 design token、4 主題自動切換**。
 
-⚠️ **v1.1 → v1.2 校正**：
-- 原 v1.1：「錯誤代碼字較小（如 12px）」
-- 校正 v1.2：訊息 16px / 代碼 13px、對齊業界 SaaS 範式
-- 對齊 Crown 真實業務測試揭露（A026 #6 closure）
+#### 7.3.2 顏色分級規範（業界 SaaS 範式）
 
-⚠️ **顯示位置**：
-- 錯誤代碼放在訊息**最下方**、字略小不干擾
-- ❌ 圖示在訊息**最上方**、視覺強調
-- Crown / 員工 / 客服可快速看到
+對齊業界錯誤分級 muscle memory：
+
+| 級別 | Tailwind token | 用途 | 範例 |
+|---|---|---|---|
+| **destructive**（紅）| `bg-destructive` / `text-destructive` / `border-destructive` | 嚴重錯誤 | 系統 down / 資料遺失 / 安全事件 |
+| **warning**（橘）⭐ NEXORA 預設 | `bg-warning` / `text-warning` / `border-warning` | 警告 | 使用者操作問題、登入失敗、驗證錯誤 |
+| info（藍）| `bg-info` / `text-info` / `border-info` | 資訊 | 提示、通知 |
+
+⚠️ **NEXORA 預設「warning 橘」**：登入失敗 / 驗證錯誤等使用者操作問題、避免「destructive 紅」過度警告。
+
+#### 7.3.3 既有 design token 揭露
+
+對齊 Hank §5 揭露既有 `--color-warning`：
+
+| 主題 | warning 色票（具體值）|
+|---|---|
+| dark + steel（預設）| amber #FFB800 |
+| dark + classic | oklch(0.78 0.14 75) |
+| light + steel | #B88600 |
+| light + classic | oklch(0.5 0.12 73) |
+
+⭐ **零硬編、依賴既有 token、4 主題自動切換**。
+
+#### 7.3.4 錯誤訊息元件範式
+
+對齊 Hank §5.3 推薦：
+
+```tsx
+<div className="rounded-lg border border-warning/40 bg-warning/10 p-3.5 text-warning">
+  <div className="flex items-start gap-2">
+    <XCircle className="size-5 shrink-0" />
+    <div className="flex-1">
+      <p className="text-base">請確認公司帳號、使用者帳號及密碼。</p>
+      <p className="mt-1 text-xs opacity-70">[Error Code : AU-002]</p>
+    </div>
+  </div>
+</div>
+```
+
+⭐ 字級規範（v1.2 校正保留）：
+- 主訊息：16px（text-base）
+- 錯誤代碼：13px（text-xs + opacity-70）
+- 圖示：lucide-react XCircle 20px（size-5）
+- padding：14px（p-3.5）
+
+#### 7.3.5 顯示位置範式
+
+- 錯誤代碼放在訊息**最下方**、字級小、opacity 70%（不干擾主訊息）
+- 圖示在訊息**最左方**、視覺強調
+- Crown / 員工 / 客服可快速看到 [Error Code : XX-NNN]
+
+⚠️ **v1.2 → v1.3 校正**：
+- 原 v1.2：紅色 + 字級規範
+- 校正 v1.3：warning 橘色（design token）+ 字級規範保留 + 業界錯誤分級
+
+⚠️ **業界分級語意**：
+- 登入失敗 ≠ 系統錯誤
+- 登入失敗 = 使用者操作問題（輸入錯誤帳密）
+- 業界範式 = **warning 警告級**（橘色、不是紅色）
+- 對齊 NEXORA「使用者導向 = 容易上手」哲學
 
 ### 7.4 Backend Log 格式
 
@@ -524,21 +579,42 @@ NEXORA 對齊：
 
 ### 13.4 顯示位置
 
-**登入畫面**：logo 下方品牌區
-- 位於「汽車零件零售 ERP 企業管理平台」副標之下
-- 對齊既有 NEXORA layout
+**登入畫面**：登入按鈕下方（v1.3 校正、業界 SaaS 範式）
+- 位於「登入系統 →」按鈕下方
+- 對齊業界範式（Slack / Salesforce）
+- 4 主題對齊既有 design token
+
+⚠️ **v1.2 → v1.3 校正**：
+- 原 v1.2：logo 下方品牌區（Alex 推、失誤）
+- 校正 v1.3：登入按鈕下方（Crown 揭露、業界範式）
 
 **其他畫面**（後續軌擴展）：
 - Top bar 右側下拉選單
 - Footer / About 頁
 
-### 13.5 字級 + 顏色
+**顯示格式**：
+```
+NEXORA GRID | v1.5.1 beta
+```
+- 品牌名「NEXORA GRID」+ 分隔「|」+ 版本「v1.5.1 beta」
+- 一行顯示、業界 SaaS 範式
+
+### 13.5 字級 + 顏色（v1.3 4 主題對齊）
 
 | 元素 | 規範 |
 |---|---|
 | **字級** | 14px（對齊「容易看到」UX 哲學）|
-| **正式版顏色** | amber #FFB800（NEXORA 主色）|
-| **beta 版顏色** | 偏灰 / 偏黃（提示測試性質、不過度警告）|
+| **正式版顏色** | `text-primary`（amber 主色、4 主題自動切換）|
+| **beta 版顏色** | `text-muted-foreground`（偏灰、提示測試性質、4 主題自動切換）|
+
+⭐ **零硬編、依賴既有 design token、4 主題自動切換**：
+
+| 主題 | 正式版色 | beta 色 |
+|---|---|---|
+| dark + steel | amber #FFB800 | 偏灰 |
+| dark + classic | oklch amber | 偏灰 |
+| light + steel | amber 深 | 偏灰 |
+| light + classic | oklch amber 深 | 偏灰 |
 
 ### 13.6 環境判斷邏輯
 
@@ -595,11 +671,11 @@ const versionDisplay = suffix
 | v1.0 | 2026-05-18 | 首版、Crown 拍板（Q1=b 6 字格式 / Q2=a 12 模組縮寫 / Q3=a 5 區分配）+ Auth 7 代碼初版 |
 | **v1.1** | **2026-05-18** | **對齊 Hank NEXORA-CODE-NAMING-AUDIT 5 校正**：(1) +NW Networking 模組 = 13 縮寫 / (2) §3.1 字母 reserve table / (3) §5.3 §5.5 Auth 補 AU-301~304 + AU-501 = 12 代碼 / (4) §7.1 NexoraErrorResponse TypeScript interface / (5) §10 既有 2 hack 清理 mapping |
 
-| **v1.2** | **2026-05-18** | **對齊 Crown 真實業務測試 UI 校正 + 蘋果版本範式**：(1) §7.3 字級校正（訊息 16px / 代碼 13px / ❌ 圖示 / padding）/ (2) 新增 §13 版本號顯示規範（蘋果範式、v1.5.0 / v1.5.0 beta、環境變數判斷、後續軌 NX99_release API 動態升級） |
+| **v1.3** | **2026-05-18** | **對齊 Hank NX-THEME-AUDIT 4 主題真相 + 顏色語意分級**：(1) §7.3 升級顏色分級（destructive 紅嚴重 / warning 橘預設、業界 SaaS 範式）+ 4 主題 design token（bg-warning/10、border-warning/40、text-warning、零硬編）/ (2) §13.4 版本號位置校正（logo 下方 → 登入按鈕下方、業界範式）/ (3) §13.5 顏色 4 主題對齊（text-primary / text-muted-foreground design token） |
 
 ---
 
-> **本文件是 NEXORA 架構級規範、所有後續軌錯誤訊息 + UI 字級 + 版本顯示必對齊**
+> **本文件是 NEXORA 架構級規範、所有後續軌錯誤訊息 + UI 字級 + 版本顯示 + 4 主題色票必對齊**
 > **NEXORA 業界改革第 19 候選 ⭐⭐⭐**（跨模組統一錯誤代碼制度、業界中小汽配 ERP 多無）
 > **3 層命名範式協同**（@FUNCTION_CODE / @CODE / XX-NNN）零衝突
-> **v1.2 對齊 Crown 真實業務測試 + 蘋果版本範式**
+> **v1.3 對齊 Hank 4 主題系統真相 + 業界 SaaS 顏色分級語意**
