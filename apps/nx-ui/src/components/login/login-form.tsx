@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Eye, EyeOff, Building2, User, Lock, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Building2, User, Lock, ArrowRight, XCircle } from 'lucide-react';
 
 import type { NexoraClientError } from '@/shared/errors/nexora-error';
 
@@ -13,7 +13,7 @@ export type LoginFormFields = {
 
 type LoginFormProps = {
   onSubmit: (e: React.FormEvent, fields: LoginFormFields) => void | Promise<void>;
-  /** TASK-AUTH-ERROR-CODE：errorMsg 結構化為 { errorCode, message }，對齊規範 v1.1 §7.3。*/
+  /** TASK-AUTH-ERROR-CODE：errorMsg 結構化為 { errorCode, message }，對齊規範 v1.2 §7.3。*/
   errorMsg: NexoraClientError | null;
   isSubmitting: boolean;
 };
@@ -114,14 +114,18 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
       </div>
 
       {errorMsg ? (
+        // 對齊規範 v1.2 §7.3：訊息 16px / 代碼 13px / ❌ 圖示 / padding 14px
         <div
           role="alert"
-          className="rounded-lg border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-destructive"
         >
-          <div>{errorMsg.message}</div>
-          <div className="mt-1 text-[11px] text-destructive/70">
-            [錯誤代碼：{errorMsg.errorCode}]
+          <div className="flex items-start gap-2">
+            <XCircle className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <p className="text-base leading-snug">{errorMsg.message}</p>
           </div>
+          <p className="mt-2 pl-7 text-[13px] text-destructive/70">
+            [錯誤代碼：{errorMsg.errorCode}]
+          </p>
         </div>
       ) : null}
 
