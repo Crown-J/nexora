@@ -19,11 +19,12 @@ export type ApiClientOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;
 };
 
+// TASK-AUTH-ERROR-CODE：既有 hack [NX00-API-001] 清理為規範 §6.1 NW-001（NW Networking 模組）
 function normalizeApiBaseUrl(raw: string): string {
   const u = raw.trim().replace(/\/+$/, '');
   if (u.startsWith('http://') && typeof window !== 'undefined' && window.location?.protocol === 'https:') {
     throw new Error(
-      '[NX00-API-001] NEXT_PUBLIC_API_URL must use https:// when the site is served over HTTPS (mixed content blocks fetch).',
+      '[NW-001] NEXT_PUBLIC_API_URL must use https:// when the site is served over HTTPS (mixed content blocks fetch).',
     );
   }
   return u;
@@ -39,7 +40,7 @@ function getBaseUrl(): string {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!baseUrl) {
-    throw new Error('[NX00-API-001] NEXT_PUBLIC_API_URL is not set');
+    throw new Error('[NW-001] NEXT_PUBLIC_API_URL is not set');
   }
   return normalizeApiBaseUrl(baseUrl);
 }
@@ -91,10 +92,11 @@ export async function apiJson<T>(
 
   if (!res.ok) {
     const body = await res.text().catch(() => '');
+    // body 可能含 backend NexoraErrorResponse JSON（含 errorCode）、由 toNexoraClientError 解析
     throw new ApiClientError(
       res.status,
-      `[NX00-API-001] HTTP ${res.status}`,
-      body
+      `[NW-001] HTTP ${res.status}${body ? `\n${body}` : ''}`,
+      body,
     );
   }
 

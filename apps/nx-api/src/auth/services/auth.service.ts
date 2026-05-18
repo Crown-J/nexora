@@ -13,11 +13,12 @@
  * - tenant_id 為 null 時仍可登入；僅「無租戶＋SYSADMIN」簽出無租戶 JWT，其餘租戶 OWNER 帶 tenantId（A042 closure）
  */
 
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../prisma/prisma.service';
+import { NexoraHttpException } from '../../shared/errors/nexora-error';
 import { ViewPermissionService } from '../../shared/rbac/view-permission.service';
 
 @Injectable()
@@ -47,7 +48,11 @@ export class AuthService {
     const pwd = String(password ?? '');
     const tenantCodeTrim = String(tenantCode ?? '').trim();
     if (!uname || !pwd || !tenantCodeTrim) {
-      throw new BadRequestException('請輸入公司帳號、使用者帳號與密碼');
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        errorCode: 'AU-304',
+        message: '請輸入公司帳號、使用者帳號與密碼',
+      });
     }
 
     const userInclude = {
@@ -66,11 +71,19 @@ export class AuthService {
 
     // 情境 A：tenant 不存在 → 模糊訊息（防 enumeration attack）
     if (!tenant) {
-      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AU-001',
+        message: '登入失敗，請確認公司帳號、使用者帳號與密碼',
+      });
     }
     // 情境 B：tenant 已停用 → 明確訊息（使用者本來就該知道自己公司狀態）
     if (!tenant.isActive) {
-      throw new UnauthorizedException('公司帳號已停用,請聯繫系統管理員');
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AU-101',
+        message: '公司帳號已停用，請聯繫系統管理員',
+      });
     }
 
     const user = await this.prisma.nx01User.findUnique({
@@ -80,20 +93,37 @@ export class AuthService {
 
     // 情境 C：user 不存在 → 模糊訊息
     if (!user) {
-      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AU-002',
+        message: '登入失敗，請確認公司帳號、使用者帳號與密碼',
+      });
     }
     // 情境 D：user 已停用 → 明確訊息
     if (!user.isActive) {
-      throw new UnauthorizedException('使用者帳號已停用，請聯繫您的公司管理員');
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AU-102',
+        message: '使用者帳號已停用，請聯繫您的公司管理員',
+      });
     }
     if (!user.passwordHash || typeof user.passwordHash !== 'string') {
-      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
+      // passwordHash 缺失視為情境 E（密碼錯誤、相同模糊訊息）
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AU-003',
+        message: '登入失敗，請確認公司帳號、使用者帳號與密碼',
+      });
     }
 
     // 情境 E：密碼錯誤 → 模糊訊息
     const ok = await bcrypt.compare(pwd, user.passwordHash);
     if (!ok) {
-      throw new UnauthorizedException('登入失敗，請確認公司帳號、使用者帳號與密碼');
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        errorCode: 'AU-003',
+        message: '登入失敗，請確認公司帳號、使用者帳號與密碼',
+      });
     }
 
     const scopedUserRoles = user.rev_Nx01UserRole_userId.filter((ur) => ur.tenantId === user.tenantId);

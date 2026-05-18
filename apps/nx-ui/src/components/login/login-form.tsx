@@ -3,6 +3,8 @@
 import { useMemo, useState } from 'react';
 import { Eye, EyeOff, Building2, User, Lock, ArrowRight } from 'lucide-react';
 
+import type { NexoraClientError } from '@/shared/errors/nexora-error';
+
 export type LoginFormFields = {
   companyAccount: string;
   userAccount: string;
@@ -11,7 +13,8 @@ export type LoginFormFields = {
 
 type LoginFormProps = {
   onSubmit: (e: React.FormEvent, fields: LoginFormFields) => void | Promise<void>;
-  errorMsg: string | null;
+  /** TASK-AUTH-ERROR-CODE：errorMsg 結構化為 { errorCode, message }，對齊規範 v1.1 §7.3。*/
+  errorMsg: NexoraClientError | null;
   isSubmitting: boolean;
 };
 
@@ -115,7 +118,10 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
           role="alert"
           className="rounded-lg border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
-          {errorMsg}
+          <div>{errorMsg.message}</div>
+          <div className="mt-1 text-[11px] text-destructive/70">
+            [錯誤代碼：{errorMsg.errorCode}]
+          </div>
         </div>
       ) : null}
 
