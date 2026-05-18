@@ -20,6 +20,7 @@ import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
+import { getVersionDisplay, isBetaVersion } from '@/lib/version';
 import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
 
 // TASK-AUTH-ERROR-CODE：對齊規範 v1.1 §5.3 §7
@@ -125,6 +126,15 @@ export default function LoginPage() {
             RA
           </h1>
           <p className="text-base font-light tracking-[0.15em] text-foreground/80">GRID</p>
+          {/* 規範 v1.2 §13：版本號（mobile 版、放在 GRID 副標下方）*/}
+          <p
+            className={
+              'mt-1 font-mono text-[13px] tracking-[0.15em] ' +
+              (isBetaVersion() ? 'text-amber-300/60' : 'text-accent')
+            }
+          >
+            {getVersionDisplay()}
+          </p>
         </div>
 
         <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6">
@@ -161,6 +171,15 @@ export default function LoginPage() {
             </p>
             <p className="mt-4 text-sm text-muted-foreground tracking-wide">
               汽車零件零售 ERP 企業管理平台
+            </p>
+            {/* 規範 v1.2 §13：版本號顯示（蘋果範式、14px、amber 正式 / 偏黃灰 beta）*/}
+            <p
+              className={
+                'mt-3 font-mono text-sm tracking-[0.15em] ' +
+                (isBetaVersion() ? 'text-amber-300/60' : 'text-accent')
+              }
+            >
+              {getVersionDisplay()}
             </p>
           </div>
         </div>
