@@ -64,6 +64,38 @@ export type MasterHubSectionId =
  */
 export type MasterHubMinPlan = 'LITE' | 'PLUS' | 'PRO';
 
+/** 版本層級數字、由低至高（純前端 UX 排序、非業務權限判定） */
+const PLAN_RANK: Record<MasterHubMinPlan, number> = {
+  LITE: 0,
+  PLUS: 1,
+  PRO: 2,
+};
+
+/**
+ * 將任意 planCode 字串收斂為 'LITE' | 'PLUS' | 'PRO'。
+ * - 大小寫 / 前綴 'NEXORA-' / 空字串 / null 一律 normalize
+ * - 無法識別 / 未登入 一律回 'LITE'（保守、避免誤開 PLUS 內容）
+ */
+export function normalizePlanCode(raw: string | null | undefined): MasterHubMinPlan {
+  const p = (raw ?? '').trim().toUpperCase().replace(/^NEXORA-/, '');
+  if (p === 'PRO' || p === 'ENTERPRISE') return 'PRO';
+  if (p === 'PLUS') return 'PLUS';
+  return 'LITE';
+}
+
+/**
+ * 判定使用者目前版本是否可入該主檔卡。
+ * - minPlan 未指定 = 'LITE'（一律可入）
+ * - 否則 userPlan rank >= minPlan rank 才可入
+ */
+export function canAccessMasterCard(
+  userPlan: MasterHubMinPlan,
+  minPlan: MasterHubMinPlan | undefined,
+): boolean {
+  const required = minPlan ?? 'LITE';
+  return PLAN_RANK[userPlan] >= PLAN_RANK[required];
+}
+
 export type MasterHubCard = {
   id: string;
   /** 主檔總覽上的分組 */
