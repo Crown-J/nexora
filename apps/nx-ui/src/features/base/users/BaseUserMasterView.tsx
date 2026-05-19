@@ -42,7 +42,7 @@ import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
-import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from './mock-data';
+import { formatAuditPersonLabel, formatAuditPersonTooltip, formatWarehouseLabel, type BaseUserRow } from './mock-data';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
 import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
@@ -942,9 +942,22 @@ export function BaseUserMasterView() {
           </td>
         );
       case 'createdByPerson':
+        return (
+          <td
+            key={key}
+            title={formatAuditPersonTooltip(row.createdByUsername ?? null, row.createdByName)}
+            className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground"
+          >
+            {row[key]}
+          </td>
+        );
       case 'updatedByPerson':
         return (
-          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+          <td
+            key={key}
+            title={formatAuditPersonTooltip(row.updatedByUsername ?? null, row.updatedByName)}
+            className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground"
+          >
             {row[key]}
           </td>
         );

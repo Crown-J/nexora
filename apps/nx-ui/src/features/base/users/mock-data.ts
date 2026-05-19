@@ -10,7 +10,26 @@
 export const MOCK_CURRENT_OPERATOR_NAME = '王管理';
 
 /** 建立／修改人員顯示：`帳號 姓名`（缺其一則只顯示有的欄） */
+/**
+ * \u5efa\u7acb\uff0f\u4fee\u6539\u4eba\u54e1\u300c\u986f\u793a\u300d\u7528\uff1a\u512a\u5148\u59d3\u540d\u3001\u7121\u59d3\u540d\u5247 fallback \u5e33\u865f\u3002
+ * \u696d\u754c\u6539\u9769 #22 v1.2\uff1a\u8868\u683c cell \u53ea\u986f\u793a\u59d3\u540d\u3001\u5b8c\u6574\u8cc7\u8a0a\uff08\u542b\u5e33\u865f\uff09\u7531 hover tooltip \u63ed\u9732\u3002
+ * \u5c0d\u9f4a GitHub / Linear / Notion SaaS \u7bc4\u5f0f\u3002
+ */
 export function formatAuditPersonLabel(
+  username: string | null | undefined,
+  displayName: string | null | undefined,
+): string {
+  const u = (username ?? '').trim();
+  const n = (displayName ?? '').trim();
+  if (!u && !n) return '\u2014';
+  return n || u;
+}
+
+/**
+ * \u5efa\u7acb\uff0f\u4fee\u6539\u4eba\u54e1\u300ctooltip\u300d\u7528\uff1a\u5b8c\u6574 `\u5e33\u865f \u59d3\u540d`\uff08hover row / cell \u63ed\u9732\uff09\u3002
+ * \u5c0d\u9f4a\u696d\u754c SaaS hover tooltip \u7bc4\u5f0f\uff08progressive disclosure\uff09\u3002
+ */
+export function formatAuditPersonTooltip(
   username: string | null | undefined,
   displayName: string | null | undefined,
 ): string {
