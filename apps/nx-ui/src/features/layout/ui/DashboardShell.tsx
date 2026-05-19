@@ -20,6 +20,7 @@ import { DashboardHomePlanProvider } from '@/features/sys-dashboard/context/Dash
 import { TopBarPlanToggles } from '@/features/sys-dashboard/ui/TopBarPlanToggles';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
+import { normalizePlanCode } from '@/features/base/config/master-cards';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {
@@ -32,8 +33,10 @@ type DashboardShellProps = {
 export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, planCode, logout, view } = useSessionMe();
   const isSysDashboardHome = pathname === '/dashboard';
+  // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
+  const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -92,6 +95,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   onOpenDashboard={() => router.push('/dashboard')}
                   tenantNameZh={tenantNameZh || null}
                   tenantNameEn={tenantNameEn || null}
+                  planCode={normalizedPlan}
                   centerContent={<TopBarPlanToggles />}
                 />
               }
@@ -111,6 +115,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 onOpenDashboard={() => router.push('/dashboard')}
                 tenantNameZh={tenantNameZh || null}
                 tenantNameEn={tenantNameEn || null}
+                planCode={normalizedPlan}
               />
             }
           >
