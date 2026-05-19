@@ -150,17 +150,19 @@ export default function LoginPage() {
 
         {/*
           TASK-LOGIN-MOBILE-PLANET-FIX：
-          原 className `aspect-square w-full max-h-full max-w-[360px]` 在錯誤訊息出現時：
-            - flex-1 被 shrink-0 form 區擠縮 → max-h-full clamp 高度
-            - w-full 仍 = 父寬度（如 327px） → aspect-ratio 被 width 主導打破 → 星球被壓成橢圓
-          修正：改 height-driven（h-full + aspect-square + max-h-[360px] + max-w-full）
-            - aspect-ratio 維持 1:1（CSS aspect-ratio 屬性與 width/height 獨立）
-            - 高度跟 flex-1 走、寬度自動 = 高度
-            - 極窄螢幕 max-w-full 防溢出時 CSS 自動 clamp 維持 1:1
-            - 父容器加 overflow-hidden 保險
+          v1 已 revert：h-full + max-h-[360px] + max-w-full（h-full 在 flex column 內 child 行為不穩）
+          v2（本版）：viewport-based width clamp + flex-1 父保留（讓 form 自適應）
+            - 星球容器用 explicit width: clamp(180px, 40dvh, 280px)
+              - 最小 180px（極窄螢幕保 visible）
+              - 偏好 40dvh（viewport 高度 40%、不過大）
+              - 最大 280px（大 mobile 上限）
+            - aspect-square + explicit width → height = width（CSS 規範保證 1:1）
+            - 父 flex-1 min-h-0 + items-center 保留（form 變高時 vertical center 自然調整）
+            - 父加 overflow-hidden 防極端情況下星球溢出
+            - mobile portrait 普遍：vp 700-900px、40dvh = 280-360px、clamp 後 = 280px 上限
         */}
         <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6 overflow-hidden">
-          <div className="relative flex aspect-square h-full max-h-[360px] max-w-full items-center justify-center">
+          <div className="relative aspect-square w-[clamp(180px,40dvh,280px)] max-w-full">
             <PlanetOrbit className="w-full h-full" />
           </div>
         </div>
