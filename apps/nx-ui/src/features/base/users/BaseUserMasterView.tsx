@@ -49,6 +49,7 @@ import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRe
 import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
+import { IncludeInactiveToggle } from '@/features/base/shell/IncludeInactiveToggle';
 import {
   assignUserRole,
   listUserRoles,
@@ -1156,38 +1157,11 @@ export function BaseUserMasterView() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-36"
-                    aria-label="依啟用狀態篩選"
-                  >
-                    <span className="truncate">{activeFilterSummary}</span>
-                    <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-48"
-                  onCloseAutoFocus={(e) => {
-                    e.preventDefault();
-                    focusListKeyboardRegion();
-                  }}
-                >
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">啟用與停用</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={activeFilter}
-                    onValueChange={(v) => setActiveFilter(v as ActiveFilter)}
-                  >
-                    <DropdownMenuRadioItem value="all">全部</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="active">僅啟用</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="inactive">僅停用</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* 業界改革 #22 v1.2：Dropdown 3 選 1 改 Toggle「包含已停用」（commit 3 IncludeInactiveToggle）*/}
+              <IncludeInactiveToggle
+                value={activeFilter === 'all'}
+                onChange={(next) => setActiveFilter(next ? 'all' : 'active')}
+              />
 
               <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
                 {loading ? '載入中…' : `共 ${listTotal} 筆 · 本頁 ${sortedRows.length} 筆`}
@@ -1297,10 +1271,10 @@ export function BaseUserMasterView() {
                           />
                         </th>
                         {orderedVisibleCols.map((key) => (
-                          <th key={key} className="px-2 py-2.5">
+                          <th key={key} className="whitespace-nowrap px-2 py-2.5">
                             <button
                               type="button"
-                              className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                              className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-foreground hover:text-primary"
                               onClick={() => toggleSort(key)}
                             >
                               {COL_DEF[key].label}
