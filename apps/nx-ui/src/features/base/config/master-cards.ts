@@ -23,6 +23,13 @@ import {
   Link2,
   CarFront,
   Megaphone,
+  Award,
+  Car,
+  Cog,
+  Wrench,
+  Settings2,
+  LayoutGrid,
+  BookOpen,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -33,13 +40,36 @@ export type MasterHubCardLink = {
   entryIcon: LucideIcon;
 };
 
-/** 主檔 hub 分區（同區卡片排在一起，避免找功能時跳來跳去） */
-export type MasterHubSectionId = 'account' | 'product' | 'organization' | 'partner' | 'system';
+/**
+ * 主檔 hub 分區（同區卡片排在一起，避免找功能時跳來跳去）。
+ * - 'vehicle' 為 NX01-16 業界改革 #22 新增的「車型字典」獨立分區
+ *   （引擎／車型／變速箱／傳動／類別 5 卡聚焦汽車零件 ERP 領域知識）
+ */
+export type MasterHubSectionId =
+  | 'account'
+  | 'product'
+  | 'vehicle'
+  | 'organization'
+  | 'partner'
+  | 'system';
+
+/**
+ * 版本門檻（NEXORA 三版本可見性策略、業界改革 #22）。
+ * - 未指定 / 'LITE'：所有版本均可見且可入
+ * - 'PLUS'：LITE 版灰階展示、Upgrade prompt；PLUS／PRO 完整入
+ * - 'PRO'：LITE／PLUS 版灰階展示、Upgrade prompt；PRO 完整入
+ *
+ * 注意：本欄純 UX 引導、非 backend security gate；後續軌
+ * TASK-NX99-PLAN-MIDDLEWARE 才會加上路由守門。
+ */
+export type MasterHubMinPlan = 'LITE' | 'PLUS' | 'PRO';
 
 export type MasterHubCard = {
   id: string;
   /** 主檔總覽上的分組 */
   section: MasterHubSectionId;
+  /** 版本門檻、未指定 = 'LITE'（LITE 起開放） */
+  minPlan?: MasterHubMinPlan;
   title: string;
   description: string;
   icon: LucideIcon;
@@ -54,6 +84,7 @@ export type MasterHubCard = {
 export const MASTER_HUB_SECTION_ORDER: MasterHubSectionId[] = [
   'account',
   'product',
+  'vehicle',
   'organization',
   'partner',
   'system',
@@ -62,6 +93,7 @@ export const MASTER_HUB_SECTION_ORDER: MasterHubSectionId[] = [
 export const MASTER_HUB_SECTION_TITLES: Record<MasterHubSectionId, string> = {
   account: '帳號與權限',
   product: '產品與料號',
+  vehicle: '車型字典',
   organization: '組織架構',
   partner: '交易對象',
   system: '系統設定',
@@ -170,6 +202,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   {
     id: 'brand-code-rule',
     section: 'product',
+    minPlan: 'PLUS',
     title: '品牌料號規則',
     description: '依零件品牌的 seg 長度與排列（nx00_brand_code_rule）',
     icon: SlidersHorizontal,
@@ -180,6 +213,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   {
     id: 'part-relation',
     section: 'product',
+    minPlan: 'PLUS',
     title: '零件關聯',
     description: '改號／同款／組合包等零件關係',
     icon: Link2,
@@ -190,6 +224,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   {
     id: 'part-model',
     section: 'product',
+    minPlan: 'PLUS',
     title: '料件車型適配',
     description: '料件 ↔ 車型適配（原廠／副廠等效／通用替代）',
     icon: Link2,
@@ -240,10 +275,91 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/partners',
   },
+  // ─── 車型字典（NX01-16 業界改革 #22、PLUS 起開放）─────────────────
+  {
+    id: 'engine',
+    section: 'vehicle',
+    minPlan: 'PLUS',
+    title: '引擎主檔',
+    description: '引擎代碼、排氣量與燃料型式',
+    icon: Cog,
+    statLabel: '引擎',
+    statValue: '—',
+    href: '/dashboard/base/engine',
+  },
+  {
+    id: 'model',
+    section: 'vehicle',
+    minPlan: 'PLUS',
+    title: '車型主檔',
+    description: '車廠 × 車系 × 年式組合與規格摘要',
+    icon: Car,
+    statLabel: '車型',
+    statValue: '—',
+    href: '/dashboard/base/model',
+  },
+  {
+    id: 'transmission',
+    section: 'vehicle',
+    minPlan: 'PLUS',
+    title: '變速箱主檔',
+    description: '自手排／CVT／DCT 等變速箱類型代碼',
+    icon: Settings2,
+    statLabel: '變速箱',
+    statValue: '—',
+    href: '/dashboard/base/transmission',
+  },
+  {
+    id: 'drivetrain',
+    section: 'vehicle',
+    minPlan: 'PLUS',
+    title: '驅動方式主檔',
+    description: 'FF／FR／4WD／AWD 驅動配置代碼',
+    icon: Wrench,
+    statLabel: '驅動',
+    statValue: '—',
+    href: '/dashboard/base/drivetrain',
+  },
+  {
+    id: 'model-type',
+    section: 'vehicle',
+    minPlan: 'PLUS',
+    title: '車型類別主檔',
+    description: '轎車／休旅／皮卡／商用等大類分群',
+    icon: LayoutGrid,
+    statLabel: '類別',
+    statValue: '—',
+    href: '/dashboard/base/model-type',
+  },
+  // ─── 交易對象延伸（客戶等級、PLUS）────────────────────────────────
+  {
+    id: 'customer-grade',
+    section: 'partner',
+    minPlan: 'PLUS',
+    title: '客戶等級主檔',
+    description: '依交易額／信用條件分級，影響定價與付款條件',
+    icon: Award,
+    statLabel: '等級',
+    statValue: '—',
+    href: '/dashboard/base/customer-grade',
+  },
+  // ─── 系統設定延伸（注音字典、PRO）─────────────────────────────────
+  {
+    id: 'phonetic-dictionary',
+    section: 'system',
+    minPlan: 'PRO',
+    title: '注音字典主檔',
+    description: '料號／品名注音對照、加速櫃台快速搜尋（PRO 限定）',
+    icon: BookOpen,
+    statLabel: '字典條目',
+    statValue: '—',
+    href: '/dashboard/base/phonetic-dictionary',
+  },
 ];
 
 /**
- * 依分區回傳卡片群組（順序固定：帳號→產品→國家幣別→倉儲→往來）
+ * 依分區回傳卡片群組（順序固定：帳號 → 產品 → 車型字典 → 組織 → 交易對象 → 系統設定）。
+ * 對齊 NX01-16 業界改革 #22「主檔分區範式」、車型字典獨立成第 3 區。
  */
 export function getMasterHubSections(): MasterHubSectionGroup[] {
   const map = new Map<MasterHubSectionId, MasterHubCard[]>();
@@ -288,6 +404,15 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   partner: '客戶主檔',
   partners: '客戶主檔',
   bulletins: '公告主檔',
+  // 車型字典（NX01-16 業界改革 #22）
+  engine: '引擎主檔',
+  model: '車型主檔',
+  transmission: '變速箱主檔',
+  drivetrain: '驅動方式主檔',
+  'model-type': '車型類別主檔',
+  // 交易對象延伸 & 系統設定延伸
+  'customer-grade': '客戶等級主檔',
+  'phonetic-dictionary': '注音字典主檔',
 };
 
 export function isValidBaseSegment(segment: string): boolean {
