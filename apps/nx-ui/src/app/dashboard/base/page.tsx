@@ -14,6 +14,7 @@ import { ChevronRight } from 'lucide-react';
 import { getMasterHubSections } from '@/features/base/config/master-cards';
 import type { MasterHubCard, MasterHubSectionGroup, MasterHubSectionId } from '@/features/base/config/master-cards';
 import { MobileSectionTabs } from '@/features/base/ui/MobileSectionTabs';
+import { VersionBadge } from '@/features/base/ui/VersionBadge';
 import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +44,11 @@ function DualEntryHubCard({
         className="absolute inset-0 z-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label={`${card.title}，預設開啟${first.label}`}
       />
+      {card.minPlan && card.minPlan !== 'LITE' ? (
+        <div className="pointer-events-none absolute right-2 top-2 z-20">
+          <VersionBadge plan={card.minPlan} />
+        </div>
+      ) : null}
       <div className="pointer-events-none relative z-10 flex h-full min-h-0 flex-col gap-1.5">
         <div className="pointer-events-auto flex shrink-0 gap-2">
           {card.links.map((l) => {
@@ -93,10 +99,13 @@ function renderHubCard(card: MasterHubCard, shellMotion: string) {
           >
             <Icon className="h-4 w-4" aria-hidden />
           </div>
-          <ChevronRight
-            className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
-            aria-hidden
-          />
+          <div className="flex shrink-0 items-center gap-1.5">
+            <VersionBadge plan={card.minPlan} />
+            <ChevronRight
+              className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100"
+              aria-hidden
+            />
+          </div>
         </div>
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-1 pt-1.5">
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
@@ -127,6 +136,7 @@ function renderHubCard(card: MasterHubCard, shellMotion: string) {
         >
           <Icon className="h-4 w-4" aria-hidden />
         </div>
+        <VersionBadge plan={card.minPlan} />
       </div>
       <h3 className="line-clamp-2 shrink-0 pt-2 text-sm font-semibold leading-snug text-foreground">
         {card.title}
