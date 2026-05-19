@@ -44,6 +44,7 @@ import { usePathname } from 'next/navigation';
 import { NavPlanetMenu } from '@/components/home/dock';
 import { useDashboardBulletinOptional } from '@/features/sys-dashboard/context/DashboardBulletinContext';
 import type { MockBulletin } from '@/mocks/dashboard';
+import { PlanChip, type PlanChipPlan } from '@/shared/ui/PlanChip';
 
 function bulletinTypeLabel(t: MockBulletin['type']) {
   if (t === 'URGENT') return '緊急';
@@ -71,6 +72,13 @@ export type HomeTopBarProps = {
   tenantNameZh?: string | null;
   /** 租戶英文名（nx99_tenant.name_en） */
   tenantNameEn?: string | null;
+  /**
+   * 當前用戶訂閱方案（normalize 後的 'LITE' | 'PLUS' | 'PRO'）。
+   * - tenantNameZh 右側顯示 GitHub 風格 minimal chip
+   * - undefined / null 不渲染 chip（loading / 未登入）
+   * - 業界改革 #22 v1.1 新增、對齊 Crown 期望「{tenant} (LITE/PLUS/PRO)」
+   */
+  planCode?: PlanChipPlan | null;
   /** 置中區（例如 Dashboard 主模組 Tabs）；與 /home 相同頂欄風格 */
   centerContent?: ReactNode;
 };
@@ -84,6 +92,7 @@ export function HomeTopBar({
   onOpenDashboard,
   tenantNameZh,
   tenantNameEn,
+  planCode,
   centerContent,
 }: HomeTopBarProps) {
   const pathname = usePathname() ?? '';
@@ -279,7 +288,10 @@ export function HomeTopBar({
         {showTenantBlock ? (
           <div className="hidden lg:flex min-w-0 max-w-[min(28rem,40vw)] flex-col text-left leading-tight">
             {hasZh ? (
-              <span className="truncate text-[11px] font-medium tracking-wide text-primary/90">{zh}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-[11px] font-medium tracking-wide text-primary/90">{zh}</span>
+                <PlanChip plan={planCode} />
+              </div>
             ) : null}
             {hasEn ? (
               <span
@@ -291,10 +303,16 @@ export function HomeTopBar({
                 {en}
               </span>
             ) : null}
+            {!hasZh && planCode ? (
+              <div className="mt-0.5">
+                <PlanChip plan={planCode} />
+              </div>
+            ) : null}
           </div>
         ) : (
-          <span className="hidden lg:inline-block text-[10px] font-medium uppercase tracking-widest text-primary/70">
+          <span className="hidden lg:inline-flex items-center gap-2 text-[10px] font-medium uppercase tracking-widest text-primary/70">
             Enterprise Resource Planning
+            <PlanChip plan={planCode} />
           </span>
         )}
       </div>

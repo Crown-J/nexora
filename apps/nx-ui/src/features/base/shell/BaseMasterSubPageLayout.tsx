@@ -14,6 +14,7 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { HomeTopBar } from '@/components/home/top-bar';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
 import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+import { normalizePlanCode } from '@/features/base/config/master-cards';
 
 export type BaseMasterSubPageLayoutProps = {
   title: string;
@@ -23,7 +24,8 @@ export type BaseMasterSubPageLayoutProps = {
 
 export function BaseMasterSubPageLayout({ title, description, children }: BaseMasterSubPageLayoutProps) {
   const router = useRouter();
-  const { me, displayName, tenantNameZh, tenantNameEn, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, planCode, logout, view } = useSessionMe();
+  const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -81,6 +83,7 @@ export function BaseMasterSubPageLayout({ title, description, children }: BaseMa
           onOpenDashboard={() => router.push('/dashboard')}
           tenantNameZh={tenantNameZh || null}
           tenantNameEn={tenantNameEn || null}
+          planCode={normalizedPlan}
         />
       }
     >

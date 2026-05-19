@@ -3,14 +3,14 @@
  * 主檔中心手機底部群組 Tab（取代全站 MobileDock 在 /dashboard/base）
  *
  * - 桌面（lg+）隱藏，手機固定底部 56px 高
- * - 5 個 section tab 對應 MASTER_HUB_SECTION_ORDER
+ * - 6 個 section tab 對應 MASTER_HUB_SECTION_ORDER（加 vehicle 車型字典）
  * - 選中態：金色 icon + 底部橫槓
  */
 
 'use client';
 
 import type { LucideIcon } from 'lucide-react';
-import { Users, Package, Building2, Handshake, Settings } from 'lucide-react';
+import { Users, Package, Car, Building2, Handshake, Settings } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
@@ -28,6 +28,7 @@ type SectionTabProps = {
 const TAB_ICONS: Record<MasterHubSectionId, LucideIcon> = {
   account: Users,
   product: Package,
+  vehicle: Car,
   organization: Building2,
   partner: Handshake,
   system: Settings,
