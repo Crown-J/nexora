@@ -69,7 +69,12 @@ function renderHubCard(
       </div>
       <div className="flex min-h-0 flex-1 flex-col justify-center gap-1 pt-1.5">
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{card.title}</h3>
-        <p className="line-clamp-2 text-[11px] leading-snug text-muted-foreground">{card.description}</p>
+        <p
+          className="truncate text-[11px] leading-snug text-muted-foreground"
+          title={card.description}
+        >
+          {card.description}
+        </p>
       </div>
     </>
   );
@@ -165,9 +170,6 @@ export default function BaseDashboardPage() {
         <header className="space-y-1">
           <p className="text-xs tracking-[0.35em] text-muted-foreground">MASTER DATA</p>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">主檔中心</h1>
-          <p className="max-w-2xl text-sm text-muted-foreground">
-            依業務分區排列；點選卡片進入各主檔維護。
-          </p>
         </header>
 
         {/* 桌面：所有 section 同時顯示、卡片固定 220px + flex-wrap（R2 前視覺不變）*/}
