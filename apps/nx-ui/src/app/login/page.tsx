@@ -148,8 +148,19 @@ export default function LoginPage() {
           <p className="text-base font-light tracking-[0.15em] text-foreground/80">GRID</p>
         </div>
 
-        <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6">
-          <div className="relative flex aspect-square max-h-full max-w-[360px] w-full items-center justify-center">
+        {/*
+          TASK-LOGIN-MOBILE-PLANET-FIX：
+          原 className `aspect-square w-full max-h-full max-w-[360px]` 在錯誤訊息出現時：
+            - flex-1 被 shrink-0 form 區擠縮 → max-h-full clamp 高度
+            - w-full 仍 = 父寬度（如 327px） → aspect-ratio 被 width 主導打破 → 星球被壓成橢圓
+          修正：改 height-driven（h-full + aspect-square + max-h-[360px] + max-w-full）
+            - aspect-ratio 維持 1:1（CSS aspect-ratio 屬性與 width/height 獨立）
+            - 高度跟 flex-1 走、寬度自動 = 高度
+            - 極窄螢幕 max-w-full 防溢出時 CSS 自動 clamp 維持 1:1
+            - 父容器加 overflow-hidden 保險
+        */}
+        <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6 overflow-hidden">
+          <div className="relative flex aspect-square h-full max-h-[360px] max-w-full items-center justify-center">
             <PlanetOrbit className="w-full h-full" />
           </div>
         </div>
