@@ -10,6 +10,7 @@
 
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Lock, Sparkles } from 'lucide-react';
 
 import {
@@ -41,9 +42,15 @@ const PLAN_DISPLAY: Record<MasterHubMinPlan, string> = {
 };
 
 export function UpgradePromptDialog({ card, userPlan, onClose }: UpgradePromptDialogProps) {
+  const router = useRouter();
   const open = card !== null;
   const requiredPlan = card?.minPlan ?? 'LITE';
   const Icon = card?.icon;
+
+  const handleUpgradeClick = () => {
+    onClose();
+    router.push('/pricing');
+  };
 
   return (
     <Dialog
@@ -108,10 +115,7 @@ export function UpgradePromptDialog({ card, userPlan, onClose }: UpgradePromptDi
           </Button>
           <Button
             className="bg-[#E8A020] text-background hover:bg-[#E8A020]/90"
-            onClick={() => {
-              // 後續軌 TASK-NX99-PLAN-CHECKOUT 才接金流 API；本軌純 UI、關閉 Dialog
-              onClose();
-            }}
+            onClick={handleUpgradeClick}
           >
             <Sparkles className="mr-1.5 h-4 w-4" aria-hidden />
             了解升級方案
