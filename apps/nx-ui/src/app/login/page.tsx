@@ -20,7 +20,7 @@ import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
-import { getVersionDisplay, isBetaVersion } from '@/lib/version';
+import { getVersionParts } from '@/lib/version';
 import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
 
 // TASK-AUTH-ERROR-CODE：對齊規範 v1.1 §5.3 §7
@@ -34,7 +34,7 @@ type LoginViewState = {
 function getError(err: unknown): NexoraClientError {
   return toNexoraClientError(err, {
     errorCode: 'AU-999',
-    message: '帳號或密碼錯誤 / 或 API 無回應',
+    message: '請確認公司帳號、使用者帳號及密碼。',
   });
 }
 
@@ -52,10 +52,30 @@ function buildUsernameForApi(fields: LoginFormFields): string {
 }
 
 function validateLoginForm(fields: LoginFormFields): NexoraClientError | null {
-  if (!fields.companyAccount.trim()) return { errorCode: 'AU-301', message: '請輸入公司帳號' };
-  if (!fields.userAccount.trim()) return { errorCode: 'AU-302', message: '請輸入使用者帳號' };
-  if (!fields.password) return { errorCode: 'AU-303', message: '請輸入密碼' };
+  // 對齊規範 v1.3 §7.3.4：訊息結尾加「。」+ 文案統一「公司帳號、使用者帳號及密碼」範式
+  if (!fields.companyAccount.trim()) return { errorCode: 'AU-301', message: '請輸入公司帳號。' };
+  if (!fields.userAccount.trim()) return { errorCode: 'AU-302', message: '請輸入使用者帳號。' };
+  if (!fields.password) return { errorCode: 'AU-303', message: '請輸入密碼。' };
   return null;
+}
+
+/**
+ * 版本號頁尾元件（規範 v1.3 §13.4 §13.5）。
+ * 範式：'NEXORA GRID | v1.5.1 beta' — 三段 design token 對齊 4 主題
+ *   - brand 'NEXORA GRID'：text-muted-foreground
+ *   - version 'v1.5.1'：text-primary（amber 主色、4 主題自動切換）
+ *   - suffix 'beta'：text-muted-foreground（偏灰、提示測試性質）
+ */
+function LoginVersionFooter() {
+  const { brand, version, suffix } = getVersionParts();
+  return (
+    <p className="mt-4 text-center font-mono text-sm tracking-[0.1em] text-muted-foreground">
+      <span>{brand}</span>
+      <span className="mx-2 opacity-50">|</span>
+      <span className="text-primary">{version}</span>
+      {suffix ? <span className="ml-2 text-muted-foreground">{suffix}</span> : null}
+    </p>
+  );
 }
 
 export default function LoginPage() {
@@ -87,7 +107,7 @@ export default function LoginPage() {
         // AU-501：登入流程異常（規範 v1.1 §5.5、既有 hack [nxui_nx00_auth_login_flow_001] 清理）
         throw new Error(JSON.stringify({
           errorCode: 'AU-501',
-          message: '登入流程異常、請重試或聯繫管理員',
+          message: '登入流程異常，請重試或聯繫管理員。',
         }));
       }
       setToken(result.token);
@@ -126,19 +146,23 @@ export default function LoginPage() {
             RA
           </h1>
           <p className="text-base font-light tracking-[0.15em] text-foreground/80">GRID</p>
-          {/* 規範 v1.2 §13：版本號（mobile 版、放在 GRID 副標下方）*/}
-          <p
-            className={
-              'mt-1 font-mono text-[13px] tracking-[0.15em] ' +
-              (isBetaVersion() ? 'text-amber-300/60' : 'text-accent')
-            }
-          >
-            {getVersionDisplay()}
-          </p>
         </div>
 
-        <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6">
-          <div className="relative flex aspect-square max-h-full max-w-[360px] w-full items-center justify-center">
+        {/*
+          TASK-LOGIN-MOBILE-PLANET-FIX：
+          v1 已 revert：h-full + max-h-[360px] + max-w-full（h-full 在 flex column 內 child 行為不穩）
+          v2（本版）：viewport-based width clamp + flex-1 父保留（讓 form 自適應）
+            - 星球容器用 explicit width: clamp(180px, 40dvh, 280px)
+              - 最小 180px（極窄螢幕保 visible）
+              - 偏好 40dvh（viewport 高度 40%、不過大）
+              - 最大 280px（大 mobile 上限）
+            - aspect-square + explicit width → height = width（CSS 規範保證 1:1）
+            - 父 flex-1 min-h-0 + items-center 保留（form 變高時 vertical center 自然調整）
+            - 父加 overflow-hidden 防極端情況下星球溢出
+            - mobile portrait 普遍：vp 700-900px、40dvh = 280-360px、clamp 後 = 280px 上限
+        */}
+        <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6 overflow-hidden">
+          <div className="relative aspect-square w-[clamp(180px,40dvh,280px)] max-w-full">
             <PlanetOrbit className="w-full h-full" />
           </div>
         </div>
@@ -171,15 +195,6 @@ export default function LoginPage() {
             </p>
             <p className="mt-4 text-sm text-muted-foreground tracking-wide">
               汽車零件零售 ERP 企業管理平台
-            </p>
-            {/* 規範 v1.2 §13：版本號顯示（蘋果範式、14px、amber 正式 / 偏黃灰 beta）*/}
-            <p
-              className={
-                'mt-3 font-mono text-sm tracking-[0.15em] ' +
-                (isBetaVersion() ? 'text-amber-300/60' : 'text-accent')
-              }
-            >
-              {getVersionDisplay()}
             </p>
           </div>
         </div>
@@ -222,6 +237,9 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
+
+              {/* 規範 v1.3 §13.4 §13.5：版本號移到登入按鈕下方、品牌+版本+suffix 3 段 design token */}
+              <LoginVersionFooter />
             </div>
           </div>
         </div>

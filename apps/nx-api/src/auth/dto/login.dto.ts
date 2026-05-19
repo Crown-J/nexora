@@ -12,23 +12,23 @@
 import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class LoginDto {
-  @IsNotEmpty({ message: '[AU-301]請輸入公司帳號' })
-  @IsString({ message: '[AU-301]請輸入公司帳號' })
+  @IsNotEmpty({ message: '[AU-301]請輸入公司帳號。' })
+  @IsString({ message: '[AU-301]請輸入公司帳號。' })
   @Matches(/^[A-Za-z0-9-]+$/, {
-    message: '[AU-301]公司帳號格式錯誤（只允許英數字與 -）',
+    message: '[AU-301]公司帳號格式錯誤（只允許英數字及 -）。',
   })
-  @MaxLength(50, { message: '[AU-301]公司帳號格式錯誤（只允許英數字與 -）' })
+  @MaxLength(50, { message: '[AU-301]公司帳號格式錯誤（只允許英數字及 -）。' })
   tenantCode!: string;
 
-  @IsNotEmpty({ message: '[AU-302]請輸入使用者帳號' })
-  @IsString({ message: '[AU-302]請輸入使用者帳號' })
-  @MinLength(1, { message: '[AU-302]請輸入使用者帳號' })
-  @MaxLength(50, { message: '[AU-302]請輸入使用者帳號' })
+  @IsNotEmpty({ message: '[AU-302]請輸入使用者帳號。' })
+  @IsString({ message: '[AU-302]請輸入使用者帳號。' })
+  @MinLength(1, { message: '[AU-302]請輸入使用者帳號。' })
+  @MaxLength(50, { message: '[AU-302]請輸入使用者帳號。' })
   username!: string;
 
-  @IsNotEmpty({ message: '[AU-303]請輸入密碼' })
-  @IsString({ message: '[AU-303]請輸入密碼' })
-  @MinLength(6, { message: '[AU-303]請輸入密碼' })
-  @MaxLength(100, { message: '[AU-303]請輸入密碼' })
+  @IsNotEmpty({ message: '[AU-303]請輸入密碼。' })
+  @IsString({ message: '[AU-303]請輸入密碼。' })
+  @MinLength(6, { message: '[AU-303]請輸入密碼。' })
+  @MaxLength(100, { message: '[AU-303]請輸入密碼。' })
   password!: string;
 }
