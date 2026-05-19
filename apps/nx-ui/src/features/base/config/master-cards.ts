@@ -234,7 +234,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     section: 'product',
     minPlan: 'PLUS',
     title: '品牌料號規則',
-    description: '依零件品牌的 seg 長度與排列（nx00_brand_code_rule）',
+    description: '依零件品牌設定料號的分段長度與排列規則',
     icon: SlidersHorizontal,
     statLabel: '規則',
     statValue: '—',
