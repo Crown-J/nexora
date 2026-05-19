@@ -33,13 +33,6 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-/** 主檔中心雙入口卡：頂部以圖示進子頁，仍保留 label 供 aria／快捷列 */
-export type MasterHubCardLink = {
-  label: string;
-  href: string;
-  entryIcon: LucideIcon;
-};
-
 /**
  * 主檔 hub 分區（同區卡片排在一起，避免找功能時跳來跳去）。
  * - 'vehicle' 為 NX01-16 業界改革 #22 新增的「車型字典」獨立分區
@@ -107,10 +100,8 @@ export type MasterHubCard = {
   icon: LucideIcon;
   statLabel: string;
   statValue: string;
-  /** 整卡點擊導向（與 links 擇一） */
-  href?: string;
-  /** 倉庫／庫位等複數入口 */
-  links?: MasterHubCardLink[];
+  /** 卡片點擊導向（一卡一概念、業界改革 #22 v1.1 拆 dual entries 後永遠必填） */
+  href: string;
 };
 
 export const MASTER_HUB_SECTION_ORDER: MasterHubSectionId[] = [
@@ -209,17 +200,24 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     href: '/dashboard/base/parts',
   },
   {
-    id: 'brand-masters',
+    id: 'car-brand',
     section: 'product',
-    title: '汽車／零件廠牌',
-    description: '廠牌代碼、名稱、國家、備註與啟用狀態',
-    icon: Tags,
-    statLabel: '廠牌筆數',
+    title: '汽車廠牌主檔',
+    description: '汽車品牌代碼、國家與啟用狀態（NX01-12）',
+    icon: CarFront,
+    statLabel: '汽車廠牌',
     statValue: '—',
-    links: [
-      { label: '汽車廠牌', href: '/dashboard/base/car-brand', entryIcon: CarFront },
-      { label: '零件廠牌', href: '/dashboard/base/part-brand', entryIcon: Tags },
-    ],
+    href: '/dashboard/base/car-brand',
+  },
+  {
+    id: 'part-brand',
+    section: 'product',
+    title: '零件廠牌主檔',
+    description: '零件品牌代碼、國家與啟用狀態',
+    icon: Tags,
+    statLabel: '零件廠牌',
+    statValue: '—',
+    href: '/dashboard/base/part-brand',
   },
   {
     id: 'part-group',
@@ -285,17 +283,24 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     href: '/dashboard/base/currency',
   },
   {
-    id: 'warehouse-location',
+    id: 'warehouse',
     section: 'organization',
-    title: '倉庫及庫位',
-    description: '倉別設定與儲位結構',
+    title: '倉庫主檔',
+    description: '倉別代碼、據點與啟用狀態',
     icon: Warehouse,
-    statLabel: '倉／庫位',
+    statLabel: '倉庫',
     statValue: '—',
-    links: [
-      { label: '倉庫主檔', href: '/dashboard/base/warehouses', entryIcon: Warehouse },
-      { label: '庫位主檔', href: '/dashboard/base/location', entryIcon: MapPin },
-    ],
+    href: '/dashboard/base/warehouses',
+  },
+  {
+    id: 'location',
+    section: 'organization',
+    title: '庫位主檔',
+    description: '儲位代碼、所屬倉庫與啟用狀態',
+    icon: MapPin,
+    statLabel: '庫位',
+    statValue: '—',
+    href: '/dashboard/base/location',
   },
   {
     id: 'partner',

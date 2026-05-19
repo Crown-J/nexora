@@ -9,17 +9,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
 import { getMasterHubSections } from '@/features/base/config/master-cards';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 function pathMatchesHub(pathname: string, href: string): boolean {
   if (pathname === href) return true;
@@ -45,56 +36,13 @@ export function BaseMasterQuickNav() {
           ) : null}
           {group.cards.map((card) => {
             const Icon = card.icon;
-
-            if (card.links?.length) {
-              const active = card.links.some((l) => pathMatchesHub(pathname, l.href));
-              return (
-                <DropdownMenu key={card.id}>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      title={`${group.title}：${card.title}`}
-                      aria-label={`${card.title}：選擇子主檔`}
-                      className={cn(
-                        'inline-flex h-9 min-w-9 shrink-0 items-center justify-center gap-px rounded-lg border px-1 transition-colors',
-                        active
-                          ? 'border-primary/50 bg-primary/15 text-primary'
-                          : 'border-border bg-card/55 text-muted-foreground hover:border-primary/30 hover:bg-primary/10 hover:text-foreground',
-                      )}
-                    >
-                      <Icon className="size-[18px] shrink-0" aria-hidden />
-                      <ChevronDown className="size-2.5 shrink-0 opacity-70" aria-hidden />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[10rem]">
-                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                      {group.title} · {card.title}
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {card.links.map((l) => {
-                      const subActive = pathMatchesHub(pathname, l.href);
-                      return (
-                        <DropdownMenuItem key={l.href} asChild className={subActive ? 'bg-primary/10' : undefined}>
-                          <Link href={l.href} aria-current={subActive ? 'page' : undefined}>
-                            {l.label}
-                          </Link>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              );
-            }
-
-            const href = card.href;
-            if (!href) return null;
-            const active = pathMatchesHub(pathname, href);
+            const active = pathMatchesHub(pathname, card.href);
             return (
               <Link
                 key={card.id}
-                href={href}
+                href={card.href}
                 title={`${group.title}：${card.title}`}
-                aria-label={`切換至${card.title}主檔`}
+                aria-label={`切換至${card.title}`}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'inline-flex size-9 items-center justify-center rounded-lg border transition-colors',
