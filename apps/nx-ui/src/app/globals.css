@@ -13,8 +13,15 @@
  * 登入頁等亦共用同一套 token。
  *
  * 頂欄 Mock 可切換 `html[data-nx-palette]`：classic（冷灰黑金）／steel（鋼鐵星球）
+ *
+ * 字級基準（業界改革 #22 v1.1、Crown 拍板 NEXORA 客戶友善範式）：
+ * - `--nx-root-font-size` 預設 110%（取代 Crown 用瀏覽器 zoom 解、客戶亞羅員工年齡偏大友善）
+ * - 影響範圍：rem / em token（Tailwind 字級 + spacing + rounded 全跟著放大）
+ * - 不影響：fixed `[Npx]` 任意值（後續軌 TASK-PX-TO-REM-NORMALIZATION 規範化）
+ * - 後續可加設定面板讓用戶選 100% / 110% / 120%（業界改革 #21 封測二階）
  */
 :root {
+  font-size: var(--nx-root-font-size, 110%);
   /** 讓原生表單（含 select 選項面板）在預設深色主題下由 UA 使用深色，避免白底淺字 */
   color-scheme: dark;
   /* 經典：冷灰深色底＋金主色（瑪瑙金改版前之可讀版） */
