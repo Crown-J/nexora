@@ -14,6 +14,7 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { HomeTopBar } from '@/components/home/top-bar';
 import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
 import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+import { BaseMasterMobileDock } from '@/features/base/shell/BaseMasterMobileDock';
 import { normalizePlanCode } from '@/features/base/config/master-cards';
 
 export type BaseMasterSubPageLayoutProps = {
@@ -87,11 +88,13 @@ export function BaseMasterSubPageLayout({ title, description, children }: BaseMa
         />
       }
     >
-      <div className="w-full min-w-0 space-y-6">
+      <div className="w-full min-w-0 space-y-6 pb-16 lg:pb-0">
         <BaseMasterPageHeader title={title} description={description} />
 
         {children}
       </div>
+
+      <BaseMasterMobileDock />
     </HomeLandingChrome>
   );
 }

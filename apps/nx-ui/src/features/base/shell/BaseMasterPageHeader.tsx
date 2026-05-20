@@ -39,7 +39,8 @@ export function BaseMasterPageHeader({ title, description }: BaseMasterPageHeade
             <p className="text-sm text-muted-foreground max-w-2xl">{description}</p>
           ) : null}
         </div>
-        <div className="shrink-0 lg:pt-1">
+        {/* 桌面 lg+：上方右側 QuickNav；手機：隱藏（改用 BaseMasterMobileDock fixed 底部、業界改革 #22 v1.2 + #17）*/}
+        <div className="hidden shrink-0 lg:block lg:pt-1">
           <BaseMasterQuickNav />
         </div>
       </div>
