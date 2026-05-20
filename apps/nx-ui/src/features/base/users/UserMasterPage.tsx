@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
+import { listUserRoles, type UserRoleDto } from '@/features/base/api/user-role';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
@@ -140,10 +141,6 @@ type UserRow = {
   createdBy: string;
   updatedAt: string;
   updatedBy: string;
-  /** detail：擔任職務（多項）*/
-  roles: { code: string; name: string; isPrimary: boolean; assignedAt: string; assignedBy: string }[];
-  /** detail：隸屬倉庫（多項）*/
-  warehouses: { code: string; name: string; assignedAt: string; assignedBy: string }[];
 };
 
 /** 編輯模式 form state。
@@ -158,7 +155,8 @@ type EditFormState = {
 };
 
 /** 將後端 UserDto 轉成內部 UserRow（仿 BaseUserMasterView dtoToRow 範式）
- * roles / warehouses 暫留空陣列，Stage 1-B.7/B.8 接 listUserRoles / listUserWarehouses 時補。
+ * 注意：擔任職務 / 隸屬倉庫 由獨立 state 載入（selectedUserRoles / selectedUserWarehouses），
+ * 不在 UserRow 內，避免列表每筆都打關聯 API。
  */
 function dtoToUserRow(u: UserDto): UserRow {
   return {
@@ -175,8 +173,6 @@ function dtoToUserRow(u: UserDto): UserRow {
     createdBy: u.createdByName ?? u.createdByUsername ?? '—',
     updatedAt: u.updatedAt,
     updatedBy: u.updatedByName ?? u.updatedByUsername ?? '—',
-    roles: [],
-    warehouses: [],
   };
 }
 
@@ -354,6 +350,7 @@ function UserDetailView({
   editMode,
   editForm,
   onEditChange,
+  userRoles,
   onAddRole,
   onAddWarehouse,
 }: {
@@ -361,6 +358,8 @@ function UserDetailView({
   editMode: boolean;
   editForm: EditFormState | null;
   onEditChange: (next: EditFormState) => void;
+  /** 該使用者已指派的職務（從 listUserRoles 載入）*/
+  userRoles: UserRoleDto[];
   onAddRole: () => void;
   onAddWarehouse: () => void;
 }) {
@@ -419,21 +418,21 @@ function UserDetailView({
       <section className="border-b border-[#1A1A1F] px-8 py-6">
         <SectionHeader
           title="擔任職務"
-          count={user.roles.length}
+          count={userRoles.length}
           subtitle="Assigned Roles"
           action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} /> : null}
         />
         <div className="mt-4">
-          {user.roles.length > 0 ? (
+          {userRoles.length > 0 ? (
             <DetailTable
               headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
-              rows={user.roles.map((r, i) => [
+              rows={userRoles.map((r, i) => [
                 String(i + 1).padStart(4, '0'),
-                r.code,
-                r.name,
+                r.roleCode ?? '—',
+                r.roleName ?? '—',
                 r.isPrimary ? '✓' : '',
                 r.assignedAt,
-                r.assignedBy,
+                r.assignedByName ?? '—',
               ])}
             />
           ) : (
@@ -442,29 +441,16 @@ function UserDetailView({
         </div>
       </section>
 
-      {/* 隸屬倉庫 */}
+      {/* 隸屬倉庫（Stage 1-B.8 將接 listUserWarehouses）*/}
       <section className="px-8 py-6">
         <SectionHeader
           title="隸屬倉庫"
-          count={user.warehouses.length}
+          count={0}
           subtitle="Assigned Warehouses"
           action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
         />
         <div className="mt-4">
-          {user.warehouses.length > 0 ? (
-            <DetailTable
-              headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
-              rows={user.warehouses.map((w, i) => [
-                String(i + 1).padStart(4, '0'),
-                w.code,
-                w.name,
-                w.assignedAt,
-                w.assignedBy,
-              ])}
-            />
-          ) : (
-            <EmptyDetail message="尚未指派倉庫據點" />
-          )}
+          <EmptyDetail message="尚未指派倉庫據點" />
         </div>
       </section>
     </MasterDetailScroll>
@@ -507,6 +493,10 @@ export function UserMasterPage() {
   // ── 新增對話框（Stage 1-B.6）─────────────────────────────────
   const [createOpen, setCreateOpen] = useState(false);
 
+  // ── 詳細頁關聯資料：擔任職務（Stage 1-B.7）──────────────────
+  const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
+  const [rolesReloadTick, setRolesReloadTick] = useState(0);
+
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -548,6 +538,34 @@ export function UserMasterPage() {
       alive = false;
     };
   }, [page, pageSize, reloadTick, debouncedKeyword, showInactive, showToast]);
+
+  // 載入該使用者的擔任職務（Stage 1-B.7）：selectedId 變 + tab='detail' 才打 API
+  useEffect(() => {
+    if (!selectedId || tab !== 'detail') {
+      setSelectedUserRoles([]);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await listUserRoles({
+          userId: selectedId,
+          isActive: true, // 只看生效中的職務指派
+          pageSize: 100,
+        });
+        if (!alive) return;
+        setSelectedUserRoles(res.items);
+      } catch (e) {
+        if (!alive) return;
+        const msg = e instanceof Error ? e.message : '載入失敗';
+        showToast(`擔任職務載入失敗：${msg}`, 'danger');
+        setSelectedUserRoles([]);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [selectedId, tab, rolesReloadTick, showToast]);
 
   const selectedUser = useMemo(
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
@@ -882,6 +900,7 @@ export function UserMasterPage() {
             editMode={mode === 'edit'}
             editForm={editForm}
             onEditChange={setEditForm}
+            userRoles={selectedUserRoles}
             onAddRole={handleAddRole}
             onAddWarehouse={handleAddWarehouse}
           />
