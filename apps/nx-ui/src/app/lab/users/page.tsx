@@ -46,6 +46,7 @@ import {
   Layers,
 } from 'lucide-react';
 
+import { listUsers, type UserDto } from '@/features/base/api/user';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
@@ -150,103 +151,28 @@ type UserRow = {
   warehouses: { code: string; name: string; assignedAt: string; assignedBy: string }[];
 };
 
-const USERS: UserRow[] = [
-  {
-    id: '1',
-    username: 'admin',
-    displayName: '測試租戶管理員（LITE）',
-    jobTitle: '系統管理員',
-    email: null,
-    phone: null,
-    warehouse: null,
-    isActive: true,
-    lastLoginAt: '2026-05-20 12:29',
-    createdAt: '2026-05-06 10:16',
-    createdBy: '系統管理員',
-    updatedAt: '2026-05-20 12:29',
-    updatedBy: '系統管理員',
-    roles: [
-      { code: 'SYSADMIN', name: '系統管理員', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
-    ],
+/** 將後端 UserDto 轉成 lab 用的 UserRow（仿 BaseUserMasterView dtoToRow 範式）
+ * roles / warehouses 在 Stage 1-B.1 階段暫留空陣列，Stage 1-B.7/B.8 接 listUserRoles / listUserWarehouses 時補。
+ */
+function dtoToUserRow(u: UserDto): UserRow {
+  return {
+    id: u.id,
+    username: u.username,
+    displayName: u.displayName,
+    jobTitle: u.jobTitle ?? '—',
+    email: u.email,
+    phone: u.phone,
+    warehouse: u.warehouseSummary ?? null,
+    isActive: u.isActive,
+    lastLoginAt: u.lastLoginAt,
+    createdAt: u.createdAt,
+    createdBy: u.createdByName ?? u.createdByUsername ?? '—',
+    updatedAt: u.updatedAt,
+    updatedBy: u.updatedByName ?? u.updatedByUsername ?? '—',
+    roles: [],
     warehouses: [],
-  },
-  {
-    id: '2',
-    username: 'finance1',
-    displayName: '黃志豪（財務專員）',
-    jobTitle: '財務',
-    email: null,
-    phone: null,
-    warehouse: null,
-    isActive: true,
-    lastLoginAt: null,
-    createdAt: '2026-05-06 10:16',
-    createdBy: '系統管理員',
-    updatedAt: '2026-05-06 10:16',
-    updatedBy: '系統管理員',
-    roles: [
-      { code: 'FINANCE', name: '財務', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
-    ],
-    warehouses: [],
-  },
-  {
-    id: '3',
-    username: 'purchase1',
-    displayName: '王小明(採購專員)',
-    jobTitle: '採購',
-    email: null,
-    phone: null,
-    warehouse: null,
-    isActive: true,
-    lastLoginAt: null,
-    createdAt: '2026-05-06 10:16',
-    createdBy: '系統管理員',
-    updatedAt: '2026-05-06 10:16',
-    updatedBy: '系統管理員',
-    roles: [
-      { code: 'PURCHASE', name: '採購', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
-    ],
-    warehouses: [],
-  },
-  {
-    id: '4',
-    username: 'sales1',
-    displayName: '陳美玲(業務專員)',
-    jobTitle: '業務',
-    email: null,
-    phone: null,
-    warehouse: null,
-    isActive: true,
-    lastLoginAt: null,
-    createdAt: '2026-05-06 10:16',
-    createdBy: '系統管理員',
-    updatedAt: '2026-05-06 10:16',
-    updatedBy: '系統管理員',
-    roles: [
-      { code: 'SALES', name: '業務', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
-    ],
-    warehouses: [],
-  },
-  {
-    id: '5',
-    username: 'warehouse1',
-    displayName: '林大偉(倉管專員)',
-    jobTitle: '倉管',
-    email: null,
-    phone: null,
-    warehouse: null,
-    isActive: true,
-    lastLoginAt: null,
-    createdAt: '2026-05-06 10:16',
-    createdBy: '系統管理員',
-    updatedAt: '2026-05-06 10:16',
-    updatedBy: '系統管理員',
-    roles: [
-      { code: 'WAREHOUSE', name: '倉管', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
-    ],
-    warehouses: [],
-  },
-];
+  };
+}
 
 const JOB_TITLES = ['系統管理員', '財務', '採購', '業務', '倉管'] as const;
 
@@ -570,6 +496,8 @@ function UserDetailView({
 // Page
 // ──────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 20;
+
 export default function LabUsersPage() {
   const [tab, setTab] = useState<'list' | 'detail'>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -584,12 +512,42 @@ export default function LabUsersPage() {
   const { toasts, showToast } = useToast();
   const userColumns = useMemo(() => buildUserColumns(), []);
 
+  // ── API state ───────────────────────────────────────────────
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
+
+  // Stage 1-B.1：載入使用者列表（仿 BaseUserMasterView 範式：alive flag + cleanup）
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    void (async () => {
+      try {
+        const res = await listUsers({ page, pageSize: PAGE_SIZE, isActive: true });
+        if (!alive) return;
+        setUsers(res.items.map(dtoToUserRow));
+        setTotal(res.total);
+      } catch (e) {
+        if (!alive) return;
+        const msg = e instanceof Error ? e.message : '載入失敗';
+        showToast(`使用者載入失敗：${msg}`, 'danger');
+        setUsers([]);
+        setTotal(0);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [page, reloadTick, showToast]);
+
   const selectedUser = useMemo(
-    () => (selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null),
-    [selectedId],
+    () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
+    [selectedId, users],
   );
-  // 假分頁：固定每頁 20 筆，當前 USERS 共 5 筆 → 1/1
-  const totalPages = Math.max(1, Math.ceil(USERS.length / 20));
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const handleToggleSelection = () => {
     setSelectionMode((prev) => {
@@ -645,6 +603,7 @@ export default function LabUsersPage() {
   );
 
   const handleRefresh = useCallback(() => {
+    setReloadTick((t) => t + 1);
     showToast('已重新整理（Alt+R）', 'success');
   }, [showToast]);
 
@@ -657,16 +616,16 @@ export default function LabUsersPage() {
   }, [showToast]);
 
   const handleReturnToTable = useCallback(() => {
-    if (USERS.length === 0) return;
-    const firstId = USERS[0].id;
-    setSelectedId(firstId);
+    if (users.length === 0) return;
+    const first = users[0];
+    setSelectedId(first.id);
     // 下一個 tick 等 React render 完再聚焦 DOM
     setTimeout(() => {
-      const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${firstId}"]`);
+      const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
       row?.focus();
     }, 0);
-    showToast(`已聚焦第一筆：${USERS[0].username}`, 'info');
-  }, [showToast]);
+    showToast(`已聚焦第一筆：${first.username}`, 'info');
+  }, [showToast, users]);
 
   const handleSave = useCallback(() => {
     setConfirmState({
@@ -825,7 +784,7 @@ export default function LabUsersPage() {
         {tab === 'list' ? (
           <MasterTable<UserRow>
             columns={userColumns}
-            rows={USERS}
+            rows={users}
             getRowId={(r) => r.id}
             selectedId={selectedId}
             onSelect={setSelectedId}
@@ -833,7 +792,7 @@ export default function LabUsersPage() {
               setSelectedId(id);
               setTab('detail');
               // 雙擊 = 進入編輯（對齊 footer 文案）
-              const u = USERS.find((u) => u.id === id);
+              const u = users.find((u) => u.id === id);
               if (u) {
                 setMode('edit');
                 setEditForm(makeEditForm(u));
@@ -844,8 +803,15 @@ export default function LabUsersPage() {
             setChecked={setChecked}
             sortKey={sortKey}
             onSortKeyChange={setSortKey}
-            footerHint={selectedId ? '雙擊或 Alt+E 進入編輯' : '點選列以啟用更正/刪除'}
-            pageSize={20}
+            footerHint={
+              loading
+                ? '載入中…'
+                : selectedId
+                  ? '雙擊或 Alt+E 進入編輯'
+                  : '點選列以啟用更正/刪除'
+            }
+            pageSize={PAGE_SIZE}
+            totalCount={total}
           />
         ) : selectedUser ? (
           <UserDetailView
