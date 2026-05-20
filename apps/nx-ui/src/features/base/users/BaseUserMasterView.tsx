@@ -1349,6 +1349,24 @@ export function BaseUserMasterView() {
                           </tr>
                         );
                       })}
+                      {/*
+                        業界改革 #22 v1.2 + Crown 拍板：固定顯示 pageSize 列、不足補空白列。
+                        對齊 Excel / Google Sheets 範式：row 數穩定、視覺秩序一致。
+                        空白列無 hover / cursor / click handler、僅占位、aria-hidden 避免讀屏。
+                      */}
+                      {Array.from({ length: Math.max(0, pageSize - sortedRows.length) }).map((_, i) => (
+                        <tr
+                          key={`__placeholder_${i}`}
+                          aria-hidden
+                          className="nx-master-tbody-row pointer-events-none select-none"
+                        >
+                          <td className="px-2 py-2.5">&nbsp;</td>
+                          {orderedVisibleCols.map((k) => (
+                            <td key={k} className="px-2 py-2.5">&nbsp;</td>
+                          ))}
+                          <td className="px-1 py-2.5">&nbsp;</td>
+                        </tr>
+                      ))}
                     </tbody>
                 </table>
               </MasterListScrollRegion>
