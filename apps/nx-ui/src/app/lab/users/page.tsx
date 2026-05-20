@@ -305,11 +305,21 @@ function NavItem({
       type="button"
       onClick={onClick}
       data-nav-item
+      style={
+        active
+          ? {
+              backgroundImage:
+                'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.06) 60%, transparent 100%)',
+              boxShadow:
+                'inset 3px 0 0 0 #E8A020, inset 0 1px 0 0 rgba(232,160,32,0.15)',
+            }
+          : undefined
+      }
       className={cn(
         'group flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-all',
         'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50 focus-visible:bg-[#E8A020]/10',
         active
-          ? 'bg-[#E8A020]/12 text-[#E8A020] font-medium shadow-[inset_2px_0_0_0_#E8A020]'
+          ? 'text-[#E8A020] font-medium'
           : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
       )}
     >
@@ -411,12 +421,18 @@ function LeftSidebar({
     <aside
       ref={sidebarRef}
       onKeyDown={handleKey}
-      className="flex w-60 shrink-0 flex-col border-r border-[#2A2A30] bg-[#131316]"
+      className="relative flex w-60 shrink-0 flex-col border-r border-[#2A2A30]"
+      style={{
+        backgroundImage:
+          'linear-gradient(180deg, #14141A 0%, #101014 50%, #0C0C10 100%)',
+        boxShadow:
+          'inset -1px 0 0 0 rgba(255,255,255,0.03), 1px 0 0 0 #000000, inset 0 1px 0 0 rgba(255,255,255,0.04)',
+      }}
     >
-      <div className="flex items-center gap-2.5 border-b border-[#2A2A30]/60 px-4 py-3.5">
+      <div className="flex items-center gap-2.5 border-b border-[#2A2A30]/80 px-4 py-3.5 shadow-[0_1px_0_0_rgba(255,255,255,0.03)]">
         <PlanetModuleMenu />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold tracking-tight text-[#E8E8EB]">NEXORA GRID</p>
+          <p className="truncate text-sm font-semibold tracking-[0.04em] text-[#F0F0F3]">NEXORA GRID</p>
           <p className="truncate text-[11px] text-[#888892]">測試公司（LITE）</p>
         </div>
       </div>
@@ -487,8 +503,14 @@ function LeftSidebar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-3 py-3">
-        <div className="flex size-8 items-center justify-center rounded-full border border-[#2A2A30] bg-[#1A1A1F] text-xs font-medium text-[#E8E8EB]">
+      <div
+        className="flex items-center gap-2.5 border-t border-[#2A2A30] px-3 py-3"
+        style={{
+          backgroundImage: 'linear-gradient(180deg, rgba(10,10,12,0.3) 0%, rgba(10,10,12,0.6) 100%)',
+          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04)',
+        }}
+      >
+        <div className="flex size-8 items-center justify-center rounded-full border border-[#2A2A30] bg-gradient-to-b from-[#22222A] to-[#16161A] text-xs font-medium text-[#E8E8EB] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
           管
         </div>
         <div className="min-w-0 flex-1">
@@ -509,14 +531,27 @@ function LeftSidebar({
 
 function TopHeader() {
   return (
-    <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#0A0A0C] px-6 py-3">
+    <div
+      className="relative flex items-center justify-between border-b border-[#2A2A30] px-6 py-4"
+      style={{
+        backgroundImage:
+          'linear-gradient(180deg, #0D0D11 0%, #0A0A0C 100%), linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 1px)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
+      }}
+    >
       <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5A5A60]">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
           帳號與權限
         </p>
-        <div className="mt-0.5 flex items-center gap-2.5">
-          <h1 className="text-lg font-semibold tracking-tight text-[#E8E8EB]">使用者主檔</h1>
-          <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-1.5 py-0.5 text-[10px] font-medium text-[#E8A020]">
+        <div className="mt-1 flex items-center gap-3">
+          <h1 className="relative pb-1 text-xl font-bold tracking-[-0.01em] text-[#F0F0F3]">
+            使用者主檔
+            <span
+              aria-hidden
+              className="absolute -bottom-0 left-0 h-px w-12 bg-gradient-to-r from-[#E8A020] via-[#E8A020]/40 to-transparent"
+            />
+          </h1>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8A020]/30 bg-gradient-to-b from-[#E8A020]/12 to-[#E8A020]/6 px-2.5 py-0.5 text-[10px] font-medium text-[#E8A020] shadow-[inset_0_1px_0_0_rgba(232,160,32,0.15)]">
             <Users className="size-3" />
             5 位使用者
           </span>
@@ -526,7 +561,7 @@ function TopHeader() {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          className="rounded-lg p-2 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
+          className="rounded-lg border border-transparent p-2 text-[#888892] transition-all hover:border-[#2A2A30] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
           aria-label="搜尋"
         >
           <Search className="size-4" />
@@ -619,7 +654,15 @@ function ErpToolbar({
   }
 
   return (
-    <div className="flex items-center gap-1 border-b border-[#2A2A30] bg-[#131316] px-3 py-1.5">
+    <div
+      className="flex items-center gap-1 border-b border-[#2A2A30] px-3 py-2"
+      style={{
+        backgroundImage:
+          'linear-gradient(180deg, #16161B 0%, #101014 100%)',
+        boxShadow:
+          'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
+      }}
+    >
       <PaginationButton icon={ChevronsLeft} disabled={page <= 1} onClick={() => onPageChange(1)} title="第一頁" />
       <PaginationButton icon={ChevronLeft} disabled={page <= 1} onClick={() => onPageChange(page - 1)} title="上一頁" />
       <span className="min-w-[2.5rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
@@ -784,7 +827,13 @@ function ErpTabBar({
   editMode: boolean;
 }) {
   return (
-    <div className="flex items-center border-b border-[#2A2A30] bg-[#0A0A0C] px-3">
+    <div
+      className="flex items-center border-b border-[#2A2A30] px-3"
+      style={{
+        backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #08080A 100%)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+      }}
+    >
       <button
         type="button"
         onClick={() => onChange('list')}
@@ -792,7 +841,7 @@ function ErpTabBar({
         className={cn(
           'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
           tab === 'list'
-            ? 'border-[#E8A020] text-[#E8A020]'
+            ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_12px_rgba(232,160,32,0.4)]'
             : editMode
               ? 'cursor-not-allowed border-transparent text-[#5A5A60]'
               : 'border-transparent text-[#888892] hover:text-[#E8E8EB]',
@@ -808,7 +857,7 @@ function ErpTabBar({
         className={cn(
           'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
           tab === 'detail'
-            ? 'border-[#E8A020] text-[#E8A020]'
+            ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_12px_rgba(232,160,32,0.4)]'
             : hasSelected && !editMode
               ? 'border-transparent text-[#888892] hover:text-[#E8E8EB]'
               : 'cursor-not-allowed border-transparent text-[#5A5A60]',
@@ -883,11 +932,19 @@ function UsersTable({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0A0A0C]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-[#131316]/95 backdrop-blur">
-            <tr className="border-b border-[#2A2A30] text-left text-[11px] font-medium uppercase tracking-[0.08em] text-[#888892]">
+          <thead
+            className="sticky top-0 z-10 backdrop-blur-xl"
+            style={{
+              backgroundImage:
+                'linear-gradient(180deg, rgba(20,20,26,0.95) 0%, rgba(16,16,20,0.95) 100%)',
+              boxShadow:
+                'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
+            }}
+          >
+            <tr className="border-b border-[#2A2A30] text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#888892]">
               <th className="w-12 px-2 py-2.5">
                 {selectionMode ? (
                   <input
@@ -950,14 +1007,20 @@ function UsersTable({
                   tabIndex={0}
                   onClick={() => onSelect(row.id)}
                   onDoubleClick={() => onOpenDetail(row.id)}
-                  className={cn(
-                    'cursor-pointer border-b border-[#1A1A1F] transition-colors outline-none',
-                    'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
+                  style={
                     isSelected
-                      ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/40'
-                      : selectionMode && isChecked
-                        ? 'bg-[#E8A020]/6'
-                        : 'hover:bg-[#131316]',
+                      ? {
+                          backgroundImage:
+                            'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.08) 100%)',
+                          boxShadow:
+                            'inset 0 0 0 1px rgba(232,160,32,0.45), inset 3px 0 0 0 #E8A020',
+                        }
+                      : undefined
+                  }
+                  className={cn(
+                    'cursor-pointer border-b border-[#1A1A1F] transition-all outline-none',
+                    'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
+                    !isSelected && (selectionMode && isChecked ? 'bg-[#E8A020]/6' : 'hover:bg-[#131316]'),
                   )}
                 >
                   <td className="px-2 py-2.5" onClick={(e) => selectionMode && e.stopPropagation()}>
@@ -976,11 +1039,11 @@ function UsersTable({
                     )}
                   </td>
                   <td className="px-2 py-2.5">
-                    <span className="font-mono text-xs text-[#E8E8EB]">{row.username}</span>
+                    <span className="font-mono text-xs tracking-wide text-[#E8E8EB]">{row.username}</span>
                   </td>
-                  <td className="px-2 py-2.5 text-[#E8E8EB]">{row.displayName}</td>
+                  <td className="px-2 py-2.5 font-medium text-[#F0F0F3]">{row.displayName}</td>
                   <td className="px-2 py-2.5">
-                    <span className="inline-flex items-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 py-0.5 text-[11px] text-[#B8B8C0]">
+                    <span className="inline-flex items-center rounded-md border border-[#2A2A30] bg-gradient-to-b from-[#1A1A1F] to-[#131316] px-2 py-0.5 text-[11px] text-[#B8B8C0] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
                       {row.jobTitle}
                     </span>
                   </td>
@@ -995,12 +1058,15 @@ function UsersTable({
                   </td>
                   <td className="px-2 py-2.5">
                     {row.isActive ? (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-1.5 py-0.5 text-[10px] font-medium text-[#E8A020]">
-                        <span className="size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_6px_#E8A020]" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8A020]/30 bg-gradient-to-b from-[#E8A020]/12 to-[#E8A020]/6 px-2 py-0.5 text-[10px] font-medium text-[#E8A020] shadow-[inset_0_1px_0_0_rgba(232,160,32,0.15)]">
+                        <span className="relative flex size-1.5">
+                          <span className="absolute inset-0 animate-ping rounded-full bg-[#E8A020]/60" />
+                          <span className="relative size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
+                        </span>
                         啟用
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-[#3A3A42] bg-[#1A1A1F] px-1.5 py-0.5 text-[10px] font-medium text-[#5A5A60]">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#3A3A42] bg-[#1A1A1F] px-2 py-0.5 text-[10px] font-medium text-[#5A5A60]">
                         <span className="size-1.5 rounded-full bg-[#5A5A60]" />
                         停用
                       </span>
@@ -1033,7 +1099,13 @@ function UsersTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#131316] px-6 py-2 text-[11px] text-[#888892]">
+      <div
+        className="flex items-center justify-between border-t border-[#2A2A30] px-6 py-2 text-[11px] text-[#888892]"
+        style={{
+          backgroundImage: 'linear-gradient(180deg, #101014 0%, #0A0A0C 100%)',
+          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+        }}
+      >
         <span>共 5 筆 · 顯示 5 筆 {selectedId ? '· 雙擊或 Alt+E 進入編輯' : '· 點選列以啟用更正/刪除'}</span>
         <span className="text-[#5A5A60]">每頁 20 筆</span>
       </div>
@@ -1599,7 +1671,13 @@ export default function LabUsersPage() {
   ]);
 
   return (
-    <div className="flex h-dvh bg-[#0A0A0C] text-[#E8E8EB]">
+    <div
+      className="flex h-dvh text-[#E8E8EB]"
+      style={{
+        backgroundImage:
+          'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
+      }}
+    >
       <LeftSidebar sidebarRef={sidebarRef} onReturnToTable={handleReturnToTable} />
       <main className="flex min-w-0 flex-1 flex-col">
         <TopHeader />
