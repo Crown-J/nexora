@@ -72,6 +72,8 @@ import {
   Info,
   CheckCircle2,
   XCircle,
+  Megaphone,
+  Clock,
 } from 'lucide-react';
 
 import {
@@ -529,7 +531,23 @@ function LeftSidebar({
   );
 }
 
-function TopHeader() {
+function TopHeader({ onNotification, onAnnouncement }: { onNotification: () => void; onAnnouncement: () => void }) {
+  // 日期時間 live clock（避免 SSR hydration mismatch：初始 null，useEffect 內賦值）
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const pad2 = (n: number) => n.toString().padStart(2, '0');
+  const timeText = now ? `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}` : '--:--:--';
+  const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+  const dateText = now
+    ? `${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())} ${weekdays[now.getDay()]}`
+    : '----/--/-- ---';
+
   return (
     <div
       className="relative flex items-center justify-between border-b border-[#2A2A30] px-6 py-4"
@@ -558,16 +576,73 @@ function TopHeader() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="rounded-lg border border-transparent p-2 text-[#888892] transition-all hover:border-[#2A2A30] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
-          aria-label="搜尋"
-        >
-          <Search className="size-4" />
-        </button>
+      <div className="flex items-center gap-3">
+        <TopHeaderIconButton
+          icon={Bell}
+          badge={3}
+          badgeTone="red"
+          title="通知"
+          onClick={onNotification}
+        />
+        <TopHeaderIconButton
+          icon={Megaphone}
+          badge={2}
+          badgeTone="amber"
+          title="公告"
+          onClick={onAnnouncement}
+        />
+        <div className="mx-1 h-7 w-px bg-[#2A2A30]" aria-hidden />
+        <div className="flex items-center gap-2.5">
+          <Clock className="size-3.5 text-[#5A5A60]" />
+          <div className="flex flex-col items-end font-mono leading-tight tabular-nums">
+            <span className="text-sm font-semibold text-[#E8E8EB] [text-shadow:0_0_8px_rgba(232,160,32,0.15)]">
+              {timeText}
+            </span>
+            <span className="text-[10px] tracking-wider text-[#5A5A60]">{dateText}</span>
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function TopHeaderIconButton({
+  icon: Icon,
+  badge,
+  badgeTone,
+  title,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+  badgeTone?: 'red' | 'amber';
+  title: string;
+  onClick: () => void;
+}) {
+  const badgeColor =
+    badgeTone === 'red'
+      ? 'bg-[#E26060] text-white shadow-[0_0_8px_#E26060]'
+      : 'bg-[#E8A020] text-[#0A0A0C] shadow-[0_0_8px_#E8A020]';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      className="relative rounded-lg border border-transparent p-2 text-[#888892] transition-all hover:border-[#2A2A30] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
+    >
+      <Icon className="size-4" />
+      {badge != null && badge > 0 ? (
+        <span
+          className={cn(
+            'absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none',
+            badgeColor,
+          )}
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -1632,6 +1707,14 @@ export default function LabUsersPage() {
     showToast('已取消編輯', 'info');
   }, [showToast]);
 
+  const handleNotification = useCallback(() => {
+    showToast('通知中心 · 3 則未讀（lab mock）', 'info');
+  }, [showToast]);
+
+  const handleAnnouncement = useCallback(() => {
+    showToast('公告 · 2 則最新（lab mock）', 'info');
+  }, [showToast]);
+
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1726,7 +1809,7 @@ export default function LabUsersPage() {
     >
       <LeftSidebar sidebarRef={sidebarRef} onReturnToTable={handleReturnToTable} />
       <main className="flex min-w-0 flex-1 flex-col">
-        <TopHeader />
+        <TopHeader onNotification={handleNotification} onAnnouncement={handleAnnouncement} />
         <ErpToolbar
           mode={mode}
           activeRow={selectedUser}
