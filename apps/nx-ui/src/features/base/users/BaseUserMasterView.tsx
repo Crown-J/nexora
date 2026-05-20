@@ -10,6 +10,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -305,8 +306,27 @@ export function BaseUserMasterView() {
   const [sideBusy, setSideBusy] = useState(false);
   const [sideErr, setSideErr] = useState<string | null>(null);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
+  // 業界改革 #22 v1.2：欄位 panel 改 Portal 渲染（解 backdrop-filter ancestor 蓋住 + 位置怪）
+  const colPickerBtnRef = useRef<HTMLButtonElement>(null);
+  const colPickerPanelRef = useRef<HTMLDivElement>(null);
+  const [colPickerPos, setColPickerPos] = useState<{ top: number; right: number } | null>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
   const listKeyboardRootRef = useRef<HTMLDivElement>(null);
+
+  // 開啟 panel 時計算位置（trigger button rect、portal 用 fixed top/right）
+  const openColPicker = useCallback(() => {
+    const btn = colPickerBtnRef.current;
+    if (!btn) {
+      setColPickerOpen(true);
+      return;
+    }
+    const rect = btn.getBoundingClientRect();
+    setColPickerPos({
+      top: rect.bottom + 8,
+      right: Math.max(8, window.innerWidth - rect.right),
+    });
+    setColPickerOpen(true);
+  }, []);
 
   const focusListKeyboardRegion = useCallback(() => {
     requestAnimationFrame(() => {
@@ -406,9 +426,15 @@ export function BaseUserMasterView() {
 
   useEffect(() => {
     if (!colPickerOpen) return;
+    // panel 改 Portal 後在 document.body 末端、不在 colPickerWrapRef 內、
+    // outside-click 判斷需同時 check trigger button + panel ref
     const onDoc = (e: MouseEvent) => {
-      const el = colPickerWrapRef.current;
-      if (el && !el.contains(e.target as Node)) setColPickerOpen(false);
+      const target = e.target as Node;
+      const btn = colPickerBtnRef.current;
+      const panel = colPickerPanelRef.current;
+      if (btn && btn.contains(target)) return;
+      if (panel && panel.contains(target)) return;
+      setColPickerOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -1120,11 +1146,12 @@ export function BaseUserMasterView() {
               </DropdownMenu>
 
               <Button
+                ref={colPickerBtnRef}
                 type="button"
                 size="sm"
                 variant="outline"
                 className="gap-1 px-2"
-                onClick={() => setColPickerOpen((o) => !o)}
+                onClick={() => (colPickerOpen ? setColPickerOpen(false) : openColPicker())}
                 aria-expanded={colPickerOpen}
                 aria-label="列表欄位設定"
               >
@@ -1230,8 +1257,13 @@ export function BaseUserMasterView() {
                 {loading ? '載入中…' : `共 ${listTotal} 筆 · 本頁 ${sortedRows.length} 筆`}
               </span>
 
-              {colPickerOpen ? (
-                <div className="absolute left-0 right-0 top-full z-[110] mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
+              {colPickerOpen && colPickerPos && typeof document !== 'undefined'
+                ? createPortal(
+                <div
+                  ref={colPickerPanelRef}
+                  style={{ top: colPickerPos.top, right: colPickerPos.right }}
+                  className="fixed z-[200] w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg"
+                >
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
                     <Button
@@ -1307,8 +1339,10 @@ export function BaseUserMasterView() {
                       );
                     })}
                   </div>
-                </div>
-              ) : null}
+                </div>,
+                document.body,
+              )
+                : null}
           </div>
         </section>
 
