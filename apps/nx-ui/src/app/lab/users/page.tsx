@@ -68,9 +68,6 @@ import {
   FileSpreadsheet,
   FileText,
   AlertTriangle,
-  Info,
-  CheckCircle2,
-  XCircle,
   Megaphone,
   Clock,
 } from 'lucide-react';
@@ -84,6 +81,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
+import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────────
@@ -268,14 +266,6 @@ type ConfirmState = {
   confirmLabel?: string;
   variant?: 'default' | 'danger';
   onConfirm: () => void;
-};
-
-type ToastVariant = 'info' | 'success' | 'danger';
-
-type Toast = {
-  id: number;
-  message: string;
-  variant: ToastVariant;
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -1390,34 +1380,6 @@ function SectionAddButton({ label, onClick }: { label: string; onClick?: () => v
   );
 }
 
-function ToastStack({ toasts }: { toasts: Toast[] }) {
-  if (toasts.length === 0) return null;
-  return (
-    <div className="pointer-events-none fixed right-6 top-20 z-40 flex w-80 flex-col gap-2">
-      {toasts.map((t) => {
-        const Icon = t.variant === 'success' ? CheckCircle2 : t.variant === 'danger' ? XCircle : Info;
-        // success / info 都收斂到琥珀；danger 用鋼鐵紅（不飽和）
-        const tone =
-          t.variant === 'danger'
-            ? 'border-[#5A2A2A] text-[#E26060]'
-            : 'border-[#E8A020]/40 text-[#E8A020]';
-        return (
-          <div
-            key={t.id}
-            className={cn(
-              'pointer-events-auto flex items-start gap-2 rounded-xl border bg-[#131316]/95 px-3 py-2 text-xs shadow-2xl backdrop-blur-md',
-              tone,
-            )}
-          >
-            <Icon className="mt-0.5 size-3.5 shrink-0" />
-            <span className="min-w-0 flex-1 leading-relaxed">{t.message}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function ConfirmDialog({
   state,
   onClose,
@@ -1537,17 +1499,8 @@ export default function LabUsersPage() {
   const [mode, setMode] = useState<Mode>('browse');
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const toastIdRef = useRef(0);
   const sidebarRef = useRef<HTMLElement>(null);
-
-  const showToast = useCallback((message: string, variant: ToastVariant = 'info') => {
-    const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 2400);
-  }, []);
+  const { toasts, showToast } = useToast();
 
   const selectedUser = useMemo(
     () => (selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null),
