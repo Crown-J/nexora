@@ -3,8 +3,9 @@
  * NEXORA 新增使用者對話框（Stage 1-B.6）
  *
  * 設計：
- * - Modal dialog，避開「進入編輯模式」的 mode 切換邏輯（createUser 需要 username + password 必填，欄位與 updateUser 不同）
- * - 6 個欄位：帳號 / 密碼 / 姓名（必填）+ 信箱 / 電話 / 啟用狀態（選填）
+ * - Modal dialog，避開「進入編輯模式」的 mode 切換邏輯
+ * - 5 個欄位：帳號 / 姓名（必填）+ 啟用狀態 / 信箱 / 電話（選填）
+ * - 密碼一律使用預設密碼建立（DEFAULT_PASSWORD），使用者首次登入再修改
  * - 前端基本驗證：trim 後不能為空（必填欄位）
  * - 鋼鐵風樣式對齊 ConfirmDialog
  * - ESC / backdrop 關閉（提交中時禁用）
@@ -17,14 +18,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, KeyRound } from 'lucide-react';
 import { createUser, type UserDto } from '@/features/base/api/user';
 import { FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
 import { cn } from '@/lib/utils';
 
+/** 預設密碼：所有新建使用者一律以此建立，首次登入時系統會強制要求修改 */
+const DEFAULT_PASSWORD = 'nexora@2026';
+
 type FormState = {
   username: string;
-  password: string;
   displayName: string;
   email: string;
   phone: string;
@@ -33,7 +36,6 @@ type FormState = {
 
 const INITIAL_FORM: FormState = {
   username: '',
-  password: '',
   displayName: '',
   email: '',
   phone: '',
@@ -85,14 +87,9 @@ export function CreateUserDialog({
   const handleSubmit = async () => {
     setError(null);
     const username = form.username.trim();
-    const password = form.password;
     const displayName = form.displayName.trim();
     if (!username) {
       setError('請填寫帳號');
-      return;
-    }
-    if (!password) {
-      setError('請填寫密碼');
       return;
     }
     if (!displayName) {
@@ -103,7 +100,7 @@ export function CreateUserDialog({
     try {
       const created = await createUser({
         username,
-        password,
+        password: DEFAULT_PASSWORD,
         displayName,
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
@@ -140,20 +137,13 @@ export function CreateUserDialog({
         </div>
 
         {/* Form */}
-        <div className="grid grid-cols-1 gap-x-6 gap-y-4 p-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-4 px-5 pb-1 pt-5 sm:grid-cols-2">
           <RequiredInput
             label="帳號"
             value={form.username}
             onChange={(v) => update('username', v)}
             placeholder="例：admin / finance1"
             inputRef={firstInputRef}
-          />
-          <RequiredInput
-            label="密碼"
-            value={form.password}
-            onChange={(v) => update('password', v)}
-            placeholder="初始密碼"
-            type="password"
           />
           <RequiredInput
             label="姓名"
@@ -167,6 +157,7 @@ export function CreateUserDialog({
             options={['啟用', '未啟用']}
             onChange={(v) => update('isActive', v === '啟用')}
           />
+          <div className="hidden sm:block" aria-hidden />
           <FormInput
             label="信箱"
             value={form.email}
@@ -179,6 +170,18 @@ export function CreateUserDialog({
             onChange={(v) => update('phone', v)}
             placeholder="可留空"
           />
+        </div>
+
+        {/* 預設密碼 hint */}
+        <div className="mx-5 mt-4 flex items-start gap-2 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-3 py-2 text-xs text-[#E8A020]">
+          <KeyRound className="mt-0.5 size-3.5 shrink-0" />
+          <span className="min-w-0 flex-1 leading-relaxed">
+            初始密碼：
+            <span className="mx-1 rounded bg-[#0A0A0C] px-1.5 py-0.5 font-mono tabular-nums">
+              {DEFAULT_PASSWORD}
+            </span>
+            ，使用者首次登入時系統會要求修改。
+          </span>
         </div>
 
         {/* Error */}
