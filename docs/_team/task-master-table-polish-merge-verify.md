@@ -397,3 +397,95 @@ e4172d5 commit 1：DropdownMenu z-index 50 → 60
 ```
 
 **最終 vs main**：9 檔、+627 / -38 行（含 §10 補揭露）、6 次 typecheck 連續 OK。
+
+---
+
+## §11 補揭露：commit 9 + 10 + 11 統一 dock 範式（Crown 截圖揭露）
+
+對齊 Crown 截圖揭露真相：3 個 dock 元件範式不一致、統一成 NexoraBottomDock：
+
+### 11.1 真相揭露
+
+```
+Crown 截圖 3 圖：
+  圖一首頁：home/dock.tsx isDashboardHome 分支、5 個 + 文字
+  圖二 hub：MobileSectionTabs、6 section、icon-only ✅ Crown 期望範式
+  圖三主檔頁：BaseMasterMobileDock（commit 7）、25 主檔、有文字 ⚠️
+
+Crown 戰略：統一成圖二範式（6 slot、icon-only、超過 swipe）
+```
+
+### 11.2 commit 9 補正 Dock 掛點
+
+```
+root cause：commit 7 把 dock 加在 BaseMasterSubPageLayout
+但 21 主檔 page.tsx 直接 render BaseMasterPageHeader（不經 SubPageLayout）
+→ Dock 從未渲染
+
+修法：dock 改放 BaseMasterPageHeader（21 主檔共用點）+ Fragment 範式
+```
+
+### 11.3 commit 10 + 11 統一範式
+
+```
+新檔（commit 10）：shared/ui/NexoraBottomDock.tsx（147 行）
+  - DockItem type：{ id, icon, label, href?, onClick?, active? }
+  - <= 6 items：flex-1 均分（無 scroll）
+  - > 6 items：overflow-x-auto + min-w-[64px] swipe + active scrollTo 中央
+  - icon-only h-6 w-6、aria-label / title 提供無障礙
+  - active：amber #E8A020 + 底部小橫槓
+
+Refactor 4 處（commit 11）：
+  ✅ home/dock.tsx isDashboardHome 分支（38 行 → 8 行）
+  ✅ home/dock.tsx HOME_DOCK_ITEMS 分支（line 519 早 return null、為死碼、保留供 revert）
+  ✅ MobileSectionTabs（80 行 → 50 行）
+  ✅ BaseMasterMobileDock（commit 7 103 行 → 36 行、移除文字、scrollTo 邏輯移到 NexoraBottomDock 共用）
+
+附加：dashboardQuickShortcuts.ts 加 SHORTCUT_Y_PLACEHOLDER（5 → 6 個）
+  - key='y'、label='更多功能'、href='/dashboard/coming-soon'
+  - 後續軌 TASK-DASHBOARD-QUICK-Y-IMPL Crown 拍板實際功能
+```
+
+### 11.4 數量真相揭露
+
+```
+共用元件影響倍數（一處改、全站生效）：
+  - NexoraBottomDock 視覺改 → 4 處 dock 同步
+  - DockItem type 改 → 4 處 dock 同步
+  - scrollTo / overflow / flex 邏輯改 → 4 處 dock 同步
+
+行數淨變化：
+  - commit 9 (fix)：+34 / -27 = +7
+  - commit 10 (新)：+147
+  - commit 11 (refactor)：+55 / -172 = -117
+  - 淨變化：+37 行（含全部 4 處 refactor）
+```
+
+### 11.5 業界改革累積真相
+
+```
+業界改革 #22 v1.2：主檔分區範式 + 表格內部 UX（本軌主軸）
+業界改革 #17：手機介面 = NEXORA 亮點（Bottom Dock 統一範式 = 累積落地）
+業界對標：iOS Dock + Android Bottom Nav + 對齊 NEXORA dark theme amber 範式
+```
+
+### 11.6 ahead 11 commit 真實清單最終
+
+```
+（merge-verify §11 補揭露在此 commit）
+116162c commit 11：refactor 3 dock 使用點 + 首頁 5→6
+ae6c720 commit 10：NexoraBottomDock shared 元件
+16e230c commit 9（fix）：MobileDock 掛點從 SubPageLayout 移到 PageHeader
+4d177ac commit 8：merge-verify §10 補揭露
+15c5530 commit 7：BaseMasterMobileDock 範式（commit 11 refactor 為共用元件）
+2a1340b commit 6：merge-verify 9 段揭露
+0aebec5 commit 5：backend nx01-user-role module
+922df91 commit 4：user 主檔表格 reference
+a657736 commit 3：IncludeInactiveToggle 共用元件
+8bcf7bb commit 2：audit person 顯示優化 + tooltip
+e4172d5 commit 1：DropdownMenu z-index 50 → 60
+```
+
+**最終 vs main**：12 檔、+664 / -210 行（淨 +454 行）、9 次 typecheck 連續 OK。
+
+⭐ 業界改革 #22 v1.2 + #17 完整收尾、Crown 戰略「設計系統一致性」紀律對齊。
