@@ -1,19 +1,13 @@
 // apps/nx-ui/src/app/lab/users/page.tsx
 /**
- * NEXORA Lab：使用者主檔範式套用實驗頁（Crown 拍板「套上 USER 試試看」）
+ * NEXORA Lab：使用者主檔範式（Crown iterate v2）
  *
- * 路徑：/lab/users（避開 dashboard layout TopBar wrap、純 root layout）
+ * Crown 拍板（commit 41 iterate）：
+ * - 移除 stat cards（卡片不需要）
+ * - 縮減色彩（不要太花）
+ * - 明細用舊 ERP 範式（tab「資料瀏覽 / 詳細資料」+ 工具列 + form + 項次）
  *
- * 範式延續 /lab/accounts（commit 39）：
- * - 左側 sidebar（取代 TopBar）
- * - 頂部 stat cards 4 個業務 metric（總用戶 / 啟用 / 職務分布 / 最近登入）
- * - 表格（mock 5 個 user：admin / finance1 / purchase1 / sales1 / warehouse1）
- *
- * 設計差異 vs /lab/accounts：
- * - sidebar 主要 nav 改主檔系（主檔中心 / 帳號權限 / 產品料號 / 車型字典 等）
- * - 「使用者主檔」active 高亮
- * - stat cards 改 user 業務數據
- * - 表格欄位對齊既有 user 主檔
+ * 路徑：/lab/users（避開 dashboard layout、純 root layout）
  */
 
 'use client';
@@ -33,18 +27,19 @@ import {
   Search,
   Sparkles,
   RefreshCcw,
-  Download,
   MoreHorizontal,
-  Filter as FilterIcon,
-  Info,
   ChevronDown,
   ChevronRight,
   Plus,
   Bell,
-  Mail,
-  Phone,
-  Hash,
   Layers,
+  Pencil,
+  Save,
+  X,
+  Trash2,
+  Printer,
+  LogOut,
+  Edit3,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -86,71 +81,11 @@ const NAV_PARTNER: ListItem[] = [
   { id: 'partner', icon: Handshake, label: '客戶主檔', count: 87 },
 ];
 
-type StatCard = {
-  title: string;
-  info: string;
-  bigValue: string;
-  badge: string;
-  badgeTone: 'amber' | 'sky' | 'green' | 'rose';
-  segments: { label: string; value: string; pct: number }[];
-};
-
-const STAT_CARDS: StatCard[] = [
-  {
-    title: '使用者總數',
-    info: '租戶內所有使用者帳號',
-    bigValue: '5',
-    badge: '本租戶',
-    badgeTone: 'amber',
-    segments: [
-      { label: '已啟用', value: '5', pct: 100 },
-      { label: '已停用', value: '0', pct: 0 },
-    ],
-  },
-  {
-    title: '職務分布',
-    info: '依主要職務統計',
-    bigValue: '5',
-    badge: '5 種職務',
-    badgeTone: 'sky',
-    segments: [
-      { label: '系統管理員', value: '1', pct: 20 },
-      { label: '財務', value: '1', pct: 20 },
-      { label: '其他職務', value: '3', pct: 60 },
-    ],
-  },
-  {
-    title: '最近登入',
-    info: '7 日內登入次數',
-    bigValue: '1',
-    badge: '今日',
-    badgeTone: 'green',
-    segments: [
-      { label: '今日活躍', value: '1', pct: 20 },
-      { label: '本週活躍', value: '0', pct: 0 },
-      { label: '從未登入', value: '4', pct: 80 },
-    ],
-  },
-  {
-    title: '據點覆蓋',
-    info: '使用者隸屬倉庫數',
-    bigValue: '0',
-    badge: '待設定',
-    badgeTone: 'rose',
-    segments: [
-      { label: '未指派', value: '5', pct: 100 },
-      { label: '單一據點', value: '0', pct: 0 },
-      { label: '多據點', value: '0', pct: 0 },
-    ],
-  },
-];
-
 type UserRow = {
   id: string;
   username: string;
   displayName: string;
   jobTitle: string;
-  jobColor: string;
   email: string | null;
   phone: string | null;
   warehouse: string | null;
@@ -158,6 +93,12 @@ type UserRow = {
   lastLoginAt: string | null;
   createdAt: string;
   createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
+  /** detail：擔任職務（多項）*/
+  roles: { code: string; name: string; isPrimary: boolean; assignedAt: string; assignedBy: string }[];
+  /** detail：隸屬倉庫（多項）*/
+  warehouses: { code: string; name: string; assignedAt: string; assignedBy: string }[];
 };
 
 const USERS: UserRow[] = [
@@ -166,7 +107,6 @@ const USERS: UserRow[] = [
     username: 'admin',
     displayName: '測試租戶管理員（LITE）',
     jobTitle: '系統管理員',
-    jobColor: 'bg-amber-500/20 text-amber-300',
     email: null,
     phone: null,
     warehouse: null,
@@ -174,13 +114,18 @@ const USERS: UserRow[] = [
     lastLoginAt: '2026-05-20 12:29',
     createdAt: '2026-05-06 10:16',
     createdBy: '系統管理員',
+    updatedAt: '2026-05-20 12:29',
+    updatedBy: '系統管理員',
+    roles: [
+      { code: 'SYSADMIN', name: '系統管理員', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
+    ],
+    warehouses: [],
   },
   {
     id: '2',
     username: 'finance1',
     displayName: '黃志豪（財務專員）',
     jobTitle: '財務',
-    jobColor: 'bg-emerald-500/20 text-emerald-300',
     email: null,
     phone: null,
     warehouse: null,
@@ -188,13 +133,18 @@ const USERS: UserRow[] = [
     lastLoginAt: null,
     createdAt: '2026-05-06 10:16',
     createdBy: '系統管理員',
+    updatedAt: '2026-05-06 10:16',
+    updatedBy: '系統管理員',
+    roles: [
+      { code: 'FINANCE', name: '財務', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
+    ],
+    warehouses: [],
   },
   {
     id: '3',
     username: 'purchase1',
     displayName: '王小明(採購專員)',
     jobTitle: '採購',
-    jobColor: 'bg-sky-500/20 text-sky-300',
     email: null,
     phone: null,
     warehouse: null,
@@ -202,13 +152,18 @@ const USERS: UserRow[] = [
     lastLoginAt: null,
     createdAt: '2026-05-06 10:16',
     createdBy: '系統管理員',
+    updatedAt: '2026-05-06 10:16',
+    updatedBy: '系統管理員',
+    roles: [
+      { code: 'PURCHASE', name: '採購', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
+    ],
+    warehouses: [],
   },
   {
     id: '4',
     username: 'sales1',
     displayName: '陳美玲(業務專員)',
     jobTitle: '業務',
-    jobColor: 'bg-violet-500/20 text-violet-300',
     email: null,
     phone: null,
     warehouse: null,
@@ -216,13 +171,18 @@ const USERS: UserRow[] = [
     lastLoginAt: null,
     createdAt: '2026-05-06 10:16',
     createdBy: '系統管理員',
+    updatedAt: '2026-05-06 10:16',
+    updatedBy: '系統管理員',
+    roles: [
+      { code: 'SALES', name: '業務', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
+    ],
+    warehouses: [],
   },
   {
     id: '5',
     username: 'warehouse1',
     displayName: '林大偉(倉管專員)',
     jobTitle: '倉管',
-    jobColor: 'bg-rose-500/20 text-rose-300',
     email: null,
     phone: null,
     warehouse: null,
@@ -230,6 +190,12 @@ const USERS: UserRow[] = [
     lastLoginAt: null,
     createdAt: '2026-05-06 10:16',
     createdBy: '系統管理員',
+    updatedAt: '2026-05-06 10:16',
+    updatedBy: '系統管理員',
+    roles: [
+      { code: 'WAREHOUSE', name: '倉管', isPrimary: true, assignedAt: '2026-05-06 10:16', assignedBy: '系統' },
+    ],
+    warehouses: [],
   },
 ];
 
@@ -295,7 +261,6 @@ function SectionLabel({ label, action }: { label: string; action?: React.ReactNo
 function LeftSidebar() {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border/40 bg-card/40 backdrop-blur-sm">
-      {/* Brand */}
       <div className="flex items-center gap-2.5 px-4 py-3.5">
         <div className="flex size-9 items-center justify-center rounded-xl bg-[#E8A020]/15 text-[#E8A020]">
           <Sparkles className="size-5" />
@@ -307,14 +272,12 @@ function LeftSidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-3 nx-master-scroll">
-        {/* 主導覽 */}
         <div className="space-y-0.5 px-1 pt-1">
           {NAV_TOP.map((item) => (
             <NavItem key={item.id} icon={item.icon} label={item.label} badge={item.badge} />
           ))}
         </div>
 
-        {/* ACCOUNT section */}
         <SectionLabel
           label="帳號與權限"
           action={
@@ -333,7 +296,6 @@ function LeftSidebar() {
           ))}
         </div>
 
-        {/* PRODUCT section */}
         <SectionLabel label="產品與料號" />
         <div className="space-y-0.5 px-1">
           {NAV_PRODUCT.map((item) => (
@@ -341,7 +303,6 @@ function LeftSidebar() {
           ))}
         </div>
 
-        {/* VEHICLE section */}
         <SectionLabel label="車型字典" />
         <div className="space-y-0.5 px-1">
           {NAV_VEHICLE.map((item) => (
@@ -349,7 +310,6 @@ function LeftSidebar() {
           ))}
         </div>
 
-        {/* ORG section */}
         <SectionLabel label="組織架構" />
         <div className="space-y-0.5 px-1">
           {NAV_ORG.map((item) => (
@@ -357,7 +317,6 @@ function LeftSidebar() {
           ))}
         </div>
 
-        {/* PARTNER section */}
         <SectionLabel label="交易對象" />
         <div className="space-y-0.5 px-1">
           {NAV_PARTNER.map((item) => (
@@ -365,16 +324,14 @@ function LeftSidebar() {
           ))}
         </div>
 
-        {/* SYSTEM section */}
         <SectionLabel label="系統設定" />
         <div className="space-y-0.5 px-1">
           <NavItem icon={Settings} label="基礎設定" />
         </div>
       </div>
 
-      {/* User footer */}
       <div className="flex items-center gap-2.5 border-t border-border/40 px-3 py-3">
-        <div className="flex size-8 items-center justify-center rounded-full bg-amber-500/20 text-xs font-medium text-amber-300">
+        <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-xs font-medium text-foreground/80">
           管
         </div>
         <div className="min-w-0 flex-1">
@@ -402,7 +359,7 @@ function TopHeader() {
         </p>
         <div className="mt-0.5 flex items-center gap-2.5">
           <h1 className="text-lg font-semibold tracking-tight text-foreground">使用者主檔</h1>
-          <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/30 bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">
+          <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#E8A020]">
             <Users className="size-3" />
             5 位使用者
           </span>
@@ -417,156 +374,127 @@ function TopHeader() {
         >
           <Search className="size-4" />
         </button>
-        <button
-          type="button"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#E8A020]/40 bg-[#E8A020]/10 px-2.5 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
-        >
-          <Plus className="size-3.5" />
-          新增使用者
-        </button>
       </div>
     </div>
   );
 }
 
-function FilterToolbar() {
+/** 舊 ERP 工具列範式（A 新增 / M 更正 / F 查詢 / S 存檔 / C 取消 / D 刪除 / P 印表 / Q 結束）*/
+function ErpToolbar({ activeRow }: { activeRow: UserRow | null }) {
+  const hasRow = activeRow !== null;
   return (
-    <div className="flex items-center justify-between border-b border-border/40 px-6 py-2">
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/60 bg-card/60 px-2.5 text-xs text-foreground hover:bg-white/5"
-        >
-          <FilterIcon className="size-3.5" />
-          篩選條件
-          <span className="ml-1 rounded-md bg-secondary/80 px-1.5 py-0.5 text-[10px] tabular-nums text-foreground">
-            2
-          </span>
-        </button>
-        <div className="ml-2 flex items-center gap-1">
-          <span className="inline-flex h-7 items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/10 px-1.5 text-[10px] text-emerald-300">
-            啟用 = 是
-            <button className="ml-0.5 opacity-70 hover:opacity-100">×</button>
-          </span>
-          <span className="inline-flex h-7 items-center gap-1 rounded-md border border-sky-400/30 bg-sky-500/10 px-1.5 text-[10px] text-sky-300">
-            本租戶
-            <button className="ml-0.5 opacity-70 hover:opacity-100">×</button>
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/60 bg-card/60 px-2.5 text-xs text-foreground hover:bg-white/5"
-        >
-          <RefreshCcw className="size-3.5" />
-          重新整理
-        </button>
-        <button
-          type="button"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/60 bg-card/60 px-2.5 text-xs text-foreground hover:bg-white/5"
-        >
-          <Download className="size-3.5" />
-          匯出
-        </button>
-        <button
-          type="button"
-          className="rounded-lg p-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
-          aria-label="更多動作"
-        >
-          <MoreHorizontal className="size-4" />
-        </button>
-      </div>
+    <div className="flex items-center gap-1 border-b border-border/40 bg-card/30 px-3 py-1.5">
+      <ToolbarButton icon={Plus} letter="A" label="新增" enabled />
+      <ToolbarButton icon={Pencil} letter="M" label="更正" enabled={hasRow} />
+      <ToolbarButton icon={Search} letter="F" label="查詢" enabled />
+      <ToolbarSeparator />
+      <ToolbarButton icon={Save} letter="S" label="存檔" enabled={false} />
+      <ToolbarButton icon={X} letter="C" label="取消" enabled={false} />
+      <ToolbarSeparator />
+      <ToolbarButton icon={Trash2} letter="D" label="刪除" enabled={hasRow} variant="danger" />
+      <ToolbarButton icon={Printer} letter="P" label="印表" enabled />
+      <div className="flex-1" />
+      <ToolbarButton icon={Edit3} letter="E" label="編輯明細" enabled={hasRow} />
+      <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled />
+      <ToolbarButton icon={LogOut} letter="Q" label="結束" enabled />
     </div>
   );
 }
 
-function StatBar({ segments, tone }: { segments: StatCard['segments']; tone: StatCard['badgeTone'] }) {
-  const colorByTone: Record<StatCard['badgeTone'], string[]> = {
-    amber: ['bg-[#E8A020]', 'bg-[#E8A020]/60', 'bg-[#E8A020]/30'],
-    sky: ['bg-sky-400', 'bg-sky-400/60', 'bg-sky-400/30'],
-    green: ['bg-emerald-400', 'bg-emerald-400/60', 'bg-emerald-400/30'],
-    rose: ['bg-rose-400', 'bg-rose-400/60', 'bg-rose-400/30'],
-  };
+function ToolbarSeparator() {
+  return <div className="mx-1 h-5 w-px bg-border/50" aria-hidden />;
+}
+
+function ToolbarButton({
+  icon: Icon,
+  letter,
+  label,
+  enabled,
+  variant = 'default',
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  letter: string;
+  label: string;
+  enabled: boolean;
+  variant?: 'default' | 'danger';
+}) {
   return (
-    <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-secondary/40">
-      {segments.map((s, i) => (
-        <div
-          key={i}
-          style={{ width: `${s.pct}%` }}
-          className={cn('h-full transition-all', colorByTone[tone][i] ?? 'bg-muted')}
-        />
-      ))}
+    <button
+      type="button"
+      disabled={!enabled}
+      title={`${label}（${letter}）`}
+      className={cn(
+        'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors',
+        enabled
+          ? variant === 'danger'
+            ? 'border-rose-400/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
+            : 'border-border/60 bg-card/60 text-foreground/85 hover:bg-white/5 hover:text-foreground'
+          : 'cursor-not-allowed border-border/30 bg-card/30 text-muted-foreground/40',
+      )}
+    >
+      <Icon className="size-3" />
+      <span className="hidden sm:inline">
+        <span className={cn('mr-0.5 font-mono', enabled && variant !== 'danger' && 'text-[#E8A020]')}>{letter}</span>
+        {label}
+      </span>
+    </button>
+  );
+}
+
+/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）*/
+function ErpTabBar({
+  tab,
+  onChange,
+  hasSelected,
+}: {
+  tab: 'list' | 'detail';
+  onChange: (next: 'list' | 'detail') => void;
+  hasSelected: boolean;
+}) {
+  return (
+    <div className="flex items-center border-b border-border/40 bg-background px-3">
+      <button
+        type="button"
+        onClick={() => onChange('list')}
+        className={cn(
+          'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
+          tab === 'list'
+            ? 'border-[#E8A020] text-[#E8A020]'
+            : 'border-transparent text-muted-foreground hover:text-foreground',
+        )}
+      >
+        <span className="rounded bg-muted/60 px-1 font-mono text-[10px]">1</span>
+        資料瀏覽
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('detail')}
+        disabled={!hasSelected}
+        className={cn(
+          'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
+          tab === 'detail'
+            ? 'border-[#E8A020] text-[#E8A020]'
+            : hasSelected
+              ? 'border-transparent text-muted-foreground hover:text-foreground'
+              : 'cursor-not-allowed border-transparent text-muted-foreground/40',
+        )}
+      >
+        <span className="rounded bg-muted/60 px-1 font-mono text-[10px]">2</span>
+        詳細資料
+      </button>
     </div>
   );
 }
 
-function StatBadge({ tone, children }: { tone: StatCard['badgeTone']; children: React.ReactNode }) {
-  const cls: Record<StatCard['badgeTone'], string> = {
-    amber: 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]',
-    sky: 'border-sky-400/40 bg-sky-500/10 text-sky-300',
-    green: 'border-emerald-400/40 bg-emerald-500/10 text-emerald-300',
-    rose: 'border-rose-400/40 bg-rose-500/10 text-rose-300',
-  };
-  return (
-    <span className={cn('inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium', cls[tone])}>
-      {children}
-    </span>
-  );
-}
-
-function StatCardItem({ card }: { card: StatCard }) {
-  return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-border/40 bg-card/40 p-3.5 backdrop-blur-sm">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            {card.title}
-          </span>
-          <Info className="size-3 text-muted-foreground/60" />
-        </div>
-        <button
-          type="button"
-          className="rounded p-0.5 text-muted-foreground/60 hover:bg-white/5 hover:text-foreground"
-          aria-label="更多"
-        >
-          <MoreHorizontal className="size-3.5" />
-        </button>
-      </div>
-
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-semibold tabular-nums tracking-tight text-foreground">
-          {card.bigValue}
-        </span>
-        <StatBadge tone={card.badgeTone}>{card.badge}</StatBadge>
-      </div>
-
-      <StatBar segments={card.segments} tone={card.badgeTone} />
-
-      <div className="space-y-1 pt-0.5">
-        {card.segments.map((s, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[11px]">
-            <span className="tabular-nums text-foreground">{s.value}</span>
-            <span className="text-muted-foreground">{s.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function StatCardsRow() {
-  return (
-    <div className="grid grid-cols-1 gap-3 px-6 pt-4 pb-3 sm:grid-cols-2 lg:grid-cols-4">
-      {STAT_CARDS.map((card) => (
-        <StatCardItem key={card.title} card={card} />
-      ))}
-    </div>
-  );
-}
-
-function UsersTable() {
+function UsersTable({
+  selectedId,
+  onSelect,
+  onOpenDetail,
+}: {
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onOpenDetail: (id: string) => void;
+}) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<'username' | 'displayName' | 'lastLoginAt'>('username');
 
@@ -579,14 +507,11 @@ function UsersTable() {
     });
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border/40">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-auto nx-master-scroll">
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-background/95 backdrop-blur">
             <tr className="border-b border-border/40 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              <th className="w-8 px-3 py-2.5">
-                <ChevronRight className="size-3.5 opacity-50" />
-              </th>
               <th className="w-8 px-2 py-2.5">
                 <input type="checkbox" className="size-3.5 rounded border-border" aria-label="全選" />
               </th>
@@ -626,29 +551,27 @@ function UsersTable() {
                 </button>
               </th>
               <th className="min-w-[160px] whitespace-nowrap px-2 py-2.5">建立時間</th>
-              <th className="w-12 px-2 py-2.5" />
             </tr>
           </thead>
           <tbody>
             {USERS.map((row) => {
               const isChecked = checked.has(row.id);
+              const isSelected = selectedId === row.id;
               return (
                 <tr
                   key={row.id}
+                  onClick={() => onSelect(row.id)}
+                  onDoubleClick={() => onOpenDetail(row.id)}
                   className={cn(
-                    'border-b border-border/30 transition-colors',
-                    isChecked ? 'bg-[#E8A020]/8' : 'hover:bg-white/3',
+                    'cursor-pointer border-b border-border/30 transition-colors',
+                    isSelected
+                      ? 'bg-[#E8A020]/15 ring-1 ring-inset ring-[#E8A020]/40'
+                      : isChecked
+                        ? 'bg-[#E8A020]/8'
+                        : 'hover:bg-white/3',
                   )}
                 >
-                  <td className="px-3 py-2.5">
-                    <button
-                      type="button"
-                      className="rounded p-0.5 text-muted-foreground/60 hover:bg-white/5 hover:text-foreground"
-                    >
-                      <ChevronRight className="size-3.5" />
-                    </button>
-                  </td>
-                  <td className="px-2 py-2.5">
+                  <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={isChecked}
@@ -660,41 +583,20 @@ function UsersTable() {
                   <td className="px-2 py-2.5">
                     <span className="font-mono text-xs text-foreground">{row.username}</span>
                   </td>
+                  <td className="px-2 py-2.5 text-foreground/90">{row.displayName}</td>
                   <td className="px-2 py-2.5">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/80 text-xs font-medium text-foreground">
-                        {row.displayName.charAt(0)}
-                      </div>
-                      <span className="truncate font-medium text-foreground">{row.displayName}</span>
-                    </div>
-                  </td>
-                  <td className="px-2 py-2.5">
-                    <span className={cn('inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium', row.jobColor)}>
+                    <span className="inline-flex items-center rounded-md border border-border/50 bg-muted/30 px-2 py-0.5 text-[11px] text-foreground/85">
                       {row.jobTitle}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-xs text-muted-foreground">
-                    {row.email ? (
-                      <span className="inline-flex items-center gap-1">
-                        <Mail className="size-3 opacity-60" />
-                        {row.email}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground/40">—</span>
-                    )}
+                  <td className="px-2 py-2.5 text-xs text-muted-foreground/40">
+                    {row.email ?? '—'}
                   </td>
-                  <td className="px-2 py-2.5 text-xs text-muted-foreground">
-                    {row.phone ? (
-                      <span className="inline-flex items-center gap-1">
-                        <Phone className="size-3 opacity-60" />
-                        {row.phone}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground/40">—</span>
-                    )}
+                  <td className="px-2 py-2.5 text-xs text-muted-foreground/40">
+                    {row.phone ?? '—'}
                   </td>
-                  <td className="px-2 py-2.5 text-xs text-muted-foreground">
-                    {row.warehouse ?? <span className="text-muted-foreground/40">—</span>}
+                  <td className="px-2 py-2.5 text-xs text-muted-foreground/40">
+                    {row.warehouse ?? '—'}
                   </td>
                   <td className="px-2 py-2.5">
                     {row.isActive ? (
@@ -715,22 +617,11 @@ function UsersTable() {
                   <td className="px-2 py-2.5 text-xs tabular-nums text-muted-foreground">
                     {row.createdAt}
                   </td>
-                  <td className="px-2 py-2.5">
-                    <button
-                      type="button"
-                      className="rounded p-0.5 text-muted-foreground/60 hover:bg-white/5 hover:text-foreground"
-                    >
-                      <MoreHorizontal className="size-3.5" />
-                    </button>
-                  </td>
                 </tr>
               );
             })}
-            {/* 空白列補滿到 20 列（commit 29 範式）*/}
             {Array.from({ length: Math.max(0, 20 - USERS.length) }).map((_, i) => (
               <tr key={`__placeholder_${i}`} aria-hidden className="pointer-events-none select-none border-b border-border/20">
-                <td className="px-3 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
                 <td className="px-2 py-2.5">&nbsp;</td>
                 <td className="px-2 py-2.5">&nbsp;</td>
                 <td className="px-2 py-2.5">&nbsp;</td>
@@ -747,22 +638,170 @@ function UsersTable() {
         </table>
       </div>
 
-      {/* 底部 status bar */}
       <div className="flex items-center justify-between border-t border-border/40 bg-card/30 px-6 py-2 text-[11px] text-muted-foreground">
-        <span>共 5 筆 · 顯示 5 筆</span>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1">
-            <Hash className="size-3" />
-            列高 緊湊
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Package className="size-3" />
-            11 欄
-          </span>
-          <span className="text-foreground/60">每頁 20 筆</span>
-        </div>
+        <span>共 5 筆 · 顯示 5 筆 {selectedId ? '· 雙擊或按 E 編輯明細' : '· 點選列以啟用編輯'}</span>
+        <span className="text-foreground/60">每頁 20 筆</span>
       </div>
     </div>
+  );
+}
+
+/** 舊 ERP 範式詳細頁：上方 form fields + 下方明細項次（roles / warehouses）*/
+function UserDetailView({ user }: { user: UserRow }) {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll">
+      {/* 上方 form fields（grid 4-col、業界 ERP 範式緊湊 layout）*/}
+      <div className="border-b border-border/40 bg-card/20 px-6 py-4">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+          <FormField label="帳號" value={user.username} mono />
+          <FormField label="姓名" value={user.displayName} />
+          <FormField label="職務" value={user.jobTitle} />
+          <FormField label="啟用狀態" value={user.isActive ? '啟用' : '停用'} tone={user.isActive ? 'green' : 'muted'} />
+
+          <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
+          <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
+          <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
+          <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
+
+          <FormField label="建立時間" value={user.createdAt} mono />
+          <FormField label="建立人員" value={user.createdBy} />
+          <FormField label="修改時間" value={user.updatedAt} mono />
+          <FormField label="修改人員" value={user.updatedBy} />
+        </div>
+      </div>
+
+      {/* 下方明細項次（擔任職務 + 隸屬倉庫）*/}
+      <div className="flex-1 px-6 py-4">
+        <DetailSection title="擔任職務" count={user.roles.length}>
+          {user.roles.length > 0 ? (
+            <DetailTable
+              headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
+              rows={user.roles.map((r, i) => [
+                String(i + 1).padStart(4, '0'),
+                r.code,
+                r.name,
+                r.isPrimary ? '✓' : '',
+                r.assignedAt,
+                r.assignedBy,
+              ])}
+            />
+          ) : (
+            <EmptyDetail message="尚未指派職務" />
+          )}
+        </DetailSection>
+
+        <div className="h-4" />
+
+        <DetailSection title="隸屬倉庫" count={user.warehouses.length}>
+          {user.warehouses.length > 0 ? (
+            <DetailTable
+              headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
+              rows={user.warehouses.map((w, i) => [
+                String(i + 1).padStart(4, '0'),
+                w.code,
+                w.name,
+                w.assignedAt,
+                w.assignedBy,
+              ])}
+            />
+          ) : (
+            <EmptyDetail message="尚未指派倉庫據點" />
+          )}
+        </DetailSection>
+      </div>
+    </div>
+  );
+}
+
+function FormField({
+  label,
+  value,
+  mono,
+  dim,
+  tone,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  dim?: boolean;
+  tone?: 'green' | 'muted';
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <div
+        className={cn(
+          'rounded-md border border-border/40 bg-background/40 px-2.5 py-1.5 text-sm',
+          mono && 'font-mono text-xs',
+          dim && 'text-muted-foreground/50',
+          tone === 'green' && 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300',
+          tone === 'muted' && 'border-muted-foreground/30 text-muted-foreground',
+          !tone && !dim && 'text-foreground/90',
+        )}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function DetailSection({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-border/40 bg-card/20">
+      <div className="flex items-center justify-between border-b border-border/40 bg-card/30 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-foreground">{title}</span>
+          <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-muted-foreground">
+            {count}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-border/60 px-1.5 text-[10px] hover:bg-white/5"
+          >
+            <Plus className="size-3" />
+            新增項次
+          </button>
+        </div>
+      </div>
+      <div className="p-2">{children}</div>
+    </div>
+  );
+}
+
+function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          {headers.map((h) => (
+            <th key={h} className="border-b border-border/30 px-2 py-1.5 whitespace-nowrap">
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i} className="border-b border-border/20 hover:bg-white/3">
+            {row.map((cell, j) => (
+              <td key={j} className={cn('px-2 py-1.5 text-xs', j === 0 ? 'font-mono text-muted-foreground' : 'text-foreground/90')}>
+                {cell}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function EmptyDetail({ message }: { message: string }) {
+  return (
+    <div className="py-6 text-center text-[11px] text-muted-foreground/60">{message}</div>
   );
 }
 
@@ -771,14 +810,38 @@ function UsersTable() {
 // ──────────────────────────────────────────────────────────────
 
 export default function LabUsersPage() {
+  const [tab, setTab] = useState<'list' | 'detail'>('list');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selectedUser = selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null;
+
   return (
     <div className="flex h-dvh bg-background text-foreground">
       <LeftSidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         <TopHeader />
-        <FilterToolbar />
-        <StatCardsRow />
-        <UsersTable />
+        <ErpToolbar activeRow={selectedUser} />
+        <ErpTabBar
+          tab={tab}
+          onChange={setTab}
+          hasSelected={selectedUser !== null}
+        />
+        {tab === 'list' ? (
+          <UsersTable
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onOpenDetail={(id) => {
+              setSelectedId(id);
+              setTab('detail');
+            }}
+          />
+        ) : selectedUser ? (
+          <UserDetailView user={selectedUser} />
+        ) : (
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+            請先於「資料瀏覽」選擇一筆資料
+          </div>
+        )}
       </main>
     </div>
   );
