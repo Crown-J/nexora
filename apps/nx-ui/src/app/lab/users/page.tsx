@@ -1208,9 +1208,22 @@ function UsersTable({
   );
 }
 
-type DetailSubTab = 'basic' | 'roles' | 'warehouses';
+type DetailSectionId = 'basic' | 'roles' | 'warehouses';
 
-/** 詳細資料：sub-tab 區隔（基本資料 / 擔任職務 / 隸屬倉庫），編輯模式下 form 變 input */
+type DetailNavItem = {
+  id: DetailSectionId;
+  label: string;
+  badge?: number;
+};
+
+/** 詳細資料：左側 sticky 索引 + 滿版滾動內容（commit 47）
+ *
+ * 設計：
+ * - 左側索引列：點擊跳對應 anchor，scroll 時自動高亮（IntersectionObserver）
+ * - 右側滿版內容：各 section 用 <section data-section-id> 標記，無 card 邊框，章節間細分隔線
+ * - 編輯模式：擔任職務 / 隸屬倉庫 索引 disabled，內容仍可瀏覽但鎖回基本資料 anchor
+ * - 擴充：新增關聯表只需在 navItems 陣列加一項 + 多寫一個 <section>，索引列無限延伸
+ */
 function UserDetailView({
   user,
   editMode,
@@ -1222,31 +1235,130 @@ function UserDetailView({
   editForm: EditFormState | null;
   onEditChange: (next: EditFormState) => void;
 }) {
-  const [subTab, setSubTab] = useState<DetailSubTab>('basic');
+  const [activeSection, setActiveSection] = useState<DetailSectionId>('basic');
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 切換使用者時重置回基本資料；編輯模式下也鎖回基本資料（form 在此 tab）
+  const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
+    if (!editForm) return;
+    onEditChange({ ...editForm, [key]: value });
+  };
+
+  // 切換使用者時 reset + 回頂
   useEffect(() => {
-    setSubTab('basic');
+    setActiveSection('basic');
+    scrollRef.current?.scrollTo({ top: 0 });
   }, [user.id]);
+
+  // 編輯模式啟動時鎖回 basic 並 scroll 回頂
   useEffect(() => {
-    if (editMode) setSubTab('basic');
+    if (editMode) {
+      setActiveSection('basic');
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [editMode]);
 
+  // IntersectionObserver：scroll 時自動高亮當前 section
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length === 0) return;
+        // 取最靠頂部的 section
+        const topMost = visible.reduce((a, b) =>
+          a.boundingClientRect.top < b.boundingClientRect.top ? a : b,
+        );
+        const id = topMost.target.getAttribute('data-section-id');
+        if (id) setActiveSection(id as DetailSectionId);
+      },
+      { root: container, rootMargin: '0px 0px -60% 0px', threshold: 0 },
+    );
+    container.querySelectorAll<HTMLElement>('section[data-section-id]').forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, [user.id]);
+
+  const handleAnchor = (id: DetailSectionId) => {
+    const el = scrollRef.current?.querySelector<HTMLElement>(`section[data-section-id="${id}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const navItems: DetailNavItem[] = [
+    { id: 'basic', label: '基本資料' },
+    { id: 'roles', label: '擔任職務', badge: user.roles.length },
+    { id: 'warehouses', label: '隸屬倉庫', badge: user.warehouses.length },
+  ];
+
+  const disabledIds = editMode ? new Set<DetailSectionId>(['roles', 'warehouses']) : undefined;
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0A0A0C]">
-      <DetailSubTabBar
-        subTab={subTab}
-        onChange={setSubTab}
-        rolesCount={user.roles.length}
-        warehousesCount={user.warehouses.length}
-        editMode={editMode}
-      />
-      <div className="flex-1 overflow-auto nx-master-scroll p-6">
-        {subTab === 'basic' && (
-          <BasicInfoPanel user={user} editMode={editMode} editForm={editForm} onEditChange={onEditChange} />
-        )}
-        {subTab === 'roles' && (
-          <DetailSection title="擔任職務" count={user.roles.length}>
+    <div className="flex min-h-0 flex-1 overflow-hidden bg-[#0A0A0C]">
+      <DetailNav items={navItems} active={activeSection} onSelect={handleAnchor} disabledIds={disabledIds} editMode={editMode} />
+      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll">
+        {/* 基本資料 */}
+        <section data-section-id="basic" className="border-b border-[#1A1A1F] px-8 py-6 scroll-mt-2">
+          <SectionHeader title="基本資料" subtitle="User Profile" />
+          <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+            <FormField label="帳號" value={user.username} mono />
+            {editMode && editForm ? (
+              <FormInput label="姓名" value={editForm.displayName} onChange={(v) => update('displayName', v)} />
+            ) : (
+              <FormField label="姓名" value={user.displayName} />
+            )}
+            {editMode && editForm ? (
+              <FormSelect
+                label="職務"
+                value={editForm.jobTitle}
+                options={JOB_TITLES as unknown as string[]}
+                onChange={(v) => update('jobTitle', v)}
+              />
+            ) : (
+              <FormField label="職務" value={user.jobTitle} />
+            )}
+            {editMode && editForm ? (
+              <FormSelect
+                label="啟用狀態"
+                value={editForm.isActive ? '啟用' : '未啟用'}
+                options={['啟用', '未啟用']}
+                onChange={(v) => update('isActive', v === '啟用')}
+              />
+            ) : (
+              <FormField label="啟用狀態" value={user.isActive ? '啟用' : '未啟用'} tone={user.isActive ? 'green' : 'red'} />
+            )}
+
+            {editMode && editForm ? (
+              <FormInput label="信箱" value={editForm.email} onChange={(v) => update('email', v)} placeholder="—" />
+            ) : (
+              <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
+            )}
+            {editMode && editForm ? (
+              <FormInput label="電話" value={editForm.phone} onChange={(v) => update('phone', v)} placeholder="—" />
+            ) : (
+              <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
+            )}
+            {editMode && editForm ? (
+              <FormInput label="隸屬倉庫" value={editForm.warehouse} onChange={(v) => update('warehouse', v)} placeholder="—" />
+            ) : (
+              <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
+            )}
+            <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
+
+            <FormField label="建立時間" value={user.createdAt} mono />
+            <FormField label="建立人員" value={user.createdBy} />
+            <FormField label="修改時間" value={user.updatedAt} mono />
+            <FormField label="修改人員" value={user.updatedBy} />
+          </div>
+        </section>
+
+        {/* 擔任職務 */}
+        <section data-section-id="roles" className="border-b border-[#1A1A1F] px-8 py-6 scroll-mt-2">
+          <SectionHeader
+            title="擔任職務"
+            count={user.roles.length}
+            subtitle="Assigned Roles"
+            action={!editMode ? <SectionAddButton label="新增職務" /> : null}
+          />
+          <div className="mt-4">
             {user.roles.length > 0 ? (
               <DetailTable
                 headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
@@ -1262,10 +1374,18 @@ function UserDetailView({
             ) : (
               <EmptyDetail message="尚未指派職務" />
             )}
-          </DetailSection>
-        )}
-        {subTab === 'warehouses' && (
-          <DetailSection title="隸屬倉庫" count={user.warehouses.length}>
+          </div>
+        </section>
+
+        {/* 隸屬倉庫 */}
+        <section data-section-id="warehouses" className="px-8 py-6 scroll-mt-2">
+          <SectionHeader
+            title="隸屬倉庫"
+            count={user.warehouses.length}
+            subtitle="Assigned Warehouses"
+            action={!editMode ? <SectionAddButton label="新增倉庫據點" /> : null}
+          />
+          <div className="mt-4">
             {user.warehouses.length > 0 ? (
               <DetailTable
                 headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
@@ -1280,187 +1400,137 @@ function UserDetailView({
             ) : (
               <EmptyDetail message="尚未指派倉庫據點" />
             )}
-          </DetailSection>
-        )}
+          </div>
+        </section>
       </div>
     </div>
   );
 }
 
-function DetailSubTabBar({
-  subTab,
-  onChange,
-  rolesCount,
-  warehousesCount,
+function DetailNav({
+  items,
+  active,
+  onSelect,
+  disabledIds,
   editMode,
 }: {
-  subTab: DetailSubTab;
-  onChange: (next: DetailSubTab) => void;
-  rolesCount: number;
-  warehousesCount: number;
+  items: DetailNavItem[];
+  active: DetailSectionId;
+  onSelect: (id: DetailSectionId) => void;
+  disabledIds?: Set<DetailSectionId>;
   editMode: boolean;
 }) {
   return (
-    <div
-      className="flex items-center gap-1 border-b border-[#2A2A30] px-4"
+    <aside
+      className="flex w-44 shrink-0 flex-col border-r border-[#2A2A30] p-3"
       style={{
         backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #08080A 100%)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+        boxShadow: 'inset -1px 0 0 0 rgba(255,255,255,0.03)',
       }}
     >
-      <SubTabButton label="基本資料" active={subTab === 'basic'} onClick={() => onChange('basic')} disabled={false} />
-      <SubTabButton
-        label="擔任職務"
-        badge={rolesCount}
-        active={subTab === 'roles'}
-        onClick={() => onChange('roles')}
-        disabled={editMode}
-      />
-      <SubTabButton
-        label="隸屬倉庫"
-        badge={warehousesCount}
-        active={subTab === 'warehouses'}
-        onClick={() => onChange('warehouses')}
-        disabled={editMode}
-      />
+      <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
+        索引
+      </p>
+      <div className="space-y-0.5">
+        {items.map((item) => {
+          const isActive = active === item.id;
+          const isDisabled = disabledIds?.has(item.id) ?? false;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                if (!isDisabled) onSelect(item.id);
+              }}
+              disabled={isDisabled}
+              title={isDisabled ? '編輯模式無法切換' : item.label}
+              style={
+                isActive
+                  ? {
+                      backgroundImage:
+                        'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.06) 60%, transparent 100%)',
+                      boxShadow:
+                        'inset 3px 0 0 0 #E8A020, inset 0 1px 0 0 rgba(232,160,32,0.15)',
+                    }
+                  : undefined
+              }
+              className={cn(
+                'flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all',
+                'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50',
+                isActive
+                  ? 'font-semibold text-[#E8A020]'
+                  : isDisabled
+                    ? 'cursor-not-allowed text-[#5A5A60]'
+                    : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#F0F0F3]',
+              )}
+            >
+              <span>{item.label}</span>
+              {item.badge != null ? (
+                <span
+                  className={cn(
+                    'rounded-md px-1.5 py-0.5 text-[10px] font-mono tabular-nums',
+                    isActive
+                      ? 'bg-[#E8A020]/15 text-[#E8A020]'
+                      : isDisabled
+                        ? 'bg-[#131316] text-[#5A5A60]'
+                        : 'bg-[#1A1A1F] text-[#888892]',
+                  )}
+                >
+                  {item.badge}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
       {editMode ? (
-        <span className="ml-auto text-[10px] tracking-wider text-[#5A5A60]">編輯模式僅可操作基本資料</span>
+        <p className="mt-auto px-1 text-[10px] leading-relaxed tracking-wider text-[#5A5A60]">
+          編輯模式僅可操作基本資料
+        </p>
       ) : null}
+    </aside>
+  );
+}
+
+function SectionHeader({
+  title,
+  count,
+  subtitle,
+  action,
+}: {
+  title: string;
+  count?: number;
+  subtitle?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
+      <h2 className="text-base font-bold tracking-wide text-[#F0F0F3]">{title}</h2>
+      {count != null ? (
+        <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-0.5 text-[11px] font-mono tabular-nums text-[#B8B8C0]">
+          {count}
+        </span>
+      ) : null}
+      {subtitle ? (
+        <span className="ml-3 hidden text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60] sm:inline">
+          {subtitle}
+        </span>
+      ) : null}
+      {action ? <div className="ml-auto">{action}</div> : null}
     </div>
   );
 }
 
-function SubTabButton({
-  label,
-  badge,
-  active,
-  onClick,
-  disabled,
-}: {
-  label: string;
-  badge?: number;
-  active: boolean;
-  onClick: () => void;
-  disabled: boolean;
-}) {
+function SectionAddButton({ label }: { label: string }) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={disabled ? '編輯模式無法切換' : label}
-      className={cn(
-        'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-semibold transition-all',
-        active
-          ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_10px_rgba(232,160,32,0.4)]'
-          : disabled
-            ? 'cursor-not-allowed border-transparent text-[#5A5A60]'
-            : 'border-transparent text-[#B8B8C0] hover:text-[#F0F0F3]',
-      )}
+      className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
     >
+      <Plus className="size-3" />
       {label}
-      {badge != null ? (
-        <span
-          className={cn(
-            'inline-flex h-4 min-w-[16px] items-center justify-center rounded-md px-1 text-[10px] font-mono tabular-nums',
-            active
-              ? 'bg-[#E8A020]/15 text-[#E8A020]'
-              : disabled
-                ? 'bg-[#131316] text-[#5A5A60]'
-                : 'bg-[#1A1A1F] text-[#888892]',
-          )}
-        >
-          {badge}
-        </span>
-      ) : null}
     </button>
-  );
-}
-
-function BasicInfoPanel({
-  user,
-  editMode,
-  editForm,
-  onEditChange,
-}: {
-  user: UserRow;
-  editMode: boolean;
-  editForm: EditFormState | null;
-  onEditChange: (next: EditFormState) => void;
-}) {
-  const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
-    if (!editForm) return;
-    onEditChange({ ...editForm, [key]: value });
-  };
-
-  return (
-    <div
-      className="rounded-xl border border-[#2A2A30]"
-      style={{
-        backgroundImage: 'linear-gradient(180deg, #131318 0%, #0E0E12 100%)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 2px 24px 0 rgba(0,0,0,0.4)',
-      }}
-    >
-      <div className="flex items-center justify-between border-b border-[#2A2A30] px-5 py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
-          <h2 className="text-sm font-bold tracking-wide text-[#F0F0F3]">基本資料</h2>
-        </div>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
-          User Profile
-        </span>
-      </div>
-      <div className="grid grid-cols-1 gap-x-6 gap-y-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-        <FormField label="帳號" value={user.username} mono />
-        {editMode && editForm ? (
-          <FormInput label="姓名" value={editForm.displayName} onChange={(v) => update('displayName', v)} />
-        ) : (
-          <FormField label="姓名" value={user.displayName} />
-        )}
-        {editMode && editForm ? (
-          <FormSelect
-            label="職務"
-            value={editForm.jobTitle}
-            options={JOB_TITLES as unknown as string[]}
-            onChange={(v) => update('jobTitle', v)}
-          />
-        ) : (
-          <FormField label="職務" value={user.jobTitle} />
-        )}
-        {editMode && editForm ? (
-          <FormSelect
-            label="啟用狀態"
-            value={editForm.isActive ? '啟用' : '未啟用'}
-            options={['啟用', '未啟用']}
-            onChange={(v) => update('isActive', v === '啟用')}
-          />
-        ) : (
-          <FormField label="啟用狀態" value={user.isActive ? '啟用' : '未啟用'} tone={user.isActive ? 'green' : 'red'} />
-        )}
-
-        {editMode && editForm ? (
-          <FormInput label="信箱" value={editForm.email} onChange={(v) => update('email', v)} placeholder="—" />
-        ) : (
-          <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
-        )}
-        {editMode && editForm ? (
-          <FormInput label="電話" value={editForm.phone} onChange={(v) => update('phone', v)} placeholder="—" />
-        ) : (
-          <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
-        )}
-        {editMode && editForm ? (
-          <FormInput label="隸屬倉庫" value={editForm.warehouse} onChange={(v) => update('warehouse', v)} placeholder="—" />
-        ) : (
-          <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
-        )}
-        <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
-
-        <FormField label="建立時間" value={user.createdAt} mono />
-        <FormField label="建立人員" value={user.createdBy} />
-        <FormField label="修改時間" value={user.updatedAt} mono />
-        <FormField label="修改人員" value={user.updatedBy} />
-      </div>
-    </div>
   );
 }
 
@@ -1653,44 +1723,6 @@ function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function DetailSection({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-xl border border-[#2A2A30]"
-      style={{
-        backgroundImage: 'linear-gradient(180deg, #131318 0%, #0E0E12 100%)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 2px 24px 0 rgba(0,0,0,0.4)',
-      }}
-    >
-      <div
-        className="flex items-center justify-between border-b border-[#2A2A30] px-5 py-3"
-        style={{
-          backgroundImage: 'linear-gradient(180deg, #1A1A20 0%, #131318 100%)',
-          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04)',
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
-          <h2 className="text-sm font-bold tracking-wide text-[#F0F0F3]">{title}</h2>
-          <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-0.5 text-[10px] font-mono tabular-nums text-[#B8B8C0]">
-            {count}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
-          >
-            <Plus className="size-3" />
-            新增項次
-          </button>
-        </div>
-      </div>
-      <div className="p-3">{children}</div>
     </div>
   );
 }
