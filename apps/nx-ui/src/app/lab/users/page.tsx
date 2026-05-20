@@ -64,6 +64,7 @@ import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
+import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
 
@@ -657,265 +658,92 @@ function ErpTabBar({
   );
 }
 
-function UsersTable({
-  selectedId,
-  onSelect,
-  onOpenDetail,
-  selectionMode,
-  checked,
-  setChecked,
-}: {
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  onOpenDetail: (id: string) => void;
-  selectionMode: boolean;
-  checked: Set<string>;
-  setChecked: (next: Set<string>) => void;
-}) {
-  const [sortKey, setSortKey] = useState<'username' | 'displayName' | 'lastLoginAt'>('username');
-
-  const toggle = (id: string) => {
-    const next = new Set(checked);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setChecked(next);
-  };
-
-  const toggleAll = () => {
-    if (checked.size === USERS.length) {
-      setChecked(new Set());
-    } else {
-      setChecked(new Set(USERS.map((u) => u.id)));
-    }
-  };
-
-  // ↑↓ 在表格內 = 切換 row 焦點（攔下預設頁面捲動）；Enter 在 row = 進入編輯（雙擊等價）
-  const handleTableKey = (e: React.KeyboardEvent) => {
-    const active = document.activeElement as HTMLElement | null;
-    if (!active || !active.hasAttribute('data-row-id')) return;
-
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      const rows = Array.from(
-        e.currentTarget.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
-      );
-      if (rows.length === 0) return;
-      const idx = rows.indexOf(active as HTMLTableRowElement);
-      const nextIdx =
-        e.key === 'ArrowDown'
-          ? Math.min(rows.length - 1, idx + 1)
-          : Math.max(0, idx - 1);
-      e.preventDefault();
-      const nextRow = rows[nextIdx];
-      nextRow?.focus();
-      const nextId = nextRow?.getAttribute('data-row-id');
-      if (nextId) onSelect(nextId);
-    } else if (e.key === 'Enter') {
-      const id = active.getAttribute('data-row-id');
-      if (id) {
-        e.preventDefault();
-        onOpenDetail(id);
-      }
-    }
-  };
-
-  return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
-        <table className="w-full border-collapse text-sm">
-          <thead
-            className="sticky top-0 z-10 backdrop-blur-xl"
-            style={{
-              backgroundImage:
-                'linear-gradient(180deg, rgba(20,20,26,0.95) 0%, rgba(16,16,20,0.95) 100%)',
-              boxShadow:
-                'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
-            }}
-          >
-            <tr className="border-b border-[#2A2A30] text-left text-[11px] font-bold uppercase tracking-[0.16em] text-[#C8C8D0]">
-              <th className="w-12 px-2 py-2.5">
-                {selectionMode ? (
-                  <input
-                    type="checkbox"
-                    checked={checked.size === USERS.length && USERS.length > 0}
-                    onChange={toggleAll}
-                    className="size-3.5 rounded border-[#3A3A42] bg-[#1A1A1F] accent-[#E8A020]"
-                    aria-label="全選"
-                  />
-                ) : (
-                  <span className="font-medium">序號</span>
-                )}
-              </th>
-              <th className="min-w-[140px] whitespace-nowrap px-2 py-2.5">
-                <button
-                  type="button"
-                  onClick={() => setSortKey('username')}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
-                >
-                  帳號
-                  <ChevronDown className={cn('size-3', sortKey === 'username' && 'text-[#E8A020]')} />
-                </button>
-              </th>
-              <th className="min-w-[200px] whitespace-nowrap px-2 py-2.5">
-                <button
-                  type="button"
-                  onClick={() => setSortKey('displayName')}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
-                >
-                  姓名
-                  <ChevronDown className={cn('size-3', sortKey === 'displayName' && 'text-[#E8A020]')} />
-                </button>
-              </th>
-              <th className="min-w-[120px] whitespace-nowrap px-2 py-2.5">職務</th>
-              <th className="min-w-[200px] whitespace-nowrap px-2 py-2.5">信箱</th>
-              <th className="min-w-[140px] whitespace-nowrap px-2 py-2.5">電話</th>
-              <th className="min-w-[140px] whitespace-nowrap px-2 py-2.5">隸屬倉庫</th>
-              <th className="min-w-[80px] whitespace-nowrap px-2 py-2.5">啟用</th>
-              <th className="min-w-[160px] whitespace-nowrap px-2 py-2.5">
-                <button
-                  type="button"
-                  onClick={() => setSortKey('lastLoginAt')}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
-                >
-                  最後登入
-                  <ChevronDown className={cn('size-3', sortKey === 'lastLoginAt' && 'text-[#E8A020]')} />
-                </button>
-              </th>
-              <th className="min-w-[160px] whitespace-nowrap px-2 py-2.5">建立時間</th>
-            </tr>
-          </thead>
-          <tbody>
-            {USERS.map((row, i) => {
-              const isChecked = checked.has(row.id);
-              const isSelected = selectedId === row.id;
-              const isEvenRow = i % 2 === 1; // 顯示序號 0002 / 0004 為偶數列
-              return (
-                <tr
-                  key={row.id}
-                  data-row-id={row.id}
-                  tabIndex={0}
-                  onClick={() => onSelect(row.id)}
-                  onDoubleClick={() => onOpenDetail(row.id)}
-                  style={
-                    isSelected
-                      ? {
-                          backgroundImage:
-                            'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.08) 100%)',
-                          boxShadow:
-                            'inset 0 0 0 1px rgba(232,160,32,0.45), inset 3px 0 0 0 #E8A020',
-                        }
-                      : undefined
-                  }
-                  className={cn(
-                    'cursor-pointer border-b border-[#1A1A1F]/70 transition-all outline-none',
-                    'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
-                    !isSelected &&
-                      (selectionMode && isChecked
-                        ? 'bg-[#E8A020]/6'
-                        : cn(isEvenRow ? 'bg-[#101015]' : 'bg-transparent', 'hover:bg-[#1A1A22]')),
-                  )}
-                >
-                  <td className="px-2 py-2.5" onClick={(e) => selectionMode && e.stopPropagation()}>
-                    {selectionMode ? (
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggle(row.id)}
-                        className="size-3.5 rounded border-[#3A3A42] bg-[#1A1A1F] accent-[#E8A020]"
-                        aria-label={`選取 ${row.username}`}
-                      />
-                    ) : (
-                      <span className="font-mono text-[11px] tabular-nums text-[#5A5A60]">
-                        {String(i + 1).padStart(4, '0')}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2.5">
-                    <span className="font-mono text-xs tracking-wide text-[#E8E8EB]">{row.username}</span>
-                  </td>
-                  <td className="px-2 py-2.5 font-medium text-[#F0F0F3]">{row.displayName}</td>
-                  <td className="px-2 py-2.5">
-                    <span className="inline-flex items-center rounded-md border border-[#2A2A30] bg-gradient-to-b from-[#1A1A1F] to-[#131316] px-2 py-0.5 text-[11px] text-[#B8B8C0] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
-                      {row.jobTitle}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2.5 text-xs text-[#5A5A60]">
-                    {row.email ?? '—'}
-                  </td>
-                  <td className="px-2 py-2.5 text-xs text-[#5A5A60]">
-                    {row.phone ?? '—'}
-                  </td>
-                  <td className="px-2 py-2.5 text-xs text-[#5A5A60]">
-                    {row.warehouse ?? '—'}
-                  </td>
-                  <td className="px-2 py-2.5">
-                    {row.isActive ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22D88F]/35 bg-gradient-to-b from-[#22D88F]/14 to-[#22D88F]/6 px-2 py-0.5 text-[10px] font-medium text-[#22D88F] shadow-[inset_0_1px_0_0_rgba(34,216,143,0.18)]">
-                        <span className="relative flex size-1.5">
-                          <span className="absolute inset-0 animate-ping rounded-full bg-[#22D88F]/60" />
-                          <span className="relative size-1.5 rounded-full bg-[#22D88F] shadow-[0_0_8px_#22D88F]" />
-                        </span>
-                        啟用
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E26060]/35 bg-gradient-to-b from-[#E26060]/14 to-[#E26060]/6 px-2 py-0.5 text-[10px] font-medium text-[#E26060] shadow-[inset_0_1px_0_0_rgba(226,96,96,0.15)]">
-                        <span className="relative flex size-1.5">
-                          <span className="absolute inset-0 animate-ping rounded-full bg-[#E26060]/50" />
-                          <span className="relative size-1.5 rounded-full bg-[#E26060] shadow-[0_0_8px_#E26060]" />
-                        </span>
-                        未啟用
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2.5 text-xs tabular-nums text-[#888892]">
-                    {row.lastLoginAt ?? <span className="text-[#5A5A60]">—</span>}
-                  </td>
-                  <td className="px-2 py-2.5 text-xs tabular-nums text-[#888892]">
-                    {row.createdAt}
-                  </td>
-                </tr>
-              );
-            })}
-            {Array.from({ length: Math.max(0, 20 - USERS.length) }).map((_, i) => {
-              const visualIdx = USERS.length + i;
-              const isEvenRow = visualIdx % 2 === 1;
-              return (
-                <tr
-                  key={`__placeholder_${i}`}
-                  aria-hidden
-                  className={cn(
-                    'pointer-events-none select-none border-b border-[#1A1A1F]/40',
-                    isEvenRow && 'bg-[#101015]',
-                  )}
-                >
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                  <td className="px-2 py-2.5">&nbsp;</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <div
-        className="flex items-center justify-between border-t border-[#2A2A30] px-6 py-2 text-[11px] text-[#888892]"
-        style={{
-          backgroundImage: 'linear-gradient(180deg, #101014 0%, #0A0A0C 100%)',
-          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
-        }}
-      >
-        <span>共 5 筆 · 顯示 5 筆 {selectedId ? '· 雙擊或 Alt+E 進入編輯' : '· 點選列以啟用更正/刪除'}</span>
-        <span className="text-[#5A5A60]">每頁 20 筆</span>
-      </div>
-    </div>
-  );
+/** 使用者主檔的 column 配置（傳給 MasterTable<UserRow>） */
+function buildUserColumns(): MasterTableColumn<UserRow>[] {
+  return [
+    {
+      key: 'username',
+      label: '帳號',
+      minWidthClass: 'min-w-[140px]',
+      sortable: true,
+      render: (row) => <span className="font-mono text-xs tracking-wide text-[#E8E8EB]">{row.username}</span>,
+    },
+    {
+      key: 'displayName',
+      label: '姓名',
+      minWidthClass: 'min-w-[200px]',
+      sortable: true,
+      render: (row) => <span className="font-medium text-[#F0F0F3]">{row.displayName}</span>,
+    },
+    {
+      key: 'jobTitle',
+      label: '職務',
+      minWidthClass: 'min-w-[120px]',
+      render: (row) => (
+        <span className="inline-flex items-center rounded-md border border-[#2A2A30] bg-gradient-to-b from-[#1A1A1F] to-[#131316] px-2 py-0.5 text-[11px] text-[#B8B8C0] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
+          {row.jobTitle}
+        </span>
+      ),
+    },
+    {
+      key: 'email',
+      label: '信箱',
+      minWidthClass: 'min-w-[200px]',
+      render: (row) => <span className="text-xs text-[#5A5A60]">{row.email ?? '—'}</span>,
+    },
+    {
+      key: 'phone',
+      label: '電話',
+      minWidthClass: 'min-w-[140px]',
+      render: (row) => <span className="text-xs text-[#5A5A60]">{row.phone ?? '—'}</span>,
+    },
+    {
+      key: 'warehouse',
+      label: '隸屬倉庫',
+      minWidthClass: 'min-w-[140px]',
+      render: (row) => <span className="text-xs text-[#5A5A60]">{row.warehouse ?? '—'}</span>,
+    },
+    {
+      key: 'isActive',
+      label: '啟用',
+      minWidthClass: 'min-w-[80px]',
+      render: (row) =>
+        row.isActive ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22D88F]/35 bg-gradient-to-b from-[#22D88F]/14 to-[#22D88F]/6 px-2 py-0.5 text-[10px] font-medium text-[#22D88F] shadow-[inset_0_1px_0_0_rgba(34,216,143,0.18)]">
+            <span className="relative flex size-1.5">
+              <span className="absolute inset-0 animate-ping rounded-full bg-[#22D88F]/60" />
+              <span className="relative size-1.5 rounded-full bg-[#22D88F] shadow-[0_0_8px_#22D88F]" />
+            </span>
+            啟用
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E26060]/35 bg-gradient-to-b from-[#E26060]/14 to-[#E26060]/6 px-2 py-0.5 text-[10px] font-medium text-[#E26060] shadow-[inset_0_1px_0_0_rgba(226,96,96,0.15)]">
+            <span className="relative flex size-1.5">
+              <span className="absolute inset-0 animate-ping rounded-full bg-[#E26060]/50" />
+              <span className="relative size-1.5 rounded-full bg-[#E26060] shadow-[0_0_8px_#E26060]" />
+            </span>
+            未啟用
+          </span>
+        ),
+    },
+    {
+      key: 'lastLoginAt',
+      label: '最後登入',
+      minWidthClass: 'min-w-[160px]',
+      sortable: true,
+      render: (row) => (
+        <span className="text-xs tabular-nums text-[#888892]">
+          {row.lastLoginAt ?? <span className="text-[#5A5A60]">—</span>}
+        </span>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: '建立時間',
+      minWidthClass: 'min-w-[160px]',
+      render: (row) => <span className="text-xs tabular-nums text-[#888892]">{row.createdAt}</span>,
+    },
+  ];
 }
 
 /** 詳細資料：滿版單欄滾動（commit 47.3 — 拿掉左側索引）
@@ -1167,8 +995,10 @@ export default function LabUsersPage() {
   const [mode, setMode] = useState<ErpMode>('browse');
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const [sortKey, setSortKey] = useState<string>('username');
   const sidebarRef = useRef<HTMLElement>(null);
   const { toasts, showToast } = useToast();
+  const userColumns = useMemo(() => buildUserColumns(), []);
 
   const selectedUser = useMemo(
     () => (selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null),
@@ -1410,7 +1240,10 @@ export default function LabUsersPage() {
           editMode={mode === 'edit'}
         />
         {tab === 'list' ? (
-          <UsersTable
+          <MasterTable<UserRow>
+            columns={userColumns}
+            rows={USERS}
+            getRowId={(r) => r.id}
             selectedId={selectedId}
             onSelect={setSelectedId}
             onOpenDetail={(id) => {
@@ -1426,6 +1259,10 @@ export default function LabUsersPage() {
             selectionMode={selectionMode}
             checked={checked}
             setChecked={setChecked}
+            sortKey={sortKey}
+            onSortKeyChange={setSortKey}
+            footerHint={selectedId ? '雙擊或 Alt+E 進入編輯' : '點選列以啟用更正/刪除'}
+            pageSize={20}
           />
         ) : selectedUser ? (
           <UserDetailView
