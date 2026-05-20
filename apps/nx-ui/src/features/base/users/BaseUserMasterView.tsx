@@ -96,11 +96,36 @@ type EditableDraft = {
   primaryRoleId: string;
 };
 
-/** 伺服端分頁：須 ≤ nx-api Nx01ListQueryDto pageSize @Max(100) */
-const SERVER_PAGE_SIZE = 50;
+/** 每頁筆數選項（業界改革 #22 v1.2、Crown 拍板 10/20/50/100、預設 20） */
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
+const DEFAULT_PAGE_SIZE: PageSize = 20;
+
+/** 伺服端分頁上限：須 ≤ nx-api Nx01ListQueryDto pageSize @Max(100) */
+const SERVER_PAGE_SIZE_MAX = 100;
 
 const LIST_COL_PREF_VERSION = 7;
 const LIST_COL_PREF_KEY = 'base.user.listcols';
+
+/**
+ * 業界改革 #22 v1.2：表格欄位最小寬度（Excel-like 範式、解信箱／電話／隸屬倉庫塞不下）
+ * Crown 拍板：信箱 220 / 電話 140 / 倉庫 180、其餘對應內容長度給寬。
+ * 視窗過窄 → DataTableShell horizontal scroll（既有範式）。
+ */
+const COL_WIDTH_CLASS: Record<ListColKey, string> = {
+  username: 'min-w-[140px]',
+  displayName: 'min-w-[180px]',
+  jobTitle: 'min-w-[120px]',
+  email: 'min-w-[220px]',
+  phone: 'min-w-[140px]',
+  warehouseLabel: 'min-w-[180px]',
+  isActive: 'min-w-[90px]',
+  lastLoginAt: 'min-w-[160px]',
+  createdAt: 'min-w-[160px]',
+  createdByPerson: 'min-w-[180px]',
+  updatedAt: 'min-w-[160px]',
+  updatedByPerson: 'min-w-[180px]',
+};
 
 const ALL_LIST_COLS: ListColKey[] = [
   'username',
@@ -264,6 +289,8 @@ export function BaseUserMasterView() {
   const defaultRoleId = roles[0]?.id ?? '';
   const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft(''));
   const [listPage, setListPage] = useState(1);
+  // 業界改革 #22 v1.2：每頁筆數（10/20/50/100、預設 20、本地 state、後續軌可改為 localStorage 持久化）
+  const [pageSize, setPageSize] = useState<PageSize>(DEFAULT_PAGE_SIZE);
   const [listTotal, setListTotal] = useState(0);
   const [detailUser, setDetailUser] = useState<BaseUserRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -330,7 +357,7 @@ export function BaseUserMasterView() {
         const res = await listUsers({
           q: debouncedKeyword || undefined,
           page: listPage,
-          pageSize: SERVER_PAGE_SIZE,
+          pageSize,
           isActive: isAct,
           primaryRoleIds: pr,
         });
@@ -362,7 +389,7 @@ export function BaseUserMasterView() {
       const res = await listUsers({
         q: debouncedKeyword || undefined,
         page: 1,
-        pageSize: SERVER_PAGE_SIZE,
+        pageSize,
         isActive: isAct,
         primaryRoleIds: pr,
       });
@@ -448,7 +475,7 @@ export function BaseUserMasterView() {
     return out;
   }, [users, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(listTotal / SERVER_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const safeListPage = Math.max(1, Math.min(listPage, totalPages));
 
   useEffect(() => {
@@ -827,7 +854,7 @@ export function BaseUserMasterView() {
         const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
         const refreshed = await listUsers({
           page: 1,
-          pageSize: SERVER_PAGE_SIZE,
+          pageSize,
           q: debouncedKeyword || undefined,
           isActive: isAct,
           primaryRoleIds: pr,
@@ -893,19 +920,19 @@ export function BaseUserMasterView() {
     switch (key) {
       case 'username':
         return (
-          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 font-mono text-xs text-foreground">
+          <td key={key} className="max-w-[200px] truncate border-r border-border/30 px-2 py-2.5 font-mono text-xs text-foreground">
             {row.username}
           </td>
         );
       case 'displayName':
         return (
-          <td key={key} className="max-w-[220px] truncate px-2 py-2.5 text-foreground">
+          <td key={key} className="max-w-[220px] truncate border-r border-border/30 px-2 py-2.5 text-foreground">
             {row.displayName}
           </td>
         );
       case 'jobTitle':
         return (
-          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+          <td key={key} className="max-w-[180px] truncate border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground">
             {row.jobTitle || '—'}
           </td>
         );
@@ -913,32 +940,32 @@ export function BaseUserMasterView() {
         return <MasterActiveListCell key={key} isActive={row.isActive} />;
       case 'lastLoginAt':
         return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground tabular-nums">
+          <td key={key} className="whitespace-nowrap border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground tabular-nums">
             {formatDt(row.lastLoginAt)}
           </td>
         );
       case 'email':
         return (
-          <td key={key} className="max-w-[180px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+          <td key={key} className="max-w-[180px] truncate border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground">
             {row.email || '—'}
           </td>
         );
       case 'phone':
         return (
-          <td key={key} className="max-w-[120px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+          <td key={key} className="max-w-[120px] truncate border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground">
             {row.phone || '—'}
           </td>
         );
       case 'warehouseLabel':
         return (
-          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+          <td key={key} className="max-w-[200px] truncate border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground">
             {row.warehouseLabel}
           </td>
         );
       case 'createdAt':
       case 'updatedAt':
         return (
-          <td key={key} className="whitespace-nowrap px-2 py-2.5 text-xs text-muted-foreground">
+          <td key={key} className="whitespace-nowrap border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground">
             {formatDt(row[key] as string | null)}
           </td>
         );
@@ -947,7 +974,7 @@ export function BaseUserMasterView() {
           <td
             key={key}
             title={formatAuditPersonTooltip(row.createdByUsername ?? null, row.createdByName)}
-            className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground"
+            className="max-w-[200px] truncate border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground"
           >
             {row[key]}
           </td>
@@ -957,7 +984,7 @@ export function BaseUserMasterView() {
           <td
             key={key}
             title={formatAuditPersonTooltip(row.updatedByUsername ?? null, row.updatedByName)}
-            className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground"
+            className="max-w-[200px] truncate border-r border-border/30 px-2 py-2.5 text-xs text-muted-foreground"
           >
             {row[key]}
           </td>
@@ -1055,6 +1082,42 @@ export function BaseUserMasterView() {
                   <ChevronsRight className="size-4" aria-hidden />
                 </Button>
               </div>
+
+              {/* 業界改革 #22 v1.2：每頁筆數選擇器（10/20/50/100、預設 20、Crown 拍板） */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 shrink-0 gap-1 px-2.5 font-normal"
+                    aria-label="每頁顯示筆數"
+                    title="每頁顯示筆數"
+                  >
+                    <span className="text-xs tabular-nums">每頁 {pageSize} 筆</span>
+                    <ChevronDown className="size-3.5 shrink-0 opacity-60" aria-hidden />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-36">
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                    每頁顯示筆數
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      const next = Number(v) as PageSize;
+                      setPageSize(next);
+                      setListPage(1);
+                    }}
+                  >
+                    {PAGE_SIZE_OPTIONS.map((n) => (
+                      <DropdownMenuRadioItem key={n} value={String(n)} className="tabular-nums">
+                        每頁 {n} 筆
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button
                 type="button"
@@ -1261,7 +1324,7 @@ export function BaseUserMasterView() {
                 >
                     <thead>
                       <tr className="nx-master-thead-row text-left text-muted-foreground">
-                        <th className="w-10 px-2 py-2.5">
+                        <th className="w-10 border-r border-border/30 px-2 py-2.5">
                           <input
                             ref={headerCheckboxRef}
                             type="checkbox"
@@ -1271,7 +1334,13 @@ export function BaseUserMasterView() {
                           />
                         </th>
                         {orderedVisibleCols.map((key) => (
-                          <th key={key} className="whitespace-nowrap px-2 py-2.5">
+                          <th
+                            key={key}
+                            className={cn(
+                              'whitespace-nowrap border-r border-b border-border/30 px-2 py-2.5',
+                              COL_WIDTH_CLASS[key],
+                            )}
+                          >
                             <button
                               type="button"
                               className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-foreground hover:text-primary"
@@ -1306,7 +1375,7 @@ export function BaseUserMasterView() {
                               onRowDoubleClick(row.id);
                             }}
                           >
-                            <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                            <td className="border-r border-border/30 px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
                               <input
                                 type="checkbox"
                                 className="nx-master-row-checkbox"
