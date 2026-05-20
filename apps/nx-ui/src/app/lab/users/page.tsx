@@ -1,12 +1,30 @@
 // apps/nx-ui/src/app/lab/users/page.tsx
 /**
- * NEXORA Lab：使用者主檔範式（Crown iterate v3 / commit 42）
+ * NEXORA Lab：使用者主檔範式（Crown iterate v4 / commit 44）
  *
- * Crown 拍板（commit 42 iterate）：
- * - 左側 sidebar 上方 icon → 改為 NEXORA 星球（PlanetOrbTrigger）；點擊展開 6 模組選單（不擴展主檔，因左側已列出）
- * - 工具列最左加分頁鈕（┃◀ ◀ 1/1 ▶ ▶┃）對齊舊 ERP 圖一
- * - 表格左側 checkbox 欄位 → 序號（0001 / 0002...）4 位數零填
- * - 新增「選取」toggle 按鈕（CheckSquare）：開啟後序號欄變回 checkbox，工具列切換為批次操作（完成選取 / 批次啟用 / 批次停用 / 批次刪除）
+ * Crown 拍板（commit 44 iterate）：鋼鐵星球主題色升級
+ * - 取消深淺主題切換、鎖定深灰 + 琥珀單一質感
+ * - 4 階灰：
+ *   #0A0A0C (base)        — 頁面底
+ *   #131316 (surface)     — sidebar / card / toolbar 底
+ *   #1A1A1F (elevated)    — hover / dropdown content / 卡片內層
+ *   #2A2A30 (border)      — 邊框
+ *   #3A3A42 (border-hi)   — 邊框加強（hover/focus）
+ * - 文字 4 階：
+ *   #E8E8EB (primary)     — 主文
+ *   #B8B8C0 (secondary)   — 次文
+ *   #888892 (muted)       — 描述
+ *   #5A5A60 (dim)         — 占位
+ * - 琥珀點綴：#E8A020 + 透明階 (/8 /10 /15 /20 /30 /40)
+ * - 移除 emerald 啟用 chip → 琥珀小圓點
+ * - Danger（刪除）改鋼鐵紅：#C84A4A 字 + 深棕底，不飽和
+ * - Toast：保留 success/info/danger 區分，但全部降飽和度貼合鋼鐵風
+ *
+ * 累積 lab 沿革：
+ * - commit 41：v2 — 移除卡片、明細用舊 ERP 範式
+ * - commit 42：v3 — 星球選單、分頁鈕、序號欄、選取 toggle
+ * - commit 43：v3.1 — 工具列 10 改革 + 瀏覽/編輯模式 + Alt 快捷鍵
+ * - commit 43.1-43.3：Toast 反饋 / Q-Exit Enter-Return / 表格 ↑↓ Enter 鍵盤導航
  *
  * 路徑：/lab/users（避開 dashboard layout、純 root layout）
  */
@@ -288,23 +306,23 @@ function NavItem({
       onClick={onClick}
       data-nav-item
       className={cn(
-        'group flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors',
+        'group flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-all',
         'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50 focus-visible:bg-[#E8A020]/10',
         active
-          ? 'bg-[#E8A020]/15 text-[#E8A020] font-medium'
-          : 'text-foreground/85 hover:bg-white/5',
+          ? 'bg-[#E8A020]/12 text-[#E8A020] font-medium shadow-[inset_2px_0_0_0_#E8A020]'
+          : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
       )}
     >
-      <Icon className={cn('size-4 shrink-0', active ? 'text-[#E8A020]' : 'text-muted-foreground group-hover:text-foreground')} />
+      <Icon className={cn('size-4 shrink-0', active ? 'text-[#E8A020]' : 'text-[#888892] group-hover:text-[#E8E8EB]')} />
       <span className="flex-1 truncate text-left">{label}</span>
       {badge != null ? (
-        <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-muted-foreground">
+        <span className="rounded-md bg-[#1A1A1F] px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-[#888892]">
           {badge}
         </span>
       ) : count != null ? (
         <span className={cn(
           'rounded-md px-1.5 py-0.5 text-[10px] font-mono tabular-nums',
-          active ? 'bg-[#E8A020]/15 text-[#E8A020]/80' : 'text-muted-foreground/60',
+          active ? 'bg-[#E8A020]/15 text-[#E8A020]/85' : 'text-[#5A5A60]',
         )}>
           {count}
         </span>
@@ -316,7 +334,7 @@ function NavItem({
 function SectionLabel({ label, action }: { label: string; action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between px-2 pb-1 pt-3">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
         {label}
       </span>
       {action}
@@ -332,7 +350,7 @@ function PlanetModuleMenu() {
           type="button"
           aria-label="開啟模組選單"
           title="模組選單"
-          className="group flex size-9 shrink-0 items-center justify-center rounded-xl border border-transparent transition-colors hover:border-[#E8A020]/30 hover:bg-[#E8A020]/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40 data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10"
+          className="group flex size-9 shrink-0 items-center justify-center rounded-xl border border-transparent transition-all hover:border-[#E8A020]/30 hover:bg-[#E8A020]/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40 data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10"
         >
           <PlanetOrbTrigger className="scale-90" />
         </button>
@@ -340,22 +358,22 @@ function PlanetModuleMenu() {
       <DropdownMenuContent
         align="start"
         sideOffset={8}
-        className="min-w-[14rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl"
+        className="min-w-[14rem] border-[#2A2A30] bg-[#131316]/95 p-1 shadow-2xl backdrop-blur-xl"
       >
-        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal uppercase tracking-[0.18em] text-[#5A5A60]">
           NEXORA 模組
         </DropdownMenuLabel>
         {HOME_DOCK_ITEMS.map((item) => (
           <DropdownMenuItem
             key={item.href}
             asChild
-            className="cursor-pointer rounded-md p-0 focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+            className="cursor-pointer rounded-md p-0 focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
           >
             <Link
               href={item.href}
-              className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-sm text-foreground/90"
+              className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-sm text-[#E8E8EB]"
             >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-secondary/40 text-foreground/80">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0]">
                 <item.icon className="size-3.5" />
               </span>
               <span className="flex-1 truncate font-medium">{item.label}</span>
@@ -393,13 +411,13 @@ function LeftSidebar({
     <aside
       ref={sidebarRef}
       onKeyDown={handleKey}
-      className="flex w-60 shrink-0 flex-col border-r border-border/40 bg-card/40 backdrop-blur-sm"
+      className="flex w-60 shrink-0 flex-col border-r border-[#2A2A30] bg-[#131316]"
     >
-      <div className="flex items-center gap-2.5 px-4 py-3.5">
+      <div className="flex items-center gap-2.5 border-b border-[#2A2A30]/60 px-4 py-3.5">
         <PlanetModuleMenu />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">NEXORA GRID</p>
-          <p className="truncate text-[11px] text-muted-foreground">測試公司（LITE）</p>
+          <p className="truncate text-sm font-semibold tracking-tight text-[#E8E8EB]">NEXORA GRID</p>
+          <p className="truncate text-[11px] text-[#888892]">測試公司（LITE）</p>
         </div>
       </div>
 
@@ -415,7 +433,7 @@ function LeftSidebar({
           action={
             <button
               type="button"
-              className="rounded p-0.5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+              className="rounded p-0.5 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
               aria-label="新增"
             >
               <Plus className="size-3.5" />
@@ -469,17 +487,17 @@ function LeftSidebar({
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5 border-t border-border/40 px-3 py-3">
-        <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-xs font-medium text-foreground/80">
+      <div className="flex items-center gap-2.5 border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-3 py-3">
+        <div className="flex size-8 items-center justify-center rounded-full border border-[#2A2A30] bg-[#1A1A1F] text-xs font-medium text-[#E8E8EB]">
           管
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-medium text-foreground">測試租戶管理員（LITE）</p>
-          <p className="truncate text-[10px] text-muted-foreground">admin · 使用者</p>
+          <p className="truncate text-xs font-medium text-[#E8E8EB]">測試租戶管理員（LITE）</p>
+          <p className="truncate text-[10px] text-[#5A5A60]">admin · 使用者</p>
         </div>
         <button
           type="button"
-          className="rounded p-1 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+          className="rounded p-1 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
           aria-label="使用者選單"
         >
           <ChevronDown className="size-3.5" />
@@ -491,14 +509,14 @@ function LeftSidebar({
 
 function TopHeader() {
   return (
-    <div className="flex items-center justify-between border-b border-border/40 px-6 py-3">
+    <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#0A0A0C] px-6 py-3">
       <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5A5A60]">
           帳號與權限
         </p>
         <div className="mt-0.5 flex items-center gap-2.5">
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">使用者主檔</h1>
-          <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#E8A020]">
+          <h1 className="text-lg font-semibold tracking-tight text-[#E8E8EB]">使用者主檔</h1>
+          <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-1.5 py-0.5 text-[10px] font-medium text-[#E8A020]">
             <Users className="size-3" />
             5 位使用者
           </span>
@@ -508,7 +526,7 @@ function TopHeader() {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          className="rounded-lg p-2 text-muted-foreground hover:bg-white/5 hover:text-foreground"
+          className="rounded-lg p-2 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
           aria-label="搜尋"
         >
           <Search className="size-4" />
@@ -568,10 +586,10 @@ function ErpToolbar({
   if (selectionMode) {
     const hasChecked = selectedCount > 0;
     return (
-      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-[#E8A020]/8 px-3 py-1.5">
+      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
         <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
         <ToolbarSeparator />
-        <span className="px-1 text-[11px] text-muted-foreground">
+        <span className="px-1 text-[11px] text-[#888892]">
           已選 <span className="font-mono text-[#E8A020]">{selectedCount}</span> 筆
         </span>
         <div className="flex-1" />
@@ -584,8 +602,8 @@ function ErpToolbar({
 
   if (mode === 'edit') {
     return (
-      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-[#E8A020]/8 px-3 py-1.5">
-        <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-2 py-0.5 text-[11px] font-medium text-[#E8A020]">
+      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
+        <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2 py-0.5 text-[11px] font-medium text-[#E8A020]">
           <Pencil className="size-3" />
           編輯中
         </span>
@@ -593,7 +611,7 @@ function ErpToolbar({
         <ToolbarButton icon={Save} letter="S" label="存檔" enabled onClick={onSave} accent />
         <ToolbarButton icon={X} letter="C" label="取消" enabled onClick={onCancel} />
         <div className="flex-1" />
-        <span className="px-1 text-[11px] text-muted-foreground">
+        <span className="px-1 text-[11px] text-[#888892]">
           編輯模式 · Alt+S 存檔 / Alt+C 取消
         </span>
       </div>
@@ -601,7 +619,7 @@ function ErpToolbar({
   }
 
   return (
-    <div className="flex items-center gap-1 border-b border-border/40 bg-card/30 px-3 py-1.5">
+    <div className="flex items-center gap-1 border-b border-[#2A2A30] bg-[#131316] px-3 py-1.5">
       <PaginationButton icon={ChevronsLeft} disabled={page <= 1} onClick={() => onPageChange(1)} title="第一頁" />
       <PaginationButton icon={ChevronLeft} disabled={page <= 1} onClick={() => onPageChange(page - 1)} title="上一頁" />
       <span className="min-w-[2.5rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
@@ -632,7 +650,7 @@ function ExportMenuButton({ onSelect }: { onSelect: (format: 'csv' | 'pdf' | 'pr
           type="button"
           title="匯出（P）"
           className={cn(
-            'inline-flex h-7 items-center gap-1 rounded-md border border-border/60 bg-card/60 px-2 text-[11px] font-medium text-foreground/85 transition-colors hover:bg-white/5 hover:text-foreground',
+            'inline-flex h-7 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 text-[11px] font-medium text-[#B8B8C0] transition-all hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
             'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
           )}
         >
@@ -646,25 +664,25 @@ function ExportMenuButton({ onSelect }: { onSelect: (format: 'csv' | 'pdf' | 'pr
       <DropdownMenuContent
         align="end"
         sideOffset={6}
-        className="min-w-[10rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl"
+        className="min-w-[10rem] border-[#2A2A30] bg-[#131316]/95 p-1 shadow-2xl backdrop-blur-xl"
       >
         <DropdownMenuItem
           onClick={() => onSelect('csv')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
         >
           <FileSpreadsheet className="mr-2 size-3.5" />
           匯出 CSV
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('pdf')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
         >
           <FileText className="mr-2 size-3.5" />
           匯出 PDF
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('print')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
         >
           <Printer className="mr-2 size-3.5" />
           列印
@@ -675,7 +693,7 @@ function ExportMenuButton({ onSelect }: { onSelect: (format: 'csv' | 'pdf' | 'pr
 }
 
 function ToolbarSeparator() {
-  return <div className="mx-1 h-5 w-px bg-border/50" aria-hidden />;
+  return <div className="mx-1 h-5 w-px bg-[#2A2A30]" aria-hidden />;
 }
 
 function PaginationButton({
@@ -697,10 +715,10 @@ function PaginationButton({
       title={title}
       aria-label={title}
       className={cn(
-        'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors',
+        'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all',
         disabled
-          ? 'cursor-not-allowed border-border/30 bg-card/30 text-muted-foreground/40'
-          : 'border-border/60 bg-card/60 text-foreground/85 hover:bg-white/5 hover:text-foreground',
+          ? 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]'
+          : 'border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
       )}
     >
       <Icon className="size-3.5" />
@@ -732,14 +750,14 @@ function ToolbarButton({
       onClick={onClick}
       title={letter ? `${label}（${letter}）` : label}
       className={cn(
-        'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors',
+        'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
         enabled
           ? variant === 'danger'
-            ? 'border-rose-400/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
+            ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
             : accent
-              ? 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020] hover:bg-[#E8A020]/20'
-              : 'border-border/60 bg-card/60 text-foreground/85 hover:bg-white/5 hover:text-foreground'
-          : 'cursor-not-allowed border-border/30 bg-card/30 text-muted-foreground/40',
+              ? 'border-[#E8A020]/40 bg-[#E8A020]/12 text-[#E8A020] hover:bg-[#E8A020]/20'
+              : 'border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]'
+          : 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]',
       )}
     >
       <Icon className="size-3" />
@@ -766,7 +784,7 @@ function ErpTabBar({
   editMode: boolean;
 }) {
   return (
-    <div className="flex items-center border-b border-border/40 bg-background px-3">
+    <div className="flex items-center border-b border-[#2A2A30] bg-[#0A0A0C] px-3">
       <button
         type="button"
         onClick={() => onChange('list')}
@@ -776,11 +794,11 @@ function ErpTabBar({
           tab === 'list'
             ? 'border-[#E8A020] text-[#E8A020]'
             : editMode
-              ? 'cursor-not-allowed border-transparent text-muted-foreground/40'
-              : 'border-transparent text-muted-foreground hover:text-foreground',
+              ? 'cursor-not-allowed border-transparent text-[#5A5A60]'
+              : 'border-transparent text-[#888892] hover:text-[#E8E8EB]',
         )}
       >
-        <span className="rounded bg-muted/60 px-1 font-mono text-[10px]">1</span>
+        <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">1</span>
         資料瀏覽
       </button>
       <button
@@ -792,11 +810,11 @@ function ErpTabBar({
           tab === 'detail'
             ? 'border-[#E8A020] text-[#E8A020]'
             : hasSelected && !editMode
-              ? 'border-transparent text-muted-foreground hover:text-foreground'
-              : 'cursor-not-allowed border-transparent text-muted-foreground/40',
+              ? 'border-transparent text-[#888892] hover:text-[#E8E8EB]'
+              : 'cursor-not-allowed border-transparent text-[#5A5A60]',
         )}
       >
-        <span className="rounded bg-muted/60 px-1 font-mono text-[10px]">2</span>
+        <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">2</span>
         詳細資料
       </button>
     </div>
@@ -865,29 +883,29 @@ function UsersTable({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0A0A0C]">
       <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-background/95 backdrop-blur">
-            <tr className="border-b border-border/40 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <thead className="sticky top-0 z-10 bg-[#131316]/95 backdrop-blur">
+            <tr className="border-b border-[#2A2A30] text-left text-[11px] font-medium uppercase tracking-[0.08em] text-[#888892]">
               <th className="w-12 px-2 py-2.5">
                 {selectionMode ? (
                   <input
                     type="checkbox"
                     checked={checked.size === USERS.length && USERS.length > 0}
                     onChange={toggleAll}
-                    className="size-3.5 rounded border-border"
+                    className="size-3.5 rounded border-[#3A3A42] bg-[#1A1A1F] accent-[#E8A020]"
                     aria-label="全選"
                   />
                 ) : (
-                  <span className="font-medium uppercase tracking-wider">序號</span>
+                  <span className="font-medium">序號</span>
                 )}
               </th>
               <th className="min-w-[140px] whitespace-nowrap px-2 py-2.5">
                 <button
                   type="button"
                   onClick={() => setSortKey('username')}
-                  className="inline-flex items-center gap-1 hover:text-foreground"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-[#E8E8EB]"
                 >
                   帳號
                   <ChevronDown className={cn('size-3', sortKey === 'username' && 'text-[#E8A020]')} />
@@ -897,7 +915,7 @@ function UsersTable({
                 <button
                   type="button"
                   onClick={() => setSortKey('displayName')}
-                  className="inline-flex items-center gap-1 hover:text-foreground"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-[#E8E8EB]"
                 >
                   姓名
                   <ChevronDown className={cn('size-3', sortKey === 'displayName' && 'text-[#E8A020]')} />
@@ -912,7 +930,7 @@ function UsersTable({
                 <button
                   type="button"
                   onClick={() => setSortKey('lastLoginAt')}
-                  className="inline-flex items-center gap-1 hover:text-foreground"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-[#E8E8EB]"
                 >
                   最後登入
                   <ChevronDown className={cn('size-3', sortKey === 'lastLoginAt' && 'text-[#E8A020]')} />
@@ -933,13 +951,13 @@ function UsersTable({
                   onClick={() => onSelect(row.id)}
                   onDoubleClick={() => onOpenDetail(row.id)}
                   className={cn(
-                    'cursor-pointer border-b border-border/30 transition-colors outline-none',
+                    'cursor-pointer border-b border-[#1A1A1F] transition-colors outline-none',
                     'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
                     isSelected
-                      ? 'bg-[#E8A020]/15 ring-1 ring-inset ring-[#E8A020]/40'
+                      ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/40'
                       : selectionMode && isChecked
-                        ? 'bg-[#E8A020]/8'
-                        : 'hover:bg-white/3',
+                        ? 'bg-[#E8A020]/6'
+                        : 'hover:bg-[#131316]',
                   )}
                 >
                   <td className="px-2 py-2.5" onClick={(e) => selectionMode && e.stopPropagation()}>
@@ -948,57 +966,57 @@ function UsersTable({
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggle(row.id)}
-                        className="size-3.5 rounded border-border"
+                        className="size-3.5 rounded border-[#3A3A42] bg-[#1A1A1F] accent-[#E8A020]"
                         aria-label={`選取 ${row.username}`}
                       />
                     ) : (
-                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
+                      <span className="font-mono text-[11px] tabular-nums text-[#5A5A60]">
                         {String(i + 1).padStart(4, '0')}
                       </span>
                     )}
                   </td>
                   <td className="px-2 py-2.5">
-                    <span className="font-mono text-xs text-foreground">{row.username}</span>
+                    <span className="font-mono text-xs text-[#E8E8EB]">{row.username}</span>
                   </td>
-                  <td className="px-2 py-2.5 text-foreground/90">{row.displayName}</td>
+                  <td className="px-2 py-2.5 text-[#E8E8EB]">{row.displayName}</td>
                   <td className="px-2 py-2.5">
-                    <span className="inline-flex items-center rounded-md border border-border/50 bg-muted/30 px-2 py-0.5 text-[11px] text-foreground/85">
+                    <span className="inline-flex items-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 py-0.5 text-[11px] text-[#B8B8C0]">
                       {row.jobTitle}
                     </span>
                   </td>
-                  <td className="px-2 py-2.5 text-xs text-muted-foreground/40">
+                  <td className="px-2 py-2.5 text-xs text-[#5A5A60]">
                     {row.email ?? '—'}
                   </td>
-                  <td className="px-2 py-2.5 text-xs text-muted-foreground/40">
+                  <td className="px-2 py-2.5 text-xs text-[#5A5A60]">
                     {row.phone ?? '—'}
                   </td>
-                  <td className="px-2 py-2.5 text-xs text-muted-foreground/40">
+                  <td className="px-2 py-2.5 text-xs text-[#5A5A60]">
                     {row.warehouse ?? '—'}
                   </td>
                   <td className="px-2 py-2.5">
                     {row.isActive ? (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
-                        <span className="size-1.5 rounded-full bg-emerald-400" />
+                      <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-1.5 py-0.5 text-[10px] font-medium text-[#E8A020]">
+                        <span className="size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_6px_#E8A020]" />
                         啟用
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-md border border-muted-foreground/30 bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        <span className="size-1.5 rounded-full bg-muted-foreground" />
+                      <span className="inline-flex items-center gap-1 rounded-md border border-[#3A3A42] bg-[#1A1A1F] px-1.5 py-0.5 text-[10px] font-medium text-[#5A5A60]">
+                        <span className="size-1.5 rounded-full bg-[#5A5A60]" />
                         停用
                       </span>
                     )}
                   </td>
-                  <td className="px-2 py-2.5 text-xs tabular-nums text-muted-foreground">
-                    {row.lastLoginAt ?? <span className="text-muted-foreground/40">—</span>}
+                  <td className="px-2 py-2.5 text-xs tabular-nums text-[#888892]">
+                    {row.lastLoginAt ?? <span className="text-[#5A5A60]">—</span>}
                   </td>
-                  <td className="px-2 py-2.5 text-xs tabular-nums text-muted-foreground">
+                  <td className="px-2 py-2.5 text-xs tabular-nums text-[#888892]">
                     {row.createdAt}
                   </td>
                 </tr>
               );
             })}
             {Array.from({ length: Math.max(0, 20 - USERS.length) }).map((_, i) => (
-              <tr key={`__placeholder_${i}`} aria-hidden className="pointer-events-none select-none border-b border-border/20">
+              <tr key={`__placeholder_${i}`} aria-hidden className="pointer-events-none select-none border-b border-[#1A1A1F]/60">
                 <td className="px-2 py-2.5">&nbsp;</td>
                 <td className="px-2 py-2.5">&nbsp;</td>
                 <td className="px-2 py-2.5">&nbsp;</td>
@@ -1015,9 +1033,9 @@ function UsersTable({
         </table>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border/40 bg-card/30 px-6 py-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#131316] px-6 py-2 text-[11px] text-[#888892]">
         <span>共 5 筆 · 顯示 5 筆 {selectedId ? '· 雙擊或 Alt+E 進入編輯' : '· 點選列以啟用更正/刪除'}</span>
-        <span className="text-foreground/60">每頁 20 筆</span>
+        <span className="text-[#5A5A60]">每頁 20 筆</span>
       </div>
     </div>
   );
@@ -1043,9 +1061,9 @@ function UserDetailView({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll">
+    <div className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll bg-[#0A0A0C]">
       {/* 上方 form fields（grid 4-col、業界 ERP 範式緊湊 layout）*/}
-      <div className="border-b border-border/40 bg-card/20 px-6 py-4">
+      <div className="border-b border-[#2A2A30] bg-[#131316] px-6 py-4">
         <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
           <FormField label="帳號" value={user.username} mono />
           {editMode && editForm ? (
@@ -1071,7 +1089,7 @@ function UserDetailView({
               onChange={(v) => update('isActive', v === '啟用')}
             />
           ) : (
-            <FormField label="啟用狀態" value={user.isActive ? '啟用' : '停用'} tone={user.isActive ? 'green' : 'muted'} />
+            <FormField label="啟用狀態" value={user.isActive ? '啟用' : '停用'} tone={user.isActive ? 'amber' : 'muted'} />
           )}
 
           {editMode && editForm ? (
@@ -1152,21 +1170,21 @@ function FormField({
   value: string;
   mono?: boolean;
   dim?: boolean;
-  tone?: 'green' | 'muted';
+  tone?: 'amber' | 'muted';
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#5A5A60]">
         {label}
       </span>
       <div
         className={cn(
-          'rounded-md border border-border/40 bg-background/40 px-2.5 py-1.5 text-sm',
+          'rounded-md border border-[#2A2A30] bg-[#0A0A0C]/60 px-2.5 py-1.5 text-sm',
           mono && 'font-mono text-xs',
-          dim && 'text-muted-foreground/50',
-          tone === 'green' && 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300',
-          tone === 'muted' && 'border-muted-foreground/30 text-muted-foreground',
-          !tone && !dim && 'text-foreground/90',
+          dim && 'text-[#5A5A60]',
+          tone === 'amber' && 'border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]',
+          tone === 'muted' && 'border-[#3A3A42] text-[#888892]',
+          !tone && !dim && 'text-[#E8E8EB]',
         )}
       >
         {value}
@@ -1188,7 +1206,7 @@ function FormInput({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#5A5A60]">
         {label}
       </span>
       <input
@@ -1196,7 +1214,7 @@ function FormInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="rounded-md border border-[#E8A020]/30 bg-background/60 px-2.5 py-1.5 text-sm text-foreground/95 outline-none transition-colors focus:border-[#E8A020]/60 focus:bg-background/80 focus:ring-1 focus:ring-[#E8A020]/40"
+        className="rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors placeholder:text-[#5A5A60] focus:border-[#E8A020]/60 focus:bg-[#0A0A0C] focus:ring-1 focus:ring-[#E8A020]/40"
       />
     </div>
   );
@@ -1215,16 +1233,16 @@ function FormSelect({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#5A5A60]">
         {label}
       </span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="cursor-pointer appearance-none rounded-md border border-[#E8A020]/30 bg-background/60 px-2.5 py-1.5 text-sm text-foreground/95 outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+        className="cursor-pointer appearance-none rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
       >
         {options.map((opt) => (
-          <option key={opt} value={opt} className="bg-background text-foreground">
+          <option key={opt} value={opt} className="bg-[#131316] text-[#E8E8EB]">
             {opt}
           </option>
         ))}
@@ -1239,18 +1257,16 @@ function ToastStack({ toasts }: { toasts: Toast[] }) {
     <div className="pointer-events-none fixed right-6 top-20 z-40 flex w-80 flex-col gap-2">
       {toasts.map((t) => {
         const Icon = t.variant === 'success' ? CheckCircle2 : t.variant === 'danger' ? XCircle : Info;
+        // success / info 都收斂到琥珀；danger 用鋼鐵紅（不飽和）
         const tone =
-          t.variant === 'success'
-            ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
-            : t.variant === 'danger'
-              ? 'border-rose-400/40 bg-rose-500/10 text-rose-200'
-              : 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]';
+          t.variant === 'danger'
+            ? 'border-[#5A2A2A] text-[#E26060]'
+            : 'border-[#E8A020]/40 text-[#E8A020]';
         return (
           <div
             key={t.id}
             className={cn(
-              'pointer-events-auto flex items-start gap-2 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md',
-              'bg-card/85',
+              'pointer-events-auto flex items-start gap-2 rounded-xl border bg-[#131316]/95 px-3 py-2 text-xs shadow-2xl backdrop-blur-md',
               tone,
             )}
           >
@@ -1274,32 +1290,34 @@ function ConfirmDialog({
   const isDanger = state.variant === 'danger';
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-2xl border border-border/60 bg-card p-5 shadow-2xl"
+        className="w-full max-w-sm rounded-2xl border border-[#2A2A30] bg-[#131316] p-5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">
           <div
             className={cn(
-              'flex size-9 shrink-0 items-center justify-center rounded-xl',
-              isDanger ? 'bg-rose-500/15 text-rose-300' : 'bg-[#E8A020]/15 text-[#E8A020]',
+              'flex size-9 shrink-0 items-center justify-center rounded-xl border',
+              isDanger
+                ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A]'
+                : 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]',
             )}
           >
             <AlertTriangle className="size-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-semibold text-foreground">{state.title}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{state.message}</p>
+            <h3 className="text-sm font-semibold text-[#E8E8EB]">{state.title}</h3>
+            <p className="mt-1 text-xs leading-relaxed text-[#888892]">{state.message}</p>
           </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 items-center rounded-md border border-border/60 bg-secondary/40 px-3 text-xs font-medium text-foreground/85 transition-colors hover:bg-secondary/60"
+            className="inline-flex h-8 items-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-3 text-xs font-medium text-[#B8B8C0] transition-colors hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]"
           >
             取消
           </button>
@@ -1312,7 +1330,7 @@ function ConfirmDialog({
             className={cn(
               'inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium transition-colors',
               isDanger
-                ? 'border-rose-400/40 bg-rose-500/15 text-rose-200 hover:bg-rose-500/25'
+                ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
                 : 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020] hover:bg-[#E8A020]/25',
             )}
           >
@@ -1326,18 +1344,18 @@ function ConfirmDialog({
 
 function DetailSection({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border/40 bg-card/20">
-      <div className="flex items-center justify-between border-b border-border/40 bg-card/30 px-3 py-2">
+    <div className="rounded-lg border border-[#2A2A30] bg-[#131316] shadow-[0_1px_0_0_rgba(0,0,0,0.4)]">
+      <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#1A1A1F] px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-foreground">{title}</span>
-          <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-muted-foreground">
+          <span className="text-xs font-medium text-[#E8E8EB]">{title}</span>
+          <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-[#888892]">
             {count}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="inline-flex h-6 items-center gap-1 rounded-md border border-border/60 px-1.5 text-[10px] hover:bg-white/5"
+            className="inline-flex h-6 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-1.5 text-[10px] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/8 hover:text-[#E8A020]"
           >
             <Plus className="size-3" />
             新增項次
@@ -1353,9 +1371,9 @@ function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] })
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-left text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        <tr className="text-left text-[10px] font-medium uppercase tracking-[0.08em] text-[#5A5A60]">
           {headers.map((h) => (
-            <th key={h} className="border-b border-border/30 px-2 py-1.5 whitespace-nowrap">
+            <th key={h} className="border-b border-[#2A2A30] px-2 py-1.5 whitespace-nowrap">
               {h}
             </th>
           ))}
@@ -1363,9 +1381,9 @@ function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] })
       </thead>
       <tbody>
         {rows.map((row, i) => (
-          <tr key={i} className="border-b border-border/20 hover:bg-white/3">
+          <tr key={i} className="border-b border-[#1A1A1F] transition-colors hover:bg-[#1A1A1F]">
             {row.map((cell, j) => (
-              <td key={j} className={cn('px-2 py-1.5 text-xs', j === 0 ? 'font-mono text-muted-foreground' : 'text-foreground/90')}>
+              <td key={j} className={cn('px-2 py-1.5 text-xs', j === 0 ? 'font-mono text-[#5A5A60]' : 'text-[#E8E8EB]')}>
                 {cell}
               </td>
             ))}
@@ -1378,7 +1396,7 @@ function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] })
 
 function EmptyDetail({ message }: { message: string }) {
   return (
-    <div className="py-6 text-center text-[11px] text-muted-foreground/60">{message}</div>
+    <div className="py-6 text-center text-[11px] text-[#5A5A60]">{message}</div>
   );
 }
 
@@ -1581,7 +1599,7 @@ export default function LabUsersPage() {
   ]);
 
   return (
-    <div className="flex h-dvh bg-background text-foreground">
+    <div className="flex h-dvh bg-[#0A0A0C] text-[#E8E8EB]">
       <LeftSidebar sidebarRef={sidebarRef} onReturnToTable={handleReturnToTable} />
       <main className="flex min-w-0 flex-1 flex-col">
         <TopHeader />
