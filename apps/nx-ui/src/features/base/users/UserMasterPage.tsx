@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
+import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
@@ -503,6 +504,9 @@ export function UserMasterPage() {
   // ── 顯示停用 toggle（Stage 1-B.4.5）─────────────────────────
   const [showInactive, setShowInactive] = useState(false);
 
+  // ── 新增對話框（Stage 1-B.6）─────────────────────────────────
+  const [createOpen, setCreateOpen] = useState(false);
+
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -565,8 +569,8 @@ export function UserMasterPage() {
 
   // ── ERP 工具列動作（lab：多為 mock，皆透過 toast 給可見反饋）─────
   const handleCreate = useCallback(() => {
-    showToast('新增（Alt+A） · 待接 API', 'info');
-  }, [showToast]);
+    setCreateOpen(true);
+  }, []);
 
   const handleEdit = useCallback(() => {
     if (!selectedUser) {
@@ -888,6 +892,15 @@ export function UserMasterPage() {
         )}
       </MasterShell>
       <ConfirmDialog state={confirmState} onClose={() => setConfirmState(null)} />
+      <CreateUserDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSuccess={(created) => {
+          setCreateOpen(false);
+          showToast(`已建立使用者：${created.username}`, 'success');
+          setReloadTick((t) => t + 1);
+        }}
+      />
       <ToastStack toasts={toasts} />
     </>
   );
