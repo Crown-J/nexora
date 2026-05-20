@@ -45,7 +45,6 @@ import {
   Handshake,
   Settings,
   Search,
-  Sparkles,
   RefreshCcw,
   ChevronDown,
   ChevronLeft,
@@ -89,11 +88,6 @@ import { cn } from '@/lib/utils';
 // ──────────────────────────────────────────────────────────────
 // Mock data
 // ──────────────────────────────────────────────────────────────
-
-const NAV_TOP = [
-  { id: 'notif', icon: Bell, label: '通知', badge: 3 },
-  { id: 'recent', icon: Sparkles, label: '最近操作', badge: null },
-];
 
 type ListItem = { id: string; icon: React.ComponentType<{ className?: string }>; label: string; active?: boolean; count?: number };
 
@@ -440,12 +434,6 @@ function LeftSidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 pb-3 nx-master-scroll">
-        <div className="space-y-0.5 px-1 pt-1">
-          {NAV_TOP.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} badge={item.badge} onClick={onReturnToTable} />
-          ))}
-        </div>
-
         <SectionLabel
           label="帳號與權限"
           action={
