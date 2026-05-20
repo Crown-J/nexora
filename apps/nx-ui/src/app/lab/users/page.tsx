@@ -51,6 +51,9 @@ import {
   FileSpreadsheet,
   FileText,
   AlertTriangle,
+  Info,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react';
 
 import {
@@ -250,6 +253,14 @@ type ConfirmState = {
   confirmLabel?: string;
   variant?: 'default' | 'danger';
   onConfirm: () => void;
+};
+
+type ToastVariant = 'info' | 'success' | 'danger';
+
+type Toast = {
+  id: number;
+  message: string;
+  variant: ToastVariant;
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -1177,6 +1188,36 @@ function FormSelect({
   );
 }
 
+function ToastStack({ toasts }: { toasts: Toast[] }) {
+  if (toasts.length === 0) return null;
+  return (
+    <div className="pointer-events-none fixed right-6 top-20 z-40 flex w-80 flex-col gap-2">
+      {toasts.map((t) => {
+        const Icon = t.variant === 'success' ? CheckCircle2 : t.variant === 'danger' ? XCircle : Info;
+        const tone =
+          t.variant === 'success'
+            ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-200'
+            : t.variant === 'danger'
+              ? 'border-rose-400/40 bg-rose-500/10 text-rose-200'
+              : 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]';
+        return (
+          <div
+            key={t.id}
+            className={cn(
+              'pointer-events-auto flex items-start gap-2 rounded-xl border px-3 py-2 text-xs shadow-xl backdrop-blur-md',
+              'bg-card/85',
+              tone,
+            )}
+          >
+            <Icon className="mt-0.5 size-3.5 shrink-0" />
+            <span className="min-w-0 flex-1 leading-relaxed">{t.message}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ConfirmDialog({
   state,
   onClose,
@@ -1309,7 +1350,17 @@ export default function LabUsersPage() {
   const [mode, setMode] = useState<Mode>('browse');
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastIdRef = useRef(0);
   const sidebarRef = useRef<HTMLElement>(null);
+
+  const showToast = useCallback((message: string, variant: ToastVariant = 'info') => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 2400);
+  }, []);
 
   const selectedUser = useMemo(
     () => (selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null),
@@ -1325,51 +1376,61 @@ export default function LabUsersPage() {
     });
   };
 
-  // ── ERP 工具列動作（lab：多為 mock）────────────────────────────
+  // ── ERP 工具列動作（lab：多為 mock，皆透過 toast 給可見反饋）─────
   const handleCreate = useCallback(() => {
-    // mock：lab 階段先 noop（之後接 createDialog）
-    console.info('[lab/users] 新增（A）');
-  }, []);
+    showToast('新增（Alt+A） · 待接 API', 'info');
+  }, [showToast]);
 
   const handleEdit = useCallback(() => {
-    if (!selectedUser) return;
+    if (!selectedUser) {
+      showToast('請先點選一筆資料才能更正', 'danger');
+      return;
+    }
     setMode('edit');
     setTab('detail');
     setEditForm(makeEditForm(selectedUser));
-  }, [selectedUser]);
+    showToast(`進入編輯模式：${selectedUser.username}`, 'info');
+  }, [selectedUser, showToast]);
 
   const handleSearch = useCallback(() => {
-    console.info('[lab/users] 查詢（F）');
-  }, []);
+    showToast('查詢（Alt+F） · 待接搜尋面板', 'info');
+  }, [showToast]);
 
   const handleDelete = useCallback(() => {
-    if (!selectedUser) return;
+    if (!selectedUser) {
+      showToast('請先點選一筆資料才能刪除', 'danger');
+      return;
+    }
     setConfirmState({
       title: '確認刪除',
       message: `確定要刪除「${selectedUser.displayName}（${selectedUser.username}）」？此動作無法復原。`,
       confirmLabel: '刪除',
       variant: 'danger',
       onConfirm: () => {
-        // mock：lab 階段先 noop
-        console.info('[lab/users] 刪除 confirmed', selectedUser.id);
+        const name = selectedUser.username;
         setSelectedId(null);
+        showToast(`已刪除 ${name}`, 'danger');
       },
     });
-  }, [selectedUser]);
+  }, [selectedUser, showToast]);
 
-  const handleExport = useCallback((format: 'csv' | 'pdf' | 'print') => {
-    console.info('[lab/users] 匯出（P）', format);
-  }, []);
+  const handleExport = useCallback(
+    (format: 'csv' | 'pdf' | 'print') => {
+      const label = format === 'csv' ? 'CSV' : format === 'pdf' ? 'PDF' : '列印';
+      showToast(`匯出 ${label} · lab mock`, 'success');
+    },
+    [showToast],
+  );
 
   const handleRefresh = useCallback(() => {
-    console.info('[lab/users] 重新整理（R）');
-  }, []);
+    showToast('已重新整理（Alt+R）', 'success');
+  }, [showToast]);
 
   const handleExit = useCallback(() => {
-    // Q 結束：聚焦左側 sidebar 第一個 nav item
     const first = sidebarRef.current?.querySelector<HTMLButtonElement>('[data-nav-item]');
     first?.focus();
-  }, []);
+    showToast('焦點已轉至左側模組列表（↑↓ 切換）', 'info');
+  }, [showToast]);
 
   const handleSave = useCallback(() => {
     setConfirmState({
@@ -1377,18 +1438,18 @@ export default function LabUsersPage() {
       message: '是否確認將變更寫入此筆資料？',
       confirmLabel: '存檔',
       onConfirm: () => {
-        // mock：lab 階段先 noop（之後接 mutation）
-        console.info('[lab/users] 存檔 confirmed', editForm);
         setMode('browse');
         setEditForm(null);
+        showToast('已存檔（lab mock）', 'success');
       },
     });
-  }, [editForm]);
+  }, [showToast]);
 
   const handleCancel = useCallback(() => {
     setMode('browse');
     setEditForm(null);
-  }, []);
+    showToast('已取消編輯', 'info');
+  }, [showToast]);
 
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
@@ -1522,6 +1583,7 @@ export default function LabUsersPage() {
         )}
       </main>
       <ConfirmDialog state={confirmState} onClose={() => setConfirmState(null)} />
+      <ToastStack toasts={toasts} />
     </div>
   );
 }
