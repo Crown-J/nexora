@@ -50,6 +50,7 @@ import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRe
 import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
+import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
 // 業界改革 #24 v1 設計回退：Crown 真實業務測試後拍板「拿掉所有族群篩選、用關鍵字就好」
 // IncludeInactiveToggle / FilterBar / apply / types shared 元件保留供未來軌可能重用
 import {
@@ -1017,14 +1018,17 @@ export function BaseUserMasterView() {
           </div>
         ) : null}
 
-        {/* 業界改革 #22 v1.2 + Crown 拍板 B+C：toolbar 移除 glass-card wrap、直接接表格節省空間（對齊 Google Sheets / Linear / Notion）*/}
-        <div
-          className={cn(
-            'relative flex min-w-0 flex-wrap items-center gap-2 py-1',
-            colPickerOpen && 'z-[100]',
-          )}
-          ref={colPickerWrapRef}
-        >
+        {/* 業界改革 #26 v1：PageHeader + toolbar actions 同列（節省垂直空間、Crown 拍板）*/}
+        <BaseMasterPageHeader
+          title="使用者主檔"
+          actions={
+            <div
+              className={cn(
+                'relative flex min-w-0 flex-wrap items-center gap-2',
+                colPickerOpen && 'z-[100]',
+              )}
+              ref={colPickerWrapRef}
+            >
               <div
                 className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
                 role="navigation"
@@ -1262,7 +1266,9 @@ export function BaseUserMasterView() {
                 document.body,
               )
                 : null}
-          </div>
+            </div>
+          }
+        />
 
         <section className="glass-card relative z-0 flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/60 lg:min-h-[420px]">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col p-2">
