@@ -835,9 +835,38 @@ function UsersTable({
     }
   };
 
+  // ↑↓ 在表格內 = 切換 row 焦點（攔下預設頁面捲動）；Enter 在 row = 進入編輯（雙擊等價）
+  const handleTableKey = (e: React.KeyboardEvent) => {
+    const active = document.activeElement as HTMLElement | null;
+    if (!active || !active.hasAttribute('data-row-id')) return;
+
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      const rows = Array.from(
+        e.currentTarget.querySelectorAll<HTMLTableRowElement>('[data-row-id]'),
+      );
+      if (rows.length === 0) return;
+      const idx = rows.indexOf(active as HTMLTableRowElement);
+      const nextIdx =
+        e.key === 'ArrowDown'
+          ? Math.min(rows.length - 1, idx + 1)
+          : Math.max(0, idx - 1);
+      e.preventDefault();
+      const nextRow = rows[nextIdx];
+      nextRow?.focus();
+      const nextId = nextRow?.getAttribute('data-row-id');
+      if (nextId) onSelect(nextId);
+    } else if (e.key === 'Enter') {
+      const id = active.getAttribute('data-row-id');
+      if (id) {
+        e.preventDefault();
+        onOpenDetail(id);
+      }
+    }
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex-1 overflow-auto nx-master-scroll">
+      <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-background/95 backdrop-blur">
             <tr className="border-b border-border/40 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
