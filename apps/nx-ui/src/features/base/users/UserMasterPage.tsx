@@ -121,7 +121,7 @@ const HEADER_CONFIG: HeaderConfig = {
 
 const JOB_TITLES = ['系統管理員', '財務', '採購', '業務', '倉管'] as const;
 
-const PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 20;
 
 // ──────────────────────────────────────────────────────────────
 // Types
@@ -495,6 +495,7 @@ export function UserMasterPage() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [mode, setMode] = useState<ErpMode>('browse');
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
@@ -534,7 +535,7 @@ export function UserMasterPage() {
         const res = await listUsers({
           q: debouncedKeyword || undefined,
           page,
-          pageSize: PAGE_SIZE,
+          pageSize,
           isActive: true,
         });
         if (!alive) return;
@@ -553,13 +554,18 @@ export function UserMasterPage() {
     return () => {
       alive = false;
     };
-  }, [page, reloadTick, debouncedKeyword, showToast]);
+  }, [page, pageSize, reloadTick, debouncedKeyword, showToast]);
 
   const selectedUser = useMemo(
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
     [selectedId, users],
   );
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  const handlePageSizeChange = useCallback((next: number) => {
+    setPageSize(next);
+    setPage(1); // 改 pageSize 一律回第 1 頁
+  }, []);
 
   const handleToggleSelection = () => {
     setSelectionMode((prev) => {
@@ -834,7 +840,8 @@ export function UserMasterPage() {
                     ? '雙擊或 Alt+E 進入編輯'
                     : '點選列以啟用更正/刪除'
             }
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
             totalCount={total}
           />
         ) : selectedUser ? (

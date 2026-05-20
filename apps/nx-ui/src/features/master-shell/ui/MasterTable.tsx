@@ -17,7 +17,15 @@
 'use client';
 
 import { ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+
+export const MASTER_TABLE_PAGE_SIZES = [10, 20, 50, 100] as const;
 
 export type MasterTableColumn<T> = {
   /** 對齊排序時的 sortKey；亦用於 React key */
@@ -42,6 +50,7 @@ export function MasterTable<T>({
   checked,
   setChecked,
   pageSize = 20,
+  onPageSizeChange,
   sortKey,
   onSortKeyChange,
   footerHint,
@@ -57,6 +66,8 @@ export function MasterTable<T>({
   checked: Set<string>;
   setChecked: (next: Set<string>) => void;
   pageSize?: number;
+  /** 提供時 footer「每頁 N 筆」變 dropdown 選擇器（10/20/50/100），未提供時為純顯示 */
+  onPageSizeChange?: (next: number) => void;
   sortKey?: string;
   onSortKeyChange?: (key: string) => void;
   footerHint?: string;
@@ -246,8 +257,58 @@ export function MasterTable<T>({
         <span>
           共 {total} 筆 · 顯示 {rows.length} 筆{footerHint ? ` · ${footerHint}` : ''}
         </span>
-        <span className="text-[#5A5A60]">每頁 {pageSize} 筆</span>
+        {onPageSizeChange ? (
+          <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
+        ) : (
+          <span className="text-[#5A5A60]">每頁 {pageSize} 筆</span>
+        )}
       </div>
     </div>
+  );
+}
+
+function PageSizeSelector({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          title="調整每頁筆數"
+          className={cn(
+            'inline-flex h-6 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 text-[11px] font-medium text-[#B8B8C0] transition-all hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
+            'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
+          )}
+        >
+          每頁 <span className="font-mono tabular-nums">{value}</span> 筆
+          <ChevronDown className="size-3" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={6}
+        className="min-w-[7rem] border-[#2A2A30] bg-[#131316]/95 p-1 shadow-2xl backdrop-blur-xl"
+      >
+        {MASTER_TABLE_PAGE_SIZES.map((n) => (
+          <DropdownMenuItem
+            key={n}
+            onClick={() => onChange(n)}
+            className={cn(
+              'cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]',
+              n === value ? 'text-[#E8A020]' : 'text-[#E8E8EB]',
+            )}
+          >
+            <span className="font-mono tabular-nums">{n.toString().padStart(3, ' ')}</span>
+            <span className="ml-2">每頁</span>
+            {n === value ? <span className="ml-auto text-[#E8A020]">✓</span> : null}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
