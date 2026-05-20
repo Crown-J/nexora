@@ -821,3 +821,93 @@ TASK-FILTER-BUILDER-V2（P3）：Saved Views + backend API filter
 ```
 
 ⭐ Q-RHYTHM-2 第 13 次穩定預備：業界改革 #22 v1.2 + #17 + #26 v1 三軌累積 + #24 v1 設計回退 lessons learned。
+
+---
+
+## §15 補揭露：commit 29-30 表格固定列 + Contextual Nav 強化
+
+### 15.1 commit 29 表格固定 pageSize 列（Excel 範式）
+
+```
+Crown 拍板：畫面固定 20 列、5 筆資料補 15 空白列達 20 列
+
+實作：
+- tbody 末端加 placeholder rows
+- Array.from({length: pageSize - sortedRows.length}).map(...)
+- aria-hidden + pointer-events-none + select-none
+- 對齊 Excel / Google Sheets 範式（row 數穩定）
+
+效果：
+- 5 筆 user → 5 真 + 15 空白 = 20 列
+- pageSize 切 50 → 5 真 + 45 空白
+- 表格垂直高度穩定、視覺秩序一致
+```
+
+### 15.2 commit 30 NavPlanetMenu 智能初始 level + Z 鍵
+
+```
+Crown 拍板：
+- 主檔頁開星球 → 自動 base level（25 主檔）
+- 上下左右選擇 + Enter 進入 + Z 返回上一層
+
+實作：
+1. useEffect 開啟時依 pathname 決定 initial level
+   - /dashboard/base 或 /dashboard/base/* → 'base'
+   - 其他頁面 → 'root'
+2. 鍵盤 'z' 鍵：base → root（返回）
+3. hint 文字更新揭露完整鍵盤導覽
+
+紀律邊界揭露：
+- 「左右」鍵 Radix DropdownMenu 預設不支援（vertical menu）
+  → 後續軌 TASK-NAV-CONTEXTUAL-V2 grid 2D 鍵盤導覽
+- 上下 / Enter / Esc：Radix DropdownMenu 預設 accessibility 內建
+```
+
+### 15.3 完整鍵盤導覽真相
+
+```
+Alt+X         開關星球 menu
+↑↓            focus 移動（Radix 既有、垂直）
+Enter         activate focused item（Radix 既有）
+Esc           close menu（Radix 既有）
+B             root ↔ base 切換（commit 25）
+Z             base → root（commit 30）
+H/P/S/W/M/R   root level 模組快捷（既有、H 首頁 keep 對齊 NEXORA logo）
+```
+
+### 15.4 ahead 30 commit 真實清單最終
+
+```
+c3d4513 commit 30：NavPlanetMenu 智能初始 level + Z 鍵
+70a6e2c commit 29：表格固定 pageSize 列、不足補空白
+0b40466 commit 28：merge-verify §14
+394772d commit 27：user view 整合 PageHeader actions
+4809428 commit 26：PageHeader 簡化
+59f58ed commit 25：NavPlanetMenu contextual menu
+dfb2e39 commit 24：toolbar glass-card 移除
+effab5c commit 23：cell grid border 移除
+...（22 個既往）
+```
+
+### 15.5 Crown 立即驗證 checklist
+
+```
+桌面 / 手機 hard refresh /dashboard/base/users：
+
+表格：
+  ✓ 5 筆 user 資料 + 15 空白列 = 20 列固定
+  ✓ pageSize 切 10 → 5 筆 + 5 空白 = 10 列
+  ✓ pageSize 切 50 → 5 筆 + 45 空白 = 50 列
+  ✓ 空白列不可點 / 不選 / 不 hover
+
+NavPlanetMenu：
+  ✓ 在 /dashboard/base/users 按 Alt+X → 直接顯示 25 主檔（非 6 模組）
+  ✓ 在 / / /dashboard / /dashboard/purchase 等按 Alt+X → 顯示 6 模組
+  ✓ 在 base level 按 Z → 返回 6 模組
+  ✓ 在 base level 按 B → 返回 6 模組
+  ✓ 在 base level 按 Esc → 關閉 menu
+  ✓ ↑↓ 鍵 focus 移動、Enter 進入該主檔
+  ✓ menu 下方 hint：「↑↓ 選擇 · Enter 進入 · Z / B / Esc 返回模組」
+```
+
+⭐ Q-RHYTHM-2 第 13 次穩定預備、業界改革 #22 v1.2 + #17 + #26 v1 三軌累積完整 closure。
