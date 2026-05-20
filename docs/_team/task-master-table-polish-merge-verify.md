@@ -911,3 +911,63 @@ NavPlanetMenu：
 ```
 
 ⭐ Q-RHYTHM-2 第 13 次穩定預備、業界改革 #22 v1.2 + #17 + #26 v1 三軌累積完整 closure。
+
+---
+
+## §16 補揭露：commit 32-33 表格滿版 + 方向鍵衝突修
+
+### 16.1 commit 32 表格滿版 + padding 減半 + 邊角更方
+
+```
+Crown 拍板：表格用成滿版、邊界縮小一半、彎角更方
+
+落地：
+- HomeLandingChrome main padding：px-4 lg:px-7 → px-2 lg:px-3
+- 表格 section rounded-xl → rounded-md
+- 表格 inner padding p-2 → p-1
+- view outer gap-2 → gap-1
+```
+
+### 16.2 commit 33 方向鍵衝突修
+
+```
+Crown 揭露：「打開功能選單按下方向鍵是控制表格內而不是選單內」
+
+Root cause：
+- BaseUserMasterView 全域 window keydown listener
+- 既有 isRadixJobFilterMenuOpen selector 只 cover dropdown-menu-content / sub-content
+- 漏掉 role="menu" / role="dialog" 等 Radix portal type
+- Escape 鍵 check 順序在 isRadix 之前、可能誤觸 router.push hub
+
+修法：
+- 擴 isRadixJobFilterMenuOpen selector：含 role="menu" + role="dialog"
+- 提前 isRadix check 到 onKey 開頭（含 Escape）
+- 任何 Radix popup 開啟時、表格全域 handler 完全讓位
+
+對齊 commit 30 NavPlanetMenu Z/B/Esc 鍵範式。
+```
+
+### 16.3 星空白點被擠壓真相揭露
+
+```
+Crown 觀察：右側白點密集
+
+真相：ParticleField 本就 absolute inset-0 全 viewport 鋪滿（不被擠壓）
+推測：表格區黑底 glass-card 覆蓋部分星空、右側未被覆蓋部分白點露出
+解：commit 32 表格滿版後、表格延伸更近 viewport 邊緣、視覺平衡改善
+
+若 Crown 仍見異常 → 後續軌「TASK-PARTICLE-FIELD-AUDIT」深 verify
+```
+
+### 16.4 ahead 33 commit 真實清單
+
+```
+a37d404 commit 33：方向鍵衝突修（Radix popup 全域讓位）
+27e53c7 commit 32：表格滿版 + padding 減半 + 邊角更方
+c33e593 commit 31：merge-verify §15
+c3d4513 commit 30：NavPlanetMenu 智能初始 level + Z 鍵
+70a6e2c commit 29：表格固定 pageSize 列、不足補空白
+... (28 個既往)
+```
+
+⭐ Q-RHYTHM-2 第 13 次穩定累積：業界改革 #22 v1.2 + #17 + #26 v1 三軌完整 closure。
