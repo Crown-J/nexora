@@ -32,7 +32,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import {
   Users,
   UserCog,
@@ -44,23 +43,9 @@ import {
   Building2,
   Handshake,
   Settings,
-  ChevronDown,
-  ChevronRight,
-  Plus,
-  Bell,
   Layers,
-  Megaphone,
-  Clock,
 } from 'lucide-react';
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
@@ -71,6 +56,11 @@ import {
   SectionAddButton,
   SectionHeader,
 } from '@/features/master-shell/ui/MasterDetail';
+import {
+  MasterShell,
+  type HeaderConfig,
+  type SidebarConfig,
+} from '@/features/master-shell/ui/MasterShell';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
@@ -79,33 +69,66 @@ import { cn } from '@/lib/utils';
 // Mock data
 // ──────────────────────────────────────────────────────────────
 
-type ListItem = { id: string; icon: React.ComponentType<{ className?: string }>; label: string; active?: boolean; count?: number };
+const SIDEBAR_CONFIG: SidebarConfig = {
+  brandTitle: 'NEXORA GRID',
+  brandSubtitle: '測試公司（LITE）',
+  userInitial: '管',
+  userName: '測試租戶管理員（LITE）',
+  userMeta: 'admin · 使用者',
+  sections: [
+    {
+      id: 'account',
+      label: '帳號與權限',
+      hasAddAction: true,
+      items: [
+        { id: 'user', icon: Users, label: '使用者', active: true, count: 5 },
+        { id: 'role', icon: Briefcase, label: '職務主檔', count: 6 },
+        { id: 'user-role', icon: UserCog, label: '使用者職務設定', count: 5 },
+        { id: 'user-warehouse', icon: MapPin, label: '使用者據點設定', count: 5 },
+        { id: 'role-view', icon: Shield, label: '職務權限設定', count: 12 },
+      ],
+    },
+    {
+      id: 'product',
+      label: '產品與料號',
+      items: [
+        { id: 'part', icon: Package, label: '零件主檔', count: 256 },
+        { id: 'brand', icon: Layers, label: '汽車／零件廠牌', count: 48 },
+      ],
+    },
+    {
+      id: 'vehicle',
+      label: '車型字典',
+      items: [
+        { id: 'engine', icon: Car, label: '引擎主檔', count: 32 },
+        { id: 'model', icon: Car, label: '車型主檔', count: 128 },
+      ],
+    },
+    {
+      id: 'org',
+      label: '組織架構',
+      items: [{ id: 'warehouse', icon: Building2, label: '倉庫主檔', count: 4 }],
+    },
+    {
+      id: 'partner',
+      label: '交易對象',
+      items: [{ id: 'partner', icon: Handshake, label: '客戶主檔', count: 87 }],
+    },
+    {
+      id: 'system',
+      label: '系統設定',
+      items: [{ id: 'settings', icon: Settings, label: '基礎設定' }],
+    },
+  ],
+};
 
-const NAV_ACCOUNT: ListItem[] = [
-  { id: 'user', icon: Users, label: '使用者', active: true, count: 5 },
-  { id: 'role', icon: Briefcase, label: '職務主檔', count: 6 },
-  { id: 'user-role', icon: UserCog, label: '使用者職務設定', count: 5 },
-  { id: 'user-warehouse', icon: MapPin, label: '使用者據點設定', count: 5 },
-  { id: 'role-view', icon: Shield, label: '職務權限設定', count: 12 },
-];
-
-const NAV_PRODUCT: ListItem[] = [
-  { id: 'part', icon: Package, label: '零件主檔', count: 256 },
-  { id: 'brand', icon: Layers, label: '汽車／零件廠牌', count: 48 },
-];
-
-const NAV_VEHICLE: ListItem[] = [
-  { id: 'engine', icon: Car, label: '引擎主檔', count: 32 },
-  { id: 'model', icon: Car, label: '車型主檔', count: 128 },
-];
-
-const NAV_ORG: ListItem[] = [
-  { id: 'warehouse', icon: Building2, label: '倉庫主檔', count: 4 },
-];
-
-const NAV_PARTNER: ListItem[] = [
-  { id: 'partner', icon: Handshake, label: '客戶主檔', count: 87 },
-];
+const HEADER_CONFIG: HeaderConfig = {
+  category: '帳號與權限',
+  title: '使用者主檔',
+  countBadge: { icon: Users, text: '5 位使用者' },
+  notificationBadge: 3,
+  announcementBadge: 2,
+};
 
 type UserRow = {
   id: string;
@@ -253,359 +276,6 @@ function makeEditForm(user: UserRow): EditFormState {
 // ──────────────────────────────────────────────────────────────
 // 子元件
 // ──────────────────────────────────────────────────────────────
-
-function NavItem({
-  icon: Icon,
-  label,
-  badge,
-  count,
-  active,
-  onClick,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  badge?: number | null;
-  count?: number;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      data-nav-item
-      style={
-        active
-          ? {
-              backgroundImage:
-                'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.06) 60%, transparent 100%)',
-              boxShadow:
-                'inset 3px 0 0 0 #E8A020, inset 0 1px 0 0 rgba(232,160,32,0.15)',
-            }
-          : undefined
-      }
-      className={cn(
-        'group flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-all',
-        'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50 focus-visible:bg-[#E8A020]/10',
-        active
-          ? 'text-[#E8A020] font-medium'
-          : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
-      )}
-    >
-      <Icon className={cn('size-4 shrink-0', active ? 'text-[#E8A020]' : 'text-[#888892] group-hover:text-[#E8E8EB]')} />
-      <span className="flex-1 truncate text-left">{label}</span>
-      {badge != null ? (
-        <span className="rounded-md bg-[#1A1A1F] px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-[#888892]">
-          {badge}
-        </span>
-      ) : count != null ? (
-        <span className={cn(
-          'rounded-md px-1.5 py-0.5 text-[10px] font-mono tabular-nums',
-          active ? 'bg-[#E8A020]/15 text-[#E8A020]/85' : 'text-[#5A5A60]',
-        )}>
-          {count}
-        </span>
-      ) : null}
-    </button>
-  );
-}
-
-function SectionLabel({ label, action }: { label: string; action?: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between px-2 pb-1 pt-3">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
-        {label}
-      </span>
-      {action}
-    </div>
-  );
-}
-
-function PlanetModuleMenu() {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label="開啟模組選單"
-          title="模組選單"
-          className="group flex size-9 shrink-0 items-center justify-center rounded-xl border border-transparent transition-all hover:border-[#E8A020]/30 hover:bg-[#E8A020]/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40 data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10"
-        >
-          <PlanetOrbTrigger className="scale-90" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        sideOffset={8}
-        className="min-w-[14rem] border-[#2A2A30] bg-[#131316]/95 p-1 shadow-2xl backdrop-blur-xl"
-      >
-        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal uppercase tracking-[0.18em] text-[#5A5A60]">
-          NEXORA 模組
-        </DropdownMenuLabel>
-        {HOME_DOCK_ITEMS.map((item) => (
-          <DropdownMenuItem
-            key={item.href}
-            asChild
-            className="cursor-pointer rounded-md p-0 focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
-          >
-            <Link
-              href={item.href}
-              className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-sm text-[#E8E8EB]"
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0]">
-                <item.icon className="size-3.5" />
-              </span>
-              <span className="flex-1 truncate font-medium">{item.label}</span>
-            </Link>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function LeftSidebar({
-  sidebarRef,
-  onReturnToTable,
-}: {
-  sidebarRef: React.RefObject<HTMLElement | null>;
-  onReturnToTable: () => void;
-}) {
-  const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-    const items = Array.from(
-      e.currentTarget.querySelectorAll<HTMLButtonElement>('[data-nav-item]'),
-    );
-    if (items.length === 0) return;
-    const active = document.activeElement as HTMLButtonElement | null;
-    const idx = active ? items.indexOf(active) : -1;
-    let nextIdx: number;
-    if (e.key === 'ArrowDown') nextIdx = idx < 0 ? 0 : Math.min(items.length - 1, idx + 1);
-    else nextIdx = idx <= 0 ? 0 : idx - 1;
-    e.preventDefault();
-    items[nextIdx]?.focus();
-  };
-
-  return (
-    <aside
-      ref={sidebarRef}
-      onKeyDown={handleKey}
-      className="relative flex w-60 shrink-0 flex-col border-r border-[#2A2A30]"
-      style={{
-        backgroundImage:
-          'linear-gradient(180deg, #14141A 0%, #101014 50%, #0C0C10 100%)',
-        boxShadow:
-          'inset -1px 0 0 0 rgba(255,255,255,0.03), 1px 0 0 0 #000000, inset 0 1px 0 0 rgba(255,255,255,0.04)',
-      }}
-    >
-      <div className="flex items-center gap-2.5 border-b border-[#2A2A30]/80 px-4 py-3.5 shadow-[0_1px_0_0_rgba(255,255,255,0.03)]">
-        <PlanetModuleMenu />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold tracking-[0.04em] text-[#F0F0F3]">NEXORA GRID</p>
-          <p className="truncate text-[11px] text-[#888892]">測試公司（LITE）</p>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-2 pb-3 nx-master-scroll">
-        <SectionLabel
-          label="帳號與權限"
-          action={
-            <button
-              type="button"
-              className="rounded p-0.5 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
-              aria-label="新增"
-            >
-              <Plus className="size-3.5" />
-            </button>
-          }
-        />
-        <div className="space-y-0.5 px-1">
-          {NAV_ACCOUNT.map((item) => (
-            <NavItem
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              active={item.active}
-              count={item.count}
-              onClick={onReturnToTable}
-            />
-          ))}
-        </div>
-
-        <SectionLabel label="產品與料號" />
-        <div className="space-y-0.5 px-1">
-          {NAV_PRODUCT.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
-          ))}
-        </div>
-
-        <SectionLabel label="車型字典" />
-        <div className="space-y-0.5 px-1">
-          {NAV_VEHICLE.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
-          ))}
-        </div>
-
-        <SectionLabel label="組織架構" />
-        <div className="space-y-0.5 px-1">
-          {NAV_ORG.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
-          ))}
-        </div>
-
-        <SectionLabel label="交易對象" />
-        <div className="space-y-0.5 px-1">
-          {NAV_PARTNER.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
-          ))}
-        </div>
-
-        <SectionLabel label="系統設定" />
-        <div className="space-y-0.5 px-1">
-          <NavItem icon={Settings} label="基礎設定" onClick={onReturnToTable} />
-        </div>
-      </div>
-
-      <div
-        className="flex items-center gap-2.5 border-t border-[#2A2A30] px-3 py-3"
-        style={{
-          backgroundImage: 'linear-gradient(180deg, rgba(10,10,12,0.3) 0%, rgba(10,10,12,0.6) 100%)',
-          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04)',
-        }}
-      >
-        <div className="flex size-8 items-center justify-center rounded-full border border-[#2A2A30] bg-gradient-to-b from-[#22222A] to-[#16161A] text-xs font-medium text-[#E8E8EB] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]">
-          管
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-medium text-[#E8E8EB]">測試租戶管理員（LITE）</p>
-          <p className="truncate text-[10px] text-[#5A5A60]">admin · 使用者</p>
-        </div>
-        <button
-          type="button"
-          className="rounded p-1 text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
-          aria-label="使用者選單"
-        >
-          <ChevronDown className="size-3.5" />
-        </button>
-      </div>
-    </aside>
-  );
-}
-
-function TopHeader({ onNotification, onAnnouncement }: { onNotification: () => void; onAnnouncement: () => void }) {
-  // 日期時間 live clock（避免 SSR hydration mismatch：初始 null，useEffect 內賦值）
-  const [now, setNow] = useState<Date | null>(null);
-
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const pad2 = (n: number) => n.toString().padStart(2, '0');
-  const timeText = now ? `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}` : '--:--:--';
-  const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-  const dateText = now
-    ? `${now.getFullYear()}/${pad2(now.getMonth() + 1)}/${pad2(now.getDate())} ${weekdays[now.getDay()]}`
-    : '----/--/-- ---';
-
-  return (
-    <div
-      className="relative flex items-center justify-between border-b border-[#2A2A30] px-6 py-4"
-      style={{
-        backgroundImage:
-          'linear-gradient(180deg, #0D0D11 0%, #0A0A0C 100%), linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 1px)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
-      }}
-    >
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
-          帳號與權限
-        </p>
-        <div className="mt-1 flex items-center gap-3">
-          <h1 className="relative pb-1 text-xl font-bold tracking-[-0.01em] text-[#F0F0F3]">
-            使用者主檔
-            <span
-              aria-hidden
-              className="absolute -bottom-0 left-0 h-px w-12 bg-gradient-to-r from-[#E8A020] via-[#E8A020]/40 to-transparent"
-            />
-          </h1>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8A020]/30 bg-gradient-to-b from-[#E8A020]/12 to-[#E8A020]/6 px-2.5 py-0.5 text-[10px] font-medium text-[#E8A020] shadow-[inset_0_1px_0_0_rgba(232,160,32,0.15)]">
-            <Users className="size-3" />
-            5 位使用者
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <TopHeaderIconButton
-          icon={Bell}
-          badge={3}
-          badgeTone="red"
-          title="通知"
-          onClick={onNotification}
-        />
-        <TopHeaderIconButton
-          icon={Megaphone}
-          badge={2}
-          badgeTone="amber"
-          title="公告"
-          onClick={onAnnouncement}
-        />
-        <div className="mx-1 h-7 w-px bg-[#2A2A30]" aria-hidden />
-        <div className="flex items-center gap-2.5">
-          <Clock className="size-3.5 text-[#5A5A60]" />
-          <div className="flex flex-col items-end font-mono leading-tight tabular-nums">
-            <span className="text-sm font-semibold text-[#E8E8EB] [text-shadow:0_0_8px_rgba(232,160,32,0.15)]">
-              {timeText}
-            </span>
-            <span className="text-[10px] tracking-wider text-[#5A5A60]">{dateText}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TopHeaderIconButton({
-  icon: Icon,
-  badge,
-  badgeTone,
-  title,
-  onClick,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  badge?: number;
-  badgeTone?: 'red' | 'amber';
-  title: string;
-  onClick: () => void;
-}) {
-  const badgeColor =
-    badgeTone === 'red'
-      ? 'bg-[#E26060] text-white shadow-[0_0_8px_#E26060]'
-      : 'bg-[#E8A020] text-[#0A0A0C] shadow-[0_0_8px_#E8A020]';
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      aria-label={title}
-      className="relative rounded-lg border border-transparent p-2 text-[#888892] transition-all hover:border-[#2A2A30] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
-    >
-      <Icon className="size-4" />
-      {badge != null && badge > 0 ? (
-        <span
-          className={cn(
-            'absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none',
-            badgeColor,
-          )}
-        >
-          {badge > 99 ? '99+' : badge}
-        </span>
-      ) : null}
-    </button>
-  );
-}
 
 /** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定 */
 function ErpTabBar({
@@ -1118,16 +788,15 @@ export default function LabUsersPage() {
   ]);
 
   return (
-    <div
-      className="flex h-dvh text-[#E8E8EB]"
-      style={{
-        backgroundImage:
-          'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
-      }}
-    >
-      <LeftSidebar sidebarRef={sidebarRef} onReturnToTable={handleReturnToTable} />
-      <main className="flex min-w-0 flex-1 flex-col">
-        <TopHeader onNotification={handleNotification} onAnnouncement={handleAnnouncement} />
+    <>
+      <MasterShell
+        sidebarRef={sidebarRef}
+        sidebarConfig={SIDEBAR_CONFIG}
+        headerConfig={HEADER_CONFIG}
+        onReturnToTable={handleReturnToTable}
+        onNotification={handleNotification}
+        onAnnouncement={handleAnnouncement}
+      >
         <ErpToolbar
           mode={mode}
           hasActiveRow={selectedUser !== null}
@@ -1188,13 +857,13 @@ export default function LabUsersPage() {
             onAddWarehouse={handleAddWarehouse}
           />
         ) : (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+          <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
             請先於「資料瀏覽」選擇一筆資料
           </div>
         )}
-      </main>
+      </MasterShell>
       <ConfirmDialog state={confirmState} onClose={() => setConfirmState(null)} />
       <ToastStack toasts={toasts} />
-    </div>
+    </>
   );
 }
