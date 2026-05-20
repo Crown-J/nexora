@@ -1393,7 +1393,7 @@ function SectionAddButton({ label, onClick }: { label: string; onClick?: () => v
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
+      className="inline-flex h-7 min-w-[8rem] items-center justify-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
     >
       <Plus className="size-3" />
       {label}
