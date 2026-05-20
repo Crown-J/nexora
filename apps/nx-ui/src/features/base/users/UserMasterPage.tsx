@@ -31,8 +31,6 @@ import {
   Handshake,
   Settings,
   Layers,
-  Eye,
-  EyeOff,
 } from 'lucide-react';
 
 import { listUsers, setUserActive, type UserDto } from '@/features/base/api/user';
@@ -198,23 +196,17 @@ function makeEditForm(user: UserRow): EditFormState {
 // 子元件
 // ──────────────────────────────────────────────────────────────
 
-/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定
- *  右側「顯示停用」toggle：預設關（只看啟用），開啟後 list filter 改為「全部」可看到停用使用者
- */
+/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定 */
 function ErpTabBar({
   tab,
   onChange,
   hasSelected,
   editMode,
-  showInactive,
-  onShowInactiveChange,
 }: {
   tab: 'list' | 'detail';
   onChange: (next: 'list' | 'detail') => void;
   hasSelected: boolean;
   editMode: boolean;
-  showInactive: boolean;
-  onShowInactiveChange: (next: boolean) => void;
 }) {
   return (
     <div
@@ -257,21 +249,6 @@ function ErpTabBar({
       >
         <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">2</span>
         詳細資料
-      </button>
-      <div className="flex-1" />
-      <button
-        type="button"
-        onClick={() => onShowInactiveChange(!showInactive)}
-        title={showInactive ? '目前顯示：全部（含已停用）' : '目前顯示：僅啟用'}
-        className={cn(
-          'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors',
-          showInactive
-            ? 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]'
-            : 'border-[#2A2A30] bg-[#1A1A1F] text-[#888892] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
-        )}
-      >
-        {showInactive ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
-        顯示停用
       </button>
     </div>
   );
@@ -837,6 +814,8 @@ export function UserMasterPage() {
           onExit={handleExit}
           onSave={handleSave}
           onCancel={handleCancel}
+          showInactive={showInactive}
+          onShowInactiveChange={setShowInactive}
         />
         <SearchPanel
           open={searchOpen}
@@ -850,8 +829,6 @@ export function UserMasterPage() {
           onChange={setTab}
           hasSelected={selectedUser !== null}
           editMode={mode === 'edit'}
-          showInactive={showInactive}
-          onShowInactiveChange={setShowInactive}
         />
         {tab === 'list' ? (
           <MasterTable<UserRow>

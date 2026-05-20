@@ -28,6 +28,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Download,
+  Eye,
+  EyeOff,
   FileSpreadsheet,
   FileText,
   LogOut,
@@ -73,6 +75,8 @@ export function ErpToolbar({
   onExit,
   onSave,
   onCancel,
+  showInactive,
+  onShowInactiveChange,
 }: {
   mode: ErpMode;
   hasActiveRow: boolean;
@@ -94,6 +98,9 @@ export function ErpToolbar({
   onExit: () => void;
   onSave: () => void;
   onCancel: () => void;
+  /** 列表 filter：是否含已停用列。提供時顯示「顯示停用」toggle 按鈕（位於選取按鈕前）；未提供則隱藏。 */
+  showInactive?: boolean;
+  onShowInactiveChange?: (next: boolean) => void;
 }) {
   // 選中啟用列 → 按鈕為「停用」(danger / PowerOff)；選中停用列 → 「啟用」(default / Power)
   const rowIsActive = selectedRowActive ?? true;
@@ -165,6 +172,15 @@ export function ErpToolbar({
       <ExportMenuButton onSelect={onExport} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
       <div className="flex-1" />
+      {onShowInactiveChange ? (
+        <ToolbarButton
+          icon={showInactive ? Eye : EyeOff}
+          label="顯示停用"
+          enabled
+          onClick={() => onShowInactiveChange(!showInactive)}
+          pressed={showInactive}
+        />
+      ) : null}
       <ToolbarButton icon={CheckSquare} label="選取" enabled onClick={onToggleSelection} />
       <ToolbarButton icon={LogOut} letter="Q" label="結束" enabled onClick={onExit} />
     </div>
@@ -213,6 +229,7 @@ export function ToolbarButton({
   variant = 'default',
   onClick,
   accent,
+  pressed,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   letter?: string;
@@ -220,20 +237,26 @@ export function ToolbarButton({
   enabled: boolean;
   variant?: 'default' | 'danger';
   onClick?: () => void;
+  /** call-to-action 變體（如 S 存檔、完成選取）— 永久琥珀填色 */
   accent?: boolean;
+  /** toggle 已開啟（如顯示停用）— 琥珀邊框 + 琥珀字 + 微淡底（與 accent 視覺接近但語意是 on/off 狀態）*/
+  pressed?: boolean;
 }) {
+  // pressed 與 accent 視覺接近（皆琥珀調），語意上 pressed = toggle on
+  const isAmberActive = enabled && (accent || pressed);
   return (
     <button
       type="button"
       disabled={!enabled}
       onClick={onClick}
       title={letter ? `${label}（${letter}）` : label}
+      aria-pressed={pressed}
       className={cn(
         'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
         enabled
           ? variant === 'danger'
             ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
-            : accent
+            : isAmberActive
               ? 'border-[#E8A020]/40 bg-[#E8A020]/12 text-[#E8A020] hover:bg-[#E8A020]/20'
               : 'border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]'
           : 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]',
@@ -242,7 +265,7 @@ export function ToolbarButton({
       <Icon className="size-3" />
       <span className="hidden sm:inline">
         {letter ? (
-          <span className={cn('mr-0.5 font-mono', enabled && variant !== 'danger' && !accent && 'text-[#E8A020]')}>{letter}</span>
+          <span className={cn('mr-0.5 font-mono', enabled && variant !== 'danger' && !isAmberActive && 'text-[#E8A020]')}>{letter}</span>
         ) : null}
         {label}
       </span>
