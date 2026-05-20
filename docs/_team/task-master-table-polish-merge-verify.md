@@ -333,3 +333,67 @@ v1.2（本軌、v1.5.3 預備）：表格內部 UX（表頭 nowrap / Toggle / to
 - Crown 業界差異化載體 v1.5.3 beta 預備
 - 業界改革候選累積 v1.7 預備（10 候選累積、本軌 #22 v1.2 落地）⭐⭐⭐
 - Hub（v1.0 v1.1）+ 表格（v1.2）= NEXORA 使用者面對 UX 完整對齊
+
+---
+
+## §10 補揭露：commit 7 BaseMasterMobileDock（Crown 補揭露指令）
+
+對齊 Crown「補揭露上輪指令」訊息、polish 軌一站式收尾、加 commit 7：
+
+### 10.1 真相揭露
+
+```
+觸發：Crown 真實業務測試後揭露手機 icon bar 範式
+拍板：Bottom Dock + 左右滑動 swipe scroll（對齊既有 hub MobileSectionTabs）
+範圍：主檔子頁（BaseMasterSubPageLayout 範圍下 21 主檔）
+```
+
+### 10.2 落地檔案
+
+```
+新檔：apps/nx-ui/src/features/base/shell/BaseMasterMobileDock.tsx（103 行）
+改檔：apps/nx-ui/src/features/base/shell/BaseMasterPageHeader.tsx（QuickNav 手機隱藏）
+改檔：apps/nx-ui/src/features/base/shell/BaseMasterSubPageLayout.tsx（加 dock + pb-16）
+```
+
+### 10.3 設計範式對齊（一致性紀律）
+
+| 元素 | MobileSectionTabs（hub）| BaseMasterMobileDock（子頁）|
+|------|------------------------|----------------------------|
+| 位置 | fixed bottom-0 | fixed bottom-0 |
+| 高度 | 56px + safe-area | 56px + safe-area |
+| 背景 | bg-black/95 backdrop-blur | bg-black/95 backdrop-blur |
+| 高亮 | text-[#E8A020] + 底部橫槓 | text-[#E8A020] + 底部橫槓 |
+| 排列 | flex-1 平均（6 section）| overflow-x-auto swipe（25 主檔）|
+| 額外 | – | 當前主檔自動 scrollTo 中央（smooth）|
+
+### 10.4 vs Crown 拒絕的範式 A/B/C
+
+| 範式 | Crown 拒絕理由 |
+|------|----------------|
+| A 抽屜 | 需點 trigger 才出、業務員 daily 慢 |
+| B 漢堡 | 3 條線 icon、不顯眼 |
+| C 其他 | 未對齊既有設計系統 |
+| **D Bottom Dock** | ✅ **業界 iOS Dock / Android Bottom Nav 範式 + 對齊既有 hub** |
+
+### 10.5 業界改革累積真相
+
+```
+#17 手機介面 = NEXORA 亮點 ← 累積中（本 commit 主檔子頁 dock 落地）
+#22 v1.2 表格內部 UX ← 完整 closure（含本補揭露）
+```
+
+### 10.6 ahead 8 commit 真實清單更新
+
+```
+（merge-verify 本檔已含 §10 補揭露）
+15c5530 commit 7：BaseMasterMobileDock 手機 dock + swipe scroll
+2a1340b commit 6（原收尾）：merge-verify 9 段揭露
+0aebec5 commit 5：backend nx01-user-role module
+922df91 commit 4：user 主檔表格 reference
+a657736 commit 3：IncludeInactiveToggle 共用元件
+8bcf7bb commit 2：audit person 顯示優化 + tooltip
+e4172d5 commit 1：DropdownMenu z-index 50 → 60
+```
+
+**最終 vs main**：9 檔、+627 / -38 行（含 §10 補揭露）、6 次 typecheck 連續 OK。
