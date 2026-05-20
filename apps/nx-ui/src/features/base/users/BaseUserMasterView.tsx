@@ -50,10 +50,8 @@ import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRe
 import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
-import { IncludeInactiveToggle } from '@/features/base/shell/IncludeInactiveToggle';
-import { FilterBar } from '@/shared/ui/filter-bar/FilterBar';
-import { applyFilterRulesToRows } from '@/shared/ui/filter-bar/apply';
-import type { FilterFieldDef, FilterRule } from '@/shared/ui/filter-bar/types';
+// 業界改革 #24 v1 設計回退：Crown 真實業務測試後拍板「拿掉所有族群篩選、用關鍵字就好」
+// IncludeInactiveToggle / FilterBar / apply / types shared 元件保留供未來軌可能重用
 import {
   assignUserRole,
   listUserRoles,
@@ -87,8 +85,6 @@ type ListColKey =
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
-type ActiveFilter = 'all' | 'active' | 'inactive';
-
 type EditableDraft = {
   username: string;
   displayName: string;
@@ -99,19 +95,6 @@ type EditableDraft = {
   newPassword: string;
   primaryRoleId: string;
 };
-
-/**
- * 業界改革 #24 v1：user 主檔可 filter 欄位定義（client-side filter、MVP）
- * - text：信箱 / 電話 / 隸屬倉庫（contains / not-contains / equals / not-equals / is-empty / is-not-empty）
- * - boolean：啟用狀態（equals true/false、與 IncludeInactiveToggle 並列）
- * - 後續軌（V2）：date 範圍（最後一次登入 / 建立時間）、職務 multi-select、backend API params 整合
- */
-const USER_FILTER_FIELDS: FilterFieldDef[] = [
-  { key: 'email', label: '信箱', type: 'text' },
-  { key: 'phone', label: '電話', type: 'text' },
-  { key: 'warehouseLabel', label: '隸屬倉庫', type: 'text' },
-  { key: 'jobTitle', label: '職務', type: 'text' },
-];
 
 /** 每頁筆數選項（業界改革 #22 v1.2、Crown 拍板 10/20/50/100、預設 20） */
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
@@ -295,8 +278,8 @@ export function BaseUserMasterView() {
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   /** 空集合＝不按角色篩選；有值時後端以 nx01_user_role（已生效指派）OR 篩選 */
-  const [jobRoleIdPicks, setJobRoleIdPicks] = useState<Set<string>>(() => new Set());
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
+  // 業界改革 #24 v1 設計回退：移除 jobRoleIdPicks / activeFilter / filterRules state
+  // backend listUsers 寫死 isActive=true（預設只列啟用、業務 daily 場景）、primaryRoleIds 不傳
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'username', dir: 'asc' });
   /** 列表鍵盤／單擊選取列（變色），開啟明細另用 selectedId */
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
@@ -308,8 +291,6 @@ export function BaseUserMasterView() {
   const [listPage, setListPage] = useState(1);
   // 業界改革 #22 v1.2：每頁筆數（10/20/50/100、預設 20、本地 state、後續軌可改為 localStorage 持久化）
   const [pageSize, setPageSize] = useState<PageSize>(DEFAULT_PAGE_SIZE);
-  // 業界改革 #24 v1：FilterBar rules state（client-side filter、套用於 sortedRows 後）
-  const [filterRules, setFilterRules] = useState<FilterRule[]>([]);
   const [listTotal, setListTotal] = useState(0);
   const [detailUser, setDetailUser] = useState<BaseUserRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -382,7 +363,7 @@ export function BaseUserMasterView() {
 
   useEffect(() => {
     setListPage(1);
-  }, [debouncedKeyword, activeFilter, jobRoleIdPicks]);
+  }, [debouncedKeyword]);
 
   useEffect(() => {
     let alive = true;
@@ -390,14 +371,11 @@ export function BaseUserMasterView() {
     setError(null);
     void (async () => {
       try {
-        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
-        const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
         const res = await listUsers({
           q: debouncedKeyword || undefined,
           page: listPage,
           pageSize,
-          isActive: isAct,
-          primaryRoleIds: pr,
+          isActive: true,
         });
         if (!alive) return;
         setListTotal(res.total);
@@ -414,7 +392,7 @@ export function BaseUserMasterView() {
     return () => {
       alive = false;
     };
-  }, [listPage, debouncedKeyword, activeFilter, jobRoleIdPicks]);
+  }, [listPage, debouncedKeyword, pageSize]);
 
   const refreshAll = useCallback(async () => {
     await reloadRoles();
@@ -422,14 +400,11 @@ export function BaseUserMasterView() {
     setLoading(true);
     setError(null);
     try {
-      const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
-      const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
       const res = await listUsers({
         q: debouncedKeyword || undefined,
         page: 1,
         pageSize,
-        isActive: isAct,
-        primaryRoleIds: pr,
+        isActive: true,
       });
       setListTotal(res.total);
       setUsers(res.items.map(dtoToRow));
@@ -440,7 +415,7 @@ export function BaseUserMasterView() {
     } finally {
       setLoading(false);
     }
-  }, [reloadRoles, debouncedKeyword, activeFilter, jobRoleIdPicks]);
+  }, [reloadRoles, debouncedKeyword, pageSize]);
 
   useEffect(() => {
     if (!colPickerOpen) return;
@@ -463,11 +438,6 @@ export function BaseUserMasterView() {
       setDraft((d) => ({ ...d, primaryRoleId: roles[0]!.id }));
     }
   }, [roles, creating, draft.primaryRoleId]);
-
-  const roleFilterOptions = useMemo(
-    () => [...roles].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')),
-    [roles],
-  );
 
   const toggleSort = (key: SortKey) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
@@ -516,9 +486,8 @@ export function BaseUserMasterView() {
           return 0;
       }
     });
-    // 業界改革 #24 v1：sort 後套用 FilterBar rules（client-side filter、MVP）
-    return applyFilterRulesToRows(out, filterRules);
-  }, [users, sort, filterRules]);
+    return out;
+  }, [users, sort]);
 
   const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const safeListPage = Math.max(1, Math.min(listPage, totalPages));
@@ -895,14 +864,11 @@ export function BaseUserMasterView() {
           }
         }
         setListPage(1);
-        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
-        const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
         const refreshed = await listUsers({
           page: 1,
           pageSize,
           q: debouncedKeyword || undefined,
-          isActive: isAct,
-          primaryRoleIds: pr,
+          isActive: true,
         });
         setListTotal(refreshed.total);
         setUsers(refreshed.items.map(dtoToRow));
@@ -1040,18 +1006,7 @@ export function BaseUserMasterView() {
   };
 
   const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
-  const jobFilterSummary = useMemo(() => {
-    if (jobRoleIdPicks.size === 0) return '職務：全部';
-    if (jobRoleIdPicks.size === 1) {
-      const id = [...jobRoleIdPicks][0]!;
-      const name = roles.find((r) => r.id === id)?.name ?? id;
-      return `職務：${name}`;
-    }
-    return `職務：已選 ${jobRoleIdPicks.size} 項`;
-  }, [jobRoleIdPicks, roles]);
-
-  const activeFilterSummary =
-    activeFilter === 'all' ? '狀態：全部' : activeFilter === 'active' ? '狀態：啟用' : '狀態：停用';
+  // 業界改革 #24 v1 設計回退：jobFilterSummary / activeFilterSummary 已 dead、移除
 
   return (
     <div className="relative flex flex-col gap-4">
@@ -1209,75 +1164,13 @@ export function BaseUserMasterView() {
                 className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
               />
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-[min(100%,11rem)] shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-44 sm:w-auto sm:max-w-[14rem]"
-                    aria-label="依職務篩選（可複選）"
-                  >
-                    <span className="truncate">{jobFilterSummary}</span>
-                    <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="max-h-72 w-56 overflow-y-auto"
-                  onCloseAutoFocus={(e) => {
-                    e.preventDefault();
-                    focusListKeyboardRegion();
-                  }}
-                >
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">依職務篩選（可複選）</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    className="text-xs"
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setJobRoleIdPicks(new Set());
-                    }}
-                  >
-                    清除篩選（顯示全部）
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {roleFilterOptions.length === 0 ? (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">尚無角色資料</div>
-                  ) : (
-                    roleFilterOptions.map((r) => (
-                      <DropdownMenuCheckboxItem
-                        key={r.id}
-                        checked={jobRoleIdPicks.has(r.id)}
-                        onCheckedChange={(checked) => {
-                          setJobRoleIdPicks((prev) => {
-                            const next = new Set(prev);
-                            if (checked) next.add(r.id);
-                            else next.delete(r.id);
-                            return next;
-                          });
-                        }}
-                        onSelect={(e) => e.preventDefault()}
-                        className="text-sm"
-                      >
-                        {r.name}
-                      </DropdownMenuCheckboxItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* 業界改革 #22 v1.2：Dropdown 3 選 1 改 Toggle「包含已停用」（commit 3 IncludeInactiveToggle）*/}
-              <IncludeInactiveToggle
-                value={activeFilter === 'all'}
-                onChange={(next) => setActiveFilter(next ? 'all' : 'active')}
-              />
-
-              {/* 業界改革 #24 v1：FilterBar 彈性篩選（chip + add popover、client-side filter）*/}
-              <FilterBar
-                fields={USER_FILTER_FIELDS}
-                rules={filterRules}
-                onChange={setFilterRules}
-              />
+              {/*
+                業界改革 #24 v1 設計回退：Crown 真實業務測試揭露多 filter 體驗不佳
+                → 拿掉所有族群篩選（職務 dropdown / IncludeInactiveToggle / FilterBar）
+                → 只留 keyword search（business muscle memory：簡單即美）
+                shared 元件保留（IncludeInactiveToggle / FilterBar）供未來軌可能重用
+                預設只列啟用（保業務 daily 場景、避免雜訊）
+              */}
 
               <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
                 {loading ? '載入中…' : `共 ${listTotal} 筆 · 本頁 ${sortedRows.length} 筆`}
