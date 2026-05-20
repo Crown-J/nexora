@@ -1208,24 +1208,15 @@ function UsersTable({
   );
 }
 
-type DetailSectionId = 'basic' | 'roles' | 'warehouses';
-
-type DetailNavItem = {
-  id: DetailSectionId;
-  label: string;
-  badge?: number;
-};
-
-/** 詳細資料：左側 sticky 索引 + 滿版滾動內容（commit 47 + 47.1 模式語意修正）
+/** 詳細資料：滿版單欄滾動（commit 47.3 — 拿掉左側索引）
  *
  * 設計：
- * - 左側索引列：點擊跳對應 anchor，scroll 時自動高亮（IntersectionObserver）
- * - 右側滿版內容：各 section 用 <section data-section-id> 標記，無 card 邊框，章節間細分隔線
+ * - 滿版單欄：所有 section 直接滾動陳列，章節間細分隔線
+ * - 無 card 邊框、無左側索引（小規模關聯表時索引多餘；零件主檔等大規模再考慮加回）
  * - 模式語意：
  *   瀏覽模式 = read-only：form 不可改、不顯示「新增職務 / 新增倉庫據點」按鈕
- *   編輯模式 = write：form 變 input、顯示新增按鈕（編輯模式才能改寫資料）
- *   索引列在兩種模式都自由切換（純 navigation）
- * - 擴充：新增關聯表只需在 navItems 陣列加一項 + 多寫一個 <section>，索引列無限延伸
+ *   編輯模式 = write：form 變 input、顯示新增按鈕
+ * - 擴充：新增關聯表只需多寫一個 <section>；若某主檔關聯表 ≥ 6+ 再評估加回索引列
  */
 function UserDetailView({
   user,
@@ -1242,7 +1233,6 @@ function UserDetailView({
   onAddRole: () => void;
   onAddWarehouse: () => void;
 }) {
-  const [activeSection, setActiveSection] = useState<DetailSectionId>('basic');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
@@ -1250,50 +1240,15 @@ function UserDetailView({
     onEditChange({ ...editForm, [key]: value });
   };
 
-  // 切換使用者時 reset + 回頂
+  // 切換使用者時 scroll 回頂
   useEffect(() => {
-    setActiveSection('basic');
     scrollRef.current?.scrollTo({ top: 0 });
   }, [user.id]);
 
-  // IntersectionObserver：scroll 時自動高亮當前 section
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length === 0) return;
-        // 取最靠頂部的 section
-        const topMost = visible.reduce((a, b) =>
-          a.boundingClientRect.top < b.boundingClientRect.top ? a : b,
-        );
-        const id = topMost.target.getAttribute('data-section-id');
-        if (id) setActiveSection(id as DetailSectionId);
-      },
-      { root: container, rootMargin: '0px 0px -60% 0px', threshold: 0 },
-    );
-    container.querySelectorAll<HTMLElement>('section[data-section-id]').forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
-  }, [user.id]);
-
-  const handleAnchor = (id: DetailSectionId) => {
-    const el = scrollRef.current?.querySelector<HTMLElement>(`section[data-section-id="${id}"]`);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const navItems: DetailNavItem[] = [
-    { id: 'basic', label: '基本資料' },
-    { id: 'roles', label: '擔任職務', badge: user.roles.length },
-    { id: 'warehouses', label: '隸屬倉庫', badge: user.warehouses.length },
-  ];
-
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden bg-[#0A0A0C]">
-      <DetailNav items={navItems} active={activeSection} onSelect={handleAnchor} />
-      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll">
+    <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll bg-[#0A0A0C]">
         {/* 基本資料 */}
-        <section data-section-id="basic" className="border-b border-[#1A1A1F] px-8 py-6 scroll-mt-2">
+        <section className="border-b border-[#1A1A1F] px-8 py-6">
           <SectionHeader title="基本資料" subtitle="User Profile" />
           <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
             <FormField label="帳號" value={user.username} mono />
@@ -1348,7 +1303,7 @@ function UserDetailView({
         </section>
 
         {/* 擔任職務 */}
-        <section data-section-id="roles" className="border-b border-[#1A1A1F] px-8 py-6 scroll-mt-2">
+        <section className="border-b border-[#1A1A1F] px-8 py-6">
           <SectionHeader
             title="擔任職務"
             count={user.roles.length}
@@ -1375,7 +1330,7 @@ function UserDetailView({
         </section>
 
         {/* 隸屬倉庫 */}
-        <section data-section-id="warehouses" className="px-8 py-6 scroll-mt-2">
+        <section className="px-8 py-6">
           <SectionHeader
             title="隸屬倉庫"
             count={user.warehouses.length}
@@ -1399,56 +1354,7 @@ function UserDetailView({
             )}
           </div>
         </section>
-      </div>
     </div>
-  );
-}
-
-function DetailNav({
-  items,
-  active,
-  onSelect,
-}: {
-  items: DetailNavItem[];
-  active: DetailSectionId;
-  onSelect: (id: DetailSectionId) => void;
-}) {
-  return (
-    <aside className="flex w-40 shrink-0 flex-col border-r border-[#1A1A1F] p-2">
-      <div className="space-y-0.5">
-        {items.map((item) => {
-          const isActive = active === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item.id)}
-              title={item.label}
-              style={isActive ? { boxShadow: 'inset 2px 0 0 0 #E8A020' } : undefined}
-              className={cn(
-                'flex w-full items-center justify-between rounded-md px-3 py-1.5 text-xs transition-colors',
-                'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40',
-                isActive
-                  ? 'bg-[#E8A020]/8 font-semibold text-[#E8A020]'
-                  : 'text-[#888892] hover:bg-[#131316] hover:text-[#F0F0F3]',
-              )}
-            >
-              <span>{item.label}</span>
-              {item.badge != null ? (
-                <span
-                  className={cn(
-                    'font-mono text-[10px] tabular-nums',
-                    isActive ? 'text-[#E8A020]' : 'text-[#5A5A60]',
-                  )}
-                >
-                  {item.badge}
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-    </aside>
   );
 }
 
