@@ -338,10 +338,18 @@ export function NavPlanetMenu() {
     menuLevelRef.current = menuLevel;
   }, [menuLevel]);
 
-  // 開選單時重置到 root level（業界改革 #26：每次開啟回到模組層）
+  // 業界改革 #26 v1：開啟時依 pathname 決定 initial level
+  // - 在主檔頁面（/dashboard/base 或 /dashboard/base/*）→ base level（直接顯示 25 主檔）
+  // - 其他頁面 → root level（6 模組）
+  // 關閉時 reset root（下次他頁開啟回模組層）
   useEffect(() => {
-    if (!open) setMenuLevel('root');
-  }, [open]);
+    if (!open) {
+      setMenuLevel('root');
+      return;
+    }
+    const isBaseContext = pathname === '/dashboard/base' || pathname.startsWith('/dashboard/base/');
+    setMenuLevel(isBaseContext ? 'base' : 'root');
+  }, [open, pathname]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -379,6 +387,12 @@ export function NavPlanetMenu() {
         return;
       }
       if (letter === 'b' && menuLevelRef.current === 'base') {
+        e.preventDefault();
+        setMenuLevel('root');
+        return;
+      }
+      // 業界改革 #26 v1：'z' 鍵在 base level 返回 root（Crown 拍板 contextual 返回鍵）
+      if (letter === 'z' && menuLevelRef.current === 'base') {
         e.preventDefault();
         setMenuLevel('root');
         return;
@@ -556,7 +570,7 @@ export function NavPlanetMenu() {
             </div>
             <DropdownMenuSeparator className="bg-border/60" />
             <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-              按 B 或 Esc 返回模組
+              ↑↓ 選擇 · Enter 進入 · Z / B / Esc 返回模組
             </p>
           </>
         )}
