@@ -579,3 +579,122 @@ TASK-USER-PREF-PAGESIZE（P3、localStorage 持久化 pageSize）：
 ```
 
 ⭐ Crown 戰略「桌面表格 Google 試算表範式 + 客戶友善欄寬 + 自選每頁筆數」完整對齊。
+
+---
+
+## §13 補揭露：commit 17-21 col-picker / FilterBar / 設計回退（lessons learned）
+
+對齊 Crown 連續真實業務測試後 4 次 iterate + 1 次設計回退：
+
+### 13.1 commit 17 col-picker Portal 修
+
+```
+Root cause：與 commit 14 同源（ancestor backdrop-filter 影響 fixed positioning）
+修法：createPortal + DOMRect 算 trigger position（與 NexoraBottomDock 同範式）
+影響：欄位 panel 永遠在 button 正下方 8px 貼右
+```
+
+### 13.2 commit 18-20 FilterBar 業界改革 #24 v1 MVP
+
+```
+Crown 拍板：B Filter Bar 範式 + MVP user reference + 繼續 polish 軌
+
+落地：
+- types.ts（145 行）：4 field type / 8 operator / FilterRule model
+- FilterBar.tsx（499 行）：受控 + chip + Portal popover 3-step flow
+- apply.ts（80 行）：client-side filter helper
+- BaseUserMasterView 整合（+30 行）：USER_FILTER_FIELDS + filterRules state
+
+範式對齊：Linear / Notion / GitHub Filter Bar
+設計範式：Portal + fixed position（commit 14/17 一致）
+```
+
+### 13.3 commit 21 業界改革 #24 v1 設計回退 ⚠️
+
+```
+Crown 真實業務測試揭露：「不太好用、拿掉所有族群篩選、用關鍵字就好」
+
+執行（淨減 127 行）：
+- 移除 user view 所有 filter UI：
+  * 職務 dropdown（commit 4 既有）
+  * IncludeInactiveToggle（commit 3 / commit 4）
+  * FilterBar（commit 18-20 新建）
+- 移除 state：activeFilter / jobRoleIdPicks / filterRules
+- backend listUsers 寫死 isActive=true（4 處）
+- 移除 dead useMemo / const
+
+shared 元件保留（避免推翻工作）：
+- IncludeInactiveToggle.tsx
+- filter-bar/types.ts
+- filter-bar/FilterBar.tsx
+- filter-bar/apply.ts
+→ 未來軌（V2 / 業務驗證後）可重用
+```
+
+### 13.4 Lessons learned 揭露（Q-RHYTHM-2 紀律修正）
+
+```
+1. 業界範式 ≠ Crown 業務 muscle memory
+   - Linear / Notion / GitHub Filter Bar 業界主流
+   - 但 NEXORA 客戶（亞羅員工年齡偏大）muscle memory 是「keyword search」
+   - Crown「客戶友善 = 容易上手」哲學 > 業界主流範式
+
+2. MVP 落地後即時 Crown 真實測試 = 黃金驗證
+   - commit 18-20 用 ~700 行落地 FilterBar
+   - Crown 試用 1 次即拍板撤回
+   - Q-RHYTHM-2 紀律真相：「MVP 快速落地 + 業務 muscle memory 驗證」優於「規格完美 + 拖延落地」
+
+3. shared 元件保留供未來軌
+   - 設計回退時不刪 shared 元件（避免推翻工作）
+   - 業界改革 #24 v1 撤回 ≠ V2 不會做
+   - 後續軌（業務驗證後 / 進階用戶需求）可重用
+
+4. Crown 業務 muscle memory 拍板權威
+   - 紀律邊界：Hank 揭露範式 + 推薦、Crown 業務拍板
+   - 試用後拍板撤回 = 健康 iterate、非紀律失敗
+```
+
+### 13.5 ahead 21 commit 真實清單最終
+
+```
+65f7fd8 commit 21：移除所有族群篩選、只留 keyword（業界改革 #24 v1 設計回退）
+054ac34 commit 20：FilterBar apply.ts + user 主檔整合
+93c5172 commit 19：FilterBar component shared
+5e1bce3 commit 18：FilterBar types + helper
+0771f6b commit 17（fix）：col-picker Portal
+2545e1c commit 16：merge-verify §12
+03a7d54 commit 15：Excel-like + pageSize
+44c6c97 commit 14（fix）：Portal dock
+51fc265 commit 13（fix）：swipe 6
+2a18189 commit 12：merge-verify §11
+116162c commit 11：refactor 3 dock + 首頁 5→6
+ae6c720 commit 10：NexoraBottomDock shared
+16e230c commit 9（fix）：Dock 掛點
+4d177ac commit 8：merge-verify §10
+15c5530 commit 7：BaseMasterMobileDock
+2a1340b commit 6：merge-verify 9 段
+0aebec5 commit 5：backend user-role
+922df91 commit 4：user 表格 reference
+a657736 commit 3：IncludeInactiveToggle
+8bcf7bb commit 2：audit person + tooltip
+e4172d5 commit 1：Dropdown z-index 60
+```
+
+### 13.6 業界改革累積真相
+
+```
+業界改革 #22 v1.2：表格內部 UX（完整落地）⭐⭐⭐
+業界改革 #17：手機介面 = NEXORA 亮點（Bottom Dock 統一）⭐⭐
+業界改革 #24 v1：Filter Bar（MVP 落地後設計回退、shared 元件保留供 V2）⚠️
+```
+
+### 13.7 後續軌 backlog 補加
+
+```
+TASK-MASTER-TABLE-ROLLOUT-EXCEL（P1）：20 view rollout commit 15 範式
+TASK-USER-PREF-PAGESIZE（P3）：localStorage 持久化
+TASK-FILTER-BUILDER-V2（P3、業務驗證後）：Saved Views + backend API filter
+TASK-USER-REOPEN-INACTIVE（P2）：補「找停用 user」入口（current isActive 寫死 true）
+```
+
+⭐ Crown 真實業務 muscle memory 拍板權威、Hank 設計回退 = 健康 iterate。
