@@ -489,3 +489,93 @@ e4172d5 commit 1：DropdownMenu z-index 50 → 60
 **最終 vs main**：12 檔、+664 / -210 行（淨 +454 行）、9 次 typecheck 連續 OK。
 
 ⭐ 業界改革 #22 v1.2 + #17 完整收尾、Crown 戰略「設計系統一致性」紀律對齊。
+
+---
+
+## §12 補揭露：commit 13 + 14 + 15 表格 Excel-like 範式（Crown 真實業務 iterate）
+
+對齊 Crown 連續揭露 3 個 dock / table 議題、polish 軌持續 iterate：
+
+### 12.1 commit 13 swipe 固定 visible 6（Crown 截圖「不是一列六個」）
+
+```
+Root cause：min-w-[64px] / 414px viewport = 6.47 個 → visible 6+1 截斷
+修法：w-[calc(100vw/6)] shrink-0 → 任何 viewport 都精準 6 完整
+```
+
+### 12.2 commit 14 React Portal 解 backdrop-filter ancestor（Crown 截圖「沒貼底部」）
+
+```
+Root cause（CSS spec 真相）：
+  ancestor 含 backdrop-filter / transform / filter / will-change / contain 屬性
+  → position: fixed 的 containing block 從 viewport 改為該 ancestor
+  → fixed bottom-0 不再相對 viewport、看起來「沒貼底」
+
+NEXORA globals.css 多處 backdrop-filter：
+  .nx-home-topbar          blur(10px)
+  .glass-card              blur(12px)  ← BaseUserMasterView 多處用
+  .glass-card.nx-glass-raised  blur(12px)
+
+修法：createPortal(dock, document.body)
+  - SSR：mounted=false 不渲染（避免 hydration mismatch）
+  - CSR：dock 永遠在 body 末端、無 ancestor 影響、永遠相對 viewport
+
+業界範式：Radix UI Dialog/Tooltip/DropdownMenu 全用 Portal 同樣理由。
+```
+
+### 12.3 commit 15 user 表格 Excel-like + pageSize selector
+
+```
+Crown 拍板：
+  - 桌面表格像 Google 試算表（網格線、欄位邊界清楚）
+  - 不要試算表的座標列（A B C / 1 2 3）
+  - 信箱 / 電話 / 隸屬倉庫塞不下 → 加欄位 min-width
+  - 超過螢幕用滾輪滑動（既有 DataTableShell 已支援）
+  - 每頁筆數選擇器（10/20/50/100、預設 20）
+
+落地：
+  1. PAGE_SIZE_OPTIONS = [10, 20, 50, 100]、DEFAULT_PAGE_SIZE = 20
+  2. SERVER_PAGE_SIZE=50 → pageSize state（4 處替換、setPageSize 同時 setListPage(1)）
+  3. COL_WIDTH_CLASS map：12 欄各定 min-w
+     * 信箱 220 / 電話 140 / 倉庫 180（Crown 揭露塞不下）
+     * 其餘按內容類型給寬
+  4. thead <th> 加 border-r border-b border-border/30
+  5. tbody <td> 13 處加 border-r border-border/30（replace_all 'px-2 py-2.5'）
+  6. UI 加 DropdownMenu「每頁 N 筆」selector
+```
+
+### 12.4 ahead 15 commit 真實清單最終
+
+```
+03a7d54 commit 15：user 表格 Excel-like + pageSize selector reference
+44c6c97 commit 14（fix）：React Portal 渲染解 backdrop-filter
+51fc265 commit 13（fix）：swipe 固定 visible 6
+2a18189 commit 12：merge-verify §11 補揭露
+116162c commit 11：refactor 3 dock + 首頁 5→6
+ae6c720 commit 10：NexoraBottomDock shared
+16e230c commit 9（fix）：Dock 掛點
+4d177ac commit 8：merge-verify §10
+15c5530 commit 7：BaseMasterMobileDock
+2a1340b commit 6：merge-verify 9 段
+0aebec5 commit 5：backend user-role
+922df91 commit 4：user 表格 reference
+a657736 commit 3：IncludeInactiveToggle
+8bcf7bb commit 2：audit person + tooltip
+e4172d5 commit 1：Dropdown z-index 60
+```
+
+### 12.5 後續軌 backlog 補加
+
+```
+TASK-MASTER-TABLE-ROLLOUT-EXCEL（P1、20 view rollout commit 15 範式）：
+  - 每 view 加 COL_WIDTH_CLASS map（按欄位類型）
+  - thead + tbody border-r 套用
+  - PageSize selector 整合
+  - 規模：20 view × 30-50 行 = 約 800 行
+
+TASK-USER-PREF-PAGESIZE（P3、localStorage 持久化 pageSize）：
+  - 抽 useUserPagePref hook
+  - sessionStorage / localStorage 範式
+```
+
+⭐ Crown 戰略「桌面表格 Google 試算表範式 + 客戶友善欄寬 + 自選每頁筆數」完整對齊。
