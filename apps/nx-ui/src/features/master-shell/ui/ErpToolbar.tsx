@@ -5,9 +5,12 @@
  * 舊 ERP 工具列範式（鋼鐵星球視覺 + Alt 快捷鍵）。
  *
  * 三分支：
- *  - browse（瀏覽）：分頁鈕 + A 新增 / E 更正 / F 查詢 / D 刪除 / 匯出 P / R 重新整理 / 選取 / Q 結束
+ *  - browse（瀏覽）：分頁鈕 + A 新增 / E 更正 / F 查詢 / D 停用 / 匯出 P / R 重新整理 / 選取 / Q 結束
  *  - edit（編輯）：S 存檔 / C 取消
- *  - selection（選取批次）：完成選取 / 批次啟用 / 批次停用 / 批次刪除
+ *  - selection（選取批次）：完成選取 / 批次啟用 / 批次停用
+ *
+ * NEXORA 系統設計：不能刪除資料（防止破壞已串接的關聯資料），「停用」為軟刪除（isActive=false）。
+ * onDelete prop / handleDelete 內部名稱保留 delete 為通用慣例，UI label 為「停用」。
  *
  * 子元件：
  *  - ToolbarButton（letter chip + icon + label + 三變體 default/danger/accent）
@@ -36,7 +39,6 @@ import {
   RefreshCcw,
   Save,
   Search,
-  Trash2,
   X,
 } from 'lucide-react';
 
@@ -100,8 +102,7 @@ export function ErpToolbar({
         </span>
         <div className="flex-1" />
         <ToolbarButton icon={Power} label="批次啟用" enabled={hasChecked} />
-        <ToolbarButton icon={PowerOff} label="批次停用" enabled={hasChecked} />
-        <ToolbarButton icon={Trash2} label="批次刪除" enabled={hasChecked} variant="danger" />
+        <ToolbarButton icon={PowerOff} label="批次停用" enabled={hasChecked} variant="danger" />
       </div>
     );
   }
@@ -144,7 +145,7 @@ export function ErpToolbar({
       <ToolbarButton icon={Pencil} letter="E" label="更正" enabled={hasActiveRow} onClick={onEdit} />
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
       <ToolbarSeparator />
-      <ToolbarButton icon={Trash2} letter="D" label="刪除" enabled={hasActiveRow} variant="danger" onClick={onDelete} />
+      <ToolbarButton icon={PowerOff} letter="D" label="停用" enabled={hasActiveRow} variant="danger" onClick={onDelete} />
       <ExportMenuButton onSelect={onExport} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
       <div className="flex-1" />

@@ -601,7 +601,7 @@ export function UserMasterPage() {
 
   const handleDelete = useCallback(() => {
     if (!selectedUser) {
-      showToast('請先點選一筆資料才能刪除', 'danger');
+      showToast('請先點選一筆資料才能停用', 'danger');
       return;
     }
     const target = selectedUser;
@@ -847,7 +847,7 @@ export function UserMasterPage() {
                   ? `關鍵字「${debouncedKeyword}」過濾中`
                   : selectedId
                     ? '雙擊或 Alt+E 進入編輯'
-                    : '點選列以啟用更正/刪除'
+                    : '點選列以啟用更正/停用'
             }
             pageSize={pageSize}
             onPageSizeChange={handlePageSizeChange}
