@@ -838,6 +838,7 @@ function ErpTabBar({
         type="button"
         onClick={() => onChange('list')}
         disabled={editMode}
+        title={editMode ? '編輯模式無法切換' : '資料瀏覽（Alt+1）'}
         className={cn(
           'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
           tab === 'list'
@@ -854,6 +855,7 @@ function ErpTabBar({
         type="button"
         onClick={() => onChange('detail')}
         disabled={!hasSelected || editMode}
+        title={editMode ? '編輯模式無法切換' : '詳細資料（Alt+2）'}
         className={cn(
           'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
           tab === 'detail'
@@ -1635,7 +1637,21 @@ export default function LabUsersPage() {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       const k = e.key.toLowerCase();
-      if (selectionMode) return; // selectionMode 不接 Alt 快捷
+
+      // Alt+1 / Alt+2：Tab 切換（瀏覽 + 選取模式可用，編輯模式禁用）
+      if ((k === '1' || k === '2') && mode !== 'edit') {
+        e.preventDefault();
+        if (k === '1') {
+          setTab('list');
+        } else if (selectedUser) {
+          setTab('detail');
+        } else {
+          showToast('請先點選一筆資料才能切換至詳細資料', 'danger');
+        }
+        return;
+      }
+
+      if (selectionMode) return; // selectionMode 不接其他 Alt 快捷
       if (mode === 'edit') {
         if (k === 's') {
           e.preventDefault();
