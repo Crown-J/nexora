@@ -38,6 +38,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
   // 業界改革 #22 v1.2：主檔子頁 fillViewport 模式（表格內部 scroll、horizontal scroll bar sticky 底部）
   // 對齊 Crown 拍板「滾軸像試算表固定、右側滾輪在表格內而非整頁」
   const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
+  // 鋼鐵星球範式 bypass（commit 58）：使用者主檔自帶完整 MasterShell，跳過 DashboardShell chrome 避免雙 shell 疊加。
+  // 對齊 Crown 拍板「lab 範式取代 DashboardShell」。
+  // 之後其他主檔陸續推進時可在此擴充判斷集合。
+  const isMasterShellBypass = pathname === '/dashboard/base/users';
   // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
   const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
 
@@ -82,6 +86,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }
 
   const nameText = displayName || me?.username || '系統管理員';
+
+  // MasterShell bypass：跳過 DashboardShell chrome、直接 render children（children 自帶 MasterShell）
+  if (isMasterShellBypass) {
+    return <>{children}</>;
+  }
 
   return (
     <DashboardPaletteProvider>
