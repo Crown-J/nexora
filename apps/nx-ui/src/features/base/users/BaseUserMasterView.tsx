@@ -257,10 +257,24 @@ function dtoToRow(u: UserDto): BaseUserRow {
 }
 
 /** 僅在 Radix 下拉內容仍為 open 時讓選單独占鍵盤；關閉後不再擋，避免焦點留在觸發鈕時無法選列 */
+/**
+ * 業界改革 #26 v1：任何 Radix Popup（DropdownMenu / Dialog / Tooltip 等）開啟時、
+ * 表格全域 keyboard handler 應讓位、避免方向鍵 / Enter 雙處理（NavPlanetMenu 衝突修）。
+ *
+ * 涵蓋：
+ * - dropdown-menu-content / sub-content（NavPlanetMenu / pageSize selector 等）
+ * - role="menu" with data-state="open"（Radix 通用 portal）
+ * - role="dialog" with data-state="open"（Modal / Sheet）
+ */
 function isRadixJobFilterMenuOpen(): boolean {
   if (typeof document === 'undefined') return false;
   return !!document.querySelector(
-    '[data-slot="dropdown-menu-content"][data-state="open"], [data-slot="dropdown-menu-sub-content"][data-state="open"]',
+    [
+      '[data-slot="dropdown-menu-content"][data-state="open"]',
+      '[data-slot="dropdown-menu-sub-content"][data-state="open"]',
+      '[role="menu"][data-state="open"]',
+      '[role="dialog"][data-state="open"]',
+    ].join(', '),
   );
 }
 
@@ -585,6 +599,10 @@ export function BaseUserMasterView() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // 業界改革 #26：任何 Radix popup（NavPlanetMenu / pageSize 等）開啟時、表格全域 handler 讓位
+      // 包含 Escape：讓 Radix 自己處理 close menu（commit 30 Z/B 鍵切 root/base 同樣）
+      if (isRadixJobFilterMenuOpen()) return;
+
       if (e.key === 'Escape') {
         if (colPickerOpen) {
           e.preventDefault();
@@ -606,7 +624,6 @@ export function BaseUserMasterView() {
 
       if (colPickerOpen || panelOpen) return;
       if (isMasterListKeyboardBlocked(e.target, detailPanelRef.current, panelOpen)) return;
-      if (isRadixJobFilterMenuOpen()) return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
