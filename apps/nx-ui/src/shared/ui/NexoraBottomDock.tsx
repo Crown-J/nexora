@@ -18,7 +18,8 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 
@@ -58,6 +59,12 @@ export function NexoraBottomDock({
   const activeRef = useRef<HTMLAnchorElement | HTMLButtonElement | null>(null);
   const isSwipe = items.length > 6;
 
+  // React Portal 把 dock 渲染到 document.body 末端、徹底脫離 ancestor 影響、永遠相對 viewport。
+  // 避免 ancestor 鏈中 backdrop-filter / transform / filter 等屬性將 fixed containing block
+  // 從 viewport 改為該 ancestor（CSS spec 行為、導致 dock 沒貼底）。
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   // > 6 items：當前激活 item 自動 scroll 至可視中央（業界 SaaS 範式）
   useEffect(() => {
     if (!isSwipe) return;
@@ -71,7 +78,7 @@ export function NexoraBottomDock({
     wrap.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
   }, [isSwipe, items]);
 
-  return (
+  const dockContent = (
     <nav
       aria-label={ariaLabel}
       className={cn(
@@ -145,4 +152,9 @@ export function NexoraBottomDock({
       </div>
     </nav>
   );
+
+  // SSR：useEffect 尚未 mount、不渲染（避免 hydration mismatch）
+  // CSR：portal 到 document.body 末端、徹底脫離 ancestor backdrop-filter / transform 影響
+  if (!mounted) return null;
+  return createPortal(dockContent, document.body);
 }
