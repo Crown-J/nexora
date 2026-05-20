@@ -1414,16 +1414,7 @@ function DetailNav({
   onSelect: (id: DetailSectionId) => void;
 }) {
   return (
-    <aside
-      className="flex w-44 shrink-0 flex-col border-r border-[#2A2A30] p-3"
-      style={{
-        backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #08080A 100%)',
-        boxShadow: 'inset -1px 0 0 0 rgba(255,255,255,0.03)',
-      }}
-    >
-      <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
-        索引
-      </p>
+    <aside className="flex w-40 shrink-0 flex-col border-r border-[#1A1A1F] p-2">
       <div className="space-y-0.5">
         {items.map((item) => {
           const isActive = active === item.id;
@@ -1433,30 +1424,21 @@ function DetailNav({
               type="button"
               onClick={() => onSelect(item.id)}
               title={item.label}
-              style={
-                isActive
-                  ? {
-                      backgroundImage:
-                        'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.06) 60%, transparent 100%)',
-                      boxShadow:
-                        'inset 3px 0 0 0 #E8A020, inset 0 1px 0 0 rgba(232,160,32,0.15)',
-                    }
-                  : undefined
-              }
+              style={isActive ? { boxShadow: 'inset 2px 0 0 0 #E8A020' } : undefined}
               className={cn(
-                'flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-all',
-                'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50',
+                'flex w-full items-center justify-between rounded-md px-3 py-1.5 text-xs transition-colors',
+                'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40',
                 isActive
-                  ? 'font-semibold text-[#E8A020]'
-                  : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#F0F0F3]',
+                  ? 'bg-[#E8A020]/8 font-semibold text-[#E8A020]'
+                  : 'text-[#888892] hover:bg-[#131316] hover:text-[#F0F0F3]',
               )}
             >
               <span>{item.label}</span>
               {item.badge != null ? (
                 <span
                   className={cn(
-                    'rounded-md px-1.5 py-0.5 text-[10px] font-mono tabular-nums',
-                    isActive ? 'bg-[#E8A020]/15 text-[#E8A020]' : 'bg-[#1A1A1F] text-[#888892]',
+                    'font-mono text-[10px] tabular-nums',
+                    isActive ? 'text-[#E8A020]' : 'text-[#5A5A60]',
                   )}
                 >
                   {item.badge}
