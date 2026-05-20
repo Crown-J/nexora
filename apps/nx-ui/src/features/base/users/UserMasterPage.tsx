@@ -31,6 +31,8 @@ import {
   Handshake,
   Settings,
   Layers,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 import { listUsers, setUserActive, type UserDto } from '@/features/base/api/user';
@@ -196,17 +198,23 @@ function makeEditForm(user: UserRow): EditFormState {
 // 子元件
 // ──────────────────────────────────────────────────────────────
 
-/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定 */
+/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定
+ *  右側「顯示停用」toggle：預設關（只看啟用），開啟後 list filter 改為「全部」可看到停用使用者
+ */
 function ErpTabBar({
   tab,
   onChange,
   hasSelected,
   editMode,
+  showInactive,
+  onShowInactiveChange,
 }: {
   tab: 'list' | 'detail';
   onChange: (next: 'list' | 'detail') => void;
   hasSelected: boolean;
   editMode: boolean;
+  showInactive: boolean;
+  onShowInactiveChange: (next: boolean) => void;
 }) {
   return (
     <div
@@ -249,6 +257,21 @@ function ErpTabBar({
       >
         <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">2</span>
         詳細資料
+      </button>
+      <div className="flex-1" />
+      <button
+        type="button"
+        onClick={() => onShowInactiveChange(!showInactive)}
+        title={showInactive ? '目前顯示：全部（含已停用）' : '目前顯示：僅啟用'}
+        className={cn(
+          'inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-[11px] font-medium transition-colors',
+          showInactive
+            ? 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]'
+            : 'border-[#2A2A30] bg-[#1A1A1F] text-[#888892] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
+        )}
+      >
+        {showInactive ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
+        顯示停用
       </button>
     </div>
   );
@@ -515,16 +538,19 @@ export function UserMasterPage() {
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
 
+  // ── 顯示停用 toggle（Stage 1-B.4.5）─────────────────────────
+  const [showInactive, setShowInactive] = useState(false);
+
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
     return () => clearTimeout(t);
   }, [keyword]);
 
-  // keyword 改變時 reset 回第一頁
+  // keyword / showInactive 改變時 reset 回第一頁
   useEffect(() => {
     setPage(1);
-  }, [debouncedKeyword]);
+  }, [debouncedKeyword, showInactive]);
 
   // 載入使用者列表（仿 BaseUserMasterView 範式：alive flag + cleanup）
   useEffect(() => {
@@ -536,7 +562,8 @@ export function UserMasterPage() {
           q: debouncedKeyword || undefined,
           page,
           pageSize,
-          isActive: true,
+          // showInactive=true → 後端不過濾（含啟用+停用）；預設 isActive=true 只看啟用
+          isActive: showInactive ? undefined : true,
         });
         if (!alive) return;
         setUsers(res.items.map(dtoToUserRow));
@@ -554,7 +581,7 @@ export function UserMasterPage() {
     return () => {
       alive = false;
     };
-  }, [page, pageSize, reloadTick, debouncedKeyword, showToast]);
+  }, [page, pageSize, reloadTick, debouncedKeyword, showInactive, showToast]);
 
   const selectedUser = useMemo(
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
@@ -601,25 +628,30 @@ export function UserMasterPage() {
 
   const handleDelete = useCallback(() => {
     if (!selectedUser) {
-      showToast('請先點選一筆資料才能停用', 'danger');
+      showToast('請先點選一筆資料', 'danger');
       return;
     }
     const target = selectedUser;
+    const isCurrentlyActive = target.isActive;
+    const nextActive = !isCurrentlyActive;
+    const actionLabel = nextActive ? '啟用' : '停用';
     setConfirmState({
-      title: '確認停用',
-      message: `停用「${target.displayName}（${target.username}）」後將從列表移除（軟刪除，可由系統管理員重新啟用）。`,
-      confirmLabel: '停用',
-      variant: 'danger',
+      title: `確認${actionLabel}`,
+      message: isCurrentlyActive
+        ? `停用「${target.displayName}（${target.username}）」後將從預設列表移除（軟刪除，可由「顯示停用」開關重新看到並啟用）。`
+        : `啟用「${target.displayName}（${target.username}）」？啟用後該使用者可正常登入並使用系統。`,
+      confirmLabel: actionLabel,
+      variant: isCurrentlyActive ? 'danger' : 'default',
       onConfirm: () => {
         void (async () => {
           try {
-            await setUserActive(target.id, false);
-            showToast(`已停用 ${target.username}`, 'danger');
+            await setUserActive(target.id, nextActive);
+            showToast(`已${actionLabel} ${target.username}`, nextActive ? 'success' : 'danger');
             setSelectedId(null);
             setReloadTick((t) => t + 1);
           } catch (e) {
-            const msg = e instanceof Error ? e.message : '停用失敗';
-            showToast(`停用失敗：${msg}`, 'danger');
+            const msg = e instanceof Error ? e.message : `${actionLabel}失敗`;
+            showToast(`${actionLabel}失敗：${msg}`, 'danger');
           }
         })();
       },
@@ -789,6 +821,7 @@ export function UserMasterPage() {
         <ErpToolbar
           mode={mode}
           hasActiveRow={selectedUser !== null}
+          selectedRowActive={selectedUser?.isActive ?? true}
           selectionMode={selectionMode}
           onToggleSelection={handleToggleSelection}
           selectedCount={checked.size}
@@ -817,6 +850,8 @@ export function UserMasterPage() {
           onChange={setTab}
           hasSelected={selectedUser !== null}
           editMode={mode === 'edit'}
+          showInactive={showInactive}
+          onShowInactiveChange={setShowInactive}
         />
         {tab === 'list' ? (
           <MasterTable<UserRow>
@@ -844,10 +879,12 @@ export function UserMasterPage() {
               loading
                 ? '載入中…'
                 : debouncedKeyword
-                  ? `關鍵字「${debouncedKeyword}」過濾中`
-                  : selectedId
-                    ? '雙擊或 Alt+E 進入編輯'
-                    : '點選列以啟用更正/停用'
+                  ? `關鍵字「${debouncedKeyword}」過濾中${showInactive ? '（含停用）' : ''}`
+                  : showInactive
+                    ? '顯示全部（含停用）'
+                    : selectedId
+                      ? '雙擊或 Alt+E 進入編輯'
+                      : '點選列以啟用更正/停用'
             }
             pageSize={pageSize}
             onPageSizeChange={handlePageSizeChange}

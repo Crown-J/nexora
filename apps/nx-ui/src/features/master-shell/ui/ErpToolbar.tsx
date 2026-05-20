@@ -57,6 +57,7 @@ export type ExportFormat = 'csv' | 'pdf' | 'print';
 export function ErpToolbar({
   mode,
   hasActiveRow,
+  selectedRowActive,
   selectionMode,
   onToggleSelection,
   selectedCount,
@@ -75,6 +76,9 @@ export function ErpToolbar({
 }: {
   mode: ErpMode;
   hasActiveRow: boolean;
+  /** 當前選列的 isActive 狀態。true → D 按鈕為「停用」（danger）；false → 「啟用」（default）。未指定時預設為 true。
+   *  NEXORA 軟刪除設計：選中已停用列時 D 改成「啟用」，方便重新啟用。 */
+  selectedRowActive?: boolean;
   selectionMode: boolean;
   onToggleSelection: () => void;
   selectedCount: number;
@@ -91,6 +95,11 @@ export function ErpToolbar({
   onSave: () => void;
   onCancel: () => void;
 }) {
+  // 選中啟用列 → 按鈕為「停用」(danger / PowerOff)；選中停用列 → 「啟用」(default / Power)
+  const rowIsActive = selectedRowActive ?? true;
+  const disableButtonLabel = rowIsActive ? '停用' : '啟用';
+  const DisableButtonIcon = rowIsActive ? PowerOff : Power;
+  const disableButtonVariant: 'default' | 'danger' = rowIsActive ? 'danger' : 'default';
   if (selectionMode) {
     const hasChecked = selectedCount > 0;
     return (
@@ -145,7 +154,14 @@ export function ErpToolbar({
       <ToolbarButton icon={Pencil} letter="E" label="更正" enabled={hasActiveRow} onClick={onEdit} />
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
       <ToolbarSeparator />
-      <ToolbarButton icon={PowerOff} letter="D" label="停用" enabled={hasActiveRow} variant="danger" onClick={onDelete} />
+      <ToolbarButton
+        icon={DisableButtonIcon}
+        letter="D"
+        label={disableButtonLabel}
+        enabled={hasActiveRow}
+        variant={disableButtonVariant}
+        onClick={onDelete}
+      />
       <ExportMenuButton onSelect={onExport} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
       <div className="flex-1" />
