@@ -1000,6 +1000,7 @@ function UsersTable({
             {USERS.map((row, i) => {
               const isChecked = checked.has(row.id);
               const isSelected = selectedId === row.id;
+              const isEvenRow = i % 2 === 1; // 顯示序號 0002 / 0004 為偶數列
               return (
                 <tr
                   key={row.id}
@@ -1018,9 +1019,12 @@ function UsersTable({
                       : undefined
                   }
                   className={cn(
-                    'cursor-pointer border-b border-[#1A1A1F] transition-all outline-none',
+                    'cursor-pointer border-b border-[#1A1A1F]/70 transition-all outline-none',
                     'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
-                    !isSelected && (selectionMode && isChecked ? 'bg-[#E8A020]/6' : 'hover:bg-[#131316]'),
+                    !isSelected &&
+                      (selectionMode && isChecked
+                        ? 'bg-[#E8A020]/6'
+                        : cn(isEvenRow ? 'bg-[#101015]' : 'bg-transparent', 'hover:bg-[#1A1A22]')),
                   )}
                 >
                   <td className="px-2 py-2.5" onClick={(e) => selectionMode && e.stopPropagation()}>
@@ -1084,20 +1088,31 @@ function UsersTable({
                 </tr>
               );
             })}
-            {Array.from({ length: Math.max(0, 20 - USERS.length) }).map((_, i) => (
-              <tr key={`__placeholder_${i}`} aria-hidden className="pointer-events-none select-none border-b border-[#1A1A1F]/60">
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-                <td className="px-2 py-2.5">&nbsp;</td>
-              </tr>
-            ))}
+            {Array.from({ length: Math.max(0, 20 - USERS.length) }).map((_, i) => {
+              const visualIdx = USERS.length + i;
+              const isEvenRow = visualIdx % 2 === 1;
+              return (
+                <tr
+                  key={`__placeholder_${i}`}
+                  aria-hidden
+                  className={cn(
+                    'pointer-events-none select-none border-b border-[#1A1A1F]/40',
+                    isEvenRow && 'bg-[#101015]',
+                  )}
+                >
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-2 py-2.5">&nbsp;</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1457,15 +1472,25 @@ function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] })
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, i) => (
-          <tr key={i} className="border-b border-[#1A1A1F] transition-colors hover:bg-[#1A1A1F]">
-            {row.map((cell, j) => (
-              <td key={j} className={cn('px-2 py-1.5 text-xs', j === 0 ? 'font-mono text-[#5A5A60]' : 'text-[#E8E8EB]')}>
-                {cell}
-              </td>
-            ))}
-          </tr>
-        ))}
+        {rows.map((row, i) => {
+          const isEvenRow = i % 2 === 1;
+          return (
+            <tr
+              key={i}
+              className={cn(
+                'border-b border-[#1A1A1F]/70 transition-colors',
+                isEvenRow ? 'bg-[#101015]' : 'bg-transparent',
+                'hover:bg-[#1A1A22]',
+              )}
+            >
+              {row.map((cell, j) => (
+                <td key={j} className={cn('px-2 py-1.5 text-xs', j === 0 ? 'font-mono text-[#5A5A60]' : 'text-[#E8E8EB]')}>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
