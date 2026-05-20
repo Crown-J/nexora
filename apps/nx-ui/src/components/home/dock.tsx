@@ -407,6 +407,22 @@ export function NavPlanetMenu() {
 
       if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
 
+      // 業界改革 #26 v1：方向鍵 / Enter / Home / End / Space 交給 Radix DropdownMenu 處理
+      // （focus 移動 / activate item / typeahead）、不關閉 menu
+      // Root cause 修：之前 fallthrough 到 setOpen(false)、導致 ↑↓ 按下 menu 被關
+      if (
+        e.key === 'ArrowUp' ||
+        e.key === 'ArrowDown' ||
+        e.key === 'ArrowLeft' ||
+        e.key === 'ArrowRight' ||
+        e.key === 'Enter' ||
+        e.key === 'Home' ||
+        e.key === 'End' ||
+        e.key === ' '
+      ) {
+        return;
+      }
+
       e.preventDefault();
       setOpen(false);
     };
