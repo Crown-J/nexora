@@ -1058,17 +1058,20 @@ function UsersTable({
                   </td>
                   <td className="px-2 py-2.5">
                     {row.isActive ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E8A020]/30 bg-gradient-to-b from-[#E8A020]/12 to-[#E8A020]/6 px-2 py-0.5 text-[10px] font-medium text-[#E8A020] shadow-[inset_0_1px_0_0_rgba(232,160,32,0.15)]">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#22D88F]/35 bg-gradient-to-b from-[#22D88F]/14 to-[#22D88F]/6 px-2 py-0.5 text-[10px] font-medium text-[#22D88F] shadow-[inset_0_1px_0_0_rgba(34,216,143,0.18)]">
                         <span className="relative flex size-1.5">
-                          <span className="absolute inset-0 animate-ping rounded-full bg-[#E8A020]/60" />
-                          <span className="relative size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
+                          <span className="absolute inset-0 animate-ping rounded-full bg-[#22D88F]/60" />
+                          <span className="relative size-1.5 rounded-full bg-[#22D88F] shadow-[0_0_8px_#22D88F]" />
                         </span>
                         啟用
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#3A3A42] bg-[#1A1A1F] px-2 py-0.5 text-[10px] font-medium text-[#5A5A60]">
-                        <span className="size-1.5 rounded-full bg-[#5A5A60]" />
-                        停用
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E26060]/35 bg-gradient-to-b from-[#E26060]/14 to-[#E26060]/6 px-2 py-0.5 text-[10px] font-medium text-[#E26060] shadow-[inset_0_1px_0_0_rgba(226,96,96,0.15)]">
+                        <span className="relative flex size-1.5">
+                          <span className="absolute inset-0 animate-ping rounded-full bg-[#E26060]/50" />
+                          <span className="relative size-1.5 rounded-full bg-[#E26060] shadow-[0_0_8px_#E26060]" />
+                        </span>
+                        未啟用
                       </span>
                     )}
                   </td>
@@ -1156,12 +1159,12 @@ function UserDetailView({
           {editMode && editForm ? (
             <FormSelect
               label="啟用狀態"
-              value={editForm.isActive ? '啟用' : '停用'}
-              options={['啟用', '停用']}
+              value={editForm.isActive ? '啟用' : '未啟用'}
+              options={['啟用', '未啟用']}
               onChange={(v) => update('isActive', v === '啟用')}
             />
           ) : (
-            <FormField label="啟用狀態" value={user.isActive ? '啟用' : '停用'} tone={user.isActive ? 'amber' : 'muted'} />
+            <FormField label="啟用狀態" value={user.isActive ? '啟用' : '未啟用'} tone={user.isActive ? 'green' : 'red'} />
           )}
 
           {editMode && editForm ? (
@@ -1242,7 +1245,7 @@ function FormField({
   value: string;
   mono?: boolean;
   dim?: boolean;
-  tone?: 'amber' | 'muted';
+  tone?: 'amber' | 'green' | 'red' | 'muted';
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -1255,6 +1258,8 @@ function FormField({
           mono && 'font-mono text-xs',
           dim && 'text-[#5A5A60]',
           tone === 'amber' && 'border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]',
+          tone === 'green' && 'border-[#22D88F]/30 bg-[#22D88F]/8 text-[#22D88F]',
+          tone === 'red' && 'border-[#E26060]/30 bg-[#E26060]/8 text-[#E26060]',
           tone === 'muted' && 'border-[#3A3A42] text-[#888892]',
           !tone && !dim && 'text-[#E8E8EB]',
         )}
