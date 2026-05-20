@@ -1,11 +1,12 @@
 // apps/nx-ui/src/app/lab/users/page.tsx
 /**
- * NEXORA Lab：使用者主檔範式（Crown iterate v2）
+ * NEXORA Lab：使用者主檔範式（Crown iterate v3 / commit 42）
  *
- * Crown 拍板（commit 41 iterate）：
- * - 移除 stat cards（卡片不需要）
- * - 縮減色彩（不要太花）
- * - 明細用舊 ERP 範式（tab「資料瀏覽 / 詳細資料」+ 工具列 + form + 項次）
+ * Crown 拍板（commit 42 iterate）：
+ * - 左側 sidebar 上方 icon → 改為 NEXORA 星球（PlanetOrbTrigger）；點擊展開 6 模組選單（不擴展主檔，因左側已列出）
+ * - 工具列最左加分頁鈕（┃◀ ◀ 1/1 ▶ ▶┃）對齊舊 ERP 圖一
+ * - 表格左側 checkbox 欄位 → 序號（0001 / 0002...）4 位數零填
+ * - 新增「選取」toggle 按鈕（CheckSquare）：開啟後序號欄變回 checkbox，工具列切換為批次操作（完成選取 / 批次啟用 / 批次停用 / 批次刪除）
  *
  * 路徑：/lab/users（避開 dashboard layout、純 root layout）
  */
@@ -13,6 +14,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Users,
   UserCog,
@@ -27,9 +29,11 @@ import {
   Search,
   Sparkles,
   RefreshCcw,
-  MoreHorizontal,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Plus,
   Bell,
   Layers,
@@ -40,8 +44,20 @@ import {
   Printer,
   LogOut,
   Edit3,
+  CheckSquare,
+  Check,
+  Power,
+  PowerOff,
 } from 'lucide-react';
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────────
@@ -258,13 +274,54 @@ function SectionLabel({ label, action }: { label: string; action?: React.ReactNo
   );
 }
 
+function PlanetModuleMenu() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="開啟模組選單"
+          title="模組選單"
+          className="group flex size-9 shrink-0 items-center justify-center rounded-xl border border-transparent transition-colors hover:border-[#E8A020]/30 hover:bg-[#E8A020]/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40 data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10"
+        >
+          <PlanetOrbTrigger className="scale-90" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        sideOffset={8}
+        className="min-w-[14rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl"
+      >
+        <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+          NEXORA 模組
+        </DropdownMenuLabel>
+        {HOME_DOCK_ITEMS.map((item) => (
+          <DropdownMenuItem
+            key={item.href}
+            asChild
+            className="cursor-pointer rounded-md p-0 focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+          >
+            <Link
+              href={item.href}
+              className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-sm text-foreground/90"
+            >
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-secondary/40 text-foreground/80">
+                <item.icon className="size-3.5" />
+              </span>
+              <span className="flex-1 truncate font-medium">{item.label}</span>
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function LeftSidebar() {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border/40 bg-card/40 backdrop-blur-sm">
       <div className="flex items-center gap-2.5 px-4 py-3.5">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-[#E8A020]/15 text-[#E8A020]">
-          <Sparkles className="size-5" />
-        </div>
+        <PlanetModuleMenu />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">NEXORA GRID</p>
           <p className="truncate text-[11px] text-muted-foreground">測試公司（LITE）</p>
@@ -379,11 +436,53 @@ function TopHeader() {
   );
 }
 
-/** 舊 ERP 工具列範式（A 新增 / M 更正 / F 查詢 / S 存檔 / C 取消 / D 刪除 / P 印表 / Q 結束）*/
-function ErpToolbar({ activeRow }: { activeRow: UserRow | null }) {
+/** 舊 ERP 工具列範式（A 新增 / M 更正 / F 查詢 / S 存檔 / C 取消 / D 刪除 / P 印表 / E 編輯明細 / 選取 / R 重新整理 / Q 結束）*/
+function ErpToolbar({
+  activeRow,
+  selectionMode,
+  onToggleSelection,
+  selectedCount,
+  page,
+  totalPages,
+  onPageChange,
+}: {
+  activeRow: UserRow | null;
+  selectionMode: boolean;
+  onToggleSelection: () => void;
+  selectedCount: number;
+  page: number;
+  totalPages: number;
+  onPageChange: (next: number) => void;
+}) {
   const hasRow = activeRow !== null;
+
+  if (selectionMode) {
+    const hasChecked = selectedCount > 0;
+    return (
+      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-[#E8A020]/8 px-3 py-1.5">
+        <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
+        <ToolbarSeparator />
+        <span className="px-1 text-[11px] text-muted-foreground">
+          已選 <span className="font-mono text-[#E8A020]">{selectedCount}</span> 筆
+        </span>
+        <div className="flex-1" />
+        <ToolbarButton icon={Power} label="批次啟用" enabled={hasChecked} />
+        <ToolbarButton icon={PowerOff} label="批次停用" enabled={hasChecked} />
+        <ToolbarButton icon={Trash2} label="批次刪除" enabled={hasChecked} variant="danger" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-1 border-b border-border/40 bg-card/30 px-3 py-1.5">
+      <PaginationButton icon={ChevronsLeft} disabled={page <= 1} onClick={() => onPageChange(1)} title="第一頁" />
+      <PaginationButton icon={ChevronLeft} disabled={page <= 1} onClick={() => onPageChange(page - 1)} title="上一頁" />
+      <span className="min-w-[2.5rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
+        {page}/{totalPages}
+      </span>
+      <PaginationButton icon={ChevronRight} disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} title="下一頁" />
+      <PaginationButton icon={ChevronsRight} disabled={page >= totalPages} onClick={() => onPageChange(totalPages)} title="最末頁" />
+      <ToolbarSeparator />
       <ToolbarButton icon={Plus} letter="A" label="新增" enabled />
       <ToolbarButton icon={Pencil} letter="M" label="更正" enabled={hasRow} />
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled />
@@ -395,6 +494,7 @@ function ErpToolbar({ activeRow }: { activeRow: UserRow | null }) {
       <ToolbarButton icon={Printer} letter="P" label="印表" enabled />
       <div className="flex-1" />
       <ToolbarButton icon={Edit3} letter="E" label="編輯明細" enabled={hasRow} />
+      <ToolbarButton icon={CheckSquare} label="選取" enabled onClick={onToggleSelection} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled />
       <ToolbarButton icon={LogOut} letter="Q" label="結束" enabled />
     </div>
@@ -405,36 +505,75 @@ function ToolbarSeparator() {
   return <div className="mx-1 h-5 w-px bg-border/50" aria-hidden />;
 }
 
+function PaginationButton({
+  icon: Icon,
+  disabled,
+  onClick,
+  title,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  disabled?: boolean;
+  onClick?: () => void;
+  title: string;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+      className={cn(
+        'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors',
+        disabled
+          ? 'cursor-not-allowed border-border/30 bg-card/30 text-muted-foreground/40'
+          : 'border-border/60 bg-card/60 text-foreground/85 hover:bg-white/5 hover:text-foreground',
+      )}
+    >
+      <Icon className="size-3.5" />
+    </button>
+  );
+}
+
 function ToolbarButton({
   icon: Icon,
   letter,
   label,
   enabled,
   variant = 'default',
+  onClick,
+  accent,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  letter: string;
+  letter?: string;
   label: string;
   enabled: boolean;
   variant?: 'default' | 'danger';
+  onClick?: () => void;
+  accent?: boolean;
 }) {
   return (
     <button
       type="button"
       disabled={!enabled}
-      title={`${label}（${letter}）`}
+      onClick={onClick}
+      title={letter ? `${label}（${letter}）` : label}
       className={cn(
         'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-colors',
         enabled
           ? variant === 'danger'
             ? 'border-rose-400/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
-            : 'border-border/60 bg-card/60 text-foreground/85 hover:bg-white/5 hover:text-foreground'
+            : accent
+              ? 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020] hover:bg-[#E8A020]/20'
+              : 'border-border/60 bg-card/60 text-foreground/85 hover:bg-white/5 hover:text-foreground'
           : 'cursor-not-allowed border-border/30 bg-card/30 text-muted-foreground/40',
       )}
     >
       <Icon className="size-3" />
       <span className="hidden sm:inline">
-        <span className={cn('mr-0.5 font-mono', enabled && variant !== 'danger' && 'text-[#E8A020]')}>{letter}</span>
+        {letter ? (
+          <span className={cn('mr-0.5 font-mono', enabled && variant !== 'danger' && !accent && 'text-[#E8A020]')}>{letter}</span>
+        ) : null}
         {label}
       </span>
     </button>
@@ -490,21 +629,33 @@ function UsersTable({
   selectedId,
   onSelect,
   onOpenDetail,
+  selectionMode,
+  checked,
+  setChecked,
 }: {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onOpenDetail: (id: string) => void;
+  selectionMode: boolean;
+  checked: Set<string>;
+  setChecked: (next: Set<string>) => void;
 }) {
-  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<'username' | 'displayName' | 'lastLoginAt'>('username');
 
-  const toggle = (id: string) =>
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const toggle = (id: string) => {
+    const next = new Set(checked);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setChecked(next);
+  };
+
+  const toggleAll = () => {
+    if (checked.size === USERS.length) {
+      setChecked(new Set());
+    } else {
+      setChecked(new Set(USERS.map((u) => u.id)));
+    }
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -512,8 +663,18 @@ function UsersTable({
         <table className="w-full border-collapse text-sm">
           <thead className="sticky top-0 z-10 bg-background/95 backdrop-blur">
             <tr className="border-b border-border/40 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              <th className="w-8 px-2 py-2.5">
-                <input type="checkbox" className="size-3.5 rounded border-border" aria-label="全選" />
+              <th className="w-12 px-2 py-2.5">
+                {selectionMode ? (
+                  <input
+                    type="checkbox"
+                    checked={checked.size === USERS.length && USERS.length > 0}
+                    onChange={toggleAll}
+                    className="size-3.5 rounded border-border"
+                    aria-label="全選"
+                  />
+                ) : (
+                  <span className="font-medium uppercase tracking-wider">序號</span>
+                )}
               </th>
               <th className="min-w-[140px] whitespace-nowrap px-2 py-2.5">
                 <button
@@ -554,7 +715,7 @@ function UsersTable({
             </tr>
           </thead>
           <tbody>
-            {USERS.map((row) => {
+            {USERS.map((row, i) => {
               const isChecked = checked.has(row.id);
               const isSelected = selectedId === row.id;
               return (
@@ -566,19 +727,25 @@ function UsersTable({
                     'cursor-pointer border-b border-border/30 transition-colors',
                     isSelected
                       ? 'bg-[#E8A020]/15 ring-1 ring-inset ring-[#E8A020]/40'
-                      : isChecked
+                      : selectionMode && isChecked
                         ? 'bg-[#E8A020]/8'
                         : 'hover:bg-white/3',
                   )}
                 >
-                  <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => toggle(row.id)}
-                      className="size-3.5 rounded border-border"
-                      aria-label={`選取 ${row.username}`}
-                    />
+                  <td className="px-2 py-2.5" onClick={(e) => selectionMode && e.stopPropagation()}>
+                    {selectionMode ? (
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggle(row.id)}
+                        className="size-3.5 rounded border-border"
+                        aria-label={`選取 ${row.username}`}
+                      />
+                    ) : (
+                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
+                        {String(i + 1).padStart(4, '0')}
+                      </span>
+                    )}
                   </td>
                   <td className="px-2 py-2.5">
                     <span className="font-mono text-xs text-foreground">{row.username}</span>
@@ -812,15 +979,35 @@ function EmptyDetail({ message }: { message: string }) {
 export default function LabUsersPage() {
   const [tab, setTab] = useState<'list' | 'detail'>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
 
   const selectedUser = selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null;
+  // 假分頁：固定每頁 20 筆，當前 USERS 共 5 筆 → 1/1
+  const totalPages = Math.max(1, Math.ceil(USERS.length / 20));
+
+  const handleToggleSelection = () => {
+    setSelectionMode((prev) => {
+      if (prev) setChecked(new Set());
+      return !prev;
+    });
+  };
 
   return (
     <div className="flex h-dvh bg-background text-foreground">
       <LeftSidebar />
       <main className="flex min-w-0 flex-1 flex-col">
         <TopHeader />
-        <ErpToolbar activeRow={selectedUser} />
+        <ErpToolbar
+          activeRow={selectedUser}
+          selectionMode={selectionMode}
+          onToggleSelection={handleToggleSelection}
+          selectedCount={checked.size}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
         <ErpTabBar
           tab={tab}
           onChange={setTab}
@@ -834,6 +1021,9 @@ export default function LabUsersPage() {
               setSelectedId(id);
               setTab('detail');
             }}
+            selectionMode={selectionMode}
+            checked={checked}
+            setChecked={setChecked}
           />
         ) : selectedUser ? (
           <UserDetailView user={selectedUser} />
