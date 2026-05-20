@@ -50,6 +50,7 @@ import {
   type SidebarConfig,
 } from '@/features/master-shell/ui/MasterShell';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
+import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
 
@@ -508,13 +509,34 @@ export function UserMasterPage() {
   const [loading, setLoading] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
 
+  // ── 搜尋 state（Stage 1-B.2）─────────────────────────────────
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
+
+  // 300ms debounce keyword → debouncedKeyword
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
+    return () => clearTimeout(t);
+  }, [keyword]);
+
+  // keyword 改變時 reset 回第一頁
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedKeyword]);
+
   // 載入使用者列表（仿 BaseUserMasterView 範式：alive flag + cleanup）
   useEffect(() => {
     let alive = true;
     setLoading(true);
     void (async () => {
       try {
-        const res = await listUsers({ page, pageSize: PAGE_SIZE, isActive: true });
+        const res = await listUsers({
+          q: debouncedKeyword || undefined,
+          page,
+          pageSize: PAGE_SIZE,
+          isActive: true,
+        });
         if (!alive) return;
         setUsers(res.items.map(dtoToUserRow));
         setTotal(res.total);
@@ -531,7 +553,7 @@ export function UserMasterPage() {
     return () => {
       alive = false;
     };
-  }, [page, reloadTick, showToast]);
+  }, [page, reloadTick, debouncedKeyword, showToast]);
 
   const selectedUser = useMemo(
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
@@ -563,8 +585,13 @@ export function UserMasterPage() {
   }, [selectedUser, showToast]);
 
   const handleSearch = useCallback(() => {
-    showToast('查詢（Alt+F） · 待接搜尋面板', 'info');
-  }, [showToast]);
+    setSearchOpen((prev) => !prev);
+  }, []);
+
+  const handleCloseSearch = useCallback(() => {
+    setSearchOpen(false);
+    setKeyword('');
+  }, []);
 
   const handleDelete = useCallback(() => {
     if (!selectedUser) {
@@ -763,6 +790,13 @@ export function UserMasterPage() {
           onSave={handleSave}
           onCancel={handleCancel}
         />
+        <SearchPanel
+          open={searchOpen}
+          value={keyword}
+          onChange={setKeyword}
+          onClose={handleCloseSearch}
+          placeholder="搜尋帳號 / 姓名 / 信箱 / 電話..."
+        />
         <ErpTabBar
           tab={tab}
           onChange={setTab}
@@ -794,9 +828,11 @@ export function UserMasterPage() {
             footerHint={
               loading
                 ? '載入中…'
-                : selectedId
-                  ? '雙擊或 Alt+E 進入編輯'
-                  : '點選列以啟用更正/刪除'
+                : debouncedKeyword
+                  ? `關鍵字「${debouncedKeyword}」過濾中`
+                  : selectedId
+                    ? '雙擊或 Alt+E 進入編輯'
+                    : '點選列以啟用更正/刪除'
             }
             pageSize={PAGE_SIZE}
             totalCount={total}
