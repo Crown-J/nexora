@@ -971,3 +971,72 @@ c3d4513 commit 30：NavPlanetMenu 智能初始 level + Z 鍵
 ```
 
 ⭐ Q-RHYTHM-2 第 13 次穩定累積：業界改革 #22 v1.2 + #17 + #26 v1 三軌完整 closure。
+
+---
+
+## §17 補揭露：commit 35-36 方向鍵 root cause 修 + scrollbar amber
+
+### 17.1 commit 35 NavPlanetMenu 方向鍵不關閉 menu（深 verify root cause）
+
+```
+Crown 揭露：「按下方向鍵他都會關掉選單變成控制表格」
+
+Root cause（深 verify dock.tsx line 408-411）：
+- NavPlanetMenu 內 keydown handler 末端 fallthrough：
+    e.preventDefault();
+    setOpen(false);  ← 任何未識別鍵關閉 menu
+- 方向鍵 key 是「ArrowUp」（length 7）、不符合「letter = key.length === 1」
+- 不 match Alt+X / Esc / Tab / 修飾鍵 / 'b' / 'z' / DOCK_LETTER_TO_HREF
+- → fallthrough setOpen(false) → menu 關 + 表格 listener 接 ↑↓ → row focus 動
+
+修法（commit 35）：
+- 在 fallthrough 前加 ArrowKeys / Enter / Home / End / Space return
+- 讓 Radix DropdownMenu 自己處理 focus 移動 / activate
+- menu 保持開、業務員可上下選主檔
+```
+
+### 17.2 commit 36 scrollbar amber 主題色
+
+```
+Crown 揭露：「滾軸顏色更貼近主題色、現在顏色有點突兀有點醜」
+
+實作（globals.css）：
+- default :root --nx-scroll-thumb：oklch(0.44 0.014 258) 中性灰 → rgba(232, 160, 32, 0.4) amber 40%
+- default :root --nx-scroll-thumb-hover：oklch(0.52 ...) → rgba(232, 160, 32, 0.7) amber 70%
+- .dark variant 同 default
+- steel theme：#5c5c5c → rgba(255, 184, 0, 0.4) steel amber
+
+固定顯示真相：
+- 既有 scrollbar-gutter: stable 已保留軌道空間
+- width: 8px / height: 8px classic scrollbar（無 macOS overlay fade）
+- 全站 .nx-master-scroll utility class 自動套用
+
+light theme keep（後續軌 V2 補）
+```
+
+### 17.3 完整鍵盤導覽真相最終
+
+```
+Alt+X        開關星球 menu
+↑↓           Radix focus 移動（commit 35 修、不再關 menu）
+←→           Radix 水平移動（grid 範式可能不支援、後續軌補 NAV-V2）
+Enter        Radix activate focused item（navigate + close）
+Esc          close menu（Radix 預設）
+B            root ↔ base 雙向切換
+Z            base → root 返回
+H/P/S/W/M/R  root level 模組快捷
+```
+
+### 17.4 ahead 36 commit 真實清單最終
+
+```
+ed5ae7a commit 36：scrollbar amber 主題色
+2237d45 commit 35（fix）：NavPlanetMenu 方向鍵不關 menu（root cause 修）
+ee1e233 commit 34：merge-verify §16
+a37d404 commit 33：方向鍵衝突修（Radix popup 讓位、commit 33+35 雙修）
+27e53c7 commit 32：表格滿版 + padding 減半 + 邊角更方
+c33e593 commit 31：merge-verify §15
+...（30 個既往）
+```
+
+⭐ Q-RHYTHM-2 第 13 次穩定累積：業界改革 #22 v1.2 + #17 + #26 v1 + scrollbar 主題色一致性。
