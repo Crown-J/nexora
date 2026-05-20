@@ -51,6 +51,9 @@ import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolba
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
 import { IncludeInactiveToggle } from '@/features/base/shell/IncludeInactiveToggle';
+import { FilterBar } from '@/shared/ui/filter-bar/FilterBar';
+import { applyFilterRulesToRows } from '@/shared/ui/filter-bar/apply';
+import type { FilterFieldDef, FilterRule } from '@/shared/ui/filter-bar/types';
 import {
   assignUserRole,
   listUserRoles,
@@ -96,6 +99,19 @@ type EditableDraft = {
   newPassword: string;
   primaryRoleId: string;
 };
+
+/**
+ * 業界改革 #24 v1：user 主檔可 filter 欄位定義（client-side filter、MVP）
+ * - text：信箱 / 電話 / 隸屬倉庫（contains / not-contains / equals / not-equals / is-empty / is-not-empty）
+ * - boolean：啟用狀態（equals true/false、與 IncludeInactiveToggle 並列）
+ * - 後續軌（V2）：date 範圍（最後一次登入 / 建立時間）、職務 multi-select、backend API params 整合
+ */
+const USER_FILTER_FIELDS: FilterFieldDef[] = [
+  { key: 'email', label: '信箱', type: 'text' },
+  { key: 'phone', label: '電話', type: 'text' },
+  { key: 'warehouseLabel', label: '隸屬倉庫', type: 'text' },
+  { key: 'jobTitle', label: '職務', type: 'text' },
+];
 
 /** 每頁筆數選項（業界改革 #22 v1.2、Crown 拍板 10/20/50/100、預設 20） */
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
@@ -292,6 +308,8 @@ export function BaseUserMasterView() {
   const [listPage, setListPage] = useState(1);
   // 業界改革 #22 v1.2：每頁筆數（10/20/50/100、預設 20、本地 state、後續軌可改為 localStorage 持久化）
   const [pageSize, setPageSize] = useState<PageSize>(DEFAULT_PAGE_SIZE);
+  // 業界改革 #24 v1：FilterBar rules state（client-side filter、套用於 sortedRows 後）
+  const [filterRules, setFilterRules] = useState<FilterRule[]>([]);
   const [listTotal, setListTotal] = useState(0);
   const [detailUser, setDetailUser] = useState<BaseUserRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -498,8 +516,9 @@ export function BaseUserMasterView() {
           return 0;
       }
     });
-    return out;
-  }, [users, sort]);
+    // 業界改革 #24 v1：sort 後套用 FilterBar rules（client-side filter、MVP）
+    return applyFilterRulesToRows(out, filterRules);
+  }, [users, sort, filterRules]);
 
   const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const safeListPage = Math.max(1, Math.min(listPage, totalPages));
@@ -1251,6 +1270,13 @@ export function BaseUserMasterView() {
               <IncludeInactiveToggle
                 value={activeFilter === 'all'}
                 onChange={(next) => setActiveFilter(next ? 'all' : 'active')}
+              />
+
+              {/* 業界改革 #24 v1：FilterBar 彈性篩選（chip + add popover、client-side filter）*/}
+              <FilterBar
+                fields={USER_FILTER_FIELDS}
+                rules={filterRules}
+                onChange={setFilterRules}
               />
 
               <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
