@@ -28,6 +28,7 @@ import {
 import { cn } from '@/lib/utils';
 import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
 import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
+import { NexoraBottomDock, type DockItem } from '@/shared/ui/NexoraBottomDock';
 
 export type DockNavItem = {
   icon: LucideIcon;
@@ -521,45 +522,15 @@ export function MobileDock() {
   }
 
   if (isDashboardHome && quickShortcuts) {
-    return (
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch justify-around gap-1 border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden"
-        aria-label="首頁常用功能"
-      >
-        {quickShortcuts.map((s) => {
-          const Icon = s.Icon;
-          const active = isShortcutDockActive(pathname, s.href);
-          return (
-            <button
-              key={s.key}
-              type="button"
-              title={s.label}
-              aria-label={s.label}
-              onClick={() => router.push(s.href)}
-              className={cn(
-                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border border-border/50 p-1.5',
-                'bg-gradient-to-b from-muted/45 to-muted/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
-                'transition-colors active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                active ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <span
-                className={cn(
-                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50',
-                  active ? 'border-primary/40 bg-primary/10 text-primary' : 'text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden />
-              </span>
-              <span className="line-clamp-2 max-w-full text-center text-[9px] font-medium leading-tight text-foreground">
-                {s.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    );
+    // 業界改革 #22 v1.2 + #17：用 NexoraBottomDock 統一範式（6 slot、icon-only、超過 swipe）
+    const items: DockItem[] = quickShortcuts.map((s) => ({
+      id: s.key,
+      icon: s.Icon,
+      label: s.label,
+      onClick: () => router.push(s.href),
+      active: isShortcutDockActive(pathname, s.href),
+    }));
+    return <NexoraBottomDock items={items} ariaLabel="首頁常用功能" />;
   }
 
   // R7：非首頁模組 DOCK 視覺統一首頁 iOS 風格（圓角按鈕 + icon box + gradient）

@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   ClipboardList,
   FileText,
+  MoreHorizontal,
   PackagePlus,
   Search,
   Tags,
@@ -15,7 +16,7 @@ import {
 import type { PlanCode } from '@/mocks/dashboard';
 
 export type DashboardQuickShortcutDef = {
-  key: 'q' | 'w' | 'e' | 'r' | 't';
+  key: 'q' | 'w' | 'e' | 'r' | 't' | 'y';
   label: string;
   href: string;
   Icon: LucideIcon;
@@ -63,10 +64,21 @@ const SHORTCUT_T_PLUS_PRO: DashboardQuickShortcutDef = {
 };
 
 /**
- * LITE：T → 建立進貨單（採購 PO）
- * PLUS / PRO：T → 調撥申請
+ * 第 6 個快捷鍵（業界改革 #22 v1.2 + #17、Crown 拍板 6 slot 範式）。
+ * placeholder：後續軌 TASK-DASHBOARD-QUICK-Y-IMPL 對齊業務戰略後 Crown 拍板實際功能。
+ */
+const SHORTCUT_Y_PLACEHOLDER: DashboardQuickShortcutDef = {
+  key: 'y',
+  label: '更多功能',
+  href: '/dashboard/coming-soon',
+  Icon: MoreHorizontal,
+};
+
+/**
+ * LITE：T → 建立進貨單（採購 PO）；Y → 更多功能（placeholder）
+ * PLUS / PRO：T → 調撥申請；Y → 更多功能（placeholder）
  */
 export function getDashboardQuickShortcuts(planCode: PlanCode): DashboardQuickShortcutDef[] {
   const t = planCode === 'LITE' ? SHORTCUT_T_LITE : SHORTCUT_T_PLUS_PRO;
-  return [...SHORTCUTS_QWER, t];
+  return [...SHORTCUTS_QWER, t, SHORTCUT_Y_PLACEHOLDER];
 }
