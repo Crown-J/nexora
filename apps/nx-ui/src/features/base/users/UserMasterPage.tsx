@@ -35,6 +35,7 @@ import {
 
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 import { listUserRoles, type UserRoleDto } from '@/features/base/api/user-role';
+import { listUserWarehouses, type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
@@ -351,6 +352,7 @@ function UserDetailView({
   editForm,
   onEditChange,
   userRoles,
+  userWarehouses,
   onAddRole,
   onAddWarehouse,
 }: {
@@ -360,6 +362,8 @@ function UserDetailView({
   onEditChange: (next: EditFormState) => void;
   /** 該使用者已指派的職務（從 listUserRoles 載入）*/
   userRoles: UserRoleDto[];
+  /** 該使用者已指派的倉庫（從 listUserWarehouses 載入）*/
+  userWarehouses: UserWarehouseDto[];
   onAddRole: () => void;
   onAddWarehouse: () => void;
 }) {
@@ -441,16 +445,29 @@ function UserDetailView({
         </div>
       </section>
 
-      {/* 隸屬倉庫（Stage 1-B.8 將接 listUserWarehouses）*/}
+      {/* 隸屬倉庫 */}
       <section className="px-8 py-6">
         <SectionHeader
           title="隸屬倉庫"
-          count={0}
+          count={userWarehouses.length}
           subtitle="Assigned Warehouses"
           action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
         />
         <div className="mt-4">
-          <EmptyDetail message="尚未指派倉庫據點" />
+          {userWarehouses.length > 0 ? (
+            <DetailTable
+              headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
+              rows={userWarehouses.map((w, i) => [
+                String(i + 1).padStart(4, '0'),
+                w.warehouseCode ?? '—',
+                w.warehouseName ?? '—',
+                w.assignedAt,
+                w.assignedByName ?? '—',
+              ])}
+            />
+          ) : (
+            <EmptyDetail message="尚未指派倉庫據點" />
+          )}
         </div>
       </section>
     </MasterDetailScroll>
@@ -493,9 +510,11 @@ export function UserMasterPage() {
   // ── 新增對話框（Stage 1-B.6）─────────────────────────────────
   const [createOpen, setCreateOpen] = useState(false);
 
-  // ── 詳細頁關聯資料：擔任職務（Stage 1-B.7）──────────────────
+  // ── 詳細頁關聯資料：擔任職務 / 隸屬倉庫（Stage 1-B.7 / 1-B.8）─
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
   const [rolesReloadTick, setRolesReloadTick] = useState(0);
+  const [selectedUserWarehouses, setSelectedUserWarehouses] = useState<UserWarehouseDto[]>([]);
+  const [warehousesReloadTick, setWarehousesReloadTick] = useState(0);
 
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
@@ -566,6 +585,34 @@ export function UserMasterPage() {
       alive = false;
     };
   }, [selectedId, tab, rolesReloadTick, showToast]);
+
+  // 載入該使用者的隸屬倉庫（Stage 1-B.8）：selectedId 變 + tab='detail' 才打 API
+  useEffect(() => {
+    if (!selectedId || tab !== 'detail') {
+      setSelectedUserWarehouses([]);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await listUserWarehouses({
+          userId: selectedId,
+          isActive: true,
+          pageSize: 100,
+        });
+        if (!alive) return;
+        setSelectedUserWarehouses(res.items);
+      } catch (e) {
+        if (!alive) return;
+        const msg = e instanceof Error ? e.message : '載入失敗';
+        showToast(`隸屬倉庫載入失敗：${msg}`, 'danger');
+        setSelectedUserWarehouses([]);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [selectedId, tab, warehousesReloadTick, showToast]);
 
   const selectedUser = useMemo(
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
@@ -901,6 +948,7 @@ export function UserMasterPage() {
             editForm={editForm}
             onEditChange={setEditForm}
             userRoles={selectedUserRoles}
+            userWarehouses={selectedUserWarehouses}
             onAddRole={handleAddRole}
             onAddWarehouse={handleAddWarehouse}
           />
