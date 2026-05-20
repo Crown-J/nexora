@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -43,11 +43,14 @@ import {
   Trash2,
   Printer,
   LogOut,
-  Edit3,
   CheckSquare,
   Check,
   Power,
   PowerOff,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  AlertTriangle,
 } from 'lucide-react';
 
 import {
@@ -215,6 +218,40 @@ const USERS: UserRow[] = [
   },
 ];
 
+const JOB_TITLES = ['系統管理員', '財務', '採購', '業務', '倉管'] as const;
+
+type Mode = 'browse' | 'edit';
+
+type EditFormState = {
+  username: string;
+  displayName: string;
+  jobTitle: string;
+  isActive: boolean;
+  email: string;
+  phone: string;
+  warehouse: string;
+};
+
+function makeEditForm(user: UserRow): EditFormState {
+  return {
+    username: user.username,
+    displayName: user.displayName,
+    jobTitle: user.jobTitle,
+    isActive: user.isActive,
+    email: user.email ?? '',
+    phone: user.phone ?? '',
+    warehouse: user.warehouse ?? '',
+  };
+}
+
+type ConfirmState = {
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  variant?: 'default' | 'danger';
+  onConfirm: () => void;
+};
+
 // ──────────────────────────────────────────────────────────────
 // 子元件
 // ──────────────────────────────────────────────────────────────
@@ -238,8 +275,10 @@ function NavItem({
     <button
       type="button"
       onClick={onClick}
+      data-nav-item
       className={cn(
         'group flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors',
+        'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50 focus-visible:bg-[#E8A020]/10',
         active
           ? 'bg-[#E8A020]/15 text-[#E8A020] font-medium'
           : 'text-foreground/85 hover:bg-white/5',
@@ -317,9 +356,28 @@ function PlanetModuleMenu() {
   );
 }
 
-function LeftSidebar() {
+function LeftSidebar({ sidebarRef }: { sidebarRef: React.RefObject<HTMLElement | null> }) {
+  const handleKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    const items = Array.from(
+      e.currentTarget.querySelectorAll<HTMLButtonElement>('[data-nav-item]'),
+    );
+    if (items.length === 0) return;
+    const active = document.activeElement as HTMLButtonElement | null;
+    const idx = active ? items.indexOf(active) : -1;
+    let nextIdx: number;
+    if (e.key === 'ArrowDown') nextIdx = idx < 0 ? 0 : Math.min(items.length - 1, idx + 1);
+    else nextIdx = idx <= 0 ? 0 : idx - 1;
+    e.preventDefault();
+    items[nextIdx]?.focus();
+  };
+
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border/40 bg-card/40 backdrop-blur-sm">
+    <aside
+      ref={sidebarRef}
+      onKeyDown={handleKey}
+      className="flex w-60 shrink-0 flex-col border-r border-border/40 bg-card/40 backdrop-blur-sm"
+    >
       <div className="flex items-center gap-2.5 px-4 py-3.5">
         <PlanetModuleMenu />
         <div className="min-w-0 flex-1">
@@ -436,8 +494,16 @@ function TopHeader() {
   );
 }
 
-/** 舊 ERP 工具列範式（A 新增 / M 更正 / F 查詢 / S 存檔 / C 取消 / D 刪除 / P 印表 / E 編輯明細 / 選取 / R 重新整理 / Q 結束）*/
+/** 舊 ERP 工具列範式（三分支：browse / edit / selection）
+ *
+ * Browse: A 新增 / E 更正 / F 查詢 / D 刪除 / P 匯出 / R 重新整理 / 選取 / Q 結束
+ * Edit:   S 存檔 / C 取消
+ * Selection: 完成選取 / 批次啟用 / 批次停用 / 批次刪除
+ *
+ * 全部 letter 對應 Alt+letter 快捷鍵（document-level keydown）。
+ */
 function ErpToolbar({
+  mode,
   activeRow,
   selectionMode,
   onToggleSelection,
@@ -445,7 +511,17 @@ function ErpToolbar({
   page,
   totalPages,
   onPageChange,
+  onCreate,
+  onEdit,
+  onSearch,
+  onDelete,
+  onExport,
+  onRefresh,
+  onExit,
+  onSave,
+  onCancel,
 }: {
+  mode: Mode;
   activeRow: UserRow | null;
   selectionMode: boolean;
   onToggleSelection: () => void;
@@ -453,6 +529,15 @@ function ErpToolbar({
   page: number;
   totalPages: number;
   onPageChange: (next: number) => void;
+  onCreate: () => void;
+  onEdit: () => void;
+  onSearch: () => void;
+  onDelete: () => void;
+  onExport: (format: 'csv' | 'pdf' | 'print') => void;
+  onRefresh: () => void;
+  onExit: () => void;
+  onSave: () => void;
+  onCancel: () => void;
 }) {
   const hasRow = activeRow !== null;
 
@@ -473,6 +558,24 @@ function ErpToolbar({
     );
   }
 
+  if (mode === 'edit') {
+    return (
+      <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-[#E8A020]/8 px-3 py-1.5">
+        <span className="inline-flex items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-2 py-0.5 text-[11px] font-medium text-[#E8A020]">
+          <Pencil className="size-3" />
+          編輯中
+        </span>
+        <ToolbarSeparator />
+        <ToolbarButton icon={Save} letter="S" label="存檔" enabled onClick={onSave} accent />
+        <ToolbarButton icon={X} letter="C" label="取消" enabled onClick={onCancel} />
+        <div className="flex-1" />
+        <span className="px-1 text-[11px] text-muted-foreground">
+          編輯模式 · Alt+S 存檔 / Alt+C 取消
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-1 border-b border-border/40 bg-card/30 px-3 py-1.5">
       <PaginationButton icon={ChevronsLeft} disabled={page <= 1} onClick={() => onPageChange(1)} title="第一頁" />
@@ -483,21 +586,67 @@ function ErpToolbar({
       <PaginationButton icon={ChevronRight} disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} title="下一頁" />
       <PaginationButton icon={ChevronsRight} disabled={page >= totalPages} onClick={() => onPageChange(totalPages)} title="最末頁" />
       <ToolbarSeparator />
-      <ToolbarButton icon={Plus} letter="A" label="新增" enabled />
-      <ToolbarButton icon={Pencil} letter="M" label="更正" enabled={hasRow} />
-      <ToolbarButton icon={Search} letter="F" label="查詢" enabled />
+      <ToolbarButton icon={Plus} letter="A" label="新增" enabled onClick={onCreate} />
+      <ToolbarButton icon={Pencil} letter="E" label="更正" enabled={hasRow} onClick={onEdit} />
+      <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
       <ToolbarSeparator />
-      <ToolbarButton icon={Save} letter="S" label="存檔" enabled={false} />
-      <ToolbarButton icon={X} letter="C" label="取消" enabled={false} />
-      <ToolbarSeparator />
-      <ToolbarButton icon={Trash2} letter="D" label="刪除" enabled={hasRow} variant="danger" />
-      <ToolbarButton icon={Printer} letter="P" label="印表" enabled />
+      <ToolbarButton icon={Trash2} letter="D" label="刪除" enabled={hasRow} variant="danger" onClick={onDelete} />
+      <ExportMenuButton onSelect={onExport} />
+      <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
       <div className="flex-1" />
-      <ToolbarButton icon={Edit3} letter="E" label="編輯明細" enabled={hasRow} />
       <ToolbarButton icon={CheckSquare} label="選取" enabled onClick={onToggleSelection} />
-      <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled />
-      <ToolbarButton icon={LogOut} letter="Q" label="結束" enabled />
+      <ToolbarButton icon={LogOut} letter="Q" label="結束" enabled onClick={onExit} />
     </div>
+  );
+}
+
+function ExportMenuButton({ onSelect }: { onSelect: (format: 'csv' | 'pdf' | 'print') => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          title="匯出（P）"
+          className={cn(
+            'inline-flex h-7 items-center gap-1 rounded-md border border-border/60 bg-card/60 px-2 text-[11px] font-medium text-foreground/85 transition-colors hover:bg-white/5 hover:text-foreground',
+            'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
+          )}
+        >
+          <Download className="size-3" />
+          <span className="hidden sm:inline">
+            <span className="mr-0.5 font-mono text-[#E8A020]">P</span>
+            匯出
+          </span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={6}
+        className="min-w-[10rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl"
+      >
+        <DropdownMenuItem
+          onClick={() => onSelect('csv')}
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+        >
+          <FileSpreadsheet className="mr-2 size-3.5" />
+          匯出 CSV
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onSelect('pdf')}
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+        >
+          <FileText className="mr-2 size-3.5" />
+          匯出 PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => onSelect('print')}
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/15 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/15 data-[highlighted]:text-[#E8A020]"
+        >
+          <Printer className="mr-2 size-3.5" />
+          列印
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -580,26 +729,31 @@ function ToolbarButton({
   );
 }
 
-/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）*/
+/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定 */
 function ErpTabBar({
   tab,
   onChange,
   hasSelected,
+  editMode,
 }: {
   tab: 'list' | 'detail';
   onChange: (next: 'list' | 'detail') => void;
   hasSelected: boolean;
+  editMode: boolean;
 }) {
   return (
     <div className="flex items-center border-b border-border/40 bg-background px-3">
       <button
         type="button"
         onClick={() => onChange('list')}
+        disabled={editMode}
         className={cn(
           'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
           tab === 'list'
             ? 'border-[#E8A020] text-[#E8A020]'
-            : 'border-transparent text-muted-foreground hover:text-foreground',
+            : editMode
+              ? 'cursor-not-allowed border-transparent text-muted-foreground/40'
+              : 'border-transparent text-muted-foreground hover:text-foreground',
         )}
       >
         <span className="rounded bg-muted/60 px-1 font-mono text-[10px]">1</span>
@@ -608,12 +762,12 @@ function ErpTabBar({
       <button
         type="button"
         onClick={() => onChange('detail')}
-        disabled={!hasSelected}
+        disabled={!hasSelected || editMode}
         className={cn(
           'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
           tab === 'detail'
             ? 'border-[#E8A020] text-[#E8A020]'
-            : hasSelected
+            : hasSelected && !editMode
               ? 'border-transparent text-muted-foreground hover:text-foreground'
               : 'cursor-not-allowed border-transparent text-muted-foreground/40',
         )}
@@ -806,28 +960,79 @@ function UsersTable({
       </div>
 
       <div className="flex items-center justify-between border-t border-border/40 bg-card/30 px-6 py-2 text-[11px] text-muted-foreground">
-        <span>共 5 筆 · 顯示 5 筆 {selectedId ? '· 雙擊或按 E 編輯明細' : '· 點選列以啟用編輯'}</span>
+        <span>共 5 筆 · 顯示 5 筆 {selectedId ? '· 雙擊或 Alt+E 進入編輯' : '· 點選列以啟用更正/刪除'}</span>
         <span className="text-foreground/60">每頁 20 筆</span>
       </div>
     </div>
   );
 }
 
-/** 舊 ERP 範式詳細頁：上方 form fields + 下方明細項次（roles / warehouses）*/
-function UserDetailView({ user }: { user: UserRow }) {
+/** 舊 ERP 範式詳細頁：上方 form fields + 下方明細項次（roles / warehouses）
+ * 編輯模式下：form fields → 可編輯 input / select。
+ */
+function UserDetailView({
+  user,
+  editMode,
+  editForm,
+  onEditChange,
+}: {
+  user: UserRow;
+  editMode: boolean;
+  editForm: EditFormState | null;
+  onEditChange: (next: EditFormState) => void;
+}) {
+  const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
+    if (!editForm) return;
+    onEditChange({ ...editForm, [key]: value });
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll">
       {/* 上方 form fields（grid 4-col、業界 ERP 範式緊湊 layout）*/}
       <div className="border-b border-border/40 bg-card/20 px-6 py-4">
         <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
           <FormField label="帳號" value={user.username} mono />
-          <FormField label="姓名" value={user.displayName} />
-          <FormField label="職務" value={user.jobTitle} />
-          <FormField label="啟用狀態" value={user.isActive ? '啟用' : '停用'} tone={user.isActive ? 'green' : 'muted'} />
+          {editMode && editForm ? (
+            <FormInput label="姓名" value={editForm.displayName} onChange={(v) => update('displayName', v)} />
+          ) : (
+            <FormField label="姓名" value={user.displayName} />
+          )}
+          {editMode && editForm ? (
+            <FormSelect
+              label="職務"
+              value={editForm.jobTitle}
+              options={JOB_TITLES as unknown as string[]}
+              onChange={(v) => update('jobTitle', v)}
+            />
+          ) : (
+            <FormField label="職務" value={user.jobTitle} />
+          )}
+          {editMode && editForm ? (
+            <FormSelect
+              label="啟用狀態"
+              value={editForm.isActive ? '啟用' : '停用'}
+              options={['啟用', '停用']}
+              onChange={(v) => update('isActive', v === '啟用')}
+            />
+          ) : (
+            <FormField label="啟用狀態" value={user.isActive ? '啟用' : '停用'} tone={user.isActive ? 'green' : 'muted'} />
+          )}
 
-          <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
-          <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
-          <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
+          {editMode && editForm ? (
+            <FormInput label="信箱" value={editForm.email} onChange={(v) => update('email', v)} placeholder="—" />
+          ) : (
+            <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
+          )}
+          {editMode && editForm ? (
+            <FormInput label="電話" value={editForm.phone} onChange={(v) => update('phone', v)} placeholder="—" />
+          ) : (
+            <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
+          )}
+          {editMode && editForm ? (
+            <FormInput label="隸屬倉庫" value={editForm.warehouse} onChange={(v) => update('warehouse', v)} placeholder="—" />
+          ) : (
+            <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
+          )}
           <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
 
           <FormField label="建立時間" value={user.createdAt} mono />
@@ -914,6 +1119,125 @@ function FormField({
   );
 }
 
+function FormInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="rounded-md border border-[#E8A020]/30 bg-background/60 px-2.5 py-1.5 text-sm text-foreground/95 outline-none transition-colors focus:border-[#E8A020]/60 focus:bg-background/80 focus:ring-1 focus:ring-[#E8A020]/40"
+      />
+    </div>
+  );
+}
+
+function FormSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (next: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="cursor-pointer appearance-none rounded-md border border-[#E8A020]/30 bg-background/60 px-2.5 py-1.5 text-sm text-foreground/95 outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+      >
+        {options.map((opt) => (
+          <option key={opt} value={opt} className="bg-background text-foreground">
+            {opt}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function ConfirmDialog({
+  state,
+  onClose,
+}: {
+  state: ConfirmState | null;
+  onClose: () => void;
+}) {
+  if (!state) return null;
+  const isDanger = state.variant === 'danger';
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-border/60 bg-card p-5 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              'flex size-9 shrink-0 items-center justify-center rounded-xl',
+              isDanger ? 'bg-rose-500/15 text-rose-300' : 'bg-[#E8A020]/15 text-[#E8A020]',
+            )}
+          >
+            <AlertTriangle className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold text-foreground">{state.title}</h3>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{state.message}</p>
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 items-center rounded-md border border-border/60 bg-secondary/40 px-3 text-xs font-medium text-foreground/85 transition-colors hover:bg-secondary/60"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              state.onConfirm();
+              onClose();
+            }}
+            className={cn(
+              'inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium transition-colors',
+              isDanger
+                ? 'border-rose-400/40 bg-rose-500/15 text-rose-200 hover:bg-rose-500/25'
+                : 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020] hover:bg-[#E8A020]/25',
+            )}
+          >
+            {state.confirmLabel ?? '確認'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DetailSection({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-border/40 bg-card/20">
@@ -982,8 +1306,15 @@ export default function LabUsersPage() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
+  const [mode, setMode] = useState<Mode>('browse');
+  const [editForm, setEditForm] = useState<EditFormState | null>(null);
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
 
-  const selectedUser = selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null;
+  const selectedUser = useMemo(
+    () => (selectedId ? USERS.find((u) => u.id === selectedId) ?? null : null),
+    [selectedId],
+  );
   // 假分頁：固定每頁 20 筆，當前 USERS 共 5 筆 → 1/1
   const totalPages = Math.max(1, Math.ceil(USERS.length / 20));
 
@@ -994,12 +1325,148 @@ export default function LabUsersPage() {
     });
   };
 
+  // ── ERP 工具列動作（lab：多為 mock）────────────────────────────
+  const handleCreate = useCallback(() => {
+    // mock：lab 階段先 noop（之後接 createDialog）
+    console.info('[lab/users] 新增（A）');
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    if (!selectedUser) return;
+    setMode('edit');
+    setTab('detail');
+    setEditForm(makeEditForm(selectedUser));
+  }, [selectedUser]);
+
+  const handleSearch = useCallback(() => {
+    console.info('[lab/users] 查詢（F）');
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    if (!selectedUser) return;
+    setConfirmState({
+      title: '確認刪除',
+      message: `確定要刪除「${selectedUser.displayName}（${selectedUser.username}）」？此動作無法復原。`,
+      confirmLabel: '刪除',
+      variant: 'danger',
+      onConfirm: () => {
+        // mock：lab 階段先 noop
+        console.info('[lab/users] 刪除 confirmed', selectedUser.id);
+        setSelectedId(null);
+      },
+    });
+  }, [selectedUser]);
+
+  const handleExport = useCallback((format: 'csv' | 'pdf' | 'print') => {
+    console.info('[lab/users] 匯出（P）', format);
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    console.info('[lab/users] 重新整理（R）');
+  }, []);
+
+  const handleExit = useCallback(() => {
+    // Q 結束：聚焦左側 sidebar 第一個 nav item
+    const first = sidebarRef.current?.querySelector<HTMLButtonElement>('[data-nav-item]');
+    first?.focus();
+  }, []);
+
+  const handleSave = useCallback(() => {
+    setConfirmState({
+      title: '確認存檔',
+      message: '是否確認將變更寫入此筆資料？',
+      confirmLabel: '存檔',
+      onConfirm: () => {
+        // mock：lab 階段先 noop（之後接 mutation）
+        console.info('[lab/users] 存檔 confirmed', editForm);
+        setMode('browse');
+        setEditForm(null);
+      },
+    });
+  }, [editForm]);
+
+  const handleCancel = useCallback(() => {
+    setMode('browse');
+    setEditForm(null);
+  }, []);
+
+  // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const k = e.key.toLowerCase();
+      if (selectionMode) return; // selectionMode 不接 Alt 快捷
+      if (mode === 'edit') {
+        if (k === 's') {
+          e.preventDefault();
+          handleSave();
+        } else if (k === 'c') {
+          e.preventDefault();
+          handleCancel();
+        }
+        return;
+      }
+      // browse mode
+      switch (k) {
+        case 'a':
+          e.preventDefault();
+          handleCreate();
+          break;
+        case 'e':
+          if (selectedUser) {
+            e.preventDefault();
+            handleEdit();
+          }
+          break;
+        case 'f':
+          e.preventDefault();
+          handleSearch();
+          break;
+        case 'd':
+          if (selectedUser) {
+            e.preventDefault();
+            handleDelete();
+          }
+          break;
+        case 'p':
+          // 匯出 dropdown 由使用者點開（mock 一個快速 print）
+          e.preventDefault();
+          handleExport('csv');
+          break;
+        case 'r':
+          e.preventDefault();
+          handleRefresh();
+          break;
+        case 'q':
+          e.preventDefault();
+          handleExit();
+          break;
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [
+    mode,
+    selectionMode,
+    selectedUser,
+    handleCreate,
+    handleEdit,
+    handleSearch,
+    handleDelete,
+    handleExport,
+    handleRefresh,
+    handleExit,
+    handleSave,
+    handleCancel,
+  ]);
+
   return (
     <div className="flex h-dvh bg-background text-foreground">
-      <LeftSidebar />
+      <LeftSidebar sidebarRef={sidebarRef} />
       <main className="flex min-w-0 flex-1 flex-col">
         <TopHeader />
         <ErpToolbar
+          mode={mode}
           activeRow={selectedUser}
           selectionMode={selectionMode}
           onToggleSelection={handleToggleSelection}
@@ -1007,11 +1474,21 @@ export default function LabUsersPage() {
           page={page}
           totalPages={totalPages}
           onPageChange={setPage}
+          onCreate={handleCreate}
+          onEdit={handleEdit}
+          onSearch={handleSearch}
+          onDelete={handleDelete}
+          onExport={handleExport}
+          onRefresh={handleRefresh}
+          onExit={handleExit}
+          onSave={handleSave}
+          onCancel={handleCancel}
         />
         <ErpTabBar
           tab={tab}
           onChange={setTab}
           hasSelected={selectedUser !== null}
+          editMode={mode === 'edit'}
         />
         {tab === 'list' ? (
           <UsersTable
@@ -1020,19 +1497,31 @@ export default function LabUsersPage() {
             onOpenDetail={(id) => {
               setSelectedId(id);
               setTab('detail');
+              // 雙擊 = 進入編輯（對齊 footer 文案）
+              const u = USERS.find((u) => u.id === id);
+              if (u) {
+                setMode('edit');
+                setEditForm(makeEditForm(u));
+              }
             }}
             selectionMode={selectionMode}
             checked={checked}
             setChecked={setChecked}
           />
         ) : selectedUser ? (
-          <UserDetailView user={selectedUser} />
+          <UserDetailView
+            user={selectedUser}
+            editMode={mode === 'edit'}
+            editForm={editForm}
+            onEditChange={setEditForm}
+          />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             請先於「資料瀏覽」選擇一筆資料
           </div>
         )}
       </main>
+      <ConfirmDialog state={confirmState} onClose={() => setConfirmState(null)} />
     </div>
   );
 }
