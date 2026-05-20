@@ -698,3 +698,126 @@ TASK-USER-REOPEN-INACTIVE（P2）：補「找停用 user」入口（current isAc
 ```
 
 ⭐ Crown 真實業務 muscle memory 拍板權威、Hank 設計回退 = 健康 iterate。
+
+---
+
+## §14 補揭露：commit 23-27 緊湊化 + Contextual Nav（業界改革 #26 v1）
+
+### 14.1 commit 23-24 緊湊化（Crown 拍板 B + C）
+
+```
+commit 23：移除 cell grid border（垂直格線）、只留 thead 下緣 + row 下緣
+commit 24：toolbar glass-card wrap 移除、表格 padding 減弱、gap 縮小
+
+垂直空間釋出：~60-90px
+視覺對齊：Linear / Notion / Airtable（無 cell vertical grid）
+```
+
+### 14.2 commit 25-27 業界改革 #26 v1 Contextual Navigation
+
+```
+Crown 戰略願景：TopBar 星球按鈕 contextual + 主檔頁面 PageHeader 簡化
+
+commit 25：NavPlanetMenu contextual menu state（root / base）
+   - 「主檔」改 onSelect={setMenuLevel('base')}（不 navigate）
+   - base level：返回 + 25 主檔 grid menu
+   - keyboard 'b' contextual（root: 展開 / base: 返回）
+   - 移除「首頁」item（NEXORA logo 點即回首頁）
+   - 採購/銷貨/庫存 既有 sub-menu keep（V2 統一）
+
+commit 26：BaseMasterPageHeader 簡化
+   - 移除「返回主檔」Link（NavPlanetMenu 取代 navigation）
+   - 移除「MASTER DATA」副標（業界簡潔範式）
+   - 加 actions prop（標題與 toolbar 同列）
+   - 移除桌面 BaseMasterQuickNav 渲染
+   - 移除 BaseMasterMobileDock 渲染（NavPlanetMenu 統一範式）
+
+commit 27：user reference 整合
+   - users/page.tsx 簡化為 <BaseUserMasterView />
+   - BaseUserMasterView 自己 render BaseMasterPageHeader + actions={toolbar}
+   - 標題與 toolbar 桌面 lg+ 同列、手機 stack
+```
+
+### 14.3 業界改革 #26 v1 用戶 flow（vs 既有）
+
+```
+既有 flow（3 步）：
+  1. 點星球按鈕 → 7 模組
+  2. 點「主檔」→ navigate /dashboard/base hub 頁
+  3. 點主檔卡片 → navigate /dashboard/base/users
+
+新 flow（2 步）：
+  1. 點星球按鈕 → 6 模組
+  2. 點「主檔」→ menu 展開 25 主檔 sub
+  3. 點某主檔 → navigate /dashboard/base/users
+  
+→ navigate 步驟減 1（hub 頁退場、無需經過）
+→ 桌面 + 手機統一範式（NavPlanetMenu cross-platform）
+→ 客戶友善：3 步變 2 步
+```
+
+### 14.4 主檔中心畫面（/dashboard/base hub 頁）狀態
+
+```
+路由保留：/dashboard/base 仍可訪問（保 deep link、bookmark 等）
+入口移除：NavPlanetMenu 不再點到（commit 25 直接展開 sub menu）
+顯示行為：訪問此路徑仍正常 render hub 頁（25 卡片 + 6 分區）
+
+Crown 訊息：「但是這頁面可以先保留」 → 對齊本軌處置
+後續軌：TASK-MASTER-HUB-DEPRECATE（保留 page 但移除 NavPlanetMenu 提示）
+```
+
+### 14.5 ahead 27 commit 真實清單最終
+
+```
+394772d commit 27：user view 整合 PageHeader actions
+4809428 commit 26：PageHeader 簡化（業界改革 #26 v1）
+59f58ed commit 25：NavPlanetMenu contextual menu
+dfb2e39 commit 24：toolbar glass-card 移除 + 表格 padding 減弱
+effab5c commit 23：cell grid border 移除
+3e4d53a commit 22：merge-verify §13
+65f7fd8 commit 21：移除所有族群篩選（#24 v1 設計回退）
+054ac34 commit 20：FilterBar apply.ts + user 整合
+93c5172 commit 19：FilterBar component shared
+5e1bce3 commit 18：FilterBar types + helper
+0771f6b commit 17（fix）：col-picker Portal
+2545e1c commit 16：merge-verify §12
+03a7d54 commit 15：Excel-like + pageSize
+44c6c97 commit 14（fix）：Portal dock
+51fc265 commit 13（fix）：swipe 6
+2a18189 commit 12：merge-verify §11
+116162c commit 11：refactor 3 dock + 首頁 5→6
+ae6c720 commit 10：NexoraBottomDock shared
+16e230c commit 9（fix）：Dock 掛點
+4d177ac commit 8：merge-verify §10
+15c5530 commit 7：BaseMasterMobileDock
+2a1340b commit 6：merge-verify 9 段
+0aebec5 commit 5：backend user-role
+922df91 commit 4：user 表格 reference
+a657736 commit 3：IncludeInactiveToggle
+8bcf7bb commit 2：audit person + tooltip
+e4172d5 commit 1：Dropdown z-index 60
+```
+
+### 14.6 業界改革累積真相最終
+
+```
+⭐⭐⭐ #22 v1.2 表格內部 UX：完整落地
+⭐⭐  #17 手機介面 = NEXORA 亮點：Bottom Dock 統一 + NavPlanetMenu contextual cross-platform
+⭐⭐⭐ #26 v1 Contextual Navigation：TopBar 星球按鈕多層 menu（業界改革新候選）
+⚠️    #24 v1 Filter Bar：MVP 落地後設計回退 / shared 元件保留供 V2
+```
+
+### 14.7 後續軌 backlog 更新
+
+```
+TASK-NAV-CONTEXTUAL-V2（P1）：採購/銷貨/庫存/財務/報表 sub-menu 統一 contextual 範式
+TASK-MASTER-HUB-DEPRECATE（P2）：/dashboard/base 退場（保 deep link、不從 nav 入）
+TASK-MASTER-TABLE-ROLLOUT-COMPACT（P1）：20 主檔 view rollout actions prop 整合
+TASK-MASTER-TABLE-ROLLOUT-EXCEL（P1）：20 主檔 view rollout cell border / pageSize selector
+TASK-USER-PREF-PAGESIZE（P3）：localStorage 持久化
+TASK-USER-REOPEN-INACTIVE（P2）：補「找停用 user」入口
+TASK-FILTER-BUILDER-V2（P3）：Saved Views + backend API filter
+```
+
+⭐ Q-RHYTHM-2 第 13 次穩定預備：業界改革 #22 v1.2 + #17 + #26 v1 三軌累積 + #24 v1 設計回退 lessons learned。
