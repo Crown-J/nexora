@@ -1021,7 +1021,7 @@ function UsersTable({
                 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
             }}
           >
-            <tr className="border-b border-[#2A2A30] text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-[#888892]">
+            <tr className="border-b border-[#2A2A30] text-left text-[11px] font-bold uppercase tracking-[0.16em] text-[#C8C8D0]">
               <th className="w-12 px-2 py-2.5">
                 {selectionMode ? (
                   <input
@@ -1039,7 +1039,7 @@ function UsersTable({
                 <button
                   type="button"
                   onClick={() => setSortKey('username')}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-[#E8E8EB]"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
                 >
                   帳號
                   <ChevronDown className={cn('size-3', sortKey === 'username' && 'text-[#E8A020]')} />
@@ -1049,7 +1049,7 @@ function UsersTable({
                 <button
                   type="button"
                   onClick={() => setSortKey('displayName')}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-[#E8E8EB]"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
                 >
                   姓名
                   <ChevronDown className={cn('size-3', sortKey === 'displayName' && 'text-[#E8A020]')} />
@@ -1064,7 +1064,7 @@ function UsersTable({
                 <button
                   type="button"
                   onClick={() => setSortKey('lastLoginAt')}
-                  className="inline-flex items-center gap-1 transition-colors hover:text-[#E8E8EB]"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
                 >
                   最後登入
                   <ChevronDown className={cn('size-3', sortKey === 'lastLoginAt' && 'text-[#E8A020]')} />
@@ -1208,10 +1208,176 @@ function UsersTable({
   );
 }
 
-/** 舊 ERP 範式詳細頁：上方 form fields + 下方明細項次（roles / warehouses）
- * 編輯模式下：form fields → 可編輯 input / select。
- */
+type DetailSubTab = 'basic' | 'roles' | 'warehouses';
+
+/** 詳細資料：sub-tab 區隔（基本資料 / 擔任職務 / 隸屬倉庫），編輯模式下 form 變 input */
 function UserDetailView({
+  user,
+  editMode,
+  editForm,
+  onEditChange,
+}: {
+  user: UserRow;
+  editMode: boolean;
+  editForm: EditFormState | null;
+  onEditChange: (next: EditFormState) => void;
+}) {
+  const [subTab, setSubTab] = useState<DetailSubTab>('basic');
+
+  // 切換使用者時重置回基本資料；編輯模式下也鎖回基本資料（form 在此 tab）
+  useEffect(() => {
+    setSubTab('basic');
+  }, [user.id]);
+  useEffect(() => {
+    if (editMode) setSubTab('basic');
+  }, [editMode]);
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#0A0A0C]">
+      <DetailSubTabBar
+        subTab={subTab}
+        onChange={setSubTab}
+        rolesCount={user.roles.length}
+        warehousesCount={user.warehouses.length}
+        editMode={editMode}
+      />
+      <div className="flex-1 overflow-auto nx-master-scroll p-6">
+        {subTab === 'basic' && (
+          <BasicInfoPanel user={user} editMode={editMode} editForm={editForm} onEditChange={onEditChange} />
+        )}
+        {subTab === 'roles' && (
+          <DetailSection title="擔任職務" count={user.roles.length}>
+            {user.roles.length > 0 ? (
+              <DetailTable
+                headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
+                rows={user.roles.map((r, i) => [
+                  String(i + 1).padStart(4, '0'),
+                  r.code,
+                  r.name,
+                  r.isPrimary ? '✓' : '',
+                  r.assignedAt,
+                  r.assignedBy,
+                ])}
+              />
+            ) : (
+              <EmptyDetail message="尚未指派職務" />
+            )}
+          </DetailSection>
+        )}
+        {subTab === 'warehouses' && (
+          <DetailSection title="隸屬倉庫" count={user.warehouses.length}>
+            {user.warehouses.length > 0 ? (
+              <DetailTable
+                headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
+                rows={user.warehouses.map((w, i) => [
+                  String(i + 1).padStart(4, '0'),
+                  w.code,
+                  w.name,
+                  w.assignedAt,
+                  w.assignedBy,
+                ])}
+              />
+            ) : (
+              <EmptyDetail message="尚未指派倉庫據點" />
+            )}
+          </DetailSection>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DetailSubTabBar({
+  subTab,
+  onChange,
+  rolesCount,
+  warehousesCount,
+  editMode,
+}: {
+  subTab: DetailSubTab;
+  onChange: (next: DetailSubTab) => void;
+  rolesCount: number;
+  warehousesCount: number;
+  editMode: boolean;
+}) {
+  return (
+    <div
+      className="flex items-center gap-1 border-b border-[#2A2A30] px-4"
+      style={{
+        backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #08080A 100%)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+      }}
+    >
+      <SubTabButton label="基本資料" active={subTab === 'basic'} onClick={() => onChange('basic')} disabled={false} />
+      <SubTabButton
+        label="擔任職務"
+        badge={rolesCount}
+        active={subTab === 'roles'}
+        onClick={() => onChange('roles')}
+        disabled={editMode}
+      />
+      <SubTabButton
+        label="隸屬倉庫"
+        badge={warehousesCount}
+        active={subTab === 'warehouses'}
+        onClick={() => onChange('warehouses')}
+        disabled={editMode}
+      />
+      {editMode ? (
+        <span className="ml-auto text-[10px] tracking-wider text-[#5A5A60]">編輯模式僅可操作基本資料</span>
+      ) : null}
+    </div>
+  );
+}
+
+function SubTabButton({
+  label,
+  badge,
+  active,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  badge?: number;
+  active: boolean;
+  onClick: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={disabled ? '編輯模式無法切換' : label}
+      className={cn(
+        'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-semibold transition-all',
+        active
+          ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_10px_rgba(232,160,32,0.4)]'
+          : disabled
+            ? 'cursor-not-allowed border-transparent text-[#5A5A60]'
+            : 'border-transparent text-[#B8B8C0] hover:text-[#F0F0F3]',
+      )}
+    >
+      {label}
+      {badge != null ? (
+        <span
+          className={cn(
+            'inline-flex h-4 min-w-[16px] items-center justify-center rounded-md px-1 text-[10px] font-mono tabular-nums',
+            active
+              ? 'bg-[#E8A020]/15 text-[#E8A020]'
+              : disabled
+                ? 'bg-[#131316] text-[#5A5A60]'
+                : 'bg-[#1A1A1F] text-[#888892]',
+          )}
+        >
+          {badge}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function BasicInfoPanel({
   user,
   editMode,
   editForm,
@@ -1228,99 +1394,71 @@ function UserDetailView({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll bg-[#0A0A0C]">
-      {/* 上方 form fields（grid 4-col、業界 ERP 範式緊湊 layout）*/}
-      <div className="border-b border-[#2A2A30] bg-[#131316] px-6 py-4">
-        <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-          <FormField label="帳號" value={user.username} mono />
-          {editMode && editForm ? (
-            <FormInput label="姓名" value={editForm.displayName} onChange={(v) => update('displayName', v)} />
-          ) : (
-            <FormField label="姓名" value={user.displayName} />
-          )}
-          {editMode && editForm ? (
-            <FormSelect
-              label="職務"
-              value={editForm.jobTitle}
-              options={JOB_TITLES as unknown as string[]}
-              onChange={(v) => update('jobTitle', v)}
-            />
-          ) : (
-            <FormField label="職務" value={user.jobTitle} />
-          )}
-          {editMode && editForm ? (
-            <FormSelect
-              label="啟用狀態"
-              value={editForm.isActive ? '啟用' : '未啟用'}
-              options={['啟用', '未啟用']}
-              onChange={(v) => update('isActive', v === '啟用')}
-            />
-          ) : (
-            <FormField label="啟用狀態" value={user.isActive ? '啟用' : '未啟用'} tone={user.isActive ? 'green' : 'red'} />
-          )}
-
-          {editMode && editForm ? (
-            <FormInput label="信箱" value={editForm.email} onChange={(v) => update('email', v)} placeholder="—" />
-          ) : (
-            <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
-          )}
-          {editMode && editForm ? (
-            <FormInput label="電話" value={editForm.phone} onChange={(v) => update('phone', v)} placeholder="—" />
-          ) : (
-            <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
-          )}
-          {editMode && editForm ? (
-            <FormInput label="隸屬倉庫" value={editForm.warehouse} onChange={(v) => update('warehouse', v)} placeholder="—" />
-          ) : (
-            <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
-          )}
-          <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
-
-          <FormField label="建立時間" value={user.createdAt} mono />
-          <FormField label="建立人員" value={user.createdBy} />
-          <FormField label="修改時間" value={user.updatedAt} mono />
-          <FormField label="修改人員" value={user.updatedBy} />
+    <div
+      className="rounded-xl border border-[#2A2A30]"
+      style={{
+        backgroundImage: 'linear-gradient(180deg, #131318 0%, #0E0E12 100%)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 2px 24px 0 rgba(0,0,0,0.4)',
+      }}
+    >
+      <div className="flex items-center justify-between border-b border-[#2A2A30] px-5 py-3">
+        <div className="flex items-center gap-2.5">
+          <span className="size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
+          <h2 className="text-sm font-bold tracking-wide text-[#F0F0F3]">基本資料</h2>
         </div>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
+          User Profile
+        </span>
       </div>
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
+        <FormField label="帳號" value={user.username} mono />
+        {editMode && editForm ? (
+          <FormInput label="姓名" value={editForm.displayName} onChange={(v) => update('displayName', v)} />
+        ) : (
+          <FormField label="姓名" value={user.displayName} />
+        )}
+        {editMode && editForm ? (
+          <FormSelect
+            label="職務"
+            value={editForm.jobTitle}
+            options={JOB_TITLES as unknown as string[]}
+            onChange={(v) => update('jobTitle', v)}
+          />
+        ) : (
+          <FormField label="職務" value={user.jobTitle} />
+        )}
+        {editMode && editForm ? (
+          <FormSelect
+            label="啟用狀態"
+            value={editForm.isActive ? '啟用' : '未啟用'}
+            options={['啟用', '未啟用']}
+            onChange={(v) => update('isActive', v === '啟用')}
+          />
+        ) : (
+          <FormField label="啟用狀態" value={user.isActive ? '啟用' : '未啟用'} tone={user.isActive ? 'green' : 'red'} />
+        )}
 
-      {/* 下方明細項次（擔任職務 + 隸屬倉庫）*/}
-      <div className="flex-1 px-6 py-4">
-        <DetailSection title="擔任職務" count={user.roles.length}>
-          {user.roles.length > 0 ? (
-            <DetailTable
-              headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
-              rows={user.roles.map((r, i) => [
-                String(i + 1).padStart(4, '0'),
-                r.code,
-                r.name,
-                r.isPrimary ? '✓' : '',
-                r.assignedAt,
-                r.assignedBy,
-              ])}
-            />
-          ) : (
-            <EmptyDetail message="尚未指派職務" />
-          )}
-        </DetailSection>
+        {editMode && editForm ? (
+          <FormInput label="信箱" value={editForm.email} onChange={(v) => update('email', v)} placeholder="—" />
+        ) : (
+          <FormField label="信箱" value={user.email ?? '—'} dim={!user.email} />
+        )}
+        {editMode && editForm ? (
+          <FormInput label="電話" value={editForm.phone} onChange={(v) => update('phone', v)} placeholder="—" />
+        ) : (
+          <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
+        )}
+        {editMode && editForm ? (
+          <FormInput label="隸屬倉庫" value={editForm.warehouse} onChange={(v) => update('warehouse', v)} placeholder="—" />
+        ) : (
+          <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
+        )}
+        <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
 
-        <div className="h-4" />
-
-        <DetailSection title="隸屬倉庫" count={user.warehouses.length}>
-          {user.warehouses.length > 0 ? (
-            <DetailTable
-              headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
-              rows={user.warehouses.map((w, i) => [
-                String(i + 1).padStart(4, '0'),
-                w.code,
-                w.name,
-                w.assignedAt,
-                w.assignedBy,
-              ])}
-            />
-          ) : (
-            <EmptyDetail message="尚未指派倉庫據點" />
-          )}
-        </DetailSection>
+        <FormField label="建立時間" value={user.createdAt} mono />
+        <FormField label="建立人員" value={user.createdBy} />
+        <FormField label="修改時間" value={user.updatedAt} mono />
+        <FormField label="修改人員" value={user.updatedBy} />
       </div>
     </div>
   );
@@ -1341,19 +1479,27 @@ function FormField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#5A5A60]">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
         {label}
       </span>
       <div
+        style={
+          !tone
+            ? {
+                backgroundImage: 'linear-gradient(180deg, #101015 0%, #08080C 100%)',
+                boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
+              }
+            : undefined
+        }
         className={cn(
-          'rounded-md border border-[#2A2A30] bg-[#0A0A0C]/60 px-2.5 py-1.5 text-sm',
+          'rounded-md border border-[#2A2A30] px-3 py-2 text-sm',
           mono && 'font-mono text-xs',
           dim && 'text-[#5A5A60]',
           tone === 'amber' && 'border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]',
           tone === 'green' && 'border-[#22D88F]/30 bg-[#22D88F]/8 text-[#22D88F]',
           tone === 'red' && 'border-[#E26060]/30 bg-[#E26060]/8 text-[#E26060]',
           tone === 'muted' && 'border-[#3A3A42] text-[#888892]',
-          !tone && !dim && 'text-[#E8E8EB]',
+          !tone && !dim && 'text-[#F0F0F3]',
         )}
       >
         {value}
@@ -1375,7 +1521,7 @@ function FormInput({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#5A5A60]">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
         {label}
       </span>
       <input
@@ -1402,7 +1548,7 @@ function FormSelect({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#5A5A60]">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
         {label}
       </span>
       <select
@@ -1513,25 +1659,38 @@ function ConfirmDialog({
 
 function DetailSection({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-[#2A2A30] bg-[#131316] shadow-[0_1px_0_0_rgba(0,0,0,0.4)]">
-      <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#1A1A1F] px-3 py-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-[#E8E8EB]">{title}</span>
-          <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-1.5 py-0.5 text-[10px] font-mono tabular-nums text-[#888892]">
+    <div
+      className="rounded-xl border border-[#2A2A30]"
+      style={{
+        backgroundImage: 'linear-gradient(180deg, #131318 0%, #0E0E12 100%)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 2px 24px 0 rgba(0,0,0,0.4)',
+      }}
+    >
+      <div
+        className="flex items-center justify-between border-b border-[#2A2A30] px-5 py-3"
+        style={{
+          backgroundImage: 'linear-gradient(180deg, #1A1A20 0%, #131318 100%)',
+          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04)',
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="size-1.5 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
+          <h2 className="text-sm font-bold tracking-wide text-[#F0F0F3]">{title}</h2>
+          <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-0.5 text-[10px] font-mono tabular-nums text-[#B8B8C0]">
             {count}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="inline-flex h-6 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-1.5 text-[10px] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/8 hover:text-[#E8A020]"
+            className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
           >
             <Plus className="size-3" />
             新增項次
           </button>
         </div>
       </div>
-      <div className="p-2">{children}</div>
+      <div className="p-3">{children}</div>
     </div>
   );
 }
@@ -1540,9 +1699,9 @@ function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] })
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-left text-[10px] font-medium uppercase tracking-[0.08em] text-[#5A5A60]">
+        <tr className="text-left text-[11px] font-bold uppercase tracking-[0.14em] text-[#B8B8C0]">
           {headers.map((h) => (
-            <th key={h} className="border-b border-[#2A2A30] px-2 py-1.5 whitespace-nowrap">
+            <th key={h} className="border-b border-[#2A2A30] px-2 py-2 whitespace-nowrap">
               {h}
             </th>
           ))}
