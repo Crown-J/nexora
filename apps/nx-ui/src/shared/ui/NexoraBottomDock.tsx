@@ -6,7 +6,7 @@
  * - 固定 6 slot 視覺基準
  * - icon-only（無文字 label、aria-label / title 提供無障礙）
  * - items.length <= 6：flex-1 均分（無滑動）
- * - items.length > 6：overflow-x-auto + 每 item 固定 64px width（swipe scroll）
+ * - items.length > 6：overflow-x-auto + 每 item 寬 = calc(100vw / 6)（固定 6 visible、swipe scroll）
  * - active：text-[#E8A020] + 底部小橫槓
  * - fixed bottom-0 / 56px 高 / safe-area / bg-black/95 backdrop-blur / lg:hidden
  *
@@ -98,7 +98,8 @@ export function NexoraBottomDock({
           const Icon = item.icon;
           const slotClass = cn(
             'relative flex min-h-[56px] flex-col items-center justify-center transition-colors',
-            isSwipe ? 'min-w-[64px] shrink-0 px-2' : 'min-w-[44px] flex-1',
+            // 業界改革 #22 v1.2：固定 visible 6 完整、超過用 swipe
+            isSwipe ? 'w-[calc(100vw/6)] shrink-0' : 'min-w-[44px] flex-1',
             item.active ? 'text-[#E8A020]' : 'text-white/60 hover:text-white/80',
           );
           const indicator = item.active ? (
