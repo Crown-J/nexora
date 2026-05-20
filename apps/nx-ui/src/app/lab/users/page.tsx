@@ -367,7 +367,13 @@ function PlanetModuleMenu() {
   );
 }
 
-function LeftSidebar({ sidebarRef }: { sidebarRef: React.RefObject<HTMLElement | null> }) {
+function LeftSidebar({
+  sidebarRef,
+  onReturnToTable,
+}: {
+  sidebarRef: React.RefObject<HTMLElement | null>;
+  onReturnToTable: () => void;
+}) {
   const handleKey = (e: React.KeyboardEvent) => {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
     const items = Array.from(
@@ -400,7 +406,7 @@ function LeftSidebar({ sidebarRef }: { sidebarRef: React.RefObject<HTMLElement |
       <div className="flex-1 overflow-y-auto px-2 pb-3 nx-master-scroll">
         <div className="space-y-0.5 px-1 pt-1">
           {NAV_TOP.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} badge={item.badge} />
+            <NavItem key={item.id} icon={item.icon} label={item.label} badge={item.badge} onClick={onReturnToTable} />
           ))}
         </div>
 
@@ -418,41 +424,48 @@ function LeftSidebar({ sidebarRef }: { sidebarRef: React.RefObject<HTMLElement |
         />
         <div className="space-y-0.5 px-1">
           {NAV_ACCOUNT.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} active={item.active} count={item.count} />
+            <NavItem
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              active={item.active}
+              count={item.count}
+              onClick={onReturnToTable}
+            />
           ))}
         </div>
 
         <SectionLabel label="產品與料號" />
         <div className="space-y-0.5 px-1">
           {NAV_PRODUCT.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} />
+            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
           ))}
         </div>
 
         <SectionLabel label="車型字典" />
         <div className="space-y-0.5 px-1">
           {NAV_VEHICLE.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} />
+            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
           ))}
         </div>
 
         <SectionLabel label="組織架構" />
         <div className="space-y-0.5 px-1">
           {NAV_ORG.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} />
+            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
           ))}
         </div>
 
         <SectionLabel label="交易對象" />
         <div className="space-y-0.5 px-1">
           {NAV_PARTNER.map((item) => (
-            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} />
+            <NavItem key={item.id} icon={item.icon} label={item.label} count={item.count} onClick={onReturnToTable} />
           ))}
         </div>
 
         <SectionLabel label="系統設定" />
         <div className="space-y-0.5 px-1">
-          <NavItem icon={Settings} label="基礎設定" />
+          <NavItem icon={Settings} label="基礎設定" onClick={onReturnToTable} />
         </div>
       </div>
 
@@ -886,10 +899,13 @@ function UsersTable({
               return (
                 <tr
                   key={row.id}
+                  data-row-id={row.id}
+                  tabIndex={0}
                   onClick={() => onSelect(row.id)}
                   onDoubleClick={() => onOpenDetail(row.id)}
                   className={cn(
-                    'cursor-pointer border-b border-border/30 transition-colors',
+                    'cursor-pointer border-b border-border/30 transition-colors outline-none',
+                    'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
                     isSelected
                       ? 'bg-[#E8A020]/15 ring-1 ring-inset ring-[#E8A020]/40'
                       : selectionMode && isChecked
@@ -1427,9 +1443,23 @@ export default function LabUsersPage() {
   }, [showToast]);
 
   const handleExit = useCallback(() => {
+    // 焦點離開表格 → 同步清掉琥珀選列（視覺上也離開）
+    setSelectedId(null);
     const first = sidebarRef.current?.querySelector<HTMLButtonElement>('[data-nav-item]');
     first?.focus();
-    showToast('焦點已轉至左側模組列表（↑↓ 切換）', 'info');
+    showToast('焦點已轉至左側模組列表（↑↓ 切換、Enter 返回表格）', 'info');
+  }, [showToast]);
+
+  const handleReturnToTable = useCallback(() => {
+    if (USERS.length === 0) return;
+    const firstId = USERS[0].id;
+    setSelectedId(firstId);
+    // 下一個 tick 等 React render 完再聚焦 DOM
+    setTimeout(() => {
+      const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${firstId}"]`);
+      row?.focus();
+    }, 0);
+    showToast(`已聚焦第一筆：${USERS[0].username}`, 'info');
   }, [showToast]);
 
   const handleSave = useCallback(() => {
@@ -1523,7 +1553,7 @@ export default function LabUsersPage() {
 
   return (
     <div className="flex h-dvh bg-background text-foreground">
-      <LeftSidebar sidebarRef={sidebarRef} />
+      <LeftSidebar sidebarRef={sidebarRef} onReturnToTable={handleReturnToTable} />
       <main className="flex min-w-0 flex-1 flex-col">
         <TopHeader />
         <ErpToolbar
