@@ -33,7 +33,7 @@ import {
   Layers,
 } from 'lucide-react';
 
-import { listUsers, setUserActive, type UserDto } from '@/features/base/api/user';
+import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
@@ -119,8 +119,6 @@ const HEADER_CONFIG: HeaderConfig = {
   announcementBadge: 2,
 };
 
-const JOB_TITLES = ['系統管理員', '財務', '採購', '業務', '倉管'] as const;
-
 const DEFAULT_PAGE_SIZE = 20;
 
 // ──────────────────────────────────────────────────────────────
@@ -147,14 +145,15 @@ type UserRow = {
   warehouses: { code: string; name: string; assignedAt: string; assignedBy: string }[];
 };
 
+/** 編輯模式 form state。
+ * 只含 updateUser API 可改的欄位：displayName / isActive / email / phone（password 暫不在此 form）。
+ * jobTitle / warehouse / username 為 derived 或 immutable，不在 form 內。
+ */
 type EditFormState = {
-  username: string;
   displayName: string;
-  jobTitle: string;
   isActive: boolean;
   email: string;
   phone: string;
-  warehouse: string;
 };
 
 /** 將後端 UserDto 轉成內部 UserRow（仿 BaseUserMasterView dtoToRow 範式）
@@ -182,13 +181,10 @@ function dtoToUserRow(u: UserDto): UserRow {
 
 function makeEditForm(user: UserRow): EditFormState {
   return {
-    username: user.username,
     displayName: user.displayName,
-    jobTitle: user.jobTitle,
     isActive: user.isActive,
     email: user.email ?? '',
     phone: user.phone ?? '',
-    warehouse: user.warehouse ?? '',
   };
 }
 
@@ -378,22 +374,15 @@ function UserDetailView({
       <section className="border-b border-[#1A1A1F] px-8 py-6">
         <SectionHeader title="基本資料" subtitle="User Profile" />
         <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* username / jobTitle / warehouse 為 derived 欄位（jobTitle ← user_role、warehouse ← user_warehouse）
+             updateUser API 不接受、需於下方「擔任職務 / 隸屬倉庫」區塊調整，編輯模式仍維持 read-only */}
           <FormField label="帳號" value={user.username} mono />
           {editMode && editForm ? (
             <FormInput label="姓名" value={editForm.displayName} onChange={(v) => update('displayName', v)} />
           ) : (
             <FormField label="姓名" value={user.displayName} />
           )}
-          {editMode && editForm ? (
-            <FormSelect
-              label="職務"
-              value={editForm.jobTitle}
-              options={JOB_TITLES as unknown as string[]}
-              onChange={(v) => update('jobTitle', v)}
-            />
-          ) : (
-            <FormField label="職務" value={user.jobTitle} />
-          )}
+          <FormField label="職務" value={user.jobTitle} />
           {editMode && editForm ? (
             <FormSelect
               label="啟用狀態"
@@ -415,11 +404,7 @@ function UserDetailView({
           ) : (
             <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
           )}
-          {editMode && editForm ? (
-            <FormInput label="隸屬倉庫" value={editForm.warehouse} onChange={(v) => update('warehouse', v)} placeholder="—" />
-          ) : (
-            <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
-          )}
+          <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
           <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
 
           <FormField label="建立時間" value={user.createdAt} mono />
@@ -667,17 +652,37 @@ export function UserMasterPage() {
   }, [showToast, users]);
 
   const handleSave = useCallback(() => {
+    if (!editForm || !selectedUser) {
+      showToast('編輯狀態異常，請取消後重試', 'danger');
+      return;
+    }
+    const target = selectedUser;
+    const form = editForm;
     setConfirmState({
       title: '確認存檔',
-      message: '是否確認將變更寫入此筆資料？',
+      message: `將「${target.displayName}（${target.username}）」的變更寫入資料庫？`,
       confirmLabel: '存檔',
       onConfirm: () => {
-        setMode('browse');
-        setEditForm(null);
-        showToast('已存檔（lab mock）', 'success');
+        void (async () => {
+          try {
+            await updateUser(target.id, {
+              displayName: form.displayName.trim(),
+              email: form.email.trim() || null,
+              phone: form.phone.trim() || null,
+              isActive: form.isActive,
+            });
+            showToast(`已存檔 ${target.username}`, 'success');
+            setMode('browse');
+            setEditForm(null);
+            setReloadTick((t) => t + 1);
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : '存檔失敗';
+            showToast(`存檔失敗：${msg}`, 'danger');
+          }
+        })();
       },
     });
-  }, [showToast]);
+  }, [editForm, selectedUser, showToast]);
 
   const handleCancel = useCallback(() => {
     setMode('browse');
