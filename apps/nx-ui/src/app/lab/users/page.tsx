@@ -1216,12 +1216,15 @@ type DetailNavItem = {
   badge?: number;
 };
 
-/** 詳細資料：左側 sticky 索引 + 滿版滾動內容（commit 47）
+/** 詳細資料：左側 sticky 索引 + 滿版滾動內容（commit 47 + 47.1 模式語意修正）
  *
  * 設計：
  * - 左側索引列：點擊跳對應 anchor，scroll 時自動高亮（IntersectionObserver）
  * - 右側滿版內容：各 section 用 <section data-section-id> 標記，無 card 邊框，章節間細分隔線
- * - 編輯模式：擔任職務 / 隸屬倉庫 索引 disabled，內容仍可瀏覽但鎖回基本資料 anchor
+ * - 模式語意：
+ *   瀏覽模式 = read-only：form 不可改、不顯示「新增職務 / 新增倉庫據點」按鈕
+ *   編輯模式 = write：form 變 input、顯示新增按鈕（編輯模式才能改寫資料）
+ *   索引列在兩種模式都自由切換（純 navigation）
  * - 擴充：新增關聯表只需在 navItems 陣列加一項 + 多寫一個 <section>，索引列無限延伸
  */
 function UserDetailView({
@@ -1229,11 +1232,15 @@ function UserDetailView({
   editMode,
   editForm,
   onEditChange,
+  onAddRole,
+  onAddWarehouse,
 }: {
   user: UserRow;
   editMode: boolean;
   editForm: EditFormState | null;
   onEditChange: (next: EditFormState) => void;
+  onAddRole: () => void;
+  onAddWarehouse: () => void;
 }) {
   const [activeSection, setActiveSection] = useState<DetailSectionId>('basic');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1248,14 +1255,6 @@ function UserDetailView({
     setActiveSection('basic');
     scrollRef.current?.scrollTo({ top: 0 });
   }, [user.id]);
-
-  // 編輯模式啟動時鎖回 basic 並 scroll 回頂
-  useEffect(() => {
-    if (editMode) {
-      setActiveSection('basic');
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [editMode]);
 
   // IntersectionObserver：scroll 時自動高亮當前 section
   useEffect(() => {
@@ -1289,11 +1288,9 @@ function UserDetailView({
     { id: 'warehouses', label: '隸屬倉庫', badge: user.warehouses.length },
   ];
 
-  const disabledIds = editMode ? new Set<DetailSectionId>(['roles', 'warehouses']) : undefined;
-
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden bg-[#0A0A0C]">
-      <DetailNav items={navItems} active={activeSection} onSelect={handleAnchor} disabledIds={disabledIds} editMode={editMode} />
+      <DetailNav items={navItems} active={activeSection} onSelect={handleAnchor} />
       <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll">
         {/* 基本資料 */}
         <section data-section-id="basic" className="border-b border-[#1A1A1F] px-8 py-6 scroll-mt-2">
@@ -1356,7 +1353,7 @@ function UserDetailView({
             title="擔任職務"
             count={user.roles.length}
             subtitle="Assigned Roles"
-            action={!editMode ? <SectionAddButton label="新增職務" /> : null}
+            action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} /> : null}
           />
           <div className="mt-4">
             {user.roles.length > 0 ? (
@@ -1383,7 +1380,7 @@ function UserDetailView({
             title="隸屬倉庫"
             count={user.warehouses.length}
             subtitle="Assigned Warehouses"
-            action={!editMode ? <SectionAddButton label="新增倉庫據點" /> : null}
+            action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
           />
           <div className="mt-4">
             {user.warehouses.length > 0 ? (
@@ -1411,14 +1408,10 @@ function DetailNav({
   items,
   active,
   onSelect,
-  disabledIds,
-  editMode,
 }: {
   items: DetailNavItem[];
   active: DetailSectionId;
   onSelect: (id: DetailSectionId) => void;
-  disabledIds?: Set<DetailSectionId>;
-  editMode: boolean;
 }) {
   return (
     <aside
@@ -1434,16 +1427,12 @@ function DetailNav({
       <div className="space-y-0.5">
         {items.map((item) => {
           const isActive = active === item.id;
-          const isDisabled = disabledIds?.has(item.id) ?? false;
           return (
             <button
               key={item.id}
               type="button"
-              onClick={() => {
-                if (!isDisabled) onSelect(item.id);
-              }}
-              disabled={isDisabled}
-              title={isDisabled ? '編輯模式無法切換' : item.label}
+              onClick={() => onSelect(item.id)}
+              title={item.label}
               style={
                 isActive
                   ? {
@@ -1459,9 +1448,7 @@ function DetailNav({
                 'focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50',
                 isActive
                   ? 'font-semibold text-[#E8A020]'
-                  : isDisabled
-                    ? 'cursor-not-allowed text-[#5A5A60]'
-                    : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#F0F0F3]',
+                  : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#F0F0F3]',
               )}
             >
               <span>{item.label}</span>
@@ -1469,11 +1456,7 @@ function DetailNav({
                 <span
                   className={cn(
                     'rounded-md px-1.5 py-0.5 text-[10px] font-mono tabular-nums',
-                    isActive
-                      ? 'bg-[#E8A020]/15 text-[#E8A020]'
-                      : isDisabled
-                        ? 'bg-[#131316] text-[#5A5A60]'
-                        : 'bg-[#1A1A1F] text-[#888892]',
+                    isActive ? 'bg-[#E8A020]/15 text-[#E8A020]' : 'bg-[#1A1A1F] text-[#888892]',
                   )}
                 >
                   {item.badge}
@@ -1483,11 +1466,6 @@ function DetailNav({
           );
         })}
       </div>
-      {editMode ? (
-        <p className="mt-auto px-1 text-[10px] leading-relaxed tracking-wider text-[#5A5A60]">
-          編輯模式僅可操作基本資料
-        </p>
-      ) : null}
     </aside>
   );
 }
@@ -1522,10 +1500,11 @@ function SectionHeader({
   );
 }
 
-function SectionAddButton({ label }: { label: string }) {
+function SectionAddButton({ label, onClick }: { label: string; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
     >
       <Plus className="size-3" />
@@ -1906,6 +1885,14 @@ export default function LabUsersPage() {
     showToast('公告 · 2 則最新（lab mock）', 'info');
   }, [showToast]);
 
+  const handleAddRole = useCallback(() => {
+    showToast('新增職務 · 待接職務選擇器（lab mock）', 'info');
+  }, [showToast]);
+
+  const handleAddWarehouse = useCallback(() => {
+    showToast('新增倉庫據點 · 待接倉庫選擇器（lab mock）', 'info');
+  }, [showToast]);
+
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -2050,6 +2037,8 @@ export default function LabUsersPage() {
             editMode={mode === 'edit'}
             editForm={editForm}
             onEditChange={setEditForm}
+            onAddRole={handleAddRole}
+            onAddWarehouse={handleAddWarehouse}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
