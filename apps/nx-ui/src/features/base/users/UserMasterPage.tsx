@@ -33,7 +33,7 @@ import {
   Layers,
 } from 'lucide-react';
 
-import { listUsers, type UserDto } from '@/features/base/api/user';
+import { listUsers, setUserActive, type UserDto } from '@/features/base/api/user';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
@@ -604,15 +604,24 @@ export function UserMasterPage() {
       showToast('請先點選一筆資料才能刪除', 'danger');
       return;
     }
+    const target = selectedUser;
     setConfirmState({
-      title: '確認刪除',
-      message: `確定要刪除「${selectedUser.displayName}（${selectedUser.username}）」？此動作無法復原。`,
-      confirmLabel: '刪除',
+      title: '確認停用',
+      message: `停用「${target.displayName}（${target.username}）」後將從列表移除（軟刪除，可由系統管理員重新啟用）。`,
+      confirmLabel: '停用',
       variant: 'danger',
       onConfirm: () => {
-        const name = selectedUser.username;
-        setSelectedId(null);
-        showToast(`已刪除 ${name}`, 'danger');
+        void (async () => {
+          try {
+            await setUserActive(target.id, false);
+            showToast(`已停用 ${target.username}`, 'danger');
+            setSelectedId(null);
+            setReloadTick((t) => t + 1);
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : '停用失敗';
+            showToast(`停用失敗：${msg}`, 'danger');
+          }
+        })();
       },
     });
   }, [selectedUser, showToast]);
