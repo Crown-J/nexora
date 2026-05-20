@@ -35,6 +35,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const pathname = usePathname();
   const { me, displayName, tenantNameZh, tenantNameEn, planCode, logout, view } = useSessionMe();
   const isSysDashboardHome = pathname === '/dashboard';
+  // 業界改革 #22 v1.2：主檔子頁 fillViewport 模式（表格內部 scroll、horizontal scroll bar sticky 底部）
+  // 對齊 Crown 拍板「滾軸像試算表固定、右側滾輪在表格內而非整頁」
+  const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
   // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
   const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
 
@@ -107,6 +110,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </DashboardHomePlanProvider>
         ) : (
           <HomeLandingChrome
+            fillViewport={isFillViewportSubPage}
             topBar={
               <HomeTopBar
                 displayName={nameText}
@@ -119,7 +123,14 @@ export function DashboardShell({ children }: DashboardShellProps) {
               />
             }
           >
-            <div className="w-full min-w-0 space-y-4">
+            <div
+              className={cn(
+                'w-full min-w-0',
+                isFillViewportSubPage
+                  ? 'flex min-h-0 flex-1 flex-col gap-2'
+                  : 'space-y-4',
+              )}
+            >
               <DashboardSubNav />
               {children}
             </div>
