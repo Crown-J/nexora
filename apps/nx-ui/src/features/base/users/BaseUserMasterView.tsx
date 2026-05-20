@@ -1010,8 +1010,8 @@ export function BaseUserMasterView() {
   // 業界改革 #24 v1 設計回退：jobFilterSummary / activeFilterSummary 已 dead、移除
 
   return (
-    <div className="relative flex flex-col gap-2">
-      <div className="flex min-h-0 min-w-0 flex-col gap-2">
+    <div className="relative flex flex-col gap-1">
+      <div className="flex min-h-0 min-w-0 flex-col gap-1">
         {error ? (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
@@ -1270,8 +1270,8 @@ export function BaseUserMasterView() {
           }
         />
 
-        <section className="glass-card relative z-0 flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/60 lg:min-h-[420px]">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-2">
+        <section className="glass-card relative z-0 flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-border/60 lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-1">
               <MasterListScrollRegion
                 scrollRef={listKeyboardRootRef}
                 ariaLabel="使用者列表，方向鍵選取列，Enter 開啟明細，雙擊開啟明細"
