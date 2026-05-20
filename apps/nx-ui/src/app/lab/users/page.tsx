@@ -64,6 +64,13 @@ import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
+import {
+  DetailTable,
+  EmptyDetail,
+  MasterDetailScroll,
+  SectionAddButton,
+  SectionHeader,
+} from '@/features/master-shell/ui/MasterDetail';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
@@ -771,20 +778,13 @@ function UserDetailView({
   onAddRole: () => void;
   onAddWarehouse: () => void;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
     onEditChange({ ...editForm, [key]: value });
   };
 
-  // 切換使用者時 scroll 回頂
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
-  }, [user.id]);
-
   return (
-    <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-auto nx-master-scroll bg-[#0A0A0C]">
+    <MasterDetailScroll scrollKey={user.id}>
         {/* 基本資料 */}
         <section className="border-b border-[#1A1A1F] px-8 py-6">
           <SectionHeader title="基本資料" subtitle="User Profile" />
@@ -892,93 +892,7 @@ function UserDetailView({
             )}
           </div>
         </section>
-    </div>
-  );
-}
-
-function SectionHeader({
-  title,
-  count,
-  subtitle,
-  action,
-}: {
-  title: string;
-  count?: number;
-  subtitle?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
-      <h2 className="text-base font-bold tracking-wide text-[#F0F0F3]">{title}</h2>
-      {count != null ? (
-        <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-0.5 text-[11px] font-mono tabular-nums text-[#B8B8C0]">
-          {count}
-        </span>
-      ) : null}
-      {subtitle ? (
-        <span className="ml-3 hidden text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60] sm:inline">
-          {subtitle}
-        </span>
-      ) : null}
-      {action ? <div className="ml-auto">{action}</div> : null}
-    </div>
-  );
-}
-
-function SectionAddButton({ label, onClick }: { label: string; onClick?: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-7 min-w-[8rem] items-center justify-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
-    >
-      <Plus className="size-3" />
-      {label}
-    </button>
-  );
-}
-
-function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
-  return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="text-left text-[11px] font-bold uppercase tracking-[0.14em] text-[#B8B8C0]">
-          {headers.map((h) => (
-            <th key={h} className="border-b border-[#2A2A30] px-2 py-2 whitespace-nowrap">
-              {h}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, i) => {
-          const isEvenRow = i % 2 === 1;
-          return (
-            <tr
-              key={i}
-              className={cn(
-                'border-b border-[#1A1A1F]/70 transition-colors',
-                isEvenRow ? 'bg-[#101015]' : 'bg-transparent',
-                'hover:bg-[#1A1A22]',
-              )}
-            >
-              {row.map((cell, j) => (
-                <td key={j} className={cn('px-2 py-1.5 text-xs', j === 0 ? 'font-mono text-[#5A5A60]' : 'text-[#E8E8EB]')}>
-                  {cell}
-                </td>
-              ))}
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
-  );
-}
-
-function EmptyDetail({ message }: { message: string }) {
-  return (
-    <div className="py-6 text-center text-[11px] text-[#5A5A60]">{message}</div>
+    </MasterDetailScroll>
   );
 }
 
