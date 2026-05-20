@@ -8,6 +8,7 @@
  * Notes:
  * - 嘗試解析 JSON，再退回 text
  * - 支援 NestJS 常見 error format: { message: string | string[] }
+ * - 支援 class-validator ValidationError 物件陣列（commit 70：避免顯示 [object Object]）
  */
 
 async function readJsonOrText(res: Response): Promise<unknown> {
@@ -16,6 +17,38 @@ async function readJsonOrText(res: Response): Promise<unknown> {
     return res.json();
   }
   return res.text();
+}
+
+/**
+ * 將 NestJS validation error / 其他 error item 轉成可讀字串。
+ * 支援：
+ * - string → 直接回傳
+ * - class-validator ValidationError: { property, constraints: { rule: msg } } → 取 constraints 的 messages
+ * - 其他 object → JSON.stringify fallback
+ */
+function stringifyErrorItem(item: unknown): string {
+  if (typeof item === 'string') return item;
+  if (item && typeof item === 'object') {
+    const obj = item as { constraints?: unknown; message?: unknown; property?: unknown };
+    // class-validator ValidationError 常見格式：{ property, constraints: { isLength: "...", matches: "..." } }
+    if (obj.constraints && typeof obj.constraints === 'object') {
+      const msgs = Object.values(obj.constraints as Record<string, unknown>).filter(
+        (v): v is string => typeof v === 'string',
+      );
+      if (msgs.length > 0) {
+        const prefix = typeof obj.property === 'string' ? `${obj.property}: ` : '';
+        return prefix + msgs.join('、');
+      }
+    }
+    // 巢狀 message
+    if (typeof obj.message === 'string') return obj.message;
+    try {
+      return JSON.stringify(item);
+    } catch {
+      return String(item);
+    }
+  }
+  return String(item);
 }
 
 /**
@@ -29,14 +62,18 @@ export async function extractHttpErrorMessage(res: Response): Promise<string> {
   }
 
   // NestJS common format
-  const maybeMessage = (payload as any)?.message;
+  const maybeMessage = (payload as { message?: unknown } | null)?.message;
 
   if (Array.isArray(maybeMessage)) {
-    return maybeMessage.join(' / ');
+    return maybeMessage.map(stringifyErrorItem).join(' / ');
   }
 
   if (typeof maybeMessage === 'string') {
     return maybeMessage;
+  }
+
+  if (maybeMessage && typeof maybeMessage === 'object') {
+    return stringifyErrorItem(maybeMessage);
   }
 
   try {
