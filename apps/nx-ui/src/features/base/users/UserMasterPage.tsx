@@ -1015,6 +1015,54 @@ export function UserMasterPage() {
     [showToast],
   );
 
+  // B5（軌 B 第 5 commit）：批次啟用 / 批次停用 接 setUserActive 串聯
+  // 業界範式：confirm + 進度錯誤分流（success / failed 各別 count）
+  const handleBatchSetActive = useCallback(
+    (nextActive: boolean) => {
+      if (checked.size === 0) {
+        showToast('請先勾選至少一筆使用者', 'danger');
+        return;
+      }
+      const ids = Array.from(checked);
+      const actionLabel = nextActive ? '啟用' : '停用';
+      setConfirmState({
+        title: `確認批次${actionLabel}`,
+        message: `將勾選的 ${ids.length} 筆使用者批次${actionLabel}？此動作為軟刪除/啟用，可由「顯示停用」開關重新檢視。`,
+        confirmLabel: `${actionLabel} ${ids.length} 筆`,
+        variant: nextActive ? 'default' : 'danger',
+        onConfirm: () => {
+          void (async () => {
+            let success = 0;
+            let failed = 0;
+            for (const id of ids) {
+              try {
+                await setUserActive(id, nextActive);
+                success++;
+              } catch {
+                failed++;
+              }
+            }
+            if (failed > 0) {
+              showToast(
+                `批次${actionLabel}：${success}/${ids.length} 成功、${failed} 筆失敗`,
+                'danger',
+              );
+            } else {
+              showToast(`已批次${actionLabel} ${success} 筆`, nextActive ? 'success' : 'danger');
+            }
+            setChecked(new Set());
+            setSelectionMode(false);
+            setReloadTick((t) => t + 1);
+          })();
+        },
+      });
+    },
+    [checked, showToast],
+  );
+
+  const handleBatchEnable = useCallback(() => handleBatchSetActive(true), [handleBatchSetActive]);
+  const handleBatchDisable = useCallback(() => handleBatchSetActive(false), [handleBatchSetActive]);
+
   // B5：移除倉庫據點（軟刪除 revoke、warehouse 無 primary 概念）
   const handleRevokeWarehouse = useCallback(
     (uw: UserWarehouseDto) => {
@@ -1157,6 +1205,8 @@ export function UserMasterPage() {
           // ErpToolbar 已支援 onShowInactiveChange 未提供時不渲染（master-shell/ui/ErpToolbar.tsx line 175）。
           showInactive={tab === 'list' ? showInactive : undefined}
           onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
+          onBatchEnable={handleBatchEnable}
+          onBatchDisable={handleBatchDisable}
         />
         <SearchPanel
           open={searchOpen}
