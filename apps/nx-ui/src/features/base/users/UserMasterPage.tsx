@@ -822,6 +822,22 @@ export function UserMasterPage() {
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
     [selectedId, users],
   );
+
+  // C2：dirty 偵測 — 編輯模式下，表單欄位 diff OR staged ops 數量 > 0 → dirty
+  const isDirty = useMemo(() => {
+    if (mode !== 'edit' || !editForm || !selectedUser) return false;
+    const original = makeEditForm(selectedUser);
+    const formChanged =
+      editForm.displayName !== original.displayName ||
+      editForm.isActive !== original.isActive ||
+      editForm.email !== original.email ||
+      editForm.phone !== original.phone;
+    if (formChanged) return true;
+    if (pendingRoleOps.length > 0) return true;
+    if (pendingWarehouseOps.length > 0) return true;
+    return false;
+  }, [mode, editForm, selectedUser, pendingRoleOps, pendingWarehouseOps]);
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const handlePageSizeChange = useCallback((next: number) => {
@@ -913,16 +929,84 @@ export function UserMasterPage() {
     showToast('焦點已轉至左側模組列表（↑↓ 切換、Enter 返回表格）', 'info');
   }, [showToast]);
 
-  const handleReturnToTable = useCallback(() => {
-    if (users.length === 0) return;
-    const first = users[0];
-    setSelectedId(first.id);
-    setTimeout(() => {
-      const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
-      row?.focus();
-    }, 0);
-    showToast(`已聚焦第一筆：${first.username}`, 'info');
-  }, [showToast, users]);
+  // C2：handleReturnToTable 已 inline 進 attemptReturnToTable（含 dirty 攔截）
+
+  // C2：抽出純執行 save 邏輯（給 handleSave / dirty-aware 3-way confirm 共用）
+  const performSave = useCallback(async (): Promise<boolean> => {
+    if (!editForm || !selectedUser) {
+      showToast('編輯狀態異常，請取消後重試', 'danger');
+      return false;
+    }
+    const target = selectedUser;
+    const form = editForm;
+    const roleOps = pendingRoleOps;
+    const warehouseOps = pendingWarehouseOps;
+    let mainOk = false;
+    let roleSuccess = 0;
+    let roleFailed = 0;
+    let warehouseSuccess = 0;
+    let warehouseFailed = 0;
+    try {
+      await updateUser(target.id, {
+        displayName: form.displayName.trim(),
+        email: form.email.trim() || null,
+        phone: form.phone.trim() || null,
+        isActive: form.isActive,
+      });
+      mainOk = true;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '主檔存檔失敗';
+      showToast(`主檔存檔失敗：${msg}`, 'danger');
+      return false;
+    }
+    for (const op of roleOps) {
+      try {
+        if (op.kind === 'add') {
+          await assignUserRole({ userId: target.id, roleId: op.role.id });
+        } else if (op.kind === 'remove') {
+          await revokeUserRole(op.userRoleId);
+        } else if (op.kind === 'setPrimary') {
+          await setUserRolePrimary(op.userRoleId, true);
+        }
+        roleSuccess++;
+      } catch {
+        roleFailed++;
+      }
+    }
+    for (const op of warehouseOps) {
+      try {
+        if (op.kind === 'add') {
+          await assignUserWarehouse({ userId: target.id, warehouseId: op.warehouse.id });
+        } else if (op.kind === 'remove') {
+          await revokeUserWarehouse(op.userWarehouseId);
+        }
+        warehouseSuccess++;
+      } catch {
+        warehouseFailed++;
+      }
+    }
+    if (mainOk && roleFailed === 0 && warehouseFailed === 0) {
+      const parts = [
+        `主檔已存`,
+        roleSuccess > 0 ? `職務 ${roleSuccess} 變更` : null,
+        warehouseSuccess > 0 ? `倉庫 ${warehouseSuccess} 變更` : null,
+      ].filter(Boolean);
+      showToast(`已存檔 ${target.username}（${parts.join('、')}）`, 'success');
+    } else {
+      showToast(
+        `部分變更失敗：職務 ${roleSuccess}/${roleOps.length}、倉庫 ${warehouseSuccess}/${warehouseOps.length}`,
+        'danger',
+      );
+    }
+    setMode('browse');
+    setEditForm(null);
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
+    setReloadTick((t) => t + 1);
+    setRolesReloadTick((t) => t + 1);
+    setWarehousesReloadTick((t) => t + 1);
+    return roleFailed === 0 && warehouseFailed === 0;
+  }, [editForm, selectedUser, pendingRoleOps, pendingWarehouseOps, showToast]);
 
   const handleSave = useCallback(() => {
     if (!editForm || !selectedUser) {
@@ -930,12 +1014,9 @@ export function UserMasterPage() {
       return;
     }
     const target = selectedUser;
-    const form = editForm;
-    const roleOps = pendingRoleOps;
-    const warehouseOps = pendingWarehouseOps;
     const stagedSummary = [
-      roleOps.length > 0 ? `${roleOps.length} 個職務變更` : null,
-      warehouseOps.length > 0 ? `${warehouseOps.length} 個倉庫據點變更` : null,
+      pendingRoleOps.length > 0 ? `${pendingRoleOps.length} 個職務變更` : null,
+      pendingWarehouseOps.length > 0 ? `${pendingWarehouseOps.length} 個倉庫據點變更` : null,
     ]
       .filter(Boolean)
       .join('、');
@@ -944,85 +1025,104 @@ export function UserMasterPage() {
       message: `將「${target.displayName}（${target.username}）」的變更寫入資料庫${stagedSummary ? `（含 ${stagedSummary}）` : ''}？`,
       confirmLabel: '存檔',
       onConfirm: () => {
-        void (async () => {
-          let mainOk = false;
-          let roleSuccess = 0;
-          let roleFailed = 0;
-          let warehouseSuccess = 0;
-          let warehouseFailed = 0;
-          try {
-            await updateUser(target.id, {
-              displayName: form.displayName.trim(),
-              email: form.email.trim() || null,
-              phone: form.phone.trim() || null,
-              isActive: form.isActive,
-            });
-            mainOk = true;
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : '主檔存檔失敗';
-            showToast(`主檔存檔失敗：${msg}`, 'danger');
-            return; // 主檔失敗就不繼續 apply 關聯
-          }
-          // C1 staged：apply role ops
-          for (const op of roleOps) {
-            try {
-              if (op.kind === 'add') {
-                await assignUserRole({ userId: target.id, roleId: op.role.id });
-              } else if (op.kind === 'remove') {
-                await revokeUserRole(op.userRoleId);
-              } else if (op.kind === 'setPrimary') {
-                await setUserRolePrimary(op.userRoleId, true);
-              }
-              roleSuccess++;
-            } catch {
-              roleFailed++;
-            }
-          }
-          // C1 staged：apply warehouse ops
-          for (const op of warehouseOps) {
-            try {
-              if (op.kind === 'add') {
-                await assignUserWarehouse({ userId: target.id, warehouseId: op.warehouse.id });
-              } else if (op.kind === 'remove') {
-                await revokeUserWarehouse(op.userWarehouseId);
-              }
-              warehouseSuccess++;
-            } catch {
-              warehouseFailed++;
-            }
-          }
-          if (mainOk && roleFailed === 0 && warehouseFailed === 0) {
-            const parts = [
-              `主檔已存`,
-              roleSuccess > 0 ? `職務 ${roleSuccess} 變更` : null,
-              warehouseSuccess > 0 ? `倉庫 ${warehouseSuccess} 變更` : null,
-            ].filter(Boolean);
-            showToast(`已存檔 ${target.username}（${parts.join('、')}）`, 'success');
-          } else {
-            showToast(
-              `部分變更失敗：職務 ${roleSuccess}/${roleOps.length}、倉庫 ${warehouseSuccess}/${warehouseOps.length}`,
-              'danger',
-            );
-          }
-          setMode('browse');
-          setEditForm(null);
-          setPendingRoleOps([]);
-          setPendingWarehouseOps([]);
-          setReloadTick((t) => t + 1);
-          setRolesReloadTick((t) => t + 1);
-          setWarehousesReloadTick((t) => t + 1);
-        })();
+        void performSave();
       },
     });
-  }, [editForm, selectedUser, pendingRoleOps, pendingWarehouseOps, showToast]);
+  }, [editForm, selectedUser, pendingRoleOps, pendingWarehouseOps, performSave, showToast]);
 
-  const handleCancel = useCallback(() => {
+  // C2：純執行 cancel 邏輯（給 handleCancel / dirty-aware 3-way confirm 共用）
+  const performCancel = useCallback(() => {
     setMode('browse');
     setEditForm(null);
     setPendingRoleOps([]);
     setPendingWarehouseOps([]);
-    showToast('已取消編輯（含 staged 變更）', 'info');
-  }, [showToast]);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    if (!isDirty) {
+      performCancel();
+      showToast('已取消編輯', 'info');
+      return;
+    }
+    // dirty 時跳 3-way confirm
+    setConfirmState({
+      title: '您有未存檔變更',
+      message: '取消後變更將丟棄、無法復原。是否先儲存再離開？',
+      confirmLabel: '儲存後離開',
+      onConfirm: () => {
+        void performSave();
+      },
+      secondaryAction: {
+        label: '丟棄變更',
+        variant: 'danger',
+        onClick: () => {
+          performCancel();
+          showToast('已丟棄變更', 'danger');
+        },
+      },
+    });
+  }, [isDirty, performSave, performCancel, showToast]);
+
+  // C2：dirty-aware tab change（取代 ErpTabBar 直接 setTab + Alt+1/2 keyboard handler）
+  const attemptTabChange = useCallback(
+    (nextTab: 'list' | 'detail') => {
+      if (!isDirty) {
+        setTab(nextTab);
+        return;
+      }
+      setConfirmState({
+        title: '您有未存檔變更',
+        message: `切換 Tab 前需處理變更：儲存後切換、丟棄變更後切換、或取消（保持編輯）。`,
+        confirmLabel: '儲存後切換',
+        onConfirm: () => {
+          void (async () => {
+            const ok = await performSave();
+            if (ok) setTab(nextTab);
+          })();
+        },
+        secondaryAction: {
+          label: '丟棄變更',
+          variant: 'danger',
+          onClick: () => {
+            performCancel();
+            setTab(nextTab);
+          },
+        },
+      });
+    },
+    [isDirty, performSave, performCancel],
+  );
+
+  // C2：dirty-aware sidebar return-to-table
+  const attemptReturnToTable = useCallback(() => {
+    if (!isDirty) {
+      // 既有邏輯（reset selectedId + 焦點移第一筆）內聯於下
+      if (users.length === 0) return;
+      const first = users[0];
+      setSelectedId(first.id);
+      setTimeout(() => {
+        const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
+        row?.focus();
+      }, 0);
+      showToast(`已聚焦第一筆：${first.username}`, 'info');
+      return;
+    }
+    setConfirmState({
+      title: '您有未存檔變更',
+      message: '離開編輯模式前需處理變更：儲存、丟棄、或取消（保持編輯）。',
+      confirmLabel: '儲存後離開',
+      onConfirm: () => {
+        void performSave();
+      },
+      secondaryAction: {
+        label: '丟棄變更',
+        variant: 'danger',
+        onClick: () => {
+          performCancel();
+        },
+      },
+    });
+  }, [isDirty, users, performSave, performCancel, showToast]);
 
   const handleNotification = useCallback(() => {
     showToast('通知中心 · 3 則未讀（lab mock）', 'info');
@@ -1205,19 +1305,48 @@ export function UserMasterPage() {
 
   // 註：handleUnstageAddedWarehouse 同樣不提供（簡化 UI）。
 
+  // ── C2：ESC 鍵在編輯模式下 → 觸發 handleCancel（含 dirty 攔截）─
+  useEffect(() => {
+    if (mode !== 'edit') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // 讓內層 dialog（ConfirmDialog / Picker / Search 等）先處理自己的 ESC
+      const openDialog = document.querySelector('[role="dialog"]');
+      if (openDialog) return;
+      // 編輯模式內 ESC 不在 input／textarea → 觸發 handleCancel
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      e.preventDefault();
+      handleCancel();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mode, handleCancel]);
+
+  // ── C2：beforeunload → dirty 時瀏覽器原生 warn dialog（避免關 tab/重整丟資料）─
+  useEffect(() => {
+    if (!isDirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ''; // Chrome 需要、訊息由瀏覽器自定
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [isDirty]);
+
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       const k = e.key.toLowerCase();
 
-      // Alt+1 / Alt+2：Tab 切換（瀏覽 + 選取模式可用，編輯模式禁用）
-      if ((k === '1' || k === '2') && mode !== 'edit') {
+      // Alt+1 / Alt+2：Tab 切換（C2：編輯模式允許切換但 dirty 時跳 3-way confirm）
+      if (k === '1' || k === '2') {
         e.preventDefault();
         if (k === '1') {
-          setTab('list');
+          attemptTabChange('list');
         } else if (selectedUser) {
-          setTab('detail');
+          attemptTabChange('detail');
         } else {
           showToast('請先點選一筆資料才能切換至詳細資料', 'danger');
         }
@@ -1295,7 +1424,7 @@ export function UserMasterPage() {
         sidebarRef={sidebarRef}
         sidebarConfig={SIDEBAR_CONFIG}
         headerConfig={HEADER_CONFIG}
-        onReturnToTable={handleReturnToTable}
+        onReturnToTable={attemptReturnToTable}
         onNotification={handleNotification}
         onAnnouncement={handleAnnouncement}
       >
@@ -1334,9 +1463,10 @@ export function UserMasterPage() {
         />
         <ErpTabBar
           tab={tab}
-          onChange={setTab}
+          onChange={attemptTabChange}
           hasSelected={selectedUser !== null}
-          editMode={mode === 'edit'}
+          // C2：拿掉編輯模式 disable lock，改由 attemptTabChange 內部 dirty-aware 攔截
+          editMode={false}
         />
         {tab === 'list' ? (
           <MasterTable<UserRow>

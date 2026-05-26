@@ -24,6 +24,14 @@ export type ConfirmState = {
   confirmLabel?: string;
   variant?: 'default' | 'danger';
   onConfirm: () => void;
+  /** 軌 C C2：3-way confirm 第三個按鈕（如「不儲存」、「丟棄變更」）。
+   *  提供時底部變為 [取消] [secondary] [confirm]，常見於 dirty state「儲存 / 不儲存 / 取消」3 選 1。 */
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+    /** 視覺變體：'default' = 中性 grey、'danger' = 鋼鐵紅（如「丟棄變更」） */
+    variant?: 'default' | 'danger';
+  };
 };
 
 export function ConfirmDialog({
@@ -68,6 +76,23 @@ export function ConfirmDialog({
           >
             取消
           </button>
+          {state.secondaryAction ? (
+            <button
+              type="button"
+              onClick={() => {
+                state.secondaryAction?.onClick();
+                onClose();
+              }}
+              className={cn(
+                'inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium transition-colors',
+                state.secondaryAction.variant === 'danger'
+                  ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
+                  : 'border-[#3A3A42] bg-[#22222A] text-[#B8B8C0] hover:bg-[#2A2A30] hover:text-[#E8E8EB]',
+              )}
+            >
+              {state.secondaryAction.label}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => {
