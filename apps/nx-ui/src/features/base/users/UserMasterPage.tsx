@@ -33,7 +33,13 @@ import {
 
 import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
-import { assignUserRole, listUserRoles, type UserRoleDto } from '@/features/base/api/user-role';
+import {
+  assignUserRole,
+  listUserRoles,
+  revokeUserRole,
+  setUserRolePrimary,
+  type UserRoleDto,
+} from '@/features/base/api/user-role';
 import { listUserWarehouses, type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
@@ -337,6 +343,54 @@ function buildUserColumns(): MasterTableColumn<UserRow>[] {
   ];
 }
 
+/** 軌 B B3：擔任職務 row 編輯模式操作按鈕（設為主要 / 移除）。
+ *  - 已是主要 → 「設為主要」按鈕 disabled（顯示為「主要」）+ 「移除」按鈕 disabled（避免移除唯一主要職務）
+ *  - 非主要 → 兩按鈕皆可用
+ *  - 鋼鐵風樣式對齊 SectionAddButton（小按鈕、hover 變琥珀 / 鋼鐵紅）
+ */
+function RoleRowActions({
+  isPrimary,
+  onSetPrimary,
+  onRevoke,
+}: {
+  isPrimary: boolean;
+  onSetPrimary: () => void;
+  onRevoke: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={onSetPrimary}
+        disabled={isPrimary}
+        title={isPrimary ? '已是主要職務' : '設為主要職務'}
+        className={cn(
+          'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium transition-colors',
+          isPrimary
+            ? 'cursor-not-allowed border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]/60'
+            : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+        )}
+      >
+        {isPrimary ? '主要' : '設為主要'}
+      </button>
+      <button
+        type="button"
+        onClick={onRevoke}
+        disabled={isPrimary}
+        title={isPrimary ? '主要職務不可移除（請先指派其他主要）' : '移除此職務'}
+        className={cn(
+          'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium transition-colors',
+          isPrimary
+            ? 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]'
+            : 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]',
+        )}
+      >
+        移除
+      </button>
+    </div>
+  );
+}
+
 /** 詳細資料：滿版單欄滾動。
  *
  * 設計：
@@ -356,6 +410,8 @@ function UserDetailView({
   userWarehouses,
   onAddRole,
   onAddWarehouse,
+  onSetRolePrimary,
+  onRevokeRole,
 }: {
   user: UserRow;
   editMode: boolean;
@@ -367,6 +423,10 @@ function UserDetailView({
   userWarehouses: UserWarehouseDto[];
   onAddRole: () => void;
   onAddWarehouse: () => void;
+  /** 設為主要職務（B3）*/
+  onSetRolePrimary: (role: UserRoleDto) => void;
+  /** 移除職務（B3 軟刪除 revoke）*/
+  onRevokeRole: (role: UserRoleDto) => void;
 }) {
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
@@ -430,15 +490,31 @@ function UserDetailView({
         <div className="mt-4">
           {userRoles.length > 0 ? (
             <DetailTable
-              headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
-              rows={userRoles.map((r, i) => [
-                String(i + 1).padStart(4, '0'),
-                r.roleCode ?? '—',
-                r.roleName ?? '—',
-                r.isPrimary ? '✓' : '',
-                r.assignedAt,
-                r.assignedByName ?? '—',
-              ])}
+              headers={
+                editMode
+                  ? ['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員', '操作']
+                  : ['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']
+              }
+              rows={userRoles.map((r, i) => {
+                const base = [
+                  String(i + 1).padStart(4, '0'),
+                  r.roleCode ?? '—',
+                  r.roleName ?? '—',
+                  r.isPrimary ? '✓' : '',
+                  r.assignedAt,
+                  r.assignedByName ?? '—',
+                ];
+                if (!editMode) return base;
+                return [
+                  ...base,
+                  <RoleRowActions
+                    key={`actions-${r.id}`}
+                    isPrimary={r.isPrimary}
+                    onSetPrimary={() => onSetRolePrimary(r)}
+                    onRevoke={() => onRevokeRole(r)}
+                  />,
+                ];
+              })}
             />
           ) : (
             <EmptyDetail message="尚未指派職務" />
@@ -809,6 +885,61 @@ export function UserMasterPage() {
     [showToast],
   );
 
+  // B3：設為主要職務（單筆 row action）
+  const handleSetRolePrimary = useCallback(
+    (role: UserRoleDto) => {
+      if (role.isPrimary) return;
+      setConfirmState({
+        title: '確認設為主要職務',
+        message: `將「${role.roleCode ?? '?'} · ${role.roleName ?? '?'}」設為主要職務？原主要職務將自動取消主要標記。`,
+        confirmLabel: '設為主要',
+        onConfirm: () => {
+          void (async () => {
+            try {
+              await setUserRolePrimary(role.id, true);
+              showToast(`已將「${role.roleName ?? role.roleCode ?? '職務'}」設為主要`, 'success');
+              setRolesReloadTick((t) => t + 1);
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : '設定失敗';
+              showToast(`設定失敗：${msg}`, 'danger');
+            }
+          })();
+        },
+      });
+    },
+    [showToast],
+  );
+
+  // B3：移除職務（軟刪除 revoke）
+  const handleRevokeRole = useCallback(
+    (role: UserRoleDto) => {
+      if (role.isPrimary) {
+        // 業務規則：主要職務不可直接移除（避免使用者無主要職務）
+        showToast('主要職務不可移除，請先將其他職務設為主要', 'danger');
+        return;
+      }
+      setConfirmState({
+        title: '確認移除職務',
+        message: `將「${role.roleCode ?? '?'} · ${role.roleName ?? '?'}」從此使用者移除？此為軟刪除，可於後台稽核還原。`,
+        confirmLabel: '移除',
+        variant: 'danger',
+        onConfirm: () => {
+          void (async () => {
+            try {
+              await revokeUserRole(role.id);
+              showToast(`已移除「${role.roleName ?? role.roleCode ?? '職務'}」`, 'danger');
+              setRolesReloadTick((t) => t + 1);
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : '移除失敗';
+              showToast(`移除失敗：${msg}`, 'danger');
+            }
+          })();
+        },
+      });
+    },
+    [showToast],
+  );
+
   const handleAddWarehouse = useCallback(() => {
     showToast('新增倉庫據點 · 待接倉庫選擇器（lab mock）', 'info');
   }, [showToast]);
@@ -991,6 +1122,8 @@ export function UserMasterPage() {
             userWarehouses={selectedUserWarehouses}
             onAddRole={handleAddRole}
             onAddWarehouse={handleAddWarehouse}
+            onSetRolePrimary={handleSetRolePrimary}
+            onRevokeRole={handleRevokeRole}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
