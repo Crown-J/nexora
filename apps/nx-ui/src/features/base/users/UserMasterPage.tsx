@@ -21,10 +21,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Users,
-  UserCog,
   Briefcase,
   Shield,
-  MapPin,
   Package,
   Car,
   Building2,
@@ -73,10 +71,11 @@ const SIDEBAR_CONFIG: SidebarConfig = {
       label: '帳號與權限',
       hasAddAction: true,
       items: [
+        // 軌 A commit A1：user-role / user-warehouse 從 sidebar 降階；
+        // 業務員 daily 改於 USER 詳細頁管理擔任職務 / 隸屬倉庫，
+        // PRO 用戶 reverse 視角批次工具仍可由主檔中心 hub 進入。
         { id: 'user', icon: Users, label: '使用者', active: true, count: 5 },
         { id: 'role', icon: Briefcase, label: '職務主檔', count: 6 },
-        { id: 'user-role', icon: UserCog, label: '使用者職務設定', count: 5 },
-        { id: 'user-warehouse', icon: MapPin, label: '使用者據點設定', count: 5 },
         { id: 'role-view', icon: Shield, label: '職務權限設定', count: 12 },
       ],
     },
