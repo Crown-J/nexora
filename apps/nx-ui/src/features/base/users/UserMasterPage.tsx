@@ -887,8 +887,10 @@ export function UserMasterPage() {
           onExit={handleExit}
           onSave={handleSave}
           onCancel={handleCancel}
-          showInactive={showInactive}
-          onShowInactiveChange={setShowInactive}
+          // 軌 A commit A2：「顯示停用」是列表 filter，只在資料瀏覽 tab 顯示。
+          // ErpToolbar 已支援 onShowInactiveChange 未提供時不渲染（master-shell/ui/ErpToolbar.tsx line 175）。
+          showInactive={tab === 'list' ? showInactive : undefined}
+          onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
         />
         <SearchPanel
           open={searchOpen}
