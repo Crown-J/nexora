@@ -34,6 +34,13 @@ import {
 
 import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
+/**
+ * ⚠️ 軌 C C3 known issue 揭露：
+ *  revokeUserRole / revokeUserWarehouse 後端目前為 **soft delete**（user_role.service.ts 設 isActive=false + revokedAt）。
+ *  Crown 需求 3：關聯表（user_role / user_warehouse）應為 hard delete（避免再次指派同一 role 撞 unique constraint）。
+ *  Hank 後端調整完成後，本 frontend 無需改動（API 介面不變、僅 backend service 改為 prisma.delete()）。
+ *  追蹤：docs/_team/task-user-master-iterate-track-c-merge-verify.md C3 段。
+ */
 import {
   assignUserRole,
   listUserRoles,
@@ -374,16 +381,16 @@ function WarehouseRowActions({ onRevoke }: { onRevoke: () => void }) {
       <button
         type="button"
         onClick={onRevoke}
-        title="移除此倉庫據點"
+        title="撤銷此倉庫據點（軟刪除）"
         className="inline-flex h-6 items-center gap-1 rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 text-[10px] font-medium text-[#C84A4A] transition-colors hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]"
       >
-        移除
+        撤銷
       </button>
     </div>
   );
 }
 
-/** 軌 B B3：擔任職務 row 編輯模式操作按鈕（設為主要 / 移除）。
+/** 軌 B B3：擔任職務 row 編輯模式操作按鈕（設為主要 / 撤銷）。
  *  - 已是主要 → 「設為主要」按鈕 disabled（顯示為「主要」）+ 「移除」按鈕 disabled（避免移除唯一主要職務）
  *  - 非主要 → 兩按鈕皆可用
  *  - 鋼鐵風樣式對齊 SectionAddButton（小按鈕、hover 變琥珀 / 鋼鐵紅）
@@ -417,7 +424,7 @@ function RoleRowActions({
         type="button"
         onClick={onRevoke}
         disabled={isPrimary}
-        title={isPrimary ? '主要職務不可移除（請先指派其他主要）' : '移除此職務'}
+        title={isPrimary ? '主要職務不可撤銷（請先指派其他主要）' : '撤銷此職務（軟刪除）'}
         className={cn(
           'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium transition-colors',
           isPrimary
@@ -425,7 +432,7 @@ function RoleRowActions({
             : 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]',
         )}
       >
-        移除
+        撤銷
       </button>
     </div>
   );
@@ -546,9 +553,9 @@ function UserDetailView({
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
             <span>● 待存檔：</span>
             {stagedRoleAddCount > 0 ? <span>新增 {stagedRoleAddCount}</span> : null}
-            {stagedRoleRemoveCount > 0 ? <span>· 移除 {stagedRoleRemoveCount}</span> : null}
+            {stagedRoleRemoveCount > 0 ? <span>· 撤銷 {stagedRoleRemoveCount}</span> : null}
             {stagedRolePrimaryChanged ? <span>· 變更主要職務</span> : null}
-            <span className="ml-1 text-[#888892]">（按 S 才寫入）</span>
+            <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
           </div>
         ) : null}
         <div className="mt-4">
@@ -598,8 +605,8 @@ function UserDetailView({
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
             <span>● 待存檔：</span>
             {stagedWarehouseAddCount > 0 ? <span>新增 {stagedWarehouseAddCount}</span> : null}
-            {stagedWarehouseRemoveCount > 0 ? <span>· 移除 {stagedWarehouseRemoveCount}</span> : null}
-            <span className="ml-1 text-[#888892]">（按 S 才寫入）</span>
+            {stagedWarehouseRemoveCount > 0 ? <span>· 撤銷 {stagedWarehouseRemoveCount}</span> : null}
+            <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
           </div>
         ) : null}
         <div className="mt-4">
@@ -1192,10 +1199,10 @@ export function UserMasterPage() {
           // toggle undo：移除 staged remove op
           return prev.filter((o) => !(o.kind === 'remove' && o.userRoleId === role.id));
         }
-        // 業務規則：主要職務不可移除（依 derived primary 計算）
+        // 業務規則：主要職務不可撤銷（依 derived primary 計算）
         const isCurrentlyPrimary = stagedPrimaryRoleId ? role.id === stagedPrimaryRoleId : role.isPrimary;
         if (isCurrentlyPrimary) {
-          showToast('主要職務不可移除，請先將其他職務設為主要', 'danger');
+          showToast('主要職務不可撤銷，請先將其他職務設為主要', 'danger');
           return prev;
         }
         return [...prev, { kind: 'remove', userRoleId: role.id }];
