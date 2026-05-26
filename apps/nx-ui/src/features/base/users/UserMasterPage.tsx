@@ -1556,8 +1556,9 @@ export function UserMasterPage() {
         searchPlaceholder="搜尋職務代碼 / 名稱..."
         search={handleRolePickerSearch}
         getId={(r) => r.id}
-        getLabel={(r) => `${r.code} · ${r.name}`}
-        getDescription={(r) => r.description ?? undefined}
+        /* C4：主標只顯示中文名稱（去除 `${code} ·` 前綴）；英文代碼降為下方副標、仍可搜尋（backend role.service whereList OR code/name/description） */
+        getLabel={(r) => r.name}
+        getDescription={(r) => (r.description ? `${r.code} · ${r.description}` : r.code)}
         disabledIds={assignedRoleIds}
         disabledHint="已指派"
         onConfirm={handleRolePickerConfirm}
@@ -1572,8 +1573,9 @@ export function UserMasterPage() {
         searchPlaceholder="搜尋倉庫代碼 / 名稱..."
         search={handleWarehousePickerSearch}
         getId={(w) => w.id}
-        getLabel={(w) => `${w.code} · ${w.name}`}
-        getDescription={(w) => w.remark ?? undefined}
+        /* C4：對齊 Role picker —— 主標只顯示中文名稱，英文代碼降為副標 */
+        getLabel={(w) => w.name}
+        getDescription={(w) => (w.remark ? `${w.code} · ${w.remark}` : w.code)}
         disabledIds={assignedWarehouseIds}
         disabledHint="已指派"
         onConfirm={handleWarehousePickerConfirm}
