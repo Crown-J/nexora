@@ -29,13 +29,35 @@ import {
   Handshake,
   Settings,
   Layers,
+  Warehouse,
 } from 'lucide-react';
 
+import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
-import { listUserRoles, type UserRoleDto } from '@/features/base/api/user-role';
-import { listUserWarehouses, type UserWarehouseDto } from '@/features/base/api/user-warehouse';
+/**
+ * ⚠️ 軌 C C3 known issue 揭露：
+ *  revokeUserRole / revokeUserWarehouse 後端目前為 **soft delete**（user_role.service.ts 設 isActive=false + revokedAt）。
+ *  Crown 需求 3：關聯表（user_role / user_warehouse）應為 hard delete（避免再次指派同一 role 撞 unique constraint）。
+ *  Hank 後端調整完成後，本 frontend 無需改動（API 介面不變、僅 backend service 改為 prisma.delete()）。
+ *  追蹤：docs/_team/task-user-master-iterate-track-c-merge-verify.md C3 段。
+ */
+import {
+  assignUserRole,
+  listUserRoles,
+  revokeUserRole,
+  setUserRolePrimary,
+  type UserRoleDto,
+} from '@/features/base/api/user-role';
+import {
+  assignUserWarehouse,
+  listUserWarehouses,
+  revokeUserWarehouse,
+  type UserWarehouseDto,
+} from '@/features/base/api/user-warehouse';
+import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
+import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
 import {
@@ -153,6 +175,23 @@ type EditFormState = {
   email: string;
   phone: string;
 };
+
+/** 軌 C C1：編輯模式 staged write 範式（業界 ERP staged batch + S 存檔一次 apply）
+ *
+ * - PickerConfirm / SetRolePrimary / RevokeRole 等動作改為「加入 staged ops」
+ * - 按 S 存檔 → handleSave 內依序 apply ops + updateUser 主檔欄位
+ * - 按 C 取消 → 清空 pending ops + editForm
+ *
+ * 對齊 Crown 揭露：「按 C 取消還是寫入了」重大 bug（軌 B 即時寫入問題修正）
+ */
+type RoleOp =
+  | { kind: 'add'; role: RoleDto }
+  | { kind: 'remove'; userRoleId: string }
+  | { kind: 'setPrimary'; userRoleId: string };
+
+type WarehouseOp =
+  | { kind: 'add'; warehouse: WarehouseDto }
+  | { kind: 'remove'; userWarehouseId: string };
 
 /** 將後端 UserDto 轉成內部 UserRow（仿 BaseUserMasterView dtoToRow 範式）
  * 注意：擔任職務 / 隸屬倉庫 由獨立 state 載入（selectedUserRoles / selectedUserWarehouses），
@@ -335,6 +374,70 @@ function buildUserColumns(): MasterTableColumn<UserRow>[] {
   ];
 }
 
+/** 軌 B B5：隸屬倉庫 row 編輯模式操作按鈕（只有「移除」，warehouse 無 primary 概念）。 */
+function WarehouseRowActions({ onRevoke }: { onRevoke: () => void }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={onRevoke}
+        title="撤銷此倉庫據點（軟刪除）"
+        className="inline-flex h-6 items-center gap-1 rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 text-[10px] font-medium text-[#C84A4A] transition-colors hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]"
+      >
+        撤銷
+      </button>
+    </div>
+  );
+}
+
+/** 軌 B B3：擔任職務 row 編輯模式操作按鈕（設為主要 / 撤銷）。
+ *  - 已是主要 → 「設為主要」按鈕 disabled（顯示為「主要」）+ 「移除」按鈕 disabled（避免移除唯一主要職務）
+ *  - 非主要 → 兩按鈕皆可用
+ *  - 鋼鐵風樣式對齊 SectionAddButton（小按鈕、hover 變琥珀 / 鋼鐵紅）
+ */
+function RoleRowActions({
+  isPrimary,
+  onSetPrimary,
+  onRevoke,
+}: {
+  isPrimary: boolean;
+  onSetPrimary: () => void;
+  onRevoke: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={onSetPrimary}
+        disabled={isPrimary}
+        title={isPrimary ? '已是主要職務' : '設為主要職務'}
+        className={cn(
+          'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium transition-colors',
+          isPrimary
+            ? 'cursor-not-allowed border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]/60'
+            : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+        )}
+      >
+        {isPrimary ? '主要' : '設為主要'}
+      </button>
+      <button
+        type="button"
+        onClick={onRevoke}
+        disabled={isPrimary}
+        title={isPrimary ? '主要職務不可撤銷（請先指派其他主要）' : '撤銷此職務（軟刪除）'}
+        className={cn(
+          'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium transition-colors',
+          isPrimary
+            ? 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]'
+            : 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]',
+        )}
+      >
+        撤銷
+      </button>
+    </div>
+  );
+}
+
 /** 詳細資料：滿版單欄滾動。
  *
  * 設計：
@@ -354,6 +457,14 @@ function UserDetailView({
   userWarehouses,
   onAddRole,
   onAddWarehouse,
+  onSetRolePrimary,
+  onRevokeRole,
+  onRevokeWarehouse,
+  stagedRoleAddCount,
+  stagedRoleRemoveCount,
+  stagedRolePrimaryChanged,
+  stagedWarehouseAddCount,
+  stagedWarehouseRemoveCount,
 }: {
   user: UserRow;
   editMode: boolean;
@@ -365,6 +476,18 @@ function UserDetailView({
   userWarehouses: UserWarehouseDto[];
   onAddRole: () => void;
   onAddWarehouse: () => void;
+  /** 設為主要職務（C1 staged）*/
+  onSetRolePrimary: (role: UserRoleDto) => void;
+  /** 移除職務（C1 staged，toggle 模式：再點 = undo）*/
+  onRevokeRole: (role: UserRoleDto) => void;
+  /** 移除倉庫據點（C1 staged，toggle 模式：再點 = undo）*/
+  onRevokeWarehouse: (uw: UserWarehouseDto) => void;
+  /** Staged ops（C1：顯示變更計數，按 S 才會寫入）*/
+  stagedRoleAddCount: number;
+  stagedRoleRemoveCount: number;
+  stagedRolePrimaryChanged: boolean;
+  stagedWarehouseAddCount: number;
+  stagedWarehouseRemoveCount: number;
 }) {
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
@@ -425,18 +548,44 @@ function UserDetailView({
           subtitle="Assigned Roles"
           action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} /> : null}
         />
+        {editMode &&
+        (stagedRoleAddCount > 0 || stagedRoleRemoveCount > 0 || stagedRolePrimaryChanged) ? (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
+            <span>● 待存檔：</span>
+            {stagedRoleAddCount > 0 ? <span>新增 {stagedRoleAddCount}</span> : null}
+            {stagedRoleRemoveCount > 0 ? <span>· 撤銷 {stagedRoleRemoveCount}</span> : null}
+            {stagedRolePrimaryChanged ? <span>· 變更主要職務</span> : null}
+            <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
+          </div>
+        ) : null}
         <div className="mt-4">
           {userRoles.length > 0 ? (
             <DetailTable
-              headers={['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']}
-              rows={userRoles.map((r, i) => [
-                String(i + 1).padStart(4, '0'),
-                r.roleCode ?? '—',
-                r.roleName ?? '—',
-                r.isPrimary ? '✓' : '',
-                r.assignedAt,
-                r.assignedByName ?? '—',
-              ])}
+              headers={
+                editMode
+                  ? ['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員', '操作']
+                  : ['項次', '職務代碼', '職務名稱', '主要', '指派時間', '指派人員']
+              }
+              rows={userRoles.map((r, i) => {
+                const base = [
+                  String(i + 1).padStart(4, '0'),
+                  r.roleCode ?? '—',
+                  r.roleName ?? '—',
+                  r.isPrimary ? '✓' : '',
+                  r.assignedAt,
+                  r.assignedByName ?? '—',
+                ];
+                if (!editMode) return base;
+                return [
+                  ...base,
+                  <RoleRowActions
+                    key={`actions-${r.id}`}
+                    isPrimary={r.isPrimary}
+                    onSetPrimary={() => onSetRolePrimary(r)}
+                    onRevoke={() => onRevokeRole(r)}
+                  />,
+                ];
+              })}
             />
           ) : (
             <EmptyDetail message="尚未指派職務" />
@@ -452,17 +601,36 @@ function UserDetailView({
           subtitle="Assigned Warehouses"
           action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
         />
+        {editMode && (stagedWarehouseAddCount > 0 || stagedWarehouseRemoveCount > 0) ? (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
+            <span>● 待存檔：</span>
+            {stagedWarehouseAddCount > 0 ? <span>新增 {stagedWarehouseAddCount}</span> : null}
+            {stagedWarehouseRemoveCount > 0 ? <span>· 撤銷 {stagedWarehouseRemoveCount}</span> : null}
+            <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
+          </div>
+        ) : null}
         <div className="mt-4">
           {userWarehouses.length > 0 ? (
             <DetailTable
-              headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
-              rows={userWarehouses.map((w, i) => [
-                String(i + 1).padStart(4, '0'),
-                w.warehouseCode ?? '—',
-                w.warehouseName ?? '—',
-                w.assignedAt,
-                w.assignedByName ?? '—',
-              ])}
+              headers={
+                editMode
+                  ? ['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員', '操作']
+                  : ['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']
+              }
+              rows={userWarehouses.map((w, i) => {
+                const base = [
+                  String(i + 1).padStart(4, '0'),
+                  w.warehouseCode ?? '—',
+                  w.warehouseName ?? '—',
+                  w.assignedAt,
+                  w.assignedByName ?? '—',
+                ];
+                if (!editMode) return base;
+                return [
+                  ...base,
+                  <WarehouseRowActions key={`actions-${w.id}`} onRevoke={() => onRevokeWarehouse(w)} />,
+                ];
+              })}
             />
           ) : (
             <EmptyDetail message="尚未指派倉庫據點" />
@@ -514,6 +682,50 @@ export function UserMasterPage() {
   const [rolesReloadTick, setRolesReloadTick] = useState(0);
   const [selectedUserWarehouses, setSelectedUserWarehouses] = useState<UserWarehouseDto[]>([]);
   const [warehousesReloadTick, setWarehousesReloadTick] = useState(0);
+
+  // ── 軌 B Picker 對話框（B2 / B4）─────────────────────────────
+  const [rolePickerOpen, setRolePickerOpen] = useState(false);
+  const [warehousePickerOpen, setWarehousePickerOpen] = useState(false);
+
+  // ── 軌 C C1：staged ops（編輯模式內的關聯變更暫存、按 S 才 apply）─
+  const [pendingRoleOps, setPendingRoleOps] = useState<RoleOp[]>([]);
+  const [pendingWarehouseOps, setPendingWarehouseOps] = useState<WarehouseOp[]>([]);
+
+  // staged ops 衍生：移除清單 / 主要切換目標
+  const stagedRemovedRoleIds = useMemo(
+    () => new Set(pendingRoleOps.filter((o): o is Extract<RoleOp, { kind: 'remove' }> => o.kind === 'remove').map((o) => o.userRoleId)),
+    [pendingRoleOps],
+  );
+  const stagedPrimaryRoleId = useMemo(() => {
+    const last = [...pendingRoleOps].reverse().find((o) => o.kind === 'setPrimary');
+    return last && last.kind === 'setPrimary' ? last.userRoleId : null;
+  }, [pendingRoleOps]);
+  const stagedAddedRoles = useMemo(
+    () => pendingRoleOps.filter((o): o is Extract<RoleOp, { kind: 'add' }> => o.kind === 'add').map((o) => o.role),
+    [pendingRoleOps],
+  );
+  const stagedRemovedWarehouseIds = useMemo(
+    () =>
+      new Set(
+        pendingWarehouseOps
+          .filter((o): o is Extract<WarehouseOp, { kind: 'remove' }> => o.kind === 'remove')
+          .map((o) => o.userWarehouseId),
+      ),
+    [pendingWarehouseOps],
+  );
+  const stagedAddedWarehouses = useMemo(
+    () =>
+      pendingWarehouseOps
+        .filter((o): o is Extract<WarehouseOp, { kind: 'add' }> => o.kind === 'add')
+        .map((o) => o.warehouse),
+    [pendingWarehouseOps],
+  );
+
+  // 切換 selected user / 退出編輯模式 → 清空 staged ops（避免跨 user / 跨次編輯 leak）
+  useEffect(() => {
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
+  }, [selectedId, mode]);
 
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
@@ -617,6 +829,22 @@ export function UserMasterPage() {
     () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
     [selectedId, users],
   );
+
+  // C2：dirty 偵測 — 編輯模式下，表單欄位 diff OR staged ops 數量 > 0 → dirty
+  const isDirty = useMemo(() => {
+    if (mode !== 'edit' || !editForm || !selectedUser) return false;
+    const original = makeEditForm(selectedUser);
+    const formChanged =
+      editForm.displayName !== original.displayName ||
+      editForm.isActive !== original.isActive ||
+      editForm.email !== original.email ||
+      editForm.phone !== original.phone;
+    if (formChanged) return true;
+    if (pendingRoleOps.length > 0) return true;
+    if (pendingWarehouseOps.length > 0) return true;
+    return false;
+  }, [mode, editForm, selectedUser, pendingRoleOps, pendingWarehouseOps]);
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const handlePageSizeChange = useCallback((next: number) => {
@@ -708,16 +936,84 @@ export function UserMasterPage() {
     showToast('焦點已轉至左側模組列表（↑↓ 切換、Enter 返回表格）', 'info');
   }, [showToast]);
 
-  const handleReturnToTable = useCallback(() => {
-    if (users.length === 0) return;
-    const first = users[0];
-    setSelectedId(first.id);
-    setTimeout(() => {
-      const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
-      row?.focus();
-    }, 0);
-    showToast(`已聚焦第一筆：${first.username}`, 'info');
-  }, [showToast, users]);
+  // C2：handleReturnToTable 已 inline 進 attemptReturnToTable（含 dirty 攔截）
+
+  // C2：抽出純執行 save 邏輯（給 handleSave / dirty-aware 3-way confirm 共用）
+  const performSave = useCallback(async (): Promise<boolean> => {
+    if (!editForm || !selectedUser) {
+      showToast('編輯狀態異常，請取消後重試', 'danger');
+      return false;
+    }
+    const target = selectedUser;
+    const form = editForm;
+    const roleOps = pendingRoleOps;
+    const warehouseOps = pendingWarehouseOps;
+    let mainOk = false;
+    let roleSuccess = 0;
+    let roleFailed = 0;
+    let warehouseSuccess = 0;
+    let warehouseFailed = 0;
+    try {
+      await updateUser(target.id, {
+        displayName: form.displayName.trim(),
+        email: form.email.trim() || null,
+        phone: form.phone.trim() || null,
+        isActive: form.isActive,
+      });
+      mainOk = true;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '主檔存檔失敗';
+      showToast(`主檔存檔失敗：${msg}`, 'danger');
+      return false;
+    }
+    for (const op of roleOps) {
+      try {
+        if (op.kind === 'add') {
+          await assignUserRole({ userId: target.id, roleId: op.role.id });
+        } else if (op.kind === 'remove') {
+          await revokeUserRole(op.userRoleId);
+        } else if (op.kind === 'setPrimary') {
+          await setUserRolePrimary(op.userRoleId, true);
+        }
+        roleSuccess++;
+      } catch {
+        roleFailed++;
+      }
+    }
+    for (const op of warehouseOps) {
+      try {
+        if (op.kind === 'add') {
+          await assignUserWarehouse({ userId: target.id, warehouseId: op.warehouse.id });
+        } else if (op.kind === 'remove') {
+          await revokeUserWarehouse(op.userWarehouseId);
+        }
+        warehouseSuccess++;
+      } catch {
+        warehouseFailed++;
+      }
+    }
+    if (mainOk && roleFailed === 0 && warehouseFailed === 0) {
+      const parts = [
+        `主檔已存`,
+        roleSuccess > 0 ? `職務 ${roleSuccess} 變更` : null,
+        warehouseSuccess > 0 ? `倉庫 ${warehouseSuccess} 變更` : null,
+      ].filter(Boolean);
+      showToast(`已存檔 ${target.username}（${parts.join('、')}）`, 'success');
+    } else {
+      showToast(
+        `部分變更失敗：職務 ${roleSuccess}/${roleOps.length}、倉庫 ${warehouseSuccess}/${warehouseOps.length}`,
+        'danger',
+      );
+    }
+    setMode('browse');
+    setEditForm(null);
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
+    setReloadTick((t) => t + 1);
+    setRolesReloadTick((t) => t + 1);
+    setWarehousesReloadTick((t) => t + 1);
+    return roleFailed === 0 && warehouseFailed === 0;
+  }, [editForm, selectedUser, pendingRoleOps, pendingWarehouseOps, showToast]);
 
   const handleSave = useCallback(() => {
     if (!editForm || !selectedUser) {
@@ -725,38 +1021,115 @@ export function UserMasterPage() {
       return;
     }
     const target = selectedUser;
-    const form = editForm;
+    const stagedSummary = [
+      pendingRoleOps.length > 0 ? `${pendingRoleOps.length} 個職務變更` : null,
+      pendingWarehouseOps.length > 0 ? `${pendingWarehouseOps.length} 個倉庫據點變更` : null,
+    ]
+      .filter(Boolean)
+      .join('、');
     setConfirmState({
       title: '確認存檔',
-      message: `將「${target.displayName}（${target.username}）」的變更寫入資料庫？`,
+      message: `將「${target.displayName}（${target.username}）」的變更寫入資料庫${stagedSummary ? `（含 ${stagedSummary}）` : ''}？`,
       confirmLabel: '存檔',
       onConfirm: () => {
-        void (async () => {
-          try {
-            await updateUser(target.id, {
-              displayName: form.displayName.trim(),
-              email: form.email.trim() || null,
-              phone: form.phone.trim() || null,
-              isActive: form.isActive,
-            });
-            showToast(`已存檔 ${target.username}`, 'success');
-            setMode('browse');
-            setEditForm(null);
-            setReloadTick((t) => t + 1);
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : '存檔失敗';
-            showToast(`存檔失敗：${msg}`, 'danger');
-          }
-        })();
+        void performSave();
       },
     });
-  }, [editForm, selectedUser, showToast]);
+  }, [editForm, selectedUser, pendingRoleOps, pendingWarehouseOps, performSave, showToast]);
 
-  const handleCancel = useCallback(() => {
+  // C2：純執行 cancel 邏輯（給 handleCancel / dirty-aware 3-way confirm 共用）
+  const performCancel = useCallback(() => {
     setMode('browse');
     setEditForm(null);
-    showToast('已取消編輯', 'info');
-  }, [showToast]);
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    if (!isDirty) {
+      performCancel();
+      showToast('已取消編輯', 'info');
+      return;
+    }
+    // dirty 時跳 3-way confirm
+    setConfirmState({
+      title: '您有未存檔變更',
+      message: '取消後變更將丟棄、無法復原。是否先儲存再離開？',
+      confirmLabel: '儲存後離開',
+      onConfirm: () => {
+        void performSave();
+      },
+      secondaryAction: {
+        label: '丟棄變更',
+        variant: 'danger',
+        onClick: () => {
+          performCancel();
+          showToast('已丟棄變更', 'danger');
+        },
+      },
+    });
+  }, [isDirty, performSave, performCancel, showToast]);
+
+  // C2：dirty-aware tab change（取代 ErpTabBar 直接 setTab + Alt+1/2 keyboard handler）
+  const attemptTabChange = useCallback(
+    (nextTab: 'list' | 'detail') => {
+      if (!isDirty) {
+        setTab(nextTab);
+        return;
+      }
+      setConfirmState({
+        title: '您有未存檔變更',
+        message: `切換 Tab 前需處理變更：儲存後切換、丟棄變更後切換、或取消（保持編輯）。`,
+        confirmLabel: '儲存後切換',
+        onConfirm: () => {
+          void (async () => {
+            const ok = await performSave();
+            if (ok) setTab(nextTab);
+          })();
+        },
+        secondaryAction: {
+          label: '丟棄變更',
+          variant: 'danger',
+          onClick: () => {
+            performCancel();
+            setTab(nextTab);
+          },
+        },
+      });
+    },
+    [isDirty, performSave, performCancel],
+  );
+
+  // C2：dirty-aware sidebar return-to-table
+  const attemptReturnToTable = useCallback(() => {
+    if (!isDirty) {
+      // 既有邏輯（reset selectedId + 焦點移第一筆）內聯於下
+      if (users.length === 0) return;
+      const first = users[0];
+      setSelectedId(first.id);
+      setTimeout(() => {
+        const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
+        row?.focus();
+      }, 0);
+      showToast(`已聚焦第一筆：${first.username}`, 'info');
+      return;
+    }
+    setConfirmState({
+      title: '您有未存檔變更',
+      message: '離開編輯模式前需處理變更：儲存、丟棄、或取消（保持編輯）。',
+      confirmLabel: '儲存後離開',
+      onConfirm: () => {
+        void performSave();
+      },
+      secondaryAction: {
+        label: '丟棄變更',
+        variant: 'danger',
+        onClick: () => {
+          performCancel();
+        },
+      },
+    });
+  }, [isDirty, users, performSave, performCancel, showToast]);
 
   const handleNotification = useCallback(() => {
     showToast('通知中心 · 3 則未讀（lab mock）', 'info');
@@ -767,12 +1140,206 @@ export function UserMasterPage() {
   }, [showToast]);
 
   const handleAddRole = useCallback(() => {
-    showToast('新增職務 · 待接職務選擇器（lab mock）', 'info');
-  }, [showToast]);
+    if (!selectedUser) {
+      showToast('請先點選一筆使用者', 'danger');
+      return;
+    }
+    setRolePickerOpen(true);
+  }, [selectedUser, showToast]);
+
+  // RolePicker 用：已指派的 roleId 集合（picker 內 disable + 顯示「已指派」chip）
+  const assignedRoleIds = useMemo(
+    () => new Set(selectedUserRoles.map((ur) => ur.roleId)),
+    [selectedUserRoles],
+  );
+
+  const handleRolePickerSearch = useCallback(
+    (q: string) => listRoles({ q: q || undefined, isActive: true, pageSize: 50 }),
+    [],
+  );
+
+  // C1 staged：picker confirm 不立即 assign，只加入 pendingRoleOps
+  const handleRolePickerConfirm = useCallback(
+    async (roles: RoleDto[]) => {
+      setPendingRoleOps((prev) => [...prev, ...roles.map((r): RoleOp => ({ kind: 'add', role: r }))]);
+    },
+    [],
+  );
+
+  const handleRolePickerSuccess = useCallback(
+    (count: number) => {
+      showToast(`已加入 ${count} 個職務（待存檔，按 S 才會寫入）`, 'info');
+    },
+    [showToast],
+  );
+
+  // C1 staged：設為主要（toggle 模式：再點同一筆 = 取消 staged）
+  const handleSetRolePrimary = useCallback(
+    (role: UserRoleDto) => {
+      setPendingRoleOps((prev) => {
+        const last = [...prev].reverse().find((o) => o.kind === 'setPrimary');
+        const lastPrimaryId = last && last.kind === 'setPrimary' ? last.userRoleId : null;
+        // 已 staged 同一個 → 取消（移除最後一個 setPrimary op）
+        if (lastPrimaryId === role.id) {
+          return prev.filter((o) => !(o.kind === 'setPrimary' && o.userRoleId === role.id));
+        }
+        // 否則 append 新 setPrimary op（覆蓋前一個的視覺效果）
+        return [...prev, { kind: 'setPrimary', userRoleId: role.id }];
+      });
+    },
+    [],
+  );
+
+  // C1 staged：移除職務（toggle 模式：再點 = 取消 staged remove）
+  const handleRevokeRole = useCallback(
+    (role: UserRoleDto) => {
+      setPendingRoleOps((prev) => {
+        const alreadyRemoved = prev.some((o) => o.kind === 'remove' && o.userRoleId === role.id);
+        if (alreadyRemoved) {
+          // toggle undo：移除 staged remove op
+          return prev.filter((o) => !(o.kind === 'remove' && o.userRoleId === role.id));
+        }
+        // 業務規則：主要職務不可撤銷（依 derived primary 計算）
+        const isCurrentlyPrimary = stagedPrimaryRoleId ? role.id === stagedPrimaryRoleId : role.isPrimary;
+        if (isCurrentlyPrimary) {
+          showToast('主要職務不可撤銷，請先將其他職務設為主要', 'danger');
+          return prev;
+        }
+        return [...prev, { kind: 'remove', userRoleId: role.id }];
+      });
+    },
+    [stagedPrimaryRoleId, showToast],
+  );
+
+  // 註：handleUnstageAddedRole 未提供（簡化 UI 不渲染 staged-add row）。
+  // 使用者反悔請按 C 取消（清空所有 staged ops）；後續軌可加 staged-add row + 「取消新增」按鈕。
 
   const handleAddWarehouse = useCallback(() => {
-    showToast('新增倉庫據點 · 待接倉庫選擇器（lab mock）', 'info');
-  }, [showToast]);
+    if (!selectedUser) {
+      showToast('請先點選一筆使用者', 'danger');
+      return;
+    }
+    setWarehousePickerOpen(true);
+  }, [selectedUser, showToast]);
+
+  // WarehousePicker 用：已指派的 warehouseId 集合
+  const assignedWarehouseIds = useMemo(
+    () => new Set(selectedUserWarehouses.map((uw) => uw.warehouseId)),
+    [selectedUserWarehouses],
+  );
+
+  const handleWarehousePickerSearch = useCallback(
+    (q: string) => listWarehouses({ q: q || undefined, isActive: true, pageSize: 50 }),
+    [],
+  );
+
+  // C1 staged：picker confirm 不立即 assign，只加入 pendingWarehouseOps
+  const handleWarehousePickerConfirm = useCallback(
+    async (warehouses: WarehouseDto[]) => {
+      setPendingWarehouseOps((prev) => [
+        ...prev,
+        ...warehouses.map((w): WarehouseOp => ({ kind: 'add', warehouse: w })),
+      ]);
+    },
+    [],
+  );
+
+  const handleWarehousePickerSuccess = useCallback(
+    (count: number) => {
+      showToast(`已加入 ${count} 個倉庫據點(待存檔，按 S 才會寫入)`, 'info');
+    },
+    [showToast],
+  );
+
+  // B5（軌 B 第 5 commit）：批次啟用 / 批次停用 接 setUserActive 串聯
+  // 業界範式：confirm + 進度錯誤分流（success / failed 各別 count）
+  const handleBatchSetActive = useCallback(
+    (nextActive: boolean) => {
+      if (checked.size === 0) {
+        showToast('請先勾選至少一筆使用者', 'danger');
+        return;
+      }
+      const ids = Array.from(checked);
+      const actionLabel = nextActive ? '啟用' : '停用';
+      setConfirmState({
+        title: `確認批次${actionLabel}`,
+        message: `將勾選的 ${ids.length} 筆使用者批次${actionLabel}？此動作為軟刪除/啟用，可由「顯示停用」開關重新檢視。`,
+        confirmLabel: `${actionLabel} ${ids.length} 筆`,
+        variant: nextActive ? 'default' : 'danger',
+        onConfirm: () => {
+          void (async () => {
+            let success = 0;
+            let failed = 0;
+            for (const id of ids) {
+              try {
+                await setUserActive(id, nextActive);
+                success++;
+              } catch {
+                failed++;
+              }
+            }
+            if (failed > 0) {
+              showToast(
+                `批次${actionLabel}：${success}/${ids.length} 成功、${failed} 筆失敗`,
+                'danger',
+              );
+            } else {
+              showToast(`已批次${actionLabel} ${success} 筆`, nextActive ? 'success' : 'danger');
+            }
+            setChecked(new Set());
+            setSelectionMode(false);
+            setReloadTick((t) => t + 1);
+          })();
+        },
+      });
+    },
+    [checked, showToast],
+  );
+
+  const handleBatchEnable = useCallback(() => handleBatchSetActive(true), [handleBatchSetActive]);
+  const handleBatchDisable = useCallback(() => handleBatchSetActive(false), [handleBatchSetActive]);
+
+  // C1 staged：移除倉庫據點（toggle 模式：再點 = 取消 staged）
+  const handleRevokeWarehouse = useCallback((uw: UserWarehouseDto) => {
+    setPendingWarehouseOps((prev) => {
+      const alreadyRemoved = prev.some((o) => o.kind === 'remove' && o.userWarehouseId === uw.id);
+      if (alreadyRemoved) {
+        return prev.filter((o) => !(o.kind === 'remove' && o.userWarehouseId === uw.id));
+      }
+      return [...prev, { kind: 'remove', userWarehouseId: uw.id }];
+    });
+  }, []);
+
+  // 註：handleUnstageAddedWarehouse 同樣不提供（簡化 UI）。
+
+  // ── C2：ESC 鍵在編輯模式下 → 觸發 handleCancel（含 dirty 攔截）─
+  useEffect(() => {
+    if (mode !== 'edit') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // 讓內層 dialog（ConfirmDialog / Picker / Search 等）先處理自己的 ESC
+      const openDialog = document.querySelector('[role="dialog"]');
+      if (openDialog) return;
+      // 編輯模式內 ESC 不在 input／textarea → 觸發 handleCancel
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      e.preventDefault();
+      handleCancel();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mode, handleCancel]);
+
+  // ── C2：beforeunload → dirty 時瀏覽器原生 warn dialog（避免關 tab/重整丟資料）─
+  useEffect(() => {
+    if (!isDirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ''; // Chrome 需要、訊息由瀏覽器自定
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [isDirty]);
 
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
@@ -780,13 +1347,13 @@ export function UserMasterPage() {
       if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
       const k = e.key.toLowerCase();
 
-      // Alt+1 / Alt+2：Tab 切換（瀏覽 + 選取模式可用，編輯模式禁用）
-      if ((k === '1' || k === '2') && mode !== 'edit') {
+      // Alt+1 / Alt+2：Tab 切換（C2：編輯模式允許切換但 dirty 時跳 3-way confirm）
+      if (k === '1' || k === '2') {
         e.preventDefault();
         if (k === '1') {
-          setTab('list');
+          attemptTabChange('list');
         } else if (selectedUser) {
-          setTab('detail');
+          attemptTabChange('detail');
         } else {
           showToast('請先點選一筆資料才能切換至詳細資料', 'danger');
         }
@@ -864,7 +1431,7 @@ export function UserMasterPage() {
         sidebarRef={sidebarRef}
         sidebarConfig={SIDEBAR_CONFIG}
         headerConfig={HEADER_CONFIG}
-        onReturnToTable={handleReturnToTable}
+        onReturnToTable={attemptReturnToTable}
         onNotification={handleNotification}
         onAnnouncement={handleAnnouncement}
       >
@@ -891,6 +1458,8 @@ export function UserMasterPage() {
           // ErpToolbar 已支援 onShowInactiveChange 未提供時不渲染（master-shell/ui/ErpToolbar.tsx line 175）。
           showInactive={tab === 'list' ? showInactive : undefined}
           onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
+          onBatchEnable={handleBatchEnable}
+          onBatchDisable={handleBatchDisable}
         />
         <SearchPanel
           open={searchOpen}
@@ -901,9 +1470,10 @@ export function UserMasterPage() {
         />
         <ErpTabBar
           tab={tab}
-          onChange={setTab}
+          onChange={attemptTabChange}
           hasSelected={selectedUser !== null}
-          editMode={mode === 'edit'}
+          // C2：拿掉編輯模式 disable lock，改由 attemptTabChange 內部 dirty-aware 攔截
+          editMode={false}
         />
         {tab === 'list' ? (
           <MasterTable<UserRow>
@@ -952,6 +1522,14 @@ export function UserMasterPage() {
             userWarehouses={selectedUserWarehouses}
             onAddRole={handleAddRole}
             onAddWarehouse={handleAddWarehouse}
+            onSetRolePrimary={handleSetRolePrimary}
+            onRevokeRole={handleRevokeRole}
+            onRevokeWarehouse={handleRevokeWarehouse}
+            stagedRoleAddCount={stagedAddedRoles.length}
+            stagedRoleRemoveCount={stagedRemovedRoleIds.size}
+            stagedRolePrimaryChanged={stagedPrimaryRoleId !== null}
+            stagedWarehouseAddCount={stagedAddedWarehouses.length}
+            stagedWarehouseRemoveCount={stagedRemovedWarehouseIds.size}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
@@ -968,6 +1546,40 @@ export function UserMasterPage() {
           showToast(`已建立使用者：${created.username}`, 'success');
           setReloadTick((t) => t + 1);
         }}
+      />
+      <EntityPickerDialog<RoleDto>
+        open={rolePickerOpen}
+        onClose={() => setRolePickerOpen(false)}
+        title="新增職務"
+        subtitle="Assign Roles"
+        icon={Briefcase}
+        searchPlaceholder="搜尋職務代碼 / 名稱..."
+        search={handleRolePickerSearch}
+        getId={(r) => r.id}
+        /* C4：主標只顯示中文名稱（去除 `${code} ·` 前綴）；英文代碼降為下方副標、仍可搜尋（backend role.service whereList OR code/name/description） */
+        getLabel={(r) => r.name}
+        getDescription={(r) => (r.description ? `${r.code} · ${r.description}` : r.code)}
+        disabledIds={assignedRoleIds}
+        disabledHint="已指派"
+        onConfirm={handleRolePickerConfirm}
+        onSuccess={handleRolePickerSuccess}
+      />
+      <EntityPickerDialog<WarehouseDto>
+        open={warehousePickerOpen}
+        onClose={() => setWarehousePickerOpen(false)}
+        title="新增倉庫據點"
+        subtitle="Assign Warehouses"
+        icon={Warehouse}
+        searchPlaceholder="搜尋倉庫代碼 / 名稱..."
+        search={handleWarehousePickerSearch}
+        getId={(w) => w.id}
+        /* C4：對齊 Role picker —— 主標只顯示中文名稱，英文代碼降為副標 */
+        getLabel={(w) => w.name}
+        getDescription={(w) => (w.remark ? `${w.code} · ${w.remark}` : w.code)}
+        disabledIds={assignedWarehouseIds}
+        disabledHint="已指派"
+        onConfirm={handleWarehousePickerConfirm}
+        onSuccess={handleWarehousePickerSuccess}
       />
       <ToastStack toasts={toasts} />
     </>

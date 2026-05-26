@@ -86,7 +86,14 @@ export function SectionAddButton({ label, onClick }: { label: string; onClick?: 
   );
 }
 
-export function DetailTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
+export function DetailTable({
+  headers,
+  rows,
+}: {
+  headers: string[];
+  /** 每 cell 接受 string 或 ReactNode（row action 按鈕等）。第 0 欄維持 mono dim 樣式（適合序號）。 */
+  rows: React.ReactNode[][];
+}) {
   return (
     <table className="w-full text-sm">
       <thead>

@@ -77,6 +77,8 @@ export function ErpToolbar({
   onCancel,
   showInactive,
   onShowInactiveChange,
+  onBatchEnable,
+  onBatchDisable,
 }: {
   mode: ErpMode;
   hasActiveRow: boolean;
@@ -101,6 +103,10 @@ export function ErpToolbar({
   /** 列表 filter：是否含已停用列。提供時顯示「顯示停用」toggle 按鈕（位於選取按鈕前）；未提供則隱藏。 */
   showInactive?: boolean;
   onShowInactiveChange?: (next: boolean) => void;
+  /** selectionMode 批次啟用 callback；未提供時按鈕仍顯示但永遠 disabled */
+  onBatchEnable?: () => void;
+  /** selectionMode 批次停用 callback；同上 */
+  onBatchDisable?: () => void;
 }) {
   // 選中啟用列 → 按鈕為「停用」(danger / PowerOff)；選中停用列 → 「啟用」(default / Power)
   const rowIsActive = selectedRowActive ?? true;
@@ -117,8 +123,19 @@ export function ErpToolbar({
           已選 <span className="font-mono text-[#E8A020]">{selectedCount}</span> 筆
         </span>
         <div className="flex-1" />
-        <ToolbarButton icon={Power} label="批次啟用" enabled={hasChecked} />
-        <ToolbarButton icon={PowerOff} label="批次停用" enabled={hasChecked} variant="danger" />
+        <ToolbarButton
+          icon={Power}
+          label="批次啟用"
+          enabled={hasChecked && !!onBatchEnable}
+          onClick={onBatchEnable}
+        />
+        <ToolbarButton
+          icon={PowerOff}
+          label="批次停用"
+          enabled={hasChecked && !!onBatchDisable}
+          variant="danger"
+          onClick={onBatchDisable}
+        />
       </div>
     );
   }
