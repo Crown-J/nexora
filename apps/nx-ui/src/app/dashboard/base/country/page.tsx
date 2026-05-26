@@ -1,15 +1,13 @@
+// apps/nx-ui/src/app/dashboard/base/country/page.tsx
 /**
- * File: apps/nx-ui/src/app/dashboard/base/country/page.tsx
- * Purpose: 國家主檔（路由 v2：`/dashboard/base/country`）
+ * 國家主檔（鋼鐵星球範式、EntityMasterPage）
+ * DashboardShell 已加 bypass（避免雙 shell）。
  */
 'use client';
-import { BaseCountryMasterView } from '@/features/base/country/BaseCountryMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { COUNTRY_MASTER } from '@/features/base/master-config/simple-masters';
+
 export default function BaseCountryDashboardPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="國家主檔" />
-      <BaseCountryMasterView />
-    </div>
-  );
+  return <EntityMasterPage config={COUNTRY_MASTER} />;
 }

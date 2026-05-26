@@ -1,0 +1,678 @@
+// apps/nx-ui/src/features/master-shell/entity-master/EntityMasterPage.tsx
+/**
+ * EntityMasterPage — 鋼鐵星球 config-driven 通用主檔頁
+ *
+ * 對齊 USER 主檔已驗證範式：鋼鐵星球視覺 + ERP 工具列 + 編輯模式 staged write +
+ * dirty state 攔截 + 3-way confirm + 軟刪除（系統不刪資料）+ 全鍵盤 + 手機 responsive。
+ *
+ * 用一份 EntityMasterConfig 即可套用平面 code 主檔（幣別 / 國家 / 零件群組 / 車體類型 …）。
+ *
+ * 介面（單欄 + Tab list/detail，桌面手機一致、天然 responsive）：
+ * - 列表 Tab（Alt+1）：MasterTable + ↑↓ 切列 + Enter 進詳細
+ * - 詳細 Tab（Alt+2）：瀏覽 FormField / 編輯 FormInput
+ * - 工具列：A 新增 / E 更正 / F 查詢 / D 停用-啟用 / 匯出 / R 重新整理 / 選取批次 / Q 結束
+ * - 編輯模式：S 存檔 / C 取消（dirty 時跳「存檔後離開 / 丟棄 / 取消」3 選 1）
+ */
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Database, List, FileText } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import {
+  ErpToolbar,
+  type ErpMode,
+  type ExportFormat,
+} from '@/features/master-shell/ui/ErpToolbar';
+import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
+import {
+  MasterTable,
+  MASTER_TABLE_PAGE_SIZES,
+  type MasterTableColumn,
+} from '@/features/master-shell/ui/MasterTable';
+import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
+import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
+import { MasterDetailScroll, SectionHeader, EmptyDetail } from '@/features/master-shell/ui/MasterDetail';
+import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
+
+import {
+  type EntityMasterConfig,
+  type EntityRow,
+  type EntityDraft,
+  type EntityFieldDef,
+  fetchEntityList,
+  createEntity,
+  updateEntity,
+  setEntityActive,
+  rowToDraft,
+  emptyDraft,
+  draftToBody,
+} from './config';
+
+type Tab = 'list' | 'detail';
+
+function formatDt(iso: unknown): string {
+  if (iso == null || iso === '') return '—';
+  const d = new Date(String(iso));
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function auditPerson(username: unknown, name: unknown): string {
+  const n = (name as string) || '';
+  const u = (username as string) || '';
+  if (n && u) return `${n}（${u}）`;
+  return n || u || '—';
+}
+
+function listFields(cfg: EntityMasterConfig): EntityFieldDef[] {
+  return cfg.fields.filter((f) => f.inList !== false);
+}
+
+export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
+  const router = useRouter();
+  const { toasts, showToast } = useToast();
+
+  // 資料 / 分頁 / 篩選
+  const [rows, setRows] = useState<EntityRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(MASTER_TABLE_PAGE_SIZES[1]);
+  const [showInactive, setShowInactive] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKw, setDebouncedKw] = useState('');
+  const [reloadTick, setReloadTick] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // 選列 / 模式 / Tab
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<ErpMode>('browse');
+  const [tab, setTab] = useState<Tab>('list');
+  const [creating, setCreating] = useState(false);
+
+  // 編輯 staged draft
+  const [draft, setDraft] = useState<EntityDraft>({});
+  const [original, setOriginal] = useState<EntityDraft>({});
+
+  // 批次選取
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  // 確認框
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  const selected = useMemo(
+    () => rows.find((r) => r.id === selectedId) ?? null,
+    [rows, selectedId],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  // search debounce
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKw(keyword), 300);
+    return () => clearTimeout(t);
+  }, [keyword]);
+
+  // load
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetchEntityList(config, {
+        search: debouncedKw,
+        page,
+        pageSize,
+        isActive: showInactive ? undefined : true,
+      });
+      setRows(res.items);
+      setTotal(res.total);
+    } catch (e) {
+      showToast((e as Error)?.message ?? '載入失敗', 'danger');
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config, debouncedKw, page, pageSize, showInactive, reloadTick]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // dirty 判斷（編輯模式）
+  const isDirty = useMemo(() => {
+    if (mode !== 'edit') return false;
+    const keys = config.fields.map((f) => f.key);
+    return keys.some((k) => String(draft[k] ?? '') !== String(original[k] ?? ''));
+  }, [mode, draft, original, config.fields]);
+
+  // ── 動作 ──────────────────────────────────────────────
+  const performCancel = useCallback(() => {
+    setMode('browse');
+    setCreating(false);
+    setDraft({});
+    setOriginal({});
+  }, []);
+
+  const handleCreate = useCallback(() => {
+    const d = emptyDraft(config);
+    setCreating(true);
+    setSelectedId(null);
+    setDraft(d);
+    setOriginal(d);
+    setMode('edit');
+    setTab('detail');
+  }, [config]);
+
+  const handleEdit = useCallback(() => {
+    if (!selected) return;
+    const d = rowToDraft(config, selected);
+    setCreating(false);
+    setDraft(d);
+    setOriginal(d);
+    setMode('edit');
+    setTab('detail');
+  }, [config, selected]);
+
+  const performSave = useCallback(async () => {
+    // 必填驗證
+    for (const f of config.fields) {
+      if (f.required && f.type !== 'toggle') {
+        const v = String(draft[f.key] ?? '').trim();
+        if (!v) {
+          showToast(`「${f.label}」為必填`, 'danger');
+          return;
+        }
+      }
+    }
+    const body = draftToBody(config, draft);
+    try {
+      if (creating) {
+        const created = await createEntity(config, body);
+        showToast(`已新增${config.entityNoun}`, 'success');
+        setReloadTick((t) => t + 1);
+        setSelectedId(created.id);
+      } else if (selectedId) {
+        await updateEntity(config, selectedId, body);
+        showToast('已存檔', 'success');
+        setReloadTick((t) => t + 1);
+      }
+      performCancel();
+    } catch (e) {
+      showToast((e as Error)?.message ?? '存檔失敗', 'danger');
+    }
+  }, [config, draft, creating, selectedId, performCancel, showToast]);
+
+  const handleSave = useCallback(() => {
+    setConfirm({
+      title: creating ? `新增${config.entityNoun}` : '存檔變更',
+      message: creating
+        ? `確定新增這筆${config.entityNoun}？`
+        : `確定儲存對「${(selected?.[config.fields[0].key] as string) ?? ''}」的變更？`,
+      confirmLabel: '存檔',
+      onConfirm: () => void performSave(),
+    });
+  }, [creating, config, selected, performSave]);
+
+  const handleCancel = useCallback(() => {
+    if (!isDirty) {
+      performCancel();
+      return;
+    }
+    setConfirm({
+      title: '尚有未儲存的變更',
+      message: '要先存檔再離開，還是丟棄變更？',
+      confirmLabel: '存檔後離開',
+      onConfirm: () => void performSave(),
+      secondaryAction: { label: '丟棄變更', variant: 'danger', onClick: performCancel },
+    });
+  }, [isDirty, performCancel, performSave]);
+
+  const handleDelete = useCallback(() => {
+    if (!selected) return;
+    const turningOff = selected.isActive;
+    const label = (selected[config.fields[0].key] as string) ?? selected.id;
+    setConfirm({
+      title: turningOff ? `停用${config.entityNoun}` : `啟用${config.entityNoun}`,
+      message: turningOff
+        ? `確定停用「${label}」？（系統不刪資料、停用後可從「顯示停用」恢復）`
+        : `確定重新啟用「${label}」？`,
+      confirmLabel: turningOff ? '停用' : '啟用',
+      variant: turningOff ? 'danger' : 'default',
+      onConfirm: () => {
+        void (async () => {
+          try {
+            await setEntityActive(config, selected.id, !selected.isActive);
+            showToast(turningOff ? '已停用' : '已啟用', 'success');
+            setReloadTick((t) => t + 1);
+          } catch (e) {
+            showToast((e as Error)?.message ?? '操作失敗', 'danger');
+          }
+        })();
+      },
+    });
+  }, [selected, config, showToast]);
+
+  const handleBatchSetActive = useCallback(
+    (active: boolean) => {
+      const ids = Array.from(checked);
+      if (ids.length === 0) return;
+      void (async () => {
+        let ok = 0;
+        for (const id of ids) {
+          try {
+            await setEntityActive(config, id, active);
+            ok += 1;
+          } catch {
+            /* 個別失敗略過、最後彙總 */
+          }
+        }
+        showToast(`已${active ? '啟用' : '停用'} ${ok}/${ids.length} 筆`, ok === ids.length ? 'success' : 'danger');
+        setChecked(new Set());
+        setSelectionMode(false);
+        setReloadTick((t) => t + 1);
+      })();
+    },
+    [checked, config, showToast],
+  );
+
+  const attemptTabChange = useCallback(
+    (next: Tab) => {
+      if (mode === 'edit' && isDirty) {
+        setConfirm({
+          title: '尚有未儲存的變更',
+          message: '離開編輯要先存檔，還是丟棄變更？',
+          confirmLabel: '存檔後離開',
+          onConfirm: () => {
+            void performSave();
+            setTab(next);
+          },
+          secondaryAction: {
+            label: '丟棄變更',
+            variant: 'danger',
+            onClick: () => {
+              performCancel();
+              setTab(next);
+            },
+          },
+        });
+        return;
+      }
+      setTab(next);
+    },
+    [mode, isDirty, performSave, performCancel],
+  );
+
+  const handleExit = useCallback(() => {
+    if (mode === 'edit' && isDirty) {
+      handleCancel();
+      return;
+    }
+    router.push('/dashboard');
+  }, [mode, isDirty, handleCancel, router]);
+
+  const handleExport = useCallback(
+    (format: ExportFormat) => {
+      if (format !== 'csv') {
+        showToast(`${format.toUpperCase()} 匯出尚未開放，先用 CSV`, 'info');
+        return;
+      }
+      const cols = listFields(config);
+      const header = cols.map((c) => c.label).join(',');
+      const lines = rows.map((r) =>
+        cols.map((c) => `"${String(r[c.key] ?? '').replace(/"/g, '""')}"`).join(','),
+      );
+      const csv = [header, ...lines].join('\n');
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${config.basePath.replace(/\//g, '')}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    [config, rows, showToast],
+  );
+
+  // ── 全鍵盤 ────────────────────────────────────────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // 編輯輸入框內不攔截一般鍵（Alt 組合仍處理）
+      if (e.altKey) {
+        const k = e.key.toLowerCase();
+        const map: Record<string, () => void> = {
+          '1': () => attemptTabChange('list'),
+          '2': () => attemptTabChange('detail'),
+        };
+        if (mode === 'browse') {
+          Object.assign(map, {
+            a: handleCreate,
+            e: () => selected && handleEdit(),
+            f: () => setSearchOpen((s) => !s),
+            d: () => selected && handleDelete(),
+            r: () => setReloadTick((t) => t + 1),
+            q: handleExit,
+          });
+        } else {
+          Object.assign(map, { s: handleSave, c: handleCancel });
+        }
+        const fn = map[k];
+        if (fn) {
+          e.preventDefault();
+          fn();
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        if (searchOpen) {
+          setSearchOpen(false);
+          setKeyword('');
+        } else if (mode === 'edit') {
+          handleCancel();
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mode, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleExit, handleSave, handleCancel]);
+
+  // beforeunload（dirty 攔截）
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  // ── 列表欄位 ──────────────────────────────────────────
+  const columns: MasterTableColumn<EntityRow>[] = useMemo(() => {
+    const cols: MasterTableColumn<EntityRow>[] = listFields(config).map((f) => ({
+      key: f.key,
+      label: f.label,
+      minWidthClass: f.minWidthClass,
+      sortable: false,
+      render: (row: EntityRow) =>
+        f.type === 'toggle' ? (
+          (row[f.key] as boolean) ? '是' : '否'
+        ) : (
+          <span className={f.mono ? 'font-mono text-xs' : undefined}>
+            {String(row[f.key] ?? '—')}
+          </span>
+        ),
+    }));
+    cols.push({
+      key: 'isActive',
+      label: '狀態',
+      minWidthClass: 'min-w-[80px]',
+      render: (row: EntityRow) => (
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className={cn(
+              'size-2 rounded-full',
+              row.isActive ? 'bg-[#22D88F] shadow-[0_0_8px_#22D88F]' : 'bg-[#E26060] shadow-[0_0_8px_#E26060]',
+            )}
+          />
+          <span className={row.isActive ? 'text-[#22D88F]' : 'text-[#E26060]'}>
+            {row.isActive ? '啟用' : '停用'}
+          </span>
+        </span>
+      ),
+    });
+    return cols;
+  }, [config]);
+
+  // ── render ────────────────────────────────────────────
+  const countText = `${total} 筆${config.entityNoun}`;
+
+  return (
+    <div
+      className="flex h-dvh flex-col text-[#E8E8EB]"
+      style={{
+        backgroundImage:
+          'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
+      }}
+    >
+      {/* Header */}
+      <header
+        className="flex items-center gap-3 border-b border-[#2A2A30] px-3 py-2.5 sm:px-4"
+        style={{ backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)' }}
+      >
+        <button
+          type="button"
+          onClick={handleExit}
+          aria-label="返回"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+        >
+          <ArrowLeft className="size-4" />
+        </button>
+        <Database className="size-4 shrink-0 text-[#E8A020]" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5A5A60]">
+            {config.category}
+          </div>
+          <h1 className="truncate text-sm font-bold tracking-wide text-[#F0F0F3]">{config.title}</h1>
+        </div>
+        <span className="shrink-0 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-1 text-[11px] font-mono tabular-nums text-[#B8B8C0]">
+          {countText}
+        </span>
+      </header>
+
+      {/* Tab 切換 */}
+      <div className="flex items-center gap-1 border-b border-[#2A2A30] bg-[#0E0E12] px-2">
+        <TabButton icon={List} label="資料瀏覽" hint="Alt+1" active={tab === 'list'} onClick={() => attemptTabChange('list')} />
+        <TabButton icon={FileText} label="詳細資料" hint="Alt+2" active={tab === 'detail'} onClick={() => attemptTabChange('detail')} />
+      </div>
+
+      {/* Toolbar（手機橫向 scroll） */}
+      <div className="overflow-x-auto">
+        <ErpToolbar
+          mode={mode}
+          hasActiveRow={!!selected}
+          selectedRowActive={selected?.isActive ?? true}
+          selectionMode={selectionMode}
+          onToggleSelection={() => {
+            setSelectionMode((s) => !s);
+            setChecked(new Set());
+          }}
+          selectedCount={checked.size}
+          page={page}
+          totalPages={totalPages}
+          onPageChange={(p) => setPage(Math.min(Math.max(1, p), totalPages))}
+          onCreate={handleCreate}
+          onEdit={handleEdit}
+          onSearch={() => setSearchOpen((s) => !s)}
+          onDelete={handleDelete}
+          onExport={handleExport}
+          onRefresh={() => setReloadTick((t) => t + 1)}
+          onExit={handleExit}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          showInactive={showInactive}
+          onShowInactiveChange={mode === 'browse' && tab === 'list' ? (v) => setShowInactive(v) : undefined}
+          onBatchEnable={() => handleBatchSetActive(true)}
+          onBatchDisable={() => handleBatchSetActive(false)}
+        />
+      </div>
+
+      <SearchPanel
+        open={searchOpen}
+        value={keyword}
+        onChange={setKeyword}
+        onClose={() => {
+          setSearchOpen(false);
+          setKeyword('');
+        }}
+        placeholder={`搜尋${config.entityNoun}代碼 / 名稱...`}
+      />
+
+      {/* Content */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {tab === 'list' ? (
+          <MasterTable<EntityRow>
+            columns={columns}
+            rows={rows}
+            getRowId={(r) => r.id}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+            onOpenDetail={(id) => {
+              setSelectedId(id);
+              attemptTabChange('detail');
+            }}
+            selectionMode={selectionMode}
+            checked={checked}
+            setChecked={setChecked}
+            pageSize={pageSize}
+            onPageSizeChange={(n) => {
+              setPageSize(n);
+              setPage(1);
+            }}
+            footerHint={loading ? '載入中...' : undefined}
+            totalCount={total}
+          />
+        ) : (
+          <DetailPane
+            config={config}
+            mode={mode}
+            creating={creating}
+            selected={selected}
+            draft={draft}
+            setDraft={setDraft}
+          />
+        )}
+      </div>
+
+      <ToastStack toasts={toasts} />
+      <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />
+      <nav ref={sidebarRef} className="sr-only" aria-hidden />
+    </div>
+  );
+}
+
+function TabButton({
+  icon: Icon,
+  label,
+  hint,
+  active,
+  onClick,
+}: {
+  icon: typeof List;
+  label: string;
+  hint: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
+        active
+          ? 'border-[#E8A020] text-[#E8A020]'
+          : 'border-transparent text-[#888892] hover:text-[#E8E8EB]',
+      )}
+    >
+      <Icon className="size-3.5" />
+      {label}
+      <span className="hidden text-[10px] text-[#5A5A60] sm:inline">{hint}</span>
+    </button>
+  );
+}
+
+function DetailPane({
+  config,
+  mode,
+  creating,
+  selected,
+  draft,
+  setDraft,
+}: {
+  config: EntityMasterConfig;
+  mode: ErpMode;
+  creating: boolean;
+  selected: EntityRow | null;
+  draft: EntityDraft;
+  setDraft: (next: EntityDraft) => void;
+}) {
+  if (mode !== 'edit' && !selected) {
+    return <EmptyDetail message="從「資料瀏覽」選一筆，或按 A 新增" />;
+  }
+  const editing = mode === 'edit';
+  return (
+    <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
+      <div className="px-4 py-4 sm:px-6">
+        <SectionHeader
+          title={creating ? `新增${config.entityNoun}` : (selected?.[config.fields[0].key] as string) ?? config.entityNoun}
+          subtitle={editing ? '編輯中' : '瀏覽'}
+        />
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {config.fields.map((f) => {
+            const lockedNow = editing && !creating && f.lockedOnEdit;
+            if (editing && !lockedNow && f.type !== 'toggle') {
+              return (
+                <FormInput
+                  key={f.key}
+                  label={f.label + (f.required ? ' *' : '')}
+                  value={String(draft[f.key] ?? '')}
+                  onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+                  placeholder={f.placeholder}
+                />
+              );
+            }
+            if (editing && f.type === 'toggle') {
+              const on = Boolean(draft[f.key]);
+              return (
+                <div key={f.key} className="flex flex-col gap-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">{f.label}</span>
+                  <button
+                    type="button"
+                    onClick={() => setDraft({ ...draft, [f.key]: !on })}
+                    className={cn(
+                      'inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors',
+                      on
+                        ? 'border-[#22D88F]/40 bg-[#22D88F]/10 text-[#22D88F]'
+                        : 'border-[#E26060]/40 bg-[#E26060]/10 text-[#E26060]',
+                    )}
+                  >
+                    {on ? '啟用' : '停用'}
+                  </button>
+                </div>
+              );
+            }
+            // 瀏覽 / locked 欄位
+            const raw = editing ? draft[f.key] : selected?.[f.key];
+            const val =
+              f.type === 'toggle'
+                ? (raw ? '啟用' : '停用')
+                : String(raw ?? '—');
+            return (
+              <FormField
+                key={f.key}
+                label={f.label}
+                value={val === '' ? '—' : val}
+                mono={f.mono}
+                tone={f.type === 'toggle' ? (raw ? 'green' : 'red') : undefined}
+              />
+            );
+          })}
+        </div>
+
+        {/* audit（瀏覽既有資料時） */}
+        {!creating && selected ? (
+          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-[#2A2A30] pt-4 sm:grid-cols-2">
+            <FormField label="建立時間" value={formatDt(selected.createdAt)} mono dim />
+            <FormField label="建立人員" value={auditPerson(selected.createdByUsername, selected.createdByName)} dim />
+            <FormField label="修改時間" value={formatDt(selected.updatedAt)} mono dim />
+            <FormField label="修改人員" value={auditPerson(selected.updatedByUsername, selected.updatedByName)} dim />
+          </div>
+        ) : null}
+      </div>
+    </MasterDetailScroll>
+  );
+}
