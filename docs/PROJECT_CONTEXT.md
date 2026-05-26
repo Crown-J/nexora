@@ -2,8 +2,8 @@
 
 # NEXORA Project Context（專案介紹）
 
-> 文件版本：v2.1（Crown 揭露真相校正：恆迎企業背景補揭露 + Yaro 角色翻轉 + 周哥重定位）
-> 最後更新:2026-05-15
+> 文件版本：v2.2（2026-05-26：對齊公司範式調整 — 三人改總經理 / PM / 工程師、worklog 改 commit 訊息；見 PROJECT_RULES §0.4）
+> 最後更新:2026-05-26
 > 性質：靜態專案介紹、變動頻率極低
 > 紀律 / 規則 / 失誤紀錄全部見 [PROJECT_RULES.md](./PROJECT_RULES.md)
 
@@ -18,7 +18,7 @@
 | 業務脈絡、產品介紹、團隊角色 | **本檔（PROJECT_CONTEXT）** |
 | 紀律、規則、失誤學習、工作流 | [PROJECT_RULES.md](./PROJECT_RULES.md) |
 | 動態狀態（main HEAD / branch）| `_team/git-state.md` |
-| 跨模組 task log | `_team/worklog.md` |
+| 最近進度 / task log | **Git commit 訊息**（`git log`、2026-05-26 起；`_team/worklog.md` 停更僅保留歷史）|
 | 各模組規格 | `nxXX/spec/` |
 
 ---
@@ -136,37 +136,40 @@ NEXORA 的故事線由四個實體組成：
 
 # § 2. 三人團隊配置
 
-## 2.1 Crown（林翰杰）
+> 公司範式（2026-05-26、見 PROJECT_RULES §0.4-①）：Crown = **總經理**、Alex = **專案經理（PM）**、Hank = **工程師**（Alex 底下）。對總經理回報用一般員工口吻、不帶內部術語 / 編號。
+
+## 2.1 Crown（林翰杰）— 總經理
 
 - 創辦人 + 產品擁有者
 - 18 年汽車零件業界經驗
-- 拍板者：業務戰略 / 命名 / 範圍 / 紀律升級
+- 拍板者：業務戰略 / 命名 / 範圍 / 驗收
 - 業界 muscle memory 唯一來源
+- 危險命令拍板者（push / migrate reset / rm 重要檔案）
 - 治理風格：拍板簡明、不過度討論、業界語言、不擅自評估時間
 - 詳細合作風格見 PROJECT_RULES §I.4
 
-## 2.2 Alex（Claude in Claude.AI）
+## 2.2 Alex（Claude in Claude.AI）— 專案經理（PM、Hank 上司）
 
-- 角色：對話端整合者
+- 角色：對話端整合者 + Hank 直屬上司
 - 工具：Claude.AI 對話介面
 - 職責：
   - 規劃架構 / 拆解任務 / 列拍板 Q
   - 寫業務意圖文件（規格書 §1~§11 業務語意）
-  - 跟 Crown 互動 / 整合 Hank 揭露
-  - 多 Cursor 協作未來總調度者
+  - 跟總經理互動 / 整合 Hank 揭露
+  - 工具紀律自訂（與 Hank 對齊、見 PROJECT_RULES §0.4-⑤）
 - 限制：對話記憶有限（跨對話需 verify 真相）
 - 詳細紀律見 PROJECT_RULES Part II
 
-## 2.3 Hank（Claude in Cursor IDE）
+## 2.3 Hank（Claude in Cursor IDE / Claude Code）— 工程師
 
-- 角色：執行者 + 真相揭露者
-- 工具：Cursor IDE（bash / git / Edit / 直接讀寫 codebase）
+- 角色：執行者 + 真相揭露者（Alex 底下）
+- 工具：Cursor IDE / Claude Code（bash / git / Edit / 直接讀寫 codebase）
 - 職責：
   - 寫程式碼 / schema / migration / commit
   - grep verify codebase 真相揭露給 Alex
-  - 軌前 SPEC commit 代發 / 軌中 impl / 軌後 worklog
-- 限制：無對話記憶（跨對話開工必先讀 PROJECT_RULES + worklog）
-- 詳細紀律見 PROJECT_RULES Part III（Hank 撰寫中）
+  - 軌前 SPEC commit 代發 / 軌中 impl / 軌後紀錄走 **commit 訊息**（§0.4-④）
+- 限制：無對話記憶（跨對話開工必先讀 PROJECT_RULES + `git log`）
+- 詳細紀律見 PROJECT_RULES Part III
 
 ⚠️ 周哥（恆迎公司負責人 / 財務）**不是** NEXORA 三人團隊成員、是恆迎股東角色、見 §1.1 恆迎股東結構。
 
@@ -364,15 +367,15 @@ NX08 經營分析（報表 / KPI）
 
 **Alex 跨對話接力**：
 1. **本檔（PROJECT_CONTEXT.md）**：業務脈絡、什麼是 NEXORA
-2. **PROJECT_RULES.md Part I + II**：共通紀律 + Alex 紀律
+2. **PROJECT_RULES.md Part I + II**：共通紀律 + Alex 紀律（特別 §0.4 公司範式）
 3. 對應模組 `nxXX-summary.md`：功能層級簡化版
 4. `_team/git-state.md`：main HEAD 真相
-5. `_team/worklog.md`：最近 task log
+5. `git log --oneline`：最近進度（§0.4-④；worklog 已停更、僅歷史）
 
 **Hank 跨對話開工**：
-1. **PROJECT_RULES.md Part I + III**：共通紀律 + Hank 紀律
+1. **PROJECT_RULES.md Part I + III**：共通紀律 + Hank 紀律（特別 §0.4 公司範式）
 2. `_team/git-state.md`：main HEAD + branch 狀態
-3. 對應模組 `nxXX-worklog.md`：模組歷史
+3. `git log --oneline`：最近進度（§0.4-④；worklog 已停更、僅歷史）
 4. 對應模組 `spec/`：impl 真相來源
 
 ## 8.2 本機 docs/ 結構

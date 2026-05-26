@@ -1,6 +1,8 @@
 # NEXORA — Cursor IDE 規範入口
 
 > ⚠️ 本檔 2026-05-15 對齊 PROJECT_RULES.md 重組、Cursor IDE 自動讀取慣例。
+> ⭐ 2026-05-26 公司範式調整：Crown = 總經理、Alex = 專案經理（PM）、Hank = 工程師（Alex 底下）。
+> 對總經理回報用一般員工口吻、不帶內部術語 / 編號（TL;DR / Q1=a/b/c / #XX / A041 等）。詳見 PROJECT_RULES §0.4。
 
 ## Hank 跨對話必讀順序
 
@@ -8,15 +10,17 @@
 
 1. **docs/PROJECT_CONTEXT.md** — 業務介紹（Yaro / 恆迎 / NEXORA / 三人團隊）
 2. **docs/PROJECT_RULES.md** — 規範合一手冊
+   - **§0.4 公司範式調整（2026-05-26、最新、override 衝突條目）** ⭐
    - Part I 共通段（Alex + Hank 都必讀）
    - Part III Hank 段（Cursor IDE 端紀律、A041 / A046 / A052 / A066 等工具陷阱）
 3. **docs/_team/git-state.md** — main HEAD / branch 狀態
-4. **docs/_team/worklog.md** — 跨模組 task log（最新主題揭露上對話進度）
+4. **`git log --oneline`** — 最近進度（§0.4-④；worklog 已停更、僅保留歷史）
 5. **docs/nxXX/nxXX-summary.md** — 對應模組架構書（快速 onboarding、不必讀完整子規格）
-6. **docs/nxXX/nxXX-worklog.md** — 模組層 task log（按需）
-7. **docs/nxXX/spec/intent/** — 完整子規格書（需要 impl 真相時讀）
+6. **docs/nxXX/spec/intent/** — 完整子規格書（需要 impl 真相時讀）
 
 ## Hank 工具紀律速查
+
+> ⚙️ 工具紀律維護權 2026-05-26 歸 Alex + Hank 對齊自訂、Crown 不參與（§0.4-⑤）。代號內部用、不向總經理揭露。
 
 | 紀律 | 觸發時機 | 動作 |
 |------|---------|------|
@@ -25,7 +29,9 @@
 | A052 git add 精確 | 任何 git add 時機 | 具體檔案路徑、禁用 `-A` |
 | A066 Read-before-Edit | Edit/Write 既有檔案 | 先 Read、必要時 replace_all=true |
 | G.4 歷史 fact 保留 | spec docs 歷史描述 | 加 HTML 註解、不 replace |
-| G.8 範圍擴散揭露 | impl 階段發現超範圍 | 揭露 + 等 Crown 重拍、不擅自縮減 |
+| G.8 範圍超出可執行 | impl 階段發現超範圍 | **直接做 + commit 留紀錄 + 事後回報（§0.4-③）；危險命令除外** |
+
+⚠️ **危險命令仍須總經理拍板**：`git push` 遠端 / `prisma migrate reset` / 破壞性 migration / `rm` 重要檔案。
 
 詳細紀律見 docs/PROJECT_RULES.md §III.8。
 
@@ -34,10 +40,10 @@
 對齊 PROJECT_RULES §III.9：
 
 - [ ] 讀完 docs/PROJECT_CONTEXT.md？
-- [ ] 讀完 docs/PROJECT_RULES.md Part I + Part III？
+- [ ] 讀完 docs/PROJECT_RULES.md §0.4 + Part I + Part III？
 - [ ] 看過 _team/git-state.md、知道 main HEAD？
-- [ ] 看過 _team/worklog.md 最新主題、知道上對話進度？
-- [ ] 看過涉及模組 nxXX-summary.md / nxXX-worklog.md？
+- [ ] 看過 `git log --oneline`、知道上對話進度？（worklog 已停更）
+- [ ] 看過涉及模組 nxXX-summary.md / spec？
 - [ ] grep 過要改的 schema / API / ENUM、確認現況（對齊 #1 + #18 + #22）？
 - [ ] 不確定的點列出來了（⚠️ 標記、對齊 §I.6.2）？
 
