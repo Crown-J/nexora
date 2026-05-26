@@ -1,23 +1,10 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/base/role-view/page.tsx
- *
- * Purpose:
- * - 職務權限設定（路由 v2：`/dashboard/base/role-view`）
- */
-
+// apps/nx-ui/src/app/dashboard/base/role-view/page.tsx
+/** 職務權限視圖主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { BaseRoleViewSplitView } from '@/features/base/role-view/BaseRoleViewSplitView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { ROLE_VIEW_MASTER } from '@/features/base/master-config/catalog-masters';
 
-export default function BaseRoleViewDashboardPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader
-        title="職務權限設定（Role ⇄ View）"
-        description="依職務（角色）設定各畫面的讀寫與啟用狀態。"
-      />
-      <BaseRoleViewSplitView />
-    </div>
-  );
+export default function Page() {
+  return <EntityMasterPage config={ROLE_VIEW_MASTER} />;
 }

@@ -12,6 +12,10 @@ import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
 import { LocationController } from './location/location.controller';
 import { LocationService } from './location/location.service';
+import { ViewController } from './view/view.controller';
+import { ViewService } from './view/view.service';
+import { RoleViewController } from './role-view/role-view.controller';
+import { RoleViewService } from './role-view/role-view.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
 import { CustomerGradeService } from './customer-grade/customer-grade.service';
 import { DrivetrainController } from './drivetrain/drivetrain.controller';
@@ -81,6 +85,8 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     UserRoleController,
     UserWarehouseController,
     LocationController,
+    ViewController,
+    RoleViewController,
   ],
   providers: [
     CurrencyService,
@@ -108,6 +114,8 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     UserRoleService,
     UserWarehouseService,
     LocationService,
+    ViewService,
+    RoleViewService,
   ],
 })
 export class Nx01Module {}

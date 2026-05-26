@@ -419,3 +419,22 @@ export const BULLETIN_MASTER: EntityMasterConfig = {
   ],
 };
 
+// ── 帳號與權限（職務↔畫面權限）──────────────────────────
+export const ROLE_VIEW_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/role-views',
+  category: '帳號與權限',
+  title: '職務權限視圖主檔',
+  entityNoun: '職務權限',
+  errorCodePrefix: 'nxui_base_role_view',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'roleId', label: '職務', type: 'ref', refBasePath: 'nx01/roles', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'viewId', label: '畫面', type: 'ref', refBasePath: 'nx01/views', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'canRead', label: '可讀取', type: 'toggle', defaultValue: true },
+    { key: 'canCreate', label: '可新增', type: 'toggle', defaultValue: false },
+    { key: 'canUpdate', label: '可編輯', type: 'toggle', defaultValue: false },
+    { key: 'canDelete', label: '可刪除', type: 'toggle', defaultValue: false },
+    { key: 'canExport', label: '可匯出', type: 'toggle', defaultValue: false },
+  ],
+};
+
