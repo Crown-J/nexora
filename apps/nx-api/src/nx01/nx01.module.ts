@@ -44,6 +44,8 @@ import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
 import { UserRoleController } from './user-role/user-role.controller';
 import { UserRoleService } from './user-role/user-role.service';
+import { UserWarehouseController } from './user-warehouse/user-warehouse.controller';
+import { UserWarehouseService } from './user-warehouse/user-warehouse.service';
 import { WarehouseController } from './warehouse/warehouse.controller';
 import { WarehouseService } from './warehouse/warehouse.service';
 import { WarehouseTypeController } from './warehouse-type/warehouse-type.controller';
@@ -75,6 +77,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartVersionController,
     PartModelController,
     UserRoleController,
+    UserWarehouseController,
   ],
   providers: [
     CurrencyService,
@@ -100,6 +103,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartVersionService,
     PartModelService,
     UserRoleService,
+    UserWarehouseService,
   ],
 })
 export class Nx01Module {}
