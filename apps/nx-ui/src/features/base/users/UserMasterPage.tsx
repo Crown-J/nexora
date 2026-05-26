@@ -31,11 +31,13 @@ import {
   Layers,
 } from 'lucide-react';
 
+import { listRoles, type RoleDto } from '@/features/base/api/role';
 import { listUsers, setUserActive, updateUser, type UserDto } from '@/features/base/api/user';
-import { listUserRoles, type UserRoleDto } from '@/features/base/api/user-role';
+import { assignUserRole, listUserRoles, type UserRoleDto } from '@/features/base/api/user-role';
 import { listUserWarehouses, type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
+import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
 import { ErpToolbar, type ErpMode, type ExportFormat } from '@/features/master-shell/ui/ErpToolbar';
 import { FormField, FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
 import {
@@ -515,6 +517,9 @@ export function UserMasterPage() {
   const [selectedUserWarehouses, setSelectedUserWarehouses] = useState<UserWarehouseDto[]>([]);
   const [warehousesReloadTick, setWarehousesReloadTick] = useState(0);
 
+  // ── 軌 B Picker 對話框（B2 / B4）─────────────────────────────
+  const [rolePickerOpen, setRolePickerOpen] = useState(false);
+
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
     const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
@@ -767,8 +772,42 @@ export function UserMasterPage() {
   }, [showToast]);
 
   const handleAddRole = useCallback(() => {
-    showToast('新增職務 · 待接職務選擇器（lab mock）', 'info');
-  }, [showToast]);
+    if (!selectedUser) {
+      showToast('請先點選一筆使用者', 'danger');
+      return;
+    }
+    setRolePickerOpen(true);
+  }, [selectedUser, showToast]);
+
+  // RolePicker 用：已指派的 roleId 集合（picker 內 disable + 顯示「已指派」chip）
+  const assignedRoleIds = useMemo(
+    () => new Set(selectedUserRoles.map((ur) => ur.roleId)),
+    [selectedUserRoles],
+  );
+
+  const handleRolePickerSearch = useCallback(
+    (q: string) => listRoles({ q: q || undefined, isActive: true, pageSize: 50 }),
+    [],
+  );
+
+  const handleRolePickerConfirm = useCallback(
+    async (roles: RoleDto[]) => {
+      if (!selectedUser) return;
+      // 依序 assign（後端 unique constraint 兜底；前端 disabledIds 已過濾大部分重複）
+      for (const role of roles) {
+        await assignUserRole({ userId: selectedUser.id, roleId: role.id });
+      }
+    },
+    [selectedUser],
+  );
+
+  const handleRolePickerSuccess = useCallback(
+    (count: number) => {
+      showToast(`已新增 ${count} 個職務`, 'success');
+      setRolesReloadTick((t) => t + 1);
+    },
+    [showToast],
+  );
 
   const handleAddWarehouse = useCallback(() => {
     showToast('新增倉庫據點 · 待接倉庫選擇器（lab mock）', 'info');
@@ -968,6 +1007,22 @@ export function UserMasterPage() {
           showToast(`已建立使用者：${created.username}`, 'success');
           setReloadTick((t) => t + 1);
         }}
+      />
+      <EntityPickerDialog<RoleDto>
+        open={rolePickerOpen}
+        onClose={() => setRolePickerOpen(false)}
+        title="新增職務"
+        subtitle="Assign Roles"
+        icon={Briefcase}
+        searchPlaceholder="搜尋職務代碼 / 名稱..."
+        search={handleRolePickerSearch}
+        getId={(r) => r.id}
+        getLabel={(r) => `${r.code} · ${r.name}`}
+        getDescription={(r) => r.description ?? undefined}
+        disabledIds={assignedRoleIds}
+        disabledHint="已指派"
+        onConfirm={handleRolePickerConfirm}
+        onSuccess={handleRolePickerSuccess}
       />
       <ToastStack toasts={toasts} />
     </>

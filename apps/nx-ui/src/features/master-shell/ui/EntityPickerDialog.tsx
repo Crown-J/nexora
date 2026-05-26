@@ -68,8 +68,8 @@ export type EntityPickerDialogProps<T> = {
   disabledHint?: string;
   /** 提交（每個選中項依序呼叫 API）*/
   onConfirm: (selected: T[]) => Promise<void>;
-  /** 全部 onConfirm 成功後執行（reload list + toast）*/
-  onSuccess?: () => void;
+  /** 全部 onConfirm 成功後執行；count = 成功筆數，方便 caller 顯示 toast「已新增 N 項」*/
+  onSuccess?: (count: number) => void;
   /** 確認按鈕 label（預設「新增」）*/
   confirmLabel?: string;
 };
@@ -175,7 +175,7 @@ export function EntityPickerDialog<T>({
     try {
       const selectedItems = items.filter((it) => selected.has(getId(it)));
       await onConfirm(selectedItems);
-      onSuccess?.();
+      onSuccess?.(selectedItems.length);
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : '處理失敗');
