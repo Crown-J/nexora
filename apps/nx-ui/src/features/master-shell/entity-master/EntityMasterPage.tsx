@@ -697,6 +697,26 @@ function DetailPane({
                 </div>
               );
             }
+            // 編輯模式：textarea / json（長文 / JSON 巢狀）
+            if (editing && !lockedNow && (f.type === 'textarea' || f.type === 'json')) {
+              return (
+                <div key={f.key} className="flex flex-col gap-1 sm:col-span-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                    {f.label + (f.required ? ' *' : '') + (f.type === 'json' ? '（JSON 陣列）' : '')}
+                  </span>
+                  <textarea
+                    value={String(draft[f.key] ?? '')}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                    rows={f.type === 'json' ? 8 : 4}
+                    placeholder={f.placeholder}
+                    className={cn(
+                      'rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors placeholder:text-[#5A5A60] focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40',
+                      f.type === 'json' && 'font-mono text-xs',
+                    )}
+                  />
+                </div>
+              );
+            }
             // 編輯模式：text / number
             if (editing && !lockedNow && f.type !== 'toggle') {
               return (
@@ -737,7 +757,9 @@ function DetailPane({
                 ? (raw ? '啟用' : '停用')
                 : f.type === 'select' || f.type === 'ref'
                   ? optionLabel(f, raw, refOptions)
-                  : String(raw ?? '—');
+                  : f.type === 'json'
+                    ? (raw == null || raw === '' ? '—' : typeof raw === 'string' ? raw : JSON.stringify(raw))
+                    : String(raw ?? '—');
             return (
               <FormField
                 key={f.key}

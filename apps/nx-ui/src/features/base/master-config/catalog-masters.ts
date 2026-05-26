@@ -323,3 +323,99 @@ export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
     { key: 'usageFreq', label: '使用頻率', type: 'number', inList: false },
   ],
 };
+
+// ── 組織架構（補後端後）──────────────────────────────────
+export const LOCATION_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/locations',
+  category: '組織架構',
+  title: '據點主檔',
+  entityNoun: '據點',
+  errorCodePrefix: 'nxui_base_location',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'code', label: '據點代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
+    { key: 'name', label: '名稱', minWidthClass: 'min-w-[120px]' },
+    { key: 'zone', label: '區', inList: false },
+    { key: 'rack', label: '架號', inList: false },
+    { key: 'levelNo', label: '層', type: 'number', inList: false },
+    { key: 'binNo', label: '格', inList: false },
+    { key: 'remark', label: '備註', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
+// ── 產品料號（複雜主檔）──────────────────────────────────
+export const PART_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/parts',
+  category: '產品料號',
+  title: '零件主檔',
+  entityNoun: '零件',
+  errorCodePrefix: 'nxui_base_part',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '料號', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'name', label: '品名', required: true, minWidthClass: 'min-w-[160px]' },
+    // codeRuleId 後端強制必填（須先有品牌料號規則）
+    { key: 'codeRuleId', label: '編碼規則', type: 'ref', refBasePath: 'nx01/brand-code-rules', refLabelKeys: ['name'], required: true, inList: false },
+    { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/part-brands', minWidthClass: 'min-w-[120px]' },
+    { key: 'partGroupId', label: '零件群組', type: 'ref', refBasePath: '/part-group', inList: false },
+    { key: 'countryId', label: '產地', type: 'ref', refBasePath: '/country', inList: false },
+    {
+      key: 'partType', label: '料件類型', type: 'select', numeric: true, inList: false,
+      options: [{ value: 1, label: '專用件' }, { value: 2, label: '通用件' }, { value: 3, label: '組合件' }, { value: 4, label: '拆解件' }],
+    },
+    { key: 'isOem', label: '原廠件', type: 'toggle', inList: false },
+    { key: 'spec', label: '規格', inList: false },
+    { key: 'uom', label: '單位', inList: false },
+    { key: 'warrantyMonths', label: '保固月數', type: 'number', inList: false },
+    { key: 'priceA', label: '售價 A', type: 'number', inList: false },
+    { key: 'priceB', label: '售價 B', type: 'number', inList: false },
+    { key: 'priceC', label: '售價 C', type: 'number', inList: false },
+    { key: 'priceD', label: '售價 D', type: 'number', inList: false },
+  ],
+};
+
+export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/brand-code-rules',
+  category: '產品料號',
+  title: '品牌料號規則主檔',
+  entityNoun: '品牌料號規則',
+  errorCodePrefix: 'nxui_base_brand_code_rule',
+  deleteMode: SOFT,
+  minPlan: 'PLUS',
+  fields: [
+    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/car-brands', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'name', label: '規則名稱', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'description', label: '說明', type: 'textarea', inList: false },
+    { key: 'segCount', label: '分段數', type: 'number', required: true, minWidthClass: 'min-w-[80px]' },
+    {
+      key: 'segDefinitions', label: '分段定義', type: 'json', required: true, inList: false,
+      placeholder: '[{"seg_no":1,"name":"類別","length_min":2,"length_max":2,"charset":"alpha","required":true}]',
+    },
+    { key: 'separator', label: '分隔符', inList: false },
+    { key: 'sourceCodePrefix', label: '來源碼前綴', inList: false },
+    { key: 'examplePartCode', label: '範例料號', inList: false },
+  ],
+};
+
+// ── 公告 ────────────────────────────────────────────────
+export const BULLETIN_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/bulletins',
+  category: '系統設定',
+  title: '公告主檔',
+  entityNoun: '公告',
+  errorCodePrefix: 'nxui_base_bulletin',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'title', label: '標題', required: true, minWidthClass: 'min-w-[200px]' },
+    { key: 'content', label: '內容', type: 'textarea', inList: false },
+    {
+      key: 'importance', label: '重要性', type: 'select', minWidthClass: 'min-w-[100px]',
+      options: [{ value: 'normal', label: '一般' }, { value: 'important', label: '重要' }, { value: 'urgent', label: '緊急' }],
+    },
+    { key: 'isPinned', label: '置頂', type: 'toggle', inList: false },
+    { key: 'expiredAt', label: '到期日(ISO)', inList: false, placeholder: '2026-12-31T00:00:00Z' },
+  ],
+};
+

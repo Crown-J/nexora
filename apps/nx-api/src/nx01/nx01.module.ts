@@ -10,6 +10,8 @@ import { CarBrandController } from './car-brand/car-brand.controller';
 import { CarBrandService } from './car-brand/car-brand.service';
 import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
+import { LocationController } from './location/location.controller';
+import { LocationService } from './location/location.service';
 import { CustomerGradeController } from './customer-grade/customer-grade.controller';
 import { CustomerGradeService } from './customer-grade/customer-grade.service';
 import { DrivetrainController } from './drivetrain/drivetrain.controller';
@@ -78,6 +80,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartModelController,
     UserRoleController,
     UserWarehouseController,
+    LocationController,
   ],
   providers: [
     CurrencyService,
@@ -104,6 +107,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartModelService,
     UserRoleService,
     UserWarehouseService,
+    LocationService,
   ],
 })
 export class Nx01Module {}

@@ -17,7 +17,10 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import type { PagedResult } from '@/features/base/api/types';
 
-export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref';
+export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref' | 'textarea' | 'json';
+
+/** 送後端的 body（json 欄位值為物件 / 陣列，故放寬型別） */
+export type EntityBody = Record<string, unknown>;
 
 export type SelectOption = { value: string | number; label: string };
 
@@ -134,7 +137,7 @@ export async function fetchEntityList(
   };
 }
 
-export async function createEntity(cfg: EntityMasterConfig, body: EntityDraft): Promise<EntityRow> {
+export async function createEntity(cfg: EntityMasterConfig, body: EntityBody): Promise<EntityRow> {
   const res = await apiFetch(cfg.basePath, { method: 'POST', body: JSON.stringify(body) });
   await assertOk(res, `${cfg.errorCodePrefix ?? 'nxui_entity'}_create`);
   return res.json() as Promise<EntityRow>;
@@ -143,7 +146,7 @@ export async function createEntity(cfg: EntityMasterConfig, body: EntityDraft): 
 export async function updateEntity(
   cfg: EntityMasterConfig,
   id: string,
-  body: EntityDraft,
+  body: EntityBody,
 ): Promise<EntityRow> {
   const res = await apiFetch(`${cfg.basePath}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
@@ -216,7 +219,7 @@ export function rowToDraft(cfg: EntityMasterConfig, row: EntityRow): EntityDraft
   for (const f of cfg.fields) {
     const v = row[f.key];
     if (f.type === 'toggle') draft[f.key] = Boolean(v);
-    else if (f.type === 'number') draft[f.key] = v == null ? '' : String(v);
+    else if (f.type === 'json') draft[f.key] = v == null ? '' : JSON.stringify(v, null, 2);
     else draft[f.key] = v == null ? '' : String(v);
   }
   return draft;
@@ -233,13 +236,27 @@ export function emptyDraft(cfg: EntityMasterConfig): EntityDraft {
   return draft;
 }
 
-/** draft → 送出 body（uppercase / number 轉換、空 optional 不送以免後端驗證打空值） */
-export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): EntityDraft {
-  const body: EntityDraft = {};
+/** draft → 送出 body（uppercase / number / json 轉換、空 optional 不送以免後端驗證打空值） */
+export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): EntityBody {
+  const body: EntityBody = {};
   for (const f of cfg.fields) {
     let v = draft[f.key];
     if (f.type === 'toggle') {
       body[f.key] = Boolean(v);
+      continue;
+    }
+    if (f.type === 'json') {
+      const raw = String(v ?? '').trim();
+      if (!raw) {
+        if (f.required) body[f.key] = [];
+        continue;
+      }
+      try {
+        body[f.key] = JSON.parse(raw);
+      } catch {
+        // 解析失敗：原樣送字串、交後端驗證回報（前端不擅自吞錯）
+        body[f.key] = raw;
+      }
       continue;
     }
     if (typeof v === 'string') {
@@ -254,7 +271,7 @@ export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): Entity
       else if (f.required) body[f.key] = 0;
       continue;
     }
-    body[f.key] = v as string | number | boolean;
+    body[f.key] = v;
   }
   return body;
 }
