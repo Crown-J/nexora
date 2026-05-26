@@ -8,6 +8,7 @@
 
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { isSysadmin, SYSADMIN_ROLE_CODE } from '../../shared/nx01/is-sysadmin';
 
 import type {
   AssignUserRoleDto,
@@ -127,6 +129,17 @@ export class UserRoleService {
       select: { id: true },
     });
     if (existing) throw new ConflictException('User already has this role');
+
+    // SYSADMIN 鎖定：一般用戶不可指派系統管理員職務（伊諾瓦後台角色）
+    if (!isSysadmin(user)) {
+      const role = await this.prisma.nx01Role.findFirst({
+        where: { id: dto.roleId, tenantId },
+        select: { code: true },
+      });
+      if (String(role?.code ?? '').trim().toUpperCase() === SYSADMIN_ROLE_CODE) {
+        throw new ForbiddenException('Cannot assign system admin role');
+      }
+    }
 
     const created = await this.prisma.nx01UserRole.create({
       data: {

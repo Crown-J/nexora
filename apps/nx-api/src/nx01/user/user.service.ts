@@ -5,6 +5,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { isSysadmin, SYSADMIN_ROLE_CODE } from '../../shared/nx01/is-sysadmin';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateUserDto, ListUserQueryDto, UpdateUserDto } from './dto/user.dto';
@@ -191,6 +192,18 @@ export class UserService {
     const pageSize = q.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
     const where = this.whereList(tenantId, q);
+    // SYSADMIN 鎖定：一般用戶看不到擁有系統管理員職務的使用者（伊諾瓦後台帳號）
+    if (!isSysadmin(user)) {
+      where.NOT = {
+        rev_Nx01UserRole_userId: {
+          some: {
+            isActive: true,
+            revokedAt: null,
+            role: { code: { equals: SYSADMIN_ROLE_CODE, mode: 'insensitive' } },
+          },
+        },
+      };
+    }
     const [total, rows] = await Promise.all([
       this.prisma.nx01User.count({ where }),
       this.prisma.nx01User.findMany({
@@ -204,10 +217,28 @@ export class UserService {
     return { page, pageSize, total, rows: rows.map((r) => this.toPublicUserFromListRow(r)) };
   }
 
+  /** target 使用者是否擁有 active SYSADMIN 職務（SYSADMIN 鎖定用） */
+  private async hasSysadminRole(tenantId: string, userId: string): Promise<boolean> {
+    const c = await this.prisma.nx01UserRole.count({
+      where: {
+        tenantId,
+        userId,
+        isActive: true,
+        revokedAt: null,
+        role: { code: { equals: SYSADMIN_ROLE_CODE, mode: 'insensitive' } },
+      },
+    });
+    return c > 0;
+  }
+
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
     const row = await this.prisma.nx01User.findFirst({ where: { id, tenantId }, select: LIST_SELECT });
     if (!row) throw new NotFoundException('User not found');
+    // SYSADMIN 鎖定：一般用戶看不到系統管理員帳號 → 裝作不存在
+    if (!isSysadmin(user) && (await this.hasSysadminRole(tenantId, id))) {
+      throw new NotFoundException('User not found');
+    }
     return this.toPublicUserFromListRow(row);
   }
 
@@ -284,6 +315,10 @@ export class UserService {
     if (id === user.sub) throw new ConflictException('Cannot deactivate self');
     const existing = await this.prisma.nx01User.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('User not found');
+    // SYSADMIN 鎖定：系統管理員帳號無法被一般用戶停用 → 裝作不存在
+    if (!isSysadmin(user) && (await this.hasSysadminRole(tenantId, id))) {
+      throw new NotFoundException('User not found');
+    }
     const row = await this.prisma.nx01User.update({
       where: { id },
       data: { isActive: false, updatedBy: user.sub },
