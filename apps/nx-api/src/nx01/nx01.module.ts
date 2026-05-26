@@ -42,6 +42,8 @@ import { TransmissionController } from './transmission/transmission.controller';
 import { TransmissionService } from './transmission/transmission.service';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
+import { UserRoleController } from './user-role/user-role.controller';
+import { UserRoleService } from './user-role/user-role.service';
 import { WarehouseController } from './warehouse/warehouse.controller';
 import { WarehouseService } from './warehouse/warehouse.service';
 import { WarehouseTypeController } from './warehouse-type/warehouse-type.controller';
@@ -72,6 +74,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartRelationController,
     PartVersionController,
     PartModelController,
+    UserRoleController,
   ],
   providers: [
     CurrencyService,
@@ -96,6 +99,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartRelationService,
     PartVersionService,
     PartModelService,
+    UserRoleService,
   ],
 })
 export class Nx01Module {}

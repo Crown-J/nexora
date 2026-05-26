@@ -32,8 +32,8 @@ export function getNx00SideMenu(): SideMenuGroup[] {
         { key: 'base.home',           label: '主檔總覽',         href: '/dashboard/base' },
         { key: 'base.users',          label: '使用者',           href: '/dashboard/base/users' },
         { key: 'base.roles',          label: '職務主檔',         href: '/dashboard/base/roles' },
-        { key: 'base.user-role',      label: '使用者職務設定',   href: '/dashboard/base/user-role' },
-        { key: 'base.user-warehouse', label: '使用者據點設定',   href: '/dashboard/base/user-warehouse' },
+        // 軌 A commit A1：user-role / user-warehouse 從 sub-nav 降階為「批次工具」、
+        // 業務員 daily 改於 USER 詳細頁管理；PRO 用戶仍可從主檔中心 hub 卡片入。
         { key: 'base.role-view',      label: '職務權限設定',     href: '/dashboard/base/role-view' },
         { key: 'base.bulletins',      label: '公告主檔',         href: '/dashboard/base/bulletins' },
       ],

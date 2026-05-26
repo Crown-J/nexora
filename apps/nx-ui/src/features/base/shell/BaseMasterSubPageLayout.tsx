@@ -87,7 +87,7 @@ export function BaseMasterSubPageLayout({ title, description, children }: BaseMa
         />
       }
     >
-      <div className="w-full min-w-0 space-y-6">
+      <div className="w-full min-w-0 space-y-6 pb-16 lg:pb-0">
         <BaseMasterPageHeader title={title} description={description} />
 
         {children}

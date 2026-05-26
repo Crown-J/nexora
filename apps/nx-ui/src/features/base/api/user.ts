@@ -71,6 +71,9 @@ export async function getUser(id: string): Promise<UserDto> {
   return res.json() as Promise<UserDto>;
 }
 
+/** 後端 CreateUserDto 與 UpdateUserDto 用 userAccount / userName 命名；
+ *  client 對外保留 username / displayName（list/get response 用法），內部 transform。
+ *  email / phone 為 null 或空字串時不送（後端 DTO 不接受 null）。 */
 export async function createUser(body: {
   username: string;
   password: string;
@@ -79,9 +82,17 @@ export async function createUser(body: {
   phone?: string | null;
   isActive?: boolean;
 }): Promise<UserDto> {
+  const apiBody: Record<string, unknown> = {
+    userAccount: body.username,
+    password: body.password,
+    userName: body.displayName,
+  };
+  if (body.email != null && body.email !== '') apiBody.email = body.email;
+  if (body.phone != null && body.phone !== '') apiBody.phone = body.phone;
+  if (body.isActive !== undefined) apiBody.isActive = body.isActive;
   const res = await apiFetch(BASE, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(apiBody),
   });
   await assertOk(res, 'nxui_base_user_create');
   return res.json() as Promise<UserDto>;
@@ -97,9 +108,15 @@ export async function updateUser(
     isActive?: boolean;
   },
 ): Promise<UserDto> {
+  const apiBody: Record<string, unknown> = {};
+  if (body.password !== undefined) apiBody.password = body.password;
+  if (body.displayName !== undefined) apiBody.userName = body.displayName;
+  if (body.email != null) apiBody.email = body.email;
+  if (body.phone != null) apiBody.phone = body.phone;
+  if (body.isActive !== undefined) apiBody.isActive = body.isActive;
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: JSON.stringify(body),
+    body: JSON.stringify(apiBody),
   });
   await assertOk(res, 'nxui_base_user_update');
   return res.json() as Promise<UserDto>;

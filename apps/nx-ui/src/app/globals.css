@@ -105,9 +105,10 @@
   --sidebar-accent-foreground: oklch(0.95 0.006 258);
   --sidebar-border: oklch(0.42 0.014 258);
   --sidebar-ring: oklch(0.78 0.14 75);
+  /* 業界改革 #22 v1.2：scrollbar amber 主題色（dark default 一致範式）*/
   --nx-scroll-track: oklch(0.22 0.012 258);
-  --nx-scroll-thumb: oklch(0.44 0.014 258);
-  --nx-scroll-thumb-hover: oklch(0.52 0.016 258);
+  --nx-scroll-thumb: rgba(232, 160, 32, 0.4);
+  --nx-scroll-thumb-hover: rgba(232, 160, 32, 0.7);
   --nx-exp-gradient: linear-gradient(90deg, oklch(0.68 0.12 75), oklch(0.82 0.14 75));
   --nx-glow-primary: 0 0 12px rgba(244, 180, 0, 0.55), 0 0 24px rgba(244, 180, 0, 0.28);
 }
@@ -146,9 +147,10 @@ html:not(.light)[data-nx-palette='steel'] {
   --sidebar-accent-foreground: #d6dae3;
   --sidebar-border: #333333;
   --sidebar-ring: #ffb800;
+  /* 業界改革 #22 v1.2：steel 主題 scrollbar 用 steel amber #ffb800 弱透明 */
   --nx-scroll-track: #141414;
-  --nx-scroll-thumb: #5c5c5c;
-  --nx-scroll-thumb-hover: #757575;
+  --nx-scroll-thumb: rgba(255, 184, 0, 0.4);
+  --nx-scroll-thumb-hover: rgba(255, 184, 0, 0.7);
   --nx-exp-gradient: linear-gradient(90deg, #cc8400 0%, #ffb800 52%, #ffd54a 100%);
   --nx-glow-primary: 0 0 14px rgba(255, 184, 0, 0.48), 0 0 30px rgba(255, 184, 0, 0.2);
   --color-primary-light: #ffd54a;

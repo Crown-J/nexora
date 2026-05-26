@@ -12,6 +12,7 @@ import {
   DollarSign,
   BarChart3,
   ChevronRight,
+  ArrowLeft,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -28,6 +29,8 @@ import {
 import { cn } from '@/lib/utils';
 import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
 import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
+import { NexoraBottomDock, type DockItem } from '@/shared/ui/NexoraBottomDock';
+import { getMasterHubSections } from '@/features/base/config/master-cards';
 
 export type DockNavItem = {
   icon: LucideIcon;
@@ -310,16 +313,43 @@ export function PlanetOrbTrigger({ className }: { className?: string }) {
  *
  * 關閉選單後會對 trigger `blur()`，避免 `:focus` 殘留看起來仍「發亮」。
  */
+type MenuLevel = 'root' | 'base';
+
 export function NavPlanetMenu() {
   const pathname = usePathname() ?? '';
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // 業界改革 #26 v1：contextual menu state（root = 6 模組、base = 25 主檔 + 返回）
+  const [menuLevel, setMenuLevel] = useState<MenuLevel>('root');
+  const menuLevelRef = useRef<MenuLevel>('root');
   const openRef = useRef(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  // 25 主檔 list（業界改革 #22 v1.0 範式：master hub 卡片 metadata）
+  const allBaseCards = useMemo(
+    () => getMasterHubSections().flatMap((s) => s.cards),
+    [],
+  );
 
   useEffect(() => {
     openRef.current = open;
   }, [open]);
+
+  useEffect(() => {
+    menuLevelRef.current = menuLevel;
+  }, [menuLevel]);
+
+  // 業界改革 #26 v1：開啟時依 pathname 決定 initial level
+  // - 在主檔頁面（/dashboard/base 或 /dashboard/base/*）→ base level（直接顯示 25 主檔）
+  // - 其他頁面 → root level（6 模組）
+  // 關閉時 reset root（下次他頁開啟回模組層）
+  useEffect(() => {
+    if (!open) {
+      setMenuLevel('root');
+      return;
+    }
+    const isBaseContext = pathname === '/dashboard/base' || pathname.startsWith('/dashboard/base/');
+    setMenuLevel(isBaseContext ? 'base' : 'root');
+  }, [open, pathname]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -350,6 +380,23 @@ export function NavPlanetMenu() {
       }
 
       const letter = e.key.length === 1 ? e.key.toLowerCase() : '';
+      // 業界改革 #26：base level 時按 'b' 返回 root；root level 按 'b' 展開 base
+      if (letter === 'b' && menuLevelRef.current === 'root') {
+        e.preventDefault();
+        setMenuLevel('base');
+        return;
+      }
+      if (letter === 'b' && menuLevelRef.current === 'base') {
+        e.preventDefault();
+        setMenuLevel('root');
+        return;
+      }
+      // 業界改革 #26 v1：'z' 鍵在 base level 返回 root（Crown 拍板 contextual 返回鍵）
+      if (letter === 'z' && menuLevelRef.current === 'base') {
+        e.preventDefault();
+        setMenuLevel('root');
+        return;
+      }
       const href = letter ? DOCK_LETTER_TO_HREF[letter] : undefined;
       if (href) {
         e.preventDefault();
@@ -359,6 +406,22 @@ export function NavPlanetMenu() {
       }
 
       if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
+
+      // 業界改革 #26 v1：方向鍵 / Enter / Home / End / Space 交給 Radix DropdownMenu 處理
+      // （focus 移動 / activate item / typeahead）、不關閉 menu
+      // Root cause 修：之前 fallthrough 到 setOpen(false)、導致 ↑↓ 按下 menu 被關
+      if (
+        e.key === 'ArrowUp' ||
+        e.key === 'ArrowDown' ||
+        e.key === 'ArrowLeft' ||
+        e.key === 'ArrowRight' ||
+        e.key === 'Enter' ||
+        e.key === 'Home' ||
+        e.key === 'End' ||
+        e.key === ' '
+      ) {
+        return;
+      }
 
       e.preventDefault();
       setOpen(false);
@@ -412,44 +475,121 @@ export function NavPlanetMenu() {
           'w-[min(calc(100vw-2rem),20rem)] border-border/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-xl',
         )}
       >
-        <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-normal tracking-widest text-muted-foreground">
-          模組導覽
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-border/60" />
-        <div className="grid max-h-[min(70vh,24rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
-          <DockGridLink item={HOME_DOCK_ITEMS[0]!} hint={DOCK_ITEM_ALT_HINT[0]!} pathname={pathname} />
-          <DockGridLink item={HOME_DOCK_ITEMS[1]!} hint={DOCK_ITEM_ALT_HINT[1]!} pathname={pathname} />
-          {/* 採購：桌面展開子選單；手機直接跳模組首頁 */}
-          <div className="contents lg:hidden">
-            <DockGridLink item={HOME_DOCK_ITEMS[2]!} hint={DOCK_ITEM_ALT_HINT[2]!} pathname={pathname} />
-          </div>
-          <div className="hidden lg:contents">
-            <PurchaseCenterSub pathname={pathname} />
-          </div>
-          {/* 銷貨：桌面展開子選單；手機直接跳模組首頁 */}
-          <div className="contents lg:hidden">
-            <DockGridLink item={HOME_DOCK_ITEMS[3]!} hint={DOCK_ITEM_ALT_HINT[3]!} pathname={pathname} />
-          </div>
-          <div className="hidden lg:contents">
-            <SaleCenterSub pathname={pathname} />
-          </div>
-          {/* 庫存：桌面展開子選單；手機直接跳模組首頁 */}
-          <div className="contents lg:hidden">
-            <DockGridLink item={HOME_DOCK_ITEMS[4]!} hint={DOCK_ITEM_ALT_HINT[4]!} pathname={pathname} />
-          </div>
-          <div className="hidden lg:contents">
-            <InventoryCenterSub pathname={pathname} />
-          </div>
-          <DockGridLink item={HOME_DOCK_ITEMS[5]!} hint={DOCK_ITEM_ALT_HINT[5]!} pathname={pathname} />
-          <DockGridLink item={HOME_DOCK_ITEMS[6]!} hint={DOCK_ITEM_ALT_HINT[6]!} pathname={pathname} />
-        </div>
-        <DropdownMenuSeparator className="bg-border/60" />
-        <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
-          <span className="hidden lg:inline">
-            Alt+X 開關選單 · 單鍵 H B P S W M R · 採購／銷貨／庫存可展開子選單
-          </span>
-          <span className="lg:hidden">Alt+X 開關選單 · 單鍵 H B P S W M R</span>
-        </p>
+        {menuLevel === 'root' ? (
+          <>
+            <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-normal tracking-widest text-muted-foreground">
+              模組導覽
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border/60" />
+            <div className="grid max-h-[min(70vh,24rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
+              {/* 業界改革 #26 v1：「主檔」改 contextual trigger（展開 25 主檔 sub menu）*/}
+              <DropdownMenuItem
+                className={dockItemFocusCls}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  setMenuLevel('base');
+                }}
+              >
+                <button
+                  type="button"
+                  className="group/dockrow flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm text-foreground transition-colors data-[highlighted]:text-primary"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-secondary/50 text-foreground group-data-[highlighted]/dockrow:border-primary/45 group-data-[highlighted]/dockrow:bg-primary/10 group-data-[highlighted]/dockrow:text-primary">
+                    <Layers3 className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-left font-medium">主檔</span>
+                  <ChevronRight className="size-4 shrink-0 opacity-60" aria-hidden />
+                  <kbd className="hidden shrink-0 rounded border border-primary/25 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary/80 sm:inline-block">
+                    B
+                  </kbd>
+                </button>
+              </DropdownMenuItem>
+              {/* 採購／銷貨／庫存：桌面 sub-menu / 手機直接跳（既有範式、後續軌 V2 統一 contextual）*/}
+              <div className="contents lg:hidden">
+                <DockGridLink item={HOME_DOCK_ITEMS[2]!} hint={DOCK_ITEM_ALT_HINT[2]!} pathname={pathname} />
+              </div>
+              <div className="hidden lg:contents">
+                <PurchaseCenterSub pathname={pathname} />
+              </div>
+              <div className="contents lg:hidden">
+                <DockGridLink item={HOME_DOCK_ITEMS[3]!} hint={DOCK_ITEM_ALT_HINT[3]!} pathname={pathname} />
+              </div>
+              <div className="hidden lg:contents">
+                <SaleCenterSub pathname={pathname} />
+              </div>
+              <div className="contents lg:hidden">
+                <DockGridLink item={HOME_DOCK_ITEMS[4]!} hint={DOCK_ITEM_ALT_HINT[4]!} pathname={pathname} />
+              </div>
+              <div className="hidden lg:contents">
+                <InventoryCenterSub pathname={pathname} />
+              </div>
+              <DockGridLink item={HOME_DOCK_ITEMS[5]!} hint={DOCK_ITEM_ALT_HINT[5]!} pathname={pathname} />
+              <DockGridLink item={HOME_DOCK_ITEMS[6]!} hint={DOCK_ITEM_ALT_HINT[6]!} pathname={pathname} />
+            </div>
+            <DropdownMenuSeparator className="bg-border/60" />
+            <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+              <span className="hidden lg:inline">
+                Alt+X 開關 · 點 NEXORA logo 回首頁 · B 主檔／P 採購／S 銷貨／W 庫存／M 財務／R 報表
+              </span>
+              <span className="lg:hidden">Alt+X 開關 · 點 NEXORA logo 回首頁</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem
+              className={cn(dockItemFocusCls, 'mb-0.5')}
+              onSelect={(e) => {
+                e.preventDefault();
+                setMenuLevel('root');
+              }}
+            >
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="size-3.5" aria-hidden />
+                <span>返回模組</span>
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-normal tracking-widest text-muted-foreground">
+              主檔導覽（25 項）
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border/60" />
+            <div className="grid max-h-[min(70vh,30rem)] grid-cols-1 gap-0.5 overflow-y-auto py-1 sm:grid-cols-2">
+              {allBaseCards.map((card) => {
+                const CardIcon = card.icon;
+                const active = isDockActive(pathname, card.href);
+                return (
+                  <DropdownMenuItem key={card.id} asChild className={dockItemFocusCls}>
+                    <Link
+                      href={card.href}
+                      className={cn(
+                        'group/baserow flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors',
+                        'text-foreground data-[highlighted]:text-primary',
+                        active && 'bg-primary/15 text-primary',
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50 text-foreground',
+                          'group-data-[highlighted]/baserow:border-primary/45 group-data-[highlighted]/baserow:bg-primary/10 group-data-[highlighted]/baserow:text-primary',
+                          active && 'border-primary/40 bg-primary/10 text-primary',
+                        )}
+                      >
+                        <CardIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-medium">{card.title}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            </div>
+            <DropdownMenuSeparator className="bg-border/60" />
+            <p className="px-2 pb-1 pt-0.5 text-[10px] leading-relaxed text-muted-foreground">
+              ↑↓ 選擇 · Enter 進入 · Z / B / Esc 返回模組
+            </p>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -521,45 +661,15 @@ export function MobileDock() {
   }
 
   if (isDashboardHome && quickShortcuts) {
-    return (
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 flex items-stretch justify-around gap-1 border-t border-sidebar-border bg-sidebar/95 p-2 backdrop-blur-md lg:hidden"
-        aria-label="首頁常用功能"
-      >
-        {quickShortcuts.map((s) => {
-          const Icon = s.Icon;
-          const active = isShortcutDockActive(pathname, s.href);
-          return (
-            <button
-              key={s.key}
-              type="button"
-              title={s.label}
-              aria-label={s.label}
-              onClick={() => router.push(s.href)}
-              className={cn(
-                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border border-border/50 p-1.5',
-                'bg-gradient-to-b from-muted/45 to-muted/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
-                'transition-colors active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                active ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <span
-                className={cn(
-                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50',
-                  active ? 'border-primary/40 bg-primary/10 text-primary' : 'text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden />
-              </span>
-              <span className="line-clamp-2 max-w-full text-center text-[9px] font-medium leading-tight text-foreground">
-                {s.label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    );
+    // 業界改革 #22 v1.2 + #17：用 NexoraBottomDock 統一範式（6 slot、icon-only、超過 swipe）
+    const items: DockItem[] = quickShortcuts.map((s) => ({
+      id: s.key,
+      icon: s.Icon,
+      label: s.label,
+      onClick: () => router.push(s.href),
+      active: isShortcutDockActive(pathname, s.href),
+    }));
+    return <NexoraBottomDock items={items} ariaLabel="首頁常用功能" />;
   }
 
   // R7：非首頁模組 DOCK 視覺統一首頁 iOS 風格（圓角按鈕 + icon box + gradient）

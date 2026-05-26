@@ -149,25 +149,32 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/roles',
   },
+  // 軌 A commit A1（業界改革 #22 v1.2 累積調整）：
+  // user-role / user-warehouse 兩主檔卡片降階為「批次工具」入口。
+  // - LITE / PLUS 用戶於 USER 詳細頁直接管理擔任職務 / 隸屬倉庫（forward 視角）
+  // - PRO 用戶保留 reverse 範式（依職務 / 倉庫批次匯入移除成員）
+  // - sidebar menu 同步移除（menu.nx00.ts），仍可由本卡片或 URL 進入
   {
     id: 'user-role',
     section: 'account',
     title: '使用者職務設定',
-    description: '依職務匯入或移除隸屬使用者',
+    description: '依職務批次匯入或移除隸屬使用者（reverse 視角，PRO 進階批次工具）',
     icon: UserCog,
     statLabel: '關聯筆數',
     statValue: '—',
     href: '/dashboard/base/user-role',
+    minPlan: 'PRO',
   },
   {
     id: 'user-warehouse',
     section: 'account',
     title: '使用者據點設定',
-    description: '依倉庫據點匯入或移除隸屬使用者',
+    description: '依倉庫據點批次匯入或移除隸屬使用者（reverse 視角，PRO 進階批次工具）',
     icon: MapPin,
     statLabel: '關聯筆數',
     statValue: '—',
     href: '/dashboard/base/user-warehouse',
+    minPlan: 'PRO',
   },
   {
     id: 'role-view',

@@ -43,7 +43,8 @@ export function HomeLandingChrome({ topBar, children, fillViewport }: HomeLandin
           {topBar}
           <main
             className={cn(
-              'px-4 pt-20 lg:px-7 lg:pt-20',
+              // 業界改革 #22 v1.2 + Crown 拍板「表格滿版、邊距縮小一半」：px-4 lg:px-7 → px-2 lg:px-3
+              'px-2 pt-20 lg:px-3 lg:pt-20',
               fillViewport
                 ? 'flex min-h-0 flex-1 flex-col overflow-hidden pb-24 lg:pb-6'
                 : 'pb-20 lg:pb-6',

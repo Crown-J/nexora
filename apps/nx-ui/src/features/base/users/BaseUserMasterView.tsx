@@ -10,6 +10,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -42,13 +43,16 @@ import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
-import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from './mock-data';
+import { formatAuditPersonLabel, formatAuditPersonTooltip, formatWarehouseLabel, type BaseUserRow } from './mock-data';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
 import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
 import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
+import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+// 業界改革 #24 v1 設計回退：Crown 真實業務測試後拍板「拿掉所有族群篩選、用關鍵字就好」
+// IncludeInactiveToggle / FilterBar / apply / types shared 元件保留供未來軌可能重用
 import {
   assignUserRole,
   listUserRoles,
@@ -82,8 +86,6 @@ type ListColKey =
 type SortKey = ListColKey;
 type SortDir = 'asc' | 'desc';
 
-type ActiveFilter = 'all' | 'active' | 'inactive';
-
 type EditableDraft = {
   username: string;
   displayName: string;
@@ -95,11 +97,36 @@ type EditableDraft = {
   primaryRoleId: string;
 };
 
-/** 伺服端分頁：須 ≤ nx-api Nx01ListQueryDto pageSize @Max(100) */
-const SERVER_PAGE_SIZE = 50;
+/** 每頁筆數選項（業界改革 #22 v1.2、Crown 拍板 10/20/50/100、預設 20） */
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
+type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
+const DEFAULT_PAGE_SIZE: PageSize = 20;
+
+/** 伺服端分頁上限：須 ≤ nx-api Nx01ListQueryDto pageSize @Max(100) */
+const SERVER_PAGE_SIZE_MAX = 100;
 
 const LIST_COL_PREF_VERSION = 7;
 const LIST_COL_PREF_KEY = 'base.user.listcols';
+
+/**
+ * 業界改革 #22 v1.2：表格欄位最小寬度（Excel-like 範式、解信箱／電話／隸屬倉庫塞不下）
+ * Crown 拍板：信箱 220 / 電話 140 / 倉庫 180、其餘對應內容長度給寬。
+ * 視窗過窄 → DataTableShell horizontal scroll（既有範式）。
+ */
+const COL_WIDTH_CLASS: Record<ListColKey, string> = {
+  username: 'min-w-[140px]',
+  displayName: 'min-w-[180px]',
+  jobTitle: 'min-w-[120px]',
+  email: 'min-w-[220px]',
+  phone: 'min-w-[140px]',
+  warehouseLabel: 'min-w-[180px]',
+  isActive: 'min-w-[90px]',
+  lastLoginAt: 'min-w-[160px]',
+  createdAt: 'min-w-[160px]',
+  createdByPerson: 'min-w-[180px]',
+  updatedAt: 'min-w-[160px]',
+  updatedByPerson: 'min-w-[180px]',
+};
 
 const ALL_LIST_COLS: ListColKey[] = [
   'username',
@@ -230,10 +257,24 @@ function dtoToRow(u: UserDto): BaseUserRow {
 }
 
 /** 僅在 Radix 下拉內容仍為 open 時讓選單独占鍵盤；關閉後不再擋，避免焦點留在觸發鈕時無法選列 */
+/**
+ * 業界改革 #26 v1：任何 Radix Popup（DropdownMenu / Dialog / Tooltip 等）開啟時、
+ * 表格全域 keyboard handler 應讓位、避免方向鍵 / Enter 雙處理（NavPlanetMenu 衝突修）。
+ *
+ * 涵蓋：
+ * - dropdown-menu-content / sub-content（NavPlanetMenu / pageSize selector 等）
+ * - role="menu" with data-state="open"（Radix 通用 portal）
+ * - role="dialog" with data-state="open"（Modal / Sheet）
+ */
 function isRadixJobFilterMenuOpen(): boolean {
   if (typeof document === 'undefined') return false;
   return !!document.querySelector(
-    '[data-slot="dropdown-menu-content"][data-state="open"], [data-slot="dropdown-menu-sub-content"][data-state="open"]',
+    [
+      '[data-slot="dropdown-menu-content"][data-state="open"]',
+      '[data-slot="dropdown-menu-sub-content"][data-state="open"]',
+      '[role="menu"][data-state="open"]',
+      '[role="dialog"][data-state="open"]',
+    ].join(', '),
   );
 }
 
@@ -252,8 +293,8 @@ export function BaseUserMasterView() {
   const [keyword, setKeyword] = useState('');
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   /** 空集合＝不按角色篩選；有值時後端以 nx01_user_role（已生效指派）OR 篩選 */
-  const [jobRoleIdPicks, setJobRoleIdPicks] = useState<Set<string>>(() => new Set());
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('active');
+  // 業界改革 #24 v1 設計回退：移除 jobRoleIdPicks / activeFilter / filterRules state
+  // backend listUsers 寫死 isActive=true（預設只列啟用、業務 daily 場景）、primaryRoleIds 不傳
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'username', dir: 'asc' });
   /** 列表鍵盤／單擊選取列（變色），開啟明細另用 selectedId */
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null);
@@ -263,6 +304,8 @@ export function BaseUserMasterView() {
   const defaultRoleId = roles[0]?.id ?? '';
   const [draft, setDraft] = useState<EditableDraft>(() => emptyDraft(''));
   const [listPage, setListPage] = useState(1);
+  // 業界改革 #22 v1.2：每頁筆數（10/20/50/100、預設 20、本地 state、後續軌可改為 localStorage 持久化）
+  const [pageSize, setPageSize] = useState<PageSize>(DEFAULT_PAGE_SIZE);
   const [listTotal, setListTotal] = useState(0);
   const [detailUser, setDetailUser] = useState<BaseUserRow | null>(null);
   const [loading, setLoading] = useState(true);
@@ -277,8 +320,27 @@ export function BaseUserMasterView() {
   const [sideBusy, setSideBusy] = useState(false);
   const [sideErr, setSideErr] = useState<string | null>(null);
   const colPickerWrapRef = useRef<HTMLDivElement>(null);
+  // 業界改革 #22 v1.2：欄位 panel 改 Portal 渲染（解 backdrop-filter ancestor 蓋住 + 位置怪）
+  const colPickerBtnRef = useRef<HTMLButtonElement>(null);
+  const colPickerPanelRef = useRef<HTMLDivElement>(null);
+  const [colPickerPos, setColPickerPos] = useState<{ top: number; right: number } | null>(null);
   const detailPanelRef = useRef<HTMLElement | null>(null);
   const listKeyboardRootRef = useRef<HTMLDivElement>(null);
+
+  // 開啟 panel 時計算位置（trigger button rect、portal 用 fixed top/right）
+  const openColPicker = useCallback(() => {
+    const btn = colPickerBtnRef.current;
+    if (!btn) {
+      setColPickerOpen(true);
+      return;
+    }
+    const rect = btn.getBoundingClientRect();
+    setColPickerPos({
+      top: rect.bottom + 8,
+      right: Math.max(8, window.innerWidth - rect.right),
+    });
+    setColPickerOpen(true);
+  }, []);
 
   const focusListKeyboardRegion = useCallback(() => {
     requestAnimationFrame(() => {
@@ -316,7 +378,7 @@ export function BaseUserMasterView() {
 
   useEffect(() => {
     setListPage(1);
-  }, [debouncedKeyword, activeFilter, jobRoleIdPicks]);
+  }, [debouncedKeyword]);
 
   useEffect(() => {
     let alive = true;
@@ -324,14 +386,11 @@ export function BaseUserMasterView() {
     setError(null);
     void (async () => {
       try {
-        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
-        const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
         const res = await listUsers({
           q: debouncedKeyword || undefined,
           page: listPage,
-          pageSize: SERVER_PAGE_SIZE,
-          isActive: isAct,
-          primaryRoleIds: pr,
+          pageSize,
+          isActive: true,
         });
         if (!alive) return;
         setListTotal(res.total);
@@ -348,7 +407,7 @@ export function BaseUserMasterView() {
     return () => {
       alive = false;
     };
-  }, [listPage, debouncedKeyword, activeFilter, jobRoleIdPicks]);
+  }, [listPage, debouncedKeyword, pageSize]);
 
   const refreshAll = useCallback(async () => {
     await reloadRoles();
@@ -356,14 +415,11 @@ export function BaseUserMasterView() {
     setLoading(true);
     setError(null);
     try {
-      const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
-      const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
       const res = await listUsers({
         q: debouncedKeyword || undefined,
         page: 1,
-        pageSize: SERVER_PAGE_SIZE,
-        isActive: isAct,
-        primaryRoleIds: pr,
+        pageSize,
+        isActive: true,
       });
       setListTotal(res.total);
       setUsers(res.items.map(dtoToRow));
@@ -374,13 +430,19 @@ export function BaseUserMasterView() {
     } finally {
       setLoading(false);
     }
-  }, [reloadRoles, debouncedKeyword, activeFilter, jobRoleIdPicks]);
+  }, [reloadRoles, debouncedKeyword, pageSize]);
 
   useEffect(() => {
     if (!colPickerOpen) return;
+    // panel 改 Portal 後在 document.body 末端、不在 colPickerWrapRef 內、
+    // outside-click 判斷需同時 check trigger button + panel ref
     const onDoc = (e: MouseEvent) => {
-      const el = colPickerWrapRef.current;
-      if (el && !el.contains(e.target as Node)) setColPickerOpen(false);
+      const target = e.target as Node;
+      const btn = colPickerBtnRef.current;
+      const panel = colPickerPanelRef.current;
+      if (btn && btn.contains(target)) return;
+      if (panel && panel.contains(target)) return;
+      setColPickerOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
@@ -391,11 +453,6 @@ export function BaseUserMasterView() {
       setDraft((d) => ({ ...d, primaryRoleId: roles[0]!.id }));
     }
   }, [roles, creating, draft.primaryRoleId]);
-
-  const roleFilterOptions = useMemo(
-    () => [...roles].sort((a, b) => a.name.localeCompare(b.name, 'zh-Hant')),
-    [roles],
-  );
 
   const toggleSort = (key: SortKey) => {
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
@@ -447,7 +504,7 @@ export function BaseUserMasterView() {
     return out;
   }, [users, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(listTotal / SERVER_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(listTotal / pageSize));
   const safeListPage = Math.max(1, Math.min(listPage, totalPages));
 
   useEffect(() => {
@@ -542,6 +599,10 @@ export function BaseUserMasterView() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // 業界改革 #26：任何 Radix popup（NavPlanetMenu / pageSize 等）開啟時、表格全域 handler 讓位
+      // 包含 Escape：讓 Radix 自己處理 close menu（commit 30 Z/B 鍵切 root/base 同樣）
+      if (isRadixJobFilterMenuOpen()) return;
+
       if (e.key === 'Escape') {
         if (colPickerOpen) {
           e.preventDefault();
@@ -563,7 +624,6 @@ export function BaseUserMasterView() {
 
       if (colPickerOpen || panelOpen) return;
       if (isMasterListKeyboardBlocked(e.target, detailPanelRef.current, panelOpen)) return;
-      if (isRadixJobFilterMenuOpen()) return;
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -822,14 +882,11 @@ export function BaseUserMasterView() {
           }
         }
         setListPage(1);
-        const isAct = activeFilter === 'all' ? undefined : activeFilter === 'active';
-        const pr = jobRoleIdPicks.size > 0 ? [...jobRoleIdPicks] : undefined;
         const refreshed = await listUsers({
           page: 1,
-          pageSize: SERVER_PAGE_SIZE,
+          pageSize,
           q: debouncedKeyword || undefined,
-          isActive: isAct,
-          primaryRoleIds: pr,
+          isActive: true,
         });
         setListTotal(refreshed.total);
         setUsers(refreshed.items.map(dtoToRow));
@@ -942,9 +999,22 @@ export function BaseUserMasterView() {
           </td>
         );
       case 'createdByPerson':
+        return (
+          <td
+            key={key}
+            title={formatAuditPersonTooltip(row.createdByUsername ?? null, row.createdByName)}
+            className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground"
+          >
+            {row[key]}
+          </td>
+        );
       case 'updatedByPerson':
         return (
-          <td key={key} className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground">
+          <td
+            key={key}
+            title={formatAuditPersonTooltip(row.updatedByUsername ?? null, row.updatedByName)}
+            className="max-w-[200px] truncate px-2 py-2.5 text-xs text-muted-foreground"
+          >
             {row[key]}
           </td>
         );
@@ -954,36 +1024,28 @@ export function BaseUserMasterView() {
   };
 
   const tableMinW = Math.max(360, 40 + orderedVisibleCols.length * 112 + 48);
-  const jobFilterSummary = useMemo(() => {
-    if (jobRoleIdPicks.size === 0) return '職務：全部';
-    if (jobRoleIdPicks.size === 1) {
-      const id = [...jobRoleIdPicks][0]!;
-      const name = roles.find((r) => r.id === id)?.name ?? id;
-      return `職務：${name}`;
-    }
-    return `職務：已選 ${jobRoleIdPicks.size} 項`;
-  }, [jobRoleIdPicks, roles]);
-
-  const activeFilterSummary =
-    activeFilter === 'all' ? '狀態：全部' : activeFilter === 'active' ? '狀態：啟用' : '狀態：停用';
+  // 業界改革 #24 v1 設計回退：jobFilterSummary / activeFilterSummary 已 dead、移除
 
   return (
-    <div className="relative flex flex-col gap-4">
-      <div className="flex min-h-0 min-w-0 flex-col gap-4">
+    <div className="relative flex flex-col gap-1">
+      <div className="flex min-h-0 min-w-0 flex-col gap-1">
         {error ? (
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
           </div>
         ) : null}
 
-        <section className="glass-card nx-glass-raised rounded-2xl border border-border/80 p-3 sm:p-4">
-          <div
-            className={cn(
-              'relative flex min-w-0 flex-wrap items-center gap-2',
-              colPickerOpen && 'z-[100]',
-            )}
-            ref={colPickerWrapRef}
-          >
+        {/* 業界改革 #26 v1：PageHeader + toolbar actions 同列（節省垂直空間、Crown 拍板）*/}
+        <BaseMasterPageHeader
+          title="使用者主檔"
+          actions={
+            <div
+              className={cn(
+                'relative flex min-w-0 flex-wrap items-center gap-2',
+                colPickerOpen && 'z-[100]',
+              )}
+              ref={colPickerWrapRef}
+            >
               <div
                 className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/20 p-0.5"
                 role="navigation"
@@ -1042,12 +1104,49 @@ export function BaseUserMasterView() {
                 </Button>
               </div>
 
+              {/* 業界改革 #22 v1.2：每頁筆數選擇器（10/20/50/100、預設 20、Crown 拍板） */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 shrink-0 gap-1 px-2.5 font-normal"
+                    aria-label="每頁顯示筆數"
+                    title="每頁顯示筆數"
+                  >
+                    <span className="text-xs tabular-nums">每頁 {pageSize} 筆</span>
+                    <ChevronDown className="size-3.5 shrink-0 opacity-60" aria-hidden />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-36">
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                    每頁顯示筆數
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      const next = Number(v) as PageSize;
+                      setPageSize(next);
+                      setListPage(1);
+                    }}
+                  >
+                    {PAGE_SIZE_OPTIONS.map((n) => (
+                      <DropdownMenuRadioItem key={n} value={String(n)} className="tabular-nums">
+                        每頁 {n} 筆
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button
+                ref={colPickerBtnRef}
                 type="button"
                 size="sm"
                 variant="outline"
                 className="gap-1 px-2"
-                onClick={() => setColPickerOpen((o) => !o)}
+                onClick={() => (colPickerOpen ? setColPickerOpen(false) : openColPicker())}
                 aria-expanded={colPickerOpen}
                 aria-label="列表欄位設定"
               >
@@ -1086,102 +1185,25 @@ export function BaseUserMasterView() {
                 className="h-9 min-w-[min(100%,10rem)] flex-1 basis-[min(100%,14rem)]"
               />
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 w-[min(100%,11rem)] shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-44 sm:w-auto sm:max-w-[14rem]"
-                    aria-label="依職務篩選（可複選）"
-                  >
-                    <span className="truncate">{jobFilterSummary}</span>
-                    <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="max-h-72 w-56 overflow-y-auto"
-                  onCloseAutoFocus={(e) => {
-                    e.preventDefault();
-                    focusListKeyboardRegion();
-                  }}
-                >
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">依職務篩選（可複選）</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    className="text-xs"
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setJobRoleIdPicks(new Set());
-                    }}
-                  >
-                    清除篩選（顯示全部）
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  {roleFilterOptions.length === 0 ? (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">尚無角色資料</div>
-                  ) : (
-                    roleFilterOptions.map((r) => (
-                      <DropdownMenuCheckboxItem
-                        key={r.id}
-                        checked={jobRoleIdPicks.has(r.id)}
-                        onCheckedChange={(checked) => {
-                          setJobRoleIdPicks((prev) => {
-                            const next = new Set(prev);
-                            if (checked) next.add(r.id);
-                            else next.delete(r.id);
-                            return next;
-                          });
-                        }}
-                        onSelect={(e) => e.preventDefault()}
-                        className="text-sm"
-                      >
-                        {r.name}
-                      </DropdownMenuCheckboxItem>
-                    ))
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-9 shrink-0 justify-between gap-1 px-2.5 font-normal sm:min-w-36"
-                    aria-label="依啟用狀態篩選"
-                  >
-                    <span className="truncate">{activeFilterSummary}</span>
-                    <ChevronDown className="size-4 shrink-0 opacity-60" aria-hidden />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-48"
-                  onCloseAutoFocus={(e) => {
-                    e.preventDefault();
-                    focusListKeyboardRegion();
-                  }}
-                >
-                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">啟用與停用</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={activeFilter}
-                    onValueChange={(v) => setActiveFilter(v as ActiveFilter)}
-                  >
-                    <DropdownMenuRadioItem value="all">全部</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="active">僅啟用</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="inactive">僅停用</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/*
+                業界改革 #24 v1 設計回退：Crown 真實業務測試揭露多 filter 體驗不佳
+                → 拿掉所有族群篩選（職務 dropdown / IncludeInactiveToggle / FilterBar）
+                → 只留 keyword search（business muscle memory：簡單即美）
+                shared 元件保留（IncludeInactiveToggle / FilterBar）供未來軌可能重用
+                預設只列啟用（保業務 daily 場景、避免雜訊）
+              */}
 
               <span className="w-full text-right text-xs text-muted-foreground tabular-nums sm:ms-auto sm:w-auto">
                 {loading ? '載入中…' : `共 ${listTotal} 筆 · 本頁 ${sortedRows.length} 筆`}
               </span>
 
-              {colPickerOpen ? (
-                <div className="absolute left-0 right-0 top-full z-[110] mt-2 w-full min-w-[min(100%,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg sm:left-auto sm:right-0 sm:w-[min(100vw-2rem,320px)]">
+              {colPickerOpen && colPickerPos && typeof document !== 'undefined'
+                ? createPortal(
+                <div
+                  ref={colPickerPanelRef}
+                  style={{ top: colPickerPos.top, right: colPickerPos.right }}
+                  className="fixed z-[200] w-[min(100vw-2rem,320px)] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg"
+                >
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold">顯示欄位（可拖曳排序）</span>
                     <Button
@@ -1257,13 +1279,16 @@ export function BaseUserMasterView() {
                       );
                     })}
                   </div>
-                </div>
-              ) : null}
-          </div>
-        </section>
+                </div>,
+                document.body,
+              )
+                : null}
+            </div>
+          }
+        />
 
-        <section className="glass-card nx-glass-raised relative z-0 flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/80 lg:min-h-[420px]">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+        <section className="glass-card relative z-0 flex min-h-[min(420px,70dvh)] min-w-0 flex-1 flex-col overflow-hidden rounded-md border border-border/60 lg:min-h-[420px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col p-1">
               <MasterListScrollRegion
                 scrollRef={listKeyboardRootRef}
                 ariaLabel="使用者列表，方向鍵選取列，Enter 開啟明細，雙擊開啟明細"
@@ -1284,10 +1309,16 @@ export function BaseUserMasterView() {
                           />
                         </th>
                         {orderedVisibleCols.map((key) => (
-                          <th key={key} className="px-2 py-2.5">
+                          <th
+                            key={key}
+                            className={cn(
+                              'whitespace-nowrap border-b border-border/30 px-2 py-2.5',
+                              COL_WIDTH_CLASS[key],
+                            )}
+                          >
                             <button
                               type="button"
-                              className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                              className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-foreground hover:text-primary"
                               onClick={() => toggleSort(key)}
                             >
                               {COL_DEF[key].label}
@@ -1335,6 +1366,24 @@ export function BaseUserMasterView() {
                           </tr>
                         );
                       })}
+                      {/*
+                        業界改革 #22 v1.2 + Crown 拍板：固定顯示 pageSize 列、不足補空白列。
+                        對齊 Excel / Google Sheets 範式：row 數穩定、視覺秩序一致。
+                        空白列無 hover / cursor / click handler、僅占位、aria-hidden 避免讀屏。
+                      */}
+                      {Array.from({ length: Math.max(0, pageSize - sortedRows.length) }).map((_, i) => (
+                        <tr
+                          key={`__placeholder_${i}`}
+                          aria-hidden
+                          className="nx-master-tbody-row pointer-events-none select-none"
+                        >
+                          <td className="px-2 py-2.5">&nbsp;</td>
+                          {orderedVisibleCols.map((k) => (
+                            <td key={k} className="px-2 py-2.5">&nbsp;</td>
+                          ))}
+                          <td className="px-1 py-2.5">&nbsp;</td>
+                        </tr>
+                      ))}
                     </tbody>
                 </table>
               </MasterListScrollRegion>
