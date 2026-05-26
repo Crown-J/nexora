@@ -63,6 +63,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       '/dashboard/base/warehouses',
       '/dashboard/base/customer-grade',
       '/dashboard/base/phonetic-dictionary',
+      '/dashboard/base/partners',
     ].includes(pathname);
   // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
   const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;

@@ -253,6 +253,61 @@ export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
   ],
 };
 
+export const PARTNER_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/partners',
+  category: '交易對象',
+  title: '往來對象主檔',
+  entityNoun: '往來對象',
+  errorCodePrefix: 'nxui_base_partner',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '對象代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
+    { key: 'name', label: '對象名稱', required: true, minWidthClass: 'min-w-[160px]' },
+    {
+      key: 'partnerType', label: '對象類型', type: 'select', required: true, minWidthClass: 'min-w-[120px]',
+      // 代碼語意由 Crown 2026-05-26 定案；CUST/SUP 為相容舊資料碼（新增不建議用）
+      options: [
+        { value: 'C', label: '客戶' },
+        { value: 'S', label: '供應商' },
+        { value: 'T', label: '運輸商' },
+        { value: 'V', label: '廠商' },
+        { value: 'B', label: '銀行' },
+        { value: 'BOTH', label: '客戶兼供應商' },
+        { value: 'CUST', label: '客戶（舊碼）' },
+        { value: 'SUP', label: '供應商（舊碼）' },
+      ],
+    },
+    { key: 'contactName', label: '聯絡人', minWidthClass: 'min-w-[100px]' },
+    { key: 'phone', label: '電話', minWidthClass: 'min-w-[110px]' },
+    { key: 'mobile', label: '手機', inList: false },
+    { key: 'email', label: 'Email', inList: false },
+    { key: 'taxId', label: '統一編號', inList: false },
+    { key: 'address', label: '地址', inList: false },
+    { key: 'customerGradeId', label: '客戶分級', type: 'ref', refBasePath: 'nx01/customer-grades', inList: false },
+    {
+      key: 'creditStatus', label: '信用狀態', type: 'select', inList: false,
+      options: [{ value: 'N', label: '正常' }, { value: 'W', label: '警示' }, { value: 'F', label: '凍結' }],
+    },
+    { key: 'creditLimit', label: '信用額度', type: 'number', inList: false },
+    {
+      key: 'paymentTermDomestic', label: '國內付款條件', type: 'select', inList: false,
+      options: [
+        { value: 'PREPAY', label: '預付' }, { value: 'NET30', label: '月結 30 天' },
+        { value: 'NET60', label: '月結 60 天' }, { value: 'NET90', label: '月結 90 天' },
+      ],
+    },
+    {
+      key: 'paymentTermImport', label: '進口付款條件', type: 'select', inList: false,
+      options: [
+        { value: 'TT', label: 'TT 電匯' }, { value: 'LC', label: 'LC 信用狀' },
+        { value: 'DP', label: 'DP 付款交單' }, { value: 'DA', label: 'DA 承兌交單' },
+      ],
+    },
+    { key: 'incoterm', label: '貿易條件', inList: false },
+    { key: 'remark', label: '備註', inList: false },
+  ],
+};
+
 // ── 系統設定 ────────────────────────────────────────────
 export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
   basePath: 'nx01/phonetic-dictionary',
