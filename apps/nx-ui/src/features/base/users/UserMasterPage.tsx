@@ -169,6 +169,23 @@ type EditFormState = {
   phone: string;
 };
 
+/** 軌 C C1：編輯模式 staged write 範式（業界 ERP staged batch + S 存檔一次 apply）
+ *
+ * - PickerConfirm / SetRolePrimary / RevokeRole 等動作改為「加入 staged ops」
+ * - 按 S 存檔 → handleSave 內依序 apply ops + updateUser 主檔欄位
+ * - 按 C 取消 → 清空 pending ops + editForm
+ *
+ * 對齊 Crown 揭露：「按 C 取消還是寫入了」重大 bug（軌 B 即時寫入問題修正）
+ */
+type RoleOp =
+  | { kind: 'add'; role: RoleDto }
+  | { kind: 'remove'; userRoleId: string }
+  | { kind: 'setPrimary'; userRoleId: string };
+
+type WarehouseOp =
+  | { kind: 'add'; warehouse: WarehouseDto }
+  | { kind: 'remove'; userWarehouseId: string };
+
 /** 將後端 UserDto 轉成內部 UserRow（仿 BaseUserMasterView dtoToRow 範式）
  * 注意：擔任職務 / 隸屬倉庫 由獨立 state 載入（selectedUserRoles / selectedUserWarehouses），
  * 不在 UserRow 內，避免列表每筆都打關聯 API。
@@ -436,6 +453,11 @@ function UserDetailView({
   onSetRolePrimary,
   onRevokeRole,
   onRevokeWarehouse,
+  stagedRoleAddCount,
+  stagedRoleRemoveCount,
+  stagedRolePrimaryChanged,
+  stagedWarehouseAddCount,
+  stagedWarehouseRemoveCount,
 }: {
   user: UserRow;
   editMode: boolean;
@@ -447,12 +469,18 @@ function UserDetailView({
   userWarehouses: UserWarehouseDto[];
   onAddRole: () => void;
   onAddWarehouse: () => void;
-  /** 設為主要職務（B3）*/
+  /** 設為主要職務（C1 staged）*/
   onSetRolePrimary: (role: UserRoleDto) => void;
-  /** 移除職務（B3 軟刪除 revoke）*/
+  /** 移除職務（C1 staged，toggle 模式：再點 = undo）*/
   onRevokeRole: (role: UserRoleDto) => void;
-  /** 移除倉庫據點（B5 軟刪除 revoke）*/
+  /** 移除倉庫據點（C1 staged，toggle 模式：再點 = undo）*/
   onRevokeWarehouse: (uw: UserWarehouseDto) => void;
+  /** Staged ops（C1：顯示變更計數，按 S 才會寫入）*/
+  stagedRoleAddCount: number;
+  stagedRoleRemoveCount: number;
+  stagedRolePrimaryChanged: boolean;
+  stagedWarehouseAddCount: number;
+  stagedWarehouseRemoveCount: number;
 }) {
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
@@ -513,6 +541,16 @@ function UserDetailView({
           subtitle="Assigned Roles"
           action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} /> : null}
         />
+        {editMode &&
+        (stagedRoleAddCount > 0 || stagedRoleRemoveCount > 0 || stagedRolePrimaryChanged) ? (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
+            <span>● 待存檔：</span>
+            {stagedRoleAddCount > 0 ? <span>新增 {stagedRoleAddCount}</span> : null}
+            {stagedRoleRemoveCount > 0 ? <span>· 移除 {stagedRoleRemoveCount}</span> : null}
+            {stagedRolePrimaryChanged ? <span>· 變更主要職務</span> : null}
+            <span className="ml-1 text-[#888892]">（按 S 才寫入）</span>
+          </div>
+        ) : null}
         <div className="mt-4">
           {userRoles.length > 0 ? (
             <DetailTable
@@ -556,6 +594,14 @@ function UserDetailView({
           subtitle="Assigned Warehouses"
           action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
         />
+        {editMode && (stagedWarehouseAddCount > 0 || stagedWarehouseRemoveCount > 0) ? (
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
+            <span>● 待存檔：</span>
+            {stagedWarehouseAddCount > 0 ? <span>新增 {stagedWarehouseAddCount}</span> : null}
+            {stagedWarehouseRemoveCount > 0 ? <span>· 移除 {stagedWarehouseRemoveCount}</span> : null}
+            <span className="ml-1 text-[#888892]">（按 S 才寫入）</span>
+          </div>
+        ) : null}
         <div className="mt-4">
           {userWarehouses.length > 0 ? (
             <DetailTable
@@ -633,6 +679,46 @@ export function UserMasterPage() {
   // ── 軌 B Picker 對話框（B2 / B4）─────────────────────────────
   const [rolePickerOpen, setRolePickerOpen] = useState(false);
   const [warehousePickerOpen, setWarehousePickerOpen] = useState(false);
+
+  // ── 軌 C C1：staged ops（編輯模式內的關聯變更暫存、按 S 才 apply）─
+  const [pendingRoleOps, setPendingRoleOps] = useState<RoleOp[]>([]);
+  const [pendingWarehouseOps, setPendingWarehouseOps] = useState<WarehouseOp[]>([]);
+
+  // staged ops 衍生：移除清單 / 主要切換目標
+  const stagedRemovedRoleIds = useMemo(
+    () => new Set(pendingRoleOps.filter((o): o is Extract<RoleOp, { kind: 'remove' }> => o.kind === 'remove').map((o) => o.userRoleId)),
+    [pendingRoleOps],
+  );
+  const stagedPrimaryRoleId = useMemo(() => {
+    const last = [...pendingRoleOps].reverse().find((o) => o.kind === 'setPrimary');
+    return last && last.kind === 'setPrimary' ? last.userRoleId : null;
+  }, [pendingRoleOps]);
+  const stagedAddedRoles = useMemo(
+    () => pendingRoleOps.filter((o): o is Extract<RoleOp, { kind: 'add' }> => o.kind === 'add').map((o) => o.role),
+    [pendingRoleOps],
+  );
+  const stagedRemovedWarehouseIds = useMemo(
+    () =>
+      new Set(
+        pendingWarehouseOps
+          .filter((o): o is Extract<WarehouseOp, { kind: 'remove' }> => o.kind === 'remove')
+          .map((o) => o.userWarehouseId),
+      ),
+    [pendingWarehouseOps],
+  );
+  const stagedAddedWarehouses = useMemo(
+    () =>
+      pendingWarehouseOps
+        .filter((o): o is Extract<WarehouseOp, { kind: 'add' }> => o.kind === 'add')
+        .map((o) => o.warehouse),
+    [pendingWarehouseOps],
+  );
+
+  // 切換 selected user / 退出編輯模式 → 清空 staged ops（避免跨 user / 跨次編輯 leak）
+  useEffect(() => {
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
+  }, [selectedId, mode]);
 
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
@@ -845,12 +931,25 @@ export function UserMasterPage() {
     }
     const target = selectedUser;
     const form = editForm;
+    const roleOps = pendingRoleOps;
+    const warehouseOps = pendingWarehouseOps;
+    const stagedSummary = [
+      roleOps.length > 0 ? `${roleOps.length} 個職務變更` : null,
+      warehouseOps.length > 0 ? `${warehouseOps.length} 個倉庫據點變更` : null,
+    ]
+      .filter(Boolean)
+      .join('、');
     setConfirmState({
       title: '確認存檔',
-      message: `將「${target.displayName}（${target.username}）」的變更寫入資料庫？`,
+      message: `將「${target.displayName}（${target.username}）」的變更寫入資料庫${stagedSummary ? `（含 ${stagedSummary}）` : ''}？`,
       confirmLabel: '存檔',
       onConfirm: () => {
         void (async () => {
+          let mainOk = false;
+          let roleSuccess = 0;
+          let roleFailed = 0;
+          let warehouseSuccess = 0;
+          let warehouseFailed = 0;
           try {
             await updateUser(target.id, {
               displayName: form.displayName.trim(),
@@ -858,23 +957,71 @@ export function UserMasterPage() {
               phone: form.phone.trim() || null,
               isActive: form.isActive,
             });
-            showToast(`已存檔 ${target.username}`, 'success');
-            setMode('browse');
-            setEditForm(null);
-            setReloadTick((t) => t + 1);
+            mainOk = true;
           } catch (e) {
-            const msg = e instanceof Error ? e.message : '存檔失敗';
-            showToast(`存檔失敗：${msg}`, 'danger');
+            const msg = e instanceof Error ? e.message : '主檔存檔失敗';
+            showToast(`主檔存檔失敗：${msg}`, 'danger');
+            return; // 主檔失敗就不繼續 apply 關聯
           }
+          // C1 staged：apply role ops
+          for (const op of roleOps) {
+            try {
+              if (op.kind === 'add') {
+                await assignUserRole({ userId: target.id, roleId: op.role.id });
+              } else if (op.kind === 'remove') {
+                await revokeUserRole(op.userRoleId);
+              } else if (op.kind === 'setPrimary') {
+                await setUserRolePrimary(op.userRoleId, true);
+              }
+              roleSuccess++;
+            } catch {
+              roleFailed++;
+            }
+          }
+          // C1 staged：apply warehouse ops
+          for (const op of warehouseOps) {
+            try {
+              if (op.kind === 'add') {
+                await assignUserWarehouse({ userId: target.id, warehouseId: op.warehouse.id });
+              } else if (op.kind === 'remove') {
+                await revokeUserWarehouse(op.userWarehouseId);
+              }
+              warehouseSuccess++;
+            } catch {
+              warehouseFailed++;
+            }
+          }
+          if (mainOk && roleFailed === 0 && warehouseFailed === 0) {
+            const parts = [
+              `主檔已存`,
+              roleSuccess > 0 ? `職務 ${roleSuccess} 變更` : null,
+              warehouseSuccess > 0 ? `倉庫 ${warehouseSuccess} 變更` : null,
+            ].filter(Boolean);
+            showToast(`已存檔 ${target.username}（${parts.join('、')}）`, 'success');
+          } else {
+            showToast(
+              `部分變更失敗：職務 ${roleSuccess}/${roleOps.length}、倉庫 ${warehouseSuccess}/${warehouseOps.length}`,
+              'danger',
+            );
+          }
+          setMode('browse');
+          setEditForm(null);
+          setPendingRoleOps([]);
+          setPendingWarehouseOps([]);
+          setReloadTick((t) => t + 1);
+          setRolesReloadTick((t) => t + 1);
+          setWarehousesReloadTick((t) => t + 1);
         })();
       },
     });
-  }, [editForm, selectedUser, showToast]);
+  }, [editForm, selectedUser, pendingRoleOps, pendingWarehouseOps, showToast]);
 
   const handleCancel = useCallback(() => {
     setMode('browse');
     setEditForm(null);
-    showToast('已取消編輯', 'info');
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
+    showToast('已取消編輯（含 staged 變更）', 'info');
   }, [showToast]);
 
   const handleNotification = useCallback(() => {
@@ -904,79 +1051,61 @@ export function UserMasterPage() {
     [],
   );
 
+  // C1 staged：picker confirm 不立即 assign，只加入 pendingRoleOps
   const handleRolePickerConfirm = useCallback(
     async (roles: RoleDto[]) => {
-      if (!selectedUser) return;
-      // 依序 assign（後端 unique constraint 兜底；前端 disabledIds 已過濾大部分重複）
-      for (const role of roles) {
-        await assignUserRole({ userId: selectedUser.id, roleId: role.id });
-      }
+      setPendingRoleOps((prev) => [...prev, ...roles.map((r): RoleOp => ({ kind: 'add', role: r }))]);
     },
-    [selectedUser],
+    [],
   );
 
   const handleRolePickerSuccess = useCallback(
     (count: number) => {
-      showToast(`已新增 ${count} 個職務`, 'success');
-      setRolesReloadTick((t) => t + 1);
+      showToast(`已加入 ${count} 個職務（待存檔，按 S 才會寫入）`, 'info');
     },
     [showToast],
   );
 
-  // B3：設為主要職務（單筆 row action）
+  // C1 staged：設為主要（toggle 模式：再點同一筆 = 取消 staged）
   const handleSetRolePrimary = useCallback(
     (role: UserRoleDto) => {
-      if (role.isPrimary) return;
-      setConfirmState({
-        title: '確認設為主要職務',
-        message: `將「${role.roleCode ?? '?'} · ${role.roleName ?? '?'}」設為主要職務？原主要職務將自動取消主要標記。`,
-        confirmLabel: '設為主要',
-        onConfirm: () => {
-          void (async () => {
-            try {
-              await setUserRolePrimary(role.id, true);
-              showToast(`已將「${role.roleName ?? role.roleCode ?? '職務'}」設為主要`, 'success');
-              setRolesReloadTick((t) => t + 1);
-            } catch (e) {
-              const msg = e instanceof Error ? e.message : '設定失敗';
-              showToast(`設定失敗：${msg}`, 'danger');
-            }
-          })();
-        },
+      setPendingRoleOps((prev) => {
+        const last = [...prev].reverse().find((o) => o.kind === 'setPrimary');
+        const lastPrimaryId = last && last.kind === 'setPrimary' ? last.userRoleId : null;
+        // 已 staged 同一個 → 取消（移除最後一個 setPrimary op）
+        if (lastPrimaryId === role.id) {
+          return prev.filter((o) => !(o.kind === 'setPrimary' && o.userRoleId === role.id));
+        }
+        // 否則 append 新 setPrimary op（覆蓋前一個的視覺效果）
+        return [...prev, { kind: 'setPrimary', userRoleId: role.id }];
       });
     },
-    [showToast],
+    [],
   );
 
-  // B3：移除職務（軟刪除 revoke）
+  // C1 staged：移除職務（toggle 模式：再點 = 取消 staged remove）
   const handleRevokeRole = useCallback(
     (role: UserRoleDto) => {
-      if (role.isPrimary) {
-        // 業務規則：主要職務不可直接移除（避免使用者無主要職務）
-        showToast('主要職務不可移除，請先將其他職務設為主要', 'danger');
-        return;
-      }
-      setConfirmState({
-        title: '確認移除職務',
-        message: `將「${role.roleCode ?? '?'} · ${role.roleName ?? '?'}」從此使用者移除？此為軟刪除，可於後台稽核還原。`,
-        confirmLabel: '移除',
-        variant: 'danger',
-        onConfirm: () => {
-          void (async () => {
-            try {
-              await revokeUserRole(role.id);
-              showToast(`已移除「${role.roleName ?? role.roleCode ?? '職務'}」`, 'danger');
-              setRolesReloadTick((t) => t + 1);
-            } catch (e) {
-              const msg = e instanceof Error ? e.message : '移除失敗';
-              showToast(`移除失敗：${msg}`, 'danger');
-            }
-          })();
-        },
+      setPendingRoleOps((prev) => {
+        const alreadyRemoved = prev.some((o) => o.kind === 'remove' && o.userRoleId === role.id);
+        if (alreadyRemoved) {
+          // toggle undo：移除 staged remove op
+          return prev.filter((o) => !(o.kind === 'remove' && o.userRoleId === role.id));
+        }
+        // 業務規則：主要職務不可移除（依 derived primary 計算）
+        const isCurrentlyPrimary = stagedPrimaryRoleId ? role.id === stagedPrimaryRoleId : role.isPrimary;
+        if (isCurrentlyPrimary) {
+          showToast('主要職務不可移除，請先將其他職務設為主要', 'danger');
+          return prev;
+        }
+        return [...prev, { kind: 'remove', userRoleId: role.id }];
       });
     },
-    [showToast],
+    [stagedPrimaryRoleId, showToast],
   );
+
+  // 註：handleUnstageAddedRole 未提供（簡化 UI 不渲染 staged-add row）。
+  // 使用者反悔請按 C 取消（清空所有 staged ops）；後續軌可加 staged-add row + 「取消新增」按鈕。
 
   const handleAddWarehouse = useCallback(() => {
     if (!selectedUser) {
@@ -997,20 +1126,20 @@ export function UserMasterPage() {
     [],
   );
 
+  // C1 staged：picker confirm 不立即 assign，只加入 pendingWarehouseOps
   const handleWarehousePickerConfirm = useCallback(
     async (warehouses: WarehouseDto[]) => {
-      if (!selectedUser) return;
-      for (const wh of warehouses) {
-        await assignUserWarehouse({ userId: selectedUser.id, warehouseId: wh.id });
-      }
+      setPendingWarehouseOps((prev) => [
+        ...prev,
+        ...warehouses.map((w): WarehouseOp => ({ kind: 'add', warehouse: w })),
+      ]);
     },
-    [selectedUser],
+    [],
   );
 
   const handleWarehousePickerSuccess = useCallback(
     (count: number) => {
-      showToast(`已新增 ${count} 個倉庫據點`, 'success');
-      setWarehousesReloadTick((t) => t + 1);
+      showToast(`已加入 ${count} 個倉庫據點(待存檔，按 S 才會寫入)`, 'info');
     },
     [showToast],
   );
@@ -1063,30 +1192,18 @@ export function UserMasterPage() {
   const handleBatchEnable = useCallback(() => handleBatchSetActive(true), [handleBatchSetActive]);
   const handleBatchDisable = useCallback(() => handleBatchSetActive(false), [handleBatchSetActive]);
 
-  // B5：移除倉庫據點（軟刪除 revoke、warehouse 無 primary 概念）
-  const handleRevokeWarehouse = useCallback(
-    (uw: UserWarehouseDto) => {
-      setConfirmState({
-        title: '確認移除倉庫據點',
-        message: `將「${uw.warehouseCode ?? '?'} · ${uw.warehouseName ?? '?'}」從此使用者移除？此為軟刪除，可於後台稽核還原。`,
-        confirmLabel: '移除',
-        variant: 'danger',
-        onConfirm: () => {
-          void (async () => {
-            try {
-              await revokeUserWarehouse(uw.id);
-              showToast(`已移除「${uw.warehouseName ?? uw.warehouseCode ?? '倉庫據點'}」`, 'danger');
-              setWarehousesReloadTick((t) => t + 1);
-            } catch (e) {
-              const msg = e instanceof Error ? e.message : '移除失敗';
-              showToast(`移除失敗：${msg}`, 'danger');
-            }
-          })();
-        },
-      });
-    },
-    [showToast],
-  );
+  // C1 staged：移除倉庫據點（toggle 模式：再點 = 取消 staged）
+  const handleRevokeWarehouse = useCallback((uw: UserWarehouseDto) => {
+    setPendingWarehouseOps((prev) => {
+      const alreadyRemoved = prev.some((o) => o.kind === 'remove' && o.userWarehouseId === uw.id);
+      if (alreadyRemoved) {
+        return prev.filter((o) => !(o.kind === 'remove' && o.userWarehouseId === uw.id));
+      }
+      return [...prev, { kind: 'remove', userWarehouseId: uw.id }];
+    });
+  }, []);
+
+  // 註：handleUnstageAddedWarehouse 同樣不提供（簡化 UI）。
 
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
@@ -1271,6 +1388,11 @@ export function UserMasterPage() {
             onSetRolePrimary={handleSetRolePrimary}
             onRevokeRole={handleRevokeRole}
             onRevokeWarehouse={handleRevokeWarehouse}
+            stagedRoleAddCount={stagedAddedRoles.length}
+            stagedRoleRemoveCount={stagedRemovedRoleIds.size}
+            stagedRolePrimaryChanged={stagedPrimaryRoleId !== null}
+            stagedWarehouseAddCount={stagedAddedWarehouses.length}
+            stagedWarehouseRemoveCount={stagedRemovedWarehouseIds.size}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
