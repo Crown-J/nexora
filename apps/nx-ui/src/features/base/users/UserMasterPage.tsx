@@ -29,6 +29,7 @@ import {
   Handshake,
   Settings,
   Layers,
+  Warehouse,
 } from 'lucide-react';
 
 import { listRoles, type RoleDto } from '@/features/base/api/role';
@@ -40,7 +41,13 @@ import {
   setUserRolePrimary,
   type UserRoleDto,
 } from '@/features/base/api/user-role';
-import { listUserWarehouses, type UserWarehouseDto } from '@/features/base/api/user-warehouse';
+import {
+  assignUserWarehouse,
+  listUserWarehouses,
+  revokeUserWarehouse,
+  type UserWarehouseDto,
+} from '@/features/base/api/user-warehouse';
+import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
@@ -343,6 +350,22 @@ function buildUserColumns(): MasterTableColumn<UserRow>[] {
   ];
 }
 
+/** 軌 B B5：隸屬倉庫 row 編輯模式操作按鈕（只有「移除」，warehouse 無 primary 概念）。 */
+function WarehouseRowActions({ onRevoke }: { onRevoke: () => void }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={onRevoke}
+        title="移除此倉庫據點"
+        className="inline-flex h-6 items-center gap-1 rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 text-[10px] font-medium text-[#C84A4A] transition-colors hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]"
+      >
+        移除
+      </button>
+    </div>
+  );
+}
+
 /** 軌 B B3：擔任職務 row 編輯模式操作按鈕（設為主要 / 移除）。
  *  - 已是主要 → 「設為主要」按鈕 disabled（顯示為「主要」）+ 「移除」按鈕 disabled（避免移除唯一主要職務）
  *  - 非主要 → 兩按鈕皆可用
@@ -412,6 +435,7 @@ function UserDetailView({
   onAddWarehouse,
   onSetRolePrimary,
   onRevokeRole,
+  onRevokeWarehouse,
 }: {
   user: UserRow;
   editMode: boolean;
@@ -427,6 +451,8 @@ function UserDetailView({
   onSetRolePrimary: (role: UserRoleDto) => void;
   /** 移除職務（B3 軟刪除 revoke）*/
   onRevokeRole: (role: UserRoleDto) => void;
+  /** 移除倉庫據點（B5 軟刪除 revoke）*/
+  onRevokeWarehouse: (uw: UserWarehouseDto) => void;
 }) {
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
@@ -533,14 +559,25 @@ function UserDetailView({
         <div className="mt-4">
           {userWarehouses.length > 0 ? (
             <DetailTable
-              headers={['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']}
-              rows={userWarehouses.map((w, i) => [
-                String(i + 1).padStart(4, '0'),
-                w.warehouseCode ?? '—',
-                w.warehouseName ?? '—',
-                w.assignedAt,
-                w.assignedByName ?? '—',
-              ])}
+              headers={
+                editMode
+                  ? ['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員', '操作']
+                  : ['項次', '倉庫代碼', '倉庫名稱', '指派時間', '指派人員']
+              }
+              rows={userWarehouses.map((w, i) => {
+                const base = [
+                  String(i + 1).padStart(4, '0'),
+                  w.warehouseCode ?? '—',
+                  w.warehouseName ?? '—',
+                  w.assignedAt,
+                  w.assignedByName ?? '—',
+                ];
+                if (!editMode) return base;
+                return [
+                  ...base,
+                  <WarehouseRowActions key={`actions-${w.id}`} onRevoke={() => onRevokeWarehouse(w)} />,
+                ];
+              })}
             />
           ) : (
             <EmptyDetail message="尚未指派倉庫據點" />
@@ -595,6 +632,7 @@ export function UserMasterPage() {
 
   // ── 軌 B Picker 對話框（B2 / B4）─────────────────────────────
   const [rolePickerOpen, setRolePickerOpen] = useState(false);
+  const [warehousePickerOpen, setWarehousePickerOpen] = useState(false);
 
   // 300ms debounce keyword → debouncedKeyword
   useEffect(() => {
@@ -941,8 +979,66 @@ export function UserMasterPage() {
   );
 
   const handleAddWarehouse = useCallback(() => {
-    showToast('新增倉庫據點 · 待接倉庫選擇器（lab mock）', 'info');
-  }, [showToast]);
+    if (!selectedUser) {
+      showToast('請先點選一筆使用者', 'danger');
+      return;
+    }
+    setWarehousePickerOpen(true);
+  }, [selectedUser, showToast]);
+
+  // WarehousePicker 用：已指派的 warehouseId 集合
+  const assignedWarehouseIds = useMemo(
+    () => new Set(selectedUserWarehouses.map((uw) => uw.warehouseId)),
+    [selectedUserWarehouses],
+  );
+
+  const handleWarehousePickerSearch = useCallback(
+    (q: string) => listWarehouses({ q: q || undefined, isActive: true, pageSize: 50 }),
+    [],
+  );
+
+  const handleWarehousePickerConfirm = useCallback(
+    async (warehouses: WarehouseDto[]) => {
+      if (!selectedUser) return;
+      for (const wh of warehouses) {
+        await assignUserWarehouse({ userId: selectedUser.id, warehouseId: wh.id });
+      }
+    },
+    [selectedUser],
+  );
+
+  const handleWarehousePickerSuccess = useCallback(
+    (count: number) => {
+      showToast(`已新增 ${count} 個倉庫據點`, 'success');
+      setWarehousesReloadTick((t) => t + 1);
+    },
+    [showToast],
+  );
+
+  // B5：移除倉庫據點（軟刪除 revoke、warehouse 無 primary 概念）
+  const handleRevokeWarehouse = useCallback(
+    (uw: UserWarehouseDto) => {
+      setConfirmState({
+        title: '確認移除倉庫據點',
+        message: `將「${uw.warehouseCode ?? '?'} · ${uw.warehouseName ?? '?'}」從此使用者移除？此為軟刪除，可於後台稽核還原。`,
+        confirmLabel: '移除',
+        variant: 'danger',
+        onConfirm: () => {
+          void (async () => {
+            try {
+              await revokeUserWarehouse(uw.id);
+              showToast(`已移除「${uw.warehouseName ?? uw.warehouseCode ?? '倉庫據點'}」`, 'danger');
+              setWarehousesReloadTick((t) => t + 1);
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : '移除失敗';
+              showToast(`移除失敗：${msg}`, 'danger');
+            }
+          })();
+        },
+      });
+    },
+    [showToast],
+  );
 
   // ── Alt+letter 快捷鍵 ─────────────────────────────────────────
   useEffect(() => {
@@ -1124,6 +1220,7 @@ export function UserMasterPage() {
             onAddWarehouse={handleAddWarehouse}
             onSetRolePrimary={handleSetRolePrimary}
             onRevokeRole={handleRevokeRole}
+            onRevokeWarehouse={handleRevokeWarehouse}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
@@ -1156,6 +1253,22 @@ export function UserMasterPage() {
         disabledHint="已指派"
         onConfirm={handleRolePickerConfirm}
         onSuccess={handleRolePickerSuccess}
+      />
+      <EntityPickerDialog<WarehouseDto>
+        open={warehousePickerOpen}
+        onClose={() => setWarehousePickerOpen(false)}
+        title="新增倉庫據點"
+        subtitle="Assign Warehouses"
+        icon={Warehouse}
+        searchPlaceholder="搜尋倉庫代碼 / 名稱..."
+        search={handleWarehousePickerSearch}
+        getId={(w) => w.id}
+        getLabel={(w) => `${w.code} · ${w.name}`}
+        getDescription={(w) => w.remark ?? undefined}
+        disabledIds={assignedWarehouseIds}
+        disabledHint="已指派"
+        onConfirm={handleWarehousePickerConfirm}
+        onSuccess={handleWarehousePickerSuccess}
       />
       <ToastStack toasts={toasts} />
     </>
