@@ -50,6 +50,19 @@ export function DashboardShell({ children }: DashboardShellProps) {
       '/dashboard/base/currency',
       '/dashboard/base/country',
       '/dashboard/base/part-group',
+      '/dashboard/base/roles',
+      '/dashboard/base/drivetrain',
+      '/dashboard/base/model-type',
+      '/dashboard/base/car-brand',
+      '/dashboard/base/engine',
+      '/dashboard/base/transmission',
+      '/dashboard/base/model',
+      '/dashboard/base/part-brand',
+      '/dashboard/base/part-relation',
+      '/dashboard/base/part-model',
+      '/dashboard/base/warehouses',
+      '/dashboard/base/customer-grade',
+      '/dashboard/base/phonetic-dictionary',
     ].includes(pathname);
   // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
   const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;

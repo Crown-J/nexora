@@ -17,7 +17,9 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import type { PagedResult } from '@/features/base/api/types';
 
-export type FieldType = 'text' | 'number' | 'toggle';
+export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref';
+
+export type SelectOption = { value: string | number; label: string };
 
 export type EntityFieldDef = {
   /** 對應後端 DTO / row 欄位名 */
@@ -40,6 +42,20 @@ export type EntityFieldDef = {
   placeholder?: string;
   /** 新增時的預設值 */
   defaultValue?: string | number | boolean;
+
+  // ── type 'select'（靜態 enum 下拉）──
+  /** select 選項（enum 碼 → 中文標籤） */
+  options?: SelectOption[];
+  /** select / number 值送後端時轉 number（SmallInt enum 碼用） */
+  numeric?: boolean;
+
+  // ── type 'ref'（外鍵下拉，從另一主檔 endpoint 載入）──
+  /** ref 來源主檔 endpoint，e.g. 'nx01/car-brands' */
+  refBasePath?: string;
+  /** 組 option label 的欄位（預設 ['code','name']），e.g. ['name'] */
+  refLabelKeys?: string[];
+  /** row 上對應的「顯示名稱」欄位（後端 join 帶出時用；否則以載入的 options 對照） */
+  refDisplayKey?: string;
 };
 
 export type EntityMasterConfig = {
@@ -57,6 +73,17 @@ export type EntityMasterConfig = {
   errorCodePrefix?: string;
   /** 進入此主檔的最低方案（未指定 = LITE） */
   minPlan?: 'LITE' | 'PLUS' | 'PRO';
+  /**
+   * 停用約定（後端不統一）：
+   * - 'active-toggle'（預設）：PATCH {basePath}/:id/active { isActive }（幣別/國家/零件群組群）
+   * - 'soft-delete-rest'：停用 DELETE {basePath}/:id；啟用 PATCH {basePath}/:id { isActive:true }（nx01/複數 群）
+   * - 'update-active'：停用 / 啟用都走 PATCH {basePath}/:id { isActive }（customer-grade 固定表）
+   */
+  deleteMode?: 'active-toggle' | 'soft-delete-rest' | 'update-active';
+  /** 是否可新增（customer-grade/warehouse-type 等固定表為 false、隱藏 A 鍵） */
+  canCreate?: boolean;
+  /** 唯讀主檔（warehouse-type 系統表）：隱藏新增 / 更正 / 停用 */
+  readOnly?: boolean;
 };
 
 /** 後端 code-master 通用 row 形狀（audit 欄位固定、業務欄位動態） */
@@ -130,13 +157,57 @@ export async function setEntityActive(
   cfg: EntityMasterConfig,
   id: string,
   isActive: boolean,
-): Promise<EntityRow> {
-  const res = await apiFetch(`${cfg.basePath}/${encodeURIComponent(id)}/active`, {
+): Promise<EntityRow | null> {
+  const tag = `${cfg.errorCodePrefix ?? 'nxui_entity'}_active`;
+  const idEnc = encodeURIComponent(id);
+  const mode = cfg.deleteMode ?? 'active-toggle';
+  if (mode === 'update-active') {
+    // 停用 / 啟用都走 PATCH :id { isActive }（customer-grade 固定表）
+    const res = await apiFetch(`${cfg.basePath}/${idEnc}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    });
+    await assertOk(res, tag);
+    return res.json() as Promise<EntityRow>;
+  }
+  if (mode === 'soft-delete-rest') {
+    if (!isActive) {
+      // 停用 = DELETE（後端內部 soft delete、保留資料）
+      const res = await apiFetch(`${cfg.basePath}/${idEnc}`, { method: 'DELETE' });
+      await assertOk(res, tag);
+      return null;
+    }
+    // 啟用 = PATCH update isActive:true
+    const res = await apiFetch(`${cfg.basePath}/${idEnc}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive: true }),
+    });
+    await assertOk(res, tag);
+    return res.json() as Promise<EntityRow>;
+  }
+  // active-toggle 約定
+  const res = await apiFetch(`${cfg.basePath}/${idEnc}/active`, {
     method: 'PATCH',
     body: JSON.stringify({ isActive }),
   });
-  await assertOk(res, `${cfg.errorCodePrefix ?? 'nxui_entity'}_active`);
+  await assertOk(res, tag);
   return res.json() as Promise<EntityRow>;
+}
+
+/** 載入外鍵下拉選項（ref 欄位用）：list active → {value:id, label} */
+export async function fetchRefOptions(
+  refBasePath: string,
+  labelKeys: string[] = ['code', 'name'],
+): Promise<SelectOption[]> {
+  const qs = buildQueryString({ pageSize: '100', isActive: 'true' });
+  const res = await apiFetch(`${refBasePath}${qs}`, { method: 'GET' });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { items?: EntityRow[]; rows?: EntityRow[] };
+  const list = data.items ?? data.rows ?? [];
+  return list.map((r) => ({
+    value: r.id,
+    label: labelKeys.map((k) => r[k]).filter(Boolean).join(' · ') || r.id,
+  }));
 }
 
 /** 把後端 row 轉成編輯 draft（依 config.fields） */
@@ -162,7 +233,7 @@ export function emptyDraft(cfg: EntityMasterConfig): EntityDraft {
   return draft;
 }
 
-/** draft → 送出 body（uppercase / number 轉換、移除空 optional） */
+/** draft → 送出 body（uppercase / number 轉換、空 optional 不送以免後端驗證打空值） */
 export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): EntityDraft {
   const body: EntityDraft = {};
   for (const f of cfg.fields) {
@@ -175,12 +246,15 @@ export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): Entity
       v = v.trim();
       if (f.uppercase) v = v.toUpperCase();
     }
-    if (f.type === 'number') {
+    // 空的非必填欄位不送（避免 optional FK / enum / 字串被空值驗證擋下）
+    if ((v === '' || v == null) && !f.required) continue;
+    if (f.type === 'number' || (f.type === 'select' && f.numeric)) {
       const n = Number(v);
-      body[f.key] = Number.isFinite(n) ? n : 0;
+      if (Number.isFinite(n)) body[f.key] = n;
+      else if (f.required) body[f.key] = 0;
       continue;
     }
-    body[f.key] = v;
+    body[f.key] = v as string | number | boolean;
   }
   return body;
 }

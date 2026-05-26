@@ -1,20 +1,10 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/base/roles/page.tsx
- *
- * Purpose:
- * - 職務主檔（路由 v2：`/dashboard/base/roles`）
- */
-
+// apps/nx-ui/src/app/dashboard/base/roles/page.tsx
+/** roles 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { BaseRoleMasterView } from '@/features/base/role/BaseRoleMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { ROLE_MASTER } from '@/features/base/master-config/catalog-masters';
 
-export default function BaseRolesPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="職務主檔" />
-      <BaseRoleMasterView />
-    </div>
-  );
+export default function Page() {
+  return <EntityMasterPage config={ROLE_MASTER} />;
 }

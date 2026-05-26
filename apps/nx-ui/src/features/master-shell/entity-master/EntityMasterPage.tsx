@@ -41,14 +41,33 @@ import {
   type EntityRow,
   type EntityDraft,
   type EntityFieldDef,
+  type SelectOption,
   fetchEntityList,
   createEntity,
   updateEntity,
   setEntityActive,
+  fetchRefOptions,
   rowToDraft,
   emptyDraft,
   draftToBody,
 } from './config';
+
+/** select / ref 欄位的顯示標籤（列表 + 瀏覽詳細共用） */
+function optionLabel(
+  f: EntityFieldDef,
+  raw: unknown,
+  refOptions: Record<string, SelectOption[]>,
+): string {
+  if (raw == null || raw === '') return '—';
+  if (f.type === 'select' && f.options) {
+    return f.options.find((x) => String(x.value) === String(raw))?.label ?? String(raw);
+  }
+  if (f.type === 'ref') {
+    const opts = refOptions[f.key] ?? [];
+    return opts.find((x) => String(x.value) === String(raw))?.label ?? String(raw);
+  }
+  return String(raw);
+}
 
 type Tab = 'list' | 'detail';
 
@@ -103,6 +122,9 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   // 確認框
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
+  // 外鍵下拉選項（ref 欄位）
+  const [refOptions, setRefOptions] = useState<Record<string, SelectOption[]>>({});
+
   const sidebarRef = useRef<HTMLElement>(null);
 
   const selected = useMemo(
@@ -117,6 +139,25 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     const t = setTimeout(() => setDebouncedKw(keyword), 300);
     return () => clearTimeout(t);
   }, [keyword]);
+
+  // 載入外鍵下拉選項（ref 欄位）
+  useEffect(() => {
+    const refFields = config.fields.filter((f) => f.type === 'ref' && f.refBasePath);
+    if (refFields.length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      const entries = await Promise.all(
+        refFields.map(async (f) => {
+          const opts = await fetchRefOptions(f.refBasePath as string, f.refLabelKeys);
+          return [f.key, opts] as const;
+        }),
+      );
+      if (!cancelled) setRefOptions(Object.fromEntries(entries));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [config]);
 
   // load
   const load = useCallback(async () => {
@@ -158,6 +199,10 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   }, []);
 
   const handleCreate = useCallback(() => {
+    if (config.readOnly || config.canCreate === false) {
+      showToast(`${config.entityNoun}為系統設定、不可新增`, 'info');
+      return;
+    }
     const d = emptyDraft(config);
     setCreating(true);
     setSelectedId(null);
@@ -165,17 +210,21 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     setOriginal(d);
     setMode('edit');
     setTab('detail');
-  }, [config]);
+  }, [config, showToast]);
 
   const handleEdit = useCallback(() => {
     if (!selected) return;
+    if (config.readOnly) {
+      showToast(`${config.entityNoun}為系統唯讀資料`, 'info');
+      return;
+    }
     const d = rowToDraft(config, selected);
     setCreating(false);
     setDraft(d);
     setOriginal(d);
     setMode('edit');
     setTab('detail');
-  }, [config, selected]);
+  }, [config, selected, showToast]);
 
   const performSave = useCallback(async () => {
     // 必填驗證
@@ -233,6 +282,10 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
 
   const handleDelete = useCallback(() => {
     if (!selected) return;
+    if (config.readOnly) {
+      showToast(`${config.entityNoun}為系統唯讀資料`, 'info');
+      return;
+    }
     const turningOff = selected.isActive;
     const label = (selected[config.fields[0].key] as string) ?? selected.id;
     setConfirm({
@@ -400,6 +453,8 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       render: (row: EntityRow) =>
         f.type === 'toggle' ? (
           (row[f.key] as boolean) ? '是' : '否'
+        ) : f.type === 'select' || f.type === 'ref' ? (
+          <span>{optionLabel(f, row[f.key], refOptions)}</span>
         ) : (
           <span className={f.mono ? 'font-mono text-xs' : undefined}>
             {String(row[f.key] ?? '—')}
@@ -425,7 +480,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       ),
     });
     return cols;
-  }, [config]);
+  }, [config, refOptions]);
 
   // ── render ────────────────────────────────────────────
   const countText = `${total} 筆${config.entityNoun}`;
@@ -543,6 +598,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
             selected={selected}
             draft={draft}
             setDraft={setDraft}
+            refOptions={refOptions}
           />
         )}
       </div>
@@ -592,6 +648,7 @@ function DetailPane({
   selected,
   draft,
   setDraft,
+  refOptions,
 }: {
   config: EntityMasterConfig;
   mode: ErpMode;
@@ -599,6 +656,7 @@ function DetailPane({
   selected: EntityRow | null;
   draft: EntityDraft;
   setDraft: (next: EntityDraft) => void;
+  refOptions: Record<string, SelectOption[]>;
 }) {
   if (mode !== 'edit' && !selected) {
     return <EmptyDetail message="從「資料瀏覽」選一筆，或按 A 新增" />;
@@ -614,6 +672,32 @@ function DetailPane({
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {config.fields.map((f) => {
             const lockedNow = editing && !creating && f.lockedOnEdit;
+            // 編輯模式：select / ref 下拉
+            if (editing && !lockedNow && (f.type === 'select' || f.type === 'ref')) {
+              const opts = f.type === 'select' ? (f.options ?? []) : (refOptions[f.key] ?? []);
+              return (
+                <div key={f.key} className="flex flex-col gap-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                    {f.label + (f.required ? ' *' : '')}
+                  </span>
+                  <select
+                    value={String(draft[f.key] ?? '')}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                    className="cursor-pointer appearance-none rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                  >
+                    <option value="" className="bg-[#131316]">
+                      {f.placeholder ?? (f.required ? '請選擇...' : '（無）')}
+                    </option>
+                    {opts.map((o) => (
+                      <option key={String(o.value)} value={String(o.value)} className="bg-[#131316] text-[#E8E8EB]">
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            }
+            // 編輯模式：text / number
             if (editing && !lockedNow && f.type !== 'toggle') {
               return (
                 <FormInput
@@ -625,6 +709,7 @@ function DetailPane({
                 />
               );
             }
+            // 編輯模式：toggle
             if (editing && f.type === 'toggle') {
               const on = Boolean(draft[f.key]);
               return (
@@ -650,7 +735,9 @@ function DetailPane({
             const val =
               f.type === 'toggle'
                 ? (raw ? '啟用' : '停用')
-                : String(raw ?? '—');
+                : f.type === 'select' || f.type === 'ref'
+                  ? optionLabel(f, raw, refOptions)
+                  : String(raw ?? '—');
             return (
               <FormField
                 key={f.key}

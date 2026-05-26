@@ -1,15 +1,10 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/base/part-brand/page.tsx
- * Purpose: 零件廠牌主檔（路由 v2：`/dashboard/base/part-brand`）
- */
+// apps/nx-ui/src/app/dashboard/base/part-brand/page.tsx
+/** part-brand 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
-import { BasePartBrandMasterView } from '@/features/base/brand-like/BaseBrandLikeMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
-export default function BasePartBrandDashboardPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="零件廠牌主檔" />
-      <BasePartBrandMasterView />
-    </div>
-  );
+
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { PART_BRAND_MASTER } from '@/features/base/master-config/catalog-masters';
+
+export default function Page() {
+  return <EntityMasterPage config={PART_BRAND_MASTER} />;
 }

@@ -1,14 +1,10 @@
 // apps/nx-ui/src/app/dashboard/base/model-type/page.tsx
+/** model-type 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
-import { SimpleCatalogMasterView } from '@/features/nx01/vehicle-classification/ui/SimpleCatalogMasterView';
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { MODEL_TYPE_MASTER } from '@/features/base/master-config/catalog-masters';
 
-export default function ModelTypePage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="車體類型型錄" />
-      <SimpleCatalogMasterView variant="model-types" itemLabel="車體類型" />
-    </div>
-  );
+export default function Page() {
+  return <EntityMasterPage config={MODEL_TYPE_MASTER} />;
 }
