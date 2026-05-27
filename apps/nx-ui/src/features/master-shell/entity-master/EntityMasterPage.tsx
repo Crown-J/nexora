@@ -17,10 +17,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { List, FileText } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import { MasterTopBar } from './MasterTopBar';
+import { MasterTabs } from './MasterTabs';
 import {
   ErpToolbar,
   type ErpMode,
@@ -560,11 +559,8 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         requestNavigate={requestNavigate}
       />
 
-      {/* Tab 切換 */}
-      <div className="flex items-center gap-1 border-b border-[#2A2A30] bg-[#0E0E12] px-2">
-        <TabButton icon={List} label="資料瀏覽" hint="Alt+1" active={tab === 'list'} onClick={() => attemptTabChange('list')} />
-        <TabButton icon={FileText} label="詳細資料" hint="Alt+2" active={tab === 'detail'} onClick={() => attemptTabChange('detail')} />
-      </div>
+      {/* Tab 切換（共用 MasterTabs、與使用者主檔頁一致） */}
+      <MasterTabs tab={tab} onChange={attemptTabChange} />
 
       {/* Toolbar（手機橫向 scroll） */}
       <div className="overflow-x-auto">
@@ -650,37 +646,6 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />
       <nav ref={sidebarRef} className="sr-only" aria-hidden />
     </div>
-  );
-}
-
-function TabButton({
-  icon: Icon,
-  label,
-  hint,
-  active,
-  onClick,
-}: {
-  icon: typeof List;
-  label: string;
-  hint: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-        active
-          ? 'border-[#E8A020] text-[#E8A020]'
-          : 'border-transparent text-[#888892] hover:text-[#E8E8EB]',
-      )}
-    >
-      <Icon className="size-3.5" />
-      {label}
-      <span className="hidden text-[10px] text-[#5A5A60] sm:inline">{hint}</span>
-    </button>
   );
 }
 

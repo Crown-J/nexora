@@ -19,6 +19,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Users,
   Briefcase,
@@ -67,11 +68,9 @@ import {
   SectionAddButton,
   SectionHeader,
 } from '@/features/master-shell/ui/MasterDetail';
-import {
-  MasterShell,
-  type HeaderConfig,
-  type SidebarConfig,
-} from '@/features/master-shell/ui/MasterShell';
+import { type HeaderConfig } from '@/features/master-shell/ui/MasterShell';
+import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
+import { MasterTabs } from '@/features/master-shell/entity-master/MasterTabs';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -81,59 +80,7 @@ import { cn } from '@/lib/utils';
 // 配置
 // ──────────────────────────────────────────────────────────────
 
-const SIDEBAR_CONFIG: SidebarConfig = {
-  brandTitle: 'NEXORA GRID',
-  brandSubtitle: '測試公司（LITE）',
-  userInitial: '管',
-  userName: '測試租戶管理員（LITE）',
-  userMeta: 'admin · 使用者',
-  sections: [
-    {
-      id: 'account',
-      label: '帳號與權限',
-      hasAddAction: true,
-      items: [
-        // 軌 A commit A1：user-role / user-warehouse 從 sidebar 降階；
-        // 業務員 daily 改於 USER 詳細頁管理擔任職務 / 隸屬倉庫，
-        // PRO 用戶 reverse 視角批次工具仍可由主檔中心 hub 進入。
-        { id: 'user', icon: Users, label: '使用者', active: true, count: 5 },
-        { id: 'role', icon: Briefcase, label: '職務主檔', count: 6 },
-        { id: 'role-view', icon: Shield, label: '職務權限設定', count: 12 },
-      ],
-    },
-    {
-      id: 'product',
-      label: '產品與料號',
-      items: [
-        { id: 'part', icon: Package, label: '零件主檔', count: 256 },
-        { id: 'brand', icon: Layers, label: '汽車／零件廠牌', count: 48 },
-      ],
-    },
-    {
-      id: 'vehicle',
-      label: '車型字典',
-      items: [
-        { id: 'engine', icon: Car, label: '引擎主檔', count: 32 },
-        { id: 'model', icon: Car, label: '車型主檔', count: 128 },
-      ],
-    },
-    {
-      id: 'org',
-      label: '組織架構',
-      items: [{ id: 'warehouse', icon: Building2, label: '倉庫主檔', count: 4 }],
-    },
-    {
-      id: 'partner',
-      label: '交易對象',
-      items: [{ id: 'partner', icon: Handshake, label: '客戶主檔', count: 87 }],
-    },
-    {
-      id: 'system',
-      label: '系統設定',
-      items: [{ id: 'settings', icon: Settings, label: '基礎設定' }],
-    },
-  ],
-};
+// 統一範式（2026-05-27）：USER 主檔改用 MasterTopBar（無左 sidebar），SIDEBAR_CONFIG 已移除。
 
 const HEADER_CONFIG: HeaderConfig = {
   category: '帳號與權限',
@@ -465,6 +412,7 @@ function UserDetailView({
   stagedRolePrimaryChanged,
   stagedWarehouseAddCount,
   stagedWarehouseRemoveCount,
+  onRequestSave,
 }: {
   user: UserRow;
   editMode: boolean;
@@ -488,10 +436,34 @@ function UserDetailView({
   stagedRolePrimaryChanged: boolean;
   stagedWarehouseAddCount: number;
   stagedWarehouseRemoveCount: number;
+  /** 基本資料最後一格 Enter → 存檔確認（ERP muscle memory） */
+  onRequestSave: () => void;
 }) {
+  const formRef = useRef<HTMLDivElement>(null);
+
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
     onEditChange({ ...editForm, [key]: value });
+  };
+
+  // 進編輯自動 focus 第一格
+  useEffect(() => {
+    if (!editMode) return;
+    formRef.current?.querySelector<HTMLElement>('input, select, textarea')?.focus();
+  }, [editMode, user.id]);
+
+  // Enter 跳下一格；最後一格 Enter → 存檔確認（基本資料區；textarea 例外）
+  const handleFormKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
+    const t = e.target as HTMLElement;
+    if (t.tagName.toLowerCase() === 'textarea') return;
+    e.preventDefault();
+    const els = Array.from(
+      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea') ?? [],
+    ).filter((el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null);
+    const idx = els.indexOf(t);
+    if (idx >= 0 && idx < els.length - 1) els[idx + 1]?.focus();
+    else onRequestSave();
   };
 
   return (
@@ -499,7 +471,7 @@ function UserDetailView({
       {/* 基本資料 */}
       <section className="border-b border-[#1A1A1F] px-8 py-6">
         <SectionHeader title="基本資料" subtitle="User Profile" />
-        <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div ref={formRef} onKeyDown={handleFormKey} className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* username / jobTitle / warehouse 為 derived 欄位（jobTitle ← user_role、warehouse ← user_warehouse）
              updateUser API 不接受、需於下方「擔任職務 / 隸屬倉庫」區塊調整，編輯模式仍維持 read-only */}
           <FormField label="帳號" value={user.username} mono />
@@ -646,6 +618,7 @@ function UserDetailView({
 // ──────────────────────────────────────────────────────────────
 
 export function UserMasterPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<'list' | 'detail'>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -930,11 +903,12 @@ export function UserMasterPage() {
   }, [showToast]);
 
   const handleExit = useCallback(() => {
-    setSelectedId(null);
-    const first = sidebarRef.current?.querySelector<HTMLButtonElement>('[data-nav-item]');
-    first?.focus();
-    showToast('焦點已轉至左側模組列表（↑↓ 切換、Enter 返回表格）', 'info');
-  }, [showToast]);
+    if (mode === 'edit') {
+      showToast('編輯中：請先存檔（Alt+S）或取消（Alt+C）', 'info');
+      return;
+    }
+    router.push('/dashboard');
+  }, [mode, router, showToast]);
 
   // C2：handleReturnToTable 已 inline 進 attemptReturnToTable（含 dirty 攔截）
 
@@ -1130,6 +1104,71 @@ export function UserMasterPage() {
       },
     });
   }, [isDirty, users, performSave, performCancel, showToast]);
+
+  // 統一範式：模組選單 / 公告等跨頁跳轉（編輯 dirty 先 3-way confirm，對齊 EntityMasterPage）
+  const requestNavigate = useCallback(
+    (href: string) => {
+      if (mode === 'edit' && isDirty) {
+        setConfirmState({
+          title: '您有未存檔變更',
+          message: '離開此頁要先存檔，還是丟棄變更？',
+          confirmLabel: '存檔後離開',
+          onConfirm: () => {
+            void (async () => {
+              const ok = await performSave();
+              if (ok) router.push(href);
+            })();
+          },
+          secondaryAction: {
+            label: '丟棄變更',
+            variant: 'danger',
+            onClick: () => {
+              performCancel();
+              router.push(href);
+            },
+          },
+        });
+        return;
+      }
+      router.push(href);
+    },
+    [mode, isDirty, performSave, performCancel, router],
+  );
+
+  // 進頁面自動鎖定第一列（對齊其他 22 個主檔；詳細頁不再跳「請先選擇」）
+  useEffect(() => {
+    if (users.length === 0) {
+      if (selectedId !== null) setSelectedId(null);
+      return;
+    }
+    if (!users.some((u) => u.id === selectedId)) setSelectedId(users[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users]);
+
+  // 選中列捲入視野
+  useEffect(() => {
+    if (!selectedId || tab !== 'list') return;
+    document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId, tab]);
+
+  // 瀏覽模式整頁 ↑↓ 切列（焦點非表單元素時）
+  useEffect(() => {
+    const onArrow = (e: KeyboardEvent) => {
+      if (mode !== 'browse' || tab !== 'list') return;
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+      if (users.length === 0) return;
+      e.preventDefault();
+      const idx = users.findIndex((u) => u.id === selectedId);
+      const cur = idx < 0 ? 0 : idx;
+      const nextIdx =
+        e.key === 'ArrowDown' ? Math.min(users.length - 1, cur + 1) : Math.max(0, cur - 1);
+      setSelectedId(users[nextIdx].id);
+    };
+    window.addEventListener('keydown', onArrow);
+    return () => window.removeEventListener('keydown', onArrow);
+  }, [mode, tab, users, selectedId]);
 
   const handleNotification = useCallback(() => {
     showToast('通知中心 · 3 則未讀（lab mock）', 'info');
@@ -1427,40 +1466,50 @@ export function UserMasterPage() {
 
   return (
     <>
-      <MasterShell
-        sidebarRef={sidebarRef}
-        sidebarConfig={SIDEBAR_CONFIG}
-        headerConfig={HEADER_CONFIG}
-        onReturnToTable={attemptReturnToTable}
-        onNotification={handleNotification}
-        onAnnouncement={handleAnnouncement}
+      <div
+        className="flex h-dvh flex-col text-[#E8E8EB]"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
+        }}
       >
-        <ErpToolbar
-          mode={mode}
-          hasActiveRow={selectedUser !== null}
-          selectedRowActive={selectedUser?.isActive ?? true}
-          selectionMode={selectionMode}
-          onToggleSelection={handleToggleSelection}
-          selectedCount={checked.size}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onCreate={handleCreate}
-          onEdit={handleEdit}
-          onSearch={handleSearch}
-          onDelete={handleDelete}
-          onExport={handleExport}
-          onRefresh={handleRefresh}
-          onExit={handleExit}
-          onSave={handleSave}
-          onCancel={handleCancel}
-          // 軌 A commit A2：「顯示停用」是列表 filter，只在資料瀏覽 tab 顯示。
-          // ErpToolbar 已支援 onShowInactiveChange 未提供時不渲染（master-shell/ui/ErpToolbar.tsx line 175）。
-          showInactive={tab === 'list' ? showInactive : undefined}
-          onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
-          onBatchEnable={handleBatchEnable}
-          onBatchDisable={handleBatchDisable}
+        {/* 統一置頂列（與其他 22 個主檔頁一致） */}
+        <MasterTopBar
+          category={HEADER_CONFIG.category}
+          title={HEADER_CONFIG.title}
+          count={`${total} 位使用者`}
+          onBack={handleExit}
+          requestNavigate={requestNavigate}
         />
+        {/* 統一 Tab */}
+        <MasterTabs tab={tab} onChange={attemptTabChange} />
+        {/* 工具列（手機橫向 scroll） */}
+        <div className="overflow-x-auto">
+          <ErpToolbar
+            mode={mode}
+            hasActiveRow={selectedUser !== null}
+            selectedRowActive={selectedUser?.isActive ?? true}
+            selectionMode={selectionMode}
+            onToggleSelection={handleToggleSelection}
+            selectedCount={checked.size}
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onCreate={handleCreate}
+            onEdit={handleEdit}
+            onSearch={handleSearch}
+            onDelete={handleDelete}
+            onExport={handleExport}
+            onRefresh={handleRefresh}
+            onExit={handleExit}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            showInactive={tab === 'list' ? showInactive : undefined}
+            onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
+            onBatchEnable={handleBatchEnable}
+            onBatchDisable={handleBatchDisable}
+          />
+        </div>
         <SearchPanel
           open={searchOpen}
           value={keyword}
@@ -1468,13 +1517,7 @@ export function UserMasterPage() {
           onClose={handleCloseSearch}
           placeholder="搜尋帳號 / 姓名 / 信箱 / 電話..."
         />
-        <ErpTabBar
-          tab={tab}
-          onChange={attemptTabChange}
-          hasSelected={selectedUser !== null}
-          // C2：拿掉編輯模式 disable lock，改由 attemptTabChange 內部 dirty-aware 攔截
-          editMode={false}
-        />
+        <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
           <MasterTable<UserRow>
             columns={userColumns}
@@ -1530,13 +1573,15 @@ export function UserMasterPage() {
             stagedRolePrimaryChanged={stagedPrimaryRoleId !== null}
             stagedWarehouseAddCount={stagedAddedWarehouses.length}
             stagedWarehouseRemoveCount={stagedRemovedWarehouseIds.size}
+            onRequestSave={handleSave}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
-            請先於「資料瀏覽」選擇一筆資料
+            目前沒有資料
           </div>
         )}
-      </MasterShell>
+        </div>
+      </div>
       <ConfirmDialog state={confirmState} onClose={() => setConfirmState(null)} />
       <CreateUserDialog
         open={createOpen}
