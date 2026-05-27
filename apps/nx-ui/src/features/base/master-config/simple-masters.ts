@@ -11,11 +11,12 @@
 import type { EntityMasterConfig } from '@/features/master-shell/entity-master/config';
 
 export const CURRENCY_MASTER: EntityMasterConfig = {
-  basePath: '/currency',
+  basePath: 'nx01/currencies',
   category: '系統設定',
   title: '幣別基本資料',
   entityNoun: '幣別',
   errorCodePrefix: 'nxui_base_currency',
+  deleteMode: 'soft-delete-rest',
   fields: [
     { key: 'code', label: '幣別代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'TWD' },
     { key: 'name', label: '幣別名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '新台幣' },
@@ -26,11 +27,12 @@ export const CURRENCY_MASTER: EntityMasterConfig = {
 };
 
 export const COUNTRY_MASTER: EntityMasterConfig = {
-  basePath: '/country',
+  basePath: 'nx01/countries',
   category: '系統設定',
   title: '國家基本資料',
   entityNoun: '國家',
   errorCodePrefix: 'nxui_base_country',
+  deleteMode: 'soft-delete-rest',
   fields: [
     { key: 'code', label: '國家代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'TW' },
     { key: 'name', label: '國家名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '台灣' },
@@ -39,11 +41,12 @@ export const COUNTRY_MASTER: EntityMasterConfig = {
 };
 
 export const PART_GROUP_MASTER: EntityMasterConfig = {
-  basePath: '/part-group',
+  basePath: 'nx01/part-groups',
   category: '產品料號',
   title: '零件群組基本資料',
   entityNoun: '零件群組',
   errorCodePrefix: 'nxui_base_part_group',
+  deleteMode: 'soft-delete-rest',
   fields: [
     { key: 'code', label: '族群代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '族群名稱', required: true, minWidthClass: 'min-w-[140px]' },

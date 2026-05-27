@@ -71,7 +71,7 @@ export const CAR_BRAND_MASTER: EntityMasterConfig = {
     { key: 'code', label: '品牌代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'countryId', label: '國別', type: 'ref', refBasePath: '/country', minWidthClass: 'min-w-[120px]' },
+    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]' },
     { key: 'logoUrl', label: 'Logo 網址', inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
@@ -157,7 +157,7 @@ export const PART_BRAND_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'code', label: '廠牌代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '廠牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'countryId', label: '國別', type: 'ref', refBasePath: '/country', inList: false },
+    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -359,8 +359,8 @@ export const PART_MASTER: EntityMasterConfig = {
     // codeRuleId 後端強制必填（須先有品牌料號規則）
     { key: 'codeRuleId', label: '編碼規則', type: 'ref', refBasePath: 'nx01/brand-code-rules', refLabelKeys: ['name'], required: true, inList: false },
     { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/part-brands', minWidthClass: 'min-w-[120px]' },
-    { key: 'partGroupId', label: '零件群組', type: 'ref', refBasePath: '/part-group', inList: false },
-    { key: 'countryId', label: '產地', type: 'ref', refBasePath: '/country', inList: false },
+    { key: 'partGroupId', label: '零件群組', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
+    { key: 'countryId', label: '產地', type: 'ref', refBasePath: 'nx01/countries', inList: false },
     {
       key: 'partType', label: '料件類型', type: 'select', numeric: true, inList: false,
       options: [{ value: 1, label: '專用件' }, { value: 2, label: '通用件' }, { value: 3, label: '組合件' }, { value: 4, label: '拆解件' }],
