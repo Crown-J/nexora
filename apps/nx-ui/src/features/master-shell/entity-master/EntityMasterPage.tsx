@@ -910,7 +910,6 @@ function DetailPane({
             <FormField label="建立人員" value={auditPerson(selected.createdByUsername, selected.createdByName)} dim />
             <FormField label="修改時間" value={formatDt(selected.updatedAt)} mono dim />
             <FormField label="修改人員" value={auditPerson(selected.updatedByUsername, selected.updatedByName)} dim />
-            <FormField label="系統編號" value={String(selected.id ?? '—')} mono dim />
           </div>
         ) : null}
       </div>

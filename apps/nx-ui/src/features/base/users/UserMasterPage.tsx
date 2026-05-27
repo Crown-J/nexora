@@ -495,7 +495,6 @@ function UserDetailView({
           <FormField label="建立人員" value={user.createdBy} dim />
           <FormField label="修改時間" value={formatDateTimeZh(user.updatedAt)} mono dim />
           <FormField label="修改人員" value={user.updatedBy} dim />
-          <FormField label="系統編號" value={user.id} mono dim />
         </div>
       </section>
 
