@@ -1,6 +1,6 @@
 // apps/nx-ui/src/features/base/role-view/RoleViewMatrixPage.tsx
 /**
- * 職務權限視圖 — 矩陣版（鋼鐵星球、全鍵盤）
+ * 職務權限設定 — 矩陣版（鋼鐵星球、全鍵盤）
  *
  * 上方：選職務（下拉，系統管理員不顯示，對齊既有鎖定）
  * 下方：畫面（依模組分群）× 5 種權限（瀏覽 / 新增 / 修改 / 停用 / 匯出）矩陣
@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -273,7 +274,7 @@ export function RoleViewMatrixPage() {
     <div className="flex h-dvh flex-col text-[#E8E8EB]" style={{ backgroundImage: 'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)' }}>
       <MasterTopBar
         category="帳號與權限"
-        title="職務權限視圖"
+        title="職務權限設定"
         count={`${views.length} 個畫面`}
         requestNavigate={requestNavigate}
       />
@@ -374,24 +375,39 @@ function RoleViewGroup({
   toggleViewAll: (viewId: string) => void;
   toggleModuleAll: (viewIds: string[]) => void;
 }) {
+  // 本模組所有畫面是否已全勾（決定按鈕標籤 全選 ↔ 清除 + 視覺）
+  const moduleAllOn =
+    rows.length > 0 &&
+    rows.every((r) => {
+      const c = cellOf(r.view.id);
+      return PERM_KEYS.every((k) => c[k]);
+    });
   return (
     <>
       <tr>
-        <td colSpan={PERM_KEYS.length + 1} className="bg-[#0E0E12] px-4 py-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold tracking-wide text-[#B8B8C0]">{moduleLabel(module)}</span>
+        <td colSpan={PERM_KEYS.length + 1} className="bg-[#0E0E12] px-4 py-2">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold tracking-wide text-[#C8C8D0]">{moduleLabel(module)}</span>
             <button
               type="button"
               onClick={() => toggleModuleAll(rows.map((r) => r.view.id))}
-              className="rounded border border-[#2A2A30] px-1.5 py-0.5 text-[10px] text-[#888892] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+              title="本模組所有畫面 5 種權限一次全勾 / 全清"
+              className={cn(
+                'inline-flex h-7 items-center gap-1.5 rounded-md border px-3 text-[11px] font-semibold transition-colors',
+                moduleAllOn
+                  ? 'border-[#E8A020]/60 bg-[#E8A020]/22 text-[#E8A020] hover:bg-[#E8A020]/30'
+                  : 'border-[#E8A020]/35 bg-[#E8A020]/10 text-[#E8A020] hover:border-[#E8A020]/60 hover:bg-[#E8A020]/20',
+              )}
             >
-              整模組全選 / 清除
+              <CheckCheck className="size-3.5" />
+              {moduleAllOn ? '整模組清除' : '整模組全選'}
             </button>
           </div>
         </td>
       </tr>
       {rows.map(({ view, flatIndex }) => {
         const c = cellOf(view.id);
+        const viewAllOn = PERM_KEYS.every((k) => c[k]);
         return (
           <tr key={view.id} className="border-b border-[#1A1A1F]/70">
             <td className="px-4 py-2 text-[#E8E8EB]">
@@ -400,10 +416,16 @@ function RoleViewGroup({
                 <button
                   type="button"
                   onClick={() => toggleViewAll(view.id)}
-                  title="整列全選 / 清除（鍵盤：A）"
-                  className="shrink-0 rounded border border-[#2A2A30] px-1.5 text-[10px] text-[#5A5A60] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+                  title="本畫面 5 種權限一次全勾 / 全清（鍵盤：A）"
+                  className={cn(
+                    'inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold transition-colors',
+                    viewAllOn
+                      ? 'border-[#E8A020]/55 bg-[#E8A020]/18 text-[#E8A020] hover:bg-[#E8A020]/28'
+                      : 'border-[#3A3A42] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#E8A020]/45 hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
+                  )}
                 >
-                  全選
+                  <CheckCheck className="size-3" />
+                  {viewAllOn ? '清除' : '全選'}
                 </button>
               </div>
             </td>
