@@ -1,10 +1,9 @@
 // apps/nx-ui/src/app/dashboard/base/parts/page.tsx
-/** parts 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
+/** 零件基本資料（下半場 B 自訂頁：分區 + 分段預覽 + 正廠對應子表 + 依成本重算）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
-import { PART_MASTER } from '@/features/base/master-config/catalog-masters';
+import { PartMasterPage } from '@/features/base/parts/PartMasterPage';
 
 export default function Page() {
-  return <EntityMasterPage config={PART_MASTER} />;
+  return <PartMasterPage />;
 }
