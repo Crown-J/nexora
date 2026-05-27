@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCheck } from 'lucide-react';
+import { CheckCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -57,6 +57,11 @@ function moduleLabel(mc: string): string {
 type Cell = { recordId: string | null; canRead: boolean; canCreate: boolean; canUpdate: boolean; canDelete: boolean; canExport: boolean };
 const EMPTY_CELL: Omit<Cell, 'recordId'> = { canRead: false, canCreate: false, canUpdate: false, canDelete: false, canExport: false };
 
+// 全鍵盤焦點導覽列：模組標題列（可收合）或畫面列
+type NavRow =
+  | { type: 'header'; module: string; viewIds: string[] }
+  | { type: 'view'; view: ViewDto };
+
 export function RoleViewMatrixPage() {
   const router = useRouter();
   const { toasts, showToast } = useToast();
@@ -67,6 +72,7 @@ export function RoleViewMatrixPage() {
   const [cells, setCells] = useState<Record<string, Cell>>({});
   const [original, setOriginal] = useState<Record<string, Cell>>({});
   const [focus, setFocus] = useState<{ row: number; col: number }>({ row: 0, col: 0 });
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -159,6 +165,43 @@ export function RoleViewMatrixPage() {
     });
   }, []);
 
+  // 依 moduleCode 分群
+  const groups = useMemo(() => {
+    const out: { module: string; rows: ViewDto[] }[] = [];
+    for (const view of views) {
+      const mc = view.moduleCode || 'OTHER';
+      let g = out.find((x) => x.module === mc);
+      if (!g) { g = { module: mc, rows: [] }; out.push(g); }
+      g.rows.push(view);
+    }
+    return out;
+  }, [views]);
+
+  // 導覽列（全鍵盤焦點模型）：模組標題列 + 展開模組的畫面列；收合模組只留標題列。
+  const navRows = useMemo<NavRow[]>(() => {
+    const out: NavRow[] = [];
+    for (const g of groups) {
+      out.push({ type: 'header', module: g.module, viewIds: g.rows.map((v) => v.id) });
+      if (!collapsed.has(g.module)) for (const v of g.rows) out.push({ type: 'view', view: v });
+    }
+    return out;
+  }, [groups, collapsed]);
+
+  const toggleCollapse = useCallback((module: string, force?: 'open' | 'close') => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      const shouldCollapse = force === 'close' ? true : force === 'open' ? false : !next.has(module);
+      if (shouldCollapse) next.add(module);
+      else next.delete(module);
+      return next;
+    });
+  }, []);
+
+  // navRows 縮短（收合）時夾住 focus.row 不越界
+  useEffect(() => {
+    setFocus((f) => (f.row > navRows.length - 1 ? { ...f, row: Math.max(0, navRows.length - 1) } : f));
+  }, [navRows.length]);
+
   const isDirty = useMemo(() => {
     const keys = new Set([...Object.keys(cells), ...Object.keys(original)]);
     for (const vid of keys) {
@@ -229,44 +272,40 @@ export function RoleViewMatrixPage() {
         return;
       }
       if (tag === 'select') return; // 職務下拉自己處理
-      if (views.length === 0) return;
+      if (navRows.length === 0) return;
+      const cur = navRows[Math.min(focus.row, navRows.length - 1)];
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
-        setFocus((f) => ({ ...f, row: e.key === 'ArrowDown' ? Math.min(views.length - 1, f.row + 1) : Math.max(0, f.row - 1) }));
+        setFocus((f) => ({ ...f, row: e.key === 'ArrowDown' ? Math.min(navRows.length - 1, f.row + 1) : Math.max(0, f.row - 1) }));
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        setFocus((f) => ({ ...f, col: e.key === 'ArrowRight' ? Math.min(PERM_KEYS.length - 1, f.col + 1) : Math.max(0, f.col - 1) }));
+        if (cur?.type === 'header') {
+          // 模組標題列：→ 展開、← 收合
+          toggleCollapse(cur.module, e.key === 'ArrowRight' ? 'open' : 'close');
+        } else {
+          setFocus((f) => ({ ...f, col: e.key === 'ArrowRight' ? Math.min(PERM_KEYS.length - 1, f.col + 1) : Math.max(0, f.col - 1) }));
+        }
+      } else if (e.key === 'Enter') {
+        // 模組標題列：Enter 切換收合 / 展開
+        if (cur?.type === 'header') { e.preventDefault(); toggleCollapse(cur.module); }
       } else if (e.key === ' ' || e.key === 'Spacebar') {
         e.preventDefault();
-        const v = views[focus.row];
-        if (v) toggle(v.id, PERM_KEYS[focus.col]);
+        if (cur?.type === 'header') toggleCollapse(cur.module);
+        else if (cur?.type === 'view') toggle(cur.view.id, PERM_KEYS[focus.col]);
       } else if (e.key.toLowerCase() === 'a') {
         // A：該畫面整列 5 權限全勾 / 全清
         e.preventDefault();
-        const v = views[focus.row];
-        if (v) toggleViewAll(v.id);
+        if (cur?.type === 'view') toggleViewAll(cur.view.id);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [views, focus, roles, roleId, toggle, toggleViewAll, handleSave, requestNavigate]);
+  }, [navRows, focus, roles, roleId, toggle, toggleViewAll, toggleCollapse, handleSave, requestNavigate]);
 
-  // 焦點格捲入視野
+  // 焦點列捲入視野
   useEffect(() => {
-    panelRef.current?.querySelector(`[data-cell="${focus.row}-${focus.col}"]`)?.scrollIntoView({ block: 'nearest' });
+    panelRef.current?.querySelector(`[data-navrow="${focus.row}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [focus]);
-
-  // 依 moduleCode 分群（保留 flat index 供鍵盤）
-  const groups = useMemo(() => {
-    const out: { module: string; rows: { view: ViewDto; flatIndex: number }[] }[] = [];
-    views.forEach((view, flatIndex) => {
-      const mc = view.moduleCode || 'OTHER';
-      let g = out.find((x) => x.module === mc);
-      if (!g) { g = { module: mc, rows: [] }; out.push(g); }
-      g.rows.push({ view, flatIndex });
-    });
-    return out;
-  }, [views]);
 
   const selectedRole = roles.find((r) => r.id === roleId);
 
@@ -333,19 +372,101 @@ export function RoleViewMatrixPage() {
               </tr>
             </thead>
             <tbody>
-              {groups.map((g) => (
-                <RoleViewGroup
-                  key={g.module}
-                  module={g.module}
-                  rows={g.rows}
-                  cellOf={cellOf}
-                  focus={focus}
-                  setFocus={setFocus}
-                  toggle={toggle}
-                  toggleViewAll={toggleViewAll}
-                  toggleModuleAll={toggleModuleAll}
-                />
-              ))}
+              {navRows.map((nr, idx) => {
+                if (nr.type === 'header') {
+                  const isCollapsed = collapsed.has(nr.module);
+                  const moduleAllOn =
+                    nr.viewIds.length > 0 &&
+                    nr.viewIds.every((vid) => { const c = cellOf(vid); return PERM_KEYS.every((k) => c[k]); });
+                  const headerFocused = focus.row === idx;
+                  return (
+                    <tr key={`h_${nr.module}`} data-navrow={idx}>
+                      <td
+                        colSpan={PERM_KEYS.length + 1}
+                        className={cn('bg-[#0E0E12] px-4 py-2', headerFocused && 'ring-1 ring-inset ring-[#E8A020]/50')}
+                      >
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => toggleCollapse(nr.module)}
+                            onMouseEnter={() => setFocus({ row: idx, col: 0 })}
+                            title={isCollapsed ? '展開（→ / Enter）' : '收合（← / Enter）'}
+                            className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-[#C8C8D0] transition-colors hover:text-[#E8A020]"
+                          >
+                            {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
+                            {moduleLabel(nr.module)}
+                            <span className="text-[10px] font-normal text-[#5A5A60]">（{nr.viewIds.length}）</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleModuleAll(nr.viewIds)}
+                            title="本模組所有畫面 5 種權限一次全勾 / 全清"
+                            className={cn(
+                              'inline-flex h-7 items-center gap-1.5 rounded-md border px-3 text-[11px] font-semibold transition-colors',
+                              moduleAllOn
+                                ? 'border-[#E8A020]/60 bg-[#E8A020]/22 text-[#E8A020] hover:bg-[#E8A020]/30'
+                                : 'border-[#E8A020]/35 bg-[#E8A020]/10 text-[#E8A020] hover:border-[#E8A020]/60 hover:bg-[#E8A020]/20',
+                            )}
+                          >
+                            <CheckCheck className="size-3.5" />
+                            {moduleAllOn ? '整模組清除' : '整模組全選'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
+                const view = nr.view;
+                const c = cellOf(view.id);
+                const viewAllOn = PERM_KEYS.every((k) => c[k]);
+                return (
+                  <tr key={view.id} data-navrow={idx} className="border-b border-[#1A1A1F]/70">
+                    <td className="px-4 py-2 text-[#E8E8EB]">
+                      <div className="flex items-center justify-between gap-2 pl-5">
+                        <span className="truncate">{view.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleViewAll(view.id)}
+                          title="本畫面 5 種權限一次全勾 / 全清（鍵盤：A）"
+                          className={cn(
+                            'inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold transition-colors',
+                            viewAllOn
+                              ? 'border-[#E8A020]/55 bg-[#E8A020]/18 text-[#E8A020] hover:bg-[#E8A020]/28'
+                              : 'border-[#3A3A42] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#E8A020]/45 hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
+                          )}
+                        >
+                          <CheckCheck className="size-3" />
+                          {viewAllOn ? '清除' : '全選'}
+                        </button>
+                      </div>
+                    </td>
+                    {PERM_KEYS.map((k, colIndex) => {
+                      const on = c[k];
+                      const focused = focus.row === idx && focus.col === colIndex;
+                      return (
+                        <td key={k} className="px-2 py-2 text-center" data-cell={`${idx}-${colIndex}`}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFocus({ row: idx, col: colIndex });
+                              toggle(view.id, k);
+                            }}
+                            onMouseEnter={() => setFocus({ row: idx, col: colIndex })}
+                            aria-label={`${view.name} ${PERM_LABELS[k]}`}
+                            className={cn(
+                              'inline-flex size-6 items-center justify-center rounded border transition-colors',
+                              on ? 'border-[#E8A020]/60 bg-[#E8A020]/15 text-[#E8A020]' : 'border-[#3A3A42] bg-[#1A1A1F] text-transparent',
+                              focused && 'ring-2 ring-[#E8A020]/70',
+                            )}
+                          >
+                            {on ? '✓' : ''}
+                          </button>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -353,109 +474,5 @@ export function RoleViewMatrixPage() {
 
       <ToastStack toasts={toasts} />
     </div>
-  );
-}
-
-function RoleViewGroup({
-  module,
-  rows,
-  cellOf,
-  focus,
-  setFocus,
-  toggle,
-  toggleViewAll,
-  toggleModuleAll,
-}: {
-  module: string;
-  rows: { view: ViewDto; flatIndex: number }[];
-  cellOf: (viewId: string) => Cell;
-  focus: { row: number; col: number };
-  setFocus: (f: { row: number; col: number }) => void;
-  toggle: (viewId: string, key: PermKey) => void;
-  toggleViewAll: (viewId: string) => void;
-  toggleModuleAll: (viewIds: string[]) => void;
-}) {
-  // 本模組所有畫面是否已全勾（決定按鈕標籤 全選 ↔ 清除 + 視覺）
-  const moduleAllOn =
-    rows.length > 0 &&
-    rows.every((r) => {
-      const c = cellOf(r.view.id);
-      return PERM_KEYS.every((k) => c[k]);
-    });
-  return (
-    <>
-      <tr>
-        <td colSpan={PERM_KEYS.length + 1} className="bg-[#0E0E12] px-4 py-2">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold tracking-wide text-[#C8C8D0]">{moduleLabel(module)}</span>
-            <button
-              type="button"
-              onClick={() => toggleModuleAll(rows.map((r) => r.view.id))}
-              title="本模組所有畫面 5 種權限一次全勾 / 全清"
-              className={cn(
-                'inline-flex h-7 items-center gap-1.5 rounded-md border px-3 text-[11px] font-semibold transition-colors',
-                moduleAllOn
-                  ? 'border-[#E8A020]/60 bg-[#E8A020]/22 text-[#E8A020] hover:bg-[#E8A020]/30'
-                  : 'border-[#E8A020]/35 bg-[#E8A020]/10 text-[#E8A020] hover:border-[#E8A020]/60 hover:bg-[#E8A020]/20',
-              )}
-            >
-              <CheckCheck className="size-3.5" />
-              {moduleAllOn ? '整模組清除' : '整模組全選'}
-            </button>
-          </div>
-        </td>
-      </tr>
-      {rows.map(({ view, flatIndex }) => {
-        const c = cellOf(view.id);
-        const viewAllOn = PERM_KEYS.every((k) => c[k]);
-        return (
-          <tr key={view.id} className="border-b border-[#1A1A1F]/70">
-            <td className="px-4 py-2 text-[#E8E8EB]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="truncate">{view.name}</span>
-                <button
-                  type="button"
-                  onClick={() => toggleViewAll(view.id)}
-                  title="本畫面 5 種權限一次全勾 / 全清（鍵盤：A）"
-                  className={cn(
-                    'inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold transition-colors',
-                    viewAllOn
-                      ? 'border-[#E8A020]/55 bg-[#E8A020]/18 text-[#E8A020] hover:bg-[#E8A020]/28'
-                      : 'border-[#3A3A42] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#E8A020]/45 hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
-                  )}
-                >
-                  <CheckCheck className="size-3" />
-                  {viewAllOn ? '清除' : '全選'}
-                </button>
-              </div>
-            </td>
-            {PERM_KEYS.map((k, colIndex) => {
-              const on = c[k];
-              const focused = focus.row === flatIndex && focus.col === colIndex;
-              return (
-                <td key={k} className="px-2 py-2 text-center" data-cell={`${flatIndex}-${colIndex}`}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFocus({ row: flatIndex, col: colIndex });
-                      toggle(view.id, k);
-                    }}
-                    onMouseEnter={() => setFocus({ row: flatIndex, col: colIndex })}
-                    aria-label={`${view.name} ${PERM_LABELS[k]}`}
-                    className={cn(
-                      'inline-flex size-6 items-center justify-center rounded border transition-colors',
-                      on ? 'border-[#E8A020]/60 bg-[#E8A020]/15 text-[#E8A020]' : 'border-[#3A3A42] bg-[#1A1A1F] text-transparent',
-                      focused && 'ring-2 ring-[#E8A020]/70',
-                    )}
-                  >
-                    {on ? '✓' : ''}
-                  </button>
-                </td>
-              );
-            })}
-          </tr>
-        );
-      })}
-    </>
   );
 }
