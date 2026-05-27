@@ -1,6 +1,6 @@
 // apps/nx-ui/src/app/dashboard/base/users/page.tsx
 /**
- * NEXORA 使用者主檔（鋼鐵星球範式，commit 58 取代 BaseUserMasterView）
+ * NEXORA 使用者基本資料（鋼鐵星球範式，commit 58 取代 BaseUserMasterView）
  *
  * 設計：
  * - 內容由 features/base/users/UserMasterPage 提供（與 /lab/users 共用同一份元件）

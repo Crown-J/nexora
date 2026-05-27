@@ -1,15 +1,13 @@
+// apps/nx-ui/src/app/dashboard/base/part-group/page.tsx
 /**
- * File: apps/nx-ui/src/app/dashboard/base/part-group/page.tsx
- * Purpose: 零件族群主檔（路由 v2：`/dashboard/base/part-group`）
+ * 零件群組主檔（鋼鐵星球範式、EntityMasterPage）
+ * DashboardShell 已加 bypass（避免雙 shell）。
  */
 'use client';
-import { BasePartGroupApiMasterView } from '@/features/base/part-group/BasePartGroupApiMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { PART_GROUP_MASTER } from '@/features/base/master-config/simple-masters';
+
 export default function BasePartGroupDashboardPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="零件族群主檔" />
-      <BasePartGroupApiMasterView />
-    </div>
-  );
+  return <EntityMasterPage config={PART_GROUP_MASTER} />;
 }

@@ -19,16 +19,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Users,
   Briefcase,
-  Shield,
-  Package,
-  Car,
-  Building2,
-  Handshake,
-  Settings,
-  Layers,
   Warehouse,
 } from 'lucide-react';
 
@@ -67,12 +61,18 @@ import {
   SectionAddButton,
   SectionHeader,
 } from '@/features/master-shell/ui/MasterDetail';
-import {
-  MasterShell,
-  type HeaderConfig,
-  type SidebarConfig,
-} from '@/features/master-shell/ui/MasterShell';
+import { type HeaderConfig } from '@/features/master-shell/ui/MasterShell';
+import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
+import { MasterTabs } from '@/features/master-shell/entity-master/MasterTabs';
+import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
+import {
+  MasterColumnsPanel,
+  MasterFilterPanel,
+  rowMatchesFilters,
+  type FilterCond,
+  type FilterFieldDef,
+} from '@/features/master-shell/ui/MasterTableTools';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
@@ -81,63 +81,11 @@ import { cn } from '@/lib/utils';
 // 配置
 // ──────────────────────────────────────────────────────────────
 
-const SIDEBAR_CONFIG: SidebarConfig = {
-  brandTitle: 'NEXORA GRID',
-  brandSubtitle: '測試公司（LITE）',
-  userInitial: '管',
-  userName: '測試租戶管理員（LITE）',
-  userMeta: 'admin · 使用者',
-  sections: [
-    {
-      id: 'account',
-      label: '帳號與權限',
-      hasAddAction: true,
-      items: [
-        // 軌 A commit A1：user-role / user-warehouse 從 sidebar 降階；
-        // 業務員 daily 改於 USER 詳細頁管理擔任職務 / 隸屬倉庫，
-        // PRO 用戶 reverse 視角批次工具仍可由主檔中心 hub 進入。
-        { id: 'user', icon: Users, label: '使用者', active: true, count: 5 },
-        { id: 'role', icon: Briefcase, label: '職務主檔', count: 6 },
-        { id: 'role-view', icon: Shield, label: '職務權限設定', count: 12 },
-      ],
-    },
-    {
-      id: 'product',
-      label: '產品與料號',
-      items: [
-        { id: 'part', icon: Package, label: '零件主檔', count: 256 },
-        { id: 'brand', icon: Layers, label: '汽車／零件廠牌', count: 48 },
-      ],
-    },
-    {
-      id: 'vehicle',
-      label: '車型字典',
-      items: [
-        { id: 'engine', icon: Car, label: '引擎主檔', count: 32 },
-        { id: 'model', icon: Car, label: '車型主檔', count: 128 },
-      ],
-    },
-    {
-      id: 'org',
-      label: '組織架構',
-      items: [{ id: 'warehouse', icon: Building2, label: '倉庫主檔', count: 4 }],
-    },
-    {
-      id: 'partner',
-      label: '交易對象',
-      items: [{ id: 'partner', icon: Handshake, label: '客戶主檔', count: 87 }],
-    },
-    {
-      id: 'system',
-      label: '系統設定',
-      items: [{ id: 'settings', icon: Settings, label: '基礎設定' }],
-    },
-  ],
-};
+// 統一範式（2026-05-27）：USER 主檔改用 MasterTopBar（無左 sidebar），SIDEBAR_CONFIG 已移除。
 
 const HEADER_CONFIG: HeaderConfig = {
   category: '帳號與權限',
-  title: '使用者主檔',
+  title: '使用者基本資料',
   countBadge: { icon: Users, text: '5 位使用者' },
   notificationBadge: 3,
   announcementBadge: 2,
@@ -228,62 +176,31 @@ function makeEditForm(user: UserRow): EditFormState {
 // 子元件
 // ──────────────────────────────────────────────────────────────
 
-/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定 */
-function ErpTabBar({
-  tab,
-  onChange,
-  hasSelected,
-  editMode,
-}: {
-  tab: 'list' | 'detail';
-  onChange: (next: 'list' | 'detail') => void;
-  hasSelected: boolean;
-  editMode: boolean;
-}) {
-  return (
-    <div
-      className="flex items-center border-b border-[#2A2A30] px-3"
-      style={{
-        backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #08080A 100%)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => onChange('list')}
-        disabled={editMode}
-        title={editMode ? '編輯模式無法切換' : '資料瀏覽（Alt+1）'}
-        className={cn(
-          'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-          tab === 'list'
-            ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_12px_rgba(232,160,32,0.4)]'
-            : editMode
-              ? 'cursor-not-allowed border-transparent text-[#5A5A60]'
-              : 'border-transparent text-[#888892] hover:text-[#E8E8EB]',
-        )}
-      >
-        <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">1</span>
-        資料瀏覽
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange('detail')}
-        disabled={!hasSelected || editMode}
-        title={editMode ? '編輯模式無法切換' : '詳細資料（Alt+2）'}
-        className={cn(
-          'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-          tab === 'detail'
-            ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_12px_rgba(232,160,32,0.4)]'
-            : hasSelected && !editMode
-              ? 'border-transparent text-[#888892] hover:text-[#E8E8EB]'
-              : 'cursor-not-allowed border-transparent text-[#5A5A60]',
-        )}
-      >
-        <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">2</span>
-        詳細資料
-      </button>
-    </div>
-  );
+/** 欄位設定（Alt+L）/ 篩選（Alt+T）共用的欄位清單（對齊 buildUserColumns 顯示欄位） */
+const USER_TOOL_FIELDS: FilterFieldDef[] = [
+  { key: 'username', label: '帳號' },
+  { key: 'displayName', label: '姓名' },
+  { key: 'jobTitle', label: '職務' },
+  { key: 'email', label: '信箱' },
+  { key: 'phone', label: '電話' },
+  { key: 'warehouse', label: '隸屬倉庫' },
+  { key: 'isActive', label: '啟用' },
+  { key: 'lastLoginAt', label: '最後登入' },
+  { key: 'createdAt', label: '建立時間' },
+];
+
+/** 取某使用者列某欄的「顯示文字」（供篩選比對；對齊列表呈現） */
+function getUserCellText(row: UserRow, key: string): string {
+  switch (key) {
+    case 'isActive':
+      return row.isActive ? '啟用' : '未啟用';
+    case 'lastLoginAt':
+      return row.lastLoginAt ? formatDateTimeZh(row.lastLoginAt) : '從未登入';
+    case 'createdAt':
+      return formatDateTimeZh(row.createdAt);
+    default:
+      return String((row as unknown as Record<string, unknown>)[key] ?? '');
+  }
 }
 
 /** 使用者主檔的 column 配置（傳給 MasterTable<UserRow>） */
@@ -361,15 +278,17 @@ function buildUserColumns(): MasterTableColumn<UserRow>[] {
       sortable: true,
       render: (row) => (
         <span className="text-xs tabular-nums text-[#888892]">
-          {row.lastLoginAt ?? <span className="text-[#5A5A60]">—</span>}
+          {row.lastLoginAt ? formatDateTimeZh(row.lastLoginAt) : <span className="text-[#5A5A60]">—</span>}
         </span>
       ),
     },
     {
       key: 'createdAt',
       label: '建立時間',
-      minWidthClass: 'min-w-[160px]',
-      render: (row) => <span className="text-xs tabular-nums text-[#888892]">{row.createdAt}</span>,
+      minWidthClass: 'min-w-[180px]',
+      render: (row) => (
+        <span className="text-xs tabular-nums text-[#888892]">{formatDateTimeZh(row.createdAt)}</span>
+      ),
     },
   ];
 }
@@ -465,6 +384,7 @@ function UserDetailView({
   stagedRolePrimaryChanged,
   stagedWarehouseAddCount,
   stagedWarehouseRemoveCount,
+  onRequestSave,
 }: {
   user: UserRow;
   editMode: boolean;
@@ -488,14 +408,48 @@ function UserDetailView({
   stagedRolePrimaryChanged: boolean;
   stagedWarehouseAddCount: number;
   stagedWarehouseRemoveCount: number;
+  /** 基本資料最後一格 Enter → 存檔確認（ERP muscle memory） */
+  onRequestSave: () => void;
 }) {
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // 系統管理員（含 SYSADMIN 職務）：擁有所有權限、職務/據點區塊唯讀灰掉、不可設定
+  const isAdmin = userRoles.some((r) => String(r.roleCode ?? '').trim().toUpperCase() === 'SYSADMIN');
+
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
     onEditChange({ ...editForm, [key]: value });
   };
 
+  // 進編輯自動 focus 第一格
+  useEffect(() => {
+    if (!editMode) return;
+    formRef.current?.querySelector<HTMLElement>('input, select, textarea')?.focus();
+  }, [editMode, user.id]);
+
+  // Enter 跳下一格；最後一格 Enter → 存檔確認（基本資料區；textarea 例外）
+  const handleFormKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
+    const t = e.target as HTMLElement;
+    if (t.tagName.toLowerCase() === 'textarea') return;
+    e.preventDefault();
+    // 設定職務 / 設定據點 按鈕：Enter = 打開設定視窗（不跳格；關閉後再 Enter 才前進）
+    if (t.hasAttribute('data-formchain')) {
+      (t as HTMLButtonElement).click();
+      return;
+    }
+    const els = Array.from(
+      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea, [data-formchain]') ?? [],
+    ).filter((el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null);
+    const idx = els.indexOf(t);
+    if (idx >= 0 && idx < els.length - 1) els[idx + 1]?.focus();
+    else onRequestSave();
+  };
+
   return (
     <MasterDetailScroll scrollKey={user.id}>
+      {/* Enter 跳格鏈包整個詳細頁：基本資料欄位 → 新增職務 → 新增倉庫 → 存檔 */}
+      <div ref={formRef} onKeyDown={handleFormKey}>
       {/* 基本資料 */}
       <section className="border-b border-[#1A1A1F] px-8 py-6">
         <SectionHeader title="基本資料" subtitle="User Profile" />
@@ -531,12 +485,16 @@ function UserDetailView({
             <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
           )}
           <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
-          <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
+          <FormField
+            label="最後登入"
+            value={user.lastLoginAt ? formatDateTimeZh(user.lastLoginAt) : '從未登入'}
+            dim={!user.lastLoginAt}
+          />
 
-          <FormField label="建立時間" value={user.createdAt} mono />
-          <FormField label="建立人員" value={user.createdBy} />
-          <FormField label="修改時間" value={user.updatedAt} mono />
-          <FormField label="修改人員" value={user.updatedBy} />
+          <FormField label="建立時間" value={formatDateTimeZh(user.createdAt)} mono dim />
+          <FormField label="建立人員" value={user.createdBy} dim />
+          <FormField label="修改時間" value={formatDateTimeZh(user.updatedAt)} mono dim />
+          <FormField label="修改人員" value={user.updatedBy} dim />
         </div>
       </section>
 
@@ -546,7 +504,7 @@ function UserDetailView({
           title="擔任職務"
           count={userRoles.length}
           subtitle="Assigned Roles"
-          action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} /> : null}
+          action={editMode && !isAdmin ? <SectionAddButton label="設定職務" onClick={onAddRole} formChain={1} /> : null}
         />
         {editMode &&
         (stagedRoleAddCount > 0 || stagedRoleRemoveCount > 0 || stagedRolePrimaryChanged) ? (
@@ -558,7 +516,12 @@ function UserDetailView({
             <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
           </div>
         ) : null}
-        <div className="mt-4">
+        <div className={cn('mt-4', isAdmin && 'opacity-60')}>
+          {isAdmin ? (
+            <div className="mb-3 rounded-md border border-[#3A3A42] bg-[#1A1A1F] px-3 py-2 text-xs text-[#888892]">
+              系統管理員擁有所有權限、無需設定
+            </div>
+          ) : null}
           {userRoles.length > 0 ? (
             <DetailTable
               headers={
@@ -572,10 +535,10 @@ function UserDetailView({
                   r.roleCode ?? '—',
                   r.roleName ?? '—',
                   r.isPrimary ? '✓' : '',
-                  r.assignedAt,
+                  formatDateTimeZh(r.assignedAt),
                   r.assignedByName ?? '—',
                 ];
-                if (!editMode) return base;
+                if (!editMode || isAdmin) return base;
                 return [
                   ...base,
                   <RoleRowActions
@@ -599,7 +562,7 @@ function UserDetailView({
           title="隸屬倉庫"
           count={userWarehouses.length}
           subtitle="Assigned Warehouses"
-          action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
+          action={editMode && !isAdmin ? <SectionAddButton label="設定據點" onClick={onAddWarehouse} formChain={2} /> : null}
         />
         {editMode && (stagedWarehouseAddCount > 0 || stagedWarehouseRemoveCount > 0) ? (
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
@@ -609,7 +572,12 @@ function UserDetailView({
             <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
           </div>
         ) : null}
-        <div className="mt-4">
+        <div className={cn('mt-4', isAdmin && 'opacity-60')}>
+          {isAdmin ? (
+            <div className="mb-3 rounded-md border border-[#3A3A42] bg-[#1A1A1F] px-3 py-2 text-xs text-[#888892]">
+              系統管理員擁有所有權限、無需設定
+            </div>
+          ) : null}
           {userWarehouses.length > 0 ? (
             <DetailTable
               headers={
@@ -622,10 +590,10 @@ function UserDetailView({
                   String(i + 1).padStart(4, '0'),
                   w.warehouseCode ?? '—',
                   w.warehouseName ?? '—',
-                  w.assignedAt,
+                  formatDateTimeZh(w.assignedAt),
                   w.assignedByName ?? '—',
                 ];
-                if (!editMode) return base;
+                if (!editMode || isAdmin) return base;
                 return [
                   ...base,
                   <WarehouseRowActions key={`actions-${w.id}`} onRevoke={() => onRevokeWarehouse(w)} />,
@@ -637,6 +605,7 @@ function UserDetailView({
           )}
         </div>
       </section>
+      </div>
     </MasterDetailScroll>
   );
 }
@@ -646,6 +615,7 @@ function UserDetailView({
 // ──────────────────────────────────────────────────────────────
 
 export function UserMasterPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<'list' | 'detail'>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -656,7 +626,6 @@ export function UserMasterPage() {
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [sortKey, setSortKey] = useState<string>('username');
-  const sidebarRef = useRef<HTMLElement>(null);
   const { toasts, showToast } = useToast();
   const userColumns = useMemo(() => buildUserColumns(), []);
 
@@ -676,6 +645,12 @@ export function UserMasterPage() {
 
   // ── 新增對話框（Stage 1-B.6）─────────────────────────────────
   const [createOpen, setCreateOpen] = useState(false);
+
+  // ── 欄位設定（Alt+L）/ 篩選（Alt+T）─────────────────────────
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterCond[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // ── 詳細頁關聯資料：擔任職務 / 隸屬倉庫（Stage 1-B.7 / 1-B.8）─
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
@@ -825,9 +800,22 @@ export function UserMasterPage() {
     };
   }, [selectedId, tab, warehousesReloadTick, showToast]);
 
+  // 前端篩選（就目前載入頁套用）+ 欄位顯示控制
+  const displayUsers = useMemo(
+    () =>
+      filters.length === 0
+        ? users
+        : users.filter((u) => rowMatchesFilters(filters, (k) => getUserCellText(u, k))),
+    [users, filters],
+  );
+  const visibleUserColumns = useMemo(
+    () => userColumns.filter((c) => !hiddenCols.has(c.key)),
+    [userColumns, hiddenCols],
+  );
+
   const selectedUser = useMemo(
-    () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
-    [selectedId, users],
+    () => (selectedId ? displayUsers.find((u) => u.id === selectedId) ?? null : null),
+    [selectedId, displayUsers],
   );
 
   // C2：dirty 偵測 — 編輯模式下，表單欄位 diff OR staged ops 數量 > 0 → dirty
@@ -877,6 +865,20 @@ export function UserMasterPage() {
 
   const handleSearch = useCallback(() => {
     setSearchOpen((prev) => !prev);
+    setColumnsOpen(false);
+    setFilterOpen(false);
+  }, []);
+
+  // 欄位設定（Alt+L）/ 篩選（Alt+T）互斥開關
+  const handleToggleColumns = useCallback(() => {
+    setColumnsOpen((o) => !o);
+    setSearchOpen(false);
+    setFilterOpen(false);
+  }, []);
+  const handleToggleFilter = useCallback(() => {
+    setFilterOpen((o) => !o);
+    setSearchOpen(false);
+    setColumnsOpen(false);
   }, []);
 
   const handleCloseSearch = useCallback(() => {
@@ -930,11 +932,12 @@ export function UserMasterPage() {
   }, [showToast]);
 
   const handleExit = useCallback(() => {
-    setSelectedId(null);
-    const first = sidebarRef.current?.querySelector<HTMLButtonElement>('[data-nav-item]');
-    first?.focus();
-    showToast('焦點已轉至左側模組列表（↑↓ 切換、Enter 返回表格）', 'info');
-  }, [showToast]);
+    if (mode === 'edit') {
+      showToast('編輯中：請先存檔（Alt+S）或取消（Alt+C）', 'info');
+      return;
+    }
+    router.push('/dashboard');
+  }, [mode, router, showToast]);
 
   // C2：handleReturnToTable 已 inline 進 attemptReturnToTable（含 dirty 攔截）
 
@@ -1100,44 +1103,76 @@ export function UserMasterPage() {
     [isDirty, performSave, performCancel],
   );
 
-  // C2：dirty-aware sidebar return-to-table
-  const attemptReturnToTable = useCallback(() => {
-    if (!isDirty) {
-      // 既有邏輯（reset selectedId + 焦點移第一筆）內聯於下
-      if (users.length === 0) return;
-      const first = users[0];
-      setSelectedId(first.id);
-      setTimeout(() => {
-        const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
-        row?.focus();
-      }, 0);
-      showToast(`已聚焦第一筆：${first.username}`, 'info');
+  // 統一範式：模組選單 / 公告等跨頁跳轉（編輯 dirty 先 3-way confirm，對齊 EntityMasterPage）
+  const requestNavigate = useCallback(
+    (href: string) => {
+      if (mode === 'edit' && isDirty) {
+        setConfirmState({
+          title: '您有未存檔變更',
+          message: '離開此頁要先存檔，還是丟棄變更？',
+          confirmLabel: '存檔後離開',
+          onConfirm: () => {
+            void (async () => {
+              const ok = await performSave();
+              if (ok) router.push(href);
+            })();
+          },
+          secondaryAction: {
+            label: '丟棄變更',
+            variant: 'danger',
+            onClick: () => {
+              performCancel();
+              router.push(href);
+            },
+          },
+        });
+        return;
+      }
+      router.push(href);
+    },
+    [mode, isDirty, performSave, performCancel, router],
+  );
+
+  // 進頁面自動鎖定第一列（對齊其他 22 個主檔；詳細頁不再跳「請先選擇」）
+  useEffect(() => {
+    if (displayUsers.length === 0) {
+      if (selectedId !== null) setSelectedId(null);
       return;
     }
-    setConfirmState({
-      title: '您有未存檔變更',
-      message: '離開編輯模式前需處理變更：儲存、丟棄、或取消（保持編輯）。',
-      confirmLabel: '儲存後離開',
-      onConfirm: () => {
-        void performSave();
-      },
-      secondaryAction: {
-        label: '丟棄變更',
-        variant: 'danger',
-        onClick: () => {
-          performCancel();
-        },
-      },
-    });
-  }, [isDirty, users, performSave, performCancel, showToast]);
+    if (!displayUsers.some((u) => u.id === selectedId)) setSelectedId(displayUsers[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayUsers]);
 
-  const handleNotification = useCallback(() => {
-    showToast('通知中心 · 3 則未讀（lab mock）', 'info');
-  }, [showToast]);
+  // 選中列捲入視野
+  useEffect(() => {
+    if (!selectedId || tab !== 'list') return;
+    document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId, tab]);
 
-  const handleAnnouncement = useCallback(() => {
-    showToast('公告 · 2 則最新（lab mock）', 'info');
-  }, [showToast]);
+  // 瀏覽模式整頁 ↑↓ 切列 + Enter 進詳細（焦點非表單元素時）
+  useEffect(() => {
+    const onArrow = (e: KeyboardEvent) => {
+      if (mode !== 'browse' || tab !== 'list') return;
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (displayUsers.length === 0) return;
+        e.preventDefault();
+        const idx = displayUsers.findIndex((u) => u.id === selectedId);
+        const cur = idx < 0 ? 0 : idx;
+        const nextIdx =
+          e.key === 'ArrowDown' ? Math.min(displayUsers.length - 1, cur + 1) : Math.max(0, cur - 1);
+        setSelectedId(displayUsers[nextIdx].id);
+      } else if (e.key === 'Enter') {
+        // 選中列 Enter → 進詳細資料（瀏覽）
+        if (!selectedId) return;
+        e.preventDefault();
+        setTab('detail');
+      }
+    };
+    window.addEventListener('keydown', onArrow);
+    return () => window.removeEventListener('keydown', onArrow);
+  }, [mode, tab, displayUsers, selectedId]);
 
   const handleAddRole = useCallback(() => {
     if (!selectedUser) {
@@ -1147,30 +1182,69 @@ export function UserMasterPage() {
     setRolePickerOpen(true);
   }, [selectedUser, showToast]);
 
-  // RolePicker 用：已指派的 roleId 集合（picker 內 disable + 顯示「已指派」chip）
-  const assignedRoleIds = useMemo(
-    () => new Set(selectedUserRoles.map((ur) => ur.roleId)),
-    [selectedUserRoles],
-  );
+  // RolePicker 管理模式用：當前「有效」已指派 roleId（含 staged add、扣除 staged remove），
+  // picker 開啟時據此預設勾選；反勾＝撤銷、勾＝指派。
+  const effectiveAssignedRoleIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const ur of selectedUserRoles) {
+      if (!stagedRemovedRoleIds.has(ur.id)) s.add(ur.roleId);
+    }
+    for (const r of stagedAddedRoles) s.add(r.id);
+    return s;
+  }, [selectedUserRoles, stagedRemovedRoleIds, stagedAddedRoles]);
+
+  // 主要職務不可在 picker 反勾撤銷（對齊列表「主要職務不可撤銷」規則）
+  const lockedPrimaryRoleIds = useMemo(() => {
+    const primaryUserRoleId =
+      stagedPrimaryRoleId ?? selectedUserRoles.find((r) => r.isPrimary)?.id ?? null;
+    const ur = selectedUserRoles.find((r) => r.id === primaryUserRoleId);
+    return ur ? new Set([ur.roleId]) : new Set<string>();
+  }, [stagedPrimaryRoleId, selectedUserRoles]);
 
   const handleRolePickerSearch = useCallback(
-    (q: string) => listRoles({ q: q || undefined, isActive: true, pageSize: 50 }),
-    [],
-  );
-
-  // C1 staged：picker confirm 不立即 assign，只加入 pendingRoleOps
-  const handleRolePickerConfirm = useCallback(
-    async (roles: RoleDto[]) => {
-      setPendingRoleOps((prev) => [...prev, ...roles.map((r): RoleOp => ({ kind: 'add', role: r }))]);
+    async (q: string) => {
+      const res = await listRoles({ q: q || undefined, isActive: true, pageSize: 50 });
+      // SYSADMIN 鎖定（前端再保險、對齊後端 role.service list 過濾）：
+      // 系統管理員職務為伊諾瓦後台角色、指派視窗完全不出現。
+      return {
+        ...res,
+        items: res.items.filter((r) => String(r.code ?? '').trim().toUpperCase() !== 'SYSADMIN'),
+      };
     },
     [],
   );
 
-  const handleRolePickerSuccess = useCallback(
-    (count: number) => {
-      showToast(`已加入 ${count} 個職務（待存檔，按 S 才會寫入）`, 'info');
+  // 管理模式套用（勾＝指派、反勾＝撤銷）：與既有 staged ops 對帳、按 S 才寫入。
+  const handleRoleManageApply = useCallback(
+    async (added: RoleDto[], removedRoleIds: string[]) => {
+      setPendingRoleOps((prev) => {
+        let next = [...prev];
+        // 新增勾選
+        for (const role of added) {
+          const existingUr = selectedUserRoles.find((ur) => ur.roleId === role.id);
+          if (existingUr && next.some((o) => o.kind === 'remove' && o.userRoleId === existingUr.id)) {
+            // 既有職務原本 staged 撤銷 → 重新勾選＝取消該撤銷
+            next = next.filter((o) => !(o.kind === 'remove' && o.userRoleId === existingUr.id));
+          } else if (!next.some((o) => o.kind === 'add' && o.role.id === role.id)) {
+            next.push({ kind: 'add', role });
+          }
+        }
+        // 反勾撤銷
+        for (const roleId of removedRoleIds) {
+          if (next.some((o) => o.kind === 'add' && o.role.id === roleId)) {
+            // 反勾的是 staged-add（尚未存檔的新增）→ 取消該新增
+            next = next.filter((o) => !(o.kind === 'add' && o.role.id === roleId));
+            continue;
+          }
+          const ur = selectedUserRoles.find((u) => u.roleId === roleId);
+          if (ur && !next.some((o) => o.kind === 'remove' && o.userRoleId === ur.id)) {
+            next.push({ kind: 'remove', userRoleId: ur.id });
+          }
+        }
+        return next;
+      });
     },
-    [showToast],
+    [selectedUserRoles],
   );
 
   // C1 staged：設為主要（toggle 模式：再點同一筆 = 取消 staged）
@@ -1222,33 +1296,48 @@ export function UserMasterPage() {
     setWarehousePickerOpen(true);
   }, [selectedUser, showToast]);
 
-  // WarehousePicker 用：已指派的 warehouseId 集合
-  const assignedWarehouseIds = useMemo(
-    () => new Set(selectedUserWarehouses.map((uw) => uw.warehouseId)),
-    [selectedUserWarehouses],
-  );
+  // WarehousePicker 管理模式用：當前「有效」已指派 warehouseId（含 staged add、扣除 staged remove）
+  const effectiveAssignedWarehouseIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const uw of selectedUserWarehouses) {
+      if (!stagedRemovedWarehouseIds.has(uw.id)) s.add(uw.warehouseId);
+    }
+    for (const w of stagedAddedWarehouses) s.add(w.id);
+    return s;
+  }, [selectedUserWarehouses, stagedRemovedWarehouseIds, stagedAddedWarehouses]);
 
   const handleWarehousePickerSearch = useCallback(
     (q: string) => listWarehouses({ q: q || undefined, isActive: true, pageSize: 50 }),
     [],
   );
 
-  // C1 staged：picker confirm 不立即 assign，只加入 pendingWarehouseOps
-  const handleWarehousePickerConfirm = useCallback(
-    async (warehouses: WarehouseDto[]) => {
-      setPendingWarehouseOps((prev) => [
-        ...prev,
-        ...warehouses.map((w): WarehouseOp => ({ kind: 'add', warehouse: w })),
-      ]);
+  // 管理模式套用（勾＝指派、反勾＝撤銷）：與既有 staged ops 對帳、按 S 才寫入。
+  const handleWarehouseManageApply = useCallback(
+    async (added: WarehouseDto[], removedWarehouseIds: string[]) => {
+      setPendingWarehouseOps((prev) => {
+        let next = [...prev];
+        for (const w of added) {
+          const existingUw = selectedUserWarehouses.find((uw) => uw.warehouseId === w.id);
+          if (existingUw && next.some((o) => o.kind === 'remove' && o.userWarehouseId === existingUw.id)) {
+            next = next.filter((o) => !(o.kind === 'remove' && o.userWarehouseId === existingUw.id));
+          } else if (!next.some((o) => o.kind === 'add' && o.warehouse.id === w.id)) {
+            next.push({ kind: 'add', warehouse: w });
+          }
+        }
+        for (const wid of removedWarehouseIds) {
+          if (next.some((o) => o.kind === 'add' && o.warehouse.id === wid)) {
+            next = next.filter((o) => !(o.kind === 'add' && o.warehouse.id === wid));
+            continue;
+          }
+          const uw = selectedUserWarehouses.find((u) => u.warehouseId === wid);
+          if (uw && !next.some((o) => o.kind === 'remove' && o.userWarehouseId === uw.id)) {
+            next.push({ kind: 'remove', userWarehouseId: uw.id });
+          }
+        }
+        return next;
+      });
     },
-    [],
-  );
-
-  const handleWarehousePickerSuccess = useCallback(
-    (count: number) => {
-      showToast(`已加入 ${count} 個倉庫據點(待存檔，按 S 才會寫入)`, 'info');
-    },
-    [showToast],
+    [selectedUserWarehouses],
   );
 
   // B5（軌 B 第 5 commit）：批次啟用 / 批次停用 接 setUserActive 串聯
@@ -1405,6 +1494,14 @@ export function UserMasterPage() {
           e.preventDefault();
           handleExit();
           break;
+        case 'l':
+          e.preventDefault();
+          handleToggleColumns();
+          break;
+        case 't':
+          e.preventDefault();
+          handleToggleFilter();
+          break;
       }
     };
     window.addEventListener('keydown', onKey);
@@ -1422,45 +1519,61 @@ export function UserMasterPage() {
     handleExit,
     handleSave,
     handleCancel,
+    handleToggleColumns,
+    handleToggleFilter,
+    attemptTabChange,
     showToast,
   ]);
 
   return (
     <>
-      <MasterShell
-        sidebarRef={sidebarRef}
-        sidebarConfig={SIDEBAR_CONFIG}
-        headerConfig={HEADER_CONFIG}
-        onReturnToTable={attemptReturnToTable}
-        onNotification={handleNotification}
-        onAnnouncement={handleAnnouncement}
+      <div
+        className="flex h-dvh flex-col text-[#E8E8EB]"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
+        }}
       >
-        <ErpToolbar
-          mode={mode}
-          hasActiveRow={selectedUser !== null}
-          selectedRowActive={selectedUser?.isActive ?? true}
-          selectionMode={selectionMode}
-          onToggleSelection={handleToggleSelection}
-          selectedCount={checked.size}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onCreate={handleCreate}
-          onEdit={handleEdit}
-          onSearch={handleSearch}
-          onDelete={handleDelete}
-          onExport={handleExport}
-          onRefresh={handleRefresh}
-          onExit={handleExit}
-          onSave={handleSave}
-          onCancel={handleCancel}
-          // 軌 A commit A2：「顯示停用」是列表 filter，只在資料瀏覽 tab 顯示。
-          // ErpToolbar 已支援 onShowInactiveChange 未提供時不渲染（master-shell/ui/ErpToolbar.tsx line 175）。
-          showInactive={tab === 'list' ? showInactive : undefined}
-          onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
-          onBatchEnable={handleBatchEnable}
-          onBatchDisable={handleBatchDisable}
+        {/* 統一置頂列（與其他 22 個主檔頁一致） */}
+        <MasterTopBar
+          category={HEADER_CONFIG.category}
+          title={HEADER_CONFIG.title}
+          count={`${total} 位使用者`}
+          requestNavigate={requestNavigate}
         />
+        {/* 統一 Tab */}
+        <MasterTabs tab={tab} onChange={attemptTabChange} />
+        {/* 工具列（手機橫向 scroll） */}
+        <div className="overflow-x-auto">
+          <ErpToolbar
+            mode={mode}
+            hasActiveRow={selectedUser !== null}
+            selectedRowActive={selectedUser?.isActive ?? true}
+            selectionMode={selectionMode}
+            onToggleSelection={handleToggleSelection}
+            selectedCount={checked.size}
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onCreate={handleCreate}
+            onEdit={handleEdit}
+            onSearch={handleSearch}
+            onDelete={handleDelete}
+            onExport={handleExport}
+            onRefresh={handleRefresh}
+            onExit={handleExit}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            showInactive={tab === 'list' ? showInactive : undefined}
+            onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
+            onBatchEnable={handleBatchEnable}
+            onBatchDisable={handleBatchDisable}
+            onOpenColumns={mode === 'browse' && tab === 'list' ? handleToggleColumns : undefined}
+            onOpenFilter={mode === 'browse' && tab === 'list' ? handleToggleFilter : undefined}
+            columnsHiddenCount={hiddenCols.size}
+            filterCount={filters.length}
+          />
+        </div>
         <SearchPanel
           open={searchOpen}
           value={keyword}
@@ -1468,29 +1581,32 @@ export function UserMasterPage() {
           onClose={handleCloseSearch}
           placeholder="搜尋帳號 / 姓名 / 信箱 / 電話..."
         />
-        <ErpTabBar
-          tab={tab}
-          onChange={attemptTabChange}
-          hasSelected={selectedUser !== null}
-          // C2：拿掉編輯模式 disable lock，改由 attemptTabChange 內部 dirty-aware 攔截
-          editMode={false}
+        <MasterColumnsPanel
+          open={columnsOpen}
+          onClose={() => setColumnsOpen(false)}
+          columns={USER_TOOL_FIELDS}
+          hidden={hiddenCols}
+          onChange={setHiddenCols}
         />
+        <MasterFilterPanel
+          open={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          fields={USER_TOOL_FIELDS}
+          value={filters}
+          onApply={setFilters}
+        />
+        <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
           <MasterTable<UserRow>
-            columns={userColumns}
-            rows={users}
+            columns={visibleUserColumns}
+            rows={displayUsers}
             getRowId={(r) => r.id}
             selectedId={selectedId}
             onSelect={setSelectedId}
             onOpenDetail={(id) => {
+              // 雙擊 / Enter = 進詳細「瀏覽」模式（要編輯再按 Alt+E）
               setSelectedId(id);
               setTab('detail');
-              // 雙擊 = 進入編輯（對齊 footer 文案）
-              const u = users.find((u) => u.id === id);
-              if (u) {
-                setMode('edit');
-                setEditForm(makeEditForm(u));
-              }
             }}
             selectionMode={selectionMode}
             checked={checked}
@@ -1500,13 +1616,15 @@ export function UserMasterPage() {
             footerHint={
               loading
                 ? '載入中…'
-                : debouncedKeyword
-                  ? `關鍵字「${debouncedKeyword}」過濾中${showInactive ? '（含停用）' : ''}`
-                  : showInactive
-                    ? '顯示全部（含停用）'
-                    : selectedId
-                      ? '雙擊或 Alt+E 進入編輯'
-                      : '點選列以啟用更正/停用'
+                : filters.length > 0
+                  ? `篩選 ${filters.length} 條件 · 符合 ${displayUsers.length} 筆（僅就本頁套用）`
+                  : debouncedKeyword
+                    ? `關鍵字「${debouncedKeyword}」過濾中${showInactive ? '（含停用）' : ''}`
+                    : showInactive
+                      ? '顯示全部（含停用）'
+                      : selectedId
+                        ? '雙擊或 Alt+E 進入編輯'
+                        : '點選列以啟用更正/停用'
             }
             pageSize={pageSize}
             onPageSizeChange={handlePageSizeChange}
@@ -1530,13 +1648,15 @@ export function UserMasterPage() {
             stagedRolePrimaryChanged={stagedPrimaryRoleId !== null}
             stagedWarehouseAddCount={stagedAddedWarehouses.length}
             stagedWarehouseRemoveCount={stagedRemovedWarehouseIds.size}
+            onRequestSave={handleSave}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center text-sm text-[#5A5A60]">
-            請先於「資料瀏覽」選擇一筆資料
+            目前沒有資料
           </div>
         )}
-      </MasterShell>
+        </div>
+      </div>
       <ConfirmDialog state={confirmState} onClose={() => setConfirmState(null)} />
       <CreateUserDialog
         open={createOpen}
@@ -1549,9 +1669,15 @@ export function UserMasterPage() {
       />
       <EntityPickerDialog<RoleDto>
         open={rolePickerOpen}
-        onClose={() => setRolePickerOpen(false)}
-        title="新增職務"
-        subtitle="Assign Roles"
+        onClose={() => {
+          setRolePickerOpen(false);
+          // 設定職務視窗關閉後，焦點前進到「設定據點」（Enter 鏈：職務 → 據點）
+          setTimeout(() => {
+            (document.querySelector('[data-formchain="2"]') as HTMLElement | null)?.focus();
+          }, 0);
+        }}
+        title="管理職務"
+        subtitle="Manage Roles"
         icon={Briefcase}
         searchPlaceholder="搜尋職務代碼 / 名稱..."
         search={handleRolePickerSearch}
@@ -1559,16 +1685,23 @@ export function UserMasterPage() {
         /* C4：主標只顯示中文名稱（去除 `${code} ·` 前綴）；英文代碼降為下方副標、仍可搜尋（backend role.service whereList OR code/name/description） */
         getLabel={(r) => r.name}
         getDescription={(r) => (r.description ? `${r.code} · ${r.description}` : r.code)}
-        disabledIds={assignedRoleIds}
-        disabledHint="已指派"
-        onConfirm={handleRolePickerConfirm}
-        onSuccess={handleRolePickerSuccess}
+        /* 管理模式：已指派職務預設勾選、反勾＝撤銷（主要職務鎖定不可反勾）。 */
+        preselectedIds={effectiveAssignedRoleIds}
+        lockedIds={lockedPrimaryRoleIds}
+        lockedHint="主要"
+        onApplyChanges={handleRoleManageApply}
+        onApplied={(addedCount, removedCount) =>
+          showToast(
+            `待存檔：新增 ${addedCount} · 撤銷 ${removedCount}（按 S 才寫入；主要職務不可撤銷）`,
+            'info',
+          )
+        }
       />
       <EntityPickerDialog<WarehouseDto>
         open={warehousePickerOpen}
         onClose={() => setWarehousePickerOpen(false)}
-        title="新增倉庫據點"
-        subtitle="Assign Warehouses"
+        title="管理倉庫據點"
+        subtitle="Manage Warehouses"
         icon={Warehouse}
         searchPlaceholder="搜尋倉庫代碼 / 名稱..."
         search={handleWarehousePickerSearch}
@@ -1576,10 +1709,15 @@ export function UserMasterPage() {
         /* C4：對齊 Role picker —— 主標只顯示中文名稱，英文代碼降為副標 */
         getLabel={(w) => w.name}
         getDescription={(w) => (w.remark ? `${w.code} · ${w.remark}` : w.code)}
-        disabledIds={assignedWarehouseIds}
-        disabledHint="已指派"
-        onConfirm={handleWarehousePickerConfirm}
-        onSuccess={handleWarehousePickerSuccess}
+        /* 管理模式：已指派據點預設勾選、反勾＝撤銷。 */
+        preselectedIds={effectiveAssignedWarehouseIds}
+        onApplyChanges={handleWarehouseManageApply}
+        onApplied={(addedCount, removedCount) =>
+          showToast(
+            `待存檔：新增 ${addedCount} · 撤銷 ${removedCount}（按 S 才寫入）`,
+            'info',
+          )
+        }
       />
       <ToastStack toasts={toasts} />
     </>

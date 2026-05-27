@@ -41,7 +41,38 @@ export function DashboardShell({ children }: DashboardShellProps) {
   // 鋼鐵星球範式 bypass（commit 58）：使用者主檔自帶完整 MasterShell，跳過 DashboardShell chrome 避免雙 shell 疊加。
   // 對齊 Crown 拍板「lab 範式取代 DashboardShell」。
   // 之後其他主檔陸續推進時可在此擴充判斷集合。
-  const isMasterShellBypass = pathname === '/dashboard/base/users';
+  // 鋼鐵星球範式遷移清單（自帶完整外殼、bypass DashboardShell chrome）。
+  // 每遷移一個主檔到 EntityMasterPage / UserMasterPage 即在此加入路徑。
+  const isMasterShellBypass =
+    pathname != null &&
+    [
+      '/dashboard/base/users',
+      '/dashboard/base/currency',
+      '/dashboard/base/country',
+      '/dashboard/base/part-group',
+      '/dashboard/base/roles',
+      '/dashboard/base/drivetrain',
+      '/dashboard/base/model-type',
+      '/dashboard/base/car-brand',
+      '/dashboard/base/engine',
+      '/dashboard/base/transmission',
+      '/dashboard/base/model',
+      '/dashboard/base/part-brand',
+      '/dashboard/base/part-relation',
+      '/dashboard/base/part-model',
+      '/dashboard/base/warehouses',
+      '/dashboard/base/customer-grade',
+      '/dashboard/base/phonetic-dictionary',
+      '/dashboard/base/partners',
+      '/dashboard/base/site',
+      '/dashboard/base/location',
+      '/dashboard/base/parts',
+      '/dashboard/base/brand-code-rule',
+      '/dashboard/base/bulletins',
+      '/dashboard/base/role-view',
+      '/dashboard/base/user-role',
+      '/dashboard/base/user-warehouse',
+    ].includes(pathname);
   // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
   const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
 

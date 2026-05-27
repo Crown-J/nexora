@@ -2,11 +2,23 @@
 
 # NX01-06 - 倉庫主檔工作站子規格書
 
-> 文件版本：v1.1（Crown 拍 Tier 預設 + 上限分層、Alex 修正）
-> 最後更新：2026-05-06
+> 文件版本：v1.2（下半場據點/倉庫/庫位三層拆分 + 收尾補強）
+> 最後更新：2026-05-27
 > 撰寫者：Alex（Claude PM AI）
 > 審核者：Crown Lin
-> 狀態：v1.1 正式版、待 Hank push（覆蓋 v1.0）
+> 狀態：v1.2 正式版
+
+---
+
+## 下半場 v1.2 變更（2026-05-27、Crown 拍板）
+
+- **據點 / 倉庫 / 庫位三層拆分**：
+  - 新增 `nx01_site`（**據點**：公司物理分點、倉庫之上一層；LITE 預設「主要倉庫(M)」1 筆）。
+  - `nx01_warehouse` 加 `siteId`（所屬據點、**NN + FK onDelete RESTRICT**；一倉屬一據點、一據點可多倉）。
+  - 原 `nx01_location` **正名為「庫位」**（區/架/層/格，本來即此語意、僅前端誤標為據點）；沿用原表、18 個 NX02/03/04 庫存外鍵零影響；加 siteId（所屬據點）。
+- **據點 isMain + partial unique**（每 tenant 一筆主據點、對齊倉庫 isMain 範式）。
+- **據點結構化地址** city/district/street 欄位（對齊倉庫範式、scalar 並存、legacy address 保留）。
+  - ⚠️ 結構化地址 picker（site + warehouse 共用）卡 NX01-04 地址端點 / seed 未接（倉庫亦未在 master UI 暴露）、待補。
 
 ---
 

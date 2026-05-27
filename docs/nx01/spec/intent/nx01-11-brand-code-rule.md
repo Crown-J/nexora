@@ -2,12 +2,23 @@
 
 # NEXORA NX01-11 品牌編碼規則（nx01_brand_code_rule）子規格書
 
-> 文件版本：v1.0
-> 最後更新:2026-05-06
-> 狀態：拍板版、Crown 拍 Q1~Q5 + 揭露 tenant scoped 真相 + 跨品牌 unique 不存在
+> 文件版本：v1.1
+> 最後更新:2026-05-27
+> 狀態：拍板版（v1.1 下半場重做、Crown 拍板）
 > 撰寫：Alex（Claude PM AI）
 > 對應 task：TASK-PHASE2-NX01-11-BRAND-CODE-RULE-SPEC-V1-01
 > 性質：B 型錄 + 結構定義引擎（戰略核心、part_code_2 結構由此表定義）
+
+---
+
+## 下半場 v1.1 變更（2026-05-27、Crown 拍板）
+
+- **軸翻轉 carBrandId → partBrandId**：規則對應「零件品牌」（原廠 VAG/BMW、副廠 BOSCH/Denso），非車廠品牌。
+- **同一零件品牌可有多個規則**（以規則名稱 name 區分）；unique 改 `(tenantId, partBrandId, name)`。
+- **欄位重整**：拿掉 segDefinitions(JSON)/segCount/sourceCodePrefix/sourceCodeFormat/examplePartCode；改 seg1Length~seg5Length（各段最大字數、SEG4/5=0 表不使用）。
+- **分隔符欄位移除**：全 NEXORA 料號 SEG 一律單個空格（料號完整顯示格式見 NX01-05 v1.1）。
+- 範例料號改前端即時預覽（不存 DB）。
+- ⚠️ 以下 v1.0 內文（segDefinitions JSON / segCount / 分隔符 / 來源碼）為歷史、已被 v1.1 取代。
 
 ---
 

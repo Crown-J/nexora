@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsIn,
   IsInt,
@@ -10,9 +11,28 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
+
+/** 正廠對應料號子表項（下半場 B） */
+export class PartOemCodeDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  partBrandId?: string | null;
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  oemCode!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  remark?: string | null;
+}
 
 const RETURN_POLICIES = ['F', 'S', 'R', 'N', 'W'] as const;
 
@@ -79,6 +99,17 @@ export class CreatePartDto {
   @IsString()
   @MaxLength(50)
   secCode?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  oldCode?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  cost?: number;
 
   @IsOptional()
   @IsString()
@@ -174,6 +205,13 @@ export class CreatePartDto {
   @Min(0)
   priceD?: number;
 
+  /** 正廠對應料號（整批；不傳＝不動）*/
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartOemCodeDto)
+  oemCodes?: PartOemCodeDto[];
+
   /** 變動原因（業務人員填、寫入 part_version.changeReason、規格 §5 / Q1=A） */
   @IsOptional()
   @IsString()
@@ -197,6 +235,17 @@ export class UpdatePartDto {
   @IsString()
   @MaxLength(50)
   secCode?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  oldCode?: string | null;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 4 })
+  @Min(0)
+  cost?: number;
 
   @IsOptional()
   @IsString()
@@ -296,6 +345,13 @@ export class UpdatePartDto {
   @IsNumber({ maxDecimalPlaces: 4 })
   @Min(0)
   priceD?: number;
+
+  /** 正廠對應料號（整批取代；不傳＝不動）*/
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartOemCodeDto)
+  oemCodes?: PartOemCodeDto[];
 
   /** 變動原因（業務人員填、寫入 part_version.changeReason、規格 §5 / Q1=A） */
   @IsOptional()

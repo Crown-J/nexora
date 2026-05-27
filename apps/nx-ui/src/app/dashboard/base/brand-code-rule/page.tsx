@@ -1,15 +1,10 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/base/brand-code-rule/page.tsx
- * Purpose: 廠牌料號規則（路由 v2：`/dashboard/base/brand-code-rule`）
- */
+// apps/nx-ui/src/app/dashboard/base/brand-code-rule/page.tsx
+/** brand-code-rule 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
-import { BaseBrandCodeRoleMasterView } from '@/features/base/brand-code-role/BaseBrandCodeRoleMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
-export default function BaseBrandCodeRuleDashboardPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="廠牌料號規則" />
-      <BaseBrandCodeRoleMasterView />
-    </div>
-  );
+
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { BRAND_CODE_RULE_MASTER } from '@/features/base/master-config/catalog-masters';
+
+export default function Page() {
+  return <EntityMasterPage config={BRAND_CODE_RULE_MASTER} />;
 }

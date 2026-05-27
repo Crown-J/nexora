@@ -31,6 +31,11 @@ export class CreatePartBrandDto {
   countryId?: string;
 
   @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isOem?: boolean;
+
+  @IsOptional()
   @IsString()
   @MaxLength(200)
   remark?: string;
@@ -57,6 +62,11 @@ export class UpdatePartBrandDto {
   @IsString()
   @MaxLength(15)
   countryId?: string | null;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isOem?: boolean;
 
   @IsOptional()
   @IsString()

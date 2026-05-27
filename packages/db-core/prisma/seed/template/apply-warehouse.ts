@@ -52,6 +52,14 @@ export async function applyWarehouse(
     for (const t of types) typeByCode.set(t.code, t.id);
   }
 
+  // 預設據點（applySite 已先建「主要倉庫(M)」）：倉庫的 siteId 指向它
+  const defaultSite = await prisma.nx01Site.findFirst({
+    where: { tenantId },
+    orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
+    select: { id: true },
+  });
+  const siteId = defaultSite?.id ?? null;
+
   for (const r of rows) {
     const warehouseTypeId = r.typeCode ? typeByCode.get(r.typeCode) ?? null : null;
     await prisma.nx01Warehouse.upsert({
@@ -63,6 +71,7 @@ export async function applyWarehouse(
         sortNo: r.sortNo,
         isActive: true,
         warehouseTypeId,
+        siteId,
         createdBy: actorUserId,
         updatedBy: actorUserId,
       },
@@ -71,6 +80,7 @@ export async function applyWarehouse(
         sortNo: r.sortNo,
         isActive: true,
         warehouseTypeId,
+        siteId,
         updatedBy: actorUserId,
       },
     });

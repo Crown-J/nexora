@@ -29,45 +29,46 @@ export function getNx00SideMenu(): SideMenuGroup[] {
     {
       group: '帳號與權限',
       items: [
-        { key: 'base.home',           label: '主檔總覽',         href: '/dashboard/base' },
-        { key: 'base.users',          label: '使用者',           href: '/dashboard/base/users' },
-        { key: 'base.roles',          label: '職務主檔',         href: '/dashboard/base/roles' },
+        { key: 'base.home',           label: '主檔總覽',             href: '/dashboard/base' },
+        { key: 'base.users',          label: '使用者基本資料',       href: '/dashboard/base/users' },
+        { key: 'base.roles',          label: '職務基本資料',         href: '/dashboard/base/roles' },
         // 軌 A commit A1：user-role / user-warehouse 從 sub-nav 降階為「批次工具」、
         // 業務員 daily 改於 USER 詳細頁管理；PRO 用戶仍可從主檔中心 hub 卡片入。
-        { key: 'base.role-view',      label: '職務權限設定',     href: '/dashboard/base/role-view' },
-        { key: 'base.bulletins',      label: '公告主檔',         href: '/dashboard/base/bulletins' },
+        { key: 'base.role-view',      label: '職務權限設定',         href: '/dashboard/base/role-view' },
+        { key: 'base.bulletins',      label: '公告基本資料',         href: '/dashboard/base/bulletins' },
       ],
     },
     {
       group: '產品與料號',
       items: [
-        { key: 'base.parts',           label: '零件主檔',   href: '/dashboard/base/parts' },
-        { key: 'base.car-brand',       label: '汽車廠牌',   href: '/dashboard/base/car-brand' },
-        { key: 'base.part-brand',      label: '零件廠牌',   href: '/dashboard/base/part-brand' },
-        { key: 'base.part-group',      label: '零件族群',   href: '/dashboard/base/part-group' },
-        { key: 'base.brand-code-rule', label: '品牌料號規則', href: '/dashboard/base/brand-code-rule' },
-        { key: 'base.part-relation',   label: '零件關聯',   href: '/dashboard/base/part-relation' },
-        { key: 'base.part-model',      label: '料件車型適配', href: '/dashboard/base/part-model' },
+        { key: 'base.parts',           label: '零件基本資料',       href: '/dashboard/base/parts' },
+        { key: 'base.car-brand',       label: '車廠品牌基本資料',   href: '/dashboard/base/car-brand' },
+        { key: 'base.part-brand',      label: '零件廠牌基本資料',   href: '/dashboard/base/part-brand' },
+        { key: 'base.part-group',      label: '零件群組基本資料',   href: '/dashboard/base/part-group' },
+        { key: 'base.brand-code-rule', label: '品牌料號規則基本資料', href: '/dashboard/base/brand-code-rule' },
+        { key: 'base.part-relation',   label: '零件關聯基本資料',   href: '/dashboard/base/part-relation' },
+        { key: 'base.part-model',      label: '料件車型適配基本資料', href: '/dashboard/base/part-model' },
       ],
     },
     {
       group: '國家與幣別',
       items: [
-        { key: 'base.country',  label: '國家主檔', href: '/dashboard/base/country' },
-        { key: 'base.currency', label: '幣別主檔', href: '/dashboard/base/currency' },
+        { key: 'base.country',  label: '國家基本資料', href: '/dashboard/base/country' },
+        { key: 'base.currency', label: '幣別基本資料', href: '/dashboard/base/currency' },
       ],
     },
     {
       group: '倉儲',
       items: [
-        { key: 'base.warehouses', label: '倉庫主檔', href: '/dashboard/base/warehouses' },
-        { key: 'base.location',   label: '庫位主檔', href: '/dashboard/base/location' },
+        { key: 'base.site',       label: '據點基本資料', href: '/dashboard/base/site' },
+        { key: 'base.warehouses', label: '倉庫基本資料', href: '/dashboard/base/warehouses' },
+        { key: 'base.location',   label: '庫位基本資料', href: '/dashboard/base/location' },
       ],
     },
     {
       group: '往來對象',
       items: [
-        { key: 'base.partners', label: '廠商 / 客戶主檔', href: '/dashboard/base/partners' },
+        { key: 'base.partners', label: '往來對象基本資料', href: '/dashboard/base/partners' },
       ],
     },
   ];

@@ -27,11 +27,13 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Columns3,
   Download,
   Eye,
   EyeOff,
   FileSpreadsheet,
   FileText,
+  Filter,
   LogOut,
   Pencil,
   Plus,
@@ -79,6 +81,10 @@ export function ErpToolbar({
   onShowInactiveChange,
   onBatchEnable,
   onBatchDisable,
+  onOpenColumns,
+  onOpenFilter,
+  columnsHiddenCount = 0,
+  filterCount = 0,
 }: {
   mode: ErpMode;
   hasActiveRow: boolean;
@@ -107,6 +113,14 @@ export function ErpToolbar({
   onBatchEnable?: () => void;
   /** selectionMode 批次停用 callback；同上 */
   onBatchDisable?: () => void;
+  /** 欄位設定（Alt+L）；提供時顯示「欄位」按鈕（瀏覽模式） */
+  onOpenColumns?: () => void;
+  /** 篩選（Alt+T）；提供時顯示「篩選」按鈕（瀏覽模式） */
+  onOpenFilter?: () => void;
+  /** 已隱藏欄位數（>0 時欄位按鈕高亮 + badge） */
+  columnsHiddenCount?: number;
+  /** 已套用篩選條件數（>0 時篩選按鈕高亮 + badge） */
+  filterCount?: number;
 }) {
   // 選中啟用列 → 按鈕為「停用」(danger / PowerOff)；選中停用列 → 「啟用」(default / Power)
   const rowIsActive = selectedRowActive ?? true;
@@ -188,6 +202,27 @@ export function ErpToolbar({
       />
       <ExportMenuButton onSelect={onExport} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
+      {onOpenColumns || onOpenFilter ? <ToolbarSeparator /> : null}
+      {onOpenColumns ? (
+        <ToolbarButton
+          icon={Columns3}
+          letter="L"
+          label={columnsHiddenCount > 0 ? `欄位·隱${columnsHiddenCount}` : '欄位'}
+          enabled
+          onClick={onOpenColumns}
+          pressed={columnsHiddenCount > 0}
+        />
+      ) : null}
+      {onOpenFilter ? (
+        <ToolbarButton
+          icon={Filter}
+          letter="T"
+          label={filterCount > 0 ? `篩選·${filterCount}` : '篩選'}
+          enabled
+          onClick={onOpenFilter}
+          pressed={filterCount > 0}
+        />
+      ) : null}
       <div className="flex-1" />
       {onShowInactiveChange ? (
         <ToolbarButton

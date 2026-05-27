@@ -124,9 +124,11 @@ NX99 tenant（多租戶根）
 - **Crown 拍板（v1.0）**：Q1~Q9 全 A（codeRuleId NN / 跨產地 unique / UNK 佔位保留字 / 後端拼接 / 全 snapshot 範式 / type SmallInt 軸 1 升）
 - **業界 muscle memory**：part_code = 業界查料唯一索引、跨產地不同料（同 OEM 號 / 不同國家不同料）
 - **業界 muscle memory**：UNK 佔位（料號未補齊先建可暫填、後續業務人員補正、絕不混用 NULL）
+- **業界 muscle memory（料號顯示完整格式、v1.1）**：`{零件品牌代碼} - {SEG1 SEG2 …單空格} #{產地代碼}`（例 VAG - 03H 115 562 H #DEU）；SEG4/5 用不到自動隱藏；未選編碼規則＝手動料號、不加前後綴；適用車型交給 nx01_part_model、part 不加 carBrandId
 - **seed 範式**：空表進、Yaro 30 年資料走獨立匯入軌
 - **落地狀態**：✅ commit `5cd62ae`（NX01-05 完整 schema + service + UNK guard + previewCode）+ production hotfix `fb1dae4`（partBrandId → carBrandId 軸翻轉）
-- **跨軌**：依賴 NX01-11 brand_code_rule（codeRuleId NN）、被 NX01-17（part_version snapshot + part_relation 雙向 FK）+ NX01-16（part_model）+ 25 reverse 引用
+- **跨軌**：依賴 NX01-11 brand_code_rule（codeRuleId 改選填）、被 NX01-17（part_version snapshot + part_relation 雙向 FK）+ NX01-16（part_model）+ 25 reverse 引用
+- **下半場 v1.1（2026-05-27）**：codeRuleId 改選填；新增 oldCode（舊料號）/ cost（成本）；正廠對應料號子表 `nx01_part_oem_code`（一料多正廠號）；**displayCode 即時組合範式**（完整料號 `{品牌} - {SEG 單空格} #{產地}`、不存 DB）；搜尋正規化同時 match 主料號 / 替代品（正廠對應料號）
 
 ## NX01-06 warehouse（倉庫主檔）
 
@@ -139,6 +141,8 @@ NX99 tenant（多租戶根）
 - **seed 範式**：default seed（LITE/PLUS/PRO 不同筆數）
 - **落地狀態**：✅ Phase 0 + 2026-05-06 v1.1 PRO 倉真相校正
 - **跨軌**：所有庫存 / 進銷貨單據必含 warehouse_id
+- **下半場 v1.1（2026-05-27）**：**據點 / 倉庫 / 庫位三層拆分** —— 新增 `nx01_site`（據點、公司物理分點、LITE 預設「主要倉庫(M)」1 筆）、`nx01_warehouse` 加 siteId（所屬據點）、`nx01_location` 正名為「庫位」（沿用原表、18 個庫存外鍵零影響）
+- **下半場 v1.2（2026-05-27 收尾補強）**：據點/倉庫 3 drift 補齊 —— warehouse.siteId 改 NN + 真 FK（onDelete RESTRICT）；site 加結構化地址欄位 city/district/street（並存、picker 待 NX01-04 端點）；site 加 isMain + partial unique（每 tenant 一筆主據點）。⚠️ 結構化地址 picker（site + warehouse 共用）卡 NX01-04 地址端點未接
 
 ## NX01-07 base-catalog（基礎型錄 5 表合一精煉）
 
@@ -191,7 +195,8 @@ NX99 tenant（多租戶根）
 - **業界 muscle memory**：VAG 料號 brand_sort=23145（不是 12345）、每品牌排列順序業界已成 muscle memory
 - **業界 muscle memory**：跨品牌 unique 不存在（恆迎 18 年沒發生過、Crown #13 過度防呆校正）
 - **落地狀態**：✅ commit `fb1dae4`（production blocker hotfix：part.service auto-vivify 廢棄、codeRuleId NN）+ 三模組同步軌
-- **跨軌**：part.codeRuleId NN FK、part-create 時必選 brand_code_rule
+- **跨軌**：part.codeRuleId 改選填 FK
+- **下半場 v1.1（2026-05-27）**：**軸翻轉 carBrandId → partBrandId**（對應零件品牌、同品牌可多規則以 name 區分）；拿掉 JSON segDefinitions / segCount / sourceCodePrefix，改 SEG1~5 字數欄位；**分隔符欄位移除**（全 NEXORA 料號 SEG 一律單空格）
 
 ## NX01-12 car-brand（汽車品牌型錄）
 

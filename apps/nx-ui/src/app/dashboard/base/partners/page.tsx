@@ -1,20 +1,10 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/base/partners/page.tsx
- *
- * Purpose:
- * - 廠商 / 客戶主檔（路由 v2：`/dashboard/base/partners`）
- */
-
+// apps/nx-ui/src/app/dashboard/base/partners/page.tsx
+/** 往來對象主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { BasePartnerMasterView } from '@/features/base/partner/BasePartnerMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { PARTNER_MASTER } from '@/features/base/master-config/catalog-masters';
 
-export default function BasePartnersPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="廠商 / 客戶主檔" />
-      <BasePartnerMasterView />
-    </div>
-  );
+export default function Page() {
+  return <EntityMasterPage config={PARTNER_MASTER} />;
 }

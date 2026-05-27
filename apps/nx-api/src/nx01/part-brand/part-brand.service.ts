@@ -14,6 +14,7 @@ const SEL = {
   code: true,
   name: true,
   countryId: true,
+  isOem: true,
   remark: true,
   sortNo: true,
   isActive: true,
@@ -85,6 +86,7 @@ export class PartBrandService {
         code,
         name: dto.name.trim(),
         countryId: dto.countryId?.trim() || null,
+        isOem: dto.isOem ?? false,
         remark: dto.remark?.trim() || null,
         sortNo: dto.sortNo ?? 0,
         isActive: dto.isActive ?? true,
@@ -116,6 +118,7 @@ export class PartBrandService {
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.countryId !== undefined ? { countryId: dto.countryId } : {}),
+        ...(dto.isOem !== undefined ? { isOem: dto.isOem } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),

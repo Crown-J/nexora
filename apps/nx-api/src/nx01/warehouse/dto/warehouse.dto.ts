@@ -41,6 +41,11 @@ export class CreateWarehouseDto {
   warehouseTypeId?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  siteId?: string;
+
+  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
@@ -67,6 +72,11 @@ export class UpdateWarehouseDto {
   @IsString()
   @MaxLength(15)
   warehouseTypeId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  siteId?: string;
 
   @IsOptional()
   @Type(() => Boolean)

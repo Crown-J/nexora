@@ -9,6 +9,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { isSysadmin, SYSADMIN_ROLE_CODE } from '../../shared/nx01/is-sysadmin';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateRoleDto, ListRoleQueryDto, UpdateRoleDto } from './dto/role.dto';
@@ -57,6 +58,10 @@ export class RoleService {
     const pageSize = q.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
     const where = this.whereList(tenantId, q);
+    // SYSADMIN 鎖定：一般用戶看不到系統管理員職務（伊諾瓦後台角色）
+    if (!isSysadmin(user)) {
+      where.NOT = { code: { equals: SYSADMIN_ROLE_CODE, mode: 'insensitive' } };
+    }
     const [total, rows] = await Promise.all([
       this.prisma.nx01Role.count({ where }),
       this.prisma.nx01Role.findMany({
@@ -74,6 +79,10 @@ export class RoleService {
     const tenantId = requireTenantId(user);
     const row = await this.prisma.nx01Role.findFirst({ where: { id, tenantId }, select: SEL });
     if (!row) throw new NotFoundException('Role not found');
+    // SYSADMIN 鎖定：一般用戶看不到 → 裝作不存在
+    if (!isSysadmin(user) && String(row.code).trim().toUpperCase() === SYSADMIN_ROLE_CODE) {
+      throw new NotFoundException('Role not found');
+    }
     return this.mapRow(row);
   }
 

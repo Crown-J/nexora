@@ -20,6 +20,8 @@ const SEL = {
   name: true,
   isOem: true,
   secCode: true,
+  oldCode: true,
+  cost: true,
   seg1: true,
   seg2: true,
   seg3: true,
@@ -44,6 +46,8 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  partBrand: { select: { code: true } },
+  country: { select: { code: true } },
 } as const;
 
 type Row = Prisma.Nx01PartGetPayload<{ select: typeof SEL }>;
@@ -60,6 +64,32 @@ function decimalStr(v: unknown): string | null {
     return (v as { toString(): string }).toString();
   }
   return String(v);
+}
+
+/**
+ * 完整料號顯示格式（收尾軌、Crown 拍板）：
+ *   {零件品牌代碼} - {SEG1 SEG2 …（單空格）} #{產地代碼}
+ *   例：VAG - 03H 115 562 H #DEU
+ * SEG 一律單空格（規則分隔符已移除）；品牌 / 產地缺則該段省略。
+ */
+export function buildDisplayCode(
+  brandCode: string,
+  segs: (string | null | undefined)[],
+  countryCode: string,
+): string {
+  const segPart = segs
+    .slice(0, 5)
+    .map((s) => (s == null ? '' : String(s).trim()))
+    .filter((s) => s !== '')
+    .join(' ');
+  let out = brandCode && segPart ? `${brandCode} - ${segPart}` : segPart || brandCode;
+  if (countryCode) out = out ? `${out} #${countryCode}` : `#${countryCode}`;
+  return out;
+}
+
+/** 搜尋正規化：去空格 / 連字號 / # 後小寫，讓 VAG-03H、VAG 03H、03H 115 562 都能比對 */
+function normalizeCode(s: string): string {
+  return s.replace(/[\s#-]/g, '').toLowerCase();
 }
 
 @Injectable()
@@ -141,63 +171,25 @@ export class PartService {
     partBrandId?: string | null;
     countryId?: string | null;
   }): Promise<string> {
-    const rule = await this.prisma.nx01BrandCodeRule.findFirst({
-      where: { id: input.codeRuleId, tenantId: input.tenantId },
-      select: {
-        separator: true,
-        sourceCodePrefix: true,
-        carBrand: { select: { code: true } },
-      },
-    });
-    if (!rule) throw new NotFoundException('codeRuleId not found for tenant');
-
-    const segs = input.segs
-      .slice(0, 5)
-      .map((s) => (s == null ? '' : String(s).trim()))
-      .filter((s) => s !== '');
-    const segPart = segs.join(rule.separator);
-
-    let brand3 = 'UNK';
+    // 收尾軌完整料號格式：{零件品牌代碼} - {SEG1 SEG2 …（單空格）} #{產地代碼}
+    // 規則分隔符已移除、SEG 一律單空格；前綴用零件本身的 partBrand、產地用 country。
+    let brandCode = '';
     if (input.partBrandId?.trim()) {
       const pb = await this.prisma.nx01PartBrand.findFirst({
         where: { id: input.partBrandId.trim(), tenantId: input.tenantId },
         select: { code: true },
       });
-      if (pb && pb.code !== 'UNK') {
-        brand3 = pb.code.slice(0, 3).toUpperCase().padEnd(3, 'X');
-      }
+      brandCode = pb?.code ?? '';
     }
-
-    let country3 = 'UNK';
+    let countryCode = '';
     if (input.countryId?.trim()) {
       const c = await this.prisma.nx01Country.findUnique({
         where: { id: input.countryId.trim() },
         select: { code: true },
       });
-      if (c && c.code !== 'UNK') {
-        country3 = c.code.toUpperCase().padEnd(3, 'X');
-      }
+      countryCode = c?.code ?? '';
     }
-
-    const sourceCode = `${rule.sourceCodePrefix}${brand3}${country3}`;
-    const carBrandCode = rule.carBrand?.code ?? '';
-    return segPart
-      ? `${carBrandCode}-${segPart} ${sourceCode}`
-      : `${carBrandCode} ${sourceCode}`;
-  }
-
-  private whereList(tenantId: string, q: ListPartQueryDto): Prisma.Nx01PartWhereInput {
-    const where: Prisma.Nx01PartWhereInput = { tenantId };
-    if (q.search?.trim()) {
-      const s = q.search.trim();
-      where.OR = [
-        { code: { contains: s, mode: 'insensitive' } },
-        { name: { contains: s, mode: 'insensitive' } },
-        { secCode: { contains: s, mode: 'insensitive' } },
-      ];
-    }
-    if (q.isActive !== undefined) where.isActive = q.isActive;
-    return where;
+    return buildDisplayCode(brandCode, input.segs, countryCode);
   }
 
   async list(user: RequestUser, q: ListPartQueryDto) {
@@ -205,25 +197,56 @@ export class PartService {
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
-    const where = this.whereList(tenantId, q);
+    const where: Prisma.Nx01PartWhereInput = { tenantId };
+    if (q.isActive !== undefined) where.isActive = q.isActive;
+
+    const term = q.search?.trim() ?? '';
+    if (term) {
+      // C + 收尾軌 item 8：正規化（去空格/-/#）後比對 主料號(含完整格式) / 舊料號 / 副廠 / 正廠對應料號；品名用原詞。
+      // 讓「VAG-03H」「VAG 03H」「03H 115 562」三種寫法都命中（part.code 存完整料號）。
+      const norm = `%${normalizeCode(term)}%`;
+      const raw = `%${term.toLowerCase()}%`;
+      const matched = await this.prisma.$queryRawUnsafe<{ id: string }[]>(
+        `SELECT id FROM nx01_part WHERE tenant_id = $1 AND (
+           regexp_replace(lower(code), '[ #-]', '', 'g') LIKE $2
+           OR lower(name) LIKE $3
+           OR regexp_replace(lower(coalesce(old_code,'')), '[ #-]', '', 'g') LIKE $2
+           OR regexp_replace(lower(coalesce(sec_code,'')), '[ #-]', '', 'g') LIKE $2
+           OR id IN (SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #-]', '', 'g') LIKE $2)
+         )`,
+        tenantId,
+        norm,
+        raw,
+      );
+      const ids = matched.map((m) => m.id);
+      if (ids.length === 0) return { page, pageSize, total: 0, rows: [] };
+      where.id = { in: ids };
+    }
+
     const [total, rows] = await Promise.all([
       this.prisma.nx01Part.count({ where }),
-      this.prisma.nx01Part.findMany({
-        where,
-        orderBy: { code: 'asc' },
-        skip,
-        take: pageSize,
-        select: SEL,
-      }),
+      this.prisma.nx01Part.findMany({ where, orderBy: { code: 'asc' }, skip, take: pageSize, select: SEL }),
     ]);
-    return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
+
+    // 標示「主料號命中 primary / 替代品命中 oem」（正規化判斷）
+    const nt = normalizeCode(term);
+    const rawL = term.toLowerCase();
+    const matchType = (r: Row): 'primary' | 'oem' | null => {
+      if (!term) return null;
+      const nhit = (v: string | null | undefined) => normalizeCode(v ?? '').includes(nt);
+      return nhit(r.code) || (r.name ?? '').toLowerCase().includes(rawL) || nhit(r.secCode) || nhit(r.oldCode)
+        ? 'primary'
+        : 'oem';
+    };
+    return { page, pageSize, total, rows: rows.map((r) => ({ ...this.mapRow(r), matchType: matchType(r) })) };
   }
 
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
     const row = await this.prisma.nx01Part.findFirst({ where: { id, tenantId }, select: SEL });
     if (!row) throw new NotFoundException('Part not found');
-    return this.mapRow(row);
+    const oemCodes = await this.loadOemCodes(tenantId, id);
+    return { ...this.mapRow(row), oemCodes };
   }
 
   async create(user: RequestUser, dto: CreatePartDto) {
@@ -239,6 +262,8 @@ export class PartService {
           name: dto.name.trim(),
           isOem: dto.isOem ?? true,
           secCode: trimOrNull(dto.secCode),
+          oldCode: trimOrNull(dto.oldCode),
+          cost: dto.cost ?? 0,
           seg1: trimOrNull(dto.seg1),
           seg2: trimOrNull(dto.seg2),
           seg3: trimOrNull(dto.seg3),
@@ -264,6 +289,8 @@ export class PartService {
       });
       // drift #3 補：規格 §5.2「首次 part create：寫 version 1」
       await this.writePartVersionSnapshot(tx, tenantId, user.sub, created, null);
+      // B：正廠對應料號子表
+      await this.replaceOemCodes(tx, tenantId, user.sub, created.id, dto.oemCodes);
       return created;
     });
     await this.audit.write({
@@ -361,6 +388,8 @@ export class PartService {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.isOem !== undefined ? { isOem: dto.isOem } : {}),
         ...(dto.secCode !== undefined ? { secCode: trimOrNull(dto.secCode) } : {}),
+        ...(dto.oldCode !== undefined ? { oldCode: trimOrNull(dto.oldCode) } : {}),
+        ...(dto.cost !== undefined ? { cost: dto.cost } : {}),
         ...(dto.seg1 !== undefined ? { seg1: trimOrNull(dto.seg1) } : {}),
         ...(dto.seg2 !== undefined ? { seg2: trimOrNull(dto.seg2) } : {}),
         ...(dto.seg3 !== undefined ? { seg3: trimOrNull(dto.seg3) } : {}),
@@ -393,6 +422,9 @@ export class PartService {
         updated,
         dto.changeReason?.trim() || null,
       );
+
+      // B：正廠對應料號子表（dto.oemCodes 提供時整批取代）
+      await this.replaceOemCodes(tx, tenantId, user.sub, id, dto.oemCodes);
 
       return updated;
     });
@@ -436,14 +468,61 @@ export class PartService {
   }
 
   private mapRow(row: Row) {
-    const { type, priceA, priceB, priceC, priceD, ...rest } = row;
+    const { type, cost, priceA, priceB, priceC, priceD, partBrand, country, ...rest } = row;
+    // displayCode：未選編碼規則→原樣手動料號；選了→完整格式即時組合（不存 DB）
+    const displayCode = rest.codeRuleId
+      ? buildDisplayCode(partBrand?.code ?? '', [rest.seg1, rest.seg2, rest.seg3, rest.seg4, rest.seg5], country?.code ?? '')
+      : rest.code;
     return {
       ...rest,
       partType: type,
+      cost: decimalStr(cost),
       priceA: decimalStr(priceA),
       priceB: decimalStr(priceB),
       priceC: decimalStr(priceC),
       priceD: decimalStr(priceD),
+      partBrandCode: partBrand?.code ?? null,
+      countryCode: country?.code ?? null,
+      displayCode,
     };
+  }
+
+  /** 載入某零件的正廠對應料號（子表） */
+  private async loadOemCodes(tenantId: string, partId: string) {
+    const rows = await this.prisma.nx01PartOemCode.findMany({
+      where: { tenantId, partId },
+      orderBy: [{ sortNo: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true, partBrandId: true, oemCode: true, remark: true, sortNo: true },
+    });
+    return rows;
+  }
+
+  /** 取代某零件的正廠對應料號（先刪後建，於 tx 內）；oemCodes=undefined 不動 */
+  private async replaceOemCodes(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    userId: string,
+    partId: string,
+    oemCodes: { partBrandId?: string | null; oemCode: string; remark?: string | null }[] | undefined,
+  ): Promise<void> {
+    if (oemCodes === undefined) return;
+    await tx.nx01PartOemCode.deleteMany({ where: { tenantId, partId } });
+    let sortNo = 0;
+    for (const o of oemCodes) {
+      const oemCode = String(o.oemCode ?? '').trim();
+      if (!oemCode) continue;
+      await tx.nx01PartOemCode.create({
+        data: {
+          tenantId,
+          partId,
+          partBrandId: o.partBrandId?.trim() || null,
+          oemCode,
+          remark: o.remark?.trim() || null,
+          sortNo: sortNo++,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      });
+    }
   }
 }

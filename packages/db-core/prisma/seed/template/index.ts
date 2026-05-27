@@ -27,6 +27,7 @@ import { applyModelType } from './apply-model-type';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
 import { applyRole } from './apply-role';
+import { applySite } from './apply-site';
 import { applyTeam } from './apply-team';
 import { applyTransmission } from './apply-transmission';
 import { applyUserTeam } from './apply-user-team';
@@ -50,15 +51,18 @@ export async function applyTemplateToTenant(
   // === ALL：所有版本皆需 ===
   await applyRole(prisma, params);
   await applyCarBrand(prisma, params);
-  await applyBrandCodeRule(prisma, params); // ⚠️ 必須在 applyCarBrand 之後（FK car_brand_id）
   await applyTransmission(prisma, params);  // ⚠️ NX01-15、carBrandId 可空、依賴 carBrand 已建（部分 row 用）
   await applyDrivetrain(prisma, params);    // ⚠️ NX01-15、無 FK 依賴
   await applyModelType(prisma, params);     // ⚠️ NX01-15、無 FK 依賴
   await applyPartGroup(prisma, params);
   await applyPartBrand(prisma, params);
+  await applyBrandCodeRule(prisma, params); // ⚠️ 下半場 A：軸翻轉後依賴 applyPartBrand（規則對應零件品牌）
   await applyCustomerGrade(prisma, params);
   await applyDiscountCode(prisma, params);
   await applyAccountCode(prisma, params);
+
+  // === ALL：據點（預設「主要倉庫(M)」1 筆），須在 applyWarehouse 前（倉庫 siteId 指向它）===
+  await applySite(prisma, params);
 
   // === ALL：warehouse 依 tier 建不同數量（LITE 1 / PLUS 2 / PRO 6）===
   await applyWarehouse(prisma, params);

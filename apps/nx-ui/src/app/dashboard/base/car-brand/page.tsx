@@ -1,15 +1,10 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/base/car-brand/page.tsx
- * Purpose: 汽車廠牌主檔（路由 v2：`/dashboard/base/car-brand`）
- */
+// apps/nx-ui/src/app/dashboard/base/car-brand/page.tsx
+/** car-brand 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
 'use client';
-import { BaseCarBrandMasterView } from '@/features/base/brand-like/BaseBrandLikeMasterView';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
-export default function BaseCarBrandDashboardPage() {
-  return (
-    <div className="w-full min-w-0 space-y-6">
-      <BaseMasterPageHeader title="汽車廠牌主檔" />
-      <BaseCarBrandMasterView />
-    </div>
-  );
+
+import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
+import { CAR_BRAND_MASTER } from '@/features/base/master-config/catalog-masters';
+
+export default function Page() {
+  return <EntityMasterPage config={CAR_BRAND_MASTER} />;
 }
