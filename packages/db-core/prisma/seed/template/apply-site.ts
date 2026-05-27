@@ -19,6 +19,7 @@ export async function applySite(prisma: PrismaClient, params: ApplyTemplateParam
       tenantId,
       code: DEFAULT_SITE_CODE,
       name: DEFAULT_SITE_NAME,
+      isMain: true,
       sortNo: 0,
       isActive: true,
       createdBy: actorUserId,
@@ -26,7 +27,7 @@ export async function applySite(prisma: PrismaClient, params: ApplyTemplateParam
     },
     update: {
       name: DEFAULT_SITE_NAME,
-      isActive: true,
+      isMain: true,
       updatedBy: actorUserId,
     },
   });

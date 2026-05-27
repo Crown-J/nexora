@@ -76,7 +76,7 @@ export class UpdateWarehouseDto {
   @IsOptional()
   @IsString()
   @MaxLength(15)
-  siteId?: string | null;
+  siteId?: string;
 
   @IsOptional()
   @Type(() => Boolean)

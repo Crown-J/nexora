@@ -222,7 +222,7 @@ export const WAREHOUSE_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'code', label: '倉庫代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '倉庫名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', minWidthClass: 'min-w-[140px]' },
+    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'warehouseTypeId', label: '倉別', type: 'ref', refBasePath: 'nx01/warehouse-types', inList: false },
     { key: 'remark', label: '備註', inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
@@ -345,7 +345,9 @@ export const SITE_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'code', label: '據點代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '據點名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'address', label: '地址', inList: false },
+    { key: 'isMain', label: '設為主據點', type: 'toggle', defaultValue: false, minWidthClass: 'min-w-[90px]' },
+    { key: 'address', label: '地址（舊版自由文字）', inList: false },
+    // ⚠️ 結構化地址 city/district/street 欄位已在 schema 對齊倉庫範式（並存），但 NX01-04 地址端點 / picker 尚未接（倉庫亦同）、暫不於 UI 暴露
     { key: 'phone', label: '聯絡電話', minWidthClass: 'min-w-[120px]' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],

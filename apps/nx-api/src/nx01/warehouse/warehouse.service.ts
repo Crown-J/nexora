@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -81,6 +81,17 @@ export class WarehouseService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Warehouse code already exists');
+    // siteId NN（收尾補強）：未指定則掛該租戶主據點 / 第一筆據點
+    let siteId = dto.siteId?.trim() || '';
+    if (!siteId) {
+      const s = await this.prisma.nx01Site.findFirst({
+        where: { tenantId },
+        orderBy: [{ isMain: 'desc' }, { sortNo: 'asc' }, { code: 'asc' }],
+        select: { id: true },
+      });
+      if (!s) throw new BadRequestException('租戶尚無據點，請先建立據點再建倉庫');
+      siteId = s.id;
+    }
     const row = await this.prisma.nx01Warehouse.create({
       data: {
         tenantId,
@@ -89,7 +100,7 @@ export class WarehouseService {
         remark: dto.remark?.trim() || null,
         sortNo: dto.sortNo ?? 0,
         warehouseTypeId: dto.warehouseTypeId?.trim() || null,
-        siteId: dto.siteId?.trim() || null,
+        siteId,
         isActive: dto.isActive ?? true,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -121,7 +132,7 @@ export class WarehouseService {
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.warehouseTypeId !== undefined ? { warehouseTypeId: dto.warehouseTypeId } : {}),
-        ...(dto.siteId !== undefined ? { siteId: dto.siteId } : {}),
+        ...(dto.siteId ? { siteId: dto.siteId } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,
       },

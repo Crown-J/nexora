@@ -19,7 +19,11 @@ const SEL = {
   code: true,
   name: true,
   address: true,
+  cityId: true,
+  districtId: true,
+  streetId: true,
   phone: true,
+  isMain: true,
   sortNo: true,
   isActive: true,
   createdAt: true,
@@ -79,19 +83,30 @@ export class SiteService {
     const code = dto.code.trim().toUpperCase();
     const dup = await this.prisma.nx01Site.findFirst({ where: { tenantId, code }, select: { id: true } });
     if (dup) throw new ConflictException('Site code already exists in this tenant');
-    const row = await this.prisma.nx01Site.create({
-      data: {
-        tenantId,
-        code,
-        name: dto.name.trim(),
-        address: dto.address?.trim() || null,
-        phone: dto.phone?.trim() || null,
-        sortNo: dto.sortNo ?? 0,
-        isActive: dto.isActive ?? true,
-        createdBy: user.sub,
-        updatedBy: user.sub,
-      },
-      select: SEL,
+    const wantMain = dto.isMain ?? false;
+    const row = await this.prisma.$transaction(async (tx) => {
+      // 主據點互斥：每 tenant 只一筆 is_main=true（partial unique 強制、先清舊主）
+      if (wantMain) {
+        await tx.nx01Site.updateMany({ where: { tenantId, isMain: true }, data: { isMain: false, updatedBy: user.sub } });
+      }
+      return tx.nx01Site.create({
+        data: {
+          tenantId,
+          code,
+          name: dto.name.trim(),
+          address: dto.address?.trim() || null,
+          cityId: dto.cityId?.trim() || null,
+          districtId: dto.districtId?.trim() || null,
+          streetId: dto.streetId?.trim() || null,
+          phone: dto.phone?.trim() || null,
+          isMain: wantMain,
+          sortNo: dto.sortNo ?? 0,
+          isActive: dto.isActive ?? true,
+          createdBy: user.sub,
+          updatedBy: user.sub,
+        },
+        select: SEL,
+      });
     });
     await this.audit.write({
       tenantId,
@@ -111,18 +126,31 @@ export class SiteService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Site.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Site not found');
-    const row = await this.prisma.nx01Site.update({
-      where: { id },
-      data: {
-        ...(dto.code !== undefined ? { code: dto.code.trim().toUpperCase() } : {}),
-        ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
-        ...(dto.address !== undefined ? { address: dto.address } : {}),
-        ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
-        ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
-        ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
-        updatedBy: user.sub,
-      },
-      select: SEL,
+    const row = await this.prisma.$transaction(async (tx) => {
+      // 主據點互斥：設為主據點時先清同租戶其他主據點
+      if (dto.isMain === true) {
+        await tx.nx01Site.updateMany({
+          where: { tenantId, isMain: true, id: { not: id } },
+          data: { isMain: false, updatedBy: user.sub },
+        });
+      }
+      return tx.nx01Site.update({
+        where: { id },
+        data: {
+          ...(dto.code !== undefined ? { code: dto.code.trim().toUpperCase() } : {}),
+          ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+          ...(dto.address !== undefined ? { address: dto.address } : {}),
+          ...(dto.cityId !== undefined ? { cityId: dto.cityId } : {}),
+          ...(dto.districtId !== undefined ? { districtId: dto.districtId } : {}),
+          ...(dto.streetId !== undefined ? { streetId: dto.streetId } : {}),
+          ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
+          ...(dto.isMain !== undefined ? { isMain: dto.isMain } : {}),
+          ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
+          ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+          updatedBy: user.sub,
+        },
+        select: SEL,
+      });
     });
     await this.audit.write({
       tenantId,

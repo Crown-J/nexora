@@ -703,25 +703,34 @@ model Nx01Location {
 /// =======================================================
 model Nx01Site {
   /// [NX01]+[SITE]+[7碼流水號]，EX : NX01SITE0000001；啟用最低需求版本：LITE
-  id        String   @id @default(dbgenerated("gen_nx01_site_id()")) @db.VarChar(15)
+  id                       String          @id @default(dbgenerated("gen_nx01_site_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId  String   @map("tenant_id") @db.VarChar(15)
+  tenantId                 String          @map("tenant_id") @db.VarChar(15)
   /// 據點代碼（租戶內唯一），例：HQ、TPE、TXG；啟用最低需求版本：LITE
-  code      String   @db.VarChar(20)
+  code                     String          @db.VarChar(20)
   /// 據點名稱，例：總公司、台北據點、台中據點；啟用最低需求版本：LITE
-  name      String   @db.VarChar(100)
-  /// 地址（選填）；啟用最低需求版本：LITE
-  address   String?  @db.VarChar(200)
+  name                     String          @db.VarChar(100)
+  /// 地址（legacy 自由文字、#23 並存：結構化地址 picker 接上前沿用）；啟用最低需求版本：LITE
+  address                  String?         @db.VarChar(200)
+  /// 縣市 ID（FK nx01_city、結構化地址、對齊倉庫範式；scalar 並存、待 NX01-04 地址端點接 picker）；啟用最低需求版本：LITE
+  cityId                   String?         @map("city_id") @db.VarChar(15)
+  /// 鄉鎮市區 ID（FK nx01_district、同上）；啟用最低需求版本：LITE
+  districtId               String?         @map("district_id") @db.VarChar(15)
+  /// 路街 ID（FK nx01_street、同上）；啟用最低需求版本：LITE
+  streetId                 String?         @map("street_id") @db.VarChar(15)
   /// 聯絡電話（選填）；啟用最低需求版本：LITE
-  phone     String?  @db.VarChar(30)
+  phone                    String?         @db.VarChar(30)
+  /// 是否主據點（同 tenant 只 1 筆 is_main=true、partial unique 強制、對齊倉庫 isMain 範式）；啟用最低需求版本：LITE
+  isMain                   Boolean         @default(false) @map("is_main")
   /// 排序；啟用最低需求版本：LITE
-  sortNo    Int      @default(0) @map("sort_no")
+  sortNo                   Int             @default(0) @map("sort_no")
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  createdBy String   @map("created_by") @db.VarChar(15)
-  updatedAt DateTime @updatedAt @map("updated_at")
-  updatedBy String   @map("updated_by") @db.VarChar(15)
+  isActive                 Boolean         @default(true) @map("is_active")
+  createdAt                DateTime        @default(now()) @map("created_at")
+  createdBy                String          @map("created_by") @db.VarChar(15)
+  updatedAt                DateTime        @updatedAt @map("updated_at")
+  updatedBy                String          @map("updated_by") @db.VarChar(15)
+  rev_Nx01Warehouse_siteId Nx01Warehouse[] @relation("R_Nx01Warehouse_siteId")
 
   @@unique([tenantId, code])
   @@map("nx01_site")
@@ -1441,8 +1450,8 @@ model Nx01Warehouse {
   updatedBy                             String                 @map("updated_by") @db.VarChar(15)
   /// 倉庫類型ID（FK nx01_warehouse_type，PLUS版），控制自動調撥邏輯。H=總部/M=主倉/W=分倉/S=衛星倉。；啟用最低需求版本：PLUS-CORE
   warehouseTypeId                       String?                @map("warehouse_type_id") @db.VarChar(15)
-  /// 所屬據點 ID（FK nx01_site；一個倉庫屬於一個據點、一個據點可有多個倉庫）；啟用最低需求版本：LITE
-  siteId                                String?                @map("site_id") @db.VarChar(15)
+  /// 所屬據點 ID（FK nx01_site；一個倉庫屬於一個據點、一個據點可有多個倉庫；收尾補強：NN + 真 FK onDelete Restrict）；啟用最低需求版本：LITE
+  siteId                                String                 @map("site_id") @db.VarChar(15)
   /// 是否主倉（同 tenant 只 1 筆 is_main=true、partial unique index 強制、LITE 強制 true、對齊 NX01-06 §3.6）；啟用最低需求版本：LITE
   isMain                                Boolean                @default(false) @map("is_main")
   /// 倉管主管 user ID（FK to nx01_user、ON DELETE SET NULL、業務離職時清空、對齊 NX01-06 §3）；啟用最低需求版本：LITE
@@ -1471,6 +1480,7 @@ model Nx01Warehouse {
   city                                  Nx01City?              @relation("R_Nx01Warehouse_cityId", fields: [cityId], references: [id])
   district                              Nx01District?          @relation("R_Nx01Warehouse_districtId", fields: [districtId], references: [id])
   street                                Nx01Street?            @relation("R_Nx01Warehouse_streetId", fields: [streetId], references: [id])
+  site                                  Nx01Site               @relation("R_Nx01Warehouse_siteId", fields: [siteId], references: [id])
   rev_Nx01Location_warehouseId          Nx01Location[]         @relation("R_Nx01Location_warehouseId")
   rev_Nx01Team_warehouseId              Nx01Team[]             @relation("R_Nx01Team_warehouseId")
   rev_Nx01UserWarehouse_warehouseId     Nx01UserWarehouse[]    @relation("R_Nx01UserWarehouse_warehouseId")

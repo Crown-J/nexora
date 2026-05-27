@@ -24,8 +24,28 @@ export class CreateSiteDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(15)
+  cityId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  districtId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  streetId?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(30)
   phone?: string;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isMain?: boolean;
 
   @IsOptional()
   @Type(() => Number)
@@ -58,8 +78,28 @@ export class UpdateSiteDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(15)
+  cityId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  districtId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  streetId?: string | null;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(30)
   phone?: string | null;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isMain?: boolean;
 
   @IsOptional()
   @Type(() => Number)
