@@ -1,6 +1,6 @@
 // apps/nx-ui/src/features/base/api/role-view.ts
 /**
- * 職務權限視圖 API client（對接 nx01/views 畫面字典 + nx01/role-views 權限 join）
+ * 職務權限設定 API client（對接 nx01/views 畫面字典 + nx01/role-views 權限 join）
  * 供 RoleViewMatrixPage（職務 × 畫面 × 5 權限矩陣）。
  */
 

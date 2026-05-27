@@ -423,7 +423,7 @@ export const BULLETIN_MASTER: EntityMasterConfig = {
 export const ROLE_VIEW_MASTER: EntityMasterConfig = {
   basePath: 'nx01/role-views',
   category: '帳號與權限',
-  title: '職務權限視圖基本資料',
+  title: '職務權限設定',
   entityNoun: '職務權限',
   errorCodePrefix: 'nxui_base_role_view',
   deleteMode: SOFT,

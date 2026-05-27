@@ -66,7 +66,7 @@ export type EntityMasterConfig = {
   basePath: string;
   /** sidebar / header 分類，e.g. '系統設定' */
   category: string;
-  /** 主檔標題，e.g. '幣別主檔' */
+  /** 主檔標題，e.g. '幣別基本資料' */
   title: string;
   /** 實體名詞（toast / 確認框用），e.g. '幣別' */
   entityNoun: string;
