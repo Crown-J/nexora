@@ -72,7 +72,8 @@ export function RoleViewMatrixPage() {
   const [cells, setCells] = useState<Record<string, Cell>>({});
   const [original, setOriginal] = useState<Record<string, Cell>>({});
   const [focus, setFocus] = useState<{ row: number; col: number }>({ row: 0, col: 0 });
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // 單一展開（手風琴）：null = 全部收起；同時只展開一個模組。預設全部收起。
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -177,23 +178,22 @@ export function RoleViewMatrixPage() {
     return out;
   }, [views]);
 
-  // 導覽列（全鍵盤焦點模型）：模組標題列 + 展開模組的畫面列；收合模組只留標題列。
+  // 導覽列（全鍵盤焦點模型）：模組標題列 + 「目前展開那一個」模組的畫面列；其餘只留標題列。
   const navRows = useMemo<NavRow[]>(() => {
     const out: NavRow[] = [];
     for (const g of groups) {
       out.push({ type: 'header', module: g.module, viewIds: g.rows.map((v) => v.id) });
-      if (!collapsed.has(g.module)) for (const v of g.rows) out.push({ type: 'view', view: v });
+      if (g.module === expandedModule) for (const v of g.rows) out.push({ type: 'view', view: v });
     }
     return out;
-  }, [groups, collapsed]);
+  }, [groups, expandedModule]);
 
+  // 手風琴：展開一個會自動收起其他；一次只展開一個。
   const toggleCollapse = useCallback((module: string, force?: 'open' | 'close') => {
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      const shouldCollapse = force === 'close' ? true : force === 'open' ? false : !next.has(module);
-      if (shouldCollapse) next.add(module);
-      else next.delete(module);
-      return next;
+    setExpandedModule((cur) => {
+      if (force === 'open') return module; // 展開此模組（其餘自動收起）
+      if (force === 'close') return cur === module ? null : cur; // 收起此模組
+      return cur === module ? null : module; // 切換
     });
   }, []);
 
@@ -374,13 +374,13 @@ export function RoleViewMatrixPage() {
             <tbody>
               {navRows.map((nr, idx) => {
                 if (nr.type === 'header') {
-                  const isCollapsed = collapsed.has(nr.module);
+                  const isCollapsed = expandedModule !== nr.module;
                   const moduleAllOn =
                     nr.viewIds.length > 0 &&
                     nr.viewIds.every((vid) => { const c = cellOf(vid); return PERM_KEYS.every((k) => c[k]); });
                   const headerFocused = focus.row === idx;
                   return (
-                    <tr key={`h_${nr.module}`} data-navrow={idx}>
+                    <tr key={`h_${nr.module}`} data-navrow={idx} className="scroll-mt-10">
                       <td
                         colSpan={PERM_KEYS.length + 1}
                         className={cn('bg-[#0E0E12] px-4 py-2', headerFocused && 'ring-1 ring-inset ring-[#E8A020]/50')}
@@ -420,7 +420,7 @@ export function RoleViewMatrixPage() {
                 const c = cellOf(view.id);
                 const viewAllOn = PERM_KEYS.every((k) => c[k]);
                 return (
-                  <tr key={view.id} data-navrow={idx} className="border-b border-[#1A1A1F]/70">
+                  <tr key={view.id} data-navrow={idx} className="scroll-mt-10 border-b border-[#1A1A1F]/70">
                     <td className="px-4 py-2 text-[#E8E8EB]">
                       <div className="flex items-center justify-between gap-2 pl-5">
                         <span className="truncate">{view.name}</span>
