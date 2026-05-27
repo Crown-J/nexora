@@ -1116,30 +1116,69 @@ export function UserMasterPage() {
     setRolePickerOpen(true);
   }, [selectedUser, showToast]);
 
-  // RolePicker 用：已指派的 roleId 集合（picker 內 disable + 顯示「已指派」chip）
-  const assignedRoleIds = useMemo(
-    () => new Set(selectedUserRoles.map((ur) => ur.roleId)),
-    [selectedUserRoles],
-  );
+  // RolePicker 管理模式用：當前「有效」已指派 roleId（含 staged add、扣除 staged remove），
+  // picker 開啟時據此預設勾選；反勾＝撤銷、勾＝指派。
+  const effectiveAssignedRoleIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const ur of selectedUserRoles) {
+      if (!stagedRemovedRoleIds.has(ur.id)) s.add(ur.roleId);
+    }
+    for (const r of stagedAddedRoles) s.add(r.id);
+    return s;
+  }, [selectedUserRoles, stagedRemovedRoleIds, stagedAddedRoles]);
+
+  // 主要職務不可在 picker 反勾撤銷（對齊列表「主要職務不可撤銷」規則）
+  const lockedPrimaryRoleIds = useMemo(() => {
+    const primaryUserRoleId =
+      stagedPrimaryRoleId ?? selectedUserRoles.find((r) => r.isPrimary)?.id ?? null;
+    const ur = selectedUserRoles.find((r) => r.id === primaryUserRoleId);
+    return ur ? new Set([ur.roleId]) : new Set<string>();
+  }, [stagedPrimaryRoleId, selectedUserRoles]);
 
   const handleRolePickerSearch = useCallback(
-    (q: string) => listRoles({ q: q || undefined, isActive: true, pageSize: 50 }),
-    [],
-  );
-
-  // C1 staged：picker confirm 不立即 assign，只加入 pendingRoleOps
-  const handleRolePickerConfirm = useCallback(
-    async (roles: RoleDto[]) => {
-      setPendingRoleOps((prev) => [...prev, ...roles.map((r): RoleOp => ({ kind: 'add', role: r }))]);
+    async (q: string) => {
+      const res = await listRoles({ q: q || undefined, isActive: true, pageSize: 50 });
+      // SYSADMIN 鎖定（前端再保險、對齊後端 role.service list 過濾）：
+      // 系統管理員職務為伊諾瓦後台角色、指派視窗完全不出現。
+      return {
+        ...res,
+        items: res.items.filter((r) => String(r.code ?? '').trim().toUpperCase() !== 'SYSADMIN'),
+      };
     },
     [],
   );
 
-  const handleRolePickerSuccess = useCallback(
-    (count: number) => {
-      showToast(`已加入 ${count} 個職務（待存檔，按 S 才會寫入）`, 'info');
+  // 管理模式套用（勾＝指派、反勾＝撤銷）：與既有 staged ops 對帳、按 S 才寫入。
+  const handleRoleManageApply = useCallback(
+    async (added: RoleDto[], removedRoleIds: string[]) => {
+      setPendingRoleOps((prev) => {
+        let next = [...prev];
+        // 新增勾選
+        for (const role of added) {
+          const existingUr = selectedUserRoles.find((ur) => ur.roleId === role.id);
+          if (existingUr && next.some((o) => o.kind === 'remove' && o.userRoleId === existingUr.id)) {
+            // 既有職務原本 staged 撤銷 → 重新勾選＝取消該撤銷
+            next = next.filter((o) => !(o.kind === 'remove' && o.userRoleId === existingUr.id));
+          } else if (!next.some((o) => o.kind === 'add' && o.role.id === role.id)) {
+            next.push({ kind: 'add', role });
+          }
+        }
+        // 反勾撤銷
+        for (const roleId of removedRoleIds) {
+          if (next.some((o) => o.kind === 'add' && o.role.id === roleId)) {
+            // 反勾的是 staged-add（尚未存檔的新增）→ 取消該新增
+            next = next.filter((o) => !(o.kind === 'add' && o.role.id === roleId));
+            continue;
+          }
+          const ur = selectedUserRoles.find((u) => u.roleId === roleId);
+          if (ur && !next.some((o) => o.kind === 'remove' && o.userRoleId === ur.id)) {
+            next.push({ kind: 'remove', userRoleId: ur.id });
+          }
+        }
+        return next;
+      });
     },
-    [showToast],
+    [selectedUserRoles],
   );
 
   // C1 staged：設為主要（toggle 模式：再點同一筆 = 取消 staged）
@@ -1191,33 +1230,48 @@ export function UserMasterPage() {
     setWarehousePickerOpen(true);
   }, [selectedUser, showToast]);
 
-  // WarehousePicker 用：已指派的 warehouseId 集合
-  const assignedWarehouseIds = useMemo(
-    () => new Set(selectedUserWarehouses.map((uw) => uw.warehouseId)),
-    [selectedUserWarehouses],
-  );
+  // WarehousePicker 管理模式用：當前「有效」已指派 warehouseId（含 staged add、扣除 staged remove）
+  const effectiveAssignedWarehouseIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const uw of selectedUserWarehouses) {
+      if (!stagedRemovedWarehouseIds.has(uw.id)) s.add(uw.warehouseId);
+    }
+    for (const w of stagedAddedWarehouses) s.add(w.id);
+    return s;
+  }, [selectedUserWarehouses, stagedRemovedWarehouseIds, stagedAddedWarehouses]);
 
   const handleWarehousePickerSearch = useCallback(
     (q: string) => listWarehouses({ q: q || undefined, isActive: true, pageSize: 50 }),
     [],
   );
 
-  // C1 staged：picker confirm 不立即 assign，只加入 pendingWarehouseOps
-  const handleWarehousePickerConfirm = useCallback(
-    async (warehouses: WarehouseDto[]) => {
-      setPendingWarehouseOps((prev) => [
-        ...prev,
-        ...warehouses.map((w): WarehouseOp => ({ kind: 'add', warehouse: w })),
-      ]);
+  // 管理模式套用（勾＝指派、反勾＝撤銷）：與既有 staged ops 對帳、按 S 才寫入。
+  const handleWarehouseManageApply = useCallback(
+    async (added: WarehouseDto[], removedWarehouseIds: string[]) => {
+      setPendingWarehouseOps((prev) => {
+        let next = [...prev];
+        for (const w of added) {
+          const existingUw = selectedUserWarehouses.find((uw) => uw.warehouseId === w.id);
+          if (existingUw && next.some((o) => o.kind === 'remove' && o.userWarehouseId === existingUw.id)) {
+            next = next.filter((o) => !(o.kind === 'remove' && o.userWarehouseId === existingUw.id));
+          } else if (!next.some((o) => o.kind === 'add' && o.warehouse.id === w.id)) {
+            next.push({ kind: 'add', warehouse: w });
+          }
+        }
+        for (const wid of removedWarehouseIds) {
+          if (next.some((o) => o.kind === 'add' && o.warehouse.id === wid)) {
+            next = next.filter((o) => !(o.kind === 'add' && o.warehouse.id === wid));
+            continue;
+          }
+          const uw = selectedUserWarehouses.find((u) => u.warehouseId === wid);
+          if (uw && !next.some((o) => o.kind === 'remove' && o.userWarehouseId === uw.id)) {
+            next.push({ kind: 'remove', userWarehouseId: uw.id });
+          }
+        }
+        return next;
+      });
     },
-    [],
-  );
-
-  const handleWarehousePickerSuccess = useCallback(
-    (count: number) => {
-      showToast(`已加入 ${count} 個倉庫據點(待存檔，按 S 才會寫入)`, 'info');
-    },
-    [showToast],
+    [selectedUserWarehouses],
   );
 
   // B5（軌 B 第 5 commit）：批次啟用 / 批次停用 接 setUserActive 串聯
@@ -1525,8 +1579,8 @@ export function UserMasterPage() {
             (document.querySelector('[data-formchain="2"]') as HTMLElement | null)?.focus();
           }, 0);
         }}
-        title="新增職務"
-        subtitle="Assign Roles"
+        title="管理職務"
+        subtitle="Manage Roles"
         icon={Briefcase}
         searchPlaceholder="搜尋職務代碼 / 名稱..."
         search={handleRolePickerSearch}
@@ -1534,16 +1588,23 @@ export function UserMasterPage() {
         /* C4：主標只顯示中文名稱（去除 `${code} ·` 前綴）；英文代碼降為下方副標、仍可搜尋（backend role.service whereList OR code/name/description） */
         getLabel={(r) => r.name}
         getDescription={(r) => (r.description ? `${r.code} · ${r.description}` : r.code)}
-        disabledIds={assignedRoleIds}
-        disabledHint="已指派"
-        onConfirm={handleRolePickerConfirm}
-        onSuccess={handleRolePickerSuccess}
+        /* 管理模式：已指派職務預設勾選、反勾＝撤銷（主要職務鎖定不可反勾）。 */
+        preselectedIds={effectiveAssignedRoleIds}
+        lockedIds={lockedPrimaryRoleIds}
+        lockedHint="主要"
+        onApplyChanges={handleRoleManageApply}
+        onApplied={(addedCount, removedCount) =>
+          showToast(
+            `待存檔：新增 ${addedCount} · 撤銷 ${removedCount}（按 S 才寫入；主要職務不可撤銷）`,
+            'info',
+          )
+        }
       />
       <EntityPickerDialog<WarehouseDto>
         open={warehousePickerOpen}
         onClose={() => setWarehousePickerOpen(false)}
-        title="新增倉庫據點"
-        subtitle="Assign Warehouses"
+        title="管理倉庫據點"
+        subtitle="Manage Warehouses"
         icon={Warehouse}
         searchPlaceholder="搜尋倉庫代碼 / 名稱..."
         search={handleWarehousePickerSearch}
@@ -1551,10 +1612,15 @@ export function UserMasterPage() {
         /* C4：對齊 Role picker —— 主標只顯示中文名稱，英文代碼降為副標 */
         getLabel={(w) => w.name}
         getDescription={(w) => (w.remark ? `${w.code} · ${w.remark}` : w.code)}
-        disabledIds={assignedWarehouseIds}
-        disabledHint="已指派"
-        onConfirm={handleWarehousePickerConfirm}
-        onSuccess={handleWarehousePickerSuccess}
+        /* 管理模式：已指派據點預設勾選、反勾＝撤銷。 */
+        preselectedIds={effectiveAssignedWarehouseIds}
+        onApplyChanges={handleWarehouseManageApply}
+        onApplied={(addedCount, removedCount) =>
+          showToast(
+            `待存檔：新增 ${addedCount} · 撤銷 ${removedCount}（按 S 才寫入）`,
+            'info',
+          )
+        }
       />
       <ToastStack toasts={toasts} />
     </>

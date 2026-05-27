@@ -13,7 +13,10 @@ const CONFIG: ReverseAssignConfig = {
   memberNoun: '成員',
   loadEntities: async () => {
     const res = await listRoles({ pageSize: 100, isActive: true });
-    return res.items.map((r) => ({ id: r.id, code: r.code, name: r.name }));
+    // SYSADMIN 鎖定（前端再保險、對齊後端 role.service list 過濾）：系統管理員職務不出現在指派頁。
+    return res.items
+      .filter((r) => String(r.code ?? '').trim().toUpperCase() !== 'SYSADMIN')
+      .map((r) => ({ id: r.id, code: r.code, name: r.name }));
   },
   loadMembers: async (roleId) => {
     const res = await listUserRoles({ roleId, isActive: true, pageSize: 100 });
