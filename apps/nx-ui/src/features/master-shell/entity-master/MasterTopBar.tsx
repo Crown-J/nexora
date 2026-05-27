@@ -2,23 +2,26 @@
 /**
  * MasterTopBar — 主檔頁共用置頂列（鋼鐵星球、簡約、桌面+手機+全鍵盤）
  *
- * 補回簡約版缺的 3 功能 + 使用者按鈕：
- *  1. 模組選單（小星球）：搜尋 + 7 大模組快跳 + 全主檔分區快跳（業務員 daily 不點 5 次）
- *  2. 公告（未讀紅點）
- *  3. 通知（未讀紅點）
- *  + 使用者按鈕（公司名 / 帳號 / 登出）
+ * 左→右：返回 · 小星球模組選單 · 分類/標題（中段）· 計數 · 公告 · 通知 · 使用者
  *
- * 左→右：返回 · 模組選單 · 分類/標題（中段）· 計數 · 公告 · 通知 · 使用者
+ * 4 大功能（對齊 Crown 認可範式）：
+ *  1. 模組選單 = NEXORA 小星球（PlanetOrbTrigger）；點開為「階層式」側欄：
+ *     左欄 7 大模組、滑過/點擊 → 右欄展開該模組子分頁（主檔模組列出分區+主檔；
+ *     採購/銷貨/庫存/財務/報表先佔位）。頂部搜尋框可直接打字找主檔。
+ *  2. 公告（Megaphone、琥珀未讀 badge）/ 3. 通知（Bell、紅色未讀 badge）= 對齊使用者主檔頁質感
+ *  4. 使用者 = 頭像 + 公司名 + 帳號 + 下拉箭頭（對齊首頁 TopBar）
+ *
  * 全鍵盤：Alt+M 開模組選單；各 popover Esc 關、Tab 可達、Enter 觸發。
  */
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bell, ChevronRight, LayoutGrid, LogOut, Megaphone, Search, X } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronDown, ChevronRight, LogOut, Megaphone, Search, User } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { HOME_DOCK_ITEMS } from '@/components/home/dock';
+import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import {
   MASTER_HUB_CARDS,
   MASTER_HUB_SECTION_ORDER,
@@ -26,7 +29,26 @@ import {
 } from '@/features/base/config/master-cards';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 
-/** 輕量 popover：點外關 + Esc 關，回傳容器 ref / 開關 state */
+const MASTER_HREF = '/dashboard/base';
+
+type NavLink = { label: string; href: string };
+type NavGroup = { title: string; items: NavLink[] };
+
+/** 模組 → 子分頁。主檔列出分區 + 主檔；其他模組先佔位（之後做該模組再填）。 */
+function moduleGroups(moduleHref: string): NavGroup[] {
+  if (moduleHref === MASTER_HREF) {
+    return MASTER_HUB_SECTION_ORDER.map((sid) => ({
+      title: MASTER_HUB_SECTION_TITLES[sid],
+      items: MASTER_HUB_CARDS.filter((c) => c.section === sid).map((c) => ({
+        label: c.title,
+        href: c.href,
+      })),
+    })).filter((g) => g.items.length > 0);
+  }
+  return [];
+}
+
+/** 輕量 popover：點外關 + Esc 關 */
 function usePopover() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -69,7 +91,6 @@ export function MasterTopBar({
   unreadAnnouncements?: number;
   unreadNotifications?: number;
 }) {
-  const router = useRouter();
   const { displayName, tenantNameZh, planCode, me, logout } = useSessionMe();
 
   const moduleMenu = usePopover();
@@ -77,6 +98,7 @@ export function MasterTopBar({
   const notifyMenu = usePopover();
   const userMenu = usePopover();
   const [kw, setKw] = useState('');
+  const [activeModule, setActiveModule] = useState<string>(MASTER_HREF);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Alt+M 開模組選單
@@ -94,6 +116,7 @@ export function MasterTopBar({
   useEffect(() => {
     if (moduleMenu.open) {
       setKw('');
+      setActiveModule(MASTER_HREF);
       setTimeout(() => searchRef.current?.focus(), 0);
     }
   }, [moduleMenu.open]);
@@ -106,25 +129,15 @@ export function MasterTopBar({
     [moduleMenu, requestNavigate],
   );
 
-  // 主檔清單（依搜尋過濾）
-  const filteredCards = useMemo(() => {
+  // 搜尋結果（跨主檔；搜尋時右欄直接顯示結果，忽略 active 模組）
+  const searchHits = useMemo(() => {
     const s = kw.trim();
-    if (!s) return MASTER_HUB_CARDS;
-    return MASTER_HUB_CARDS.filter(
-      (c) => c.title.includes(s) || c.description.includes(s),
-    );
+    if (!s) return [];
+    return MASTER_HUB_CARDS.filter((c) => c.title.includes(s) || c.description.includes(s));
   }, [kw]);
 
-  const sections = useMemo(
-    () =>
-      MASTER_HUB_SECTION_ORDER.map((sid) => ({
-        id: sid,
-        title: MASTER_HUB_SECTION_TITLES[sid],
-        cards: filteredCards.filter((c) => c.section === sid),
-      })).filter((s) => s.cards.length > 0),
-    [filteredCards],
-  );
-
+  const groups = useMemo(() => moduleGroups(activeModule), [activeModule]);
+  const activeItem = HOME_DOCK_ITEMS.find((m) => m.href === activeModule);
   const userInitial = (displayName || me?.username || 'U').slice(0, 1).toUpperCase();
 
   return (
@@ -133,21 +146,29 @@ export function MasterTopBar({
       style={{ backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)' }}
     >
       {/* 返回 */}
-      <IconButton label="返回" onClick={onBack}>
+      <BoxButton label="返回" onClick={onBack}>
         <ArrowLeft className="size-4" />
-      </IconButton>
+      </BoxButton>
 
-      {/* 模組選單 */}
+      {/* 模組選單（小星球） */}
       <div className="relative" ref={moduleMenu.ref}>
-        <IconButton
-          label="模組選單 (Alt+M)"
-          active={moduleMenu.open}
+        <button
+          type="button"
           onClick={() => moduleMenu.setOpen((o) => !o)}
+          aria-label="模組選單 (Alt+M)"
+          title="模組選單 (Alt+M)"
+          className={cn(
+            'group flex size-9 shrink-0 items-center justify-center rounded-xl border transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40',
+            moduleMenu.open
+              ? 'border-[#E8A020]/40 bg-[#E8A020]/10'
+              : 'border-transparent hover:border-[#E8A020]/30 hover:bg-[#E8A020]/10',
+          )}
         >
-          <LayoutGrid className="size-4" />
-        </IconButton>
+          <PlanetOrbTrigger className="scale-90" />
+        </button>
+
         {moduleMenu.open ? (
-          <div className={cn(PANEL, 'left-0 w-[min(92vw,30rem)] p-3')}>
+          <div className={cn(PANEL, 'left-0 w-[min(94vw,40rem)] p-3')}>
             {/* 搜尋 */}
             <div className="flex items-center gap-2 rounded-lg border border-[#2A2A30] bg-[#0A0A0C] px-2.5 py-1.5">
               <Search className="size-3.5 text-[#E8A020]" />
@@ -160,49 +181,77 @@ export function MasterTopBar({
               />
             </div>
 
-            {/* 模組快跳 */}
-            <div className="mt-3 grid grid-cols-4 gap-1.5">
-              {HOME_DOCK_ITEMS.map((m) => (
-                <button
-                  key={m.href}
-                  type="button"
-                  onClick={() => go(m.href)}
-                  className="flex flex-col items-center gap-1 rounded-lg border border-[#2A2A30] bg-[#0E0E12] px-1 py-2 text-[11px] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50"
-                >
-                  <m.icon className="size-4" />
-                  {m.label}
-                </button>
-              ))}
-            </div>
-
-            {/* 主檔分區快跳 */}
-            <div className="mt-3 max-h-[46vh] overflow-auto pr-1">
-              {sections.length === 0 ? (
-                <div className="px-1 py-6 text-center text-xs text-[#5A5A60]">查無主檔</div>
-              ) : (
-                sections.map((sec) => (
-                  <div key={sec.id} className="mb-2">
-                    <div className="px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
-                      {sec.title}
-                    </div>
-                    {sec.cards.map((c) => (
+            {kw.trim() ? (
+              /* 搜尋結果 */
+              <div className="mt-3 max-h-[52vh] overflow-auto pr-1">
+                {searchHits.length === 0 ? (
+                  <div className="px-1 py-6 text-center text-xs text-[#5A5A60]">查無主檔</div>
+                ) : (
+                  searchHits.map((c) => (
+                    <NavRow key={c.id} icon={c.icon} label={c.title} onClick={() => go(c.href)} />
+                  ))
+                )}
+              </div>
+            ) : (
+              /* 階層式：左模組 + 右子分頁 */
+              <div className="mt-3 flex gap-2">
+                {/* 左：模組 */}
+                <div className="flex w-[5.5rem] shrink-0 flex-col gap-1 border-r border-[#2A2A30] pr-2 sm:w-28">
+                  {HOME_DOCK_ITEMS.map((m) => {
+                    const on = m.href === activeModule;
+                    return (
                       <button
-                        key={c.id}
+                        key={m.href}
                         type="button"
-                        onClick={() => go(c.href)}
-                        className="group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] transition-colors hover:bg-[#E8A020]/12 hover:text-[#E8A020] focus:outline-none focus-visible:bg-[#E8A020]/12"
+                        onMouseEnter={() => setActiveModule(m.href)}
+                        onFocus={() => setActiveModule(m.href)}
+                        onClick={() => setActiveModule(m.href)}
+                        className={cn(
+                          'flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors focus:outline-none',
+                          on
+                            ? 'bg-[#E8A020]/12 text-[#E8A020]'
+                            : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
+                        )}
                       >
-                        <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] group-hover:text-[#E8A020]">
-                          <c.icon className="size-3.5" />
-                        </span>
-                        <span className="flex-1 truncate text-left">{c.title}</span>
-                        <ChevronRight className="size-3.5 text-[#5A5A60] group-hover:text-[#E8A020]" />
+                        <m.icon className="size-4 shrink-0" />
+                        <span className="truncate">{m.label}</span>
                       </button>
-                    ))}
-                  </div>
-                ))
-              )}
-            </div>
+                    );
+                  })}
+                </div>
+
+                {/* 右：子分頁 */}
+                <div className="min-h-[14rem] max-h-[52vh] flex-1 overflow-auto pl-1">
+                  {/* 進入該模組首頁 */}
+                  <button
+                    type="button"
+                    onClick={() => go(activeModule)}
+                    className="mb-2 flex w-full items-center justify-between rounded-md border border-[#2A2A30] bg-[#0E0E12] px-2.5 py-1.5 text-xs font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+                  >
+                    進入{activeItem?.label ?? ''}首頁
+                    <ChevronRight className="size-3.5" />
+                  </button>
+
+                  {groups.length > 0 ? (
+                    groups.map((g) => (
+                      <div key={g.title} className="mb-2">
+                        <div className="px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
+                          {g.title}
+                        </div>
+                        {g.items.map((it) => (
+                          <NavRow key={it.href} label={it.label} onClick={() => go(it.href)} />
+                        ))}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex h-40 flex-col items-center justify-center gap-1 px-2 text-center">
+                      <span className="text-xs text-[#888892]">{activeItem?.label} 子分頁建置中</span>
+                      <span className="text-[10px] text-[#5A5A60]">之後做這個模組時會補上</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ) : null}
       </div>
@@ -220,11 +269,16 @@ export function MasterTopBar({
         {count}
       </span>
 
-      {/* 公告 */}
+      {/* 公告（琥珀 badge） */}
       <div className="relative" ref={announceMenu.ref}>
-        <IconButton label="公司公告" badge={unreadAnnouncements} onClick={() => announceMenu.setOpen((o) => !o)}>
-          <Megaphone className="size-4" />
-        </IconButton>
+        <NotifyButton
+          icon={Megaphone}
+          badge={unreadAnnouncements}
+          badgeTone="amber"
+          label="公司公告"
+          active={announceMenu.open}
+          onClick={() => announceMenu.setOpen((o) => !o)}
+        />
         {announceMenu.open ? (
           <div className={cn(PANEL, 'right-0 w-[min(88vw,18rem)] p-3')}>
             <PanelTitle text="公司公告" />
@@ -245,11 +299,16 @@ export function MasterTopBar({
         ) : null}
       </div>
 
-      {/* 通知 */}
+      {/* 通知（紅色 badge） */}
       <div className="relative" ref={notifyMenu.ref}>
-        <IconButton label="系統通知" badge={unreadNotifications} onClick={() => notifyMenu.setOpen((o) => !o)}>
-          <Bell className="size-4" />
-        </IconButton>
+        <NotifyButton
+          icon={Bell}
+          badge={unreadNotifications}
+          badgeTone="red"
+          label="系統通知"
+          active={notifyMenu.open}
+          onClick={() => notifyMenu.setOpen((o) => !o)}
+        />
         {notifyMenu.open ? (
           <div className={cn(PANEL, 'right-0 w-[min(88vw,18rem)] p-3')}>
             <PanelTitle text="系統通知" />
@@ -260,23 +319,39 @@ export function MasterTopBar({
         ) : null}
       </div>
 
-      {/* 使用者 */}
+      {/* 使用者（頭像 + 公司名 + 帳號 + 箭頭） */}
       <div className="relative" ref={userMenu.ref}>
         <button
           type="button"
           onClick={() => userMenu.setOpen((o) => !o)}
           aria-label="使用者選單"
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#2A2A30] bg-[#1A1A1F] text-xs font-bold text-[#E8A020] transition-colors hover:border-[#E8A020]/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50"
+          className="flex h-9 shrink-0 items-center gap-2 rounded-xl border border-[#2A2A30] bg-[#1A1A1F] pl-1 pr-2 transition-colors hover:border-[#E8A020]/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50"
         >
-          {userInitial}
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-[#E8A020]/30 bg-gradient-to-br from-[#E8A020]/30 to-[#E8A020]/10 text-xs font-bold text-[#E8A020]">
+            {userInitial}
+          </span>
+          <span className="hidden flex-col text-left leading-tight lg:flex">
+            <span className="max-w-[9rem] truncate text-xs font-semibold text-[#F0F0F3]">
+              {tenantNameZh || 'NEXORA'}
+            </span>
+            <span className="max-w-[9rem] truncate text-[10px] text-[#888892]">
+              {displayName || me?.username}
+            </span>
+          </span>
+          <ChevronDown className="hidden size-3.5 text-[#5A5A60] lg:block" />
         </button>
         {userMenu.open ? (
           <div className={cn(PANEL, 'right-0 w-[min(88vw,16rem)] p-3')}>
-            <div className="px-1">
-              <div className="truncate text-sm font-semibold text-[#F0F0F3]">{tenantNameZh || 'NEXORA'}</div>
-              <div className="mt-0.5 truncate text-xs text-[#888892]">
-                {displayName || me?.username}
-                {planCode ? <span className="ml-1 text-[#E8A020]">· {planCode}</span> : null}
+            <div className="flex items-center gap-3 px-1">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-[#E8A020]/30 bg-gradient-to-br from-[#E8A020]/30 to-[#E8A020]/10 text-[#E8A020]">
+                <User className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-[#F0F0F3]">{tenantNameZh || 'NEXORA'}</div>
+                <div className="mt-0.5 truncate text-xs text-[#888892]">
+                  {displayName || me?.username}
+                  {planCode ? <span className="ml-1 text-[#E8A020]">· {planCode}</span> : null}
+                </div>
               </div>
             </div>
             <button
@@ -297,38 +372,86 @@ export function MasterTopBar({
   );
 }
 
-function IconButton({
-  label,
-  onClick,
-  active,
-  badge,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  active?: boolean;
-  badge?: number;
-  children: React.ReactNode;
-}) {
+/** 方塊 icon 按鈕（返回用） */
+function BoxButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={cn(
-        'relative flex size-8 shrink-0 items-center justify-center rounded-lg border transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50',
-        active
-          ? 'border-[#E8A020]/40 bg-[#E8A020]/10 text-[#E8A020]'
-          : 'border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]',
-      )}
+      className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50"
     >
       {children}
-      {badge && badge > 0 ? (
-        <span className="absolute -right-1 -top-1 flex min-w-[16px] items-center justify-center rounded-full bg-[#E26060] px-1 text-[9px] font-bold leading-[16px] text-white shadow-[0_0_6px_#E26060]">
+    </button>
+  );
+}
+
+/** 公告 / 通知按鈕（對齊使用者主檔頁 TopHeaderIconButton 質感、glow badge） */
+function NotifyButton({
+  icon: Icon,
+  badge,
+  badgeTone,
+  label,
+  active,
+  onClick,
+}: {
+  icon: LucideIcon;
+  badge?: number;
+  badgeTone: 'red' | 'amber';
+  label: string;
+  active?: boolean;
+  onClick: () => void;
+}) {
+  const badgeColor =
+    badgeTone === 'red'
+      ? 'bg-[#E26060] text-white shadow-[0_0_8px_#E26060]'
+      : 'bg-[#E8A020] text-[#0A0A0C] shadow-[0_0_8px_#E8A020]';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={cn(
+        'relative rounded-lg border p-2 transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50',
+        active
+          ? 'border-[#2A2A30] bg-[#1A1A1F] text-[#E8E8EB]'
+          : 'border-transparent text-[#888892] hover:border-[#2A2A30] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
+      )}
+    >
+      <Icon className="size-4" />
+      {badge != null && badge > 0 ? (
+        <span
+          className={cn(
+            'absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none',
+            badgeColor,
+          )}
+        >
           {badge > 99 ? '99+' : badge}
         </span>
       ) : null}
+    </button>
+  );
+}
+
+/** 模組選單裡的一列主檔連結 */
+function NavRow({ icon: Icon, label, onClick }: { icon?: LucideIcon; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] transition-colors hover:bg-[#E8A020]/12 hover:text-[#E8A020] focus:outline-none focus-visible:bg-[#E8A020]/12"
+    >
+      {Icon ? (
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] group-hover:text-[#E8A020]">
+          <Icon className="size-3.5" />
+        </span>
+      ) : (
+        <span className="size-1.5 shrink-0 rounded-full bg-[#3A3A42] group-hover:bg-[#E8A020]" />
+      )}
+      <span className="flex-1 truncate text-left">{label}</span>
+      <ChevronRight className="size-3.5 text-[#5A5A60] group-hover:text-[#E8A020]" />
     </button>
   );
 }
@@ -337,7 +460,6 @@ function PanelTitle({ text }: { text: string }) {
   return (
     <div className="flex items-center justify-between border-b border-[#2A2A30] pb-2">
       <span className="text-xs font-semibold tracking-wide text-[#F0F0F3]">{text}</span>
-      <X className="size-3 text-[#5A5A60]" />
     </div>
   );
 }
