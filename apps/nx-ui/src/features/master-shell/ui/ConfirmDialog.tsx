@@ -15,6 +15,7 @@
  */
 'use client';
 
+import { useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +42,25 @@ export function ConfirmDialog({
   state: ConfirmState | null;
   onClose: () => void;
 }) {
+  // 鍵盤：Enter = 確認、Esc = 取消（capture 優先、避免外層 keydown 同時觸發）
+  useEffect(() => {
+    if (!state) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        state.onConfirm();
+        onClose();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [state, onClose]);
+
   if (!state) return null;
   const isDanger = state.variant === 'danger';
   return (

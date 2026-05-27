@@ -73,11 +73,21 @@ export function SectionHeader({
   );
 }
 
-export function SectionAddButton({ label, onClick }: { label: string; onClick?: () => void }) {
+export function SectionAddButton({
+  label,
+  onClick,
+  formChain,
+}: {
+  label: string;
+  onClick?: () => void;
+  /** Enter 跳格鏈順序（主檔詳細頁編輯流；提供時加 data-formchain 供鍵盤鏈納入） */
+  formChain?: number;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      data-formchain={formChain}
       className="inline-flex h-7 min-w-[8rem] items-center justify-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-[11px] font-medium text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]"
     >
       <Plus className="size-3" />

@@ -96,6 +96,7 @@ export function EntityPickerDialog<T>({
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [focusedIndex, setFocusedIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -143,16 +144,6 @@ export function EntityPickerDialog<T>({
     };
   }, [open, debouncedKeyword, search]);
 
-  // ESC 關閉
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !submitting) onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, submitting, onClose]);
-
   const toggle = useCallback(
     (id: string) => {
       setSelected((prev) => {
@@ -186,6 +177,47 @@ export function EntityPickerDialog<T>({
 
   const selectedCount = selected.size;
   const visibleItems = useMemo(() => items, [items]);
+
+  // 全鍵盤：↑↓ 移動焦點、空白 勾選/取消、Enter 確認、Esc 關（capture 優先於外層）
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (submitting) return;
+      const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        const n = visibleItems.length;
+        if (n === 0) return;
+        setFocusedIndex((i) => (e.key === 'ArrowDown' ? Math.min(n - 1, i + 1) : Math.max(0, i - 1)));
+      } else if (e.key === ' ' || e.key === 'Spacebar') {
+        if (tag === 'input') return; // 搜尋框內空白＝打字
+        e.preventDefault();
+        e.stopPropagation();
+        const it = visibleItems[focusedIndex];
+        if (it && !(disabledIds?.has(getId(it)) ?? false)) toggle(getId(it));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        void handleSubmit();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [open, submitting, visibleItems, focusedIndex, disabledIds, getId, toggle, handleSubmit, onClose]);
+
+  // 清單變動時焦點回第一項 + 捲入視野
+  useEffect(() => {
+    setFocusedIndex(0);
+  }, [visibleItems]);
+  useEffect(() => {
+    if (!open) return;
+    document.querySelector(`[data-picker-idx="${focusedIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [focusedIndex, open]);
 
   if (!open) return null;
 
@@ -247,19 +279,23 @@ export function EntityPickerDialog<T>({
             </div>
           ) : (
             <ul className="divide-y divide-[#1A1A1F]">
-              {visibleItems.map((item) => {
+              {visibleItems.map((item, index) => {
                 const id = getId(item);
                 const isDisabled = disabledIds?.has(id) ?? false;
                 const isSelected = selected.has(id);
+                const isFocused = index === focusedIndex;
                 const desc = getDescription?.(item);
                 return (
                   <li key={id}>
                     <button
                       type="button"
+                      data-picker-idx={index}
                       disabled={isDisabled || submitting}
                       onClick={() => toggle(id)}
+                      onMouseEnter={() => setFocusedIndex(index)}
                       className={cn(
                         'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors',
+                        isFocused && 'ring-1 ring-inset ring-[#E8A020]/60',
                         isDisabled
                           ? 'cursor-not-allowed opacity-50'
                           : isSelected

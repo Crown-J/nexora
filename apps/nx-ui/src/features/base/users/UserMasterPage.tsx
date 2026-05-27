@@ -397,7 +397,7 @@ function UserDetailView({
     if (t.tagName.toLowerCase() === 'textarea') return;
     e.preventDefault();
     const els = Array.from(
-      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea') ?? [],
+      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea, [data-formchain]') ?? [],
     ).filter((el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null);
     const idx = els.indexOf(t);
     if (idx >= 0 && idx < els.length - 1) els[idx + 1]?.focus();
@@ -406,10 +406,12 @@ function UserDetailView({
 
   return (
     <MasterDetailScroll scrollKey={user.id}>
+      {/* Enter 跳格鏈包整個詳細頁：基本資料欄位 → 新增職務 → 新增倉庫 → 存檔 */}
+      <div ref={formRef} onKeyDown={handleFormKey}>
       {/* 基本資料 */}
       <section className="border-b border-[#1A1A1F] px-8 py-6">
         <SectionHeader title="基本資料" subtitle="User Profile" />
-        <div ref={formRef} onKeyDown={handleFormKey} className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* username / jobTitle / warehouse 為 derived 欄位（jobTitle ← user_role、warehouse ← user_warehouse）
              updateUser API 不接受、需於下方「擔任職務 / 隸屬倉庫」區塊調整，編輯模式仍維持 read-only */}
           <FormField label="帳號" value={user.username} mono />
@@ -461,7 +463,7 @@ function UserDetailView({
           title="擔任職務"
           count={userRoles.length}
           subtitle="Assigned Roles"
-          action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} /> : null}
+          action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} formChain={1} /> : null}
         />
         {editMode &&
         (stagedRoleAddCount > 0 || stagedRoleRemoveCount > 0 || stagedRolePrimaryChanged) ? (
@@ -487,7 +489,7 @@ function UserDetailView({
                   r.roleCode ?? '—',
                   r.roleName ?? '—',
                   r.isPrimary ? '✓' : '',
-                  r.assignedAt,
+                  formatDateTimeZh(r.assignedAt),
                   r.assignedByName ?? '—',
                 ];
                 if (!editMode) return base;
@@ -514,7 +516,7 @@ function UserDetailView({
           title="隸屬倉庫"
           count={userWarehouses.length}
           subtitle="Assigned Warehouses"
-          action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} /> : null}
+          action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} formChain={2} /> : null}
         />
         {editMode && (stagedWarehouseAddCount > 0 || stagedWarehouseRemoveCount > 0) ? (
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
@@ -537,7 +539,7 @@ function UserDetailView({
                   String(i + 1).padStart(4, '0'),
                   w.warehouseCode ?? '—',
                   w.warehouseName ?? '—',
-                  w.assignedAt,
+                  formatDateTimeZh(w.assignedAt),
                   w.assignedByName ?? '—',
                 ];
                 if (!editMode) return base;
@@ -552,6 +554,7 @@ function UserDetailView({
           )}
         </div>
       </section>
+      </div>
     </MasterDetailScroll>
   );
 }
