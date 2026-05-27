@@ -97,6 +97,7 @@ export function EntityPickerDialog<T>({
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -110,7 +111,9 @@ export function EntityPickerDialog<T>({
       setSelected(new Set());
       setError(null);
       setSubmitting(false);
-      setTimeout(() => searchInputRef.current?.focus(), 50);
+      // 預設不開搜尋框、焦點在列表（↑↓ 選 / 空白 勾 / Alt+F 才開搜尋）
+      setSearchOpen(false);
+      setFocusedIndex(0);
     }
   }, [open]);
 
@@ -184,10 +187,25 @@ export function EntityPickerDialog<T>({
     const onKey = (e: KeyboardEvent) => {
       if (submitting) return;
       const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+      // Alt+F 開搜尋框並 focus
+      if (e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSearchOpen(true);
+        setTimeout(() => searchInputRef.current?.focus(), 0);
+        return;
+      }
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        onClose();
+        // 搜尋開著：關搜尋 + 焦點回列表；否則關整個視窗
+        if (searchOpen) {
+          setSearchOpen(false);
+          setKeyword('');
+          (document.activeElement as HTMLElement | null)?.blur();
+        } else {
+          onClose();
+        }
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         e.stopPropagation();
@@ -208,7 +226,7 @@ export function EntityPickerDialog<T>({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [open, submitting, visibleItems, focusedIndex, disabledIds, getId, toggle, handleSubmit, onClose]);
+  }, [open, submitting, searchOpen, visibleItems, focusedIndex, disabledIds, getId, toggle, handleSubmit, onClose]);
 
   // 清單變動時焦點回第一項 + 捲入視野
   useEffect(() => {
@@ -245,29 +263,37 @@ export function EntityPickerDialog<T>({
           ) : null}
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-2">
-          <Search className="size-4 text-[#E8A020]" />
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder={searchPlaceholder ?? '搜尋...'}
-            disabled={submitting}
-            className="flex-1 bg-transparent text-sm text-[#E8E8EB] outline-none placeholder:text-[#5A5A60]"
-          />
-          {keyword ? (
-            <button
-              type="button"
-              onClick={() => setKeyword('')}
+        {/* Search：預設收起、Alt+F 開、Esc 關回列表 */}
+        {searchOpen ? (
+          <div className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-2">
+            <Search className="size-4 text-[#E8A020]" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder={searchPlaceholder ?? '搜尋...'}
               disabled={submitting}
-              className="rounded px-1.5 text-[11px] text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
-            >
-              清除
-            </button>
-          ) : null}
-        </div>
+              className="flex-1 bg-transparent text-sm text-[#E8E8EB] outline-none placeholder:text-[#5A5A60]"
+            />
+            <span className="hidden text-[10px] tracking-wider text-[#5A5A60] sm:inline">ESC 關閉</span>
+            {keyword ? (
+              <button
+                type="button"
+                onClick={() => setKeyword('')}
+                disabled={submitting}
+                className="rounded px-1.5 text-[11px] text-[#888892] transition-colors hover:bg-[#1A1A1F] hover:text-[#E8E8EB]"
+              >
+                清除
+              </button>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 border-b border-[#2A2A30] px-4 py-1.5 text-[11px] text-[#5A5A60]">
+            <Search className="size-3.5" />
+            ↑↓ 選 · 空白 勾選 · Alt+F 搜尋 · Enter 儲存
+          </div>
+        )}
 
         {/* List */}
         <div className="min-h-0 flex-1 overflow-auto nx-master-scroll">
