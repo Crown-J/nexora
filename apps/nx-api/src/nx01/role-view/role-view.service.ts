@@ -70,7 +70,10 @@ export class RoleViewService {
       select: { code: true },
     });
     if (!role) throw new BadRequestException('Role not found in tenant');
-    if (!isSysadmin(user) && String(role.code).trim().toUpperCase() === SYSADMIN_ROLE_CODE) {
+    const code = String(role.code).trim().toUpperCase();
+    // OWNER（負責人）預設擁有全部權限（roles.guard 全通行）、不可在此設定（對齊系統管理員）
+    if (code === 'OWNER') throw new BadRequestException('OWNER has all permissions by default');
+    if (!isSysadmin(user) && code === SYSADMIN_ROLE_CODE) {
       throw new BadRequestException('Role not found in tenant');
     }
   }

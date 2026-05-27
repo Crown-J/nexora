@@ -56,7 +56,8 @@ export function RoleViewMatrixPage() {
     void (async () => {
       try {
         const res = await listRoles({ pageSize: 100, isActive: true });
-        const list = res.items.filter((r) => String(r.code).trim().toUpperCase() !== 'SYSADMIN');
+        // 系統管理員 + 負責人（OWNER）都擁有全部權限、不在此設定（對齊既有鎖定）
+        const list = res.items.filter((r) => !['SYSADMIN', 'OWNER'].includes(String(r.code).trim().toUpperCase()));
         setRoles(list);
         if (list[0]) setRoleId((cur) => cur || list[0].id);
       } catch (e) {
