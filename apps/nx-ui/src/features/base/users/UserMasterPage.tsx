@@ -23,13 +23,6 @@ import { useRouter } from 'next/navigation';
 import {
   Users,
   Briefcase,
-  Shield,
-  Package,
-  Car,
-  Building2,
-  Handshake,
-  Settings,
-  Layers,
   Warehouse,
 } from 'lucide-react';
 
@@ -174,64 +167,6 @@ function makeEditForm(user: UserRow): EditFormState {
 // ──────────────────────────────────────────────────────────────
 // 子元件
 // ──────────────────────────────────────────────────────────────
-
-/** 舊 ERP 範式 tab bar（1 資料瀏覽 / 2 詳細資料）；編輯模式下 list 鎖定 */
-function ErpTabBar({
-  tab,
-  onChange,
-  hasSelected,
-  editMode,
-}: {
-  tab: 'list' | 'detail';
-  onChange: (next: 'list' | 'detail') => void;
-  hasSelected: boolean;
-  editMode: boolean;
-}) {
-  return (
-    <div
-      className="flex items-center border-b border-[#2A2A30] px-3"
-      style={{
-        backgroundImage: 'linear-gradient(180deg, #0E0E12 0%, #08080A 100%)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => onChange('list')}
-        disabled={editMode}
-        title={editMode ? '編輯模式無法切換' : '資料瀏覽（Alt+1）'}
-        className={cn(
-          'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-          tab === 'list'
-            ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_12px_rgba(232,160,32,0.4)]'
-            : editMode
-              ? 'cursor-not-allowed border-transparent text-[#5A5A60]'
-              : 'border-transparent text-[#888892] hover:text-[#E8E8EB]',
-        )}
-      >
-        <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">1</span>
-        資料瀏覽
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange('detail')}
-        disabled={!hasSelected || editMode}
-        title={editMode ? '編輯模式無法切換' : '詳細資料（Alt+2）'}
-        className={cn(
-          'inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
-          tab === 'detail'
-            ? 'border-[#E8A020] text-[#E8A020] [text-shadow:0_0_12px_rgba(232,160,32,0.4)]'
-            : hasSelected && !editMode
-              ? 'border-transparent text-[#888892] hover:text-[#E8E8EB]'
-              : 'cursor-not-allowed border-transparent text-[#5A5A60]',
-        )}
-      >
-        <span className="rounded bg-[#1A1A1F] px-1 font-mono text-[10px] text-[#888892]">2</span>
-        詳細資料
-      </button>
-    </div>
-  );
-}
 
 /** 使用者主檔的 column 配置（傳給 MasterTable<UserRow>） */
 function buildUserColumns(): MasterTableColumn<UserRow>[] {
@@ -629,7 +564,6 @@ export function UserMasterPage() {
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
   const [sortKey, setSortKey] = useState<string>('username');
-  const sidebarRef = useRef<HTMLElement>(null);
   const { toasts, showToast } = useToast();
   const userColumns = useMemo(() => buildUserColumns(), []);
 
@@ -1074,37 +1008,6 @@ export function UserMasterPage() {
     [isDirty, performSave, performCancel],
   );
 
-  // C2：dirty-aware sidebar return-to-table
-  const attemptReturnToTable = useCallback(() => {
-    if (!isDirty) {
-      // 既有邏輯（reset selectedId + 焦點移第一筆）內聯於下
-      if (users.length === 0) return;
-      const first = users[0];
-      setSelectedId(first.id);
-      setTimeout(() => {
-        const row = document.querySelector<HTMLTableRowElement>(`[data-row-id="${first.id}"]`);
-        row?.focus();
-      }, 0);
-      showToast(`已聚焦第一筆：${first.username}`, 'info');
-      return;
-    }
-    setConfirmState({
-      title: '您有未存檔變更',
-      message: '離開編輯模式前需處理變更：儲存、丟棄、或取消（保持編輯）。',
-      confirmLabel: '儲存後離開',
-      onConfirm: () => {
-        void performSave();
-      },
-      secondaryAction: {
-        label: '丟棄變更',
-        variant: 'danger',
-        onClick: () => {
-          performCancel();
-        },
-      },
-    });
-  }, [isDirty, users, performSave, performCancel, showToast]);
-
   // 統一範式：模組選單 / 公告等跨頁跳轉（編輯 dirty 先 3-way confirm，對齊 EntityMasterPage）
   const requestNavigate = useCallback(
     (href: string) => {
@@ -1169,14 +1072,6 @@ export function UserMasterPage() {
     window.addEventListener('keydown', onArrow);
     return () => window.removeEventListener('keydown', onArrow);
   }, [mode, tab, users, selectedId]);
-
-  const handleNotification = useCallback(() => {
-    showToast('通知中心 · 3 則未讀（lab mock）', 'info');
-  }, [showToast]);
-
-  const handleAnnouncement = useCallback(() => {
-    showToast('公告 · 2 則最新（lab mock）', 'info');
-  }, [showToast]);
 
   const handleAddRole = useCallback(() => {
     if (!selectedUser) {
@@ -1478,7 +1373,6 @@ export function UserMasterPage() {
           category={HEADER_CONFIG.category}
           title={HEADER_CONFIG.title}
           count={`${total} 位使用者`}
-          onBack={handleExit}
           requestNavigate={requestNavigate}
         />
         {/* 統一 Tab */}

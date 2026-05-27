@@ -17,7 +17,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Bell, ChevronDown, ChevronRight, LogOut, Megaphone, Search, User } from 'lucide-react';
+import { Bell, ChevronDown, ChevronRight, LogOut, Megaphone, Search, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -78,7 +78,6 @@ export function MasterTopBar({
   category,
   title,
   count,
-  onBack,
   requestNavigate,
   unreadAnnouncements = 0,
   unreadNotifications = 0,
@@ -86,7 +85,6 @@ export function MasterTopBar({
   category: string;
   title: string;
   count: string;
-  onBack: () => void;
   /** 跳轉（由父層提供、含編輯 dirty 攔截） */
   requestNavigate: (href: string) => void;
   unreadAnnouncements?: number;
@@ -200,12 +198,7 @@ export function MasterTopBar({
       className="flex items-center gap-2 border-b border-[#2A2A30] px-2 py-2 sm:gap-3 sm:px-4"
       style={{ backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)' }}
     >
-      {/* 返回 */}
-      <BoxButton label="返回" onClick={onBack}>
-        <ArrowLeft className="size-4" />
-      </BoxButton>
-
-      {/* 模組選單（小星球） */}
+      {/* 模組選單（小星球）— 可跳任何頁，故不再放返回箭頭（瀏覽器上一頁 / Alt+Q 結束） */}
       <div className="relative" ref={moduleMenu.ref}>
         <button
           type="button"
@@ -442,21 +435,6 @@ export function MasterTopBar({
         ) : null}
       </div>
     </header>
-  );
-}
-
-/** 方塊 icon 按鈕（返回用） */
-function BoxButton({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020] focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/50"
-    >
-      {children}
-    </button>
   );
 }
 

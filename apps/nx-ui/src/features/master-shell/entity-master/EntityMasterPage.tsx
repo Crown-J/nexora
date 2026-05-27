@@ -555,7 +555,6 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         category={config.category}
         title={config.title}
         count={countText}
-        onBack={handleExit}
         requestNavigate={requestNavigate}
       />
 
