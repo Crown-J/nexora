@@ -27,6 +27,7 @@ import { applyModelType } from './apply-model-type';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
 import { applyRole } from './apply-role';
+import { applySite } from './apply-site';
 import { applyTeam } from './apply-team';
 import { applyTransmission } from './apply-transmission';
 import { applyUserTeam } from './apply-user-team';
@@ -59,6 +60,9 @@ export async function applyTemplateToTenant(
   await applyCustomerGrade(prisma, params);
   await applyDiscountCode(prisma, params);
   await applyAccountCode(prisma, params);
+
+  // === ALL：據點（預設「主要倉庫(M)」1 筆），須在 applyWarehouse 前（倉庫 siteId 指向它）===
+  await applySite(prisma, params);
 
   // === ALL：warehouse 依 tier 建不同數量（LITE 1 / PLUS 2 / PRO 6）===
   await applyWarehouse(prisma, params);
