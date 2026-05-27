@@ -17,9 +17,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Database, List, FileText } from 'lucide-react';
+import { List, FileText } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { MasterTopBar } from './MasterTopBar';
 import {
   ErpToolbar,
   type ErpMode,
@@ -367,6 +368,34 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     router.push('/dashboard');
   }, [mode, isDirty, handleCancel, router]);
 
+  // 模組選單 / 公告等跳轉：編輯中且 dirty 先 3-way confirm（Next client 導航不觸發 beforeunload）
+  const requestNavigate = useCallback(
+    (href: string) => {
+      if (mode === 'edit' && isDirty) {
+        setConfirm({
+          title: '尚有未儲存的變更',
+          message: '離開此頁要先存檔，還是丟棄變更？',
+          confirmLabel: '存檔後離開',
+          onConfirm: () => {
+            void performSave();
+            router.push(href);
+          },
+          secondaryAction: {
+            label: '丟棄變更',
+            variant: 'danger',
+            onClick: () => {
+              performCancel();
+              router.push(href);
+            },
+          },
+        });
+        return;
+      }
+      router.push(href);
+    },
+    [mode, isDirty, performSave, performCancel, router],
+  );
+
   const handleExport = useCallback(
     (format: ExportFormat) => {
       if (format !== 'csv') {
@@ -493,30 +522,14 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
       }}
     >
-      {/* Header */}
-      <header
-        className="flex items-center gap-3 border-b border-[#2A2A30] px-3 py-2.5 sm:px-4"
-        style={{ backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)' }}
-      >
-        <button
-          type="button"
-          onClick={handleExit}
-          aria-label="返回"
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
-        <Database className="size-4 shrink-0 text-[#E8A020]" />
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#5A5A60]">
-            {config.category}
-          </div>
-          <h1 className="truncate text-sm font-bold tracking-wide text-[#F0F0F3]">{config.title}</h1>
-        </div>
-        <span className="shrink-0 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-1 text-[11px] font-mono tabular-nums text-[#B8B8C0]">
-          {countText}
-        </span>
-      </header>
+      {/* 置頂列：返回 · 模組選單 · 標題 · 計數 · 公告 · 通知 · 使用者 */}
+      <MasterTopBar
+        category={config.category}
+        title={config.title}
+        count={countText}
+        onBack={handleExit}
+        requestNavigate={requestNavigate}
+      />
 
       {/* Tab 切換 */}
       <div className="flex items-center gap-1 border-b border-[#2A2A30] bg-[#0E0E12] px-2">
