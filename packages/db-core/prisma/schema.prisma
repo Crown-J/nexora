@@ -747,6 +747,10 @@ model Nx01Part {
   isOem                           Boolean                @default(true) @map("is_oem")
   /// 副廠料號；啟用最低需求版本：LITE
   secCode                         String?                @map("sec_code") @db.VarChar(50)
+  /// 舊料號（轉系統客戶用、永遠可填、下半場 B）；啟用最低需求版本：LITE
+  oldCode                         String?                @map("old_code") @db.VarChar(50)
+  /// 成本（業務員填、價格重算基準、下半場 B）；啟用最低需求版本：LITE
+  cost                            Decimal?               @default(0) @db.Decimal(14, 4)
   /// 第一組料號規則；啟用最低需求版本：LITE
   seg1                            String?                @db.VarChar(10)
   /// 第二組料號規則；啟用最低需求版本：LITE
@@ -831,6 +835,7 @@ model Nx01Part {
   rev_Nx08InventoryCache_partId   Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_partId")
   rev_Nx01PartVersion_partId      Nx01PartVersion[]      @relation("R_Nx01PartVersion_partId")
   rev_Nx01PartModel_partId        Nx01PartModel[]        @relation("R_Nx01PartModel_partId")
+  rev_Nx01PartOemCode_partId      Nx01PartOemCode[]      @relation("R_Nx01PartOemCode_partId")
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId, code])
@@ -838,6 +843,36 @@ model Nx01Part {
   @@index([tenantId, partBrandId])
   @@index([tenantId, partGroupId])
   @@map("nx01_part")
+}
+
+/// =======================================================
+/// Nx01PartOemCode — DB table `nx01_part_oem_code`（零件 ↔ 正廠對應料號，下半場 B）
+/// 一筆零件可對應多筆正廠料號（給業務員核對替代品；零件搜尋同時 match）。
+/// =======================================================
+model Nx01PartOemCode {
+  /// [NX01]+[POEM]+[7碼流水號]；啟用最低需求版本：LITE
+  id          String   @id @default(dbgenerated("gen_nx01_part_oem_code_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId    String   @map("tenant_id") @db.VarChar(15)
+  /// 所屬零件 ID（FK nx01_part，刪零件連帶刪）；啟用最低需求版本：LITE
+  partId      String   @map("part_id") @db.VarChar(15)
+  /// 對應廠牌 ID（FK nx01_part_brand，scalar）；啟用最低需求版本：LITE
+  partBrandId String?  @map("part_brand_id") @db.VarChar(15)
+  /// 正廠料號（文字）；啟用最低需求版本：LITE
+  oemCode     String   @map("oem_code") @db.VarChar(50)
+  /// 備註（如「Golf 7 用」「3 系列用」）；啟用最低需求版本：LITE
+  remark      String?  @db.VarChar(200)
+  /// 排序；啟用最低需求版本：LITE
+  sortNo      Int      @default(0) @map("sort_no")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String   @map("updated_by") @db.VarChar(15)
+  part        Nx01Part @relation("R_Nx01PartOemCode_partId", fields: [partId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, oemCode])
+  @@index([partId])
+  @@map("nx01_part_oem_code")
 }
 
 /// =======================================================
