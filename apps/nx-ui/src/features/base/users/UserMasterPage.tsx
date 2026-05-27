@@ -78,7 +78,7 @@ import { cn } from '@/lib/utils';
 
 const HEADER_CONFIG: HeaderConfig = {
   category: '帳號與權限',
-  title: '使用者主檔',
+  title: '使用者基本資料',
   countBadge: { icon: Users, text: '5 位使用者' },
   notificationBadge: 3,
   announcementBadge: 2,

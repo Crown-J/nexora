@@ -17,7 +17,7 @@ const SOFT = 'soft-delete-rest' as const;
 export const ROLE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/roles',
   category: '帳號與權限',
-  title: '職務主檔',
+  title: '職務基本資料',
   entityNoun: '職務',
   errorCodePrefix: 'nxui_base_role',
   deleteMode: SOFT,
@@ -33,7 +33,7 @@ export const ROLE_MASTER: EntityMasterConfig = {
 export const DRIVETRAIN_MASTER: EntityMasterConfig = {
   basePath: 'nx01/drivetrains',
   category: '車型字典',
-  title: '傳動方式主檔',
+  title: '傳動方式基本資料',
   entityNoun: '傳動方式',
   errorCodePrefix: 'nxui_base_drivetrain',
   deleteMode: SOFT,
@@ -48,7 +48,7 @@ export const DRIVETRAIN_MASTER: EntityMasterConfig = {
 export const MODEL_TYPE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/model-types',
   category: '車型字典',
-  title: '車體類型主檔',
+  title: '車體類型基本資料',
   entityNoun: '車體類型',
   errorCodePrefix: 'nxui_base_model_type',
   deleteMode: SOFT,
@@ -63,7 +63,7 @@ export const MODEL_TYPE_MASTER: EntityMasterConfig = {
 export const CAR_BRAND_MASTER: EntityMasterConfig = {
   basePath: 'nx01/car-brands',
   category: '車型字典',
-  title: '車廠品牌主檔',
+  title: '車廠品牌基本資料',
   entityNoun: '車廠品牌',
   errorCodePrefix: 'nxui_base_car_brand',
   deleteMode: SOFT,
@@ -80,7 +80,7 @@ export const CAR_BRAND_MASTER: EntityMasterConfig = {
 export const ENGINE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/engines',
   category: '車型字典',
-  title: '引擎主檔',
+  title: '引擎基本資料',
   entityNoun: '引擎',
   errorCodePrefix: 'nxui_base_engine',
   deleteMode: SOFT,
@@ -104,7 +104,7 @@ export const ENGINE_MASTER: EntityMasterConfig = {
 export const TRANSMISSION_MASTER: EntityMasterConfig = {
   basePath: 'nx01/transmissions',
   category: '車型字典',
-  title: '變速箱主檔',
+  title: '變速箱基本資料',
   entityNoun: '變速箱',
   errorCodePrefix: 'nxui_base_transmission',
   deleteMode: SOFT,
@@ -128,7 +128,7 @@ export const TRANSMISSION_MASTER: EntityMasterConfig = {
 export const MODEL_MASTER: EntityMasterConfig = {
   basePath: 'nx01/models',
   category: '車型字典',
-  title: '車型主檔',
+  title: '車型基本資料',
   entityNoun: '車型',
   errorCodePrefix: 'nxui_base_model',
   deleteMode: SOFT,
@@ -150,7 +150,7 @@ export const MODEL_MASTER: EntityMasterConfig = {
 export const PART_BRAND_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-brands',
   category: '產品料號',
-  title: '零件廠牌主檔',
+  title: '零件廠牌基本資料',
   entityNoun: '零件廠牌',
   errorCodePrefix: 'nxui_base_part_brand',
   deleteMode: SOFT,
@@ -165,7 +165,7 @@ export const PART_BRAND_MASTER: EntityMasterConfig = {
 export const PART_RELATION_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-relations',
   category: '產品料號',
-  title: '零件關聯主檔',
+  title: '零件關聯基本資料',
   entityNoun: '零件關聯',
   errorCodePrefix: 'nxui_base_part_relation',
   deleteMode: SOFT,
@@ -187,7 +187,7 @@ export const PART_RELATION_MASTER: EntityMasterConfig = {
 export const PART_MODEL_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-models',
   category: '產品料號',
-  title: '料件車型適配主檔',
+  title: '料件車型適配基本資料',
   entityNoun: '料件車型適配',
   errorCodePrefix: 'nxui_base_part_model',
   deleteMode: SOFT,
@@ -207,7 +207,7 @@ export const PART_MODEL_MASTER: EntityMasterConfig = {
 export const WAREHOUSE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/warehouses',
   category: '組織架構',
-  title: '倉庫主檔',
+  title: '倉庫基本資料',
   entityNoun: '倉庫',
   errorCodePrefix: 'nxui_base_warehouse',
   deleteMode: SOFT,
@@ -223,7 +223,7 @@ export const WAREHOUSE_MASTER: EntityMasterConfig = {
 export const WAREHOUSE_TYPE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/warehouse-types',
   category: '組織架構',
-  title: '倉別主檔',
+  title: '倉別基本資料',
   entityNoun: '倉別',
   errorCodePrefix: 'nxui_base_warehouse_type',
   readOnly: true,
@@ -240,7 +240,7 @@ export const WAREHOUSE_TYPE_MASTER: EntityMasterConfig = {
 export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/customer-grades',
   category: '交易對象',
-  title: '客戶分級主檔',
+  title: '客戶分級基本資料',
   entityNoun: '客戶分級',
   errorCodePrefix: 'nxui_base_customer_grade',
   deleteMode: 'update-active',
@@ -256,7 +256,7 @@ export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
 export const PARTNER_MASTER: EntityMasterConfig = {
   basePath: 'nx01/partners',
   category: '交易對象',
-  title: '往來對象主檔',
+  title: '往來對象基本資料',
   entityNoun: '往來對象',
   errorCodePrefix: 'nxui_base_partner',
   deleteMode: SOFT,
@@ -312,7 +312,7 @@ export const PARTNER_MASTER: EntityMasterConfig = {
 export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
   basePath: 'nx01/phonetic-dictionary',
   category: '系統設定',
-  title: '注音字典主檔',
+  title: '注音字典基本資料',
   entityNoun: '注音字',
   errorCodePrefix: 'nxui_base_phonetic',
   deleteMode: SOFT,
@@ -328,7 +328,7 @@ export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
 export const LOCATION_MASTER: EntityMasterConfig = {
   basePath: 'nx01/locations',
   category: '組織架構',
-  title: '據點主檔',
+  title: '據點基本資料',
   entityNoun: '據點',
   errorCodePrefix: 'nxui_base_location',
   deleteMode: SOFT,
@@ -349,7 +349,7 @@ export const LOCATION_MASTER: EntityMasterConfig = {
 export const PART_MASTER: EntityMasterConfig = {
   basePath: 'nx01/parts',
   category: '產品料號',
-  title: '零件主檔',
+  title: '零件基本資料',
   entityNoun: '零件',
   errorCodePrefix: 'nxui_base_part',
   deleteMode: SOFT,
@@ -379,7 +379,7 @@ export const PART_MASTER: EntityMasterConfig = {
 export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/brand-code-rules',
   category: '產品料號',
-  title: '品牌料號規則主檔',
+  title: '品牌料號規則基本資料',
   entityNoun: '品牌料號規則',
   errorCodePrefix: 'nxui_base_brand_code_rule',
   deleteMode: SOFT,
@@ -403,7 +403,7 @@ export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
 export const BULLETIN_MASTER: EntityMasterConfig = {
   basePath: 'nx01/bulletins',
   category: '系統設定',
-  title: '公告主檔',
+  title: '公告基本資料',
   entityNoun: '公告',
   errorCodePrefix: 'nxui_base_bulletin',
   deleteMode: SOFT,
@@ -423,7 +423,7 @@ export const BULLETIN_MASTER: EntityMasterConfig = {
 export const ROLE_VIEW_MASTER: EntityMasterConfig = {
   basePath: 'nx01/role-views',
   category: '帳號與權限',
-  title: '職務權限視圖主檔',
+  title: '職務權限視圖基本資料',
   entityNoun: '職務權限',
   errorCodePrefix: 'nxui_base_role_view',
   deleteMode: SOFT,

@@ -13,7 +13,7 @@ import type { EntityMasterConfig } from '@/features/master-shell/entity-master/c
 export const CURRENCY_MASTER: EntityMasterConfig = {
   basePath: '/currency',
   category: '系統設定',
-  title: '幣別主檔',
+  title: '幣別基本資料',
   entityNoun: '幣別',
   errorCodePrefix: 'nxui_base_currency',
   fields: [
@@ -28,7 +28,7 @@ export const CURRENCY_MASTER: EntityMasterConfig = {
 export const COUNTRY_MASTER: EntityMasterConfig = {
   basePath: '/country',
   category: '系統設定',
-  title: '國家主檔',
+  title: '國家基本資料',
   entityNoun: '國家',
   errorCodePrefix: 'nxui_base_country',
   fields: [
@@ -41,7 +41,7 @@ export const COUNTRY_MASTER: EntityMasterConfig = {
 export const PART_GROUP_MASTER: EntityMasterConfig = {
   basePath: '/part-group',
   category: '產品料號',
-  title: '零件群組主檔',
+  title: '零件群組基本資料',
   entityNoun: '零件群組',
   errorCodePrefix: 'nxui_base_part_group',
   fields: [
