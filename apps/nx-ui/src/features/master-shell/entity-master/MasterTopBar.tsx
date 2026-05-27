@@ -17,6 +17,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Bell, ChevronDown, ChevronRight, LogOut, Megaphone, Search, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -91,6 +92,7 @@ export function MasterTopBar({
   unreadNotifications?: number;
 }) {
   const { displayName, tenantNameZh, planCode, me, logout } = useSessionMe();
+  const pathname = usePathname();
 
   const moduleMenu = usePopover();
   const announceMenu = usePopover();
@@ -122,16 +124,23 @@ export function MasterTopBar({
     return () => window.removeEventListener('keydown', onKey);
   }, [moduleMenu]);
 
-  // 開啟時重置 + focus 搜尋
+  // 開啟時重置：高亮跟著「當前頁面」對應的主檔項（不黏第一項）
   useEffect(() => {
     if (moduleMenu.open) {
       setKw('');
+      const masterFlat = moduleGroups(MASTER_HREF).flatMap((g) => g.items);
+      const curIdx = masterFlat.findIndex((it) => it.href === pathname);
       setModuleIdx(MASTER_MODULE_IDX < 0 ? 0 : MASTER_MODULE_IDX);
-      setNavCol('module');
-      setSubIdx(0);
+      if (curIdx >= 0) {
+        setNavCol('sub');
+        setSubIdx(curIdx);
+      } else {
+        setNavCol('module');
+        setSubIdx(0);
+      }
       setTimeout(() => searchRef.current?.focus(), 0);
     }
-  }, [moduleMenu.open]);
+  }, [moduleMenu.open, pathname]);
 
   const go = useCallback(
     (href: string) => {
