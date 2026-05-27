@@ -17,6 +17,11 @@ export class CreateLocationDto {
   @MaxLength(15)
   warehouseId!: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  siteId?: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(30)
@@ -68,6 +73,11 @@ export class UpdateLocationDto {
   @IsString()
   @MaxLength(15)
   warehouseId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  siteId?: string | null;
 
   @IsOptional()
   @IsString()

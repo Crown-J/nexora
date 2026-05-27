@@ -20,6 +20,7 @@ const SEL = {
   id: true,
   tenantId: true,
   warehouseId: true,
+  siteId: true,
   code: true,
   name: true,
   zone: true,
@@ -107,6 +108,7 @@ export class LocationService {
       data: {
         tenantId,
         warehouseId: dto.warehouseId,
+        siteId: dto.siteId?.trim() || null,
         code,
         name: dto.name?.trim() || null,
         zone: dto.zone?.trim() || null,
@@ -129,7 +131,7 @@ export class LocationService {
       entityTable: 'nx01_location',
       entityId: row.id,
       entityCode: row.code,
-      summary: '建立據點',
+      summary: '建立庫位',
       afterData: row as object,
     });
     return this.mapRow(row);
@@ -144,6 +146,7 @@ export class LocationService {
       where: { id },
       data: {
         ...(dto.warehouseId !== undefined ? { warehouseId: dto.warehouseId } : {}),
+        ...(dto.siteId !== undefined ? { siteId: dto.siteId } : {}),
         ...(dto.name !== undefined ? { name: dto.name } : {}),
         ...(dto.zone !== undefined ? { zone: dto.zone } : {}),
         ...(dto.rack !== undefined ? { rack: dto.rack } : {}),
@@ -164,7 +167,7 @@ export class LocationService {
       entityTable: 'nx01_location',
       entityId: id,
       entityCode: row.code,
-      summary: '修改據點',
+      summary: '修改庫位',
       beforeData: existing as object,
       afterData: row as object,
     });
@@ -188,7 +191,7 @@ export class LocationService {
       entityTable: 'nx01_location',
       entityId: id,
       entityCode: row.code,
-      summary: '軟刪除據點',
+      summary: '軟刪除庫位',
       beforeData: existing as object,
       afterData: row as object,
     });

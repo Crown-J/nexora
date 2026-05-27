@@ -1,23 +1,15 @@
+// apps/nx-api/src/nx01/site/dto/site.dto.ts
 import { Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  MaxLength,
-  Min,
-  MinLength,
-} from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 
-export class ListPartBrandQueryDto extends Nx01ListQueryDto {}
+export class ListSiteQueryDto extends Nx01ListQueryDto {}
 
-export class CreatePartBrandDto {
+export class CreateSiteDto {
   @IsString()
   @MinLength(1)
-  @MaxLength(3)
+  @MaxLength(20)
   code!: string;
 
   @IsString()
@@ -27,18 +19,13 @@ export class CreatePartBrandDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(15)
-  countryId?: string;
-
-  @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  isOem?: boolean;
+  @MaxLength(200)
+  address?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(200)
-  remark?: string;
+  @MaxLength(30)
+  phone?: string;
 
   @IsOptional()
   @Type(() => Number)
@@ -51,7 +38,13 @@ export class CreatePartBrandDto {
   isActive?: boolean;
 }
 
-export class UpdatePartBrandDto {
+export class UpdateSiteDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(20)
+  code?: string;
+
   @IsOptional()
   @IsString()
   @MinLength(1)
@@ -60,18 +53,13 @@ export class UpdatePartBrandDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(15)
-  countryId?: string | null;
-
-  @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean()
-  isOem?: boolean;
+  @MaxLength(200)
+  address?: string | null;
 
   @IsOptional()
   @IsString()
-  @MaxLength(200)
-  remark?: string | null;
+  @MaxLength(30)
+  phone?: string | null;
 
   @IsOptional()
   @Type(() => Number)

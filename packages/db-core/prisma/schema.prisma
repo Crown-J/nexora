@@ -652,6 +652,8 @@ model Nx01Location {
   tenantId                            String                 @map("tenant_id") @db.VarChar(15)
   /// 所屬倉庫 ID；啟用最低需求版本：LITE
   warehouseId                         String                 @map("warehouse_id") @db.VarChar(15)
+  /// 所屬據點 ID（FK nx01_site；庫位歸屬之據點，預設同所屬倉庫之據點）；啟用最低需求版本：LITE
+  siteId                              String?                @map("site_id") @db.VarChar(15)
   /// 庫位代碼（倉內唯一），例：A-01-01、B2-03；啟用最低需求版本：LITE
   code                                String                 @db.VarChar(30)
   /// 庫位名稱（選填），例：靠門口、二樓左側；啟用最低需求版本：LITE
@@ -698,6 +700,35 @@ model Nx01Location {
   rev_Nx04SrItem_locationId           Nx04SrItem[]           @relation("R_Nx04SrItem_locationId")
 
   @@map("nx01_location")
+}
+
+/// =======================================================
+/// Nx01Site — DB table `nx01_site`（據點：公司物理分點，為倉庫之上一層；LITE 預設 1 筆「總公司」）
+/// =======================================================
+model Nx01Site {
+  /// [NX01]+[SITE]+[7碼流水號]，EX : NX01SITE0000001；啟用最低需求版本：LITE
+  id        String   @id @default(dbgenerated("gen_nx01_site_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId  String   @map("tenant_id") @db.VarChar(15)
+  /// 據點代碼（租戶內唯一），例：HQ、TPE、TXG；啟用最低需求版本：LITE
+  code      String   @db.VarChar(20)
+  /// 據點名稱，例：總公司、台北據點、台中據點；啟用最低需求版本：LITE
+  name      String   @db.VarChar(100)
+  /// 地址（選填）；啟用最低需求版本：LITE
+  address   String?  @db.VarChar(200)
+  /// 聯絡電話（選填）；啟用最低需求版本：LITE
+  phone     String?  @db.VarChar(30)
+  /// 排序；啟用最低需求版本：LITE
+  sortNo    Int      @default(0) @map("sort_no")
+  /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by") @db.VarChar(15)
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String   @map("updated_by") @db.VarChar(15)
+
+  @@unique([tenantId, code])
+  @@map("nx01_site")
 }
 
 /// =======================================================
@@ -825,6 +856,8 @@ model Nx01PartBrand {
   name                       String       @db.VarChar(100)
   /// 品牌國家 (外鍵)；啟用最低需求版本：LITE
   countryId                  String?      @map("country_id") @db.VarChar(15)
+  /// 是否原廠品牌（OEM，例：VAG 原廠為 true）；啟用最低需求版本：LITE
+  isOem                      Boolean      @default(false) @map("is_oem")
   /// 備註說明；啟用最低需求版本：LITE
   remark                     String?      @db.VarChar(200)
   /// 是否啟用（停用不刪資料）；啟用最低需求版本：LITE
@@ -1377,6 +1410,8 @@ model Nx01Warehouse {
   updatedBy                             String                 @map("updated_by") @db.VarChar(15)
   /// 倉庫類型ID（FK nx01_warehouse_type，PLUS版），控制自動調撥邏輯。H=總部/M=主倉/W=分倉/S=衛星倉。；啟用最低需求版本：PLUS-CORE
   warehouseTypeId                       String?                @map("warehouse_type_id") @db.VarChar(15)
+  /// 所屬據點 ID（FK nx01_site；一個倉庫屬於一個據點、一個據點可有多個倉庫）；啟用最低需求版本：LITE
+  siteId                                String?                @map("site_id") @db.VarChar(15)
   /// 是否主倉（同 tenant 只 1 筆 is_main=true、partial unique index 強制、LITE 強制 true、對齊 NX01-06 §3.6）；啟用最低需求版本：LITE
   isMain                                Boolean                @default(false) @map("is_main")
   /// 倉管主管 user ID（FK to nx01_user、ON DELETE SET NULL、業務離職時清空、對齊 NX01-06 §3）；啟用最低需求版本：LITE
@@ -4027,59 +4062,59 @@ model Nx05AllowanceItem {
 /// =======================================================
 model Nx05ApLedger {
   /// [NX05]+[APLE]+[7碼流水號]，EX : NX05APLE0000001；啟用最低需求版本：LITE-CORE
-  id                        String          @id @default(dbgenerated("gen_nx05_ap_ledger_id()")) @db.VarChar(15)
+  id                                 String                @id @default(dbgenerated("gen_nx05_ap_ledger_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId                  String          @map("tenant_id") @db.VarChar(15)
+  tenantId                           String                @map("tenant_id") @db.VarChar(15)
   /// 應付帳款單號（唯一），[AP]-[年月]-[機構碼]-[5碼流水號]，EX：AP-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                     String          @map("doc_no") @db.VarChar(30)
+  docNo                              String                @map("doc_no") @db.VarChar(30)
   /// 來源類型（PO=採購單/RR=進貨單/TI=調貨單）。PLUS前PO確認產生；LITE進貨入帳後產生。；啟用最低需求版本：LITE-CORE
-  sourceType                String          @default("PO") @map("source_type") @db.VarChar(2)
+  sourceType                         String                @default("PO") @map("source_type") @db.VarChar(2)
   /// 來源採購單ID（可空，PLUS限定，FK nx02_po）。；啟用最低需求版本：LITE-CORE
-  poId                      String?         @map("po_id") @db.VarChar(15)
+  poId                               String?               @map("po_id") @db.VarChar(15)
   /// 來源進貨單ID（可空，LITE直接由RR產生，FK nx02_rr）。；啟用最低需求版本：LITE-CORE
-  rrId                      String?         @map("rr_id") @db.VarChar(15)
+  rrId                               String?               @map("rr_id") @db.VarChar(15)
   /// 來源調貨單ID（可空，FK nx02_ti）。；啟用最低需求版本：LITE-CORE
-  tiId                      String?         @map("ti_id") @db.VarChar(15)
+  tiId                               String?               @map("ti_id") @db.VarChar(15)
   /// 廠商ID（FK nx01_partner）。；啟用最低需求版本：LITE-CORE
-  supplierId                String          @map("supplier_id") @db.VarChar(15)
+  supplierId                         String                @map("supplier_id") @db.VarChar(15)
   /// 應付帳款產生日期。；啟用最低需求版本：LITE-CORE
-  apDate                    DateTime        @map("ap_date") @db.Date
+  apDate                             DateTime              @map("ap_date") @db.Date
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
-  dueDate                   DateTime        @map("due_date") @db.Date
+  dueDate                            DateTime              @map("due_date") @db.Date
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                String          @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                         String                @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 應付金額（含稅）。；啟用最低需求版本：LITE-CORE
-  originalAmount            Decimal         @default(0) @map("original_amount") @db.Decimal(14, 2)
+  originalAmount                     Decimal               @default(0) @map("original_amount") @db.Decimal(14, 2)
   /// 已付金額（累計）。；啟用最低需求版本：LITE-CORE
-  paidAmount                Decimal         @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  paidAmount                         Decimal               @default(0) @map("paid_amount") @db.Decimal(14, 2)
   /// 未付餘額（original_amount - paid_amount）。；啟用最低需求版本：LITE-CORE
-  balanceAmount             Decimal         @default(0) @map("balance_amount") @db.Decimal(14, 2)
+  balanceAmount                      Decimal               @default(0) @map("balance_amount") @db.Decimal(14, 2)
   /// 狀態（OPEN / PARTIAL / PAID / OVERDUE / VOID）。；啟用最低需求版本：LITE-CORE
-  status                    String          @default("OPEN") @db.VarChar(30)
+  status                             String                @default("OPEN") @db.VarChar(30)
   /// 付款條件快照（自廠商主檔帶入）。；啟用最低需求版本：LITE-CORE
-  paymentTerm               String          @default("NET30") @map("payment_term") @db.VarChar(20)
+  paymentTerm                        String                @default("NET30") @map("payment_term") @db.VarChar(20)
   /// 核銷時間（status=C時填入）。；啟用最低需求版本：LITE-CORE
-  writeOffAt                DateTime?       @map("write_off_at")
+  writeOffAt                         DateTime?             @map("write_off_at")
   /// 核銷人（使用者ID）。；啟用最低需求版本：LITE-CORE
-  writeOffBy                String?         @map("write_off_by") @db.VarChar(15)
+  writeOffBy                         String?               @map("write_off_by") @db.VarChar(15)
   /// 備註。；啟用最低需求版本：LITE-CORE
-  remark                    String?         @db.VarChar(200)
+  remark                             String?               @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                 DateTime        @default(now()) @map("created_at")
+  createdAt                          DateTime              @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                 String          @map("created_by") @db.VarChar(15)
+  createdBy                          String                @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                 DateTime        @updatedAt @map("updated_at")
+  updatedAt                          DateTime              @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                 String          @map("updated_by") @db.VarChar(15)
-  tenant                    Nx99Tenant      @relation("R_Nx05ApLedger_tenantId", fields: [tenantId], references: [id])
-  po                        Nx02Po?         @relation("R_Nx05ApLedger_poId", fields: [poId], references: [id])
-  rr                        Nx02Rr?         @relation("R_Nx05ApLedger_rrId", fields: [rrId], references: [id])
-  ti                        Nx02Ti?         @relation("R_Nx05ApLedger_tiId", fields: [tiId], references: [id])
-  supplier                  Nx01Partner     @relation("R_Nx05ApLedger_supplierId", fields: [supplierId], references: [id])
-  currency                  Nx01Currency    @relation("R_Nx05ApLedger_currencyId", fields: [currencyId], references: [id])
-  rev_Nx05Allowance_refApId Nx05Allowance[] @relation("R_Nx05Allowance_refApId")
-  rev_Nx05Paylog_apId       Nx05Paylog[]    @relation("R_Nx05Paylog_apId")
+  updatedBy                          String                @map("updated_by") @db.VarChar(15)
+  tenant                             Nx99Tenant            @relation("R_Nx05ApLedger_tenantId", fields: [tenantId], references: [id])
+  po                                 Nx02Po?               @relation("R_Nx05ApLedger_poId", fields: [poId], references: [id])
+  rr                                 Nx02Rr?               @relation("R_Nx05ApLedger_rrId", fields: [rrId], references: [id])
+  ti                                 Nx02Ti?               @relation("R_Nx05ApLedger_tiId", fields: [tiId], references: [id])
+  supplier                           Nx01Partner           @relation("R_Nx05ApLedger_supplierId", fields: [supplierId], references: [id])
+  currency                           Nx01Currency          @relation("R_Nx05ApLedger_currencyId", fields: [currencyId], references: [id])
+  rev_Nx05Allowance_refApId          Nx05Allowance[]       @relation("R_Nx05Allowance_refApId")
+  rev_Nx05Paylog_apId                Nx05Paylog[]          @relation("R_Nx05Paylog_apId")
   rev_Nx08ApCacheSnapshot_apLedgerId Nx08ApCacheSnapshot[] @relation("R_Nx08ApCacheSnapshot_apLedgerId")
 
   @@unique([docNo])
@@ -4091,55 +4126,55 @@ model Nx05ApLedger {
 /// =======================================================
 model Nx05ArLedger {
   /// [NX05]+[ARLE]+[7碼流水號]，EX : NX05ARLE0000001；啟用最低需求版本：LITE-CORE
-  id                        String          @id @default(dbgenerated("gen_nx05_ar_ledger_id()")) @db.VarChar(15)
+  id                                 String                @id @default(dbgenerated("gen_nx05_ar_ledger_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId                  String          @map("tenant_id") @db.VarChar(15)
+  tenantId                           String                @map("tenant_id") @db.VarChar(15)
   /// 應收帳款單號（唯一），[AR]-[年月]-[機構碼]-[5碼流水號]，EX：AR-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                     String          @map("doc_no") @db.VarChar(30)
+  docNo                              String                @map("doc_no") @db.VarChar(30)
   /// 來源銷貨單ID（FK nx04_so）。；啟用最低需求版本：LITE-CORE
-  soId                      String          @map("so_id") @db.VarChar(15)
+  soId                               String                @map("so_id") @db.VarChar(15)
   /// 客戶ID（快照自SO，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
-  customerId                String          @map("customer_id") @db.VarChar(15)
+  customerId                         String                @map("customer_id") @db.VarChar(15)
   /// 應收帳款產生日期。；啟用最低需求版本：LITE-CORE
-  arDate                    DateTime        @map("ar_date") @db.Date
+  arDate                             DateTime              @map("ar_date") @db.Date
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
-  dueDate                   DateTime        @map("due_date") @db.Date
+  dueDate                            DateTime              @map("due_date") @db.Date
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                String          @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                         String                @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 應收金額（含稅）。；啟用最低需求版本：LITE-CORE
-  originalAmount            Decimal         @default(0) @map("original_amount") @db.Decimal(14, 2)
+  originalAmount                     Decimal               @default(0) @map("original_amount") @db.Decimal(14, 2)
   /// 已收金額（累計）。；啟用最低需求版本：LITE-CORE
-  paidAmount                Decimal         @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  paidAmount                         Decimal               @default(0) @map("paid_amount") @db.Decimal(14, 2)
   /// 未收餘額（original_amount - paid_amount）。；啟用最低需求版本：LITE-CORE
-  balanceAmount             Decimal         @default(0) @map("balance_amount") @db.Decimal(14, 2)
+  balanceAmount                      Decimal               @default(0) @map("balance_amount") @db.Decimal(14, 2)
   /// 狀態（OPEN / PARTIAL / PAID / OVERDUE / WRITTEN_OFF）。；啟用最低需求版本：LITE-CORE
-  status                    String          @default("OPEN") @db.VarChar(30)
+  status                             String                @default("OPEN") @db.VarChar(30)
   /// 付款條件快照（自SO帶入）。；啟用最低需求版本：LITE-CORE
-  paymentTerm               String          @default("NET30") @map("payment_term") @db.VarChar(20)
+  paymentTerm                        String                @default("NET30") @map("payment_term") @db.VarChar(20)
   /// 逾期天數（系統每日計算，due_date < today 時累計）。；啟用最低需求版本：LITE-CORE
-  overdueDays               Int             @default(0) @map("overdue_days")
+  overdueDays                        Int                   @default(0) @map("overdue_days")
   /// 部分收款是否已獲負責人核准（partial payment 需核准）。；啟用最低需求版本：LITE-CORE
-  isPartialApproved         Boolean         @default(false) @map("is_partial_approved")
+  isPartialApproved                  Boolean               @default(false) @map("is_partial_approved")
   /// 核銷時間（status=C時填入）。；啟用最低需求版本：LITE-CORE
-  writeOffAt                DateTime?       @map("write_off_at")
+  writeOffAt                         DateTime?             @map("write_off_at")
   /// 核銷人（使用者ID）。；啟用最低需求版本：LITE-CORE
-  writeOffBy                String?         @map("write_off_by") @db.VarChar(15)
+  writeOffBy                         String?               @map("write_off_by") @db.VarChar(15)
   /// 備註。；啟用最低需求版本：LITE-CORE
-  remark                    String?         @db.VarChar(200)
+  remark                             String?               @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                 DateTime        @default(now()) @map("created_at")
+  createdAt                          DateTime              @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                 String          @map("created_by") @db.VarChar(15)
+  createdBy                          String                @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                 DateTime        @updatedAt @map("updated_at")
+  updatedAt                          DateTime              @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                 String          @map("updated_by") @db.VarChar(15)
-  tenant                    Nx99Tenant      @relation("R_Nx05ArLedger_tenantId", fields: [tenantId], references: [id])
-  so                        Nx04So          @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
-  customer                  Nx01Partner     @relation("R_Nx05ArLedger_customerId", fields: [customerId], references: [id])
-  currency                  Nx01Currency    @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
-  rev_Nx05Allowance_refArId Nx05Allowance[] @relation("R_Nx05Allowance_refArId")
-  rev_Nx05Paylog_arId       Nx05Paylog[]    @relation("R_Nx05Paylog_arId")
+  updatedBy                          String                @map("updated_by") @db.VarChar(15)
+  tenant                             Nx99Tenant            @relation("R_Nx05ArLedger_tenantId", fields: [tenantId], references: [id])
+  so                                 Nx04So                @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
+  customer                           Nx01Partner           @relation("R_Nx05ArLedger_customerId", fields: [customerId], references: [id])
+  currency                           Nx01Currency          @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
+  rev_Nx05Allowance_refArId          Nx05Allowance[]       @relation("R_Nx05Allowance_refArId")
+  rev_Nx05Paylog_arId                Nx05Paylog[]          @relation("R_Nx05Paylog_arId")
   rev_Nx08ArCacheSnapshot_arLedgerId Nx08ArCacheSnapshot[] @relation("R_Nx08ArCacheSnapshot_arLedgerId")
 
   @@unique([docNo])
@@ -4317,79 +4352,79 @@ model Nx05Paylog {
 /// =======================================================
 model Nx06Dn {
   /// [NX06]+[DNHD]+[7碼流水號]，EX : NX06DNHD0000001；啟用最低需求版本：LITE-CORE
-  id                   String        @id @default(dbgenerated("gen_nx06_dn_id()")) @db.VarChar(15)
+  id                                 String                      @id @default(dbgenerated("gen_nx06_dn_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId             String        @map("tenant_id") @db.VarChar(15)
+  tenantId                           String                      @map("tenant_id") @db.VarChar(15)
   /// 出發倉庫ID（FK nx01_warehouse）。；啟用最低需求版本：LITE-CORE
-  warehouseId          String        @map("warehouse_id") @db.VarChar(15)
+  warehouseId                        String                      @map("warehouse_id") @db.VarChar(15)
   /// 送貨單號（唯一），[DN]+[年月]+[倉別]+[5碼流水號]，EX：DN-202604-Z01-00001；啟用最低需求版本：LITE-CORE
-  docNo                String        @map("doc_no") @db.VarChar(30)
+  docNo                              String                      @map("doc_no") @db.VarChar(30)
   /// 送貨日期。；啟用最低需求版本：LITE-CORE
-  dnDate               DateTime      @map("dn_date") @db.Date
+  dnDate                             DateTime                    @map("dn_date") @db.Date
   /// 外務人員ID（FK nx01_user）。；啟用最低需求版本：LITE-CORE
-  driverUserId         String        @map("driver_user_id") @db.VarChar(15)
+  driverUserId                       String                      @map("driver_user_id") @db.VarChar(15)
   /// 車牌號碼（選填）。；啟用最低需求版本：LITE-CORE
-  vehicleNo            String?       @map("vehicle_no") @db.VarChar(20)
+  vehicleNo                          String?                     @map("vehicle_no") @db.VarChar(20)
   /// 物流類別（DELIVERY / PICKUP / INTL_SHIPPING / RETURN_PICKUP）。；啟用最低需求版本：LITE-CORE
-  logisticsType        String        @default("DELIVERY") @map("logistics_type") @db.VarChar(30)
+  logisticsType                      String                      @default("DELIVERY") @map("logistics_type") @db.VarChar(30)
   /// 狀態（DRAFT / DISPATCHED / DELIVERED / PICKED_UP / FAILED / VOIDED；國際另含 CUSTOMS / IN_TRANSIT）。；啟用最低需求版本：LITE-CORE
-  status               String        @default("DRAFT") @db.VarChar(30)
+  status                             String                      @default("DRAFT") @db.VarChar(30)
   /// 最近一次 GPS 緯度（外務 /driver）。；啟用最低需求版本：LITE-CORE
-  lastLat              Decimal?      @map("last_lat") @db.Decimal(12, 8)
+  lastLat                            Decimal?                    @map("last_lat") @db.Decimal(12, 8)
   /// 最近一次 GPS 經度。；啟用最低需求版本：LITE-CORE
-  lastLng              Decimal?      @map("last_lng") @db.Decimal(12, 8)
+  lastLng                            Decimal?                    @map("last_lng") @db.Decimal(12, 8)
   /// GPS 更新時間。；啟用最低需求版本：LITE-CORE
-  lastLocationAt       DateTime?     @map("last_location_at")
+  lastLocationAt                     DateTime?                   @map("last_location_at")
   /// 報關單號（國際物流）。；啟用最低需求版本：LITE-CORE
-  customsDeclarationNo String?       @map("customs_declaration_no") @db.VarChar(80)
+  customsDeclarationNo               String?                     @map("customs_declaration_no") @db.VarChar(80)
   /// 起運港。；啟用最低需求版本：LITE-CORE
-  originPort           String?       @map("origin_port") @db.VarChar(100)
+  originPort                         String?                     @map("origin_port") @db.VarChar(100)
   /// 目的港。；啟用最低需求版本：LITE-CORE
-  destinationPort      String?       @map("destination_port") @db.VarChar(100)
+  destinationPort                    String?                     @map("destination_port") @db.VarChar(100)
   /// 預計到港日。；啟用最低需求版本：LITE-CORE
-  etaDate              DateTime?     @map("eta_date") @db.Date
+  etaDate                            DateTime?                   @map("eta_date") @db.Date
   /// 來源銷貨單（配送單自動產生時填入）。；啟用最低需求版本：LITE-CORE
-  sourceSoId           String?       @map("source_so_id") @db.VarChar(15)
+  sourceSoId                         String?                     @map("source_so_id") @db.VarChar(15)
   /// 來源銷退單（退貨取件單）。；啟用最低需求版本：LITE-CORE
-  sourceSrId           String?       @map("source_sr_id") @db.VarChar(15)
+  sourceSrId                         String?                     @map("source_sr_id") @db.VarChar(15)
   /// 出發時間（外務點擊出發後記錄）。；啟用最低需求版本：LITE-CORE
-  departedAt           DateTime?     @map("departed_at")
+  departedAt                         DateTime?                   @map("departed_at")
   /// 全部任務完成時間。；啟用最低需求版本：LITE-CORE
-  completedAt          DateTime?     @map("completed_at")
+  completedAt                        DateTime?                   @map("completed_at")
   /// 藍牙印表機裝置 ID（外務員手機 App 配對寫入、NX06-IMPL-01 Phase 1 M2 新增、Crown Q7=a 拍板熱感印表機支援）。；啟用最低需求版本：LITE-CORE
-  printerDeviceId      String?       @map("printer_device_id") @db.VarChar(50)
+  printerDeviceId                    String?                     @map("printer_device_id") @db.VarChar(50)
   /// 列印時間追蹤（熱感印表機列印後寫入、NX06-IMPL-01 Phase 1 M2 新增）。；啟用最低需求版本：LITE-CORE
-  printedAt            DateTime?     @map("printed_at")
+  printedAt                          DateTime?                   @map("printed_at")
   /// Lalamove API 訂單 ID（半自動整合、NX06-IMPL-01 Phase 1 M2 新增、Crown Q6=b 拍板）。；啟用最低需求版本：LITE-CORE
-  lalamoveOrderId      String?       @map("lalamove_order_id") @db.VarChar(50)
+  lalamoveOrderId                    String?                     @map("lalamove_order_id") @db.VarChar(50)
   /// Lalamove 追蹤碼。；啟用最低需求版本：LITE-CORE
-  lalamoveTrackingNo   String?       @map("lalamove_tracking_no") @db.VarChar(50)
+  lalamoveTrackingNo                 String?                     @map("lalamove_tracking_no") @db.VarChar(50)
   /// Lalamove webhook 最新狀態（PENDING/ASSIGNING/PICKED_UP/COMPLETED/CANCELLED）。；啟用最低需求版本：LITE-CORE
-  lalamoveCallbackStatus String?     @map("lalamove_callback_status") @db.VarChar(30)
+  lalamoveCallbackStatus             String?                     @map("lalamove_callback_status") @db.VarChar(30)
   /// 多車場景：在某外務員 batch 內的順序（1, 2, 3, ...）。NX06-IMPL-02 M1 新增；啟用最低需求版本：LITE-CORE
-  routeOrderInSequence Int?          @map("route_order_in_sequence")
+  routeOrderInSequence               Int?                        @map("route_order_in_sequence")
   /// Google Maps Distance Matrix 預估配送時長（秒）。NX06-IMPL-02 M1 新增；啟用最低需求版本：LITE-CORE
-  estimatedDurationSec Int?          @map("estimated_duration_sec")
+  estimatedDurationSec               Int?                        @map("estimated_duration_sec")
   /// 路線優化 batch ID（multi-DN 一次優化批次）。NX06-IMPL-02 M1 新增；啟用最低需求版本：LITE-CORE
-  routeBatchId         String?       @map("route_batch_id") @db.VarChar(15)
+  routeBatchId                       String?                     @map("route_batch_id") @db.VarChar(15)
   /// 備註（含臨時收件等口頭回報記錄）。；啟用最低需求版本：LITE-CORE
-  remark               String?       @db.VarChar(200)
+  remark                             String?                     @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt            DateTime      @default(now()) @map("created_at")
+  createdAt                          DateTime                    @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy            String        @map("created_by") @db.VarChar(15)
+  createdBy                          String                      @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt            DateTime      @updatedAt @map("updated_at")
+  updatedAt                          DateTime                    @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy            String        @map("updated_by") @db.VarChar(15)
-  tenant               Nx99Tenant    @relation("R_Nx06Dn_tenantId", fields: [tenantId], references: [id])
-  warehouse            Nx01Warehouse @relation("R_Nx06Dn_warehouseId", fields: [warehouseId], references: [id])
-  driverUser           Nx01User      @relation("R_Nx06Dn_driverUserId", fields: [driverUserId], references: [id])
-  sourceSo             Nx04So?       @relation("R_Nx06Dn_sourceSoId", fields: [sourceSoId], references: [id])
-  sourceSr             Nx04Sr?       @relation("R_Nx06Dn_sourceSrId", fields: [sourceSrId], references: [id])
-  rev_Nx06DnItem_dnId     Nx06DnItem[]     @relation("R_Nx06DnItem_dnId")
-  rev_Nx06DnStop_dnId     Nx06DnStop[]     @relation("R_Nx06DnStop_dnId")
-  rev_Nx06DnHandover_dnId Nx06DnHandover[] @relation("R_Nx06DnHandover_dnId")
+  updatedBy                          String                      @map("updated_by") @db.VarChar(15)
+  tenant                             Nx99Tenant                  @relation("R_Nx06Dn_tenantId", fields: [tenantId], references: [id])
+  warehouse                          Nx01Warehouse               @relation("R_Nx06Dn_warehouseId", fields: [warehouseId], references: [id])
+  driverUser                         Nx01User                    @relation("R_Nx06Dn_driverUserId", fields: [driverUserId], references: [id])
+  sourceSo                           Nx04So?                     @relation("R_Nx06Dn_sourceSoId", fields: [sourceSoId], references: [id])
+  sourceSr                           Nx04Sr?                     @relation("R_Nx06Dn_sourceSrId", fields: [sourceSrId], references: [id])
+  rev_Nx06DnItem_dnId                Nx06DnItem[]                @relation("R_Nx06DnItem_dnId")
+  rev_Nx06DnStop_dnId                Nx06DnStop[]                @relation("R_Nx06DnStop_dnId")
+  rev_Nx06DnHandover_dnId            Nx06DnHandover[]            @relation("R_Nx06DnHandover_dnId")
   rev_Nx08DeliveryCacheSnapshot_dnId Nx08DeliveryCacheSnapshot[] @relation("R_Nx08DeliveryCacheSnapshot_dnId")
 
   @@unique([docNo])
@@ -5453,40 +5488,40 @@ model Nx08SwotRecord {
 /// =======================================================
 model Nx09Document {
   /// [NX09]+[DOCU]+[7碼流水號]，EX : NX09DOCU0000001；啟用最低需求版本：PRO
-  id                                 String                @id @default(dbgenerated("gen_nx09_document_id()")) @db.VarChar(15)
+  id                                 String                   @id @default(dbgenerated("gen_nx09_document_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                           String                @map("tenant_id") @db.VarChar(15)
+  tenantId                           String                   @map("tenant_id") @db.VarChar(15)
   /// 文件標題。；啟用最低需求版本：PRO
-  title                              String                @db.VarChar(200)
+  title                              String                   @db.VarChar(200)
   /// 文件分類（CR=章則彙編/SP=SOP/JD=工作說明書/FM=表單/OT=其他）。；啟用最低需求版本：PRO
-  docCategory                        String                @map("doc_category") @db.VarChar(2)
+  docCategory                        String                   @map("doc_category") @db.VarChar(2)
   /// 適用部門ID（可空=全公司適用，FK nx01_department）。；啟用最低需求版本：PRO
-  deptId                             String?               @map("dept_id") @db.VarChar(15)
+  deptId                             String?                  @map("dept_id") @db.VarChar(15)
   /// 目前版本號（如1.0/2.1）。；啟用最低需求版本：PRO
-  currentVer                         String                @default("1.0") @map("current_ver") @db.VarChar(10)
+  currentVer                         String                   @default("1.0") @map("current_ver") @db.VarChar(10)
   /// 生效日期。；啟用最低需求版本：PRO
-  effectiveDate                      DateTime              @map("effective_date") @db.Date
+  effectiveDate                      DateTime                 @map("effective_date") @db.Date
   /// 失效日期（選填）。；啟用最低需求版本：PRO
-  expiredDate                        DateTime?             @map("expired_date") @db.Date
+  expiredDate                        DateTime?                @map("expired_date") @db.Date
   /// 閱覽權限（A=全員/M=主管以上/D=指定部門）。；啟用最低需求版本：PRO
-  viewPermission                     String                @default("A") @map("view_permission") @db.VarChar(1)
+  viewPermission                     String                   @default("A") @map("view_permission") @db.VarChar(1)
   /// 是否啟用。；啟用最低需求版本：PRO
-  isActive                           Boolean               @default(true) @map("is_active")
+  isActive                           Boolean                  @default(true) @map("is_active")
   /// 備註。；啟用最低需求版本：PRO
-  remark                             String?               @db.VarChar(500)
+  remark                             String?                  @db.VarChar(500)
   /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                          DateTime              @default(now()) @map("created_at")
+  createdAt                          DateTime                 @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                          String                @map("created_by") @db.VarChar(15)
+  createdBy                          String                   @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                          DateTime              @updatedAt @map("updated_at")
+  updatedAt                          DateTime                 @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                          String                @map("updated_by") @db.VarChar(15)
+  updatedBy                          String                   @map("updated_by") @db.VarChar(15)
   /// Postgres tsvector FTS 索引欄、由 trigger 自動寫入；啟用最低需求版本：PRO
   searchVector                       Unsupported("tsvector")? @map("search_vector")
-  tenant                             Nx99Tenant            @relation("R_Nx09Document_tenantId", fields: [tenantId], references: [id])
-  dept                               Nx01Department?       @relation("R_Nx09Document_deptId", fields: [deptId], references: [id])
-  rev_Nx09DocumentVersion_documentId Nx09DocumentVersion[] @relation("R_Nx09DocumentVersion_documentId")
+  tenant                             Nx99Tenant               @relation("R_Nx09Document_tenantId", fields: [tenantId], references: [id])
+  dept                               Nx01Department?          @relation("R_Nx09Document_deptId", fields: [deptId], references: [id])
+  rev_Nx09DocumentVersion_documentId Nx09DocumentVersion[]    @relation("R_Nx09DocumentVersion_documentId")
 
   @@index([searchVector], map: "nx09_document_fts_idx", type: Gin)
   @@map("nx09_document")
@@ -5528,43 +5563,43 @@ model Nx09DocumentVersion {
 /// =======================================================
 model Nx09KmArticle {
   /// [NX09]+[ARTI]+[7碼流水號]，EX : NX09ARTI0000001；啟用最低需求版本：PRO
-  id                             String             @id @default(dbgenerated("gen_nx09_km_article_id()")) @db.VarChar(15)
+  id                             String                   @id @default(dbgenerated("gen_nx09_km_article_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                       String             @map("tenant_id") @db.VarChar(15)
+  tenantId                       String                   @map("tenant_id") @db.VarChar(15)
   /// 所屬部門ID（FK nx01_department，可空=跨部門適用）。；啟用最低需求版本：PRO
-  deptId                         String?            @map("dept_id") @db.VarChar(15)
+  deptId                         String?                  @map("dept_id") @db.VarChar(15)
   /// 文章分類（SO=系統操作/BP=業務流程/RG=規章制度/CX=客戶處理/EM=緊急狀況/OT=其他）。；啟用最低需求版本：PRO
-  category                       String             @default("SO") @db.VarChar(2)
+  category                       String                   @default("SO") @db.VarChar(2)
   /// 問題（Q）內容，供搜尋與 Phase 2 RAG 向量化使用。；啟用最低需求版本：PRO
-  question                       String             @db.Text
+  question                       String                   @db.Text
   /// 答案（A）內容。；啟用最低需求版本：PRO
-  answer                         String             @db.Text
+  answer                         String                   @db.Text
   /// 適用情境說明（選填，補充說明何時適用此 QA）。；啟用最低需求版本：PRO
-  context                        String?            @db.Text
+  context                        String?                  @db.Text
   /// 是否有效（FALSE=已過時，不顯示在搜尋結果）。；啟用最低需求版本：PRO
-  isActive                       Boolean            @default(true) @map("is_active")
+  isActive                       Boolean                  @default(true) @map("is_active")
   /// 有效期限（選填，過期後自動設 is_active=FALSE）。；啟用最低需求版本：PRO
-  expiredAt                      DateTime?          @map("expired_at") @db.Date
+  expiredAt                      DateTime?                @map("expired_at") @db.Date
   /// 瀏覽次數（系統累計）。；啟用最低需求版本：PRO
-  viewCount                      Int                @default(0) @map("view_count")
+  viewCount                      Int                      @default(0) @map("view_count")
   /// 已解決次數（員工點擊「已解決」按鈕累計）。；啟用最低需求版本：PRO
-  helpfulCount                   Int                @default(0) @map("helpful_count")
+  helpfulCount                   Int                      @default(0) @map("helpful_count")
   /// 備註。；啟用最低需求版本：PRO
-  remark                         String?            @db.VarChar(500)
+  remark                         String?                  @db.VarChar(500)
   /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                      DateTime           @default(now()) @map("created_at")
+  createdAt                      DateTime                 @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                      String             @map("created_by") @db.VarChar(15)
+  createdBy                      String                   @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                      DateTime           @updatedAt @map("updated_at")
+  updatedAt                      DateTime                 @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                      String             @map("updated_by") @db.VarChar(15)
+  updatedBy                      String                   @map("updated_by") @db.VarChar(15)
   /// Postgres tsvector FTS 索引欄、由 trigger 自動寫入；啟用最低需求版本：PRO
   searchVector                   Unsupported("tsvector")? @map("search_vector")
-  tenant                         Nx99Tenant         @relation("R_Nx09KmArticle_tenantId", fields: [tenantId], references: [id])
-  dept                           Nx01Department?    @relation("R_Nx09KmArticle_deptId", fields: [deptId], references: [id])
-  rev_Nx09KmArticleTag_articleId Nx09KmArticleTag[] @relation("R_Nx09KmArticleTag_articleId")
-  rev_Nx09KmFeedback_articleId   Nx09KmFeedback[]   @relation("R_Nx09KmFeedback_articleId")
+  tenant                         Nx99Tenant               @relation("R_Nx09KmArticle_tenantId", fields: [tenantId], references: [id])
+  dept                           Nx01Department?          @relation("R_Nx09KmArticle_deptId", fields: [deptId], references: [id])
+  rev_Nx09KmArticleTag_articleId Nx09KmArticleTag[]       @relation("R_Nx09KmArticleTag_articleId")
+  rev_Nx09KmFeedback_articleId   Nx09KmFeedback[]         @relation("R_Nx09KmFeedback_articleId")
 
   @@index([searchVector], map: "nx09_km_article_fts_idx", type: Gin)
   @@map("nx09_km_article")
@@ -7340,32 +7375,32 @@ model Nx01PartVersion {
 /// =======================================================
 model Nx01PartModel {
   /// [NX01]+[PAMO]+[7碼流水號]，EX : NX01PAMO0000001；啟用最低需求版本：LITE
-  id        String     @id @default(dbgenerated("gen_nx01_part_model_id()")) @db.VarChar(15)
+  id                                     String                   @id @default(dbgenerated("gen_nx01_part_model_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  tenantId                               String                   @map("tenant_id") @db.VarChar(15)
   /// 料件 FK（必填、規格 §3.2 Q1=A）；啟用最低需求版本：LITE
-  partId    String     @map("part_id") @db.VarChar(15)
+  partId                                 String                   @map("part_id") @db.VarChar(15)
   /// 車型 FK（必填、規格 §3.2 Q1=A）；啟用最低需求版本：LITE
-  modelId   String     @map("model_id") @db.VarChar(15)
+  modelId                                String                   @map("model_id") @db.VarChar(15)
   /// 適配等級（1=原廠 / 2=副廠等效 / 3=通用替代、Q3=B SmallInt enum）；啟用最低需求版本：LITE
-  fitLevel  Int        @default(1) @map("fit_level") @db.SmallInt
+  fitLevel                               Int                      @default(1) @map("fit_level") @db.SmallInt
   /// 備註說明（業務人員手記）；啟用最低需求版本：LITE
-  remark    String?    @db.VarChar(200)
+  remark                                 String?                  @db.VarChar(200)
   /// 排序用；啟用最低需求版本：LITE
-  sortNo    Int        @default(0) @map("sort_no")
+  sortNo                                 Int                      @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE
-  isActive  Boolean    @default(true) @map("is_active")
+  isActive                               Boolean                  @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE
-  createdAt DateTime   @default(now()) @map("created_at")
+  createdAt                              DateTime                 @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：LITE
-  createdBy String     @map("created_by") @db.VarChar(15)
+  createdBy                              String                   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：LITE
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  updatedAt                              DateTime                 @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE
-  updatedBy String     @map("updated_by") @db.VarChar(15)
-  tenant    Nx99Tenant @relation("R_Nx01PartModel_tenantId", fields: [tenantId], references: [id])
-  part      Nx01Part   @relation("R_Nx01PartModel_partId", fields: [partId], references: [id])
-  model     Nx01Model  @relation("R_Nx01PartModel_modelId", fields: [modelId], references: [id])
+  updatedBy                              String                   @map("updated_by") @db.VarChar(15)
+  tenant                                 Nx99Tenant               @relation("R_Nx01PartModel_tenantId", fields: [tenantId], references: [id])
+  part                                   Nx01Part                 @relation("R_Nx01PartModel_partId", fields: [partId], references: [id])
+  model                                  Nx01Model                @relation("R_Nx01PartModel_modelId", fields: [modelId], references: [id])
   rev_Nx09RepairSopPartModel_partModelId Nx09RepairSopPartModel[] @relation("R_Nx09RepairSopPartModel_partModelId")
 
   @@unique([tenantId, partId, modelId])
@@ -7380,43 +7415,43 @@ model Nx01PartModel {
 /// 動態任務轉派紀錄（亞羅簡化版半徑+任務量+ETA、半自動倉管組長拍板）。NX06-IMPL-02 M2 新增。
 model Nx06DnHandover {
   /// [NX06]+[DNHO]+[7碼流水號]，EX : NX06DNHO0000001；啟用最低需求版本：LITE-CORE
-  id              String       @id @default(dbgenerated("gen_nx06_dn_handover_id()")) @db.VarChar(15)
+  id              String     @id @default(dbgenerated("gen_nx06_dn_handover_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
-  tenantId        String       @map("tenant_id") @db.VarChar(15)
+  tenantId        String     @map("tenant_id") @db.VarChar(15)
   /// 對應 DN ID；啟用最低需求版本：LITE-CORE
-  dnId            String       @map("dn_id") @db.VarChar(15)
+  dnId            String     @map("dn_id") @db.VarChar(15)
   /// 原外務員 user_id；啟用最低需求版本：LITE-CORE
-  fromDriverId    String       @map("from_driver_id") @db.VarChar(15)
+  fromDriverId    String     @map("from_driver_id") @db.VarChar(15)
   /// 接手外務員 user_id；啟用最低需求版本：LITE-CORE
-  toDriverId      String       @map("to_driver_id") @db.VarChar(15)
+  toDriverId      String     @map("to_driver_id") @db.VarChar(15)
   /// 交接地點推薦 lat；啟用最低需求版本：LITE-CORE
-  handoverLat     Decimal?     @map("handover_lat") @db.Decimal(12, 8)
+  handoverLat     Decimal?   @map("handover_lat") @db.Decimal(12, 8)
   /// 交接地點推薦 lng；啟用最低需求版本：LITE-CORE
-  handoverLng     Decimal?     @map("handover_lng") @db.Decimal(12, 8)
+  handoverLng     Decimal?   @map("handover_lng") @db.Decimal(12, 8)
   /// 交接地點地址（人類可讀）；啟用最低需求版本：LITE-CORE
-  handoverAddress String?      @map("handover_address") @db.VarChar(200)
+  handoverAddress String?    @map("handover_address") @db.VarChar(200)
   /// 狀態（SUGGESTED 演算法建議 / ACCEPTED 兩外務同意 / REJECTED 拒絕 / COMPLETED 交接完成 / CANCELLED 取消）；啟用最低需求版本：LITE-CORE
-  status          String       @default("SUGGESTED") @db.VarChar(20)
+  status          String     @default("SUGGESTED") @db.VarChar(20)
   /// 演算法推薦理由（如：半徑 3.2km / from 任務 5 to 任務 2 / ETA 短 15 分鐘）；啟用最低需求版本：LITE-CORE
-  reason          String?      @db.VarChar(200)
+  reason          String?    @db.VarChar(200)
   /// 建議發起人 user_id（倉管組長）；啟用最低需求版本：LITE-CORE
-  suggestedBy     String       @map("suggested_by") @db.VarChar(15)
+  suggestedBy     String     @map("suggested_by") @db.VarChar(15)
   /// 建議時間；啟用最低需求版本：LITE-CORE
-  suggestedAt     DateTime     @default(now()) @map("suggested_at")
+  suggestedAt     DateTime   @default(now()) @map("suggested_at")
   /// 接受時間；啟用最低需求版本：LITE-CORE
-  acceptedAt      DateTime?    @map("accepted_at")
+  acceptedAt      DateTime?  @map("accepted_at")
   /// 完成交接時間；啟用最低需求版本：LITE-CORE
-  completedAt     DateTime?    @map("completed_at")
+  completedAt     DateTime?  @map("completed_at")
   /// 建立時間；啟用最低需求版本：LITE-CORE
-  createdAt       DateTime     @default(now()) @map("created_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
   /// 更新時間；啟用最低需求版本：LITE-CORE
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE-CORE
-  updatedBy       String       @map("updated_by") @db.VarChar(15)
-  dn              Nx06Dn       @relation("R_Nx06DnHandover_dnId", fields: [dnId], references: [id])
-  fromDriver      Nx01User     @relation("R_Nx06DnHandover_fromDriverId", fields: [fromDriverId], references: [id])
-  toDriver        Nx01User     @relation("R_Nx06DnHandover_toDriverId", fields: [toDriverId], references: [id])
-  tenant          Nx99Tenant   @relation("R_Nx06DnHandover_tenantId", fields: [tenantId], references: [id])
+  updatedBy       String     @map("updated_by") @db.VarChar(15)
+  dn              Nx06Dn     @relation("R_Nx06DnHandover_dnId", fields: [dnId], references: [id])
+  fromDriver      Nx01User   @relation("R_Nx06DnHandover_fromDriverId", fields: [fromDriverId], references: [id])
+  toDriver        Nx01User   @relation("R_Nx06DnHandover_toDriverId", fields: [toDriverId], references: [id])
+  tenant          Nx99Tenant @relation("R_Nx06DnHandover_tenantId", fields: [tenantId], references: [id])
 
   @@index([dnId], map: "idx_handover_dn")
   @@index([tenantId, status], map: "idx_handover_status")
@@ -7429,29 +7464,29 @@ model Nx06DnHandover {
 /// Web Push 訂閱（外務員 PWA + 倉管組長瀏覽器）。NX06-IMPL-02 M3 新增。
 model Nx06PushSubscription {
   /// [NX06]+[PSUB]+[7碼流水號]，EX : NX06PSUB0000001；啟用最低需求版本：LITE-CORE
-  id          String       @id @default(dbgenerated("gen_nx06_push_subscription_id()")) @db.VarChar(15)
+  id        String     @id @default(dbgenerated("gen_nx06_push_subscription_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
-  tenantId    String       @map("tenant_id") @db.VarChar(15)
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
   /// 訂閱 user_id；啟用最低需求版本：LITE-CORE
-  userId      String       @map("user_id") @db.VarChar(15)
+  userId    String     @map("user_id") @db.VarChar(15)
   /// Web Push API 推播 endpoint URL；啟用最低需求版本：LITE-CORE
-  endpoint    String       @db.VarChar(500)
+  endpoint  String     @db.VarChar(500)
   /// VAPID 公鑰（subscription 內含）；啟用最低需求版本：LITE-CORE
-  p256dhKey   String       @map("p256dh_key") @db.VarChar(200)
+  p256dhKey String     @map("p256dh_key") @db.VarChar(200)
   /// subscription auth secret；啟用最低需求版本：LITE-CORE
-  authKey     String       @map("auth_key") @db.VarChar(100)
+  authKey   String     @map("auth_key") @db.VarChar(100)
   /// 瀏覽器識別（debugging 用）；啟用最低需求版本：LITE-CORE
-  userAgent   String?      @map("user_agent") @db.VarChar(500)
+  userAgent String?    @map("user_agent") @db.VarChar(500)
   /// 是否啟用（取消訂閱後設 false）；啟用最低需求版本：LITE-CORE
-  isActive    Boolean      @default(true) @map("is_active")
+  isActive  Boolean    @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：LITE-CORE
-  createdAt   DateTime     @default(now()) @map("created_at")
+  createdAt DateTime   @default(now()) @map("created_at")
   /// 更新時間；啟用最低需求版本：LITE-CORE
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：LITE-CORE
-  updatedBy   String       @map("updated_by") @db.VarChar(15)
-  user        Nx01User     @relation("R_Nx06PushSubscription_userId", fields: [userId], references: [id])
-  tenant      Nx99Tenant   @relation("R_Nx06PushSubscription_tenantId", fields: [tenantId], references: [id])
+  updatedBy String     @map("updated_by") @db.VarChar(15)
+  user      Nx01User   @relation("R_Nx06PushSubscription_userId", fields: [userId], references: [id])
+  tenant    Nx99Tenant @relation("R_Nx06PushSubscription_tenantId", fields: [tenantId], references: [id])
 
   @@unique([endpoint], map: "idx_push_endpoint")
   @@index([tenantId, userId, isActive], map: "idx_push_user_active")
@@ -7606,35 +7641,35 @@ model Nx07MedicalRecord {
 /// 職災追蹤（汽配業常見：搬料 / 切割 / 化學 / 工具意外、亞羅特色業界改革候選 ⭐⭐⭐）。NX07-IMPL-01 M1 新增。
 model Nx07Injury {
   /// [NX07]+[INJU]+[7碼流水號]，EX : NX07INJU0000001；啟用最低需求版本：PRO
-  id              String     @id @default(dbgenerated("gen_nx07_injury_id()")) @db.VarChar(15)
+  id             String     @id @default(dbgenerated("gen_nx07_injury_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：PRO
-  tenantId        String     @map("tenant_id") @db.VarChar(15)
+  tenantId       String     @map("tenant_id") @db.VarChar(15)
   /// 員工 ID（FK nx01_user）；啟用最低需求版本：PRO
-  userId          String     @map("user_id") @db.VarChar(15)
+  userId         String     @map("user_id") @db.VarChar(15)
   /// 職災發生日期；啟用最低需求版本：PRO
-  injuryDate      DateTime   @map("injury_date") @db.Date
+  injuryDate     DateTime   @map("injury_date") @db.Date
   /// 職災類型（LIFT 搬料 / CUT 切割 / CHEM 化學 / MACHINE 機械 / ERGO 姿勢職業病 / OTHER）；啟用最低需求版本：PRO
-  injuryType      String?    @map("injury_type") @db.VarChar(50)
+  injuryType     String?    @map("injury_type") @db.VarChar(50)
   /// 部位 / 地點；啟用最低需求版本：PRO
-  injuryLocation  String?    @map("injury_location") @db.VarChar(200)
+  injuryLocation String?    @map("injury_location") @db.VarChar(200)
   /// 病況描述；啟用最低需求版本：PRO
-  description     String?    @db.Text
+  description    String?    @db.Text
   /// 狀態（REPORTED 通報 / TREATING 治療中 / RECOVERED 康復 / DISABLED 失能 / FATAL 死亡）；啟用最低需求版本：PRO
-  status          String     @default("REPORTED") @db.VarChar(20)
+  status         String     @default("REPORTED") @db.VarChar(20)
   /// 康復時間；啟用最低需求版本：PRO
-  recoveryAt      DateTime?  @map("recovery_at")
+  recoveryAt     DateTime?  @map("recovery_at")
   /// 保險理賠金額；啟用最低需求版本：PRO
-  insuranceClaim  Decimal?   @map("insurance_claim") @db.Decimal(10, 2)
+  insuranceClaim Decimal?   @map("insurance_claim") @db.Decimal(10, 2)
   /// 附件 URL；啟用最低需求版本：PRO
-  attachmentUrl   String?    @map("attachment_url") @db.VarChar(500)
+  attachmentUrl  String?    @map("attachment_url") @db.VarChar(500)
   /// 備註；啟用最低需求版本：PRO
-  remark          String?    @db.VarChar(200)
-  createdAt       DateTime   @default(now()) @map("created_at")
-  createdBy       String     @map("created_by") @db.VarChar(15)
-  updatedAt       DateTime   @updatedAt @map("updated_at")
-  updatedBy       String     @map("updated_by") @db.VarChar(15)
-  tenant          Nx99Tenant @relation("R_Nx07Injury_tenantId", fields: [tenantId], references: [id])
-  user            Nx01User   @relation("R_Nx07Injury_userId", fields: [userId], references: [id])
+  remark         String?    @db.VarChar(200)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  createdBy      String     @map("created_by") @db.VarChar(15)
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  updatedBy      String     @map("updated_by") @db.VarChar(15)
+  tenant         Nx99Tenant @relation("R_Nx07Injury_tenantId", fields: [tenantId], references: [id])
+  user           Nx01User   @relation("R_Nx07Injury_userId", fields: [userId], references: [id])
 
   @@index([userId], map: "nx07_injury_user_idx")
   @@index([tenantId, status], map: "nx07_injury_tenant_status_idx")
@@ -7648,34 +7683,34 @@ model Nx07Injury {
 /// featureKey 命名規範：模組.功能.動作（如 nx04.so.create / nx05.ar.statement）
 model Nx09SystemManual {
   /// [NX09]+[SYMA]+[7碼流水號]，EX : NX09SYMA0000001；啟用最低需求版本：PRO
-  id            String     @id @default(dbgenerated("gen_nx09_system_manual_id()")) @db.VarChar(15)
+  id           String                   @id @default(dbgenerated("gen_nx09_system_manual_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：PRO
-  tenantId      String     @map("tenant_id") @db.VarChar(15)
+  tenantId     String                   @map("tenant_id") @db.VarChar(15)
   /// feature 對應 key、命名規範：模組.功能.動作；啟用最低需求版本：PRO
-  featureKey    String     @map("feature_key") @db.VarChar(50)
+  featureKey   String                   @map("feature_key") @db.VarChar(50)
   /// 手冊標題；啟用最低需求版本：PRO
-  title         String     @db.VarChar(200)
+  title        String                   @db.VarChar(200)
   /// markdown 內文；啟用最低需求版本：PRO
-  content       String?    @db.Text
+  content      String?                  @db.Text
   /// 操作步驟 JSON 字串陣列；啟用最低需求版本：PRO
-  steps         String?    @db.Text
+  steps        String?                  @db.Text
   /// screenshot URL JSON 字串陣列；啟用最低需求版本：PRO
-  screenshots   String?    @db.Text
+  screenshots  String?                  @db.Text
   /// 手冊分類（GENERAL / FAQ / TROUBLESHOOT）；啟用最低需求版本：PRO
-  category      String     @default("GENERAL") @db.VarChar(30)
+  category     String                   @default("GENERAL") @db.VarChar(30)
   /// 版本號；啟用最低需求版本：PRO
-  version       String     @default("1.0") @db.VarChar(10)
+  version      String                   @default("1.0") @db.VarChar(10)
   /// 是否啟用；啟用最低需求版本：PRO
-  isActive      Boolean    @default(true) @map("is_active")
+  isActive     Boolean                  @default(true) @map("is_active")
   /// 備註；啟用最低需求版本：PRO
-  remark        String?    @db.VarChar(500)
+  remark       String?                  @db.VarChar(500)
   /// Postgres tsvector FTS 索引欄、由 trigger 自動寫入（service 走 $queryRawUnsafe 查詢）；啟用最低需求版本：PRO
-  searchVector  Unsupported("tsvector")? @map("search_vector")
-  createdAt     DateTime   @default(now()) @map("created_at")
-  createdBy     String     @map("created_by") @db.VarChar(15)
-  updatedAt     DateTime   @updatedAt @map("updated_at")
-  updatedBy     String     @map("updated_by") @db.VarChar(15)
-  tenant        Nx99Tenant @relation("R_Nx09SystemManual_tenantId", fields: [tenantId], references: [id])
+  searchVector Unsupported("tsvector")? @map("search_vector")
+  createdAt    DateTime                 @default(now()) @map("created_at")
+  createdBy    String                   @map("created_by") @db.VarChar(15)
+  updatedAt    DateTime                 @updatedAt @map("updated_at")
+  updatedBy    String                   @map("updated_by") @db.VarChar(15)
+  tenant       Nx99Tenant               @relation("R_Nx09SystemManual_tenantId", fields: [tenantId], references: [id])
 
   @@unique([featureKey], map: "nx09_system_manual_feature_key_key")
   @@index([tenantId], map: "nx09_system_manual_tenant_idx")
@@ -7690,36 +7725,36 @@ model Nx09SystemManual {
 /// VIN 17 碼結構化主檔（NHTSA decode + 手動建檔混合、業界改革 ⭐⭐⭐）。NX09-IMPL-02 M1 新增。
 model Nx09VinLookup {
   /// [NX09]+[VINL]+[7碼流水號]，EX : NX09VINL0000001；啟用最低需求版本：PRO
-  id              String        @id @default(dbgenerated("gen_nx09_vin_lookup_id()")) @db.VarChar(15)
+  id             String        @id @default(dbgenerated("gen_nx09_vin_lookup_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：PRO
-  tenantId        String        @map("tenant_id") @db.VarChar(15)
+  tenantId       String        @map("tenant_id") @db.VarChar(15)
   /// VIN 17 碼國際標準（ISO 3779 / SAE J853）；啟用最低需求版本：PRO
-  vin             String        @db.VarChar(17)
+  vin            String        @db.VarChar(17)
   /// 車型品牌 FK（NHTSA Make 對照或業務員手動指定、可空）；啟用最低需求版本：PRO
-  carBrandId      String?       @map("car_brand_id") @db.VarChar(15)
+  carBrandId     String?       @map("car_brand_id") @db.VarChar(15)
   /// 車型 FK（業務員手動關聯後即可走 PartModel 鏈、可空）；啟用最低需求版本：PRO
-  modelId         String?       @map("model_id") @db.VarChar(15)
+  modelId        String?       @map("model_id") @db.VarChar(15)
   /// 資料來源（API=NHTSA / MANUAL=業務員手動）；啟用最低需求版本：PRO
-  source          String        @default("MANUAL") @db.VarChar(10)
+  source         String        @default("MANUAL") @db.VarChar(10)
   /// NHTSA decode 時間（API 來源才有）；啟用最低需求版本：PRO
-  decodedAt       DateTime?     @map("decoded_at")
+  decodedAt      DateTime?     @map("decoded_at")
   /// NHTSA decode 原始 JSON（debug + 補錄用）；啟用最低需求版本：PRO
-  rawApiResponse  String?       @map("raw_api_response") @db.Text
+  rawApiResponse String?       @map("raw_api_response") @db.Text
   /// 業務員備註；啟用最低需求版本：PRO
-  notes           String?       @db.VarChar(500)
+  notes          String?       @db.VarChar(500)
   /// 是否啟用；啟用最低需求版本：PRO
-  isActive        Boolean       @default(true) @map("is_active")
+  isActive       Boolean       @default(true) @map("is_active")
   /// 建立時間；啟用最低需求版本：PRO
-  createdAt       DateTime      @default(now()) @map("created_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：PRO
-  createdBy       String        @map("created_by") @db.VarChar(15)
+  createdBy      String        @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：PRO
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：PRO
-  updatedBy       String        @map("updated_by") @db.VarChar(15)
-  tenant          Nx99Tenant    @relation("R_Nx09VinLookup_tenantId",   fields: [tenantId],   references: [id])
-  carBrand        Nx01CarBrand? @relation("R_Nx09VinLookup_carBrandId", fields: [carBrandId], references: [id])
-  model           Nx01Model?    @relation("R_Nx09VinLookup_modelId",    fields: [modelId],    references: [id])
+  updatedBy      String        @map("updated_by") @db.VarChar(15)
+  tenant         Nx99Tenant    @relation("R_Nx09VinLookup_tenantId", fields: [tenantId], references: [id])
+  carBrand       Nx01CarBrand? @relation("R_Nx09VinLookup_carBrandId", fields: [carBrandId], references: [id])
+  model          Nx01Model?    @relation("R_Nx09VinLookup_modelId", fields: [modelId], references: [id])
 
   @@unique([tenantId, vin], map: "nx09_vin_lookup_tenant_vin_key")
   @@index([tenantId], map: "nx09_vin_lookup_tenant_idx")
@@ -7734,44 +7769,44 @@ model Nx09VinLookup {
 /// 維修 SOP 結構化主檔（步驟 + 工具 + 注意事項 + 預估時間、業界改革 ⭐⭐⭐）。NX09-IMPL-02 M1 新增。
 model Nx09RepairSop {
   /// [NX09]+[RPSP]+[7碼流水號]，EX : NX09RPSP0000001；啟用最低需求版本：PRO
-  id                              String                    @id @default(dbgenerated("gen_nx09_repair_sop_id()")) @db.VarChar(15)
+  id                             String                   @id @default(dbgenerated("gen_nx09_repair_sop_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：PRO
-  tenantId                        String                    @map("tenant_id") @db.VarChar(15)
+  tenantId                       String                   @map("tenant_id") @db.VarChar(15)
   /// SOP 代碼（tenant 內 unique、例：OIL-CHG-001）；啟用最低需求版本：PRO
-  code                            String                    @db.VarChar(30)
+  code                           String                   @db.VarChar(30)
   /// SOP 標題；啟用最低需求版本：PRO
-  title                           String                    @db.VarChar(200)
+  title                          String                   @db.VarChar(200)
   /// 維修分類（ENGINE/BRAKE/ELECTRIC/MAINTAIN/SUSPENSION/AC/TRANS/OTHER）；啟用最低需求版本：PRO
-  category                        String                    @default("OTHER") @db.VarChar(20)
+  category                       String                   @default("OTHER") @db.VarChar(20)
   /// 步驟 JSON 陣列：[{seq, description, tool, warning, imageUrl}]；啟用最低需求版本：PRO
-  steps                           String                    @db.Text
+  steps                          String                   @db.Text
   /// 工具 JSON 陣列；啟用最低需求版本：PRO
-  tools                           String?                   @db.Text
+  tools                          String?                  @db.Text
   /// 注意事項 JSON 陣列；啟用最低需求版本：PRO
-  warnings                        String?                   @db.Text
+  warnings                       String?                  @db.Text
   /// 預估時間（分鐘）；啟用最低需求版本：PRO
-  estimatedMinutes                Int?                      @map("estimated_minutes")
+  estimatedMinutes               Int?                     @map("estimated_minutes")
   /// 照片 URL JSON 陣列；啟用最低需求版本：PRO
-  photos                          String?                   @db.Text
+  photos                         String?                  @db.Text
   /// 適用車型過濾（可空 = 通用、FK Nx01Model）；啟用最低需求版本：PRO
-  carModelFilter                  String?                   @map("car_model_filter") @db.VarChar(15)
+  carModelFilter                 String?                  @map("car_model_filter") @db.VarChar(15)
   /// 維修難度（1-5、預設 1 簡易）；啟用最低需求版本：PRO
-  difficulty                      Int                       @default(1) @db.SmallInt
+  difficulty                     Int                      @default(1) @db.SmallInt
   /// 是否啟用；啟用最低需求版本：PRO
-  isActive                        Boolean                   @default(true) @map("is_active")
+  isActive                       Boolean                  @default(true) @map("is_active")
   /// 備註；啟用最低需求版本：PRO
-  remark                          String?                   @db.VarChar(500)
+  remark                         String?                  @db.VarChar(500)
   /// 建立時間；啟用最低需求版本：PRO
-  createdAt                       DateTime                  @default(now()) @map("created_at")
+  createdAt                      DateTime                 @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：PRO
-  createdBy                       String                    @map("created_by") @db.VarChar(15)
+  createdBy                      String                   @map("created_by") @db.VarChar(15)
   /// 更新時間；啟用最低需求版本：PRO
-  updatedAt                       DateTime                  @updatedAt @map("updated_at")
+  updatedAt                      DateTime                 @updatedAt @map("updated_at")
   /// 更新人；啟用最低需求版本：PRO
-  updatedBy                       String                    @map("updated_by") @db.VarChar(15)
-  tenant                          Nx99Tenant                @relation("R_Nx09RepairSop_tenantId",       fields: [tenantId],       references: [id])
-  carModel                        Nx01Model?                @relation("R_Nx09RepairSop_carModelFilter", fields: [carModelFilter], references: [id])
-  rev_Nx09RepairSopPartModel_sop  Nx09RepairSopPartModel[]  @relation("R_Nx09RepairSopPartModel_repairSopId")
+  updatedBy                      String                   @map("updated_by") @db.VarChar(15)
+  tenant                         Nx99Tenant               @relation("R_Nx09RepairSop_tenantId", fields: [tenantId], references: [id])
+  carModel                       Nx01Model?               @relation("R_Nx09RepairSop_carModelFilter", fields: [carModelFilter], references: [id])
+  rev_Nx09RepairSopPartModel_sop Nx09RepairSopPartModel[] @relation("R_Nx09RepairSopPartModel_repairSopId")
 
   @@unique([tenantId, code], map: "nx09_repair_sop_tenant_code_key")
   @@index([tenantId], map: "nx09_repair_sop_tenant_idx")
@@ -7786,19 +7821,19 @@ model Nx09RepairSop {
 /// RepairSop ↔ Nx01PartModel link 表（業界改革 ⭐⭐⭐ 雙向查詢：查料件→看 SOP / 查 SOP→看料件）。NX09-IMPL-02 M1 新增。
 model Nx09RepairSopPartModel {
   /// [NX09]+[RSPM]+[7碼流水號]，EX : NX09RSPM0000001；啟用最低需求版本：PRO
-  id            String        @id @default(dbgenerated("gen_nx09_repair_sop_part_model_id()")) @db.VarChar(15)
+  id          String        @id @default(dbgenerated("gen_nx09_repair_sop_part_model_id()")) @db.VarChar(15)
   /// RepairSop FK；啟用最低需求版本：PRO
-  repairSopId   String        @map("repair_sop_id") @db.VarChar(15)
+  repairSopId String        @map("repair_sop_id") @db.VarChar(15)
   /// PartModel FK（cross-ref NX01PartModel）；啟用最低需求版本：PRO
-  partModelId   String        @map("part_model_id") @db.VarChar(15)
+  partModelId String        @map("part_model_id") @db.VarChar(15)
   /// 為什麼這料件適用此 SOP（業務員備註）；啟用最低需求版本：PRO
-  notes         String?       @db.VarChar(200)
+  notes       String?       @db.VarChar(200)
   /// 建立時間；啟用最低需求版本：PRO
-  createdAt     DateTime      @default(now()) @map("created_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
   /// 建立人；啟用最低需求版本：PRO
-  createdBy     String        @map("created_by") @db.VarChar(15)
-  repairSop     Nx09RepairSop @relation("R_Nx09RepairSopPartModel_repairSopId", fields: [repairSopId], references: [id])
-  partModel     Nx01PartModel @relation("R_Nx09RepairSopPartModel_partModelId", fields: [partModelId], references: [id])
+  createdBy   String        @map("created_by") @db.VarChar(15)
+  repairSop   Nx09RepairSop @relation("R_Nx09RepairSopPartModel_repairSopId", fields: [repairSopId], references: [id])
+  partModel   Nx01PartModel @relation("R_Nx09RepairSopPartModel_partModelId", fields: [partModelId], references: [id])
 
   @@unique([repairSopId, partModelId], map: "nx09_repair_sop_part_model_uniq_key")
   @@index([repairSopId], map: "nx09_repair_sop_part_model_sop_idx")

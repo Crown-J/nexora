@@ -60,8 +60,9 @@ export function getNx00SideMenu(): SideMenuGroup[] {
     {
       group: '倉儲',
       items: [
+        { key: 'base.site',       label: '據點基本資料', href: '/dashboard/base/site' },
         { key: 'base.warehouses', label: '倉庫基本資料', href: '/dashboard/base/warehouses' },
-        { key: 'base.location',   label: '據點基本資料', href: '/dashboard/base/location' },
+        { key: 'base.location',   label: '庫位基本資料', href: '/dashboard/base/location' },
       ],
     },
     {

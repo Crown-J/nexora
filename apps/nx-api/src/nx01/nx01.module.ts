@@ -10,6 +10,8 @@ import { CarBrandController } from './car-brand/car-brand.controller';
 import { CarBrandService } from './car-brand/car-brand.service';
 import { CountryController } from './country/country.controller';
 import { CountryService } from './country/country.service';
+import { SiteController } from './site/site.controller';
+import { SiteService } from './site/site.service';
 import { CurrencyController } from './currency/currency.controller';
 import { CurrencyService } from './currency/currency.service';
 import { LocationController } from './location/location.controller';
@@ -62,6 +64,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
 @Module({
   imports: [PrismaModule],
   controllers: [
+    SiteController,
     CountryController,
     CurrencyController,
     WarehouseController,
@@ -92,6 +95,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleViewController,
   ],
   providers: [
+    SiteService,
     CountryService,
     CurrencyService,
     WarehouseService,

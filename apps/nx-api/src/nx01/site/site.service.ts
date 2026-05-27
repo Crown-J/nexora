@@ -1,3 +1,8 @@
+// apps/nx-api/src/nx01/site/site.service.ts
+/**
+ * Site Service —— 據點主檔（公司物理分點、倉庫之上一層；LITE 預設 1 筆「總公司」）。
+ * tenant-scoped，對齊 PartGroup 範式（list/getById/create/update/softDelete + audit）。
+ */
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
@@ -6,56 +11,52 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
-import type { CreateWarehouseDto, ListWarehouseQueryDto, UpdateWarehouseDto } from './dto/warehouse.dto';
+import type { CreateSiteDto, ListSiteQueryDto, UpdateSiteDto } from './dto/site.dto';
 
 const SEL = {
   id: true,
   tenantId: true,
   code: true,
   name: true,
-  remark: true,
+  address: true,
+  phone: true,
   sortNo: true,
   isActive: true,
-  warehouseTypeId: true,
-  siteId: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
 } as const;
 
-type Row = Prisma.Nx01WarehouseGetPayload<{ select: typeof SEL }>;
-
 @Injectable()
-export class WarehouseService {
+export class SiteService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
-  private whereList(tenantId: string, q: ListWarehouseQueryDto): Prisma.Nx01WarehouseWhereInput {
-    const where: Prisma.Nx01WarehouseWhereInput = { tenantId };
+  private whereList(tenantId: string, q: ListSiteQueryDto): Prisma.Nx01SiteWhereInput {
+    const where: Prisma.Nx01SiteWhereInput = { tenantId };
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [
         { code: { contains: s, mode: 'insensitive' } },
         { name: { contains: s, mode: 'insensitive' } },
-        { remark: { contains: s, mode: 'insensitive' } },
       ];
     }
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
   }
 
-  async list(user: RequestUser, q: ListWarehouseQueryDto) {
+  async list(user: RequestUser, q: ListSiteQueryDto) {
     const tenantId = requireTenantId(user);
     const page = q.page ?? 1;
-    const pageSize = q.pageSize ?? 20;
+    const pageSize = q.pageSize ?? 100;
     const skip = (page - 1) * pageSize;
     const where = this.whereList(tenantId, q);
     const [total, rows] = await Promise.all([
-      this.prisma.nx01Warehouse.count({ where }),
-      this.prisma.nx01Warehouse.findMany({
+      this.prisma.nx01Site.count({ where }),
+      this.prisma.nx01Site.findMany({
         where,
         orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
         skip,
@@ -63,33 +64,29 @@ export class WarehouseService {
         select: SEL,
       }),
     ]);
-    return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
+    return { page, pageSize, total, rows };
   }
 
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
-    const row = await this.prisma.nx01Warehouse.findFirst({ where: { id, tenantId }, select: SEL });
-    if (!row) throw new NotFoundException('Warehouse not found');
-    return this.mapRow(row);
+    const row = await this.prisma.nx01Site.findFirst({ where: { id, tenantId }, select: SEL });
+    if (!row) throw new NotFoundException('Site not found');
+    return row;
   }
 
-  async create(user: RequestUser, dto: CreateWarehouseDto) {
+  async create(user: RequestUser, dto: CreateSiteDto) {
     const tenantId = requireTenantId(user);
-    const code = dto.code.trim();
-    const dup = await this.prisma.nx01Warehouse.findFirst({
-      where: { code: { equals: code, mode: 'insensitive' } },
-      select: { id: true },
-    });
-    if (dup) throw new ConflictException('Warehouse code already exists');
-    const row = await this.prisma.nx01Warehouse.create({
+    const code = dto.code.trim().toUpperCase();
+    const dup = await this.prisma.nx01Site.findFirst({ where: { tenantId, code }, select: { id: true } });
+    if (dup) throw new ConflictException('Site code already exists in this tenant');
+    const row = await this.prisma.nx01Site.create({
       data: {
         tenantId,
         code,
         name: dto.name.trim(),
-        remark: dto.remark?.trim() || null,
+        address: dto.address?.trim() || null,
+        phone: dto.phone?.trim() || null,
         sortNo: dto.sortNo ?? 0,
-        warehouseTypeId: dto.warehouseTypeId?.trim() || null,
-        siteId: dto.siteId?.trim() || null,
         isActive: dto.isActive ?? true,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -101,27 +98,27 @@ export class WarehouseService {
       actorUserId: user.sub,
       moduleCode: 'NX01',
       action: 'CREATE',
-      entityTable: 'nx01_warehouse',
+      entityTable: 'nx01_site',
       entityId: row.id,
       entityCode: row.code,
-      summary: '建立倉庫',
+      summary: '建立據點',
       afterData: row as object,
     });
-    return this.mapRow(row);
+    return row;
   }
 
-  async update(user: RequestUser, id: string, dto: UpdateWarehouseDto) {
+  async update(user: RequestUser, id: string, dto: UpdateSiteDto) {
     const tenantId = requireTenantId(user);
-    const existing = await this.prisma.nx01Warehouse.findFirst({ where: { id, tenantId }, select: SEL });
-    if (!existing) throw new NotFoundException('Warehouse not found');
-    const row = await this.prisma.nx01Warehouse.update({
+    const existing = await this.prisma.nx01Site.findFirst({ where: { id, tenantId }, select: SEL });
+    if (!existing) throw new NotFoundException('Site not found');
+    const row = await this.prisma.nx01Site.update({
       where: { id },
       data: {
+        ...(dto.code !== undefined ? { code: dto.code.trim().toUpperCase() } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
-        ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
+        ...(dto.address !== undefined ? { address: dto.address } : {}),
+        ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
-        ...(dto.warehouseTypeId !== undefined ? { warehouseTypeId: dto.warehouseTypeId } : {}),
-        ...(dto.siteId !== undefined ? { siteId: dto.siteId } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,
       },
@@ -132,21 +129,21 @@ export class WarehouseService {
       actorUserId: user.sub,
       moduleCode: 'NX01',
       action: 'UPDATE',
-      entityTable: 'nx01_warehouse',
+      entityTable: 'nx01_site',
       entityId: id,
       entityCode: row.code,
-      summary: '修改倉庫',
+      summary: '修改據點',
       beforeData: existing as object,
       afterData: row as object,
     });
-    return this.mapRow(row);
+    return row;
   }
 
   async softDelete(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
-    const existing = await this.prisma.nx01Warehouse.findFirst({ where: { id, tenantId }, select: SEL });
-    if (!existing) throw new NotFoundException('Warehouse not found');
-    const row = await this.prisma.nx01Warehouse.update({
+    const existing = await this.prisma.nx01Site.findFirst({ where: { id, tenantId }, select: SEL });
+    if (!existing) throw new NotFoundException('Site not found');
+    const row = await this.prisma.nx01Site.update({
       where: { id },
       data: { isActive: false, updatedBy: user.sub },
       select: SEL,
@@ -156,17 +153,13 @@ export class WarehouseService {
       actorUserId: user.sub,
       moduleCode: 'NX01',
       action: 'DELETE',
-      entityTable: 'nx01_warehouse',
+      entityTable: 'nx01_site',
       entityId: id,
       entityCode: row.code,
-      summary: '軟刪除倉庫',
+      summary: '停用據點',
       beforeData: existing as object,
       afterData: row as object,
     });
-    return this.mapRow(row);
-  }
-
-  private mapRow(row: Row) {
-    return { ...row };
+    return row;
   }
 }

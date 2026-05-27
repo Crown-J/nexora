@@ -158,6 +158,7 @@ export const PART_BRAND_MASTER: EntityMasterConfig = {
     { key: 'code', label: '廠牌代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '廠牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', inList: false },
+    { key: 'isOem', label: '是否原廠', type: 'toggle', defaultValue: false, inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -214,6 +215,7 @@ export const WAREHOUSE_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'code', label: '倉庫代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '倉庫名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', minWidthClass: 'min-w-[140px]' },
     { key: 'warehouseTypeId', label: '倉別', type: 'ref', refBasePath: 'nx01/warehouse-types', inList: false },
     { key: 'remark', label: '備註', inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
@@ -325,16 +327,35 @@ export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
 };
 
 // ── 組織架構（補後端後）──────────────────────────────────
-export const LOCATION_MASTER: EntityMasterConfig = {
-  basePath: 'nx01/locations',
+// 據點（公司物理分點，倉庫之上一層；LITE 預設 1 筆「總公司」）
+export const SITE_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/sites',
   category: '組織架構',
   title: '據點基本資料',
   entityNoun: '據點',
+  errorCodePrefix: 'nxui_base_site',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '據點代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    { key: 'name', label: '據點名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'address', label: '地址', inList: false },
+    { key: 'phone', label: '聯絡電話', minWidthClass: 'min-w-[120px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
+// 庫位（倉庫內的物理位置：區/架/層/格；屬於某倉庫 + 某據點）
+export const LOCATION_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/locations',
+  category: '組織架構',
+  title: '庫位基本資料',
+  entityNoun: '庫位',
   errorCodePrefix: 'nxui_base_location',
   deleteMode: SOFT,
   fields: [
+    { key: 'siteId', label: '所屬據點', type: 'ref', refBasePath: 'nx01/sites', minWidthClass: 'min-w-[140px]' },
     { key: 'warehouseId', label: '所屬倉庫', type: 'ref', refBasePath: 'nx01/warehouses', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'code', label: '據點代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
+    { key: 'code', label: '庫位代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[110px]' },
     { key: 'name', label: '名稱', minWidthClass: 'min-w-[120px]' },
     { key: 'zone', label: '區', inList: false },
     { key: 'rack', label: '架號', inList: false },

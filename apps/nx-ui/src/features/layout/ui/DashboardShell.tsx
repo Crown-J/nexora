@@ -64,6 +64,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
       '/dashboard/base/customer-grade',
       '/dashboard/base/phonetic-dictionary',
       '/dashboard/base/partners',
+      '/dashboard/base/site',
       '/dashboard/base/location',
       '/dashboard/base/parts',
       '/dashboard/base/brand-code-rule',
