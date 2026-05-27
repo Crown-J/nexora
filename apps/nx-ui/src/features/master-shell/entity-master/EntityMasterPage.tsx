@@ -184,6 +184,22 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     void load();
   }, [load]);
 
+  // 瀏覽模式自動鎖定第一列（進頁面不需點選即可 ↑↓；詳細頁也不再跳「請先選擇」）
+  useEffect(() => {
+    if (rows.length === 0) {
+      if (selectedId !== null) setSelectedId(null);
+      return;
+    }
+    if (!rows.some((r) => r.id === selectedId)) setSelectedId(rows[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows]);
+
+  // 選中列捲入視野（鍵盤 ↑↓ 切列時）
+  useEffect(() => {
+    if (!selectedId || tab !== 'list') return;
+    document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
+  }, [selectedId, tab]);
+
   // dirty 判斷（編輯模式）
   const isDirty = useMemo(() => {
     if (mode !== 'edit') return false;
@@ -455,11 +471,24 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         } else if (mode === 'edit') {
           handleCancel();
         }
+        return;
+      }
+      // 瀏覽模式 ↑↓ 切列（焦點不在搜尋框 / 下拉等表單元素時）
+      if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        const tag = (document.activeElement?.tagName ?? '').toLowerCase();
+        if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+        if (rows.length === 0) return;
+        e.preventDefault();
+        const idx = rows.findIndex((r) => r.id === selectedId);
+        const cur = idx < 0 ? 0 : idx;
+        const nextIdx =
+          e.key === 'ArrowDown' ? Math.min(rows.length - 1, cur + 1) : Math.max(0, cur - 1);
+        setSelectedId(rows[nextIdx].id);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleExit, handleSave, handleCancel]);
+  }, [mode, tab, rows, selectedId, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleExit, handleSave, handleCancel]);
 
   // beforeunload（dirty 攔截）
   useEffect(() => {
@@ -612,6 +641,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
             draft={draft}
             setDraft={setDraft}
             refOptions={refOptions}
+            onRequestSave={handleSave}
           />
         )}
       </div>
@@ -662,6 +692,7 @@ function DetailPane({
   draft,
   setDraft,
   refOptions,
+  onRequestSave,
 }: {
   config: EntityMasterConfig;
   mode: ErpMode;
@@ -670,11 +701,35 @@ function DetailPane({
   draft: EntityDraft;
   setDraft: (next: EntityDraft) => void;
   refOptions: Record<string, SelectOption[]>;
+  onRequestSave: () => void;
 }) {
+  const formRef = useRef<HTMLDivElement>(null);
+  const editing = mode === 'edit';
+
+  // 進編輯模式自動 focus 第一格（讓 Enter 跳格從第一格開始）
+  useEffect(() => {
+    if (!editing) return;
+    const el = formRef.current?.querySelector<HTMLElement>('input, select, textarea');
+    el?.focus();
+  }, [editing, creating, selected?.id]);
+
+  // ERP muscle memory：Enter 跳下一格；最後一格 Enter → 存檔確認。textarea 例外（換行）。
+  const handleFormKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Enter') return;
+    const t = e.target as HTMLElement;
+    if (t.tagName.toLowerCase() === 'textarea') return;
+    e.preventDefault();
+    const els = Array.from(
+      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea') ?? [],
+    ).filter((el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null);
+    const idx = els.indexOf(t);
+    if (idx >= 0 && idx < els.length - 1) els[idx + 1]?.focus();
+    else onRequestSave();
+  };
+
   if (mode !== 'edit' && !selected) {
     return <EmptyDetail message="從「資料瀏覽」選一筆，或按 A 新增" />;
   }
-  const editing = mode === 'edit';
   return (
     <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
       <div className="px-4 py-4 sm:px-6">
@@ -682,7 +737,7 @@ function DetailPane({
           title={creating ? `新增${config.entityNoun}` : (selected?.[config.fields[0].key] as string) ?? config.entityNoun}
           subtitle={editing ? '編輯中' : '瀏覽'}
         />
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div ref={formRef} onKeyDown={handleFormKey} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {config.fields.map((f) => {
             const lockedNow = editing && !creating && f.lockedOnEdit;
             // 編輯模式：select / ref 下拉

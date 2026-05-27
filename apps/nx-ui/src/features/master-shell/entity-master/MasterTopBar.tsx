@@ -5,18 +5,18 @@
  * 左→右：返回 · 小星球模組選單 · 分類/標題（中段）· 計數 · 公告 · 通知 · 使用者
  *
  * 4 大功能（對齊 Crown 認可範式）：
- *  1. 模組選單 = NEXORA 小星球（PlanetOrbTrigger）；點開為「階層式」側欄：
- *     左欄 7 大模組、滑過/點擊 → 右欄展開該模組子分頁（主檔模組列出分區+主檔；
- *     採購/銷貨/庫存/財務/報表先佔位）。頂部搜尋框可直接打字找主檔。
- *  2. 公告（Megaphone、琥珀未讀 badge）/ 3. 通知（Bell、紅色未讀 badge）= 對齊使用者主檔頁質感
- *  4. 使用者 = 頭像 + 公司名 + 帳號 + 下拉箭頭（對齊首頁 TopBar）
+ *  1. 模組選單 = NEXORA 小星球（PlanetOrbTrigger）；Alt+X 開、階層式側欄：
+ *     左欄 7 大模組、滑過/點擊 → 右欄展開該模組子分頁（主檔列分區+主檔、其他模組佔位）。
+ *  2. 公告（Megaphone、琥珀 badge）/ 3. 通知（Bell、紅 badge）= 使用者主檔頁質感 + glow
+ *  4. 使用者 = 頭像 + 公司名 + 帳號 + 下拉箭頭（首頁 TopBar 範式）
  *
- * 全鍵盤：Alt+M 開模組選單；各 popover Esc 關、Tab 可達、Enter 觸發。
+ * 全鍵盤（小星球）：Alt+X 開 · ↑↓ 左欄選模組 · → 進右欄子選單 · ← 回左欄 ·
+ *   子選單 ↑↓ · Enter 跳該主檔頁（左欄 Enter = 進模組首頁）· Esc 關。
+ * 公告/通知/使用者：Tab 切到 + Enter 開（不另設快捷鍵）。
  */
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { ArrowLeft, Bell, ChevronDown, ChevronRight, LogOut, Megaphone, Search, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -30,6 +30,7 @@ import {
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 
 const MASTER_HREF = '/dashboard/base';
+const MASTER_MODULE_IDX = HOME_DOCK_ITEMS.findIndex((m) => m.href === MASTER_HREF);
 
 type NavLink = { label: string; href: string };
 type NavGroup = { title: string; items: NavLink[] };
@@ -98,13 +99,23 @@ export function MasterTopBar({
   const notifyMenu = usePopover();
   const userMenu = usePopover();
   const [kw, setKw] = useState('');
-  const [activeModule, setActiveModule] = useState<string>(MASTER_HREF);
   const searchRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  // Alt+M 開模組選單
+  // 小星球鍵盤導航：左欄模組 / 右欄子選單
+  const [moduleIdx, setModuleIdx] = useState(MASTER_MODULE_IDX < 0 ? 0 : MASTER_MODULE_IDX);
+  const [navCol, setNavCol] = useState<'module' | 'sub'>('module');
+  const [subIdx, setSubIdx] = useState(0);
+
+  const activeModule = HOME_DOCK_ITEMS[moduleIdx]?.href ?? MASTER_HREF;
+  const activeItem = HOME_DOCK_ITEMS[moduleIdx];
+  const groups = useMemo(() => moduleGroups(activeModule), [activeModule]);
+  const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+
+  // Alt+X 開模組選單
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === 'm') {
+      if (e.altKey && e.key.toLowerCase() === 'x') {
         e.preventDefault();
         moduleMenu.setOpen((o) => !o);
       }
@@ -113,10 +124,13 @@ export function MasterTopBar({
     return () => window.removeEventListener('keydown', onKey);
   }, [moduleMenu]);
 
+  // 開啟時重置 + focus 搜尋
   useEffect(() => {
     if (moduleMenu.open) {
       setKw('');
-      setActiveModule(MASTER_HREF);
+      setModuleIdx(MASTER_MODULE_IDX < 0 ? 0 : MASTER_MODULE_IDX);
+      setNavCol('module');
+      setSubIdx(0);
       setTimeout(() => searchRef.current?.focus(), 0);
     }
   }, [moduleMenu.open]);
@@ -129,15 +143,56 @@ export function MasterTopBar({
     [moduleMenu, requestNavigate],
   );
 
-  // 搜尋結果（跨主檔；搜尋時右欄直接顯示結果，忽略 active 模組）
+  // 小星球鍵盤導航（搜尋模式不攔截，交給搜尋結果）
+  useEffect(() => {
+    if (!moduleMenu.open) return;
+    const onNav = (e: KeyboardEvent) => {
+      if (kw.trim()) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const d = e.key === 'ArrowDown' ? 1 : -1;
+        if (navCol === 'module') {
+          setModuleIdx((i) => Math.min(HOME_DOCK_ITEMS.length - 1, Math.max(0, i + d)));
+          setSubIdx(0);
+        } else {
+          setSubIdx((s) => Math.min(Math.max(0, flatItems.length - 1), Math.max(0, s + d)));
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (navCol === 'module' && flatItems.length > 0) {
+          e.preventDefault();
+          setNavCol('sub');
+          setSubIdx(0);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (navCol === 'sub') {
+          e.preventDefault();
+          setNavCol('module');
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (navCol === 'sub' && flatItems[subIdx]) go(flatItems[subIdx].href);
+        else go(activeModule);
+      }
+    };
+    window.addEventListener('keydown', onNav);
+    return () => window.removeEventListener('keydown', onNav);
+  }, [moduleMenu.open, kw, navCol, subIdx, flatItems, activeModule, go]);
+
+  // 子選單鍵盤移動時捲入視野
+  useEffect(() => {
+    if (!moduleMenu.open || navCol !== 'sub') return;
+    panelRef.current
+      ?.querySelector(`[data-sub-idx="${subIdx}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [subIdx, navCol, moduleMenu.open]);
+
+  // 搜尋結果（跨主檔）
   const searchHits = useMemo(() => {
     const s = kw.trim();
     if (!s) return [];
     return MASTER_HUB_CARDS.filter((c) => c.title.includes(s) || c.description.includes(s));
   }, [kw]);
 
-  const groups = useMemo(() => moduleGroups(activeModule), [activeModule]);
-  const activeItem = HOME_DOCK_ITEMS.find((m) => m.href === activeModule);
   const userInitial = (displayName || me?.username || 'U').slice(0, 1).toUpperCase();
 
   return (
@@ -155,8 +210,8 @@ export function MasterTopBar({
         <button
           type="button"
           onClick={() => moduleMenu.setOpen((o) => !o)}
-          aria-label="模組選單 (Alt+M)"
-          title="模組選單 (Alt+M)"
+          aria-label="模組選單 (Alt+X)"
+          title="模組選單 (Alt+X)"
           className={cn(
             'group flex size-9 shrink-0 items-center justify-center rounded-xl border transition-all focus:outline-none focus-visible:ring-1 focus-visible:ring-[#E8A020]/40',
             moduleMenu.open
@@ -168,7 +223,7 @@ export function MasterTopBar({
         </button>
 
         {moduleMenu.open ? (
-          <div className={cn(PANEL, 'left-0 w-[min(94vw,40rem)] p-3')}>
+          <div className={cn(PANEL, 'left-0 w-[min(94vw,40rem)] p-3')} ref={panelRef}>
             {/* 搜尋 */}
             <div className="flex items-center gap-2 rounded-lg border border-[#2A2A30] bg-[#0A0A0C] px-2.5 py-1.5">
               <Search className="size-3.5 text-[#E8A020]" />
@@ -179,6 +234,7 @@ export function MasterTopBar({
                 placeholder="搜尋主檔（職務 / 幣別 / 零件…）"
                 className="flex-1 bg-transparent text-sm text-[#E8E8EB] outline-none placeholder:text-[#5A5A60]"
               />
+              <kbd className="hidden rounded border border-[#2A2A30] px-1 text-[9px] text-[#5A5A60] sm:inline">↑↓→← Enter</kbd>
             </div>
 
             {kw.trim() ? (
@@ -197,20 +253,25 @@ export function MasterTopBar({
               <div className="mt-3 flex gap-2">
                 {/* 左：模組 */}
                 <div className="flex w-[5.5rem] shrink-0 flex-col gap-1 border-r border-[#2A2A30] pr-2 sm:w-28">
-                  {HOME_DOCK_ITEMS.map((m) => {
-                    const on = m.href === activeModule;
+                  {HOME_DOCK_ITEMS.map((m, i) => {
+                    const on = i === moduleIdx;
+                    const focused = on && navCol === 'module';
                     return (
                       <button
                         key={m.href}
                         type="button"
-                        onMouseEnter={() => setActiveModule(m.href)}
-                        onFocus={() => setActiveModule(m.href)}
-                        onClick={() => setActiveModule(m.href)}
+                        onMouseEnter={() => {
+                          setModuleIdx(i);
+                          setNavCol('module');
+                        }}
+                        onClick={() => {
+                          setModuleIdx(i);
+                          setNavCol('module');
+                        }}
                         className={cn(
                           'flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors focus:outline-none',
-                          on
-                            ? 'bg-[#E8A020]/12 text-[#E8A020]'
-                            : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
+                          on ? 'bg-[#E8A020]/12 text-[#E8A020]' : 'text-[#B8B8C0] hover:bg-[#1A1A1F] hover:text-[#E8E8EB]',
+                          focused && 'ring-1 ring-[#E8A020]/60',
                         )}
                       >
                         <m.icon className="size-4 shrink-0" />
@@ -222,7 +283,6 @@ export function MasterTopBar({
 
                 {/* 右：子分頁 */}
                 <div className="min-h-[14rem] max-h-[52vh] flex-1 overflow-auto pl-1">
-                  {/* 進入該模組首頁 */}
                   <button
                     type="button"
                     onClick={() => go(activeModule)}
@@ -233,16 +293,29 @@ export function MasterTopBar({
                   </button>
 
                   {groups.length > 0 ? (
-                    groups.map((g) => (
-                      <div key={g.title} className="mb-2">
-                        <div className="px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
-                          {g.title}
+                    (() => {
+                      let fi = -1;
+                      return groups.map((g) => (
+                        <div key={g.title} className="mb-2">
+                          <div className="px-1 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
+                            {g.title}
+                          </div>
+                          {g.items.map((it) => {
+                            fi += 1;
+                            const idx = fi;
+                            return (
+                              <NavRow
+                                key={it.href}
+                                label={it.label}
+                                subIndex={idx}
+                                active={navCol === 'sub' && idx === subIdx}
+                                onClick={() => go(it.href)}
+                              />
+                            );
+                          })}
                         </div>
-                        {g.items.map((it) => (
-                          <NavRow key={it.href} label={it.label} onClick={() => go(it.href)} />
-                        ))}
-                      </div>
-                    ))
+                      ));
+                    })()
                   ) : (
                     <div className="flex h-40 flex-col items-center justify-center gap-1 px-2 text-center">
                       <span className="text-xs text-[#888892]">{activeItem?.label} 子分頁建置中</span>
@@ -435,23 +508,41 @@ function NotifyButton({
   );
 }
 
-/** 模組選單裡的一列主檔連結 */
-function NavRow({ icon: Icon, label, onClick }: { icon?: LucideIcon; label: string; onClick: () => void }) {
+/** 模組選單裡的一列連結（active = 鍵盤導航選中、琥珀 highlight） */
+function NavRow({
+  icon: Icon,
+  label,
+  active,
+  subIndex,
+  onClick,
+}: {
+  icon?: LucideIcon;
+  label: string;
+  active?: boolean;
+  subIndex?: number;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
+      data-sub-idx={subIndex}
       onClick={onClick}
-      className="group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] transition-colors hover:bg-[#E8A020]/12 hover:text-[#E8A020] focus:outline-none focus-visible:bg-[#E8A020]/12"
+      className={cn(
+        'group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors focus:outline-none',
+        active
+          ? 'bg-[#E8A020]/15 text-[#E8A020] ring-1 ring-[#E8A020]/50'
+          : 'text-[#E8E8EB] hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
+      )}
     >
       {Icon ? (
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] group-hover:text-[#E8A020]">
           <Icon className="size-3.5" />
         </span>
       ) : (
-        <span className="size-1.5 shrink-0 rounded-full bg-[#3A3A42] group-hover:bg-[#E8A020]" />
+        <span className={cn('size-1.5 shrink-0 rounded-full', active ? 'bg-[#E8A020]' : 'bg-[#3A3A42] group-hover:bg-[#E8A020]')} />
       )}
       <span className="flex-1 truncate text-left">{label}</span>
-      <ChevronRight className="size-3.5 text-[#5A5A60] group-hover:text-[#E8A020]" />
+      <ChevronRight className={cn('size-3.5', active ? 'text-[#E8A020]' : 'text-[#5A5A60] group-hover:text-[#E8A020]')} />
     </button>
   );
 }
