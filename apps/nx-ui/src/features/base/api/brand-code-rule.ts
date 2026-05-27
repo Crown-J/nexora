@@ -16,7 +16,6 @@ export type BrandCodeRuleDto = {
   seg3Length: number;
   seg4Length: number;
   seg5Length: number;
-  separator: string;
   isActive: boolean;
 };
 

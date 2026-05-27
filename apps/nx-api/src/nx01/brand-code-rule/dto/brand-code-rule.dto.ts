@@ -60,12 +60,6 @@ export class CreateBrandCodeRuleDto {
   @Max(20)
   seg5Length?: number;
 
-  /** · / - / 空白 / 空字串(無) */
-  @IsOptional()
-  @IsString()
-  @MaxLength(1)
-  separator?: string;
-
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
@@ -117,11 +111,6 @@ export class UpdateBrandCodeRuleDto {
   @Min(0)
   @Max(20)
   seg5Length?: number;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(1)
-  separator?: string;
 
   @IsOptional()
   @IsBoolean()

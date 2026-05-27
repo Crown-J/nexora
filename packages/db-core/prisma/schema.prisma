@@ -92,8 +92,6 @@ model Nx01BrandCodeRule {
   seg4Length              Int        @default(0) @map("seg4_length")
   /// SEG5 最大字數（0=不使用）；啟用最低需求版本：LITE
   seg5Length              Int        @default(0) @map("seg5_length")
-  /// SEG 分隔符（· / - / 空白 / 空字串=無）；啟用最低需求版本：LITE
-  separator               String     @default("·") @db.VarChar(1)
   /// 是否啟用；啟用最低需求版本：LITE
   isActive                Boolean    @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE

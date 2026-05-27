@@ -45,6 +45,10 @@ export type PartDto = {
   updatedAt: string;
   updatedByName?: string | null;
   updatedByUsername?: string | null;
+  /** 完整料號顯示（即時組合、不存 DB）：{品牌} - {SEG…空格} #{產地} */
+  displayCode?: string;
+  partBrandCode?: string | null;
+  countryCode?: string | null;
   /** 搜尋時：'primary'=主料號命中 / 'oem'=替代品命中 / null */
   matchType?: 'primary' | 'oem' | null;
   /** getById 才回傳 */

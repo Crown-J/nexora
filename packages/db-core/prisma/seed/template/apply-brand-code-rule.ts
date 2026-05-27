@@ -33,7 +33,6 @@ export async function applyBrandCodeRule(
         seg3Length: 3,
         seg4Length: 1,
         seg5Length: 0,
-        separator: '·',
         isActive: true,
         createdBy: actorUserId,
         updatedBy: actorUserId,

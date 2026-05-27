@@ -219,13 +219,14 @@ export function PartMasterPage() {
             codeRuleId: form.codeRuleId,
             seg1: form.seg1, seg2: form.seg2, seg3: form.seg3, seg4: form.seg4, seg5: form.seg5,
             partBrandId: form.partBrandId || undefined,
+            countryId: form.countryId || undefined,
           });
           if (alive) setCodePreview(code);
         } catch { /* 預覽失敗不擋編輯 */ }
       })();
     }, 250);
     return () => { alive = false; clearTimeout(t); };
-  }, [editing, form.codeRuleId, form.seg1, form.seg2, form.seg3, form.seg4, form.seg5, form.partBrandId]);
+  }, [editing, form.codeRuleId, form.seg1, form.seg2, form.seg3, form.seg4, form.seg5, form.partBrandId, form.countryId]);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -355,10 +356,10 @@ export function PartMasterPage() {
 
   const columns: MasterTableColumn<PartDto>[] = useMemo(() => [
     {
-      key: 'code', label: '料號', minWidthClass: 'min-w-[160px]',
+      key: 'code', label: '料號', minWidthClass: 'min-w-[240px]',
       render: (r) => (
         <span className="flex items-center gap-1.5">
-          <span className="font-mono text-xs text-[#E8E8EB]">{r.code}</span>
+          <span className="font-mono text-xs text-[#E8E8EB]">{r.displayCode || r.code}</span>
           {r.matchType === 'oem' ? (
             <span className="rounded border border-[#5AA0E8]/40 bg-[#5AA0E8]/10 px-1 text-[9px] text-[#5AA0E8]">替代品</span>
           ) : r.matchType === 'primary' && debouncedKw ? (
@@ -506,7 +507,7 @@ function PartDetail({
             ) : editing ? (
               <FormInput label="料號 *" value={form.code} onChange={(v) => set('code', v)} />
             ) : (
-              <FormField label="料號" value={form.code} mono />
+              <FormField label="料號" value={selected?.displayCode || form.code} mono />
             )}
 
             {editing ? <FormInput label="品名 *" value={form.name} onChange={(v) => set('name', v)} /> : <FormField label="品名" value={form.name} />}

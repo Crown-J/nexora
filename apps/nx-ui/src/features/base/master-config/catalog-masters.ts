@@ -13,12 +13,11 @@ import type { EntityMasterConfig } from '@/features/master-shell/entity-master/c
 
 const SOFT = 'soft-delete-rest' as const;
 
-/** 品牌料號規則：依 SEG 字數 + 分隔符即時組出料號樣式預覽（XXX·XXX·…） */
+/** 品牌料號規則：依 SEG 字數即時組出料號樣式預覽（SEG 一律單空格、不加品牌 / 產地）：XXX XXX XXX X */
 function brandCodeRulePreview(v: Record<string, unknown>): string {
   const lens = [1, 2, 3, 4, 5].map((n) => Number(v[`seg${n}Length`] ?? 0));
-  const sep = v.separator == null ? '·' : String(v.separator);
   const parts = lens.filter((n) => n > 0).map((n) => 'X'.repeat(n));
-  return parts.length > 0 ? parts.join(sep) : '—';
+  return parts.length > 0 ? parts.join(' ') : '—';
 }
 
 // ── 帳號與權限 ──────────────────────────────────────────
@@ -422,16 +421,7 @@ export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
     { key: 'seg3Length', label: 'SEG3 最大字數', type: 'number', required: true, defaultValue: '3', inList: false },
     { key: 'seg4Length', label: 'SEG4 最大字數（0=不使用）', type: 'number', defaultValue: '1', inList: false },
     { key: 'seg5Length', label: 'SEG5 最大字數（0=不使用）', type: 'number', defaultValue: '0', inList: false },
-    {
-      key: 'separator', label: '分隔符號', type: 'select', noTrim: true, defaultValue: '·', minWidthClass: 'min-w-[100px]',
-      options: [
-        { value: '·', label: '· 點' },
-        { value: '-', label: '- 連字號' },
-        { value: ' ', label: '空格' },
-        { value: '', label: '無' },
-      ],
-    },
-    { key: 'preview', label: '範例料號（預覽）', type: 'computed', inList: false, compute: brandCodeRulePreview },
+    { key: 'preview', label: '分段預覽（SEG 單空格）', type: 'computed', inList: false, compute: brandCodeRulePreview },
   ],
 };
 
