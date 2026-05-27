@@ -35,6 +35,24 @@ const PERM_LABELS: Record<PermKey, string> = {
   canExport: '匯出',
 };
 
+// 模組內碼 → 中文名（不顯示 NX01 這種內碼給用戶）
+const MODULE_LABELS: Record<string, string> = {
+  NX01: '主資料中心',
+  NX02: '進貨作業',
+  NX03: '銷貨作業',
+  NX04: '庫存管理',
+  NX05: '財務管理',
+  NX06: '物流配送',
+  NX07: '人資管理',
+  NX08: '報表分析',
+  NX09: '知識中心',
+  NX10: '員工激勵',
+  NX99: '系統管理',
+};
+function moduleLabel(mc: string): string {
+  return MODULE_LABELS[String(mc ?? '').trim().toUpperCase()] ?? (mc || '其他');
+}
+
 type Cell = { recordId: string | null; canRead: boolean; canCreate: boolean; canUpdate: boolean; canDelete: boolean; canExport: boolean };
 const EMPTY_CELL: Omit<Cell, 'recordId'> = { canRead: false, canCreate: false, canUpdate: false, canDelete: false, canExport: false };
 
@@ -116,6 +134,30 @@ export function RoleViewMatrixPage() {
     });
   }, []);
 
+  // 整列全選：該畫面 5 權限全勾 / 全清（已全勾→清空、否則全勾）
+  const toggleViewAll = useCallback((viewId: string) => {
+    setCells((prev) => {
+      const cur = prev[viewId] ?? { recordId: null, ...EMPTY_CELL };
+      const allOn = PERM_KEYS.every((k) => cur[k]);
+      const next = !allOn;
+      return { ...prev, [viewId]: { ...cur, canRead: next, canCreate: next, canUpdate: next, canDelete: next, canExport: next } };
+    });
+  }, []);
+
+  // 整模組全選：該模組所有畫面 5 權限全勾 / 全清
+  const toggleModuleAll = useCallback((viewIds: string[]) => {
+    setCells((prev) => {
+      const allOn = viewIds.every((vid) => { const c = prev[vid] ?? { recordId: null, ...EMPTY_CELL }; return PERM_KEYS.every((k) => c[k]); });
+      const next = !allOn;
+      const out = { ...prev };
+      for (const vid of viewIds) {
+        const cur = out[vid] ?? { recordId: null, ...EMPTY_CELL };
+        out[vid] = { ...cur, canRead: next, canCreate: next, canUpdate: next, canDelete: next, canExport: next };
+      }
+      return out;
+    });
+  }, []);
+
   const isDirty = useMemo(() => {
     const keys = new Set([...Object.keys(cells), ...Object.keys(original)]);
     for (const vid of keys) {
@@ -176,6 +218,13 @@ export function RoleViewMatrixPage() {
         const k = e.key.toLowerCase();
         if (k === 's') { e.preventDefault(); handleSave(); }
         else if (k === 'q') { e.preventDefault(); requestNavigate('/dashboard'); }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          // Alt+↑↓：切上 / 下一個職務
+          e.preventDefault();
+          const idx = roles.findIndex((r) => r.id === roleId);
+          const ni = e.key === 'ArrowDown' ? Math.min(roles.length - 1, idx + 1) : Math.max(0, idx - 1);
+          if (roles[ni]) setRoleId(roles[ni].id);
+        }
         return;
       }
       if (tag === 'select') return; // 職務下拉自己處理
@@ -190,11 +239,16 @@ export function RoleViewMatrixPage() {
         e.preventDefault();
         const v = views[focus.row];
         if (v) toggle(v.id, PERM_KEYS[focus.col]);
+      } else if (e.key.toLowerCase() === 'a') {
+        // A：該畫面整列 5 權限全勾 / 全清
+        e.preventDefault();
+        const v = views[focus.row];
+        if (v) toggleViewAll(v.id);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [views, focus, toggle, handleSave, requestNavigate]);
+  }, [views, focus, roles, roleId, toggle, toggleViewAll, handleSave, requestNavigate]);
 
   // 焦點格捲入視野
   useEffect(() => {
@@ -262,12 +316,18 @@ export function RoleViewMatrixPage() {
             {loading ? '載入中…' : '尚無畫面字典（需先 seed nx01_view 畫面清單，矩陣才有畫面可設權限）'}
           </div>
         ) : (
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full table-fixed border-collapse text-sm">
+            <colgroup>
+              <col style={{ width: '36%' }} />
+              {PERM_KEYS.map((k) => (
+                <col key={k} style={{ width: '12.8%' }} />
+              ))}
+            </colgroup>
             <thead className="sticky top-0 z-10" style={{ backgroundImage: 'linear-gradient(180deg, rgba(20,20,26,0.97) 0%, rgba(16,16,20,0.97) 100%)' }}>
               <tr className="border-b border-[#2A2A30] text-[11px] font-bold uppercase tracking-[0.14em] text-[#C8C8D0]">
                 <th className="px-4 py-2.5 text-left">畫面</th>
                 {PERM_KEYS.map((k) => (
-                  <th key={k} className="w-20 px-2 py-2.5 text-center">{PERM_LABELS[k]}</th>
+                  <th key={k} className="px-2 py-2.5 text-center">{PERM_LABELS[k]}</th>
                 ))}
               </tr>
             </thead>
@@ -281,6 +341,8 @@ export function RoleViewMatrixPage() {
                   focus={focus}
                   setFocus={setFocus}
                   toggle={toggle}
+                  toggleViewAll={toggleViewAll}
+                  toggleModuleAll={toggleModuleAll}
                 />
               ))}
             </tbody>
@@ -300,6 +362,8 @@ function RoleViewGroup({
   focus,
   setFocus,
   toggle,
+  toggleViewAll,
+  toggleModuleAll,
 }: {
   module: string;
   rows: { view: ViewDto; flatIndex: number }[];
@@ -307,19 +371,42 @@ function RoleViewGroup({
   focus: { row: number; col: number };
   setFocus: (f: { row: number; col: number }) => void;
   toggle: (viewId: string, key: PermKey) => void;
+  toggleViewAll: (viewId: string) => void;
+  toggleModuleAll: (viewIds: string[]) => void;
 }) {
   return (
     <>
       <tr>
-        <td colSpan={PERM_KEYS.length + 1} className="bg-[#0E0E12] px-4 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
-          {module}
+        <td colSpan={PERM_KEYS.length + 1} className="bg-[#0E0E12] px-4 py-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold tracking-wide text-[#B8B8C0]">{moduleLabel(module)}</span>
+            <button
+              type="button"
+              onClick={() => toggleModuleAll(rows.map((r) => r.view.id))}
+              className="rounded border border-[#2A2A30] px-1.5 py-0.5 text-[10px] text-[#888892] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              整模組全選 / 清除
+            </button>
+          </div>
         </td>
       </tr>
       {rows.map(({ view, flatIndex }) => {
         const c = cellOf(view.id);
         return (
           <tr key={view.id} className="border-b border-[#1A1A1F]/70">
-            <td className="px-4 py-2 text-[#E8E8EB]">{view.name}</td>
+            <td className="px-4 py-2 text-[#E8E8EB]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate">{view.name}</span>
+                <button
+                  type="button"
+                  onClick={() => toggleViewAll(view.id)}
+                  title="整列全選 / 清除（鍵盤：A）"
+                  className="shrink-0 rounded border border-[#2A2A30] px-1.5 text-[10px] text-[#5A5A60] transition-colors hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+                >
+                  全選
+                </button>
+              </div>
+            </td>
             {PERM_KEYS.map((k, colIndex) => {
               const on = c[k];
               const focused = focus.row === flatIndex && focus.col === colIndex;
