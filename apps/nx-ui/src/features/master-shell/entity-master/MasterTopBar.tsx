@@ -146,6 +146,10 @@ export function MasterTopBar({
     if (!moduleMenu.open) return;
     const onNav = (e: KeyboardEvent) => {
       if (kw.trim()) return;
+      // 小星球開啟時，方向鍵 / Enter 焦點鎖在面板（capture + stopPropagation，
+      // 不讓 EntityMasterPage 的整頁 ↑↓ 切表格列）
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return;
+      e.stopPropagation();
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         const d = e.key === 'ArrowDown' ? 1 : -1;
@@ -172,8 +176,8 @@ export function MasterTopBar({
         else go(activeModule);
       }
     };
-    window.addEventListener('keydown', onNav);
-    return () => window.removeEventListener('keydown', onNav);
+    window.addEventListener('keydown', onNav, true);
+    return () => window.removeEventListener('keydown', onNav, true);
   }, [moduleMenu.open, kw, navCol, subIdx, flatItems, activeModule, go]);
 
   // 子選單鍵盤移動時捲入視野

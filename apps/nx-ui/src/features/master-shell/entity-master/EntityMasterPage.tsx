@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { MasterTopBar } from './MasterTopBar';
 import { MasterTabs } from './MasterTabs';
+import { formatDateTimeZh } from './format';
 import {
   ErpToolbar,
   type ErpMode,
@@ -72,10 +73,7 @@ function optionLabel(
 type Tab = 'list' | 'detail';
 
 function formatDt(iso: unknown): string {
-  if (iso == null || iso === '') return '—';
-  const d = new Date(String(iso));
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString('zh-TW', { dateStyle: 'short', timeStyle: 'short' });
+  return formatDateTimeZh(iso);
 }
 
 function auditPerson(username: unknown, name: unknown): string {
@@ -472,10 +470,11 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         }
         return;
       }
+      const focusTag = (document.activeElement?.tagName ?? '').toLowerCase();
+      const inFormEl = focusTag === 'input' || focusTag === 'select' || focusTag === 'textarea';
       // 瀏覽模式 ↑↓ 切列（焦點不在搜尋框 / 下拉等表單元素時）
       if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        const tag = (document.activeElement?.tagName ?? '').toLowerCase();
-        if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+        if (inFormEl) return;
         if (rows.length === 0) return;
         e.preventDefault();
         const idx = rows.findIndex((r) => r.id === selectedId);
@@ -483,6 +482,13 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         const nextIdx =
           e.key === 'ArrowDown' ? Math.min(rows.length - 1, cur + 1) : Math.max(0, cur - 1);
         setSelectedId(rows[nextIdx].id);
+      }
+      // 瀏覽模式：選中列按 Enter → 進詳細資料（瀏覽），對齊 ERP muscle memory
+      if (mode === 'browse' && tab === 'list' && e.key === 'Enter') {
+        if (inFormEl) return;
+        if (!selected) return;
+        e.preventDefault();
+        attemptTabChange('detail');
       }
     };
     window.addEventListener('keydown', onKey);
@@ -811,6 +817,7 @@ function DetailPane({
             <FormField label="建立人員" value={auditPerson(selected.createdByUsername, selected.createdByName)} dim />
             <FormField label="修改時間" value={formatDt(selected.updatedAt)} mono dim />
             <FormField label="修改人員" value={auditPerson(selected.updatedByUsername, selected.updatedByName)} dim />
+            <FormField label="系統編號" value={String(selected.id ?? '—')} mono dim />
           </div>
         ) : null}
       </div>

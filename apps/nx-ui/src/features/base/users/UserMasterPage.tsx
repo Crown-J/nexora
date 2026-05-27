@@ -64,6 +64,7 @@ import {
 import { type HeaderConfig } from '@/features/master-shell/ui/MasterShell';
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
 import { MasterTabs } from '@/features/master-shell/entity-master/MasterTabs';
+import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -243,15 +244,17 @@ function buildUserColumns(): MasterTableColumn<UserRow>[] {
       sortable: true,
       render: (row) => (
         <span className="text-xs tabular-nums text-[#888892]">
-          {row.lastLoginAt ?? <span className="text-[#5A5A60]">—</span>}
+          {row.lastLoginAt ? formatDateTimeZh(row.lastLoginAt) : <span className="text-[#5A5A60]">—</span>}
         </span>
       ),
     },
     {
       key: 'createdAt',
       label: '建立時間',
-      minWidthClass: 'min-w-[160px]',
-      render: (row) => <span className="text-xs tabular-nums text-[#888892]">{row.createdAt}</span>,
+      minWidthClass: 'min-w-[180px]',
+      render: (row) => (
+        <span className="text-xs tabular-nums text-[#888892]">{formatDateTimeZh(row.createdAt)}</span>
+      ),
     },
   ];
 }
@@ -438,12 +441,17 @@ function UserDetailView({
             <FormField label="電話" value={user.phone ?? '—'} dim={!user.phone} />
           )}
           <FormField label="隸屬倉庫" value={user.warehouse ?? '—'} dim={!user.warehouse} />
-          <FormField label="最後登入" value={user.lastLoginAt ?? '從未登入'} dim={!user.lastLoginAt} />
+          <FormField
+            label="最後登入"
+            value={user.lastLoginAt ? formatDateTimeZh(user.lastLoginAt) : '從未登入'}
+            dim={!user.lastLoginAt}
+          />
 
-          <FormField label="建立時間" value={user.createdAt} mono />
-          <FormField label="建立人員" value={user.createdBy} />
-          <FormField label="修改時間" value={user.updatedAt} mono />
-          <FormField label="修改人員" value={user.updatedBy} />
+          <FormField label="建立時間" value={formatDateTimeZh(user.createdAt)} mono dim />
+          <FormField label="建立人員" value={user.createdBy} dim />
+          <FormField label="修改時間" value={formatDateTimeZh(user.updatedAt)} mono dim />
+          <FormField label="修改人員" value={user.updatedBy} dim />
+          <FormField label="系統編號" value={user.id} mono dim />
         </div>
       </section>
 
@@ -1054,20 +1062,26 @@ export function UserMasterPage() {
     document.querySelector(`[data-row-id="${selectedId}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [selectedId, tab]);
 
-  // 瀏覽模式整頁 ↑↓ 切列（焦點非表單元素時）
+  // 瀏覽模式整頁 ↑↓ 切列 + Enter 進詳細（焦點非表單元素時）
   useEffect(() => {
     const onArrow = (e: KeyboardEvent) => {
       if (mode !== 'browse' || tab !== 'list') return;
-      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
       const tag = (document.activeElement?.tagName ?? '').toLowerCase();
       if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
-      if (users.length === 0) return;
-      e.preventDefault();
-      const idx = users.findIndex((u) => u.id === selectedId);
-      const cur = idx < 0 ? 0 : idx;
-      const nextIdx =
-        e.key === 'ArrowDown' ? Math.min(users.length - 1, cur + 1) : Math.max(0, cur - 1);
-      setSelectedId(users[nextIdx].id);
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (users.length === 0) return;
+        e.preventDefault();
+        const idx = users.findIndex((u) => u.id === selectedId);
+        const cur = idx < 0 ? 0 : idx;
+        const nextIdx =
+          e.key === 'ArrowDown' ? Math.min(users.length - 1, cur + 1) : Math.max(0, cur - 1);
+        setSelectedId(users[nextIdx].id);
+      } else if (e.key === 'Enter') {
+        // 選中列 Enter → 進詳細資料（瀏覽）
+        if (!selectedId) return;
+        e.preventDefault();
+        setTab('detail');
+      }
     };
     window.addEventListener('keydown', onArrow);
     return () => window.removeEventListener('keydown', onArrow);
@@ -1420,14 +1434,9 @@ export function UserMasterPage() {
             selectedId={selectedId}
             onSelect={setSelectedId}
             onOpenDetail={(id) => {
+              // 雙擊 / Enter = 進詳細「瀏覽」模式（要編輯再按 Alt+E）
               setSelectedId(id);
               setTab('detail');
-              // 雙擊 = 進入編輯（對齊 footer 文案）
-              const u = users.find((u) => u.id === id);
-              if (u) {
-                setMode('edit');
-                setEditForm(makeEditForm(u));
-              }
             }}
             selectionMode={selectionMode}
             checked={checked}
