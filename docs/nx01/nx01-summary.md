@@ -142,6 +142,7 @@ NX99 tenant（多租戶根）
 - **落地狀態**：✅ Phase 0 + 2026-05-06 v1.1 PRO 倉真相校正
 - **跨軌**：所有庫存 / 進銷貨單據必含 warehouse_id
 - **下半場 v1.1（2026-05-27）**：**據點 / 倉庫 / 庫位三層拆分** —— 新增 `nx01_site`（據點、公司物理分點、LITE 預設「主要倉庫(M)」1 筆）、`nx01_warehouse` 加 siteId（所屬據點）、`nx01_location` 正名為「庫位」（沿用原表、18 個庫存外鍵零影響）
+- **下半場 v1.2（2026-05-27 收尾補強）**：據點/倉庫 3 drift 補齊 —— warehouse.siteId 改 NN + 真 FK（onDelete RESTRICT）；site 加結構化地址欄位 city/district/street（並存、picker 待 NX01-04 端點）；site 加 isMain + partial unique（每 tenant 一筆主據點）。⚠️ 結構化地址 picker（site + warehouse 共用）卡 NX01-04 地址端點未接
 
 ## NX01-07 base-catalog（基礎型錄 5 表合一精煉）
 

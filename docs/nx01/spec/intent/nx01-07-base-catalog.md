@@ -2,13 +2,23 @@
 
 # NEXORA NX01-07 基礎型錄管理（5 表合一）子規格書
 
-> 文件版本：v1.0
-> 最後更新:2026-05-12
-> 狀態：拍板版、Crown 拍 Q1~Q4 全 A + 揭露 5 表既有真相
+> 文件版本：v1.1
+> 最後更新:2026-05-27
+> 狀態：拍板版（v1.1 下半場補強）
 > 撰寫：Alex（Claude PM AI）
 > 對應 task：TASK-PHASE2-NX01-07-BASE-CATALOG-SPEC-V1-01
 > 性質：B 型錄合一規格書（5 表混合 2 種範式：全域型錄 + tenant scoped、含 3 個戰略欄位）
-> 對應資料表：nx01_part_brand / nx01_warehouse_type / nx01_customer_grade / nx01_currency / nx01_part_group
+> 對應資料表：nx01_part_brand / nx01_warehouse_type / nx01_customer_grade / nx01_currency / nx01_part_group / **nx01_country**
+
+---
+
+## 下半場 v1.1 變更（2026-05-27）
+
+- `nx01_part_brand` 加 **isOem**（是否原廠品牌、預設 false）。
+- `nx01_country`（系統層型錄）補上 REST 端點 `nx01/countries`（原無端點、致外鍵下拉顯示內碼）；code 為 **ISO 3166-1 alpha-3（3 碼，TWN/DEU/JPN…）**。
+- `nx01_part_group` 路徑 `nx01/part-groups`（前端 basePath 修正）。
+
+---
 
 ---
 
