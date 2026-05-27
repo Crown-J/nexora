@@ -36,6 +36,7 @@ import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/Con
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { MasterDetailScroll, SectionHeader, EmptyDetail } from '@/features/master-shell/ui/MasterDetail';
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
+import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
 import {
   MasterColumnsPanel,
   MasterFilterPanel,
@@ -771,18 +772,20 @@ function DetailPane({
   // 進編輯模式自動 focus 第一格（讓 Enter 跳格從第一格開始）
   useEffect(() => {
     if (!editing) return;
-    const el = formRef.current?.querySelector<HTMLElement>('input, select, textarea');
+    const el = formRef.current?.querySelector<HTMLElement>('input, select, textarea, [data-kbd-select]');
     el?.focus();
   }, [editing, creating, selected?.id]);
 
   // ERP muscle memory：Enter 跳下一格；最後一格 Enter → 存檔確認。textarea 例外（換行）。
+  // 下拉欄位（KeyboardSelect）自行處理 Enter（展開 / 確認+跳格、stopPropagation），不會走到這裡。
   const handleFormKey = (e: React.KeyboardEvent) => {
     if (e.key !== 'Enter') return;
     const t = e.target as HTMLElement;
     if (t.tagName.toLowerCase() === 'textarea') return;
+    if (t.hasAttribute('data-kbd-select')) return; // 交給 KeyboardSelect 自己處理
     e.preventDefault();
     const els = Array.from(
-      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea') ?? [],
+      formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea, [data-kbd-select]') ?? [],
     ).filter((el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null);
     const idx = els.indexOf(t);
     if (idx >= 0 && idx < els.length - 1) els[idx + 1]?.focus();
@@ -799,31 +802,29 @@ function DetailPane({
           title={creating ? `新增${config.entityNoun}` : (selected?.[config.fields[0].key] as string) ?? config.entityNoun}
           subtitle={editing ? '編輯中' : '瀏覽'}
         />
-        <div ref={formRef} onKeyDown={handleFormKey} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {config.fields.map((f) => {
             const lockedNow = editing && !creating && f.lockedOnEdit;
-            // 編輯模式：select / ref 下拉
+            // 編輯模式：select / ref 下拉（全鍵盤 KeyboardSelect：Enter 展開→↑↓選→Enter 確認+跳格→Esc 關）
             if (editing && !lockedNow && (f.type === 'select' || f.type === 'ref')) {
               const opts = f.type === 'select' ? (f.options ?? []) : (refOptions[f.key] ?? []);
+              const baseOpts = opts.map((o) => ({ value: String(o.value), label: o.label }));
+              // 非必填提供「清除」選項（對齊原 native 空白 option）
+              const selOpts = f.required
+                ? baseOpts
+                : [{ value: '', label: f.placeholder ?? '（無）' }, ...baseOpts];
               return (
                 <div key={f.key} className="flex flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
                     {f.label + (f.required ? ' *' : '')}
                   </span>
-                  <select
+                  <KeyboardSelect
                     value={String(draft[f.key] ?? '')}
-                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                    className="cursor-pointer appearance-none rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
-                  >
-                    <option value="" className="bg-[#131316]">
-                      {f.placeholder ?? (f.required ? '請選擇...' : '（無）')}
-                    </option>
-                    {opts.map((o) => (
-                      <option key={String(o.value)} value={String(o.value)} className="bg-[#131316] text-[#E8E8EB]">
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={selOpts}
+                    placeholder={f.placeholder ?? (f.required ? '請選擇...' : '（無）')}
+                    ariaLabel={f.label}
+                    onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+                  />
                 </div>
               );
             }
