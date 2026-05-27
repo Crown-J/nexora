@@ -379,6 +379,9 @@ function UserDetailView({
 }) {
   const formRef = useRef<HTMLDivElement>(null);
 
+  // 系統管理員（含 SYSADMIN 職務）：擁有所有權限、職務/據點區塊唯讀灰掉、不可設定
+  const isAdmin = userRoles.some((r) => String(r.roleCode ?? '').trim().toUpperCase() === 'SYSADMIN');
+
   const update = <K extends keyof EditFormState>(key: K, value: EditFormState[K]) => {
     if (!editForm) return;
     onEditChange({ ...editForm, [key]: value });
@@ -396,6 +399,11 @@ function UserDetailView({
     const t = e.target as HTMLElement;
     if (t.tagName.toLowerCase() === 'textarea') return;
     e.preventDefault();
+    // 設定職務 / 設定據點 按鈕：Enter = 打開設定視窗（不跳格；關閉後再 Enter 才前進）
+    if (t.hasAttribute('data-formchain')) {
+      (t as HTMLButtonElement).click();
+      return;
+    }
     const els = Array.from(
       formRef.current?.querySelectorAll<HTMLElement>('input, select, textarea, [data-formchain]') ?? [],
     ).filter((el) => !(el as HTMLInputElement).disabled && el.offsetParent !== null);
@@ -463,7 +471,7 @@ function UserDetailView({
           title="擔任職務"
           count={userRoles.length}
           subtitle="Assigned Roles"
-          action={editMode ? <SectionAddButton label="新增職務" onClick={onAddRole} formChain={1} /> : null}
+          action={editMode && !isAdmin ? <SectionAddButton label="設定職務" onClick={onAddRole} formChain={1} /> : null}
         />
         {editMode &&
         (stagedRoleAddCount > 0 || stagedRoleRemoveCount > 0 || stagedRolePrimaryChanged) ? (
@@ -475,7 +483,12 @@ function UserDetailView({
             <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
           </div>
         ) : null}
-        <div className="mt-4">
+        <div className={cn('mt-4', isAdmin && 'opacity-60')}>
+          {isAdmin ? (
+            <div className="mb-3 rounded-md border border-[#3A3A42] bg-[#1A1A1F] px-3 py-2 text-xs text-[#888892]">
+              系統管理員擁有所有權限、無需設定
+            </div>
+          ) : null}
           {userRoles.length > 0 ? (
             <DetailTable
               headers={
@@ -492,7 +505,7 @@ function UserDetailView({
                   formatDateTimeZh(r.assignedAt),
                   r.assignedByName ?? '—',
                 ];
-                if (!editMode) return base;
+                if (!editMode || isAdmin) return base;
                 return [
                   ...base,
                   <RoleRowActions
@@ -516,7 +529,7 @@ function UserDetailView({
           title="隸屬倉庫"
           count={userWarehouses.length}
           subtitle="Assigned Warehouses"
-          action={editMode ? <SectionAddButton label="新增倉庫據點" onClick={onAddWarehouse} formChain={2} /> : null}
+          action={editMode && !isAdmin ? <SectionAddButton label="設定據點" onClick={onAddWarehouse} formChain={2} /> : null}
         />
         {editMode && (stagedWarehouseAddCount > 0 || stagedWarehouseRemoveCount > 0) ? (
           <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/30 bg-[#E8A020]/8 px-2 py-1 text-[10px] font-medium text-[#E8A020]">
@@ -526,7 +539,12 @@ function UserDetailView({
             <span className="ml-1 text-[#888892]">（按 S 才寫入；撤銷為軟刪除）</span>
           </div>
         ) : null}
-        <div className="mt-4">
+        <div className={cn('mt-4', isAdmin && 'opacity-60')}>
+          {isAdmin ? (
+            <div className="mb-3 rounded-md border border-[#3A3A42] bg-[#1A1A1F] px-3 py-2 text-xs text-[#888892]">
+              系統管理員擁有所有權限、無需設定
+            </div>
+          ) : null}
           {userWarehouses.length > 0 ? (
             <DetailTable
               headers={
@@ -542,7 +560,7 @@ function UserDetailView({
                   formatDateTimeZh(w.assignedAt),
                   w.assignedByName ?? '—',
                 ];
-                if (!editMode) return base;
+                if (!editMode || isAdmin) return base;
                 return [
                   ...base,
                   <WarehouseRowActions key={`actions-${w.id}`} onRevoke={() => onRevokeWarehouse(w)} />,
@@ -1500,7 +1518,13 @@ export function UserMasterPage() {
       />
       <EntityPickerDialog<RoleDto>
         open={rolePickerOpen}
-        onClose={() => setRolePickerOpen(false)}
+        onClose={() => {
+          setRolePickerOpen(false);
+          // 設定職務視窗關閉後，焦點前進到「設定據點」（Enter 鏈：職務 → 據點）
+          setTimeout(() => {
+            (document.querySelector('[data-formchain="2"]') as HTMLElement | null)?.focus();
+          }, 0);
+        }}
         title="新增職務"
         subtitle="Assign Roles"
         icon={Briefcase}
