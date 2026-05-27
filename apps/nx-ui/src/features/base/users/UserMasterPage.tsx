@@ -66,6 +66,13 @@ import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar
 import { MasterTabs } from '@/features/master-shell/entity-master/MasterTabs';
 import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
 import { MasterTable, type MasterTableColumn } from '@/features/master-shell/ui/MasterTable';
+import {
+  MasterColumnsPanel,
+  MasterFilterPanel,
+  rowMatchesFilters,
+  type FilterCond,
+  type FilterFieldDef,
+} from '@/features/master-shell/ui/MasterTableTools';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { cn } from '@/lib/utils';
@@ -168,6 +175,33 @@ function makeEditForm(user: UserRow): EditFormState {
 // ──────────────────────────────────────────────────────────────
 // 子元件
 // ──────────────────────────────────────────────────────────────
+
+/** 欄位設定（Alt+L）/ 篩選（Alt+T）共用的欄位清單（對齊 buildUserColumns 顯示欄位） */
+const USER_TOOL_FIELDS: FilterFieldDef[] = [
+  { key: 'username', label: '帳號' },
+  { key: 'displayName', label: '姓名' },
+  { key: 'jobTitle', label: '職務' },
+  { key: 'email', label: '信箱' },
+  { key: 'phone', label: '電話' },
+  { key: 'warehouse', label: '隸屬倉庫' },
+  { key: 'isActive', label: '啟用' },
+  { key: 'lastLoginAt', label: '最後登入' },
+  { key: 'createdAt', label: '建立時間' },
+];
+
+/** 取某使用者列某欄的「顯示文字」（供篩選比對；對齊列表呈現） */
+function getUserCellText(row: UserRow, key: string): string {
+  switch (key) {
+    case 'isActive':
+      return row.isActive ? '啟用' : '未啟用';
+    case 'lastLoginAt':
+      return row.lastLoginAt ? formatDateTimeZh(row.lastLoginAt) : '從未登入';
+    case 'createdAt':
+      return formatDateTimeZh(row.createdAt);
+    default:
+      return String((row as unknown as Record<string, unknown>)[key] ?? '');
+  }
+}
 
 /** 使用者主檔的 column 配置（傳給 MasterTable<UserRow>） */
 function buildUserColumns(): MasterTableColumn<UserRow>[] {
@@ -613,6 +647,12 @@ export function UserMasterPage() {
   // ── 新增對話框（Stage 1-B.6）─────────────────────────────────
   const [createOpen, setCreateOpen] = useState(false);
 
+  // ── 欄位設定（Alt+L）/ 篩選（Alt+T）─────────────────────────
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterCond[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+
   // ── 詳細頁關聯資料：擔任職務 / 隸屬倉庫（Stage 1-B.7 / 1-B.8）─
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
   const [rolesReloadTick, setRolesReloadTick] = useState(0);
@@ -761,9 +801,22 @@ export function UserMasterPage() {
     };
   }, [selectedId, tab, warehousesReloadTick, showToast]);
 
+  // 前端篩選（就目前載入頁套用）+ 欄位顯示控制
+  const displayUsers = useMemo(
+    () =>
+      filters.length === 0
+        ? users
+        : users.filter((u) => rowMatchesFilters(filters, (k) => getUserCellText(u, k))),
+    [users, filters],
+  );
+  const visibleUserColumns = useMemo(
+    () => userColumns.filter((c) => !hiddenCols.has(c.key)),
+    [userColumns, hiddenCols],
+  );
+
   const selectedUser = useMemo(
-    () => (selectedId ? users.find((u) => u.id === selectedId) ?? null : null),
-    [selectedId, users],
+    () => (selectedId ? displayUsers.find((u) => u.id === selectedId) ?? null : null),
+    [selectedId, displayUsers],
   );
 
   // C2：dirty 偵測 — 編輯模式下，表單欄位 diff OR staged ops 數量 > 0 → dirty
@@ -813,6 +866,20 @@ export function UserMasterPage() {
 
   const handleSearch = useCallback(() => {
     setSearchOpen((prev) => !prev);
+    setColumnsOpen(false);
+    setFilterOpen(false);
+  }, []);
+
+  // 欄位設定（Alt+L）/ 篩選（Alt+T）互斥開關
+  const handleToggleColumns = useCallback(() => {
+    setColumnsOpen((o) => !o);
+    setSearchOpen(false);
+    setFilterOpen(false);
+  }, []);
+  const handleToggleFilter = useCallback(() => {
+    setFilterOpen((o) => !o);
+    setSearchOpen(false);
+    setColumnsOpen(false);
   }, []);
 
   const handleCloseSearch = useCallback(() => {
@@ -1069,13 +1136,13 @@ export function UserMasterPage() {
 
   // 進頁面自動鎖定第一列（對齊其他 22 個主檔；詳細頁不再跳「請先選擇」）
   useEffect(() => {
-    if (users.length === 0) {
+    if (displayUsers.length === 0) {
       if (selectedId !== null) setSelectedId(null);
       return;
     }
-    if (!users.some((u) => u.id === selectedId)) setSelectedId(users[0].id);
+    if (!displayUsers.some((u) => u.id === selectedId)) setSelectedId(displayUsers[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users]);
+  }, [displayUsers]);
 
   // 選中列捲入視野
   useEffect(() => {
@@ -1090,13 +1157,13 @@ export function UserMasterPage() {
       const tag = (document.activeElement?.tagName ?? '').toLowerCase();
       if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        if (users.length === 0) return;
+        if (displayUsers.length === 0) return;
         e.preventDefault();
-        const idx = users.findIndex((u) => u.id === selectedId);
+        const idx = displayUsers.findIndex((u) => u.id === selectedId);
         const cur = idx < 0 ? 0 : idx;
         const nextIdx =
-          e.key === 'ArrowDown' ? Math.min(users.length - 1, cur + 1) : Math.max(0, cur - 1);
-        setSelectedId(users[nextIdx].id);
+          e.key === 'ArrowDown' ? Math.min(displayUsers.length - 1, cur + 1) : Math.max(0, cur - 1);
+        setSelectedId(displayUsers[nextIdx].id);
       } else if (e.key === 'Enter') {
         // 選中列 Enter → 進詳細資料（瀏覽）
         if (!selectedId) return;
@@ -1106,7 +1173,7 @@ export function UserMasterPage() {
     };
     window.addEventListener('keydown', onArrow);
     return () => window.removeEventListener('keydown', onArrow);
-  }, [mode, tab, users, selectedId]);
+  }, [mode, tab, displayUsers, selectedId]);
 
   const handleAddRole = useCallback(() => {
     if (!selectedUser) {
@@ -1428,6 +1495,14 @@ export function UserMasterPage() {
           e.preventDefault();
           handleExit();
           break;
+        case 'l':
+          e.preventDefault();
+          handleToggleColumns();
+          break;
+        case 't':
+          e.preventDefault();
+          handleToggleFilter();
+          break;
       }
     };
     window.addEventListener('keydown', onKey);
@@ -1445,6 +1520,9 @@ export function UserMasterPage() {
     handleExit,
     handleSave,
     handleCancel,
+    handleToggleColumns,
+    handleToggleFilter,
+    attemptTabChange,
     showToast,
   ]);
 
@@ -1491,6 +1569,10 @@ export function UserMasterPage() {
             onShowInactiveChange={tab === 'list' ? setShowInactive : undefined}
             onBatchEnable={handleBatchEnable}
             onBatchDisable={handleBatchDisable}
+            onOpenColumns={mode === 'browse' && tab === 'list' ? handleToggleColumns : undefined}
+            onOpenFilter={mode === 'browse' && tab === 'list' ? handleToggleFilter : undefined}
+            columnsHiddenCount={hiddenCols.size}
+            filterCount={filters.length}
           />
         </div>
         <SearchPanel
@@ -1500,11 +1582,25 @@ export function UserMasterPage() {
           onClose={handleCloseSearch}
           placeholder="搜尋帳號 / 姓名 / 信箱 / 電話..."
         />
+        <MasterColumnsPanel
+          open={columnsOpen}
+          onClose={() => setColumnsOpen(false)}
+          columns={USER_TOOL_FIELDS}
+          hidden={hiddenCols}
+          onChange={setHiddenCols}
+        />
+        <MasterFilterPanel
+          open={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          fields={USER_TOOL_FIELDS}
+          value={filters}
+          onApply={setFilters}
+        />
         <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
           <MasterTable<UserRow>
-            columns={userColumns}
-            rows={users}
+            columns={visibleUserColumns}
+            rows={displayUsers}
             getRowId={(r) => r.id}
             selectedId={selectedId}
             onSelect={setSelectedId}
@@ -1521,13 +1617,15 @@ export function UserMasterPage() {
             footerHint={
               loading
                 ? '載入中…'
-                : debouncedKeyword
-                  ? `關鍵字「${debouncedKeyword}」過濾中${showInactive ? '（含停用）' : ''}`
-                  : showInactive
-                    ? '顯示全部（含停用）'
-                    : selectedId
-                      ? '雙擊或 Alt+E 進入編輯'
-                      : '點選列以啟用更正/停用'
+                : filters.length > 0
+                  ? `篩選 ${filters.length} 條件 · 符合 ${displayUsers.length} 筆（僅就本頁套用）`
+                  : debouncedKeyword
+                    ? `關鍵字「${debouncedKeyword}」過濾中${showInactive ? '（含停用）' : ''}`
+                    : showInactive
+                      ? '顯示全部（含停用）'
+                      : selectedId
+                        ? '雙擊或 Alt+E 進入編輯'
+                        : '點選列以啟用更正/停用'
             }
             pageSize={pageSize}
             onPageSizeChange={handlePageSizeChange}

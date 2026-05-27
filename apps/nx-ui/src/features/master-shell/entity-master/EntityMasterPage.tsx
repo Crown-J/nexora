@@ -36,6 +36,13 @@ import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/Con
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { MasterDetailScroll, SectionHeader, EmptyDetail } from '@/features/master-shell/ui/MasterDetail';
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
+import {
+  MasterColumnsPanel,
+  MasterFilterPanel,
+  rowMatchesFilters,
+  type FilterCond,
+  type FilterFieldDef,
+} from '@/features/master-shell/ui/MasterTableTools';
 
 import {
   type EntityMasterConfig,
@@ -123,11 +130,45 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   // 外鍵下拉選項（ref 欄位）
   const [refOptions, setRefOptions] = useState<Record<string, SelectOption[]>>({});
 
+  // 欄位設定（Alt+L）/ 篩選（Alt+T）
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterCond[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+
   const sidebarRef = useRef<HTMLElement>(null);
 
+  // 欄位 / 篩選共用的「欄位清單」（列表欄位 + 狀態欄）
+  const toolFields: FilterFieldDef[] = useMemo(
+    () => [...listFields(config).map((f) => ({ key: f.key, label: f.label })), { key: 'isActive', label: '狀態' }],
+    [config],
+  );
+
+  // 取某列某欄的「顯示文字」（select / ref 取 label、toggle 取是/否、狀態取啟用/停用）
+  const getCellText = useCallback(
+    (row: EntityRow, key: string): string => {
+      if (key === 'isActive') return row.isActive ? '啟用' : '停用';
+      const f = config.fields.find((x) => x.key === key);
+      if (!f) return String(row[key] ?? '');
+      if (f.type === 'toggle') return row[key] ? '是' : '否';
+      if (f.type === 'select' || f.type === 'ref') return optionLabel(f, row[key], refOptions);
+      return String(row[key] ?? '');
+    },
+    [config, refOptions],
+  );
+
+  // 前端篩選：就目前載入的資料列套用（pagination 仍為後端）
+  const displayRows = useMemo(
+    () =>
+      filters.length === 0
+        ? rows
+        : rows.filter((r) => rowMatchesFilters(filters, (k) => getCellText(r, k))),
+    [rows, filters, getCellText],
+  );
+
   const selected = useMemo(
-    () => rows.find((r) => r.id === selectedId) ?? null,
-    [rows, selectedId],
+    () => displayRows.find((r) => r.id === selectedId) ?? null,
+    [displayRows, selectedId],
   );
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -183,13 +224,13 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
 
   // 瀏覽模式自動鎖定第一列（進頁面不需點選即可 ↑↓；詳細頁也不再跳「請先選擇」）
   useEffect(() => {
-    if (rows.length === 0) {
+    if (displayRows.length === 0) {
       if (selectedId !== null) setSelectedId(null);
       return;
     }
-    if (!rows.some((r) => r.id === selectedId)) setSelectedId(rows[0].id);
+    if (!displayRows.some((r) => r.id === selectedId)) setSelectedId(displayRows[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows]);
+  }, [displayRows]);
 
   // 選中列捲入視野（鍵盤 ↑↓ 切列時）
   useEffect(() => {
@@ -415,9 +456,10 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         showToast(`${format.toUpperCase()} 匯出尚未開放，先用 CSV`, 'info');
         return;
       }
-      const cols = listFields(config);
+      // 匯出對齊「所見即所得」：只匯出可見欄位 + 篩選後資料列
+      const cols = listFields(config).filter((c) => !hiddenCols.has(c.key));
       const header = cols.map((c) => c.label).join(',');
-      const lines = rows.map((r) =>
+      const lines = displayRows.map((r) =>
         cols.map((c) => `"${String(r[c.key] ?? '').replace(/"/g, '""')}"`).join(','),
       );
       const csv = [header, ...lines].join('\n');
@@ -429,8 +471,25 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       a.click();
       URL.revokeObjectURL(url);
     },
-    [config, rows, showToast],
+    [config, displayRows, hiddenCols, showToast],
   );
+
+  // 三個工具列下方面板互斥開關（搜尋 / 欄位 / 篩選只開一個）
+  const toggleSearch = useCallback(() => {
+    setSearchOpen((s) => !s);
+    setColumnsOpen(false);
+    setFilterOpen(false);
+  }, []);
+  const toggleColumns = useCallback(() => {
+    setColumnsOpen((o) => !o);
+    setSearchOpen(false);
+    setFilterOpen(false);
+  }, []);
+  const toggleFilter = useCallback(() => {
+    setFilterOpen((o) => !o);
+    setSearchOpen(false);
+    setColumnsOpen(false);
+  }, []);
 
   // ── 全鍵盤 ────────────────────────────────────────────
   useEffect(() => {
@@ -446,10 +505,12 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           Object.assign(map, {
             a: handleCreate,
             e: () => selected && handleEdit(),
-            f: () => setSearchOpen((s) => !s),
+            f: toggleSearch,
             d: () => selected && handleDelete(),
             r: () => setReloadTick((t) => t + 1),
             q: handleExit,
+            l: toggleColumns,
+            t: toggleFilter,
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -475,13 +536,13 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       // 瀏覽模式 ↑↓ 切列（焦點不在搜尋框 / 下拉等表單元素時）
       if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
         if (inFormEl) return;
-        if (rows.length === 0) return;
+        if (displayRows.length === 0) return;
         e.preventDefault();
-        const idx = rows.findIndex((r) => r.id === selectedId);
+        const idx = displayRows.findIndex((r) => r.id === selectedId);
         const cur = idx < 0 ? 0 : idx;
         const nextIdx =
-          e.key === 'ArrowDown' ? Math.min(rows.length - 1, cur + 1) : Math.max(0, cur - 1);
-        setSelectedId(rows[nextIdx].id);
+          e.key === 'ArrowDown' ? Math.min(displayRows.length - 1, cur + 1) : Math.max(0, cur - 1);
+        setSelectedId(displayRows[nextIdx].id);
       }
       // 瀏覽模式：選中列按 Enter → 進詳細資料（瀏覽），對齊 ERP muscle memory
       if (mode === 'browse' && tab === 'list' && e.key === 'Enter') {
@@ -493,7 +554,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, tab, rows, selectedId, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleExit, handleSave, handleCancel]);
+  }, [mode, tab, displayRows, selectedId, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleExit, handleSave, handleCancel, toggleSearch, toggleColumns, toggleFilter]);
 
   // beforeunload（dirty 攔截）
   useEffect(() => {
@@ -545,6 +606,12 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     return cols;
   }, [config, refOptions]);
 
+  // 套用「欄位設定」隱藏欄
+  const visibleColumns = useMemo(
+    () => columns.filter((c) => !hiddenCols.has(c.key)),
+    [columns, hiddenCols],
+  );
+
   // ── render ────────────────────────────────────────────
   const countText = `${total} 筆${config.entityNoun}`;
 
@@ -584,7 +651,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           onPageChange={(p) => setPage(Math.min(Math.max(1, p), totalPages))}
           onCreate={handleCreate}
           onEdit={handleEdit}
-          onSearch={() => setSearchOpen((s) => !s)}
+          onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
           onRefresh={() => setReloadTick((t) => t + 1)}
@@ -595,6 +662,10 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           onShowInactiveChange={mode === 'browse' && tab === 'list' ? (v) => setShowInactive(v) : undefined}
           onBatchEnable={() => handleBatchSetActive(true)}
           onBatchDisable={() => handleBatchSetActive(false)}
+          onOpenColumns={mode === 'browse' && tab === 'list' ? toggleColumns : undefined}
+          onOpenFilter={mode === 'browse' && tab === 'list' ? toggleFilter : undefined}
+          columnsHiddenCount={hiddenCols.size}
+          filterCount={filters.length}
         />
       </div>
 
@@ -609,12 +680,27 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         placeholder={`搜尋${config.entityNoun}代碼 / 名稱...`}
       />
 
+      <MasterColumnsPanel
+        open={columnsOpen}
+        onClose={() => setColumnsOpen(false)}
+        columns={toolFields}
+        hidden={hiddenCols}
+        onChange={setHiddenCols}
+      />
+      <MasterFilterPanel
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        fields={toolFields}
+        value={filters}
+        onApply={setFilters}
+      />
+
       {/* Content */}
       <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
           <MasterTable<EntityRow>
-            columns={columns}
-            rows={rows}
+            columns={visibleColumns}
+            rows={displayRows}
             getRowId={(r) => r.id}
             selectedId={selectedId}
             onSelect={setSelectedId}
@@ -630,7 +716,13 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
               setPageSize(n);
               setPage(1);
             }}
-            footerHint={loading ? '載入中...' : undefined}
+            footerHint={
+              loading
+                ? '載入中...'
+                : filters.length > 0
+                  ? `篩選 ${filters.length} 條件 · 符合 ${displayRows.length} 筆（僅就本頁套用）`
+                  : undefined
+            }
             totalCount={total}
           />
         ) : (

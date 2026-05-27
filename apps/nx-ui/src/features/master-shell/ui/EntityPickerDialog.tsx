@@ -39,7 +39,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Check, Search, X, type LucideIcon } from 'lucide-react';
+import { AlertCircle, Check, Search, type LucideIcon } from 'lucide-react';
 import type { PagedResult } from '@/features/base/api/types';
 import { cn } from '@/lib/utils';
 
