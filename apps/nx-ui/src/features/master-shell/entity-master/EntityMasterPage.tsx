@@ -804,13 +804,19 @@ function DetailPane({
         />
         <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {config.fields.map((f) => {
+            // 計算欄位（唯讀即時預覽，如料號分段預覽）：編輯時讀 draft、瀏覽時讀 row
+            if (f.type === 'computed') {
+              const val = f.compute?.(editing ? draft : ((selected as Record<string, unknown>) ?? {})) ?? '';
+              return <FormField key={f.key} label={f.label} value={val || '—'} mono />;
+            }
             const lockedNow = editing && !creating && f.lockedOnEdit;
             // 編輯模式：select / ref 下拉（全鍵盤 KeyboardSelect：Enter 展開→↑↓選→Enter 確認+跳格→Esc 關）
             if (editing && !lockedNow && (f.type === 'select' || f.type === 'ref')) {
               const opts = f.type === 'select' ? (f.options ?? []) : (refOptions[f.key] ?? []);
               const baseOpts = opts.map((o) => ({ value: String(o.value), label: o.label }));
-              // 非必填提供「清除」選項（對齊原 native 空白 option）
-              const selOpts = f.required
+              // 非必填提供「清除」選項（對齊原 native 空白 option）；options 已含空值則不重複加
+              const hasEmpty = baseOpts.some((o) => o.value === '');
+              const selOpts = f.required || hasEmpty
                 ? baseOpts
                 : [{ value: '', label: f.placeholder ?? '（無）' }, ...baseOpts];
               return (

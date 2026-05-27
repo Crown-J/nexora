@@ -78,46 +78,37 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
   });
   if (!partBrand) throw new Error('No part_brand in LITE tenant');
 
-  // car_brand：給 brand_code_rule.carBrandId 用（NX01-11 spec v1.0 對齊、commit 2 schema rename）
-  const carBrand = await prisma.nx01CarBrand.findFirst({
-    where: { tenantId: tenant.id },
-    select: { id: true },
-  });
-  if (!carBrand) throw new Error('No car_brand in LITE tenant');
-
-  // brand_code_rule：每個 car_brand 只允許 1 筆，upsert
-  const segDefinitions = [
-    { seg_no: 1, name: 'SEG1', length_min: 3, length_max: 3, charset: 'numeric', required: true, description: '' },
-    { seg_no: 2, name: 'SEG2', length_min: 3, length_max: 3, charset: 'numeric', required: true, description: '' },
-    { seg_no: 3, name: 'SEG3', length_min: 3, length_max: 3, charset: 'numeric', required: true, description: '' },
-  ];
+  // brand_code_rule（下半場 A 軸翻轉：對應零件品牌、同品牌可多規則以 name 區分；SEG1~3 各 3 字）
   const codeRule = await prisma.nx01BrandCodeRule.upsert({
-    where: { tenantId_carBrandId: { tenantId: tenant.id, carBrandId: carBrand.id } } as never,
+    where: {
+      tenantId_partBrandId_name: { tenantId: tenant.id, partBrandId: partBrand.id, name: 'B5TEST-RULE' },
+    } as never,
     create: {
       tenantId: tenant.id,
-      carBrandId: carBrand.id,
+      partBrandId: partBrand.id,
       name: 'B5TEST-RULE',
-      segCount: 3,
-      segDefinitions,
+      seg1Length: 3,
+      seg2Length: 3,
+      seg3Length: 3,
       createdBy: user.id,
       updatedBy: user.id,
     } as never,
     update: {},
     select: { id: true },
   } as never).catch(async () => {
-    // upsert 若 unique key 不對，fallback 找/建
     const found = await prisma.nx01BrandCodeRule.findFirst({
-      where: { tenantId: tenant.id, carBrandId: carBrand.id },
+      where: { tenantId: tenant.id, partBrandId: partBrand.id },
       select: { id: true },
     });
     if (found) return found;
     return prisma.nx01BrandCodeRule.create({
       data: {
         tenantId: tenant.id,
-        carBrandId: carBrand.id,
+        partBrandId: partBrand.id,
         name: 'B5TEST-RULE',
-        segCount: 3,
-        segDefinitions,
+        seg1Length: 3,
+        seg2Length: 3,
+        seg3Length: 3,
         createdBy: user.id,
         updatedBy: user.id,
       },

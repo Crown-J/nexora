@@ -141,13 +141,10 @@ export class PartService {
     partBrandId?: string | null;
     countryId?: string | null;
   }): Promise<string> {
+    // 下半場 A 軸翻轉後：規則對應「零件品牌」、料號 = {零件品牌代碼}-{各 SEG 以分隔符串接}
     const rule = await this.prisma.nx01BrandCodeRule.findFirst({
       where: { id: input.codeRuleId, tenantId: input.tenantId },
-      select: {
-        separator: true,
-        sourceCodePrefix: true,
-        carBrand: { select: { code: true } },
-      },
+      select: { separator: true, partBrandId: true },
     });
     if (!rule) throw new NotFoundException('codeRuleId not found for tenant');
 
@@ -157,33 +154,15 @@ export class PartService {
       .filter((s) => s !== '');
     const segPart = segs.join(rule.separator);
 
-    let brand3 = 'UNK';
-    if (input.partBrandId?.trim()) {
-      const pb = await this.prisma.nx01PartBrand.findFirst({
-        where: { id: input.partBrandId.trim(), tenantId: input.tenantId },
-        select: { code: true },
-      });
-      if (pb && pb.code !== 'UNK') {
-        brand3 = pb.code.slice(0, 3).toUpperCase().padEnd(3, 'X');
-      }
-    }
+    // 前綴 = 規則所屬零件品牌代碼（如 VAG / BOSCH）
+    const pb = await this.prisma.nx01PartBrand.findFirst({
+      where: { id: rule.partBrandId, tenantId: input.tenantId },
+      select: { code: true },
+    });
+    const brandCode = pb?.code ?? '';
 
-    let country3 = 'UNK';
-    if (input.countryId?.trim()) {
-      const c = await this.prisma.nx01Country.findUnique({
-        where: { id: input.countryId.trim() },
-        select: { code: true },
-      });
-      if (c && c.code !== 'UNK') {
-        country3 = c.code.toUpperCase().padEnd(3, 'X');
-      }
-    }
-
-    const sourceCode = `${rule.sourceCodePrefix}${brand3}${country3}`;
-    const carBrandCode = rule.carBrand?.code ?? '';
-    return segPart
-      ? `${carBrandCode}-${segPart} ${sourceCode}`
-      : `${carBrandCode} ${sourceCode}`;
+    if (!segPart) return brandCode;
+    return brandCode ? `${brandCode}-${segPart}` : segPart;
   }
 
   private whereList(tenantId: string, q: ListPartQueryDto): Prisma.Nx01PartWhereInput {

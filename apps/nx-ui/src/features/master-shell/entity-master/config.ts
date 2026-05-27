@@ -17,7 +17,7 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import type { PagedResult } from '@/features/base/api/types';
 
-export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref' | 'textarea' | 'json';
+export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref' | 'textarea' | 'json' | 'computed';
 
 /** 送後端的 body（json 欄位值為物件 / 陣列，故放寬型別） */
 export type EntityBody = Record<string, unknown>;
@@ -34,6 +34,8 @@ export type EntityFieldDef = {
   required?: boolean;
   /** 送出前轉大寫（code 類） */
   uppercase?: boolean;
+  /** 不 trim、且空字串也照送（如分隔符可為空格 / 空字串「無」） */
+  noTrim?: boolean;
   /** 編輯既有資料時不可改（如 code 主鍵語意） */
   lockedOnEdit?: boolean;
   /** 是否在列表顯示為一欄（預設 true） */
@@ -59,6 +61,10 @@ export type EntityFieldDef = {
   refLabelKeys?: string[];
   /** row 上對應的「顯示名稱」欄位（後端 join 帶出時用；否則以載入的 options 對照） */
   refDisplayKey?: string;
+
+  // ── type 'computed'（唯讀即時預覽，不存 DB、不送後端）──
+  /** 依目前表單值即時計算顯示字串（如料號分段預覽）；editing 時讀 draft、瀏覽時讀 row */
+  compute?: (values: Record<string, unknown>) => string;
 };
 
 export type EntityMasterConfig = {
@@ -217,6 +223,7 @@ export async function fetchRefOptions(
 export function rowToDraft(cfg: EntityMasterConfig, row: EntityRow): EntityDraft {
   const draft: EntityDraft = {};
   for (const f of cfg.fields) {
+    if (f.type === 'computed') continue; // 計算欄位不入 draft
     const v = row[f.key];
     if (f.type === 'toggle') draft[f.key] = Boolean(v);
     else if (f.type === 'json') draft[f.key] = v == null ? '' : JSON.stringify(v, null, 2);
@@ -229,6 +236,7 @@ export function rowToDraft(cfg: EntityMasterConfig, row: EntityRow): EntityDraft
 export function emptyDraft(cfg: EntityMasterConfig): EntityDraft {
   const draft: EntityDraft = {};
   for (const f of cfg.fields) {
+    if (f.type === 'computed') continue; // 計算欄位不入 draft
     if (f.defaultValue !== undefined) draft[f.key] = f.defaultValue;
     else if (f.type === 'toggle') draft[f.key] = true;
     else draft[f.key] = '';
@@ -240,6 +248,7 @@ export function emptyDraft(cfg: EntityMasterConfig): EntityDraft {
 export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): EntityBody {
   const body: EntityBody = {};
   for (const f of cfg.fields) {
+    if (f.type === 'computed') continue; // 計算欄位不送後端
     let v = draft[f.key];
     if (f.type === 'toggle') {
       body[f.key] = Boolean(v);
@@ -259,12 +268,13 @@ export function draftToBody(cfg: EntityMasterConfig, draft: EntityDraft): Entity
       }
       continue;
     }
-    if (typeof v === 'string') {
+    if (typeof v === 'string' && !f.noTrim) {
       v = v.trim();
       if (f.uppercase) v = v.toUpperCase();
     }
-    // 空的非必填欄位不送（避免 optional FK / enum / 字串被空值驗證擋下）
-    if ((v === '' || v == null) && !f.required) continue;
+    // 空的非必填欄位不送（避免 optional FK / enum / 字串被空值驗證擋下）；
+    // noTrim 欄位（如分隔符）即使空字串也照送（空字串＝「無」是有效值）
+    if ((v === '' || v == null) && !f.required && !f.noTrim) continue;
     if (f.type === 'number' || (f.type === 'select' && f.numeric)) {
       const n = Number(v);
       if (Number.isFinite(n)) body[f.key] = n;

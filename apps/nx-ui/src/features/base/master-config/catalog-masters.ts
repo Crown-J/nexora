@@ -13,6 +13,14 @@ import type { EntityMasterConfig } from '@/features/master-shell/entity-master/c
 
 const SOFT = 'soft-delete-rest' as const;
 
+/** 品牌料號規則：依 SEG 字數 + 分隔符即時組出料號樣式預覽（XXX·XXX·…） */
+function brandCodeRulePreview(v: Record<string, unknown>): string {
+  const lens = [1, 2, 3, 4, 5].map((n) => Number(v[`seg${n}Length`] ?? 0));
+  const sep = v.separator == null ? '·' : String(v.separator);
+  const parts = lens.filter((n) => n > 0).map((n) => 'X'.repeat(n));
+  return parts.length > 0 ? parts.join(sep) : '—';
+}
+
 // ── 帳號與權限 ──────────────────────────────────────────
 export const ROLE_MASTER: EntityMasterConfig = {
   basePath: 'nx01/roles',
@@ -406,17 +414,24 @@ export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
   deleteMode: SOFT,
   minPlan: 'PLUS',
   fields: [
-    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/car-brands', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'name', label: '規則名稱', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'partBrandId', label: '零件品牌', type: 'ref', refBasePath: 'nx01/part-brands', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'description', label: '說明', type: 'textarea', inList: false },
-    { key: 'segCount', label: '分段數', type: 'number', required: true, minWidthClass: 'min-w-[80px]' },
+    { key: 'seg1Length', label: 'SEG1 最大字數', type: 'number', required: true, defaultValue: '3', minWidthClass: 'min-w-[90px]' },
+    { key: 'seg2Length', label: 'SEG2 最大字數', type: 'number', required: true, defaultValue: '3', inList: false },
+    { key: 'seg3Length', label: 'SEG3 最大字數', type: 'number', required: true, defaultValue: '3', inList: false },
+    { key: 'seg4Length', label: 'SEG4 最大字數（0=不使用）', type: 'number', defaultValue: '1', inList: false },
+    { key: 'seg5Length', label: 'SEG5 最大字數（0=不使用）', type: 'number', defaultValue: '0', inList: false },
     {
-      key: 'segDefinitions', label: '分段定義', type: 'json', required: true, inList: false,
-      placeholder: '[{"seg_no":1,"name":"類別","length_min":2,"length_max":2,"charset":"alpha","required":true}]',
+      key: 'separator', label: '分隔符號', type: 'select', noTrim: true, defaultValue: '·', minWidthClass: 'min-w-[100px]',
+      options: [
+        { value: '·', label: '· 點' },
+        { value: '-', label: '- 連字號' },
+        { value: ' ', label: '空格' },
+        { value: '', label: '無' },
+      ],
     },
-    { key: 'separator', label: '分隔符', inList: false },
-    { key: 'sourceCodePrefix', label: '來源碼前綴', inList: false },
-    { key: 'examplePartCode', label: '範例料號', inList: false },
+    { key: 'preview', label: '範例料號（預覽）', type: 'computed', inList: false, compute: brandCodeRulePreview },
   ],
 };
 

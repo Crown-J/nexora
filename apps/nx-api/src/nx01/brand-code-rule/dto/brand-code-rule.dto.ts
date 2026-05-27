@@ -1,66 +1,22 @@
 // apps/nx-api/src/nx01/brand-code-rule/dto/brand-code-rule.dto.ts
-// 對應規格：docs/nx01/spec/intent/nx01-11-brand-code-rule.md v1.0 §4
+// 下半場 A：partBrandId + SEG1~5 字數（拿掉 JSON segDefinitions / segCount / sourceCodePrefix）。
 import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Max,
-  MaxLength,
-  Min,
-  MinLength,
-  ValidateNested,
-} from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
-
-export class SegDefinitionDto {
-  @IsInt()
-  @Min(1)
-  @Max(10)
-  seg_no!: number;
-
-  @IsString()
-  @MaxLength(50)
-  name!: string;
-
-  @IsInt()
-  @Min(1)
-  @Max(10)
-  length_min!: number;
-
-  @IsInt()
-  @Min(1)
-  @Max(10)
-  length_max!: number;
-
-  @IsString()
-  /** numeric / alpha / alphanumeric / any（規格 §4.2 charset 枚舉） */
-  charset!: string;
-
-  @IsBoolean()
-  required!: boolean;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  description?: string;
-}
 
 export class ListBrandCodeRuleQueryDto extends Nx01ListQueryDto {
   @IsOptional()
   @IsString()
   @MaxLength(15)
-  carBrandId?: string;
+  partBrandId?: string;
 }
 
 export class CreateBrandCodeRuleDto {
   @IsString()
   @MinLength(1)
   @MaxLength(15)
-  carBrandId!: string;
+  partBrandId!: string;
 
   @IsString()
   @MinLength(1)
@@ -72,30 +28,43 @@ export class CreateBrandCodeRuleDto {
   @MaxLength(200)
   description?: string | null;
 
+  @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(10)
-  segCount!: number;
+  @Max(20)
+  seg1Length!: number;
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SegDefinitionDto)
-  segDefinitions!: SegDefinitionDto[];
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  seg2Length!: number;
 
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  seg3Length!: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(20)
+  seg4Length?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(20)
+  seg5Length?: number;
+
+  /** · / - / 空白 / 空字串(無) */
   @IsOptional()
   @IsString()
   @MaxLength(1)
   separator?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(1)
-  sourceCodePrefix?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  examplePartCode?: string | null;
 
   @IsOptional()
   @IsBoolean()
@@ -115,31 +84,44 @@ export class UpdateBrandCodeRuleDto {
   description?: string | null;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(10)
-  segCount?: number;
+  @Max(20)
+  seg1Length?: number;
 
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SegDefinitionDto)
-  segDefinitions?: SegDefinitionDto[];
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  seg2Length?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  seg3Length?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(20)
+  seg4Length?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(20)
+  seg5Length?: number;
 
   @IsOptional()
   @IsString()
   @MaxLength(1)
   separator?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(1)
-  sourceCodePrefix?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  examplePartCode?: string | null;
 
   @IsOptional()
   @IsBoolean()

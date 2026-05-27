@@ -1,6 +1,7 @@
 // apps/nx-api/src/nx01/brand-code-rule/brand-code-rule.service.ts
-// 對應規格：docs/nx01/spec/intent/nx01-11-brand-code-rule.md v1.0 §2 / §3 / §5
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+// 下半場 A：軸翻轉 carBrandId → partBrandId、拿掉 JSON segDefinitions、改 SEG1~5 字數欄位。
+// 同一零件品牌可有多個規則（以 name 區分）；範例料號改前端即時預覽（不存 DB）。
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -11,31 +12,27 @@ import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-
 import type {
   CreateBrandCodeRuleDto,
   ListBrandCodeRuleQueryDto,
-  SegDefinitionDto,
   UpdateBrandCodeRuleDto,
 } from './dto/brand-code-rule.dto';
 
 const SEL = {
   id: true,
   tenantId: true,
-  carBrandId: true,
+  partBrandId: true,
   name: true,
   description: true,
-  segCount: true,
-  segDefinitions: true,
+  seg1Length: true,
+  seg2Length: true,
+  seg3Length: true,
+  seg4Length: true,
+  seg5Length: true,
   separator: true,
-  sourceCodePrefix: true,
-  sourceCodeFormat: true,
-  examplePartCode: true,
   isActive: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
-  carBrand: { select: { code: true, name: true } },
 } as const;
-
-type Row = Prisma.Nx01BrandCodeRuleGetPayload<{ select: typeof SEL }>;
 
 @Injectable()
 export class BrandCodeRuleService {
@@ -44,28 +41,13 @@ export class BrandCodeRuleService {
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
-  private mapRow(r: Row) {
-    const { carBrand, ...rest } = r;
-    return {
-      ...rest,
-      carBrandCode: carBrand?.code ?? null,
-      carBrandName: carBrand?.name ?? null,
-    };
-  }
-
-  private validateSegDefinitions(segCount: number, segDefinitions: SegDefinitionDto[]) {
-    if (segDefinitions.length !== segCount) {
-      throw new BadRequestException(
-        `segDefinitions length (${segDefinitions.length}) must equal segCount (${segCount})`,
-      );
-    }
-    for (const seg of segDefinitions) {
-      if (seg.length_min > seg.length_max) {
-        throw new BadRequestException(
-          `SEG${seg.seg_no} length_min (${seg.length_min}) > length_max (${seg.length_max})`,
-        );
-      }
-    }
+  /** 確認 partBrandId 屬同租戶（外鍵防呆） */
+  private async verifyPartBrand(tenantId: string, partBrandId: string): Promise<void> {
+    const pb = await this.prisma.nx01PartBrand.findFirst({
+      where: { id: partBrandId, tenantId },
+      select: { id: true },
+    });
+    if (!pb) throw new ConflictException('Part brand not found in tenant');
   }
 
   private whereList(
@@ -76,7 +58,7 @@ export class BrandCodeRuleService {
     if (q.search?.trim()) {
       where.name = { contains: q.search.trim(), mode: 'insensitive' };
     }
-    if (q.carBrandId?.trim()) where.carBrandId = q.carBrandId.trim();
+    if (q.partBrandId?.trim()) where.partBrandId = q.partBrandId.trim();
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
   }
@@ -97,43 +79,39 @@ export class BrandCodeRuleService {
         select: SEL,
       }),
     ]);
-    return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
+    return { page, pageSize, total, rows };
   }
 
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
-    const row = await this.prisma.nx01BrandCodeRule.findFirst({
-      where: { id, tenantId },
-      select: SEL,
-    });
+    const row = await this.prisma.nx01BrandCodeRule.findFirst({ where: { id, tenantId }, select: SEL });
     if (!row) throw new NotFoundException('Brand code rule not found');
-    return this.mapRow(row);
+    return row;
   }
 
   async create(user: RequestUser, dto: CreateBrandCodeRuleDto) {
     const tenantId = requireTenantId(user);
-    this.validateSegDefinitions(dto.segCount, dto.segDefinitions);
+    await this.verifyPartBrand(tenantId, dto.partBrandId);
 
-    // 規格 §3.1：每租戶內、一個 car_brand 只能有 1 條規則
+    // 同品牌可多規則、但同品牌內 name 不可重複（對齊 @@unique([tenantId, partBrandId, name])）
     const dup = await this.prisma.nx01BrandCodeRule.findFirst({
-      where: { tenantId, carBrandId: dto.carBrandId },
+      where: { tenantId, partBrandId: dto.partBrandId, name: dto.name.trim() },
       select: { id: true },
     });
-    if (dup) {
-      throw new ConflictException('Car brand already has a code rule in this tenant');
-    }
+    if (dup) throw new ConflictException('Rule name already exists for this part brand');
 
     const row = await this.prisma.nx01BrandCodeRule.create({
       data: {
         tenantId,
-        carBrandId: dto.carBrandId,
+        partBrandId: dto.partBrandId,
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
-        segCount: dto.segCount,
-        segDefinitions: dto.segDefinitions as unknown as Prisma.InputJsonValue,
+        seg1Length: dto.seg1Length,
+        seg2Length: dto.seg2Length,
+        seg3Length: dto.seg3Length,
+        seg4Length: dto.seg4Length ?? 0,
+        seg5Length: dto.seg5Length ?? 0,
         separator: dto.separator ?? '·',
-        sourceCodePrefix: dto.sourceCodePrefix ?? '#',
-        examplePartCode: dto.examplePartCode?.trim() || null,
         isActive: dto.isActive ?? true,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -148,38 +126,28 @@ export class BrandCodeRuleService {
       entityTable: 'nx01_brand_code_rule',
       entityId: row.id,
       entityCode: row.name,
-      summary: '建立品牌編碼規則',
+      summary: '建立品牌料號規則',
       afterData: row as object,
     });
-    return this.mapRow(row);
+    return row;
   }
 
   async update(user: RequestUser, id: string, dto: UpdateBrandCodeRuleDto) {
     const tenantId = requireTenantId(user);
-    const existing = await this.prisma.nx01BrandCodeRule.findFirst({
-      where: { id, tenantId },
-      select: SEL,
-    });
+    const existing = await this.prisma.nx01BrandCodeRule.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Brand code rule not found');
-
-    if (dto.segCount !== undefined && dto.segDefinitions !== undefined) {
-      this.validateSegDefinitions(dto.segCount, dto.segDefinitions);
-    } else if (dto.segDefinitions !== undefined && dto.segCount === undefined) {
-      this.validateSegDefinitions(existing.segCount, dto.segDefinitions);
-    }
 
     const row = await this.prisma.nx01BrandCodeRule.update({
       where: { id },
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.description !== undefined ? { description: dto.description } : {}),
-        ...(dto.segCount !== undefined ? { segCount: dto.segCount } : {}),
-        ...(dto.segDefinitions !== undefined
-          ? { segDefinitions: dto.segDefinitions as unknown as Prisma.InputJsonValue }
-          : {}),
+        ...(dto.seg1Length !== undefined ? { seg1Length: dto.seg1Length } : {}),
+        ...(dto.seg2Length !== undefined ? { seg2Length: dto.seg2Length } : {}),
+        ...(dto.seg3Length !== undefined ? { seg3Length: dto.seg3Length } : {}),
+        ...(dto.seg4Length !== undefined ? { seg4Length: dto.seg4Length } : {}),
+        ...(dto.seg5Length !== undefined ? { seg5Length: dto.seg5Length } : {}),
         ...(dto.separator !== undefined ? { separator: dto.separator } : {}),
-        ...(dto.sourceCodePrefix !== undefined ? { sourceCodePrefix: dto.sourceCodePrefix } : {}),
-        ...(dto.examplePartCode !== undefined ? { examplePartCode: dto.examplePartCode } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,
       },
@@ -193,19 +161,16 @@ export class BrandCodeRuleService {
       entityTable: 'nx01_brand_code_rule',
       entityId: id,
       entityCode: row.name,
-      summary: '修改品牌編碼規則',
+      summary: '修改品牌料號規則',
       beforeData: existing as object,
       afterData: row as object,
     });
-    return this.mapRow(row);
+    return row;
   }
 
   async softDelete(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
-    const existing = await this.prisma.nx01BrandCodeRule.findFirst({
-      where: { id, tenantId },
-      select: SEL,
-    });
+    const existing = await this.prisma.nx01BrandCodeRule.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Brand code rule not found');
     const row = await this.prisma.nx01BrandCodeRule.update({
       where: { id },
@@ -220,10 +185,10 @@ export class BrandCodeRuleService {
       entityTable: 'nx01_brand_code_rule',
       entityId: id,
       entityCode: row.name,
-      summary: '停用品牌編碼規則',
+      summary: '停用品牌料號規則',
       beforeData: existing as object,
       afterData: row as object,
     });
-    return this.mapRow(row);
+    return row;
   }
 }

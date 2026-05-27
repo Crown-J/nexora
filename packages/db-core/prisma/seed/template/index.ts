@@ -51,12 +51,12 @@ export async function applyTemplateToTenant(
   // === ALL：所有版本皆需 ===
   await applyRole(prisma, params);
   await applyCarBrand(prisma, params);
-  await applyBrandCodeRule(prisma, params); // ⚠️ 必須在 applyCarBrand 之後（FK car_brand_id）
   await applyTransmission(prisma, params);  // ⚠️ NX01-15、carBrandId 可空、依賴 carBrand 已建（部分 row 用）
   await applyDrivetrain(prisma, params);    // ⚠️ NX01-15、無 FK 依賴
   await applyModelType(prisma, params);     // ⚠️ NX01-15、無 FK 依賴
   await applyPartGroup(prisma, params);
   await applyPartBrand(prisma, params);
+  await applyBrandCodeRule(prisma, params); // ⚠️ 下半場 A：軸翻轉後依賴 applyPartBrand（規則對應零件品牌）
   await applyCustomerGrade(prisma, params);
   await applyDiscountCode(prisma, params);
   await applyAccountCode(prisma, params);
