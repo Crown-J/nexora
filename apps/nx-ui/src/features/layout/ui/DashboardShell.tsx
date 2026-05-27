@@ -69,6 +69,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
       '/dashboard/base/brand-code-rule',
       '/dashboard/base/bulletins',
       '/dashboard/base/role-view',
+      '/dashboard/base/user-role',
+      '/dashboard/base/user-warehouse',
     ].includes(pathname);
   // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
   const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
