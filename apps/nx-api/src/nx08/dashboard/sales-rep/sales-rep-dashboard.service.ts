@@ -68,12 +68,12 @@ export class Nx08SalesRepDashboardService {
       take: 10,
     });
 
-    // 流失候選：曾下單但 90 天無動靜
+    // 流失候選：曾下單但 90 天無動靜（業務員儀表板看「客戶 + 同行」、partner 改制六分類後 B=銀行 不該在此 — Alex 判定原 ['C', 'B'] 為筆誤）
     const inactiveCount = await this.prisma.nx01Partner.count({
       where: {
         tenantId,
         salesUserId: user.sub,
-        partnerType: { in: ['C', 'B'] },
+        partnerType: { in: ['C', 'O'] },
         rev_Nx04So_customerId: { none: { soDate: { gte: ninetyDaysAgo } } },
       },
     });

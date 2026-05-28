@@ -43,9 +43,9 @@ export class ArStatementService {
       select: { id: true, code: true, name: true, partnerType: true, paymentTermDomestic: true },
     });
     if (!customer) throw new NotFoundException('customerId not found');
-    if (customer.partnerType !== 'C') {
+    if (customer.partnerType !== 'C' && customer.partnerType !== 'O') {
       throw new BadRequestException(
-        `customerId must be partner_type='C' (客戶), got '${customer.partnerType}'`,
+        `customerId must be partner_type IN ('C', 'O') (保養廠或同行), got '${customer.partnerType}'`,
       );
     }
 

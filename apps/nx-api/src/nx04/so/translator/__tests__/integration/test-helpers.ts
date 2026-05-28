@@ -71,7 +71,7 @@ export async function loadLiteSeed(): Promise<TestSeed> {
   });
   if (parts.length < 2) throw new Error('Need at least 2 parts in LITE tenant');
   const inquiryPartner = await p.nx01Partner.findFirst({
-    where: { tenantId: tenant.id, isActive: true, partnerType: 'S' },
+    where: { tenantId: tenant.id, isActive: true, partnerType: 'O' },
     select: { id: true },
   });
   const user = await p.nx01User.findFirst({

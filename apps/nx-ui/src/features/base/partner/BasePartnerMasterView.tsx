@@ -51,15 +51,14 @@ import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolba
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
 
+// partner 改制六分類（Crown 2026-05-28）
 const PARTNER_TYPE_LABEL: Record<string, string> = {
-  C: '客戶',
-  S: '零件供應商',
+  C: '保養廠',
+  O: '同行',
+  S: '供應商',
   T: '外包物流',
   V: '一般廠商',
   B: '銀行',
-  CUST: '客戶',
-  SUP: '零件供應商',
-  BOTH: '供應商＋客戶',
 };
 
 function partnerTypeLabel(t: string): string {
@@ -67,16 +66,14 @@ function partnerTypeLabel(t: string): string {
   return PARTNER_TYPE_LABEL[k] ?? k;
 }
 
-/** 表單選項：新制優先，保留舊值 */
+/** 表單選項：新六分類 */
 const PARTNER_TYPE_FORM_OPTIONS: { value: PartnerType; label: string }[] = [
-  { value: 'C', label: 'C　客戶' },
-  { value: 'S', label: 'S　零件供應商' },
+  { value: 'C', label: 'C　保養廠' },
+  { value: 'O', label: 'O　同行' },
+  { value: 'S', label: 'S　供應商' },
   { value: 'T', label: 'T　外包物流' },
   { value: 'V', label: 'V　一般廠商' },
   { value: 'B', label: 'B　銀行' },
-  { value: 'BOTH', label: '（舊）供應商＋客戶' },
-  { value: 'CUST', label: '（舊）客戶' },
-  { value: 'SUP', label: '（舊）供應商' },
 ];
 
 const PAY_DOM_OPTIONS: { value: string; label: string }[] = [
@@ -108,20 +105,19 @@ const INCOTERM_OPTIONS: { value: string; label: string }[] = [
 
 const TYPE_FILTER_OPTIONS: { value: PartnerTypeFilter; label: string }[] = [
   { value: 'all', label: '類型：全部' },
-  { value: 'C', label: 'C　客戶' },
-  { value: 'S', label: 'S　零件供應商' },
+  { value: 'C', label: 'C　保養廠' },
+  { value: 'O', label: 'O　同行' },
+  { value: 'S', label: 'S　供應商' },
   { value: 'T', label: 'T　外包物流' },
   { value: 'V', label: 'V　一般廠商' },
   { value: 'B', label: 'B　銀行' },
 ];
 
-type PartnerTypeFilter = 'all' | 'C' | 'S' | 'T' | 'V' | 'B';
+type PartnerTypeFilter = 'all' | 'C' | 'O' | 'S' | 'T' | 'V' | 'B';
 
 function matchesPartnerTypeFilter(partnerType: string, f: PartnerTypeFilter): boolean {
   if (f === 'all') return true;
   const pt = String(partnerType ?? '').toUpperCase();
-  if (f === 'C') return pt === 'C' || pt === 'CUST';
-  if (f === 'S') return pt === 'S' || pt === 'SUP';
   return pt === f;
 }
 

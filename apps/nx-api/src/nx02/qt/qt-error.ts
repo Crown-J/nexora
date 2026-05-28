@@ -99,7 +99,7 @@ export class PartnerNotInquiryTypeError extends Nx02InvalidInputError {
   constructor(partnerId: string) {
     super(
       'PARTNER_NOT_INQUIRY_TYPE',
-      `Partner '${partnerId}' 不存在或不是同行供應商（partner_type='S'）`,
+      `Partner '${partnerId}' 不存在或不是同行（partner_type='O'）`,
     );
     this.name = 'PartnerNotInquiryTypeError';
   }

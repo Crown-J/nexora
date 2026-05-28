@@ -4,7 +4,7 @@
 //
 // 校驗範式（application 自律）：
 //   - partner 必存在 + tenant 一致
-//   - partner_type='S' guard（Q-PP-2=a 不在 DB 強制、application 層提示性 throw）
+//   - partner_type='S' 純供應商 guard（Q-PP-2=a 不在 DB 強制、application 層提示性 throw；partner 改制六分類後 S 收斂為「純賣方正規來源」）
 //   - part 必存在 + tenant 一致
 //   - validFrom < validTo（若 validTo 非空）
 //   - unique [tenantId, partnerId, partId, validFrom]（schema 強制 + service 友善 throw）
@@ -62,7 +62,7 @@ export class PartnerPartService {
     }
   }
 
-  /** 校驗 partner 存在 + tenant 一致 + partner_type='S'（Q-PP-2=a application guard）。 */
+  /** 校驗 partner 存在 + tenant 一致 + partner_type='S' 純供應商（Q-PP-2=a application guard）。 */
   private async assertPartnerIsSupplier(tenantId: string, partnerId: string) {
     const partner = await this.prisma.nx01Partner.findFirst({
       where: { id: partnerId, tenantId },
@@ -73,7 +73,7 @@ export class PartnerPartService {
     }
     if (partner.partnerType !== 'S') {
       throw new BadRequestException(
-        `partnerId must be partner_type='S' (零件供應商), got '${partner.partnerType}'`,
+        `partnerId must be partner_type='S' (純供應商), got '${partner.partnerType}'`,
       );
     }
     if (!partner.isActive) {

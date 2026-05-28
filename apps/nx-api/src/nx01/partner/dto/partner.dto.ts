@@ -12,7 +12,9 @@ import {
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 
-const PARTNER_TYPES = ['C', 'S', 'T', 'V', 'B', 'BOTH', 'CUST', 'SUP'] as const;
+// partner 改制六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
+// 舊 BOTH/CUST/SUP 已於 migration 20260528100000 backfill 為 C/C/S
+const PARTNER_TYPES = ['C', 'O', 'S', 'T', 'V', 'B'] as const;
 const PAY_DOM = ['PREPAY', 'NET30', 'NET60', 'NET90'] as const;
 const PAY_IMP = ['TT', 'LC', 'DP', 'DA'] as const;
 const CREDIT_STAT = ['N', 'W', 'F'] as const;
@@ -109,6 +111,12 @@ export class CreatePartnerDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  /** 可調貨旗標。partner_type='O' 同行 service 層 create 時預設 true；'C' 保養廠可手動開啟。 */
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  canTransferStock?: boolean;
 }
 
 export class UpdatePartnerDto {
@@ -193,4 +201,10 @@ export class UpdatePartnerDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  /** 可調貨旗標。partner_type='O' 同行 service 層 create 時預設 true；'C' 保養廠可手動開啟。 */
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  canTransferStock?: boolean;
 }

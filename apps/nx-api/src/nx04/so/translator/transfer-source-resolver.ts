@@ -3,7 +3,7 @@
 // 邏輯（D4-impl §3.3）：
 //   type='S' → ref 應為 null
 //   type='T' → ref 必為 nx01_warehouse.id（同租戶 + active）
-//   type='G' → ref 必為 nx01_partner.id（partner_type='S' 同行）
+//   type='G' → ref 必為 nx01_partner.id（partner_type='O' 同行、改制六分類後同行為獨立代號）
 //   type='B' → ref 應為 null（CO 由 RefreshmentDocCreator 內部建立）
 
 import { Injectable } from '@nestjs/common';
@@ -82,14 +82,14 @@ export class TransferSourceResolver {
               id: ref,
               tenantId,
               isActive: true,
-              partnerType: 'S',
+              partnerType: 'O',
             },
             select: { id: true },
           });
           if (!partner) {
             throw new TranslatorInvalidInputError(
               'TRANSFER_SOURCE_REF_NOT_FOUND',
-              `第 ${lineIdx + 1} 項：同行 '${ref}' 不存在或不是有效的同行供應商`,
+              `第 ${lineIdx + 1} 項：同行 '${ref}' 不存在或不是有效的同行（partner_type='O'）`,
             );
           }
         }

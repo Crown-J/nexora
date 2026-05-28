@@ -277,7 +277,7 @@ export default function StockReplenishmentPage() {
                     setSupplierSearch(next);
                     setSupplierId(null);
                   }}
-                  allowedTypes={['SUP', 'S', 'BOTH']}
+                  allowedTypes={['S']}
                   onPick={(row) => {
                     setSupplierId(row.id);
                     setSupplierSearch(`${row.code} ${row.name}`);

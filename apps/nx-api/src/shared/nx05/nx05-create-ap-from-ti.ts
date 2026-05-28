@@ -9,7 +9,7 @@
 // 業務語意：
 //   - TI 同行調貨「過帳」（推測 status='P' 待驗收 or 'C' 完成）時觸發
 //   - sourceType='TI'
-//   - 同行調貨 partner_type='S' 也走 AP 應付（業務上付給同行）
+//   - 同行調貨 partner_type='O' 也走 AP 應付（業務上付給同行；改制六分類後同行為獨立代號 O）
 //   - 冪等：query 既有 AP_TI 對應 tiId 存在則 skip
 //
 // 本軌僅 export helper、不 wire 到 nx02 ti 處理流（NX02 既有無 TI service、TI 過帳邏輯在 qt.service.adoptQt 等、後續軌啟動 TI service 時 wire）

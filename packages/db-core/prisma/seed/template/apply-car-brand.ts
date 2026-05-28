@@ -43,15 +43,12 @@ export async function applyCarBrand(
     select: { id: true, code: true },
   });
   for (const lr of legacyRows) {
-    const referenced = await prisma.nx01BrandCodeRule.findFirst({
-      where: { carBrandId: lr.id },
-      select: { id: true },
-    });
-    if (!referenced) {
+    // NX01-11 軸翻轉後 BrandCodeRule.carBrandId 已不存在（改 partBrandId、跟 carBrand 脫鉤）
+    // 既有 referenced 檢查邏輯失效、改 try/delete + catch/停用 等價範式
+    try {
       await prisma.nx01CarBrand.delete({ where: { id: lr.id } });
-    }
-    // 若被引用、保留並轉停用（tenant 業務人員後續手動處理）
-    else {
+    } catch {
+      // FK 撞到（被其他表引用）→ 改為停用、保留資料供業務人員手動處理
       await prisma.nx01CarBrand.update({
         where: { id: lr.id },
         data: { isActive: false, updatedBy: actorUserId },

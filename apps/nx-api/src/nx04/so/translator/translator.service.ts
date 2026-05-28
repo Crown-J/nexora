@@ -283,13 +283,13 @@ export class Nx04SoTranslatorService {
     partnerId: string,
   ): Promise<string> {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: 'C' },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
       select: { paymentTermDomestic: true },
     });
     if (!p) {
       throw new TranslatorInvalidInputError(
         'CUSTOMER_NOT_C_PARTNER',
-        `客戶 '${partnerId}' 不存在或不是有效客戶`,
+        `客戶 '${partnerId}' 不存在或不是有效客戶（partner_type 須為 C 保養廠或 O 同行）`,
       );
     }
     return p.paymentTermDomestic ?? 'NET30';

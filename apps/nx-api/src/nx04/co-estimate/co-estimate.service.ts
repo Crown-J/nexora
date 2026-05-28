@@ -70,9 +70,9 @@ export class CoEstimateService {
       },
     });
     if (!customer) throw new NotFoundException('customerId not found in tenant');
-    if (customer.partnerType !== 'C') {
+    if (customer.partnerType !== 'C' && customer.partnerType !== 'O') {
       throw new BadRequestException(
-        `customerId must be partner_type='C' (客戶), got '${customer.partnerType}'`,
+        `customerId must be partner_type IN ('C', 'O') (保養廠或同行), got '${customer.partnerType}'`,
       );
     }
     const marginPct = customer.customerGrade

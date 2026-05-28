@@ -6,7 +6,7 @@ import { Type } from 'class-transformer';
 import { IsInt, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class EstimatePriceDto {
-  /** 客戶 ID（FK nx01_partner partner_type='C'、取 customerGrade.marginPct）。 */
+  /** 客戶 ID（FK nx01_partner、partner_type IN ('C', 'O') 保養廠或同行、取 customerGrade.marginPct）。 */
   @IsString()
   @MaxLength(15)
   customerId!: string;

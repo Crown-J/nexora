@@ -6,7 +6,7 @@ import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Min, MaxLength } from 'class-validator';
 
 export class CheckCreditDto {
-  /** 客戶 ID（FK nx01_partner partner_type='C'）。 */
+  /** 客戶 ID（FK nx01_partner、partner_type IN ('C', 'O') 保養廠或同行）。 */
   @IsString()
   @MaxLength(15)
   customerId!: string;
