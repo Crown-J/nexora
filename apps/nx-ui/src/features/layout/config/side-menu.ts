@@ -9,7 +9,7 @@
  * - 路由 v2.0：語意化路由，不使用模組代碼
  */
 
-import { getNx00SideMenu, type SideMenuGroup } from '@/features/layout/config/menu.nx00';
+import { getNx00SideMenu, type SideMenuGroup } from '@/features/layout/config/menu.base';
 import { getNx01SideMenu } from '@/features/layout/config/menu.nx01';
 import { getNx02SideMenu } from '@/features/layout/config/menu.nx02';
 import { getNx03SideMenu } from '@/features/layout/config/menu.nx03';

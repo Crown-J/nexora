@@ -154,7 +154,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
   // user-role / user-warehouse 兩主檔卡片降階為「批次工具」入口。
   // - LITE / PLUS 用戶於 USER 詳細頁直接管理擔任職務 / 隸屬倉庫（forward 視角）
   // - PRO 用戶保留 reverse 範式（依職務 / 倉庫批次匯入移除成員）
-  // - sidebar menu 同步移除（menu.nx00.ts），仍可由本卡片或 URL 進入
+  // - sidebar menu 同步移除（menu.base.ts），仍可由本卡片或 URL 進入
   {
     id: 'user-role',
     section: 'account',

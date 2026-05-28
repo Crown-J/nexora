@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useRoleView } from '@/features/nx00/role-view/hooks/useRoleView';
-import { RoleViewMatrix } from '@/features/nx00/role-view/ui/RoleViewMatrix';
-import type { RoleDto } from '@/features/nx00/role/types';
+import { useRoleView } from '@/features/shared/master/role-view/hooks/useRoleView';
+import { RoleViewMatrix } from '@/features/shared/master/role-view/ui/RoleViewMatrix';
+import type { RoleDto } from '@/features/shared/master/role/types';
 
 export function BaseRoleViewSplitView() {
   const vm = useRoleView();

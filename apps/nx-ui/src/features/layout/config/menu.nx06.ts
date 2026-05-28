@@ -11,7 +11,7 @@
  * - 對齊 menu.nx05.ts / menu.nx04.ts 範式（group + items）
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
+import type { SideMenuGroup } from '@/features/layout/config/menu.base';
 
 export function getNx06SideMenu(): SideMenuGroup[] {
   return [

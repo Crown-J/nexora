@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/shared/api/client';
 import { assertOk } from '@/shared/api/http';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
-import { getWarehouseSingle } from '@/features/nx00/warehouse/api/warehouse';
-import { listLocation } from '@/features/nx00/location/api/location';
-import { listPartner } from '@/features/nx00/partner/api/partner';
-import { listPart } from '@/features/nx00/part/api/part';
-import type { LocationDto } from '@/features/nx00/location/types';
-import type { PartnerDto } from '@/features/nx00/partner/types';
-import type { PartDto } from '@/features/nx00/part/types';
-import type { WarehouseDto } from '@/features/nx00/warehouse/types';
+import { getWarehouseSingle } from '@/features/shared/master/warehouse/api/warehouse';
+import { listLocation } from '@/features/shared/master/location/api/location';
+import { listPartner } from '@/features/shared/master/partner/api/partner';
+import { listPart } from '@/features/shared/master/part/api/part';
+import type { LocationDto } from '@/features/shared/master/location/types';
+import type { PartnerDto } from '@/features/shared/master/partner/types';
+import type { PartDto } from '@/features/shared/master/part/types';
+import type { WarehouseDto } from '@/features/shared/master/warehouse/types';
 
 type StockRfqItem = {
   partId: string | null;

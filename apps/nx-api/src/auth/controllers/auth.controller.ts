@@ -24,7 +24,7 @@ export class AuthController {
   constructor(private readonly auth: AuthService) { }
 
   /**
-   * @CODE nxapi_nx00_auth_login_001
+   * @CODE nxapi_auth_login_001
    */
   @Post('login')
   async login(@Body() body: LoginDto) {
@@ -32,7 +32,7 @@ export class AuthController {
   }
 
   /**
-   * @CODE nxapi_nx00_auth_me_001
+   * @CODE nxapi_auth_me_001
    */
   @UseGuards(JwtAuthGuard)
   @Get('me')

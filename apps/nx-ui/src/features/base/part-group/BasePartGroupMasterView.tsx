@@ -1,5 +1,5 @@
 /**
- * 零件族群主檔：nx00_part_group — 搜尋、列表、明細（mock）
+ * 零件族群主檔：nx01_part_group — 搜尋、列表、明細（mock）
  */
 
 'use client';
@@ -388,7 +388,7 @@ export function BasePartGroupMasterView() {
         <p className="text-xs tracking-[0.35em] text-muted-foreground">DETAIL</p>
         <h2 className="mt-1 text-sm font-semibold text-foreground">族群明細</h2>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-          對應表 <span className="font-mono">nx00_part_group</span>；系統內碼不顯示。
+          對應表 <span className="font-mono">nx01_part_group</span>；系統內碼不顯示。
         </p>
         <div className="mt-4 space-y-3">
           <div className="space-y-2">
@@ -403,7 +403,7 @@ export function BasePartGroupMasterView() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="pg-car-brand">汽車廠牌（nx00_car_brand）</Label>
+            <Label htmlFor="pg-car-brand">汽車廠牌（nx01_car_brand）</Label>
             <select
               id="pg-car-brand"
               className={selectCls}

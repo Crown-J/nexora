@@ -24,7 +24,7 @@ export type InitItemDto = {
   partNo: string;
   partName: string;
   locationId: string | null;
-  /** 庫位代碼（唯讀顯示；與 nx00_location.code 對齊） */
+  /** 庫位代碼（唯讀顯示；與 nx01_location.code 對齊） */
   locationCode?: string | null;
   /** 庫位名稱（唯讀顯示） */
   locationName?: string | null;

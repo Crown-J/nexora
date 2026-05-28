@@ -57,7 +57,7 @@ export type BaseUserRow = {
   username: string;
   displayName: string;
   jobTitle: string;
-  /** 列表／明細「隸屬倉庫」顯示文字（多據點由 nx00_user_warehouse 彙整） */
+  /** 列表／明細「隸屬倉庫」顯示文字（多據點由 nx01_user_warehouse 彙整） */
   warehouseLabel: string;
   email: string;
   phone: string;

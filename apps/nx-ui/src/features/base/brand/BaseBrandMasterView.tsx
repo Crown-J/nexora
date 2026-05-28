@@ -1,5 +1,5 @@
 /**
- * 廠牌主檔：汽車廠牌（nx00_car_brand）／零件廠牌（nx00_part_brand），接 API；國家為外鍵下拉。
+ * 廠牌主檔：汽車廠牌（nx01_car_brand）／零件廠牌（nx01_part_brand），接 API；國家為外鍵下拉。
  */
 
 'use client';
@@ -27,10 +27,10 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
-import { listBrand, createBrand, updateBrand } from '@/features/nx00/brand/api/brand';
-import type { BrandDto } from '@/features/nx00/brand/types';
-import { listCarBrand, createCarBrand, updateCarBrand } from '@/features/nx00/car-brand/api/car-brand';
-import type { CarBrandDto } from '@/features/nx00/car-brand/types';
+import { listBrand, createBrand, updateBrand } from '@/features/shared/master/brand/api/brand';
+import type { BrandDto } from '@/features/shared/master/brand/types';
+import { listCarBrand, createCarBrand, updateCarBrand } from '@/features/shared/master/car-brand/api/car-brand';
+import type { CarBrandDto } from '@/features/shared/master/car-brand/types';
 
 const PAGE_SIZE = 10;
 const LIST_COL_PREF_KEY = 'base.brand.listcols';

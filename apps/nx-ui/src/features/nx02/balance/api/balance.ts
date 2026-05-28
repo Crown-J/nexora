@@ -3,7 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX02-BAL-UI-API-001：庫存餘額 / 摘要（倉庫下拉見 nx00 listLookupWarehouse）
+ * - NX02-BAL-UI-API-001：庫存餘額 / 摘要（倉庫下拉見 shared listLookupWarehouse）
  */
 
 import { apiFetch } from '@/shared/api/client';

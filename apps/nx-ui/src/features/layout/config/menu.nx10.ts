@@ -13,7 +13,7 @@
  * - 5 ⭐ 業界改革標：surprise-box（#7）+ sprint（#6）+ promotion（#3 ⭐⭐⭐）+ mentorship（#5）+ handover-reward（#5 ⭐⭐⭐）
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
+import type { SideMenuGroup } from '@/features/layout/config/menu.base';
 
 export function getNx10SideMenu(): SideMenuGroup[] {
   return [

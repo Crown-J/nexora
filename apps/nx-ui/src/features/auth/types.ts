@@ -23,7 +23,7 @@ export type LoginResponse = {
   };
 };
 
-/** 與 nx00_role_view 五維對應；can_toggle_active＝啟用／停用 */
+/** 與 nx01_role_view 五維對應；can_toggle_active＝啟用／停用 */
 export type ViewPermissionSnake = {
   can_read: boolean;
   can_create: boolean;

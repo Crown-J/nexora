@@ -33,8 +33,8 @@ import {
   listLocation,
   setLocationActive,
   updateLocation,
-} from '@/features/nx00/location/api/location';
-import type { LocationDto } from '@/features/nx00/location/types';
+} from '@/features/shared/master/location/api/location';
+import type { LocationDto } from '@/features/shared/master/location/types';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
 
 const PAGE_SIZE = 10;

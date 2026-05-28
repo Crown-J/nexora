@@ -12,7 +12,7 @@ import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import type { LoginRequest, LoginResponse } from '@/features/auth/types';
 
 /**
- * @CODE nxui_nx00_auth_login_callapi_004
+ * @CODE nxui_master_auth_login_callapi_004
  *
  * R4A-FIX：無論走哪條 login path（demo 短路或真實 API），登入成功後都把
  * 輸入的 tenantCode 寫到 sessionStorage。即便 NEXT_PUBLIC_DEMO_MODE=true

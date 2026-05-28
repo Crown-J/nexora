@@ -5,10 +5,10 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { fetchAllPages } from '@/shared/api/fetchAllPages';
-import { listPartner } from '@/features/nx00/partner/api/partner';
-import type { PartnerDto } from '@/features/nx00/partner/types';
-import { listLookupPart } from '@/features/nx00/lookup/api/lookup';
-import type { LookupRow } from '@/features/nx00/lookup/types';
+import { listPartner } from '@/features/shared/master/partner/api/partner';
+import type { PartnerDto } from '@/features/shared/master/partner/types';
+import { listLookupPart } from '@/features/shared/master/lookup/api/lookup';
+import type { LookupRow } from '@/features/shared/master/lookup/types';
 import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 import {

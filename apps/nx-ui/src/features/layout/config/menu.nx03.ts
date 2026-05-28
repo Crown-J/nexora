@@ -9,7 +9,7 @@
  * - TASK-0420 v2：NX04 銷售管理 → /dashboard/nx04/*
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
+import type { SideMenuGroup } from '@/features/layout/config/menu.base';
 
 export function getNx03SideMenu(): SideMenuGroup[] {
   return [

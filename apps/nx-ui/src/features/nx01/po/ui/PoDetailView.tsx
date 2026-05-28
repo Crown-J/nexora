@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
-import type { LookupRow } from '@/features/nx00/lookup/types';
+import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
+import type { LookupRow } from '@/features/shared/master/lookup/types';
 
 import { getPo, patchPoStatus, poToRr, voidPo } from '../../api/po';
 import type { PoDetailDto } from '../../types';

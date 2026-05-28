@@ -2,7 +2,7 @@
  * File: apps/nx-ui/src/features/base/user-warehouse/BaseUserWarehouseView.tsx
  *
  * Purpose:
- * - 使用者據點設定：左側據點（倉庫）列表 + 右側依據點管理隸屬使用者（nx00_user_warehouse）
+ * - 使用者據點設定：左側據點（倉庫）列表 + 右側依據點管理隸屬使用者（nx01_user_warehouse）
  * - 鍵盤流程對齊 BaseUserRoleView（據點列表 ↔ 使用者搜尋 ↔ 成員表）
  */
 

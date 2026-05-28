@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Label } from '@/components/ui/label';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
-import { Nx00FlatMasterView, type FlatFieldDef } from '@/features/base/nx00-flat-master/Nx00FlatMasterView';
-import { listPart } from '@/features/nx00/part/api/part';
-import type { PartDto } from '@/features/nx00/part/types';
+import { FlatMasterView, type FlatFieldDef } from '@/features/base/flat-master/FlatMasterView';
+import { listPart } from '@/features/shared/master/part/api/part';
+import type { PartDto } from '@/features/shared/master/part/types';
 import { apiFetch } from '@/shared/api/client';
 import { assertOk } from '@/shared/api/http';
 
@@ -226,7 +226,7 @@ function PartRelationEndpointsBlock(props: {
 
 export function BasePartRelationMasterView() {
   return (
-    <Nx00FlatMasterView
+    <FlatMasterView
       basePath="/nx01/part-relations"
       prefKey="base.partRelation"
       listErrorCode="nxui_base_pare_list"

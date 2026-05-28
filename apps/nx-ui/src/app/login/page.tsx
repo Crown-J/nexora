@@ -104,7 +104,7 @@ export default function LoginPage() {
       });
 
       if (!result?.token) {
-        // AU-501：登入流程異常（規範 v1.1 §5.5、既有 hack [nxui_nx00_auth_login_flow_001] 清理）
+        // AU-501：登入流程異常（規範 v1.1 §5.5、既有 hack [nxui_master_auth_login_flow_001] 清理）
         throw new Error(JSON.stringify({
           errorCode: 'AU-501',
           message: '登入流程異常，請重試或聯繫管理員。',

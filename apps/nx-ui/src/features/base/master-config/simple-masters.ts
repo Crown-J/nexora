@@ -2,7 +2,7 @@
 /**
  * 簡單平面主檔的 EntityMasterConfig 集合（鋼鐵星球範式）
  *
- * 對齊舊「彈窗範式」BaseNx00ModalCodeMasterView 的欄位 / endpoint，
+ * 對齊舊「彈窗範式」BaseModalCodeMasterView 的欄位 / endpoint，
  * 改用鋼鐵星球 EntityMasterPage 呈現（桌面 + 手機 + 全鍵盤）。
  *
  * code 大寫規則對齊舊範式：僅國家代碼轉大寫（其餘維持輸入）。

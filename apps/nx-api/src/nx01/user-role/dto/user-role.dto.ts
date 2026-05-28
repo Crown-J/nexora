@@ -3,7 +3,7 @@
  * UserRole DTO（業界改革 #22 v1.2、解前端 /user-role 404）
  *
  * 註：路由保留 root `/user-role`（不加 nx01/ 前綴）對齊既有前端
- * features/base/api/user-role.ts + features/nx00/user-role/api/user-role.ts。
+ * features/base/api/user-role.ts + features/shared/master/user-role/api/user-role.ts。
  * 後續軌 TASK-API-NAMESPACE-NORMALIZE 統一所有 nx01 entity 路由前綴。
  */
 
