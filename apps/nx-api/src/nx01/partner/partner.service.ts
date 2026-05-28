@@ -14,6 +14,7 @@ const SEL = {
   code: true,
   name: true,
   partnerType: true,
+  canTransferStock: true,
   contactName: true,
   phone: true,
   mobile: true,
@@ -93,12 +94,15 @@ export class PartnerService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Partner code already exists');
+    // 同行 'O' service 層預設 canTransferStock=true（業務語意：同行天然可調貨）；其他類型 default false、DTO 可覆寫
+    const defaultCanTransferStock = dto.partnerType === 'O';
     const row = await this.prisma.nx01Partner.create({
       data: {
         tenantId,
         code,
         name: dto.name.trim(),
         partnerType: dto.partnerType,
+        canTransferStock: dto.canTransferStock ?? defaultCanTransferStock,
         contactName: dto.contactName?.trim() || null,
         phone: dto.phone?.trim() || null,
         mobile: dto.mobile?.trim() || null,
@@ -141,6 +145,7 @@ export class PartnerService {
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.partnerType !== undefined ? { partnerType: dto.partnerType } : {}),
+        ...(dto.canTransferStock !== undefined ? { canTransferStock: dto.canTransferStock } : {}),
         ...(dto.contactName !== undefined ? { contactName: dto.contactName } : {}),
         ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
         ...(dto.mobile !== undefined ? { mobile: dto.mobile } : {}),
