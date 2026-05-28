@@ -18,6 +18,8 @@ import { InboundController } from './inbound/inbound.controller';
 import { InboundService } from './inbound/inbound.service';
 import { InitController } from './init/init.controller';
 import { InitService } from './init/init.service';
+import { IssueReportController } from './issue-report/issue-report.controller';
+import { IssueReportService } from './issue-report/issue-report.service';
 import { OutboundController } from './outbound/outbound.controller';
 import { OutboundService } from './outbound/outbound.service';
 import { PartStockSettingController } from './part-stock-setting/part-stock-setting.controller';
@@ -54,6 +56,7 @@ import { TransferService } from './transfer/transfer.service';
     InitController,
     DisposalController,
     ConversionController,
+    IssueReportController,
     PkController,
     PlController,
     ParcelController,
@@ -76,6 +79,7 @@ import { TransferService } from './transfer/transfer.service';
     InitService,
     DisposalService,
     ConversionService,
+    IssueReportService,
     PkService,
     PlService,
     ParcelService,

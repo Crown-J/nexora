@@ -1,0 +1,177 @@
+// apps/nx-api/src/nx03/issue-report/dto/issue-report.dto.ts
+// NX03-STOCK-LITE M2-C：異常回報跨模組共用 DTO
+//
+// issueType（5 異常）：D=損毀 / E=過期 / S=數量短缺 / L=放錯庫位 / O=其他
+// dispositionType（5 處置）：R=退貨 / W=保固 / C=重組分解 / D=報廢 / N=未處置
+// status（生命週期）：DRAFT / REPORTED / PROCESSING / CLOSED / CANCELLED
+
+import { Type } from 'class-transformer';
+import {
+  IsDateString,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+
+export const ISSUE_TYPES = ['D', 'E', 'S', 'L', 'O'] as const;
+export type IssueType = (typeof ISSUE_TYPES)[number];
+
+export const DISPOSITION_TYPES = ['R', 'W', 'C', 'D', 'N'] as const;
+export type DispositionType = (typeof DISPOSITION_TYPES)[number];
+
+export const ISSUE_STATUSES = ['DRAFT', 'REPORTED', 'PROCESSING', 'CLOSED', 'CANCELLED'] as const;
+export type IssueStatus = (typeof ISSUE_STATUSES)[number];
+
+export class ListIssueReportQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  pageSize?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  status?: string;
+
+  @IsOptional()
+  @IsIn(ISSUE_TYPES)
+  issueType?: IssueType;
+
+  @IsOptional()
+  @IsIn(DISPOSITION_TYPES)
+  dispositionType?: DispositionType;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  warehouseId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  partId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  sourceModule?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  search?: string;
+}
+
+export class CreateIssueReportDto {
+  @IsDateString()
+  reportDate!: string;
+
+  @IsString()
+  @MaxLength(15)
+  warehouseId!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  locationId?: string;
+
+  @IsString()
+  @MaxLength(15)
+  partId!: string;
+
+  @IsNumber()
+  @Min(0)
+  qty!: number;
+
+  @IsIn(ISSUE_TYPES)
+  issueType!: IssueType;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  photoUrl?: string;
+
+  // 跨模組來源（軟連結、不建 FK）
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  sourceModule?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  sourceDocType?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  sourceDocId?: string;
+}
+
+export class UpdateIssueReportDto {
+  @IsOptional()
+  @IsDateString()
+  reportDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  locationId?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  qty?: number;
+
+  @IsOptional()
+  @IsIn(ISSUE_TYPES)
+  issueType?: IssueType;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  photoUrl?: string;
+}
+
+/** 處置分流 DTO：dispositionType + 關聯處置單據 ID（軟連結） */
+export class DisposeIssueReportDto {
+  @IsIn(DISPOSITION_TYPES)
+  dispositionType!: DispositionType;
+
+  // dispositionType ≠ 'N' 時建議帶（軟連結到對應模組單據）
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  relatedDocId?: string;
+}
+
+/** 結案 DTO：可帶 remark */
+export class CloseIssueReportDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  remark?: string;
+}
