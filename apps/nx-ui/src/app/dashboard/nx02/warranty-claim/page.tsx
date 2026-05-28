@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import {
+  createAttachment,
   createWarrantyClaim,
   listWarrantyClaims,
   registerResult,
@@ -60,6 +61,31 @@ export default function WarrantyClaimListPage() {
 
   // result registration inline state
   const [resultDraft, setResultDraft] = useState<Record<string, { result: ClaimResult; remark: string }>>({});
+
+  // M3-redo-3b：附件 upload inline state
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [uploadHint, setUploadHint] = useState<Record<string, string>>({});
+
+  async function onUploadFile(claimId: string, file: File, fileType: 'LIC' | 'PHO' | 'VID') {
+    setUploadingId(claimId);
+    setUploadHint((s) => ({ ...s, [claimId]: '讀檔中…' }));
+    try {
+      const base64 = await fileToBase64(file);
+      setUploadHint((s) => ({ ...s, [claimId]: '上傳中…' }));
+      const att = await createAttachment(claimId, {
+        fileType,
+        base64Content: base64,
+        origFilename: file.name,
+        mimeType: file.type || 'application/octet-stream',
+      });
+      setUploadHint((s) => ({ ...s, [claimId]: `✅ 已上傳 ${att.origFilename}（${(att.fileSize / 1024).toFixed(0)} KB）` }));
+      setTimeout(() => setUploadHint((s) => ({ ...s, [claimId]: '' })), 4000);
+    } catch (e) {
+      setUploadHint((s) => ({ ...s, [claimId]: `❌ ${(e as Error).message}` }));
+    } finally {
+      setUploadingId(null);
+    }
+  }
 
   async function refresh() {
     setLoading(true);
@@ -354,6 +380,36 @@ export default function WarrantyClaimListPage() {
                           className="rounded bg-red-500/40 px-2 py-1 text-xs hover:bg-red-500/70"
                         >作廢</button>
                       )}
+
+                      {/* M3-redo-3b：附件上傳 inline（行照/照片/影片 3 種、選檔後自動 upload）*/}
+                      {r.status !== 'V' && (
+                        <div className="mt-1 border-t border-white/10 pt-1">
+                          <div className="text-[10px] text-white/40">📎 附件</div>
+                          {(['LIC', 'PHO', 'VID'] as const).map((ft) => (
+                            <label key={ft} className="block cursor-pointer">
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept={ft === 'LIC' ? 'image/*,application/pdf' : ft === 'PHO' ? 'image/*' : 'video/*'}
+                                disabled={uploadingId === r.id}
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) {
+                                    void onUploadFile(r.id, f, ft);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              />
+                              <span className="block rounded bg-white/5 px-2 py-0.5 text-xs hover:bg-white/15">
+                                {ft === 'LIC' ? '行照' : ft === 'PHO' ? '照片' : '影片'} +
+                              </span>
+                            </label>
+                          ))}
+                          {uploadHint[r.id] && (
+                            <div className="mt-1 text-[10px] text-white/60">{uploadHint[r.id]}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -364,6 +420,25 @@ export default function WarrantyClaimListPage() {
       )}
     </div>
   );
+}
+
+/** M3-redo-3b：File → base64（不含 data URL prefix） */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error('File read failed'));
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        reject(new Error('FileReader.result is not a string'));
+        return;
+      }
+      // 移除 data URL prefix "data:<mime>;base64,"
+      const idx = result.indexOf(',');
+      resolve(idx >= 0 ? result.slice(idx + 1) : result);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {

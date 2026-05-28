@@ -19,6 +19,12 @@ import {
   voidRfq,
 } from '../../api/rfq';
 import { generateRfqInquiryText } from '@/features/nx02/rfq-greeting-template/api/rfq-greeting-template';
+import {
+  adoptQt,
+  createQt,
+  listQuotesByRfq,
+  type QtRow,
+} from '@/features/nx02/qt/api/qt';
 import type { RfqDetailDto } from '../../types';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 
@@ -67,6 +73,65 @@ export function RfqDetailView({ id }: { id: string }) {
   const [inquiryText, setInquiryText] = useState<string | null>(null);
   const [inquiryBusy, setInquiryBusy] = useState(false);
   const [copyHint, setCopyHint] = useState<string | null>(null);
+
+  // M3-redo-3b：並排比價 state
+  const [quotes, setQuotes] = useState<QtRow[]>([]);
+  const [quotesLoaded, setQuotesLoaded] = useState(false);
+  const [quotesBusy, setQuotesBusy] = useState(false);
+  const [newQt, setNewQt] = useState({ inquiryPartnerId: '', quotedPrice: '', quotedQuantity: '', leadDays: '', notes: '' });
+
+  async function loadQuotes() {
+    setQuotesBusy(true);
+    try {
+      const res = await listQuotesByRfq(id);
+      setQuotes(res.quotes);
+      setQuotesLoaded(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuotesBusy(false);
+    }
+  }
+
+  async function onAddQt() {
+    if (!newQt.inquiryPartnerId.trim() || !newQt.quotedPrice || !newQt.quotedQuantity) {
+      setError('請填供應商 ID + 報價 + 數量');
+      return;
+    }
+    setQuotesBusy(true);
+    setError(null);
+    try {
+      await createQt({
+        rfqId: id,
+        inquiryPartnerId: newQt.inquiryPartnerId.trim(),
+        quotedPrice: Number(newQt.quotedPrice),
+        quotedQuantity: Number(newQt.quotedQuantity),
+        leadDays: newQt.leadDays ? Number(newQt.leadDays) : null,
+        notes: newQt.notes.trim() || undefined,
+      });
+      setNewQt({ inquiryPartnerId: '', quotedPrice: '', quotedQuantity: '', leadDays: '', notes: '' });
+      await loadQuotes();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuotesBusy(false);
+    }
+  }
+
+  async function onAdoptQt(qtId: string) {
+    if (!confirm('採用此報價、將自動建立採購單／調貨單。確定嗎？')) return;
+    setQuotesBusy(true);
+    setError(null);
+    try {
+      await adoptQt(qtId);
+      await loadQuotes();
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuotesBusy(false);
+    }
+  }
 
   async function onGenerateInquiryText() {
     setInquiryBusy(true);
@@ -294,6 +359,121 @@ export function RfqDetailView({ id }: { id: string }) {
           </Link>
         </div>
       </header>
+
+      {/* M3-redo-3b：並排比價 section（任何狀態都可顯示、需手動點開 load） */}
+      <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-emerald-300">📊 並排比價（多家供應商報價）</h2>
+          <button
+            type="button"
+            disabled={quotesBusy}
+            onClick={loadQuotes}
+            className="rounded bg-emerald-500/30 px-3 py-1 text-xs hover:bg-emerald-500/50"
+          >
+            {quotesBusy ? '載入中…' : quotesLoaded ? '🔄 重新整理' : '📥 載入報價'}
+          </button>
+        </div>
+        {!quotesLoaded ? (
+          <p className="text-xs text-muted-foreground">點「載入報價」查看已收到的供應商回報。</p>
+        ) : quotes.length === 0 ? (
+          <p className="text-xs text-muted-foreground">尚未收到任何報價、可在下方表單填一筆。</p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-border/40">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/30 text-muted-foreground">
+                <tr>
+                  <th className="px-2 py-1 text-left">排名</th>
+                  <th className="px-2 py-1 text-left">供應商</th>
+                  <th className="px-2 py-1 text-right">單價</th>
+                  <th className="px-2 py-1 text-right">數量</th>
+                  <th className="px-2 py-1 text-right">交期(天)</th>
+                  <th className="px-2 py-1 text-left">備註</th>
+                  <th className="px-2 py-1 text-left">狀態</th>
+                  <th className="px-2 py-1 text-left">動作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes.map((q, idx) => (
+                  <tr key={q.id} className={`border-t border-border/30 ${idx === 0 ? 'bg-emerald-500/10' : ''}`}>
+                    <td className="px-2 py-1">
+                      {idx === 0 && q.status === 'P' ? <span className="rounded bg-emerald-500/40 px-1.5 py-0.5 text-emerald-100">🏆 最低</span> : `#${idx + 1}`}
+                    </td>
+                    <td className="px-2 py-1 font-mono">{q.inquiryPartner?.code} {q.inquiryPartner?.name ?? q.inquiryPartnerId}</td>
+                    <td className="px-2 py-1 text-right font-mono tabular-nums">{String(q.quotedPrice)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{String(q.quotedQuantity)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{q.leadDays ?? '-'}</td>
+                    <td className="px-2 py-1 text-muted-foreground">{q.notes ?? '-'}</td>
+                    <td className="px-2 py-1">
+                      {q.status === 'P' ? <span className="text-amber-300">待採購決定</span>
+                        : q.status === 'A' ? <span className="text-emerald-300">已採用</span>
+                        : <span className="text-red-300">已拒絕</span>}
+                    </td>
+                    <td className="px-2 py-1">
+                      {q.status === 'P' && (
+                        <button
+                          type="button"
+                          disabled={quotesBusy}
+                          onClick={() => onAdoptQt(q.id)}
+                          className="rounded bg-emerald-500/40 px-2 py-0.5 hover:bg-emerald-500/60"
+                        >採用</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {/* 新增 Qt 表單 */}
+        {quotesLoaded && (
+          <details className="rounded border border-border/40 bg-background/50 p-2 text-xs">
+            <summary className="cursor-pointer text-emerald-300">＋ 新增一筆報價（業務外部問完填入）</summary>
+            <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">
+              <input
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="供應商 ID"
+                value={newQt.inquiryPartnerId}
+                onChange={(e) => setNewQt({ ...newQt, inquiryPartnerId: e.target.value })}
+              />
+              <input
+                type="number"
+                step="0.0001"
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="單價"
+                value={newQt.quotedPrice}
+                onChange={(e) => setNewQt({ ...newQt, quotedPrice: e.target.value })}
+              />
+              <input
+                type="number"
+                step="0.0001"
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="可供數量"
+                value={newQt.quotedQuantity}
+                onChange={(e) => setNewQt({ ...newQt, quotedQuantity: e.target.value })}
+              />
+              <input
+                type="number"
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="交期天數"
+                value={newQt.leadDays}
+                onChange={(e) => setNewQt({ ...newQt, leadDays: e.target.value })}
+              />
+              <input
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="備註"
+                value={newQt.notes}
+                onChange={(e) => setNewQt({ ...newQt, notes: e.target.value })}
+              />
+            </div>
+            <button
+              type="button"
+              disabled={quotesBusy}
+              onClick={onAddQt}
+              className="mt-2 rounded bg-emerald-500/70 px-3 py-1 text-xs hover:bg-emerald-500"
+            >新增報價</button>
+          </details>
+        )}
+      </div>
 
       {inquiryText !== null && (
         <div className="space-y-2 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">

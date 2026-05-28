@@ -100,12 +100,13 @@ export async function listAttachments(claimId: string): Promise<{ rows: Warranty
   return res.json() as Promise<{ rows: WarrantyClaimAttachmentDto[] }>;
 }
 
+/** M3-redo-3b base64 範式（對齊 bulletin attachment）*/
 export type CreateAttachmentBody = {
   fileType: 'LIC' | 'PHO' | 'VID';
-  storageKey: string;
-  mimeType: string;
-  fileSize: number;
+  /** base64 字串（不含 data URL prefix）*/
+  base64Content: string;
   origFilename: string;
+  mimeType: string;
 };
 
 export async function createAttachment(claimId: string, body: CreateAttachmentBody): Promise<WarrantyClaimAttachmentDto> {

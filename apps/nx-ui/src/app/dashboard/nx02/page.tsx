@@ -35,24 +35,28 @@ type HubSection = {
   items: HubItem[];
 };
 
+// LITE 路由統一（M3-redo-3b）：
+// 進貨單據走 /dashboard/nx01/* （真實 service-backed UI、含 RfqDetailView 並排比價）
+// 主檔走 /dashboard/base/* （鋼鐵星球範式 EntityMasterPage）
+// LITE 階段 1 新功能走 /dashboard/nx02/* 跟 /dashboard/task-pool
 const SECTIONS: HubSection[] = [
   {
     title: '採購流程（國內）',
     items: [
       {
-        href: '/dashboard/purchase/rfq',
+        href: '/dashboard/nx01/rfq',
         title: '詢價單 RFQ',
         description: '選料件 + 數量 → 產生詢價文字 → 多家供應商並排比價',
         icon: FileText,
       },
       {
-        href: '/dashboard/purchase/po',
+        href: '/dashboard/nx01/po',
         title: '採購單 PO',
         description: '比價選定後開採購單、對象 = 供應商 partner_type=S',
         icon: ShoppingCart,
       },
       {
-        href: '/dashboard/purchase/rr',
+        href: '/dashboard/nx01/rr',
         title: '進貨單 + 驗收 RR',
         description: '貨到→建單→按「驗收」→自動入庫 + 自動產生應付帳',
         icon: Inbox,
@@ -71,7 +75,7 @@ const SECTIONS: HubSection[] = [
       {
         href: '/dashboard/nx02/warranty-claim',
         title: '保固申請單',
-        description: '客訴型（連 SO） + 自用型 + 4 種審核結果 + 附件',
+        description: '客訴型（連 SO） + 自用型 + 4 種審核結果 + 附件 upload',
         icon: ShieldCheck,
         badge: 'LITE 新',
       },
@@ -85,18 +89,18 @@ const SECTIONS: HubSection[] = [
     ],
   },
   {
-    title: '主檔維護（採購視角）',
+    title: '主檔維護（鋼鐵星球範式）',
     items: [
       {
-        href: '/dashboard/purchase/vendor',
-        title: '供應商維護',
-        description: '供應商等級 + 銷售商品 + 付款條件（partner_type=S 純供應商）',
+        href: '/dashboard/base/partners',
+        title: '往來對象主檔',
+        description: '六分類 C/O/S/T/B/V、含供應商等級「依付款條件重算」',
         icon: Users,
       },
       {
-        href: '/dashboard/purchase/product',
-        title: '產品維護',
-        description: '產品種類 + 安全量 + 公司定價 ABCD（成本 × 毛利率重算）',
+        href: '/dashboard/base/parts',
+        title: '零件主檔',
+        description: '產品種類 + 公司定價 ABCD「依成本重算」',
         icon: Package,
       },
     ],

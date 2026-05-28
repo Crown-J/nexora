@@ -166,6 +166,30 @@ export class Nx02QtService {
     return { page, pageSize, total, rows };
   }
 
+  /**
+   * M3-redo-3b：list quotes by RFQ id（並排比價視圖用）。
+   * 排序：quotedPrice 升冪（最低價在前）+ createdAt 升冪 tie-break。
+   * include inquiryPartner 顯示供應商代碼/名稱。
+   */
+  async listQuotesByRfqId(user: RequestUser, rfqId: string) {
+    const tenantId = requireTenantId(user);
+    const rfq = await this.prisma.nx02Rfq.findFirst({
+      where: { id: rfqId, tenantId },
+      select: { id: true, rfqType: true, docNo: true },
+    });
+    if (!rfq) throw new RfqNotFoundError(rfqId);
+
+    const quotes = await this.prisma.nx02Qt.findMany({
+      where: { tenantId, rfqId },
+      orderBy: [{ quotedPrice: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        ...QT_SEL,
+        inquiryPartner: { select: { code: true, name: true, partnerType: true } },
+      },
+    });
+    return { rfqId: rfq.id, rfqDocNo: rfq.docNo, rfqType: rfq.rfqType, quotes };
+  }
+
   // ===== §3.2 add QT =====
 
   async addQt(user: RequestUser, dto: CreateQtDto): Promise<QtRow> {
