@@ -35,6 +35,15 @@ export class PartnerController {
     return this.svc.update(user, id, dto);
   }
 
+  /**
+   * M2-c：依付款條件重算供應商等級（前端「依付款條件重算」按鈕對應端點）。
+   * 純供應商 partner_type='S' 用為主、業務也可手動指派 supplierGradeId 覆寫。
+   */
+  @Post(':id/recalc-supplier-grade')
+  recalcSupplierGrade(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.recalcSupplierGradeByPaymentTerm(user, id);
+  }
+
   @Delete(':id')
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.softDelete(user, id);

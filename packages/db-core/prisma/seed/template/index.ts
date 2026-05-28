@@ -18,6 +18,7 @@ import { applyBrandCodeRule } from './apply-brand-code-rule';
 import { applyBulletinCategory } from './apply-bulletin-category';
 import { applyCarBrand } from './apply-car-brand';
 import { applyCustomerGrade } from './apply-customer-grade';
+import { applySupplierGrade } from './apply-supplier-grade';
 import { applyDepartment } from './apply-department';
 import { applyDiscountCode } from './apply-discount-code';
 import { applyDrivetrain } from './apply-drivetrain';
@@ -58,6 +59,7 @@ export async function applyTemplateToTenant(
   await applyPartBrand(prisma, params);
   await applyBrandCodeRule(prisma, params); // ⚠️ 下半場 A：軸翻轉後依賴 applyPartBrand（規則對應零件品牌）
   await applyCustomerGrade(prisma, params);
+  await applySupplierGrade(prisma, params);
   await applyDiscountCode(prisma, params);
   await applyAccountCode(prisma, params);
 
