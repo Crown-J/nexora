@@ -274,16 +274,14 @@ export const PARTNER_MASTER: EntityMasterConfig = {
     { key: 'name', label: '對象名稱', required: true, minWidthClass: 'min-w-[160px]' },
     {
       key: 'partnerType', label: '對象類型', type: 'select', required: true, minWidthClass: 'min-w-[120px]',
-      // 代碼語意由 Crown 2026-05-26 定案；CUST/SUP 為相容舊資料碼（新增不建議用）
+      // partner 改制六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
       options: [
-        { value: 'C', label: '客戶' },
+        { value: 'C', label: '保養廠' },
+        { value: 'O', label: '同行' },
         { value: 'S', label: '供應商' },
-        { value: 'T', label: '運輸商' },
-        { value: 'V', label: '廠商' },
+        { value: 'T', label: '外包物流' },
+        { value: 'V', label: '一般廠商' },
         { value: 'B', label: '銀行' },
-        { value: 'BOTH', label: '客戶兼供應商' },
-        { value: 'CUST', label: '客戶（舊碼）' },
-        { value: 'SUP', label: '供應商（舊碼）' },
       ],
     },
     { key: 'contactName', label: '聯絡人', minWidthClass: 'min-w-[100px]' },
