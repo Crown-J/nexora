@@ -10,20 +10,22 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-28（⭐⭐⭐ TASK-NX01-MASTER-COMPLETE merge、NX01 主檔模組 25 主檔 closure / 鋼鐵星球範式全主檔對齊）**
-> **當前分支：`main`**（HEAD = `1487247`、merge feature/nx01-master-complete）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-master-complete + 軌後、--no-ff、NX01 主檔模組 closure）**
-> **⭐⭐⭐ Hank 自跑收尾完成**：merge + push + tag `v1.0-nx01-closure`（指向 `1487247`）+ push tag origin
-> **狀態摘要**：`feature/nx01-master-complete`（HEAD `da9f285`）= **已 merge main（merge commit `1487247`）、可考慮刪除**
-> **⚠️ Railway production migration 同步落後 67 支**（已登架構債 **A077**）：dev DB 已全 apply + NX01 closure 驗證、Railway 端 `migrate status` 67 pending（NX02~NX10）、`migrate deploy` all-or-nothing 不可只挑 NX01；**不阻擋 NX01 closure**、觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
+> **快照時間：2026-05-28（⭐⭐⭐ TASK-NX01-PARTNER-SIX-CLASSES-01 merge、NEXORA LITE 藍圖階段 0 partner 改制 closure）**
+> **當前分支：`main`**（HEAD = `0cb89e3`、merge feature/nx01-partner-six-classes）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-partner-six-classes + 軌後、--no-ff、LITE 藍圖階段 0 closure）**
+> **⭐⭐⭐ 新 Hank（Claude Code）首軌收尾完成**：merge + push + tag `v1.1.0-partner-six-classes-closure`（指向 `0cb89e3`）+ push tag origin
+> **狀態摘要**：`feature/nx01-partner-six-classes`（HEAD `4938dd0`）= **已 merge main（merge commit `0cb89e3`）、可考慮刪除**
+> **整軌成果**：11 commits / 41 檔（+173 / -1085）/ 1 migration（20260528100000_nx01_partner_six_classes）/ partner_type 六分類 C/O/S/T/B/V + canTransferStock 旗標
+> **⚠️ Railway production migration 同步落後 68 支**（A077、+1 = 本軌新 migration）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 18 軌 merge 分支總覽自 2026-05-18 起未 full audit（NX01~NX10 + user-master track A/B/C 多軌 merge 已落地、tag 見 §A.2）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit（NX01~NX10 + user-master track A/B/C + nx01-master-complete + 本軌 partner-six-classes 已落地、tag 見 §A.2）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（18 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE nx01-16 G.4 範式歷史 fact 保留軌（TASK-NX01-16-HISTORICAL-FACT-PRESERVE、1 commit + 軌後）** |
+| `main` ⭐ | ✅ 同步 | `0cb89e3` | **⚠️ MERGE feature/nx01-partner-six-classes（LITE 藍圖階段 0 partner 改制 closure、11 commits + 軌後、tag `v1.1.0-partner-six-classes-closure`）** |
+| `feature/nx01-partner-six-classes` | ✅ 同步、**已 merge main、可考慮刪除** | `4938dd0` | partner_type 六分類 C/O/S/T/B/V + canTransferStock + 17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪 + _ddl_fragment 對齊 |
 | `feature/nx01-16-historical-fact-preserve` | ✅ 同步、**已 merge main、可考慮刪除** | `b71fa07` | nx01-16 加 HTML 註解 × 2 + DCL v1.0-historical-note + worklog 主題 23 |
 | `feature/yaro-narrative-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `75cc2bf` | PROJECT_RULES + nx01-summary Yaro 字眼補正 + worklog 主題 22 |
 | `feature/cursor-rules-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | `0a80839` | git rm _cursorrules + PROJECT_RULES §III.8.7 §G.9 + worklog 主題 21 |
@@ -65,7 +67,8 @@
 | `phase0-complete` | `259855c` | Phase 0 收官（schema + translator + APIs merge） |
 | `phase1-complete` | `5d4dbac` | Phase 1 doc-restructure 收官（11 worklog + 4 基礎設施文件 + 35+ 範式 + PROJECT_CONTEXT） |
 | `v1.6.2-user-master-track-c-closure` | — | USER 主檔軌 A+B+C 全軌完成（master-shell 範式建立） |
-| `v1.0-nx01-closure` ⭐ | `1487247` | **NX01 主檔模組 closure**（25 主檔鋼鐵星球範式對齊：命名統一 / 指派管理 / SYSADMIN 鎖定 / 表格工具 / 國家後端 / 下拉鍵盤 / 模組收合 / 據點庫位拆分 / 料號規則重做 / 零件重做 / 完整料號格式 / 3 drift 補強）|
+| `v1.0-nx01-closure` | `1487247` | **NX01 主檔模組 closure**（25 主檔鋼鐵星球範式對齊：命名統一 / 指派管理 / SYSADMIN 鎖定 / 表格工具 / 國家後端 / 下拉鍵盤 / 模組收合 / 據點庫位拆分 / 料號規則重做 / 零件重做 / 完整料號格式 / 3 drift 補強）|
+| `v1.1.0-partner-six-classes-closure` ⭐ | `0cb89e3` | **LITE 藍圖階段 0 partner 改制 closure**（partner_type 六分類：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商 + canTransferStock 旗標、17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪、Crown 2026-05-28 拍板）|
 
 ### A.3 工作樹狀態
 
@@ -75,10 +78,10 @@ Your branch is up to date with 'origin/main'.
 nothing to commit, working tree clean
 ```
 
-> ⚠️ 本檔在 main 分支 update（不是 feature 分支）— Phase 1 已 merge、git-state 跟著 main 走。
-> ⚠️ 本次 TASK-PHASE1-MERGE-MAIN-01 含 1 merge + 1 GIT-STATE commit：
->   1 個 [MERGE]（feature/wp-phase1-doc-restructure → main、--no-ff、merge commit `5d4dbac`、22 檔變動）
->   + 1 個 tag（`phase1-complete` 指向 `5d4dbac`）
+> ⚠️ 本檔在 main 分支 update（不是 feature 分支）— 本軌已 merge、git-state 跟著 main 走。
+> ⚠️ 本次 TASK-NX01-PARTNER-SIX-CLASSES-01 收尾含：
+>   1 個 [MERGE]（feature/nx01-partner-six-classes → main、--no-ff、merge commit `0cb89e3`、41 檔變動）
+>   + 1 個 tag（`v1.1.0-partner-six-classes-closure` 指向 `0cb89e3`、已 push origin）
 >   + 即將加 [GIT-STATE]（本檔、main 分支上 commit）
 
 ---
