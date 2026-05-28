@@ -79,6 +79,12 @@ export class CreatePartStockSettingDto {
   @Min(0)
   reorderQty?: number;
 
+  // NX03-STOCK-LITE M2-F：預設庫位（進貨上架建議用、可空、UI 提示倉管設）
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  defaultLocationId?: string;
+
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
@@ -108,6 +114,12 @@ export class UpdatePartStockSettingDto {
   @IsNumber()
   @Min(0)
   reorderQty?: number;
+
+  // NX03-STOCK-LITE M2-F：預設庫位、傳空字串 '' 表清除
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  defaultLocationId?: string;
 
   @IsOptional()
   @IsBoolean()

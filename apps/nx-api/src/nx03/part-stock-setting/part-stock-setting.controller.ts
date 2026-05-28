@@ -28,6 +28,17 @@ export class PartStockSettingController {
     return this.svc.list(user, q);
   }
 
+  // NX03-STOCK-LITE M2-F：進貨上架建議庫位（給定 partId + warehouseId 回 defaultLocationId）
+  // ⚠️ 必須宣告在 @Get(':id') 之前、避免 NestJS 路由衝突（'suggest-location' 會被誤吃成 :id）
+  @Get('suggest-location/:partId/:warehouseId')
+  suggestLocation(
+    @CurrentUser() user: RequestUser,
+    @Param('partId') partId: string,
+    @Param('warehouseId') warehouseId: string,
+  ) {
+    return this.svc.suggestLocation(user, partId, warehouseId);
+  }
+
   @Get(':id')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);
