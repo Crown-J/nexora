@@ -175,7 +175,7 @@ export class Nx02QtService {
         async (tx) => {
           const rfq = await this.loadRfqOrThrow(tx, tenantId, dto.rfqId.trim());
           this.assertRfqOpenForWrite(rfq);
-          await this.assertPartnerIsInquiry(tx, tenantId, dto.inquiryPartnerId.trim());
+          await this.assertPartnerIsInquiry(tx, tenantId, dto.inquiryPartnerId.trim(), rfq.rfqType);
 
           const qt = await tx.nx02Qt.create({
             data: {
@@ -427,13 +427,21 @@ export class Nx02QtService {
     }
   }
 
+  /**
+   * M2-e：依 rfq.rfqType 分流 partner_type guard。
+   *   - rfqType='G' 一般詢價 → Qt 對象必為 partner_type='S' 純供應商
+   *   - rfqType='P' 同行調貨詢價 → Qt 對象必為 partner_type='O' 同行
+   * partner 改制六分類後語意分家：S 純供應商不再兼任「同行」業務。
+   */
   private async assertPartnerIsInquiry(
     tx: Prisma.TransactionClient,
     tenantId: string,
     partnerId: string,
+    rfqType: string,
   ): Promise<void> {
+    const expectedType = rfqType === 'G' ? 'S' : 'O';
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: 'O' },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: expectedType },
       select: { id: true },
     });
     if (!p) throw new PartnerNotInquiryTypeError(partnerId);
