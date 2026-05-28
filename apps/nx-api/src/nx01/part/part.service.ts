@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from 'db-core';
+import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -92,12 +93,87 @@ function normalizeCode(s: string): string {
   return s.replace(/[\s#-]/g, '').toLowerCase();
 }
 
+/**
+ * M2-b 業界 muscle memory：售價 ABCD 對應客戶分級毛利率。
+ * fallback 預設值（如 customer_grade 表沒設 / sortNo 缺）：A=12% / B=15% / C=18% / D=22%
+ * 對齊 NX01-07 base catalog 拍板。
+ */
+const DEFAULT_MARGINS: Record<string, number> = { A: 12, B: 15, C: 18, D: 22 };
+
 @Injectable()
 export class PartService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
+
+  /**
+   * M2-b：依成本 × customer_grade.marginPct 算建議售價 ABCD。
+   * 公式：price = cost × (1 + marginPct/100)
+   * - 用 tenant 自訂 customer_grade marginPct（per code A/B/C/D）
+   * - tenant 沒設該 code → 用 DEFAULT_MARGINS fallback
+   * - cost <= 0 → 全部回傳 0（不算負毛利）
+   */
+  private async calcDefaultPrices(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    cost: PrismaNs.Decimal,
+  ): Promise<{ priceA: PrismaNs.Decimal; priceB: PrismaNs.Decimal; priceC: PrismaNs.Decimal; priceD: PrismaNs.Decimal }> {
+    if (cost.lte(0)) {
+      const zero = new PrismaNs.Decimal(0);
+      return { priceA: zero, priceB: zero, priceC: zero, priceD: zero };
+    }
+    const grades = await tx.nx01CustomerGrade.findMany({
+      where: { tenantId, isActive: true, code: { in: ['A', 'B', 'C', 'D'] } },
+      select: { code: true, marginPct: true },
+    });
+    const marginMap: Record<string, PrismaNs.Decimal> = {};
+    for (const g of grades) marginMap[g.code] = new PrismaNs.Decimal(g.marginPct);
+    const calc = (code: 'A' | 'B' | 'C' | 'D'): PrismaNs.Decimal => {
+      const margin = marginMap[code] ?? new PrismaNs.Decimal(DEFAULT_MARGINS[code]);
+      return cost.mul(margin.div(100).add(1)).toDecimalPlaces(4);
+    };
+    return { priceA: calc('A'), priceB: calc('B'), priceC: calc('C'), priceD: calc('D') };
+  }
+
+  /**
+   * M2-b：依成本重算建議售價（前端「依成本重算」按鈕對應端點）。
+   * - 系統算為主（cost × margin）、可手動微調（直接 PATCH priceA~D）
+   * - 寫 priceUpdatedAt/By + audit
+   */
+  async recalcPricesByCost(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.nx01Part.findFirst({ where: { id: partId, tenantId }, select: SEL });
+      if (!existing) throw new NotFoundException('Part not found');
+      const cost = existing.cost != null ? new PrismaNs.Decimal(existing.cost) : new PrismaNs.Decimal(0);
+      const prices = await this.calcDefaultPrices(tx, tenantId, cost);
+      const updated = await tx.nx01Part.update({
+        where: { id: partId },
+        data: {
+          ...prices,
+          priceUpdatedAt: new Date(),
+          priceUpdatedBy: user.sub,
+          updatedBy: user.sub,
+        },
+        select: SEL,
+      });
+      await this.writePartVersionSnapshot(tx, tenantId, user.sub, updated, '依成本重算建議售價');
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX01',
+        action: 'UPDATE',
+        entityTable: 'nx01_part',
+        entityId: partId,
+        entityCode: updated.code,
+        summary: '依成本重算建議售價（M2-b）',
+        beforeData: existing as object,
+        afterData: updated as object,
+      });
+      return this.mapRow(updated);
+    });
+  }
 
   /**
    * 規格 §3 / §5 + Crown Q5=A 拍板：
@@ -254,6 +330,9 @@ export class PartService {
     const row = await this.prisma.$transaction(async (tx) => {
       const codeRuleId = await this.resolveCodeRuleId(tx, tenantId, dto.codeRuleId);
       await this.validateUnkReservedNotUsed(tx, tenantId, dto.partBrandId, dto.countryId);
+      // M2-b：dto 沒傳 priceA~D 時、後端依 cost × margin 自動算（系統算為主、手動微調走 dto 覆寫）
+      const cost = new PrismaNs.Decimal(dto.cost ?? 0);
+      const defaults = await this.calcDefaultPrices(tx, tenantId, cost);
       const created = await tx.nx01Part.create({
         data: {
           tenantId,
@@ -278,10 +357,12 @@ export class PartService {
           isActive: dto.isActive ?? true,
           returnPolicy: dto.returnPolicy?.trim() || 'S',
           warrantyMonths: dto.warrantyMonths ?? 0,
-          priceA: dto.priceA ?? 0,
-          priceB: dto.priceB ?? 0,
-          priceC: dto.priceC ?? 0,
-          priceD: dto.priceD ?? 0,
+          priceA: dto.priceA ?? defaults.priceA,
+          priceB: dto.priceB ?? defaults.priceB,
+          priceC: dto.priceC ?? defaults.priceC,
+          priceD: dto.priceD ?? defaults.priceD,
+          priceUpdatedAt: new Date(),
+          priceUpdatedBy: user.sub,
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -379,9 +460,17 @@ export class PartService {
       dto.priceB !== undefined ||
       dto.priceC !== undefined ||
       dto.priceD !== undefined;
+    // M2-b：cost 改 + dto 沒覆寫 priceA~D → 自動依新成本重算（系統算為主）
+    const costTouched = dto.cost !== undefined;
 
     // Q1=A：part.update 同 tx 寫 part_version snapshot
     const row = await this.prisma.$transaction(async (tx) => {
+      // M2-b：autoPrices 在 cost 改 + price 沒手動覆寫時計算（手動覆寫優先）
+      let autoPrices: { priceA: PrismaNs.Decimal; priceB: PrismaNs.Decimal; priceC: PrismaNs.Decimal; priceD: PrismaNs.Decimal } | null = null;
+      if (costTouched && !priceTouched) {
+        const cost = new PrismaNs.Decimal(dto.cost!);
+        autoPrices = await this.calcDefaultPrices(tx, tenantId, cost);
+      }
       const updated = await tx.nx01Part.update({
       where: { id },
       data: {
@@ -404,11 +493,12 @@ export class PartService {
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         ...(dto.returnPolicy !== undefined ? { returnPolicy: dto.returnPolicy.trim() } : {}),
         ...(dto.warrantyMonths !== undefined ? { warrantyMonths: dto.warrantyMonths } : {}),
-        ...(dto.priceA !== undefined ? { priceA: dto.priceA } : {}),
-        ...(dto.priceB !== undefined ? { priceB: dto.priceB } : {}),
-        ...(dto.priceC !== undefined ? { priceC: dto.priceC } : {}),
-        ...(dto.priceD !== undefined ? { priceD: dto.priceD } : {}),
-        ...(priceTouched ? { priceUpdatedAt: new Date(), priceUpdatedBy: user.sub } : {}),
+        // 優先：dto 手動覆寫 > autoPrices（cost 改時自動算） > 不動
+        ...(dto.priceA !== undefined ? { priceA: dto.priceA } : autoPrices ? { priceA: autoPrices.priceA } : {}),
+        ...(dto.priceB !== undefined ? { priceB: dto.priceB } : autoPrices ? { priceB: autoPrices.priceB } : {}),
+        ...(dto.priceC !== undefined ? { priceC: dto.priceC } : autoPrices ? { priceC: autoPrices.priceC } : {}),
+        ...(dto.priceD !== undefined ? { priceD: dto.priceD } : autoPrices ? { priceD: autoPrices.priceD } : {}),
+        ...(priceTouched || autoPrices ? { priceUpdatedAt: new Date(), priceUpdatedBy: user.sub } : {}),
         updatedBy: user.sub,
       },
       select: SEL,
