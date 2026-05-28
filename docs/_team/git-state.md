@@ -10,12 +10,14 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-18（⭐⭐⭐ TASK-NX09-IMPL-02 merge、NX09 雙軌完整化 + 3 業界改革落地 / NEXORA v1.5 達成）**
-> **當前分支：`main`**（HEAD = `f9a75bd`、merge feature/nx09-yaro-feature）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx09-yaro-feature 7 commit + 軌後、--no-ff、Q-RHYTHM-2 第九次落地）**
-> **⭐⭐⭐ Hank 自跑收尾完成**：merge + push + tag `v1.5.0-nx09-yaro-feature-closure` + push tag origin
+> **快照時間：2026-05-28（⭐⭐⭐ TASK-NX01-MASTER-COMPLETE merge、NX01 主檔模組 25 主檔 closure / 鋼鐵星球範式全主檔對齊）**
+> **當前分支：`main`**（HEAD = `1487247`、merge feature/nx01-master-complete）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-master-complete + 軌後、--no-ff、NX01 主檔模組 closure）**
+> **⭐⭐⭐ Hank 自跑收尾完成**：merge + push + tag `v1.0-nx01-closure`（指向 `1487247`）+ push tag origin
+> **狀態摘要**：`feature/nx01-master-complete`（HEAD `da9f285`）= **已 merge main（merge commit `1487247`）、可考慮刪除**
+> **⚠️ Railway production migration 同步落後 67 支**（已登架構債 **A077**）：dev DB 已全 apply + NX01 closure 驗證、Railway 端 `migrate status` 67 pending（NX02~NX10）、`migrate deploy` all-or-nothing 不可只挑 NX01；**不阻擋 NX01 closure**、觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：累積 18 軌 merge（+ NX09-IMPL-02）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 18 軌 merge 分支總覽自 2026-05-18 起未 full audit（NX01~NX10 + user-master track A/B/C 多軌 merge 已落地、tag 見 §A.2）、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（18 條）
 
@@ -56,10 +58,14 @@
 
 ### A.2 Tag
 
+> ⚠️ 下表為節錄（早期 + 最新）；完整 tag 清單以 `git tag` 為準（NX02~NX10 各模組 closure tag v0.3.0 ~ v1.5.0 + user-master track A/C v1.6.0 / v1.6.2 等已落地）。
+
 | Tag | 指向 commit | 含義 |
 |-----|------------|------|
 | `phase0-complete` | `259855c` | Phase 0 收官（schema + translator + APIs merge） |
-| `phase1-complete` ⭐ | `5d4dbac` | Phase 1 doc-restructure 收官（11 worklog + 4 基礎設施文件 + 35+ 範式 + PROJECT_CONTEXT） |
+| `phase1-complete` | `5d4dbac` | Phase 1 doc-restructure 收官（11 worklog + 4 基礎設施文件 + 35+ 範式 + PROJECT_CONTEXT） |
+| `v1.6.2-user-master-track-c-closure` | — | USER 主檔軌 A+B+C 全軌完成（master-shell 範式建立） |
+| `v1.0-nx01-closure` ⭐ | `1487247` | **NX01 主檔模組 closure**（25 主檔鋼鐵星球範式對齊：命名統一 / 指派管理 / SYSADMIN 鎖定 / 表格工具 / 國家後端 / 下拉鍵盤 / 模組收合 / 據點庫位拆分 / 料號規則重做 / 零件重做 / 完整料號格式 / 3 drift 補強）|
 
 ### A.3 工作樹狀態
 
