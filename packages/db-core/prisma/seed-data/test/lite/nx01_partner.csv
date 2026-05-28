@@ -1,14 +1,1 @@
-﻿id,tenant_id,code,name,partner_type,contact_name,phone,mobile,email,address,remark,is_active,tax_id,payment_term_domestic,customer_grade_id,credit_limit,credit_status,payment_term_import,incoterm,created_at,created_by,updated_at,updated_by
-NULL,{{TENANT_ID}},S0001,德國汽車配件有限公司,S,陳業務,02-2345-6789,0912-345-678,de-parts@example.com,台北市中山區南京東路一段100號,,TRUE,12345678,NET30,,0,N,TT,FOB,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},S0002,台灣佛普零件行,S,林老闆,04-2233-4455,0922-111-222,febi-tw@example.com,台中市西區台灣大道二段300號,,TRUE,23456789,NET30,,0,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},S0003,博世汽車零件台灣,S,王經理,02-8765-4321,0933-222-333,bosch-tw@example.com,新北市板橋區文化路二段50號,月底統一請款,TRUE,34567890,NET60,,0,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},S0004,台北馬勒進口商,S,黃先生,02-2789-1234,0955-333-444,mahle-import@example.com,台北市大同區延平北路三段80號,,TRUE,45678901,PREPAY,,0,N,TT,CIF,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},S0005,達信汽車材料行,S,張業務,03-456-7890,0966-444-555,daxin@example.com,桃園市中壢區中央西路一段200號,,TRUE,56789012,NET30,,0,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0001,大台北汽車修護廠,C,周師傅,02-2222-3333,0911-111-001,,台北市士林區中正路150號,,TRUE,,NET30,NX01CUGR0000001,500000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0002,新竹東風汽修,C,吳老闆,03-523-4567,0922-111-002,,新竹市東區光復路一段88號,,TRUE,,NET30,NX01CUGR0000002,200000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0003,桃園中壢汽車保養廠,C,蔡技師,03-452-1234,0933-111-003,,桃園市中壢區環中東路二段45號,,TRUE,,NET30,NX01CUGR0000002,150000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0004,基隆港邊汽車行,C,鄭老闆,02-2423-5678,0944-111-004,,基隆市中正區義一路20號,現金客戶，不做月結,TRUE,,PREPAY,NX01CUGR0000003,0,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0005,台北信義汽車商行,C,楊先生,02-2758-9012,0955-111-005,trust-auto@example.com,台北市信義區忠孝東路五段150號,,TRUE,,NET60,NX01CUGR0000001,800000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0006,板橋三重汽材行,C,謝老闆,02-2968-3456,0966-111-006,,新北市板橋區文化路一段100號,,TRUE,,NET30,NX01CUGR0000003,100000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0007,中和永和汽車零件,C,許老闆,02-2942-7890,0977-111-007,,新北市中和區中山路二段200號,,TRUE,,NET30,NX01CUGR0000002,300000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
-NULL,{{TENANT_ID}},C0008,松山內湖汽修中心,C,林技師,02-2799-0123,0988-111-008,,台北市內湖區成功路四段300號,A級優質客戶，固定月結,TRUE,,NET30,NX01CUGR0000001,1000000,N,,,NULL,NX01USER0000001,NULL,NX01USER0000001
+id,tenant_id,code,name,partner_type,can_transfer_stock,contact_name,phone,mobile,email,address,remark,is_active,tax_id,payment_term_domestic,customer_grade_id,credit_limit,credit_status,payment_term_import,incoterm,created_at,created_by,updated_at,updated_by
