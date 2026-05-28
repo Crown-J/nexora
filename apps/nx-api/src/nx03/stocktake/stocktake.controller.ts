@@ -1,3 +1,4 @@
+// apps/nx-api/src/nx03/stocktake/stocktake.controller.ts
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -7,7 +8,13 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
 
-import { CreateStockTakeDto, CreateStockTakeItemDto, PatchStockTakeItemDto, UpdateStockTakeDto } from './dto/stocktake.dto';
+import {
+  CreateStockTakeDto,
+  CreateStockTakeItemDto,
+  DecideStockTakeApprovalDto,
+  PatchStockTakeItemDto,
+  UpdateStockTakeDto,
+} from './dto/stocktake.dto';
 import { StockTakeService } from './stocktake.service';
 
 @Controller('nx03/stocktake')
@@ -54,6 +61,21 @@ export class StockTakeController {
   @Patch(':id')
   update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() dto: UpdateStockTakeDto) {
     return this.svc.update(user, id, dto);
+  }
+
+  // NX03-STOCK-LITE M2 核可流程：ADJUSTING → submit-for-approval → (auto-pass 或 等簽核) → POSTED
+  @Post(':id/submit-for-approval')
+  submitForApproval(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.submitForApproval(user, id);
+  }
+
+  @Post(':id/decide-approval')
+  decideApproval(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: DecideStockTakeApprovalDto,
+  ) {
+    return this.svc.decideApproval(user, id, dto);
   }
 
   @Delete(':id')
