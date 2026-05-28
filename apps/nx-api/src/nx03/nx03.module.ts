@@ -32,6 +32,8 @@ import { StockBalanceController } from './stock-balance/stock-balance.controller
 import { StockBalanceService } from './stock-balance/stock-balance.service';
 import { StockLedgerController } from './stock-ledger/stock-ledger.controller';
 import { StockLedgerService } from './stock-ledger/stock-ledger.service';
+import { StockQueryController } from './stock-query/stock-query.controller';
+import { StockQueryService } from './stock-query/stock-query.service';
 import { StockReservationController } from './stock-reservation/stock-reservation.controller';
 import { Nx03StockReservationService } from './stock-reservation/stock-reservation.service';
 import { StockTakeController } from './stocktake/stocktake.controller';
@@ -44,6 +46,7 @@ import { TransferService } from './transfer/transfer.service';
   controllers: [
     StockBalanceController,
     StockLedgerController,
+    StockQueryController,
     StockReservationController,
     PartStockSettingController,
     BrandAllocationRuleController,
@@ -62,6 +65,7 @@ import { TransferService } from './transfer/transfer.service';
   providers: [
     StockBalanceService,
     StockLedgerService,
+    StockQueryService,
     Nx03StockReservationService,
     PartStockSettingService,
     BrandAllocationRuleService,
