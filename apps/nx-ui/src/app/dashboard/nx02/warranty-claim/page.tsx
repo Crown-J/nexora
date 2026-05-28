@@ -20,6 +20,11 @@ import {
   type ClaimType,
   type WarrantyClaimDto,
 } from '@/features/nx02/warranty-claim/types';
+import {
+  TieredField,
+  TieredFormProvider,
+  TieredFormToolbar,
+} from '@/features/shared/tiered-form';
 
 type CreateForm = {
   claimType: ClaimType;
@@ -30,6 +35,7 @@ type CreateForm = {
   qty: string;
   claimDate: string;
   issueDescription: string;
+  remark: string;
 };
 
 const EMPTY_FORM: CreateForm = {
@@ -41,6 +47,7 @@ const EMPTY_FORM: CreateForm = {
   qty: '1',
   claimDate: new Date().toISOString().slice(0, 10),
   issueDescription: '',
+  remark: '',
 };
 
 export default function WarrantyClaimListPage() {
@@ -90,6 +97,7 @@ export default function WarrantyClaimListPage() {
         qty: Number(form.qty),
         claimDate: form.claimDate,
         issueDescription: form.issueDescription.trim(),
+        remark: form.remark.trim() || undefined,
       });
       setShowForm(false);
       setForm(EMPTY_FORM);
@@ -147,10 +155,14 @@ export default function WarrantyClaimListPage() {
       {error && <div className="mb-4 rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-300">{error}</div>}
 
       {showForm && (
+        <TieredFormProvider defaultMode="lite">
         <div className="mb-6 rounded-lg border border-white/10 bg-black/30 p-4">
-          <h2 className="mb-3 text-base font-semibold">新建保固申請</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-semibold">新建保固申請</h2>
+            <TieredFormToolbar />
+          </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <Field label="申請類型 🟢">
+            <TieredField tier="required" label="申請類型">
               <select
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.claimType}
@@ -160,52 +172,52 @@ export default function WarrantyClaimListPage() {
                   <option key={t} value={t}>{CLAIM_TYPE_LABEL[t]}</option>
                 ))}
               </select>
-            </Field>
-            <Field label="申請日期 🟢">
+            </TieredField>
+            <TieredField tier="required" label="申請日期">
               <input
                 type="date"
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.claimDate}
                 onChange={(e) => setForm({ ...form, claimDate: e.target.value })}
               />
-            </Field>
+            </TieredField>
             {form.claimType === 'CUST' && (
               <>
-                <Field label="來源銷貨單 ID 🟢⚠️SO 還沒做、暫填">
+                <TieredField tier="required" label="來源銷貨單 ID" hint="⚠️ SO 還沒做、暫填佔位">
                   <input
                     className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                     value={form.sourceSoId}
                     onChange={(e) => setForm({ ...form, sourceSoId: e.target.value })}
                     placeholder="NX04SO_XXXXXXX"
                   />
-                </Field>
-                <Field label="來源銷貨單號 🟡">
+                </TieredField>
+                <TieredField tier="recommended" label="來源銷貨單號" hint="snapshot 顯示用">
                   <input
                     className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                     value={form.sourceSoNo}
                     onChange={(e) => setForm({ ...form, sourceSoNo: e.target.value })}
                     placeholder="SO-202606-Z01-00001"
                   />
-                </Field>
+                </TieredField>
               </>
             )}
-            <Field label="供應商 ID 🟢">
+            <TieredField tier="required" label="供應商 ID">
               <input
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.supplierId}
                 onChange={(e) => setForm({ ...form, supplierId: e.target.value })}
                 placeholder="NX01PTNR0000XXX"
               />
-            </Field>
-            <Field label="零件 ID 🟢">
+            </TieredField>
+            <TieredField tier="required" label="零件 ID">
               <input
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.partId}
                 onChange={(e) => setForm({ ...form, partId: e.target.value })}
                 placeholder="NX01PART0000XXX"
               />
-            </Field>
-            <Field label="數量 🟢">
+            </TieredField>
+            <TieredField tier="required" label="數量">
               <input
                 type="number"
                 min={0}
@@ -214,8 +226,8 @@ export default function WarrantyClaimListPage() {
                 value={form.qty}
                 onChange={(e) => setForm({ ...form, qty: e.target.value })}
               />
-            </Field>
-            <Field label="問題描述 🟢" className="md:col-span-2">
+            </TieredField>
+            <TieredField tier="required" label="問題描述" className="md:col-span-2">
               <textarea
                 rows={3}
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
@@ -223,7 +235,16 @@ export default function WarrantyClaimListPage() {
                 onChange={(e) => setForm({ ...form, issueDescription: e.target.value })}
                 placeholder="例：第一次使用 3 個月後漏油、無撞擊痕跡"
               />
-            </Field>
+            </TieredField>
+            <TieredField tier="advanced" label="備註" hint="內部紀錄、給供應商看的內容寫在問題描述" className="md:col-span-2">
+              <textarea
+                rows={2}
+                className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
+                value={form.remark}
+                onChange={(e) => setForm({ ...form, remark: e.target.value })}
+                placeholder="例：本批已通報業務 G、由 A 後續追蹤"
+              />
+            </TieredField>
           </div>
           <div className="mt-4 flex gap-2">
             <button
@@ -242,6 +263,7 @@ export default function WarrantyClaimListPage() {
             </button>
           </div>
         </div>
+        </TieredFormProvider>
       )}
 
       {loading ? (

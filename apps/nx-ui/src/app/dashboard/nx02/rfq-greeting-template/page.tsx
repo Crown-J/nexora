@@ -9,6 +9,11 @@ import {
   updateRfqGreetingTemplate,
   type RfqGreetingTemplateDto,
 } from '@/features/nx02/rfq-greeting-template/api/rfq-greeting-template';
+import {
+  TieredField,
+  TieredFormProvider,
+  TieredFormToolbar,
+} from '@/features/shared/tiered-form';
 
 export default function RfqGreetingTemplatePage() {
   const [data, setData] = useState<RfqGreetingTemplateDto | null>(null);
@@ -63,45 +68,48 @@ export default function RfqGreetingTemplatePage() {
       {error && <div className="mb-4 rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-300">{error}</div>}
       {message && <div className="mb-4 rounded-lg bg-emerald-500/20 px-4 py-2 text-sm text-emerald-300">{message}</div>}
 
-      <div className="space-y-4">
-        <label className="block">
-          <div className="mb-1 text-sm text-white/80">開頭客套話 🟢</div>
-          <textarea
-            className="w-full rounded-lg border border-white/10 bg-black/30 p-3 text-sm outline-none focus:border-white/30"
-            rows={3}
-            value={greeting}
-            onChange={(e) => setGreeting(e.target.value)}
-            maxLength={500}
-            placeholder="您好、想詢價以下零件："
-          />
-          <div className="mt-1 text-xs text-white/40">最多 500 字</div>
-        </label>
-
-        <label className="block">
-          <div className="mb-1 text-sm text-white/80">結尾客套話 🟢</div>
-          <textarea
-            className="w-full rounded-lg border border-white/10 bg-black/30 p-3 text-sm outline-none focus:border-white/30"
-            rows={3}
-            value={closing}
-            onChange={(e) => setClosing(e.target.value)}
-            maxLength={500}
-            placeholder="麻煩報價謝謝"
-          />
-          <div className="mt-1 text-xs text-white/40">最多 500 字</div>
-        </label>
-
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            disabled={saving}
-            onClick={onSave}
-            className="rounded-lg bg-emerald-500/80 px-5 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-50"
-          >
-            {saving ? '儲存中…' : '儲存'}
-          </button>
-          {data && <div className="text-xs text-white/40">最後更新：{new Date(data.updatedAt).toLocaleString('zh-TW')}</div>}
+      <TieredFormProvider defaultMode="lite">
+        <div className="mb-3 flex items-center justify-end">
+          <TieredFormToolbar />
         </div>
-      </div>
+        <div className="space-y-4">
+          <TieredField tier="required" label="開頭客套話">
+            <textarea
+              className="w-full rounded-lg border border-white/10 bg-black/30 p-3 text-sm outline-none focus:border-white/30"
+              rows={3}
+              value={greeting}
+              onChange={(e) => setGreeting(e.target.value)}
+              maxLength={500}
+              placeholder="您好、想詢價以下零件："
+            />
+            <div className="mt-1 text-xs text-white/40">最多 500 字</div>
+          </TieredField>
+
+          <TieredField tier="required" label="結尾客套話">
+            <textarea
+              className="w-full rounded-lg border border-white/10 bg-black/30 p-3 text-sm outline-none focus:border-white/30"
+              rows={3}
+              value={closing}
+              onChange={(e) => setClosing(e.target.value)}
+              maxLength={500}
+              placeholder="麻煩報價謝謝"
+            />
+            <div className="mt-1 text-xs text-white/40">最多 500 字</div>
+          </TieredField>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={onSave}
+              className="rounded-lg bg-emerald-500/80 px-5 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-50"
+            >
+              {saving ? '儲存中…' : '儲存'}
+            </button>
+            {data && <div className="text-xs text-white/40">最後更新：{new Date(data.updatedAt).toLocaleString('zh-TW')}</div>}
+          </div>
+        </div>
+      </TieredFormProvider>
 
       <div className="mt-10 rounded-lg border border-white/10 bg-black/20 p-4">
         <h2 className="mb-2 text-base font-semibold">📋 預覽（當前範本套用實際 RFQ 時長這樣）</h2>

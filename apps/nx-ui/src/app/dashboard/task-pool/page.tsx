@@ -20,6 +20,11 @@ import {
   type TaskPriority,
   type TaskScope,
 } from '@/features/nx98/task-pool/types';
+import {
+  TieredField,
+  TieredFormProvider,
+  TieredFormToolbar,
+} from '@/features/shared/tiered-form';
 
 type CreateForm = {
   title: string;
@@ -134,18 +139,21 @@ export default function TaskPoolPage() {
       {error && <div className="mb-4 rounded-lg bg-red-500/20 px-4 py-2 text-sm text-red-300">{error}</div>}
 
       {showForm && (
+        <TieredFormProvider defaultMode="lite">
         <div className="mb-6 rounded-lg border border-white/10 bg-black/30 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-semibold">新建待辦</h2>
+            <TieredFormToolbar />
+          </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <label className="block md:col-span-2">
-              <div className="mb-1 text-sm text-white/80">標題 🟢</div>
+            <TieredField tier="required" label="標題" className="md:col-span-2">
               <input
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
               />
-            </label>
-            <label className="block">
-              <div className="mb-1 text-sm text-white/80">分類 🟢</div>
+            </TieredField>
+            <TieredField tier="required" label="分類">
               <select
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.category}
@@ -155,9 +163,8 @@ export default function TaskPoolPage() {
                   <option key={k} value={k}>{v}</option>
                 ))}
               </select>
-            </label>
-            <label className="block">
-              <div className="mb-1 text-sm text-white/80">優先級 🟡</div>
+            </TieredField>
+            <TieredField tier="recommended" label="優先級" hint="預設 M（中）">
               <select
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.priority}
@@ -167,25 +174,23 @@ export default function TaskPoolPage() {
                   <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
                 ))}
               </select>
-            </label>
-            <label className="block">
-              <div className="mb-1 text-sm text-white/80">截止日期 🟡</div>
+            </TieredField>
+            <TieredField tier="recommended" label="截止日期" hint="超過會在列表標紅">
               <input
                 type="date"
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.dueDate}
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               />
-            </label>
-            <label className="block md:col-span-2">
-              <div className="mb-1 text-sm text-white/80">詳細說明 🟡</div>
+            </TieredField>
+            <TieredField tier="recommended" label="詳細說明" hint="領取人看到" className="md:col-span-2">
               <textarea
                 rows={3}
                 className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-sm"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
-            </label>
+            </TieredField>
           </div>
           <div className="mt-3 flex gap-2">
             <button
@@ -204,6 +209,7 @@ export default function TaskPoolPage() {
             </button>
           </div>
         </div>
+        </TieredFormProvider>
       )}
 
       {loading ? (
