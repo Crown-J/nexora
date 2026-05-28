@@ -18,6 +18,7 @@ import {
   patchRfqStatus,
   voidRfq,
 } from '../../api/rfq';
+import { generateRfqInquiryText } from '@/features/nx02/rfq-greeting-template/api/rfq-greeting-template';
 import type { RfqDetailDto } from '../../types';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 
@@ -61,6 +62,36 @@ export function RfqDetailView({ id }: { id: string }) {
   const [partQ, setPartQ] = useState('');
   const [partHits, setPartHits] = useState<LookupRow[]>([]);
   const [replyState, setReplyState] = useState<Record<string, ReplyRow>>({});
+
+  // M3-redo-1：產生詢價文字（呼叫 M2-e 端點、業務 copy 到 LINE/電話）
+  const [inquiryText, setInquiryText] = useState<string | null>(null);
+  const [inquiryBusy, setInquiryBusy] = useState(false);
+  const [copyHint, setCopyHint] = useState<string | null>(null);
+
+  async function onGenerateInquiryText() {
+    setInquiryBusy(true);
+    setError(null);
+    setCopyHint(null);
+    try {
+      const res = await generateRfqInquiryText(id);
+      setInquiryText(res.text);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setInquiryBusy(false);
+    }
+  }
+
+  async function onCopyInquiryText() {
+    if (!inquiryText) return;
+    try {
+      await navigator.clipboard.writeText(inquiryText);
+      setCopyHint('已複製到剪貼簿、可貼到 LINE/Email');
+      setTimeout(() => setCopyHint(null), 3000);
+    } catch (e) {
+      setCopyHint('複製失敗、請手動全選複製');
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -248,10 +279,50 @@ export function RfqDetailView({ id }: { id: string }) {
             狀態：{rfqStatusLabel(doc.status)} · {doc.rfqDate}
           </p>
         </div>
-        <Link href="/dashboard/nx01/rfq" className="text-sm text-muted-foreground underline">
-          返回列表
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={inquiryBusy}
+            onClick={onGenerateInquiryText}
+            className="rounded-lg bg-blue-500/80 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+            title="產生詢價文字（業務 copy 到 LINE/電話問供應商）"
+          >
+            {inquiryBusy ? '產生中…' : '📋 產生詢價文字'}
+          </button>
+          <Link href="/dashboard/nx01/rfq" className="text-sm text-muted-foreground underline">
+            返回列表
+          </Link>
+        </div>
       </header>
+
+      {inquiryText !== null && (
+        <div className="space-y-2 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-blue-300">詢價文字（複製到 LINE/Email 用）</h2>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCopyInquiryText}
+                className="rounded bg-blue-500/30 px-3 py-1 text-xs hover:bg-blue-500/50"
+              >複製</button>
+              <button
+                type="button"
+                onClick={() => { setInquiryText(null); setCopyHint(null); }}
+                className="rounded bg-white/10 px-3 py-1 text-xs hover:bg-white/20"
+              >關閉</button>
+            </div>
+          </div>
+          <pre className="whitespace-pre-wrap rounded-lg bg-black/30 p-3 text-sm">{inquiryText}</pre>
+          {copyHint && <p className="text-xs text-emerald-300">{copyHint}</p>}
+          <p className="text-xs text-muted-foreground">
+            想改開頭/結尾客套話？到{' '}
+            <Link href="/dashboard/nx02/rfq-greeting-template" className="underline">
+              客套話設定頁
+            </Link>{' '}
+            調整。
+          </p>
+        </div>
+      )}
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div>

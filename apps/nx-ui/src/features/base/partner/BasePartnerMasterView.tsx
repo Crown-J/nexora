@@ -38,6 +38,7 @@ import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import {
   createPartner,
   listPartners,
+  recalcPartnerSupplierGrade,
   setPartnerActive,
   updatePartner,
   type PartnerDto,
@@ -1353,6 +1354,25 @@ export function BasePartnerMasterView() {
                       </option>
                     ))}
                   </select>
+                  {editing && selectedId && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const updated = await recalcPartnerSupplierGrade(selectedId);
+                          alert(`已依付款條件 ${updated.paymentTermDomestic} 重算供應商等級\n（須重新開啟此筆查看 supplierGradeId）`);
+                          // 觸發 list refresh（簡化：reload row）
+                          setRows((prev) => prev.map((r) => (r.id === selectedId ? { ...r, paymentTermDomestic: updated.paymentTermDomestic } : r)));
+                        } catch (e) {
+                          alert(`重算失敗：${(e as Error).message}`);
+                        }
+                      }}
+                      className="rounded bg-amber-500/30 px-2 py-0.5 text-xs hover:bg-amber-500/50"
+                      title="依付款條件 NET90→A / NET60→B / NET30→C / PREPAY→D 重算"
+                    >
+                      🏆 依付款條件重算供應商等級
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`${titleId}-cr`}>信用額度（0=不限制）</Label>
