@@ -12,7 +12,7 @@
  * - 對齊 nx04 dashboard 3 placeholder（customer / domestic / export）
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.nx00';
+import type { SideMenuGroup } from '@/features/layout/config/menu.base';
 
 export function getNx04SideMenu(): SideMenuGroup[] {
   return [

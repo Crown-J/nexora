@@ -1,8 +1,8 @@
 /**
- * 零件族群主檔 mock — 對應資料表 nx00_part_group（前端 camelCase）
+ * 零件族群主檔 mock — 對應資料表 nx01_part_group（前端 camelCase）
  *
  * - id：系統內碼，畫面不顯示
- * - carBrandId：FK → nx00_car_brand（mock 取自汽車廠牌）
+ * - carBrandId：FK → nx01_car_brand（mock 取自汽車廠牌）
  */
 
 import { MOCK_BASE_BRANDS, type BaseBrandRow } from '@/features/base/brand/mock-data';
@@ -24,7 +24,7 @@ export type BasePartGroupRow = {
   updatedBy: string;
 };
 
-/** 族群主檔可選之汽車廠牌（與 nx00_car_brand mock 對齊：僅 vehicle） */
+/** 族群主檔可選之汽車廠牌（與 nx01_car_brand mock 對齊：僅 vehicle） */
 export function getMockCarBrandsForPartGroup(): BaseBrandRow[] {
   return MOCK_BASE_BRANDS.filter((b) => b.kind === 'vehicle');
 }

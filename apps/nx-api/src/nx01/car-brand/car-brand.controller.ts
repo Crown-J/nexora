@@ -1,6 +1,6 @@
 // apps/nx-api/src/nx01/car-brand/car-brand.controller.ts
 // 對應規格：docs/nx01/spec/intent/nx01-12-car-brand.md v1.0 §2 / §6
-// Crown 拍 Q2=A：對齊 part-brand 既有 NX01 範式（清 nx00 殘留、前端 commit 3.D 改 path）
+// Crown 拍 Q2=A：對齊 part-brand 既有 NX01 範式（歷史已清、前端 commit 3.D 改 path）
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';

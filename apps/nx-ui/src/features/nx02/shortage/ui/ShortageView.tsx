@@ -13,7 +13,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
+import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import { cx } from '@/shared/lib/cx';
 
 import { useShortage } from '../hooks/useShortage';

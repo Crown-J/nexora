@@ -2,7 +2,7 @@
 /**
  * UserRole Controller（業界改革 #22 v1.2、解前端 /user-role 404）
  *
- * 路由前綴：`/user-role`（root、對齊前端既有 features/base + features/nx00 client）
+ * 路由前綴：`/user-role`（root、對齊前端既有 features/base + features/shared/master client）
  * 後續軌 TASK-API-NAMESPACE-NORMALIZE 統一為 /nx01/user-role 範式。
  */
 

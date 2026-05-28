@@ -9,7 +9,7 @@
  *   PATCH  {basePath}/:id/active   { isActive }            軟刪除 / 啟用（系統不刪資料）
  *
  * 簡單平面主檔（幣別 / 國家 / 零件群組 / 車體類型 …）用一份 config 即可套用，
- * 取代舊「彈窗範式」BaseNx00ModalCodeMasterView。
+ * 取代舊「彈窗範式」BaseModalCodeMasterView。
  */
 
 import { apiFetch } from '@/shared/api/client';

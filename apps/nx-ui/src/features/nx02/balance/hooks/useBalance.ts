@@ -16,7 +16,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { parsePositiveInt } from '@/shared/lib/parse';
 
-import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
+import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 
 import { getBalanceSummary, listBalance } from '../api/balance';
 import type { BalanceRowDto, BalanceSummaryResponse, WarehouseOption } from '../types';

@@ -1,6 +1,6 @@
 // apps/nx-ui/src/features/base/part-model/BasePartModelMasterView.tsx
 // 對應規格：docs/nx01/spec/intent/nx01-16-part-model.md v1.0 §2 / §3
-// Q2=A：獨立 /master/part-model 列表頁、generic Nx00FlatMasterView 框架
+// Q2=A：獨立 /master/part-model 列表頁、generic FlatMasterView 框架
 // Q3=B：fitLevel SmallInt enum（1=原廠 / 2=副廠等效 / 3=通用替代）
 // Q7=A：料件反查車型單向、雙向後續軌（A072）
 'use client';
@@ -8,9 +8,9 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Label } from '@/components/ui/label';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
-import { Nx00FlatMasterView, type FlatFieldDef } from '@/features/base/nx00-flat-master/Nx00FlatMasterView';
-import { listPart } from '@/features/nx00/part/api/part';
-import type { PartDto } from '@/features/nx00/part/types';
+import { FlatMasterView, type FlatFieldDef } from '@/features/base/flat-master/FlatMasterView';
+import { listPart } from '@/features/shared/master/part/api/part';
+import type { PartDto } from '@/features/shared/master/part/types';
 import { listModel } from '@/features/nx01/model/api/model';
 import type { ModelDto } from '@/features/nx01/model/types';
 
@@ -209,7 +209,7 @@ function PartModelEndpointsBlock(props: {
 
 export function BasePartModelMasterView() {
   return (
-    <Nx00FlatMasterView
+    <FlatMasterView
       basePath="/nx01/part-models"
       prefKey="base.partModel"
       listErrorCode="nxui_base_part_model_list"

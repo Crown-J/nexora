@@ -30,7 +30,7 @@ export class AuthService {
   ) { }
 
   /**
-   * @CODE nxapi_nx00_auth_login_003
+   * @CODE nxapi_auth_login_003
    * @FUNCTION_CODE NX99-AUTH-SVC-001-F01
    *
    * 說明：
@@ -192,7 +192,7 @@ export class AuthService {
   }
 
   /**
-   * @CODE nxapi_nx00_auth_me_003
+   * @CODE nxapi_auth_me_003
    *
    * 說明：
    * - JWT Guard 解析 sub 後，帶入 userId

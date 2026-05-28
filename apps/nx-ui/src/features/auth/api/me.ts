@@ -15,7 +15,7 @@ import { apiJson } from '@/shared/api/client';
 import type { MeResponse } from '@/features/auth/types';
 
 /**
- * @CODE nxui_nx00_auth_me_callapi_001
+ * @CODE nxui_master_auth_me_callapi_001
  * 說明：
  * - GET /auth/me
  * - 回傳使用者資料與 roles（若後端有提供）

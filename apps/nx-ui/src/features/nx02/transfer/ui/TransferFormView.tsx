@@ -12,8 +12,8 @@
 
 import { useEffect, useState } from 'react';
 
-import { listLookupLocation, listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
-import type { LookupLocationRow } from '@/features/nx00/lookup/api/lookup';
+import { listLookupLocation, listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
+import type { LookupLocationRow } from '@/features/shared/master/lookup/api/lookup';
 import { PartLookupAutocomplete } from '@/features/nx02/shared/ui/PartLookupAutocomplete';
 import { cx } from '@/shared/lib/cx';
 

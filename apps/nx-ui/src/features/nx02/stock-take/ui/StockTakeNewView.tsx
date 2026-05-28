@@ -10,7 +10,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
+import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import { PartLookupAutocomplete } from '@/features/nx02/shared/ui/PartLookupAutocomplete';
 
 import type { StockTakeNewVm } from '../hooks/useStockTakeNew';

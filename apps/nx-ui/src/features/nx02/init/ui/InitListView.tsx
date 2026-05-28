@@ -14,7 +14,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-import { listLookupWarehouse } from '@/features/nx00/lookup/api/lookup';
+import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import { cx } from '@/shared/lib/cx';
 
 import type { InitListVm } from '../hooks/useInitList';
