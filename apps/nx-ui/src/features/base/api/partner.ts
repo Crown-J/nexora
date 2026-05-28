@@ -137,3 +137,13 @@ export async function setPartnerActive(id: string, isActive: boolean): Promise<P
   await assertOk(res, 'nxui_base_partner_set_active');
   return res.json() as Promise<PartnerDto>;
 }
+
+/** M2-c：依付款條件重算供應商等級（前端「重算」按鈕對應） */
+export async function recalcPartnerSupplierGrade(id: string): Promise<PartnerDto> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/recalc-supplier-grade`, {
+    method: 'POST',
+    body: '{}',
+  });
+  await assertOk(res, 'nxui_base_partner_recalc_supplier_grade');
+  return res.json() as Promise<PartnerDto>;
+}
