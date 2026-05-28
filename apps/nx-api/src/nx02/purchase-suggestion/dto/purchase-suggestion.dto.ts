@@ -27,7 +27,7 @@ export class PurchaseSuggestionListQueryDto {
   @MaxLength(15)
   warehouseId?: string;
 
-  /** 過濾廠商 ID（partner_type='S'、混合範式：先查 PartnerPart 主檔 → fallback 歷史 PoItem 90 天）。 */
+  /** 過濾廠商 ID（partner_type='S' 純供應商、混合範式：先查 PartnerPart 主檔 → fallback 歷史 PoItem 90 天）。 */
   @IsOptional()
   @IsString()
   @MaxLength(15)

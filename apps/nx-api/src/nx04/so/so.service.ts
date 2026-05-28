@@ -121,12 +121,12 @@ export class SoService {
   }
 
   /**
-   * 校驗 customerId 為 partner_type='C' 客戶 + isActive、並回傳 partner 完整資訊
-   * NX04-IMPL-01 Phase 3 commit 3a 升：加 defaultWarehouseId（M1 配套）+ creditLimit/creditStatus（授信用）
+   * 校驗 customerId 為 partner_type IN ('C', 'O')（保養廠或同行）+ isActive、並回傳 partner 完整資訊
+   * partner 改制六分類：同行 O 也是客戶（會向我買貨）、客戶選單篩選 = C+O
    */
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: 'C' },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
       select: {
         id: true,
         paymentTermDomestic: true,
@@ -135,7 +135,7 @@ export class SoService {
         creditStatus: true,
       },
     });
-    if (!p) throw new BadRequestException('customerId must be an active partner with partnerType=C');
+    if (!p) throw new BadRequestException("customerId must be an active partner with partnerType IN ('C', 'O')");
     return p;
   }
 

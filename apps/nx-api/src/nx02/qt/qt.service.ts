@@ -433,7 +433,7 @@ export class Nx02QtService {
     partnerId: string,
   ): Promise<void> {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: 'S' },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: 'O' },
       select: { id: true },
     });
     if (!p) throw new PartnerNotInquiryTypeError(partnerId);

@@ -100,10 +100,10 @@ export class QuoteService {
 
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: 'C' },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
       select: { id: true },
     });
-    if (!p) throw new BadRequestException('customerId must be an active partner with partnerType=C');
+    if (!p) throw new BadRequestException("customerId must be an active partner with partnerType IN ('C', 'O')");
   }
 
   private lineAmount(qty: PrismaNs.Decimal, unit: PrismaNs.Decimal) {

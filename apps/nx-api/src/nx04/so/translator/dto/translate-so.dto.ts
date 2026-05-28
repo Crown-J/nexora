@@ -41,7 +41,7 @@ export class TranslateLineItemDto {
   /**
    * S → null
    * T → nx01_warehouse.id（來源倉，必填）
-   * G → nx01_partner.id（partner_type='S' 同行，必填）
+   * G → nx01_partner.id（partner_type='O' 同行，必填）
    * B → null（CO 由 translator 內部建立）
    */
   @IsOptional()
