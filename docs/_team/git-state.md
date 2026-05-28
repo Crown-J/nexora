@@ -10,13 +10,13 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-28（⭐ TASK-NX00-CLEANUP 進階段 2 前清理、徹底清 nx00 命名）**
-> **當前分支：`main`**（HEAD = `7dc3b6d`、merge feature/nx00-cleanup + tag `nx00-cleanup-complete`）
-> **上輪 closure**：LITE 階段 1 進貨（merge `9bf8419` + tag `v1.2.0-nx02-purchase-lite-closure`、見 §A.2）
-> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/nx00-cleanup、--no-ff、進階段 2 前清理）
-> **狀態摘要**：`feature/nx00-cleanup` = **已 merge main（merge commit `7dc3b6d`）、可考慮刪除**
-> **整軌成果**：P1 rm 32 死碼 + P2 9 module 搬 features/shared/master/ + sed sweep；grep 'nx00' apps/ = 0 殘留、build 全綠
-> **⚠️ Railway production migration 同步累計落後 89 支**（A077、+M1+M4 共 2 支）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
+> **快照時間：2026-05-28（⭐ LITE 階段 2 庫存 NX03 closure、merge feature/nx03-stock-lite + tag v1.3.0-nx03-stock-lite-closure）**
+> **當前分支：`main`**（HEAD = `7ae0c2a`、merge feature/nx03-stock-lite + tag `v1.3.0-nx03-stock-lite-closure`）
+> **上輪 closure**：NX00 命名清理（merge `7dc3b6d` + tag `nx00-cleanup-complete`、見 §A.2）
+> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/nx03-stock-lite、--no-ff、LITE 階段 2 庫存 closure）
+> **狀態摘要**：`feature/nx03-stock-lite` = **已 merge main（merge commit `7ae0c2a`）、可考慮刪除**
+> **整軌成果**：11 commits（M1 schema → M6 closure）、7 功能交付（盤點 / 庫存查詢 3 維度 / 異常回報 5×5 / 重組分解 M+D / 庫位 / 產品設定 / 補貨通知）、操作手冊 13 章節 / 5 張新表 dev DB / 跨模組接點接通（盤點→nx98、IssueReport 軟連結、Conversion ledger）
+> **⚠️ Railway production migration 同步累計落後 88 支**（A077、+M1 共 1 支、Railway 端維持落後）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
 > ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
 
@@ -24,7 +24,8 @@
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `7dc3b6d` | **⚠️ MERGE feature/nx00-cleanup（徹底清 nx00 命名、進階段 2 前清理、tag `nx00-cleanup-complete`）** |
+| `main` ⭐ | ✅ 同步 | `7ae0c2a` | **⚠️ MERGE feature/nx03-stock-lite（LITE 階段 2 庫存 closure、tag `v1.3.0-nx03-stock-lite-closure`）** |
+| `feature/nx03-stock-lite` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 11 commits 整軌：M1 schema / M2-A~F backend / M3-1~M3-3b frontend（5 畫面）/ M4 整合驗證 / M5 操作手冊 |
 | `feature/nx00-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | P1 rm 32 死碼 / P2 9 module 搬 features/shared/master + sed sweep |
 | `feature/nx02-purchase-lite` | ✅ 同步、**已 merge main、可考慮刪除** | `bb91268` | 進貨整軌：M1 schema+migration / M2 backend×6 / M3 frontend / M3-redo×5 / M4 nx98 task-pool / M5 tiered-form / M6 手冊 |
 | `feature/nx01-partner-six-classes` | ✅ 同步、**已 merge main、可考慮刪除** | `4938dd0` | partner_type 六分類 C/O/S/T/B/V + canTransferStock + 17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪 + _ddl_fragment 對齊 |
@@ -71,7 +72,8 @@
 | `v1.6.2-user-master-track-c-closure` | — | USER 主檔軌 A+B+C 全軌完成（master-shell 範式建立） |
 | `v1.0-nx01-closure` | `1487247` | **NX01 主檔模組 closure**（25 主檔鋼鐵星球範式對齊：命名統一 / 指派管理 / SYSADMIN 鎖定 / 表格工具 / 國家後端 / 下拉鍵盤 / 模組收合 / 據點庫位拆分 / 料號規則重做 / 零件重做 / 完整料號格式 / 3 drift 補強）|
 | `v1.1.0-partner-six-classes-closure` | `0cb89e3` | **LITE 藍圖階段 0 partner 改制 closure**（partner_type 六分類：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商 + canTransferStock 旗標、17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪、Crown 2026-05-28 拍板）|
-| `v1.2.0-nx02-purchase-lite-closure` ⭐ | `9bf8419` | **LITE 藍圖階段 1 進貨模組 closure**（NX02 + nx98 共用核心 + tiered-form framework）14 commits 整軌：詢價→比價→PO/TI 分流→驗收+移動平均+國外攤分→自動 AP / 保固單兩型+附件+5階段+4結果 / 客套話設定 / 供應商等級重算 / 產品定價重算 / 共享待辦池框架 / 三層欄位框架 / 操作手冊 |
+| `v1.2.0-nx02-purchase-lite-closure` | `9bf8419` | **LITE 藍圖階段 1 進貨模組 closure**（NX02 + nx98 共用核心 + tiered-form framework）14 commits 整軌：詢價→比價→PO/TI 分流→驗收+移動平均+國外攤分→自動 AP / 保固單兩型+附件+5階段+4結果 / 客套話設定 / 供應商等級重算 / 產品定價重算 / 共享待辦池框架 / 三層欄位框架 / 操作手冊 |
+| `v1.3.0-nx03-stock-lite-closure` ⭐ | `7ae0c2a` | **LITE 藍圖階段 2 庫存模組 closure**（NX03）11 commits 整軌：M1 schema 1 新表 + 4 欄位 + AutoReplenish 標 deprecated / M2-A~F backend（盤點核可 + nx98 補貨通知 + 庫存查詢 3 維度 + IssueReport 跨模組異常 + PartStockSetting）/ M3-1~M3-3b frontend 5 畫面（盤點工作台 / 庫存查詢 / 庫位 / 產品設定 / 異常回報 / 重組分解）/ M4 整合驗證 / M5 操作手冊 13 章節 |
 
 ### A.3 工作樹狀態
 
@@ -82,9 +84,9 @@ nothing to commit, working tree clean
 ```
 
 > ⚠️ 本檔在 main 分支 update（不是 feature 分支）— 本軌已 merge、git-state 跟著 main 走。
-> ⚠️ 本次 TASK-NX02-PURCHASE-LITE 收尾含：
->   1 個 [MERGE]（feature/nx02-purchase-lite → main、--no-ff、merge commit `9bf8419`、整軌 14 commits）
->   + 1 個 tag（`v1.2.0-nx02-purchase-lite-closure` 指向 `9bf8419`、已 push origin）
+> ⚠️ 本次 TASK-NX03-STOCK-LITE 收尾含：
+>   1 個 [MERGE]（feature/nx03-stock-lite → main、--no-ff、merge commit `7ae0c2a`、整軌 11 commits）
+>   + 1 個 tag（`v1.3.0-nx03-stock-lite-closure` 指向 `7ae0c2a`、已 push origin）
 >   + 即將加 [GIT-STATE]（本檔、main 分支上 commit）
 
 ---
