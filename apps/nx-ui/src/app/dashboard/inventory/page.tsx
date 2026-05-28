@@ -5,17 +5,22 @@
  *
  * TASK-BUSINESS-RESTRUCTURE Phase 8:手機版改成 4 分區架構(狀態追蹤 / 工作站 / 單據管理 / 倉位管理),
  * 由 InventoryHubMobile 管理(仿 SalesHubMobile)。桌面版維持原 4 section(待後續桌面版重構)。
+ *
+ * NX03-STOCK-LITE M3-1 補充：主檔/盤點 cards 接上真實路由、新增「庫存查詢與異常」section。
  */
 
 'use client';
 
 import {
+  AlertTriangle,
+  BarChart3,
   Box,
   ClipboardCheck,
   ClipboardList,
   Layers,
   MapPin,
   Package,
+  Recycle,
   ScanLine,
   Truck,
 } from 'lucide-react';
@@ -30,11 +35,39 @@ function MasterSection() {
         title="倉位/庫位管理"
         description="倉庫與庫位設定、坪效記錄"
         Icon={MapPin}
+        href="/dashboard/inventory/warehouse/locations"
       />
       <HubLinkCard
-        title="產品管理"
-        description="依坪效建議安全量與最高量給採購參考"
+        title="產品設定"
+        description="安全量 / 最高量 / 預設庫位（進貨上架建議）"
         Icon={Layers}
+        href="/dashboard/inventory/part-stock-setting"
+      />
+    </ModuleHubSection>
+  );
+}
+
+/** NX03-STOCK-LITE M3-1：庫存查詢與異常處置（新增 section） */
+function QueryAndIssueSection() {
+  return (
+    <ModuleHubSection sectionId="inv-query-issue" title="庫存查詢與異常處置" count={3}>
+      <HubLinkCard
+        title="庫存查詢"
+        description="三維度：料號 × 倉庫 × 庫位"
+        Icon={BarChart3}
+        href="/dashboard/inventory/stock-query"
+      />
+      <HubLinkCard
+        title="異常回報"
+        description="5 異常 × 5 處置：退貨 / 保固 / 重組 / 報廢 / 未處置"
+        Icon={AlertTriangle}
+        href="/dashboard/inventory/issue-report"
+      />
+      <HubLinkCard
+        title="重組 / 分解"
+        description="拆解或組裝零件、自動扣料入庫 + 成本加權"
+        Icon={Recycle}
+        href="/dashboard/inventory/conversion"
       />
     </ModuleHubSection>
   );
@@ -63,10 +96,11 @@ function CountSection() {
   return (
     <ModuleHubSection sectionId="inv-count" title="盤點" count={1}>
       <HubLinkCard
-        title="盤點"
-        description="定期或臨時清點庫存,確認帳實相符"
+        title="盤點工作台"
+        description="動態盤點 / 核可流程 / 過帳寫帳 + 補貨通知"
         Icon={ScanLine}
         stepLabel="STEP 1"
+        href="/dashboard/inventory/stocktake"
       />
     </ModuleHubSection>
   );
@@ -87,9 +121,10 @@ export default function InventoryHubPage() {
 
         <div className="space-y-10">
           <MasterSection />
+          <QueryAndIssueSection />
+          <CountSection />
           <ShipSection />
           <ReceiveSection />
-          <CountSection />
         </div>
       </div>
 
