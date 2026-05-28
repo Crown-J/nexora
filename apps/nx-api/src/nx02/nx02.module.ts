@@ -23,6 +23,9 @@ import { RfqController } from './rfq/rfq.controller';
 import { RfqService } from './rfq/rfq.service';
 import { RrController } from './rr/rr.controller';
 import { RrService } from './rr/rr.service';
+import { WarrantyClaimAttachmentService } from './warranty-claim/warranty-claim-attachment.service';
+import { WarrantyClaimController } from './warranty-claim/warranty-claim.controller';
+import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
 
 @Module({
   imports: [PrismaModule],
@@ -36,6 +39,7 @@ import { RrService } from './rr/rr.service';
     PurchaseSuggestionController,
     PriceComparisonController,
     PurchaseStageController,
+    WarrantyClaimController,
   ],
   providers: [
     RfqService,
@@ -47,6 +51,8 @@ import { RrService } from './rr/rr.service';
     PurchaseSuggestionService,
     PriceComparisonService,
     PurchaseStageService,
+    WarrantyClaimService,
+    WarrantyClaimAttachmentService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
 })

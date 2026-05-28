@@ -1,7 +1,7 @@
 // apps/nx-api/src/shared/nx02/nx02-doc-no.ts
 import type { Prisma } from 'db-core';
 
-export type DocKind = 'RF' | 'PO' | 'RR' | 'PR' | 'TI';
+export type DocKind = 'RF' | 'PO' | 'RR' | 'PR' | 'TI' | 'WC';
 
 /**
  * 單號：[類型]-[YYYYMM]-[倉庫碼]-[5 碼流水]
@@ -48,6 +48,13 @@ export async function allocDocNo(
       break;
     case 'TI':
       last = await tx.nx02Ti.findFirst({
+        where: { tenantId, docNo: { startsWith: prefix } },
+        orderBy: { docNo: 'desc' },
+        select: { docNo: true },
+      });
+      break;
+    case 'WC':
+      last = await tx.nx02WarrantyClaim.findFirst({
         where: { tenantId, docNo: { startsWith: prefix } },
         orderBy: { docNo: 'desc' },
         select: { docNo: true },
