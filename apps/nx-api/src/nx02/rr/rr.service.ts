@@ -14,6 +14,7 @@ import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { assertRrStatusTransition, RrStatus } from '../../shared/nx02/nx02-state-machine';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
+import { createApFromPostedRr } from '../../shared/nx05/nx05-create-ap-from-rr';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateRrDto, CreateRrItemDto, PatchRrItemDto, UpdateRrDto } from './dto/rr.dto';
@@ -264,6 +265,12 @@ export class RrService {
         }
       }
     }
+
+    // M2-f：RR POSTED → 自動產生應付帳款 AP（LITE 直接路徑：跳過 PO 走 RR 時用）
+    // - 冪等：helper 內 dedup（既有 AP_RR 跟 rrId 對應則 skip）
+    // - 有 PO 時跳過（PO confirmed 早已建 AP、helper 內部 guard）
+    // - 失敗不阻擋 RR 過帳（log + skip、NX05 LITE 未完整、保守處理）
+    await createApFromPostedRr(tx, { tenantId: rr.tenantId, rrId: rr.id, userId });
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {
