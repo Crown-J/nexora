@@ -10,21 +10,22 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-28（⭐⭐⭐ TASK-NX01-PARTNER-SIX-CLASSES-01 merge、NEXORA LITE 藍圖階段 0 partner 改制 closure）**
-> **當前分支：`main`**（HEAD = `0cb89e3`、merge feature/nx01-partner-six-classes）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx01-partner-six-classes + 軌後、--no-ff、LITE 藍圖階段 0 closure）**
-> **⭐⭐⭐ 新 Hank（Claude Code）首軌收尾完成**：merge + push + tag `v1.1.0-partner-six-classes-closure`（指向 `0cb89e3`）+ push tag origin
-> **狀態摘要**：`feature/nx01-partner-six-classes`（HEAD `4938dd0`）= **已 merge main（merge commit `0cb89e3`）、可考慮刪除**
-> **整軌成果**：11 commits / 41 檔（+173 / -1085）/ 1 migration（20260528100000_nx01_partner_six_classes）/ partner_type 六分類 C/O/S/T/B/V + canTransferStock 旗標
-> **⚠️ Railway production migration 同步落後 68 支**（A077、+1 = 本軌新 migration）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
+> **快照時間：2026-05-28（⭐⭐⭐ TASK-NX02-PURCHASE-LITE merge、NEXORA LITE 藍圖階段 1 進貨模組 closure）**
+> **當前分支：`main`**（HEAD = `9bf8419`、merge feature/nx02-purchase-lite + tag `v1.2.0-nx02-purchase-lite-closure`）
+> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx02-purchase-lite + M6 手冊、--no-ff、LITE 藍圖階段 1 closure）**
+> **⭐⭐⭐ 新 Hank（Claude Code）階段 1 收尾完成**：merge + push + tag + 更新本檔
+> **狀態摘要**：`feature/nx02-purchase-lite`（HEAD `bb91268`）= **已 merge main（merge commit `9bf8419`）、可考慮刪除**
+> **整軌成果**：14 commits / 5 新表 / 2 新 migration / nx98 新 module / tiered-form framework / 進貨完整流程（詢價→比價→PO/TI→驗收+移動平均+國外攤分→AP 接點 / 保固單 / 待辦池 / 等級重算 / 定價重算）
+> **⚠️ Railway production migration 同步累計落後 89 支**（A077、+M1+M4 共 2 支）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
-> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit（NX01~NX10 + user-master track A/B/C + nx01-master-complete + 本軌 partner-six-classes 已落地、tag 見 §A.2）、其他既有分支狀態 full audit 留後續軌
+> ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
 
 ### A.1 本地分支總覽（18 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `0cb89e3` | **⚠️ MERGE feature/nx01-partner-six-classes（LITE 藍圖階段 0 partner 改制 closure、11 commits + 軌後、tag `v1.1.0-partner-six-classes-closure`）** |
+| `main` ⭐ | ✅ 同步 | `9bf8419` | **⚠️ MERGE feature/nx02-purchase-lite（LITE 藍圖階段 1 進貨模組 closure、14 commits、tag `v1.2.0-nx02-purchase-lite-closure`）** |
+| `feature/nx02-purchase-lite` | ✅ 同步、**已 merge main、可考慮刪除** | `bb91268` | 進貨整軌：M1 schema+migration / M2 backend×6 / M3 frontend / M3-redo×5 / M4 nx98 task-pool / M5 tiered-form / M6 手冊 |
 | `feature/nx01-partner-six-classes` | ✅ 同步、**已 merge main、可考慮刪除** | `4938dd0` | partner_type 六分類 C/O/S/T/B/V + canTransferStock + 17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪 + _ddl_fragment 對齊 |
 | `feature/nx01-16-historical-fact-preserve` | ✅ 同步、**已 merge main、可考慮刪除** | `b71fa07` | nx01-16 加 HTML 註解 × 2 + DCL v1.0-historical-note + worklog 主題 23 |
 | `feature/yaro-narrative-drift-fix` | ✅ 同步、**已 merge main、可考慮刪除** | `75cc2bf` | PROJECT_RULES + nx01-summary Yaro 字眼補正 + worklog 主題 22 |
@@ -68,7 +69,8 @@
 | `phase1-complete` | `5d4dbac` | Phase 1 doc-restructure 收官（11 worklog + 4 基礎設施文件 + 35+ 範式 + PROJECT_CONTEXT） |
 | `v1.6.2-user-master-track-c-closure` | — | USER 主檔軌 A+B+C 全軌完成（master-shell 範式建立） |
 | `v1.0-nx01-closure` | `1487247` | **NX01 主檔模組 closure**（25 主檔鋼鐵星球範式對齊：命名統一 / 指派管理 / SYSADMIN 鎖定 / 表格工具 / 國家後端 / 下拉鍵盤 / 模組收合 / 據點庫位拆分 / 料號規則重做 / 零件重做 / 完整料號格式 / 3 drift 補強）|
-| `v1.1.0-partner-six-classes-closure` ⭐ | `0cb89e3` | **LITE 藍圖階段 0 partner 改制 closure**（partner_type 六分類：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商 + canTransferStock 旗標、17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪、Crown 2026-05-28 拍板）|
+| `v1.1.0-partner-six-classes-closure` | `0cb89e3` | **LITE 藍圖階段 0 partner 改制 closure**（partner_type 六分類：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商 + canTransferStock 旗標、17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪、Crown 2026-05-28 拍板）|
+| `v1.2.0-nx02-purchase-lite-closure` ⭐ | `9bf8419` | **LITE 藍圖階段 1 進貨模組 closure**（NX02 + nx98 共用核心 + tiered-form framework）14 commits 整軌：詢價→比價→PO/TI 分流→驗收+移動平均+國外攤分→自動 AP / 保固單兩型+附件+5階段+4結果 / 客套話設定 / 供應商等級重算 / 產品定價重算 / 共享待辦池框架 / 三層欄位框架 / 操作手冊 |
 
 ### A.3 工作樹狀態
 
@@ -79,9 +81,9 @@ nothing to commit, working tree clean
 ```
 
 > ⚠️ 本檔在 main 分支 update（不是 feature 分支）— 本軌已 merge、git-state 跟著 main 走。
-> ⚠️ 本次 TASK-NX01-PARTNER-SIX-CLASSES-01 收尾含：
->   1 個 [MERGE]（feature/nx01-partner-six-classes → main、--no-ff、merge commit `0cb89e3`、41 檔變動）
->   + 1 個 tag（`v1.1.0-partner-six-classes-closure` 指向 `0cb89e3`、已 push origin）
+> ⚠️ 本次 TASK-NX02-PURCHASE-LITE 收尾含：
+>   1 個 [MERGE]（feature/nx02-purchase-lite → main、--no-ff、merge commit `9bf8419`、整軌 14 commits）
+>   + 1 個 tag（`v1.2.0-nx02-purchase-lite-closure` 指向 `9bf8419`、已 push origin）
 >   + 即將加 [GIT-STATE]（本檔、main 分支上 commit）
 
 ---
