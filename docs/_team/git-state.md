@@ -10,12 +10,12 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-28（⭐⭐⭐ TASK-NX02-PURCHASE-LITE merge、NEXORA LITE 藍圖階段 1 進貨模組 closure）**
-> **當前分支：`main`**（HEAD = `9bf8419`、merge feature/nx02-purchase-lite + tag `v1.2.0-nx02-purchase-lite-closure`）
-> **本次更新觸發：§E.2-#2「merge 回 main」（feature/nx02-purchase-lite + M6 手冊、--no-ff、LITE 藍圖階段 1 closure）**
-> **⭐⭐⭐ 新 Hank（Claude Code）階段 1 收尾完成**：merge + push + tag + 更新本檔
-> **狀態摘要**：`feature/nx02-purchase-lite`（HEAD `bb91268`）= **已 merge main（merge commit `9bf8419`）、可考慮刪除**
-> **整軌成果**：14 commits / 5 新表 / 2 新 migration / nx98 新 module / tiered-form framework / 進貨完整流程（詢價→比價→PO/TI→驗收+移動平均+國外攤分→AP 接點 / 保固單 / 待辦池 / 等級重算 / 定價重算）
+> **快照時間：2026-05-28（⭐ TASK-NX00-CLEANUP 進階段 2 前清理、徹底清 nx00 命名）**
+> **當前分支：`main`**（HEAD = `7dc3b6d`、merge feature/nx00-cleanup + tag `nx00-cleanup-complete`）
+> **上輪 closure**：LITE 階段 1 進貨（merge `9bf8419` + tag `v1.2.0-nx02-purchase-lite-closure`、見 §A.2）
+> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/nx00-cleanup、--no-ff、進階段 2 前清理）
+> **狀態摘要**：`feature/nx00-cleanup` = **已 merge main（merge commit `7dc3b6d`）、可考慮刪除**
+> **整軌成果**：P1 rm 32 死碼 + P2 9 module 搬 features/shared/master/ + sed sweep；grep 'nx00' apps/ = 0 殘留、build 全綠
 > **⚠️ Railway production migration 同步累計落後 89 支**（A077、+M1+M4 共 2 支）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
 > ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
@@ -24,7 +24,8 @@
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `9bf8419` | **⚠️ MERGE feature/nx02-purchase-lite（LITE 藍圖階段 1 進貨模組 closure、14 commits、tag `v1.2.0-nx02-purchase-lite-closure`）** |
+| `main` ⭐ | ✅ 同步 | `7dc3b6d` | **⚠️ MERGE feature/nx00-cleanup（徹底清 nx00 命名、進階段 2 前清理、tag `nx00-cleanup-complete`）** |
+| `feature/nx00-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | P1 rm 32 死碼 / P2 9 module 搬 features/shared/master + sed sweep |
 | `feature/nx02-purchase-lite` | ✅ 同步、**已 merge main、可考慮刪除** | `bb91268` | 進貨整軌：M1 schema+migration / M2 backend×6 / M3 frontend / M3-redo×5 / M4 nx98 task-pool / M5 tiered-form / M6 手冊 |
 | `feature/nx01-partner-six-classes` | ✅ 同步、**已 merge main、可考慮刪除** | `4938dd0` | partner_type 六分類 C/O/S/T/B/V + canTransferStock + 17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪 + _ddl_fragment 對齊 |
 | `feature/nx01-16-historical-fact-preserve` | ✅ 同步、**已 merge main、可考慮刪除** | `b71fa07` | nx01-16 加 HTML 註解 × 2 + DCL v1.0-historical-note + worklog 主題 23 |
