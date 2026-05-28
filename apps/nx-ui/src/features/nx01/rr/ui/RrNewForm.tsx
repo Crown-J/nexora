@@ -42,7 +42,7 @@ function todayYmd(): string {
 }
 
 function isSupplier(p: PartnerDto): boolean {
-  return p.partnerType === 'S' || p.partnerType === 'SUP';
+  return p.partnerType === 'S';
 }
 
 export function RrNewForm() {

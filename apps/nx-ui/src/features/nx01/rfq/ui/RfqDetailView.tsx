@@ -22,7 +22,7 @@ import type { RfqDetailDto } from '../../types';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 
 function isSupplier(p: PartnerDto): boolean {
-  return p.partnerType === 'S' || p.partnerType === 'SUP';
+  return p.partnerType === 'S';
 }
 
 type DraftLine = {
