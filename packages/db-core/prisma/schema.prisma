@@ -472,6 +472,7 @@ model Nx01Department {
   rev_Nx07EmployeeChange_newDepartmentId Nx07EmployeeChange[] @relation("R_Nx07EmployeeChange_newDepartmentId")
   rev_Nx09Document_deptId                Nx09Document[]       @relation("R_Nx09Document_deptId")
   rev_Nx09KmArticle_deptId               Nx09KmArticle[]      @relation("R_Nx09KmArticle_deptId")
+  rev_Nx98TaskPool_departmentId          Nx98TaskPool[]       @relation("R_Nx98TaskPool_departmentId")
 
   @@map("nx01_department")
 }
@@ -6848,6 +6849,7 @@ model Nx99Tenant {
   rev_Nx02WarrantyClaim_tenantId          Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_tenantId")
   rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
   rev_Nx02RfqGreetingTemplate_tenantId    Nx02RfqGreetingTemplate[]    @relation("R_Nx02RfqGreetingTemplate_tenantId")
+  rev_Nx98TaskPool_tenantId               Nx98TaskPool[]               @relation("R_Nx98TaskPool_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")
@@ -8036,6 +8038,84 @@ model Nx02WarrantyClaimAttachment {
 
   @@index([claimId])
   @@map("nx02_warranty_claim_attachment")
+}
+
+/// =======================================================
+/// Nx98TaskPool — DB table `nx98_task_pool`（LITE 階段 1 M4：跨模組共享待辦池）
+/// =======================================================
+/// 全模組共用框架：進貨/銷貨/庫存/財務等模組產生的待辦事項都進此池。
+/// 業務語意（Crown 2026-05-28 拍板）：
+///   - 任何人可建、可指派或留池中（assigneeUserId=null = 池中無人領）
+///   - 池中待辦任何人可領取（領後 status=CLAIMED、其他人不能領）
+///   - 主管 ABCD 可指派給 EF（assignee 變更）、EF 只能領取（⚠️ RBAC TODO、本軌 minimal 不 enforce）
+///   - 已領取可放回池（CLAIMED→OPEN）
+///   - 完成 status=DONE、作廢 status=VOIDED
+///   - 跨模組通用：sourceModule + sourceDocType + sourceDocId 軟連結業務單據（不建 FK constraint）
+model Nx98TaskPool {
+  /// [NX98]+[TPOL]+[7碼流水號]，EX : NX98TPOL0000001；啟用最低需求版本：LITE
+  id              String          @id @default(dbgenerated("gen_nx98_task_pool_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId        String          @map("tenant_id") @db.VarChar(15)
+  /// 待辦單號（optional、若需流水號用 [TASK]+[YYYYMM]+[5 碼]）；啟用最低需求版本：LITE
+  docNo           String?         @map("doc_no") @db.VarChar(30)
+  /// 來源模組碼（NX02/NX03/NX04/NX05、可空 = 跨模組獨立待辦）；啟用最低需求版本：LITE
+  sourceModule    String?         @map("source_module") @db.VarChar(10)
+  /// 來源單據類型（RR/PO/SO/RFQ 等、可空）；啟用最低需求版本：LITE
+  sourceDocType   String?         @map("source_doc_type") @db.VarChar(10)
+  /// 來源單據 ID（軟連結、不建 FK constraint、跨模組通用）；啟用最低需求版本：LITE
+  sourceDocId     String?         @map("source_doc_id") @db.VarChar(15)
+  /// 來源單據單號 snapshot（顯示用、避免改 docNo 影響歷史）；啟用最低需求版本：LITE
+  sourceDocNo     String?         @map("source_doc_no") @db.VarChar(30)
+  /// 待辦標題（業務人員看的描述）；啟用最低需求版本：LITE
+  title           String          @db.VarChar(200)
+  /// 待辦詳細說明（可空）；啟用最低需求版本：LITE
+  description     String?         @db.VarChar(1000)
+  /// 業務分類（PURCHASE_RECEIVE 待驗收 / SALES_PICK 待撿貨 / INVENTORY_DISPOSAL 待異常處理 等）；啟用最低需求版本：LITE
+  category        String          @db.VarChar(30)
+  /// 優先級（L=低 / M=中 / H=高）；啟用最低需求版本：LITE
+  priority        String          @default("M") @db.VarChar(1)
+  /// 截止日期（可空）；啟用最低需求版本：LITE
+  dueDate         DateTime?       @map("due_date") @db.Date
+  /// 部門 ID（FK nx01_department、null = 全公司池）；啟用最低需求版本：LITE
+  departmentId    String?         @map("department_id") @db.VarChar(15)
+  /// 被指派人（user ID、可空 = 池中、有值 = 已指派或已領取）；啟用最低需求版本：LITE
+  assigneeUserId  String?         @map("assignee_user_id") @db.VarChar(15)
+  /// 指派時間（assignee 變更為非 null 時更新）；啟用最低需求版本：LITE
+  assignedAt      DateTime?       @map("assigned_at")
+  /// 指派人（user ID、主管或建單人）；啟用最低需求版本：LITE
+  assignedBy      String?         @map("assigned_by") @db.VarChar(15)
+  /// 領取時間（EF 主動領、status OPEN→CLAIMED）；啟用最低需求版本：LITE
+  claimedAt       DateTime?       @map("claimed_at")
+  /// 領取人（user ID）；啟用最低需求版本：LITE
+  claimedBy       String?         @map("claimed_by") @db.VarChar(15)
+  /// 狀態（OPEN=池中未領 / CLAIMED=已領取 / DONE=已完成 / VOIDED=作廢）；啟用最低需求版本：LITE
+  status          String          @default("OPEN") @db.VarChar(10)
+  /// 完成時間；啟用最低需求版本：LITE
+  completedAt     DateTime?       @map("completed_at")
+  /// 完成人（user ID）；啟用最低需求版本：LITE
+  completedBy     String?         @map("completed_by") @db.VarChar(15)
+  /// 完成備註（業務完成時填）；啟用最低需求版本：LITE
+  completedRemark String?         @map("completed_remark") @db.VarChar(500)
+  /// 作廢時間；啟用最低需求版本：LITE
+  voidedAt        DateTime?       @map("voided_at")
+  /// 作廢人（user ID）；啟用最低需求版本：LITE
+  voidedBy        String?         @map("voided_by") @db.VarChar(15)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt       DateTime        @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy       String          @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy       String          @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant      @relation("R_Nx98TaskPool_tenantId", fields: [tenantId], references: [id])
+  department      Nx01Department? @relation("R_Nx98TaskPool_departmentId", fields: [departmentId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeUserId, status])
+  @@index([tenantId, departmentId, status])
+  @@index([tenantId, sourceModule, sourceDocId])
+  @@map("nx98_task_pool")
 }
 
 /// =======================================================
