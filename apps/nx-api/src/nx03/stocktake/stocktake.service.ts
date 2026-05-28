@@ -37,6 +37,11 @@ const ST_SEL = {
   // M2 dynamic stocktake snapshot 時間範圍（Q-B3=A application 層即時聚合 stock_ledger）
   snapshotStartedAt: true,
   snapshotEndedAt: true,
+  // NX03-STOCK-LITE M2 核可流程：差異門檻 + status N/P/A/R + 既有 approvedAt/By 沿用
+  smallToleranceQty: true,
+  approvalStatus: true,
+  approvedAt: true,
+  approvedBy: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -67,6 +72,8 @@ const ST_ITEM_SEL = {
   deltaQty: true,
   formulaExpectedQty: true,
   realDiffQty: true,
+  // NX03-STOCK-LITE M2 差異原因（S=被偷/M=算錯/B=破損/U=不明、realDiffQty≠0 時建議必填）
+  varianceReasonCode: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -342,6 +349,8 @@ export class StockTakeService {
           scopeType: dto.scopeType?.trim() || 'F',
           status: StockTakeStatus.DRAFT,
           remark: dto.remark?.trim() || null,
+          // NX03-STOCK-LITE M2：核可門檻、預設 0（任何差異都需簽核）
+          smallToleranceQty: dto.smallToleranceQty != null ? new PrismaNs.Decimal(dto.smallToleranceQty) : new PrismaNs.Decimal(0),
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -437,6 +446,16 @@ export class StockTakeService {
 
     return this.prisma.$transaction(async (tx) => {
       if (dto.status === StockTakeStatus.POSTED && existing.status === StockTakeStatus.ADJUSTING) {
+        // NX03-STOCK-LITE M2 核可閘：POSTED 前必須 approvalStatus='A'（先呼叫 submitForApproval/decideApproval）
+        if (existing.approvalStatus === 'P') {
+          throw new BadRequestException('盤點等候簽核中、不可過帳（請先請負責人核可）');
+        }
+        if (existing.approvalStatus === 'R') {
+          throw new BadRequestException('盤點已退回、請修正差異後重新送審');
+        }
+        if (existing.approvalStatus !== 'A') {
+          throw new BadRequestException('盤點尚未送審、請先呼叫 submit-for-approval');
+        }
         // M2 ADJUSTING → POSTED：先寫 snapshotEndedAt（applyStockTakePosting 內聚合 ledger BETWEEN range）
         const endedAt = new Date();
         await tx.nx03StockTake.update({
@@ -457,6 +476,11 @@ export class StockTakeService {
             updatedBy: user.sub,
           },
         });
+        // NX03-STOCK-LITE M2-B：POSTED 後對所有出現的 part × warehouse 檢查安全量、低於則寫 nx98 task-pool
+        const postedHead = await tx.nx03StockTake.findFirst({ where: { id, tenantId }, select: ST_SEL });
+        if (postedHead) {
+          await this.writeReplenishTasks(tx, postedHead, user.sub);
+        }
       } else {
         const extra: Prisma.Nx03StockTakeUpdateInput = {};
         if (dto.status === StockTakeStatus.COUNTING && existing.status === StockTakeStatus.DRAFT) {
@@ -493,6 +517,10 @@ export class StockTakeService {
             ...(dto.stockTakeDate !== undefined ? { stockTakeDate: new Date(dto.stockTakeDate) } : {}),
             ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
             ...(dto.status !== undefined ? { status: dto.status } : {}),
+            // NX03-STOCK-LITE M2：允許在 POSTED 前調整核可門檻
+            ...(dto.smallToleranceQty !== undefined
+              ? { smallToleranceQty: new PrismaNs.Decimal(dto.smallToleranceQty) }
+              : {}),
             ...extra,
             updatedBy: user.sub,
           },
@@ -607,6 +635,8 @@ export class StockTakeService {
         diffCost: diff.abs().mul(uc).toDecimalPlaces(2),
         adjustType: diff.eq(0) ? 'N' : diff.gt(0) ? 'I' : 'O',
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
+        // NX03-STOCK-LITE M2：差異原因（service 不強制 realDiffQty≠0 必填、UI 自律提示）
+        ...(dto.varianceReasonCode !== undefined ? { varianceReasonCode: dto.varianceReasonCode } : {}),
         updatedBy: user.sub,
       },
       select: ST_ITEM_SEL,
@@ -624,6 +654,231 @@ export class StockTakeService {
       afterData: row as object,
     });
     return row;
+  }
+
+  /**
+   * NX03-STOCK-LITE M2 送審：ADJUSTING 階段呼叫、即時聚合 ledger 計算各 item 真實誤差成本、
+   * 比對 smallToleranceQty 決定 approvalStatus：
+   *   - maxItemDiffCost ≤ smallToleranceQty → 'A'（auto-pass、自過、approvedBy=送審人）
+   *   - 超過 → 'P'（pending、等負責人 decideApproval）
+   *
+   * 'R' 退回後可再呼叫此 method 重新送審（會清 approvedBy/At 重新計算）。
+   */
+  async submitForApproval(user: RequestUser, id: string) {
+    const tenantId = requireTenantId(user);
+    const existing = await this.prisma.nx03StockTake.findFirst({ where: { id, tenantId }, select: ST_SEL });
+    if (!existing) throw new NotFoundException('Stock take not found');
+    if (existing.voidedAt) throw new BadRequestException('Stock take is voided');
+    if (existing.status !== StockTakeStatus.ADJUSTING) {
+      throw new BadRequestException(`送審需在 ADJUSTING 階段（current: ${existing.status}）`);
+    }
+    if (!existing.snapshotStartedAt) {
+      throw new BadRequestException('盤點 snapshot 未啟動、無法計算誤差成本（先從 DRAFT → COUNTING）');
+    }
+    if (existing.approvalStatus === 'A') {
+      throw new BadRequestException('盤點已核可、不可重複送審');
+    }
+    if (existing.approvalStatus === 'P') {
+      throw new BadRequestException('盤點已送審等待核可、不可重複送審');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 即時聚合 ledger 算每 item 真實誤差成本、取最大值
+      const items = await tx.nx03StockTakeItem.findMany({
+        where: { stockTakeId: id },
+        select: { ...ST_ITEM_SEL },
+      });
+      if (!items.length) {
+        throw new BadRequestException('盤點無明細、無法送審');
+      }
+      const now = new Date();
+      const snapStart = existing.snapshotStartedAt!;
+      let maxItemDiffCost = new PrismaNs.Decimal(0);
+      for (const item of items) {
+        const counted = new PrismaNs.Decimal(item.countedQty);
+        const snapshotQty = new PrismaNs.Decimal(item.snapshotQty);
+        const deltaQty = await this.aggregateLedgerDelta(
+          tx,
+          existing.tenantId,
+          item.partId,
+          item.warehouseId,
+          item.locationId,
+          snapStart,
+          now,
+        );
+        const formulaExpected = snapshotQty.add(deltaQty);
+        const realDiff = counted.sub(formulaExpected);
+        const uc =
+          new PrismaNs.Decimal(item.unitCost).gt(0)
+            ? new PrismaNs.Decimal(item.unitCost)
+            : await this.resolveUnitCost(tx, existing.tenantId, item.warehouseId, item.partId);
+        const cost = realDiff.abs().mul(uc);
+        if (cost.gt(maxItemDiffCost)) maxItemDiffCost = cost;
+      }
+
+      const smallTol = new PrismaNs.Decimal(existing.smallToleranceQty);
+      const autoPass = maxItemDiffCost.lte(smallTol);
+      const newStatus = autoPass ? 'A' : 'P';
+      const updated = await tx.nx03StockTake.update({
+        where: { id },
+        data: {
+          approvalStatus: newStatus,
+          approvedAt: autoPass ? now : null,
+          approvedBy: autoPass ? user.sub : null,
+          updatedBy: user.sub,
+        },
+        select: ST_SEL,
+      });
+
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX03',
+        action: 'UPDATE',
+        entityTable: 'nx03_stock_take',
+        entityId: id,
+        entityCode: existing.docNo,
+        summary: autoPass
+          ? `盤點送審自動核可（max diff ${maxItemDiffCost.toFixed(2)} ≤ tolerance ${smallTol.toFixed(2)}）`
+          : `盤點送審等待負責人核可（max diff ${maxItemDiffCost.toFixed(2)} > tolerance ${smallTol.toFixed(2)}）`,
+        beforeData: existing as object,
+        afterData: updated as object,
+      });
+
+      return {
+        approvalStatus: newStatus,
+        maxItemDiffCost: maxItemDiffCost.toString(),
+        smallToleranceQty: smallTol.toString(),
+        autoPass,
+        approvedAt: updated.approvedAt,
+        approvedBy: updated.approvedBy,
+      };
+    });
+  }
+
+  /**
+   * NX03-STOCK-LITE M2 核可決定：approvalStatus='P' 階段呼叫、設為 'A' 或 'R'。
+   * 'A' 後可進 POSTED；'R' 後 user 修正完可再 submitForApproval。
+   * ⚠️ RBAC TODO：本軌不 enforce 簽核者必須為 ABCD 主管、任何 user 可呼叫（後續加 role guard）
+   */
+  async decideApproval(user: RequestUser, id: string, dto: { decision: 'A' | 'R'; remark?: string }) {
+    const tenantId = requireTenantId(user);
+    const existing = await this.prisma.nx03StockTake.findFirst({ where: { id, tenantId }, select: ST_SEL });
+    if (!existing) throw new NotFoundException('Stock take not found');
+    if (existing.voidedAt) throw new BadRequestException('Stock take is voided');
+    if (existing.approvalStatus !== 'P') {
+      throw new BadRequestException(`核可決定需 approvalStatus='P'（current: ${existing.approvalStatus}）`);
+    }
+    const now = new Date();
+    const updated = await this.prisma.nx03StockTake.update({
+      where: { id },
+      data: {
+        approvalStatus: dto.decision,
+        approvedAt: now,
+        approvedBy: user.sub,
+        ...(dto.remark ? { remark: dto.remark.trim() } : {}),
+        updatedBy: user.sub,
+      },
+      select: ST_SEL,
+    });
+    await this.audit.write({
+      tenantId,
+      actorUserId: user.sub,
+      moduleCode: 'NX03',
+      action: dto.decision === 'A' ? 'APPROVE' : 'REJECT',
+      entityTable: 'nx03_stock_take',
+      entityId: id,
+      entityCode: existing.docNo,
+      summary: dto.decision === 'A' ? '盤點核可通過' : '盤點退回（重新核對差異）',
+      beforeData: existing as object,
+      afterData: updated as object,
+    });
+    return updated;
+  }
+
+  /**
+   * NX03-STOCK-LITE M2-B：盤點 POSTED 後檢查安全量、低於 minQty 寫 nx98 task-pool（補貨通知）。
+   * 設計：
+   *   - 對 stocktake 涉及的所有 (partId, warehouseId) 組合做 batch 檢查
+   *   - PartStockSetting.minQty > 0 且 onHandQty < minQty 才寫
+   *   - 同 stocktake + part + warehouse 避免重複寫（檢查 sourceDocId + description 含 partId）
+   *   - 同一 tx 內完成、保證原子性（盤點過帳失敗則任務也不寫）
+   */
+  private async writeReplenishTasks(
+    tx: Prisma.TransactionClient,
+    stockTake: Prisma.Nx03StockTakeGetPayload<{ select: typeof ST_SEL }>,
+    userId: string,
+  ): Promise<void> {
+    const items = await tx.nx03StockTakeItem.findMany({
+      where: { stockTakeId: stockTake.id },
+      select: { partId: true, partNo: true, partName: true, warehouseId: true },
+    });
+    // 去重（同 partId+warehouseId 只檢查一次）
+    const seen = new Set<string>();
+    const uniques = items.filter((it) => {
+      const key = `${it.partId}|${it.warehouseId}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    for (const it of uniques) {
+      const setting = await tx.nx03PartStockSetting.findFirst({
+        where: {
+          tenantId: stockTake.tenantId,
+          partId: it.partId,
+          warehouseId: it.warehouseId,
+          isActive: true,
+        },
+        select: { minQty: true, maxQty: true },
+      });
+      if (!setting) continue;
+      const minQty = new PrismaNs.Decimal(setting.minQty);
+      if (minQty.lte(0)) continue;
+
+      const bal = await tx.nx03StockBalance.findFirst({
+        where: { tenantId: stockTake.tenantId, partId: it.partId, warehouseId: it.warehouseId },
+        select: { onHandQty: true },
+      });
+      const onHand = new PrismaNs.Decimal(bal?.onHandQty ?? 0);
+      if (onHand.gte(minQty)) continue;
+
+      // 同 stocktake 同 part+warehouse 避免重複寫（OPEN/CLAIMED 任一狀態都跳過）
+      const dup = await tx.nx98TaskPool.findFirst({
+        where: {
+          tenantId: stockTake.tenantId,
+          sourceModule: 'nx03',
+          sourceDocType: 'stock-take',
+          sourceDocId: stockTake.id,
+          status: { in: ['OPEN', 'CLAIMED'] },
+          description: { contains: `partId:${it.partId}` },
+        },
+        select: { id: true },
+      });
+      if (dup) continue;
+
+      const shortage = minQty.sub(onHand);
+      const target = new PrismaNs.Decimal(setting.maxQty ?? 0);
+      const suggestQty = target.gt(0) ? target.sub(onHand) : shortage;
+      await tx.nx98TaskPool.create({
+        data: {
+          tenantId: stockTake.tenantId,
+          sourceModule: 'nx03',
+          sourceDocType: 'stock-take',
+          sourceDocId: stockTake.id,
+          sourceDocNo: stockTake.docNo,
+          title: `補貨通知：${it.partNo} ${it.partName}（庫存 ${onHand.toString()} < 安全量 ${minQty.toString()}）`,
+          description:
+            `盤點過帳後偵測低於安全量；partId:${it.partId}、warehouseId:${it.warehouseId}、` +
+            `缺料 ${shortage.toString()}、建議補貨 ${suggestQty.toString()}`,
+          category: 'STOCK_REPLENISH',
+          priority: 'H',
+          status: 'OPEN',
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      });
+    }
   }
 
   async removeItem(user: RequestUser, stockTakeId: string, itemId: string) {

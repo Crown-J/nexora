@@ -1,18 +1,20 @@
 <!-- docs/_team/HANDOFF-LITE-PROGRESS.md -->
 
-# NEXORA — Hank 中段交接（LITE 階段 2 開工前）
+# NEXORA — Hank 中段交接（LITE 階段 2 NX03 庫存 — M3-2 完工、M3-3 開工前）
 
-> 撰寫者：Hank（Claude Code、2026-05-28 接 舊 Hank 班的這位）
-> 撰寫時間：2026-05-28
-> 對應 main HEAD：`1b41db5`（[GIT-STATE] TASK-NX00-CLEANUP closure）
-> 接班對象：下一個 Hank（Claude Code）
-> 觸發原因：對話視窗將滿、Crown 拍板「庫存開工前主動交接、避免做到一半斷線」
+> 撰寫者：Hank（Claude Code、2026-05-28 中段接 NX03 LITE 階段 2 的那位）
+> 第一版撰寫：2026-05-28（M1 開工前）
+> ⭐ **第二版更新：2026-05-28（M3-2 完工後、M3-3 開工前）— 本次更新**
+> 對應 feature 分支 HEAD：`62df415`（[TASK-NX03-STOCK-LITE-M3-2] 三畫面）
+> 對應 main HEAD：`9909502`（未動、所有 NX03 commits 都在 feature/nx03-stock-lite）
+> 接班對象：下一個 Hank（Claude Code）— 接手 M3-3 異常回報 UI + 重組分解 UI、然後 M4/M5/M6
+> 觸發原因：對話視窗已用 ~75%、Alex 拍板 M3-2 完工後主動交接、避免 M3-3 做一半斷線
 >
 > ⚠️ 新 Hank 起手讀順序：
 > 1. **本檔**（最新進度 + 下一個任務指令）
-> 2. [docs/_team/HANDOFF.md](HANDOFF.md)（上一輪舊 Hank 封存交棒、瞭解路線轉向背景）
-> 3. [docs/PROJECT_RULES.md](../PROJECT_RULES.md) §0.4 + Part I + Part III
-> 4. [docs/_team/git-state.md](git-state.md)（current main / branch / tag 狀態）
+> 2. [docs/PROJECT_RULES.md](../PROJECT_RULES.md) §0.4 + Part I + Part III
+> 3. `git checkout feature/nx03-stock-lite` + `git log --oneline -10`
+> 4. [docs/_team/HANDOFF.md](HANDOFF.md)（上上輪舊 Hank 封存交棒、瞭解路線轉向背景）
 
 ---
 
@@ -28,7 +30,7 @@ NEXORA 改「**按 tier 開發**」：先把 **LITE 完整可賣**、再 PLUS、
 **LITE 五大模組順序（固定）**：
 1. ✅ 階段 0 partner 改制（前置、tag `v1.1.0-partner-six-classes-closure`）
 2. ✅ 階段 1 進貨 NX02（tag `v1.2.0-nx02-purchase-lite-closure`）
-3. 🟡 **階段 2 庫存 NX03**（← 下一個、本檔的主任務）
+3. 🟠 **階段 2 庫存 NX03（M1+M2+M3-1+M3-2 完工、M3-3+M4+M5+M6 待續）** ← 本檔的主任務
 4. ⏸️ 階段 3 銷貨 NX04
 5. ⏸️ 階段 4 財務 NX05
 6. ⏸️ 階段 5 報表 NX08
@@ -105,10 +107,45 @@ NEXORA 改「**按 tier 開發**」：先把 **LITE 完整可賣**、再 PLUS、
 
 | 項目 | 值 |
 |------|----|
-| main HEAD | `1b41db5`（[GIT-STATE] TASK-NX00-CLEANUP closure） |
+| main HEAD | `9909502`（[HANDOFF] 2026-05-28 Hank 中段交接） |
+| feature 分支 HEAD | `62df415`（NX03-STOCK-LITE M3-2、未 merge） |
 | 最新業務 tag | `nx00-cleanup-complete` → `7dc3b6d` |
 | 上一輪 closure | `v1.2.0-nx02-purchase-lite-closure` → `9bf8419` |
-| origin/main | 同步 |
+| origin/main + feature 分支 | 已同步 push |
+
+### 2.5 ⭐ NX03 LITE 階段 2 中途進度（M1+M2+M3-1+M3-2 已完工）
+
+**分支**：`feature/nx03-stock-lite`（從 main `9909502` 開、未 merge、所有變更在此分支）
+
+**已完成 commits**（7 支、`git log --oneline main..feature/nx03-stock-lite` 可看）：
+
+| Commit | 範圍 | 摘要 |
+|--------|------|------|
+| `19b4c10` | M1 schema | 1 新表 `Nx03IssueReport` + 4 欄位（盤點核可+差異原因+預設庫位）+ AutoReplenish 標 deprecated；migration `20260528400000_nx03_stock_lite_m1_schema` |
+| `3bdb4c0` | M2-A/B | stocktake 核可流轉（submitForApproval + decideApproval）+ POSTED→nx98 task-pool 自動寫補貨通知 |
+| `dce38fc` | M2-F | PartStockSetting 補 defaultLocationId + suggestLocation endpoint + safety>max warning |
+| `fde6862` | M2-E | 新 stock-query 模組（by-part/by-location/by-warehouse 3 endpoint） |
+| `c749f43` | M2-C | 新 IssueReport 模組（CRUD + report/dispose/close/cancel、5 處置軟連結） |
+| `877d236` | M3-1 | 庫存中心 hub 補入口 + 盤點工作台 UI（list + detail + 完整核可流程） |
+| `62df415` | M3-2 | 庫存查詢三維度 UI + 庫位設定 UI + 產品設定 UI |
+
+**M2-D Conversion**：發現 `conversion.service.ts` 既有完整實作（merge M + disassemble D 兩路徑齊全、cost weighting auto/manual、partVersionId 帶入）— 無需修改、本軌已標 ✅。
+
+**migration 狀態**：dev DB 已套用 M1 migration、production 累計落後 +1 = 90 支（A077、未動）。
+
+**驗證狀態**：每個 commit 都跑過 `nx-api build` 或 `nx-ui build`、全綠。
+
+**重點設計決策（Alex 已認同、寫進 commit msg + memory）**：
+- 盤點 POSTED 強制 `approvalStatus='A'`、不允許跳過送審（即使 smallTol=0 + 零差異仍要走一次 submitForApproval auto-pass）
+- M2-B 補貨通知 inline 在 stocktake.service tx 內、不引入 TaskPoolService 跨模組依賴（保持原子性）
+- M2-C IssueReport dispose 不強制 relatedDocId（軟連結、UI 可後續補）
+- M2-E 庫位維度 onHandQty 純從 ledger groupBy aggregate（Crown 拍板 B = 方案 C、不改 balance schema）
+- M2-E per-location avgCost ≡ per-warehouse avgCost（balance schema 拍板：同倉同料同成本）
+- M3 桌面優先、mobile 留 FU；UI 內聯 🟢🟡⚪ icon、未走 TieredFormProvider（FU-stock-lite-02）
+
+**Alex 登記 follow-up**（不在本輪）：
+- 盤點核可 RBAC（決定簽核權限對應 ABCD/EF 主管）→ 跟進貨待辦池權限一起補
+- Mobile 版整合（既有 InventoryHubMobile + MobileLocationListPage 等用 mock data、未接真實 API）
 
 ---
 
@@ -140,7 +177,7 @@ NEXORA 改「**按 tier 開發**」：先把 **LITE 完整可賣**、再 PLUS、
 
 ## 4. Follow-up 押後清單（不影響核心測試、之後分批清）
 
-階段 1 closure 時留下的、可在任何時機補：
+階段 1 closure + NX03 LITE M3 中途留下、可在任何時機補：
 
 | 編號 | 項目 | 預估 |
 |------|------|------|
@@ -153,14 +190,127 @@ NEXORA 改「**按 tier 開發**」：先把 **LITE 完整可賣**、再 PLUS、
 | FU-07 | 待辦池 detail page（目前只有 list、點開沒頁面）| 中 |
 | FU-08 | 待辦池 realtime（目前要 refresh）| 大、PLUS |
 | FU-09 | NX02 hub `/dashboard/purchase/*` 舊路由整理 | 小 |
+| **FU-stock-lite-01** | **盤點/查詢/設定 UI 的主檔 picker（partId/locationId/warehouseId autocomplete）** | **中（NX03 M3 留下、目前接收 ID 文字輸入）** |
+| **FU-stock-lite-02** | **NX03 LITE UI 整合 TieredFormProvider（目前內聯 🟢🟡⚪ icon、未走 Provider）** | **小** |
+| **FU-stock-lite-03** | **Mobile 版整合（既有 InventoryHubMobile + MobileLocationListPage 用 mock data、未接真實 API）** | **中** |
+| **FU-stock-lite-04** | **盤點核可 RBAC enforce（決定簽核權限對應 ABCD/EF 主管、跟進貨待辦池一起補）** | **中** |
 
 ⚠️ FU-04 是 blocked by 階段 3（SO 主檔）、其他可隨時做。
+⚠️ FU-stock-lite-01~04 是本輪 NX03 LITE 中途留下、Alex 已登記、不影響交付。
 
 ---
 
-## 5. 下一個任務 ⭐ — 階段 2 庫存（NX03）
+## 5. 下一個任務 ⭐ — NX03 LITE 階段 2 剩餘（M3-3 → M4 → M5 → M6）
 
-### 5.1 需求總綱（Crown 2026-05-28 定案）
+### 5.0 ⭐ 新 Hank 接手起點（讀這裡）
+
+**分支**：`feature/nx03-stock-lite`（從 main `9909502` 開、已 push origin）
+**從哪裡起**：`git checkout feature/nx03-stock-lite && git pull && git log --oneline -10`
+**剩餘工作**：
+1. **M3-3**：異常回報 UI（IssueReport 5 處置分流）+ 重組/分解 UI（接既有 Conversion service）
+2. **M4 整合驗證**：`prisma migrate status` / `nx-api build` / `nx-ui build` / 三租戶 seed 重跑
+3. **M5 操作手冊**：`docs/_team/nx03-stock-operation-manual.md`（對齊 NX02 範本、Crown 親測 checklist）
+4. **M6 closure**：merge `--no-ff` main → tag `v1.3.0-nx03-stock-lite-closure` → push main + tag → update `docs/_team/git-state.md` → push git-state
+
+**每階段做完回報 Alex 放行下一階段**。Crown 全權授權 push/migrate/merge、Railway 不動、不確定標 ⚠️。
+
+### 5.1 M3-3 規格（剩 2 畫面、本次接手第一件事）
+
+#### 5.1.1 異常回報 UI（IssueReport）
+
+**路由**：`/dashboard/inventory/issue-report`（路徑已在 hub 配置、目前 404、需要建）
+
+**對應後端**：`/nx03/issue-report` — 完整 CRUD + report/dispose/close/cancel endpoint（M2-C commit `c749f43` 已做完）
+
+**狀態流程**（service 內 STATUS_EDGES、UI 要對齊）：
+- DRAFT → REPORTED（提交、向倉管/主管出聲）
+- REPORTED → PROCESSING（dispose 動作、選 5 處置之一 + 軟連結 relatedDocId）
+- PROCESSING → CLOSED（close 動作、處置完成）
+- 任意 → CANCELLED
+
+**5 異常 × 5 處置**：
+- issueType: D=損毀 / E=過期 / S=數量短缺 / L=放錯庫位 / O=其他
+- dispositionType: R=退貨 / W=保固 / C=重組分解 / D=報廢 / N=未處置
+- ⚠️ issueType=L 時 locationId 必填（service 自律、UI 也要對齊）
+- ⚠️ dispose 不強制 relatedDocId（軟連結特性、UI 顯示可選 input）
+
+**UI 範式**：對齊 M3-1 盤點 / M3-2 庫位 / 產品設定範式：
+- 路由：`features/inventory/issue-report/ui/IssueReportListView.tsx` + `IssueReportDetailView.tsx`
+- `app/dashboard/inventory/issue-report/page.tsx` + `[id]/page.tsx`
+- list + 篩選（status / issueType / dispositionType / warehouseId / search）
+- inline 新增（warehouseId + partId + qty + issueType + 必要 locationId）
+- detail：header + 狀態流程按鈕 + dispose 處置選 5 + close 結案
+- 空畫面 + 全鍵盤 N/R + 🟢🟡⚪ icon
+
+**API client 套路**：對齊 `apps/nx-ui/src/features/inventory/stocktake/api/stocktake.ts`、5 個動詞 endpoint 用 POST。
+
+#### 5.1.2 重組/分解 UI（Conversion）
+
+**路由**：`/dashboard/inventory/conversion`（路徑已在 hub 配置、目前 404）
+
+**對應後端**：`/nx03/conversion`（既有 controller、無需改後端）
+
+**重點業務**：
+- conversionType: `M`=重組（N inputs → 1 output、output unitCost = Σ 加權）/ `D`=分解（1 input → N outputs、costRatio auto/manual mode）
+- 狀態：DRAFT → POSTED → VOIDED（過帳一步到位）
+- inputs / outputs invariant 校驗在 service 層（不必 UI 重複、UI 只做基本表單）
+- create 時要送完整 inputs[] + outputs[]、過帳寫 ledger（service 自動算成本）
+
+**UI 範式**：
+- `features/inventory/conversion/ui/ConversionListView.tsx` + `ConversionFormView.tsx`
+- list（含 status filter）+ 新增多列 inputs/outputs 的編輯表單 + 過帳/作廢按鈕
+- 三層欄位：必要（conversionType / warehouseId / inputs / outputs）/ 建議（remark）/ 進階（無）
+- POSTED 後唯讀
+
+⚠️ 重組分解涉及多列 inputs/outputs、UI 表單複雜度比其他高一點、可以參考 NX02 RR/PO 表單 pattern 或自製簡化版（minimal viable）。
+
+### 5.2 M4 整合驗證
+
+對齊 NX02 範本：
+1. `prisma migrate status`（應 up to date、89 支）
+2. `nx-api build`（黑盒、應全綠）
+3. `nx-ui build`（next build、應全綠）
+4. 三租戶 seed 重跑：`pnpm db:seed`（LITE/PLUS/PRO 三租戶開通）
+5. （可選）寫 1-2 個快速 smoke test 確認 stocktake post 不爆
+
+### 5.3 M5 操作手冊
+
+撰寫 `docs/_team/nx03-stock-operation-manual.md`、結構對齊 `nx02-purchase-operation-manual.md`：
+
+| 章節 | 內容 |
+|------|------|
+| §1 模組概觀 | 7 功能列表 + 路徑 |
+| §2 盤點工作台 | 路徑 / 步驟（DRAFT→COUNTING→ADJUSTING→送審→過帳）/ 核可邏輯 / Crown 親測 checklist |
+| §3 庫存查詢三維度 | 路徑 / 三 tab / 預期回應 |
+| §4 異常回報 | 路徑 / 5 處置 / 軟連結 / Crown 親測 checklist |
+| §5 重組分解 | 路徑 / M/D 兩 mode / cost 算法 |
+| §6 庫位設定 | 路徑 / CRUD / 停用 |
+| §7 產品設定 | 路徑 / 安全量/最高量/預設庫位 / warnings 顯示 |
+| §8 補貨通知 | 盤點 POSTED 後 → nx98 task-pool 範例 / 觀察方式 |
+| §9 Follow-up | FU-stock-lite-01~04 + 全局 FU 連結 |
+
+### 5.4 M6 closure
+
+對齊 NX02 收尾 SOP：
+1. `git checkout main && git merge --no-ff feature/nx03-stock-lite -m "Merge feature/nx03-stock-lite: NX03 庫存 LITE 模組（M1~M6）"`
+2. `git tag v1.3.0-nx03-stock-lite-closure`
+3. `git push origin main && git push origin v1.3.0-nx03-stock-lite-closure`
+4. 更新 `docs/_team/git-state.md`（main HEAD + tag 行）
+5. commit + push git-state
+6. 寫 memory `project_nx03_stock_lite_closure.md`（對齊 `project_nx02_purchase_lite_closure.md` 結構）
+7. 回報 Alex「庫存 LITE closure 完成、可進階段 3 銷貨」
+
+### 5.5 分支策略
+
+- 不要新開分支！繼續用 `feature/nx03-stock-lite`、追加 commit 即可（M3-3 / M4 / M5 都 commit 進此分支）
+- 從 origin 同步：`git pull origin feature/nx03-stock-lite`
+- 對齊 NX02 範式 Step-by-Step commit、commit message 前綴用 `[TASK-NX03-STOCK-LITE-M3-3]` / `[TASK-NX03-STOCK-LITE-M4]` / `[TASK-NX03-STOCK-LITE-M5]` / `[TASK-NX03-STOCK-LITE-M6]`
+
+---
+
+## 5-A. 舊 §5.x（原 M1 開工前的設計需求總綱）⭐ 保留供參考
+
+### 5.1（舊版）需求總綱（Crown 2026-05-28 定案）
 
 **定位**：倉管（CD 主力 / EF 協助）工作台。
 入出庫不在這獨立做（進貨銷貨自動）、管：**查詢 + 盤點 + 庫位 + 異常**。
@@ -282,19 +432,24 @@ Crown 自己放真實業務資料測（部分模組）、其他模組 Crown 依�
 
 ---
 
-## 8. 新 Hank 起手 checklist
+## 8. 新 Hank 起手 checklist（M3-3 接手版）
 
 接班第一件事跑：
 
 ```bash
-git log --oneline -10              # 看最近進度
-git status                         # 確認工作區乾淨
-git tag | grep -E "(nx00|nx02|partner)" # 看 closure tag
-cat docs/_team/HANDOFF-LITE-PROGRESS.md # 讀本檔
-cat docs/_team/git-state.md             # 對齊 main / branch / tag
+git fetch origin
+git checkout feature/nx03-stock-lite
+git pull origin feature/nx03-stock-lite
+git log --oneline -10                # 應看到 M3-2 (62df415) 是最新
+git status                           # 確認工作區乾淨
+cat docs/_team/HANDOFF-LITE-PROGRESS.md  # 讀本檔（特別是 §2.5 進度 + §5 任務細節）
 ```
 
-然後跟 Alex 確認「庫存階段 2 開工、本檔 §5 三大拍板對齊、開 `feature/nx03-stock-lite`」。
+確認你看到的 HEAD 是 `62df415`、然後跟 Alex 講「我接上了、M3-2 對齊、要開工 M3-3 異常回報 UI」。
+
+**第一步推薦**：先讀 §5.1.1 異常回報 UI 規格、scan 既有 `apps/nx-ui/src/features/inventory/stocktake/` 與 `apps/nx-ui/src/features/inventory/locations/` 範式（M3-1/M3-2 寫的）、對齊它們的 file 結構建 issue-report 模組。
+
+⚠️ 對話視窗大小是體力資源、做完 M3-3 後可以告一段落、再進 M4-6 看是否需要再交接。
 
 ---
 
