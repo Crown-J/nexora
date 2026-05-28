@@ -123,9 +123,11 @@ D('B5 adoptQt — multi-history scenario (intent v2 §5.5)', () => {
     expect(soItem?.tiId).toBe(result.tiId);
     expect(soItem?.transferStatus).toBe('C');
 
+    // M3-redo-3b-2 後 result.tiId 可為 null（rfqType=G 路徑）、本 test 走 rfqType='P' 同行調貨、tiId 必非 null
+    expect(result.tiId).not.toBeNull();
     // TI header + item 都建好
     const ti = await prisma.nx02Ti.findFirst({
-      where: { id: result.tiId },
+      where: { id: result.tiId! },
       select: { id: true, partnerId: true, rfqId: true, subtotal: true },
     });
     expect(ti?.partnerId).toBe(fixture.inquiryPartnerXId);

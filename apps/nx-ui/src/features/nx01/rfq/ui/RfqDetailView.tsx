@@ -123,7 +123,11 @@ export function RfqDetailView({ id }: { id: string }) {
     setQuotesBusy(true);
     setError(null);
     try {
-      await adoptQt(qtId);
+      const result = await adoptQt(qtId);
+      const created = result.createdDocKind === 'PO'
+        ? `已建立採購單 PO-${result.poDocNo}`
+        : `已建立調貨單 TI-${result.tiDocNo}`;
+      alert(`✅ ${created}\n（連帶拒絕 ${result.rejectedSiblingCount} 筆兄弟報價、RFQ 已 CLOSED）`);
       await loadQuotes();
       await load();
     } catch (e) {

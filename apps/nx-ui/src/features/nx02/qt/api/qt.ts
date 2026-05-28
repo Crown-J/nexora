@@ -47,10 +47,23 @@ export async function createQt(body: CreateQtBody): Promise<QtRow> {
   return res.json() as Promise<QtRow>;
 }
 
-export async function adoptQt(qtId: string): Promise<{ ok: boolean }> {
+/** M3-redo-3b-2：adoptQt return shape 對齊 backend 分流（rfqType='G' 建 PO / 'P' 建 TI） */
+export type AdoptQtResult = {
+  qtId: string;
+  rfqId: string;
+  tiId: string | null;
+  tiDocNo: string | null;
+  poId: string | null;
+  poDocNo: string | null;
+  createdDocKind: 'TI' | 'PO';
+  rejectedSiblingCount: number;
+  linkedSoItemId: string | null;
+};
+
+export async function adoptQt(qtId: string): Promise<AdoptQtResult> {
   const res = await apiFetch(`/nx02/qt/${encodeURIComponent(qtId)}/adopt`, { method: 'POST', body: '{}' });
   await assertOk(res, 'nxui_nx02_qt_adopt');
-  return res.json() as Promise<{ ok: boolean }>;
+  return res.json() as Promise<AdoptQtResult>;
 }
 
 export async function rejectQt(qtId: string, rejectReason: string): Promise<{ ok: boolean }> {
