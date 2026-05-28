@@ -48,6 +48,8 @@ import { PhoneticDictionaryController } from './phonetic-dictionary/phonetic-dic
 import { PhoneticDictionaryService } from './phonetic-dictionary/phonetic-dictionary.service';
 import { RoleController } from './role/role.controller';
 import { RoleService } from './role/role.service';
+import { SupplierGradeController } from './supplier-grade/supplier-grade.controller';
+import { SupplierGradeService } from './supplier-grade/supplier-grade.service';
 import { TransmissionController } from './transmission/transmission.controller';
 import { TransmissionService } from './transmission/transmission.service';
 import { UserController } from './user/user.controller';
@@ -73,6 +75,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartController,
     PartnerController,
     CustomerGradeController,
+    SupplierGradeController,
     UserController,
     RoleController,
     BulletinController,
@@ -104,6 +107,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartService,
     PartnerService,
     CustomerGradeService,
+    SupplierGradeService,
     UserService,
     RoleService,
     BulletinService,

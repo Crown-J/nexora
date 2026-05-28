@@ -56,6 +56,15 @@ export class RfqController {
     return this.svc.exportRfq(user, id);
   }
 
+  /**
+   * M2-e：產生詢價文字（業務 copy 到 LINE/電話、Crown 簡化詢價範式）。
+   * 跟 /export 不同：純料件清單 + 客套話、不含供應商資訊。
+   */
+  @Get(':id/inquiry-text')
+  generateInquiryText(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.generateInquiryText(user, id);
+  }
+
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() dto: CreateRfqDto) {
     return this.svc.create(user, dto);

@@ -104,6 +104,50 @@ export function RrDetailView({ id }: { id: string }) {
         ) : null}
       </div>
 
+      {/* M3-redo-3a：國外進貨提貨單（含匯率 + 費用攤分總計）— 國內 RR 不顯示 */}
+      {doc.rrImport && (
+        <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
+          <h2 className="mb-2 text-sm font-semibold text-blue-300">🛳️ 國外進貨資訊（提貨單）</h2>
+          <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
+            <div>
+              <div className="text-muted-foreground">買入匯率（鎖定）</div>
+              <div className="font-mono">{String(doc.rrImport.exchangeRate)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">海運費</div>
+              <div className="font-mono">{String(doc.rrImport.freightCost)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">關稅</div>
+              <div className="font-mono">{String(doc.rrImport.customsDuty)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">報關費</div>
+              <div className="font-mono">{String(doc.rrImport.customsFee)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">倉儲費</div>
+              <div className="font-mono">{String(doc.rrImport.storageFee)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">其他雜費</div>
+              <div className="font-mono">{String(doc.rrImport.otherFee)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">進口費用合計</div>
+              <div className="font-mono font-semibold text-blue-200">{String(doc.rrImport.totalImportCost)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">貿易條件</div>
+              <div className="font-mono">{doc.rrImport.incoterm}</div>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            進口費用「按金額比例」攤分到每料件（貴的料分多）。下表 actualUnitCost 為實際入庫成本（含換匯 + 攤分）。
+          </p>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-xl border border-border/70">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b bg-muted/30 text-xs text-muted-foreground">
@@ -112,7 +156,13 @@ export function RrDetailView({ id }: { id: string }) {
               <th className="px-3 py-2">料號</th>
               <th className="px-3 py-2">庫位</th>
               <th className="px-3 py-2 text-right">數量</th>
-              <th className="px-3 py-2 text-right">單價</th>
+              <th className="px-3 py-2 text-right" title="原始單價（國內=TWD / 國外=外幣未換匯）">單價</th>
+              {doc.rrImport && (
+                <>
+                  <th className="px-3 py-2 text-right text-blue-300" title="攤分到此料的進口費用（按金額比例）">攤分費用</th>
+                  <th className="px-3 py-2 text-right text-emerald-300" title="實際入庫成本（含換匯+攤分、過帳移動平均用）">入庫成本</th>
+                </>
+              )}
               <th className="px-3 py-2 text-right">小計</th>
             </tr>
           </thead>
@@ -124,6 +174,16 @@ export function RrDetailView({ id }: { id: string }) {
                 <td className="px-3 py-2">{it.locationCode ?? it.locationId}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.unitCost}</td>
+                {doc.rrImport && (
+                  <>
+                    <td className="px-3 py-2 text-right tabular-nums text-blue-300">
+                      {it.allocatedImportFee != null ? String(it.allocatedImportFee) : '0'}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums font-semibold text-emerald-300">
+                      {it.actualUnitCost != null ? String(it.actualUnitCost) : String(it.unitCost)}
+                    </td>
+                  </>
+                )}
                 <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
               </tr>
             ))}

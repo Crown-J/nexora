@@ -27,6 +27,8 @@ const SEL = {
   paymentTermImport: true,
   incoterm: true,
   customerGradeId: true,
+  // M2-c 加：供應商等級（純供應商 S 用、業務手動或自動算）
+  supplierGradeId: true,
   creditLimit: true,
   creditStatus: true,
   createdAt: true,
@@ -34,9 +36,35 @@ const SEL = {
   updatedAt: true,
   updatedBy: true,
   customerGrade: { select: { code: true, name: true } },
+  supplierGrade: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01PartnerGetPayload<{ select: typeof SEL }>;
+
+/**
+ * M2-c：付款條件 → 供應商等級代碼映射（Crown 拍板：付款條件對我方越有利等級越高）。
+ * - NET90 → A（付 90 天最對我方有利）
+ * - NET60 → B
+ * - NET30 → C
+ * - PREPAY → D（要先付款、最不利）
+ * - 其他 → null（不自動降級、保持原值）
+ *
+ * 信用紀錄 / 不良率 = ⚠️ TODO（數據累積後再加權平均、本軌只做付款條件單軸）。
+ */
+function paymentTermToGradeCode(paymentTerm: string | null | undefined): string | null {
+  switch (paymentTerm?.trim().toUpperCase()) {
+    case 'NET90':
+      return 'A';
+    case 'NET60':
+      return 'B';
+    case 'NET30':
+      return 'C';
+    case 'PREPAY':
+      return 'D';
+    default:
+      return null;
+  }
+}
 
 @Injectable()
 export class PartnerService {
@@ -159,6 +187,9 @@ export class PartnerService {
         ...(dto.customerGradeId !== undefined
           ? { customerGradeId: dto.customerGradeId?.trim() || null }
           : {}),
+        ...(dto.supplierGradeId !== undefined
+          ? { supplierGradeId: dto.supplierGradeId?.trim() || null }
+          : {}),
         ...(dto.creditLimit !== undefined ? { creditLimit: dto.creditLimit } : {}),
         ...(dto.creditStatus !== undefined ? { creditStatus: dto.creditStatus.trim() } : {}),
         ...(dto.paymentTermImport !== undefined
@@ -179,6 +210,49 @@ export class PartnerService {
       entityId: id,
       entityCode: row.code,
       summary: '修改夥伴',
+      beforeData: existing as object,
+      afterData: row as object,
+    });
+    return this.mapRow(row);
+  }
+
+  /**
+   * M2-c：依付款條件 + 手動覆寫重算供應商等級。
+   * - 業務按「依付款條件重算」按鈕觸發
+   * - 找付款條件對應 supplier_grade.code、寫進 supplierGradeId
+   * - 找不到 grade（tenant 自定 + 沒 A~D code）→ NotFound、不寫入
+   */
+  async recalcSupplierGradeByPaymentTerm(user: RequestUser, id: string) {
+    const tenantId = requireTenantId(user);
+    const existing = await this.prisma.nx01Partner.findFirst({ where: { id, tenantId }, select: SEL });
+    if (!existing) throw new NotFoundException('Partner not found');
+    const gradeCode = paymentTermToGradeCode(existing.paymentTermDomestic);
+    if (!gradeCode) {
+      throw new ConflictException(
+        `paymentTermDomestic '${existing.paymentTermDomestic}' 無對應供應商等級映射、請手動指派 supplierGradeId`,
+      );
+    }
+    const grade = await this.prisma.nx01SupplierGrade.findFirst({
+      where: { tenantId, code: gradeCode, isActive: true },
+      select: { id: true, code: true, name: true },
+    });
+    if (!grade) {
+      throw new NotFoundException(`SupplierGrade code='${gradeCode}' 不存在（請確認 seed apply-supplier-grade 已套用）`);
+    }
+    const row = await this.prisma.nx01Partner.update({
+      where: { id },
+      data: { supplierGradeId: grade.id, updatedBy: user.sub },
+      select: SEL,
+    });
+    await this.audit.write({
+      tenantId,
+      actorUserId: user.sub,
+      moduleCode: 'NX01',
+      action: 'UPDATE',
+      entityTable: 'nx01_partner',
+      entityId: id,
+      entityCode: row.code,
+      summary: `依付款條件 ${existing.paymentTermDomestic} 重算供應商等級 → ${grade.code}（M2-c）`,
       beforeData: existing as object,
       afterData: row as object,
     });
@@ -210,12 +284,14 @@ export class PartnerService {
   }
 
   private mapRow(row: Row) {
-    const { customerGrade, creditLimit, ...scalar } = row;
+    const { customerGrade, supplierGrade, creditLimit, ...scalar } = row;
     return {
       ...scalar,
       creditLimit: creditLimit == null ? null : String(creditLimit),
       customerGradeCode: customerGrade?.code ?? null,
       customerGradeName: customerGrade?.name ?? null,
+      supplierGradeCode: supplierGrade?.code ?? null,
+      supplierGradeName: supplierGrade?.name ?? null,
     };
   }
 }

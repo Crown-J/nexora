@@ -58,6 +58,15 @@ export class PartController {
     return this.svc.update(user, id, dto);
   }
 
+  /**
+   * M2-b：依成本重算建議售價（前端「依成本重算」按鈕對應端點）。
+   * 系統算為主（cost × customer_grade.marginPct）、可手動微調走 PATCH。
+   */
+  @Post(':id/recalc-prices')
+  recalcPrices(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.recalcPricesByCost(user, id);
+  }
+
   @Delete(':id')
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.softDelete(user, id);

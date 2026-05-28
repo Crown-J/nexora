@@ -14,6 +14,7 @@ import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { assertRrStatusTransition, RrStatus } from '../../shared/nx02/nx02-state-machine';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
+import { createApFromPostedRr } from '../../shared/nx05/nx05-create-ap-from-rr';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreateRrDto, CreateRrItemDto, PatchRrItemDto, UpdateRrDto } from './dto/rr.dto';
@@ -55,6 +56,10 @@ const RR_ITEM_SEL = {
   locationId: true,
   qty: true,
   unitCost: true,
+  // M2-a 加：原始外幣單價（審計）/ 攤分進口費 / 實際入庫成本（過帳用）
+  originalUnitCost: true,
+  allocatedImportFee: true,
+  actualUnitCost: true,
   lineAmount: true,
   expectedQty: true,
   actualQty: true,
@@ -131,11 +136,22 @@ export class RrService {
   }
 
   /**
-   * RR 過帳：透過 applyQtyInWithLedger helper 寫 stock_balance + stock_ledger。
-   *   - source 判 tiId：rr.tiId != null → 'G'（同行調貨入庫、Phase 4 d 方案）；null → 'P'（採購進貨）
-   *   - partVersionId 帶入（M1 配套、每 item load active version）
-   *   - 保留 Nx02PoItem.receivedQty update（PO 進度回填）
-   * 升級自 NX03-IMPL-01 Phase 4 commit 1（自 inline upsert 換 helper、語意對齊 stocktake/init service 範式）。
+   * RR 過帳：M2-a 升級為「國外費用按金額比例攤分 + actualUnitCost 餵移動平均」。
+   *
+   * 業務邏輯（Crown 2026-05-28 拍板）：
+   *   - 國內 RR（無 Nx02RrImport）：allocatedImportFee=0 / actualUnitCost=unitCost
+   *   - 國外 RR（有 Nx02RrImport）：
+   *       totalImportCost / exchangeRate from RrImport
+   *       totalGoodsAmount = Σ(effectiveQty × unitCost) per item
+   *       每 item allocatedImportFee = totalImportCost × (itemGoodsAmount / totalGoodsAmount)（按金額比例、貴的料分多）
+   *       actualUnitCost = (unitCost × exchangeRate × effectiveQty + allocatedImportFee) ÷ effectiveQty
+   *   - 過帳用 actualUnitCost 餵 applyQtyInWithLedger（移動平均公式既有正確、不動）
+   *
+   * 其他：
+   *   - source 判 tiId：rr.tiId != null → 'G'（同行調貨入庫）；null → 'P'（採購進貨）
+   *   - partVersionId 帶入（M1 配套）
+   *   - PO receivedQty 回填邏輯保留
+   *   - effectiveQty = actualQty ?? qty（業務語意：實收為準）
    */
   private async applyRrPosting(tx: Prisma.TransactionClient, rr: Prisma.Nx02RrGetPayload<{ select: typeof RR_SEL }>, userId: string) {
     const items = await tx.nx02RrItem.findMany({
@@ -158,23 +174,75 @@ export class RrService {
       }
     }
 
-    const sourceDocType = rr.tiId ? 'G' : 'P';
-    let postedQty = new PrismaNs.Decimal(0);
-    for (const item of items) {
-      const qtyIn = item.actualQty != null ? new PrismaNs.Decimal(item.actualQty) : new PrismaNs.Decimal(item.qty);
-      if (qtyIn.lte(0)) continue;
-      postedQty = postedQty.add(qtyIn);
-      const unitCost = new PrismaNs.Decimal(item.unitCost);
-      const partVersionId = await this.loadActivePartVersionId(tx, rr.tenantId, item.partId);
+    // load RrImport（國外才有、不會 throw、null = 國內 RR）
+    const rrImport = await tx.nx02RrImport.findFirst({
+      where: { rrId: rr.id },
+      select: { totalImportCost: true, exchangeRate: true },
+    });
+    const totalImportCost = rrImport ? new PrismaNs.Decimal(rrImport.totalImportCost) : new PrismaNs.Decimal(0);
+    const exchangeRate = rrImport ? new PrismaNs.Decimal(rrImport.exchangeRate) : new PrismaNs.Decimal(1);
 
+    // pass 1：計算 totalGoodsAmount（按 effectiveQty × unitCost 加總、為攤分基準）
+    const itemContexts: Array<{
+      item: typeof items[number];
+      effectiveQty: PrismaNs.Decimal;
+      unitCost: PrismaNs.Decimal;
+      itemGoodsAmount: PrismaNs.Decimal;
+    }> = [];
+    let totalGoodsAmount = new PrismaNs.Decimal(0);
+    for (const item of items) {
+      const effectiveQty = item.actualQty != null ? new PrismaNs.Decimal(item.actualQty) : new PrismaNs.Decimal(item.qty);
+      if (effectiveQty.lte(0)) continue;
+      const unitCost = new PrismaNs.Decimal(item.unitCost);
+      const itemGoodsAmount = effectiveQty.mul(unitCost);
+      totalGoodsAmount = totalGoodsAmount.add(itemGoodsAmount);
+      itemContexts.push({ item, effectiveQty, unitCost, itemGoodsAmount });
+    }
+    if (!itemContexts.length) throw new BadRequestException('Posted quantity must be > 0 (set actualQty or qty on lines)');
+    if (totalGoodsAmount.lte(0) && totalImportCost.gt(0)) {
+      throw new BadRequestException('Total goods amount is 0 but import cost > 0; cannot allocate');
+    }
+
+    // pass 2：攤分 + 算 actualUnitCost + 寫回 RrItem + 過帳
+    const sourceDocType = rr.tiId ? 'G' : 'P';
+    for (const ctx of itemContexts) {
+      const { item, effectiveQty, unitCost, itemGoodsAmount } = ctx;
+
+      // 按金額比例攤分（國內 totalImportCost=0、攤分為 0）
+      const allocatedImportFee =
+        totalImportCost.gt(0) && totalGoodsAmount.gt(0)
+          ? totalImportCost.mul(itemGoodsAmount).div(totalGoodsAmount).toDecimalPlaces(2)
+          : new PrismaNs.Decimal(0);
+
+      // actualUnitCost = (unitCost × exchangeRate × qty + allocatedImportFee) ÷ qty
+      const actualUnitCost = unitCost
+        .mul(exchangeRate)
+        .mul(effectiveQty)
+        .add(allocatedImportFee)
+        .div(effectiveQty)
+        .toDecimalPlaces(4);
+
+      // 寫回 RrItem（originalUnitCost = unitCost 純審計、allocatedImportFee + actualUnitCost 算後值）
+      await tx.nx02RrItem.update({
+        where: { id: item.id },
+        data: {
+          originalUnitCost: unitCost,
+          allocatedImportFee,
+          actualUnitCost,
+          updatedBy: userId,
+        },
+      });
+
+      // 過帳用 actualUnitCost 餵移動平均（公式既有正確、unitCost 改名為 actualUnitCost）
+      const partVersionId = await this.loadActivePartVersionId(tx, rr.tenantId, item.partId);
       await applyQtyInWithLedger(tx, {
         tenantId: rr.tenantId,
         userId,
         partId: item.partId,
         warehouseId: rr.warehouseId,
         locationId: item.locationId,
-        qtyIn,
-        unitCost,
+        qtyIn: effectiveQty,
+        unitCost: actualUnitCost,
         sourceModule: 'NX02',
         sourceDocType,
         sourceDocId: rr.id,
@@ -182,6 +250,7 @@ export class RrService {
         partVersionId,
       });
 
+      // PO receivedQty 回填（既有邏輯保留）
       if (rr.poId) {
         const pol = await tx.nx02PoItem.findFirst({
           where: { poId: rr.poId, partId: item.partId },
@@ -191,12 +260,17 @@ export class RrService {
           const prev = new PrismaNs.Decimal(pol.receivedQty);
           await tx.nx02PoItem.update({
             where: { id: pol.id },
-            data: { receivedQty: prev.add(qtyIn), updatedBy: userId },
+            data: { receivedQty: prev.add(effectiveQty), updatedBy: userId },
           });
         }
       }
     }
-    if (postedQty.lte(0)) throw new BadRequestException('Posted quantity must be > 0 (set actualQty or qty on lines)');
+
+    // M2-f：RR POSTED → 自動產生應付帳款 AP（LITE 直接路徑：跳過 PO 走 RR 時用）
+    // - 冪等：helper 內 dedup（既有 AP_RR 跟 rrId 對應則 skip）
+    // - 有 PO 時跳過（PO confirmed 早已建 AP、helper 內部 guard）
+    // - 失敗不阻擋 RR 過帳（log + skip、NX05 LITE 未完整、保守處理）
+    await createApFromPostedRr(tx, { tenantId: rr.tenantId, rrId: rr.id, userId });
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {
@@ -304,6 +378,11 @@ export class RrService {
             locationId: it.locationId.trim(),
             qty,
             unitCost: unit,
+            // M2-a 初始值：originalUnitCost = unitCost / allocatedImportFee = 0 / actualUnitCost = unitCost
+            // posting 時會依 RrImport 重算（國內保留 unitCost、國外換匯+攤分後覆寫 actualUnitCost）
+            originalUnitCost: unit,
+            allocatedImportFee: new PrismaNs.Decimal(0),
+            actualUnitCost: unit,
             lineAmount,
             expectedQty: expQ,
             actualQty: it.actualQty != null ? new PrismaNs.Decimal(it.actualQty) : null,
@@ -454,6 +533,10 @@ export class RrService {
         locationId: dto.locationId.trim(),
         qty,
         unitCost: unit,
+        // M2-a 初始值（同 create 範式）
+        originalUnitCost: unit,
+        allocatedImportFee: new PrismaNs.Decimal(0),
+        actualUnitCost: unit,
         lineAmount,
         expectedQty: expQ,
         actualQty: dto.actualQty != null ? new PrismaNs.Decimal(dto.actualQty) : null,
@@ -494,7 +577,8 @@ export class RrService {
       where: { id: itemId },
       data: {
         ...(dto.qty !== undefined ? { qty } : {}),
-        ...(dto.unitPriceSnapshot !== undefined ? { unitCost: unit } : {}),
+        // M2-a：改 unitCost 時同步 originalUnitCost + actualUnitCost（未過帳前兩者跟 unitCost 同值）
+        ...(dto.unitPriceSnapshot !== undefined ? { unitCost: unit, originalUnitCost: unit, actualUnitCost: unit } : {}),
         lineAmount,
         ...(dto.expectedQty !== undefined ? { expectedQty: new PrismaNs.Decimal(dto.expectedQty) } : {}),
         ...(dto.actualQty !== undefined ? { actualQty: dto.actualQty == null ? null : new PrismaNs.Decimal(dto.actualQty) } : {}),

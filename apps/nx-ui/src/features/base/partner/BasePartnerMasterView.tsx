@@ -1,5 +1,6 @@
 /**
- * 客戶主檔：與使用者主檔相同 LIST + 置中彈窗明細；GET/POST/PUT/PATCH /partner
+ * 交易對象主檔（partner）：partner_type 六分類 = C 保養廠 / O 同行 / S 供應商 / T 外包物流 / B 銀行 / V 一般廠商
+ * LIST + 置中彈窗明細；GET/POST/PUT/PATCH /nx01/partners
  */
 
 'use client';
@@ -38,6 +39,7 @@ import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import {
   createPartner,
   listPartners,
+  recalcPartnerSupplierGrade,
   setPartnerActive,
   updatePartner,
   type PartnerDto,
@@ -196,9 +198,9 @@ const LIST_COLS = [
 type ListColKey = (typeof LIST_COLS)[number];
 
 const COL_DEF: Record<ListColKey, { label: string; locked?: boolean }> = {
-  code: { label: '客戶代碼', locked: true },
-  name: { label: '客戶名稱' },
-  partnerType: { label: '客戶類型' },
+  code: { label: '對象代碼', locked: true },
+  name: { label: '對象名稱' },
+  partnerType: { label: '對象類型' },
   taxId: { label: '統編' },
   paymentTermDomestic: { label: '國內付款條件' },
   customerGradeLabel: { label: '客戶等級' },
@@ -1353,6 +1355,25 @@ export function BasePartnerMasterView() {
                       </option>
                     ))}
                   </select>
+                  {editing && selectedId && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const updated = await recalcPartnerSupplierGrade(selectedId);
+                          alert(`已依付款條件 ${updated.paymentTermDomestic} 重算供應商等級\n（須重新開啟此筆查看 supplierGradeId）`);
+                          // 觸發 list refresh（簡化：reload row）
+                          setRows((prev) => prev.map((r) => (r.id === selectedId ? { ...r, paymentTermDomestic: updated.paymentTermDomestic } : r)));
+                        } catch (e) {
+                          alert(`重算失敗：${(e as Error).message}`);
+                        }
+                      }}
+                      className="rounded bg-amber-500/30 px-2 py-0.5 text-xs hover:bg-amber-500/50"
+                      title="依付款條件 NET90→A / NET60→B / NET30→C / PREPAY→D 重算"
+                    >
+                      🏆 依付款條件重算供應商等級
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`${titleId}-cr`}>信用額度（0=不限制）</Label>

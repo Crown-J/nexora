@@ -19,10 +19,15 @@ import { PurchaseSuggestionController } from './purchase-suggestion/purchase-sug
 import { PurchaseSuggestionService } from './purchase-suggestion/purchase-suggestion.service';
 import { QtController } from './qt/qt.controller';
 import { Nx02QtService } from './qt/qt.service';
+import { RfqGreetingTemplateController } from './rfq-greeting-template/rfq-greeting-template.controller';
+import { RfqGreetingTemplateService } from './rfq-greeting-template/rfq-greeting-template.service';
 import { RfqController } from './rfq/rfq.controller';
 import { RfqService } from './rfq/rfq.service';
 import { RrController } from './rr/rr.controller';
 import { RrService } from './rr/rr.service';
+import { WarrantyClaimAttachmentService } from './warranty-claim/warranty-claim-attachment.service';
+import { WarrantyClaimController } from './warranty-claim/warranty-claim.controller';
+import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
 
 @Module({
   imports: [PrismaModule],
@@ -36,6 +41,8 @@ import { RrService } from './rr/rr.service';
     PurchaseSuggestionController,
     PriceComparisonController,
     PurchaseStageController,
+    WarrantyClaimController,
+    RfqGreetingTemplateController,
   ],
   providers: [
     RfqService,
@@ -47,6 +54,9 @@ import { RrService } from './rr/rr.service';
     PurchaseSuggestionService,
     PriceComparisonService,
     PurchaseStageService,
+    WarrantyClaimService,
+    WarrantyClaimAttachmentService,
+    RfqGreetingTemplateService,
     { provide: APP_FILTER, useClass: Nx02ErrorFilter },
   ],
 })

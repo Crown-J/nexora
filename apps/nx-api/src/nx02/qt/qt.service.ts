@@ -166,6 +166,30 @@ export class Nx02QtService {
     return { page, pageSize, total, rows };
   }
 
+  /**
+   * M3-redo-3b：list quotes by RFQ id（並排比價視圖用）。
+   * 排序：quotedPrice 升冪（最低價在前）+ createdAt 升冪 tie-break。
+   * include inquiryPartner 顯示供應商代碼/名稱。
+   */
+  async listQuotesByRfqId(user: RequestUser, rfqId: string) {
+    const tenantId = requireTenantId(user);
+    const rfq = await this.prisma.nx02Rfq.findFirst({
+      where: { id: rfqId, tenantId },
+      select: { id: true, rfqType: true, docNo: true },
+    });
+    if (!rfq) throw new RfqNotFoundError(rfqId);
+
+    const quotes = await this.prisma.nx02Qt.findMany({
+      where: { tenantId, rfqId },
+      orderBy: [{ quotedPrice: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        ...QT_SEL,
+        inquiryPartner: { select: { code: true, name: true, partnerType: true } },
+      },
+    });
+    return { rfqId: rfq.id, rfqDocNo: rfq.docNo, rfqType: rfq.rfqType, quotes };
+  }
+
   // ===== §3.2 add QT =====
 
   async addQt(user: RequestUser, dto: CreateQtDto): Promise<QtRow> {
@@ -175,7 +199,7 @@ export class Nx02QtService {
         async (tx) => {
           const rfq = await this.loadRfqOrThrow(tx, tenantId, dto.rfqId.trim());
           this.assertRfqOpenForWrite(rfq);
-          await this.assertPartnerIsInquiry(tx, tenantId, dto.inquiryPartnerId.trim());
+          await this.assertPartnerIsInquiry(tx, tenantId, dto.inquiryPartnerId.trim(), rfq.rfqType);
 
           const qt = await tx.nx02Qt.create({
             data: {
@@ -242,16 +266,17 @@ export class Nx02QtService {
           if (rfq.status === RfqStatus.CLOSED || rfq.status === RfqStatus.CANCELLED) {
             throw new RfqAlreadyClosedError(rfq.id, rfq.status);
           }
-          // B5 採用 QT 路徑只服務同行調貨（rfqType='P'）。一般詢價走 PO 流程，不在 B5 範圍。
-          if (rfq.rfqType !== 'P') {
-            throw new RfqNotTransferInquiryError(rfq.id);
-          }
-          // 理論不可達：rfqType='P' 必由 D4 stub 建立含 sourceSoItemId
-          const sourceSoItemId = rfq.sourceSoItemId;
-          if (!sourceSoItemId) {
+
+          // M3-redo-3b-2：依 rfqType 分流（修正既有「只支援 P」設計）
+          //   rfqType='G' 一般詢價（業務對純供應商比價）→ 採用建 PO 採購單
+          //   rfqType='P' 同行調貨詢價（D4 translator stub、需 sourceSoItemId）→ 採用建 TI 調貨單
+          if (rfq.rfqType === 'P' && !rfq.sourceSoItemId) {
             throw new Nx02SystemError(
               new Error(`RFQ ${rfq.id} rfqType='P' but sourceSoItemId is null`),
             );
+          }
+          if (rfq.rfqType !== 'P' && rfq.rfqType !== 'G') {
+            throw new Nx02SystemError(new Error(`Unknown rfqType: ${rfq.rfqType}`));
           }
 
           // 1. 該 QT → AGREED
@@ -275,11 +300,27 @@ export class Nx02QtService {
             data: { status: RfqStatus.CLOSED, updatedBy: user.sub },
           });
 
-          // 4. 建 TI（header + 1 line item）
-          const ti = await this.createTiFromQt(tx, user, tenantId, rfq, adoptedQt, sourceSoItemId);
-
-          // 5. 反查並更新 SO line item（rfqType='P' 一定有 sourceSoItemId，前面已 assert）
-          await this.linkTiToSoItem(tx, user, sourceSoItemId, ti.id);
+          // 4. 分流建單
+          let createdDoc: { kind: 'TI' | 'PO'; id: string; docNo: string };
+          let linkedSoItemId: string | null = null;
+          if (rfq.rfqType === 'P') {
+            // 同行調貨：建 TI + 反查 SO line item link
+            const ti = await this.createTiFromQt(
+              tx,
+              user,
+              tenantId,
+              rfq,
+              adoptedQt,
+              rfq.sourceSoItemId!,
+            );
+            await this.linkTiToSoItem(tx, user, rfq.sourceSoItemId!, ti.id);
+            createdDoc = { kind: 'TI', id: ti.id, docNo: ti.docNo };
+            linkedSoItemId = rfq.sourceSoItemId;
+          } else {
+            // 一般詢價 G：建 PO 採購單
+            const po = await this.createPoFromQt(tx, user, tenantId, rfq, adoptedQt);
+            createdDoc = { kind: 'PO', id: po.id, docNo: po.docNo };
+          }
 
           await this.audit.write({
             tenantId,
@@ -289,17 +330,22 @@ export class Nx02QtService {
             entityTable: 'nx02_qt',
             entityId: qt.id,
             entityCode: rfq.docNo,
-            summary: `採用 QT-${qt.id} 建立 TI-${ti.docNo}（連帶 reject ${siblingResult.count} 筆兄弟 QT）`,
+            summary: `採用 QT-${qt.id} 建立 ${createdDoc.kind}-${createdDoc.docNo}（連帶 reject ${siblingResult.count} 筆兄弟 QT）`,
             afterData: adoptedQt as object,
           });
 
           return {
             qtId: adoptedQt.id,
             rfqId: rfq.id,
-            tiId: ti.id,
-            tiDocNo: ti.docNo,
+            // 向後相容：保留 tiId/tiDocNo 欄位（rfqType=P 才有值）
+            tiId: createdDoc.kind === 'TI' ? createdDoc.id : null,
+            tiDocNo: createdDoc.kind === 'TI' ? createdDoc.docNo : null,
+            // M3-redo-3b-2 新增：PO 路徑
+            poId: createdDoc.kind === 'PO' ? createdDoc.id : null,
+            poDocNo: createdDoc.kind === 'PO' ? createdDoc.docNo : null,
+            createdDocKind: createdDoc.kind,
             rejectedSiblingCount: siblingResult.count,
-            linkedSoItemId: sourceSoItemId,
+            linkedSoItemId,
           };
         },
         { isolationLevel: PrismaNs.TransactionIsolationLevel.ReadCommitted },
@@ -307,11 +353,124 @@ export class Nx02QtService {
     );
 
     const elapsed = Date.now() - start;
+    const createdLabel = result.createdDocKind === 'TI'
+      ? `ti=${result.tiDocNo}`
+      : `po=${result.poDocNo}`;
     this.logger.log(
-      `Adopted QT ${result.qtId} tenant=${tenantId} ti=${result.tiDocNo} ` +
+      `Adopted QT ${result.qtId} tenant=${tenantId} ${createdLabel} ` +
         `rejectedSiblings=${result.rejectedSiblingCount} linkedSo=${result.linkedSoItemId ?? 'none'} elapsedMs=${elapsed}`,
     );
     return result;
+  }
+
+  /**
+   * M3-redo-3b-2：從 Qt 建 PO 採購單（rfqType='G' 一般詢價採用後走此路徑）。
+   *
+   * 業務語意（Crown 拍板）：
+   *   - Qt.quotedPrice 套用為所有 PO items 的 unitCost
+   *   - PO items 從 RFQ items 拷貝（partId/partNo/partName/qty/rfqItemId）
+   *   - supplier = Qt.inquiryPartnerId（應為 partner_type='S' 純供應商、assertPartnerIsInquiry 已 guard）
+   *   - PO header.rfqId = rfq.id（PO 回溯到來源 RFQ）
+   *   - 預設國內採購（purchaseType='D'）、付款條件帶入 supplier.paymentTermDomestic
+   *   - status=DRAFT（業務後續可改 / 發出）
+   */
+  private async createPoFromQt(
+    tx: Prisma.TransactionClient,
+    user: RequestUser,
+    tenantId: string,
+    rfq: RfqRow,
+    qt: QtRow,
+  ): Promise<{ id: string; docNo: string }> {
+    // 取 warehouse code 給 docNo（PO 沿用 RFQ 的 warehouse）
+    const wh = await tx.nx01Warehouse.findFirst({
+      where: { id: rfq.warehouseId, tenantId },
+      select: { code: true },
+    });
+    if (!wh) {
+      throw new Nx02SystemError(
+        new Error(`Warehouse ${rfq.warehouseId} not found when creating PO from QT-${qt.id}`),
+      );
+    }
+
+    // 取 supplier 付款條件
+    const sup = await tx.nx01Partner.findFirst({
+      where: { id: qt.inquiryPartnerId, tenantId },
+      select: { paymentTermDomestic: true },
+    });
+    const paymentTermDomestic = sup?.paymentTermDomestic ?? 'NET30';
+
+    // 取 RFQ items 拷貝到 PO（Nx02RfqItem 無 tenantId、靠 rfqId join 隔離租戶）
+    const rfqItems = await tx.nx02RfqItem.findMany({
+      where: { rfqId: rfq.id },
+      orderBy: { lineNo: 'asc' },
+      select: { id: true, partId: true, partNo: true, partName: true, qty: true },
+    });
+    if (!rfqItems.length) {
+      throw new Nx02SystemError(
+        new Error(`RFQ ${rfq.id} has no items when creating PO from QT-${qt.id}`),
+      );
+    }
+
+    const docNo = await allocDocNo(tx, tenantId, 'PO', wh.code);
+    const currencyId = await resolveCurrencyId(tx, rfq.currency ?? 'TWD');
+    const taxRate = new PrismaNs.Decimal(5);
+    const unitCost = new PrismaNs.Decimal(qt.quotedPrice);
+
+    // 算 subtotal（pre-create、避免再 update PO 一次）
+    let subtotal = new PrismaNs.Decimal(0);
+    for (const it of rfqItems) {
+      subtotal = subtotal.add(new PrismaNs.Decimal(it.qty).mul(unitCost));
+    }
+    subtotal = subtotal.toDecimalPlaces(2);
+    const taxAmount = subtotal.mul(taxRate).div(100).toDecimalPlaces(2);
+    const totalAmount = subtotal.add(taxAmount);
+
+    // 建 PO header
+    const po = await tx.nx02Po.create({
+      data: {
+        tenantId,
+        docNo,
+        poDate: new Date(),
+        supplierId: qt.inquiryPartnerId,
+        rfqId: rfq.id,
+        currencyId,
+        status: 'DRAFT',
+        taxRate,
+        subtotal,
+        taxAmount,
+        totalAmount,
+        remark: `From RFQ-${rfq.docNo} adopt QT-${qt.id}`,
+        purchaseType: 'D',
+        paymentTermDomestic,
+        createdBy: user.sub,
+        updatedBy: user.sub,
+      },
+      select: { id: true, docNo: true },
+    });
+
+    // 建 PO items（從 RFQ items 拷貝）
+    let lineNo = 1;
+    for (const it of rfqItems) {
+      const itemQty = new PrismaNs.Decimal(it.qty);
+      const lineAmount = itemQty.mul(unitCost).toDecimalPlaces(2);
+      await tx.nx02PoItem.create({
+        data: {
+          poId: po.id,
+          lineNo: lineNo++,
+          partId: it.partId,
+          partNo: it.partNo,
+          partName: it.partName,
+          rfqItemId: it.id,
+          qty: itemQty,
+          unitCost,
+          lineAmount,
+          createdBy: user.sub,
+          updatedBy: user.sub,
+        },
+      });
+    }
+
+    return po;
   }
 
   // ===== §3.4 reject single QT =====
@@ -427,13 +586,21 @@ export class Nx02QtService {
     }
   }
 
+  /**
+   * M2-e：依 rfq.rfqType 分流 partner_type guard。
+   *   - rfqType='G' 一般詢價 → Qt 對象必為 partner_type='S' 純供應商
+   *   - rfqType='P' 同行調貨詢價 → Qt 對象必為 partner_type='O' 同行
+   * partner 改制六分類後語意分家：S 純供應商不再兼任「同行」業務。
+   */
   private async assertPartnerIsInquiry(
     tx: Prisma.TransactionClient,
     tenantId: string,
     partnerId: string,
+    rfqType: string,
   ): Promise<void> {
+    const expectedType = rfqType === 'G' ? 'S' : 'O';
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: 'O' },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: expectedType },
       select: { id: true },
     });
     if (!p) throw new PartnerNotInquiryTypeError(partnerId);

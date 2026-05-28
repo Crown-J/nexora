@@ -18,6 +18,13 @@ import {
   patchRfqStatus,
   voidRfq,
 } from '../../api/rfq';
+import { generateRfqInquiryText } from '@/features/nx02/rfq-greeting-template/api/rfq-greeting-template';
+import {
+  adoptQt,
+  createQt,
+  listQuotesByRfq,
+  type QtRow,
+} from '@/features/nx02/qt/api/qt';
 import type { RfqDetailDto } from '../../types';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 
@@ -61,6 +68,99 @@ export function RfqDetailView({ id }: { id: string }) {
   const [partQ, setPartQ] = useState('');
   const [partHits, setPartHits] = useState<LookupRow[]>([]);
   const [replyState, setReplyState] = useState<Record<string, ReplyRow>>({});
+
+  // M3-redo-1：產生詢價文字（呼叫 M2-e 端點、業務 copy 到 LINE/電話）
+  const [inquiryText, setInquiryText] = useState<string | null>(null);
+  const [inquiryBusy, setInquiryBusy] = useState(false);
+  const [copyHint, setCopyHint] = useState<string | null>(null);
+
+  // M3-redo-3b：並排比價 state
+  const [quotes, setQuotes] = useState<QtRow[]>([]);
+  const [quotesLoaded, setQuotesLoaded] = useState(false);
+  const [quotesBusy, setQuotesBusy] = useState(false);
+  const [newQt, setNewQt] = useState({ inquiryPartnerId: '', quotedPrice: '', quotedQuantity: '', leadDays: '', notes: '' });
+
+  async function loadQuotes() {
+    setQuotesBusy(true);
+    try {
+      const res = await listQuotesByRfq(id);
+      setQuotes(res.quotes);
+      setQuotesLoaded(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuotesBusy(false);
+    }
+  }
+
+  async function onAddQt() {
+    if (!newQt.inquiryPartnerId.trim() || !newQt.quotedPrice || !newQt.quotedQuantity) {
+      setError('請填供應商 ID + 報價 + 數量');
+      return;
+    }
+    setQuotesBusy(true);
+    setError(null);
+    try {
+      await createQt({
+        rfqId: id,
+        inquiryPartnerId: newQt.inquiryPartnerId.trim(),
+        quotedPrice: Number(newQt.quotedPrice),
+        quotedQuantity: Number(newQt.quotedQuantity),
+        leadDays: newQt.leadDays ? Number(newQt.leadDays) : null,
+        notes: newQt.notes.trim() || undefined,
+      });
+      setNewQt({ inquiryPartnerId: '', quotedPrice: '', quotedQuantity: '', leadDays: '', notes: '' });
+      await loadQuotes();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuotesBusy(false);
+    }
+  }
+
+  async function onAdoptQt(qtId: string) {
+    if (!confirm('採用此報價、將自動建立採購單／調貨單。確定嗎？')) return;
+    setQuotesBusy(true);
+    setError(null);
+    try {
+      const result = await adoptQt(qtId);
+      const created = result.createdDocKind === 'PO'
+        ? `已建立採購單 PO-${result.poDocNo}`
+        : `已建立調貨單 TI-${result.tiDocNo}`;
+      alert(`✅ ${created}\n（連帶拒絕 ${result.rejectedSiblingCount} 筆兄弟報價、RFQ 已 CLOSED）`);
+      await loadQuotes();
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuotesBusy(false);
+    }
+  }
+
+  async function onGenerateInquiryText() {
+    setInquiryBusy(true);
+    setError(null);
+    setCopyHint(null);
+    try {
+      const res = await generateRfqInquiryText(id);
+      setInquiryText(res.text);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setInquiryBusy(false);
+    }
+  }
+
+  async function onCopyInquiryText() {
+    if (!inquiryText) return;
+    try {
+      await navigator.clipboard.writeText(inquiryText);
+      setCopyHint('已複製到剪貼簿、可貼到 LINE/Email');
+      setTimeout(() => setCopyHint(null), 3000);
+    } catch (e) {
+      setCopyHint('複製失敗、請手動全選複製');
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -248,10 +348,165 @@ export function RfqDetailView({ id }: { id: string }) {
             狀態：{rfqStatusLabel(doc.status)} · {doc.rfqDate}
           </p>
         </div>
-        <Link href="/dashboard/nx01/rfq" className="text-sm text-muted-foreground underline">
-          返回列表
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={inquiryBusy}
+            onClick={onGenerateInquiryText}
+            className="rounded-lg bg-blue-500/80 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+            title="產生詢價文字（業務 copy 到 LINE/電話問供應商）"
+          >
+            {inquiryBusy ? '產生中…' : '📋 產生詢價文字'}
+          </button>
+          <Link href="/dashboard/nx01/rfq" className="text-sm text-muted-foreground underline">
+            返回列表
+          </Link>
+        </div>
       </header>
+
+      {/* M3-redo-3b：並排比價 section（任何狀態都可顯示、需手動點開 load） */}
+      <div className="space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-emerald-300">📊 並排比價（多家供應商報價）</h2>
+          <button
+            type="button"
+            disabled={quotesBusy}
+            onClick={loadQuotes}
+            className="rounded bg-emerald-500/30 px-3 py-1 text-xs hover:bg-emerald-500/50"
+          >
+            {quotesBusy ? '載入中…' : quotesLoaded ? '🔄 重新整理' : '📥 載入報價'}
+          </button>
+        </div>
+        {!quotesLoaded ? (
+          <p className="text-xs text-muted-foreground">點「載入報價」查看已收到的供應商回報。</p>
+        ) : quotes.length === 0 ? (
+          <p className="text-xs text-muted-foreground">尚未收到任何報價、可在下方表單填一筆。</p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-border/40">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/30 text-muted-foreground">
+                <tr>
+                  <th className="px-2 py-1 text-left">排名</th>
+                  <th className="px-2 py-1 text-left">供應商</th>
+                  <th className="px-2 py-1 text-right">單價</th>
+                  <th className="px-2 py-1 text-right">數量</th>
+                  <th className="px-2 py-1 text-right">交期(天)</th>
+                  <th className="px-2 py-1 text-left">備註</th>
+                  <th className="px-2 py-1 text-left">狀態</th>
+                  <th className="px-2 py-1 text-left">動作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {quotes.map((q, idx) => (
+                  <tr key={q.id} className={`border-t border-border/30 ${idx === 0 ? 'bg-emerald-500/10' : ''}`}>
+                    <td className="px-2 py-1">
+                      {idx === 0 && q.status === 'P' ? <span className="rounded bg-emerald-500/40 px-1.5 py-0.5 text-emerald-100">🏆 最低</span> : `#${idx + 1}`}
+                    </td>
+                    <td className="px-2 py-1 font-mono">{q.inquiryPartner?.code} {q.inquiryPartner?.name ?? q.inquiryPartnerId}</td>
+                    <td className="px-2 py-1 text-right font-mono tabular-nums">{String(q.quotedPrice)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{String(q.quotedQuantity)}</td>
+                    <td className="px-2 py-1 text-right tabular-nums">{q.leadDays ?? '-'}</td>
+                    <td className="px-2 py-1 text-muted-foreground">{q.notes ?? '-'}</td>
+                    <td className="px-2 py-1">
+                      {q.status === 'P' ? <span className="text-amber-300">待採購決定</span>
+                        : q.status === 'A' ? <span className="text-emerald-300">已採用</span>
+                        : <span className="text-red-300">已拒絕</span>}
+                    </td>
+                    <td className="px-2 py-1">
+                      {q.status === 'P' && (
+                        <button
+                          type="button"
+                          disabled={quotesBusy}
+                          onClick={() => onAdoptQt(q.id)}
+                          className="rounded bg-emerald-500/40 px-2 py-0.5 hover:bg-emerald-500/60"
+                        >採用</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {/* 新增 Qt 表單 */}
+        {quotesLoaded && (
+          <details className="rounded border border-border/40 bg-background/50 p-2 text-xs">
+            <summary className="cursor-pointer text-emerald-300">＋ 新增一筆報價（業務外部問完填入）</summary>
+            <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">
+              <input
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="供應商 ID"
+                value={newQt.inquiryPartnerId}
+                onChange={(e) => setNewQt({ ...newQt, inquiryPartnerId: e.target.value })}
+              />
+              <input
+                type="number"
+                step="0.0001"
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="單價"
+                value={newQt.quotedPrice}
+                onChange={(e) => setNewQt({ ...newQt, quotedPrice: e.target.value })}
+              />
+              <input
+                type="number"
+                step="0.0001"
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="可供數量"
+                value={newQt.quotedQuantity}
+                onChange={(e) => setNewQt({ ...newQt, quotedQuantity: e.target.value })}
+              />
+              <input
+                type="number"
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="交期天數"
+                value={newQt.leadDays}
+                onChange={(e) => setNewQt({ ...newQt, leadDays: e.target.value })}
+              />
+              <input
+                className="rounded border border-border bg-background px-2 py-1"
+                placeholder="備註"
+                value={newQt.notes}
+                onChange={(e) => setNewQt({ ...newQt, notes: e.target.value })}
+              />
+            </div>
+            <button
+              type="button"
+              disabled={quotesBusy}
+              onClick={onAddQt}
+              className="mt-2 rounded bg-emerald-500/70 px-3 py-1 text-xs hover:bg-emerald-500"
+            >新增報價</button>
+          </details>
+        )}
+      </div>
+
+      {inquiryText !== null && (
+        <div className="space-y-2 rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-blue-300">詢價文字（複製到 LINE/Email 用）</h2>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCopyInquiryText}
+                className="rounded bg-blue-500/30 px-3 py-1 text-xs hover:bg-blue-500/50"
+              >複製</button>
+              <button
+                type="button"
+                onClick={() => { setInquiryText(null); setCopyHint(null); }}
+                className="rounded bg-white/10 px-3 py-1 text-xs hover:bg-white/20"
+              >關閉</button>
+            </div>
+          </div>
+          <pre className="whitespace-pre-wrap rounded-lg bg-black/30 p-3 text-sm">{inquiryText}</pre>
+          {copyHint && <p className="text-xs text-emerald-300">{copyHint}</p>}
+          <p className="text-xs text-muted-foreground">
+            想改開頭/結尾客套話？到{' '}
+            <Link href="/dashboard/nx02/rfq-greeting-template" className="underline">
+              客套話設定頁
+            </Link>{' '}
+            調整。
+          </p>
+        </div>
+      )}
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div>

@@ -101,3 +101,17 @@ export async function setPartActive(id: string, isActive: boolean): Promise<Part
   await assertOk(res, 'nxui_nx00_part_set_active_001');
   return (await res.json()) as PartDto;
 }
+
+/**
+ * @FUNCTION_CODE NX00-UI-NX00-PART-API-001-F06
+ * M2-b：依成本重算建議售價（POST /nx01/parts/:id/recalc-prices）
+ * 系統算為主（cost × customer_grade.marginPct）、可手動微調覆寫。
+ */
+export async function recalcPartPrices(id: string): Promise<PartDto> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/recalc-prices`, {
+    method: 'POST',
+    body: '{}',
+  });
+  await assertOk(res, 'nxui_nx00_part_recalc_prices_001');
+  return (await res.json()) as PartDto;
+}

@@ -86,6 +86,12 @@ export class CreatePartnerDto {
   @MaxLength(15)
   customerGradeId?: string;
 
+  /** M2-c：供應商等級 ID（手動指派、partner_type='S' 用為主、API recalc-supplier-grade 端點自動算） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  supplierGradeId?: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
@@ -175,6 +181,12 @@ export class UpdatePartnerDto {
   @IsString()
   @MaxLength(15)
   customerGradeId?: string | null;
+
+  /** M2-c：供應商等級 ID（手動指派、partner_type='S' 用為主） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  supplierGradeId?: string | null;
 
   @IsOptional()
   @Type(() => Number)

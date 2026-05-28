@@ -144,6 +144,21 @@ export type RrDetailDto = {
   createdAt: string;
   postedAt: string | null;
   voidedAt: string | null;
+  /** 國外進貨提貨單（國內 RR 無、可選） */
+  rrImport?: {
+    id: string;
+    freightCost: number | string;
+    customsDuty: number | string;
+    customsFee: number | string;
+    storageFee: number | string;
+    otherFee: number | string;
+    totalImportCost: number | string;
+    totalQty: number | string;
+    /** M1 新加：買入時匯率鎖定（國內=1） */
+    exchangeRate: number | string;
+    currencyId: string;
+    incoterm: string;
+  } | null;
   items: {
     id: string;
     lineNo: number;
@@ -154,6 +169,12 @@ export type RrDetailDto = {
     locationCode: string | null;
     qty: number;
     unitCost: number;
+    /** M1 新加：原始外幣單價（國內=TWD 同 unitCost） */
+    originalUnitCost?: number | string;
+    /** M1 新加：攤分到此 item 的進口費用（按金額比例、國內=0） */
+    allocatedImportFee?: number | string;
+    /** M1 新加：實際入庫成本（含換匯+攤分、過帳用） */
+    actualUnitCost?: number | string;
     lineAmount: number;
     poItemId: string | null;
     rfqItemId: string | null;

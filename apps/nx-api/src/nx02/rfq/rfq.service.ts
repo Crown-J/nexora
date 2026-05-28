@@ -131,6 +131,46 @@ export class RfqService {
   }
 
   /**
+   * M2-e：產生「詢價文字」（業務 copy 到 LINE / 電話用、Crown 簡化詢價範式）。
+   * 跟 exportRfq 不同：本 method 純粹「料件清單 + 客套話」、不含 supplier / 倉庫資訊。
+   * 用途：業務從料件+數量發起→系統產文字→複製到 LINE/電話→外部問→回價填 Qt 比價。
+   *
+   * 格式：
+   *   {greetingContent}
+   *
+   *   1. {partNo} {partName} ×{qty}
+   *   2. ...
+   *
+   *   {closingContent}
+   */
+  async generateInquiryText(user: RequestUser, id: string): Promise<{ text: string }> {
+    const tenantId = requireTenantId(user);
+    const rfq = await this.prisma.nx02Rfq.findFirst({
+      where: { id, tenantId },
+      select: {
+        id: true,
+        docNo: true,
+        rev_Nx02RfqItem_rfqId: {
+          orderBy: { lineNo: 'asc' },
+          select: { lineNo: true, partNo: true, partName: true, qty: true },
+        },
+      },
+    });
+    if (!rfq) throw new NotFoundException('RFQ not found');
+    const template = await this.prisma.nx02RfqGreetingTemplate.findFirst({
+      where: { tenantId, isActive: true },
+      select: { greetingContent: true, closingContent: true },
+    });
+    const greeting = template?.greetingContent ?? '您好、想詢價以下零件：';
+    const closing = template?.closingContent ?? '麻煩報價謝謝';
+    const lines = rfq.rev_Nx02RfqItem_rfqId.map(
+      (it) => `${it.lineNo}. ${it.partNo} ${it.partName} ×${String(it.qty)}`,
+    );
+    const text = [greeting, '', ...lines, '', closing].join('\n');
+    return { text };
+  }
+
+  /**
    * NX02-IMPL-01 Phase 3 commit 3c：RFQ 文字/JSON 匯出（廠商不登入、採購員 copy 出去寄 email）
    * 對齊 overview §3.6 廠商溝通範式 + Crown Q18「採購員手動 email 來往」
    *

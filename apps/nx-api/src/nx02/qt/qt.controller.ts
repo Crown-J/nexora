@@ -38,6 +38,12 @@ export class QtController {
     return this.svc.listRfqsForPurchase(user, q);
   }
 
+  /** M3-redo-3b：list quotes by RFQ id（並排比價視圖用、最低價排前） */
+  @Get('rfq/:id/quotes')
+  listQuotes(@CurrentUser() user: RequestUser, @Param('id') rfqId: string) {
+    return this.svc.listQuotesByRfqId(user, rfqId);
+  }
+
   /** §3.2 新增 QT — 限 PURCHASING / SYSADMIN / OWNER */
   @Post('qt')
   @Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES')

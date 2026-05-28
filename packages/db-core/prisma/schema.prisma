@@ -472,6 +472,7 @@ model Nx01Department {
   rev_Nx07EmployeeChange_newDepartmentId Nx07EmployeeChange[] @relation("R_Nx07EmployeeChange_newDepartmentId")
   rev_Nx09Document_deptId                Nx09Document[]       @relation("R_Nx09Document_deptId")
   rev_Nx09KmArticle_deptId               Nx09KmArticle[]      @relation("R_Nx09KmArticle_deptId")
+  rev_Nx98TaskPool_departmentId          Nx98TaskPool[]       @relation("R_Nx98TaskPool_departmentId")
 
   @@map("nx01_department")
 }
@@ -820,6 +821,7 @@ model Nx01Part {
   rev_Nx02RrItem_partId           Nx02RrItem[]           @relation("R_Nx02RrItem_partId")
   rev_Nx02TiItem_partId           Nx02TiItem[]           @relation("R_Nx02TiItem_partId")
   rev_Nx02PartnerPart_partId      Nx02PartnerPart[]      @relation("R_Nx02PartnerPart_partId")
+  rev_Nx02WarrantyClaim_partId    Nx02WarrantyClaim[]    @relation("R_Nx02WarrantyClaim_partId")
   rev_Nx03InitItem_partId         Nx03InitItem[]         @relation("R_Nx03InitItem_partId")
   rev_Nx03PartStockSetting_partId Nx03PartStockSetting[] @relation("R_Nx03PartStockSetting_partId")
   rev_Nx03PkItem_partId           Nx03PkItem[]           @relation("R_Nx03PkItem_partId")
@@ -1035,6 +1037,8 @@ model Nx01Partner {
   paymentTermDomestic                      String                       @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
   /// 客戶等級ID（FK nx01_customer_grade），供報價單定價邏輯使用。partner_type IN ('C', 'O') 通用（保養廠+同行都走 ABCD 定價、業界 muscle memory：同行看交情/量、保養廠看消費力）。；啟用最低需求版本：LITE-CORE
   customerGradeId                          String?                      @map("customer_grade_id") @db.VarChar(15)
+  /// 供應商等級ID（FK nx01_supplier_grade），採購視角、partner_type='S' 純供應商用。LITE 階段 1 手動指派為主（初期數據累積後再補自動算：付款條件→信用紀錄→不良率）。；啟用最低需求版本：LITE-CORE
+  supplierGradeId                          String?                      @map("supplier_grade_id") @db.VarChar(15)
   /// 信用額度（客戶用），0=不限制。已用額度超過80%警示，超過100%通知負責人。負責人可設定口頭警告/僅收現金/凍結三種處置方式。；啟用最低需求版本：LITE-CORE
   creditLimit                              Decimal?                     @default(0) @map("credit_limit") @db.Decimal(15, 2)
   /// 信用狀態（N=正常/W=僅收現金/F=凍結）。凍結時業務無法建立新SO，系統直接擋單。由負責人設定。；啟用最低需求版本：LITE-CORE
@@ -1061,6 +1065,7 @@ model Nx01Partner {
   defaultWarehouseId                       String?                      @map("default_warehouse_id") @db.VarChar(15)
   tenant                                   Nx99Tenant                   @relation("R_Nx01Partner_tenantId", fields: [tenantId], references: [id])
   customerGrade                            Nx01CustomerGrade?           @relation("R_Nx01Partner_customerGradeId", fields: [customerGradeId], references: [id])
+  supplierGrade                            Nx01SupplierGrade?           @relation("R_Nx01Partner_supplierGradeId", fields: [supplierGradeId], references: [id])
   salesUser                                Nx01User?                    @relation("R_Nx01Partner_salesUserId", fields: [salesUserId], references: [id])
   defaultCurrency                          Nx01Currency?                @relation("R_Nx01Partner_defaultCurrencyId", fields: [defaultCurrencyId], references: [id], onDelete: Restrict)
   defaultWarehouse                         Nx01Warehouse?               @relation("R_Nx01Partner_defaultWarehouseId", fields: [defaultWarehouseId], references: [id], onDelete: SetNull)
@@ -1087,6 +1092,7 @@ model Nx01Partner {
   rev_Nx08SalesCache_customerId            Nx08SalesCache[]             @relation("R_Nx08SalesCache_customerId")
   rev_Nx01PartnerBillingAddress_partnerId  Nx01PartnerBillingAddress?   @relation("R_Nx01PartnerBillingAddress_partnerId")
   rev_Nx01PartnerShippingAddress_partnerId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_partnerId")
+  rev_Nx02WarrantyClaim_supplierId         Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_supplierId")
 
   @@unique([tenantId, code])
   @@map("nx01_partner")
@@ -1270,6 +1276,7 @@ model Nx01User {
   rev_Nx01UserWarehouse_userId        Nx01UserWarehouse[]      @relation("R_Nx01UserWarehouse_userId")
   rev_Nx01BulletinAttachment_uploader Nx01BulletinAttachment[] @relation("R_Nx01BulletinAttachment_uploaderUserId")
   rev_Nx01BulletinReadLog_userId      Nx01BulletinReadLog[]    @relation("R_Nx01BulletinReadLog_userId")
+  rev_Nx02WarrantyClaimAttachment_uploader Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_uploaderUserId")
   rev_Nx06Dn_driverUserId             Nx06Dn[]                 @relation("R_Nx06Dn_driverUserId")
   rev_Nx06DnHandover_fromDriverId     Nx06DnHandover[]         @relation("R_Nx06DnHandover_fromDriverId")
   rev_Nx06DnHandover_toDriverId       Nx06DnHandover[]         @relation("R_Nx06DnHandover_toDriverId")
@@ -1959,7 +1966,7 @@ model Nx02Rfq {
   docNo                     String         @map("doc_no") @db.VarChar(30)
   /// 詢價日期；啟用最低需求版本：LITE
   rfqDate                   DateTime       @map("rfq_date") @db.Date
-  /// 供應商（交易對象 ID；application 層 guard partner_type='S' 純供應商）；啟用最低需求版本：LITE
+  /// 主供應商（交易對象 ID、可空：LITE 階段 1 簡化詢價範式 = 系統不預先綁供應商名單、業務複製詢價文字到外部問、回價時記錄到 Nx02Qt；本欄位保留作「優先意向供應商」可選欄、application 層 guard partner_type='S' 純供應商）；啟用最低需求版本：LITE
   supplierId                String?        @map("supplier_id") @db.VarChar(15)
   /// 聯絡人（可空，臨時覆寫 partner 主檔）；啟用最低需求版本：LITE
   contactName               String?        @map("contact_name") @db.VarChar(50)
@@ -1983,7 +1990,7 @@ model Nx02Rfq {
   voidedAt                  DateTime?      @map("voided_at")
   /// 作廢人（使用者 ID）；啟用最低需求版本：LITE
   voidedBy                  String?        @map("voided_by") @db.VarChar(15)
-  /// 詢價類型（G=一般詢價由採購專員建立/P=同行調貨詢價由銷售專員建立）。P類型後續只能建立調貨單TI，不能建立採購單PO。；啟用最低需求版本：LITE-CORE
+  /// 詢價類型（G=一般詢價：採購多家供應商比價工具/P=同行調貨詢價：銷售業務調貨用）。LITE 階段 1 範式：G 型 = 業務從料件+數量發起→產生詢價文字→自己拿去 LINE/電話問→回價填入 Nx02Qt（partner_type=S 純供應商）並排比價→選一家開 PO；P 型既有同行調貨範式不變（Qt.partner_type=O 同行）後續只能建立調貨單 TI 不能建立 PO。；啟用最低需求版本：LITE-CORE
   rfqType                   String         @default("G") @map("rfq_type") @db.VarChar(1)
   /// 詢價原因（可複選，逗號分隔）：S=庫存不足/O=客訂/N=新品/P=特價/T=同行調貨。同行調貨詢價固定為T不可修改。；啟用最低需求版本：LITE-CORE
   rfqReason                 String?        @map("rfq_reason") @db.VarChar(50)
@@ -2184,8 +2191,10 @@ model Nx02RrImport {
   totalImportCost Decimal      @default(0) @map("total_import_cost") @db.Decimal(14, 2)
   /// 該批到貨總數量（用於攤分計算）。；啟用最低需求版本：LITE-CORE
   totalQty        Decimal      @default(0) @map("total_qty") @db.Decimal(14, 4)
-  /// 每件攤分成本（total_import_cost ÷ total_qty），自動計算後寫入。；啟用最低需求版本：LITE-CORE
+  /// @deprecated 既有「按數量平均」公式（total_import_cost ÷ total_qty），LITE 階段 1 起改「按金額比例」攤分到 Nx02RrItem.allocatedImportFee，本欄位保留向後相容、service 不再寫入。；啟用最低需求版本：LITE-CORE
   costPerUnit     Decimal      @default(0) @map("cost_per_unit") @db.Decimal(14, 4)
+  /// 買入時匯率（鎖定）。批次成本永久以此匯率計算 TWD、不隨匯率波動重算。例：USD→TWD 31.500000。Decimal(15,6) 支援小幣別精度。LITE 階段 1 新加；啟用最低需求版本：LITE-CORE
+  exchangeRate    Decimal      @default(1) @map("exchange_rate") @db.Decimal(15, 6)
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
   currencyId      String       @map("currency_id") @db.VarChar(15)
   /// 備註。；啟用最低需求版本：LITE-CORE
@@ -2228,8 +2237,14 @@ model Nx02RrItem {
   locationId              String       @map("location_id") @db.VarChar(15)
   /// 進貨數量；啟用最低需求版本：LITE
   qty                     Decimal      @default(0) @db.Decimal(14, 4)
-  /// 單位成本（進貨成本）；啟用最低需求版本：LITE
+  /// 單位成本（原始單價：國內 = TWD 直接成本、國外 = 外幣單價未換匯）。LITE 階段 1 語意收斂：跟 actualUnitCost 分離、TWD 換匯+進口費攤分後寫入 actualUnitCost；啟用最低需求版本：LITE
   unitCost                Decimal      @default(0) @map("unit_cost") @db.Decimal(14, 4)
+  /// 原始外幣單價（國內 = TWD 跟 unitCost 同值、國外 = 換匯前外幣值）。審計留底用、跟 unitCost 並存。LITE 階段 1 新加；啟用最低需求版本：LITE-CORE
+  originalUnitCost        Decimal      @default(0) @map("original_unit_cost") @db.Decimal(14, 4)
+  /// 攤分到此 item 的進口費用（按金額比例：額外費用總額 × (該零件貨款 ÷ 批內總貨款)、國內 = 0）。LITE 階段 1 新加；啟用最低需求版本：LITE-CORE
+  allocatedImportFee      Decimal      @default(0) @map("allocated_import_fee") @db.Decimal(14, 2)
+  /// 實際入庫成本（TWD、含換匯+進口費攤分）= (originalUnitCost × exchangeRate × qty + allocatedImportFee) ÷ qty。過帳 applyQtyInWithLedger 用此值算移動平均。LITE 階段 1 新加；啟用最低需求版本：LITE-CORE
+  actualUnitCost          Decimal      @default(0) @map("actual_unit_cost") @db.Decimal(14, 4)
   /// 明細金額（qty * unit_cost）；啟用最低需求版本：LITE
   lineAmount              Decimal      @default(0) @map("line_amount") @db.Decimal(14, 2)
   /// 備註；啟用最低需求版本：LITE
@@ -6830,6 +6845,11 @@ model Nx99Tenant {
   rev_Nx99Subscription_tenantId           Nx99Subscription[]           @relation("R_Nx99Subscription_tenantId")
   rev_Nx01PartnerBillingAddress_tenantId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_tenantId")
   rev_Nx01PartnerShippingAddress_tenantId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_tenantId")
+  rev_Nx01SupplierGrade_tenantId          Nx01SupplierGrade[]          @relation("R_Nx01SupplierGrade_tenantId")
+  rev_Nx02WarrantyClaim_tenantId          Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_tenantId")
+  rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
+  rev_Nx02RfqGreetingTemplate_tenantId    Nx02RfqGreetingTemplate[]    @relation("R_Nx02RfqGreetingTemplate_tenantId")
+  rev_Nx98TaskPool_tenantId               Nx98TaskPool[]               @relation("R_Nx98TaskPool_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")
@@ -7882,4 +7902,247 @@ model Nx09RepairSopPartModel {
   @@index([repairSopId], map: "nx09_repair_sop_part_model_sop_idx")
   @@index([partModelId], map: "nx09_repair_sop_part_model_part_model_idx")
   @@map("nx09_repair_sop_part_model")
+}
+
+/// =======================================================
+/// Nx01SupplierGrade — DB table `nx01_supplier_grade`（LITE 階段 1 新加）
+/// 供應商分級主檔（A/B/C/D），對齊 Nx01CustomerGrade 範式。
+/// 初期手動指派為主、付款條件累積後算自動評級、信用紀錄/不良率累積後再補。
+/// =======================================================
+model Nx01SupplierGrade {
+  /// [NX01]+[SUGR]+[7碼流水號]，EX : NX01SUGR0000001；啟用最低需求版本：LITE-CORE
+  id                              String        @id @default(dbgenerated("gen_nx01_supplier_grade_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId                        String        @map("tenant_id") @db.VarChar(15)
+  /// 等級代碼（租戶內唯一），預設：A/B/C/D，可自行新增。；啟用最低需求版本：LITE-CORE
+  code                            String        @db.VarChar(10)
+  /// 等級名稱（顯示用），例：優質供應商、一般供應商、品質不穩、黑名單。；啟用最低需求版本：LITE-CORE
+  name                            String        @db.VarChar(50)
+  /// 等級描述（顯示用、業務人員判讀規則）；啟用最低需求版本：LITE-CORE
+  description                     String?       @db.VarChar(200)
+  /// 排序用（數字越小等級越優）。；啟用最低需求版本：LITE-CORE
+  sortNo                          Int           @map("sort_no")
+  /// 是否啟用。；啟用最低需求版本：LITE-CORE
+  isActive                        Boolean       @default(true) @map("is_active")
+  /// 建立時間。；啟用最低需求版本：LITE-CORE
+  createdAt                       DateTime      @default(now()) @map("created_at")
+  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  createdBy                       String        @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE-CORE
+  updatedAt                       DateTime      @updatedAt @map("updated_at")
+  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  updatedBy                       String        @map("updated_by") @db.VarChar(15)
+  tenant                          Nx99Tenant    @relation("R_Nx01SupplierGrade_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01Partner_supplierGradeId Nx01Partner[] @relation("R_Nx01Partner_supplierGradeId")
+
+  @@unique([tenantId, code])
+  @@map("nx01_supplier_grade")
+}
+
+/// =======================================================
+/// Nx02WarrantyClaim — DB table `nx02_warranty_claim`（LITE 階段 1 新加）
+/// 保固申請單：兩型發起（客訴 CUST / 自用 SELF）+ 4 種審核結果（NEW/REF/RPR/REJ）。
+/// claimType=CUST 連 sourceSoId（NX04 SO 還沒做 LITE、暫不建 @relation FK constraint、純 nullable 欄位預留）。
+/// =======================================================
+model Nx02WarrantyClaim {
+  /// [NX02]+[WCLM]+[7碼流水號]，EX : NX02WCLM0000001；啟用最低需求版本：LITE
+  id                                String                        @id @default(dbgenerated("gen_nx02_warranty_claim_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE
+  tenantId                          String                        @map("tenant_id") @db.VarChar(15)
+  /// 保固申請單號（唯一），[WC]+[年月]+[倉別]+[5碼流水號]，EX：WC-202606-Z01-00001；啟用最低需求版本：LITE
+  docNo                             String                        @map("doc_no") @db.VarChar(30)
+  /// 申請類型（CUST=客訴型連 SO / SELF=自用型不連 SO）。；啟用最低需求版本：LITE
+  claimType                         String                        @map("claim_type") @db.VarChar(4)
+  /// 來源銷貨單 ID（FK nx04_so，僅 claimType=CUST 填）。NX04 LITE 尚未實作、暫不建 @relation 約束、純預留 nullable；啟用最低需求版本：LITE
+  sourceSoId                        String?                       @map("source_so_id") @db.VarChar(15)
+  /// 來源銷貨單號 snapshot（顯示用、避免 SO 改 docNo 影響歷史）；啟用最低需求版本：LITE
+  sourceSoNo                        String?                       @map("source_so_no") @db.VarChar(30)
+  /// 供應商 ID（FK nx01_partner、application 層 guard partner_type='S' 純供應商、向誰申請保固）；啟用最低需求版本：LITE
+  supplierId                        String                        @map("supplier_id") @db.VarChar(15)
+  /// 零件 ID（FK nx01_part、什麼料壞了）；啟用最低需求版本：LITE
+  partId                            String                        @map("part_id") @db.VarChar(15)
+  /// 零件料號 snapshot；啟用最低需求版本：LITE
+  partNo                            String                        @map("part_no") @db.VarChar(50)
+  /// 零件名稱 snapshot；啟用最低需求版本：LITE
+  partName                          String                        @map("part_name") @db.VarChar(200)
+  /// 數量（壞了幾個）；啟用最低需求版本：LITE
+  qty                               Decimal                       @default(0) @db.Decimal(14, 4)
+  /// 申請日期；啟用最低需求版本：LITE
+  claimDate                         DateTime                      @map("claim_date") @db.Date
+  /// 問題描述（業務人員填、給供應商審核參考）；啟用最低需求版本：LITE
+  issueDescription                  String                        @map("issue_description") @db.VarChar(1000)
+  /// 狀態（D=DRAFT 草稿/S=SUBMITTED 已送出/R=REVIEWING 供應商審核中/C=COMPLETED 已完成有審核結果/V=VOIDED 作廢）；啟用最低需求版本：LITE
+  status                            String                        @default("D") @db.VarChar(1)
+  /// 審核結果（status=C 才有值：NEW=換新/REF=退錢/RPR=維修後還/REJ=駁回、null=尚未審核）；啟用最低需求版本：LITE
+  result                            String?                       @db.VarChar(3)
+  /// 審核回覆說明（供應商給的審核理由、status=C 必填）；啟用最低需求版本：LITE
+  resultRemark                      String?                       @map("result_remark") @db.VarChar(500)
+  /// 審核完成時間（status=C 才有）；啟用最低需求版本：LITE
+  resultedAt                        DateTime?                     @map("resulted_at")
+  /// 審核登記人（使用者 ID、收到供應商回覆後登記的業務員）；啟用最低需求版本：LITE
+  resultedBy                        String?                       @map("resulted_by") @db.VarChar(15)
+  /// 備註；啟用最低需求版本：LITE
+  remark                            String?                       @db.VarChar(500)
+  /// 建立時間。；啟用最低需求版本：LITE
+  createdAt                         DateTime                      @default(now()) @map("created_at")
+  /// 建立人（必填；系統操作帶入使用者 ID）；啟用最低需求版本：LITE
+  createdBy                         String                        @map("created_by") @db.VarChar(15)
+  /// 更新時間。；啟用最低需求版本：LITE
+  updatedAt                         DateTime                      @updatedAt @map("updated_at")
+  /// 更新人（必填；系統操作帶入使用者 ID）；啟用最低需求版本：LITE
+  updatedBy                         String                        @map("updated_by") @db.VarChar(15)
+  /// 作廢時間（status=V 才有）；啟用最低需求版本：LITE
+  voidedAt                          DateTime?                     @map("voided_at")
+  /// 作廢人（使用者 ID）；啟用最低需求版本：LITE
+  voidedBy                          String?                       @map("voided_by") @db.VarChar(15)
+  tenant                            Nx99Tenant                    @relation("R_Nx02WarrantyClaim_tenantId", fields: [tenantId], references: [id])
+  supplier                          Nx01Partner                   @relation("R_Nx02WarrantyClaim_supplierId", fields: [supplierId], references: [id])
+  part                              Nx01Part                      @relation("R_Nx02WarrantyClaim_partId", fields: [partId], references: [id])
+  rev_Nx02WarrantyClaimAttachment_claimId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_claimId")
+
+  @@unique([docNo])
+  @@index([tenantId, supplierId])
+  @@index([tenantId, partId])
+  @@index([tenantId, status])
+  @@map("nx02_warranty_claim")
+}
+
+/// =======================================================
+/// Nx02WarrantyClaimAttachment — DB table `nx02_warranty_claim_attachment`（LITE 階段 1 新加）
+/// 保固申請附件：行照 LIC / 照片 PHO / 影片 VID 三型、對齊 Nx01BulletinAttachment 範式（storageKey + mimeType + fileSize）。
+/// =======================================================
+model Nx02WarrantyClaimAttachment {
+  /// [NX02]+[WCAT]+[7碼流水號]，EX : NX02WCAT0000001；啟用最低需求版本：LITE
+  id             String            @id @default(dbgenerated("gen_nx02_warranty_claim_attachment_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵、軌 1 FileUploadService.upload() tenantId prefix 強制驗證對齊）；啟用最低需求版本：LITE
+  tenantId       String            @map("tenant_id") @db.VarChar(15)
+  /// 保固申請單 FK；啟用最低需求版本：LITE
+  claimId        String            @map("claim_id") @db.VarChar(15)
+  /// 檔案類型（LIC=行照/PHO=問題照片/VID=影片）；啟用最低需求版本：LITE
+  fileType       String            @map("file_type") @db.VarChar(3)
+  /// 檔案在 storage 的 key（範式：{tenantId}/nx02_warranty/{yyyy}/{mm}/{uuid}{ext}、階段 1 本地路徑、階段 2 R2 object key）；啟用最低需求版本：LITE
+  storageKey     String            @map("storage_key") @db.VarChar(500)
+  /// MIME 類型（image/png / video/mp4 / application/pdf 等）；啟用最低需求版本：LITE
+  mimeType       String            @map("mime_type") @db.VarChar(100)
+  /// 檔案大小（bytes、application 層 guard：照片 ≤ 10MB / 影片 ≤ 100MB / 行照 ≤ 5MB）；啟用最低需求版本：LITE
+  fileSize       Int               @map("file_size")
+  /// 上傳時原始檔名；啟用最低需求版本：LITE
+  origFilename   String            @map("orig_filename") @db.VarChar(255)
+  /// 上傳者 FK；啟用最低需求版本：LITE
+  uploaderUserId String            @map("uploader_user_id") @db.VarChar(15)
+  /// 上傳時間；啟用最低需求版本：LITE
+  createdAt      DateTime          @default(now()) @map("created_at")
+  tenant         Nx99Tenant        @relation("R_Nx02WarrantyClaimAttachment_tenantId", fields: [tenantId], references: [id])
+  claim          Nx02WarrantyClaim @relation("R_Nx02WarrantyClaimAttachment_claimId", fields: [claimId], references: [id], onDelete: Cascade)
+  uploader       Nx01User          @relation("R_Nx02WarrantyClaimAttachment_uploaderUserId", fields: [uploaderUserId], references: [id])
+
+  @@index([claimId])
+  @@map("nx02_warranty_claim_attachment")
+}
+
+/// =======================================================
+/// Nx98TaskPool — DB table `nx98_task_pool`（LITE 階段 1 M4：跨模組共享待辦池）
+/// =======================================================
+/// 全模組共用框架：進貨/銷貨/庫存/財務等模組產生的待辦事項都進此池。
+/// 業務語意（Crown 2026-05-28 拍板）：
+///   - 任何人可建、可指派或留池中（assigneeUserId=null = 池中無人領）
+///   - 池中待辦任何人可領取（領後 status=CLAIMED、其他人不能領）
+///   - 主管 ABCD 可指派給 EF（assignee 變更）、EF 只能領取（⚠️ RBAC TODO、本軌 minimal 不 enforce）
+///   - 已領取可放回池（CLAIMED→OPEN）
+///   - 完成 status=DONE、作廢 status=VOIDED
+///   - 跨模組通用：sourceModule + sourceDocType + sourceDocId 軟連結業務單據（不建 FK constraint）
+model Nx98TaskPool {
+  /// [NX98]+[TPOL]+[7碼流水號]，EX : NX98TPOL0000001；啟用最低需求版本：LITE
+  id              String          @id @default(dbgenerated("gen_nx98_task_pool_id()")) @db.VarChar(15)
+  /// 租戶 ID；啟用最低需求版本：LITE
+  tenantId        String          @map("tenant_id") @db.VarChar(15)
+  /// 待辦單號（optional、若需流水號用 [TASK]+[YYYYMM]+[5 碼]）；啟用最低需求版本：LITE
+  docNo           String?         @map("doc_no") @db.VarChar(30)
+  /// 來源模組碼（NX02/NX03/NX04/NX05、可空 = 跨模組獨立待辦）；啟用最低需求版本：LITE
+  sourceModule    String?         @map("source_module") @db.VarChar(10)
+  /// 來源單據類型（RR/PO/SO/RFQ 等、可空）；啟用最低需求版本：LITE
+  sourceDocType   String?         @map("source_doc_type") @db.VarChar(10)
+  /// 來源單據 ID（軟連結、不建 FK constraint、跨模組通用）；啟用最低需求版本：LITE
+  sourceDocId     String?         @map("source_doc_id") @db.VarChar(15)
+  /// 來源單據單號 snapshot（顯示用、避免改 docNo 影響歷史）；啟用最低需求版本：LITE
+  sourceDocNo     String?         @map("source_doc_no") @db.VarChar(30)
+  /// 待辦標題（業務人員看的描述）；啟用最低需求版本：LITE
+  title           String          @db.VarChar(200)
+  /// 待辦詳細說明（可空）；啟用最低需求版本：LITE
+  description     String?         @db.VarChar(1000)
+  /// 業務分類（PURCHASE_RECEIVE 待驗收 / SALES_PICK 待撿貨 / INVENTORY_DISPOSAL 待異常處理 等）；啟用最低需求版本：LITE
+  category        String          @db.VarChar(30)
+  /// 優先級（L=低 / M=中 / H=高）；啟用最低需求版本：LITE
+  priority        String          @default("M") @db.VarChar(1)
+  /// 截止日期（可空）；啟用最低需求版本：LITE
+  dueDate         DateTime?       @map("due_date") @db.Date
+  /// 部門 ID（FK nx01_department、null = 全公司池）；啟用最低需求版本：LITE
+  departmentId    String?         @map("department_id") @db.VarChar(15)
+  /// 被指派人（user ID、可空 = 池中、有值 = 已指派或已領取）；啟用最低需求版本：LITE
+  assigneeUserId  String?         @map("assignee_user_id") @db.VarChar(15)
+  /// 指派時間（assignee 變更為非 null 時更新）；啟用最低需求版本：LITE
+  assignedAt      DateTime?       @map("assigned_at")
+  /// 指派人（user ID、主管或建單人）；啟用最低需求版本：LITE
+  assignedBy      String?         @map("assigned_by") @db.VarChar(15)
+  /// 領取時間（EF 主動領、status OPEN→CLAIMED）；啟用最低需求版本：LITE
+  claimedAt       DateTime?       @map("claimed_at")
+  /// 領取人（user ID）；啟用最低需求版本：LITE
+  claimedBy       String?         @map("claimed_by") @db.VarChar(15)
+  /// 狀態（OPEN=池中未領 / CLAIMED=已領取 / DONE=已完成 / VOIDED=作廢）；啟用最低需求版本：LITE
+  status          String          @default("OPEN") @db.VarChar(10)
+  /// 完成時間；啟用最低需求版本：LITE
+  completedAt     DateTime?       @map("completed_at")
+  /// 完成人（user ID）；啟用最低需求版本：LITE
+  completedBy     String?         @map("completed_by") @db.VarChar(15)
+  /// 完成備註（業務完成時填）；啟用最低需求版本：LITE
+  completedRemark String?         @map("completed_remark") @db.VarChar(500)
+  /// 作廢時間；啟用最低需求版本：LITE
+  voidedAt        DateTime?       @map("voided_at")
+  /// 作廢人（user ID）；啟用最低需求版本：LITE
+  voidedBy        String?         @map("voided_by") @db.VarChar(15)
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt       DateTime        @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy       String          @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy       String          @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant      @relation("R_Nx98TaskPool_tenantId", fields: [tenantId], references: [id])
+  department      Nx01Department? @relation("R_Nx98TaskPool_departmentId", fields: [departmentId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([tenantId, assigneeUserId, status])
+  @@index([tenantId, departmentId, status])
+  @@index([tenantId, sourceModule, sourceDocId])
+  @@map("nx98_task_pool")
+}
+
+/// =======================================================
+/// Nx02RfqGreetingTemplate — DB table `nx02_rfq_greeting_template`（LITE 階段 1 新加）
+/// 詢價文字客套話設定（每租戶 1:1、unique）：業務從料件+數量發起詢價、系統產生「開頭客套話 + 料件清單 + 結尾客套話」、業務複製到 LINE/電話問供應商。
+/// =======================================================
+model Nx02RfqGreetingTemplate {
+  /// [NX02]+[RGTM]+[7碼流水號]，EX : NX02RGTM0000001；啟用最低需求版本：LITE
+  id               String     @id @default(dbgenerated("gen_nx02_rfq_greeting_template_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵、unique 每租戶一套）；啟用最低需求版本：LITE
+  tenantId         String     @map("tenant_id") @db.VarChar(15)
+  /// 開頭客套話（例：「您好、想詢價以下零件：」）；啟用最低需求版本：LITE
+  greetingContent  String     @default("您好、想詢價以下零件：") @map("greeting_content") @db.VarChar(500)
+  /// 結尾客套話（例：「麻煩報價謝謝」）；啟用最低需求版本：LITE
+  closingContent   String     @default("麻煩報價謝謝") @map("closing_content") @db.VarChar(500)
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive         Boolean    @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt        DateTime   @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy        String     @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy        String     @map("updated_by") @db.VarChar(15)
+  tenant           Nx99Tenant @relation("R_Nx02RfqGreetingTemplate_tenantId", fields: [tenantId], references: [id])
+
+  @@unique([tenantId])
+  @@map("nx02_rfq_greeting_template")
 }

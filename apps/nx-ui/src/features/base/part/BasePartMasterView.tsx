@@ -38,7 +38,7 @@ import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import { listBrand } from '@/features/nx00/brand/api/brand';
 import type { BrandDto } from '@/features/nx00/brand/types';
 import { useBrandCodeRuleLookup } from '@/features/nx00/lookup/hooks/useBrandCodeRuleLookup';
-import { createPart, listPart, setPartActive, updatePart } from '@/features/nx00/part/api/part';
+import { createPart, listPart, recalcPartPrices, setPartActive, updatePart } from '@/features/nx00/part/api/part';
 import type { PartDto } from '@/features/nx00/part/types';
 import { apiFetch } from '@/shared/api/client';
 import { buildQueryString } from '@/shared/api/query';
@@ -1640,6 +1640,35 @@ export function BasePartMasterView() {
                         readOnly={!creating && !editing}
                         className={!creating && !editing ? readonlyFieldCls : undefined}
                       />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <Label className="text-xs text-muted-foreground">建議售價 ABCD（成本 × 毛利率系統算為主、可手動微調）</Label>
+                        {editing && selectedId && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const updated = await recalcPartPrices(selectedId);
+                                setDraft((d) => ({
+                                  ...d,
+                                  priceA: updated.priceA != null ? String(updated.priceA) : '',
+                                  priceB: updated.priceB != null ? String(updated.priceB) : '',
+                                  priceC: updated.priceC != null ? String(updated.priceC) : '',
+                                  priceD: updated.priceD != null ? String(updated.priceD) : '',
+                                }));
+                                setRows((prev) => prev.map((r) => (r.id === selectedId ? dtoToRow(updated) : r)));
+                              } catch (e) {
+                                alert(`重算失敗：${(e as Error).message}`);
+                              }
+                            }}
+                            className="rounded bg-emerald-500/30 px-2 py-0.5 text-xs hover:bg-emerald-500/50"
+                            title="依目前成本 × customer_grade.marginPct 重新計算 ABCD"
+                          >
+                            📊 依成本重算
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="bp-pa">建議售價 A</Label>
