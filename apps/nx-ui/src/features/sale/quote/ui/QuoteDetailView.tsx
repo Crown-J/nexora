@@ -6,6 +6,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
+import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
 import {
@@ -116,6 +117,7 @@ function QuoteDetailInner({ id }: { id: string }) {
           >
             重整 (R)
           </button>
+          <IssueReportTrigger sourceDocType="QT" sourceDocId={q.id} warehouseId={q.warehouseId} />
           {canSend ? (
             <button
               disabled={busy}

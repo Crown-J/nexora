@@ -11,6 +11,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
 import {
@@ -147,6 +148,7 @@ function SoDetailInner({ id }: { id: string }) {
           >
             重整 (R)
           </button>
+          <IssueReportTrigger sourceDocType="SO" sourceDocId={so.id} warehouseId={so.warehouseId} />
           {next ? (
             <button
               disabled={busy}

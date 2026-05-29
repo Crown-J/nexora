@@ -6,6 +6,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
 import {
@@ -124,6 +125,7 @@ function SrDetailInner({ id }: { id: string }) {
           >
             重整 (R)
           </button>
+          <IssueReportTrigger sourceDocType="SR" sourceDocId={sr.id} warehouseId={sr.warehouseId} />
           {canSubmit ? (
             <button
               disabled={busy || !sr.items?.length}
