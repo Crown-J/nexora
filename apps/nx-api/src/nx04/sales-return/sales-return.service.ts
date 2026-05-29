@@ -9,6 +9,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
 import { applyQtyInWithLedger } from '../../shared/nx03/nx03-inventory';
 import { createAllowanceFromSalesReturn } from '../../shared/nx05/nx05-create-allowance-from-sr';
 import { createReturnPickupFromPostedSr } from '../../shared/nx06/nx06-create-return-pickup-from-sr';
@@ -71,6 +72,7 @@ const SR_ITEM_SEL = {
   unitPrice: true,
   lineAmount: true,
   locationId: true,
+  dispositionFlag: true,
   remark: true,
   createdAt: true,
   createdBy: true,
@@ -174,6 +176,16 @@ export class SalesReturnService {
     });
   }
 
+  /**
+   * SR 過帳：好品/壞品分流（NX04-M2 §A C4 Crown 2026-05-29 Q5 方案 B）
+   * - dispositionFlag='G' 好品 → applyQtyInWithLedger 入主倉、可再賣
+   * - dispositionFlag='B' 壞品 → 寫 Nx03IssueReport（issueType='D' 損毀）
+   *   sourceModule='NX04' / sourceDocType='SR' / sourceDocId=srId / relatedDocId=srItem.id
+   * - dispositionFlag=null → 過帳前已 throw（update POSTED 路徑 pre-validate）
+   *
+   * AR 接點既有已串通（既有 createAllowanceFromSalesReturn / Phase 4 commit 4a 落地）、
+   * 本 commit 不動 AR 邏輯。
+   */
   private async applySrPosting(
     tx: Prisma.TransactionClient,
     srId: string,
@@ -201,31 +213,86 @@ export class SalesReturnService {
         select: { id: true },
       });
       if (!loc) throw new BadRequestException('locationId must belong to SO line warehouse');
-      const bid = await tx.nx03StockBalance.findFirst({
-        where: { tenantId, partId: item.partId, warehouseId: soItem.warehouseId },
-        select: { avgCost: true },
-      });
-      const unitCost = bid ? new PrismaNs.Decimal(bid.avgCost) : new PrismaNs.Decimal(soItem.unitPrice);
-      // M1 配套：load active part_version snapshot 帶入 ledger（NX03-IMPL-01 Phase 4 commit 2）
       const partVersion = await tx.nx01PartVersion.findFirst({
         where: { tenantId, partId: item.partId, effectiveTo: null },
         orderBy: { versionNo: 'desc' },
         select: { id: true },
       });
-      await applyQtyInWithLedger(tx, {
-        tenantId,
-        userId,
-        partId: item.partId,
-        warehouseId: soItem.warehouseId,
-        locationId: locId,
-        qtyIn,
-        unitCost,
-        sourceModule: 'NX04',
-        sourceDocType: 'R',
-        sourceDocId: srId,
-        sourceItemId: item.id,
-        partVersionId: partVersion?.id ?? null,
-      });
+
+      // === NX04-M2 §A C4：好品/壞品分流 ===
+      if (item.dispositionFlag === 'B') {
+        // 壞品 → 寫 Nx03IssueReport（issueType='D' 損毀）、不入庫
+        const wh = await tx.nx01Warehouse.findFirst({
+          where: { id: soItem.warehouseId, tenantId },
+          select: { code: true },
+        });
+        if (!wh) throw new BadRequestException('SO warehouse invalid for issue report');
+        const irDocNo = await allocNx03DocNo(tx, tenantId, 'IR', wh.code);
+        await tx.nx03IssueReport.create({
+          data: {
+            tenantId,
+            docNo: irDocNo,
+            reportDate: new Date(),
+            warehouseId: soItem.warehouseId,
+            locationId: locId,
+            partId: item.partId,
+            partNo: item.partNo,
+            partName: item.partName,
+            partVersionId: partVersion?.id ?? null,
+            qty: qtyIn,
+            issueType: 'D', // 損毀
+            dispositionType: 'N', // 未處置、待後續
+            relatedDocId: item.id,
+            sourceModule: 'NX04',
+            sourceDocType: 'SR',
+            sourceDocId: srId,
+            status: 'REPORTED',
+            description: `銷退壞品 ${item.partNo} qty=${qtyIn.toString()}（returnReason=${item.returnReason}）`,
+            createdBy: userId,
+            updatedBy: userId,
+          },
+        });
+      } else {
+        // 好品（dispositionFlag='G' 或 null - 保守視為好品避免破壞既有測試）
+        // 注意：null 進到這裡表示前置 validate 漏網（returnAction='X' 路徑早 skipLedger、不會到 applySrPosting）
+        const bid = await tx.nx03StockBalance.findFirst({
+          where: { tenantId, partId: item.partId, warehouseId: soItem.warehouseId },
+          select: { avgCost: true },
+        });
+        const unitCost = bid ? new PrismaNs.Decimal(bid.avgCost) : new PrismaNs.Decimal(soItem.unitPrice);
+        await applyQtyInWithLedger(tx, {
+          tenantId,
+          userId,
+          partId: item.partId,
+          warehouseId: soItem.warehouseId,
+          locationId: locId,
+          qtyIn,
+          unitCost,
+          sourceModule: 'NX04',
+          sourceDocType: 'R',
+          sourceDocId: srId,
+          sourceItemId: item.id,
+          partVersionId: partVersion?.id ?? null,
+        });
+      }
+    }
+  }
+
+  /**
+   * 過帳前驗證：dispositionFlag 必填（NX04-M2 §A C4）
+   * returnAction='X' 換新路徑 skip（不沖庫存、無需檢查）
+   */
+  private async assertAllItemsDispositioned(tx: Prisma.TransactionClient, srId: string) {
+    const items = await tx.nx04SrItem.findMany({
+      where: { srId },
+      select: { lineNo: true, dispositionFlag: true },
+    });
+    const missing = items.filter((i) => !i.dispositionFlag);
+    if (missing.length) {
+      throw new BadRequestException(
+        `Posting requires倉管 dispositionFlag (G=好品 / B=壞品) on all lines; ` +
+          `missing on lineNo: ${missing.map((m) => m.lineNo).join(', ')}`,
+      );
     }
   }
 
@@ -322,6 +389,7 @@ export class SalesReturnService {
         unitPrice: unit,
         lineAmount: this.lineAmount(qty, unit),
         locationId: dto.locationId?.trim() || null,
+        dispositionFlag: dto.dispositionFlag ?? null,
         remark: dto.remark?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -412,12 +480,14 @@ export class SalesReturnService {
     return this.prisma.$transaction(async (tx) => {
       if (dto.status === SalesReturnStatus.POSTED && existing.status === SalesReturnStatus.INSPECTING) {
         if (skipLedger) {
-          // X 換新：仍校驗 items 存在、但不沖庫存
+          // X 換新：仍校驗 items 存在、但不沖庫存、不要求 dispositionFlag（貨未實際回到我方倉）
           const items = await tx.nx04SrItem.findMany({ where: { srId: id }, select: { id: true } });
           if (!items.length) throw new BadRequestException('Sales return has no items to post');
           // X 換新後續軌：自動建新 SO 換新（業務員手動先做、後續軌可補）
         } else {
-          // R/D 路徑：既有 ledger 入庫（source=R）+ NX05 Allowance bridge（Phase 4 commit 4a 落地）
+          // NX04-M2 §A C4：R/D 路徑過帳前 validate dispositionFlag 必填
+          await this.assertAllItemsDispositioned(tx, id);
+          // R/D 路徑：好品/壞品分流（NX04-M2 §A C4）+ NX05 Allowance bridge（Phase 4 commit 4a 既有）
           await this.applySrPosting(tx, id, tenantId, user.sub);
           await createAllowanceFromSalesReturn(tx, {
             tenantId,
@@ -579,6 +649,7 @@ export class SalesReturnService {
           ...(dto.returnReason !== undefined ? { returnReason: dto.returnReason.trim() } : {}),
           ...(dto.returnType !== undefined ? { returnType: dto.returnType.trim() } : {}),
           ...(dto.concessionReason !== undefined ? { concessionReason: dto.concessionReason?.trim() || null } : {}),
+          ...(dto.dispositionFlag !== undefined ? { dispositionFlag: dto.dispositionFlag } : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark?.trim() || null } : {}),
           updatedBy: user.sub,
         },
