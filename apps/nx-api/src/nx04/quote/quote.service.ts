@@ -47,13 +47,17 @@ const Q_ITEM_SEL = {
   id: true,
   quoteId: true,
   lineNo: true,
+  groupNo: true,
   partId: true,
   partNo: true,
   partName: true,
   qty: true,
   unitPrice: true,
+  minPrice: true,
+  discountCodeId: true,
   lineAmount: true,
   isSelected: true,
+  belowMinReason: true,
   transferredQty: true,
   remark: true,
   createdAt: true,
@@ -117,6 +121,55 @@ export class QuoteService {
     });
     if (!p) throw new NotFoundException(`Part ${partId} not found`);
     return { partNo: p.code, partName: p.name };
+  }
+
+  /**
+   * 計算最低售價（NX04-M2 §A C1 毛利警告基準）
+   * minPrice = avgCost × (1 + marginPct/100)
+   * 沒有 customerGradeId → 不警告（return null）
+   * 沒有 stock_balance 或 avgCost=0 → 不警告（料件還沒進過貨）
+   */
+  private async computeMinPrice(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    partId: string,
+    warehouseId: string,
+    customerGradeId: string | null,
+  ): Promise<PrismaNs.Decimal | null> {
+    if (!customerGradeId) return null;
+    const grade = await tx.nx01CustomerGrade.findFirst({
+      where: { id: customerGradeId, tenantId },
+      select: { marginPct: true },
+    });
+    if (!grade) return null;
+    const bal = await tx.nx03StockBalance.findFirst({
+      where: { tenantId, partId, warehouseId },
+      select: { avgCost: true },
+    });
+    if (!bal) return null;
+    const avgCost = new PrismaNs.Decimal(bal.avgCost);
+    if (avgCost.lte(0)) return null;
+    const marginPct = new PrismaNs.Decimal(grade.marginPct);
+    return avgCost.mul(marginPct.div(100).add(1)).toDecimalPlaces(4);
+  }
+
+  /**
+   * 毛利警告驗證（NX04-M2 §A C1）
+   * unitPrice < minPrice → require belowMinReason
+   * 不擋業務、只強制填理由
+   */
+  private assertMinPriceReason(
+    unitPrice: PrismaNs.Decimal,
+    minPrice: PrismaNs.Decimal | null,
+    belowMinReason: string | null | undefined,
+  ): void {
+    if (!minPrice) return;
+    if (unitPrice.gte(minPrice)) return;
+    if (!belowMinReason?.trim()) {
+      throw new BadRequestException(
+        `unitPrice (${unitPrice.toString()}) below minPrice (${minPrice.toString()}); belowMinReason required`,
+      );
+    }
   }
 
   private async recalcQuoteTotals(tx: Prisma.TransactionClient, quoteId: string, taxRate: PrismaNs.Decimal) {
@@ -219,6 +272,14 @@ export class QuoteService {
           const qty = new PrismaNs.Decimal(it.qty);
           const unit = new PrismaNs.Decimal(it.unitPriceSnapshot);
           const sel = it.isSelected !== false;
+          const minPrice = await this.computeMinPrice(
+            tx,
+            tenantId,
+            it.partId.trim(),
+            wh.id,
+            dto.customerGradeId?.trim() || null,
+          );
+          this.assertMinPriceReason(unit, minPrice, it.belowMinReason);
           await tx.nx04QuoteItem.create({
             data: {
               quoteId: quote.id,
@@ -228,6 +289,8 @@ export class QuoteService {
               partName: snap.partName,
               qty,
               unitPrice: unit,
+              minPrice: minPrice ?? null,
+              belowMinReason: it.belowMinReason?.trim() || null,
               lineAmount: sel ? this.lineAmount(qty, unit) : new PrismaNs.Decimal(0),
               isSelected: sel,
               remark: it.remark?.trim() || null,
@@ -358,6 +421,14 @@ export class QuoteService {
     const qty = new PrismaNs.Decimal(dto.qty);
     const unit = new PrismaNs.Decimal(dto.unitPriceSnapshot);
     const sel = dto.isSelected !== false;
+    const minPrice = await this.computeMinPrice(
+      this.prisma,
+      tenantId,
+      dto.partId.trim(),
+      head.warehouseId,
+      head.customerGradeId,
+    );
+    this.assertMinPriceReason(unit, minPrice, dto.belowMinReason);
     const row = await this.prisma.nx04QuoteItem.create({
       data: {
         quoteId,
@@ -367,6 +438,8 @@ export class QuoteService {
         partName: snap.partName,
         qty,
         unitPrice: unit,
+        minPrice: minPrice ?? null,
+        belowMinReason: dto.belowMinReason?.trim() || null,
         lineAmount: sel ? this.lineAmount(qty, unit) : new PrismaNs.Decimal(0),
         isSelected: sel,
         remark: dto.remark?.trim() || null,
@@ -405,12 +478,24 @@ export class QuoteService {
         : new PrismaNs.Decimal(existing.unitPrice);
     const sel = dto.isSelected !== undefined ? dto.isSelected : existing.isSelected;
     const lineAmount = sel ? this.lineAmount(qty, unit) : new PrismaNs.Decimal(0);
+    const minPrice =
+      dto.unitPriceSnapshot !== undefined
+        ? await this.computeMinPrice(this.prisma, tenantId, existing.partId, head.warehouseId, head.customerGradeId)
+        : existing.minPrice
+        ? new PrismaNs.Decimal(existing.minPrice)
+        : null;
+    const effectiveBelowMinReason = dto.belowMinReason ?? existing.belowMinReason ?? undefined;
+    if (dto.unitPriceSnapshot !== undefined) {
+      this.assertMinPriceReason(unit, minPrice, effectiveBelowMinReason);
+    }
     const row = await this.prisma.nx04QuoteItem.update({
       where: { id: itemId },
       data: {
         qty,
         unitPrice: unit,
         lineAmount,
+        ...(dto.unitPriceSnapshot !== undefined ? { minPrice } : {}),
+        ...(dto.belowMinReason !== undefined ? { belowMinReason: dto.belowMinReason?.trim() || null } : {}),
         ...(dto.isSelected !== undefined ? { isSelected: dto.isSelected } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         updatedBy: user.sub,
@@ -431,6 +516,139 @@ export class QuoteService {
       afterData: mapQuoteItemApi(row) as object,
     });
     return mapQuoteItemApi(row);
+  }
+
+  /**
+   * 歷史價查詢（NX04-M2 §A C1）
+   * 給 UI 加料件行時顯示「該客戶上次報過 / 買過此料件的價格 + 時間」
+   * 範圍：同 tenantId + customerId + partId + quote 未作廢 + 不限 status
+   * 回傳：最近 limit 筆（預設 5）
+   */
+  async getHistoricalPrices(
+    user: RequestUser,
+    customerId: string,
+    partId: string,
+    limit?: number,
+  ) {
+    const tenantId = requireTenantId(user);
+    const take = Math.min(Math.max(limit ?? 5, 1), 20);
+    const rows = await this.prisma.nx04QuoteItem.findMany({
+      where: {
+        partId,
+        quote: { tenantId, customerId, voidedAt: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      take,
+      select: {
+        id: true,
+        unitPrice: true,
+        qty: true,
+        minPrice: true,
+        belowMinReason: true,
+        createdAt: true,
+        quote: {
+          select: { id: true, docNo: true, quoteDate: true, status: true },
+        },
+      },
+    });
+    return rows.map((r) => ({
+      quoteItemId: r.id,
+      quoteId: r.quote.id,
+      docNo: r.quote.docNo,
+      quoteDate: r.quote.quoteDate,
+      status: r.quote.status,
+      unitPrice: r.unitPrice,
+      qty: r.qty,
+      minPrice: r.minPrice,
+      belowMinReason: r.belowMinReason,
+      createdAt: r.createdAt,
+    }));
+  }
+
+  /**
+   * SO 拉報價後的 cascade 副作用（NX04-M2 §A C1 採用後失效機制、commit 2 SO 串接）
+   *
+   * 動作 1：被 SO 拉走的 quote（adoptedQuoteIds）若所有 isSelected line 都 transferredQty>=qty
+   *         → quote.status = ACCEPTED（語意 ADOPTED）
+   *
+   * 動作 2：同客戶其他舊 quote（excluding adoptedQuoteIds）含相同 partId 的 line、
+   *         status IN (DRAFT, SENT)、未作廢、未耗盡 →
+   *         該 line transferredQty = qty 標記耗盡
+   *         若整張 quote 的 isSelected line 都耗盡 → quote.status = CANCELLED（語意 REPLACED）
+   *
+   * 不寫 audit log：cascade 是 SO 觸發的副作用、SO commit 2 一起寫 audit。
+   */
+  async cascadeOnSoAdopt(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    customerId: string,
+    adoptedQuoteIds: string[],
+    adoptedPartIds: string[],
+    userId: string,
+  ): Promise<void> {
+    // === 1. 被拉走的 quote 若耗盡 → ACCEPTED ===
+    for (const aid of adoptedQuoteIds) {
+      const items = await tx.nx04QuoteItem.findMany({
+        where: { quoteId: aid, isSelected: true },
+        select: { qty: true, transferredQty: true },
+      });
+      if (!items.length) continue;
+      const allExhausted = items.every((it) =>
+        new PrismaNs.Decimal(it.transferredQty).gte(new PrismaNs.Decimal(it.qty)),
+      );
+      if (!allExhausted) continue;
+      const q = await tx.nx04Quote.findUnique({ where: { id: aid }, select: { status: true } });
+      if (q && (q.status === QuoteStatus.DRAFT || q.status === QuoteStatus.SENT)) {
+        await tx.nx04Quote.update({
+          where: { id: aid },
+          data: { status: QuoteStatus.ACCEPTED, updatedBy: userId },
+        });
+      }
+    }
+
+    // === 2. 同客戶舊 QT 同料件 line 失效 ===
+    if (!adoptedPartIds.length) return;
+    const candidates = await tx.nx04QuoteItem.findMany({
+      where: {
+        partId: { in: adoptedPartIds },
+        quoteId: { notIn: adoptedQuoteIds },
+        quote: {
+          tenantId,
+          customerId,
+          status: { in: [QuoteStatus.DRAFT, QuoteStatus.SENT] },
+          voidedAt: null,
+        },
+      },
+      select: { id: true, quoteId: true, qty: true, transferredQty: true },
+    });
+    for (const c of candidates) {
+      const qty = new PrismaNs.Decimal(c.qty);
+      const transferred = new PrismaNs.Decimal(c.transferredQty);
+      if (transferred.gte(qty)) continue;
+      await tx.nx04QuoteItem.update({
+        where: { id: c.id },
+        data: { transferredQty: qty, updatedBy: userId },
+      });
+    }
+    const affectedQuoteIds = Array.from(new Set(candidates.map((c) => c.quoteId)));
+    for (const qid of affectedQuoteIds) {
+      const items = await tx.nx04QuoteItem.findMany({
+        where: { quoteId: qid, isSelected: true },
+        select: { qty: true, transferredQty: true },
+      });
+      if (!items.length) continue;
+      const allExhausted = items.every((it) =>
+        new PrismaNs.Decimal(it.transferredQty).gte(new PrismaNs.Decimal(it.qty)),
+      );
+      if (!allExhausted) continue;
+      const q = await tx.nx04Quote.findUnique({ where: { id: qid }, select: { status: true } });
+      if (q && (q.status === QuoteStatus.DRAFT || q.status === QuoteStatus.SENT)) {
+        await tx.nx04Quote.update({
+          where: { id: qid },
+          data: { status: QuoteStatus.CANCELLED, updatedBy: userId },
+        });
+      }
+    }
   }
 
   async removeItem(user: RequestUser, quoteId: string, itemId: string) {

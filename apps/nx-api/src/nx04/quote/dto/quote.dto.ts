@@ -33,6 +33,12 @@ export class CreateQuoteItemDto {
   @IsString()
   @MaxLength(200)
   remark?: string;
+
+  /// 低於 minPrice 時必填的理由（NX04-M2 Crown 2026-05-29 §A C1 拍板）
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  belowMinReason?: string;
 }
 
 export class CreateQuoteDto {
@@ -117,4 +123,10 @@ export class PatchQuoteItemDto {
   @IsString()
   @MaxLength(200)
   remark?: string;
+
+  /// 低於 minPrice 時必填的理由（NX04-M2 Crown 2026-05-29 §A C1 拍板）
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  belowMinReason?: string;
 }

@@ -21,6 +21,18 @@ export class QuoteController {
     return this.svc.list(user, q);
   }
 
+  /// NX04-M2 §A C1：歷史價提示（給 UI 加料件行時顯示「該客戶上次報過此料件的價格」）
+  @Get('history')
+  historicalPrices(
+    @CurrentUser() user: RequestUser,
+    @Query('customerId') customerId: string,
+    @Query('partId') partId: string,
+    @Query('limit') limit?: string,
+  ) {
+    const n = limit ? Number(limit) : undefined;
+    return this.svc.getHistoricalPrices(user, customerId, partId, Number.isFinite(n) ? n : undefined);
+  }
+
   @Post(':id/items')
   addItem(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() dto: CreateQuoteItemDto) {
     return this.svc.addItem(user, id, dto);
