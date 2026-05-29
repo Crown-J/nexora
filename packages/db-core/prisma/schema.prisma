@@ -413,30 +413,32 @@ model Nx01Currency {
 /// =======================================================
 model Nx01CustomerGrade {
   /// [NX01]+[CUGR]+[7碼流水號]，EX : NX01CUGR0000001；啟用最低需求版本：LITE-CORE
-  id                              String        @id @default(dbgenerated("gen_nx01_customer_grade_id()")) @db.VarChar(15)
+  id                                     String                    @id @default(dbgenerated("gen_nx01_customer_grade_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
-  tenantId                        String        @map("tenant_id") @db.VarChar(15)
+  tenantId                               String                    @map("tenant_id") @db.VarChar(15)
   /// 等級代碼（租戶內唯一），預設：A/B/C/D，可自行新增。；啟用最低需求版本：LITE-CORE
-  code                            String        @db.VarChar(10)
+  code                                   String                    @db.VarChar(10)
   /// 等級名稱（顯示用），例：黃金客戶、一般客戶。；啟用最低需求版本：LITE-CORE
-  name                            String        @db.VarChar(50)
+  name                                   String                    @db.VarChar(50)
   /// 最低毛利率（%），售價不得低於 成本×(1+margin_pct/100)。例：15.00 表示最低售價為成本×115%。；啟用最低需求版本：LITE-CORE
-  marginPct                       Decimal       @map("margin_pct") @db.Decimal(5, 2)
+  marginPct                              Decimal                   @map("margin_pct") @db.Decimal(5, 2)
   /// 排序用（數字越小等級越優惠）。；啟用最低需求版本：LITE-CORE
-  sortNo                          Int           @map("sort_no")
+  sortNo                                 Int                       @map("sort_no")
   /// 是否啟用。；啟用最低需求版本：LITE-CORE
-  isActive                        Boolean       @default(true) @map("is_active")
+  isActive                               Boolean                   @default(true) @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                       DateTime      @default(now()) @map("created_at")
+  createdAt                              DateTime                  @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                       String        @map("created_by") @db.VarChar(15)
+  createdBy                              String                    @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                       DateTime      @updatedAt @map("updated_at")
+  updatedAt                              DateTime                  @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                       String        @map("updated_by") @db.VarChar(15)
-  tenant                          Nx99Tenant    @relation("R_Nx01CustomerGrade_tenantId", fields: [tenantId], references: [id])
-  rev_Nx01Partner_customerGradeId Nx01Partner[] @relation("R_Nx01Partner_customerGradeId")
-  rev_Nx04Quote_customerGradeId   Nx04Quote[]   @relation("R_Nx04Quote_customerGradeId")
+  updatedBy                              String                    @map("updated_by") @db.VarChar(15)
+  tenant                                 Nx99Tenant                @relation("R_Nx01CustomerGrade_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01Partner_customerGradeId        Nx01Partner[]             @relation("R_Nx01Partner_customerGradeId")
+  rev_Nx04Quote_customerGradeId          Nx04Quote[]               @relation("R_Nx04Quote_customerGradeId")
+  rev_Nx01PartnerGradeHistory_oldGradeId Nx01PartnerGradeHistory[] @relation("R_Nx01PartnerGradeHistory_oldGradeId")
+  rev_Nx01PartnerGradeHistory_newGradeId Nx01PartnerGradeHistory[] @relation("R_Nx01PartnerGradeHistory_newGradeId")
 
   @@unique([tenantId, code])
   @@map("nx01_customer_grade")
@@ -1096,6 +1098,7 @@ model Nx01Partner {
   rev_Nx01PartnerBillingAddress_partnerId  Nx01PartnerBillingAddress?   @relation("R_Nx01PartnerBillingAddress_partnerId")
   rev_Nx01PartnerShippingAddress_partnerId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_partnerId")
   rev_Nx02WarrantyClaim_supplierId         Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_supplierId")
+  rev_Nx01PartnerGradeHistory_partnerId    Nx01PartnerGradeHistory[]    @relation("R_Nx01PartnerGradeHistory_partnerId")
 
   @@unique([tenantId, code])
   @@map("nx01_partner")
@@ -4071,6 +4074,8 @@ model Nx04SrItem {
   lineAmount       Decimal       @default(0) @map("line_amount") @db.Decimal(14, 2)
   /// 退回庫位ID（倉管專員入庫時填入）。；啟用最低需求版本：LITE-CORE
   locationId       String?       @map("location_id") @db.VarChar(15)
+  /// 好品/壞品旗標（G=好品入主倉、B=壞品進 Nx03IssueReport）。倉管收貨檢查時填、過帳前必填、預設 NULL（未檢查狀態）。對齊 Crown 2026-05-29 Q5 方案 B 拍板；啟用最低需求版本：LITE-CORE
+  dispositionFlag  String?       @map("disposition_flag") @db.VarChar(1)
   /// 備註。；啟用最低需求版本：LITE-CORE
   remark           String?       @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
@@ -6945,6 +6950,7 @@ model Nx99Tenant {
   rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
   rev_Nx02RfqGreetingTemplate_tenantId     Nx02RfqGreetingTemplate[]     @relation("R_Nx02RfqGreetingTemplate_tenantId")
   rev_Nx98TaskPool_tenantId                Nx98TaskPool[]                @relation("R_Nx98TaskPool_tenantId")
+  rev_Nx01PartnerGradeHistory_tenantId     Nx01PartnerGradeHistory[]     @relation("R_Nx01PartnerGradeHistory_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")
@@ -7171,6 +7177,54 @@ model Nx01PartnerShippingAddress {
 
   @@unique([partnerId, label])
   @@map("nx01_partner_shipping_address")
+}
+
+/// =======================================================
+/// Nx01PartnerGradeHistory — DB table `nx01_partner_grade_history`
+/// 客戶等級變更歷史（對齊 Crown 2026-05-29 Q6 拍板、PENDING/APPROVED/REJECTED 流程）
+/// 業務員申請、G 核可後 partner.customer_grade_id 同步更新、PENDING/REJECTED 不影響既有 QT
+/// =======================================================
+model Nx01PartnerGradeHistory {
+  /// [NX01]+[PGHI]+[7碼流水號]，EX : NX01PGHI0000001；啟用最低需求版本：LITE-CORE
+  id           String            @id @default(dbgenerated("gen_nx01_partner_grade_history_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId     String            @map("tenant_id") @db.VarChar(15)
+  /// 對象客戶 ID（FK nx01_partner、partnerType IN ('C','O')）；啟用最低需求版本：LITE-CORE
+  partnerId    String            @map("partner_id") @db.VarChar(15)
+  /// 變更前等級 ID（FK nx01_customer_grade）；啟用最低需求版本：LITE-CORE
+  oldGradeId   String            @map("old_grade_id") @db.VarChar(15)
+  /// 變更後等級 ID（FK nx01_customer_grade）；啟用最低需求版本：LITE-CORE
+  newGradeId   String            @map("new_grade_id") @db.VarChar(15)
+  /// 變更狀態（PENDING/APPROVED/REJECTED）。APPROVED 後 partner.customer_grade_id 同步更新；啟用最低需求版本：LITE-CORE
+  status       String            @default("PENDING") @db.VarChar(30)
+  /// 申請人（業務員、使用者 ID、純 VarChar 對齊既有 approvedBy 範式不建 FK）；啟用最低需求版本：LITE-CORE
+  requestedBy  String            @map("requested_by") @db.VarChar(15)
+  /// 申請時間；啟用最低需求版本：LITE-CORE
+  requestedAt  DateTime          @default(now()) @map("requested_at")
+  /// 申請理由（必填）；啟用最低需求版本：LITE-CORE
+  reason       String            @db.VarChar(200)
+  /// 核可人（G/負責人、使用者 ID、APPROVED 後填）；啟用最低需求版本：LITE-CORE
+  approvedBy   String?           @map("approved_by") @db.VarChar(15)
+  /// 核可時間（APPROVED 後填）；啟用最低需求版本：LITE-CORE
+  approvedAt   DateTime?         @map("approved_at")
+  /// 退件原因（REJECTED 後必填）；啟用最低需求版本：LITE-CORE
+  rejectReason String?           @map("reject_reason") @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt    DateTime          @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE-CORE
+  createdBy    String            @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE-CORE
+  updatedBy    String            @map("updated_by") @db.VarChar(15)
+  tenant       Nx99Tenant        @relation("R_Nx01PartnerGradeHistory_tenantId", fields: [tenantId], references: [id])
+  partner      Nx01Partner       @relation("R_Nx01PartnerGradeHistory_partnerId", fields: [partnerId], references: [id])
+  oldGrade     Nx01CustomerGrade @relation("R_Nx01PartnerGradeHistory_oldGradeId", fields: [oldGradeId], references: [id])
+  newGrade     Nx01CustomerGrade @relation("R_Nx01PartnerGradeHistory_newGradeId", fields: [newGradeId], references: [id])
+
+  @@index([tenantId, partnerId])
+  @@index([tenantId, status])
+  @@map("nx01_partner_grade_history")
 }
 
 /// =======================================================
