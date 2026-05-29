@@ -87,6 +87,12 @@ const SO_ITEM_SEL = {
   reservedQty: true,
   remark: true,
   itemStatus: true,
+  /// NX04-M3 C2 自行判斷項：UI 雙段狀態組合 + IT-O 警示橫條偵測依賴此 4 欄位、
+  /// 純加 SELECT projection、不改業務邏輯
+  transferSourceType: true,
+  transferStatus: true,
+  fulfillStatus: true,
+  tiId: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
