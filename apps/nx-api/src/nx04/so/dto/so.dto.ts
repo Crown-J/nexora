@@ -152,3 +152,22 @@ export class PatchSoItemDto {
   @MaxLength(200)
   remark?: string;
 }
+
+/// NX04-M2 §A C3：從 SO 行群組建 Nx02Ti 同行調貨單草稿
+export class CreateTiFromSoDto {
+  /// 同行對象（partner_type='O' OR canTransferStock=true）
+  @IsString()
+  @MaxLength(15)
+  partnerId!: string;
+
+  /// SO line item IDs（需 transferSourceType='G' + transferStatus='P'）
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  soItemIds!: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  remark?: string;
+}

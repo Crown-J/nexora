@@ -7,7 +7,7 @@ import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
 
-import { CreateSoDto, CreateSoItemDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
+import { CreateSoDto, CreateSoItemDto, CreateTiFromSoDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
 import { SoService } from './so.service';
 
 @Controller('nx04/so')
@@ -30,6 +30,22 @@ export class SoController {
   @Get('quote-lines/open')
   openQuoteLines(@CurrentUser() user: RequestUser, @Query('customerId') customerId: string) {
     return this.svc.listOpenQuoteLines(user, customerId);
+  }
+
+  /// NX04-M2 §A C3：SO 待調貨行清單（transferSourceType='G' + transferStatus='P'）
+  @Get(':id/pending-transfer-lines')
+  pendingTransferLines(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.listPendingTransferLines(user, id);
+  }
+
+  /// NX04-M2 §A C3：從 SO 行群組建 Nx02Ti 草稿（一張 TI 對應一個同行）
+  @Post(':id/create-ti')
+  createTiFromSo(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: CreateTiFromSoDto,
+  ) {
+    return this.svc.createTiFromSoLines(user, id, dto);
   }
 
   @Post(':id/items')

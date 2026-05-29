@@ -12,6 +12,7 @@ import { Nx10ExpService } from '../../nx10/exp/nx10-exp.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
+import { allocDocNo as allocNx02DocNo } from '../../shared/nx02/nx02-doc-no';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
 import { requireDefaultLocationId } from '../../shared/nx04/nx04-location';
 import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
@@ -31,7 +32,7 @@ import { CreditGuardService } from '../credit-guard/credit-guard.service';
 // NX04-M2 §A C2：拉報價建 SO 時 cascade quote 失效
 import { QuoteService } from '../quote/quote.service';
 
-import type { CreateSoDto, CreateSoItemDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
+import type { CreateSoDto, CreateSoItemDto, CreateTiFromSoDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
 
 /**
  * 補貨來源 → 補貨進度狀態（NX04-M2 §A C2 連動）
@@ -829,6 +830,186 @@ export class SoService {
       afterData: mapSoItemApi(row) as object,
     });
     return mapSoItemApi(row);
+  }
+
+  /**
+   * SO 待調貨行清單（NX04-M2 §A C3）
+   * 找 transferSourceType='G' 同行調貨 + transferStatus='P' 待補的 line
+   * 給 UI 顯示「這 SO 有 N 行要建 IT-O」+ 觸發建單按鈕
+   */
+  async listPendingTransferLines(user: RequestUser, soId: string) {
+    const tenantId = requireTenantId(user);
+    const so = await this.prisma.nx04So.findFirst({
+      where: { id: soId, tenantId },
+      select: { id: true, docNo: true, customerId: true },
+    });
+    if (!so) throw new NotFoundException('SO not found');
+    const items = await this.prisma.nx04SoItem.findMany({
+      where: {
+        soId,
+        transferSourceType: 'G',
+        transferStatus: 'P',
+        tiId: null,
+      },
+      orderBy: { lineNo: 'asc' },
+      select: { ...SO_ITEM_SEL, transferSourceType: true, transferStatus: true, tiId: true },
+    });
+    return { soId: so.id, docNo: so.docNo, customerId: so.customerId, items };
+  }
+
+  /**
+   * 從 SO 行群組建 Nx02Ti 草稿（NX04-M2 §A C3）
+   * - 一張 TI 對應一個 partnerId、不同 partnerId 多次呼叫
+   * - 驗證 partnerId 是 O 同行 或 canTransferStock=true
+   * - 驗證所有 soItemIds 屬於 SO 且 transferSourceType='G' + transferStatus='P' + tiId 為空
+   * - 建 Nx02Ti status='D' draft、taxRate=5、unitCost=0 待同行報價回填
+   * - 為每個 soItem 建 Nx02TiItem（sourceSoItemId 必填）
+   * - 更新 SO line transferStatus='I'（補貨中）+ tiId 連結
+   */
+  async createTiFromSoLines(user: RequestUser, soId: string, dto: CreateTiFromSoDto) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const so = await tx.nx04So.findFirst({
+        where: { id: soId, tenantId },
+        select: {
+          id: true,
+          docNo: true,
+          warehouseId: true,
+          currencyId: true,
+          customerId: true,
+          status: true,
+          cancelledAt: true,
+        },
+      });
+      if (!so) throw new NotFoundException('SO not found');
+      if (so.cancelledAt) throw new BadRequestException('SO is cancelled');
+
+      // 同行驗證
+      const partner = await tx.nx01Partner.findFirst({
+        where: { id: dto.partnerId.trim(), tenantId, isActive: true },
+        select: { id: true, partnerType: true, canTransferStock: true },
+      });
+      if (!partner) throw new BadRequestException('partnerId not found or inactive');
+      if (partner.partnerType !== 'O' && !partner.canTransferStock) {
+        throw new BadRequestException("partnerId must be type='O' or canTransferStock=true for IT transfer");
+      }
+
+      // 驗 line 都屬於該 SO + 都是 G + P + 未綁 TI
+      const itemIds = dto.soItemIds.map((s) => s.trim());
+      const items = await tx.nx04SoItem.findMany({
+        where: { id: { in: itemIds }, soId },
+        select: {
+          id: true,
+          lineNo: true,
+          partId: true,
+          partNo: true,
+          partName: true,
+          qty: true,
+          unitPrice: true,
+          transferSourceType: true,
+          transferStatus: true,
+          tiId: true,
+        },
+      });
+      if (items.length !== itemIds.length) {
+        throw new BadRequestException('Some soItemIds do not belong to this SO');
+      }
+      for (const it of items) {
+        if (it.transferSourceType !== 'G') {
+          throw new BadRequestException(`SO line ${it.lineNo} is not transferSourceType=G`);
+        }
+        if (it.transferStatus !== 'P') {
+          throw new BadRequestException(`SO line ${it.lineNo} transferStatus is not P (already in progress or done)`);
+        }
+        if (it.tiId) {
+          throw new BadRequestException(`SO line ${it.lineNo} already linked to TI ${it.tiId}`);
+        }
+      }
+
+      // 建 Ti header
+      const wh = await tx.nx01Warehouse.findFirst({
+        where: { id: so.warehouseId, tenantId },
+        select: { code: true },
+      });
+      if (!wh) throw new BadRequestException('SO warehouse invalid');
+      const tiDocNo = await allocNx02DocNo(tx, tenantId, 'TI', wh.code);
+      const taxRate = new PrismaNs.Decimal('5.00');
+
+      // 計算 subtotal（M2 階段 unitCost=0 待同行報價、subtotal=0）
+      // 業務上 SO unitPrice 是賣價、不是進貨成本、TI unitCost 不能直接 = SO.unitPrice
+      const subtotal = new PrismaNs.Decimal(0);
+      const taxAmount = new PrismaNs.Decimal(0);
+      const totalAmount = new PrismaNs.Decimal(0);
+
+      const ti = await tx.nx02Ti.create({
+        data: {
+          tenantId,
+          warehouseId: so.warehouseId,
+          docNo: tiDocNo,
+          tiDate: new Date(),
+          partnerId: partner.id,
+          currencyId: so.currencyId,
+          status: 'D',
+          subtotal,
+          taxRate,
+          taxAmount,
+          totalAmount,
+          remark: dto.remark?.trim() || `From SO ${so.docNo}`,
+          createdBy: user.sub,
+          updatedBy: user.sub,
+        },
+        select: { id: true, docNo: true },
+      });
+
+      // 建 TiItem + 更新 SO line
+      let line = 1;
+      for (const it of items) {
+        await tx.nx02TiItem.create({
+          data: {
+            tiId: ti.id,
+            lineNo: line++,
+            partId: it.partId,
+            partNo: it.partNo,
+            partName: it.partName,
+            qty: new PrismaNs.Decimal(String(it.qty)),
+            unitCost: new PrismaNs.Decimal(0),
+            lineAmount: new PrismaNs.Decimal(0),
+            sourceSoItemId: it.id,
+            createdBy: user.sub,
+            updatedBy: user.sub,
+          },
+        });
+        await tx.nx04SoItem.update({
+          where: { id: it.id },
+          data: {
+            tiId: ti.id,
+            transferStatus: 'I',
+            updatedBy: user.sub,
+          },
+        });
+      }
+
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX04',
+        action: 'CREATE',
+        entityTable: 'nx02_ti',
+        entityId: ti.id,
+        entityCode: ti.docNo,
+        summary: `從 SO ${so.docNo} 觸發同行調貨 IT-O（${items.length} 行 → ${partner.id}）`,
+        afterData: { tiId: ti.id, tiDocNo: ti.docNo, soId: so.id, soDocNo: so.docNo, partnerId: partner.id, lineCount: items.length } as object,
+      });
+
+      return {
+        tiId: ti.id,
+        tiDocNo: ti.docNo,
+        soId: so.id,
+        soDocNo: so.docNo,
+        partnerId: partner.id,
+        lineCount: items.length,
+      };
+    });
   }
 
   async removeItem(user: RequestUser, soId: string, itemId: string) {
