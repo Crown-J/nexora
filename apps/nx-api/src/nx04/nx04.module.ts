@@ -9,6 +9,8 @@ import { CoEstimateController } from './co-estimate/co-estimate.controller';
 import { CoEstimateService } from './co-estimate/co-estimate.service';
 import { CreditGuardController } from './credit-guard/credit-guard.controller';
 import { CreditGuardService } from './credit-guard/credit-guard.service';
+import { PartnerGradeHistoryController } from './partner-grade-history/partner-grade-history.controller';
+import { PartnerGradeHistoryService } from './partner-grade-history/partner-grade-history.service';
 import { QuoteController } from './quote/quote.controller';
 import { SalesPerformanceController } from './sales-performance/sales-performance.controller';
 import { SalesPerformanceService } from './sales-performance/sales-performance.service';
@@ -32,6 +34,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     CreditGuardController,
     SalesPerformanceController,
     CoEstimateController,
+    PartnerGradeHistoryController,
   ],
   providers: [
     QuoteService,
@@ -43,6 +46,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     CreditGuardService,
     SalesPerformanceService,
     CoEstimateService,
+    PartnerGradeHistoryService,
     { provide: APP_FILTER, useClass: TranslatorErrorFilter },
   ],
 })
