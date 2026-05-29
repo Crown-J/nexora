@@ -38,6 +38,14 @@ export class CreateSoItemDto {
   @MaxLength(15)
   quoteItemId?: string;
 
+  /// 補貨來源類型（S=本倉/T=自倉調撥/G=同行調貨/B=客戶訂單）。
+  /// NX04-M2 §A C2：允許業務手動指定、預設由 schema default 'S' 帶入、
+  /// 服務層連動寫入 transferStatus（S→C 補貨完成 / T,G,B→P 待補）
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  transferSourceType?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)
@@ -138,6 +146,25 @@ export class PatchSoItemDto {
   @IsNumber()
   @Min(0)
   unitPriceSnapshot?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  remark?: string;
+}
+
+/// NX04-M2 §A C3：從 SO 行群組建 Nx02Ti 同行調貨單草稿
+export class CreateTiFromSoDto {
+  /// 同行對象（partner_type='O' OR canTransferStock=true）
+  @IsString()
+  @MaxLength(15)
+  partnerId!: string;
+
+  /// SO line item IDs（需 transferSourceType='G' + transferStatus='P'）
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  soItemIds!: string[];
 
   @IsOptional()
   @IsString()

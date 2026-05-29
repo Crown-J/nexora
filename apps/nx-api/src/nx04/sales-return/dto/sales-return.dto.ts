@@ -49,6 +49,16 @@ export class CreateSalesReturnItemDto {
   @MaxLength(200)
   concessionReason?: string;
 
+  /// 好品/壞品旗標（NX04-M2 §A C4 Crown 2026-05-29 Q5 方案 B）
+  /// G=好品 → applyQtyInWithLedger 入主倉
+  /// B=壞品 → 寫 Nx03IssueReport（issueType='D' 損毀）
+  /// 預設 NULL（未檢查狀態）、過帳前必填（returnAction='X' 換新除外）
+  @IsOptional()
+  @IsString()
+  @IsIn(['G', 'B'])
+  @MaxLength(1)
+  dispositionFlag?: 'G' | 'B';
+
   @IsOptional()
   @IsString()
   @MaxLength(200)
@@ -141,6 +151,13 @@ export class PatchSalesReturnItemDto {
   @IsString()
   @MaxLength(200)
   concessionReason?: string;
+
+  /// 好品/壞品旗標（NX04-M2 §A C4）
+  @IsOptional()
+  @IsString()
+  @IsIn(['G', 'B'])
+  @MaxLength(1)
+  dispositionFlag?: 'G' | 'B';
 
   @IsOptional()
   @IsString()
