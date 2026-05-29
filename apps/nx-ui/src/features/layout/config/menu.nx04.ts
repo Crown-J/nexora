@@ -3,13 +3,12 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX04 銷貨管理側邊選單
+ * - NX04 銷貨 LITE 側邊選單（M3 C7 整合 cleanup 更新）
  *
  * Notes:
- * - TASK-NX04-IMPL-01 Phase 6（Crown Q-X1=A 拍板）：修正 audit-01 §3.4 揭露的 drift
- *   既有 stale 內容：「NX05 財務管理」+ href 全指 /dashboard/nx05/*（pivot 後未改）
- *   修正後：內容對齊 NX04 銷貨、href 指 /dashboard/nx04/*
- * - 對齊 nx04 dashboard 3 placeholder（customer / domestic / export）
+ * - NX04-M3 C7 整合 cleanup：menu 對齊新建工作台
+ *   舊 3 placeholder（customer / domestic / export）保留 + redirect、避免舊 bookmark 404
+ *   新主鏈：QT → SO → SR + 客戶等級變更 + OWNER 待核可
  */
 
 import type { SideMenuGroup } from '@/features/layout/config/menu.base';
@@ -17,12 +16,20 @@ import type { SideMenuGroup } from '@/features/layout/config/menu.base';
 export function getNx04SideMenu(): SideMenuGroup[] {
   return [
     {
-      group: '銷貨管理',
+      group: '銷貨 LITE',
       items: [
-        { key: 'sales.home',      label: '銷貨模組首頁',     href: '/dashboard/nx04' },
-        { key: 'sales.domestic',  label: '銷貨作業工作台',   href: '/dashboard/nx04/domestic' },
-        { key: 'sales.return',    label: '銷退處理工作台',   href: '/dashboard/nx04/export' },
-        { key: 'sales.customer',  label: '客戶管理工作台',   href: '/dashboard/nx04/customer' },
+        { key: 'sales.home',          label: '銷貨模組首頁',     href: '/dashboard/nx04' },
+        { key: 'sales.quote',         label: '報價單工作台 QT',  href: '/dashboard/nx04/quote' },
+        { key: 'sales.so',            label: '銷貨單工作台 SO',  href: '/dashboard/nx04/sales-order' },
+        { key: 'sales.sr',            label: '銷退單工作台 SR',  href: '/dashboard/nx04/sales-return' },
+      ],
+    },
+    {
+      group: '客戶 / 主管',
+      items: [
+        { key: 'sales.gradeHistory',  label: '客戶等級變更',     href: '/dashboard/nx04/partner-grade-history' },
+        { key: 'sales.gradeApproval', label: '待核可清單（主管）', href: '/dashboard/owner/grade-approvals' },
+        { key: 'sales.customer',      label: '客戶管理（FU）',   href: '/dashboard/nx04/customer' },
       ],
     },
   ];
