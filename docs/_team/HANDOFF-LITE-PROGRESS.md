@@ -1,23 +1,394 @@
 <!-- docs/_team/HANDOFF-LITE-PROGRESS.md -->
 
-# NEXORA — Hank 交接（LITE 階段 2 NX03 庫存 — ✅ closure 完成）
+# NEXORA — LITE 交接（給新 Alex + 新 Hank 雙視角）
 
 > 撰寫者：Hank（Claude Code、2026-05-28 接 NX03 LITE 階段 2 的那位）
 > 第一版撰寫：2026-05-28（M1 開工前）
 > 第二版更新：2026-05-28（M3-2 完工後、M3-3 開工前）
-> ⭐ **第三版更新：2026-05-28（M6 closure 完成）— 本次更新**
-> 對應 main HEAD：`7ae0c2a`（merge feature/nx03-stock-lite、tag `v1.3.0-nx03-stock-lite-closure`）
+> 第三版更新：2026-05-28（M6 closure 完成）
+> ⭐ **第四版更新：2026-05-29（Crown 反映原交接太單薄、加 Part 0 給新 Alex 完整脈絡）— 本次更新**
+> 對應 main HEAD：`32f721d`（NX03 closure 收尾 git-state、merge `7ae0c2a` + tag `v1.3.0-nx03-stock-lite-closure`）
 > feature/nx03-stock-lite：已 merge main、可考慮刪除
-> 接班對象：下一個 Hank（Claude Code）— 接手 LITE 階段 3 銷貨（NX04）
-> 觸發原因：NX03 LITE 完工、closure 收官、移交下一階段
->
-> ⚠️ 新 Hank 起手讀順序：
-> 1. **本檔**（最新進度 + 下一個任務指令）
-> 2. [docs/PROJECT_RULES.md](../PROJECT_RULES.md) §0.4 + Part I + Part III
-> 3. `git checkout feature/nx03-stock-lite` + `git log --oneline -10`
-> 4. [docs/_team/HANDOFF.md](HANDOFF.md)（上上輪舊 Hank 封存交棒、瞭解路線轉向背景）
+> 接班對象：
+>   - **新 Alex（PM、AI）**：必讀 Part 0、再看 §1~§9（Hank 視角的進度細節）
+>   - **新 Hank（Cursor IDE / Claude Code）**：必讀 Part 0 §G（NX04 業務細節）+ §1.2（授權邊界）+ §6（紀律）+ §8（起手 checklist）
+> 觸發原因：Crown 發現原交接太單薄、新 Alex 跟不上、要求補完脈絡（為什麼 + 由來、不只結論）
 
 ---
+
+# Part 0 — 給新 Alex 的完整脈絡（必讀）
+
+> 對象：下一棒 Alex、接手 LITE 階段 3 銷貨 NX04 前必讀
+> 風格：脈絡 + 為什麼、不只結論
+> 撰寫時機：2026-05-29、NX03 LITE closure 後
+
+## §0. 工作模式（先讀這個）
+
+### 0.1 Crown 全權授權
+| 項目 | 授權 |
+|------|------|
+| migration（dev DB） | ✅ 自走 |
+| git push（main + feature） | ✅ 自走 |
+| merge to main (`--no-ff`) | ✅ 自走 |
+| tag closure | ✅ 自走 |
+| commit 大小決定 | ✅ 自走（漸進式 Step-by-Step） |
+| Railway production migration | ❌ **不動**（A077、累計落後 88 支、真實客戶簽約前 2~4 週才同步） |
+| `.env` localhost | ❌ 不改 |
+| 中間驗證 | ❌ **Crown 不做**（瀏覽器測 AI 做不到、跳過、記操作手冊、Crown 最後親測） |
+| 不確定的方向 | ⚠️ 標 ⚠️ 回報 Alex 拍板、別擅自決定 |
+
+### 0.2 對話交接規定
+- **模組 closure 後才換對話**（Alex + Hank 都是）
+- 中途不換對話、避免斷線
+- 接手前先讀本檔 + `git log --oneline -20` + 最近 commit message
+- Alex 寫意圖（業務需求 / 拍板 / FU 管理）、Hank 寫實作（schema / code / 操作手冊）
+
+### 0.3 收尾範式（每模組必跑）
+對齊 NX02 / NX03 範本：
+1. **自動化驗證**：`prisma migrate status` + `nx-api build` + `nx-ui build` + 三租戶 seed 重跑
+2. **操作手冊**：`docs/_team/nxXX-{module}-operation-manual.md`（每功能：路徑 / 步驟 / 預期結果 / Crown 親測 checklist / Follow-up 列誠實）
+3. **closure**：commit 完整 → merge `--no-ff` main → tag `vX.Y.Z-nxXX-{module}-lite-closure` → push main + tag → 更新 `docs/_team/git-state.md` → commit + push git-state → 寫 memory closure
+
+### 0.4 公司範式（PROJECT_RULES §0.4）
+- Crown = 總經理（創辦人）
+- Alex = PM（AI）
+- Hank = 工程師（AI、Cursor IDE / Claude Code 載體）
+- 對 Crown 用一般員工口吻、不帶內部術語 / 編號
+- worklog ⛔ 不寫（改 commit 訊息）
+- merge-verify ⛔ 不獨立文件（merge commit 訊息詳列）
+
+---
+
+## §A. 路線總綱（為什麼按 tier 開發）
+
+NEXORA 改「**按 tier 開發**」：先把 **LITE 完整可賣**、再 PLUS、再 PRO。
+不再按模組（NX01→NX02→...）順序、改按客戶價值順序。
+
+**LITE 五大模組順序（固定）**：
+1. ✅ 階段 0 partner 改制（前置、tag `v1.1.0-partner-six-classes-closure`）
+2. ✅ 階段 1 進貨 NX02（tag `v1.2.0-nx02-purchase-lite-closure`）
+3. ✅ 階段 2 庫存 NX03（tag `v1.3.0-nx03-stock-lite-closure`）
+4. 🟠 **階段 3 銷貨 NX04** ← 下一棒
+5. ⏸️ 階段 4 財務 NX05
+6. ⏸️ 階段 5 報表 NX08
+
+---
+
+## §B. 階段 0 partner 改制脈絡（v1.1.0）
+
+### B.1 為什麼改
+原本系統用 5 種 partner_type、Crown 反映「對不上恆迎業界實際分類」。要對齊保養廠 / 同行 / 供應商 / 物流 / 銀行 / 一般廠商六類業務實際。
+
+### B.2 拍板過程
+討論過兩種方案：
+- **方案 A**：用旗標標註同行（保留現有 5 類 + isPeer 旗標）
+- **方案 B** ✅ **拍板採用**：同行給獨立代號 O、保留 C 客戶、其他沿用
+  - 理由：分類本身就明確、用旗標會讓「同行買貨 / 賣貨 / 調貨」三身份混亂
+
+### B.3 最終六分類
+| 代號 | 中文 | 用途 |
+|------|------|------|
+| C | 保養廠 | 客戶主體 |
+| O | 同行 | 雙重身份：能買能調貨 |
+| S | 供應商 | 採購來源 |
+| T | 外包物流 | 運送 |
+| B | 銀行 | 收付款 |
+| V | 一般廠商 | 雜支付款對象 |
+
+### B.4 canTransferStock 旗標
+- 同行 O 預設 `true`（service create 自動帶）
+- 保養廠 C 可手動設 `true`（彈性、有些大保養廠互通有無）
+- 其他類型一般 `false`
+
+### B.5 同行 O 的雙重身份（重要、影響後續模組）
+- **客戶選單**：`partner_type IN ('C','O')`（同行也買貨）
+- **供應商選單**：`partner_type='S'` only（O 不污染採購比價）
+- **調貨對象**：`partner_type='O' OR canTransferStock=true`
+
+### B.6 影響範圍
+67 檔 + 17 service filter + DTO enum 清、seed 空殼 + 4 nx00 孤兒刪。
+
+---
+
+## §C. 階段 1 進貨 NX02 脈絡（v1.2.0）
+
+### C.1 詢價單為什麼「不發單、純記錄」
+Crown 拍板：「業務 LINE / 電話問、回來記」（恆迎實際流程）。
+- 系統只做：產生詢價文字（複製貼到 LINE / Email）+ 並排比價 + 採用建單
+- **不發單給供應商**（傳統 ERP 的 RFQ 流程太重、業務不會用）
+- 客套話可設定（per-tenant 自訂開頭結尾、避免 hard-code）
+
+### C.2 為什麼「採用報價」要分流
+業務拍板：rfqType=G（一般詢價）vs rfqType=P（同行調貨）兩條路：
+- **G** → adoptQt 建 **PO**（向 S 供應商比價、走採購）
+- **P** → adoptQt 建 **TI**（向 O 同行調貨、走調貨單、D4 stub、需 sourceSoItemId）
+- 同 RFQ 內其他 Qt 自動 REJECTED、RFQ CLOSED
+
+### C.3 國外進貨為什麼「按金額比例攤」
+Crown 拍板:原本「按數量平均」公式錯、修正成按金額比例。
+- `actualUnitCost = (originalUnitCost × exchangeRate × qty + allocatedImportFee) ÷ qty`
+- 例:100 個小零件 + 1 個大零件、不該各分一半費用、應按金額比例（貴的料分多運費）
+
+### C.4 為什麼「成本=原始批次+移動平均並用」
+歐元便宜時囤貨 → 批次成本記錄保留、移動平均做為日常出貨成本。
+- **批次成本**:stock_ledger 每筆 unitCost 保留（可追溯）
+- **移動平均**:stock_balance.avgCost 加權（出庫用）
+
+### C.5 保固單兩型由來
+- **客訴型**:客戶反映故障、連 SO（待 NX04 出來才能完整、需 sourceSoId picker、見 FU-04）
+- **自用型**:自家庫存壞、不連 SO
+
+**5 階段**:DRAFT → SUBMITTED → REVIEWED → COMPLETED / REJECTED
+**4 結果**:NEW（換新）/ REF（退錢）/ RPR（維修）/ REJ（駁回）
+**附件**:行照（Crown 強調最重要、避免冒用）+ 照片 + 影片（base64 範式、上限 100MB）
+
+### C.6 供應商等級為什麼「付款條件自動算+手動」
+初期沒信用評分 / 不良率數據、先用付款條件當代理指標：
+- NET90 → A、NET60 → B、NET30 → C、PREPAY → D
+- 之後客戶累積數據才換更精準的算法
+
+### C.7 產品定價 ABCD
+- 系統算為主：`cost × (1 + customer_grade.marginPct/100)`
+- fallback：A=12% / B=15% / C=18% / D=22%
+- 人工可微調覆寫
+
+---
+
+## §D. NX00 清理脈絡
+
+### D.1 為什麼清
+Crown 在畫面看到「NX00」字眼殘留、要求徹底清。
+
+### D.2 原本以為 vs 實際發現
+- **原本以為**:孤兒死碼、刪就好
+- **實際發現**:是「命名過時的 active shared layer」、不能直接刪、要搬
+
+### D.3 處理
+- **Phase 1**:純死碼直接刪（32 個檔）
+- **Phase 2**:活的 9 module 搬到 `features/shared/master/`（部分原 nx00 命名的東西其實是 master 主檔層）
+- sed sweep + redirect rules 移除（舊 bookmark 從此 404）
+
+### D.4 結果
+`grep "nx00" apps/` = 0 殘留（排除 .next）、build 全綠。
+
+---
+
+## §E. 階段 2 庫存 NX03 脈絡（v1.3.0）
+
+### E.1 三大拍板由來
+
+#### E.1.1 異常回報新表 Nx03IssueReport（5 異常 × 5 處置分流）
+- 原本可能在各模組散落寫「壞了 / 過期 / 短缺」、Crown 要統一入口
+- **5 異常**:D 損毀 / E 過期 / S 短缺 / L 放錯庫位（locationId 必填）/ O 其他
+- **5 處置**:R 退貨 / W 保固 / C 重組分解 / D 報廢 / N 未處置
+- **軟連結 relatedDocId**（不建 FK、跨模組共用）
+
+#### E.1.2 庫位查詢純從 ledger aggregate（不改 balance schema）
+- **方案 A**:增 per-location balance（重）
+- **方案 B** ✅ **拍板**:純從 ledger groupBy aggregate（不改 schema）
+- 原因:per-location avgCost ≡ per-warehouse avgCost（同倉同料同成本、不必細到 per-location）
+
+#### E.1.3 自動補貨走 nx98 task-pool、舊 Nx03AutoReplenish 表廢棄
+- **不刪、只標 deprecated**
+- 改走通用待辦池框架（NX02 帶出來的）
+
+### E.2 重組 / 分解為什麼 LITE 就做
+原本想押後、Crown 拍：接既有 `Nx03Conversion` service（已寫完整、M/D 兩 mode）→ 做 UI 就好、值得做。
+
+### E.3 動態盤點既有完整
+- `Nx03StockTake + Item` 已有五軸 snapshotQty / deltaQty / formulaExpectedQty / countedQty / realDiffQty
+- 綠燈利多、不重做、本軌只補 4 欄位（核可流轉 + 差異原因 enum）
+
+### E.4 盤點核可邏輯
+- `maxItemDiffCost = max(abs(realDiffQty × unitCost))`
+- ≤ smallToleranceQty → autoPass=true（倉管自過）
+- \> smallToleranceQty → approvalStatus='P'（等 G 簽核）
+- **強制要走 submitForApproval**（即使 smallTol=0 + 零差異也走一次 auto-pass）
+
+### E.5 差異原因 enum
+- S 被偷 / M 算錯 / B 破損 / U 不明
+- 倉管在 ADJUSTING 階段填、有差異就要選
+
+### E.6 盤點完自動寫待辦池
+- POSTED on transaction、`stocktake.service.ts:807 writeReplenishTasks`
+- 對 (partId, warehouseId) 唯一組合做 batch 檢查、低於 minQty 就寫
+- 同 stocktake 同 part+warehouse 避重（OPEN / CLAIMED 任一狀態都跳過）
+
+---
+
+## §F. 兩個全模組共用框架（NX02 帶出、後續模組直接套）
+
+### F.1 nx98 共享待辦池
+- **位置**:`apps/nx-api/src/nx98/task-pool/` + `apps/nx-ui/src/features/nx98/`
+- **資料表**:`Nx98TaskPool`（sourceModule + sourceDocType + sourceDocId 三軸軟連結、不建 FK）
+- **三大視圖**:「我的待辦」/「部門池」/「指派他人」
+- **領取機制**:unassigned → claimedByUserId（claim API）
+- **跨模組接點**:各業務 service 寫入 task-pool
+- **後續模組做法**:直接呼叫 `taskPoolService.create({ sourceModule:'nx04', sourceDocType:'sales-order', ... })`
+
+### F.2 features/shared/tiered-form 三層欄位
+- **位置**:`apps/nx-ui/src/features/shared/tiered-form/`
+- **三層**:🟢 必要 / 🟡 建議（Alt+L 二段展開）/ ⚪ 進階（Alt+L 三段展開）
+- **API**:`<TieredFormProvider>` + `<TieredField tier="lite|expanded|all">` + `<TieredFormToolbar />`
+- **快捷鍵**:Alt+L 三段循環
+- ⚠️ NX03 LITE 沒用 Provider、內聯 icon 標示（FU-stock-lite-02）
+
+---
+
+## §G. ⭐ 階段 3 銷貨 NX04 業務細節（Crown 已敲定、新 Alex 必讀）
+
+### G.0 單據鏈
+```
+(同行詢價簡化) → QT 報價 → SO 銷售訂單 → IT-O 同行調貨 → CO 銷退
+                                      ↘ 出貨（撿/包/送）→ 完成
+```
+
+### G.1 同行詢價「不獨立做 RFQ-O」
+- ✅ **簡化**:SO 上直接勾「來源=同行」
+- 對齊精神:NX02 進貨詢價也是簡化（不發單純記錄）
+- **不另建 RFQ-O 模組**（避免重複工作）
+
+### G.2 QT 報價單
+功能要點：
+- **歷史價提示**:開新 QT 自動帶該客戶該料件過往報價
+- **毛利警告**:低於 `customer_grade.marginPct` 顯示紅字（不擋、提醒）
+- **來源註記**:每行可標「來源=供應商 / 同行 / 庫存」
+- **採用後自動失效**:同客戶舊 QT（同料件）自動 status=REPLACED（對齊 NX02 RFQ 採用後自動 REJECTED 其他 Qt 範式）
+
+### G.3 SO 用「拉報價」方式建單（非 1:1 轉換）
+- **不是「從 QT 轉 SO」一鍵那種**、是「在 SO 上拉客戶舊報價 + 補新報價混合」
+- 例:5 行料件、3 行拉自舊 QT-001、2 行 SO 上新報價
+- 拉到「來源=同行」的行 → 系統提示「建 IT-O 調貨單」
+
+### G.4 SO 部分待出貨（汽材行常態、不要漏）
+- 同 SO 內:**有貨先出、調貨料到貨再出**
+- 每行 lineStatus:WAIT / PARTIAL / DELIVERED
+- 撿貨揀到的部分先包出、剩下等
+- ⚠️ **不要做「全部到齊才能出」的設計**
+
+### G.5 IT-O 調貨單
+- 從 SO 觸發（**客戶確定才調、不囤**）
+- 接點:先入庫主倉、再出庫
+- **不另設「暫存倉」**（LITE 簡化、PRO 再做暫存倉）
+- `partner_type='O' OR canTransferStock=true` 才能當調貨對象
+
+### G.6 CO 銷退
+退貨品分類:
+- **好品** → 入庫可再賣（`applyQtyInWithLedger`）
+- **壞品** → 進 `nx03_issue_report` 異常表（**共用 NX03 那張**、不另建）
+
+退款處理:
+- **已付款** → 沖 AR（應收沖銷、財務 NX05 連動、本軌先預留接點）
+- **未付款** → 沖應收（單純調整、不退款）
+
+### G.7 客戶維護
+- **交貨方式**:自取 / 配送 / 寄送（影響運費 + 撿包流程）
+- **ABCD 等級**:對應毛利率 12 / 15 / 18 / 22%（跟產品定價對齊）
+- **等級變更要核可**（重要、不要漏）:
+  - 沿用 **NX03 stocktake `approvalStatus` 範式**（不要重發明）
+  - 含**變更歷史**記錄
+  - G 主管核可才生效
+  - 核可通過 → 該客戶所有 QT 自動套新毛利
+  - 退回 → 維持原等級
+
+### G.8 跨模組接點注意
+- **so.service 改 partnerType IN ('C','O')**:同行能買貨（NX02 已對齊、確認 NX04 也要對齊）
+- **問題回報沿用 `Nx03IssueReport`**:Crown 拍板資料同表（跨模組共用一張表）
+  - 技術命名表是否 rename（nx03 → nx99 共用層、或保留 nx03）= Hank 跟新 Alex 自己決定
+- **保固客訴型 sourceSoId picker**:NX04 SO 出來後、回頭補 NX02 FU-04
+- **stock_balance 出貨扣帳**:銷貨出貨走 `applyQtyOutWithLedger`（sourceModule='NX04'、sourceDocType='SO'）
+- **`Nx03Outbound` 表預留接點**:階段 3 才決定是否啟用（既有 caller=0）
+
+### G.9 客戶等級 ABCD vs 產品定價 ABCD（別搞混）
+- **客戶 ABCD**:A=12% / B=15% / C=18% / D=22%（毛利率）
+- **產品定價 ABCD**:成本級別 A / B / C / D（在 NX02 已做）
+- 兩個 ABCD 不衝突:產品成本級 → 定價 = `cost × (1 + customer_grade.marginPct/100)`
+
+---
+
+## §H. Follow-up 押後清單（不擋核心測試、之後一起補）
+
+### H.1 進貨 NX02
+- RFQ / PO / PR / Part / Partner form 三層欄位 retrofit
+- 各既有 UI「空畫面 / 全鍵盤 / Alt+L/T」audit
+- 保固附件 download 功能（目前只能 upload）
+- 保固「客訴型」`sourceSoId` picker（待 NX04 SO 出來才能做）
+- 待辦池業務模組自動 trigger（如：保固建立 → auto 寫待辦）
+- 待辦池 RBAC enforce
+- 待辦池 detail page（目前只有 list）
+- 待辦池 realtime（目前要 refresh）
+- NX02 hub `/dashboard/purchase/*` 舊路由整理
+
+### H.2 庫存 NX03
+- FU-stock-lite-01 主檔 picker（partId / warehouseId / locationId autocomplete）
+- FU-stock-lite-02 UI 整合 TieredFormProvider（Alt+L 切換）
+- FU-stock-lite-03 Mobile 版接真實 API（目前 mock）
+- FU-stock-lite-04 盤點核可 RBAC enforce
+- Conversion 草稿改明細（Alex 拍板「不做」、客戶反映才開）
+
+### H.3 全模組
+- **TASK-NX99-PLAN-MIDDLEWARE**:tier 守門中間件（LITE 用戶不能呼叫 PLUS / PRO endpoint）
+
+---
+
+## §I. 環境 / 紀律
+
+### I.1 當前 git 狀態
+- **main HEAD** = `32f721d`（NX03 closure 收尾 git-state update）
+- **上一個業務 tag** = `v1.3.0-nx03-stock-lite-closure` → `7ae0c2a`
+- **`feature/nx04-sales-lite`** 待開（從 main HEAD `32f721d` 起手）
+
+### I.2 工具鏈提醒
+- **Prisma 7**:`migrate dev` / `reset` **不會**自動跑 seed（v6 才會）、新環境手動跑 `pnpm seed`（從 `packages/db-core/` 跑）
+- **GitHub CLI 沒裝**:PR 要 Crown 手動開、Hank 只 push branch + 給 PR title + body 模板
+- **shell**:Windows PowerShell + Bash 都可用
+- **pnpm workspaces**:根目錄 `pnpm` 跑全套、單包用 `pnpm --filter <pkg>`
+
+### I.3 三租戶 seed 狀態
+| Tier | tenantId | 狀態 |
+|------|----------|------|
+| LITE | `NX99TANT9900001` | 空殼（admin + 系統範本、無假業務資料） |
+| PLUS | `NX99TANT9900002` | 空殼 |
+| PRO | `NX99TANT9900003` | 空殼 |
+
+Crown 自己放真實業務資料測（部分模組）、其他模組 Crown 依操作手冊親測。
+
+### I.4 schema migration 累計
+- **dev DB**:88 migrations applied、`migrate status` up to date
+- **Railway production**:累計落後 88 支（A077、`.env` 維持 localhost、真實客戶簽約前 2~4 週才同步、本軌不動）
+
+### I.5 角色分工
+- **Alex** 寫意圖（業務需求 / 拍板 / FU 管理）
+- **Hank** 寫實作（schema / code / 操作手冊）
+- 不確定標 ⚠️ 回報 Alex 拍板、別擅自決定
+
+---
+
+## §J. 給新 Alex 接上最該注意的 3 件事
+
+1. **NX04 銷貨「拉報價」非「轉換」的設計（§G.3 + §G.4）**
+   - SO 不是從 QT 一鍵生成、是在 SO 上拉客戶舊 QT + 補新 Qt 混合
+   - **部分待出貨是汽材行常態**、要支援（lineStatus WAIT / PARTIAL / DELIVERED）
+   - 這跟一般 ERP 的「QT → SO 1:1 轉換」不一樣、別讓 Hank 走錯路
+
+2. **跨模組共用接點不要重做（§G.8）**
+   - 待辦池（nx98）、tiered-form 直接套
+   - **IssueReport 共用 NX03 那張表**、不另建 NX04 異常表（Crown 拍板資料同表）
+   - 出貨扣帳走 `applyQtyOutWithLedger`（NX03 helpers）
+   - 保固客訴型 sourceSoId picker 是 NX02 FU-04、SO 出來後**回頭補**
+
+3. **客戶等級變更核可流程（§G.7）**
+   - **沿用 NX03 stocktake `approvalStatus` 範式**（不要重發明）
+   - 含**變更歷史**、核可通過自動套新毛利、退回維持原等級
+   - 這個 Crown 明確要、不要被當「OOTB CRM 流程」處理掉
+
+---
+
+# Part 1 — Hank 進度交接（原文、聚焦 git / commit / 進度）
+
+> 以下原文：Hank 視角的進度紀錄、聚焦 commit / migration / build 結果。
+> 跟 Part 0 互補（Part 0 解釋「為什麼」、Part 1 解釋「做了什麼」）。
+> 原 §1~§9 章節保持不動、只在最上面加 Part 0、章節編號維持。
 
 ## 1. 路線總綱
 
