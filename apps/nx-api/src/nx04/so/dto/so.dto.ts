@@ -38,6 +38,14 @@ export class CreateSoItemDto {
   @MaxLength(15)
   quoteItemId?: string;
 
+  /// 補貨來源類型（S=本倉/T=自倉調撥/G=同行調貨/B=客戶訂單）。
+  /// NX04-M2 §A C2：允許業務手動指定、預設由 schema default 'S' 帶入、
+  /// 服務層連動寫入 transferStatus（S→C 補貨完成 / T,G,B→P 待補）
+  @IsOptional()
+  @IsString()
+  @MaxLength(1)
+  transferSourceType?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)

@@ -28,8 +28,19 @@ import { updateRankingFromPerformance } from '../../shared/nx10/nx10-update-rank
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 // NX04-IMPL-01 Phase 3 commit 3a：授信擋單接點（Crown Q7 + Q-C4=A）
 import { CreditGuardService } from '../credit-guard/credit-guard.service';
+// NX04-M2 §A C2：拉報價建 SO 時 cascade quote 失效
+import { QuoteService } from '../quote/quote.service';
 
 import type { CreateSoDto, CreateSoItemDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
+
+/**
+ * 補貨來源 → 補貨進度狀態（NX04-M2 §A C2 連動）
+ * S 本倉現貨 → C 補貨完成（無需補）
+ * T 自倉調撥 / G 同行調貨 / B 客戶訂單 → P 待補
+ */
+function deriveTransferStatus(sourceType: string): string {
+  return sourceType === 'S' ? 'C' : 'P';
+}
 
 const SO_SEL = {
   id: true,
@@ -108,6 +119,8 @@ export class SoService {
     private readonly creditGuard: CreditGuardService,
     // NX10-IMPL-02 Phase 5：業績排行榜 wire
     private readonly expService: Nx10ExpService,
+    // NX04-M2 §A C2：cascade QT 失效 wire
+    private readonly quoteService: QuoteService,
   ) {}
 
   private whereList(tenantId: string, q: Nx04ListQueryDto): Prisma.Nx04SoWhereInput {
@@ -319,6 +332,37 @@ export class SoService {
         }
       }
       await this.recalcSoTotals(tx, so.id, taxRate);
+
+      // NX04-M2 §A C2：cascade 報價失效（同 tx、確保原子性）
+      // 找 dto.items 內所有 quoteItemId 對應的 quoteId / partId、
+      // 加上 dto.quoteId（header 拉的整張 quote）一併處理。
+      const itemQuoteItemIds = (dto.items ?? [])
+        .map((i) => i.quoteItemId?.trim())
+        .filter((x): x is string => !!x);
+      const adoptedQuoteIdSet = new Set<string>();
+      const adoptedPartIdSet = new Set<string>();
+      if (itemQuoteItemIds.length) {
+        const qItems = await tx.nx04QuoteItem.findMany({
+          where: { id: { in: itemQuoteItemIds } },
+          select: { quoteId: true, partId: true },
+        });
+        for (const qi of qItems) {
+          adoptedQuoteIdSet.add(qi.quoteId);
+          adoptedPartIdSet.add(qi.partId);
+        }
+      }
+      if (dto.quoteId?.trim()) adoptedQuoteIdSet.add(dto.quoteId.trim());
+      if (adoptedQuoteIdSet.size || adoptedPartIdSet.size) {
+        await this.quoteService.cascadeOnSoAdopt(
+          tx,
+          tenantId,
+          dto.customerId.trim(),
+          Array.from(adoptedQuoteIdSet),
+          Array.from(adoptedPartIdSet),
+          user.sub,
+        );
+      }
+
       const full = await tx.nx04So.findFirst({
         where: { id: so.id },
         select: {
@@ -341,6 +385,63 @@ export class SoService {
     });
   }
 
+  /**
+   * 拉報價 picker：列出該客戶 OPEN 狀態的 QT 行（NX04-M2 §A C2）
+   * 給 SO 開單 UI「拉舊報價」用、回傳剩餘可轉量、按 createdAt desc 排序
+   * 範圍：tenantId + customerId + quote.status IN (DRAFT, SENT, ACCEPTED) + voided=null
+   *      + isSelected=true（多選項分組中客戶確認的那筆）
+   *      + transferredQty < qty（還有可轉量）
+   */
+  async listOpenQuoteLines(user: RequestUser, customerId: string) {
+    const tenantId = requireTenantId(user);
+    const rows = await this.prisma.nx04QuoteItem.findMany({
+      where: {
+        isSelected: true,
+        quote: {
+          tenantId,
+          customerId,
+          voidedAt: null,
+          status: { in: [QuoteStatus.DRAFT, QuoteStatus.SENT, QuoteStatus.ACCEPTED] },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        quoteId: true,
+        partId: true,
+        partNo: true,
+        partName: true,
+        qty: true,
+        transferredQty: true,
+        unitPrice: true,
+        minPrice: true,
+        belowMinReason: true,
+        createdAt: true,
+        quote: { select: { docNo: true, quoteDate: true, status: true, warehouseId: true } },
+      },
+    });
+    return rows
+      .filter((r) => new PrismaNs.Decimal(r.transferredQty).lt(new PrismaNs.Decimal(r.qty)))
+      .map((r) => ({
+        quoteItemId: r.id,
+        quoteId: r.quoteId,
+        docNo: r.quote.docNo,
+        quoteDate: r.quote.quoteDate,
+        quoteStatus: r.quote.status,
+        warehouseId: r.quote.warehouseId,
+        partId: r.partId,
+        partNo: r.partNo,
+        partName: r.partName,
+        qty: r.qty,
+        transferredQty: r.transferredQty,
+        remainQty: new PrismaNs.Decimal(r.qty).sub(new PrismaNs.Decimal(r.transferredQty)),
+        unitPrice: r.unitPrice,
+        minPrice: r.minPrice,
+        belowMinReason: r.belowMinReason,
+        createdAt: r.createdAt,
+      }));
+  }
+
   private async createSoItemTx(
     tx: Prisma.TransactionClient,
     user: RequestUser,
@@ -359,6 +460,9 @@ export class SoService {
     const snap = await this.loadPartSnapshot(tx, tenantId, it.partId.trim());
     const qty = new PrismaNs.Decimal(it.qty);
     const unit = new PrismaNs.Decimal(it.unitPriceSnapshot);
+    // NX04-M2 §A C2：補貨來源 + 雙段狀態連動（schema default S/C/W、可由業務手動指定）
+    const transferSourceType = (it.transferSourceType?.trim() || 'S').toUpperCase();
+    const transferStatus = deriveTransferStatus(transferSourceType);
     await tx.nx04SoItem.create({
       data: {
         soId,
@@ -376,10 +480,31 @@ export class SoService {
         belowMinReason: it.belowMinReason?.trim() || null,
         remark: it.remark?.trim() || null,
         itemStatus: 'WP',
+        transferSourceType,
+        transferStatus,
+        // fulfillStatus 沿用 schema default 'W'（等貨）、出貨流程推進
         createdBy: user.sub,
         updatedBy: user.sub,
       },
     });
+    // NX04-M2 §A C2：拉舊報價時、累加 QT line transferredQty（避免重複轉）
+    if (it.quoteItemId?.trim()) {
+      const qItem = await tx.nx04QuoteItem.findFirst({
+        where: { id: it.quoteItemId.trim() },
+        select: { id: true, qty: true, transferredQty: true },
+      });
+      if (qItem) {
+        const newTq = new PrismaNs.Decimal(qItem.transferredQty).add(qty);
+        const cap = new PrismaNs.Decimal(qItem.qty);
+        await tx.nx04QuoteItem.update({
+          where: { id: qItem.id },
+          data: {
+            transferredQty: newTq.gt(cap) ? cap : newTq,
+            updatedBy: user.sub,
+          },
+        });
+      }
+    }
   }
 
   async createFromQuote(user: RequestUser, quoteId: string) {

@@ -26,6 +26,12 @@ export class SoController {
     return this.svc.createFromQuote(user, quoteId);
   }
 
+  /// NX04-M2 §A C2：拉報價 picker（給 SO 開單 UI 列出該客戶 OPEN 報價行）
+  @Get('quote-lines/open')
+  openQuoteLines(@CurrentUser() user: RequestUser, @Query('customerId') customerId: string) {
+    return this.svc.listOpenQuoteLines(user, customerId);
+  }
+
   @Post(':id/items')
   addItem(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() dto: CreateSoItemDto) {
     return this.svc.addItem(user, id, dto);
