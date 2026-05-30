@@ -189,6 +189,14 @@ export function useSessionMe(): UseSessionMeResult {
         if (!alive) return;
         setMe(data);
         setView({ loading: false, errorMsg: null, checkedAt: new Date().toISOString() });
+
+        // v1.2 對齊軌 C-FU FU-onboarding-05：首次登入強制改密
+        // 偵測到 must_change_password=true 且當下不在 /change-password 頁、redirect 過去
+        const mustChange = (data as { must_change_password?: boolean }).must_change_password;
+        if (mustChange && typeof window !== 'undefined' && !window.location.pathname.startsWith('/change-password')) {
+          router.replace('/change-password');
+          return;
+        }
       } catch (e: unknown) {
         if (!alive) return;
 
