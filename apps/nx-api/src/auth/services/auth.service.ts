@@ -216,6 +216,8 @@ export class AuthService {
         createdAt: true,
         updatedAt: true,
         lastLoginAt: true,
+        mustChangePassword: true,
+        isTenantOwner: true,
         tenant: { select: { name: true, nameEn: true } },
         rev_Nx01UserRole_userId: {
           where: { isActive: true },
@@ -288,6 +290,39 @@ export class AuthService {
       plan_code,
       roles,
       view_permissions,
+      must_change_password: user.mustChangePassword,
+      is_tenant_owner: user.isTenantOwner,
     };
+  }
+
+  /// v1.2 對齊軌 C-FU FU-onboarding-05：首次登入強制改密碼
+  /// 改完密 → mustChangePassword 設 false
+  async changePassword(userId: string, oldPassword: string, newPassword: string) {
+    if (!newPassword || newPassword.length < 6) {
+      throw new UnauthorizedException('新密碼至少 6 字元');
+    }
+    const user = await this.prisma.nx01User.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true, mustChangePassword: true },
+    });
+    if (!user) throw new UnauthorizedException('User not found');
+    // mustChangePassword=true 的 user 第一次改密、允許跳過 oldPassword 驗證
+    // （初始密碼是 SYSADMIN 給的、user 自己不一定記得）
+    if (!user.mustChangePassword) {
+      const bcrypt = await import('bcryptjs');
+      const ok = await bcrypt.compare(oldPassword, user.passwordHash);
+      if (!ok) throw new UnauthorizedException('舊密碼錯誤');
+    }
+    const bcrypt = await import('bcryptjs');
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.nx01User.update({
+      where: { id: userId },
+      data: {
+        passwordHash: newHash,
+        mustChangePassword: false,
+        updatedBy: userId,
+      },
+    });
+    return { ok: true };
   }
 }

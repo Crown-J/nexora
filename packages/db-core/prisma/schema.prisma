@@ -6944,6 +6944,8 @@ model Nx99Tenant {
   importWizardCompletedAt                  DateTime?                     @map("import_wizard_completed_at")
   /// 訂閱方案 LITE / PLUS / PRO（v1.2 §2.1）
   planCode                                 String?                       @map("plan_code") @db.VarChar(10)
+  /// 報價單預設有效期（天數、v1.2 §12.3 系統參數 FU-system-param-01）
+  quoteDefaultValidityDays                 Int                           @default(30) @map("quote_default_validity_days")
   rev_Nx01ImportBatch_tenantId             Nx01ImportBatch[]             @relation("R_Nx01ImportBatch_tenantId")
   rev_Nx01UserPageGuide_tenantId           Nx01UserPageGuide[]           @relation("R_Nx01UserPageGuide_tenantId")
   rev_Nx01AuditLog_tenantId                Nx01AuditLog[]                @relation("R_Nx01AuditLog_tenantId")

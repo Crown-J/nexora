@@ -39,4 +39,14 @@ export class AuthController {
   async me(@User() payload: JwtPayload) {
     return this.auth.me(payload.sub);
   }
+
+  /// v1.2 對齊軌 C-FU：強制改密碼（首次登入）
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @User() payload: JwtPayload,
+    @Body() body: { oldPassword?: string; newPassword: string },
+  ) {
+    return this.auth.changePassword(payload.sub, body.oldPassword ?? '', body.newPassword);
+  }
 }
