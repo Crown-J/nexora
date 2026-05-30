@@ -1320,6 +1320,10 @@ model Nx01User {
   failedLoginCount                         Int                           @default(0) @map("failed_login_count")
   /// 帳號鎖定到何時（nullable、unlock 後設 null、對齊 NX01-01 §3.6）；啟用最低需求版本：LITE
   lockedUntil                              DateTime?                     @map("locked_until")
+  /// 首次登入強制改密碼（v1.2 §3.1）
+  mustChangePassword                       Boolean                       @default(false) @map("must_change_password")
+  /// 是否租戶負責人（v1.2 §2.1 開戶時建立、自動 OWNER 角色 + 全權限）
+  isTenantOwner                            Boolean                       @default(false) @map("is_tenant_owner")
   /// 建立時間。；啟用最低需求版本：LITE
   createdAt                                DateTime                      @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
@@ -1340,6 +1344,8 @@ model Nx01User {
   rev_Nx01UserRole_userId                  Nx01UserRole[]                @relation("R_Nx01UserRole_userId")
   rev_Nx01UserTeam_userId                  Nx01UserTeam[]                @relation("R_Nx01UserTeam_userId")
   rev_Nx01UserWarehouse_userId             Nx01UserWarehouse[]           @relation("R_Nx01UserWarehouse_userId")
+  rev_Nx01UserPageGuide_userId             Nx01UserPageGuide[]           @relation("R_Nx01UserPageGuide_userId")
+  rev_Nx01ImportBatch_uploadedBy           Nx01ImportBatch[]             @relation("R_Nx01ImportBatch_uploadedBy")
   rev_Nx01BulletinAttachment_uploader      Nx01BulletinAttachment[]      @relation("R_Nx01BulletinAttachment_uploaderUserId")
   rev_Nx01BulletinReadLog_userId           Nx01BulletinReadLog[]         @relation("R_Nx01BulletinReadLog_userId")
   rev_Nx02WarrantyClaimAttachment_uploader Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_uploaderUserId")
@@ -1411,6 +1417,55 @@ model Nx01UserRole {
 
   @@unique([tenantId, userId, roleId])
   @@map("nx01_user_role")
+}
+
+/// =======================================================
+/// Nx01UserPageGuide — DB table `nx01_user_page_guide`
+/// v1.2 對齊軌 C：每位員工 × 每頁面的設定精靈記憶（§3.3）
+/// =======================================================
+model Nx01UserPageGuide {
+  /// [NX01]+[UPGD]+[7碼流水號]
+  id       String   @id @default(dbgenerated("gen_nx01_user_page_guide_id()")) @db.VarChar(15)
+  tenantId String   @map("tenant_id") @db.VarChar(15)
+  userId   String   @map("user_id") @db.VarChar(15)
+  /// 頁面 key（例：sale.quote、purchase.po、inventory.stocktake）
+  pageKey  String   @map("page_key") @db.VarChar(100)
+  seenAt   DateTime @default(now()) @map("seen_at")
+
+  tenant Nx99Tenant @relation("R_Nx01UserPageGuide_tenantId", fields: [tenantId], references: [id])
+  user   Nx01User   @relation("R_Nx01UserPageGuide_userId", fields: [userId], references: [id])
+
+  @@unique([userId, pageKey])
+  @@map("nx01_user_page_guide")
+}
+
+/// =======================================================
+/// Nx01ImportBatch — DB table `nx01_import_batch`
+/// v1.2 對齊軌 C：匯入精靈批次紀錄（§3.2）
+/// =======================================================
+model Nx01ImportBatch {
+  /// [NX01]+[IMBA]+[7碼流水號]
+  id            String    @id @default(dbgenerated("gen_nx01_import_batch_id()")) @db.VarChar(15)
+  tenantId      String    @map("tenant_id") @db.VarChar(15)
+  uploadedBy    String    @map("uploaded_by") @db.VarChar(15)
+  /// 匯入類型：employee / partner / warehouse / product / purchase-history / sale-history / voucher
+  importType    String    @map("import_type") @db.VarChar(30)
+  fileName      String?   @map("file_name") @db.VarChar(255)
+  totalRows     Int       @default(0) @map("total_rows")
+  successRows   Int       @default(0) @map("success_rows")
+  failedRows    Int       @default(0) @map("failed_rows")
+  /// 失敗 row 詳細 JSON：[{ rowNo: 12, reason: 'Email 格式錯誤' }, ...]
+  failureDetail Json?     @map("failure_detail")
+  /// previewing / imported / cancelled
+  status        String    @default("previewing") @db.VarChar(20)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  importedAt    DateTime? @map("imported_at")
+
+  tenant   Nx99Tenant @relation("R_Nx01ImportBatch_tenantId", fields: [tenantId], references: [id])
+  uploader Nx01User   @relation("R_Nx01ImportBatch_uploadedBy", fields: [uploadedBy], references: [id])
+
+  @@index([tenantId, importType])
+  @@map("nx01_import_batch")
 }
 
 /// =======================================================
@@ -6875,6 +6930,22 @@ model Nx99Tenant {
   timezone                                 String                        @default("Asia/Taipei") @db.VarChar(50)
   /// 語系設定（預設 zh-TW）。；啟用最低需求版本：LITE-CORE
   locale                                   String                        @default("zh-TW") @db.VarChar(10)
+  /// 統一編號（v1.2 §2 開戶後台必填）
+  taxId                                    String?                       @map("tax_id") @db.VarChar(20)
+  /// 公司地址（v1.2 §2 開戶後台必填、用來寄帳單）
+  address                                  String?                       @db.VarChar(200)
+  /// 公司電話
+  phone                                    String?                       @db.VarChar(30)
+  /// 公司 LOGO URL（v1.2 §2 必填、本機端安裝顯示）
+  logoUrl                                  String?                       @map("logo_url") @db.VarChar(500)
+  /// 資料起算日（v1.2 §12.3、起算之前歷史只進查詢、不計入報表）
+  dataStartDate                            DateTime?                     @map("data_start_date") @db.Date
+  /// 匯入精靈完成時間（NULL=未完成、首次登入會跳）
+  importWizardCompletedAt                  DateTime?                     @map("import_wizard_completed_at")
+  /// 訂閱方案 LITE / PLUS / PRO（v1.2 §2.1）
+  planCode                                 String?                       @map("plan_code") @db.VarChar(10)
+  rev_Nx01ImportBatch_tenantId             Nx01ImportBatch[]             @relation("R_Nx01ImportBatch_tenantId")
+  rev_Nx01UserPageGuide_tenantId           Nx01UserPageGuide[]           @relation("R_Nx01UserPageGuide_tenantId")
   rev_Nx01AuditLog_tenantId                Nx01AuditLog[]                @relation("R_Nx01AuditLog_tenantId")
   rev_Nx01BrandCodeRule_tenantId           Nx01BrandCodeRule[]           @relation("R_Nx01BrandCodeRule_tenantId")
   rev_Nx01Bulletin_tenantId                Nx01Bulletin[]                @relation("R_Nx01Bulletin_tenantId")
