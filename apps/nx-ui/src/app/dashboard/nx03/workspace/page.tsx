@@ -1,13 +1,8 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// apps/nx-ui/src/app/dashboard/nx03/workspace/page.tsx
+// v1.2 對齊軌 FU-04：舊 stub → redirect 到 LITE 庫存中心
 
-// @FUNCTION_CODE NX03-WS-UI-001-F01
-// 路由：/dashboard/nx03/workspace
-export default function Nx03WorkspacePage() {
-  return (
-    <NxWorkspacePlaceholder
-      functionCode="NX03-WS-UI-001-F01"
-      title="庫存作業工作台"
-      desc="入庫 / 出庫 / 盤點"
-    />
-  );
+import { redirect } from 'next/navigation';
+
+export default function Nx03WorkspaceRedirect() {
+  redirect('/dashboard/inventory');
 }

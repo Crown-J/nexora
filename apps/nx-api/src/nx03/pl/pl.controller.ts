@@ -6,8 +6,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Nx03ListQueryDto } from '../../shared/nx03/nx03-list-query.dto';
 
@@ -15,8 +17,9 @@ import { CreatePlDto, PatchPlItemDto, UpdatePlDto } from './dto/pl.dto';
 import { PlService } from './pl.service';
 
 @Controller('nx03/pl')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
+@Permission('inventory.workstation.packing')
 export class PlController {
   constructor(private readonly svc: PlService) {}
 

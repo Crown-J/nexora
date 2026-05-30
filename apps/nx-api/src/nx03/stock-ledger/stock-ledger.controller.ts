@@ -2,16 +2,19 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Nx03LedgerListQueryDto } from '../../shared/nx03/nx03-ledger-list-query.dto';
 
 import { StockLedgerService } from './stock-ledger.service';
 
 @Controller('nx03/stock-ledger')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
+@Permission('inventory.stock-query.list')
 export class StockLedgerController {
   constructor(private readonly svc: StockLedgerService) {}
 

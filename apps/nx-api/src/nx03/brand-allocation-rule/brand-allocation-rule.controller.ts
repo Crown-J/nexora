@@ -5,8 +5,10 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import {
@@ -17,8 +19,9 @@ import {
 import { BrandAllocationRuleService } from './brand-allocation-rule.service';
 
 @Controller('nx03/brand-allocation-rule')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
+@Permission('settings.system-param.edit')
 export class BrandAllocationRuleController {
   constructor(private readonly svc: BrandAllocationRuleService) {}
 
