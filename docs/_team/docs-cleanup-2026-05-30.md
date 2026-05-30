@@ -11,12 +11,11 @@
 
 ## §A. 統計總覽
 
-| 類別 | 數量 |
-|------|------|
-| 🔴 刪除 | **84 檔** |
-| 🟢 保留 | 約 65 檔（含全部 _archive / _reference / _system / _template / 各模組 spec/intent + workflow + ui + summary）|
-| 🟡 不確定、請 Alex 拍板 | **4 大類別 / 共約 50+ 檔** |
-| ✏️ 編輯（不刪、修正內容）| 1 檔（HANDOFF-LITE-PROGRESS.md §G）|
+| 類別 | 第一輪 | 第二輪（Alex 拍板）| 累計 |
+|------|--------|-------------------|------|
+| 🔴 刪除 | 84 檔 | **47 檔** | **131 檔** |
+| 🟢 保留 | — | — | 約 65 檔（_archive / _reference / _system / _template / 各模組 summary + NX01 spec + NX05~NX10 部分 spec/workflow/ui）|
+| ✏️ 編輯 | 1 檔（HANDOFF-LITE-PROGRESS.md §G）| 1 檔（本報告 §D 加拍板結果）| 2 檔 |
 
 ---
 
@@ -150,51 +149,62 @@ NX01 主檔層（25 主檔 closure）相對穩定、不會被 LITE v1.2 取代�
 
 ---
 
-## §D. 🟡 不確定、請 Alex 拍板（4 大類別）
+## §D. ✅ 第二輪 Alex 拍板結果（已執行、共刪 47 檔）
 
-下列文件**保留未刪、等 Alex 對 v1.2 後決定**。請 Alex 一次拍板、避免再來一輪。
+2026-05-30 第二輪、Alex 對 4 大類分別拍板「B 變體」（D.1/D.2/D.3）+「A 全砍」（D.4）、Hank 一輪 git rm 收尾完成。
 
-### 🟡 D.1 各模組 spec/intent overview（5 檔、NX02-NX10 模組級意圖）
+| 類別 | 拍板 | 刪除數 |
+|------|------|-------|
+| D.1 模組 overview | B 變體（NX02/03/04/06v01/AR 砍、NX05/06v02/07-10 留）| 5 檔 |
+| D.2 workflow specs | B 變體（NX02/03/04 砍、NX05-NX10 留）| 24 檔 |
+| D.3 UI specs | B 變體（NX02/03/04 砍、NX05-NX10 留）| 8 檔 |
+| D.4 spec/impl 細節 | A 全砍 | 10 檔 |
+| **合計** | | **47 檔** |
 
-按 by-module 範式時期寫的「模組總覽」、v1.2 用 LITE 切片重新組織、是否還有保留價值？
+⬇️ 以下為當初待決四大類的原始清單 + 拍板結果。
 
-- `docs/nx02/spec/intent/nx02-overview.md`
-- `docs/nx04/spec/intent/nx04-overview.md`
-- `docs/nx05/spec/intent/nx05-overview.md`
-- `docs/nx06/spec/intent/nx06-overview.md`
-- `docs/nx06/spec/intent/nx06-overview-v02.md` ⚠️ 跟 nx06-overview.md 並存、v02 應該是更新版、舊版可刪？
+### ✅ D.1 各模組 spec/intent overview — 拍板 B 變體（刪 5 留 6）
+
+按 by-module 範式時期寫的「模組總覽」、v1.2 用 LITE 切片重新組織。
+
+🔴 已刪：
+- `docs/nx02/spec/intent/nx02-overview.md`（v1.2 接管採購）
+- `docs/nx03/spec/intent/nx03-overview.md`（v1.2 接管庫存）
+- `docs/nx04/spec/intent/nx04-overview.md`（v1.2 接管銷貨）
+- `docs/auto-replenish/spec/intent/ar-overview.md`（AR 屬 NX02 採購延伸）
+- `docs/nx06/spec/intent/nx06-overview.md`（v01 舊版、v02 留下取代）
+
+🟢 留：
+- `docs/nx05/spec/intent/nx05-overview.md`（NX05 財務未在 v1.2 範圍）
+- `docs/nx06/spec/intent/nx06-overview-v02.md`（v02 為現行版本）
 - `docs/nx07/spec/intent/nx07-overview.md`
 - `docs/nx08/spec/intent/nx08-overview.md`
 - `docs/nx09/spec/intent/nx09-overview.md`
 - `docs/nx10/spec/intent/nx10-overview.md`
-- `docs/nx03/spec/intent/nx03-overview.md`
-- `docs/auto-replenish/spec/intent/ar-overview.md`
 
-**Alex 拍板建議**：A 全砍（被 v1.2 取代）/ B 只留 NX02/03/04 已 closure 模組的當歷史 / C 全留
+### ✅ D.2 各模組 workflow specs — 拍板 B 變體（刪 24、留 NX05-NX10 共 27 檔）
 
-### 🟡 D.2 各模組 workflow specs（51 檔、業務流程描述）
+🔴 已刪（NX02/03/04 共 24 檔）：
+- NX02：`docs/nx02/workflow/primary/p-w01~p-w09.md`（9 檔）+ `sub/p01-purchase-return.md`
+- NX03：`docs/nx03/workflow/primary/i-w01~i-w04.md`（4 檔）+ `sub/i01~i04.md`（4 檔）
+- NX04：`docs/nx04/workflow/primary/s-w01~s-w06.md`（6 檔）
 
-by-module 時期的業務流程描述、v1.2 的「驗收清單」是新版範式。是否還需要？
-
-- NX02：`docs/nx02/workflow/primary/*`（9 檔：p-w01 國內採購 / p-w02 國外 / p-w03 退貨 / p-w04 特殊 / p-w05 定價 / p-w06 安全量 / p-w07 廠商 / p-w08 保固 / p-w09 新品牌）+ `sub/p01-purchase-return.md`
-- NX03：`docs/nx03/workflow/primary/*`（4 檔：i-w01 進貨 / i-w02 出貨 / i-w03 盤點 / i-w04 庫位）+ `sub/i01~i04*.md`（4 檔）
-- NX04：`docs/nx04/workflow/primary/*`（6 檔：s-w01 國內銷售 / s-w02 國外 / s-w03 銷退 / s-w04 客戶開發 / s-w05 客戶分級 / s-w06 客戶回饋）
-- NX05：`docs/nx05/workflow/*`（7 primary + 5 sub）
+🟢 留：
+- NX05：`docs/nx05/workflow/*` 全部（7 primary + 5 sub）
 - NX06：`docs/nx06/workflow/sub/*`（4 檔）
 - NX07：`docs/nx07/workflow/primary/*`（6 檔）
 - NX08：`docs/nx08/workflow/primary/*`（8 檔）
 - NX09：3 檔
 - NX10：2 檔
 
-**Alex 拍板建議**：A 全砍 / B 留 NX02/03/04 closure 模組的當歷史 / C 全留
+### ✅ D.3 各模組 UI specs — 拍板 B 變體（刪 8 留 6）
 
-### 🟡 D.3 各模組 UI specs（11 檔、桌面 / mobile UI 設計）
-
-by-module 時期的 UI 設計文件、跟現在 `/dashboard/sale`、`/dashboard/nx04` 兩套並存的實況有 drift。
-
+🔴 已刪（NX02/03/04 共 8 檔）：
 - `docs/nx02/ui/po-workspace.md` / `import-workspace.md` / `product-workspace.md`
 - `docs/nx03/ui/warehouse-workspace.md` / `mobile-warehouse.md`
 - `docs/nx04/ui/so-workspace.md` / `customer-workspace.md` / `export-workspace.md`
+
+🟢 留：
 - `docs/nx05/ui/finance-workspace.md`
 - `docs/nx06/ui/logistics-workspace.md`
 - `docs/nx07/ui/hr-workspace.md`
@@ -202,28 +212,23 @@ by-module 時期的 UI 設計文件、跟現在 `/dashboard/sale`、`/dashboard/
 - `docs/nx09/ui/km-workspace.md`
 - `docs/nx10/ui/game-workspace.md`
 
-**Alex 拍板建議**：A 全砍（v1.2 接管 UI 描述）/ B 保留作為「舊範式參考」 / C 全留
+### ✅ D.4 各模組 spec/impl 細節 — 拍板 A 全砍（刪 10 檔）
 
-### 🟡 D.4 各模組 spec/impl 細節（10 檔、技術 impl 文件）
-
-| 檔案 | 性質 | 是否還用 |
-|------|------|---------|
-| docs/nx02/spec/intent/rfq-qt-api-intent.md | NX02 RFQ-QT API 意圖 | 屬 by-module impl 範式、可能被 v1.2 取代 |
-| docs/nx02/spec/impl/b5-impl_rfq-qt-api.md | 同上 impl | 同上 |
-| docs/nx03/spec/intent/stock-reverse-lookup-api-intent.md | NX03 reverse lookup API 意圖 | 同上 |
-| docs/nx03/spec/impl/b2-impl_stock-reverse-lookup-api.md | 同上 impl | 同上 |
-| docs/nx04/spec/intent/so-data-model-intent.md | SO 資料模型意圖 | 同上 |
-| docs/nx04/spec/intent/translator-intent.md | NX04 translator 意圖 | 屬 NX04 impl 細節 |
-| docs/nx04/spec/intent/navigation-context-policy.md | NX04 navigation context | 屬 impl 細節 |
-| docs/nx04/spec/impl/d3-impl_so-schema.md | SO schema impl | by-module impl |
-| docs/nx04/spec/impl/d3-trigger.md | translator trigger | 同上 |
-| docs/nx04/spec/impl/d4-impl_translator.md | translator impl | 同上 |
-
-**Alex 拍板建議**：A 全砍（v1.2 + 操作手冊取代）/ B 留 NX04 translator 系列（業務邏輯複雜、可能還有 reference 價值）/ C 全留
+🔴 已刪：
+- docs/nx02/spec/intent/rfq-qt-api-intent.md
+- docs/nx02/spec/impl/b5-impl_rfq-qt-api.md
+- docs/nx03/spec/intent/stock-reverse-lookup-api-intent.md
+- docs/nx03/spec/impl/b2-impl_stock-reverse-lookup-api.md
+- docs/nx04/spec/intent/so-data-model-intent.md
+- docs/nx04/spec/intent/translator-intent.md
+- docs/nx04/spec/intent/navigation-context-policy.md
+- docs/nx04/spec/impl/d3-impl_so-schema.md
+- docs/nx04/spec/impl/d3-trigger.md
+- docs/nx04/spec/impl/d4-impl_translator.md
 
 ---
 
-## §E. 清檔後 docs 結構快照
+## §E. 清檔後 docs 結構快照（第二輪後）
 
 ```
 docs/
@@ -234,7 +239,7 @@ docs/
 ├── _reference/                         # 全保留（4 檔）
 ├── _system/                            # 全保留（7 檔）
 ├── _template/                          # 全保留（1 檔）
-├── _team/                              # 11 檔
+├── _team/                              # 12 檔（含本報告）
 │   ├── ⭐ nexora-lite-blueprint-v1.2.md
 │   ├── HANDOFF.md
 │   ├── HANDOFF-LITE-PROGRESS.md       # §G trim 過
@@ -247,33 +252,32 @@ docs/
 │   ├── nx04-sales-operation-manual.md
 │   ├── nx02-nx03-nx04-audit.md
 │   └── docs-cleanup-2026-05-30.md      # 本檔
-├── nx01/                               # 22 檔（17 spec + 1 summary + 1 reference + 3 待 Alex）⚠️ 待 Alex 等於 0、NX01 spec 全留
-├── nx02/                               # 1 summary + 待 Alex（spec/intent / workflow / ui）
+├── nx01/                               # 22 檔（NX01 主檔層全保、spec/intent 17 檔 + summary + reference）
+├── nx02/                               # 1 summary + reference/（spec / workflow / ui 已全清）
 ├── nx03/                               # 同上
 ├── nx04/                               # 同上
-├── nx05/                               # 同上
-├── nx06/                               # 同上
-├── nx07/                               # 同上
-├── nx08/                               # 同上
-├── nx09/                               # 同上
-├── nx10/                               # 同上
+├── nx05/                               # summary + overview + workflow(12) + ui(1) + reference 保留
+├── nx06/                               # summary + overview-v02 + workflow/sub(4) + ui(1) + reference 保留
+├── nx07/                               # summary + overview + workflow(6) + ui(1) + reference 保留
+├── nx08/                               # summary + overview + workflow(8) + ui(1) + reference 保留
+├── nx09/                               # summary + overview + workflow(3) + ui(1) + reference 保留
+├── nx10/                               # summary + overview + workflow(2) + ui(1) + reference 保留
 ├── nx98/                               # reference 全保留
-├── nx99/                               # reference + spec 全保留（系統 / 租戶層、與業務模組無關）
-└── auto-replenish/                     # 1 summary + 待 Alex（spec/intent）
+├── nx99/                               # reference + spec 全保留（系統 / 租戶層）
+└── auto-replenish/                     # 1 summary 保留
 ```
 
 ---
 
-## §F. 給 Alex 的快速行動清單
+## §F. 收尾 — 本檔已是 final（無未拍板事項）
 
-1. **D.1 模組 overview**：要全砍 / 留 closure 模組歷史 / 全留？
-2. **D.2 workflow specs**：要全砍 / 留 closure 模組歷史 / 全留？
-3. **D.3 UI specs**：要全砍 / 保留作舊範式參考 / 全留？
-4. **D.4 spec/impl 細節**：要全砍 / 留 NX04 translator / 全留？
+2026-05-30 完成兩輪清檔：
+- 第一輪：刪 84 檔 + edit 1 檔
+- 第二輪：拍板 4 大類、刪 47 檔
 
-⚠️ 4 個拍板一次給、Hank 一輪 git rm 收尾即可。
+累計 **131 檔刪除**、docs 結構收斂到 LITE v1.2 + 各 closure 模組操作手冊。
 
 ---
 
-> 清檔完成。docs 主軸已收斂到 v1.2 + 各模組 closure 手冊。
-> 4 大類待拍板（共 ~50+ 檔）等 Alex 決定。
+> 清檔完成（final）。docs 主軸已收斂到 v1.2 + 各模組 closure 手冊。
+> 第二輪 Alex 拍板已執行完、無剩餘待決事項。
