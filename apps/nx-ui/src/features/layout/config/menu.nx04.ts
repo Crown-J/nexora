@@ -32,5 +32,11 @@ export function getNx04SideMenu(): SideMenuGroup[] {
         { key: 'sales.customer',      label: '客戶管理（FU）',   href: '/dashboard/nx04/customer' },
       ],
     },
+    {
+      group: '系統設定',
+      items: [
+        { key: 'sales.settings.roles', label: '角色與權限 ⭐ v1.2', href: '/dashboard/settings/roles' },
+      ],
+    },
   ];
 }
