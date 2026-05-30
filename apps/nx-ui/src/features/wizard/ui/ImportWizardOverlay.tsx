@@ -12,9 +12,17 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { completeImportWizard, listImportHistory } from '../api';
+import {
+  completeImportWizard,
+  confirmImport,
+  downloadTemplate,
+  listImportHistory,
+  previewImport,
+  type ConfirmResult,
+  type PreviewResult,
+} from '../api';
 import type { ImportBatch } from '../types';
 import { IMPORT_TYPES } from '../types';
 
@@ -213,44 +221,182 @@ function ImporterPage({
   const title = typeInfo?.label ?? page;
   const desc = typeInfo?.desc ?? '';
 
+  const [preview, setPreview] = useState<PreviewResult | null>(null);
+  const [confirmed, setConfirmed] = useState<ConfirmResult | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (file: File) => {
+    setErr(null);
+    setUploading(true);
+    setPreview(null);
+    setConfirmed(null);
+    try {
+      const p = await previewImport(page, file);
+      setPreview(p);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '上傳失敗');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!preview) return;
+    setConfirming(true);
+    setErr(null);
+    try {
+      const c = await confirmImport(preview.batchId);
+      setConfirmed(c);
+      await onReloadHistory();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '匯入失敗');
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">匯入【{title}】</h1>
-      <p className="text-sm text-muted-foreground">
-        {desc}
-        <br />
-        ⚠️ Excel 範本下載 / 上傳預覽 / 確認匯入 屬 C3 範圍、目前 placeholder（MVP）。
-      </p>
-      <div className="rounded-lg border border-dashed border-primary/40 p-12 text-center">
-        <div className="text-4xl">📊</div>
-        <h2 className="mt-3 font-semibold">Excel 範本 + 上傳介面</h2>
-        <p className="mt-2 text-xs text-muted-foreground">
-          C3 階段會在此 render：
-          <br />
-          1. 「下載 Excel 範本」按鈕
-          <br />
-          2. 「選擇檔案」或拖拉上傳
-          <br />
-          3. 上傳後預覽（✅ 成功 N 筆 / ⚠️ 失敗 N 筆 含原因）
-          <br />
-          4. 修正後重傳 / 略過錯誤、只匯成功的 / 取消
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">{desc}</p>
+
       {page === 'voucher' ? (
         <div className="rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
           ⭐ <strong>票據雙標機制</strong>（v1.2 §3.2 + C4）：
-          <br />
           匯入時必選「已上報國稅局」或「未上報」、
           已上報的票據只進系統當查詢用、不會進 NEXORA 的 401 報表計算。
+          <br />
+          ⚠️ voucher 完整 importer 屬 NX05 範圍、本軌僅做欄位預埋。
         </div>
       ) : null}
+
+      {!preview && !confirmed ? (
+        <div className="space-y-4">
+          <div className="rounded-lg border border-dashed border-primary/40 p-8 text-center">
+            <div className="text-4xl">📊</div>
+            <h2 className="mt-3 font-semibold">下載範本 + 上傳資料</h2>
+            <p className="mt-2 text-xs text-muted-foreground">
+              請先下載範本、填好資料後上傳。
+              <br />
+              範本第 1 列是欄位名、第 2 列是說明、第 3 列是範例、第 4 列起填您的資料。
+            </p>
+            <div className="mt-4 flex justify-center gap-3">
+              <button
+                onClick={() => downloadTemplate(page)}
+                className="rounded border px-4 py-2 text-sm hover:bg-muted"
+              >
+                ⬇️ 下載 Excel 範本
+              </button>
+              <button
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="rounded bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
+              >
+                {uploading ? '上傳中…' : '⬆️ 選擇檔案'}
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void handleFileSelect(f);
+                }}
+                className="hidden"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {preview && !confirmed ? (
+        <div className="space-y-4">
+          <div className="rounded border bg-muted/30 p-4">
+            <h3 className="text-sm font-semibold">📋 上傳預覽：{preview.fileName}</h3>
+            <div className="mt-2 flex gap-4 text-sm">
+              <span>共 <strong>{preview.totalRows}</strong> 筆</span>
+              <span className="text-emerald-700">✅ {preview.successRows} 筆通過驗證</span>
+              {preview.failedRows > 0 ? (
+                <span className="text-rose-700">⚠️ {preview.failedRows} 筆有問題</span>
+              ) : null}
+            </div>
+          </div>
+          {preview.errors.length > 0 ? (
+            <details className="rounded border border-rose-200 bg-rose-50 p-3 text-xs">
+              <summary className="cursor-pointer font-semibold text-rose-900">
+                ⚠️ {preview.errors.length} 筆錯誤（點看詳情）
+              </summary>
+              <ul className="mt-2 ml-4 list-disc text-rose-900">
+                {preview.errors.slice(0, 50).map((e, i) => (
+                  <li key={i}>第 {e.rowNo} 列：{e.reason}</li>
+                ))}
+                {preview.errors.length > 50 ? <li>… 還有 {preview.errors.length - 50} 筆</li> : null}
+              </ul>
+            </details>
+          ) : null}
+          <div className="flex gap-2">
+            <button
+              onClick={() => void handleConfirm()}
+              disabled={confirming || preview.successRows === 0}
+              className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {confirming ? '匯入中…' : `✅ 確認匯入 ${preview.successRows} 筆`}
+            </button>
+            <button
+              onClick={() => {
+                setPreview(null);
+                if (fileRef.current) fileRef.current.value = '';
+              }}
+              className="rounded border px-4 py-2 text-sm"
+            >
+              重傳檔案
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {confirmed ? (
+        <div className="rounded border border-emerald-300 bg-emerald-50 p-4">
+          <h3 className="text-lg font-semibold text-emerald-900">✅ 匯入完成</h3>
+          <p className="mt-2 text-sm text-emerald-900">
+            成功匯入 <strong>{confirmed.imported}</strong> 筆
+            {confirmed.historicalCount > 0 ? (
+              <>
+                {' '}
+                · 其中 <strong>{confirmed.historicalCount}</strong> 筆屬資料起算點之前的歷史（只進查詢、不計入報表）
+              </>
+            ) : null}
+          </p>
+          {confirmed.errors.length > 0 ? (
+            <details className="mt-2 text-xs">
+              <summary className="cursor-pointer text-amber-900">
+                ⚠️ {confirmed.errors.length} 筆有問題
+              </summary>
+              <ul className="mt-2 ml-4 list-disc text-amber-900">
+                {confirmed.errors.slice(0, 30).map((e, i) => (
+                  <li key={i}>第 {e.rowNo} 列：{e.reason}</li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
+      ) : null}
+
+      {err ? <div className="text-sm text-destructive">{err}</div> : null}
+
       <div className="flex justify-between pt-4">
         <button onClick={onPrev} className="rounded border px-4 py-2 text-sm">← 上一步</button>
         <div className="flex gap-2">
           <button onClick={onNext} className="rounded border px-4 py-2 text-sm">
             略過此類、下一步
           </button>
-          <button onClick={onNext} className="rounded bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground">
+          <button
+            onClick={onNext}
+            className="rounded bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground"
+          >
             下一步 →
           </button>
         </div>
