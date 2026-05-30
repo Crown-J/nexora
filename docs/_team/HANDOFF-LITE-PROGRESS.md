@@ -235,74 +235,13 @@ Crown 在畫面看到「NX00」字眼殘留、要求徹底清。
 
 ---
 
-## §G. ⭐ 階段 3 銷貨 NX04 業務細節（Crown 已敲定、新 Alex 必讀）
+## §G. ⭐ 階段 3 銷貨 NX04 業務細節 — 已被取代
 
-### G.0 單據鏈
-```
-(同行詢價簡化) → QT 報價 → SO 銷售訂單 → IT-O 同行調貨 → CO 銷退
-                                      ↘ 出貨（撿/包/送）→ 完成
-```
-
-### G.1 同行詢價「不獨立做 RFQ-O」
-- ✅ **簡化**:SO 上直接勾「來源=同行」
-- 對齊精神:NX02 進貨詢價也是簡化（不發單純記錄）
-- **不另建 RFQ-O 模組**（避免重複工作）
-
-### G.2 QT 報價單
-功能要點：
-- **歷史價提示**:開新 QT 自動帶該客戶該料件過往報價
-- **毛利警告**:低於 `customer_grade.marginPct` 顯示紅字（不擋、提醒）
-- **來源註記**:每行可標「來源=供應商 / 同行 / 庫存」
-- **採用後自動失效**:同客戶舊 QT（同料件）自動 status=REPLACED（對齊 NX02 RFQ 採用後自動 REJECTED 其他 Qt 範式）
-
-### G.3 SO 用「拉報價」方式建單（非 1:1 轉換）
-- **不是「從 QT 轉 SO」一鍵那種**、是「在 SO 上拉客戶舊報價 + 補新報價混合」
-- 例:5 行料件、3 行拉自舊 QT-001、2 行 SO 上新報價
-- 拉到「來源=同行」的行 → 系統提示「建 IT-O 調貨單」
-
-### G.4 SO 部分待出貨（汽材行常態、不要漏）
-- 同 SO 內:**有貨先出、調貨料到貨再出**
-- 每行 lineStatus:WAIT / PARTIAL / DELIVERED
-- 撿貨揀到的部分先包出、剩下等
-- ⚠️ **不要做「全部到齊才能出」的設計**
-
-### G.5 IT-O 調貨單
-- 從 SO 觸發（**客戶確定才調、不囤**）
-- 接點:先入庫主倉、再出庫
-- **不另設「暫存倉」**（LITE 簡化、PRO 再做暫存倉）
-- `partner_type='O' OR canTransferStock=true` 才能當調貨對象
-
-### G.6 CO 銷退
-退貨品分類:
-- **好品** → 入庫可再賣（`applyQtyInWithLedger`）
-- **壞品** → 進 `nx03_issue_report` 異常表（**共用 NX03 那張**、不另建）
-
-退款處理:
-- **已付款** → 沖 AR（應收沖銷、財務 NX05 連動、本軌先預留接點）
-- **未付款** → 沖應收（單純調整、不退款）
-
-### G.7 客戶維護
-- **交貨方式**:自取 / 配送 / 寄送（影響運費 + 撿包流程）
-- **ABCD 等級**:對應毛利率 12 / 15 / 18 / 22%（跟產品定價對齊）
-- **等級變更要核可**（重要、不要漏）:
-  - 沿用 **NX03 stocktake `approvalStatus` 範式**（不要重發明）
-  - 含**變更歷史**記錄
-  - G 主管核可才生效
-  - 核可通過 → 該客戶所有 QT 自動套新毛利
-  - 退回 → 維持原等級
-
-### G.8 跨模組接點注意
-- **so.service 改 partnerType IN ('C','O')**:同行能買貨（NX02 已對齊、確認 NX04 也要對齊）
-- **問題回報沿用 `Nx03IssueReport`**:Crown 拍板資料同表（跨模組共用一張表）
-  - 技術命名表是否 rename（nx03 → nx99 共用層、或保留 nx03）= Hank 跟新 Alex 自己決定
-- **保固客訴型 sourceSoId picker**:NX04 SO 出來後、回頭補 NX02 FU-04
-- **stock_balance 出貨扣帳**:銷貨出貨走 `applyQtyOutWithLedger`（sourceModule='NX04'、sourceDocType='SO'）
-- **`Nx03Outbound` 表預留接點**:階段 3 才決定是否啟用（既有 caller=0）
-
-### G.9 客戶等級 ABCD vs 產品定價 ABCD（別搞混）
-- **客戶 ABCD**:A=12% / B=15% / C=18% / D=22%（毛利率）
-- **產品定價 ABCD**:成本級別 A / B / C / D（在 NX02 已做）
-- 兩個 ABCD 不衝突:產品成本級 → 定價 = `cost × (1 + customer_grade.marginPct/100)`
+> ⚠️ 2026-05-30 docs 清檔：原 §G 銷貨業務細節（G.0~G.9）已被
+> **`docs/_team/nexora-lite-blueprint-v1.2.md`** 完整取代（Alex 撰寫、總經理拍板）。
+> 為避免雙來源 drift、本段細節刪除、僅保留指引。
+> NX04 LITE closure 已完成（tag `v1.4.0-nx04-sales-lite-closure`、操作手冊
+> `docs/_team/nx04-sales-operation-manual.md`），新 Alex / 新 Hank 直接讀 v1.2 + 操作手冊。
 
 ---
 
