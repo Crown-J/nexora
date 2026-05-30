@@ -21,9 +21,9 @@ const CARDS: { href: string; title: string; desc: string; emoji: string; ready: 
   {
     href: '/dashboard/settings/system-param',
     title: '系統參數',
-    desc: '客戶等級毛利率 / 詢價客套話 / 報價有效期 / 資料起算日',
+    desc: '資料起算日 ⭐（v1.2 §12.3 C 階段落地）+ 其他系統參數 FU',
     emoji: '⚙️',
-    ready: false,
+    ready: true,
   },
   {
     href: '/dashboard/settings/accounts',
