@@ -114,6 +114,8 @@ export type PartWritableFields = {
   priceC?: number;
   priceD?: number;
   cost?: number;
+  // v1.2 階段 E P6 A2：正廠對應料號子表（整批取代）
+  oemCodes?: PartOemCodeItem[];
 };
 
 export type CreatePartBody = PartWritableFields & {

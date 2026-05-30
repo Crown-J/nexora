@@ -1,10 +1,17 @@
 // apps/nx-ui/src/features/part-zoned/PartZonedPage.tsx
-// v1.2 對齊軌 階段 E P3：part 分區編輯 list+detail 容器
+// v1.2 對齊軌 階段 E：part 分區編輯 list+detail 容器
 //
 // 對齊鋼鐵星球範式 + 階段 E v1.1 §1（PATCH 只送本頁可編欄位）+ 決策 3.2 屏障 1。
-// 目前用於 3 個模組頁面（採購→產品 / 銷貨→產品 / 庫存→產品維護）。
-// 主檔中心 part 仍走既有 features/base/parts/PartMasterPage（660 行自訂頁、
-// 含正廠對應子表 / 編碼規則預覽 / 依成本重算等 P3 zone 化暫不取代的功能、closure 時 Alex review 是否替換）
+// 用於 4 個頁面：
+//   · 主檔中心 part（/dashboard/base/parts、全 4 zone）— P6 closure A4 替換舊版 660 行
+//   · 採購→產品（basic + purchase + inventory）
+//   · 銷貨→產品（basic + sales、含 A3 依成本重算）
+//   · 庫存→產品維護（basic + inventory）
+//
+// 客戶自助功能（從舊版 PartMasterPage 移植、A1~A3）：
+//   A1 編碼規則預覽 + 分段 SEG 輸入（CodeRuleSection in PartFormZoned）
+//   A2 正廠對應料號 inline 編輯（OemCodesInlineEditor in PartFormZoned）
+//   A3 依成本重算 ABCD（讀 customer-grades.marginPct、取代舊版 hard-code）
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -41,7 +48,14 @@ import {
   setPartActive,
   updatePart,
 } from '@/features/shared/master/part/api/part';
-import type { PartDto } from '@/features/shared/master/part/types';
+import type { PartDto, PartOemCodeItem } from '@/features/shared/master/part/types';
+import { previewPartCode } from '@/features/base/api/part';
+import {
+  listBrandCodeRules,
+  ruleSegLengths,
+  type BrandCodeRuleDto,
+} from '@/features/base/api/brand-code-rule';
+import { listCustomerGrades, type CustomerGradeDto } from '@/features/base/api/customer-grade';
 
 import { PartFormZoned, type RefOption } from './PartFormZoned';
 import {
@@ -104,6 +118,16 @@ export function PartZonedPage({
     countryId?: RefOption[];
   }>({});
 
+  // ── A1：編碼規則（含 SEG 字數限制邏輯） ──
+  const [brandCodeRules, setBrandCodeRules] = useState<BrandCodeRuleDto[]>([]);
+  const [codePreview, setCodePreview] = useState('');
+
+  // ── A2：oemCodes 子表 staged（編輯 / 新增時 staged、存檔整批送）──
+  const [oemCodesDraft, setOemCodesDraft] = useState<PartOemCodeItem[]>([]);
+
+  // ── A3：客戶分級毛利率（從 nx01/customer-grades 載入、取代舊版 hard-code MARGINS）──
+  const [customerGrades, setCustomerGrades] = useState<CustomerGradeDto[]>([]);
+
   const sidebarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -114,11 +138,15 @@ export function PartZonedPage({
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const [cr, pb, pg, co] = await Promise.all([
+      const [cr, pb, pg, co, ruleRes, gradeRes] = await Promise.all([
         fetchRefOptions('nx01/brand-code-rules', ['name']),
         fetchRefOptions('nx01/part-brands'),
         fetchRefOptions('nx01/part-groups'),
         fetchRefOptions('nx01/countries'),
+        // A1：載入完整 brand-code-rule（含 SEG 字數限制欄位、後面 ruleSegLengths 用）
+        listBrandCodeRules({ isActive: true, pageSize: 100 }),
+        // A3：載入 customer-grades 取 marginPct（取代舊版 hard-code）
+        listCustomerGrades({ isActive: true, pageSize: 100 }),
       ]);
       if (cancelled) return;
       setRefOptions({
@@ -127,6 +155,8 @@ export function PartZonedPage({
         partGroupId: toRefOptions(pg),
         countryId: toRefOptions(co),
       });
+      setBrandCodeRules(ruleRes.items);
+      setCustomerGrades(gradeRes.items);
     })();
     return () => {
       cancelled = true;
@@ -192,6 +222,100 @@ export function PartZonedPage({
   }, [selectedId, reloadTick]);
   const selected = fullSelected ?? listSelected;
 
+  // ── A1：依規則 + SEG + brand + country 即時預覽料號（debounce 250ms） ──
+  useEffect(() => {
+    const codeRuleId = String(draft.codeRuleId ?? '');
+    if (mode !== 'edit' || !codeRuleId) {
+      setCodePreview('');
+      return;
+    }
+    let alive = true;
+    const t = setTimeout(() => {
+      void (async () => {
+        try {
+          const res = await previewPartCode({
+            codeRuleId,
+            seg1: String(draft.seg1 ?? ''),
+            seg2: String(draft.seg2 ?? ''),
+            seg3: String(draft.seg3 ?? ''),
+            seg4: String(draft.seg4 ?? ''),
+            seg5: String(draft.seg5 ?? ''),
+            partBrandId: String(draft.partBrandId ?? '') || undefined,
+            countryId: String(draft.countryId ?? '') || undefined,
+          });
+          if (alive) setCodePreview(typeof res === 'string' ? res : (res as { code: string }).code ?? '');
+        } catch {
+          /* 預覽失敗不擋編輯 */
+        }
+      })();
+    }, 250);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [
+    mode,
+    draft.codeRuleId,
+    draft.seg1,
+    draft.seg2,
+    draft.seg3,
+    draft.seg4,
+    draft.seg5,
+    draft.partBrandId,
+    draft.countryId,
+  ]);
+
+  /** A1：依 codeRuleId 算 SEG 字數限制 */
+  const segLensFor = useCallback(
+    (codeRuleId: string): number[] => {
+      const rule = brandCodeRules.find((r) => r.id === codeRuleId);
+      if (!rule) return [0, 0, 0, 0, 0];
+      return ruleSegLengths(rule);
+    },
+    [brandCodeRules],
+  );
+
+  /**
+   * A3：依成本重算 ABCD（取代舊版 PartMasterPage hard-code MARGINS）
+   * - 從 customer-grades 找 code='A'/'B'/'C'/'D'、用其 marginPct 算售價
+   * - 公式：priceX = round2(cost × (1 + marginPct/100))
+   * - 缺哪個 grade 就那欄不算（顯示警示）
+   */
+  const recalcPrices = useCallback(() => {
+    const c = Number(String(draft.cost ?? ''));
+    if (!Number.isFinite(c) || c <= 0) {
+      showToast('請先填成本（>0）才能重算', 'danger');
+      return;
+    }
+    const gradeMap = new Map(
+      customerGrades.map((g) => [String(g.code).toUpperCase(), Number(g.marginPct)]),
+    );
+    const missing: string[] = [];
+    const next: Record<string, string> = {};
+    (['A', 'B', 'C', 'D'] as const).forEach((code) => {
+      const m = gradeMap.get(code);
+      if (m == null || !Number.isFinite(m)) {
+        missing.push(code);
+        return;
+      }
+      const priceKey = `price${code}` as const;
+      next[priceKey] = (c * (1 + m / 100)).toFixed(2);
+    });
+    if (Object.keys(next).length === 0) {
+      showToast('客戶分級主檔尚未設毛利率、請先至「客戶分級基本資料」設定 A/B/C/D 毛利率', 'danger');
+      return;
+    }
+    setDraft({ ...draft, ...next });
+    if (missing.length > 0) {
+      showToast(
+        `已依客戶分級毛利率重算 ${Object.keys(next).length}/4 級；缺：${missing.join('/')}（請至客戶分級主檔補）`,
+        'info',
+      );
+    } else {
+      showToast('已依客戶分級毛利率重算 A/B/C/D（可再手動微調）', 'success');
+    }
+  }, [draft, customerGrades, showToast]);
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const isDirty = useMemo(() => {
@@ -208,6 +332,7 @@ export function PartZonedPage({
     setDraft({});
     setOriginal({});
     setActiveZone('basic');
+    setOemCodesDraft([]); // A2：reset 子表 staged
   }, []);
 
   const handleCreate = useCallback(() => {
@@ -219,6 +344,7 @@ export function PartZonedPage({
     setMode('edit');
     setTab('detail');
     setActiveZone('basic');
+    setOemCodesDraft([]); // A2：新增從空陣列開始
   }, []);
 
   const handleEdit = useCallback(() => {
@@ -229,6 +355,7 @@ export function PartZonedPage({
     setOriginal(d);
     setMode('edit');
     setTab('detail');
+    setOemCodesDraft(selected.oemCodes ?? []); // A2：載入既有 oemCodes
   }, [selected]);
 
   const performSave = useCallback(async () => {
@@ -247,19 +374,35 @@ export function PartZonedPage({
       }
     }
     const body = partDraftToBody(draft, editableZones, { isCreate: creating });
+    // A1：codeRuleId 模式下、用 server 預覽組好的料號（覆蓋手動 code 欄位）
+    const codeRuleId = String(draft.codeRuleId ?? '').trim();
+    const finalCode = codeRuleId
+      ? (codePreview || String(draft.code ?? '')).trim()
+      : String(draft.code ?? '').trim();
+    if (creating && !finalCode) {
+      showToast('料號為必填', 'danger');
+      return;
+    }
+    // A2：oemCodes 子表 staged 整批送（屬 basic zone、編輯中 zone 包含 basic 才送）
+    const includeOem = !editableZones || editableZones.has('basic');
+    const oemCodesBody = includeOem ? oemCodesDraft : undefined;
     try {
       if (creating) {
         const created = await createPart({
           ...body,
-          code: String(draft.code ?? '').trim(),
+          code: finalCode,
           name: String(draft.name ?? '').trim(),
-          codeRuleId: String(draft.codeRuleId ?? '').trim(),
+          codeRuleId,
+          ...(oemCodesBody !== undefined ? { oemCodes: oemCodesBody } : {}),
         });
         showToast(`已新增${entityNoun}`, 'success');
         setReloadTick((t) => t + 1);
         setSelectedId(created.id);
       } else if (selectedId) {
-        await updatePart(selectedId, body);
+        await updatePart(selectedId, {
+          ...body,
+          ...(oemCodesBody !== undefined ? { oemCodes: oemCodesBody } : {}),
+        });
         showToast('已存檔', 'success');
         setReloadTick((t) => t + 1);
       }
@@ -270,6 +413,8 @@ export function PartZonedPage({
   }, [
     creating,
     draft,
+    codePreview,
+    oemCodesDraft,
     editableZones,
     entityNoun,
     selectedId,
@@ -652,6 +797,12 @@ export function PartZonedPage({
             editableZones={editableZones}
             refOptions={refOptions}
             entityNoun={entityNoun}
+            brandCodeRules={brandCodeRules}
+            codePreview={codePreview}
+            segLensFor={segLensFor}
+            oemCodesDraft={oemCodesDraft}
+            onOemCodesChange={setOemCodesDraft}
+            onRecalcPrices={recalcPrices}
             onRequestSave={handleSave}
           />
         )}
@@ -675,6 +826,12 @@ function DetailPane({
   editableZones,
   refOptions,
   entityNoun,
+  brandCodeRules,
+  codePreview,
+  segLensFor,
+  oemCodesDraft,
+  onOemCodesChange,
+  onRecalcPrices,
   onRequestSave,
 }: {
   creating: boolean;
@@ -692,6 +849,12 @@ function DetailPane({
     countryId?: RefOption[];
   };
   entityNoun: string;
+  brandCodeRules: BrandCodeRuleDto[];
+  codePreview: string;
+  segLensFor: (codeRuleId: string) => number[];
+  oemCodesDraft: PartOemCodeItem[];
+  onOemCodesChange: (next: PartOemCodeItem[]) => void;
+  onRecalcPrices: () => void;
   onRequestSave: () => void;
 }) {
   const formRef = useRef<HTMLDivElement>(null);
@@ -743,6 +906,12 @@ function DetailPane({
             editableZones={editableZones}
             refOptions={refOptions}
             selected={selected}
+            brandCodeRules={brandCodeRules}
+            codePreview={codePreview}
+            segLensFor={segLensFor}
+            oemCodesDraft={oemCodesDraft}
+            onOemCodesChange={onOemCodesChange}
+            onRecalcPrices={onRecalcPrices}
           />
         </div>
         {!creating && selected ? (
