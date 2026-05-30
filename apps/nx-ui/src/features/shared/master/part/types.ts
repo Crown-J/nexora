@@ -51,6 +51,10 @@ export type PartDto = {
   priceUpdatedAt: string | null;
   priceUpdatedBy: string | null;
 
+  // v1.2 階段 E P3 補（DTO 已支援、types 對齊）
+  cost: string | null;
+  oldCode: string | null;
+
   createdAt: string;
   createdBy: string | null;
   createdByUsername?: string | null;
@@ -75,54 +79,40 @@ export type PartsListQuery = {
   pageSize?: number;
 };
 
-export type CreatePartBody = {
+// v1.2 階段 E P3：共用 part 寫入欄位（cost / oldCode 補對齊 DTO）
+export type PartWritableFields = {
+  partBrandId?: string | null;
+  isOem?: boolean;
+  partType?: string | null;
+  secCode?: string | null;
+  oldCode?: string | null;
+  seg1?: string | null;
+  seg2?: string | null;
+  seg3?: string | null;
+  seg4?: string | null;
+  seg5?: string | null;
+  countryId?: string | null;
+  partGroupId?: string | null;
+  spec?: string | null;
+  uom?: string;
+  isActive?: boolean;
+  returnPolicy?: string;
+  warrantyMonths?: number;
+  priceA?: number;
+  priceB?: number;
+  priceC?: number;
+  priceD?: number;
+  cost?: number;
+};
+
+export type CreatePartBody = PartWritableFields & {
   codeRuleId: string;
   code: string;
   name: string;
-  partBrandId?: string | null;
-  isOem?: boolean;
-  partType?: string | null;
-  secCode?: string | null;
-  seg1?: string | null;
-  seg2?: string | null;
-  seg3?: string | null;
-  seg4?: string | null;
-  seg5?: string | null;
-  countryId?: string | null;
-  partGroupId?: string | null;
-  spec?: string | null;
-  uom?: string;
-  isActive?: boolean;
-  returnPolicy?: string;
-  warrantyMonths?: number;
-  priceA?: number;
-  priceB?: number;
-  priceC?: number;
-  priceD?: number;
 };
 
-export type UpdatePartBody = {
+export type UpdatePartBody = PartWritableFields & {
   codeRuleId?: string;
   code?: string;
   name?: string;
-  partBrandId?: string | null;
-  isOem?: boolean;
-  partType?: string | null;
-  secCode?: string | null;
-  seg1?: string | null;
-  seg2?: string | null;
-  seg3?: string | null;
-  seg4?: string | null;
-  seg5?: string | null;
-  countryId?: string | null;
-  partGroupId?: string | null;
-  spec?: string | null;
-  uom?: string;
-  isActive?: boolean;
-  returnPolicy?: string;
-  warrantyMonths?: number;
-  priceA?: number;
-  priceB?: number;
-  priceC?: number;
-  priceD?: number;
 };

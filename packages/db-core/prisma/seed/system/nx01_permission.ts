@@ -80,6 +80,9 @@ const ALL_PERMS: PermissionRow[] = [
   ...crudPerms('sale', 'ti', '同行調貨單', 2040),
   ...crudPerms('sale', 'customer', '客戶管理（銷貨角度）', 2050),
   ...crudPerms('sale', 'product-issue', '產品回報', 2060),
+  // v1.2 階段 E P3：銷貨產品（售價維護角度）。對齊 v1.1 §3.2 屏障 1
+  // 「售價只放銷售頁、業務不必拿主檔中心 key 也能維護售價」。Alex 2026-05-30 拍板補。
+  ...crudPerms('sale', 'product', '產品（銷貨角度）', 2080),
   {
     code: 'sale.so.post',
     moduleCode: 'sale',
