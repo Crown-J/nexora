@@ -12,6 +12,26 @@ export type WarehouseDto = {
   sortNo: number;
   isActive: boolean;
   warehouseTypeId: string | null;
+  // v1.2 階段 E P4：基本資料補欄
+  siteId?: string | null;
+  siteCode?: string | null;
+  siteName?: string | null;
+  isMain?: boolean;
+  managerUserId?: string | null;
+  managerUserAccount?: string | null;
+  managerUserName?: string | null;
+  warehouseTypeCode?: string | null;
+  warehouseTypeName?: string | null;
+  // 結構化地址
+  cityId?: string | null;
+  districtId?: string | null;
+  streetId?: string | null;
+  lane?: number | null;
+  alley?: number | null;
+  buildingNo?: number | null;
+  buildingSubNo?: number | null;
+  floor?: string | null;
+  roomNo?: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername?: string | null;
@@ -22,22 +42,34 @@ export type WarehouseDto = {
   updatedByName: string | null;
 };
 
-export type CreateWarehouseBody = {
-  code: string;
-  name: string;
+// v1.2 階段 E P4：共用 warehouse 寫入欄位
+export type WarehouseWritableFields = {
   remark?: string | null;
   sortNo?: number;
   warehouseTypeId?: string | null;
   isActive?: boolean;
+  siteId?: string;
+  isMain?: boolean;
+  managerUserId?: string | null;
+  cityId?: string | null;
+  districtId?: string | null;
+  streetId?: string | null;
+  lane?: number | null;
+  alley?: number | null;
+  buildingNo?: number | null;
+  buildingSubNo?: number | null;
+  floor?: string | null;
+  roomNo?: string | null;
 };
 
-export type UpdateWarehouseBody = {
+export type CreateWarehouseBody = WarehouseWritableFields & {
+  code: string;
+  name: string;
+};
+
+export type UpdateWarehouseBody = WarehouseWritableFields & {
   code?: string;
   name?: string;
-  remark?: string | null;
-  sortNo?: number;
-  warehouseTypeId?: string | null;
-  isActive?: boolean;
 };
 
 const BASE = '/nx01/warehouses';
