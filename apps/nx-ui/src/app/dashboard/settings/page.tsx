@@ -35,9 +35,9 @@ const CARDS: { href: string; title: string; desc: string; emoji: string; ready: 
   {
     href: '/dashboard/settings/wizard',
     title: '引導精靈',
-    desc: '重新開啟匯入精靈 / 重置設定精靈',
+    desc: '重新開啟匯入精靈 / 重置設定精靈（v1.2 §12.5 D 階段落地）',
     emoji: '🪄',
-    ready: false,
+    ready: true,
   },
 ];
 

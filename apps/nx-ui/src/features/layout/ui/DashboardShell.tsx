@@ -22,6 +22,7 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { BusinessTopNav } from '@/features/layout/ui/BusinessTopNav';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
 import { WizardLauncher } from '@/features/wizard/ui/WizardLauncher';
+import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { normalizePlanCode } from '@/features/base/config/master-cards';
 import { cn } from '@/lib/utils';
 
@@ -128,6 +129,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   return (
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
+        <PageGuideProvider>
         {isSysDashboardHome ? (
           <DashboardHomePlanProvider>
             <HomeLandingChrome
@@ -177,9 +179,11 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <DashboardSubNav />
               {children}
               <WizardLauncher />
+              <AutoPageGuide />
             </div>
           </HomeLandingChrome>
         )}
+        </PageGuideProvider>
       </DashboardBulletinProvider>
     </DashboardPaletteProvider>
   );
