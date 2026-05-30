@@ -40,13 +40,13 @@ function MasterSection() {
     <ModuleHubSection sectionId="purchase-master" title="主檔管理" count={2}>
       <HubLinkCard
         title="產品管理"
-        description="定價、安全量、品牌料號規則"
+        description="進貨成本、安全量、產品分區編輯"
         Icon={Package}
         href="/dashboard/purchase/product"
       />
       <HubLinkCard
         title="供應商管理"
-        description="廠商主檔、付款條件、評鑑記錄"
+        description="供應商主檔、付款條件、財務分區編輯"
         Icon={Building2}
         href="/dashboard/purchase/vendor"
       />

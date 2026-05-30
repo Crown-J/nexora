@@ -16,6 +16,7 @@ import {
   ArrowLeftRight,
   FileSpreadsheet,
   MessageCircleQuestion,
+  Package,
   Search,
   ShieldCheck,
   ShoppingBag,
@@ -28,12 +29,18 @@ import { SalesHubMobile } from '@/features/sale/ui/hub/SalesHubMobile';
 
 function MasterSection() {
   return (
-    <ModuleHubSection sectionId="sale-master" title="主檔管理" count={1}>
+    <ModuleHubSection sectionId="sale-master" title="主檔管理" count={2}>
       <HubLinkCard
         title="客戶管理"
         description="客戶主檔、等級設定、需求回饋記錄"
         Icon={Users}
         href="/dashboard/nx04/customer"
+      />
+      <HubLinkCard
+        title="產品售價維護"
+        description="售價 ABCD 維護、產品銷貨角度資料"
+        Icon={Package}
+        href="/dashboard/sale/product/master"
       />
     </ModuleHubSection>
   );

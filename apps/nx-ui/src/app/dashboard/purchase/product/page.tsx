@@ -1,14 +1,19 @@
-/**
- * @FUNCTION_CODE NX02-PROD-UI-001-F01
- * 採購產品管理（定價、安全量、關聯料）— DEMO mock
- */
+// apps/nx-ui/src/app/dashboard/purchase/product/page.tsx
+// v1.2 階段 E P6 closure：直接走 part 分區編輯（basic + purchase + inventory）
+// 舊 DEMO mock 視圖已清除（總經理要當第一個真客戶實測、不能出現假資料）
+'use client';
 
-import { PurchaseProductManagementView } from '@/features/purchase/product/PurchaseProductManagementView';
+import { PartZonedPage } from '@/features/part-zoned';
+
+const EDITABLE_ZONES = new Set(['basic', 'purchase', 'inventory'] as const);
 
 export default function PurchaseProductPage() {
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-1 pb-6 pt-1 md:px-2">
-      <PurchaseProductManagementView />
-    </div>
+    <PartZonedPage
+      pageCategory="採購"
+      pageTitle="採購產品管理"
+      entityNoun="產品"
+      editableZones={EDITABLE_ZONES}
+    />
   );
 }
