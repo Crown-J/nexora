@@ -6,16 +6,19 @@ import { Controller, Post, Query, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import { ArSchedulerService } from './ar-scheduler.service';
 import { ArSuggestionWriterService } from './ar-suggestion-writer.service';
 
 @Controller('nx03/auto-replenish')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
+@Permission('purchase.demand.edit')
 export class AutoReplenishController {
   constructor(
     private readonly writer: ArSuggestionWriterService,
