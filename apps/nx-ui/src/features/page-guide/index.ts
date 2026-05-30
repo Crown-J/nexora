@@ -3,6 +3,7 @@
 
 export { PageGuideProvider, usePageGuideContext } from './PageGuideProvider';
 export { PageGuideHost } from './PageGuideHost';
+export { AutoPageGuide } from './AutoPageGuide';
 export { TutorialOverlay } from './TutorialOverlay';
 export { PAGE_GUIDES, listAllPageKeys } from './content';
 export type { PageGuideContent } from './content';
