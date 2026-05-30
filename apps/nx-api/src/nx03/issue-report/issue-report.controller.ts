@@ -20,8 +20,10 @@ import {
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import {
@@ -34,27 +36,31 @@ import {
 import { IssueReportService } from './issue-report.service';
 
 @Controller('nx03/issue-report')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
 export class IssueReportController {
   constructor(private readonly svc: IssueReportService) {}
 
   @Get()
+  @Permission('inventory.issue-report.list')
   list(@CurrentUser() user: RequestUser, @Query() q: ListIssueReportQueryDto) {
     return this.svc.list(user, q);
   }
 
   @Get(':id')
+  @Permission('inventory.issue-report.view')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);
   }
 
   @Post()
+  @Permission('inventory.issue-report.create')
   create(@CurrentUser() user: RequestUser, @Body() dto: CreateIssueReportDto) {
     return this.svc.create(user, dto);
   }
 
   @Patch(':id')
+  @Permission('inventory.issue-report.edit')
   update(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
@@ -64,11 +70,13 @@ export class IssueReportController {
   }
 
   @Post(':id/report')
+  @Permission('inventory.issue-report.edit')
   report(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.report(user, id);
   }
 
   @Post(':id/dispose')
+  @Permission('inventory.issue-report.edit')
   dispose(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
@@ -78,6 +86,7 @@ export class IssueReportController {
   }
 
   @Post(':id/close')
+  @Permission('inventory.issue-report.edit')
   close(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
@@ -87,6 +96,7 @@ export class IssueReportController {
   }
 
   @Post(':id/cancel')
+  @Permission('inventory.issue-report.delete')
   cancel(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.cancel(user, id);
   }
