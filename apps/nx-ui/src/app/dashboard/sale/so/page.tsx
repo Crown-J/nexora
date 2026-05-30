@@ -1,13 +1,8 @@
-/**
- * @FUNCTION_CODE NX04-SO-UI-001-F01
- */
+// apps/nx-ui/src/app/dashboard/sale/so/page.tsx
+// v1.2 對齊軌 FU-04：舊 demo 頁 → redirect 到 LITE 銷貨單工作台
 
-import { SoDocPage } from '@/features/document-demo/SoDocPage';
+import { redirect } from 'next/navigation';
 
-export default function SaleSoPage() {
-  return (
-    <div className="flex min-h-[calc(100dvh-12.5rem)] w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden px-1 pb-6 pt-1 md:px-2">
-      <SoDocPage />
-    </div>
-  );
+export default function SaleSoRedirect() {
+  redirect('/dashboard/nx04/sales-order');
 }

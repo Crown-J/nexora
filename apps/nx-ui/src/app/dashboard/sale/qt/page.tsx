@@ -1,13 +1,8 @@
-/**
- * @FUNCTION_CODE NX04-QT-UI-001-F01
- */
+// apps/nx-ui/src/app/dashboard/sale/qt/page.tsx
+// v1.2 對齊軌 FU-04：舊 demo 頁 → redirect 到 LITE 報價單工作台
 
-import { QtDocPage } from '@/features/document-demo/QtDocPage';
+import { redirect } from 'next/navigation';
 
-export default function SaleQtPage() {
-  return (
-    <div className="flex min-h-[calc(100dvh-12.5rem)] w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden px-1 pb-6 pt-1 md:px-2">
-      <QtDocPage />
-    </div>
-  );
+export default function SaleQtRedirect() {
+  redirect('/dashboard/nx04/quote');
 }
