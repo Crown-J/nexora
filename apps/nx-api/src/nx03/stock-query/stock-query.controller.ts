@@ -5,32 +5,37 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import { StockQueryService } from './stock-query.service';
 
 @Controller('nx03/stock-query')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
 export class StockQueryController {
   constructor(private readonly svc: StockQueryService) {}
 
-  /** 料號維度：1 partId × N warehouse × M location（locations 只回 onHand > 0） */
+  /** 料號維度 */
   @Get('by-part/:partId')
+  @Permission('inventory.stock-query.list', 'inventory.stock-query.view')
   byPart(@CurrentUser() user: RequestUser, @Param('partId') partId: string) {
     return this.svc.byPart(user, partId);
   }
 
-  /** 庫位維度：1 locationId × N part（純從 ledger aggregate、Crown 拍板 B 方案 C） */
+  /** 庫位維度 */
   @Get('by-location/:locationId')
+  @Permission('inventory.stock-query.list', 'inventory.stock-query.view')
   byLocation(@CurrentUser() user: RequestUser, @Param('locationId') locationId: string) {
     return this.svc.byLocation(user, locationId);
   }
 
-  /** 倉庫維度：1 warehouseId × N part（含 4 KPI summary） */
+  /** 倉庫維度 */
   @Get('by-warehouse/:warehouseId')
+  @Permission('inventory.stock-query.list', 'inventory.stock-query.view')
   byWarehouse(@CurrentUser() user: RequestUser, @Param('warehouseId') warehouseId: string) {
     return this.svc.byWarehouse(user, warehouseId);
   }

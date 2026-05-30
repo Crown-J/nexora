@@ -6,8 +6,10 @@ import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@ne
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import {
@@ -18,19 +20,20 @@ import {
 import { PartStockSettingService } from './part-stock-setting.service';
 
 @Controller('nx03/part-stock-setting')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
 export class PartStockSettingController {
   constructor(private readonly svc: PartStockSettingService) {}
 
   @Get()
+  @Permission('inventory.part-stock-setting.list')
   list(@CurrentUser() user: RequestUser, @Query() q: PartStockSettingListQueryDto) {
     return this.svc.list(user, q);
   }
 
-  // NX03-STOCK-LITE M2-F：進貨上架建議庫位（給定 partId + warehouseId 回 defaultLocationId）
-  // ⚠️ 必須宣告在 @Get(':id') 之前、避免 NestJS 路由衝突（'suggest-location' 會被誤吃成 :id）
+  // ⚠️ 必須宣告在 @Get(':id') 之前、避免 NestJS 路由衝突
   @Get('suggest-location/:partId/:warehouseId')
+  @Permission('inventory.part-stock-setting.view')
   suggestLocation(
     @CurrentUser() user: RequestUser,
     @Param('partId') partId: string,
@@ -40,16 +43,19 @@ export class PartStockSettingController {
   }
 
   @Get(':id')
+  @Permission('inventory.part-stock-setting.view')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);
   }
 
   @Post()
+  @Permission('inventory.part-stock-setting.create')
   create(@CurrentUser() user: RequestUser, @Body() dto: CreatePartStockSettingDto) {
     return this.svc.create(user, dto);
   }
 
   @Patch(':id')
+  @Permission('inventory.part-stock-setting.edit')
   update(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,
