@@ -20,6 +20,7 @@ import {
 } from '@/features/master-zones';
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
 import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
+import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 
 import type { WarehouseDraft } from './helpers';
 
@@ -116,14 +117,25 @@ export function WarehouseFormZoned({
       {/* fields */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fieldsForZone.map((f) => {
-          // inventory locations 衛星 P5
+          // inventory locations 衛星（v1.1 §3.3、endpoint 已備、CRUD UI 後續軌）
           if (f.isSatellite) {
             return (
               <div key={f.key} className="sm:col-span-2">
-                <FormField
-                  label={`${f.label}（子表）`}
-                  value={`P5 啟用：${f.notes ?? ''}（v1.1 §3.3）`}
-                  dim
+                <SatelliteSection
+                  title={f.label}
+                  description={`衛星表 ${f.satelliteName ?? ''}；${f.notes ?? ''}`}
+                  status="ready"
+                  hint="endpoint：/nx01/locations?warehouseId=…"
+                  summary={
+                    <div className="text-xs text-[#5A5A60]">
+                      後端 endpoint 已備、UI fetch + CRUD 列入 closure 後續軌
+                    </div>
+                  }
+                  expandedContent={
+                    <div className="text-xs text-[#5A5A60]">
+                      走 /nx01/locations 取列表後渲染樹狀結構（區/架/層/格）。
+                    </div>
+                  }
                 />
               </div>
             );

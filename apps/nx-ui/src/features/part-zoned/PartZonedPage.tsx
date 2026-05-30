@@ -36,6 +36,7 @@ import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
 import { fetchRefOptions } from '@/features/master-shell/entity-master/config';
 import {
   createPart,
+  getPart,
   listPart,
   setPartActive,
   updatePart,
@@ -166,10 +167,30 @@ export function PartZonedPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows]);
 
-  const selected = useMemo(
+  const listSelected = useMemo(
     () => rows.find((r) => r.id === selectedId) ?? null,
     [rows, selectedId],
   );
+  /** v1.2 階段 E P5：list 不含 oemCodes 衛星、selectedId 變動時 fetch getById 取完整 */
+  const [fullSelected, setFullSelected] = useState<PartDto | null>(null);
+  useEffect(() => {
+    if (!selectedId) {
+      setFullSelected(null);
+      return;
+    }
+    let cancelled = false;
+    void getPart(selectedId)
+      .then((row) => {
+        if (!cancelled) setFullSelected(row);
+      })
+      .catch(() => {
+        if (!cancelled) setFullSelected(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId, reloadTick]);
+  const selected = fullSelected ?? listSelected;
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -721,6 +742,7 @@ function DetailPane({
             setActiveZone={setActiveZone}
             editableZones={editableZones}
             refOptions={refOptions}
+            selected={selected}
           />
         </div>
         {!creating && selected ? (

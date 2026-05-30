@@ -55,6 +55,9 @@ export type PartDto = {
   cost: string | null;
   oldCode: string | null;
 
+  // v1.2 階段 E P5：part 衛星表 oemCodes（service.getById 回傳整批；其他衛星走獨立 endpoint）
+  oemCodes?: PartOemCodeItem[];
+
   createdAt: string;
   createdBy: string | null;
   createdByUsername?: string | null;
@@ -64,6 +67,14 @@ export type PartDto = {
   updatedBy: string | null;
   updatedByUsername?: string | null;
   updatedByName?: string | null;
+};
+
+export type PartOemCodeItem = {
+  id?: string;
+  partBrandId: string | null;
+  partBrandName?: string | null;
+  oemCode: string;
+  remark?: string | null;
 };
 
 export type PagedResult<T> = {

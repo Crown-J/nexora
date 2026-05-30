@@ -18,6 +18,7 @@ import {
   type UserZone,
 } from '@/features/master-zones';
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
+import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 
 import { BASIC_WRITABLE, PERMISSION_WRITABLE, type UserDraft } from './helpers';
 
@@ -92,14 +93,35 @@ export function UserFormZoned({
       {/* fields */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fieldsForZone.map((f) => {
-          // 衛星表 P5
+          // 衛星表（v1.1 §3.3）
           if (f.isSatellite) {
+            const endpointMap: Record<string, string> = {
+              roles: '/nx01/user-roles?userId=…',
+              teams: '/nx01/user-team?userId=…',
+            };
+            const endpoint = endpointMap[f.key];
+            const isHr = f.zone === 'hr';
             return (
               <div key={f.key} className="sm:col-span-2">
-                <FormField
-                  label={`${f.label}（子表）`}
-                  value={`P5 啟用：${f.notes ?? ''}（v1.1 §3.3）`}
-                  dim
+                <SatelliteSection
+                  title={f.label}
+                  description={`衛星表 ${f.satelliteName ?? ''}；${f.notes ?? ''}`}
+                  status={isHr ? 'backend-missing' : 'ready'}
+                  hint={isHr ? 'PRO 啟用 / closure 後續軌' : endpoint ? `endpoint：${endpoint}` : undefined}
+                  summary={
+                    isHr ? undefined : (
+                      <div className="text-xs text-[#5A5A60]">
+                        後端 endpoint 已備（既有 RBAC 框架），UI fetch + CRUD 走既有 UserMasterPage、列入 closure 範式統一決策。
+                      </div>
+                    )
+                  }
+                  expandedContent={
+                    isHr ? undefined : (
+                      <div className="text-xs text-[#5A5A60]">
+                        既有 /dashboard/base/users 含完整 RBAC UI；本軌 SatelliteSection 僅範式骨架。
+                      </div>
+                    )
+                  }
                 />
               </div>
             );

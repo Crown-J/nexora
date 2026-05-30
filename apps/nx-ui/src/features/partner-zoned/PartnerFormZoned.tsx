@@ -23,6 +23,7 @@ import {
 } from '@/features/master-zones';
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
 import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
+import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 
 import {
   CREDIT_STATUS_OPTIONS,
@@ -138,14 +139,15 @@ export function PartnerFormZoned({
       {/* 區內欄位 grid */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fieldsForZone.map((f) => {
-          // 衛星表：P5 啟用、目前 placeholder
+          // 衛星表（v1.1 §3.3）：partner 兩個地址衛星後端 module 尚未建立
           if (f.isSatellite) {
             return (
               <div key={f.key} className="sm:col-span-2">
-                <FormField
-                  label={`${f.label}（多筆子表）`}
-                  value="P5 啟用：本欄將以「預設 + 展開看全部」範式呈現（v1.1 §3.3）"
-                  dim
+                <SatelliteSection
+                  title={f.label}
+                  description={`衛星表 ${f.satelliteName ?? ''}；${f.notes ?? ''}`}
+                  status="backend-missing"
+                  hint="closure 後續軌"
                 />
               </div>
             );
