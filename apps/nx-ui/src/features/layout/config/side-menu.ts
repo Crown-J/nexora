@@ -25,15 +25,21 @@ import { getNx10SideMenu } from '@/features/layout/config/menu.nx10';
  * 說明：
  * - 依 pathname 推斷當前模組（語意化路由 v2.0）
  * - 回傳該模組的 SideMenuGroup[]
+ *
+ * v1.2 對齊軌 A+B：修正 audit W1 drift
+ *   舊行為：/nx04 對到 getNx03SideMenu（stale 舊銷售 menu）、/nx05 對到 getNx04SideMenu（錯位）
+ *   新行為：/nx04 對到 getNx04SideMenu（M3 C7 新做的 LITE menu）、/nx05 暫無 menu
  */
 export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
-  // 主檔管理 & 採購工作台：頁面自帶導覽（卡片 Hub 或橫向導覽），不使用 SubNav
+  // 主檔管理 & 業務工作台 & 設定中心：頁面自帶導覽（卡片 Hub 或橫向導覽），不使用 SubNav
   if (pathname.startsWith('/dashboard/base')) return [];
   if (pathname.startsWith('/dashboard/purchase')) return [];
   if (pathname.startsWith('/dashboard/sale')) return [];
   if (pathname.startsWith('/dashboard/inventory')) return [];
   if (pathname.startsWith('/dashboard/finance')) return [];
   if (pathname.startsWith('/dashboard/report')) return [];
+  if (pathname.startsWith('/dashboard/settings')) return [];
+  if (pathname.startsWith('/dashboard/owner')) return [];
   if (
     pathname.startsWith('/dashboard/nx02/domestic') ||
     pathname.startsWith('/dashboard/nx02/import') ||
@@ -44,8 +50,9 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
     return [];
   }
   if (pathname.startsWith('/dashboard/nx03')) return getNx02SideMenu();
-  if (pathname.startsWith('/dashboard/nx04')) return getNx03SideMenu();
-  if (pathname.startsWith('/dashboard/nx05')) return getNx04SideMenu();
+  // v1.2 對齊：/nx04 用新 LITE menu（getNx04SideMenu）而非 stale getNx03SideMenu
+  if (pathname.startsWith('/dashboard/nx04')) return getNx04SideMenu();
+  // /nx05 屬財務、暫無 sidebar menu（未做）
   if (pathname.startsWith('/dashboard/nx06')) return getNx06SideMenu();
   if (pathname.startsWith('/dashboard/nx07')) return getNx07SideMenu();
   if (pathname.startsWith('/dashboard/nx08')) return getNx08SideMenu();

@@ -44,6 +44,8 @@ import { PartController } from './part/part.controller';
 import { PartService } from './part/part.service';
 import { PartnerController } from './partner/partner.controller';
 import { PartnerService } from './partner/partner.service';
+import { PermissionController } from './permission/permission.controller';
+import { PermissionService } from './permission/permission.service';
 import { PhoneticDictionaryController } from './phonetic-dictionary/phonetic-dictionary.controller';
 import { PhoneticDictionaryService } from './phonetic-dictionary/phonetic-dictionary.service';
 import { RoleController } from './role/role.controller';
@@ -96,6 +98,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     LocationController,
     ViewController,
     RoleViewController,
+    PermissionController,
   ],
   providers: [
     SiteService,
@@ -128,6 +131,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     LocationService,
     ViewService,
     RoleViewService,
+    PermissionService,
   ],
 })
 export class Nx01Module {}

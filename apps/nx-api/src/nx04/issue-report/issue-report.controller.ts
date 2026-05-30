@@ -8,18 +8,22 @@ import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
+import { Permission } from '../../shared/decorators/permission.decorator';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { CreateNx04IssueReportDto } from './dto/issue-report.dto';
 import { Nx04IssueReportService } from './issue-report.service';
 
 @Controller('nx04/issue-report')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER')
 export class Nx04IssueReportController {
   constructor(private readonly svc: Nx04IssueReportService) {}
 
   /// POST 共用入口、QT/SO/SR detail 右上按鈕呼叫
   /// 寫 Nx03IssueReport（sourceModule='NX04' 自動帶）
+  /// v1.2 §6.5：產品回報統一進異常表、全員可用
   @Post()
+  @Permission('sale.product-issue.create', 'inventory.issue-report.create')
   create(@CurrentUser() user: RequestUser, @Body() dto: CreateNx04IssueReportDto) {
     return this.svc.create(user, dto);
   }

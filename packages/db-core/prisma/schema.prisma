@@ -1134,6 +1134,7 @@ model Nx01Role {
   updatedBy                            String                  @map("updated_by") @db.VarChar(15)
   tenant                               Nx99Tenant              @relation("R_Nx01Role_tenantId", fields: [tenantId], references: [id])
   rev_Nx01KpiTarget_roleId             Nx01KpiTarget[]         @relation("R_Nx01KpiTarget_roleId")
+  rev_Nx01RolePermission_roleId        Nx01RolePermission[]    @relation("R_Nx01RolePermission_roleId")
   rev_Nx01RoleView_roleId              Nx01RoleView[]          @relation("R_Nx01RoleView_roleId")
   rev_Nx01UserRole_roleId              Nx01UserRole[]          @relation("R_Nx01UserRole_roleId")
   rev_Nx01User_hrRoleId                Nx01User[]              @relation("R_Nx01User_hrRoleId")
@@ -1184,6 +1185,65 @@ model Nx01RoleView {
   view       Nx01View   @relation("R_Nx01RoleView_viewId", fields: [viewId], references: [id])
 
   @@map("nx01_role_view")
+}
+
+/// =======================================================
+/// Nx01Permission — DB table `nx01_permission`
+/// v1.2 對齊軌 A+B：系統權限目錄（無 tenant scope、所有租戶共用）
+/// =======================================================
+model Nx01Permission {
+  /// [NX01]+[PERM]+[7碼流水號]，EX : NX01PERM0000001
+  id          String   @id @default(dbgenerated("gen_nx01_permission_id()")) @db.VarChar(15)
+  /// 權限代碼（系統唯一），例：sale.quote.list
+  code        String   @unique @db.VarChar(60)
+  /// 模組分類，例：sale / purchase / inventory / finance / report / master / settings
+  moduleCode  String   @map("module_code") @db.VarChar(20)
+  /// 子分類，例：quote / so / sr / rfq / po
+  category    String   @db.VarChar(40)
+  /// 動作，例：list / view / create / edit / delete / approve / post / export
+  action      String   @db.VarChar(20)
+  /// 顯示名稱，例：報價單.檢視
+  name        String   @db.VarChar(80)
+  /// 說明（可選）
+  description String?  @db.VarChar(200)
+  /// 排序用
+  sortNo      Int      @default(0) @map("sort_no")
+  /// 是否啟用
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rev_Nx01RolePermission_permissionId Nx01RolePermission[] @relation("R_Nx01RolePermission_permissionId")
+
+  @@index([moduleCode, category, action])
+  @@map("nx01_permission")
+}
+
+/// =======================================================
+/// Nx01RolePermission — DB table `nx01_role_permission`
+/// v1.2 對齊軌 A+B：角色 × 權限 m-n（per tenant）
+/// =======================================================
+model Nx01RolePermission {
+  /// [NX01]+[ROPE]+[7碼流水號]，EX : NX01ROPE0000001
+  id           String   @id @default(dbgenerated("gen_nx01_role_permission_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）
+  tenantId     String   @map("tenant_id") @db.VarChar(15)
+  /// 角色 ID（外鍵）
+  roleId       String   @map("role_id") @db.VarChar(15)
+  /// 權限 ID（外鍵）
+  permissionId String   @map("permission_id") @db.VarChar(15)
+  /// 授權時間
+  grantedAt    DateTime @default(now()) @map("granted_at")
+  /// 授權人（使用者 ID）
+  grantedBy    String   @map("granted_by") @db.VarChar(15)
+
+  tenant     Nx99Tenant     @relation("R_Nx01RolePermission_tenantId", fields: [tenantId], references: [id])
+  role       Nx01Role       @relation("R_Nx01RolePermission_roleId", fields: [roleId], references: [id])
+  permission Nx01Permission @relation("R_Nx01RolePermission_permissionId", fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@index([tenantId, roleId])
+  @@map("nx01_role_permission")
 }
 
 /// =======================================================
@@ -6844,6 +6904,7 @@ model Nx99Tenant {
   rev_Nx01PhoneticIndex_tenantId           Nx01PhoneticIndex[]           @relation("R_Nx01PhoneticIndex_tenantId")
   rev_Nx01Role_tenantId                    Nx01Role[]                    @relation("R_Nx01Role_tenantId")
   rev_Nx01Transmission_tenantId            Nx01Transmission[]            @relation("R_Nx01Transmission_tenantId")
+  rev_Nx01RolePermission_tenantId          Nx01RolePermission[]          @relation("R_Nx01RolePermission_tenantId")
   rev_Nx01RoleView_tenantId                Nx01RoleView[]                @relation("R_Nx01RoleView_tenantId")
   rev_Nx01Team_tenantId                    Nx01Team[]                    @relation("R_Nx01Team_tenantId")
   rev_Nx01User_tenantId                    Nx01User[]                    @relation("R_Nx01User_tenantId")
