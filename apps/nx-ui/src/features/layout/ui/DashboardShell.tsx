@@ -21,6 +21,7 @@ import { TopBarPlanToggles } from '@/features/sys-dashboard/ui/TopBarPlanToggles
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { BusinessTopNav } from '@/features/layout/ui/BusinessTopNav';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
+import { WizardLauncher } from '@/features/wizard/ui/WizardLauncher';
 import { normalizePlanCode } from '@/features/base/config/master-cards';
 import { cn } from '@/lib/utils';
 
@@ -175,6 +176,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <BusinessTopNav />
               <DashboardSubNav />
               {children}
+              <WizardLauncher />
             </div>
           </HomeLandingChrome>
         )}
