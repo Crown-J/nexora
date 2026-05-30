@@ -1,12 +1,8 @@
 // apps/nx-api/src/sys-admin/importer/importer.service.ts
-// v1.2 對齊軌 C3：Excel 範本生成 + 上傳解析 + 確認匯入
+// v1.2 對齊軌 C + C-FU：Excel 範本生成 + 上傳解析 + 確認匯入
 //
-// 套件選型：xlsx (SheetJS)
-// 理由：
-//   - 同時支援讀寫 Excel / CSV
-//   - 純 JS、無原生依賴、跨環境穩定
-//   - 廣為使用、社群活躍
-//   - 已知 CVE 主要在 ReDoS、本軌只服務 SYSADMIN / OWNER 受信任 user、可接受
+// FU-import-07：preview 時 cache 檔案、confirm 用 batchId 拉
+// FU-import-01~05：5 個 importer 寫主檔 / 歷史
 
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as XLSX from 'xlsx';
@@ -15,7 +11,15 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 
+import { cacheFile, clearCachedFile, getCachedFile } from './import-cache';
 import { ALL_TEMPLATES, TemplateSpec } from './import-templates';
+import { importEmployees } from './handlers/employee.handler';
+import { importPartners } from './handlers/partner.handler';
+import { importProducts } from './handlers/product.handler';
+import { importPurchaseHistory } from './handlers/purchase-history.handler';
+import { importSaleHistory } from './handlers/sale-history.handler';
+import { importWarehouses } from './handlers/warehouse.handler';
+import { extractDataRows } from './handlers/base';
 
 export interface PreviewRowError {
   rowNo: number;
@@ -30,7 +34,6 @@ export interface PreviewResult {
   failedRows: number;
   errors: PreviewRowError[];
   batchId: string;
-  /// 預覽用 sample（前 10 筆解析後資料）
   sampleData: Record<string, unknown>[];
 }
 
@@ -44,14 +47,10 @@ export class ImporterService {
     return spec;
   }
 
-  /// 產 Excel 範本檔（Buffer）
   generateTemplate(importType: string): { fileName: string; buffer: Buffer } {
     const spec = this.getTemplate(importType);
     const wb = XLSX.utils.book_new();
-
-    // Row 1: 中文 header
     const headers = spec.columns.map((c) => c.header);
-    // Row 2: 說明（required + hint）
     const helpers = spec.columns.map((c) => {
       const parts: string[] = [];
       if (c.required) parts.push('🟢 必填');
@@ -59,14 +58,10 @@ export class ImporterService {
       if (c.hint) parts.push(c.hint);
       return parts.join(' · ');
     });
-    // Row 3: 範例
     const examples = spec.columns.map((c) => c.example ?? '');
-    // Row 4: 空白（讓用戶從這開始填）
     const empty = spec.columns.map(() => '');
-
     const sheet = XLSX.utils.aoa_to_sheet([headers, helpers, examples, empty]);
     XLSX.utils.book_append_sheet(wb, sheet, spec.sheetName);
-
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
     return {
       fileName: `NEXORA_${spec.importType}_範本.xlsx`,
@@ -74,7 +69,6 @@ export class ImporterService {
     };
   }
 
-  /// 上傳並預覽（不寫入 DB、只 parse + validate、寫 nx01_import_batch）
   async preview(
     user: RequestUser,
     importType: string,
@@ -84,47 +78,31 @@ export class ImporterService {
     const tenantId = requireTenantId(user);
     const spec = this.getTemplate(importType);
 
-    // 解析 Excel
     const wb = XLSX.read(fileBuffer, { type: 'buffer' });
     const firstSheet = wb.SheetNames[0];
     const sheet = wb.Sheets[firstSheet];
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
       defval: '',
       header: 1,
-    });
+    }) as unknown[][];
 
-    // rows[0] = headers, rows[1] = helpers, rows[2] = examples, rows[3+] = data
-    const dataRows = (rows as unknown as unknown[][]).slice(3);
-
+    const dataRows = extractDataRows(rows, spec.columns.map((c) => c.field));
     const errors: PreviewRowError[] = [];
-    const parsed: Record<string, unknown>[] = [];
 
-    dataRows.forEach((row, i) => {
-      const rowNo = i + 4; // 1-based Excel row、含 header 3 列
-      const allEmpty = (row as unknown[]).every((v) => v == null || String(v).trim() === '');
-      if (allEmpty) return;
-
-      const obj: Record<string, unknown> = {};
-      let hasError = false;
-      spec.columns.forEach((c, j) => {
-        const raw = (row as unknown[])[j];
-        const val = raw == null ? '' : String(raw).trim();
-        if (c.required && !val) {
+    // preview 階段做 column-level 必填驗證
+    dataRows.forEach(({ rowNo, data }) => {
+      spec.columns.forEach((c) => {
+        if (c.required && !data[c.field]) {
           errors.push({ rowNo, reason: `${c.header}（必填）為空` });
-          hasError = true;
         }
-        obj[c.field] = val;
       });
-      if (!hasError) parsed.push(obj);
     });
 
-    const totalRows = dataRows.filter(
-      (r) => !(r as unknown[]).every((v) => v == null || String(v).trim() === ''),
-    ).length;
-    const successRows = parsed.length;
-    const failedRows = errors.length;
+    const totalRows = dataRows.length;
+    const failedRowNos = new Set(errors.map((e) => e.rowNo));
+    const successRows = dataRows.filter((r) => !failedRowNos.has(r.rowNo)).length;
+    const failedRows = failedRowNos.size;
 
-    // 寫 batch（status='previewing'、import 時再改 'imported'）
     const batch = await this.prisma.nx01ImportBatch.create({
       data: {
         tenantId,
@@ -139,6 +117,9 @@ export class ImporterService {
       },
     });
 
+    // FU-import-07：cache 檔案、confirm 用 batchId 拉、不用 client 再上傳
+    cacheFile(batch.id, fileName, fileBuffer);
+
     return {
       importType,
       fileName,
@@ -147,13 +128,12 @@ export class ImporterService {
       failedRows,
       errors,
       batchId: batch.id,
-      sampleData: parsed.slice(0, 10),
+      sampleData: dataRows.slice(0, 10).map((r) => r.data),
     };
   }
 
-  /// 確認匯入：把預覽通過的 batch 實際寫入主檔
-  /// MVP：只實作 employee importer、其他類型回 not-implemented
-  async confirmImport(user: RequestUser, batchId: string, fileBuffer: Buffer): Promise<{ ok: true; imported: number }> {
+  /// 確認匯入：從 cache 拉檔案、依 importType dispatch 對應 handler
+  async confirmImport(user: RequestUser, batchId: string) {
     const tenantId = requireTenantId(user);
     const batch = await this.prisma.nx01ImportBatch.findFirst({
       where: { id: batchId, tenantId },
@@ -163,72 +143,95 @@ export class ImporterService {
       throw new BadRequestException(`Batch status is ${batch.status}, not previewing`);
     }
 
-    const spec = this.getTemplate(batch.importType);
-    if (batch.importType !== 'employee') {
-      // 其他類型先標 imported 但實際不寫入主檔（C3 MVP、列 FU）
-      await this.prisma.nx01ImportBatch.update({
-        where: { id: batchId },
-        data: { status: 'imported', importedAt: new Date() },
-      });
-      return { ok: true, imported: 0 };
+    const cached = getCachedFile(batchId);
+    if (!cached) {
+      throw new BadRequestException(
+        'Cached file 過期或不存在（1 小時 TTL）、請重新上傳預覽',
+      );
     }
 
-    // employee importer 實作（其他類型屬 FU、列 handoff）
-    const wb = XLSX.read(fileBuffer, { type: 'buffer' });
+    const spec = this.getTemplate(batch.importType);
+    const wb = XLSX.read(cached.buffer, { type: 'buffer' });
     const firstSheet = wb.SheetNames[0];
     const sheet = wb.Sheets[firstSheet];
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
       defval: '',
       header: 1,
+    }) as unknown[][];
+    const dataRows = extractDataRows(rows, spec.columns.map((c) => c.field));
+
+    // 拿 tenant 的 dataStartDate（給 history importer 用）
+    const tenant = await this.prisma.nx99Tenant.findFirst({
+      where: { id: tenantId },
+      select: { dataStartDate: true },
     });
-    const dataRows = (rows as unknown as unknown[][]).slice(3);
 
-    let imported = 0;
-    const bcrypt = await import('bcryptjs');
-    const tempPassword = await bcrypt.hash('Temp123!', 10);
+    const ctx = {
+      tenantId,
+      userId: user.sub,
+      prisma: this.prisma,
+      dataStartDate: tenant?.dataStartDate ?? null,
+    };
 
-    for (const row of dataRows) {
-      const allEmpty = (row as unknown[]).every((v) => v == null || String(v).trim() === '');
-      if (allEmpty) continue;
+    let result: {
+      imported: number;
+      historicalCount?: number;
+      errors: { rowNo: number; reason: string }[];
+      historicalRows?: unknown[];
+    };
 
-      const obj: Record<string, string> = {};
-      let hasErr = false;
-      spec.columns.forEach((c, j) => {
-        const val = String((row as unknown[])[j] ?? '').trim();
-        if (c.required && !val) hasErr = true;
-        obj[c.field] = val;
-      });
-      if (hasErr) continue;
-
-      // 檢 email 唯一
-      const existing = await this.prisma.nx01User.findFirst({
-        where: { userAccount: obj.email },
-        select: { id: true },
-      });
-      if (existing) continue;
-
-      await this.prisma.nx01User.create({
-        data: {
-          tenantId,
-          userAccount: obj.email,
-          passwordHash: tempPassword,
-          userName: obj.userName,
-          email: obj.email,
-          phone: obj.phone || null,
-          isActive: obj.isActive !== '否',
-          mustChangePassword: true,
-          createdBy: user.sub,
-          updatedBy: user.sub,
-        },
-      });
-      imported++;
+    switch (batch.importType) {
+      case 'employee':
+        result = await importEmployees(ctx, dataRows);
+        break;
+      case 'partner':
+        result = await importPartners(ctx, dataRows);
+        break;
+      case 'warehouse':
+        result = await importWarehouses(ctx, dataRows);
+        break;
+      case 'product':
+        result = await importProducts(ctx, dataRows);
+        break;
+      case 'purchase-history':
+        result = await importPurchaseHistory(ctx, dataRows);
+        break;
+      case 'sale-history':
+        result = await importSaleHistory(ctx, dataRows);
+        break;
+      case 'voucher':
+        // FU-import-06：等 NX05 voucher model
+        result = {
+          imported: 0,
+          errors: [{ rowNo: 0, reason: 'voucher importer 屬 NX05 範圍、暫未實作' }],
+        };
+        break;
+      default:
+        throw new BadRequestException(`Unknown importType: ${batch.importType}`);
     }
 
     await this.prisma.nx01ImportBatch.update({
       where: { id: batchId },
-      data: { status: 'imported', importedAt: new Date() },
+      data: {
+        status: 'imported',
+        importedAt: new Date(),
+        successRows: result.imported,
+        failedRows: result.errors.length,
+        failureDetail: {
+          errors: result.errors,
+          historicalCount: result.historicalCount ?? 0,
+          historicalRows: (result.historicalRows ?? []).slice(0, 100),
+        } as unknown as object,
+      },
     });
 
-    return { ok: true, imported };
+    clearCachedFile(batchId);
+
+    return {
+      ok: true as const,
+      imported: result.imported,
+      historicalCount: result.historicalCount ?? 0,
+      errors: result.errors.slice(0, 50),
+    };
   }
 }

@@ -1,9 +1,8 @@
 // apps/nx-api/src/sys-admin/importer/importer.controller.ts
-// v1.2 對齊軌 C3：匯入 controller
+// v1.2 對齊軌 C-FU：匯入 controller（confirm 改用 cached file、不再要 client 傳檔）
 
 import {
   BadRequestException,
-  Body,
   Controller,
   Get,
   Param,
@@ -36,7 +35,7 @@ export class ImporterController {
     res.send(buffer);
   }
 
-  /// 上傳預覽（不寫入 DB）
+  /// 上傳預覽（cache 檔案、不寫入主檔）
   @Post('preview/:importType')
   @UseInterceptors(FileInterceptor('file'))
   async preview(
@@ -48,16 +47,10 @@ export class ImporterController {
     return this.svc.preview(user, importType, file.originalname, file.buffer);
   }
 
-  /// 確認匯入（依 batchId + 原檔案）
-  /// 實務上應 cache 檔案在 server、這裡簡化 client 再上傳一次
+  /// 確認匯入（用 batchId 從 cache 拉檔案、不用 client 再傳）
+  /// FU-import-07：解決原本「客戶要再上傳一次」的爛體驗
   @Post('confirm/:batchId')
-  @UseInterceptors(FileInterceptor('file'))
-  async confirm(
-    @CurrentUser() user: RequestUser,
-    @Param('batchId') batchId: string,
-    @UploadedFile() file: { originalname: string; buffer: Buffer },
-  ) {
-    if (!file) throw new BadRequestException('file is required');
-    return this.svc.confirmImport(user, batchId, file.buffer);
+  async confirm(@CurrentUser() user: RequestUser, @Param('batchId') batchId: string) {
+    return this.svc.confirmImport(user, batchId);
   }
 }
