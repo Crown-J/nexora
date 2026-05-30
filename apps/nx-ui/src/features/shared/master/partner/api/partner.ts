@@ -25,6 +25,10 @@ export type ListPartnerParams = {
   page: number;
   pageSize: number;
   q?: string;
+  /** v1.2 階段 E P2：模組頁過濾 partnerType（e.g. 銷貨頁只看 C/O、採購頁只看 S） */
+  partnerType?: string;
+  /** v1.2 階段 E P2：顯示停用過濾（undefined=全部、true=只啟用、false=只停用） */
+  isActive?: boolean;
 };
 
 export async function listPartner(params: ListPartnerParams): Promise<PagedResult<PartnerDto>> {
@@ -33,6 +37,8 @@ export async function listPartner(params: ListPartnerParams): Promise<PagedResul
     page: String(params.page),
     pageSize: String(pageSize),
     search: params.q?.trim() ? params.q.trim() : undefined,
+    partnerType: params.partnerType,
+    isActive: params.isActive === undefined ? undefined : String(params.isActive),
   });
 
   const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });

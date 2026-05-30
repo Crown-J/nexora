@@ -123,6 +123,20 @@ export class CreatePartnerDto {
   @Type(() => Boolean)
   @IsBoolean()
   canTransferStock?: boolean;
+
+  // ── v1.2 對齊 階段 E P2：basic 區補欄（schema 既有、DTO 補對齊） ──
+  @IsOptional() @IsString() @MaxLength(50) shortName?: string;
+  @IsOptional() @IsString() @MaxLength(100) nameEn?: string;
+  @IsOptional() @IsString() @MaxLength(30) fax?: string;
+  @IsOptional() @IsString() @MaxLength(200) website?: string;
+  @IsOptional() @IsString() @MaxLength(50) serviceLocation?: string;
+
+  // ── v1.2 階段 E P2：sales 區補欄 ──
+  @IsOptional() @IsString() @MaxLength(15) defaultWarehouseId?: string;
+  @IsOptional() @IsString() @MaxLength(15) salesUserId?: string;
+
+  // ── v1.2 階段 E P2：finance 區補欄 ──
+  @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string;
 }
 
 export class UpdatePartnerDto {
@@ -219,4 +233,18 @@ export class UpdatePartnerDto {
   @Type(() => Boolean)
   @IsBoolean()
   canTransferStock?: boolean;
+
+  // ── v1.2 對齊 階段 E P2：basic 區補欄（schema 既有、DTO 補對齊） ──
+  @IsOptional() @IsString() @MaxLength(50) shortName?: string | null;
+  @IsOptional() @IsString() @MaxLength(100) nameEn?: string | null;
+  @IsOptional() @IsString() @MaxLength(30) fax?: string | null;
+  @IsOptional() @IsString() @MaxLength(200) website?: string | null;
+  @IsOptional() @IsString() @MaxLength(50) serviceLocation?: string | null;
+
+  // ── v1.2 階段 E P2：sales 區補欄 ──
+  @IsOptional() @IsString() @MaxLength(15) defaultWarehouseId?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) salesUserId?: string | null;
+
+  // ── v1.2 階段 E P2：finance 區補欄 ──
+  @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string | null;
 }

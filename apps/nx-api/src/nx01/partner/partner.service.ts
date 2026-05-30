@@ -31,12 +31,26 @@ const SEL = {
   supplierGradeId: true,
   creditLimit: true,
   creditStatus: true,
+  // v1.2 對齊 階段 E P2：basic 補欄
+  shortName: true,
+  nameEn: true,
+  fax: true,
+  website: true,
+  serviceLocation: true,
+  // v1.2 階段 E P2：sales 補欄
+  defaultWarehouseId: true,
+  salesUserId: true,
+  // v1.2 階段 E P2：finance 補欄
+  defaultCurrencyId: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
   customerGrade: { select: { code: true, name: true } },
   supplierGrade: { select: { code: true, name: true } },
+  defaultWarehouse: { select: { code: true, name: true } },
+  salesUser: { select: { userAccount: true, userName: true } },
+  defaultCurrency: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01PartnerGetPayload<{ select: typeof SEL }>;
@@ -145,6 +159,19 @@ export class PartnerService {
         paymentTermImport: dto.paymentTermImport?.trim() || 'TT',
         incoterm: dto.incoterm?.trim() || 'FOB',
         isActive: dto.isActive ?? true,
+        // v1.2 階段 E P2：basic 補欄
+        shortName: dto.shortName?.trim() || null,
+        nameEn: dto.nameEn?.trim() || null,
+        fax: dto.fax?.trim() || null,
+        website: dto.website?.trim() || null,
+        serviceLocation: dto.serviceLocation?.trim() || null,
+        // v1.2 階段 E P2：sales 補欄
+        defaultWarehouseId: dto.defaultWarehouseId?.trim() || null,
+        salesUserId: dto.salesUserId?.trim() || null,
+        // v1.2 階段 E P2：finance 補欄
+        defaultCurrencyId: dto.defaultCurrencyId?.trim() || null,
+        // v1.2 階段 E P2：supplierGradeId 純供應商 S 用
+        supplierGradeId: dto.supplierGradeId?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -197,6 +224,25 @@ export class PartnerService {
           : {}),
         ...(dto.incoterm !== undefined ? { incoterm: dto.incoterm?.trim() || null } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        // v1.2 階段 E P2：basic 補欄
+        ...(dto.shortName !== undefined ? { shortName: dto.shortName?.trim() || null } : {}),
+        ...(dto.nameEn !== undefined ? { nameEn: dto.nameEn?.trim() || null } : {}),
+        ...(dto.fax !== undefined ? { fax: dto.fax?.trim() || null } : {}),
+        ...(dto.website !== undefined ? { website: dto.website?.trim() || null } : {}),
+        ...(dto.serviceLocation !== undefined
+          ? { serviceLocation: dto.serviceLocation?.trim() || null }
+          : {}),
+        // v1.2 階段 E P2：sales 補欄
+        ...(dto.defaultWarehouseId !== undefined
+          ? { defaultWarehouseId: dto.defaultWarehouseId?.trim() || null }
+          : {}),
+        ...(dto.salesUserId !== undefined
+          ? { salesUserId: dto.salesUserId?.trim() || null }
+          : {}),
+        // v1.2 階段 E P2：finance 補欄
+        ...(dto.defaultCurrencyId !== undefined
+          ? { defaultCurrencyId: dto.defaultCurrencyId?.trim() || null }
+          : {}),
         updatedBy: user.sub,
       },
       select: SEL,
@@ -284,7 +330,15 @@ export class PartnerService {
   }
 
   private mapRow(row: Row) {
-    const { customerGrade, supplierGrade, creditLimit, ...scalar } = row;
+    const {
+      customerGrade,
+      supplierGrade,
+      defaultWarehouse,
+      salesUser,
+      defaultCurrency,
+      creditLimit,
+      ...scalar
+    } = row;
     return {
       ...scalar,
       creditLimit: creditLimit == null ? null : String(creditLimit),
@@ -292,6 +346,13 @@ export class PartnerService {
       customerGradeName: customerGrade?.name ?? null,
       supplierGradeCode: supplierGrade?.code ?? null,
       supplierGradeName: supplierGrade?.name ?? null,
+      // v1.2 階段 E P2：補關聯顯示欄
+      defaultWarehouseCode: defaultWarehouse?.code ?? null,
+      defaultWarehouseName: defaultWarehouse?.name ?? null,
+      salesUserAccount: salesUser?.userAccount ?? null,
+      salesUserName: salesUser?.userName ?? null,
+      defaultCurrencyCode: defaultCurrency?.code ?? null,
+      defaultCurrencyName: defaultCurrency?.name ?? null,
     };
   }
 }

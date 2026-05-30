@@ -1,8 +1,21 @@
 // apps/nx-ui/src/app/dashboard/sale/customer/info/page.tsx
-// R7 Phase 4：客戶維護「客戶資料維護」占位頁
+// v1.2 階段 E P2：銷貨 → 客戶管理（partner basic + sales 分區）
+// 對齊決策 3.1 + v1.1 §1：列表只顯示 C/O、編輯只動 basic + sales 區
+'use client';
 
-import { PlaceholderPage } from '@/features/sale/ui/hub/components/PlaceholderPage';
+import { PartnerMasterPage } from '@/features/partner-zoned';
+
+const EDITABLE_ZONES = new Set(['basic', 'sales'] as const);
 
 export default function SaleCustomerInfoPage() {
-  return <PlaceholderPage title="客戶資料維護" />;
+  return (
+    <PartnerMasterPage
+      pageCategory="銷貨"
+      pageTitle="客戶資料維護"
+      entityNoun="客戶"
+      filterPartnerTypes={['C', 'O']}
+      editableZones={EDITABLE_ZONES}
+      createDefaultPartnerType="C"
+    />
+  );
 }
