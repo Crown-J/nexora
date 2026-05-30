@@ -1,6 +1,11 @@
 /**
  * File: apps/nx-api/src/auth/roles.guard.ts
  * Purpose: 驗證角色權限
+ *
+ * v1.2 對齊軌 A+B FU-07：defer 行為
+ *   - 當同時設了 @Permission：跳過 @Roles 比對、交給 PermissionsGuard 處理
+ *   - 避免「自定義角色擁有正確 permission、但因不在 @Roles 白名單而被擋」
+ *   - SYSADMIN / OWNER 仍透過 PermissionsGuard 內 bypass 全通行
  */
 
 import {
@@ -11,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PERMISSIONS_KEY } from '../decorators/permission.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
@@ -32,6 +38,16 @@ export class RolesGuard implements CanActivate {
 
     // 沒有設定角色 → 直接放行
     if (!requiredRoles || requiredRoles.length === 0) {
+      return true;
+    }
+
+    // v1.2 對齊軌 FU-07：若同時設了 @Permission、交給 PermissionsGuard
+    const requiredPermissions =
+      this.reflector.getAllAndOverride<string[]>(PERMISSIONS_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+    if (requiredPermissions && requiredPermissions.length > 0) {
       return true;
     }
 

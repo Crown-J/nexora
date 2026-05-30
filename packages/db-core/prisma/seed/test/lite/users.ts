@@ -1,8 +1,10 @@
 // packages/db-core/prisma/seed/test/lite/users.ts
-// @FUNCTION_CODE SYS-TEST-SVC-003-F01
-// LITE 測試租戶的 4 個測試使用者：採購 / 業務 / 倉管 / 財務。
-// 同時在最前面為 admin 指派 SYSADMIN 角色。
-// 注意：此函式必須在 applyTemplateToTenant 之後呼叫（需要 role 資料）。
+// @FUNCTION_CODE SYS-TEST-SVC-003-F02
+// LITE 測試租戶測試使用者
+//
+// v1.2 對齊軌 FU-07：對齊 v1.2 §12.2「從零建角色」
+//   admin 指派 SYSADMIN（伊諾瓦跨租戶管理）
+//   4 個測試員工不指派任何角色（負責人需手動到「設定→角色與權限」建角色後指派）
 
 import type { PrismaClient } from '../../../../generated/prisma';
 import { SYSADMIN_USER_ID } from '../../system/constants';
@@ -16,7 +18,6 @@ interface TestUser {
   id: string;
   userAccount: string;
   userName: string;
-  roleCode: string;
 }
 
 async function assignRole(
@@ -45,15 +46,15 @@ async function assignRole(
 }
 
 export async function seedLiteTestUsers(prisma: PrismaClient): Promise<void> {
-  // === Step 1：指派 admin 的 ADMIN 角色 ===
+  // === Step 1：指派 admin 的 SYSADMIN 角色 ===
   await assignRole(prisma, TEST_LITE_TENANT_ID, TEST_LITE_ADMIN_USER_ID, 'SYSADMIN');
 
-  // === Step 2：建立 4 個測試使用者 + 指派角色 ===
+  // === Step 2：建立 4 個測試使用者（不指派角色、v1.2 §12.2 從零建）===
   const users: TestUser[] = [
-    { id: 'NX01USER9900011', userAccount: 'purchase1',  userName: '王小明（採購專員）', roleCode: 'PURCHASING'  },
-    { id: 'NX01USER9900012', userAccount: 'sales1',     userName: '陳美玲（業務專員）', roleCode: 'SALES'     },
-    { id: 'NX01USER9900013', userAccount: 'warehouse1', userName: '林大偉（倉管專員）', roleCode: 'WAREHOUSE' },
-    { id: 'NX01USER9900014', userAccount: 'finance1',   userName: '黃志豪（財務專員）', roleCode: 'FINANCE'   },
+    { id: 'NX01USER9900011', userAccount: 'employee1', userName: '王小明（測試員工）' },
+    { id: 'NX01USER9900012', userAccount: 'employee2', userName: '陳美玲（測試員工）' },
+    { id: 'NX01USER9900013', userAccount: 'employee3', userName: '林大偉（測試員工）' },
+    { id: 'NX01USER9900014', userAccount: 'employee4', userName: '黃志豪（測試員工）' },
   ];
 
   for (const u of users) {
@@ -75,9 +76,8 @@ export async function seedLiteTestUsers(prisma: PrismaClient): Promise<void> {
         updatedBy: SYSADMIN_USER_ID,
       },
     });
-
-    await assignRole(prisma, TEST_LITE_TENANT_ID, u.id, u.roleCode);
+    // v1.2：不自動指派任何角色、負責人手動到「設定→角色與權限」建角色後指派
   }
 
-  console.log(`✅ [TEST/LITE] users: ${users.length} 筆 + admin 角色指派`);
+  console.log(`✅ [TEST/LITE] users: ${users.length} 筆（未綁角色、v1.2 範式）+ admin SYSADMIN 指派`);
 }
