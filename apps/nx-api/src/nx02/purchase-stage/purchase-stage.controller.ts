@@ -6,27 +6,24 @@ import { Body, Controller, Param, Patch, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import { TransitStageDto } from './dto/purchase-stage.dto';
 import { PurchaseStageService } from './purchase-stage.service';
 
 @Controller('nx02/po')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER', 'PURCHASING')
 export class PurchaseStageController {
   constructor(private readonly svc: PurchaseStageService) {}
 
-  /**
-   * 國外採購 6 階段流轉（合一推進 + 回退、service 自動判斷）
-   *   - 推進：strict 順序（必須 +1）
-   *   - 回退：任意回退（Crown Q-C3-detail=b、業務修錯）
-   *   - 同 stage：no-op
-   *   - 推進時自動寫對應時間欄、回退時不清除（fact 保留）
-   */
+  /// 國外採購 6 階段流轉
   @Patch(':id/stage')
+  @Permission('purchase.po.edit')
   transit(
     @CurrentUser() user: RequestUser,
     @Param('id') id: string,

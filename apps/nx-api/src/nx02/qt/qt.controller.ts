@@ -15,8 +15,10 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/co
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import {
@@ -28,39 +30,44 @@ import {
 import { Nx02QtService } from './qt.service';
 
 @Controller('nx02')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class QtController {
   constructor(private readonly svc: Nx02QtService) {}
 
   /** §3.1 採購工作台 RFQ list — 任意登入 user */
   @Get('rfq/list-for-purchase')
+  @Permission('purchase.rfq.list')
   list(@CurrentUser() user: RequestUser, @Query() q: ListRfqQueryDto) {
     return this.svc.listRfqsForPurchase(user, q);
   }
 
   /** M3-redo-3b：list quotes by RFQ id（並排比價視圖用、最低價排前） */
   @Get('rfq/:id/quotes')
+  @Permission('purchase.rfq.view')
   listQuotes(@CurrentUser() user: RequestUser, @Param('id') rfqId: string) {
     return this.svc.listQuotesByRfqId(user, rfqId);
   }
 
-  /** §3.2 新增 QT — 限 PURCHASING / SYSADMIN / OWNER */
+  /** §3.2 新增 QT */
   @Post('qt')
   @Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES')
+  @Permission('purchase.rfq.edit')
   addQt(@CurrentUser() user: RequestUser, @Body() dto: CreateQtDto) {
     return this.svc.addQt(user, dto);
   }
 
-  /** §3.3 採用 QT — 限 PURCHASING / SYSADMIN / OWNER */
+  /** §3.3 採用 QT */
   @Post('qt/:id/adopt')
   @Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES')
+  @Permission('purchase.rfq.edit', 'purchase.po.create')
   adoptQt(@CurrentUser() user: RequestUser, @Param('id') qtId: string) {
     return this.svc.adoptQt(user, qtId);
   }
 
-  /** §3.4 拒絕單筆 QT — 限 PURCHASING / SYSADMIN / OWNER */
+  /** §3.4 拒絕單筆 QT */
   @Post('qt/:id/reject')
   @Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES')
+  @Permission('purchase.rfq.edit')
   rejectQt(
     @CurrentUser() user: RequestUser,
     @Param('id') qtId: string,
@@ -69,9 +76,10 @@ export class QtController {
     return this.svc.rejectQt(user, qtId, dto);
   }
 
-  /** §3.5 取消整個 RFQ — 限 PURCHASING / SYSADMIN / OWNER */
+  /** §3.5 取消整個 RFQ */
   @Post('rfq/:id/cancel')
   @Roles('SYSADMIN', 'OWNER', 'PURCHASING', 'SALES')
+  @Permission('purchase.rfq.delete')
   cancelRfq(
     @CurrentUser() user: RequestUser,
     @Param('id') rfqId: string,

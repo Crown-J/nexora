@@ -6,26 +6,24 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
+import { Permission } from '../../shared/decorators/permission.decorator';
 import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 
 import { PurchaseSuggestionListQueryDto } from './dto/purchase-suggestion.dto';
 import { PurchaseSuggestionService } from './purchase-suggestion.service';
 
 @Controller('nx02/purchase-suggestion')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles('SYSADMIN', 'OWNER', 'PURCHASING')
 export class PurchaseSuggestionController {
   constructor(private readonly svc: PurchaseSuggestionService) {}
 
-  /**
-   * 採購建議單列表
-   * - 純 read-only（待處理 Nx02Demand）
-   * - 客訂優先排序（O→S、demandType desc）
-   * - 可按 supplierId 過濾（混合範式：PartnerPart 主檔 + 90 天歷史 PoItem）
-   */
+  /// 採購建議單列表（v1.2 §5.4 採購需求單聚合 3 來源）
   @Get()
+  @Permission('purchase.demand.list')
   list(@CurrentUser() user: RequestUser, @Query() q: PurchaseSuggestionListQueryDto) {
     return this.svc.list(user, q);
   }
