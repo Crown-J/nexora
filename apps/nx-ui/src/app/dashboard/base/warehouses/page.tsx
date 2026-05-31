@@ -1,10 +1,17 @@
 // apps/nx-ui/src/app/dashboard/base/warehouses/page.tsx
-/** warehouses 主檔（鋼鐵星球範式、EntityMasterPage）；DashboardShell 已加 bypass。 */
+// v1.2 階段 E P6 closure：倉庫主檔直接走 zoned 範式（3 zone：basic + inventory + delivery）
+// 對齊總經理 STOP-1 拍板⑤：用新版 zoned 替換舊版 EntityMasterPage 6 欄頁
+// 既有 /zoned 子路徑已清、避免雙路徑
 'use client';
 
-import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
-import { WAREHOUSE_MASTER } from '@/features/base/master-config/catalog-masters';
+import { WarehouseZonedPage } from '@/features/warehouse-zoned';
 
 export default function Page() {
-  return <EntityMasterPage config={WAREHOUSE_MASTER} />;
+  return (
+    <WarehouseZonedPage
+      pageCategory="組織架構"
+      pageTitle="倉庫基本資料"
+      entityNoun="倉庫"
+    />
+  );
 }

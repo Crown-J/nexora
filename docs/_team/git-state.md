@@ -10,21 +10,23 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-29（⭐ LITE 階段 3 銷貨 NX04 closure、merge feature/nx04-sales-lite + tag v1.4.0-nx04-sales-lite-closure）**
-> **當前分支：`main`**（HEAD = `c4b1f67`、merge feature/nx04-sales-lite + tag `v1.4.0-nx04-sales-lite-closure`）
-> **上輪 closure**：NX03 庫存 LITE（merge `7ae0c2a` + tag `v1.3.0-nx03-stock-lite-closure`、見 §A.2）
-> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/nx04-sales-lite、--no-ff、LITE 階段 3 銷貨 closure）
-> **狀態摘要**：`feature/nx04-sales-lite` = **已 merge main（merge commit `c4b1f67`）、可考慮刪除**
-> **整軌成果**：17 commits（STEP-0 + M1 schema → M5 操作手冊 → M6 closure）、5 工作台交付（QT / SO / SR / 客戶等級變更 / OWNER inbox）+ 共用元件 1（問題回報 trigger）、操作手冊 10 章節 / 1 新表 + 1 schema 欄位 dev DB / 跨模組接點接通（QT cascade / SO autoTransfer + AR + DN + 排行榜 / SR Allowance + Pickup / IT-O createTi / IssueReport 軟連結 NX03）
-> **⚠️ Railway production migration 同步累計落後 89 支**（A077、+M1 共 1 支、Railway 端維持落後）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
+> **快照時間：2026-05-31（⭐ v1.2 對齊軌 階段 E closure、merge feature/v1.2-alignment-e + tag v2.0.5-alignment-e-complete）**
+> **當前分支：`main`**（HEAD = merge commit、tag `v2.0.5-alignment-e-complete`）
+> **上輪 closure**：v1.2 對齊軌 階段 D（merge `6b20eb7` + tag `v2.0.4-alignment-d-complete`）
+> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-e、--no-ff、階段 E 主檔分區編輯 closure）
+> **狀態摘要**：`feature/v1.2-alignment-e` = **已 merge main、可考慮刪除**
+> **整軌成果**：8 commits（P1 framework → P6 closure / 含總經理 STOP-1 補完客戶功能+清 DEMO/admin+砍舊版）、4 zoned namespace（partner-zoned / part-zoned / warehouse-zoned + user-zoned）+ SatelliteSection 共用範式、11 入口頁交付（4 主檔中心 + 6 模組頁面 + 1 lab sandbox）、淨減少 382 行（舊 PartMasterPage 660 + 舊 UserMasterPage 1725 + BaseUserMasterView 1640 + DEMO PurchaseProductManagementView/PurchaseVendorManagementView 1099+ 全清）；後端擴 partner / warehouse DTO 對齊 schema 既有欄位、補 6 個 sale.product.* 權限 seed（純 upsert）
+> **⚠️ Railway production migration 同步累計落後 89 支**（階段 E **0 schema 變動**、本軌不增加落後支數、Railway 端維持落後）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
 > ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（18 條）
+### A.1 本地分支總覽（19 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | `c4b1f67` | **⚠️ MERGE feature/nx04-sales-lite（LITE 階段 3 銷貨 closure、tag `v1.4.0-nx04-sales-lite-closure`）** |
+| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-e（v1.2 對齊軌 階段 E closure、tag `v2.0.5-alignment-e-complete`）** |
+| `feature/v1.2-alignment-e` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 8 commits 整軌：P1 framework / P2 partner / P3 part / P4 warehouse+user / P5 SatelliteSection / P6 closure（STEP-2 清 DEMO + A1~A4 補 part + B1~B5 補 user + 砍舊版） |
+| `feature/v1.2-alignment-d` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 4 commits：D1 framework / D2 22 guides / D3 AutoPageGuide / D4 reset page |
 | `feature/nx04-sales-lite` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 17 commits 整軌：STEP-0 / M1 schema / M2-C1~C6 backend / M3-C1~C7 frontend（5 工作台 + 1 共用元件）/ M4 整合驗證 / M5 操作手冊 |
 | `feature/nx03-stock-lite` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 11 commits 整軌：M1 schema / M2-A~F backend / M3-1~M3-3b frontend（5 畫面）/ M4 整合驗證 / M5 操作手冊 |
 | `feature/nx00-cleanup` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | P1 rm 32 死碼 / P2 9 module 搬 features/shared/master + sed sweep |

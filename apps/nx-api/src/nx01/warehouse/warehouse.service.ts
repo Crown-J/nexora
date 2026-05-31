@@ -18,10 +18,25 @@ const SEL = {
   isActive: true,
   warehouseTypeId: true,
   siteId: true,
+  // v1.2 階段 E P4：補對齊
+  isMain: true,
+  managerUserId: true,
+  cityId: true,
+  districtId: true,
+  streetId: true,
+  lane: true,
+  alley: true,
+  buildingNo: true,
+  buildingSubNo: true,
+  floor: true,
+  roomNo: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  managerUser: { select: { userAccount: true, userName: true } },
+  site: { select: { code: true, name: true } },
+  warehouseType: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01WarehouseGetPayload<{ select: typeof SEL }>;
@@ -102,6 +117,18 @@ export class WarehouseService {
         warehouseTypeId: dto.warehouseTypeId?.trim() || null,
         siteId,
         isActive: dto.isActive ?? true,
+        // v1.2 階段 E P4：補對齊
+        isMain: dto.isMain ?? false,
+        managerUserId: dto.managerUserId?.trim() || null,
+        cityId: dto.cityId?.trim() || null,
+        districtId: dto.districtId?.trim() || null,
+        streetId: dto.streetId?.trim() || null,
+        lane: dto.lane ?? null,
+        alley: dto.alley ?? null,
+        buildingNo: dto.buildingNo ?? null,
+        buildingSubNo: dto.buildingSubNo ?? null,
+        floor: dto.floor?.trim() || null,
+        roomNo: dto.roomNo?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -134,6 +161,22 @@ export class WarehouseService {
         ...(dto.warehouseTypeId !== undefined ? { warehouseTypeId: dto.warehouseTypeId } : {}),
         ...(dto.siteId ? { siteId: dto.siteId } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+        // v1.2 階段 E P4：補對齊
+        ...(dto.isMain !== undefined ? { isMain: dto.isMain } : {}),
+        ...(dto.managerUserId !== undefined
+          ? { managerUserId: dto.managerUserId?.trim() || null }
+          : {}),
+        ...(dto.cityId !== undefined ? { cityId: dto.cityId?.trim() || null } : {}),
+        ...(dto.districtId !== undefined
+          ? { districtId: dto.districtId?.trim() || null }
+          : {}),
+        ...(dto.streetId !== undefined ? { streetId: dto.streetId?.trim() || null } : {}),
+        ...(dto.lane !== undefined ? { lane: dto.lane } : {}),
+        ...(dto.alley !== undefined ? { alley: dto.alley } : {}),
+        ...(dto.buildingNo !== undefined ? { buildingNo: dto.buildingNo } : {}),
+        ...(dto.buildingSubNo !== undefined ? { buildingSubNo: dto.buildingSubNo } : {}),
+        ...(dto.floor !== undefined ? { floor: dto.floor?.trim() || null } : {}),
+        ...(dto.roomNo !== undefined ? { roomNo: dto.roomNo?.trim() || null } : {}),
         updatedBy: user.sub,
       },
       select: SEL,
@@ -178,6 +221,16 @@ export class WarehouseService {
   }
 
   private mapRow(row: Row) {
-    return { ...row };
+    const { managerUser, site, warehouseType, ...scalar } = row;
+    return {
+      ...scalar,
+      // v1.2 階段 E P4：補關聯顯示欄
+      managerUserAccount: managerUser?.userAccount ?? null,
+      managerUserName: managerUser?.userName ?? null,
+      siteCode: site?.code ?? null,
+      siteName: site?.name ?? null,
+      warehouseTypeCode: warehouseType?.code ?? null,
+      warehouseTypeName: warehouseType?.name ?? null,
+    };
   }
 }

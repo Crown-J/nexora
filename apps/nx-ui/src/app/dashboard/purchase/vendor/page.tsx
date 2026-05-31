@@ -1,14 +1,21 @@
-/**
- * @FUNCTION_CODE NX02-VEND-UI-001-F01
- * 採購供應商管理（廠商主檔、採購記錄、評鑑／談判 PRO）— DEMO mock
- */
+// apps/nx-ui/src/app/dashboard/purchase/vendor/page.tsx
+// v1.2 階段 E P6 closure：直接走 partner 分區編輯（filter S 供應商、basic + finance）
+// 舊 DEMO mock 視圖（1099 行）已清除（總經理要當第一個真客戶實測、不能出現假資料）
+'use client';
 
-import { PurchaseVendorManagementView } from '@/features/purchase/vendor/PurchaseVendorManagementView';
+import { PartnerMasterPage } from '@/features/partner-zoned';
+
+const EDITABLE_ZONES = new Set(['basic', 'finance'] as const);
 
 export default function PurchaseVendorPage() {
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col px-1 pb-6 pt-1 md:px-2">
-      <PurchaseVendorManagementView />
-    </div>
+    <PartnerMasterPage
+      pageCategory="採購"
+      pageTitle="供應商管理"
+      entityNoun="供應商"
+      filterPartnerTypes={['S']}
+      editableZones={EDITABLE_ZONES}
+      createDefaultPartnerType="S"
+    />
   );
 }
