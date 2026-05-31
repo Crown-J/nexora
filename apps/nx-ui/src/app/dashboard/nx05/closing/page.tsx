@@ -1,15 +1,13 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// apps/nx-ui/src/app/dashboard/nx05/closing/page.tsx
+// v1.2 階段 F P4：關帳作業（含 401 雙月一期預覽 + 上報旗標）
+'use client';
 
-// @FUNCTION_CODE NX05-CL-UI-001-F01
-// 路由：/dashboard/nx05/closing
-// 性質：UI stub placeholder（Crown Q-U1=c、本軌純 backend、UI 獨立軌 backlog）
-// 對應軌：TASK-NX05-IMPL-01 Phase 5（UI stub）+ TASK-NX05-IMPL-UI-01（UI 獨立軌）
-export default function Nx05ClosingWorkspacePage() {
+import { ClosingWorkbench } from '@/features/nx05/ui/ClosingWorkbench';
+
+export default function Page() {
   return (
-    <NxWorkspacePlaceholder
-      functionCode="NX05-CL-UI-001-F01"
-      title="關帳工作台"
-      desc="Closing 每日關帳（4 階：OPEN/CLOSING/CLOSED/REOPENED）+ 401 報表追蹤 + 解除關帳審計（reopenReason 永久保存）、A 軌 backend 已 closure（401 報表政府對接屬獨立技術軌、本軌 0 涵蓋）、API：GET /nx05/period-close、UI 獨立軌 TASK-NX05-IMPL-UI-01）"
-    />
+    <div className="p-4 sm:p-6">
+      <ClosingWorkbench />
+    </div>
   );
 }

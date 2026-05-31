@@ -1,15 +1,13 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// apps/nx-ui/src/app/dashboard/nx05/ar/page.tsx
+// v1.2 階段 F P4：應收帳款工作台
+'use client';
 
-// @FUNCTION_CODE NX05-AR-UI-001-F01
-// 路由：/dashboard/nx05/ar
-// 性質：UI stub placeholder（Crown Q-U1=c、本軌純 backend、UI 獨立軌 backlog）
-// 對應軌：TASK-NX05-IMPL-01 Phase 5（UI stub）+ TASK-NX05-IMPL-UI-01（UI 獨立軌）
-export default function Nx05ArWorkspacePage() {
+import { ArWorkbench } from '@/features/nx05/ui/ArWorkbench';
+
+export default function Page() {
   return (
-    <NxWorkspacePlaceholder
-      functionCode="NX05-AR-UI-001-F01"
-      title="應收帳款工作台"
-      desc="AR 5 階流（含 WRITTEN_OFF）+ overdueDays + 月底對帳單 + 逾期催收警示（業界改革候選 ⭐⭐⭐ 月結客戶必備、A 軌 backend 已 closure、API：GET /nx05/ar-statement/:customerId + GET /nx05/overdue-watcher/list、UI 獨立軌 TASK-NX05-IMPL-UI-01）"
-    />
+    <div className="p-4 sm:p-6">
+      <ArWorkbench />
+    </div>
   );
 }
