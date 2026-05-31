@@ -302,13 +302,13 @@ export function PartZonedPage({
       next[priceKey] = (c * (1 + m / 100)).toFixed(2);
     });
     if (Object.keys(next).length === 0) {
-      showToast('客戶分級主檔尚未設毛利率、請先至「客戶分級基本資料」設定 A/B/C/D 毛利率', 'danger');
+      showToast('請至《客戶分級基本資料》設定 A/B/C/D 毛利率', 'danger');
       return;
     }
     setDraft({ ...draft, ...next });
     if (missing.length > 0) {
       showToast(
-        `已依客戶分級毛利率重算 ${Object.keys(next).length}/4 級；缺：${missing.join('/')}（請至客戶分級主檔補）`,
+        `已依客戶分級毛利率重算 ${Object.keys(next).length}/4 級；缺：${missing.join('/')}（請至《客戶分級基本資料》設定 A/B/C/D 毛利率）`,
         'info',
       );
     } else {

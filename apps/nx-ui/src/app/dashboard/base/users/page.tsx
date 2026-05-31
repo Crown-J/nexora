@@ -1,16 +1,17 @@
 // apps/nx-ui/src/app/dashboard/base/users/page.tsx
-/**
- * NEXORA 使用者基本資料（鋼鐵星球範式，commit 58 取代 BaseUserMasterView）
- *
- * 設計：
- * - 內容由 features/base/users/UserMasterPage 提供（與 /lab/users 共用同一份元件）
- * - DashboardShell 已加 bypass（pathname === '/dashboard/base/users'），跳過外層 chrome 避免雙 shell
- * - 既有 BaseUserMasterView.tsx 暫留在 codebase（features/base/users/BaseUserMasterView.tsx），無人 import，觀察一週後可刪
- */
+// v1.2 階段 E P6 closure：使用者主檔走 zoned 範式（4 zone）
+// 對齊總經理 STOP-1 拍板 A：新版補完 5 客戶自助功能（建帳號 / 指派角色 / 指派倉庫 / 撤銷 / 主要切換）+ 清 admin UI 後、砍舊版
 'use client';
 
-import { UserMasterPage } from '@/features/base/users/UserMasterPage';
+import { UserZonedPage } from '@/features/user-zoned';
 
 export default function BaseUsersPage() {
-  return <UserMasterPage />;
+  return (
+    <UserZonedPage
+      pageCategory="組織架構"
+      pageTitle="使用者基本資料"
+      entityNoun="使用者"
+      // 主檔中心：無 editableZones、全 4 zone（basic 完整可編、permission 含 RBAC 連動、security/hr placeholder）
+    />
+  );
 }
