@@ -80,8 +80,11 @@ export class PoService {
   }
 
   private assertPoItemsEditable(status: string) {
+    // v1.2 階段 F P3：開放 APPROVED 主管在審核階段直接改採購單（總經理拍板「直接改」、不退回）
+    // 業務語意：避免主管駁回 → 開單人改 → 再送審的來回浪費、主管小調整可順手改完往下送
     if (
       status !== PoStatus.DRAFT &&
+      status !== PoStatus.APPROVED &&
       status !== PoStatus.CONFIRMED &&
       status !== PoStatus.PARTIAL_RECEIVED
     ) {
