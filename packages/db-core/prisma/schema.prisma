@@ -1383,6 +1383,8 @@ model Nx01User {
   rev_Nx10SurpriseBoxLog_userId            Nx10SurpriseBoxLog[]          @relation("R_Nx10SurpriseBoxLog_userId")
   rev_Nx01Partner_salesUserId              Nx01Partner[]                 @relation("R_Nx01Partner_salesUserId")
   rev_Nx01Warehouse_managerUserId          Nx01Warehouse[]               @relation("R_Nx01Warehouse_managerUserId")
+  /// 階段 F P1 加：上報 401 申報記錄（C 案上報旗標）
+  rev_Nx05Closing_reportFiledBy            Nx05Closing[]                 @relation("R_Nx05Closing_reportFiledBy")
 
   @@unique([tenantId, userAccount])
   @@unique([tenantId, email])
@@ -1983,6 +1985,8 @@ model Nx02Pr {
   supplier            Nx01Partner   @relation("R_Nx02Pr_supplierId", fields: [supplierId], references: [id])
   rr                  Nx02Rr?       @relation("R_Nx02Pr_rrId", fields: [rrId], references: [id])
   rev_Nx02PrItem_prId Nx02PrItem[]  @relation("R_Nx02PrItem_prId")
+  /// 階段 F P1 加：廠商退費衍生應收（PR POSTED → AR、Q1=a-1 對齊 ApLedger 多來源範式）
+  rev_Nx05ArLedger_prId Nx05ArLedger[] @relation("R_Nx05ArLedger_prId")
 
   @@unique([docNo])
   @@map("nx02_pr")
@@ -4403,8 +4407,12 @@ model Nx05ArLedger {
   tenantId                           String                @map("tenant_id") @db.VarChar(15)
   /// 應收帳款單號（唯一），[AR]-[年月]-[機構碼]-[5碼流水號]，EX：AR-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
   docNo                              String                @map("doc_no") @db.VarChar(30)
-  /// 來源銷貨單ID（FK nx04_so）。；啟用最低需求版本：LITE-CORE
-  soId                               String                @map("so_id") @db.VarChar(15)
+  /// 來源類型（SO=銷貨單 / PR=廠商退費衍生）。對齊 Nx05ApLedger.sourceType 範式。階段 F P1 加。；啟用最低需求版本：LITE-CORE
+  sourceType                         String                @default("SO") @map("source_type") @db.VarChar(2)
+  /// 來源銷貨單ID（FK nx04_so、sourceType=SO 時必填、PR 時為 null）。階段 F P1 改 nullable。；啟用最低需求版本：LITE-CORE
+  soId                               String?               @map("so_id") @db.VarChar(15)
+  /// 來源廠商退費單ID（FK nx02_pr、sourceType=PR 時填）。階段 F P1 加。；啟用最低需求版本：LITE-CORE
+  prId                               String?               @map("pr_id") @db.VarChar(15)
   /// 客戶ID（快照自SO，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
   customerId                         String                @map("customer_id") @db.VarChar(15)
   /// 應收帳款產生日期。；啟用最低需求版本：LITE-CORE
@@ -4442,7 +4450,8 @@ model Nx05ArLedger {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy                          String                @map("updated_by") @db.VarChar(15)
   tenant                             Nx99Tenant            @relation("R_Nx05ArLedger_tenantId", fields: [tenantId], references: [id])
-  so                                 Nx04So                @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
+  so                                 Nx04So?               @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
+  pr                                 Nx02Pr?               @relation("R_Nx05ArLedger_prId", fields: [prId], references: [id])
   customer                           Nx01Partner           @relation("R_Nx05ArLedger_customerId", fields: [customerId], references: [id])
   currency                           Nx01Currency          @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
   rev_Nx05Allowance_refArId          Nx05Allowance[]       @relation("R_Nx05Allowance_refArId")
@@ -4493,7 +4502,14 @@ model Nx05Closing {
   updatedAt       DateTime   @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy       String     @map("updated_by") @db.VarChar(15)
+  /// 階段 F P1 加：所屬 401 申報期（YYYY-EE 格式、EE=01~06、01=1-2月 / 02=3-4月 / 03=5-6月 / 04=7-8月 / 05=9-10月 / 06=11-12月）。Q5=b 對齊 C 案上報旗標。；啟用最低需求版本：LITE-CORE
+  reportPeriod    String?    @map("report_period") @db.VarChar(7)
+  /// 階段 F P1 加：上報 401 報表完成時間（null=未上報、可解鎖該期；非 null=已上報、該期所有月鎖死）；啟用最低需求版本：LITE-CORE
+  reportFiledAt   DateTime?  @map("report_filed_at")
+  /// 階段 F P1 加：上報人 user id（FK nx01_user）；啟用最低需求版本：LITE-CORE
+  reportFiledBy   String?    @map("report_filed_by") @db.VarChar(15)
   tenant          Nx99Tenant @relation("R_Nx05Closing_tenantId", fields: [tenantId], references: [id])
+  reportFiler     Nx01User?  @relation("R_Nx05Closing_reportFiledBy", fields: [reportFiledBy], references: [id])
 
   @@map("nx05_closing")
 }
