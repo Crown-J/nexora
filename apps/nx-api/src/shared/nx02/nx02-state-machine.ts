@@ -8,8 +8,29 @@ export const RfqStatus = {
   CANCELLED: 'CANCELLED',
 } as const;
 
+/**
+ * PoStatus 採購單狀態（v1.2 階段 F P3 對齊總經理拍板 + Alex Q3=a）
+ *
+ * 狀態流：DRAFT → APPROVED → SUBMITTED → CONFIRMED → PARTIAL_RECEIVED / RECEIVED → CLOSED
+ *                                            ↑
+ *                                  「廠商確認」應付產生點（createApFromConfirmedPo 觸發）
+ *
+ * 業務語意（總經理 2026-05-31 拍板）：
+ * - DRAFT       草稿（業務建單中）
+ * - APPROVED    主管審核通過（業務送審完成、寫 approvedAt + approvedBy）
+ * - SUBMITTED   已向廠商提出（採購方按「提出」、等廠商回覆）
+ * - CONFIRMED   廠商確認備貨（廠商回覆 OK、應付認列、業務語意「先款後貨」）
+ * - PARTIAL_RECEIVED 部分驗收
+ * - RECEIVED    全部驗收
+ * - CLOSED      結案
+ * - CANCELLED   取消
+ *
+ * 兼容性：既有 createApFromConfirmedPo 觸發點不動（CONFIRMED 業務語意改為「廠商確認」、helper 名稱保留）
+ */
 export const PoStatus = {
   DRAFT: 'DRAFT',
+  APPROVED: 'APPROVED',
+  SUBMITTED: 'SUBMITTED',
   CONFIRMED: 'CONFIRMED',
   PARTIAL_RECEIVED: 'PARTIAL_RECEIVED',
   RECEIVED: 'RECEIVED',
@@ -43,7 +64,10 @@ const RFQ_EDGES: Record<string, Set<string>> = {
 };
 
 const PO_EDGES: Record<string, Set<string>> = {
-  [PoStatus.DRAFT]: new Set([PoStatus.CONFIRMED, PoStatus.CANCELLED]),
+  // v1.2 階段 F P3：拆 4 段（DRAFT → APPROVED → SUBMITTED → CONFIRMED）
+  [PoStatus.DRAFT]: new Set([PoStatus.APPROVED, PoStatus.CANCELLED]),
+  [PoStatus.APPROVED]: new Set([PoStatus.SUBMITTED, PoStatus.DRAFT, PoStatus.CANCELLED]),
+  [PoStatus.SUBMITTED]: new Set([PoStatus.CONFIRMED, PoStatus.APPROVED, PoStatus.CANCELLED]),
   [PoStatus.CONFIRMED]: new Set([PoStatus.PARTIAL_RECEIVED, PoStatus.RECEIVED, PoStatus.CANCELLED]),
   [PoStatus.PARTIAL_RECEIVED]: new Set([PoStatus.RECEIVED, PoStatus.CLOSED, PoStatus.CANCELLED]),
   [PoStatus.RECEIVED]: new Set([PoStatus.CLOSED, PoStatus.CANCELLED]),

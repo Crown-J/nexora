@@ -105,6 +105,73 @@ export class ApService {
     return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
   }
 
+  /**
+   * v1.2 階段 F P3 G：應付彙整視圖（ApLedger + 銷退衍生 Allowance）
+   *
+   * 對齊：
+   *   - 意圖書 §3.1 應付來源 = 採購單（廠商確認）+ 銷退單
+   *   - Alex Q2=(b)：不動既有 Allowance 寫入邏輯、查詢層 join 顯示
+   *
+   * 業務語意：
+   *   - 採購應付 → ApLedger row（既有 createApFromConfirmedPo / createApFromRr）
+   *   - 銷退應付 → Allowance allowanceType='S'（既有 createAllowanceFromSr、客戶退錢需求）
+   *
+   * 回傳統一視圖（兩種來源 union）：
+   *   { kind: 'AP', ...ApLedger }
+   *   { kind: 'SR_ALLOWANCE', ...Allowance（attached partner / refAr）}
+   *
+   * 注意：本視圖不分頁、彙整目的（前端依需要過濾）；分頁需求走原 list endpoint。
+   */
+  async listPayableView(user: RequestUser, q: Nx05ListQueryDto) {
+    const tenantId = requireTenantId(user);
+    const apWhere = this.whereList(tenantId, q);
+    const [aps, srAllowances] = await Promise.all([
+      this.prisma.nx05ApLedger.findMany({
+        where: apWhere,
+        orderBy: [{ apDate: 'desc' }, { docNo: 'desc' }],
+        select: AP_SEL,
+      }),
+      this.prisma.nx05Allowance.findMany({
+        where: {
+          tenantId,
+          allowanceType: 'S', // 銷貨折讓（含銷退退款給客戶）
+          status: { in: ['APPROVED', 'A'] }, // 已核准（DB 兩階段範式：D draft / A approved）
+        },
+        select: {
+          id: true,
+          docNo: true,
+          allowanceDate: true,
+          partnerId: true,
+          refArId: true,
+          totalAmount: true,
+          status: true,
+          remark: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: [{ allowanceDate: 'desc' }],
+      }),
+    ]);
+    return {
+      ap: aps.map((r) => ({ kind: 'AP' as const, ...this.mapRow(r) })),
+      srAllowance: srAllowances.map((r) => ({
+        kind: 'SR_ALLOWANCE' as const,
+        id: r.id,
+        docNo: r.docNo,
+        date: r.allowanceDate,
+        partnerId: r.partnerId,
+        refArId: r.refArId,
+        amount: r.totalAmount,
+        status: r.status,
+        remark: r.remark,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      })),
+      totalCount: aps.length + srAllowances.length,
+      note: '本視圖彙總「採購單應付」（ApLedger）+「銷退退款」（Allowance type=S、已核准）兩種應付來源',
+    };
+  }
+
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
     const row = await this.prisma.nx05ApLedger.findFirst({

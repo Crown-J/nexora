@@ -22,6 +22,15 @@ export class PeriodCloseController {
     return this.svc.list(user, q);
   }
 
+  /**
+   * v1.2 階段 F P3 F：401 雙月一期彙整預覽
+   * GET /nx05/period-close/period/:yp/preview（yp 格式 YYYY-EE、例 '2026-03'=5-6 月）
+   */
+  @Get('period/:yp/preview')
+  previewPeriod401(@CurrentUser() user: RequestUser, @Param('yp') yp: string) {
+    return this.svc.previewPeriod401(user, yp);
+  }
+
   @Get(':id')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);
@@ -35,6 +44,21 @@ export class PeriodCloseController {
   @Patch(':id')
   patch(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() dto: PatchPeriodCloseDto) {
     return this.svc.patch(user, id, dto);
+  }
+
+  /**
+   * v1.2 階段 F P3 E：標記該關帳所屬 401 期已上報
+   * POST /nx05/period-close/:id/mark-filed
+   * - 業務檢查：所屬期內兩個月關帳都齊（兩筆 CLOSED row）才可上報
+   * - 寫 reportFiledAt + reportFiledBy、整期鎖死（period-lock 自動生效）
+   */
+  @Post(':id/mark-filed')
+  markFiled(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() body: { remark?: string },
+  ) {
+    return this.svc.markFiled(user, id, body?.remark);
   }
 
   @Delete(':id')

@@ -22,6 +22,15 @@ export class ApController {
     return this.svc.list(user, q);
   }
 
+  /**
+   * v1.2 階段 F P3 G：應付彙整視圖（採購應付 + 銷退退款 Allowance）
+   * GET /nx05/ap/payable-view
+   */
+  @Get('payable-view')
+  payableView(@CurrentUser() user: RequestUser, @Query() q: Nx05ListQueryDto) {
+    return this.svc.listPayableView(user, q);
+  }
+
   @Get(':id')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);
