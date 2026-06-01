@@ -11,8 +11,21 @@ import {
   ValidateNested,
 } from 'class-validator';
 
+import { Nx02ListQueryDto } from '../../../shared/nx02/nx02-list-query.dto';
+
 /** 採購類型（D=國內一般 / I=國外進口 / B=掃貨 Bulk）。對齊 schema nx02_po.purchase_type default 'D'、overview §3.2 + Crown Q2。 */
 const PURCHASE_TYPES = ['D', 'I', 'B'] as const;
+
+/**
+ * PO 列表查詢（含 purchaseType filter、階段 I P4 國外進貨 UI 用）。
+ * 預設不帶 = 全部、'I' = 國外進口、'D' = 國內、'B' = 掃貨。
+ */
+export class PoListQueryDto extends Nx02ListQueryDto {
+  @IsOptional()
+  @IsString()
+  @IsIn(PURCHASE_TYPES as unknown as string[])
+  purchaseType?: 'D' | 'I' | 'B';
+}
 
 export class CreatePoItemDto {
   @IsString()

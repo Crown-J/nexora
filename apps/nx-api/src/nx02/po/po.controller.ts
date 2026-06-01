@@ -7,7 +7,7 @@ import { Roles } from '../../shared/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
-import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
+import { PoListQueryDto } from './dto/po.dto';
 
 import { CreatePoDto, CreatePoItemDto, PatchPoItemDto, UpdatePoDto } from './dto/po.dto';
 import { PoService } from './po.service';
@@ -20,7 +20,7 @@ export class PoController {
 
   @Get()
   @Permission('purchase.po.list')
-  list(@CurrentUser() user: RequestUser, @Query() q: Nx02ListQueryDto) {
+  list(@CurrentUser() user: RequestUser, @Query() q: PoListQueryDto) {
     return this.svc.list(user, q);
   }
 

@@ -12,6 +12,8 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
+
+import type { PoListQueryDto } from './dto/po.dto';
 import { assertPoStatusTransition, PoStatus } from '../../shared/nx02/nx02-state-machine';
 import { createApFromConfirmedPo } from '../../shared/nx05/nx05-create-ap-from-po';
 import { syncApLedgerFromPo } from '../../shared/nx05/nx05-sync-ap-from-po';
@@ -34,6 +36,19 @@ const PO_SEL = {
   totalAmount: true,
   expectedDate: true,
   remark: true,
+  // 階段 I P4：國外進貨 6 階段欄位（前端國外採購頁需要）
+  purchaseType: true,
+  purchaseStage: true,
+  paymentTermImport: true,
+  paymentTermDomestic: true,
+  incoterm: true,
+  vesselNo: true,
+  containerNo: true,
+  eta: true,
+  requestedPaymentAt: true,
+  paidAt: true,
+  shippedAt: true,
+  arrivedAt: true,
   voidedAt: true,
   voidedBy: true,
   createdAt: true,
@@ -69,9 +84,10 @@ export class PoService {
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
-  private whereList(tenantId: string, q: Nx02ListQueryDto): Prisma.Nx02PoWhereInput {
+  private whereList(tenantId: string, q: PoListQueryDto): Prisma.Nx02PoWhereInput {
     const where: Prisma.Nx02PoWhereInput = { tenantId, voidedAt: null };
     if (q.status?.trim()) where.status = q.status.trim();
+    if (q.purchaseType) where.purchaseType = q.purchaseType;
     if (q.search?.trim()) {
       const s = q.search.trim();
       where.OR = [{ docNo: { contains: s, mode: 'insensitive' } }, { remark: { contains: s, mode: 'insensitive' } }];
@@ -134,7 +150,7 @@ export class PoService {
     });
   }
 
-  async list(user: RequestUser, q: Nx02ListQueryDto) {
+  async list(user: RequestUser, q: PoListQueryDto) {
     const tenantId = requireTenantId(user);
     const page = q.page ?? 1;
     const pageSize = q.pageSize ?? 20;
