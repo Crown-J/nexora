@@ -350,3 +350,87 @@ export async function completeReceiving(id: string, currentStatus: InboundStatus
   }
   return patchInbound(id, { status: 'POSTED' });
 }
+
+// ────────────────────────────────────────────────────────────
+// nx03/stocktake（盤點、P6 手機掃條碼用）
+// status: DRAFT → COUNTING → ADJUSTING → POSTED / CANCELLED
+// ────────────────────────────────────────────────────────────
+
+export type StocktakeStatus = 'DRAFT' | 'COUNTING' | 'ADJUSTING' | 'POSTED' | 'CANCELLED';
+
+export interface StocktakeItem {
+  id: string;
+  stockTakeId: string;
+  lineNo: number;
+  partId: string;
+  partNo?: string | null;
+  partName?: string | null;
+  locationId?: string | null;
+  systemQty: string;
+  countedQty?: string | null;
+  diffQty?: string | null;
+  varianceReasonCode?: 'S' | 'M' | 'B' | 'U' | null;
+  remark?: string | null;
+}
+
+export interface Stocktake {
+  id: string;
+  tenantId: string;
+  docNo: string;
+  warehouseId: string;
+  stockTakeDate: string;
+  scopeType?: string | null;
+  status: StocktakeStatus;
+  approvalStatus?: 'N' | 'P' | 'A' | 'R' | null;
+  remark?: string | null;
+  createdAt: string;
+}
+
+export interface StocktakeDetail extends Stocktake {
+  items: StocktakeItem[];
+}
+
+export function getStocktake(id: string): Promise<StocktakeDetail> {
+  return apiJson(`/nx03/stocktake/${encodeURIComponent(id)}`);
+}
+
+export function patchStocktake(
+  id: string,
+  payload: { status?: StocktakeStatus; remark?: string },
+): Promise<Stocktake> {
+  return apiJson(`/nx03/stocktake/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function patchStocktakeItem(
+  stockTakeId: string,
+  itemId: string,
+  payload: {
+    countedQty?: number;
+    varianceReasonCode?: 'S' | 'M' | 'B' | 'U';
+    remark?: string;
+  },
+): Promise<StocktakeItem> {
+  return apiJson(
+    `/nx03/stocktake/${encodeURIComponent(stockTakeId)}/items/${encodeURIComponent(itemId)}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+/**
+ * 盤點掃條碼進入「盤點中」階段（DRAFT → COUNTING）。
+ * 若已 COUNTING/ADJUSTING 則無動作。
+ */
+export async function ensureCountingStatus(
+  id: string,
+  currentStatus: StocktakeStatus,
+): Promise<void> {
+  if (currentStatus === 'DRAFT') {
+    await patchStocktake(id, { status: 'COUNTING' });
+  }
+}
