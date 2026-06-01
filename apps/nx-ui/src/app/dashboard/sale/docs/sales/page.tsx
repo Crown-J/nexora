@@ -1,8 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/docs/sales/page.tsx
-// R7 Phase 3：單據管理「銷售單據管理」占位頁
+// v1.2 階段 I P5：舊版路徑 redirect 到 NX04 銷貨工作台
+import { redirect } from 'next/navigation';
 
-import { PlaceholderPage } from '@/features/sale/ui/hub/components/PlaceholderPage';
-
-export default function SaleDocsSalesPage() {
-  return <PlaceholderPage title="銷售單據管理" />;
+export default function Page() {
+  redirect('/dashboard/nx04/sales-order');
 }
