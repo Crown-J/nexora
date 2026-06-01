@@ -31,6 +31,17 @@ export class PeriodCloseController {
     return this.svc.previewPeriod401(user, yp);
   }
 
+  /**
+   * v1.2 階段 F P5 A：401 媒體申報 TXT 兩檔輸出
+   * GET /nx05/period-close/period/:yp/txt-export
+   * - 回傳兩個檔案 base64 內容 + 檔名 + 彙整摘要
+   * - 前端 decode 後分別存檔（{統編}.TXT + {統編}.TET_U）
+   */
+  @Get('period/:yp/txt-export')
+  export401Txt(@CurrentUser() user: RequestUser, @Param('yp') yp: string) {
+    return this.svc.export401Txt(user, yp);
+  }
+
   @Get(':id')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);

@@ -252,6 +252,101 @@ export async function previewPeriod401(yp: string): Promise<Period401Preview> {
   return res.json() as Promise<Period401Preview>;
 }
 
+// v1.2 階段 F P5 A：401 TXT 兩檔下載
+export type Period401TxtExport = {
+  reportPeriod: string;
+  mediaFileName: string;
+  mediaContent: string; // base64
+  mediaLineCount: number;
+  mainFileName: string;
+  mainContent: string; // base64
+  summary: {
+    salesNet: string;
+    outputTax: string;
+    purchaseNet: string;
+    inputTax: string;
+    taxPayable: string;
+  };
+  note: string;
+};
+
+export async function export401Txt(yp: string): Promise<Period401TxtExport> {
+  const res = await apiFetch(`/nx05/period-close/period/${encodeURIComponent(yp)}/txt-export`, {
+    method: 'GET',
+  });
+  await assertOk(res, 'nxui_nx05_401_txt_export');
+  return res.json();
+}
+
+// v1.2 階段 F P5 B：票據新增 + 一對多沖銷
+export type NoteSettlement = {
+  arId?: string | null;
+  apId?: string | null;
+  settledAmount: number | string;
+};
+
+export type CreateNoteWithSettlementsBody = {
+  noteType: 'R' | 'P'; // R=收款 / P=付款
+  paymentMethod: 'CASH' | 'TRANSFER' | 'CHECK' | 'CREDIT';
+  partnerId: string;
+  amount: number | string;
+  noteDate: string; // YYYY-MM-DD
+  remark?: string;
+  settlements: NoteSettlement[];
+};
+
+export async function createNoteWithSettlements(
+  body: CreateNoteWithSettlementsBody,
+): Promise<{ paylogId: string; settlements: number }> {
+  const res = await apiFetch('/nx05/paylog/with-settlements', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  await assertOk(res, 'nxui_nx05_paylog_create_with_settlements');
+  return res.json();
+}
+
+// v1.2 階段 F P5 E：催款（純內部記錄）
+export async function notifyArOverdue(
+  arId: string,
+  remark?: string,
+): Promise<{ logId: string }> {
+  const res = await apiFetch(`/nx05/ar/${encodeURIComponent(arId)}/notify-overdue`, {
+    method: 'POST',
+    body: JSON.stringify({ remark }),
+  });
+  await assertOk(res, 'nxui_nx05_ar_notify_overdue');
+  return res.json();
+}
+
+// v1.2 階段 F P5 E：折讓人工沖銷 + 主管核可
+export type CreateAllowanceBody = {
+  allowanceType: 'P' | 'S'; // P=進貨折讓 / S=銷貨折讓
+  partnerId: string;
+  allowanceDate: string;
+  totalAmount: number | string;
+  refArId?: string;
+  refApId?: string;
+  remark?: string;
+};
+
+export async function createAllowanceManual(body: CreateAllowanceBody): Promise<{ id: string }> {
+  const res = await apiFetch('/nx05/allowance/manual', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  await assertOk(res, 'nxui_nx05_allowance_create_manual');
+  return res.json();
+}
+
+export async function approveAllowance(id: string): Promise<{ id: string; status: string }> {
+  const res = await apiFetch(`/nx05/allowance/${encodeURIComponent(id)}/approve`, {
+    method: 'POST',
+  });
+  await assertOk(res, 'nxui_nx05_allowance_approve');
+  return res.json();
+}
+
 // ============================================================
 // Note（票據）
 // ============================================================

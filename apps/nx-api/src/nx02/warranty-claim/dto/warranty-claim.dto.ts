@@ -135,6 +135,12 @@ export class SubmitWarrantyClaimDto {}
 /** 進入審核中（SUBMITTED → REVIEWING）、無 body */
 export class StartReviewWarrantyClaimDto {}
 
+// v1.2 階段 F P5 D：result='REF' 退錢時的退款方式（總經理 2026-06-01 拍板）
+//   O = Offset    下次付款扣抵
+//   A = Allowance 開折讓單（含主管核可）
+//   R = Refund    直接匯款退現
+const REFUND_METHODS = ['O', 'A', 'R'] as const;
+
 /** 登記審核結果（REVIEWING → COMPLETED） */
 export class RegisterResultDto {
   @IsString()
@@ -145,6 +151,19 @@ export class RegisterResultDto {
   @MinLength(1)
   @MaxLength(500)
   resultRemark!: string;
+
+  /** v1.2 階段 F P5 D：退款金額（result=REF 時必填、系統建議值=進貨成本×qty、業務可改） */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0)
+  refundAmount?: number;
+
+  /** v1.2 階段 F P5 D：退款方式（result=REF 時必填、O/A/R 三選一） */
+  @IsOptional()
+  @IsString()
+  @IsIn(REFUND_METHODS)
+  refundMethod?: string;
 }
 
 export class VoidWarrantyClaimDto {}

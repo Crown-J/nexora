@@ -32,6 +32,36 @@ export class AllowanceController {
     return this.svc.create(user, dto);
   }
 
+  /**
+   * v1.2 階段 F P5 E：人工開折讓（DRAFT、待主管核可）
+   * POST /nx05/allowance/manual
+   */
+  @Post('manual')
+  createManual(
+    @CurrentUser() user: RequestUser,
+    @Body()
+    body: {
+      allowanceType: 'P' | 'S';
+      partnerId: string;
+      allowanceDate: string;
+      totalAmount: number | string;
+      refArId?: string;
+      refApId?: string;
+      remark?: string;
+    },
+  ) {
+    return this.svc.createManual(user, body);
+  }
+
+  /**
+   * v1.2 階段 F P5 E：主管核可折讓（DRAFT → APPROVED + 寫沖銷）
+   * POST /nx05/allowance/:id/approve
+   */
+  @Post(':id/approve')
+  approve(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.approve(user, id);
+  }
+
   @Patch(':id')
   patch(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() dto: PatchAllowanceDto) {
     return this.svc.patch(user, id, dto);

@@ -3,11 +3,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarCheck, FileCheck, FilePlus, RefreshCw } from 'lucide-react';
+import { CalendarCheck, Download, FileCheck, FilePlus, RefreshCw } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import {
   createClosing,
+  export401Txt,
   listClosing,
   markClosingFiled,
   patchClosingStatus,
@@ -118,6 +119,29 @@ export function ClosingWorkbench() {
     }
   }, []);
 
+  // 下載 401 TXT 兩檔（fixed-width 媒體申報檔 + 主表）
+  const handleDownloadTxt = useCallback(async () => {
+    try {
+      const res = await export401Txt(selectedYp);
+      const downloadBase64 = (base64: string, filename: string) => {
+        const binStr = atob(base64);
+        const bytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+      downloadBase64(res.mediaContent, res.mediaFileName);
+      downloadBase64(res.mainContent, res.mainFileName);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }, [selectedYp]);
+
   // 標記 401 已上報
   const handleMarkFiled = useCallback(async (row: ClosingRow) => {
     if (
@@ -199,6 +223,14 @@ export function ClosingWorkbench() {
               className="inline-flex h-8 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
             >
               預覽
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDownloadTxt()}
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-[#22D88F]/40 bg-[#22D88F]/12 px-2.5 text-xs font-medium text-[#22D88F] hover:bg-[#22D88F]/20"
+              title="產出 401 媒體申報 TXT 兩檔（{統編}.TXT 進銷項資料 + {統編}.TET_U 主表）"
+            >
+              <Download className="size-3.5" /> 下載 TXT
             </button>
           </div>
         </div>

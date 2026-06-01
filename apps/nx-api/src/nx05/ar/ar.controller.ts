@@ -37,6 +37,19 @@ export class ArController {
     return this.svc.patch(user, id, dto);
   }
 
+  /**
+   * v1.2 階段 F P5 E：應收催款（純內部記錄）
+   * POST /nx05/ar/:id/notify-overdue
+   */
+  @Post(':id/notify-overdue')
+  notifyOverdue(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() body: { remark?: string },
+  ) {
+    return this.svc.notifyOverdue(user, id, body?.remark);
+  }
+
   @Delete(':id')
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.remove(user, id);

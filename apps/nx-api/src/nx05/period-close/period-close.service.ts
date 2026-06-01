@@ -14,6 +14,12 @@ import { allocNx05DocNo } from '../../shared/nx05/nx05-doc-no';
 import { assertClosingStatusTransition, ClosingStatus } from '../../shared/nx05/nx05-state-machine';
 import { Nx05ListQueryDto } from '../../shared/nx05/nx05-list-query.dto';
 import { monthsInPeriod, yearPeriod } from '../../shared/nx05/nx05-period-lock';
+import {
+  buildMainForm,
+  buildMediaRow,
+  rocYearMonth,
+  splitTaxFromGross,
+} from '../../shared/nx05/nx05-401-txt-formatter';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreatePeriodCloseDto, PatchPeriodCloseDto } from './dto/period-close.dto';
@@ -359,6 +365,211 @@ export class PeriodCloseService {
       filed: closings.some((c) => c.reportFiledAt != null),
       readyToFile: closings.filter((c) => c.status === ClosingStatus.CLOSED).length >= 2,
       note: '本期彙總為基礎版（未拆 5% 稅率）；401 TXT 精確格式待 P5 補（依財政部規範）',
+    };
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // v1.2 階段 F P5 A：401 媒體申報 TXT 兩檔輸出
+  // ────────────────────────────────────────────────────────────
+
+  /**
+   * 產生 401 期的兩個申報檔（純 ASCII、依財政部規範）：
+   *   1) {統編}.TXT      進銷項資料檔（fixed-width 81 字元 / 行）
+   *   2) {統編}.TET_U    401 主表檔（112 欄、|分隔）
+   *
+   * 回傳 base64 字串、前端 decode 後分別存檔。
+   */
+  async export401Txt(user: RequestUser, yp: string) {
+    const tenantId = requireTenantId(user);
+    if (!/^\d{4}-\d{2}$/.test(yp)) {
+      throw new BadRequestException(`期碼格式錯誤、需 YYYY-EE（取得 ${yp}）`);
+    }
+    const months = monthsInPeriod(yp);
+    if (months.length !== 2) throw new BadRequestException(`期碼 ${yp} 無效`);
+    const [m1, m2] = months;
+    const m1Match = m1!.match(/^(\d{4})-(\d{2})$/)!;
+    const m2Match = m2!.match(/^(\d{4})-(\d{2})$/)!;
+    const startDate = new Date(parseInt(m1Match[1]!, 10), parseInt(m1Match[2]!, 10) - 1, 1);
+    const endDate = new Date(parseInt(m2Match[1]!, 10), parseInt(m2Match[2]!, 10), 0, 23, 59, 59);
+
+    // 取我方營業人資料（統編 + 公司名）
+    const tenant = await this.prisma.nx99Tenant.findFirst({
+      where: { id: tenantId },
+      select: { taxId: true, name: true },
+    });
+    if (!tenant?.taxId) {
+      throw new BadRequestException('申報營業人未設統一編號、無法產出 401 TXT、請至公司設定補');
+    }
+    const filerTaxId = tenant.taxId.padEnd(9, '0').slice(0, 9);
+    const yyymm = rocYearMonth(endDate);
+
+    // 抓 SO（銷項）/ SR（銷退）/ RR（進項）/ PR（進貨退出）
+    const [sos, srs, rrs, prs] = await Promise.all([
+      this.prisma.nx04So.findMany({
+        where: { tenantId, soDate: { gte: startDate, lte: endDate }, cancelledAt: null },
+        select: {
+          docNo: true,
+          totalAmount: true,
+          subtotal: true,
+          taxAmount: true,
+          customer: { select: { taxId: true } },
+        },
+      }),
+      this.prisma.nx04Sr.findMany({
+        where: { tenantId, srDate: { gte: startDate, lte: endDate } },
+        select: {
+          docNo: true,
+          totalAmount: true,
+          subtotal: true,
+          taxAmount: true,
+          customer: { select: { taxId: true } },
+        },
+      }),
+      this.prisma.nx02Rr.findMany({
+        where: { tenantId, rrDate: { gte: startDate, lte: endDate }, status: 'POSTED' },
+        select: {
+          docNo: true,
+          totalAmount: true,
+          subtotal: true,
+          taxAmount: true,
+          supplier: { select: { taxId: true } },
+        },
+      }),
+      this.prisma.nx02Pr.findMany({
+        where: { tenantId, prDate: { gte: startDate, lte: endDate }, status: 'POSTED' },
+        select: {
+          docNo: true,
+          totalAmount: true,
+          subtotal: true,
+          taxAmount: true,
+          supplier: { select: { taxId: true } },
+        },
+      }),
+    ]);
+
+    // 組進銷項資料檔（每筆 81 字元）
+    const mediaLines: string[] = [];
+    let serial = 0;
+    for (const so of sos) {
+      // 銷售額 / 稅額：用既有 schema subtotal + taxAmount（已拆稅）、taxAmount=0 時拆算
+      const sale = so.subtotal && Number(so.subtotal) > 0 ? so.subtotal : splitTaxFromGross(so.totalAmount).sales;
+      const tax = so.taxAmount && Number(so.taxAmount) > 0 ? so.taxAmount : splitTaxFromGross(so.totalAmount).tax;
+      mediaLines.push(
+        buildMediaRow({
+          formatCode: '31', // 銷項三聯式
+          filerTaxId,
+          sellerTaxId: filerTaxId, // 我方銷售
+          buyerTaxId: (so.customer?.taxId || '').padStart(8, '0').slice(0, 8) || '00000000',
+          serialNo: ++serial,
+          yyymm,
+          salesAmount: sale,
+          taxClass: '1',
+          taxAmount: tax,
+          deductionCode: ' ', // 銷項補空白
+        }),
+      );
+    }
+    for (const sr of srs) {
+      const sale = sr.subtotal && Number(sr.subtotal) > 0 ? sr.subtotal : splitTaxFromGross(sr.totalAmount).sales;
+      const tax = sr.taxAmount && Number(sr.taxAmount) > 0 ? sr.taxAmount : splitTaxFromGross(sr.totalAmount).tax;
+      mediaLines.push(
+        buildMediaRow({
+          formatCode: '33', // 銷貨退回 / 折讓
+          filerTaxId,
+          sellerTaxId: filerTaxId,
+          buyerTaxId: (sr.customer?.taxId || '').padStart(8, '0').slice(0, 8) || '00000000',
+          serialNo: ++serial,
+          yyymm,
+          salesAmount: sale,
+          taxClass: '1',
+          taxAmount: tax,
+          deductionCode: ' ',
+        }),
+      );
+    }
+    for (const rr of rrs) {
+      const sale = rr.subtotal && Number(rr.subtotal) > 0 ? rr.subtotal : splitTaxFromGross(rr.totalAmount).sales;
+      const tax = rr.taxAmount && Number(rr.taxAmount) > 0 ? rr.taxAmount : splitTaxFromGross(rr.totalAmount).tax;
+      mediaLines.push(
+        buildMediaRow({
+          formatCode: '21', // 進項三聯式
+          filerTaxId,
+          sellerTaxId: (rr.supplier?.taxId || '').padStart(8, '0').slice(0, 8) || '00000000',
+          buyerTaxId: filerTaxId,
+          serialNo: ++serial,
+          yyymm,
+          salesAmount: sale,
+          taxClass: '1',
+          taxAmount: tax,
+          deductionCode: '1', // 1 = 可扣抵
+        }),
+      );
+    }
+    for (const pr of prs) {
+      const sale = pr.subtotal && Number(pr.subtotal) > 0 ? pr.subtotal : splitTaxFromGross(pr.totalAmount).sales;
+      const tax = pr.taxAmount && Number(pr.taxAmount) > 0 ? pr.taxAmount : splitTaxFromGross(pr.totalAmount).tax;
+      mediaLines.push(
+        buildMediaRow({
+          formatCode: '23', // 進貨退出 / 折讓
+          filerTaxId,
+          sellerTaxId: (pr.supplier?.taxId || '').padStart(8, '0').slice(0, 8) || '00000000',
+          buyerTaxId: filerTaxId,
+          serialNo: ++serial,
+          yyymm,
+          salesAmount: sale,
+          taxClass: '1',
+          taxAmount: tax,
+          deductionCode: '1',
+        }),
+      );
+    }
+    const mediaContent = mediaLines.join('\r\n') + (mediaLines.length > 0 ? '\r\n' : '');
+
+    // 算主表彙整
+    const sumSubtotal = (rows: Array<{ subtotal: PrismaNs.Decimal | null | undefined; totalAmount: PrismaNs.Decimal }>) =>
+      rows.reduce((acc, r) => {
+        const v = r.subtotal && Number(r.subtotal) > 0 ? r.subtotal : splitTaxFromGross(r.totalAmount).sales;
+        return acc.plus(new PrismaNs.Decimal(v));
+      }, new PrismaNs.Decimal(0));
+    const sumTax = (rows: Array<{ taxAmount: PrismaNs.Decimal | null | undefined; totalAmount: PrismaNs.Decimal }>) =>
+      rows.reduce((acc, r) => {
+        const v = r.taxAmount && Number(r.taxAmount) > 0 ? r.taxAmount : splitTaxFromGross(r.totalAmount).tax;
+        return acc.plus(new PrismaNs.Decimal(v));
+      }, new PrismaNs.Decimal(0));
+
+    const salesNet = sumSubtotal(sos).minus(sumSubtotal(srs));
+    const outputTax = sumTax(sos).minus(sumTax(srs));
+    const purchaseNet = sumSubtotal(rrs).minus(sumSubtotal(prs));
+    const inputTax = sumTax(rrs).minus(sumTax(prs));
+    const taxPayable = outputTax.minus(inputTax);
+
+    const mainContent = buildMainForm({
+      filerTaxId,
+      filerName: tenant.name || '',
+      yyymm,
+      totalSalesTaxable: salesNet,
+      totalSalesZero: 0,
+      totalSalesExempt: 0,
+      outputTax,
+      inputTax,
+      taxPayable,
+    });
+
+    return {
+      reportPeriod: yp,
+      mediaFileName: `${tenant.taxId}.TXT`,
+      mediaContent: Buffer.from(mediaContent, 'ascii').toString('base64'),
+      mediaLineCount: mediaLines.length,
+      mainFileName: `${tenant.taxId}.TET_U`,
+      mainContent: Buffer.from(mainContent, 'ascii').toString('base64'),
+      summary: {
+        salesNet: salesNet.toString(),
+        outputTax: outputTax.toString(),
+        purchaseNet: purchaseNet.toString(),
+        inputTax: inputTax.toString(),
+        taxPayable: taxPayable.toString(),
+      },
+      note: '401 主表為基礎版（112 欄完整對照列入後續軌）；進銷項資料檔 81 字元已對齊規範',
     };
   }
 

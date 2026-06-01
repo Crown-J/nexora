@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Bell, RefreshCw, Search } from 'lucide-react';
 
-import { listAr, type ArRow } from '@/features/nx05/api';
+import { listAr, notifyArOverdue, type ArRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 
@@ -166,21 +166,29 @@ export function ArWorkbench() {
               key: 'actions',
               label: '操作',
               align: 'right',
-              render: () => (
+              render: (r) => (
                 <div className="flex justify-end gap-1">
                   <button
                     type="button"
                     disabled
-                    title="P5 後續軌：開收款票據沖銷"
+                    title="UI 後續軌：開收款票據沖銷（後端 endpoint /nx05/paylog/with-settlements 已備）"
                     className="inline-flex h-6 cursor-not-allowed items-center gap-1 rounded-md border border-[#3A3A42] px-2 text-[10px] text-[#5A5A60]"
                   >
-                    沖銷（P5）
+                    沖銷
                   </button>
                   <button
                     type="button"
-                    disabled
-                    title="P5 後續軌：催款通知"
-                    className="inline-flex h-6 cursor-not-allowed items-center gap-1 rounded-md border border-[#3A3A42] px-2 text-[10px] text-[#5A5A60]"
+                    onClick={async () => {
+                      const remark = window.prompt('催款備註（可空、純內部記錄）：') ?? '';
+                      try {
+                        await notifyArOverdue(r.id, remark || undefined);
+                        setReloadTick((t) => t + 1);
+                      } catch (e) {
+                        setError((e as Error).message);
+                      }
+                    }}
+                    title="記錄催款（純內部、不寄 email/簡訊）"
+                    className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[10px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
                   >
                     <Bell className="size-3" /> 催款
                   </button>

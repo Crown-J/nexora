@@ -145,6 +145,42 @@ export class ArService {
     });
   }
 
+  /**
+   * v1.2 階段 F P5 E：應收催款（純內部記錄、Alex E②=A）
+   * 寫一筆 nx05_ar_reminder_log row、不寄 email/簡訊（後續軌補）。
+   */
+  async notifyOverdue(user: RequestUser, arId: string, remark?: string) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const ar = await tx.nx05ArLedger.findFirst({
+        where: { id: arId, tenantId },
+        select: { id: true, docNo: true },
+      });
+      if (!ar) throw new NotFoundException('AR not found');
+      const log = await tx.nx05ArReminderLog.create({
+        data: {
+          tenantId,
+          arId,
+          remindedAt: new Date(),
+          remindedBy: user.sub,
+          remark: remark?.trim() || null,
+        },
+        select: { id: true },
+      });
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX05',
+        action: 'UPDATE',
+        entityTable: 'nx05_ar_reminder_log',
+        entityId: log.id,
+        entityCode: ar.docNo,
+        summary: `應收催款記錄（純內部、不寄送）`,
+      });
+      return { logId: log.id };
+    });
+  }
+
   async patch(user: RequestUser, id: string, dto: PatchArDto) {
     const tenantId = requireTenantId(user);
     if (!dto.status) throw new BadRequestException('status is required');
