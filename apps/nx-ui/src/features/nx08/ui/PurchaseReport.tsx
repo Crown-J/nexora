@@ -16,10 +16,12 @@ import {
 
 import { cn } from '@/lib/utils';
 import { getPoStats, getPriceCompare, getSupplierGrade } from '@/features/nx08/api';
+import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {
   CHART_COLORS,
   ChartWrapper,
+  ExportButton,
   PageHeader,
   ResponsiveTable,
   StatCard,
@@ -34,6 +36,7 @@ export function PurchaseReport() {
   const [poStats, setPoStats] = useState<Awaited<ReturnType<typeof getPoStats>> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { exportToExcel, exporting } = useExportExcel();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,14 +67,66 @@ export function PurchaseReport() {
         title="進貨報表"
         subtitle="供應商分布 / 採購單統計 / 比價分析（近 90 天）"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              loading={exporting}
+              disabled={!supplierGrade && !poStats && !priceCompare}
+              onClick={async () => {
+                const sheets: Array<{ name: string; rows: Array<Record<string, unknown>> }> = [];
+                if (poStats?.byStatus?.length) {
+                  sheets.push({
+                    name: 'PO 狀態統計',
+                    rows: poStats.byStatus.map((b) => ({
+                      狀態: b.status,
+                      張數: b._count?._all ?? 0,
+                      採購金額: Number(b._sum?.totalAmount ?? 0),
+                    })),
+                  });
+                }
+                if (supplierGrade?.topSuppliers?.length) {
+                  sheets.push({
+                    name: '供應商排行',
+                    rows: supplierGrade.topSuppliers.map((s, idx) => ({
+                      名次: idx + 1,
+                      供應商: s.supplierName ?? s.supplierId,
+                      代號: s.supplierCode ?? '',
+                      PO數: s.poCount ?? 0,
+                      採購金額: Number(s.totalAmount ?? 0),
+                    })),
+                  });
+                }
+                if (priceCompare?.items?.length) {
+                  sheets.push({
+                    name: '比價分析',
+                    rows: priceCompare.items.map((it) => ({
+                      料號: it.partNo ?? it.partId,
+                      品名: it.partName ?? '',
+                      供應商數: it.supplierCount,
+                      最低價: Number(it.minPrice),
+                      最高價: Number(it.maxPrice),
+                      均價: Number(it.avgPrice),
+                    })),
+                  });
+                }
+                await exportToExcel({
+                  fileName: '進貨報表',
+                  meta: {
+                    期間: poStats?.period ?? supplierGrade?.period ?? '近 90 天',
+                    比價樣本數: priceCompare?.sampleSize ?? 0,
+                  },
+                  sheets: sheets.length > 0 ? sheets : [{ name: '進貨', rows: [] }],
+                });
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
+            </button>
+          </div>
         }
       />
 

@@ -11,8 +11,10 @@ import {
   listUsersForReport,
   type PersonalMonthlyReport,
 } from '@/features/nx08/api';
+import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {
+  ExportButton,
   KpiCard,
   makePeriod,
   PageHeader,
@@ -29,6 +31,7 @@ export function PersonalMonthlyReportView() {
   const [userId, setUserId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { exportToExcel, exporting } = useExportExcel();
 
   // 載 user 列表（讓「員工」下拉可選；後端會 enforce 權限）
   useEffect(() => {
@@ -73,14 +76,59 @@ export function PersonalMonthlyReportView() {
         title="個人月報"
         subtitle="業績（銷貨額 + 毛利）/ 開單數 / 撿貨件數 / 跑客戶家數"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              loading={exporting}
+              disabled={!data}
+              onClick={async () => {
+                if (!data) return;
+                const userLabel = users.find((u) => u.id === userId)?.displayName ?? '我';
+                await exportToExcel({
+                  fileName: `個人月報_${userLabel}`,
+                  meta: {
+                    員工: userLabel,
+                    期間: `${data.periodStart} ~ ${data.periodEnd}`,
+                    視角: data.isSelf ? '自己' : '負責人視角',
+                  },
+                  sheets: [
+                    {
+                      name: '業績',
+                      rows: [
+                        { 項目: '銷貨額', 金額: Number(data.performance.salesAmount) },
+                        { 項目: '銷貨成本', 金額: Number(data.performance.cogsAmount) },
+                        { 項目: '毛利', 金額: Number(data.performance.grossProfit) },
+                        { 項目: '毛利率(%)', 金額: Number(data.performance.grossMarginPct) },
+                      ],
+                    },
+                    {
+                      name: '開單數',
+                      rows: [
+                        { 單別: '銷貨單 SO', 張數: data.orderCounts.so },
+                        { 單別: '報價單 QT', 張數: data.orderCounts.qt },
+                        { 單別: '採購單 PO', 張數: data.orderCounts.po },
+                      ],
+                    },
+                    {
+                      name: '工作量',
+                      rows: [
+                        { 項目: '撿貨件數', 數量: Number(data.operations.pickQty) },
+                        { 項目: '出貨件數', 數量: Number(data.operations.shipQty) },
+                        { 項目: '跑客戶家數', 數量: data.operations.customerCount },
+                      ],
+                    },
+                  ],
+                });
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
+            </button>
+          </div>
         }
       />
 

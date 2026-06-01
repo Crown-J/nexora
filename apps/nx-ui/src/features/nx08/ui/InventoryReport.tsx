@@ -11,8 +11,9 @@ import {
   getInventoryTurnover,
   getLowStockAlert,
 } from '@/features/nx08/api';
+import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
-import { PageHeader, ResponsiveTable, StatCard, StatusBadge, fmtMoney } from './common';
+import { ExportButton, PageHeader, ResponsiveTable, StatCard, StatusBadge, fmtMoney } from './common';
 
 type Tab = 'turnover' | 'dormant' | 'lowStock';
 
@@ -23,6 +24,7 @@ export function InventoryReport() {
   const [lowStock, setLowStock] = useState<Awaited<ReturnType<typeof getLowStockAlert>> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { exportToExcel, exporting } = useExportExcel();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,14 +59,69 @@ export function InventoryReport() {
         title="庫存報表"
         subtitle="週轉 / 呆滯品 / 低庫存警告（含安全庫存比對）"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              loading={exporting}
+              disabled={!turnover && !dormant && !lowStock}
+              onClick={async () => {
+                const sheets: Array<{ name: string; rows: Array<Record<string, unknown>> }> = [];
+                if (turnover?.items?.length) {
+                  sheets.push({
+                    name: '週轉',
+                    rows: turnover.items.map((it) => ({
+                      料號: it.partNo ?? it.partId,
+                      品名: it.partName ?? '',
+                      現有庫存: it.onHandQty ?? 0,
+                      出貨量: it.soldQty ?? 0,
+                      週轉率: it.turnoverRate ?? '',
+                    })),
+                  });
+                }
+                if (dormant?.items?.length) {
+                  sheets.push({
+                    name: '呆滯品',
+                    rows: dormant.items.map((it) => ({
+                      料號: it.partNo ?? it.partId,
+                      品名: it.partName ?? '',
+                      滯留庫存: it.onHandQty ?? 0,
+                      最後動向: it.lastMovementDate ?? '',
+                      滯留天數: it.dormantDays ?? 0,
+                    })),
+                  });
+                }
+                if (lowStock?.items?.length) {
+                  sheets.push({
+                    name: '低庫存警報',
+                    rows: lowStock.items.map((it) => ({
+                      料號: it.partNo ?? it.partId,
+                      品名: it.partName ?? '',
+                      現有庫存: it.onHandQty ?? 0,
+                      安全庫存: it.safetyStock ?? 0,
+                      缺料量: it.shortageQty ?? Math.max(0, (it.safetyStock ?? 0) - (it.onHandQty ?? 0)),
+                    })),
+                  });
+                }
+                await exportToExcel({
+                  fileName: '庫存報表',
+                  meta: {
+                    期間: turnover?.period ?? '當前',
+                    週轉品項數: turnoverCount,
+                    呆滯品項數: dormantCount,
+                    低庫存警報數: lowStockCount,
+                  },
+                  sheets: sheets.length > 0 ? sheets : [{ name: '庫存', rows: [] }],
+                });
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
+            </button>
+          </div>
         }
       />
 

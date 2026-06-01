@@ -16,10 +16,12 @@ import {
 
 import { cn } from '@/lib/utils';
 import { getPnL, type PnL } from '@/features/nx08/api';
+import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {
   CHART_COLORS,
   ChartWrapper,
+  ExportButton,
   KpiCard,
   ResponsiveTable,
   PageHeader,
@@ -35,6 +37,7 @@ export function PnLReport() {
   const [data, setData] = useState<PnL | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { exportToExcel, exporting } = useExportExcel();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,14 +66,51 @@ export function PnLReport() {
         title="損益表 PnL"
         subtitle="進銷淨額簡化法、收入 − 成本 = 毛利、毛利 − 費用 = 營業淨利"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              loading={exporting}
+              disabled={!data}
+              onClick={async () => {
+                if (!data) return;
+                await exportToExcel({
+                  fileName: '損益表',
+                  meta: { 期間: `${data.periodStart} ~ ${data.periodEnd}`, 算法: '進銷淨額簡化法' },
+                  sheets: [
+                    {
+                      name: '損益表',
+                      rows: [
+                        { 科目: '銷貨總額', 金額: Number(data.revenue.gross) },
+                        { 科目: '（−）銷退', 金額: -Number(data.revenue.return) },
+                        { 科目: '銷貨淨額', 金額: Number(data.revenue.net) },
+                        { 科目: '（−）銷貨成本', 金額: -Number(data.cogs) },
+                        { 科目: '營業毛利', 金額: Number(data.grossProfit) },
+                        { 科目: '毛利率(%)', 金額: Number(data.grossMarginPct) },
+                        { 科目: '（−）營業費用', 金額: -Number(data.opex.total) },
+                        { 科目: '營業淨利', 金額: Number(data.operatingIncome) },
+                        { 科目: '營業淨利率(%)', 金額: Number(data.opMarginPct) },
+                      ],
+                    },
+                    {
+                      name: '費用明細',
+                      rows: (data.opex.detail ?? []).map((d) => ({
+                        科目代號: d.accountCode,
+                        科目名稱: d.accountName ?? '',
+                        金額: Number(d.amount),
+                      })),
+                    },
+                  ],
+                });
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
+            </button>
+          </div>
         }
       />
 

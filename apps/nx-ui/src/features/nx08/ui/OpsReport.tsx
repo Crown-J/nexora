@@ -24,10 +24,12 @@ import {
   getDeptPerf,
   getKpiGap,
 } from '@/features/nx08/api';
+import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {
   CHART_COLORS,
   ChartWrapper,
+  ExportButton,
   KpiCard,
   ResponsiveTable,
   PageHeader,
@@ -57,6 +59,7 @@ export function OpsReport() {
   const [loading, setLoading] = useState(false);
   const [permError, setPermError] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { exportToExcel, exporting } = useExportExcel();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -117,14 +120,67 @@ export function OpsReport() {
         title="營運報表"
         subtitle="部門業績 / KPI 達成 / BCG 商品定位（全公司、需 OWNER 權限）"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              loading={exporting}
+              disabled={!dept && !kpi && !bcg}
+              onClick={async () => {
+                const sheets: Array<{ name: string; rows: Array<Record<string, unknown>> }> = [];
+                if (dept?.depts?.length) {
+                  sheets.push({
+                    name: '部門業績',
+                    rows: dept.depts.map((d, idx) => ({
+                      名次: idx + 1,
+                      部門: d.deptName ?? d.deptId,
+                      SO張數: d.soCount,
+                      業績金額: Number(d.totalAmount ?? 0),
+                    })),
+                  });
+                }
+                if (kpi?.items?.length) {
+                  sheets.push({
+                    name: 'KPI 達成',
+                    rows: kpi.items.map((k) => ({
+                      員工: k.userName ?? k.userId,
+                      目標: Number(k.target),
+                      實績: Number(k.actual),
+                      差額: Number(k.gap),
+                      達成率: Number(k.achievePct),
+                    })),
+                  });
+                }
+                if (bcg?.items?.length) {
+                  sheets.push({
+                    name: 'BCG 商品定位',
+                    rows: bcg.items.map((it) => ({
+                      料號: it.partNo ?? it.partId,
+                      品名: it.partName ?? '',
+                      分類: it.category,
+                      成長率: Number(it.growthRate ?? 0),
+                      市佔率: Number(it.marketShare ?? 0),
+                    })),
+                  });
+                }
+                await exportToExcel({
+                  fileName: '營運報表',
+                  meta: {
+                    部門數: dept?.depts?.length ?? 0,
+                    KPI追蹤人數: kpi?.items?.length ?? 0,
+                    BCG商品數: bcg?.items?.length ?? 0,
+                  },
+                  sheets: sheets.length > 0 ? sheets : [{ name: '營運', rows: [] }],
+                });
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
+            </button>
+          </div>
         }
       />
 

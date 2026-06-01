@@ -20,10 +20,12 @@ import {
   getProductSales,
   getSalesRanking,
 } from '@/features/nx08/api';
+import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {
   CHART_COLORS,
   ChartWrapper,
+  ExportButton,
   PageHeader,
   ResponsiveTable,
   StatCard,
@@ -40,6 +42,60 @@ export function SalesReport() {
   const [employeeData, setEmployeeData] = useState<Awaited<ReturnType<typeof getSalesRanking>> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { exportToExcel, exporting } = useExportExcel();
+
+  const angleLabel = angle === 'product' ? '產品' : angle === 'customer' ? '客戶' : '員工';
+
+  async function handleExport() {
+    const sheets: Array<{ name: string; rows: Array<Record<string, unknown>> }> = [];
+    if (angle === 'product' && productData?.topProducts?.length) {
+      sheets.push({
+        name: '產品銷售排行',
+        rows: productData.topProducts.map((p, idx) => ({
+          名次: idx + 1,
+          料號: p.partNo,
+          品名: p.partName,
+          銷量: p.qtySum,
+          銷售金額: p.amtSum,
+        })),
+      });
+    } else if (angle === 'customer' && customerData) {
+      if (customerData.vipCustomers?.length) {
+        sheets.push({
+          name: 'VIP 客戶',
+          rows: customerData.vipCustomers.map((c, idx) => ({
+            名次: idx + 1,
+            客戶: c.customerName ?? c.customerId,
+            採購金額: Number(c.totalAmount ?? 0),
+          })),
+        });
+      }
+      if (customerData.churnRisk?.length) {
+        sheets.push({
+          name: '流失預警',
+          rows: customerData.churnRisk.map((c) => ({
+            客戶: c.customerName ?? c.customerId,
+            最後下單日: c.lastOrderDate ?? '',
+          })),
+        });
+      }
+    } else if (angle === 'employee' && employeeData?.rankings?.length) {
+      sheets.push({
+        name: '員工業績排行',
+        rows: employeeData.rankings.map((r, idx) => ({
+          名次: idx + 1,
+          員工: r.userName ?? r.userId,
+          SO張數: r.soCount,
+          銷售金額: Number(r.totalAmount ?? 0),
+        })),
+      });
+    }
+    await exportToExcel({
+      fileName: `銷售報表_${angleLabel}`,
+      meta: { 分析角度: angleLabel },
+      sheets: sheets.length > 0 ? sheets : [{ name: angleLabel, rows: [] }],
+    });
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,14 +128,21 @@ export function SalesReport() {
         title="銷售報表"
         subtitle="產品 / 客戶 / 員工三角度切換、排行 + 趨勢"
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportButton
+              loading={exporting}
+              disabled={!productData && !customerData && !employeeData}
+              onClick={handleExport}
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} /> 重新整理
+            </button>
+          </div>
         }
       />
 

@@ -256,6 +256,34 @@ export function ChartWrapper({
 }
 
 // ────────────────────────────────────────────────────────────
+// ExportButton：6 報表共用 Excel 匯出按鈕（外觀對齊「重新整理」按鈕）
+// ────────────────────────────────────────────────────────────
+
+import { Download } from 'lucide-react';
+
+export function ExportButton({
+  onClick,
+  loading,
+  disabled,
+}: {
+  onClick: () => void | Promise<void>;
+  loading?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => void onClick()}
+      disabled={loading || disabled}
+      className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#22D88F]/40 hover:text-[#22D88F] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <Download className={cn('size-3.5', loading && 'animate-pulse')} />
+      {loading ? '匯出中…' : '匯出 Excel'}
+    </button>
+  );
+}
+
+// ────────────────────────────────────────────────────────────
 // ResponsiveTable：< 640 卡片化、≥ 640 用 DataTable
 // API 與 DataTable 一致、view 直接 swap
 // ────────────────────────────────────────────────────────────
