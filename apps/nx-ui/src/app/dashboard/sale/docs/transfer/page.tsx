@@ -1,8 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/docs/transfer/page.tsx
-// R7 Phase 3：單據管理「調貨單據管理」占位頁
+// v1.2 階段 I P5：舊版路徑 redirect 到庫存中心調貨頁（NX03 既有 transfer module）
+import { redirect } from 'next/navigation';
 
-import { PlaceholderPage } from '@/features/sale/ui/hub/components/PlaceholderPage';
-
-export default function SaleDocsTransferPage() {
-  return <PlaceholderPage title="調貨單據管理" />;
+export default function Page() {
+  redirect('/dashboard/inventory/transfer');
 }

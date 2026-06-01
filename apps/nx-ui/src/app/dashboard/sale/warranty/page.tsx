@@ -1,8 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/warranty/page.tsx
-// R7 Phase 3：工作站「保固申請」占位頁
+// v1.2 階段 I P5：舊版路徑 redirect 到 NX02 採購中心（保固申請屬進貨側流程）
+import { redirect } from 'next/navigation';
 
-import { PlaceholderPage } from '@/features/sale/ui/hub/components/PlaceholderPage';
-
-export default function SaleWarrantyPage() {
-  return <PlaceholderPage title="保固申請" />;
+export default function Page() {
+  redirect('/dashboard/purchase');
 }

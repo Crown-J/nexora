@@ -14,6 +14,9 @@ import {
 /** 退貨類型（F=全部退 / P=部分退 default / A=折讓不退）。對齊 schema nx02_pr.return_mode + overview §3.8 + Crown Q19=d 多種並存。 */
 const RETURN_MODES = ['F', 'P', 'A'] as const;
 
+/** 退貨處置（G=一般退 / B=壞品退 / W=走保固）。階段 I P1 加、Alex Q1=a 拍板。 */
+const DISPOSITION_FLAGS = ['G', 'B', 'W'] as const;
+
 export class CreatePurchaseReturnItemDto {
   @IsString()
   @MaxLength(15)
@@ -83,6 +86,12 @@ export class CreatePurchaseReturnDto {
   @IsIn(RETURN_MODES as unknown as string[])
   returnMode?: 'F' | 'P' | 'A';
 
+  /** 退貨處置（G=一般退 default / B=壞品退 / W=走保固）。階段 I P2、W 過帳時自動建 warranty claim。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(DISPOSITION_FLAGS as unknown as string[])
+  dispositionFlag?: 'G' | 'B' | 'W';
+
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
@@ -114,6 +123,12 @@ export class UpdatePurchaseReturnDto {
   @IsString()
   @IsIn(RETURN_MODES as unknown as string[])
   returnMode?: 'F' | 'P' | 'A';
+
+  /** 退貨處置可改（DRAFT 階段、影響過帳分流邏輯：W 過帳自動建 warranty claim）。 */
+  @IsOptional()
+  @IsString()
+  @IsIn(DISPOSITION_FLAGS as unknown as string[])
+  dispositionFlag?: 'G' | 'B' | 'W';
 }
 
 export class PatchPurchaseReturnItemDto {

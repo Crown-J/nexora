@@ -5,6 +5,8 @@ import { APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { Nx02ErrorFilter } from '../shared/filters/nx02-error.filter';
 
+import { DemandController } from './demand/demand.controller';
+import { DemandService } from './demand/demand.service';
 import { PartnerPartController } from './partner-part/partner-part.controller';
 import { PartnerPartService } from './partner-part/partner-part.service';
 import { PoController } from './po/po.controller';
@@ -39,6 +41,7 @@ import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
     QtController,
     PartnerPartController,
     PurchaseSuggestionController,
+    DemandController,
     PriceComparisonController,
     PurchaseStageController,
     WarrantyClaimController,
@@ -52,6 +55,7 @@ import { WarrantyClaimService } from './warranty-claim/warranty-claim.service';
     Nx02QtService,
     PartnerPartService,
     PurchaseSuggestionService,
+    DemandService,
     PriceComparisonService,
     PurchaseStageService,
     WarrantyClaimService,

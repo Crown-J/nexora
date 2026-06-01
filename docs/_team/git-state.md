@@ -10,22 +10,23 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-06-01（⭐ v1.2 對齊軌 階段 G 手機版 closure、merge feature/v1.2-alignment-g + tag v2.0.8-alignment-g-complete）**
-> **當前分支：`main`**（HEAD = merge commit、tag `v2.0.8-alignment-g-complete`）
-> **上輪 closure**：v1.2 對齊軌 階段 H 報表模組（merge + tag `v2.0.7-alignment-h-complete`）
-> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-g、--no-ff、階段 G 手機版 closure）
-> **狀態摘要**：`feature/v1.2-alignment-g` = **已 merge main、可考慮刪除**
-> **整軌成果**：8 commits（P0 意圖書 → P7 closure）、5 工作站手機版全交付（驗收/撿貨/包貨/配送/盤點）、底部 dock + 浮動 FAB ⊕ + BarcodeScanner 共用元件（html5-qrcode）、5 個既有後端 endpoint 都接通（nx03/pk + pl + parcel + inbound + stocktake + nx06/delivery）；對齊 Alex Q1~Q4 拍板（html5-qrcode / 4 分類入口 / 全 dashboard / nx03/inbound GRN）+ 總經理「不做」清單（地圖/Lalamove/推播移下階段、付費模組候選）
-> **⚠️ Railway production migration 同步累計落後維持 91 支**（階段 G **0 schema 變動**、Railway 不需 deploy）：`.env` 維持 localhost、觸發時機仍對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週
-> **⚠️ LITE 剩餘範圍**：僅階段 I 補連線收尾（下一棒推薦方向）
+> **快照時間：2026-06-01（⭐ v1.2 對齊軌 階段 I 補連線收尾 closure ⭐⭐⭐ LITE 完整版完成、merge feature/v1.2-alignment-i + tag v2.1.0-lite-complete）**
+> **當前分支：`main`**（HEAD = merge commit、tag `v2.1.0-lite-complete` ⭐ LITE 完整版完成）
+> **上輪 closure**：v1.2 對齊軌 階段 G 手機版（merge + tag `v2.0.8-alignment-g-complete`）
+> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-i、--no-ff、階段 I 補連線收尾 + LITE 完整版完成）
+> **狀態摘要**：`feature/v1.2-alignment-i` = **已 merge main、可考慮刪除**
+> **整軌成果**：7 commits（P0 意圖書 → P6 closure）、4 補連線項目全交付（退貨→保固自動 / 採購需求 3 來源 / 國外進貨 6 階段 UI / 11 hub placeholder redirect）；2 schema additive 變動已 apply localhost（PR.dispositionFlag + WarrantyClaim.sourcePrId/sourcePrItemId）；對齊總經理「退貨選保固自動產生」拍板 + Alex Q1~Q4（schema=a / SO mixed / 獨立路徑 / NX04 redirect）
+> **⚠️ Railway production migration 同步累計落後 91 → 92 支**（階段 I **2 支 schema migration**、本軌增加 2 支、Railway 端維持落後）：dev DB 已 apply（STOP-1 總經理拍板）、`.env` 維持 localhost、觸發時機仍對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週
+> **⭐⭐⭐ LITE 完整版完成**：所有 v1.2 對齊軌階段（A/B/C/C-fu/D/E/F/G/H/I）全 closure、總經理可開始完整實測（動線文件 docs/_team/nexora-lite-complete-walkthrough.md）
 >
 > ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（22 條）
+### A.1 本地分支總覽（23 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-g（v1.2 對齊軌 階段 G 手機版 closure、tag `v2.0.8-alignment-g-complete`）** |
+| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-i（v1.2 對齊軌 階段 I 補連線收尾 closure ⭐ LITE 完整版完成、tag `v2.1.0-lite-complete`）** |
+| `feature/v1.2-alignment-i` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 7 commits 整軌：P0 意圖書 / P1 schema STOP-1 (PR.dispositionFlag + WarrantyClaim.sourcePrId/sourcePrItemId) / P2 退貨→保固 service hook / P3 採購需求 3 來源（SO hook + manual POST + UI）/ P4 國外進貨 6 階段 UI / P5 hub 11 redirect / P6 closure |
 | `feature/v1.2-alignment-g` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 8 commits 整軌：P0 意圖書 / P1 殼層 dock+FAB / P2+P3 撿貨+包貨接 API / P4+P5 配送+驗收+BarcodeScanner / P6 盤點掃碼 / P7 closure |
 | `feature/v1.2-alignment-h` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 7 commits 整軌：P0 意圖書 / P1 finance/pnl endpoint / P2 recharts + 共用元件 / P3 first-batch 個人+進貨+銷售 / P3 second-batch 庫存+損益+營運+Hub / P4 手機版（ResponsiveTable）/ P5 Excel 匯出（useExportExcel） |
 | `feature/v1.2-alignment-f` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 12 commits 整軌：P0 意圖書 / P1 schema 多來源+401 旗標 / P2 §8.5 修正 / P3 7 子項+主管直接改 / P4 5 頁面 / P5-schema 3 變動 / P5 application / P5-B 4 dialog（票據/折讓/保固/沖銷檢視） |

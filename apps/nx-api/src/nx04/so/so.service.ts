@@ -13,6 +13,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo as allocNx02DocNo } from '../../shared/nx02/nx02-doc-no';
+import {
+  createDemandsFromSoShortage,
+  ignoreDemandsForCancelledSo,
+} from '../../shared/nx02/nx02-demand-from-so';
 import { allocNx04DocNo } from '../../shared/nx04/nx04-doc-no';
 import { requireDefaultLocationId } from '../../shared/nx04/nx04-location';
 import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
@@ -370,6 +374,16 @@ export class SoService {
         );
       }
 
+      // v1.2 階段 I P3：銷貨缺貨自動建採購需求（demandType='O' 客訂）
+      // Alex Q2=a 拍板：SO DRAFT 即時建、Alex 認可 a+b 混合 + cancel→I
+      // 冪等：helper 內部依 remark prefix '[SO:.../IT:itemId]' 去重
+      await createDemandsFromSoShortage(tx, {
+        tenantId,
+        soId: so.id,
+        userId: user.sub,
+        expectedDate: null,
+      });
+
       const full = await tx.nx04So.findFirst({
         where: { id: so.id },
         select: {
@@ -714,6 +728,10 @@ export class SoService {
         } catch (err) {
           console.warn(`[NX10 wire] updateRankingFromPerformance failed for SO ${id}:`, err);
         }
+      }
+      // v1.2 階段 I P3：SO CANCELLED → 對應 demand 自動 status='I'（Alex Q2=a 拍板）
+      if (dto.status === SoStatus.CANCELLED && headBefore.status !== SoStatus.CANCELLED) {
+        await ignoreDemandsForCancelledSo(tx, { tenantId, soId: id, userId: user.sub });
       }
       const full = await tx.nx04So.findFirst({
         where: { id },

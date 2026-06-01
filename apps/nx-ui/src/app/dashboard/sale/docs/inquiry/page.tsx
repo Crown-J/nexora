@@ -1,8 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/docs/inquiry/page.tsx
-// R7 Phase 3：單據管理「調貨詢價管理」占位頁
+// v1.2 階段 I P5：舊版路徑 redirect 到 NX04 報價工作台（調貨詢價走報價單路徑）
+import { redirect } from 'next/navigation';
 
-import { PlaceholderPage } from '@/features/sale/ui/hub/components/PlaceholderPage';
-
-export default function SaleDocsInquiryPage() {
-  return <PlaceholderPage title="調貨詢價管理" />;
+export default function Page() {
+  redirect('/dashboard/nx04/quote');
 }
