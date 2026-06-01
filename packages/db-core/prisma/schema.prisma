@@ -1929,64 +1929,66 @@ model Nx02PoItem {
 /// =======================================================
 model Nx02Pr {
   /// [NX02]+[PRHT]+[7碼流水號]，EX : NX02PRHT0000001；啟用最低需求版本：LITE
-  id                  String        @id @default(dbgenerated("gen_nx02_pr_id()")) @db.VarChar(15)
+  id                    String         @id @default(dbgenerated("gen_nx02_pr_id()")) @db.VarChar(15)
   /// 租戶ID；啟用最低需求版本：LITE
-  tenantId            String        @map("tenant_id") @db.VarChar(15)
+  tenantId              String         @map("tenant_id") @db.VarChar(15)
   /// 退貨倉庫 ID；啟用最低需求版本：LITE
-  warehouseId         String        @map("warehouse_id") @db.VarChar(15)
+  warehouseId           String         @map("warehouse_id") @db.VarChar(15)
   /// 退貨單號（唯一），[PR]+[年月]+[倉別]+[5碼流水號]，EX：PR-202602-Z01-00001；啟用最低需求版本：LITE
-  docNo               String        @map("doc_no") @db.VarChar(30)
+  docNo                 String         @map("doc_no") @db.VarChar(30)
   /// 退貨日期；啟用最低需求版本：LITE
-  prDate              DateTime      @map("pr_date") @db.Date
+  prDate                DateTime       @map("pr_date") @db.Date
   /// 廠商 ID (外鍵)；啟用最低需求版本：LITE
-  supplierId          String        @map("supplier_id") @db.VarChar(15)
+  supplierId            String         @map("supplier_id") @db.VarChar(15)
   /// 來源單據 id (外鍵)；啟用最低需求版本：LITE
-  rrId                String?       @map("rr_id") @db.VarChar(15)
+  rrId                  String?        @map("rr_id") @db.VarChar(15)
   /// 幣別 ID (外鍵)；啟用最低需求版本：LITE
-  currencyId          String        @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId            String         @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 單據狀態（D=草稿 / P=已過帳 / V=作廢）；啟用最低需求版本：LITE
-  status              String        @default("D") @db.VarChar(1)
+  status                String         @default("D") @db.VarChar(1)
   /// 小計（明細加總，未稅）；啟用最低需求版本：LITE
-  subtotal            Decimal       @default(0) @db.Decimal(14, 2)
+  subtotal              Decimal        @default(0) @db.Decimal(14, 2)
   /// 稅率（預設 5.00）；啟用最低需求版本：LITE
-  taxRate             Decimal       @default(5) @map("tax_rate") @db.Decimal(5, 2)
+  taxRate               Decimal        @default(5) @map("tax_rate") @db.Decimal(5, 2)
   /// 稅額（可手動覆寫）；啟用最低需求版本：LITE
-  taxAmount           Decimal       @default(0) @map("tax_amount") @db.Decimal(14, 2)
+  taxAmount             Decimal        @default(0) @map("tax_amount") @db.Decimal(14, 2)
   /// 總額（subtotal + tax_amount）；啟用最低需求版本：LITE
-  totalAmount         Decimal       @default(0) @map("total_amount") @db.Decimal(14, 2)
+  totalAmount           Decimal        @default(0) @map("total_amount") @db.Decimal(14, 2)
   /// 備註；啟用最低需求版本：LITE
-  remark              String?       @db.VarChar(200)
+  remark                String?        @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt           DateTime      @default(now()) @map("created_at")
+  createdAt             DateTime       @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy           String        @map("created_by") @db.VarChar(15)
+  createdBy             String         @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt           DateTime      @updatedAt @map("updated_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy           String        @map("updated_by") @db.VarChar(15)
+  updatedBy             String         @map("updated_by") @db.VarChar(15)
   /// 過帳時間（POSTED 才有）；啟用最低需求版本：LITE
-  postedAt            DateTime?     @map("posted_at")
+  postedAt              DateTime?      @map("posted_at")
   /// 過帳人（POSTED 才有）；啟用最低需求版本：LITE
-  postedBy            String?       @map("posted_by") @db.VarChar(15)
+  postedBy              String?        @map("posted_by") @db.VarChar(15)
   /// 作廢時間；啟用最低需求版本：LITE
-  voidedAt            DateTime?     @map("voided_at")
+  voidedAt              DateTime?      @map("voided_at")
   /// 作廢人（使用者 ID）；啟用最低需求版本：LITE
-  voidedBy            String?       @map("voided_by") @db.VarChar(15)
+  voidedBy              String?        @map("voided_by") @db.VarChar(15)
   /// 採購組長核准時間。；啟用最低需求版本：LITE-CORE
-  approvedAt          DateTime?     @map("approved_at")
+  approvedAt            DateTime?      @map("approved_at")
   /// 採購組長核准人（使用者ID）。；啟用最低需求版本：LITE-CORE
-  approvedBy          String?       @map("approved_by") @db.VarChar(15)
+  approvedBy            String?        @map("approved_by") @db.VarChar(15)
   /// 退件原因（採購組長退件時填寫）。；啟用最低需求版本：LITE-CORE
-  rejectReason        String?       @map("reject_reason") @db.VarChar(200)
+  rejectReason          String?        @map("reject_reason") @db.VarChar(200)
   /// 付款狀態（U=未付款/P=已付款）。決定退貨後帳務處理方式：未付款沖銷AP；已付款產生應收廠商退款。；啟用最低需求版本：LITE-CORE
-  paymentStatus       String        @default("U") @map("payment_status") @db.VarChar(1)
+  paymentStatus         String         @default("U") @map("payment_status") @db.VarChar(1)
   /// 退貨類型（F=全部退/P=部分退預設/A=折讓不退）。F/P 走既有 ledger 沖庫存 source=R；A 走 Nx05Allowance（allowanceType=P 進貨折讓）不沖庫存。NX02-IMPL-01 Phase 1 M3 補齊（Crown Q19=d 多種並存、Q-S2=A default 'P' 業界常態）。；啟用最低需求版本：LITE-CORE
-  returnMode          String        @default("P") @map("return_mode") @db.VarChar(1)
-  tenant              Nx99Tenant    @relation("R_Nx02Pr_tenantId", fields: [tenantId], references: [id])
-  warehouse           Nx01Warehouse @relation("R_Nx02Pr_warehouseId", fields: [warehouseId], references: [id])
-  supplier            Nx01Partner   @relation("R_Nx02Pr_supplierId", fields: [supplierId], references: [id])
-  rr                  Nx02Rr?       @relation("R_Nx02Pr_rrId", fields: [rrId], references: [id])
-  rev_Nx02PrItem_prId Nx02PrItem[]  @relation("R_Nx02PrItem_prId")
+  returnMode            String         @default("P") @map("return_mode") @db.VarChar(1)
+  /// 階段 I P1 加：退貨處置標記（G=一般退 / B=壞品退 / W=走保固）。Alex Q1=a 拍板。W 觸發 service 層自動建 Nx02WarrantyClaim 進保固理賠流程；G/B 走既有 ledger。default 'G' = 既有 row backfill 為一般退、不破壞歷史語意。
+  dispositionFlag       String         @default("G") @map("disposition_flag") @db.VarChar(1)
+  tenant                Nx99Tenant     @relation("R_Nx02Pr_tenantId", fields: [tenantId], references: [id])
+  warehouse             Nx01Warehouse  @relation("R_Nx02Pr_warehouseId", fields: [warehouseId], references: [id])
+  supplier              Nx01Partner    @relation("R_Nx02Pr_supplierId", fields: [supplierId], references: [id])
+  rr                    Nx02Rr?        @relation("R_Nx02Pr_rrId", fields: [rrId], references: [id])
+  rev_Nx02PrItem_prId   Nx02PrItem[]   @relation("R_Nx02PrItem_prId")
   /// 階段 F P1 加：廠商退費衍生應收（PR POSTED → AR、Q1=a-1 對齊 ApLedger 多來源範式）
   rev_Nx05ArLedger_prId Nx05ArLedger[] @relation("R_Nx05ArLedger_prId")
 
@@ -4340,60 +4342,60 @@ model Nx05AllowanceItem {
 /// =======================================================
 model Nx05ApLedger {
   /// [NX05]+[APLE]+[7碼流水號]，EX : NX05APLE0000001；啟用最低需求版本：LITE-CORE
-  id                                 String                @id @default(dbgenerated("gen_nx05_ap_ledger_id()")) @db.VarChar(15)
+  id                                 String                 @id @default(dbgenerated("gen_nx05_ap_ledger_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId                           String                @map("tenant_id") @db.VarChar(15)
+  tenantId                           String                 @map("tenant_id") @db.VarChar(15)
   /// 應付帳款單號（唯一），[AP]-[年月]-[機構碼]-[5碼流水號]，EX：AP-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                              String                @map("doc_no") @db.VarChar(30)
+  docNo                              String                 @map("doc_no") @db.VarChar(30)
   /// 來源類型（PO=採購單/RR=進貨單/TI=調貨單）。PLUS前PO確認產生；LITE進貨入帳後產生。；啟用最低需求版本：LITE-CORE
-  sourceType                         String                @default("PO") @map("source_type") @db.VarChar(2)
+  sourceType                         String                 @default("PO") @map("source_type") @db.VarChar(2)
   /// 來源採購單ID（可空，PLUS限定，FK nx02_po）。；啟用最低需求版本：LITE-CORE
-  poId                               String?               @map("po_id") @db.VarChar(15)
+  poId                               String?                @map("po_id") @db.VarChar(15)
   /// 來源進貨單ID（可空，LITE直接由RR產生，FK nx02_rr）。；啟用最低需求版本：LITE-CORE
-  rrId                               String?               @map("rr_id") @db.VarChar(15)
+  rrId                               String?                @map("rr_id") @db.VarChar(15)
   /// 來源調貨單ID（可空，FK nx02_ti）。；啟用最低需求版本：LITE-CORE
-  tiId                               String?               @map("ti_id") @db.VarChar(15)
+  tiId                               String?                @map("ti_id") @db.VarChar(15)
   /// 廠商ID（FK nx01_partner）。；啟用最低需求版本：LITE-CORE
-  supplierId                         String                @map("supplier_id") @db.VarChar(15)
+  supplierId                         String                 @map("supplier_id") @db.VarChar(15)
   /// 應付帳款產生日期。；啟用最低需求版本：LITE-CORE
-  apDate                             DateTime              @map("ap_date") @db.Date
+  apDate                             DateTime               @map("ap_date") @db.Date
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
-  dueDate                            DateTime              @map("due_date") @db.Date
+  dueDate                            DateTime               @map("due_date") @db.Date
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                         String                @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                         String                 @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 應付金額（含稅）。；啟用最低需求版本：LITE-CORE
-  originalAmount                     Decimal               @default(0) @map("original_amount") @db.Decimal(14, 2)
+  originalAmount                     Decimal                @default(0) @map("original_amount") @db.Decimal(14, 2)
   /// 已付金額（累計）。；啟用最低需求版本：LITE-CORE
-  paidAmount                         Decimal               @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  paidAmount                         Decimal                @default(0) @map("paid_amount") @db.Decimal(14, 2)
   /// 未付餘額（original_amount - paid_amount）。；啟用最低需求版本：LITE-CORE
-  balanceAmount                      Decimal               @default(0) @map("balance_amount") @db.Decimal(14, 2)
+  balanceAmount                      Decimal                @default(0) @map("balance_amount") @db.Decimal(14, 2)
   /// 狀態（OPEN / PARTIAL / PAID / OVERDUE / VOID）。；啟用最低需求版本：LITE-CORE
-  status                             String                @default("OPEN") @db.VarChar(30)
+  status                             String                 @default("OPEN") @db.VarChar(30)
   /// 付款條件快照（自廠商主檔帶入）。；啟用最低需求版本：LITE-CORE
-  paymentTerm                        String                @default("NET30") @map("payment_term") @db.VarChar(20)
+  paymentTerm                        String                 @default("NET30") @map("payment_term") @db.VarChar(20)
   /// 核銷時間（status=C時填入）。；啟用最低需求版本：LITE-CORE
-  writeOffAt                         DateTime?             @map("write_off_at")
+  writeOffAt                         DateTime?              @map("write_off_at")
   /// 核銷人（使用者ID）。；啟用最低需求版本：LITE-CORE
-  writeOffBy                         String?               @map("write_off_by") @db.VarChar(15)
+  writeOffBy                         String?                @map("write_off_by") @db.VarChar(15)
   /// 備註。；啟用最低需求版本：LITE-CORE
-  remark                             String?               @db.VarChar(200)
+  remark                             String?                @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                          DateTime              @default(now()) @map("created_at")
+  createdAt                          DateTime               @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                          String                @map("created_by") @db.VarChar(15)
+  createdBy                          String                 @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                          DateTime              @updatedAt @map("updated_at")
+  updatedAt                          DateTime               @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                          String                @map("updated_by") @db.VarChar(15)
-  tenant                             Nx99Tenant            @relation("R_Nx05ApLedger_tenantId", fields: [tenantId], references: [id])
-  po                                 Nx02Po?               @relation("R_Nx05ApLedger_poId", fields: [poId], references: [id])
-  rr                                 Nx02Rr?               @relation("R_Nx05ApLedger_rrId", fields: [rrId], references: [id])
-  ti                                 Nx02Ti?               @relation("R_Nx05ApLedger_tiId", fields: [tiId], references: [id])
-  supplier                           Nx01Partner           @relation("R_Nx05ApLedger_supplierId", fields: [supplierId], references: [id])
-  currency                           Nx01Currency          @relation("R_Nx05ApLedger_currencyId", fields: [currencyId], references: [id])
-  rev_Nx05Allowance_refApId          Nx05Allowance[]       @relation("R_Nx05Allowance_refApId")
-  rev_Nx05Paylog_apId                Nx05Paylog[]          @relation("R_Nx05Paylog_apId")
-  rev_Nx08ApCacheSnapshot_apLedgerId Nx08ApCacheSnapshot[] @relation("R_Nx08ApCacheSnapshot_apLedgerId")
+  updatedBy                          String                 @map("updated_by") @db.VarChar(15)
+  tenant                             Nx99Tenant             @relation("R_Nx05ApLedger_tenantId", fields: [tenantId], references: [id])
+  po                                 Nx02Po?                @relation("R_Nx05ApLedger_poId", fields: [poId], references: [id])
+  rr                                 Nx02Rr?                @relation("R_Nx05ApLedger_rrId", fields: [rrId], references: [id])
+  ti                                 Nx02Ti?                @relation("R_Nx05ApLedger_tiId", fields: [tiId], references: [id])
+  supplier                           Nx01Partner            @relation("R_Nx05ApLedger_supplierId", fields: [supplierId], references: [id])
+  currency                           Nx01Currency           @relation("R_Nx05ApLedger_currencyId", fields: [currencyId], references: [id])
+  rev_Nx05Allowance_refApId          Nx05Allowance[]        @relation("R_Nx05Allowance_refApId")
+  rev_Nx05Paylog_apId                Nx05Paylog[]           @relation("R_Nx05Paylog_apId")
+  rev_Nx08ApCacheSnapshot_apLedgerId Nx08ApCacheSnapshot[]  @relation("R_Nx08ApCacheSnapshot_apLedgerId")
   /// 階段 F P5 加：一票對多沖銷
   rev_Nx05PaylogSettlement_apId      Nx05PaylogSettlement[] @relation("R_Nx05PaylogSettlement_apId")
 
@@ -4406,64 +4408,64 @@ model Nx05ApLedger {
 /// =======================================================
 model Nx05ArLedger {
   /// [NX05]+[ARLE]+[7碼流水號]，EX : NX05ARLE0000001；啟用最低需求版本：LITE-CORE
-  id                                 String                @id @default(dbgenerated("gen_nx05_ar_ledger_id()")) @db.VarChar(15)
+  id                                 String                 @id @default(dbgenerated("gen_nx05_ar_ledger_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId                           String                @map("tenant_id") @db.VarChar(15)
+  tenantId                           String                 @map("tenant_id") @db.VarChar(15)
   /// 應收帳款單號（唯一），[AR]-[年月]-[機構碼]-[5碼流水號]，EX：AR-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                              String                @map("doc_no") @db.VarChar(30)
+  docNo                              String                 @map("doc_no") @db.VarChar(30)
   /// 來源類型（SO=銷貨單 / PR=廠商退費衍生）。對齊 Nx05ApLedger.sourceType 範式。階段 F P1 加。；啟用最低需求版本：LITE-CORE
-  sourceType                         String                @default("SO") @map("source_type") @db.VarChar(2)
+  sourceType                         String                 @default("SO") @map("source_type") @db.VarChar(2)
   /// 來源銷貨單ID（FK nx04_so、sourceType=SO 時必填、PR 時為 null）。階段 F P1 改 nullable。；啟用最低需求版本：LITE-CORE
-  soId                               String?               @map("so_id") @db.VarChar(15)
+  soId                               String?                @map("so_id") @db.VarChar(15)
   /// 來源廠商退費單ID（FK nx02_pr、sourceType=PR 時填）。階段 F P1 加。；啟用最低需求版本：LITE-CORE
-  prId                               String?               @map("pr_id") @db.VarChar(15)
+  prId                               String?                @map("pr_id") @db.VarChar(15)
   /// 客戶ID（快照自SO，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
-  customerId                         String                @map("customer_id") @db.VarChar(15)
+  customerId                         String                 @map("customer_id") @db.VarChar(15)
   /// 應收帳款產生日期。；啟用最低需求版本：LITE-CORE
-  arDate                             DateTime              @map("ar_date") @db.Date
+  arDate                             DateTime               @map("ar_date") @db.Date
   /// 到期日（依付款條件計算）。；啟用最低需求版本：LITE-CORE
-  dueDate                            DateTime              @map("due_date") @db.Date
+  dueDate                            DateTime               @map("due_date") @db.Date
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId                         String                @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                         String                 @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 應收金額（含稅）。；啟用最低需求版本：LITE-CORE
-  originalAmount                     Decimal               @default(0) @map("original_amount") @db.Decimal(14, 2)
+  originalAmount                     Decimal                @default(0) @map("original_amount") @db.Decimal(14, 2)
   /// 已收金額（累計）。；啟用最低需求版本：LITE-CORE
-  paidAmount                         Decimal               @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  paidAmount                         Decimal                @default(0) @map("paid_amount") @db.Decimal(14, 2)
   /// 未收餘額（original_amount - paid_amount）。；啟用最低需求版本：LITE-CORE
-  balanceAmount                      Decimal               @default(0) @map("balance_amount") @db.Decimal(14, 2)
+  balanceAmount                      Decimal                @default(0) @map("balance_amount") @db.Decimal(14, 2)
   /// 狀態（OPEN / PARTIAL / PAID / OVERDUE / WRITTEN_OFF）。；啟用最低需求版本：LITE-CORE
-  status                             String                @default("OPEN") @db.VarChar(30)
+  status                             String                 @default("OPEN") @db.VarChar(30)
   /// 付款條件快照（自SO帶入）。；啟用最低需求版本：LITE-CORE
-  paymentTerm                        String                @default("NET30") @map("payment_term") @db.VarChar(20)
+  paymentTerm                        String                 @default("NET30") @map("payment_term") @db.VarChar(20)
   /// 逾期天數（系統每日計算，due_date < today 時累計）。；啟用最低需求版本：LITE-CORE
-  overdueDays                        Int                   @default(0) @map("overdue_days")
+  overdueDays                        Int                    @default(0) @map("overdue_days")
   /// 部分收款是否已獲負責人核准（partial payment 需核准）。；啟用最低需求版本：LITE-CORE
-  isPartialApproved                  Boolean               @default(false) @map("is_partial_approved")
+  isPartialApproved                  Boolean                @default(false) @map("is_partial_approved")
   /// 核銷時間（status=C時填入）。；啟用最低需求版本：LITE-CORE
-  writeOffAt                         DateTime?             @map("write_off_at")
+  writeOffAt                         DateTime?              @map("write_off_at")
   /// 核銷人（使用者ID）。；啟用最低需求版本：LITE-CORE
-  writeOffBy                         String?               @map("write_off_by") @db.VarChar(15)
+  writeOffBy                         String?                @map("write_off_by") @db.VarChar(15)
   /// 備註。；啟用最低需求版本：LITE-CORE
-  remark                             String?               @db.VarChar(200)
+  remark                             String?                @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt                          DateTime              @default(now()) @map("created_at")
+  createdAt                          DateTime               @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy                          String                @map("created_by") @db.VarChar(15)
+  createdBy                          String                 @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt                          DateTime              @updatedAt @map("updated_at")
+  updatedAt                          DateTime               @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy                          String                @map("updated_by") @db.VarChar(15)
-  tenant                             Nx99Tenant            @relation("R_Nx05ArLedger_tenantId", fields: [tenantId], references: [id])
-  so                                 Nx04So?               @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
-  pr                                 Nx02Pr?               @relation("R_Nx05ArLedger_prId", fields: [prId], references: [id])
-  customer                           Nx01Partner           @relation("R_Nx05ArLedger_customerId", fields: [customerId], references: [id])
-  currency                           Nx01Currency          @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
-  rev_Nx05Allowance_refArId          Nx05Allowance[]       @relation("R_Nx05Allowance_refArId")
-  rev_Nx05Paylog_arId                Nx05Paylog[]          @relation("R_Nx05Paylog_arId")
-  rev_Nx08ArCacheSnapshot_arLedgerId Nx08ArCacheSnapshot[] @relation("R_Nx08ArCacheSnapshot_arLedgerId")
+  updatedBy                          String                 @map("updated_by") @db.VarChar(15)
+  tenant                             Nx99Tenant             @relation("R_Nx05ArLedger_tenantId", fields: [tenantId], references: [id])
+  so                                 Nx04So?                @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
+  pr                                 Nx02Pr?                @relation("R_Nx05ArLedger_prId", fields: [prId], references: [id])
+  customer                           Nx01Partner            @relation("R_Nx05ArLedger_customerId", fields: [customerId], references: [id])
+  currency                           Nx01Currency           @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
+  rev_Nx05Allowance_refArId          Nx05Allowance[]        @relation("R_Nx05Allowance_refArId")
+  rev_Nx05Paylog_arId                Nx05Paylog[]           @relation("R_Nx05Paylog_arId")
+  rev_Nx08ArCacheSnapshot_arLedgerId Nx08ArCacheSnapshot[]  @relation("R_Nx08ArCacheSnapshot_arLedgerId")
   /// 階段 F P5 加：一票對多沖銷 + 催款歷史
   rev_Nx05PaylogSettlement_arId      Nx05PaylogSettlement[] @relation("R_Nx05PaylogSettlement_arId")
-  rev_Nx05ArReminderLog_arId         Nx05ArReminderLog[]   @relation("R_Nx05ArReminderLog_arId")
+  rev_Nx05ArReminderLog_arId         Nx05ArReminderLog[]    @relation("R_Nx05ArReminderLog_arId")
 
   @@unique([docNo])
   @@map("nx05_ar_ledger")
@@ -4586,57 +4588,57 @@ model Nx05Note {
 /// =======================================================
 model Nx05Paylog {
   /// [NX05]+[PAYL]+[7碼流水號]，EX : NX05PAYL0000001；啟用最低需求版本：LITE-CORE
-  id                    String           @id @default(dbgenerated("gen_nx05_paylog_id()")) @db.VarChar(15)
+  id                                String                 @id @default(dbgenerated("gen_nx05_paylog_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）。；啟用最低需求版本：LITE-CORE
-  tenantId              String           @map("tenant_id") @db.VarChar(15)
+  tenantId                          String                 @map("tenant_id") @db.VarChar(15)
   /// 收付款單號（唯一），[PY]-[年月]-[機構碼]-[5碼流水號]，EX：PY-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
-  docNo                 String           @map("doc_no") @db.VarChar(30)
+  docNo                             String                 @map("doc_no") @db.VarChar(30)
   /// 收付款類型（CR=客戶收款/CP=廠商付款/RR=廠商退款/RC=客戶退款/EX=費用支出）。；啟用最低需求版本：LITE-CORE
-  payType               String           @map("pay_type") @db.VarChar(2)
+  payType                           String                 @map("pay_type") @db.VarChar(2)
   /// 收付款日期。；啟用最低需求版本：LITE-CORE
-  payDate               DateTime         @map("pay_date") @db.Date
+  payDate                           DateTime               @map("pay_date") @db.Date
   /// 交易對象ID（EX費用支出可空，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
-  partnerId             String?          @map("partner_id") @db.VarChar(15)
+  partnerId                         String?                @map("partner_id") @db.VarChar(15)
   /// 關聯應收帳款ID（pay_type=CR/RC時填入，FK nx05_ar_ledger）。；啟用最低需求版本：LITE-CORE
-  arId                  String?          @map("ar_id") @db.VarChar(15)
+  arId                              String?                @map("ar_id") @db.VarChar(15)
   /// 關聯應付帳款ID（pay_type=CP/RR時填入，FK nx05_ap_ledger）。；啟用最低需求版本：LITE-CORE
-  apId                  String?          @map("ap_id") @db.VarChar(15)
+  apId                              String?                @map("ap_id") @db.VarChar(15)
   /// 收付款金額（正數）。；啟用最低需求版本：LITE-CORE
-  amount                Decimal          @default(0) @db.Decimal(14, 2)
+  amount                            Decimal                @default(0) @db.Decimal(14, 2)
   /// 幣別ID（FK nx01_currency）。；啟用最低需求版本：LITE-CORE
-  currencyId            String           @default("TWD") @map("currency_id") @db.VarChar(15)
+  currencyId                        String                 @default("TWD") @map("currency_id") @db.VarChar(15)
   /// 付款方式（CA=現金/TT=匯款/CK=支票/PN=本票）。；啟用最低需求版本：LITE-CORE
-  payMethod             String           @default("CA") @map("pay_method") @db.VarChar(2)
+  payMethod                         String                 @default("CA") @map("pay_method") @db.VarChar(2)
   /// 關聯票據ID（pay_method=CK/PN時填入，FK nx05_note）。；啟用最低需求版本：LITE-CORE
-  noteId                String?          @map("note_id") @db.VarChar(15)
+  noteId                            String?                @map("note_id") @db.VarChar(15)
   /// 會計科目ID（pay_type=EX費用支出時必填，FK nx05_account_code）。；啟用最低需求版本：LITE-CORE
-  accountCodeId         String?          @map("account_code_id") @db.VarChar(15)
+  accountCodeId                     String?                @map("account_code_id") @db.VarChar(15)
   /// 現金餘額快照（pay_method=CA時，交易後的現金庫存餘額）。；啟用最低需求版本：LITE-CORE
-  cashBalanceAfter      Decimal?         @map("cash_balance_after") @db.Decimal(14, 2)
+  cashBalanceAfter                  Decimal?               @map("cash_balance_after") @db.Decimal(14, 2)
   /// 單據狀態（DRAFT / POSTED / VOIDED）。；啟用最低需求版本：LITE-CORE
-  status                String           @default("DRAFT") @map("status") @db.VarChar(20)
+  status                            String                 @default("DRAFT") @map("status") @db.VarChar(20)
   /// 作廢時間。；啟用最低需求版本：LITE-CORE
-  voidedAt              DateTime?        @map("voided_at")
+  voidedAt                          DateTime?              @map("voided_at")
   /// 過帳時間（POSTED 時填入）。；啟用最低需求版本：LITE-CORE
-  postedAt              DateTime?        @map("posted_at")
+  postedAt                          DateTime?              @map("posted_at")
   /// 備註。；啟用最低需求版本：LITE-CORE
-  remark                String?          @db.VarChar(200)
+  remark                            String?                @db.VarChar(200)
   /// 建立時間。；啟用最低需求版本：LITE-CORE
-  createdAt             DateTime         @default(now()) @map("created_at")
+  createdAt                         DateTime               @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  createdBy             String           @map("created_by") @db.VarChar(15)
+  createdBy                         String                 @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
-  updatedAt             DateTime         @updatedAt @map("updated_at")
+  updatedAt                         DateTime               @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
-  updatedBy             String           @map("updated_by") @db.VarChar(15)
-  tenant                Nx99Tenant       @relation("R_Nx05Paylog_tenantId", fields: [tenantId], references: [id])
-  partner               Nx01Partner?     @relation("R_Nx05Paylog_partnerId", fields: [partnerId], references: [id])
-  ar                    Nx05ArLedger?    @relation("R_Nx05Paylog_arId", fields: [arId], references: [id])
-  ap                    Nx05ApLedger?    @relation("R_Nx05Paylog_apId", fields: [apId], references: [id])
-  currency              Nx01Currency     @relation("R_Nx05Paylog_currencyId", fields: [currencyId], references: [id])
-  note                  Nx05Note?        @relation("R_Nx05Paylog_noteId", fields: [noteId], references: [id])
-  accountCode           Nx05AccountCode? @relation("R_Nx05Paylog_accountCodeId", fields: [accountCodeId], references: [id])
-  rev_Nx05Note_paylogId Nx05Note[]       @relation("R_Nx05Note_paylogId")
+  updatedBy                         String                 @map("updated_by") @db.VarChar(15)
+  tenant                            Nx99Tenant             @relation("R_Nx05Paylog_tenantId", fields: [tenantId], references: [id])
+  partner                           Nx01Partner?           @relation("R_Nx05Paylog_partnerId", fields: [partnerId], references: [id])
+  ar                                Nx05ArLedger?          @relation("R_Nx05Paylog_arId", fields: [arId], references: [id])
+  ap                                Nx05ApLedger?          @relation("R_Nx05Paylog_apId", fields: [apId], references: [id])
+  currency                          Nx01Currency           @relation("R_Nx05Paylog_currencyId", fields: [currencyId], references: [id])
+  note                              Nx05Note?              @relation("R_Nx05Paylog_noteId", fields: [noteId], references: [id])
+  accountCode                       Nx05AccountCode?       @relation("R_Nx05Paylog_accountCodeId", fields: [accountCodeId], references: [id])
+  rev_Nx05Note_paylogId             Nx05Note[]             @relation("R_Nx05Note_paylogId")
   /// 階段 F P5 加：一票對多沖銷對應（settlement 表反向關聯）
   rev_Nx05PaylogSettlement_paylogId Nx05PaylogSettlement[] @relation("R_Nx05PaylogSettlement_paylogId")
 
@@ -4650,20 +4652,20 @@ model Nx05Paylog {
 /// =======================================================
 model Nx05PaylogSettlement {
   /// [NX05]+[PYST]+[7碼流水號]
-  id            String   @id @default(dbgenerated("gen_nx05_paylog_settlement_id()")) @db.VarChar(15)
-  tenantId      String   @map("tenant_id") @db.VarChar(15)
-  paylogId      String   @map("paylog_id") @db.VarChar(15)
+  id            String        @id @default(dbgenerated("gen_nx05_paylog_settlement_id()")) @db.VarChar(15)
+  tenantId      String        @map("tenant_id") @db.VarChar(15)
+  paylogId      String        @map("paylog_id") @db.VarChar(15)
   /// 沖銷的應收 ID（與 apId 二擇一、DB check constraint 保證）
-  arId          String?  @map("ar_id") @db.VarChar(15)
+  arId          String?       @map("ar_id") @db.VarChar(15)
   /// 沖銷的應付 ID（與 arId 二擇一）
-  apId          String?  @map("ap_id") @db.VarChar(15)
+  apId          String?       @map("ap_id") @db.VarChar(15)
   /// 該筆沖了多少（部分收款支援）
-  settledAmount Decimal  @default(0) @map("settled_amount") @db.Decimal(14, 2)
-  remark        String?  @db.VarChar(200)
-  createdAt     DateTime @default(now()) @map("created_at")
-  createdBy     String   @map("created_by") @db.VarChar(15)
-  updatedAt     DateTime @updatedAt @map("updated_at")
-  updatedBy     String   @map("updated_by") @db.VarChar(15)
+  settledAmount Decimal       @default(0) @map("settled_amount") @db.Decimal(14, 2)
+  remark        String?       @db.VarChar(200)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  createdBy     String        @map("created_by") @db.VarChar(15)
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  updatedBy     String        @map("updated_by") @db.VarChar(15)
   tenant        Nx99Tenant    @relation("R_Nx05PaylogSettlement_tenantId", fields: [tenantId], references: [id])
   paylog        Nx05Paylog    @relation("R_Nx05PaylogSettlement_paylogId", fields: [paylogId], references: [id])
   ar            Nx05ArLedger? @relation("R_Nx05PaylogSettlement_arId", fields: [arId], references: [id])
@@ -4682,16 +4684,16 @@ model Nx05PaylogSettlement {
 /// =======================================================
 model Nx05ArReminderLog {
   /// [NX05]+[ARRM]+[7碼流水號]
-  id          String   @id @default(dbgenerated("gen_nx05_ar_reminder_log_id()")) @db.VarChar(15)
-  tenantId    String   @map("tenant_id") @db.VarChar(15)
-  arId        String   @map("ar_id") @db.VarChar(15)
-  remindedAt  DateTime @default(now()) @map("reminded_at")
-  remindedBy  String   @map("reminded_by") @db.VarChar(15)
-  remark      String?  @db.VarChar(500)
-  createdAt   DateTime @default(now()) @map("created_at")
-  tenant      Nx99Tenant   @relation("R_Nx05ArReminderLog_tenantId", fields: [tenantId], references: [id])
-  ar          Nx05ArLedger @relation("R_Nx05ArReminderLog_arId", fields: [arId], references: [id])
-  reminder    Nx01User     @relation("R_Nx05ArReminderLog_remindedBy", fields: [remindedBy], references: [id])
+  id         String       @id @default(dbgenerated("gen_nx05_ar_reminder_log_id()")) @db.VarChar(15)
+  tenantId   String       @map("tenant_id") @db.VarChar(15)
+  arId       String       @map("ar_id") @db.VarChar(15)
+  remindedAt DateTime     @default(now()) @map("reminded_at")
+  remindedBy String       @map("reminded_by") @db.VarChar(15)
+  remark     String?      @db.VarChar(500)
+  createdAt  DateTime     @default(now()) @map("created_at")
+  tenant     Nx99Tenant   @relation("R_Nx05ArReminderLog_tenantId", fields: [tenantId], references: [id])
+  ar         Nx05ArLedger @relation("R_Nx05ArReminderLog_arId", fields: [arId], references: [id])
+  reminder   Nx01User     @relation("R_Nx05ArReminderLog_remindedBy", fields: [remindedBy], references: [id])
 
   @@index([tenantId])
   @@index([arId])
@@ -8352,6 +8354,10 @@ model Nx02WarrantyClaim {
   refundAmount                            Decimal?                      @map("refund_amount") @db.Decimal(14, 2)
   /// 階段 F P5 加：退錢方式（result=REF 時必填）：O=Offset 下次扣抵 / A=Allowance 折讓單 / R=Refund 直接退現；啟用最低需求版本：LITE
   refundMethod                            String?                       @map("refund_method") @db.VarChar(1)
+  /// 階段 I P1 加：來源退貨單 ID（FK nx02_pr、Q1=a 拍板）。退貨單選「走保固」(dispositionFlag=W) 時 service 自動建保固單、回填此欄追溯來源。CUST/SELF 兩種既有 claimType 仍可為 null（人工開保固單時）。
+  sourcePrId                              String?                       @map("source_pr_id") @db.VarChar(15)
+  /// 階段 I P1 加：來源退貨明細 ID（FK nx02_pr_item、Q1=a 拍板）。對應 sourcePrId 的具體 line item、便於追溯「哪筆退貨產生此保固單」、報表可 group。
+  sourcePrItemId                          String?                       @map("source_pr_item_id") @db.VarChar(15)
   /// 備註；啟用最低需求版本：LITE
   remark                                  String?                       @db.VarChar(500)
   /// 建立時間。；啟用最低需求版本：LITE
