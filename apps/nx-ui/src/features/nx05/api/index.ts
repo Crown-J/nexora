@@ -307,6 +307,37 @@ export async function createNoteWithSettlements(
 }
 
 // v1.2 階段 F P5 E：催款（純內部記錄）
+// v1.2 階段 F P5-B：一張 AR/AP 沖銷歷史視圖（settlement 列表）
+export type SettlementRow = {
+  id: string;
+  paylogId: string;
+  paylogDocNo: string;
+  paylogPayDate: string;
+  paylogPayMethod: string;
+  paylogPayType: string;
+  settledAmount: string;
+  remark: string | null;
+  createdAt: string;
+};
+
+export async function listArSettlements(arId: string): Promise<{
+  rows: SettlementRow[];
+  totalSettled: string;
+}> {
+  const res = await apiFetch(`/nx05/ar/${encodeURIComponent(arId)}/settlements`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx05_ar_settlements');
+  return res.json();
+}
+
+export async function listApSettlements(apId: string): Promise<{
+  rows: SettlementRow[];
+  totalSettled: string;
+}> {
+  const res = await apiFetch(`/nx05/ap/${encodeURIComponent(apId)}/settlements`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx05_ap_settlements');
+  return res.json();
+}
+
 export async function notifyArOverdue(
   arId: string,
   remark?: string,

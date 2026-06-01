@@ -3,11 +3,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import { Coins, RefreshCw, Search } from 'lucide-react';
 
 import { getPayableView, type ApRow, type PayableViewRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
+import { PaylogCreateDialog } from './PaylogCreateDialog';
 
 type Tab = 'all' | 'ap' | 'srAllowance';
 
@@ -19,6 +20,7 @@ export function ApWorkbench() {
   const [search, setSearch] = useState('');
   const [reloadTick, setReloadTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [paylogDialog, setPaylogDialog] = useState<{ partnerId: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -174,6 +176,21 @@ export function ApWorkbench() {
                   label: '狀態',
                   render: (r: ApRow) => <StatusBadge status={r.displayStatus ?? r.status} />,
                 },
+                {
+                  key: 'actions',
+                  label: '操作',
+                  align: 'right',
+                  render: (r: ApRow) => (
+                    <button
+                      type="button"
+                      onClick={() => setPaylogDialog({ partnerId: r.supplierId })}
+                      title="開付款票據沖銷（可勾多張 AP）"
+                      className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[10px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
+                    >
+                      <Coins className="size-3" /> 沖銷
+                    </button>
+                  ),
+                },
               ]}
               rows={aps}
               loading={loading}
@@ -235,10 +252,18 @@ export function ApWorkbench() {
           </div>
         ) : null}
 
-        <p className="text-[10px] text-[#5A5A60]">
-          ⚠️ 沖銷（付款/保固理賠/折讓）+ 開付款票據功能屬 P5/後續軌、本軌僅展示列表 + 統計
-        </p>
       </section>
+
+      <PaylogCreateDialog
+        open={paylogDialog != null}
+        defaultNoteType="P"
+        defaultPartnerId={paylogDialog?.partnerId}
+        onClose={() => setPaylogDialog(null)}
+        onSuccess={() => {
+          setPaylogDialog(null);
+          setReloadTick((t) => t + 1);
+        }}
+      />
     </div>
   );
 }

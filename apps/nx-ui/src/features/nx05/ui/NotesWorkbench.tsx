@@ -3,11 +3,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import { Plus, RefreshCw, Search } from 'lucide-react';
 
 import { listNotes, type NoteRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
+import { PaylogCreateDialog } from './PaylogCreateDialog';
 
 type Tab = 'all' | 'receipt' | 'payment';
 
@@ -25,6 +26,7 @@ export function NotesWorkbench() {
   const [search, setSearch] = useState('');
   const [reloadTick, setReloadTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState<null | 'R' | 'P'>(null);
 
   useEffect(() => {
     let alive = true;
@@ -71,14 +73,40 @@ export function NotesWorkbench() {
         title="票據管理"
         subtitle="所有收付款行為（現金 / 匯款 / 支票 / 信用卡）"
         actions={
-          <button
-            type="button"
-            onClick={() => setReloadTick((t) => t + 1)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
-          >
-            <RefreshCw className="size-3.5" /> 重新整理
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => setDialogOpen('R')}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#22D88F]/40 bg-[#22D88F]/12 px-2.5 text-xs font-medium text-[#22D88F] hover:bg-[#22D88F]/20"
+            >
+              <Plus className="size-3.5" /> 新增收款
+            </button>
+            <button
+              type="button"
+              onClick={() => setDialogOpen('P')}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2.5 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
+            >
+              <Plus className="size-3.5" /> 新增付款
+            </button>
+            <button
+              type="button"
+              onClick={() => setReloadTick((t) => t + 1)}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2.5 text-xs text-[#B8B8C0] hover:border-[#E8A020]/40 hover:text-[#E8A020]"
+            >
+              <RefreshCw className="size-3.5" /> 重新整理
+            </button>
+          </>
         }
+      />
+
+      <PaylogCreateDialog
+        open={dialogOpen != null}
+        defaultNoteType={dialogOpen ?? undefined}
+        onClose={() => setDialogOpen(null)}
+        onSuccess={() => {
+          setDialogOpen(null);
+          setReloadTick((t) => t + 1);
+        }}
       />
 
       {error ? (

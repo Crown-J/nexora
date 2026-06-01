@@ -3,11 +3,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Bell, RefreshCw, Search } from 'lucide-react';
+import { Bell, Coins, RefreshCw, Search } from 'lucide-react';
 
 import { listAr, notifyArOverdue, type ArRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
+import { PaylogCreateDialog } from './PaylogCreateDialog';
 
 const STATUS_FILTERS = [
   { value: '', label: '全部' },
@@ -24,6 +25,7 @@ export function ArWorkbench() {
   const [search, setSearch] = useState('');
   const [reloadTick, setReloadTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [paylogDialog, setPaylogDialog] = useState<{ partnerId: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -170,11 +172,11 @@ export function ArWorkbench() {
                 <div className="flex justify-end gap-1">
                   <button
                     type="button"
-                    disabled
-                    title="UI 後續軌：開收款票據沖銷（後端 endpoint /nx05/paylog/with-settlements 已備）"
-                    className="inline-flex h-6 cursor-not-allowed items-center gap-1 rounded-md border border-[#3A3A42] px-2 text-[10px] text-[#5A5A60]"
+                    onClick={() => setPaylogDialog({ partnerId: r.customerId })}
+                    title="開收款票據沖銷（可勾多張 AR）"
+                    className="inline-flex h-6 items-center gap-1 rounded-md border border-[#22D88F]/40 bg-[#22D88F]/10 px-2 text-[10px] font-medium text-[#22D88F] hover:bg-[#22D88F]/20"
                   >
-                    沖銷
+                    <Coins className="size-3" /> 沖銷
                   </button>
                   <button
                     type="button"
@@ -200,10 +202,18 @@ export function ArWorkbench() {
           loading={loading}
           emptyMessage="尚無應收記錄"
         />
-        <p className="text-[10px] text-[#5A5A60]">
-          ⚠️ 沖銷（現金/銷退/折讓）+ 催款通知功能屬 P5/後續軌、本軌僅展示列表 + 統計
-        </p>
       </section>
+
+      <PaylogCreateDialog
+        open={paylogDialog != null}
+        defaultNoteType="R"
+        defaultPartnerId={paylogDialog?.partnerId}
+        onClose={() => setPaylogDialog(null)}
+        onSuccess={() => {
+          setPaylogDialog(null);
+          setReloadTick((t) => t + 1);
+        }}
+      />
     </div>
   );
 }
