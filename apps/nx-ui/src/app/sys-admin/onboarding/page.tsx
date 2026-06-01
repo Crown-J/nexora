@@ -1,8 +1,9 @@
 // apps/nx-ui/src/app/sys-admin/onboarding/page.tsx
-// v1.2 對齊軌 C：開戶後台路由（伊諾瓦業務用、SYSADMIN 才能進）
+// 平台層 vs 租戶層分離軌 Phase 4：舊路徑 redirect 至 /platform/onboarding
+// 保留檔案是為了避免舊書籤 / 外部連結 404；Phase 6 退役時可整支移除。
 
-import { OnboardingFormView } from '@/features/sys-admin/onboarding/ui/OnboardingFormView';
+import { redirect } from 'next/navigation';
 
-export default function OnboardingPage() {
-  return <OnboardingFormView />;
+export default function LegacySysAdminOnboardingRedirect() {
+  redirect('/platform/onboarding');
 }

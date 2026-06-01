@@ -16,5 +16,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard', '/dashboard/:path*'],
+  // 平台層 vs 租戶層分離軌 Phase 4：/platform 路由由 platform/layout client-side
+  // useEffect 自行驗證 platform token（打 /platform/auth/me）、middleware 不擋；
+  // 此處列入 matcher 僅為未來統一邊緣驗證留欄位。
+  matcher: ['/dashboard', '/dashboard/:path*', '/platform', '/platform/:path*'],
 };
