@@ -62,6 +62,24 @@ export type UpdateWarrantyClaimBody = Partial<{
 export type RegisterResultBody = {
   result: ClaimResult;
   resultRemark: string;
+  // v1.2 階段 F P5 D：result=REF 退錢時必填
+  refundAmount?: number;
+  refundMethod?: RefundMethod;
+};
+
+// v1.2 階段 F P5 D：result=REF 退款方式（總經理 2026-06-01 拍板）
+export type RefundMethod = 'O' | 'A' | 'R';
+
+export const REFUND_METHOD_LABEL: Record<RefundMethod, string> = {
+  O: '下次扣抵',
+  A: '折讓單',
+  R: '直接退現',
+};
+
+export const REFUND_METHOD_DESC: Record<RefundMethod, string> = {
+  O: '純記錄、業務下次採購時手動扣',
+  A: '自動建 DRAFT 折讓單、財務核可後沖應付',
+  R: '純記錄、業務用收付款開付款選沖應付',
 };
 
 export type WarrantyClaimAttachmentDto = {

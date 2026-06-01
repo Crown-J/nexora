@@ -60,7 +60,20 @@ export default function WarrantyClaimListPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   // result registration inline state
-  const [resultDraft, setResultDraft] = useState<Record<string, { result: ClaimResult; remark: string }>>({});
+  const [resultDraft, setResultDraft] = useState<
+    Record<
+      string,
+      {
+        result: ClaimResult;
+        remark: string;
+        // v1.2 階段 F P5-B (3)：REF 退款相關
+        refundAmount?: string;
+        refundMethod?: 'O' | 'A' | 'R';
+      }
+    >
+  >({});
+  // v1.2 階段 F P5-B (3)：cost 快取（每筆 partId 對應建議退款單價）
+  const [partCostCache, setPartCostCache] = useState<Record<string, number>>({});
 
   // M3-redo-3b：附件 upload inline state
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -153,15 +166,79 @@ export default function WarrantyClaimListPage() {
       setError('請填審核回覆說明');
       return;
     }
+    // v1.2 階段 F P5-B (3)：REF 退錢必填金額+方式（後端也會檢、前端提前 fail-fast）
+    if (draft.result === 'REF') {
+      const amt = Number(draft.refundAmount ?? '');
+      if (!Number.isFinite(amt) || amt <= 0) {
+        setError('退錢必填「退款金額」> 0');
+        return;
+      }
+      if (!draft.refundMethod) {
+        setError('退錢必選「退款方式」（O 下次扣抵 / A 折讓單 / R 直接退現）');
+        return;
+      }
+    }
     setBusyId(id);
     try {
-      await registerResult(id, { result: draft.result, resultRemark: draft.remark.trim() });
+      await registerResult(id, {
+        result: draft.result,
+        resultRemark: draft.remark.trim(),
+        ...(draft.result === 'REF'
+          ? {
+              refundAmount: Number(draft.refundAmount),
+              refundMethod: draft.refundMethod,
+            }
+          : {}),
+      });
       setResultDraft((s) => ({ ...s, [id]: { result: 'NEW', remark: '' } }));
       await refresh();
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusyId(null);
+    }
+  }
+
+  // v1.2 階段 F P5-B (3)：拿 part.cost 算建議退款金額（進貨成本 × 理賠數量）
+  async function loadSuggestedRefund(partId: string, qty: string): Promise<number | null> {
+    try {
+      let cost = partCostCache[partId];
+      if (cost == null) {
+        const { getPart } = await import('@/features/shared/master/part/api/part');
+        const part = await getPart(partId);
+        cost = Number(part.cost ?? 0);
+        setPartCostCache((s) => ({ ...s, [partId]: cost }));
+      }
+      const q = Number(qty);
+      if (!Number.isFinite(cost) || !Number.isFinite(q)) return null;
+      return Number((cost * q).toFixed(2));
+    } catch {
+      return null;
+    }
+  }
+
+  // result 切到 REF 時自動帶建議值
+  async function handleResultChange(rowId: string, partId: string, qty: string, newResult: ClaimResult) {
+    setResultDraft((s) => ({
+      ...s,
+      [rowId]: {
+        result: newResult,
+        remark: s[rowId]?.remark ?? '',
+        refundAmount: s[rowId]?.refundAmount,
+        refundMethod: s[rowId]?.refundMethod,
+      },
+    }));
+    if (newResult === 'REF' && !resultDraft[rowId]?.refundAmount) {
+      const suggested = await loadSuggestedRefund(partId, qty);
+      if (suggested != null) {
+        setResultDraft((s) => ({
+          ...s,
+          [rowId]: {
+            ...(s[rowId] ?? { result: newResult, remark: '' }),
+            refundAmount: suggested.toFixed(2),
+          },
+        }));
+      }
     }
   }
 
@@ -348,10 +425,7 @@ export default function WarrantyClaimListPage() {
                           <select
                             className="rounded bg-black/50 px-1 py-0.5 text-xs"
                             value={resultDraft[r.id]?.result ?? 'NEW'}
-                            onChange={(e) => setResultDraft((s) => ({
-                              ...s,
-                              [r.id]: { result: e.target.value as ClaimResult, remark: s[r.id]?.remark ?? '' },
-                            }))}
+                            onChange={(e) => void handleResultChange(r.id, r.partId, r.qty, e.target.value as ClaimResult)}
                           >
                             {(['NEW', 'REF', 'RPR', 'REJ'] as ClaimResult[]).map((rv) => (
                               <option key={rv} value={rv}>{CLAIM_RESULT_LABEL[rv]}</option>
@@ -363,9 +437,64 @@ export default function WarrantyClaimListPage() {
                             value={resultDraft[r.id]?.remark ?? ''}
                             onChange={(e) => setResultDraft((s) => ({
                               ...s,
-                              [r.id]: { result: s[r.id]?.result ?? 'NEW', remark: e.target.value },
+                              [r.id]: {
+                                result: s[r.id]?.result ?? 'NEW',
+                                remark: e.target.value,
+                                refundAmount: s[r.id]?.refundAmount,
+                                refundMethod: s[r.id]?.refundMethod,
+                              },
                             }))}
                           />
+                          {/* v1.2 階段 F P5-B (3)：REF 退錢時顯示金額 + 方式 */}
+                          {resultDraft[r.id]?.result === 'REF' && (
+                            <>
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                className="rounded border border-amber-500/40 bg-amber-500/10 px-1 py-0.5 font-mono text-xs text-amber-300"
+                                placeholder="退款金額（建議=成本×數量）"
+                                value={resultDraft[r.id]?.refundAmount ?? ''}
+                                onChange={(e) => setResultDraft((s) => ({
+                                  ...s,
+                                  [r.id]: {
+                                    result: s[r.id]?.result ?? 'REF',
+                                    remark: s[r.id]?.remark ?? '',
+                                    refundAmount: e.target.value,
+                                    refundMethod: s[r.id]?.refundMethod,
+                                  },
+                                }))}
+                                title="系統建議 = 進貨成本 × 理賠數量、業務可手動改"
+                              />
+                              <select
+                                className="rounded border border-amber-500/40 bg-amber-500/10 px-1 py-0.5 text-xs text-amber-300"
+                                value={resultDraft[r.id]?.refundMethod ?? ''}
+                                onChange={(e) => setResultDraft((s) => ({
+                                  ...s,
+                                  [r.id]: {
+                                    result: s[r.id]?.result ?? 'REF',
+                                    remark: s[r.id]?.remark ?? '',
+                                    refundAmount: s[r.id]?.refundAmount,
+                                    refundMethod: e.target.value as 'O' | 'A' | 'R',
+                                  },
+                                }))}
+                              >
+                                <option value="">— 退款方式 —</option>
+                                <option value="O">O 下次扣抵（手動）</option>
+                                <option value="A">A 折讓單（待核可）</option>
+                                <option value="R">R 直接退現（手動）</option>
+                              </select>
+                              <div className="text-[10px] text-amber-300/70">
+                                {resultDraft[r.id]?.refundMethod === 'A'
+                                  ? '⚡ 登記後自動建 DRAFT 折讓單、財務核可後沖應付'
+                                  : resultDraft[r.id]?.refundMethod === 'O'
+                                    ? '純記錄、業務下次採購時手動扣'
+                                    : resultDraft[r.id]?.refundMethod === 'R'
+                                      ? '純記錄、用收付款開付款選沖應付'
+                                      : ''}
+                              </div>
+                            </>
+                          )}
                           <button
                             disabled={busyId === r.id}
                             onClick={() => doRegisterResult(r.id)}
