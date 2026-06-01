@@ -173,6 +173,8 @@ export class AuthService {
     subscription: { plan: { code: string } } | null,
     isCrossTenantPlatform: boolean,
   ) {
+    // 平台/租戶層分離軌 Phase 2：所有 tenant token 帶 scope:'tenant'、
+    // 平台 token 由 PlatformAuthService 另簽帶 scope:'platform'、兩者不互通。
     if (isCrossTenantPlatform) {
       return this.jwt.signAsync({
         sub: user.id,
@@ -180,6 +182,7 @@ export class AuthService {
         tenantId: null,
         tenantCode: null,
         planCode: null,
+        scope: 'tenant',
       });
     }
     return this.jwt.signAsync({
@@ -188,6 +191,7 @@ export class AuthService {
       tenantId: user.tenant?.id ?? null,
       tenantCode: user.tenant?.code ?? null,
       planCode: subscription?.plan?.code ?? null,
+      scope: 'tenant',
     });
   }
 

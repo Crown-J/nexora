@@ -24,6 +24,8 @@ export type JwtPayload = {
   tenantId?: string | null;
   tenantCode?: string | null;
   planCode?: string | null;
+  /** 平台/租戶層分離軌 Phase 2：'tenant' = 客戶員工 token / 'platform' = 平台超管 token（被本 strategy 拒絕）*/
+  scope?: 'tenant' | 'platform';
   iat?: number;
   exp?: number;
 };
@@ -54,6 +56,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: JwtPayload): Promise<RequestUser> {
     if (!payload?.sub) {
       throw new UnauthorizedException('Invalid token payload');
+    }
+    // 平台/租戶層分離軌 Phase 2：scope='platform' token 不能進客戶 endpoint。
+    // 既有未帶 scope 的舊 token 視為 tenant（向後相容過渡期）。
+    if (payload.scope === 'platform') {
+      throw new UnauthorizedException('Token scope mismatch (platform token cannot access tenant)');
     }
 
     const userRow = await this.prisma.nx01User.findUnique({
