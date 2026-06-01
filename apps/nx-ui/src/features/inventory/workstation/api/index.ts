@@ -230,3 +230,123 @@ export function createParcel(payload: CreateParcelPayload): Promise<Parcel> {
     body: JSON.stringify(payload),
   });
 }
+
+// ────────────────────────────────────────────────────────────
+// nx06/delivery（配送 DN）
+// status: DRAFT → DISPATCHED → DELIVERED / FAILED / VOIDED
+// ────────────────────────────────────────────────────────────
+
+export type DnStatus = 'DRAFT' | 'DISPATCHED' | 'DELIVERED' | 'FAILED' | 'VOIDED';
+
+export interface DnStop {
+  id: string;
+  dnId: string;
+  taskType?: string | null;
+  partnerId?: string | null;
+  address: string;
+  contactName?: string | null;
+  contactPhone?: string | null;
+  arrivedAt?: string | null;
+  completedAt?: string | null;
+}
+
+export interface Dn {
+  id: string;
+  tenantId: string;
+  docNo: string;
+  dnDate: string;
+  warehouseId: string;
+  driverUserId: string;
+  vehicleNo?: string | null;
+  status: DnStatus;
+  sourceSoId?: string | null;
+  remark?: string | null;
+  dispatchedAt?: string | null;
+  deliveredAt?: string | null;
+  createdAt: string;
+}
+
+export interface DnDetail extends Dn {
+  stops?: DnStop[];
+}
+
+export function listDns(q: ListQuery = {}): Promise<ListResponse<Dn>> {
+  return apiJson(`/nx06/delivery${qs(q)}`);
+}
+
+export function getDn(id: string): Promise<DnDetail> {
+  return apiJson(`/nx06/delivery/${encodeURIComponent(id)}`);
+}
+
+export function patchDn(id: string, payload: { status: DnStatus; remark?: string; vehicleNo?: string }): Promise<Dn> {
+  return apiJson(`/nx06/delivery/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+// ────────────────────────────────────────────────────────────
+// nx03/inbound（驗收 GRN、Q4=a 拍板）
+// status: DRAFT → INSPECTING → POSTED / REJECTED / CANCELLED
+// ────────────────────────────────────────────────────────────
+
+export type InboundStatus = 'DRAFT' | 'INSPECTING' | 'POSTED' | 'REJECTED' | 'CANCELLED';
+
+export interface InboundItem {
+  id: string;
+  inboundId: string;
+  lineNo: number;
+  partId: string;
+  partNo?: string | null;
+  partName?: string | null;
+  locationId?: string | null;
+  qty: string;
+  unitCost: string;
+  lineAmount?: string | null;
+  remark?: string | null;
+}
+
+export interface Inbound {
+  id: string;
+  tenantId: string;
+  docNo: string;
+  warehouseId: string;
+  inboundDate: string;
+  status: InboundStatus;
+  remark?: string | null;
+  postedAt?: string | null;
+  createdAt: string;
+}
+
+export interface InboundDetail extends Inbound {
+  items: InboundItem[];
+}
+
+export function listInbounds(q: ListQuery = {}): Promise<ListResponse<Inbound>> {
+  return apiJson(`/nx03/inbound${qs(q)}`);
+}
+
+export function getInbound(id: string): Promise<InboundDetail> {
+  return apiJson(`/nx03/inbound/${encodeURIComponent(id)}`);
+}
+
+export function patchInbound(id: string, payload: { status?: InboundStatus; remark?: string }): Promise<Inbound> {
+  return apiJson(`/nx03/inbound/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * 驗收「一鍵完成」：DRAFT → INSPECTING → POSTED sequential。
+ * state machine 不允許 DRAFT → POSTED 直跳、必經 INSPECTING。
+ */
+export async function completeReceiving(id: string, currentStatus: InboundStatus): Promise<Inbound> {
+  if (currentStatus === 'POSTED' || currentStatus === 'REJECTED' || currentStatus === 'CANCELLED') {
+    throw new Error(`Inbound 已 ${currentStatus}、無法完成`);
+  }
+  if (currentStatus === 'DRAFT') {
+    await patchInbound(id, { status: 'INSPECTING' });
+  }
+  return patchInbound(id, { status: 'POSTED' });
+}
