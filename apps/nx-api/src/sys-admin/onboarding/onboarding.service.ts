@@ -1,5 +1,6 @@
 // apps/nx-api/src/sys-admin/onboarding/onboarding.service.ts
 // v1.2 對齊軌 C：開戶後台 service
+// 平台/租戶層分離軌 Phase 3：actor 從 RequestUser（nx01_user）改成 platform admin id。
 //
 // 流程（v1.2 §2.2）：
 //   1. 建租戶（is_active=true、status='A'、plan_code 對應 LITE/PLUS/PRO）
@@ -7,15 +8,27 @@
 //   3. 指派 OWNER 角色給負責人（OWNER 角色由 apply-role.ts seed 預建）
 //   4. 建主據點 + 主倉
 //   5. 模擬寄通知 Email（console.log、實際 email 需另接 mailer）
+//
+// createdBy 分流（schema FK 約束決定）：
+// - nx99_tenant.createdBy = actorPlatformAdminId（無 FK、保留 platform 審計）
+// - nx01_user.createdBy = SYSADMIN_USER_ID（有 FK 指向 nx01_user(id)、必填佔位、跟 INNOVA seed 範式一致）
+// - 其他表 createdBy = actorPlatformAdminId（無 FK）
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 
-import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 
 import type { CreateOnboardingDto } from './dto/onboarding.dto';
+
+/**
+ * SYSADMIN 佔位 id（nx01_user.createdBy FK 必填）
+ * 對應 packages/db-core/prisma/seed/system/constants.ts:SYSADMIN_USER_ID
+ * hardcode 是為了避免 nx-api 直接依賴 db-core 的 seed module、與既有 chicken-and-egg
+ * 範式（nx99_innova_tenant.ts seed 也是這個寫法）保持一致。
+ */
+const SYSADMIN_USER_ID = 'NX01USER0000001';
 
 @Injectable()
 export class OnboardingService {
@@ -29,7 +42,7 @@ export class OnboardingService {
     return `${buf}!1`.replace(/[/+=]/g, '').slice(0, 10);
   }
 
-  async createTenantAndOwner(user: RequestUser, dto: CreateOnboardingDto) {
+  async createTenantAndOwner(actorPlatformAdminId: string, dto: CreateOnboardingDto) {
     // 1. 驗證 Email 唯一（檢 nx01_user.user_account）
     const existingUser = await this.prisma.nx01User.findFirst({
       where: { userAccount: dto.ownerEmail },
@@ -72,12 +85,14 @@ export class OnboardingService {
           contactName: dto.ownerName,
           contactEmail: dto.ownerEmail,
           contactPhone: dto.phone ?? null,
-          createdBy: user.sub,
-          updatedBy: user.sub,
+          createdBy: actorPlatformAdminId,
+          updatedBy: actorPlatformAdminId,
         },
       });
 
       // 4.2 建負責人 user
+      // ⚠️ nx01_user.createdBy 有 FK 指向 nx01_user(id)、不能填 PLATADMN id；
+      //    用 SYSADMIN_USER_ID 佔位、語意「系統開戶流程自動建」、跟 INNOVA seed 範式一致
       const owner = await tx.nx01User.create({
         data: {
           tenantId: tenant.id,
@@ -88,8 +103,8 @@ export class OnboardingService {
           isActive: true,
           mustChangePassword: true,
           isTenantOwner: true,
-          createdBy: user.sub,
-          updatedBy: user.sub,
+          createdBy: SYSADMIN_USER_ID,
+          updatedBy: SYSADMIN_USER_ID,
         },
       });
 
@@ -105,8 +120,8 @@ export class OnboardingService {
           isSystem: true,
           sortNo: 2,
           isActive: true,
-          createdBy: user.sub,
-          updatedBy: user.sub,
+          createdBy: actorPlatformAdminId,
+          updatedBy: actorPlatformAdminId,
         },
       });
 
@@ -116,7 +131,7 @@ export class OnboardingService {
           userId: owner.id,
           roleId: ownerRole.id,
           isPrimary: true,
-          assignedBy: user.sub,
+          assignedBy: actorPlatformAdminId,
           isActive: true,
         },
       });
@@ -130,8 +145,8 @@ export class OnboardingService {
           address: dto.address,
           isMain: true,
           isActive: true,
-          createdBy: user.sub,
-          updatedBy: user.sub,
+          createdBy: actorPlatformAdminId,
+          updatedBy: actorPlatformAdminId,
         },
       });
 
@@ -145,8 +160,8 @@ export class OnboardingService {
           siteId: site.id,
           isMain: true,
           isActive: true,
-          createdBy: user.sub,
-          updatedBy: user.sub,
+          createdBy: actorPlatformAdminId,
+          updatedBy: actorPlatformAdminId,
         },
       });
 
