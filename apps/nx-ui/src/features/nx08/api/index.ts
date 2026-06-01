@@ -142,6 +142,149 @@ export async function getSalesRanking(): Promise<{
 }
 
 // ============================================================
+// 庫存報表（P3d、warehouse-staff + warehouse-lead）
+// ============================================================
+
+export async function getInventoryTurnover(): Promise<{
+  ok: boolean;
+  period?: string;
+  items: Array<{
+    partId: string;
+    partNo?: string;
+    partName?: string;
+    onHandQty: number;
+    soldQty?: number;
+    turnoverRate?: string;
+  }>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/warehouse-staff/turnover', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_turnover');
+  return res.json();
+}
+
+export async function getDormantParts(): Promise<{
+  ok: boolean;
+  items: Array<{
+    partId: string;
+    partNo?: string;
+    partName?: string;
+    onHandQty: number;
+    lastMovementDate?: string;
+    dormantDays: number;
+  }>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/warehouse-staff/dormant', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_dormant');
+  return res.json();
+}
+
+export async function getLowStockAlert(): Promise<{
+  ok: boolean;
+  items: Array<{
+    partId: string;
+    partNo?: string;
+    partName?: string;
+    onHandQty: number;
+    safetyStock?: number;
+    shortageQty?: number;
+  }>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/warehouse-staff/low-stock-alert', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_low_stock');
+  return res.json();
+}
+
+// ============================================================
+// 損益表（P3e、finance/pnl）
+// ============================================================
+
+export type PnL = {
+  periodStart: string;
+  periodEnd: string;
+  revenue: { gross: string; return: string; net: string };
+  cogs: string;
+  grossProfit: string;
+  grossMarginPct: string;
+  opex: {
+    total: string;
+    detail: Array<{ accountCode: string; accountName?: string; amount: string }>;
+  };
+  operatingIncome: string;
+  opMarginPct: string;
+  note: string;
+};
+
+export async function getPnL(params: { periodStart: string; periodEnd: string }): Promise<PnL> {
+  const qs = buildQueryString({ periodStart: params.periodStart, periodEnd: params.periodEnd });
+  const res = await apiFetch(`/nx08/dashboard/finance/pnl${qs}`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_pnl');
+  return res.json() as Promise<PnL>;
+}
+
+// ============================================================
+// 營運報表（P3f、owner + strategy、高權限）
+// ============================================================
+
+export async function getDeptPerf(): Promise<{
+  ok: boolean;
+  depts?: Array<{ deptId: string; deptName?: string; totalAmount: string; soCount: number }>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/owner/dept-perf', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_dept_perf');
+  return res.json();
+}
+
+export async function getKpiGap(): Promise<{
+  ok: boolean;
+  items?: Array<{
+    userId: string;
+    userName?: string;
+    target: string;
+    actual: string;
+    gap: string;
+    achievePct: string;
+  }>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/owner/kpi-gap', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_kpi_gap');
+  return res.json();
+}
+
+export async function getCrossModule(): Promise<{
+  ok: boolean;
+  metrics?: Record<string, unknown>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/strategy/cross-module', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_cross_module');
+  return res.json();
+}
+
+export async function getBcgMatrix(): Promise<{
+  ok: boolean;
+  items?: Array<{
+    partId: string;
+    partNo?: string;
+    partName?: string;
+    category: 'STAR' | 'CASH_COW' | 'QUESTION' | 'DOG' | string;
+    growthRate?: string;
+    marketShare?: string;
+  }>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/strategy/bcg-matrix', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_bcg_matrix');
+  return res.json();
+}
+
+export async function getStrategyKpi(): Promise<{
+  ok: boolean;
+  kpi?: Record<string, unknown>;
+}> {
+  const res = await apiFetch('/nx08/dashboard/strategy/strategy-kpi', { method: 'GET' });
+  await assertOk(res, 'nxui_nx08_strategy_kpi');
+  return res.json();
+}
+
+// ============================================================
 // User list（個人月報員工選擇用、負責人可選其他人）
 // ============================================================
 
