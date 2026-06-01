@@ -8523,3 +8523,48 @@ model Nx02RfqGreetingTemplate {
   @@unique([tenantId])
   @@map("nx02_rfq_greeting_template")
 }
+
+/// =======================================================
+/// PlatformAdmin — DB table `platform_admin`
+/// 平台層 vs 租戶層分離軌 Phase 1（2026-06-02）
+///
+/// 性質：⚠️ 平台基礎設施、**非 spec 驅動**、手動維護（不在 docs/spec/ CSV 範圍）
+/// 用途：伊諾瓦營運超管帳號、與客戶租戶 nx01_user 徹底分家、跨層不耦合
+/// FK：created_by / updated_by 用 VARCHAR(15) scalar 不建 FK（跟 nx99_tenant 範式一致）
+/// =======================================================
+model PlatformAdmin {
+  /// [PLAT]+[ADMN]+[7碼流水號]，EX : PLATADMN0000001
+  id                  String    @id @default(dbgenerated("gen_platform_admin_id()")) @db.VarChar(15)
+  /// 平台登入帳號（跨平台唯一、不分租戶）
+  account             String    @unique @db.VarChar(50)
+  /// 密碼雜湊
+  passwordHash        String    @map("password_hash") @db.VarChar(255)
+  /// 顯示名稱
+  displayName         String    @map("display_name") @db.VarChar(50)
+  /// Email（選填）
+  email               String?   @db.VarChar(100)
+  /// 電話（選填）
+  phone               String?   @db.VarChar(20)
+  /// 是否啟用（停用後不可登入）
+  isActive            Boolean   @default(true) @map("is_active")
+  /// 首次登入強制改密碼
+  mustChangePassword  Boolean   @default(false) @map("must_change_password")
+  /// 最後登入時間
+  lastLoginAt         DateTime? @map("last_login_at")
+  /// 連續失敗登入次數
+  failedLoginCount    Int       @default(0) @map("failed_login_count")
+  /// 帳號鎖定到何時
+  lockedUntil         DateTime? @map("locked_until")
+  /// 備註
+  remark              String?   @db.VarChar(200)
+  /// 建立時間
+  createdAt           DateTime  @default(now()) @map("created_at")
+  /// 建立人（VARCHAR scalar、無 FK、首筆 seed 自參考）
+  createdBy           String    @map("created_by") @db.VarChar(15)
+  /// 更新時間
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  /// 更新人（VARCHAR scalar、無 FK）
+  updatedBy           String    @map("updated_by") @db.VarChar(15)
+
+  @@map("platform_admin")
+}

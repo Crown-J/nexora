@@ -10,6 +10,7 @@ import { seedNx01View } from './nx01_view';
 import { seedNx01WarehouseType } from './nx01_warehouse_type';
 import { seedInnovaTenantAndAdmin } from './nx99_innova_tenant';
 import { seedNx99Plan } from './nx99_plan';
+import { seedPlatformAdmin } from './platform_admin';
 import { seedSystemTenantAndSysAdmin } from './nx99_system_tenant';
 
 export async function runSystemSeed(prisma: PrismaClient): Promise<void> {
@@ -26,9 +27,14 @@ export async function runSystemSeed(prisma: PrismaClient): Promise<void> {
   await seedNx01WarehouseType(prisma); // 倉庫類型 H/M/W/S（全域型錄，schema 無 tenantId）
   await seedNx01Permission(prisma);    // v1.2 對齊軌 A+B：系統權限目錄
 
-  // 3. INNOVA 營運主體：伊諾瓦跨租戶後台、innova-admin 持 SYSADMIN 角色。
+  // 3. INNOVA 營運主體（⚠️ 過渡期保留、Phase 6 退役）：
+  //    伊諾瓦跨租戶後台 v1 做法、innova-admin 持 SYSADMIN 角色掛 nx01_user。
   //    必須在 seedNx01Permission 之後（角色目錄已存在）。
   await seedInnovaTenantAndAdmin(prisma);
+
+  // 4. 平台層營運超管（⭐ 平台/租戶層分離軌 Phase 1）：
+  //    平台層獨立、不掛任何租戶。Phase 6 完成後成為唯一伊諾瓦營運入口。
+  await seedPlatformAdmin(prisma);
 
   console.log('✅ [SYSTEM] 系統層 seed 完成');
 }
