@@ -1,132 +1,173 @@
 // apps/nx-ui/src/features/inventory/workstation/picking/MobilePickingListPage.tsx
-/**
- * 庫存中心 · 撿貨清單(PK)。
- *
- * 入口:/dashboard/inventory/picking(Phase 9 從 /dashboard/inventory-mobile/picking 遷來)
- *
- * 功能:
- *   - 狀態 chip:全部 / 待撿貨 / 撿貨中 / 已完成
- *   - PK Card:單號、關聯 SO、客戶、品項數 / 件數、動作按鈕
- *   - 操作:
- *       pending / picking → [完成撿貨] completePicking
- *         → PK → completed + 自動建 BX + SO → packed
- *
- * 逐項掃條碼 + 庫位指引留給後續版本擴充。
- */
+// 庫存中心 · 撿貨清單（手機版）
+//
+// v1.2 階段 G P2：棄 useSalesStore mock、接真實 nx03/pk API
+// 對齊 audit §10「撿貨工作站、FU-stock-lite-03 揭露用 mock data、未接真實 API」修補
+//
+// 範式：
+// - 4 篩選 chip：全部 / 待撿 (P) / 撿貨中 (C) / 已完成 (F)
+// - 卡片：docNo / pkDate / triggerSource / 數量 + 動作按鈕
+// - 「完成撿貨」按鈕 = sequential PATCH P→C→F（state machine 不允許 P→F 直跳）
+// - 逐項掃條碼 + 庫位指引留給 P6 盤點軌共用（本軌只做列表+一鍵完成）
 
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Building2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
-import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
-import { PK_STATUS_LABEL, type PK, type PKStatus, type SO } from '@/features/sale/ui/fulfillment/types';
+import {
+  completePicking,
+  listPks,
+  type Pk,
+  type PkStatus,
+} from '@/features/inventory/workstation/api';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
-type FilterValue = 'all' | PKStatus;
+type FilterValue = 'all' | PkStatus;
 
 const FILTERS: ReadonlyArray<{ id: FilterValue; label: string }> = [
   { id: 'all', label: '全部' },
-  { id: 'pending', label: '待撿貨' },
-  { id: 'picking', label: '撿貨中' },
-  { id: 'completed', label: '已完成' },
+  { id: 'P', label: '待撿貨' },
+  { id: 'C', label: '撿貨中' },
+  { id: 'F', label: '已完成' },
 ];
 
-const PK_TONE: Record<PKStatus, DocStatusTone> = {
-  pending: 'warn',
-  picking: 'info',
-  completed: 'success',
+const PK_STATUS_LABEL: Record<PkStatus, string> = {
+  P: '待撿貨',
+  C: '撿貨中',
+  F: '已完成',
+  V: '作廢',
 };
 
-function PKCard({
-  pk,
-  so,
-  onComplete,
-}: {
-  pk: PK;
-  so: SO | undefined;
-  onComplete: () => void;
-}) {
-  const itemLines = pk.items.length;
-  const totalQty = pk.items.reduce((s, i) => s + i.quantity, 0);
+const PK_TONE: Record<PkStatus, DocStatusTone> = {
+  P: 'warn',
+  C: 'info',
+  F: 'success',
+  V: 'muted',
+};
 
+const TRIGGER_LABEL: Record<'S' | 'T', string> = {
+  S: '銷貨',
+  T: '調撥',
+};
+
+function PKCard({ pk, busy, onComplete }: { pk: Pk; busy: boolean; onComplete: () => void }) {
+  const isDone = pk.status === 'F' || pk.status === 'V';
   return (
     <div className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-sm text-white/80">{pk.pkNumber}</span>
+        <span className="font-mono text-sm text-white/80">{pk.docNo}</span>
         <DocStatusBadge tone={PK_TONE[pk.status]}>{PK_STATUS_LABEL[pk.status]}</DocStatusBadge>
       </div>
 
-      {so ? (
-        <div className="flex items-center gap-2 text-sm">
-          <Building2 className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
-          <span className="shrink-0 font-mono text-xs text-white/40">{so.customer.code}</span>
-          <span className="min-w-0 flex-1 truncate text-white/80">{so.customer.name}</span>
-        </div>
-      ) : null}
-
-      <div className="space-y-1 border-t border-white/10 pt-2 text-xs text-white/70">
-        {pk.items.slice(0, 3).map((i, idx) => (
-          <div key={`${i.sku}-${idx}`} className="flex items-center gap-2">
-            <span className="shrink-0 font-mono text-white/40">{i.sku}</span>
-            <span className="min-w-0 flex-1 truncate">{i.name}</span>
-            <span className="shrink-0 tabular-nums text-white/60">×{i.quantity}</span>
-          </div>
-        ))}
-        {pk.items.length > 3 ? (
-          <div className="text-white/40">…另 {pk.items.length - 3} 項</div>
+      <div className="flex items-center gap-2 border-t border-white/10 pt-2 text-xs text-white/60">
+        <span>{TRIGGER_LABEL[pk.triggerSource]}</span>
+        <span className="text-white/30">·</span>
+        <span className="font-mono">{pk.pkDate.slice(0, 10)}</span>
+        {pk.pickupCode ? (
+          <>
+            <span className="text-white/30">·</span>
+            <span className="font-mono text-[#E8A020]">{pk.pickupCode}</span>
+          </>
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between border-t border-white/10 pt-2 text-xs">
-        <span className="text-white/50 tabular-nums">
-          {itemLines} 項 / {totalQty} 件 · 關聯{' '}
-          <span className="font-mono text-white/70">{pk.relatedSoNumber}</span>
-        </span>
-        {pk.status !== 'completed' ? (
+      {pk.remark ? (
+        <div className="text-xs text-white/50 truncate">{pk.remark}</div>
+      ) : null}
+
+      {!isDone ? (
+        <div className="flex justify-end border-t border-white/10 pt-2">
           <button
             type="button"
             onClick={onComplete}
-            className="h-8 rounded bg-[#1D9E75] px-3 text-xs text-black transition-colors hover:bg-[#1D9E75]/90"
+            disabled={busy}
+            className="h-8 rounded bg-[#1D9E75] px-3 text-xs text-black transition-colors hover:bg-[#1D9E75]/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            完成撿貨
+            {busy ? '處理中…' : '完成撿貨'}
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function MobilePickingListPage() {
-  const pks = useSalesStore((s) => s.pks);
-  const sos = useSalesStore((s) => s.sos);
-  const completePicking = useSalesStore((s) => s.completePicking);
-
   const [filter, setFilter] = useState<FilterValue>('all');
+  const [pks, setPks] = useState<Pk[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const sosByNumber = useMemo(() => {
-    const m = new Map<string, SO>();
-    for (const s of sos) m.set(s.soNumber, s);
-    return m;
-  }, [sos]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listPks({
+        pageSize: 50,
+        status: filter === 'all' ? undefined : filter,
+      });
+      setPks(res.items);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
 
-  const filtered = useMemo(() => {
-    const sorted = [...pks].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    if (filter === 'all') return sorted;
-    return sorted.filter((pk) => pk.status === filter);
-  }, [pks, filter]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-  const pendingCount = pks.filter((pk) => pk.status !== 'completed').length;
+  const handleComplete = useCallback(
+    async (pk: Pk) => {
+      setBusyId(pk.id);
+      setError(null);
+      try {
+        await completePicking(pk.id, pk.status);
+        await load();
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [load],
+  );
+
+  const sorted = useMemo(
+    () => [...pks].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
+    [pks],
+  );
+
+  const pendingCount = pks.filter((pk) => pk.status === 'P' || pk.status === 'C').length;
 
   return (
-    <div className="space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+4rem)]">
+    <div className="space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+5rem)]">
       <header className="space-y-1">
-        <h1 className="text-lg text-white">庫存中心 · 撿貨清單</h1>
-        <p className="text-xs text-white/50">完成撿貨後自動建立包貨單 BX</p>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg text-white">庫存中心 · 撿貨清單</h1>
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            aria-label="重新整理"
+            className="inline-flex h-8 items-center gap-1 rounded border border-white/10 bg-white/5 px-2.5 text-xs text-white/70 hover:border-white/20 disabled:opacity-50"
+          >
+            <RefreshCw className={cx('size-3.5', loading && 'animate-spin')} />
+          </button>
+        </div>
+        <p className="text-xs text-white/50">P→C→F 三狀態流、完成撿貨後可進入包貨工作站</p>
       </header>
+
+      {error ? (
+        <div className="rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-3 py-2 text-xs text-[#E26060]">
+          {error}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
@@ -147,21 +188,25 @@ export function MobilePickingListPage() {
       </div>
 
       <div className="text-xs text-white/50 tabular-nums">
-        共 {filtered.length} 筆 · 尚待處理 {pendingCount} 筆
+        共 {sorted.length} 筆 · 待處理 {pendingCount} 筆
       </div>
 
-      {filtered.length === 0 ? (
+      {loading && sorted.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+          載入中…
+        </div>
+      ) : sorted.length === 0 ? (
         <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
           目前沒有符合篩選條件的撿貨單
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((pk) => (
+          {sorted.map((pk) => (
             <PKCard
               key={pk.id}
               pk={pk}
-              so={sosByNumber.get(pk.relatedSoNumber)}
-              onComplete={() => completePicking(pk.id)}
+              busy={busyId === pk.id}
+              onComplete={() => void handleComplete(pk)}
             />
           ))}
         </div>

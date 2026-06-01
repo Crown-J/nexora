@@ -1,9 +1,9 @@
 // apps/nx-ui/src/app/dashboard/inventory/receiving/page.tsx
-// TASK-BUSINESS-RESTRUCTURE Phase 9:庫存中心 · 進貨作業(placeholder)。
-// Spec 註記:先 placeholder,不在春酒重點,後續版本擴充。
+// v1.2 階段 G P5：驗收清單入口（接 nx03/inbound GRN、Q4=a 拍板）
+'use client';
 
-import { PlaceholderPage } from '@/features/sale/ui/hub/components/PlaceholderPage';
+import { MobileReceivingListPage } from '@/features/inventory/workstation/receiving/MobileReceivingListPage';
 
 export default function InventoryReceivingRoute() {
-  return <PlaceholderPage title="庫存中心 · 進貨作業" />;
+  return <MobileReceivingListPage />;
 }

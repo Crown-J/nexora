@@ -108,9 +108,19 @@ export function StocktakeDetailView({ id }: { id: string }) {
           </div>
           {st.remark ? <p className="mt-2 text-sm text-muted-foreground">備註：{st.remark}</p> : null}
         </div>
-        <Link href="/dashboard/inventory/stocktake" className="text-sm text-primary hover:underline">
-          ← 返回列表
-        </Link>
+        <div className="flex flex-col items-end gap-2">
+          <Link href="/dashboard/inventory/stocktake" className="text-sm text-primary hover:underline">
+            ← 返回列表
+          </Link>
+          {st.status !== 'POSTED' && st.status !== 'CANCELLED' ? (
+            <Link
+              href={`/dashboard/inventory/stocktake/${st.id}/scan`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-3 py-1.5 text-xs text-[#E8A020] hover:bg-[#E8A020]/15"
+            >
+              📱 手機掃條碼模式
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       {error ? (

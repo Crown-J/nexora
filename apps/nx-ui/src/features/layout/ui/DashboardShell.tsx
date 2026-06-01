@@ -21,6 +21,8 @@ import { TopBarPlanToggles } from '@/features/sys-dashboard/ui/TopBarPlanToggles
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { BusinessTopNav } from '@/features/layout/ui/BusinessTopNav';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
+import { MobileFab } from '@/features/layout/ui/MobileFab';
+import { MobileWorkstationDock } from '@/features/layout/ui/MobileWorkstationDock';
 import { WizardLauncher } from '@/features/wizard/ui/WizardLauncher';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { normalizePlanCode } from '@/features/base/config/master-cards';
@@ -183,6 +185,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </div>
           </HomeLandingChrome>
         )}
+        {/* v1.2 §10：手機殼（5 工作站 dock + 浮動功能鍵）、lg:hidden、Q3=a 全 dashboard 顯示 */}
+        <MobileWorkstationDock />
+        <MobileFab />
         </PageGuideProvider>
       </DashboardBulletinProvider>
     </DashboardPaletteProvider>

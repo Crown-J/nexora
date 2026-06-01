@@ -10,21 +10,23 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-06-01（⭐ v1.2 對齊軌 階段 H 報表 closure、merge feature/v1.2-alignment-h + tag v2.0.7-alignment-h-complete）**
-> **當前分支：`main`**（HEAD = merge commit、tag `v2.0.7-alignment-h-complete`）
-> **上輪 closure**：v1.2 對齊軌 階段 F 財務模組（merge + tag `v2.0.6-alignment-f-complete`）
-> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-h、--no-ff、階段 H NX08 報表模組 closure）
-> **狀態摘要**：`feature/v1.2-alignment-h` = **已 merge main、可考慮刪除**
-> **整軌成果**：7 commits（P0 意圖書 → P6 closure）、6 張報表全交付（個人月報 / 進貨 / 銷售 / 庫存 / 損益 / 營運）、桌面+手機+Excel 匯出三模式一次到位、1 個新 endpoint（finance/pnl 進銷淨額簡化法）+ 沿用 NX08 既有 7 dashboard service；對齊總經理 4 項拍板（報表優先 / 桌+手機同步 / 只做損益 / 業績含銷貨額+毛利）+ Alex Q1~Q7 拍板
-> **⚠️ Railway production migration 同步累計落後維持 91 支**（階段 H **0 schema 變動**、Railway 不需 deploy）：`.env` 維持 localhost、觸發時機仍對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週
+> **快照時間：2026-06-01（⭐ v1.2 對齊軌 階段 G 手機版 closure、merge feature/v1.2-alignment-g + tag v2.0.8-alignment-g-complete）**
+> **當前分支：`main`**（HEAD = merge commit、tag `v2.0.8-alignment-g-complete`）
+> **上輪 closure**：v1.2 對齊軌 階段 H 報表模組（merge + tag `v2.0.7-alignment-h-complete`）
+> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-g、--no-ff、階段 G 手機版 closure）
+> **狀態摘要**：`feature/v1.2-alignment-g` = **已 merge main、可考慮刪除**
+> **整軌成果**：8 commits（P0 意圖書 → P7 closure）、5 工作站手機版全交付（驗收/撿貨/包貨/配送/盤點）、底部 dock + 浮動 FAB ⊕ + BarcodeScanner 共用元件（html5-qrcode）、5 個既有後端 endpoint 都接通（nx03/pk + pl + parcel + inbound + stocktake + nx06/delivery）；對齊 Alex Q1~Q4 拍板（html5-qrcode / 4 分類入口 / 全 dashboard / nx03/inbound GRN）+ 總經理「不做」清單（地圖/Lalamove/推播移下階段、付費模組候選）
+> **⚠️ Railway production migration 同步累計落後維持 91 支**（階段 G **0 schema 變動**、Railway 不需 deploy）：`.env` 維持 localhost、觸發時機仍對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週
+> **⚠️ LITE 剩餘範圍**：僅階段 I 補連線收尾（下一棒推薦方向）
 >
 > ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（21 條）
+### A.1 本地分支總覽（22 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-h（v1.2 對齊軌 階段 H 報表 closure、tag `v2.0.7-alignment-h-complete`）** |
+| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-g（v1.2 對齊軌 階段 G 手機版 closure、tag `v2.0.8-alignment-g-complete`）** |
+| `feature/v1.2-alignment-g` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 8 commits 整軌：P0 意圖書 / P1 殼層 dock+FAB / P2+P3 撿貨+包貨接 API / P4+P5 配送+驗收+BarcodeScanner / P6 盤點掃碼 / P7 closure |
 | `feature/v1.2-alignment-h` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 7 commits 整軌：P0 意圖書 / P1 finance/pnl endpoint / P2 recharts + 共用元件 / P3 first-batch 個人+進貨+銷售 / P3 second-batch 庫存+損益+營運+Hub / P4 手機版（ResponsiveTable）/ P5 Excel 匯出（useExportExcel） |
 | `feature/v1.2-alignment-f` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 12 commits 整軌：P0 意圖書 / P1 schema 多來源+401 旗標 / P2 §8.5 修正 / P3 7 子項+主管直接改 / P4 5 頁面 / P5-schema 3 變動 / P5 application / P5-B 4 dialog（票據/折讓/保固/沖銷檢視） |
 | `feature/v1.2-alignment-e` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 8 commits 整軌：P1 framework / P2 partner / P3 part / P4 warehouse+user / P5 SatelliteSection / P6 closure（STEP-2 清 DEMO + A1~A4 補 part + B1~B5 補 user + 砍舊版） |

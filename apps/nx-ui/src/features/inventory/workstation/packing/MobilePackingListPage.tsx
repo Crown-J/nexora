@@ -1,115 +1,203 @@
 // apps/nx-ui/src/features/inventory/workstation/packing/MobilePackingListPage.tsx
-/**
- * 庫存中心 · 包貨清單(BX)。
- *
- * 入口:/dashboard/inventory/packing(Phase 9 從 /dashboard/inventory-mobile/packing 遷來)
- *
- * 操作:
- *   pending → [完成包貨] completePacking → BX completed + 自動建 DN
- *           + SO → delivering
- */
+// 庫存中心 · 包貨清單（手機版）
+//
+// v1.2 階段 G P3：棄 useSalesStore mock、接真實 nx03/pl + nx03/parcel API
+// 對齊 audit §10「包貨工作站、包裹編號生成機制未見」修補
+//
+// 範式：
+// - 4 篩選 chip：全部 / 待包 (P) / 包貨中 (C) / 已完成 (F)
+// - 卡片：docNo / plDate / plType / 來源 pk / 動作按鈕
+// - 「完成包貨」按鈕 = sequential PATCH P→C→F + POST /nx03/parcel
+//   · 完成後立刻顯示包裹編號 BX-YYYYMM-倉碼-NNNNN（blueprint §10.3）
+// - 包裹編號用後端 allocParcelNo 自動生（不前端 derive）
 
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Building2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, CheckCircle2, RefreshCw } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
-import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
-import { BX_STATUS_LABEL, type BX, type BXStatus, type SO } from '@/features/sale/ui/fulfillment/types';
+import {
+  completePackingAndCreateParcel,
+  listPls,
+  type Pl,
+  type PlStatus,
+} from '@/features/inventory/workstation/api';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
-type FilterValue = 'all' | BXStatus;
+type FilterValue = 'all' | PlStatus;
 
 const FILTERS: ReadonlyArray<{ id: FilterValue; label: string }> = [
   { id: 'all', label: '全部' },
-  { id: 'pending', label: '待包貨' },
-  { id: 'completed', label: '已完成' },
+  { id: 'P', label: '待包貨' },
+  { id: 'C', label: '包貨中' },
+  { id: 'F', label: '已完成' },
 ];
 
-const BX_TONE: Record<BXStatus, DocStatusTone> = {
-  pending: 'warn',
-  packing: 'info',
-  completed: 'success',
+const PL_STATUS_LABEL: Record<PlStatus, string> = {
+  P: '待包貨',
+  C: '包貨中',
+  F: '已完成',
+  S: '已寄出',
+  V: '作廢',
 };
 
-function BXCard({
-  bx,
-  so,
+const PL_TONE: Record<PlStatus, DocStatusTone> = {
+  P: 'warn',
+  C: 'info',
+  F: 'success',
+  S: 'success',
+  V: 'muted',
+};
+
+const PL_TYPE_LABEL: Record<'D' | 'P' | 'C' | 'T', string> = {
+  D: '配送',
+  P: '自取',
+  C: '寄貨',
+  T: '調撥',
+};
+
+function PLCard({
+  pl,
+  busy,
+  parcelNo,
   onComplete,
 }: {
-  bx: BX;
-  so: SO | undefined;
+  pl: Pl;
+  busy: boolean;
+  parcelNo: string | null;
   onComplete: () => void;
 }) {
+  const isDone = pl.status === 'F' || pl.status === 'S' || pl.status === 'V';
   return (
     <div className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-sm text-white/80">{bx.bxNumber}</span>
-        <DocStatusBadge tone={BX_TONE[bx.status]}>{BX_STATUS_LABEL[bx.status]}</DocStatusBadge>
+        <span className="font-mono text-sm text-white/80">{pl.docNo}</span>
+        <DocStatusBadge tone={PL_TONE[pl.status]}>{PL_STATUS_LABEL[pl.status]}</DocStatusBadge>
       </div>
 
-      {so ? (
-        <div className="flex items-center gap-2 text-sm">
-          <Building2 className="h-4 w-4 shrink-0 text-white/40" aria-hidden />
-          <span className="shrink-0 font-mono text-xs text-white/40">{so.customer.code}</span>
-          <span className="min-w-0 flex-1 truncate text-white/80">{so.customer.name}</span>
+      <div className="flex items-center gap-2 border-t border-white/10 pt-2 text-xs text-white/60">
+        <span>{PL_TYPE_LABEL[pl.plType]}</span>
+        <span className="text-white/30">·</span>
+        <span className="font-mono">{pl.plDate.slice(0, 10)}</span>
+        {pl.pkNo ? (
+          <>
+            <span className="text-white/30">·</span>
+            <span className="font-mono text-white/40">來源 {pl.pkNo}</span>
+          </>
+        ) : null}
+      </div>
+
+      {parcelNo ? (
+        <div className="flex items-center gap-2 rounded border border-[#1D9E75]/40 bg-[#1D9E75]/10 px-2 py-1.5 text-xs">
+          <CheckCircle2 className="size-4 text-[#1D9E75]" />
+          <span className="text-white/80">包裹編號已產生：</span>
+          <span className="font-mono text-[#1D9E75]">{parcelNo}</span>
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between border-t border-white/10 pt-2 text-xs">
-        <span className="space-x-2 text-white/50">
-          <span>
-            撿貨單 <span className="font-mono text-white/70">{bx.relatedPkNumber}</span>
-          </span>
-          <span>·</span>
-          <span>
-            關聯 <span className="font-mono text-white/70">{bx.relatedSoNumber}</span>
-          </span>
-        </span>
-        {bx.status !== 'completed' ? (
+      {pl.remark ? (
+        <div className="text-xs text-white/50 truncate">{pl.remark}</div>
+      ) : null}
+
+      {!isDone ? (
+        <div className="flex justify-end border-t border-white/10 pt-2">
           <button
             type="button"
             onClick={onComplete}
-            className="h-8 rounded bg-[#1D9E75] px-3 text-xs text-black transition-colors hover:bg-[#1D9E75]/90"
+            disabled={busy}
+            className="h-8 rounded bg-[#1D9E75] px-3 text-xs text-black transition-colors hover:bg-[#1D9E75]/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            完成包貨
+            {busy ? '處理中…' : '完成包貨並生編號'}
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function MobilePackingListPage() {
-  const bxs = useSalesStore((s) => s.bxs);
-  const sos = useSalesStore((s) => s.sos);
-  const completePacking = useSalesStore((s) => s.completePacking);
-
   const [filter, setFilter] = useState<FilterValue>('all');
+  const [pls, setPls] = useState<Pl[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  /** 完成包貨剛產生的包裹編號（顯示在對應 card 上） */
+  const [recentParcels, setRecentParcels] = useState<Record<string, string>>({});
 
-  const sosByNumber = useMemo(() => {
-    const m = new Map<string, SO>();
-    for (const s of sos) m.set(s.soNumber, s);
-    return m;
-  }, [sos]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listPls({
+        pageSize: 50,
+        status: filter === 'all' ? undefined : filter,
+      });
+      setPls(res.items);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
 
-  const filtered = useMemo(() => {
-    const sorted = [...bxs].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    if (filter === 'all') return sorted;
-    return sorted.filter((bx) => bx.status === filter);
-  }, [bxs, filter]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-  const pendingCount = bxs.filter((bx) => bx.status !== 'completed').length;
+  const handleComplete = useCallback(
+    async (pl: Pl) => {
+      setBusyId(pl.id);
+      setError(null);
+      try {
+        const { parcel } = await completePackingAndCreateParcel(pl.id, pl.status, pl.plType);
+        setRecentParcels((prev) => ({ ...prev, [pl.id]: parcel.parcelNo }));
+        await load();
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [load],
+  );
+
+  const sorted = useMemo(
+    () => [...pls].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
+    [pls],
+  );
+
+  const pendingCount = pls.filter((pl) => pl.status === 'P' || pl.status === 'C').length;
 
   return (
-    <div className="space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+4rem)]">
+    <div className="space-y-4 p-4 pb-[calc(env(safe-area-inset-bottom)+5rem)]">
       <header className="space-y-1">
-        <h1 className="text-lg text-white">庫存中心 · 包貨清單</h1>
-        <p className="text-xs text-white/50">完成包貨後自動建立送貨單 DN</p>
+        <div className="flex items-center justify-between">
+          <h1 className="flex items-center gap-2 text-lg text-white">
+            <Box className="size-5 text-[#E8A020]" /> 庫存中心 · 包貨清單
+          </h1>
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            aria-label="重新整理"
+            className="inline-flex h-8 items-center gap-1 rounded border border-white/10 bg-white/5 px-2.5 text-xs text-white/70 hover:border-white/20 disabled:opacity-50"
+          >
+            <RefreshCw className={cx('size-3.5', loading && 'animate-spin')} />
+          </button>
+        </div>
+        <p className="text-xs text-white/50">
+          完成包貨自動產生包裹編號 <span className="font-mono text-[#E8A020]">BX-YYYYMM-倉碼-NNNNN</span>
+        </p>
       </header>
+
+      {error ? (
+        <div className="rounded-md border border-[#E26060]/40 bg-[#E26060]/10 px-3 py-2 text-xs text-[#E26060]">
+          {error}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
@@ -130,21 +218,26 @@ export function MobilePackingListPage() {
       </div>
 
       <div className="text-xs text-white/50 tabular-nums">
-        共 {filtered.length} 筆 · 尚待處理 {pendingCount} 筆
+        共 {sorted.length} 筆 · 待處理 {pendingCount} 筆
       </div>
 
-      {filtered.length === 0 ? (
+      {loading && sorted.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
+          載入中…
+        </div>
+      ) : sorted.length === 0 ? (
         <div className="rounded-lg border border-dashed border-white/10 p-6 text-center text-xs text-white/50">
           目前沒有符合篩選條件的包貨單
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((bx) => (
-            <BXCard
-              key={bx.id}
-              bx={bx}
-              so={sosByNumber.get(bx.relatedSoNumber)}
-              onComplete={() => completePacking(bx.id)}
+          {sorted.map((pl) => (
+            <PLCard
+              key={pl.id}
+              pl={pl}
+              busy={busyId === pl.id}
+              parcelNo={recentParcels[pl.id] ?? null}
+              onComplete={() => void handleComplete(pl)}
             />
           ))}
         </div>
