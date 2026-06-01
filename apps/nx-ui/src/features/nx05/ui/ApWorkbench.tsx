@@ -3,11 +3,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Coins, RefreshCw, Search } from 'lucide-react';
+import { Coins, Percent, RefreshCw, Search } from 'lucide-react';
 
 import { getPayableView, type ApRow, type PayableViewRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
+import { AllowanceCreateDialog } from './AllowanceCreateDialog';
 import { PaylogCreateDialog } from './PaylogCreateDialog';
 
 type Tab = 'all' | 'ap' | 'srAllowance';
@@ -21,6 +22,7 @@ export function ApWorkbench() {
   const [reloadTick, setReloadTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [paylogDialog, setPaylogDialog] = useState<{ partnerId: string } | null>(null);
+  const [allowanceDialog, setAllowanceDialog] = useState<{ partnerId: string; refApId: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -181,14 +183,24 @@ export function ApWorkbench() {
                   label: '操作',
                   align: 'right',
                   render: (r: ApRow) => (
-                    <button
-                      type="button"
-                      onClick={() => setPaylogDialog({ partnerId: r.supplierId })}
-                      title="開付款票據沖銷（可勾多張 AP）"
-                      className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[10px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
-                    >
-                      <Coins className="size-3" /> 沖銷
-                    </button>
+                    <div className="flex justify-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setPaylogDialog({ partnerId: r.supplierId })}
+                        title="開付款票據沖銷（可勾多張 AP）"
+                        className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[10px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
+                      >
+                        <Coins className="size-3" /> 沖銷
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAllowanceDialog({ partnerId: r.supplierId, refApId: r.id })}
+                        title="開進貨折讓（DRAFT、需主管核可）"
+                        className="inline-flex h-6 items-center gap-1 rounded-md border border-[#22D88F]/40 bg-[#22D88F]/10 px-2 text-[10px] font-medium text-[#22D88F] hover:bg-[#22D88F]/20"
+                      >
+                        <Percent className="size-3" /> 折讓
+                      </button>
+                    </div>
                   ),
                 },
               ]}
@@ -261,6 +273,17 @@ export function ApWorkbench() {
         onClose={() => setPaylogDialog(null)}
         onSuccess={() => {
           setPaylogDialog(null);
+          setReloadTick((t) => t + 1);
+        }}
+      />
+      <AllowanceCreateDialog
+        open={allowanceDialog != null}
+        defaultType="P"
+        defaultPartnerId={allowanceDialog?.partnerId}
+        defaultRefId={allowanceDialog?.refApId}
+        onClose={() => setAllowanceDialog(null)}
+        onSuccess={() => {
+          setAllowanceDialog(null);
           setReloadTick((t) => t + 1);
         }}
       />

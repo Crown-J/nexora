@@ -378,6 +378,53 @@ export async function approveAllowance(id: string): Promise<{ id: string; status
   return res.json();
 }
 
+export type AllowanceRow = {
+  id: string;
+  docNo: string;
+  allowanceType: 'P' | 'S';
+  partnerId: string;
+  allowanceDate: string;
+  refArId: string | null;
+  refApId: string | null;
+  totalAmount: string;
+  status: string;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  rejectReason: string | null;
+  remark: string | null;
+  createdAt: string;
+  createdBy: string | null;
+};
+
+export async function listAllowance(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string;
+}): Promise<Nx05PagedResult<AllowanceRow>> {
+  const qs = buildQueryString({
+    page: params.page != null ? String(params.page) : undefined,
+    pageSize: params.pageSize != null ? String(params.pageSize) : undefined,
+    search: params.search?.trim() || undefined,
+    status: params.status?.trim() || undefined,
+  });
+  const res = await apiFetch(`/nx05/allowance${qs}`, { method: 'GET' });
+  await assertOk(res, 'nxui_nx05_allowance_list');
+  return res.json() as Promise<Nx05PagedResult<AllowanceRow>>;
+}
+
+export async function rejectAllowance(
+  id: string,
+  rejectReason: string,
+): Promise<{ id: string; status: string }> {
+  const res = await apiFetch(`/nx05/allowance/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'REJECTED', rejectReason }),
+  });
+  await assertOk(res, 'nxui_nx05_allowance_reject');
+  return res.json();
+}
+
 // ============================================================
 // Note（票據）
 // ============================================================

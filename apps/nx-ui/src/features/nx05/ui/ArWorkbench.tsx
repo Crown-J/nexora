@@ -3,11 +3,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Bell, Coins, RefreshCw, Search } from 'lucide-react';
+import { Bell, Coins, Percent, RefreshCw, Search } from 'lucide-react';
 
 import { listAr, notifyArOverdue, type ArRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
+import { AllowanceCreateDialog } from './AllowanceCreateDialog';
 import { PaylogCreateDialog } from './PaylogCreateDialog';
 
 const STATUS_FILTERS = [
@@ -26,6 +27,7 @@ export function ArWorkbench() {
   const [reloadTick, setReloadTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [paylogDialog, setPaylogDialog] = useState<{ partnerId: string } | null>(null);
+  const [allowanceDialog, setAllowanceDialog] = useState<{ partnerId: string; refArId: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -180,6 +182,14 @@ export function ArWorkbench() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setAllowanceDialog({ partnerId: r.customerId, refArId: r.id })}
+                    title="開銷貨折讓（DRAFT、需主管核可）"
+                    className="inline-flex h-6 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/10 px-2 text-[10px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
+                  >
+                    <Percent className="size-3" /> 折讓
+                  </button>
+                  <button
+                    type="button"
                     onClick={async () => {
                       const remark = window.prompt('催款備註（可空、純內部記錄）：') ?? '';
                       try {
@@ -211,6 +221,17 @@ export function ArWorkbench() {
         onClose={() => setPaylogDialog(null)}
         onSuccess={() => {
           setPaylogDialog(null);
+          setReloadTick((t) => t + 1);
+        }}
+      />
+      <AllowanceCreateDialog
+        open={allowanceDialog != null}
+        defaultType="S"
+        defaultPartnerId={allowanceDialog?.partnerId}
+        defaultRefId={allowanceDialog?.refArId}
+        onClose={() => setAllowanceDialog(null)}
+        onSuccess={() => {
+          setAllowanceDialog(null);
           setReloadTick((t) => t + 1);
         }}
       />

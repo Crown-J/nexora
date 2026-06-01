@@ -67,14 +67,19 @@ export function PaylogCreateDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 載 partner（依 R/P 篩 C/O vs S/V/T/B、為簡化先全載）
+  // 載 partner（依 R/P 篩 partnerType、防呆避免實測選錯對象掛錯帳）
+  //   - R 收款 → 客戶 C / 同行 O
+  //   - P 付款 → 供應商 S / 一般廠商 V / 物流 T / 銀行 B
   useEffect(() => {
     if (!open) return;
     let alive = true;
     void (async () => {
       try {
-        const res = await listPartner({ page: 1, pageSize: 100, isActive: true });
-        if (alive) setPartners(res.items);
+        const res = await listPartner({ page: 1, pageSize: 200, isActive: true });
+        if (!alive) return;
+        const allowed =
+          noteType === 'R' ? new Set(['C', 'O']) : new Set(['S', 'V', 'T', 'B']);
+        setPartners(res.items.filter((p) => allowed.has(String(p.partnerType).toUpperCase())));
       } catch (e) {
         if (alive) setError((e as Error).message);
       }
@@ -82,7 +87,7 @@ export function PaylogCreateDialog({
     return () => {
       alive = false;
     };
-  }, [open]);
+  }, [open, noteType]);
 
   // 載對象的未結清 AR（R 收款）或 AP（P 付款）
   useEffect(() => {
@@ -137,10 +142,11 @@ export function PaylogCreateDialog({
     };
   }, [open, partnerId, noteType]);
 
-  // 重設 form（對象換 / R-P 換）
+  // 重設 form（R-P 切換時 partnerId 也清掉，避免上一輪選的對象不在新清單）
   useEffect(() => {
-    setLedgerChoices((prev) => prev.map((c) => ({ ...c, checked: false, settledAmount: '' })));
-  }, [noteType]);
+    setPartnerId(defaultPartnerId ?? '');
+    setLedgerChoices([]);
+  }, [noteType, defaultPartnerId]);
 
   // 計算總沖銷 / 剩餘
   const stats = useMemo(() => {

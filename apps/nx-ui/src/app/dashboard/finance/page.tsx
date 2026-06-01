@@ -9,6 +9,7 @@ import {
   CreditCard,
   Landmark,
   Lock,
+  Percent,
   Receipt,
   Wallet,
 } from 'lucide-react';
@@ -40,12 +41,18 @@ export default function FinanceHubPage() {
           />
         </ModuleHubSection>
 
-        <ModuleHubSection sectionId="fin-cash" title="收付款" count={1}>
+        <ModuleHubSection sectionId="fin-cash" title="收付款 + 折讓" count={2}>
           <HubLinkCard
             title="票據管理"
             description="現金 / 匯款 / 支票 / 信用卡 4 種方式、自動沖應收應付"
             Icon={CreditCard}
             href="/dashboard/nx05/notes"
+          />
+          <HubLinkCard
+            title="折讓核可"
+            description="人工折讓 DRAFT + 主管核可（防亂打折少收）、核可後自動沖"
+            Icon={Percent}
+            href="/dashboard/nx05/allowance"
           />
         </ModuleHubSection>
 
