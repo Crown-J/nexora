@@ -8,6 +8,7 @@ import { seedNx01Currency } from './nx01_currency';
 import { seedNx01Permission } from './nx01_permission';
 import { seedNx01View } from './nx01_view';
 import { seedNx01WarehouseType } from './nx01_warehouse_type';
+import { seedInnovaTenantAndAdmin } from './nx99_innova_tenant';
 import { seedNx99Plan } from './nx99_plan';
 import { seedSystemTenantAndSysAdmin } from './nx99_system_tenant';
 
@@ -24,6 +25,10 @@ export async function runSystemSeed(prisma: PrismaClient): Promise<void> {
   await seedNx01Country(prisma);       // ISO 3166-1 alpha-3
   await seedNx01WarehouseType(prisma); // 倉庫類型 H/M/W/S（全域型錄，schema 無 tenantId）
   await seedNx01Permission(prisma);    // v1.2 對齊軌 A+B：系統權限目錄
+
+  // 3. INNOVA 營運主體：伊諾瓦跨租戶後台、innova-admin 持 SYSADMIN 角色。
+  //    必須在 seedNx01Permission 之後（角色目錄已存在）。
+  await seedInnovaTenantAndAdmin(prisma);
 
   console.log('✅ [SYSTEM] 系統層 seed 完成');
 }

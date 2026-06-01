@@ -3,8 +3,8 @@
 // PRO 測試租戶測試使用者
 //
 // v1.2 對齊軌 FU-07：對齊 v1.2 §12.2「從零建角色」
-//   admin 指派 SYSADMIN
-//   7 個測試員工不指派任何角色（負責人手動到「設定→角色與權限」建後指派）
+//   admin 不指派任何角色（SYSADMIN 已遷 INNOVA、見 seed/system/nx99_innova_tenant.ts）
+//   7 個測試員工也不指派任何角色（負責人手動到「設定→角色與權限」建後指派）
 
 import type { PrismaClient } from '../../../../generated/prisma';
 import { SYSADMIN_USER_ID } from '../../system/constants';
@@ -20,33 +20,21 @@ interface TestUser {
   userName: string;
 }
 
-async function assignRole(
-  prisma: PrismaClient,
-  tenantId: string,
-  userId: string,
-  roleCode: string,
-): Promise<void> {
-  const role = await prisma.nx01Role.findFirstOrThrow({
-    where: { tenantId, code: roleCode },
+export async function seedProTestUsers(prisma: PrismaClient): Promise<void> {
+  // === Step 1：撤回 admin 過去可能被指派的 SYSADMIN 角色（同 LITE/PLUS 處理）===
+  const proSysadminRole = await prisma.nx01Role.findFirst({
+    where: { tenantId: TEST_PRO_TENANT_ID, code: 'SYSADMIN' },
+    select: { id: true },
   });
-  const existing = await prisma.nx01UserRole.findFirst({
-    where: { tenantId, userId, roleId: role.id },
-  });
-  if (!existing) {
-    await prisma.nx01UserRole.create({
-      data: {
-        tenantId,
-        userId,
-        roleId: role.id,
-        isPrimary: true,
-        assignedBy: SYSADMIN_USER_ID,
+  if (proSysadminRole) {
+    await prisma.nx01UserRole.deleteMany({
+      where: {
+        tenantId: TEST_PRO_TENANT_ID,
+        userId: TEST_PRO_ADMIN_USER_ID,
+        roleId: proSysadminRole.id,
       },
     });
   }
-}
-
-export async function seedProTestUsers(prisma: PrismaClient): Promise<void> {
-  await assignRole(prisma, TEST_PRO_TENANT_ID, TEST_PRO_ADMIN_USER_ID, 'SYSADMIN');
 
   const users: TestUser[] = [
     { id: 'NX01USER9900031', userAccount: 'employee1', userName: '王小明（測試員工）' },
@@ -79,5 +67,5 @@ export async function seedProTestUsers(prisma: PrismaClient): Promise<void> {
     });
   }
 
-  console.log(`✅ [TEST/PRO] users: ${users.length} 筆（未綁角色、v1.2 範式）+ admin SYSADMIN 指派`);
+  console.log(`✅ [TEST/PRO] users: ${users.length} 筆 + admin（皆未綁角色、v1.2 範式；SYSADMIN 改由 INNOVA 持有）`);
 }

@@ -10,8 +10,35 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-06-01（⭐ v1.2 對齊軌 階段 I 補連線收尾 closure ⭐⭐⭐ LITE 完整版完成、merge feature/v1.2-alignment-i + tag v2.1.0-lite-complete）**
-> **當前分支：`main`**（HEAD = merge commit、tag `v2.1.0-lite-complete` ⭐ LITE 完整版完成）
+> **快照時間：2026-06-01（晚、INNOVA 營運主體補正 hotfix）**
+> **當前分支：`main`**（HEAD = INNOVA hotfix commit、tag `v2.1.0-lite-complete` 仍指向同日 LITE 完整版 merge）
+
+### A.0 ⚡ 2026-06-01 晚 INNOVA 營運主體補正（hotfix、main 直推）
+
+LITE 完整版 closure 後、總經理啟動實測發現「開戶後台缺正式營運帳號、SYSADMIN 角色被借掛在 TEST-LITE/PLUS/PRO 的 admin 上、語意衝突」。
+
+**Crown 拍板 A**：建 INNOVA 營運租戶 + innova-admin 超管、收回測試 admin 的 SYSADMIN 角色。
+
+| 動的東西 | 內容 |
+|---|---|
+| 新檔 1 個 | `packages/db-core/prisma/seed/system/nx99_innova_tenant.ts` |
+| 改 4 個 | `seed/system/index.ts` 串入 + `seed/test/{lite,plus,pro}/users.ts` 收回 SYSADMIN |
+| 不動 | schema / migration / API / 既有資料 / Railway |
+| Seed | 本機重跑、全綠（4 租戶：SYSTEM/INNOVA/TEST-LITE/TEST-PLUS/TEST-PRO）|
+
+**ID 範圍補正**（PROJECT_CONTEXT §4.2 已同步）：
+- `NX99TANT0000001` 由「客戶第一格」改為 INNOVA 系統保留
+- `NX01USER0000002` 由「客戶第一格」改為 innova-admin 系統保留
+- 真實客戶起點往後挪 1 格（tenant 0000002 / user 0000003 起）
+
+**正式開戶帳號**（取代過去借 TEST-LITE/admin 的做法）：
+- 公司帳號 `INNOVA` / 使用者 `innova-admin` / 預設密碼 `Nexoragrid2026`（首次強制改密）
+
+詳細範式見 [docs/PROJECT_CONTEXT.md §6.4](../PROJECT_CONTEXT.md)。
+
+---
+
+> **本軌 closure 摘要（保留紀錄）：v1.2 對齊軌 階段 I 補連線收尾 ⭐⭐⭐ LITE 完整版完成、merge feature/v1.2-alignment-i + tag v2.1.0-lite-complete**
 > **上輪 closure**：v1.2 對齊軌 階段 G 手機版（merge + tag `v2.0.8-alignment-g-complete`）
 > **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-i、--no-ff、階段 I 補連線收尾 + LITE 完整版完成）
 > **狀態摘要**：`feature/v1.2-alignment-i` = **已 merge main、可考慮刪除**

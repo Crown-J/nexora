@@ -237,16 +237,19 @@ NEXORA 的故事線由四個實體組成：
 對齊 PROJECT_RULES §I.3 工程模式：
 
 ### nx01_user（用戶）
-- `NX01USER0000001`：SYSADMIN（is_active=false、系統保留）
-- `NX01USER0000002 ~ 0899999`：真實客戶
+- `NX01USER0000001`：SYSADMIN（is_active=false、純佔位、createdBy 追溯用）
+- `NX01USER0000002`：**innova-admin**（伊諾瓦營運超管、跨租戶開戶用、見 §6.4）
+- `NX01USER0000003 ~ 0899999`：真實客戶
 - `NX01USER9900001 ~ 9999999`：測試租戶
 
 ### nx99_tenant（租戶）
-- `NX99TANT0000000`：SYSTEM（is_active=false、系統保留）
-- `NX99TANT0000001 ~ 0899999`：真實客戶
+- `NX99TANT0000000`：SYSTEM（is_active=false、純佔位、createdBy 追溯用）
+- `NX99TANT0000001`：**INNOVA**（伊諾瓦營運租戶、is_active=true、見 §6.4）
+- `NX99TANT0000002 ~ 0899999`：真實客戶
 - `NX99TANT9900001 ~ 9999999`：測試租戶
 
 ⭐ 業務 muscle memory：ID 範圍是業界 audit 場景關鍵、不可破壞。
+⭐ INNOVA 系統保留段（2026-06-01 新增）：SYSTEM 是「Schema 必填 tenantId 的承載者、不可登入」、INNOVA 是「NEXORA 自家可登入的營運身分」、兩者分工不重疊。
 
 ---
 
@@ -323,6 +326,36 @@ NX08 經營分析（報表 / KPI）
 [TASK-NX01-17-IMPL] commit 1: schema + migration + reverse
 [SPEC] NX01-16 part-model v1.0 規格落地
 ```
+
+## 6.4 系統內建營運帳號（2026-06-01 補正）
+
+NEXORA 系統內有兩種「非業務客戶」的內建租戶 + 帳號，職責不重疊：
+
+| 租戶 | 使用者 | is_active | 用途 |
+|---|---|---|---|
+| `SYSTEM`（`NX99TANT0000000`）| `sysadmin`（`NX01USER0000001`）| ❌ false | 純佔位、不可登入。承載 schema 強制的 `tenantId` FK，僅用於 `createdBy` 追溯 |
+| **`INNOVA`**（`NX99TANT0000001`）| **`innova-admin`**（`NX01USER0000002`）| ✅ true | **伊諾瓦營運身分、跨租戶開戶用**（業務簽完約幫客戶開戶）|
+
+### 伊諾瓦營運帳號（簽約 / 開戶用）
+
+| 項目 | 值 |
+|---|---|
+| 公司帳號（登入用 tenantCode）| `INNOVA` |
+| 使用者帳號 | `innova-admin` |
+| 預設密碼 | `Nexoragrid2026`（首次登入強制改密、`mustChangePassword=true`）|
+| 跨租戶權限 | 持 `SYSADMIN` 角色、可進 `/sys-admin/onboarding` 幫客戶開戶 |
+| 訂閱方案 | 無（純營運租戶、非業務 tier）|
+
+### 歷史補正紀錄
+
+- **2026-06-01 之前**：SYSADMIN 角色錯掛在 `TEST-LITE/PLUS/PRO` 的 `admin` 帳號上「假裝伊諾瓦」（測試身分被借用做正式開戶、語意衝突）。
+- **2026-06-01 補正**（Crown 拍板 A）：建立 INNOVA 營運主體 + innova-admin 超管、收回測試 admin 的 SYSADMIN 角色。
+- **不可回退**：未來新增測試租戶（或新環境）禁止把 SYSADMIN 借掛在測試 admin 上、營運帳號永遠在 INNOVA。
+
+### 範式守則
+
+⚠️ 真實客戶開戶時、`tenantCode` 由 onboarding service 自動產（`T` + base36 時間戳）或業務手動指定、**永遠不會跟 `SYSTEM`/`INNOVA` 衝突**（後端有唯一性檢查）。
+⚠️ 任何「跨租戶後台」功能（開戶、跨租戶 audit、系統 KPI）的權限模型只認 `INNOVA` 租戶下、持 `SYSADMIN` 角色的使用者。
 
 ---
 
