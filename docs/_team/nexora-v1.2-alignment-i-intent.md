@@ -1,186 +1,164 @@
 <!-- docs/_team/nexora-v1.2-alignment-i-intent.md -->
 
-# v1.2 對齊軌 階段 I 補連線收尾意圖書 v1.0
+# NEXORA LITE v1.2 對齊軌 階段 I：補連線 + 收尾 意圖書（LITE 最後一棒）
 
-> 撰寫者：Hank
+> 撰寫者：Alex（PM）
 > 撰寫時間：2026-06-01
-> 分支：`feature/v1.2-alignment-i`
-> 範圍：LITE 最後一棒、audit §314 補連線四項
-> 上輪 closure：階段 G 手機版 `v2.0.8-alignment-g-complete`
-
-⭐ **階段 I closure = LITE 完整版完成、回報總經理「可開始完整實測」**
-
----
-
-## §1. 總經理拍板（已內化）
-
-四項補連線收尾：
-1. **退貨 → 保固連線**：PR 退貨選「走保固」→ 自動產保固申請單（帶料件/數量/供應商/來源單號、進既有保固理賠流程）
-2. **採購需求 3 來源**：銷貨缺貨自動寫入 + 手動新增 UI（AR 那條既有已通、不重做）
-3. **國外進貨 UI**：提貨單階段畫面、串既有後端（6 階段 + parcel）
-4. **整體 closure**：hub 無空連結 + 權限檢查 + 後續軌清單 + 完整實測動線文件
-
-⚠️ audit 文件是早期版本、財務/報表/手機版/雙精靈已 closure，**本軌不回頭重做**。
+> 對應規格：v1.2 §5（進貨）+ audit §I（補連線收尾）
+> 前棒：階段 G 手機版 closure（tag v2.0.8-alignment-g-complete）
+> 性質：業務意圖文件（描述「要做什麼、為什麼」、不寫 schema / SQL）
+> 規模：M（3-5 天）
+> 分支建議：從 main 開 feature/v1.2-alignment-i
 
 ---
 
-## §2. P0 盤點結果（依 §8 四方向）
+## §0. 這份文件是什麼 + 重要提醒
 
-### 2.1 退貨 → 保固
+描述 LITE 最後一棒「補各模組間沒接好的連線 + 整體收尾」。
 
-| 項目 | 現況 |
-|------|------|
-| PR DTO `warrantyOption` / `dispositionFlag` | 🔴 **無** |
-| `Nx02PurchaseReturn` schema 走保固欄 | 🔴 **無** |
-| `Nx02WarrantyClaim` `sourcePrId` / `sourcePrItemId` | 🔴 **無** |
-| PR service 自動建 warranty-claim hook | 🔴 **無** |
-| warranty-claim 主流程（D/S/R/C/V + 4 result）| 🟢 **OK**（NX02 LITE M2-d 完成）|
-| PR UI「走保固」按鈕 | 🔴 **無** |
+⚠️ 重要：audit 文件（nexora-lite-v1.2-alignment-audit.md）是「早期版本」、
+   裡面標「未做」的財務/報表/手機版/匯入精靈/設定精靈，**現在都已 closure 完成**。
+   階段 I 只做 audit §314 定義的「補連線收尾」四項、不要回頭重做已完成模組。
 
-→ 結論：**完全沒做**、需後端 schema 變動 + service hook + 前端按鈕。
+接手前先讀：
+─ docs/_team/nexora-lite-v1.2-alignment-audit.md §5 + §I（§314）
+─ 前面各階段 handoff（C/D/E/F/G/H closure 狀態）
 
-### 2.2 採購需求 3 來源（demandType S/O）
+---
 
-| 來源 | 對應 | 現況 |
-|------|------|------|
-| AR 自動（庫存不足）| `demandType=S` | 🟢 **已通**（nx03/auto-replenish/ar-suggestion-writer.service） |
-| 銷貨缺貨自動（客訂）| `demandType=O` | 🔴 **無寫入點**（schema 有 demandType + customerId、但 SO 無 hook）|
-| 手動新增 | `POST /nx02/demand` | 🔴 **無 endpoint**（只有 GET /purchase-suggestion list）|
-
-→ 結論：**1/3 已通**、需後端 POST endpoint + SO hook + 前端手動表單。
-
-### 2.3 國外進貨
-
-| 項目 | 現況 |
-|------|------|
-| 後端 6 階段 PATCH `/nx02/po/:id/stage` | 🟢 **OK**（1=備貨/2=要付款/3=待出貨/4=出貨上船/5=到港/6=驗收）|
-| 後端 `Nx06IntlShipping` CRUD | 🟢 **OK**（list/detail/create/patch）|
-| 後端 `Nx03Parcel` 包裹 | 🟢 **OK**（allocParcelNo 自動生 BX 編號）|
-| 前端 `/dashboard/purchase/foreign` 入口 | 🔴 **無** |
-| 6 階段視覺化 UI | 🔴 **無** |
-| 提貨單畫面 | 🔴 **無** |
-
-→ 結論：**後端齊、前端零**、純前端工作。
-
-### 2.4 hub 空連結 + 權限
-
-掃描 `/dashboard/**` PlaceholderPage 共 **11 處**、全在 `/sale/customer/*` + `/sale/docs/*`：
+## §1. 階段 I 範圍（audit §314 四項）
 
 ```
-/sale/customer/analysis     客戶分析報表
-/sale/customer/grading      客戶分級管理
-/sale/docs/inquiry          調貨詢價管理
-/sale/docs/orders           客戶訂單管理
-/sale/docs/quote            報價單據管理
-/sale/docs/return           銷退單據管理
-/sale/docs/sales            銷售單據管理
-/sale/docs/transfer         調貨單據管理
-... (3 more)
+1. 退貨 → 保固連線（總經理拍板 A：自動產生）
+2. 採購需求 3 來源聚合（補銷貨缺貨自動寫入 + 手動新增 UI）
+3. 國外進貨 UI（提貨單階段畫面）
+4. 整體 closure（全系統最後檢查收尾）
 ```
 
-這些是 **NX04 sales lite 軌之前的舊版 route 占位**、實際業務已遷到 `/dashboard/nx04/*`。
-→ 需處理：redirect 到 NX04 對應頁、或從 hub 拿掉入口。
+---
+
+## §2. 退貨 → 保固連線（總經理拍板 A）⭐
+
+```
+業務情境：進貨退貨（PR）時、可標記「此筆走保固」、
+系統自動產生一張保固申請單、不需人工重複開單。
+
+總經理拍板 A：自動產生
+─ 進貨退貨單選「走保固」→ 系統自動建保固申請單（warranty claim）
+─ 帶入退貨的料件 / 數量 / 供應商 / 來源退貨單號
+─ 自動建立的保固單進入既有保固理賠流程
+─ ⭐ 對齊 NEXORA 解決傳統 ERP「重複開單」痛點
+
+⚠️ audit §107 標此連線「⚠️ 衝突 / 未做」：
+   v1.2 §5.5 註明「Alex 不確定既有 NX02 已實作或需要補」、
+   Hank 掃 nx02/purchase-return 未見明顯 trigger。
+   → 給 Hank：實作前先 grep 確認：
+     (a) 既有 PR 退貨單有沒有「走保固」這個選項/欄位
+     (b) 既有保固單（warranty claim）建立 API 簽章
+     (c) 兩者之間有沒有殘留的半套 trigger
+     盤點後回報 Alex、確認是「全新接」還是「補半套」、再實作。
+```
 
 ---
 
-## §3. 4 個待澄清給 Alex
+## §3. 採購需求 3 來源聚合
 
-### Q1：退貨→保固 schema 變動方式
+```
+採購需求單要能從三個來源自動/手動匯集（audit §106）：
+─ 銷貨缺貨：賣的時候發現沒貨 → 自動寫入採購需求
+─ 盤點低量：盤點低於安全量 → 自動寫入（✅ 既有已接通、M2-B inline）
+─ 手動新增：人工直接開採購需求（UI 要補）
 
-**a. 加 schema 欄位（建議）**
-- `Nx02PurchaseReturn.dispositionFlag VarChar(1)`：G=好品退、B=壞品退、W=走保固
-- `Nx02WarrantyClaim.sourcePrId VarChar(15)` + `sourcePrItemId VarChar(15)`：來源 PR 追蹤
-- 清晰可查、可 BI 分析
+本軌補：
+─ 銷貨缺貨自動寫入採購需求（確認既有 nx98 task-pool 有沒有接、沒接則補）
+─ 手動新增採購需求 UI
+```
 
-**b. 不動 schema、用 remark 文字標記**
-- PR 在 remark 寫「走保固」標記
-- warranty-claim 用既有 remark
-- 0 schema 變動、但**無法可靠查詢「哪些 PR 走了保固」**
-
-→ 我建議 **a**（清晰、可審計、後續報表能用）。**需總經理 STOP-1 拍板**（2 個 schema 變動）。
-
-### Q2：銷貨缺貨 demand 自動寫入觸發點
-
-SO 階段流：DRAFT → APPROVED → CONFIRMED → ... 哪個階段寫 demand？
-
-**a. SO 開單即時（DRAFT 階段）**
-- 業務開單時若庫存不足、即時建 demand
-- 採購方早知需要進貨
-
-**b. SO 審核通過後（APPROVED）**
-- 確認單會出單才建 demand
-- 避免「客戶詢價沒下單也建 demand」
-
-**c. 不自動、銷售員手動「轉採購需求」按鈕**
-- 業務自己決定
-- 不會誤建
-
-→ 我建議 **a + b 混合**：DRAFT 即時建（status=O 待處理），SO 若 cancel 則 demand 自動 → status=I 已忽略。對齊「銷貨缺貨自動」業務語意（總經理拍板「自動」）。
-
-### Q3：國外進貨頁版型
-
-**a. 獨立路徑 `/dashboard/purchase/foreign`（建議）**
-- 跟既有 PO 區分（國外有自己的 6 階段 + 提貨流程）
-- 操作不混淆
-
-**b. 整合到既有 `/dashboard/purchase/po` 加 tab**
-- 同頁切「國內」/「國外」
-- UI 較緊湊但功能複雜
-
-→ 我建議 **a**（業務語意分離、PO 列表 + 國外 6 階段 + 提貨單 3 子頁清楚）。
-
-### Q4：11 個 placeholder 處理
-
-**a. 全刪入口（從 sale hub 拿掉這些卡片、placeholder 檔保留 404）**
-- hub 變乾淨、不誤導使用者
-
-**b. 全部 redirect 到對應 NX04 已實作頁**
-- 譬如 `/sale/docs/quote` → `/dashboard/nx04/qt`
-- 既有書籤/連結不死
-
-**c. 升級提示頁（顯示「請走 NX04 銷貨工作台」 + 連結）**
-- 過渡期友善
-
-→ 我建議 **b**（redirect 不破壞既有連結 + 0 摩擦）。
+⚠️ 給 Hank：盤點低量那條已通（既有）、不要重做。
+   先 grep 確認「銷貨缺貨 → 採購需求」既有接通程度、再決定補多少。
 
 ---
 
-## §4. 建議 Phase 拆分（等 Alex Q1~Q4 拍板再敲）
+## §4. 國外進貨 UI
 
-| Phase | 範圍 | 規模 | stop |
-|-------|------|------|------|
-| **P0** | 本意圖書 + Alex Q1~Q4 拍板 | S | ✅（本檔） |
-| **P1** | schema 變動（Q1=a 拍板後 STOP-1 給總經理）：PR.dispositionFlag + WarrantyClaim.sourcePrId/sourcePrItemId | S | ⚠️ STOP-1 |
-| **P2** | 退貨→保固：PR service 加 createWarrantyFromPr helper + PR UI「走保固」按鈕 + warranty 詳情頁顯示來源 | M | ✅ stop |
-| **P3** | 採購需求 3 來源：POST /nx02/demand + SO service hook（缺貨自動）+ UI 手動新增 dialog | M | ✅ stop |
-| **P4** | 國外進貨 UI（3 頁、串既有 6 階段 + intl-shipping + parcel）| L | ✅ stop |
-| **P5** | hub 連結整理：11 placeholder → redirect 到 NX04 對應頁 + sale hub 卡片清理 | S | 與 P6 合並 |
-| **P6** | closure 7 步（handoff + git-state + merge + tag v2.0.9-alignment-i-complete + memory + seed + 回報「LITE 完整版完成、可實測」）| S | ✅ stop |
+```
+國外採購的「提貨單」階段畫面（audit §105）：
+─ 既有：/dashboard/nx02/import 是 placeholder（空殼）
+─ 既有：nx03/parcel controller 在（後端有）
+─ 缺：國外進貨多階段（提貨單等）的前端 UI
 
-⚠️ P1 需總經理 STOP-1 拍板 schema 變動（2 個 migration）。
+本軌補：國外進貨 UI、串既有後端
+⚠️ 國外採購 6 階段追蹤（記憶記載 NX02 已建）、確認既有後端階段、UI 對齊呈現。
+```
 
----
-
-## §5. 不在本軌範圍
-
-- ❌ Google Map / Lalamove / 推播（總經理拍板付費模組候選）
-- ❌ 主檔分區編輯重做（v1.2 §11 §6.4、屬未來軌）
-- ❌ RBAC 重做（v1.2 §12.2、屬未來軌）
-- ❌ Railway production migration 上線（屬 TASK-RAILWAY-ENV-SPLIT）
-- ❌ 任何 LITE 之外的模組（NX06 物流深化 / NX07 工務 / NX09~10）
+⚠️ 給 Hank：先 grep 既有國外採購後端（6 階段追蹤 / parcel）、
+   UI 對齊既有後端能力做、不憑空設計階段。
 
 ---
 
-## §6. Schema 變動聲明
+## §5. 整體 closure（全系統最後檢查）
 
-本軌**預計 2 個 schema 變動**（P1、Q1=a 拍板後執行）：
-1. `Nx02PurchaseReturn` 加 `dispositionFlag VarChar(1)`（G/B/W）
-2. `Nx02WarrantyClaim` 加 `sourcePrId VarChar(15)` + `sourcePrItemId VarChar(15)`（皆可空）
+```
+LITE 完整版最後收尾檢查：
+─ 各 hub 入口卡片都指向真實頁面（無空連結 / 死連結）
+─ 各模組頁面權限過濾正確（員工看自己/該模組、負責人看全部）
+─ 前面各階段登記的「不阻塞實測」後續軌項目彙整一份清單
+─ 三租戶 seed 全綠、整體 build 全綠
+─ 完整實測動線文件（總經理當新客戶測的完整路徑）
+```
 
-→ Railway production migration 累計落後將 91 → 93。觸發時機仍對齊 TASK-RAILWAY-ENV-SPLIT。
+⭐ 這步同時是「總經理完整實測前的最後整理」——
+   產出一份「LITE 完整實測動線」給總經理：
+   開戶 → 登入 → 改密 → 建主檔（或匯入）→ 進貨 → 銷貨 → 庫存
+   → 收付款 → 關帳報 401 → 看報表、每段入口清楚。
 
 ---
 
-## §7. 等 Alex 拍板 → 接 P1（含 STOP-1 給總經理）
+## §6. 完成判準
 
-P0 完成、進入 review。等 Q1~Q4 拍板後執行 P1 schema 變動 + STOP-1。
+```
+[ ] 退貨選保固 → 自動產生保固申請單（帶料件/數量/供應商/來源單號）
+[ ] 採購需求：銷貨缺貨自動寫入 + 手動新增 UI
+[ ] 國外進貨 UI（提貨單階段、串既有後端）
+[ ] 全 hub 入口無空連結 / 死連結
+[ ] 權限過濾整體檢查正確
+[ ] 後續軌項目彙整清單（給總經理看 LITE 後還剩什麼加值項）
+[ ] LITE 完整實測動線文件
+[ ] 三租戶 seed 全綠、build 全綠
+[ ] 若 schema 有動：migration SQL 先給總經理 review（破壞性）
+[ ] tag v2.0.9-alignment-i-complete（或 v2.1.0-lite-complete、Alex 收尾時定）
+[ ] 階段 I closure handoff、⭐ 回報總經理「LITE 完整版完成、可開始完整實測」
+```
+
+---
+
+## §7. 執行原則
+
+```
+✅ Crown 全權授權：commit / push 自走、唯一條件「做好紀錄」
+⚠️ Hank 各 phase stop → 回報 Alex review → Alex 放行下一 phase
+⚠️ 回報總經理時機：
+   (1) 冒出新業務規則需拍板
+   (2) 破壞性 migration SQL 需總經理當下同意
+   (3) ⭐ 階段 I closure = LITE 完整版完成、回報總經理可實測
+⚠️ 不要回頭重做已 closure 模組（audit 舊版標「未做」的多數已完成）
+⛔ 不動既有業務邏輯（除非揭露 Alex）
+```
+
+---
+
+## §8. 給 Hank 的開工前盤點（P0、回報 Alex）
+
+```
+1. 退貨→保固：既有 PR 有沒有「走保固」欄位 / 保固單建立 API / 殘留 trigger
+2. 銷貨缺貨→採購需求：既有 nx98 task-pool 接通程度
+3. 國外進貨：既有 6 階段後端 + parcel controller 能力盤點
+4. 全 hub 掃描：哪些卡片還是空連結 / placeholder
+盤點完出 phase 拆分 + 待澄清給 Alex review、放行才實作。
+```
+
+---
+
+> 階段 I 補連線收尾意圖書 v1.0、LITE 最後一棒。
+> 總經理拍板退貨→保固自動產生（2026-06-01）。
+> 做完 = LITE 完整版完成、總經理可開始完整實測。
