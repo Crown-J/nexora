@@ -186,9 +186,14 @@ export type PrListRow = {
   id: string;
   docNo: string;
   prDate: string;
-  supplierName: string;
-  itemCount: number;
+  /** 後端 list 只返 supplierId、未 join；optional 容忍 */
+  supplierId?: string;
+  supplierName?: string;
+  itemCount?: number;
   status: string;
+  returnMode?: 'F' | 'P' | 'A';
+  /** 階段 I P2 加：退貨處置（G=一般 / B=壞品 / W=走保固） */
+  dispositionFlag?: 'G' | 'B' | 'W';
   totalAmount: number;
   createdAt: string;
 };
@@ -197,15 +202,19 @@ export type PrDetailDto = {
   id: string;
   docNo: string;
   warehouseId: string;
-  warehouseName: string;
+  /** backend list/detail 未 join 名稱、optional 容忍 */
+  warehouseName?: string;
   prDate: string;
   supplierId: string;
-  supplierName: string;
+  supplierName?: string;
   rrId: string | null;
-  rrDocNo: string | null;
+  rrDocNo?: string | null;
   currencyId: string;
-  currencyCode: string;
+  currencyCode?: string;
   status: string;
+  returnMode?: 'F' | 'P' | 'A';
+  /** 階段 I P2 加：退貨處置（G/B/W、W 過帳自動建保固單） */
+  dispositionFlag?: 'G' | 'B' | 'W';
   subtotal: number;
   taxRate: number;
   taxAmount: number;

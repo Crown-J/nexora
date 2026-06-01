@@ -77,6 +77,7 @@ export function PrListView() {
               <th className="px-3 py-2">單號</th>
               <th className="px-3 py-2">日期</th>
               <th className="px-3 py-2">供應商</th>
+              <th className="px-3 py-2">處置</th>
               <th className="px-3 py-2">狀態</th>
               <th className="px-3 py-2 text-right">總額</th>
             </tr>
@@ -89,15 +90,24 @@ export function PrListView() {
                     {r.docNo}
                   </Link>
                 </td>
-                <td className="px-3 py-2 tabular-nums text-muted-foreground">{r.prDate}</td>
-                <td className="px-3 py-2">{r.supplierName}</td>
+                <td className="px-3 py-2 tabular-nums text-muted-foreground">{r.prDate?.slice(0, 10)}</td>
+                <td className="px-3 py-2">{r.supplierName ?? r.supplierId ?? '—'}</td>
+                <td className="px-3 py-2">
+                  {r.dispositionFlag === 'W' ? (
+                    <span className="rounded bg-[#E8A020]/15 px-2 py-0.5 text-xs text-[#E8A020]">走保固</span>
+                  ) : r.dispositionFlag === 'B' ? (
+                    <span className="rounded bg-[#E26060]/15 px-2 py-0.5 text-xs text-[#E26060]">壞品退</span>
+                  ) : (
+                    <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">一般退</span>
+                  )}
+                </td>
                 <td className="px-3 py-2">{prStatusLabel(r.status)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.totalAmount}</td>
               </tr>
             ))}
             {!loading && rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">
                   尚無資料
                 </td>
               </tr>

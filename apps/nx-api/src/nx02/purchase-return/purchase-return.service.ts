@@ -20,6 +20,7 @@ import {
 } from '../../shared/nx02/nx02-state-machine';
 import { createAllowanceFromPurchaseReturn } from '../../shared/nx05/nx05-create-allowance-from-pr';
 import { createArFromPostedPr } from '../../shared/nx05/nx05-create-ar-from-pr';
+import { createWarrantyClaimsFromPr } from '../../shared/nx02/nx02-create-warranty-from-pr';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -46,6 +47,7 @@ const PR_SEL = {
   totalAmount: true,
   remark: true,
   returnMode: true,
+  dispositionFlag: true,
   voidedAt: true,
   voidedBy: true,
   postedAt: true,
@@ -224,7 +226,21 @@ export class PurchaseReturnService {
     // v1.2 階段 F P3：F/P 模式 PR POSTED → 應收（廠商欠我方退款）
     // 對齊意圖書 §2.1 + Alex Q1=a-1（sourceType='PR' + prId、so_id=null）
     // 冪等：createArFromPostedPr 內部依 (tenantId, prId) 去重
-    await createArFromPostedPr(tx, { tenantId: pr.tenantId, prId: pr.id, userId });
+    //
+    // 階段 I P2：走保固模式（dispositionFlag='W'）跳過建 AR
+    //   - 走保固 = 換新/退錢/維修還/駁回 4 種 result 決定、不直接認列 AR
+    //   - 真實 AR 由保固 result=REF 時另走 warranty-claim 退錢流程
+    if (pr.dispositionFlag !== 'W') {
+      await createArFromPostedPr(tx, { tenantId: pr.tenantId, prId: pr.id, userId });
+    }
+
+    // v1.2 階段 I P2：dispositionFlag='W' 走保固 → 自動建保固申請單
+    // 對齊 Alex Q1=a 拍板 + 意圖書 §2 退貨→保固連線
+    // 冪等：createWarrantyClaimsFromPr 內部依 (tenantId, sourcePrItemId) 去重
+    // 每個 PR item 建一張 warranty claim、claimType=SELF status=D（業務後續送出審核）
+    if (pr.dispositionFlag === 'W') {
+      await createWarrantyClaimsFromPr(tx, { tenantId: pr.tenantId, prId: pr.id, userId });
+    }
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {
@@ -291,6 +307,7 @@ export class PurchaseReturnService {
           totalAmount: new PrismaNs.Decimal(0),
           remark: dto.remark?.trim() || null,
           returnMode: dto.returnMode ?? 'P', // Crown Q-S2=A default 'P' 部分退
+          dispositionFlag: dto.dispositionFlag ?? 'G', // Alex Q1=a default 'G' 一般退
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -396,6 +413,7 @@ export class PurchaseReturnService {
           ...(dto.prDate !== undefined ? { prDate: new Date(dto.prDate) } : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
           ...(dto.returnMode !== undefined ? { returnMode: dto.returnMode } : {}),
+          ...(dto.dispositionFlag !== undefined ? { dispositionFlag: dto.dispositionFlag } : {}),
           ...(dto.status !== undefined
             ? {
                 status: nextDb,
