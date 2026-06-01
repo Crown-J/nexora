@@ -9,7 +9,8 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
-import { allocNx05DocNo } from '../../shared/nx05/nx05-doc-no';
+import { allocNx05DocNo, orgCodeFromDocNo } from '../../shared/nx05/nx05-doc-no';
+import { applySettlementsForPaylog } from '../../shared/nx05/nx05-apply-settlements';
 import { assertFinancePeriodMutable } from '../../shared/nx05/nx05-period-lock';
 import { Nx05ListQueryDto } from '../../shared/nx05/nx05-list-query.dto';
 import {
@@ -233,6 +234,159 @@ export class AllowanceService {
         afterData: row as object,
       });
       return { ...row!, displayStatus: toApiStatus(row!) };
+    });
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // v1.2 階段 F P5 E：折讓人工沖銷（主管核可流程）
+  // ────────────────────────────────────────────────────────────
+
+  /**
+   * 人工開折讓（DRAFT）：財務員自己開一張折讓單、等主管核可。
+   * 對齊意圖書 E③=B「折讓需主管核可才生效（防亂打折少收）」。
+   *
+   * - allowanceType='S' → 銷貨折讓（refArId 必填、降低應收）
+   * - allowanceType='P' → 進貨折讓（refApId 必填、降低應付）
+   * - 建 DRAFT 狀態、approve 才寫沖銷
+   */
+  async createManual(
+    user: RequestUser,
+    dto: {
+      allowanceType: 'P' | 'S';
+      partnerId: string;
+      allowanceDate: string;
+      totalAmount: number | string;
+      refArId?: string;
+      refApId?: string;
+      remark?: string;
+    },
+  ) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      // 業務校驗：S 必填 refArId、P 必填 refApId
+      if (dto.allowanceType === 'S' && !dto.refArId) {
+        throw new BadRequestException('銷貨折讓必填 refArId');
+      }
+      if (dto.allowanceType === 'P' && !dto.refApId) {
+        throw new BadRequestException('進貨折讓必填 refApId');
+      }
+      const date = new Date(dto.allowanceDate);
+      await assertFinancePeriodMutable(tx, tenantId, date);
+
+      const docNo = await allocNx05DocNo(tx, tenantId, 'AL', 'HQ0');
+      const row = await tx.nx05Allowance.create({
+        data: {
+          tenantId,
+          docNo,
+          allowanceType: dto.allowanceType,
+          partnerId: dto.partnerId,
+          allowanceDate: date,
+          refArId: dto.refArId ?? null,
+          refApId: dto.refApId ?? null,
+          totalAmount: new PrismaNs.Decimal(dto.totalAmount),
+          status: AllowanceDbStatus.DRAFT,
+          remark: dto.remark?.trim() || null,
+          createdBy: user.sub,
+          updatedBy: user.sub,
+        },
+        select: { id: true, docNo: true },
+      });
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX05',
+        action: 'CREATE',
+        entityTable: 'nx05_allowance',
+        entityId: row.id,
+        entityCode: row.docNo,
+        summary: `人工開立折讓單 (${dto.allowanceType}) 待主管核可`,
+      });
+      return { id: row.id, docNo: row.docNo };
+    });
+  }
+
+  /**
+   * 主管核可折讓：DRAFT → APPROVED + 寫 paylog + settlement 沖對應 AR/AP。
+   *
+   * 對齊意圖書 E③=B「核可後才寫沖銷、扣 AR/AP 餘額」。
+   * 核可流程同時建一筆 paylog（payType='AL'）+ 一筆 settlement 沖。
+   */
+  async approve(user: RequestUser, id: string) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.nx05Allowance.findFirst({
+        where: { id, tenantId },
+        select: { ...AL_SEL },
+      });
+      if (!existing) throw new NotFoundException('Allowance not found');
+      await assertFinancePeriodMutable(tx, tenantId, new Date(existing.allowanceDate));
+      if (existing.status !== AllowanceDbStatus.DRAFT) {
+        throw new BadRequestException('只有 DRAFT 折讓單可核可');
+      }
+      // 標 APPROVED + 寫 approvedAt/By
+      await tx.nx05Allowance.update({
+        where: { id },
+        data: {
+          status: AllowanceDbStatus.APPROVED,
+          approvedAt: new Date(),
+          approvedBy: user.sub,
+          updatedBy: user.sub,
+        },
+      });
+
+      // 建 paylog（折讓沖銷）+ settlement 自動沖 AR/AP
+      // 折讓沖銷：S 銷貨折讓→ 'RC' kind（客戶退款）/ P 進貨折讓 → 'CP' kind（廠商退款）
+      const docNo = await allocNx05DocNo(
+        tx,
+        tenantId,
+        existing.allowanceType === 'S' ? 'RC' : 'CP',
+        orgCodeFromDocNo(existing.docNo),
+      );
+      const paylog = await tx.nx05Paylog.create({
+        data: {
+          tenantId,
+          docNo,
+          payType: existing.allowanceType === 'S' ? 'RC' : 'RR', // RC=客戶退款 / RR=廠商退款（折讓視為退款型沖銷）
+          payDate: new Date(existing.allowanceDate),
+          partnerId: existing.partnerId,
+          arId: existing.refArId,
+          apId: existing.refApId,
+          amount: new PrismaNs.Decimal(existing.totalAmount),
+          currencyId: 'TWD',
+          payMethod: 'AL', // AL=折讓（非標準 4 種、用 'AL' 標示「折讓沖銷」）
+          status: 'POSTED',
+          postedAt: new Date(),
+          remark: `折讓沖銷 ${existing.docNo}`,
+          createdBy: user.sub,
+          updatedBy: user.sub,
+        },
+        select: { id: true },
+      });
+      await applySettlementsForPaylog(tx, {
+        tenantId,
+        paylogId: paylog.id,
+        userId: user.sub,
+        settlements: [
+          {
+            arId: existing.refArId,
+            apId: existing.refApId,
+            settledAmount: existing.totalAmount,
+            remark: `折讓 ${existing.docNo}`,
+          },
+        ],
+      });
+
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX05',
+        action: 'UPDATE',
+        entityTable: 'nx05_allowance',
+        entityId: id,
+        entityCode: existing.docNo,
+        summary: `折讓核可、自動沖 ${existing.refArId ? 'AR' : 'AP'} ${existing.totalAmount.toString()}`,
+      });
+      return { id, status: AllowanceDbStatus.APPROVED };
     });
   }
 

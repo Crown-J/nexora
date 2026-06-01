@@ -80,8 +80,11 @@ export class PoService {
   }
 
   private assertPoItemsEditable(status: string) {
+    // v1.2 階段 F P3：開放 APPROVED 主管在審核階段直接改採購單（總經理拍板「直接改」、不退回）
+    // 業務語意：避免主管駁回 → 開單人改 → 再送審的來回浪費、主管小調整可順手改完往下送
     if (
       status !== PoStatus.DRAFT &&
+      status !== PoStatus.APPROVED &&
       status !== PoStatus.CONFIRMED &&
       status !== PoStatus.PARTIAL_RECEIVED
     ) {
@@ -287,8 +290,11 @@ export class PoService {
     const taxRate =
       dto.taxRate !== undefined ? new PrismaNs.Decimal(dto.taxRate) : new PrismaNs.Decimal(existing.taxRate);
     return this.prisma.$transaction(async (tx) => {
-      // NX02-IMPL-01 Phase 3 升：DRAFT → CONFIRMED 自動寫 approvedAt + approvedBy（既有 schema 欄、業務語意「主管審核」）
-      const isApproving = nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
+      // v1.2 階段 F P3：拆兩個觸發時機
+      // - APPROVED（主管審核通過）：寫 approvedAt + approvedBy
+      // - CONFIRMED（廠商確認備貨）：呼叫 createApFromConfirmedPo 產生應付（業務語意「先款後貨」）
+      const isApproving = nextStatus === PoStatus.APPROVED && existing.status !== PoStatus.APPROVED;
+      const isVendorConfirming = nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
       await tx.nx02Po.update({
         where: { id },
         data: {
@@ -302,7 +308,7 @@ export class PoService {
         },
       });
       if (dto.taxRate !== undefined) await this.recalcPoTotals(tx, id, taxRate);
-      if (isApproving) {
+      if (isVendorConfirming) {
         await createApFromConfirmedPo(tx, { tenantId, poId: id, userId: user.sub });
       }
       await syncApLedgerFromPo(tx, { tenantId, poId: id, userId: user.sub });

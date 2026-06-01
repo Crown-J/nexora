@@ -1383,6 +1383,10 @@ model Nx01User {
   rev_Nx10SurpriseBoxLog_userId            Nx10SurpriseBoxLog[]          @relation("R_Nx10SurpriseBoxLog_userId")
   rev_Nx01Partner_salesUserId              Nx01Partner[]                 @relation("R_Nx01Partner_salesUserId")
   rev_Nx01Warehouse_managerUserId          Nx01Warehouse[]               @relation("R_Nx01Warehouse_managerUserId")
+  /// 階段 F P1 加：上報 401 申報記錄（C 案上報旗標）
+  rev_Nx05Closing_reportFiledBy            Nx05Closing[]                 @relation("R_Nx05Closing_reportFiledBy")
+  /// 階段 F P5 加：應收催款記錄人
+  rev_Nx05ArReminderLog_remindedBy         Nx05ArReminderLog[]           @relation("R_Nx05ArReminderLog_remindedBy")
 
   @@unique([tenantId, userAccount])
   @@unique([tenantId, email])
@@ -1983,6 +1987,8 @@ model Nx02Pr {
   supplier            Nx01Partner   @relation("R_Nx02Pr_supplierId", fields: [supplierId], references: [id])
   rr                  Nx02Rr?       @relation("R_Nx02Pr_rrId", fields: [rrId], references: [id])
   rev_Nx02PrItem_prId Nx02PrItem[]  @relation("R_Nx02PrItem_prId")
+  /// 階段 F P1 加：廠商退費衍生應收（PR POSTED → AR、Q1=a-1 對齊 ApLedger 多來源範式）
+  rev_Nx05ArLedger_prId Nx05ArLedger[] @relation("R_Nx05ArLedger_prId")
 
   @@unique([docNo])
   @@map("nx02_pr")
@@ -4388,6 +4394,8 @@ model Nx05ApLedger {
   rev_Nx05Allowance_refApId          Nx05Allowance[]       @relation("R_Nx05Allowance_refApId")
   rev_Nx05Paylog_apId                Nx05Paylog[]          @relation("R_Nx05Paylog_apId")
   rev_Nx08ApCacheSnapshot_apLedgerId Nx08ApCacheSnapshot[] @relation("R_Nx08ApCacheSnapshot_apLedgerId")
+  /// 階段 F P5 加：一票對多沖銷
+  rev_Nx05PaylogSettlement_apId      Nx05PaylogSettlement[] @relation("R_Nx05PaylogSettlement_apId")
 
   @@unique([docNo])
   @@map("nx05_ap_ledger")
@@ -4403,8 +4411,12 @@ model Nx05ArLedger {
   tenantId                           String                @map("tenant_id") @db.VarChar(15)
   /// 應收帳款單號（唯一），[AR]-[年月]-[機構碼]-[5碼流水號]，EX：AR-202604-HQ0-00001。；啟用最低需求版本：LITE-CORE
   docNo                              String                @map("doc_no") @db.VarChar(30)
-  /// 來源銷貨單ID（FK nx04_so）。；啟用最低需求版本：LITE-CORE
-  soId                               String                @map("so_id") @db.VarChar(15)
+  /// 來源類型（SO=銷貨單 / PR=廠商退費衍生）。對齊 Nx05ApLedger.sourceType 範式。階段 F P1 加。；啟用最低需求版本：LITE-CORE
+  sourceType                         String                @default("SO") @map("source_type") @db.VarChar(2)
+  /// 來源銷貨單ID（FK nx04_so、sourceType=SO 時必填、PR 時為 null）。階段 F P1 改 nullable。；啟用最低需求版本：LITE-CORE
+  soId                               String?               @map("so_id") @db.VarChar(15)
+  /// 來源廠商退費單ID（FK nx02_pr、sourceType=PR 時填）。階段 F P1 加。；啟用最低需求版本：LITE-CORE
+  prId                               String?               @map("pr_id") @db.VarChar(15)
   /// 客戶ID（快照自SO，FK nx01_partner）。；啟用最低需求版本：LITE-CORE
   customerId                         String                @map("customer_id") @db.VarChar(15)
   /// 應收帳款產生日期。；啟用最低需求版本：LITE-CORE
@@ -4442,12 +4454,16 @@ model Nx05ArLedger {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy                          String                @map("updated_by") @db.VarChar(15)
   tenant                             Nx99Tenant            @relation("R_Nx05ArLedger_tenantId", fields: [tenantId], references: [id])
-  so                                 Nx04So                @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
+  so                                 Nx04So?               @relation("R_Nx05ArLedger_soId", fields: [soId], references: [id])
+  pr                                 Nx02Pr?               @relation("R_Nx05ArLedger_prId", fields: [prId], references: [id])
   customer                           Nx01Partner           @relation("R_Nx05ArLedger_customerId", fields: [customerId], references: [id])
   currency                           Nx01Currency          @relation("R_Nx05ArLedger_currencyId", fields: [currencyId], references: [id])
   rev_Nx05Allowance_refArId          Nx05Allowance[]       @relation("R_Nx05Allowance_refArId")
   rev_Nx05Paylog_arId                Nx05Paylog[]          @relation("R_Nx05Paylog_arId")
   rev_Nx08ArCacheSnapshot_arLedgerId Nx08ArCacheSnapshot[] @relation("R_Nx08ArCacheSnapshot_arLedgerId")
+  /// 階段 F P5 加：一票對多沖銷 + 催款歷史
+  rev_Nx05PaylogSettlement_arId      Nx05PaylogSettlement[] @relation("R_Nx05PaylogSettlement_arId")
+  rev_Nx05ArReminderLog_arId         Nx05ArReminderLog[]   @relation("R_Nx05ArReminderLog_arId")
 
   @@unique([docNo])
   @@map("nx05_ar_ledger")
@@ -4493,7 +4509,14 @@ model Nx05Closing {
   updatedAt       DateTime   @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy       String     @map("updated_by") @db.VarChar(15)
+  /// 階段 F P1 加：所屬 401 申報期（YYYY-EE 格式、EE=01~06、01=1-2月 / 02=3-4月 / 03=5-6月 / 04=7-8月 / 05=9-10月 / 06=11-12月）。Q5=b 對齊 C 案上報旗標。；啟用最低需求版本：LITE-CORE
+  reportPeriod    String?    @map("report_period") @db.VarChar(7)
+  /// 階段 F P1 加：上報 401 報表完成時間（null=未上報、可解鎖該期；非 null=已上報、該期所有月鎖死）；啟用最低需求版本：LITE-CORE
+  reportFiledAt   DateTime?  @map("report_filed_at")
+  /// 階段 F P1 加：上報人 user id（FK nx01_user）；啟用最低需求版本：LITE-CORE
+  reportFiledBy   String?    @map("report_filed_by") @db.VarChar(15)
   tenant          Nx99Tenant @relation("R_Nx05Closing_tenantId", fields: [tenantId], references: [id])
+  reportFiler     Nx01User?  @relation("R_Nx05Closing_reportFiledBy", fields: [reportFiledBy], references: [id])
 
   @@map("nx05_closing")
 }
@@ -4614,9 +4637,66 @@ model Nx05Paylog {
   note                  Nx05Note?        @relation("R_Nx05Paylog_noteId", fields: [noteId], references: [id])
   accountCode           Nx05AccountCode? @relation("R_Nx05Paylog_accountCodeId", fields: [accountCodeId], references: [id])
   rev_Nx05Note_paylogId Nx05Note[]       @relation("R_Nx05Note_paylogId")
+  /// 階段 F P5 加：一票對多沖銷對應（settlement 表反向關聯）
+  rev_Nx05PaylogSettlement_paylogId Nx05PaylogSettlement[] @relation("R_Nx05PaylogSettlement_paylogId")
 
   @@unique([docNo])
   @@map("nx05_paylog")
+}
+
+/// =======================================================
+/// Nx05PaylogSettlement — DB table `nx05_paylog_settlement`
+/// 階段 F P5：一票對多沖銷對應表（Alex §1=1a）
+/// =======================================================
+model Nx05PaylogSettlement {
+  /// [NX05]+[PYST]+[7碼流水號]
+  id            String   @id @default(dbgenerated("gen_nx05_paylog_settlement_id()")) @db.VarChar(15)
+  tenantId      String   @map("tenant_id") @db.VarChar(15)
+  paylogId      String   @map("paylog_id") @db.VarChar(15)
+  /// 沖銷的應收 ID（與 apId 二擇一、DB check constraint 保證）
+  arId          String?  @map("ar_id") @db.VarChar(15)
+  /// 沖銷的應付 ID（與 arId 二擇一）
+  apId          String?  @map("ap_id") @db.VarChar(15)
+  /// 該筆沖了多少（部分收款支援）
+  settledAmount Decimal  @default(0) @map("settled_amount") @db.Decimal(14, 2)
+  remark        String?  @db.VarChar(200)
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String   @map("created_by") @db.VarChar(15)
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  updatedBy     String   @map("updated_by") @db.VarChar(15)
+  tenant        Nx99Tenant    @relation("R_Nx05PaylogSettlement_tenantId", fields: [tenantId], references: [id])
+  paylog        Nx05Paylog    @relation("R_Nx05PaylogSettlement_paylogId", fields: [paylogId], references: [id])
+  ar            Nx05ArLedger? @relation("R_Nx05PaylogSettlement_arId", fields: [arId], references: [id])
+  ap            Nx05ApLedger? @relation("R_Nx05PaylogSettlement_apId", fields: [apId], references: [id])
+
+  @@index([tenantId])
+  @@index([paylogId])
+  @@index([arId])
+  @@index([apId])
+  @@map("nx05_paylog_settlement")
+}
+
+/// =======================================================
+/// Nx05ArReminderLog — DB table `nx05_ar_reminder_log`
+/// 階段 F P5：應收催款歷史（Alex §2=2a、純內部記錄）
+/// =======================================================
+model Nx05ArReminderLog {
+  /// [NX05]+[ARRM]+[7碼流水號]
+  id          String   @id @default(dbgenerated("gen_nx05_ar_reminder_log_id()")) @db.VarChar(15)
+  tenantId    String   @map("tenant_id") @db.VarChar(15)
+  arId        String   @map("ar_id") @db.VarChar(15)
+  remindedAt  DateTime @default(now()) @map("reminded_at")
+  remindedBy  String   @map("reminded_by") @db.VarChar(15)
+  remark      String?  @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at")
+  tenant      Nx99Tenant   @relation("R_Nx05ArReminderLog_tenantId", fields: [tenantId], references: [id])
+  ar          Nx05ArLedger @relation("R_Nx05ArReminderLog_arId", fields: [arId], references: [id])
+  reminder    Nx01User     @relation("R_Nx05ArReminderLog_remindedBy", fields: [remindedBy], references: [id])
+
+  @@index([tenantId])
+  @@index([arId])
+  @@index([remindedAt])
+  @@map("nx05_ar_reminder_log")
 }
 
 /// =======================================================
@@ -7085,6 +7165,9 @@ model Nx99Tenant {
   rev_Nx02RfqGreetingTemplate_tenantId     Nx02RfqGreetingTemplate[]     @relation("R_Nx02RfqGreetingTemplate_tenantId")
   rev_Nx98TaskPool_tenantId                Nx98TaskPool[]                @relation("R_Nx98TaskPool_tenantId")
   rev_Nx01PartnerGradeHistory_tenantId     Nx01PartnerGradeHistory[]     @relation("R_Nx01PartnerGradeHistory_tenantId")
+  /// 階段 F P5 加：一票對多沖銷 + 催款歷史
+  rev_Nx05PaylogSettlement_tenantId        Nx05PaylogSettlement[]        @relation("R_Nx05PaylogSettlement_tenantId")
+  rev_Nx05ArReminderLog_tenantId           Nx05ArReminderLog[]           @relation("R_Nx05ArReminderLog_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")
@@ -8265,6 +8348,10 @@ model Nx02WarrantyClaim {
   resultedAt                              DateTime?                     @map("resulted_at")
   /// 審核登記人（使用者 ID、收到供應商回覆後登記的業務員）；啟用最低需求版本：LITE
   resultedBy                              String?                       @map("resulted_by") @db.VarChar(15)
+  /// 階段 F P5 加：退錢金額（result=REF 時填）。系統建議值=進貨成本×qty、業務可手動改、其他 result 為 null；啟用最低需求版本：LITE
+  refundAmount                            Decimal?                      @map("refund_amount") @db.Decimal(14, 2)
+  /// 階段 F P5 加：退錢方式（result=REF 時必填）：O=Offset 下次扣抵 / A=Allowance 折讓單 / R=Refund 直接退現；啟用最低需求版本：LITE
+  refundMethod                            String?                       @map("refund_method") @db.VarChar(1)
   /// 備註；啟用最低需求版本：LITE
   remark                                  String?                       @db.VarChar(500)
   /// 建立時間。；啟用最低需求版本：LITE

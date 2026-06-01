@@ -10,21 +10,22 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-05-31（⭐ v1.2 對齊軌 階段 E closure、merge feature/v1.2-alignment-e + tag v2.0.5-alignment-e-complete）**
-> **當前分支：`main`**（HEAD = merge commit、tag `v2.0.5-alignment-e-complete`）
-> **上輪 closure**：v1.2 對齊軌 階段 D（merge `6b20eb7` + tag `v2.0.4-alignment-d-complete`）
-> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-e、--no-ff、階段 E 主檔分區編輯 closure）
-> **狀態摘要**：`feature/v1.2-alignment-e` = **已 merge main、可考慮刪除**
-> **整軌成果**：8 commits（P1 framework → P6 closure / 含總經理 STOP-1 補完客戶功能+清 DEMO/admin+砍舊版）、4 zoned namespace（partner-zoned / part-zoned / warehouse-zoned + user-zoned）+ SatelliteSection 共用範式、11 入口頁交付（4 主檔中心 + 6 模組頁面 + 1 lab sandbox）、淨減少 382 行（舊 PartMasterPage 660 + 舊 UserMasterPage 1725 + BaseUserMasterView 1640 + DEMO PurchaseProductManagementView/PurchaseVendorManagementView 1099+ 全清）；後端擴 partner / warehouse DTO 對齊 schema 既有欄位、補 6 個 sale.product.* 權限 seed（純 upsert）
-> **⚠️ Railway production migration 同步累計落後 89 支**（階段 E **0 schema 變動**、本軌不增加落後支數、Railway 端維持落後）：dev DB 已 apply、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
+> **快照時間：2026-06-01（⭐ v1.2 對齊軌 階段 F 財務 closure、merge feature/v1.2-alignment-f + tag v2.0.6-alignment-f-complete）**
+> **當前分支：`main`**（HEAD = merge commit、tag `v2.0.6-alignment-f-complete`）
+> **上輪 closure**：v1.2 對齊軌 階段 E 主檔分區編輯（merge `0d4eb81` + tag `v2.0.5-alignment-e-complete`）
+> **本次更新觸發**：§E.2-#2「merge 回 main」（feature/v1.2-alignment-f、--no-ff、階段 F 財務模組 closure）
+> **狀態摘要**：`feature/v1.2-alignment-f` = **已 merge main、可考慮刪除**
+> **整軌成果**：12 commits（P0 意圖書 → P6 closure / 含兩次 STOP-1 通過：P1 ArLedger 多來源 + P5 一票對多沖銷 + 催款歷史 + 保固退錢欄）、11 頁面/dialog 交付（5 工作台 + 1 hub 接 href + 1 帳戶 Tab + 1 保固擴 + 3 dialog）、19 個新 endpoint、+5682 / -100 行；對齊財政部 401 TXT 兩檔格式（媒體申報 81 字元 fixed-width + 主表 112 欄|分隔、5% 拆稅 + 民國年）+ 5 個跨模組接點新加（createArFromPostedPr / applySettlementsForPaylog / 折讓自動沖等）
+> **⚠️ Railway production migration 同步累計落後 91 支**（階段 F **2 支 schema migration**、本軌增加 2 支、Railway 端維持落後）：dev DB 已 apply（兩次 STOP-1 總經理拍板）、Railway 端 `migrate deploy` all-or-nothing；觸發時機對齊 TASK-RAILWAY-ENV-SPLIT + 第一個真實客戶簽約前 2~4 週；`.env` 維持 localhost
 >
 > ⚠️ **本檔 minimal update**（2026-05-02 起累積）：§A.1 多軌 merge 分支總覽自 2026-05-18 起未 full audit、其他既有分支狀態 full audit 留後續軌
 
-### A.1 本地分支總覽（19 條）
+### A.1 本地分支總覽（20 條）
 
 | 分支 | 同步狀態 | 最新 commit | 訊息摘要 |
 |------|---------|-------------|---------|
-| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-e（v1.2 對齊軌 階段 E closure、tag `v2.0.5-alignment-e-complete`）** |
+| `main` ⭐ | ✅ 同步 | merge commit | **⚠️ MERGE feature/v1.2-alignment-f（v1.2 對齊軌 階段 F 財務 closure、tag `v2.0.6-alignment-f-complete`）** |
+| `feature/v1.2-alignment-f` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 12 commits 整軌：P0 意圖書 / P1 schema 多來源+401 旗標 / P2 §8.5 修正 / P3 7 子項+主管直接改 / P4 5 頁面 / P5-schema 3 變動 / P5 application / P5-B 4 dialog（票據/折讓/保固/沖銷檢視） |
 | `feature/v1.2-alignment-e` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 8 commits 整軌：P1 framework / P2 partner / P3 part / P4 warehouse+user / P5 SatelliteSection / P6 closure（STEP-2 清 DEMO + A1~A4 補 part + B1~B5 補 user + 砍舊版） |
 | `feature/v1.2-alignment-d` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 4 commits：D1 framework / D2 22 guides / D3 AutoPageGuide / D4 reset page |
 | `feature/nx04-sales-lite` | ✅ 同步、**已 merge main、可考慮刪除** | merge commit | 17 commits 整軌：STEP-0 / M1 schema / M2-C1~C6 backend / M3-C1~C7 frontend（5 工作台 + 1 共用元件）/ M4 整合驗證 / M5 操作手冊 |

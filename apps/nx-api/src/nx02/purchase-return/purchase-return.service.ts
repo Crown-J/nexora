@@ -19,6 +19,7 @@ import {
   PrStatus,
 } from '../../shared/nx02/nx02-state-machine';
 import { createAllowanceFromPurchaseReturn } from '../../shared/nx05/nx05-create-allowance-from-pr';
+import { createArFromPostedPr } from '../../shared/nx05/nx05-create-ar-from-pr';
 import { applyQtyOutWithLedger } from '../../shared/nx03/nx03-inventory';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
@@ -219,6 +220,11 @@ export class PurchaseReturnService {
       });
     }
     if (postedQty.lte(0)) throw new BadRequestException('Posted quantity must be > 0');
+
+    // v1.2 階段 F P3：F/P 模式 PR POSTED → 應收（廠商欠我方退款）
+    // 對齊意圖書 §2.1 + Alex Q1=a-1（sourceType='PR' + prId、so_id=null）
+    // 冪等：createArFromPostedPr 內部依 (tenantId, prId) 去重
+    await createArFromPostedPr(tx, { tenantId: pr.tenantId, prId: pr.id, userId });
   }
 
   async list(user: RequestUser, q: Nx02ListQueryDto) {

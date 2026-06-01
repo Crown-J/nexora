@@ -145,6 +145,91 @@ export class ArService {
     });
   }
 
+  /**
+   * v1.2 階段 F P5 E：應收催款（純內部記錄、Alex E②=A）
+   * 寫一筆 nx05_ar_reminder_log row、不寄 email/簡訊（後續軌補）。
+   */
+  async notifyOverdue(user: RequestUser, arId: string, remark?: string) {
+    const tenantId = requireTenantId(user);
+    return this.prisma.$transaction(async (tx) => {
+      const ar = await tx.nx05ArLedger.findFirst({
+        where: { id: arId, tenantId },
+        select: { id: true, docNo: true },
+      });
+      if (!ar) throw new NotFoundException('AR not found');
+      const log = await tx.nx05ArReminderLog.create({
+        data: {
+          tenantId,
+          arId,
+          remindedAt: new Date(),
+          remindedBy: user.sub,
+          remark: remark?.trim() || null,
+        },
+        select: { id: true },
+      });
+      await this.audit.write({
+        tenantId,
+        actorUserId: user.sub,
+        moduleCode: 'NX05',
+        action: 'UPDATE',
+        entityTable: 'nx05_ar_reminder_log',
+        entityId: log.id,
+        entityCode: ar.docNo,
+        summary: `應收催款記錄（純內部、不寄送）`,
+      });
+      return { logId: log.id };
+    });
+  }
+
+  /**
+   * v1.2 階段 F P5-B (4)：列出一張 AR 的所有 settlement 沖銷歷史
+   * - 依時間倒序、含 paylog docNo + 日期 + 方式 + 沖銷金額
+   */
+  async listSettlements(user: RequestUser, arId: string) {
+    const tenantId = requireTenantId(user);
+    const ar = await this.prisma.nx05ArLedger.findFirst({
+      where: { id: arId, tenantId },
+      select: { id: true, originalAmount: true, paidAmount: true, balanceAmount: true },
+    });
+    if (!ar) throw new NotFoundException('AR not found');
+    const settlements = await this.prisma.nx05PaylogSettlement.findMany({
+      where: { tenantId, arId },
+      select: {
+        id: true,
+        paylogId: true,
+        settledAmount: true,
+        remark: true,
+        createdAt: true,
+        paylog: {
+          select: {
+            docNo: true,
+            payDate: true,
+            payMethod: true,
+            payType: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const rows = settlements.map((s) => ({
+      id: s.id,
+      paylogId: s.paylogId,
+      paylogDocNo: s.paylog?.docNo ?? '',
+      paylogPayDate: s.paylog?.payDate ?? null,
+      paylogPayMethod: s.paylog?.payMethod ?? '',
+      paylogPayType: s.paylog?.payType ?? '',
+      settledAmount: s.settledAmount.toString(),
+      remark: s.remark,
+      createdAt: s.createdAt,
+    }));
+    return {
+      rows,
+      totalSettled: ar.paidAmount.toString(),
+      originalAmount: ar.originalAmount.toString(),
+      balanceAmount: ar.balanceAmount.toString(),
+    };
+  }
+
   async patch(user: RequestUser, id: string, dto: PatchArDto) {
     const tenantId = requireTenantId(user);
     if (!dto.status) throw new BadRequestException('status is required');

@@ -1,15 +1,13 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// apps/nx-ui/src/app/dashboard/nx05/allowance/page.tsx
+// v1.2 階段 F P5-B (2)：折讓核可工作台
+'use client';
 
-// @FUNCTION_CODE NX05-AL-UI-001-F01
-// 路由：/dashboard/nx05/allowance
-// 性質：UI stub placeholder（Crown Q-U1=c、本軌純 backend、UI 獨立軌 backlog）
-// 對應軌：TASK-NX05-IMPL-01 Phase 5（UI stub）+ TASK-NX05-IMPL-UI-01（UI 獨立軌）
-export default function Nx05AllowanceWorkspacePage() {
+import { AllowanceWorkbench } from '@/features/nx05/ui/AllowanceWorkbench';
+
+export default function Page() {
   return (
-    <NxWorkspacePlaceholder
-      functionCode="NX05-AL-UI-001-F01"
-      title="折讓單工作台"
-      desc="Allowance 雙向（P 進貨/S 銷貨）+ 3 處置（O 沖銷/D 下次折抵/R 現金退回）+ 5 階流（DRAFT→PENDING→APPROVED→PROCESSED→VOIDED）+ FinancePeriod 校驗（已補強）、A 軌 backend 已 closure、API：GET /nx05/allowance、UI 獨立軌 TASK-NX05-IMPL-UI-01）"
-    />
+    <div className="p-4 sm:p-6">
+      <AllowanceWorkbench />
+    </div>
   );
 }

@@ -37,6 +37,28 @@ export class ArController {
     return this.svc.patch(user, id, dto);
   }
 
+  /**
+   * v1.2 階段 F P5 E：應收催款（純內部記錄）
+   * POST /nx05/ar/:id/notify-overdue
+   */
+  @Post(':id/notify-overdue')
+  notifyOverdue(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() body: { remark?: string },
+  ) {
+    return this.svc.notifyOverdue(user, id, body?.remark);
+  }
+
+  /**
+   * v1.2 階段 F P5-B (4)：列出一張 AR 的 settlement 沖銷歷史
+   * GET /nx05/ar/:id/settlements
+   */
+  @Get(':id/settlements')
+  listSettlements(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.listSettlements(user, id);
+  }
+
   @Delete(':id')
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.remove(user, id);

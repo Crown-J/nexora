@@ -1,15 +1,13 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// apps/nx-ui/src/app/dashboard/nx05/ap/page.tsx
+// v1.2 階段 F P4：應付帳款工作台（含 SR 退款彙整視圖）
+'use client';
 
-// @FUNCTION_CODE NX05-AP-UI-001-F01
-// 路由：/dashboard/nx05/ap
-// 性質：UI stub placeholder（Crown Q-U1=c、本軌純 backend、UI 獨立軌 backlog）
-// 對應軌：TASK-NX05-IMPL-01 Phase 5（UI stub）+ TASK-NX05-IMPL-UI-01（UI 獨立軌）
-export default function Nx05ApWorkspacePage() {
+import { ApWorkbench } from '@/features/nx05/ui/ApWorkbench';
+
+export default function Page() {
   return (
-    <NxWorkspacePlaceholder
-      functionCode="NX05-AP-UI-001-F01"
-      title="應付帳款工作台"
-      desc="AP 5 階流（OPEN/PARTIAL/PAID/OVERDUE/VOID）+ 3 來源（PO/RR/TI、業界改革候選 ⭐⭐⭐ LITE 直接路徑、A 軌 backend 已 closure、API：GET /nx05/ap、UI 獨立軌 TASK-NX05-IMPL-UI-01）"
-    />
+    <div className="p-4 sm:p-6">
+      <ApWorkbench />
+    </div>
   );
 }

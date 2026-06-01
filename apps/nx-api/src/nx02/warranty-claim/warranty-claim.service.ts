@@ -14,10 +14,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from 'db-core';
+import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
+import { allocNx05DocNo } from '../../shared/nx05/nx05-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
@@ -269,7 +271,15 @@ export class WarrantyClaimService {
     return this.transitStatus(user, id, STATUS_SUBMITTED, STATUS_REVIEWING, '進入審核');
   }
 
-  /** R→C 登記審核結果 + 4 種 result */
+  /**
+   * R→C 登記審核結果 + 4 種 result
+   *
+   * v1.2 階段 F P5 D（總經理 2026-06-01 拍板）：
+   *   result='REF' 退錢時、必填 refundAmount + refundMethod，三方式分流：
+   *     - O = Offset    下次付款扣抵（純記錄、不沖、業務下次採購時手動扣）
+   *     - A = Allowance 自動開折讓單 DRAFT（待主管核可、走 nx05 allowance approve 流程）
+   *     - R = Refund    直接匯款退現（純記錄、業務用 nx05 paylog/with-settlements 開付款選沖 AP）
+   */
   async registerResult(user: RequestUser, id: string, dto: RegisterResultDto) {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx02WarrantyClaim.findFirst({
@@ -280,6 +290,17 @@ export class WarrantyClaimService {
     if (existing.status !== STATUS_REVIEWING) {
       throw new ConflictException(`registerResult requires status='${STATUS_REVIEWING}' REVIEWING, got '${existing.status}'`);
     }
+    // v1.2 階段 F P5 D：result='REF' 退錢必填金額 + 方式
+    if (dto.result === 'REF') {
+      if (dto.refundAmount == null || dto.refundAmount <= 0) {
+        throw new BadRequestException('退錢（REF）必填退款金額 refundAmount > 0');
+      }
+      if (!dto.refundMethod) {
+        throw new BadRequestException(
+          '退錢（REF）必填退款方式 refundMethod（O=下次扣抵 / A=折讓單 / R=直接退現）',
+        );
+      }
+    }
     const row = await this.prisma.nx02WarrantyClaim.update({
       where: { id },
       data: {
@@ -288,10 +309,48 @@ export class WarrantyClaimService {
         resultRemark: dto.resultRemark.trim(),
         resultedAt: new Date(),
         resultedBy: user.sub,
+        // v1.2 階段 F P5 D：REF 時寫入金額+方式、其他 result 為 null
+        refundAmount:
+          dto.result === 'REF' && dto.refundAmount != null
+            ? new PrismaNs.Decimal(dto.refundAmount)
+            : null,
+        refundMethod: dto.result === 'REF' ? dto.refundMethod ?? null : null,
         updatedBy: user.sub,
       },
       select: SEL,
     });
+
+    // v1.2 階段 F P5 D：refundMethod='A' 折讓單方式 → 自動建 DRAFT Allowance（沖 AP）
+    // 其他方式（O 下次扣抵 / R 直接退現）純記錄、不寫沖銷（業務手動走 paylog 或下次採購扣）
+    if (dto.result === 'REF' && dto.refundMethod === 'A') {
+      // 找對應 AP（依 supplierId 找最近一筆未結清的 AP）
+      const refAp = await this.prisma.nx05ApLedger.findFirst({
+        where: {
+          tenantId,
+          supplierId: existing.supplierId,
+          balanceAmount: { gt: 0 },
+        },
+        orderBy: { apDate: 'desc' },
+        select: { id: true },
+      });
+      const allowanceDocNo = await allocNx05DocNo(this.prisma, tenantId, 'AL', 'HQ0');
+      await this.prisma.nx05Allowance.create({
+        data: {
+          tenantId,
+          docNo: allowanceDocNo,
+          allowanceType: 'P', // 進貨折讓（廠商給我方）
+          partnerId: existing.supplierId,
+          allowanceDate: new Date(),
+          refApId: refAp?.id ?? null,
+          totalAmount: new PrismaNs.Decimal(dto.refundAmount!),
+          status: 'DRAFT',
+          remark: `保固理賠折讓 來自 ${existing.docNo}`,
+          createdBy: user.sub,
+          updatedBy: user.sub,
+        },
+      });
+    }
+
     await this.audit.write({
       tenantId,
       actorUserId: user.sub,
@@ -300,11 +359,18 @@ export class WarrantyClaimService {
       entityTable: 'nx02_warranty_claim',
       entityId: id,
       entityCode: row.docNo,
-      summary: `登記保固審核結果 → ${dto.result}（${this.resultLabel(dto.result)}）`,
+      summary:
+        dto.result === 'REF'
+          ? `保固審核 → REF 退錢 ${dto.refundAmount} 方式 ${dto.refundMethod}（${this.refundMethodLabel(dto.refundMethod!)}）`
+          : `登記保固審核結果 → ${dto.result}（${this.resultLabel(dto.result)}）`,
       beforeData: existing as object,
       afterData: row as object,
     });
     return row;
+  }
+
+  private refundMethodLabel(m: string): string {
+    return { O: '下次扣抵', A: '折讓單', R: '直接退現' }[m] ?? m;
   }
 
   /** V 作廢（DRAFT / SUBMITTED / REVIEWING 都可作廢；COMPLETED 不能） */

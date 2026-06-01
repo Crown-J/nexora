@@ -16,6 +16,8 @@ import { ArController } from './ar/ar.controller';
 import { ArService } from './ar/ar.service';
 import { NoteController } from './note/note.controller';
 import { NoteService } from './note/note.service';
+import { PaylogController } from './paylog/paylog.controller';
+import { PaylogService } from './paylog/paylog.service';
 import { PaymentController } from './payment/payment.controller';
 import { PaymentService } from './payment/payment.service';
 import { PeriodCloseController } from './period-close/period-close.controller';
@@ -32,6 +34,7 @@ import { Nx05FinanceAccessGuard } from '../shared/nx05/nx05-finance-access.guard
     ReceiptController,
     PaymentController,
     NoteController,
+    PaylogController,
     AllowanceController,
     PeriodCloseController,
     AccountCodeController,
@@ -44,6 +47,7 @@ import { Nx05FinanceAccessGuard } from '../shared/nx05/nx05-finance-access.guard
     ReceiptService,
     PaymentService,
     NoteService,
+    PaylogService,
     AllowanceService,
     PeriodCloseService,
     AccountCodeService,
