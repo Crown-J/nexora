@@ -24,8 +24,8 @@ import {
 import {
   CHART_COLORS,
   ChartWrapper,
-  DataTable,
   PageHeader,
+  ResponsiveTable,
   StatCard,
   chartTooltipStyle,
   fmtMoney,
@@ -142,22 +142,29 @@ export function SalesReport() {
                   </BarChart>
                 </ResponsiveContainer>
               </ChartWrapper>
-              <DataTable
+              <ResponsiveTable
                 columns={[
                   {
                     key: 'rank',
                     label: '名次',
+                    hideOnMobile: true,
                     render: (_p: unknown, idx?: number) => <span className="font-mono">#{(idx ?? 0) + 1}</span>,
                   } as never,
                   {
                     key: 'partNo',
                     label: '料號',
+                    hideOnMobile: true,
                     render: (p) => <span className="font-mono text-xs">{p.partNo}</span>,
                   },
                   {
                     key: 'partName',
                     label: '品名',
-                    render: (p) => <span>{p.partName}</span>,
+                    asTitle: true,
+                    render: (p) => (
+                      <span>
+                        <span className="font-mono text-[10px] text-[#5A5A60]">{p.partNo}</span> {p.partName}
+                      </span>
+                    ),
                   },
                   {
                     key: 'qtySum',

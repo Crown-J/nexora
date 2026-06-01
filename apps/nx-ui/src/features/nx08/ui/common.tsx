@@ -6,10 +6,26 @@
 //   - 新加報表專用：PeriodPicker（期間選擇器）+ ChartWrapper（recharts 暗色主題）+ KpiCard（簡化版 StatCard）
 'use client';
 
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Calendar } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+
+// ────────────────────────────────────────────────────────────
+// useIsMobile：< 640px (Tailwind sm 斷點)
+// 範式 §10.4：手機卡片化、不是電腦版硬塞
+// ────────────────────────────────────────────────────────────
+export function useIsMobile(breakpoint = 640): boolean {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const update = () => setIsMobile(mql.matches);
+    update();
+    mql.addEventListener('change', update);
+    return () => mql.removeEventListener('change', update);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 // 從階段 F NX05 共用元件 re-export
 export {
@@ -210,16 +226,21 @@ export function ChartWrapper({
   subtitle,
   children,
   height = 240,
+  mobileHeight,
   actions,
 }: {
   title?: string;
   subtitle?: string;
   children: ReactNode;
   height?: number;
+  /** 手機高度（< 640px）；不傳預設 = height × 0.7（避免過矮）。 */
+  mobileHeight?: number;
   actions?: ReactNode;
 }) {
+  const isMobile = useIsMobile();
+  const h = isMobile ? (mobileHeight ?? Math.round(height * 0.7)) : height;
   return (
-    <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40 p-4">
+    <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40 p-3 sm:p-4">
       {title || actions ? (
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -229,7 +250,95 @@ export function ChartWrapper({
           {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
         </div>
       ) : null}
-      <div style={{ width: '100%', height }}>{children}</div>
+      <div style={{ width: '100%', height: h }}>{children}</div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────
+// ResponsiveTable：< 640 卡片化、≥ 640 用 DataTable
+// API 與 DataTable 一致、view 直接 swap
+// ────────────────────────────────────────────────────────────
+
+import { DataTable as _DataTable } from '@/features/nx05/ui/common';
+
+export type ResponsiveColumn<T> = {
+  key: string;
+  label: string;
+  align?: 'left' | 'right' | 'center';
+  render: (row: T) => ReactNode;
+  /** 卡片模式下隱藏（避免雜訊、譬如「名次」這種大欄） */
+  hideOnMobile?: boolean;
+  /** 卡片模式下作為標題（不顯示 label）；建議用品名/姓名等 */
+  asTitle?: boolean;
+};
+
+export function ResponsiveTable<T extends { id: string }>({
+  columns,
+  rows,
+  loading,
+  emptyMessage,
+  rowKey,
+}: {
+  columns: Array<ResponsiveColumn<T>>;
+  rows: T[];
+  loading?: boolean;
+  emptyMessage?: string;
+  rowKey?: (row: T) => string;
+}) {
+  const isMobile = useIsMobile();
+
+  if (loading) {
+    return (
+      <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40 px-4 py-12 text-center text-xs text-[#5A5A60]">
+        載入中...
+      </div>
+    );
+  }
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed border-[#2A2A30] bg-[#0A0A0C]/30 px-4 py-12 text-center text-xs text-[#5A5A60]">
+        {emptyMessage ?? '尚無資料'}
+      </div>
+    );
+  }
+
+  if (!isMobile) {
+    // 桌面：直接用 DataTable（型別已相容 — hideOnMobile / asTitle 為 DataTable 忽略）
+    return <_DataTable columns={columns} rows={rows} rowKey={rowKey} />;
+  }
+
+  // 手機：卡片清單
+  const titleCol = columns.find((c) => c.asTitle);
+  const detailCols = columns.filter((c) => !c.hideOnMobile && !c.asTitle);
+
+  return (
+    <div className="space-y-2">
+      {rows.map((r) => (
+        <div
+          key={rowKey ? rowKey(r) : r.id}
+          className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40 p-3 text-xs"
+        >
+          {titleCol ? (
+            <div className="mb-2 border-b border-[#2A2A30]/60 pb-2 text-sm font-semibold text-[#E8E8EB]">
+              {titleCol.render(r)}
+            </div>
+          ) : null}
+          <div className="space-y-1">
+            {detailCols.map((c) => (
+              <div
+                key={c.key}
+                className="flex items-center justify-between gap-3"
+              >
+                <span className="text-[10px] uppercase tracking-[0.1em] text-[#5A5A60]">
+                  {c.label}
+                </span>
+                <span className="min-w-0 truncate text-right">{c.render(r)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

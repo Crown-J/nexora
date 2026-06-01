@@ -20,8 +20,8 @@ import { getPnL, type PnL } from '@/features/nx08/api';
 import {
   CHART_COLORS,
   ChartWrapper,
-  DataTable,
   KpiCard,
+  ResponsiveTable,
   PageHeader,
   PeriodPicker,
   chartTooltipStyle,
@@ -129,10 +129,10 @@ export function PnLReport() {
           <section className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">損益表（會計式）</h2>
             <div className="overflow-hidden rounded-md border border-[#2A2A30]">
-              <table className="w-full text-xs">
+              <table className="w-full text-[11px] sm:text-xs">
                 <tbody className="divide-y divide-[#1A1A20]">
                   <tr>
-                    <td className="px-3 py-2 text-[#B8B8C0]">銷貨總額</td>
+                    <td className="px-2 py-2 text-[#B8B8C0] sm:px-3">銷貨總額</td>
                     <td className="px-3 py-2 text-right font-mono">{fmtMoney(data.revenue.gross)}</td>
                   </tr>
                   <tr>
@@ -184,17 +184,24 @@ export function PnLReport() {
               <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
                 費用明細（按會計科目、排除 5100 銷貨成本）
               </h2>
-              <DataTable
+              <ResponsiveTable
                 columns={[
                   {
                     key: 'accountCode',
                     label: '科目代號',
+                    hideOnMobile: true,
                     render: (it) => <span className="font-mono text-xs">{it.accountCode}</span>,
                   },
                   {
                     key: 'accountName',
                     label: '科目名稱',
-                    render: (it) => <span>{it.accountName ?? '—'}</span>,
+                    asTitle: true,
+                    render: (it) => (
+                      <span>
+                        <span className="font-mono text-[10px] text-[#5A5A60]">{it.accountCode}</span>{' '}
+                        {it.accountName ?? '—'}
+                      </span>
+                    ),
                   },
                   {
                     key: 'amount',

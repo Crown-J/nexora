@@ -12,7 +12,7 @@ import {
   getLowStockAlert,
 } from '@/features/nx08/api';
 
-import { DataTable, PageHeader, StatCard, StatusBadge, fmtMoney } from './common';
+import { PageHeader, ResponsiveTable, StatCard, StatusBadge, fmtMoney } from './common';
 
 type Tab = 'turnover' | 'dormant' | 'lowStock';
 
@@ -117,17 +117,24 @@ export function InventoryReport() {
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             庫存週轉率 {turnover.period ? `（${turnover.period}）` : ''}
           </h2>
-          <DataTable
+          <ResponsiveTable
             columns={[
               {
                 key: 'partNo',
                 label: '料號',
+                hideOnMobile: true,
                 render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId.slice(0, 8)}</span>,
               },
               {
                 key: 'partName',
                 label: '品名',
-                render: (it) => <span>{it.partName ?? '—'}</span>,
+                asTitle: true,
+                render: (it) => (
+                  <span>
+                    <span className="font-mono text-[10px] text-[#5A5A60]">{it.partNo ?? it.partId.slice(0, 8)}</span>{' '}
+                    {it.partName ?? '—'}
+                  </span>
+                ),
               },
               {
                 key: 'onHandQty',
@@ -165,17 +172,24 @@ export function InventoryReport() {
       {tab === 'dormant' && dormant ? (
         <section className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">呆滯品（建議處置）</h2>
-          <DataTable
+          <ResponsiveTable
             columns={[
               {
                 key: 'partNo',
                 label: '料號',
+                hideOnMobile: true,
                 render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId.slice(0, 8)}</span>,
               },
               {
                 key: 'partName',
                 label: '品名',
-                render: (it) => <span>{it.partName ?? '—'}</span>,
+                asTitle: true,
+                render: (it) => (
+                  <span>
+                    <span className="font-mono text-[10px] text-[#5A5A60]">{it.partNo ?? it.partId.slice(0, 8)}</span>{' '}
+                    {it.partName ?? '—'}
+                  </span>
+                ),
               },
               {
                 key: 'onHandQty',
@@ -213,17 +227,24 @@ export function InventoryReport() {
               ⚠️ 共 {(lowStock.items ?? []).length} 項低於安全庫存、請優先補貨
             </div>
           ) : null}
-          <DataTable
+          <ResponsiveTable
             columns={[
               {
                 key: 'partNo',
                 label: '料號',
+                hideOnMobile: true,
                 render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId.slice(0, 8)}</span>,
               },
               {
                 key: 'partName',
                 label: '品名',
-                render: (it) => <span>{it.partName ?? '—'}</span>,
+                asTitle: true,
+                render: (it) => (
+                  <span>
+                    <span className="font-mono text-[10px] text-[#5A5A60]">{it.partNo ?? it.partId.slice(0, 8)}</span>{' '}
+                    {it.partName ?? '—'}
+                  </span>
+                ),
               },
               {
                 key: 'onHandQty',

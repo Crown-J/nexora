@@ -28,8 +28,8 @@ import {
 import {
   CHART_COLORS,
   ChartWrapper,
-  DataTable,
   KpiCard,
+  ResponsiveTable,
   PageHeader,
   StatCard,
   chartTooltipStyle,
@@ -189,11 +189,12 @@ export function OpsReport() {
       {kpi?.items && kpi.items.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">員工 KPI 達成率</h2>
-          <DataTable
+          <ResponsiveTable
             columns={[
               {
                 key: 'userName',
                 label: '員工',
+                asTitle: true,
                 render: (it) => <span>{it.userName ?? it.userId.slice(0, 8)}</span>,
               },
               {

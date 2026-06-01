@@ -20,8 +20,8 @@ import { getPoStats, getPriceCompare, getSupplierGrade } from '@/features/nx08/a
 import {
   CHART_COLORS,
   ChartWrapper,
-  DataTable,
   PageHeader,
+  ResponsiveTable,
   StatCard,
   StatusBadge,
   chartTooltipStyle,
@@ -149,16 +149,18 @@ export function PurchaseReport() {
               </BarChart>
             </ResponsiveContainer>
           </ChartWrapper>
-          <DataTable
+          <ResponsiveTable
             columns={[
               {
                 key: 'rank',
                 label: '名次',
+                hideOnMobile: true,
                 render: (_: unknown, idx?: number) => <span className="font-mono">#{(idx ?? 0) + 1}</span>,
               } as never,
               {
                 key: 'supplierName',
                 label: '供應商',
+                asTitle: true,
                 render: (s) => <span>{s.supplierName ?? s.supplierId}</span>,
               },
               {
@@ -187,17 +189,24 @@ export function PurchaseReport() {
           <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
             比價分析（樣本 {priceCompare.sampleSize}）
           </h2>
-          <DataTable
+          <ResponsiveTable
             columns={[
               {
                 key: 'partNo',
                 label: '料號',
+                hideOnMobile: true,
                 render: (it) => <span className="font-mono text-xs">{it.partNo ?? it.partId}</span>,
               },
               {
                 key: 'partName',
                 label: '品名',
-                render: (it) => <span>{it.partName ?? '—'}</span>,
+                asTitle: true,
+                render: (it) => (
+                  <span>
+                    <span className="font-mono text-[10px] text-[#5A5A60]">{it.partNo ?? ''}</span>{' '}
+                    {it.partName ?? '—'}
+                  </span>
+                ),
               },
               {
                 key: 'supplierCount',
