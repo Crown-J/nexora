@@ -1,5 +1,5 @@
 // apps/nx-api/src/nx08/dashboard/finance/finance-dashboard.controller.ts
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 
 import type { RequestUser } from '../../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../../shared/decorators/current-user.decorator';
@@ -23,4 +23,16 @@ export class Nx08FinanceDashboardController {
 
   @Get('cash-flow')
   cashFlow(@CurrentUser() user: RequestUser) { return this.svc.cashFlow(user); }
+
+  /**
+   * v1.2 階段 H P1：損益表 PnL（Alex Q2=a、進銷淨額簡化法）
+   * GET /nx08/dashboard/finance/pnl?periodStart=YYYY-MM-DD&periodEnd=YYYY-MM-DD
+   */
+  @Get('pnl')
+  pnl(
+    @CurrentUser() user: RequestUser,
+    @Query() q: { periodStart: string; periodEnd: string },
+  ) {
+    return this.svc.pnl(user, q);
+  }
 }
