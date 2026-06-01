@@ -181,6 +181,55 @@ export class ArService {
     });
   }
 
+  /**
+   * v1.2 階段 F P5-B (4)：列出一張 AR 的所有 settlement 沖銷歷史
+   * - 依時間倒序、含 paylog docNo + 日期 + 方式 + 沖銷金額
+   */
+  async listSettlements(user: RequestUser, arId: string) {
+    const tenantId = requireTenantId(user);
+    const ar = await this.prisma.nx05ArLedger.findFirst({
+      where: { id: arId, tenantId },
+      select: { id: true, originalAmount: true, paidAmount: true, balanceAmount: true },
+    });
+    if (!ar) throw new NotFoundException('AR not found');
+    const settlements = await this.prisma.nx05PaylogSettlement.findMany({
+      where: { tenantId, arId },
+      select: {
+        id: true,
+        paylogId: true,
+        settledAmount: true,
+        remark: true,
+        createdAt: true,
+        paylog: {
+          select: {
+            docNo: true,
+            payDate: true,
+            payMethod: true,
+            payType: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const rows = settlements.map((s) => ({
+      id: s.id,
+      paylogId: s.paylogId,
+      paylogDocNo: s.paylog?.docNo ?? '',
+      paylogPayDate: s.paylog?.payDate ?? null,
+      paylogPayMethod: s.paylog?.payMethod ?? '',
+      paylogPayType: s.paylog?.payType ?? '',
+      settledAmount: s.settledAmount.toString(),
+      remark: s.remark,
+      createdAt: s.createdAt,
+    }));
+    return {
+      rows,
+      totalSettled: ar.paidAmount.toString(),
+      originalAmount: ar.originalAmount.toString(),
+      balanceAmount: ar.balanceAmount.toString(),
+    };
+  }
+
   async patch(user: RequestUser, id: string, dto: PatchArDto) {
     const tenantId = requireTenantId(user);
     if (!dto.status) throw new BadRequestException('status is required');

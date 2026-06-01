@@ -182,6 +182,54 @@ export class ApService {
     return this.mapRow(row);
   }
 
+  /**
+   * v1.2 階段 F P5-B (4)：列出一張 AP 的所有 settlement 沖銷歷史
+   */
+  async listSettlements(user: RequestUser, apId: string) {
+    const tenantId = requireTenantId(user);
+    const ap = await this.prisma.nx05ApLedger.findFirst({
+      where: { id: apId, tenantId },
+      select: { id: true, originalAmount: true, paidAmount: true, balanceAmount: true },
+    });
+    if (!ap) throw new NotFoundException('AP not found');
+    const settlements = await this.prisma.nx05PaylogSettlement.findMany({
+      where: { tenantId, apId },
+      select: {
+        id: true,
+        paylogId: true,
+        settledAmount: true,
+        remark: true,
+        createdAt: true,
+        paylog: {
+          select: {
+            docNo: true,
+            payDate: true,
+            payMethod: true,
+            payType: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const rows = settlements.map((s) => ({
+      id: s.id,
+      paylogId: s.paylogId,
+      paylogDocNo: s.paylog?.docNo ?? '',
+      paylogPayDate: s.paylog?.payDate ?? null,
+      paylogPayMethod: s.paylog?.payMethod ?? '',
+      paylogPayType: s.paylog?.payType ?? '',
+      settledAmount: s.settledAmount.toString(),
+      remark: s.remark,
+      createdAt: s.createdAt,
+    }));
+    return {
+      rows,
+      totalSettled: ap.paidAmount.toString(),
+      originalAmount: ap.originalAmount.toString(),
+      balanceAmount: ap.balanceAmount.toString(),
+    };
+  }
+
   async patch(user: RequestUser, id: string, dto: PatchApDto) {
     const tenantId = requireTenantId(user);
     if (!dto.status) throw new BadRequestException('status is required');

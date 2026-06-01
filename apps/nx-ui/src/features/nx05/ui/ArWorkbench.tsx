@@ -3,13 +3,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Bell, Coins, Percent, RefreshCw, Search } from 'lucide-react';
+import { Bell, Coins, History, Percent, RefreshCw, Search } from 'lucide-react';
 
 import { listAr, notifyArOverdue, type ArRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 import { AllowanceCreateDialog } from './AllowanceCreateDialog';
 import { PaylogCreateDialog } from './PaylogCreateDialog';
+import { SettlementHistoryDialog } from './SettlementHistoryDialog';
 
 const STATUS_FILTERS = [
   { value: '', label: '全部' },
@@ -28,6 +29,7 @@ export function ArWorkbench() {
   const [error, setError] = useState<string | null>(null);
   const [paylogDialog, setPaylogDialog] = useState<{ partnerId: string } | null>(null);
   const [allowanceDialog, setAllowanceDialog] = useState<{ partnerId: string; refArId: string } | null>(null);
+  const [historyDialog, setHistoryDialog] = useState<{ id: string; docNo: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -190,6 +192,14 @@ export function ArWorkbench() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setHistoryDialog({ id: r.id, docNo: r.docNo })}
+                    title="查看沖銷歷史（追溯這張單怎麼被沖掉的）"
+                    className="inline-flex h-6 items-center gap-1 rounded-md border border-[#3A3A42] bg-[#0A0A0C] px-2 text-[10px] text-[#B8B8C0] hover:border-[#5A5A60] hover:text-[#E8E8EB]"
+                  >
+                    <History className="size-3" /> 歷史
+                  </button>
+                  <button
+                    type="button"
                     onClick={async () => {
                       const remark = window.prompt('催款備註（可空、純內部記錄）：') ?? '';
                       try {
@@ -234,6 +244,13 @@ export function ArWorkbench() {
           setAllowanceDialog(null);
           setReloadTick((t) => t + 1);
         }}
+      />
+      <SettlementHistoryDialog
+        open={historyDialog != null}
+        kind="AR"
+        ledgerId={historyDialog?.id ?? null}
+        ledgerDocNo={historyDialog?.docNo ?? null}
+        onClose={() => setHistoryDialog(null)}
       />
     </div>
   );

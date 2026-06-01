@@ -320,19 +320,20 @@ export type SettlementRow = {
   createdAt: string;
 };
 
-export async function listArSettlements(arId: string): Promise<{
+export type SettlementsResult = {
   rows: SettlementRow[];
   totalSettled: string;
-}> {
+  originalAmount: string;
+  balanceAmount: string;
+};
+
+export async function listArSettlements(arId: string): Promise<SettlementsResult> {
   const res = await apiFetch(`/nx05/ar/${encodeURIComponent(arId)}/settlements`, { method: 'GET' });
   await assertOk(res, 'nxui_nx05_ar_settlements');
   return res.json();
 }
 
-export async function listApSettlements(apId: string): Promise<{
-  rows: SettlementRow[];
-  totalSettled: string;
-}> {
+export async function listApSettlements(apId: string): Promise<SettlementsResult> {
   const res = await apiFetch(`/nx05/ap/${encodeURIComponent(apId)}/settlements`, { method: 'GET' });
   await assertOk(res, 'nxui_nx05_ap_settlements');
   return res.json();

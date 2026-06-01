@@ -3,13 +3,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Coins, Percent, RefreshCw, Search } from 'lucide-react';
+import { Coins, History, Percent, RefreshCw, Search } from 'lucide-react';
 
 import { getPayableView, type ApRow, type PayableViewRow } from '@/features/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 import { AllowanceCreateDialog } from './AllowanceCreateDialog';
 import { PaylogCreateDialog } from './PaylogCreateDialog';
+import { SettlementHistoryDialog } from './SettlementHistoryDialog';
 
 type Tab = 'all' | 'ap' | 'srAllowance';
 
@@ -23,6 +24,7 @@ export function ApWorkbench() {
   const [error, setError] = useState<string | null>(null);
   const [paylogDialog, setPaylogDialog] = useState<{ partnerId: string } | null>(null);
   const [allowanceDialog, setAllowanceDialog] = useState<{ partnerId: string; refApId: string } | null>(null);
+  const [historyDialog, setHistoryDialog] = useState<{ id: string; docNo: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -200,6 +202,14 @@ export function ApWorkbench() {
                       >
                         <Percent className="size-3" /> 折讓
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => setHistoryDialog({ id: r.id, docNo: r.docNo })}
+                        title="查看沖銷歷史"
+                        className="inline-flex h-6 items-center gap-1 rounded-md border border-[#3A3A42] bg-[#0A0A0C] px-2 text-[10px] text-[#B8B8C0] hover:border-[#5A5A60] hover:text-[#E8E8EB]"
+                      >
+                        <History className="size-3" /> 歷史
+                      </button>
                     </div>
                   ),
                 },
@@ -286,6 +296,13 @@ export function ApWorkbench() {
           setAllowanceDialog(null);
           setReloadTick((t) => t + 1);
         }}
+      />
+      <SettlementHistoryDialog
+        open={historyDialog != null}
+        kind="AP"
+        ledgerId={historyDialog?.id ?? null}
+        ledgerDocNo={historyDialog?.docNo ?? null}
+        onClose={() => setHistoryDialog(null)}
       />
     </div>
   );

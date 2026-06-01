@@ -31,6 +31,15 @@ export class ApController {
     return this.svc.listPayableView(user, q);
   }
 
+  /**
+   * v1.2 階段 F P5-B (4)：列出一張 AP 的 settlement 沖銷歷史
+   * GET /nx05/ap/:id/settlements
+   */
+  @Get(':id/settlements')
+  listSettlements(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.listSettlements(user, id);
+  }
+
   @Get(':id')
   getById(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getById(user, id);
