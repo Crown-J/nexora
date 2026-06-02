@@ -33,8 +33,7 @@ function deriveTierFromPlanCode(planCodeStr: string | null | undefined): PlanCod
   if (s.includes('PLUS')) return 'PLUS';
   return 'LITE';
 }
-import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
-import { DashboardQuickShortcuts } from '@/features/sys-dashboard/ui/DashboardQuickShortcuts';
+import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
 import { ProExpRankBar } from '@/features/sys-dashboard/ui/ProExpRankBar';
 import { ProNx10LeftPanel } from '@/features/sys-dashboard/ui/ProNx10LeftPanel';
 import { ProTodayAttendancePanel } from '@/features/sys-dashboard/ui/ProTodayAttendancePanel';
@@ -65,7 +64,7 @@ function LitePlusHomeBody({
         compact ? 'min-h-0' : 'min-h-0 flex-1 overflow-hidden',
       )}
     >
-      <DashboardQuickShortcuts className="hidden lg:flex" />
+      {/* QWERTY 快捷格已移除（鋼鐵星球範式不再需要、Alt+X 進星球模組選單）*/}
       <div
         className={cx(
           'flex min-h-0 gap-3',
@@ -130,7 +129,7 @@ function ProHomeBody({
     return (
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <ProExpRankBar />
-        <DashboardQuickShortcuts className="hidden lg:flex" />
+        {/* QWERTY 快捷格已移除（鋼鐵星球範式不再需要、Alt+X 進星球模組選單）*/}
         <ProNx10LeftPanel />
         <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div className="flex min-h-0 flex-col gap-3">
@@ -152,7 +151,7 @@ function ProHomeBody({
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,65fr)_minmax(0,35fr)] grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
       <ProExpRankBar className="col-start-1 row-start-1 h-full min-h-0 self-stretch" />
-      <DashboardQuickShortcuts className="col-start-2 row-start-1 hidden h-full min-h-0 w-full min-w-0 self-stretch lg:flex" />
+      {/* QWERTY 已移除 */}
       <div className="col-start-1 row-start-2 grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,35fr)_minmax(0,65fr)] gap-3 overflow-hidden">
         <ProNx10LeftPanel className="min-h-0 h-full min-w-0 overflow-hidden" />
         <div className="grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3 overflow-hidden">
@@ -205,8 +204,6 @@ export function SysDashboardPage() {
 
   const showNx10 = planCode === 'PRO';
 
-  const quickShortcuts = useMemo(() => getDashboardQuickShortcuts(planCode), [planCode]);
-
   const calendarEvents = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const hasToday = mockCalendarEvents.some((e) => e.date === todayStr);
@@ -241,20 +238,11 @@ export function SysDashboardPage() {
         return;
       }
 
-      if (pathname !== '/dashboard') return;
-
-      if (e.key.length === 1) {
-        const letter = e.key.toLowerCase();
-        const hit = quickShortcuts.find((s) => s.key === letter);
-        if (hit) {
-          e.preventDefault();
-          router.push(hit.href);
-        }
-      }
+      // QWERTY 快捷格已移除（鋼鐵星球範式不再需要、模組導覽改走 MasterTopBar 星球選單 Alt+X）
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [pathname, quickShortcuts, router]);
+  }, [pathname, router]);
 
   const liteBodyProps = {
     calendarEvents,
@@ -273,7 +261,21 @@ export function SysDashboardPage() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+    <div
+      className="flex h-dvh flex-col text-[#E8E8EB]"
+      style={{
+        backgroundImage:
+          'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
+      }}
+    >
+      {/* 鋼鐵星球範式置頂列：返回 · 星球模組選單(Alt+X) · 標題 · 公告 · 通知 · 使用者 */}
+      <MasterTopBar
+        category="首頁"
+        title="個人儀表板"
+        count=""
+        requestNavigate={(href) => router.push(href)}
+      />
+
       <input
         ref={searchRef}
         type="search"

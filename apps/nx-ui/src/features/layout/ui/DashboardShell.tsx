@@ -124,7 +124,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const nameText = displayName || me?.username || '系統管理員';
 
   // MasterShell bypass：跳過 DashboardShell chrome、直接 render children（children 自帶 MasterShell）
-  if (isMasterShellBypass) {
+  // 首頁儀表板（/dashboard）改採鋼鐵星球範式（MasterTopBar）、與主檔頁視覺統一、
+  // SysDashboardPage 自帶 MasterTopBar 不靠 DashboardShell chrome
+  if (isMasterShellBypass || isSysDashboardHome) {
     return <>{children}</>;
   }
 

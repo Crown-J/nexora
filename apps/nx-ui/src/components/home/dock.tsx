@@ -27,9 +27,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { getDashboardQuickShortcuts } from '@/features/sys-dashboard/config/dashboardQuickShortcuts';
+// QWERTY 快捷格已移除（鋼鐵星球範式不再需要）
 import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
-import { NexoraBottomDock, type DockItem } from '@/shared/ui/NexoraBottomDock';
 import { getMasterHubSections } from '@/features/base/config/master-cards';
 
 export type DockNavItem = {
@@ -641,35 +640,9 @@ export function MobileDock() {
   const planCtx = useDashboardHomePlanOptional();
   const isDashboardHome = pathname === '/dashboard';
 
-  const quickShortcuts = useMemo(() => {
-    if (!isDashboardHome) return null;
-    const plan = planCtx?.planCode ?? 'LITE';
-    return getDashboardQuickShortcuts(plan);
-  }, [isDashboardHome, planCtx?.planCode]);
-
-  // Hook 全部呼叫後再 early return，避免破壞 React hook order
-  if (shouldHideMobileDock(pathname)) {
+  // QWERTY 快捷格已移除（首頁手機底部 dock 隨 QWERTY 一起退場、模組導覽改走 MasterTopBar）
+  if (shouldHideMobileDock(pathname) || isDashboardHome) {
     return null;
-  }
-
-  // R7 Phase 2.5：中心 = 角色工作台，跨中心切換由 TopBar 星球承擔。
-  // 非首頁一律不顯示底部 DOCK，只保留首頁自定義快捷鍵。
-  // HIDE_MOBILE_DOCK_PREFIXES / HIDE_MOBILE_DOCK_EXACT / 下方非首頁 JSX 目前變成死碼，
-  // 保留是為了未來如需恢復全站 DOCK 可直接 git revert 本次修改。
-  if (!isDashboardHome) {
-    return null;
-  }
-
-  if (isDashboardHome && quickShortcuts) {
-    // 業界改革 #22 v1.2 + #17：用 NexoraBottomDock 統一範式（6 slot、icon-only、超過 swipe）
-    const items: DockItem[] = quickShortcuts.map((s) => ({
-      id: s.key,
-      icon: s.Icon,
-      label: s.label,
-      onClick: () => router.push(s.href),
-      active: isShortcutDockActive(pathname, s.href),
-    }));
-    return <NexoraBottomDock items={items} ariaLabel="首頁常用功能" />;
   }
 
   // R7：非首頁模組 DOCK 視覺統一首頁 iOS 風格（圓角按鈕 + icon box + gradient）
