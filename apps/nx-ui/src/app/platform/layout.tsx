@@ -25,6 +25,8 @@ const NAV_ITEMS: Array<{ href: string; label: string }> = [
 
 // Phase 5：/platform/login 自帶完整黑底頁殼、bypass layout 認證守衛、避免雞生蛋
 const LOGIN_PATH = '/platform/login';
+// Phase 6.1：強制改密頁、layout 仍掛外殼但不執行 must_change_password redirect 守衛（雞生蛋）
+const CHANGE_PASSWORD_PATH = '/platform/change-password';
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -46,6 +48,11 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
         if (cancelled) return;
         setMe(data);
         setAuthState('ok');
+        // Phase 6.1：mustChangePassword=true 強制 redirect 到改密頁
+        // 例外：已在改密頁本身、不重複 redirect 造成迴圈
+        if (data.must_change_password && pathname !== CHANGE_PASSWORD_PATH) {
+          router.replace(CHANGE_PASSWORD_PATH);
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -59,7 +66,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     return () => {
       cancelled = true;
     };
-  }, [pathname, isLoginPath]);
+  }, [pathname, isLoginPath, router]);
 
   // 登入頁 bypass 全部 layout 外殼（自帶完整頁面）
   if (isLoginPath) {
@@ -134,6 +141,17 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
               <span className="text-zinc-600">signed in as</span>{' '}
               <span className="text-zinc-300">{me.account}</span>
             </div>
+            <Link
+              href={CHANGE_PASSWORD_PATH}
+              className={[
+                'px-2 py-1 border uppercase tracking-wider rounded-sm',
+                pathname === CHANGE_PASSWORD_PATH
+                  ? 'border-zinc-500 text-zinc-200'
+                  : 'border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-zinc-200',
+              ].join(' ')}
+            >
+              Change password
+            </Link>
             <button
               onClick={handleLogout}
               className="px-2 py-1 border border-zinc-700 hover:border-zinc-500 text-zinc-400 hover:text-zinc-200 uppercase tracking-wider rounded-sm"
@@ -144,9 +162,9 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
         </div>
       </header>
 
-      {me.must_change_password ? (
+      {me.must_change_password && pathname !== CHANGE_PASSWORD_PATH ? (
         <div className="bg-amber-950 border-b border-amber-800 text-amber-200 text-xs px-6 py-2 max-w-6xl mx-auto">
-          ⚠ 首次登入請務必至「Change password」變更預設密碼（Phase 5 後將提供 UI、目前可打 POST /platform/auth/change-password）。
+          ⚠ 您的帳號目前使用預設密碼、請至「Change password」更新。
         </div>
       ) : null}
 

@@ -39,3 +39,19 @@ export function platformLogin(account: string, password: string): Promise<Platfo
     body: JSON.stringify({ account, password }),
   });
 }
+
+/**
+ * Phase 6.1：平台超管改密碼。
+ * - mustChangePassword=true 時、oldPassword 可空字串（後端允許跳過驗舊密）
+ * - mustChangePassword=false 時、必須帶正確 oldPassword、否則 PL-201
+ * - newPassword < 6 字元 → PL-303
+ */
+export function platformChangePassword(
+  oldPassword: string,
+  newPassword: string,
+): Promise<{ ok: boolean }> {
+  return platformFetch<{ ok: boolean }>('/platform/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ oldPassword, newPassword }),
+  });
+}
