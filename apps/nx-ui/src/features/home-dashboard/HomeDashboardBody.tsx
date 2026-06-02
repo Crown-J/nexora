@@ -68,6 +68,10 @@ export function HomeDashboardBody() {
   // 拉每張可見卡的 endpoint
   useEffect(() => {
     if (!me) return;
+    // 修法 2：mustChange=true 期間不 fetch（avoid useSessionMe redirect race、
+    // useSessionMe 偵測到 mustChange 會 router.replace('/change-password')、
+    // 期間在路由切換 + token state 不穩定、21 個平行 fetch 容易誤拿 401 → 全紅）
+    if ((me as MeDto).must_change_password) return;
     let cancelled = false;
 
     // 初始：所有卡 loading（isPending 例外）

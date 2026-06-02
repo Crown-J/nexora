@@ -174,7 +174,42 @@ export class OnboardingService {
         },
       });
 
-      return { tenant, owner, ownerRole, site, warehouse };
+      // 4.6 建訂閱（2026-06-02 補：對齊 seed/test/lite/tenant.ts 範式）
+      // 之前 onboarding 漏建 nx99_subscription、導致 me API plan_code=null、
+      // 客戶端 21 卡載入失敗 / mustChange redirect race / 報表 plan 判斷錯
+      // dto.planCode 映射 nx99_plan code：LITE→NEXORA-LITE-M / PLUS→NEXORA-PLUS-L / PRO→NEXORA-PRO-XL
+      const PLAN_CODE_MAP: Record<'LITE' | 'PLUS' | 'PRO', string> = {
+        LITE: 'NEXORA-LITE-M',
+        PLUS: 'NEXORA-PLUS-L',
+        PRO: 'NEXORA-PRO-XL',
+      };
+      const planNxCode = PLAN_CODE_MAP[dto.planCode];
+      const plan = await tx.nx99Plan.findUniqueOrThrow({ where: { code: planNxCode } });
+      const twd = await tx.nx01Currency.findUniqueOrThrow({ where: { code: 'TWD' } });
+      const subscription = await tx.nx99Subscription.create({
+        data: {
+          tenantId: tenant.id,
+          planId: plan.id,
+          status: 'A',
+          billingCycle: 'M',
+          seats: 10,
+          startAt: new Date().toISOString().slice(0, 10),
+          endAt: '2099-12-31',
+          autoRenew: true,
+          baseFeeSnapshot: plan.baseFeeMonth,
+          seatFeeSnapshot: plan.seatFeeMonth,
+          discountTypeSnapshot: 'N',
+          discountValueSnapshot: 0,
+          subtotalSnapshot: plan.baseFeeMonth,
+          discountAmountSnapshot: 0,
+          totalSnapshot: plan.baseFeeMonth,
+          currencyId: twd.id,
+          createdBy: SYSADMIN_USER_ID,
+          updatedBy: SYSADMIN_USER_ID,
+        },
+      });
+
+      return { tenant, owner, ownerRole, site, warehouse, subscription };
     });
 
     // 5. 模擬寄通知 Email（v1.2 §2.2）
