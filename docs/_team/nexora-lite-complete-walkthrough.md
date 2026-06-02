@@ -11,16 +11,16 @@
 
 ---
 
-## §1. 開戶 → 登入 → 改密碼
+## §1. 開戶 → 登入 → 改密碼（Phase 6 closure 後正式流程）
 
 | 步驟 | 操作 | 預期 |
 |------|------|------|
-| 1.1 | 業務用 INNOVA 超管登入 `/login`（公司帳號 `INNOVA` / 帳號 `innova-admin` / 預設密碼 `Nexoragrid2026`）| 登入成功、首次強制跳改密、改完進首頁 |
-| 1.2 | 進 `/sys-admin/onboarding`、新建租戶 + 負責人帳號 | 拿到租戶代碼 + 負責人 Email + 預設密碼 |
-| 1.3 | 用負責人帳號登入 `/login`（公司帳號 = 剛拿到的租戶代碼）| 首次登入強制跳改密頁 |
+| 1.1 | 業務從 `/platform/login` 登入（帳號 `innova-admin` / 預設密碼 `Nexoragrid2026`、**無公司帳號欄**）| 首次強制跳 `/platform/change-password`、改完進 Hub |
+| 1.2 | 進 `/platform/onboarding`、填客戶資料（公司名/統編/地址/LOGO + 訂閱方案 + 負責人 Email、**不勾「測試租戶」**）| 拿到自動產的 `TW-100001` + 負責人 Email + 自動產初始密碼 |
+| 1.3 | 用負責人帳號登入 `/login`（公司帳號 = `TW-100001`、使用者帳號 = 負責人 Email）| 首次登入強制跳改密頁 |
 | 1.4 | 改密成功 → 跳設定精靈 | 引導完成基本資訊（公司名 / 起算日） |
 
-✅ 對應 closure：階段 C 開戶後台 + 階段 D 設定精靈 + 2026-06-01 INNOVA 營運主體補正（見 PROJECT_CONTEXT §6.4）
+✅ 對應 closure：階段 C 開戶後台 + 階段 D 設定精靈 + Phase 1~6 平台/租戶層分離軌（見 PROJECT_CONTEXT §6.5）
 
 ---
 

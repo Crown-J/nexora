@@ -10,10 +10,39 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-06-01（晚、INNOVA 營運主體補正 hotfix）**
-> **當前分支：`main`**（HEAD = INNOVA hotfix commit、tag `v2.1.0-lite-complete` 仍指向同日 LITE 完整版 merge）
+> **快照時間：2026-06-02 ⭐⭐ 平台層 vs 租戶層分離軌 Phase 1~6 全 closure**
+> **當前分支：`main`**（HEAD = Phase 6.7 tag commit、tag `v2.2.0-platform-tenant-separation`）
 
-### A.0 ⚡ 2026-06-01 晚 INNOVA 營運主體補正（hotfix、main 直推）
+### A.-1 ⭐⭐ 2026-06-02 平台/租戶層分離軌 closure（main 直推 Phase 1~6、14 commits）
+
+NEXORA 內部營運身分（伊諾瓦）與客戶員工身分（恆迎、其他）正規分離、業界 SaaS 標準。
+
+| Phase | Commit | 內容 |
+|---|---|---|
+| P1 | `a9c8d50` | schema + migration + seed：新增 `platform_admin` 表 + 首位 innova-admin |
+| P2 | `6b1e7db` | backend platform auth + JWT scope + PlatformAdminGuard |
+| P3 | `93aa6b6` | `/sys-admin/onboarding` 改 PlatformAdminGuard |
+| P4 | `49162dd` | frontend `/platform` 路由群 + 最小必要 backend tenants endpoint |
+| P5 | `16e5c66` | 獨立 `/platform/login` 登入頁 + scope-based redirect |
+| P6.1 | `f949428` | 改密 UI：首次強制改密 + 平日入口 + banner 自動消失 |
+| P6.2 | `6d1a0a8` | 清 TEST-PHASE3 + TEST-UTF8 髒/驗證租戶（一次性 SQL）|
+| P6.3 | `66149eb` | 租戶代碼規格 TW/ZT-{6digits} 落地 + 現有測試租戶正名 |
+| P6.4+5 | `b4352b0` | INNOVA 退役 + `/platform` metadata 隔離 + 驗證殘留 cleanup |
+| P6.6+7 | (即將) | 文件更新 + tag |
+
+**核心成果**：
+- 客戶 `/login` 0 動、客戶 `/dashboard/*` 0 動、既有 92 支 migration 0 動
+- L1 認證隔離：JWT scope `platform/tenant` 雙向 401
+- L2 入口隔離：客戶端 0 連結指向平台後台、視覺徹底分離（黑底 monospace vs 星空品牌）
+- 租戶代碼 TW-100001 起（正式）/ ZT-100001 起（測試）、純遞增、退租保留
+- INNOVA 退役、`platform_admin` 表正規承載伊諾瓦營運身分
+- Railway 100% 不碰、所有變動 localhost
+
+詳細見 [PROJECT_CONTEXT §6.5 平台層 vs 租戶層分離架構](../PROJECT_CONTEXT.md)。
+
+---
+
+### A.0 ⚡ 2026-06-01 晚 INNOVA 營運主體補正（hotfix、main 直推、已被 Phase 6 取代）
 
 LITE 完整版 closure 後、總經理啟動實測發現「開戶後台缺正式營運帳號、SYSADMIN 角色被借掛在 TEST-LITE/PLUS/PRO 的 admin 上、語意衝突」。
 

@@ -238,18 +238,29 @@ NEXORA 的故事線由四個實體組成：
 
 ### nx01_user（用戶）
 - `NX01USER0000001`：SYSADMIN（is_active=false、純佔位、createdBy 追溯用）
-- `NX01USER0000002`：**innova-admin**（伊諾瓦營運超管、跨租戶開戶用、見 §6.4）
-- `NX01USER0000003 ~ 0899999`：真實客戶
-- `NX01USER9900001 ~ 9999999`：測試租戶
+- `NX01USER0000002`：~~innova-admin（租戶層舊版）~~ **已退役 2026-06-02 Phase 6.4、is_active=false**（見 §6.5）
+- `NX01USER0000003 ~ 0899999`：真實客戶員工
+- `NX01USER9900001 ~ 9999999`：測試租戶員工
 
 ### nx99_tenant（租戶）
 - `NX99TANT0000000`：SYSTEM（is_active=false、純佔位、createdBy 追溯用）
-- `NX99TANT0000001`：**INNOVA**（伊諾瓦營運租戶、is_active=true、見 §6.4）
-- `NX99TANT0000002 ~ 0899999`：真實客戶
-- `NX99TANT9900001 ~ 9999999`：測試租戶
+- `NX99TANT0000001`：~~INNOVA（租戶層舊版）~~ **已退役 2026-06-02 Phase 6.4、is_active=false**（見 §6.5）
+- `NX99TANT0000002 ~ 0899999`：保留段
+- `NX99TANT9900001 ~ 9999999`：測試租戶（含 ZT-100001~3 三筆既有測試、新建測試走 ZT 規格、見 §6.5）
+
+### nx99_tenant.code（租戶代碼、登入「公司帳號」欄、Phase 6.3 正規化）
+- 格式：`{前綴}-{6位流水號}`、純遞增、退租保留不跳號
+- `TW-100001` 起：**正式客戶**（國碼 TW、`seq_tenant_code_tw`、首位=恆迎企業）
+- `ZT-100001` 起：**測試租戶**（`seq_tenant_code_zt`、現有 ZT-100001/100002/100003 對應原 TEST-LITE/PLUS/PRO）
+- `SYSTEM` / `INNOVA`：系統保留 code、永遠 is_active=false
+- 系統自動產、開戶者不填、統編（`tax_id`）與登入代碼分離（資安）
+- 國碼可擴充：未來 JP/US 加新 sequence（如 `seq_tenant_code_jp`）、schema 0 動
+
+### platform_admin（平台層使用者、Phase 6.0 新表、跟 nx01_user 徹底分家）
+- `PLATADMN0000001`：innova-admin（伊諾瓦營運超管、is_active=true）
+- 詳見 §6.5「平台層 vs 租戶層分離架構」
 
 ⭐ 業務 muscle memory：ID 範圍是業界 audit 場景關鍵、不可破壞。
-⭐ INNOVA 系統保留段（2026-06-01 新增）：SYSTEM 是「Schema 必填 tenantId 的承載者、不可登入」、INNOVA 是「NEXORA 自家可登入的營運身分」、兩者分工不重疊。
 
 ---
 
@@ -327,7 +338,7 @@ NX08 經營分析（報表 / KPI）
 [SPEC] NX01-16 part-model v1.0 規格落地
 ```
 
-## 6.4 系統內建營運帳號（2026-06-01 補正）
+## 6.4 ~~系統內建營運帳號~~（已被 6.5 平台/租戶層分離架構取代、見下節）
 
 NEXORA 系統內有兩種「非業務客戶」的內建租戶 + 帳號，職責不重疊：
 
@@ -356,6 +367,85 @@ NEXORA 系統內有兩種「非業務客戶」的內建租戶 + 帳號，職責�
 
 ⚠️ 真實客戶開戶時、`tenantCode` 由 onboarding service 自動產（`T` + base36 時間戳）或業務手動指定、**永遠不會跟 `SYSTEM`/`INNOVA` 衝突**（後端有唯一性檢查）。
 ⚠️ 任何「跨租戶後台」功能（開戶、跨租戶 audit、系統 KPI）的權限模型只認 `INNOVA` 租戶下、持 `SYSADMIN` 角色的使用者。
+
+---
+
+## 6.5 平台層 vs 租戶層分離架構（Phase 1~6 軌、2026-06-02 closure）
+
+### 6.5.1 為什麼分離
+
+「NEXORA 內部營運身分（伊諾瓦自家）」與「客戶員工身分」是兩個本質不同的實體：
+
+| 角色 | 屬於 | 進的後台 |
+|---|---|---|
+| **伊諾瓦員工**（自家、不限於開戶業務）| 平台層（`platform_admin`）| `/platform`（黑底 monospace 後台、客戶看不到入口）|
+| **客戶員工**（恆迎、其他客戶）| 租戶層（`nx01_user`）| `/dashboard`（NEXORA GRID 星空背景、tier 限制）|
+
+混在一張 `nx01_user` 表反規格也反實務（業界 SaaS 標準是 platform/tenant 兩層）。
+
+### 6.5.2 雙層核心物件
+
+| 維度 | 平台層 | 租戶層 |
+|---|---|---|
+| 資料表 | `platform_admin` | `nx01_user` |
+| 範例 row | `PLATADMN0000001 / innova-admin` | `NX01USER9900001 / admin@ZT-100001`...|
+| 登入入口 | `/platform/login`（隱蔽、僅平台帳號）| `/login`（客戶端、含公司帳號欄）|
+| API endpoint | `POST /platform/auth/login` | `POST /auth/login` |
+| JWT scope | `'platform'` | `'tenant'` |
+| 守衛 | `PlatformAdminGuard` | `JwtAuthGuard` + `RolesGuard` |
+| 跨層 token | ❌ 雙向 401 scope mismatch（嚴守隔離、L1 認證隔離）| ❌ 同上 |
+| 入口連結 | ❌ 客戶 `/login` 0 連結指向 `/platform/login`（L2 入口隔離） | ❌ 同上 |
+
+### 6.5.3 伊諾瓦營運帳號
+
+| 項目 | 值 |
+|---|---|
+| 入口 | `http://<host>/platform/login` |
+| 帳號（account）| `innova-admin` |
+| 預設密碼 | `Nexoragrid2026`（首次登入強制改密、`must_change_password=true`）|
+| 登入「公司帳號」欄 | ❌ 不存在（platform 登入頁無此欄、只有 account + password）|
+| 跨租戶開戶權限 | `PlatformAdminGuard` 認可、進 `/platform/onboarding` |
+| 訂閱 / tier | ❌ 不適用 |
+
+### 6.5.4 SYSTEM / INNOVA 兩筆系統保留 row（退役後仍存）
+
+| Row | 狀態 | 用途 |
+|---|---|---|
+| `SYSTEM`（`NX99TANT0000000`）+ `sysadmin`（`NX01USER0000001`）| `is_active=false` | Schema 強制 `tenant_id`/`created_by` FK 的佔位 |
+| `INNOVA`（`NX99TANT0000001`）+ `innova-admin nx01_user`（`NX01USER0000002`）| **`is_active=false`**（Phase 6.4 退役）| 純歷史追溯、過去走 INNOVA 路徑建出來的資料（如 ZT 三筆原 TEST-*）仍引用此 row |
+
+⚠️ 這兩筆永遠不刪、永遠 `is_active=false`、permanent retired。
+
+### 6.5.5 客戶租戶代碼規格（Phase 6.3）
+
+| 規格 | 內容 |
+|---|---|
+| 格式 | `{前綴}-{6位流水號}` |
+| 前綴 | `TW`=正式客戶、`ZT`=測試租戶（未來可加 JP/US...）|
+| 流水號 | 6 位實心、從 `100001` 起、`sequence` 純遞增、退租保留不跳號 |
+| 開戶方式 | platform UI 自動產、開戶者不填租戶代碼、勾「測試租戶」決定前綴 |
+| 統編 vs 登入代碼 | `nx99_tenant.tax_id` 報稅 / 發票用、`code` 登入「公司帳號」用、**兩者分離不混** |
+
+### 6.5.6 歷史補正鏈
+
+| 階段 | 狀態 |
+|---|---|
+| 2026-06-01 之前 | SYSADMIN 角色錯掛 TEST-LITE/PLUS/PRO admin「假裝伊諾瓦」（反規格）|
+| 2026-06-01 hotfix | 建 INNOVA 租戶 + `nx01_user.innova-admin`、收回測試 admin SYSADMIN（灰色帶過渡）|
+| 2026-06-02 Phase 1~6 軌 closure | 拆 `platform_admin` 表、INNOVA 退役、租戶代碼 TW/ZT-{6digits}、平台後台 UI 完整、改密 UI、metadata 分離（⭐ 正規完成）|
+| ⛔ 不可回退 | 未來開新測試環境禁止把 SYSADMIN 借給 `nx01_user`、營運身分永遠在 `platform_admin` 表 |
+
+### 6.5.7 開戶流程（給平台超管 / 業務員）
+
+1. `http://host/platform/login` 登入（account + password、無公司帳號欄）
+2. 進 `/platform`（Hub）→ 點 Onboarding
+3. 填客戶資訊：
+   - 公司名 / 統編 / 地址 / LOGO URL（必填）
+   - 訂閱方案（LITE / PLUS / PRO）
+   - 負責人姓名 + Email
+   - **「這是測試租戶」勾選框**（不勾=正式 TW-、勾=測試 ZT-）
+4. 系統自動產 `tenantCode`（TW-100001 或 ZT-100004...）+ 自動產初始密碼
+5. 客戶用該 `tenantCode` + Email + 初始密碼從 `/login` 登入、首次跳改密
 
 ---
 
