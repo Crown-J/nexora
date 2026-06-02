@@ -34,6 +34,7 @@ function deriveTierFromPlanCode(planCodeStr: string | null | undefined): PlanCod
   return 'LITE';
 }
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
+import { HomeDashboardBody } from '@/features/home-dashboard/HomeDashboardBody';
 import { ProExpRankBar } from '@/features/sys-dashboard/ui/ProExpRankBar';
 import { ProNx10LeftPanel } from '@/features/sys-dashboard/ui/ProNx10LeftPanel';
 import { ProTodayAttendancePanel } from '@/features/sys-dashboard/ui/ProTodayAttendancePanel';
@@ -285,7 +286,13 @@ export function SysDashboardPage() {
         placeholder="搜尋…"
       />
 
-      <div className="nx-dash-frame flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4">
+      {/* 第二步 Sub 1：依權限的 21 卡（現況數字）+ KPI 6 卡（選購套件）
+          舊 LitePlusHomeBody / ProHomeBody（v0 mock 行事曆/任務/事件簿/PRO mock）改由
+          HomeDashboardBody 取代；mock 元件 Sub 3 整體清掉 */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden"><HomeDashboardBody /></div>
+      {/* 以下被替換的舊 mock 渲染區段（保留註解、Sub 3 整理清掉）*/}
+      <div className="hidden">
+        <div className="nx-dash-frame flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4">
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
           <div className="nx-master-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
             <div className="space-y-3 pb-2">
@@ -304,6 +311,7 @@ export function SysDashboardPage() {
           ) : (
             <LitePlusHomeBody {...liteBodyProps} compact={false} />
           )}
+        </div>
         </div>
       </div>
     </div>
