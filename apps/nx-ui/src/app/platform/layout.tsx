@@ -23,13 +23,23 @@ const NAV_ITEMS: Array<{ href: string; label: string }> = [
   { href: '/platform/customers', label: 'Customers' },
 ];
 
+// Phase 5：/platform/login 自帶完整黑底頁殼、bypass layout 認證守衛、避免雞生蛋
+const LOGIN_PATH = '/platform/login';
+
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [me, setMe] = useState<PlatformMe | null>(null);
   const [authState, setAuthState] = useState<'checking' | 'ok' | 'no-token' | 'wrong-scope'>('checking');
 
+  const isLoginPath = pathname === LOGIN_PATH;
+
   useEffect(() => {
+    if (isLoginPath) {
+      // 登入頁不驗 token、直接放行
+      setAuthState('ok');
+      return;
+    }
     let cancelled = false;
     getPlatformMe()
       .then((data) => {
@@ -40,7 +50,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       .catch((err: unknown) => {
         if (cancelled) return;
         if (err instanceof PlatformApiError && err.status === 401) {
-          // 401 = 無 token 或 scope 不對；目前 Phase 4 沒 UI 登入頁、提示走 curl + devtools 暫塞
+          // 401 = 無 token 或 scope 不對
           setAuthState('wrong-scope');
         } else {
           setAuthState('no-token');
@@ -49,7 +59,12 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, isLoginPath]);
+
+  // 登入頁 bypass 全部 layout 外殼（自帶完整頁面）
+  if (isLoginPath) {
+    return <>{children}</>;
+  }
 
   function handleLogout() {
     clearToken();
@@ -66,26 +81,21 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
 
   if (authState !== 'ok' || !me) {
     return (
-      <div className="min-h-screen bg-black text-zinc-200 font-mono p-8 max-w-2xl mx-auto">
-        <h1 className="text-lg tracking-[0.3em] uppercase mb-6">NEXORA · Platform Console</h1>
-        <div className="border border-zinc-700 bg-zinc-950 p-6 space-y-3 text-sm">
-          <p className="text-amber-400">⚠ Platform session not detected.</p>
-          <p className="text-zinc-400">
-            此區為 NEXORA 自家營運後台、需平台帳號（scope=platform）才能進。
+      <div className="min-h-screen bg-black text-zinc-200 font-mono p-8 max-w-md mx-auto flex items-center">
+        <div className="w-full border border-zinc-800 bg-zinc-950 p-6 space-y-4">
+          <div className="space-y-1">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-zinc-600">NEXORA · Platform Console</p>
+            <p className="text-amber-300 text-sm">⚠ Platform session not detected</p>
+          </div>
+          <p className="text-zinc-500 text-xs leading-relaxed">
+            此區為 NEXORA 自家營運後台、需平台帳號才能進。請使用平台超管帳號登入。
           </p>
-          <p className="text-zinc-500 text-xs">
-            Phase 5 完成前尚無 UI 登入頁、請以指令取得 token 後手動塞入：
-          </p>
-          <pre className="bg-black border border-zinc-800 p-3 text-[11px] overflow-auto text-zinc-300">
-{`# 1. 取得 platform token
-curl -s -X POST $API/platform/auth/login \\
-  -H "Content-Type: application/json" \\
-  -d '{"account":"innova-admin","password":"<your-password>"}'
-
-# 2. 將回應的 token 塞入瀏覽器 localStorage（DevTools Console）
-localStorage.setItem('access_token', '<token>')
-location.reload()`}
-          </pre>
+          <Link
+            href={LOGIN_PATH}
+            className="block w-full text-center bg-zinc-100 text-zinc-950 hover:bg-zinc-300 py-2 text-xs uppercase tracking-[0.3em]"
+          >
+            Go to platform sign in
+          </Link>
         </div>
       </div>
     );
