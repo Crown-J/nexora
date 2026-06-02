@@ -65,19 +65,19 @@ function readDemoSessionTenantCode(): string | null {
 }
 
 /**
- * 依登入時的 tenantCode 推導 plan code。測試租戶固定對照：
- *   TEST-LITE → NEXORA-LITE-M
- *   TEST-PLUS → NEXORA-PLUS-L
- *   TEST-PRO  → NEXORA-PRO-XL
+ * 依登入時的 tenantCode 推導 plan code。測試租戶固定對照（Phase 6.3 正名）：
+ *   ZT-100001 → NEXORA-LITE-M
+ *   ZT-100002 → NEXORA-PLUS-L
+ *   ZT-100003 → NEXORA-PRO-XL
  * 未知 tenantCode（含 null）回 null，讓上層選擇 fallback 到 env var。
  */
 export function deriveDemoPlanCodeFromSession(): string | null {
   const tenantCode = readDemoSessionTenantCode();
   if (!tenantCode) return null;
   const upper = tenantCode.toUpperCase();
-  if (upper === 'TEST-PRO') return 'NEXORA-PRO-XL';
-  if (upper === 'TEST-PLUS') return 'NEXORA-PLUS-L';
-  if (upper === 'TEST-LITE') return 'NEXORA-LITE-M';
+  if (upper === 'ZT-100003') return 'NEXORA-PRO-XL';
+  if (upper === 'ZT-100002') return 'NEXORA-PLUS-L';
+  if (upper === 'ZT-100001') return 'NEXORA-LITE-M';
   return null;
 }
 

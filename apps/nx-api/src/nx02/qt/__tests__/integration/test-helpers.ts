@@ -55,7 +55,7 @@ const FIXTURE_PREFIX = 'B5TEST';
 /** 在 LITE 租戶建 minimal fixture（idempotent；多次呼叫不會重複建）。 */
 export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fixture> {
   const tenant = await prisma.nx99Tenant.findFirst({
-    where: { code: 'TEST-LITE' },
+    where: { code: 'ZT-100001' },
     select: { id: true },
   });
   if (!tenant) throw new Error('TEST-LITE tenant not found — run pnpm seed:test:lite');
@@ -384,7 +384,7 @@ export function makeRequestUser(fixture: B5Fixture) {
     username: 'b5-integration-test',
     roles: ['SYSADMIN'],
     tenantId: fixture.tenantId,
-    tenantCode: 'TEST-LITE',
+    tenantCode: 'ZT-100001',
     planCode: 'LITE',
   } as never;
 }

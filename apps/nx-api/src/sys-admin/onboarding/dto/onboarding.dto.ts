@@ -1,7 +1,8 @@
 // apps/nx-api/src/sys-admin/onboarding/dto/onboarding.dto.ts
 // v1.2 對齊軌 C：開戶後台 DTO
+// 平台/租戶層分離軌 Phase 6.3：tenantCode 移除（系統自動產）、加 isTest 決定 TW/ZT 前綴
 
-import { IsEmail, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 const PLAN_CODES = ['LITE', 'PLUS', 'PRO'] as const;
 
@@ -47,11 +48,13 @@ export class CreateOnboardingDto {
   @IsIn(PLAN_CODES as unknown as string[])
   planCode!: 'LITE' | 'PLUS' | 'PRO';
 
-  /// 租戶代碼（選填、自動產）
+  /// 是否為測試租戶（Phase 6.3）
+  /// - false / 未填：正式客戶、code 用 TW-{6digits}（seq_tenant_code_tw）
+  /// - true：測試租戶、code 用 ZT-{6digits}（seq_tenant_code_zt）
+  /// 注意：tenantCode 不再開放手填、永遠由 sequence 自動產
   @IsOptional()
-  @IsString()
-  @MaxLength(30)
-  tenantCode?: string;
+  @IsBoolean()
+  isTest?: boolean;
 
   // ─── 負責人帳號 ───
   /// 負責人姓名（必填）

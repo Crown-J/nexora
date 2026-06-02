@@ -57,7 +57,7 @@ D('B2 stock-reservation — multi-tenant isolation (intent v1.1 §5.5)', () => {
       username: 'lite-tester',
       roles: ['SYSADMIN'],
       tenantId: fixture.tenantId,
-      tenantCode: 'TEST-LITE',
+      tenantCode: 'ZT-100001',
       planCode: 'LITE',
     } as never;
     const liteResult = await svc.getReservations(liteUser, fixture.partId, fixture.warehouseId);

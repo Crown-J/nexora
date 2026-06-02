@@ -49,7 +49,7 @@ export interface TestSeed {
 export async function loadLiteSeed(): Promise<TestSeed> {
   const p = getPrisma();
   const tenant = await p.nx99Tenant.findFirst({
-    where: { code: 'TEST-LITE' },
+    where: { code: 'ZT-100001' },
     select: { id: true },
   });
   if (!tenant) throw new Error('TEST-LITE tenant not found — run pnpm prisma db seed');

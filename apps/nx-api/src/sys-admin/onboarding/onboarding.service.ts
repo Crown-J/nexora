@@ -52,14 +52,25 @@ export class OnboardingService {
       throw new BadRequestException(`Email ${dto.ownerEmail} 已存在、不可重複`);
     }
 
-    // 2. 決定 tenantCode（自動產或用 input）
-    const tenantCode = dto.tenantCode?.trim() || `T${Date.now().toString(36).toUpperCase()}`;
+    // 2. 自動產 tenantCode（Phase 6.3）
+    // - dto.isTest=true → seq_tenant_code_zt → ZT-{6digits}
+    // - 否則（正式客戶）→ seq_tenant_code_tw → TW-{6digits}
+    // 流水號 6 位實心、純遞增、無前導 0（起點 100001）
+    const isTest = dto.isTest === true;
+    const sequenceName = isTest ? 'seq_tenant_code_zt' : 'seq_tenant_code_tw';
+    const prefix = isTest ? 'ZT' : 'TW';
+    const [{ nextval }] = await this.prisma.$queryRawUnsafe<Array<{ nextval: bigint }>>(
+      `SELECT nextval('${sequenceName}') AS nextval`,
+    );
+    const serial = nextval.toString();
+    const tenantCode = `${prefix}-${serial}`;
+    // 防呆：sequence 不該回傳重複值、但若有人手動把同 code row 種進 DB、攔下
     const existingTenant = await this.prisma.nx99Tenant.findFirst({
       where: { code: tenantCode },
       select: { id: true },
     });
     if (existingTenant) {
-      throw new BadRequestException(`租戶代碼 ${tenantCode} 已存在`);
+      throw new BadRequestException(`租戶代碼 ${tenantCode} 已存在（sequence 與資料不同步、請檢查）`);
     }
 
     // 3. 決定初始密碼

@@ -29,7 +29,8 @@ export function OnboardingFormView() {
   const [phone, setPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [planCode, setPlanCode] = useState<'LITE' | 'PLUS' | 'PRO'>('LITE');
-  const [tenantCode, setTenantCode] = useState('');
+  // Phase 6.3：tenantCode 移除（系統自動產 TW/ZT-{6digits}）、加 isTest 旗標
+  const [isTest, setIsTest] = useState(false);
   // 負責人
   const [ownerName, setOwnerName] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('');
@@ -49,7 +50,7 @@ export function OnboardingFormView() {
     setPhone('');
     setLogoUrl('');
     setPlanCode('LITE');
-    setTenantCode('');
+    setIsTest(false);
     setOwnerName('');
     setOwnerEmail('');
     setInitialPassword('');
@@ -79,7 +80,7 @@ export function OnboardingFormView() {
         phone: phone.trim() || undefined,
         logoUrl: logoUrl.trim(),
         planCode,
-        tenantCode: tenantCode.trim() || undefined,
+        isTest: isTest || undefined,
         ownerName: ownerName.trim(),
         ownerEmail: ownerEmail.trim(),
         initialPassword: initialPassword.trim() || undefined,
@@ -217,15 +218,20 @@ export function OnboardingFormView() {
                 required
               />
             </label>
-            <label className="text-sm md:col-span-2">
-              <span className="block mb-1">⚪ 租戶代碼（選填、留空自動產）</span>
+            <label className="text-sm md:col-span-2 flex items-center gap-2 pt-2">
               <input
-                value={tenantCode}
-                onChange={(e) => setTenantCode(e.target.value)}
-                placeholder="留空自動產"
-                className="w-full rounded border bg-background px-2 py-1 font-mono"
+                type="checkbox"
+                checked={isTest}
+                onChange={(e) => setIsTest(e.target.checked)}
+                className="size-4"
               />
+              <span>
+                這是 <strong>測試租戶</strong>（勾選後租戶代碼用 <code className="font-mono">ZT-</code> 前綴、不勾為正式客戶 <code className="font-mono">TW-</code>）
+              </span>
             </label>
+            <p className="md:col-span-2 text-[10px] text-muted-foreground">
+              ⚠️ 租戶代碼由系統自動產（6 位流水、純遞增）、無法手填、避免人工命名衝突
+            </p>
           </div>
         </section>
 
