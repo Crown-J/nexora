@@ -9,9 +9,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import { createOnboarding } from '../api';
+import { createOnboarding, uploadOnboardingLogo, logoStorageKeyToUrl } from '../api';
 import type { CreateOnboardingPayload, OnboardingResponse } from '../types';
 
 const PLAN_OPTIONS = [
@@ -27,7 +27,13 @@ export function OnboardingFormView() {
   const [taxId, setTaxId] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [logoUrl, setLogoUrl] = useState('');
+  // LOGO 上傳軌：選檔即傳、回 storage_key、predicate preview 用 ObjectURL
+  const [logoStorageKey, setLogoStorageKey] = useState<string>('');
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>(''); // blob: URL
+  const [logoFilename, setLogoFilename] = useState<string>('');
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoErr, setLogoErr] = useState<string>('');
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const [planCode, setPlanCode] = useState<'LITE' | 'PLUS' | 'PRO'>('LITE');
   // Phase 6.3：tenantCode 移除（系統自動產 TW/ZT-{6digits}）、加 isTest 旗標
   const [isTest, setIsTest] = useState(false);
@@ -48,7 +54,12 @@ export function OnboardingFormView() {
     setTaxId('');
     setAddress('');
     setPhone('');
-    setLogoUrl('');
+    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    setLogoStorageKey('');
+    setLogoPreviewUrl('');
+    setLogoFilename('');
+    setLogoErr('');
+    if (logoInputRef.current) logoInputRef.current.value = '';
     setPlanCode('LITE');
     setIsTest(false);
     setOwnerName('');
@@ -59,10 +70,58 @@ export function OnboardingFormView() {
     setErr(null);
   };
 
+  // 釋放 ObjectURL（避免記憶體洩漏）
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    };
+  }, [logoPreviewUrl]);
+
+  async function onLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setLogoErr('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setLogoErr('LOGO 限圖檔（PNG/JPEG/GIF/WebP）');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setLogoErr('檔案太大（上限 10 MB）');
+      return;
+    }
+    // local preview（即時、不等上傳）
+    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    setLogoPreviewUrl(URL.createObjectURL(file));
+    setLogoFilename(file.name);
+    setLogoUploading(true);
+    try {
+      const resp = await uploadOnboardingLogo(file);
+      setLogoStorageKey(resp.storageKey);
+    } catch (e) {
+      setLogoErr(e instanceof Error ? e.message : '上傳失敗');
+      setLogoStorageKey('');
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
+  function clearLogo() {
+    if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    setLogoStorageKey('');
+    setLogoPreviewUrl('');
+    setLogoFilename('');
+    setLogoErr('');
+    if (logoInputRef.current) logoInputRef.current.value = '';
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!companyName.trim() || !taxId.trim() || !address.trim() || !logoUrl.trim()) {
-      setErr('公司名稱 / 統編 / 地址 / LOGO URL 必填');
+    if (!companyName.trim() || !taxId.trim() || !address.trim()) {
+      setErr('公司名稱 / 統編 / 地址 必填');
+      return;
+    }
+    if (logoUploading) {
+      setErr('LOGO 仍在上傳中、請稍候');
       return;
     }
     if (!ownerName.trim() || !ownerEmail.trim()) {
@@ -78,7 +137,7 @@ export function OnboardingFormView() {
         taxId: taxId.trim(),
         address: address.trim(),
         phone: phone.trim() || undefined,
-        logoUrl: logoUrl.trim(),
+        logoStorageKey: logoStorageKey || undefined,
         planCode,
         isTest: isTest || undefined,
         ownerName: ownerName.trim(),
@@ -209,14 +268,39 @@ export function OnboardingFormView() {
               />
             </label>
             <label className="text-sm">
-              <span className="block mb-1">🟢 LOGO URL *（本機端安裝顯示）</span>
+              <span className="block mb-1">⚪ 公司 LOGO（選填、之後可在設定補）</span>
               <input
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-                placeholder="https://... 或上傳後 URL"
-                className="w-full rounded border bg-background px-2 py-1"
-                required
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/gif,image/webp"
+                onChange={onLogoChange}
+                disabled={logoUploading}
+                className="w-full text-xs file:mr-2 file:rounded file:border file:border-border file:bg-background file:px-3 file:py-1 file:text-sm hover:file:bg-muted/30"
               />
+              {logoUploading ? (
+                <p className="mt-1 text-[10px] text-muted-foreground">⏳ 上傳中…</p>
+              ) : null}
+              {logoErr ? (
+                <p className="mt-1 text-[10px] text-destructive">⚠ {logoErr}</p>
+              ) : null}
+              {logoStorageKey && !logoUploading ? (
+                <div className="mt-2 flex items-start gap-3">
+                  {logoPreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoPreviewUrl} alt="LOGO preview" className="h-12 w-auto rounded border border-border bg-background object-contain" />
+                  ) : null}
+                  <div className="flex-1 text-[10px] text-muted-foreground">
+                    <p>✅ 已上傳：{logoFilename}</p>
+                    <button
+                      type="button"
+                      onClick={clearLogo}
+                      className="mt-1 text-[10px] underline hover:text-foreground"
+                    >
+                      重選 / 移除
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </label>
             <label className="text-sm md:col-span-2 flex items-center gap-2 pt-2">
               <input

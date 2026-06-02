@@ -4,6 +4,7 @@
 import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
+import { FileUploadModule } from '../shared/file-upload/file-upload.module';
 
 import { ImporterController } from './importer/importer.controller';
 import { ImporterService } from './importer/importer.service';
@@ -15,7 +16,7 @@ import { WizardController } from './wizard/wizard.controller';
 import { WizardService } from './wizard/wizard.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, FileUploadModule],
   controllers: [
     OnboardingController,
     WizardController,

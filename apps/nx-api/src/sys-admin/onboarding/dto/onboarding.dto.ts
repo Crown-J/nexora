@@ -37,11 +37,12 @@ export class CreateOnboardingDto {
   @MaxLength(30)
   phone?: string;
 
-  /// LOGO URL（必填、上傳後給 url）
+  /// LOGO storage key（選填、開戶頁先 POST /sys-admin/onboarding/upload-logo 拿到）
+  /// Phase 6 軌外 LOGO 上傳支援：開戶當下不一定有 LOGO、可之後在設定裡補
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(500)
-  logoUrl!: string;
+  logoStorageKey?: string;
 
   /// 訂閱方案（必填）
   @IsString()

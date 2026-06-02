@@ -91,7 +91,7 @@ export class OnboardingService {
           taxId: dto.taxId,
           address: dto.address,
           phone: dto.phone ?? null,
-          logoUrl: dto.logoUrl,
+          logoUrl: dto.logoStorageKey ?? null,
           planCode: dto.planCode,
           contactName: dto.ownerName,
           contactEmail: dto.ownerEmail,

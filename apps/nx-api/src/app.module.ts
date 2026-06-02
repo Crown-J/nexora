@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { PlatformAuthModule } from './platform-auth/platform-auth.module';
 import { PlatformTenantsModule } from './platform-tenants/platform-tenants.module';
+import { PublicFilesModule } from './public-files/public-files.module';
 import { FileUploadModule } from './shared/file-upload/file-upload.module';
 import { Nx01Module } from './nx01/nx01.module';
 import { Nx02Module } from './nx02/nx02.module';
@@ -29,6 +30,7 @@ import { SysAdminModule } from './sys-admin/sys-admin.module';
     AuthModule,
     PlatformAuthModule,
     PlatformTenantsModule,
+    PublicFilesModule,
     FileUploadModule,
     Nx99Module,
     Nx01Module,

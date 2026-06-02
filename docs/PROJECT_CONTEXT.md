@@ -440,12 +440,23 @@ NEXORA 系統內有兩種「非業務客戶」的內建租戶 + 帳號，職責�
 1. `http://host/platform/login` 登入（account + password、無公司帳號欄）
 2. 進 `/platform`（Hub）→ 點 Onboarding
 3. 填客戶資訊：
-   - 公司名 / 統編 / 地址 / LOGO URL（必填）
+   - 公司名 / 統編 / 地址（必填）
+   - 公司 LOGO（**選填**、選圖檔即自動上傳、見 §6.5.8）
    - 訂閱方案（LITE / PLUS / PRO）
    - 負責人姓名 + Email
    - **「這是測試租戶」勾選框**（不勾=正式 TW-、勾=測試 ZT-）
 4. 系統自動產 `tenantCode`（TW-100001 或 ZT-100004...）+ 自動產初始密碼
 5. 客戶用該 `tenantCode` + Email + 初始密碼從 `/login` 登入、首次跳改密
+
+### 6.5.8 LOGO 上傳範式（2026-06-02 軌外補做）
+
+- **上傳**：開戶頁 file input 選檔即觸發 `POST /sys-admin/onboarding/upload-logo`（multipart、`PlatformAdminGuard`）
+- **儲存**：本地 `<cwd>/.uploads/{platformAdminId}/onboarding/{yyyy}/{mm}/{uuid}.{ext}`、階段 2 接 Cloudflare R2
+- **存 DB**：`nx99_tenant.logo_url` 寫的是 storage_key（路徑、非完整 URL）
+- **客戶端讀檔**：`GET /files/public/logos/{tenantPrefix}/{yyyy}/{mm}/{filename}` 無 auth、限 image MIME（png/jpeg/gif/webp）、限 `onboarding` module、四級 path param 嚴格 regex 驗證
+- **選填**：不上傳開戶仍可開通、`logo_url=null`、客戶可之後在設定補（未實作）
+- **限制**：單檔 ≤ 10 MiB、只 PNG/JPEG/GIF/WebP
+- **不在本軌範圍**：LOGO 替換 UI、orphan 檔案 cleanup、R2 遷移、crop/resize 預處理
 
 ---
 
