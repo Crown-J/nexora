@@ -34,7 +34,8 @@ function deriveTierFromPlanCode(planCodeStr: string | null | undefined): PlanCod
   return 'LITE';
 }
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
-import { HomeDashboardBody } from '@/features/home-dashboard/HomeDashboardBody';
+// HomeDashboardBody (21 卡 Sub 1/2 版) 暫不用、留檔給段②角標數字 fetch helper 沿用
+import { ModuleTilesBody } from '@/features/home-dashboard/ModuleTilesBody';
 import { ProExpRankBar } from '@/features/sys-dashboard/ui/ProExpRankBar';
 import { ProNx10LeftPanel } from '@/features/sys-dashboard/ui/ProNx10LeftPanel';
 import { ProTodayAttendancePanel } from '@/features/sys-dashboard/ui/ProTodayAttendancePanel';
@@ -286,10 +287,11 @@ export function SysDashboardPage() {
         placeholder="搜尋…"
       />
 
-      {/* 第二步 Sub 1：依權限的 21 卡（現況數字）+ KPI 6 卡（選購套件）
-          舊 LitePlusHomeBody / ProHomeBody（v0 mock 行事曆/任務/事件簿/PRO mock）改由
-          HomeDashboardBody 取代；mock 元件 Sub 3 整體清掉 */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden"><HomeDashboardBody /></div>
+      {/* Win8 磚式段①：6 模組磚主畫面
+          - 業務中文名（絕不顯 NXxx）、依權限亮/反灰、靜態
+          - 段② 補待辦角標數字（沿用 cards.config / api.ts 的列表 endpoint）
+          - 段③ 公告收 topbar、段④ 待辦收 topbar、段⑤ 清下半部 mock */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden"><ModuleTilesBody /></div>
       {/* 以下被替換的舊 mock 渲染區段（保留註解、Sub 3 整理清掉）*/}
       <div className="hidden">
         <div className="nx-dash-frame flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4">
