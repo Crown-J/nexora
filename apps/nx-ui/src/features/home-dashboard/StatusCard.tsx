@@ -1,16 +1,17 @@
 // apps/nx-ui/src/features/home-dashboard/StatusCard.tsx
 // 首頁儀表板：單卡元件
 //
-// 4 種狀態：
+// 5 種狀態：
 // - loading：數字位置顯示 skeleton bar
 // - ok：顯示數字 + 單位（單位等寬小字）
 // - error：紅字「載入失敗」
-// - premium：「📌 選購套件」小章戳、灰底、不可點
+// - premium：「📌 選購套件」小章戳、灰底、不可點（KPI 類）
+// - pending：「即將上線」章戳、灰底、不可點（endpoint 待擴充）
 
 'use client';
 
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { Clock, Sparkles } from 'lucide-react';
 
 import type { CardCategory } from './cards.config';
 
@@ -20,7 +21,7 @@ type StatusCardProps = {
   category: CardCategory;
   unit: string;
   hint?: string;
-  state: 'loading' | 'ok' | 'error' | 'premium';
+  state: 'loading' | 'ok' | 'error' | 'premium' | 'pending';
   value?: string | number | null;
 };
 
@@ -38,9 +39,20 @@ const CATEGORY_LABEL: Record<CardCategory, string> = {
   finance: '財務',
 };
 
+function formatValue(v: string | number | null | undefined): string {
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'number') {
+    // 整數加千分位
+    return v.toLocaleString('zh-TW');
+  }
+  return String(v);
+}
+
 export function StatusCard({ title, href, category, unit, hint, state, value }: StatusCardProps) {
   const accent = CATEGORY_ACCENT[category];
   const isPremium = state === 'premium';
+  const isPending = state === 'pending';
+  const disabled = isPremium || isPending;
 
   const inner = (
     <div
@@ -48,7 +60,7 @@ export function StatusCard({ title, href, category, unit, hint, state, value }: 
         'relative flex h-full min-h-[120px] flex-col justify-between',
         'rounded-lg border bg-[#11111A]/60 backdrop-blur-sm p-4',
         'transition-colors',
-        isPremium ? 'opacity-50 cursor-not-allowed' : `cursor-pointer ${accent}`,
+        disabled ? 'opacity-50 cursor-not-allowed' : `cursor-pointer ${accent}`,
       ].join(' ')}
     >
       <div className="flex items-start justify-between">
@@ -64,6 +76,12 @@ export function StatusCard({ title, href, category, unit, hint, state, value }: 
             選購套件
           </span>
         ) : null}
+        {isPending ? (
+          <span className="flex items-center gap-1 rounded border border-zinc-700 bg-zinc-900/40 px-1.5 py-0.5 text-[10px] text-zinc-400">
+            <Clock className="size-3" />
+            即將上線
+          </span>
+        ) : null}
       </div>
 
       <div className="flex items-end justify-between">
@@ -72,12 +90,14 @@ export function StatusCard({ title, href, category, unit, hint, state, value }: 
             <span className="inline-block h-7 w-16 animate-pulse rounded bg-zinc-800" />
           ) : state === 'error' ? (
             <span className="text-sm text-rose-400">載入失敗</span>
-          ) : state === 'premium' ? (
+          ) : isPremium ? (
             <span className="text-xs text-zinc-500">解鎖後顯示</span>
+          ) : isPending ? (
+            <span className="text-xs text-zinc-500">endpoint 待擴充</span>
           ) : (
             <>
               <span className="text-2xl font-semibold text-zinc-50">
-                {value ?? '—'}
+                {formatValue(value)}
               </span>
               {unit ? (
                 <span className="text-xs text-zinc-500">{unit}</span>
@@ -92,7 +112,7 @@ export function StatusCard({ title, href, category, unit, hint, state, value }: 
     </div>
   );
 
-  if (isPremium) {
+  if (disabled) {
     return inner;
   }
   return (

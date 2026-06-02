@@ -28,6 +28,8 @@ export type HomeCardDef = {
   hint?: string;
   /** 選購套件標記（true = KPI 類、本軌不串 API）*/
   isPremium?: boolean;
+  /** API endpoint 尚未提供、顯示「即將上線」（本軌不串、待後續軌補）*/
+  isPending?: boolean;
 };
 
 export const HOME_CARDS: HomeCardDef[] = [
