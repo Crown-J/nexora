@@ -7,7 +7,11 @@
 //
 // 2026-05-18 TASK-AUTH-ERROR-CODE：對齊 NEXORA 錯誤代碼規範 v1.1
 // message 加 [XX-NNN] 前綴、由 main.ts ValidationPipe exceptionFactory 解析為 NexoraHttpException。
-// AU-301 公司空 / AU-302 使用者空 / AU-303 密碼空。
+// AU-301 公司空 / AU-302 員編空 / AU-303 密碼空。
+//
+// 員工編號制改造（2026-06-02）：username 改為「員工編號（員工自由填、租戶內唯一）」、
+// 不再是 email；無格式強制（不補 Y、不補零）；客戶用舊系統習慣帳號（如 Y0053、001、wang）。
+// 唯一性靠 schema @@unique[tenantId, userAccount] 自動保證。
 
 import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
@@ -20,10 +24,10 @@ export class LoginDto {
   @MaxLength(50, { message: '[AU-301]公司帳號格式錯誤（只允許英數字及 -）。' })
   tenantCode!: string;
 
-  @IsNotEmpty({ message: '[AU-302]請輸入使用者帳號。' })
-  @IsString({ message: '[AU-302]請輸入使用者帳號。' })
-  @MinLength(1, { message: '[AU-302]請輸入使用者帳號。' })
-  @MaxLength(50, { message: '[AU-302]請輸入使用者帳號。' })
+  @IsNotEmpty({ message: '[AU-302]請輸入員工編號。' })
+  @IsString({ message: '[AU-302]請輸入員工編號。' })
+  @MinLength(1, { message: '[AU-302]請輸入員工編號。' })
+  @MaxLength(50, { message: '[AU-302]請輸入員工編號。' })
   username!: string;
 
   @IsNotEmpty({ message: '[AU-303]請輸入密碼。' })

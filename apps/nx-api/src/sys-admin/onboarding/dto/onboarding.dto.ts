@@ -64,7 +64,14 @@ export class CreateOnboardingDto {
   @MaxLength(50)
   ownerName!: string;
 
-  /// 負責人 Email（必填、登入用）
+  /// 負責人員工編號（必填、登入用、自由輸入、租戶內唯一）
+  /// 員工編號制改造（2026-06-02）：取代 ownerEmail 作登入帳號、無格式強制
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  ownerEmployeeAccount!: string;
+
+  /// 負責人聯絡信箱（必填、寄信用、非登入帳號）
   @IsEmail()
   @MaxLength(100)
   ownerEmail!: string;

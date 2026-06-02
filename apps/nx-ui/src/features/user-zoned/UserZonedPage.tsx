@@ -732,7 +732,7 @@ export function UserZonedPage({
     () => [
       {
         key: 'username',
-        label: '帳號',
+        label: '員工編號',
         minWidthClass: 'min-w-[120px]',
         render: (row) => <span className="font-mono text-xs">{row.username}</span>,
       },

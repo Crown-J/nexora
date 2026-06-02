@@ -51,7 +51,7 @@ export class AuthService {
       throw new NexoraHttpException({
         statusCode: HttpStatus.BAD_REQUEST,
         errorCode: 'AU-304',
-        message: '請輸入公司帳號、使用者帳號及密碼',
+        message: '請輸入公司帳號、員工編號及密碼',
       });
     }
 
@@ -74,7 +74,7 @@ export class AuthService {
       throw new NexoraHttpException({
         statusCode: HttpStatus.UNAUTHORIZED,
         errorCode: 'AU-001',
-        message: '請確認公司帳號、使用者帳號及密碼。',
+        message: '請確認公司帳號、員工編號及密碼。',
       });
     }
     // 情境 B：tenant 已停用 → 明確訊息（使用者本來就該知道自己公司狀態）
@@ -96,7 +96,7 @@ export class AuthService {
       throw new NexoraHttpException({
         statusCode: HttpStatus.UNAUTHORIZED,
         errorCode: 'AU-002',
-        message: '請確認公司帳號、使用者帳號及密碼。',
+        message: '請確認公司帳號、員工編號及密碼。',
       });
     }
     // 情境 D：user 已停用 → 明確訊息
@@ -104,7 +104,7 @@ export class AuthService {
       throw new NexoraHttpException({
         statusCode: HttpStatus.UNAUTHORIZED,
         errorCode: 'AU-102',
-        message: '使用者帳號已停用，請聯繫您的公司管理員',
+        message: '員工編號已停用，請聯繫您的公司管理員',
       });
     }
     if (!user.passwordHash || typeof user.passwordHash !== 'string') {
@@ -112,7 +112,7 @@ export class AuthService {
       throw new NexoraHttpException({
         statusCode: HttpStatus.UNAUTHORIZED,
         errorCode: 'AU-003',
-        message: '請確認公司帳號、使用者帳號及密碼。',
+        message: '請確認公司帳號、員工編號及密碼。',
       });
     }
 
@@ -122,7 +122,7 @@ export class AuthService {
       throw new NexoraHttpException({
         statusCode: HttpStatus.UNAUTHORIZED,
         errorCode: 'AU-003',
-        message: '請確認公司帳號、使用者帳號及密碼。',
+        message: '請確認公司帳號、員工編號及密碼。',
       });
     }
 

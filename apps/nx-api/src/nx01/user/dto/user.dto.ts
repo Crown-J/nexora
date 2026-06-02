@@ -73,6 +73,18 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto {
+  /**
+   * 員編可改（2026-06-02 員工編號制改造）：
+   * - userAccount = 登入帳號 = 員工編號（自由輸入、租戶內唯一）
+   * - 改完後該員工下次登入要用新帳號
+   * - 內碼 id 不變、所有業務資料 / 角色 / 稽核紀錄 / FK 關聯完全保留
+   */
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  userAccount?: string;
+
   @IsOptional()
   @IsString()
   @MinLength(6)

@@ -66,7 +66,7 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
           htmlFor="user"
           className="block text-xs font-medium tracking-[0.15em] uppercase text-muted-foreground"
         >
-          使用者帳號
+          員工編號
         </label>
         <div className="relative group">
           <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
@@ -76,7 +76,7 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
             value={formData.userAccount}
             onChange={(e) => setFormData({ ...formData, userAccount: e.target.value })}
             className="w-full h-12 bg-secondary/50 border border-border/50 rounded-lg pl-11 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 transition-all duration-300"
-            placeholder="Username"
+            placeholder="Employee ID"
             autoComplete="username"
             required
           />

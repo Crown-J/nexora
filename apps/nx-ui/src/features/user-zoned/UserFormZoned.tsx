@@ -158,7 +158,10 @@ export function UserFormZoned({
           // 本軌可編 = basic 4 欄 + permission.isActive；其餘 DTO 不支援、顯示 placeholder
           const isWritable = BASIC_WRITABLE.has(f.key) || PERMISSION_WRITABLE.has(f.key);
           const zoneEditable = editableZones ? editableZones.has(f.zone) : true;
-          const lockedNow = editing && !creating && f.key === 'userAccount';
+          // 員工編號制改造（2026-06-02）：員編可改（內碼 id 不變、FK 不斷）
+          //   舊規格曾鎖 userAccount（lockedNow = editing && !creating && f.key === 'userAccount'）、
+          //   現解鎖、依賴 schema @@unique[tenantId, userAccount] + service 端 ConflictException 防衝突
+          const lockedNow = false;
           const fieldEditable = editing && isWritable && zoneEditable && !lockedNow;
 
           // isActive toggle（permission 區）

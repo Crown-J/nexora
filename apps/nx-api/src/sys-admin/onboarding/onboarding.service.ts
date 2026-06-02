@@ -43,14 +43,9 @@ export class OnboardingService {
   }
 
   async createTenantAndOwner(actorPlatformAdminId: string, dto: CreateOnboardingDto) {
-    // 1. 驗證 Email 唯一（檢 nx01_user.user_account）
-    const existingUser = await this.prisma.nx01User.findFirst({
-      where: { userAccount: dto.ownerEmail },
-      select: { id: true },
-    });
-    if (existingUser) {
-      throw new BadRequestException(`Email ${dto.ownerEmail} 已存在、不可重複`);
-    }
+    // 1. 員工編號制改造（2026-06-02）：員編租戶內唯一、開戶當下租戶尚未建立、
+    //    不需查衝突（@@unique[tenantId, userAccount] 在 tx 內建立時自動保證）。
+    //    email 衝突（@@unique[tenantId, email]）同樣由 schema 保證、此處不前置查。
 
     // 2. 自動產 tenantCode（Phase 6.3）
     // - dto.isTest=true → seq_tenant_code_zt → ZT-{6digits}
@@ -104,10 +99,13 @@ export class OnboardingService {
       // 4.2 建負責人 user
       // ⚠️ nx01_user.createdBy 有 FK 指向 nx01_user(id)、不能填 PLATADMN id；
       //    用 SYSADMIN_USER_ID 佔位、語意「系統開戶流程自動建」、跟 INNOVA seed 範式一致
+      // 員工編號制改造（2026-06-02）：
+      //    userAccount = dto.ownerEmployeeAccount（負責人自己填的員編、登入用）
+      //    email = dto.ownerEmail（聯絡信箱、寄信/重設密碼用、非登入帳號）
       const owner = await tx.nx01User.create({
         data: {
           tenantId: tenant.id,
-          userAccount: dto.ownerEmail,
+          userAccount: dto.ownerEmployeeAccount,
           passwordHash,
           userName: dto.ownerName,
           email: dto.ownerEmail,
@@ -184,9 +182,11 @@ export class OnboardingService {
       `[ONBOARDING-EMAIL] To: ${dto.ownerEmail}\n` +
         `Subject: NEXORA 帳號開通通知\n` +
         `公司：${dto.companyName}\n` +
-        `登入網址：https://app.nexora-grid.com/login\n` +
-        `Email：${dto.ownerEmail}\n` +
+        `公司帳號：${result.tenant.code}\n` +
+        `員工編號（登入帳號）：${dto.ownerEmployeeAccount}\n` +
+        `聯絡信箱：${dto.ownerEmail}\n` +
         `初始密碼：${rawPassword}\n` +
+        `登入網址：https://app.nexora-grid.com/login\n` +
         `（首次登入會強制改密碼）`,
     );
 
@@ -194,6 +194,7 @@ export class OnboardingService {
       tenantId: result.tenant.id,
       tenantCode: result.tenant.code,
       ownerUserId: result.owner.id,
+      ownerEmployeeAccount: dto.ownerEmployeeAccount,
       ownerEmail: dto.ownerEmail,
       initialPassword: rawPassword,
       mainWarehouseId: result.warehouse.id,

@@ -39,6 +39,9 @@ export function OnboardingFormView() {
   const [isTest, setIsTest] = useState(false);
   // 負責人
   const [ownerName, setOwnerName] = useState('');
+  // 員工編號制改造（2026-06-02）：登入帳號 = 員工編號（自由輸入、租戶內唯一）
+  const [ownerEmployeeAccount, setOwnerEmployeeAccount] = useState('');
+  // 聯絡信箱（寄信用、非登入帳號）
   const [ownerEmail, setOwnerEmail] = useState('');
   const [initialPassword, setInitialPassword] = useState('');
   // 主倉
@@ -63,6 +66,7 @@ export function OnboardingFormView() {
     setPlanCode('LITE');
     setIsTest(false);
     setOwnerName('');
+    setOwnerEmployeeAccount('');
     setOwnerEmail('');
     setInitialPassword('');
     setMainWarehouseName('');
@@ -124,8 +128,8 @@ export function OnboardingFormView() {
       setErr('LOGO 仍在上傳中、請稍候');
       return;
     }
-    if (!ownerName.trim() || !ownerEmail.trim()) {
-      setErr('負責人姓名 / Email 必填');
+    if (!ownerName.trim() || !ownerEmployeeAccount.trim() || !ownerEmail.trim()) {
+      setErr('負責人姓名 / 員工編號 / 聯絡信箱 必填');
       return;
     }
     setBusy(true);
@@ -141,6 +145,7 @@ export function OnboardingFormView() {
         planCode,
         isTest: isTest || undefined,
         ownerName: ownerName.trim(),
+        ownerEmployeeAccount: ownerEmployeeAccount.trim(),
         ownerEmail: ownerEmail.trim(),
         initialPassword: initialPassword.trim() || undefined,
         mainWarehouseName: mainWarehouseName.trim() || undefined,
@@ -173,11 +178,15 @@ export function OnboardingFormView() {
               <dd className="font-mono">{result.tenantCode}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">負責人 User ID</dt>
+              <dt className="text-xs text-muted-foreground">負責人 User ID（內碼）</dt>
               <dd className="font-mono">{result.ownerUserId}</dd>
             </div>
             <div>
-              <dt className="text-xs text-muted-foreground">負責人 Email（登入帳號）</dt>
+              <dt className="text-xs text-muted-foreground">員工編號（登入帳號）</dt>
+              <dd className="font-mono">{result.ownerEmployeeAccount}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">聯絡信箱（寄信用、非登入）</dt>
               <dd className="font-mono">{result.ownerEmail}</dd>
             </div>
             <div className="md:col-span-2">
@@ -358,7 +367,18 @@ export function OnboardingFormView() {
               />
             </label>
             <label className="text-sm">
-              <span className="block mb-1">🟢 Email *（登入用）</span>
+              <span className="block mb-1">🟢 員工編號 *（登入帳號、租戶內唯一）</span>
+              <input
+                value={ownerEmployeeAccount}
+                onChange={(e) => setOwnerEmployeeAccount(e.target.value)}
+                placeholder="例：Y0053、001、wang（自由填、沿用舊系統習慣）"
+                className="w-full rounded border bg-background px-2 py-1 font-mono"
+                required
+                maxLength={50}
+              />
+            </label>
+            <label className="text-sm md:col-span-2">
+              <span className="block mb-1">🟢 聯絡信箱 *（寄信用、非登入帳號）</span>
               <input
                 type="email"
                 value={ownerEmail}

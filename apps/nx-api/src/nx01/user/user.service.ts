@@ -283,8 +283,22 @@ export class UserService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01User.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('User not found');
+    // 員編可改（2026-06-02）：userAccount 改完不影響任何 FK（FK 全指 id）、不斷關聯
+    let nextUserAccount: string | undefined;
+    if (dto.userAccount !== undefined) {
+      const acc = dto.userAccount.trim();
+      if (acc !== existing.userAccount) {
+        const dup = await this.prisma.nx01User.findFirst({
+          where: { tenantId, userAccount: { equals: acc, mode: 'insensitive' }, NOT: { id } },
+          select: { id: true },
+        });
+        if (dup) throw new ConflictException('員工編號已被其他人使用、請改用其他編號');
+        nextUserAccount = acc;
+      }
+    }
     const data: Prisma.Nx01UserUncheckedUpdateInput = {
       updatedBy: user.sub,
+      ...(nextUserAccount !== undefined ? { userAccount: nextUserAccount } : {}),
       ...(dto.userName !== undefined ? { userName: dto.userName.trim() } : {}),
       ...(dto.email !== undefined ? { email: dto.email } : {}),
       ...(dto.phone !== undefined ? { phone: dto.phone } : {}),

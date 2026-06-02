@@ -94,20 +94,20 @@ export function emptyUserDraft(): UserDraft {
  * draft → PATCH body
  * - 只送 DTO 已支援的欄位（basic 4 個 + isActive）
  * - editableZones 過濾後再交叉「DTO 支援」白名單
- * - 編輯模式 userAccount 鎖死
+ * - 員工編號制改造（2026-06-02）：userAccount 編輯模式可送（UpdateUserDto 已支援）
  */
 const DTO_SUPPORTED = new Set(['userAccount', 'userName', 'email', 'phone', 'isActive']);
 
 export function userDraftToBody(
   draft: UserDraft,
   editableZones: Set<UserZone> | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   options: { isCreate: boolean },
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   for (const f of USER_FIELDS) {
     if (f.isSatellite) continue;
     if (!DTO_SUPPORTED.has(f.key)) continue; // security/hr 暫不送
-    if (!options.isCreate && f.key === 'userAccount') continue; // 編輯時鎖
     if (editableZones && !editableZones.has(f.zone)) continue;
     const v = draft[f.key];
     if (f.key === 'isActive') {

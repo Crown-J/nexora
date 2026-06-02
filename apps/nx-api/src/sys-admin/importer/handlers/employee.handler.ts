@@ -1,6 +1,11 @@
 // apps/nx-api/src/sys-admin/importer/handlers/employee.handler.ts
 // v1.2 對齊軌 C-FU：員工 importer
 // 角色名稱（roleName）若該租戶有對應角色、自動指派；否則跳過角色綁定
+//
+// 員工編號制改造（2026-06-02）：
+// - 員工帳號改自填欄位 employeeAccount（取代 email 當 userAccount）
+// - email 改選填（聯絡用、寄信用、非登入）
+// - 唯一性檢查改租戶內 userAccount
 
 import * as bcrypt from 'bcryptjs';
 
@@ -15,25 +20,27 @@ export async function importEmployees(
   const tempHash = await bcrypt.hash('Temp123!', 10);
 
   for (const { rowNo, data } of rows) {
-    if (!data.userName || !data.email) {
-      result.errors.push({ rowNo, reason: '姓名 / Email 必填' });
+    // 員編 = 登入帳號（自由輸入、租戶內唯一）；email 可選填
+    const employeeAccount = String(data.employeeAccount ?? data.userAccount ?? '').trim();
+    if (!data.userName || !employeeAccount) {
+      result.errors.push({ rowNo, reason: '姓名 / 員工編號必填' });
       continue;
     }
     const existing = await ctx.prisma.nx01User.findFirst({
-      where: { userAccount: data.email },
+      where: { tenantId: ctx.tenantId, userAccount: { equals: employeeAccount, mode: 'insensitive' } },
       select: { id: true },
     });
     if (existing) {
-      result.errors.push({ rowNo, reason: `Email ${data.email} 已存在、跳過` });
+      result.errors.push({ rowNo, reason: `員工編號 ${employeeAccount} 已存在、跳過` });
       continue;
     }
     const user = await ctx.prisma.nx01User.create({
       data: {
         tenantId: ctx.tenantId,
-        userAccount: data.email,
+        userAccount: employeeAccount,
         passwordHash: tempHash,
         userName: data.userName,
-        email: data.email,
+        email: data.email ? String(data.email).trim() : null,
         phone: data.phone || null,
         isActive: parseYesNo(data.isActive, true),
         mustChangePassword: true,

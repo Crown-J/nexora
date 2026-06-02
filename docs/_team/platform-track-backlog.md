@@ -55,6 +55,13 @@
 |---|---|
 | 8 個歷史文件含 `TEST-LITE/PLUS/PRO` 字串 | 低（dailylog/_archive 不該改、operation manual 排「LITE 操作手冊 v2」軌）|
 
+### A.6 員工編號制改造後續（2026-06-02 新登記）
+
+| 項 | 嚴重度 |
+|---|---|
+| 員編修改歷史追溯（誰、什麼時候改了 user_account）| 低（audit log 軌）|
+| Excel 員工匯入範本 v2（新增「員工編號」欄、Email 改選填）| 中（操作手冊 v2 軌、配合 importer handler 已支援新欄位）|
+
 ---
 
 ## B. 來源

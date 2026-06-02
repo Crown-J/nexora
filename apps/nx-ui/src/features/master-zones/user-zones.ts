@@ -22,9 +22,9 @@ export const USER_ZONES: ZoneDef<UserZone>[] = [
 
 export const USER_FIELDS: FieldDef<UserZone>[] = [
   // ─── basic 基本資料區 ───
-  { key: 'userAccount', label: '登入帳號', zone: 'basic', required: true, notes: 'unique per system' },
+  { key: 'userAccount', label: '員工編號', zone: 'basic', required: true, notes: '登入帳號、租戶內唯一、可修改（內碼不變）' },
   { key: 'userName', label: '姓名', zone: 'basic', required: true },
-  { key: 'email', label: 'Email', zone: 'basic', notes: '通知 / 重設密碼用' },
+  { key: 'email', label: '聯絡信箱', zone: 'basic', notes: '通知 / 重設密碼用、非登入帳號' },
   { key: 'phone', label: '電話', zone: 'basic' },
 
   // ─── permission 權限區 ───
