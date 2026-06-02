@@ -126,8 +126,21 @@ export function DashboardShell({ children }: DashboardShellProps) {
   // MasterShell bypass：跳過 DashboardShell chrome、直接 render children（children 自帶 MasterShell）
   // 首頁儀表板（/dashboard）改採鋼鐵星球範式（MasterTopBar）、與主檔頁視覺統一、
   // SysDashboardPage 自帶 MasterTopBar 不靠 DashboardShell chrome
+  //
+  // ⚠️ 2026-06-02 Bug 1 修正（HOME-1 引入的 regression）：
+  // 之前 bypass 直接 return <>{children}</>、把 PageGuideProvider / WizardLauncher / AutoPageGuide
+  // 三個元件全跳過、導致：
+  //   1. 首頁不彈匯入精靈（總經理首登進 /dashboard 沒跳精靈）
+  //   2. 25 條主檔 master-shell bypass 路徑也漏掛（之前就漏、現在順手補）
+  // 修法 F：bypass 路徑內補掛三件套、children 包進去、chrome 邏輯走 fallback path 不變
   if (isMasterShellBypass || isSysDashboardHome) {
-    return <>{children}</>;
+    return (
+      <PageGuideProvider>
+        <WizardLauncher />
+        <AutoPageGuide />
+        {children}
+      </PageGuideProvider>
+    );
   }
 
   return (
