@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 
 import { getTenant, type TenantDetail } from '@/features/platform/tenants/api';
+import { logoStorageKeyToUrl } from '@/features/sys-admin/onboarding/api';
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -74,7 +75,21 @@ export default function PlatformCustomerDetailPage({ params }: PageProps) {
         <SectionRow label="Tax ID" value={tenant.taxId ?? '—'} mono />
         <SectionRow label="Address" value={tenant.address ?? '—'} />
         <SectionRow label="Phone" value={tenant.phone ?? '—'} />
-        <SectionRow label="Logo URL" value={tenant.logoUrl ?? '—'} />
+        <div className="grid grid-cols-[160px_1fr] px-3 py-2 border-b border-zinc-900 text-xs">
+          <div className="text-zinc-500">Logo</div>
+          <div>
+            {tenant.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoStorageKeyToUrl(tenant.logoUrl)}
+                alt={`${tenant.name} LOGO`}
+                className="max-h-12 max-w-[10rem] rounded border border-zinc-700 bg-black object-contain p-1"
+              />
+            ) : (
+              <span className="font-mono text-zinc-600">—（未上傳）</span>
+            )}
+          </div>
+        </div>
       </section>
 
       <section className="border border-zinc-800 bg-zinc-950">

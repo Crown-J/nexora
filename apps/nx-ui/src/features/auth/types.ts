@@ -39,6 +39,8 @@ export type MeResponse = {
   displayName?: string | null;
   tenant_name?: string | null;
   tenant_name_en?: string | null;
+  /** 租戶 LOGO storage_key（nx99_tenant.logo_url）；客戶端拼 public URL 顯示 */
+  tenant_logo_url?: string | null;
   roles?: string[];
   plan_code?: string | null;
   /** nx01_view.code → 合併權限；SYSADMIN / OWNER 為 null；無租戶為 {} */
@@ -67,6 +69,8 @@ export type MeDto = {
   tenant_name?: string | null;
   /** 租戶英文名（nx99_tenant.name_en） */
   tenant_name_en?: string | null;
+  /** 租戶 LOGO storage_key（nx99_tenant.logo_url）；客戶端拼 public URL 顯示 */
+  tenant_logo_url?: string | null;
   /** 訂閱方案代碼（例：NEXORA-LITE、NEXORA-PLUS；或簡寫 LITE、PLUS） */
   plan_code?: string | null;
   /** 與 JWT／部分閘道回應的 camelCase 相容（等同 plan_code） */

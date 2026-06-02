@@ -38,7 +38,7 @@ type DashboardShellProps = {
 export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { me, displayName, tenantNameZh, tenantNameEn, planCode, logout, view } = useSessionMe();
+  const { me, displayName, tenantNameZh, tenantNameEn, tenantLogoUrl, planCode, logout, view } = useSessionMe();
   const isSysDashboardHome = pathname === '/dashboard';
   // 業界改革 #22 v1.2：主檔子頁 fillViewport 模式（表格內部 scroll、horizontal scroll bar sticky 底部）
   // 對齊 Crown 拍板「滾軸像試算表固定、右側滾輪在表格內而非整頁」
@@ -144,6 +144,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   onOpenDashboard={() => router.push('/dashboard')}
                   tenantNameZh={tenantNameZh || null}
                   tenantNameEn={tenantNameEn || null}
+                  tenantLogoUrl={tenantLogoUrl || null}
                   planCode={normalizedPlan}
                   centerContent={<TopBarPlanToggles />}
                 />
@@ -165,6 +166,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 onOpenDashboard={() => router.push('/dashboard')}
                 tenantNameZh={tenantNameZh || null}
                 tenantNameEn={tenantNameEn || null}
+                tenantLogoUrl={tenantLogoUrl || null}
                 planCode={normalizedPlan}
               />
             }

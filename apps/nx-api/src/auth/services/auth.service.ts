@@ -222,7 +222,7 @@ export class AuthService {
         lastLoginAt: true,
         mustChangePassword: true,
         isTenantOwner: true,
-        tenant: { select: { name: true, nameEn: true } },
+        tenant: { select: { name: true, nameEn: true, logoUrl: true } },
         rev_Nx01UserRole_userId: {
           where: { isActive: true },
           select: {
@@ -291,6 +291,7 @@ export class AuthService {
       last_login_at: user.lastLoginAt ?? null,
       tenant_name: user.tenant?.name ?? null,
       tenant_name_en: user.tenant?.nameEn ?? null,
+      tenant_logo_url: user.tenant?.logoUrl ?? null,
       plan_code,
       roles,
       view_permissions,

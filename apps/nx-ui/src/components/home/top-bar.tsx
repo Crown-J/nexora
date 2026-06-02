@@ -72,6 +72,8 @@ export type HomeTopBarProps = {
   tenantNameZh?: string | null;
   /** 租戶英文名（nx99_tenant.name_en） */
   tenantNameEn?: string | null;
+  /** 租戶 LOGO public URL（拼自 me.tenant_logo_url storage_key）；空字串/null 不顯示 */
+  tenantLogoUrl?: string | null;
   /**
    * 當前用戶訂閱方案（normalize 後的 'LITE' | 'PLUS' | 'PRO'）。
    * - tenantNameZh 右側顯示 GitHub 風格 minimal chip
@@ -92,6 +94,7 @@ export function HomeTopBar({
   onOpenDashboard,
   tenantNameZh,
   tenantNameEn,
+  tenantLogoUrl,
   planCode,
   centerContent,
 }: HomeTopBarProps) {
@@ -285,6 +288,14 @@ export function HomeTopBar({
         </motion.button>
 
         <div className="hidden lg:block w-px h-8 bg-gradient-to-b from-transparent via-border to-transparent" />
+        {tenantLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={tenantLogoUrl}
+            alt={hasZh ? zh : 'Tenant LOGO'}
+            className="hidden lg:block h-8 w-8 rounded border border-border/40 bg-background object-contain"
+          />
+        ) : null}
         {showTenantBlock ? (
           <div className="hidden lg:flex min-w-0 max-w-[min(28rem,40vw)] flex-col text-left leading-tight">
             {hasZh ? (

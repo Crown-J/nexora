@@ -266,6 +266,22 @@ export function useSessionMe(): UseSessionMeResult {
     [me],
   );
 
+  /**
+   * 租戶 LOGO 顯示 URL（拼自 me.tenant_logo_url storage_key）
+   * - storage_key 範式：{tenantPrefix}/onboarding/{yyyy}/{mm}/{filename}
+   * - 公開讀檔 endpoint：GET /files/public/logos/{tenantPrefix}/{yyyy}/{mm}/{filename}
+   * - 沒上傳 LOGO（null）回 ''、UI 改顯示文字 fallback
+   */
+  const normalizedTenantLogoUrl = useMemo(() => {
+    const sk = me?.tenant_logo_url;
+    if (!sk || typeof sk !== 'string') return '';
+    const parts = sk.split('/');
+    if (parts.length !== 5 || parts[1] !== 'onboarding') return '';
+    const base = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/+$/, '');
+    const [tenantPrefix, , yyyy, mm, filename] = parts;
+    return `${base}/files/public/logos/${tenantPrefix}/${yyyy}/${mm}/${filename}`;
+  }, [me]);
+
   /** 與 me.plan_code 同步；供頁面只依 hook 判斷方案時使用 */
   const normalizedPlanCode = useMemo(
     () => (me ? me.plan_code ?? me.planCode ?? null : null),
@@ -283,6 +299,8 @@ export function useSessionMe(): UseSessionMeResult {
     isActive: normalizedIsActive,
     tenantNameZh: normalizedTenantNameZh,
     tenantNameEn: normalizedTenantNameEn,
+    /** 拼好的 LOGO public URL、空字串表示沒上傳 */
+    tenantLogoUrl: normalizedTenantLogoUrl,
     /** LITE / PLUS / PRO；已合併 planCode／plan_code */
     planCode: normalizedPlanCode,
 
