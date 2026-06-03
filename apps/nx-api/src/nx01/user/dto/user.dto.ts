@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsOptional,
@@ -70,6 +71,20 @@ export class CreateUserDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+}
+
+/**
+ * 席次制：批次啟用員工（精靈第二步 + 主檔批次操作共用）
+ * - 已 isActive=true 的成員忽略（不算 delta）
+ * - 後端會檢查（current active + delta）≤ subscription.seats、超過擋 SE-001
+ */
+export class BulkActivateUsersDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(500)
+  @IsString({ each: true })
+  @MaxLength(15, { each: true })
+  userIds!: string[];
 }
 
 export class UpdateUserDto {

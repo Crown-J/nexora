@@ -1,14 +1,24 @@
 import * as bcrypt from 'bcryptjs';
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NexoraHttpException } from '../../shared/errors/nexora-error';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { isSysadmin, SYSADMIN_ROLE_CODE } from '../../shared/nx01/is-sysadmin';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
-import type { CreateUserDto, ListUserQueryDto, UpdateUserDto } from './dto/user.dto';
+import type { BulkActivateUsersDto, CreateUserDto, ListUserQueryDto, UpdateUserDto } from './dto/user.dto';
+
+export type SeatUsage = {
+  /** 已 isActive=true 的使用者數（含負責人 / SYSADMIN / OWNER） */
+  used: number;
+  /** 訂閱席次上限（nx99_subscription.seats、status='A'） */
+  total: number;
+  /** 剩餘可啟用席次（total - used、最小 0） */
+  available: number;
+};
 
 const SEL = {
   id: true,
@@ -283,6 +293,10 @@ export class UserService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01User.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('User not found');
+    // 席次制：未啟用 → 啟用、走 seat capacity 檢查；啟用 → 未啟用 / 同狀態，不檢查
+    if (dto.isActive === true && existing.isActive === false) {
+      await this.assertSeatCapacity(tenantId, 1);
+    }
     // 員編可改（2026-06-02）：userAccount 改完不影響任何 FK（FK 全指 id）、不斷關聯
     let nextUserAccount: string | undefined;
     if (dto.userAccount !== undefined) {
@@ -352,5 +366,125 @@ export class UserService {
     });
     const full = await this.prisma.nx01User.findFirst({ where: { id: row.id, tenantId }, select: LIST_SELECT });
     return full ? this.toPublicUserFromListRow(full) : this.toPublicUserFromRow(row);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // 席次制（2026-06-03、Crown 拍板）：啟用受訂閱 seats 限制、資料筆數不限
+  //   - assertSeatCapacity(tenantId, delta)：檢查 (current active + delta) ≤ seats
+  //   - bulkActivate：批次啟用、原子性檢查 + transaction 更新
+  //   - getSeatUsage：query 用、給前端「已用 X / Y 席」計數
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * 啟用關卡共用守門：「該租戶已啟用使用者數 + 本次新增啟用數 ≤ subscription.seats」
+   * delta 為新增啟用數（已啟用者不算 delta、由 caller 過濾）。
+   * 失敗拋 SE-001（席次上限）、無有效訂閱拋 SE-002（防護）。
+   */
+  private async assertSeatCapacity(tenantId: string, delta: number): Promise<SeatUsage> {
+    if (delta <= 0) {
+      // delta=0 表示沒新增啟用、直接通過；仍回 usage 給 caller 參考
+      const used = await this.prisma.nx01User.count({ where: { tenantId, isActive: true } });
+      const sub0 = await this.prisma.nx99Subscription.findFirst({
+        where: { tenantId, status: 'A' },
+        select: { seats: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      const total0 = sub0?.seats ?? 0;
+      return { used, total: total0, available: Math.max(0, total0 - used) };
+    }
+    const [used, sub] = await Promise.all([
+      this.prisma.nx01User.count({ where: { tenantId, isActive: true } }),
+      this.prisma.nx99Subscription.findFirst({
+        where: { tenantId, status: 'A' },
+        select: { seats: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+    if (!sub) {
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.CONFLICT,
+        errorCode: 'SE-002',
+        message: '租戶尚無有效訂閱、無法啟用使用者',
+      });
+    }
+    const total = sub.seats;
+    if (used + delta > total) {
+      throw new NexoraHttpException({
+        statusCode: HttpStatus.CONFLICT,
+        errorCode: 'SE-001',
+        message: `已達席次上限（${used}/${total} 席）、本次無法啟用 ${delta} 名使用者`,
+      });
+    }
+    return { used, total, available: total - used };
+  }
+
+  /** 給前端 query「已用 X / Y 席」用 */
+  async getSeatUsage(user: RequestUser): Promise<SeatUsage> {
+    const tenantId = requireTenantId(user);
+    return this.assertSeatCapacity(tenantId, 0);
+  }
+
+  /**
+   * 批次啟用（精靈第二步「挑啟用」共用）：
+   *   - 過濾 userIds 中當前已 isActive=true 的（不算 delta、idempotent）
+   *   - 走 assertSeatCapacity(delta)
+   *   - transaction：每個 user update + audit
+   * 回傳：activated 數 + 啟用後最新 seatUsage
+   */
+  async bulkActivate(user: RequestUser, dto: BulkActivateUsersDto) {
+    const tenantId = requireTenantId(user);
+    const uniqueIds = Array.from(new Set(dto.userIds.map((s) => s.trim()).filter(Boolean)));
+    if (uniqueIds.length === 0) {
+      throw new ConflictException('未指定要啟用的使用者');
+    }
+
+    // 取目標 user 當前狀態（同 tenant、避免跨租戶寫入）
+    const targets = await this.prisma.nx01User.findMany({
+      where: { tenantId, id: { in: uniqueIds } },
+      select: SEL,
+    });
+    const foundIds = new Set(targets.map((r) => r.id));
+    const missingIds = uniqueIds.filter((id) => !foundIds.has(id));
+    if (missingIds.length > 0) {
+      throw new NotFoundException(`找不到使用者：${missingIds.join(', ')}`);
+    }
+
+    const toActivate = targets.filter((r) => !r.isActive);
+    const delta = toActivate.length;
+    // delta=0 → 全是已啟用、idempotent；仍回 usage 給前端刷新
+    if (delta === 0) {
+      const usage = await this.assertSeatCapacity(tenantId, 0);
+      return { activated: 0, seatUsage: usage };
+    }
+
+    // 守門（current + delta ≤ seats）
+    await this.assertSeatCapacity(tenantId, delta);
+
+    // transaction：更新 + audit
+    await this.prisma.$transaction(async (tx) => {
+      for (const target of toActivate) {
+        const after = await tx.nx01User.update({
+          where: { id: target.id },
+          data: { isActive: true, updatedBy: user.sub },
+          select: SEL,
+        });
+        await this.audit.write({
+          tenantId,
+          actorUserId: user.sub,
+          moduleCode: 'NX01',
+          action: 'UPDATE',
+          entityTable: 'nx01_user',
+          entityId: target.id,
+          entityCode: target.userAccount,
+          summary: '啟用使用者（席次制）',
+          beforeData: target as object,
+          afterData: after as object,
+        });
+      }
+    });
+
+    // 啟用後刷新 usage
+    const usage = await this.assertSeatCapacity(tenantId, 0);
+    return { activated: delta, seatUsage: usage };
   }
 }
