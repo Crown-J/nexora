@@ -48,11 +48,39 @@ export function listImportHistory(): Promise<ImportBatch[]> {
   return apiJson('/wizard/import/history');
 }
 
-/// 下載 Excel 範本（直接觸發瀏覽器下載）
-export function downloadTemplate(importType: string): void {
+/// 下載 Excel 範本：fetch 帶 JWT、blob 觸發瀏覽器下載
+/// 原本用 window.open 直接開連結、沒帶 Authorization → 後端 401
+export async function downloadTemplate(importType: string): Promise<void> {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') ?? '';
-  const url = `${baseUrl}/importer/template/${encodeURIComponent(importType)}`;
-  window.open(url, '_blank');
+  const token = (await import('@/features/auth/token')).getToken();
+  const res = await fetch(`${baseUrl}/importer/template/${encodeURIComponent(importType)}`, {
+    method: 'GET',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`下載範本失敗（HTTP ${res.status}）${body ? `\n${body}` : ''}`);
+  }
+  // 從 Content-Disposition 取檔名（後端 encodeURIComponent 後 attach、前端 decode）
+  const cd = res.headers.get('Content-Disposition') ?? '';
+  let filename = `${importType}.xlsx`;
+  const m = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)/i);
+  if (m && m[1]) {
+    try {
+      filename = decodeURIComponent(m[1]);
+    } catch {
+      // 保留 fallback filename
+    }
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
 /// 上傳檔案 → 預覽
