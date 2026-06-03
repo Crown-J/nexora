@@ -1,24 +1,26 @@
 // apps/nx-ui/src/features/home-dashboard/HomeDashboardV2.tsx
-// 首頁儀表板 v2 組合：上方 5 數據格 + 下方三欄
+// 首頁儀表板 v2 組合
 //
-// 段 A：純殼、5 格全邀請、三欄 placeholder
-// 段 B-F：逐段補資料 / 圖表 / 公告 / 任務 / closure
-//
-// 取代上輪 ModuleTilesBody（Win8 磚體、本輪定案不用、檔留檔 features/home-dashboard/）
+// 結構：
+//   - 頂列 HomeQuickBar（公告/任務 icon、popover）
+//   - 5 個可設定數據格
+//   - 三欄（任務 / 行事曆 / 事件簿）
+//   - 登入後彈窗（公告、勾「今日不再顯示」）
 
 'use client';
 
 import { HomeBottomColumns } from './HomeBottomColumns';
 import { HomeMetricsRow } from './HomeMetricsRow';
+import { HomeQuickBar } from './HomeQuickBar';
+import { LoginAnnouncementModal } from './LoginAnnouncementModal';
 
 export function HomeDashboardV2() {
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 sm:p-5">
-      {/* 上方：5 個可設定數據格 */}
+    <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-5">
+      <HomeQuickBar />
       <HomeMetricsRow />
-
-      {/* 下方：三欄（任務 / 行事曆 / 事件簿）*/}
       <HomeBottomColumns />
+      <LoginAnnouncementModal />
     </div>
   );
 }
