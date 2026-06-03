@@ -6,7 +6,9 @@
 import { AlertCircle, ClipboardList } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { apiJson } from '@/shared/api/client';
+import { ApiClientError } from '@/shared/api/errors';
 
 type TaskRow = {
   id: string;
@@ -36,27 +38,47 @@ function isOverdue(due: string | null | undefined): boolean {
 }
 
 export function TaskListPanel() {
+  const { me, view } = useSessionMe();
   const [rows, setRows] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Race fix：等 useSessionMe 拿到 me（token 已就緒）才 fetch；
+  // 401 由 useSessionMe 處理 redirect，本元件不顯紅字
   useEffect(() => {
+    if (view.loading || !me) return;
     let cancelled = false;
+    setLoading(true);
+    setErrorMsg(null);
     apiJson<TaskPoolResponse>('/nx98/task-pool?pageSize=10', { method: 'GET' })
       .then((res) => {
         if (cancelled) return;
         setRows(Array.isArray(res.rows) ? res.rows : []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (cancelled) return;
-        setError(true);
+        if (err instanceof ApiClientError) {
+          // 401 → useSessionMe 會 redirect / 不顯訊息
+          if (err.status === 401) {
+            setLoading(false);
+            return;
+          }
+          // 400/403/500 → 顯示具體 status，方便走查時定位
+          setErrorMsg(`HTTP ${err.status}`);
+        } else if (err instanceof Error) {
+          setErrorMsg(err.message);
+        } else {
+          setErrorMsg('未知錯誤');
+        }
+        // eslint-disable-next-line no-console
+        console.warn('[TaskListPanel] fetch /nx98/task-pool failed:', err);
         setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [view.loading, me]);
 
   return (
     <div className="flex min-h-[280px] flex-col gap-2 rounded-xl border border-zinc-800 bg-[#11111A]/70 backdrop-blur-sm p-4">
@@ -71,8 +93,8 @@ export function TaskListPanel() {
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <p className="py-6 text-center text-[11px] text-zinc-600">載入中...</p>
-        ) : error ? (
-          <p className="py-6 text-center text-[11px] text-rose-400">讀取失敗</p>
+        ) : errorMsg ? (
+          <p className="py-6 text-center text-[11px] text-rose-400">讀取失敗：{errorMsg}</p>
         ) : rows.length === 0 ? (
           <p className="py-6 text-center text-[11px] text-zinc-600">目前沒有待辦</p>
         ) : (
