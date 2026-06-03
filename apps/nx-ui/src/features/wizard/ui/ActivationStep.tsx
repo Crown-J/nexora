@@ -12,8 +12,8 @@
 
 'use client';
 
-import { CheckCircle2, Loader2, UserCheck } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, KeyRound, Loader2, UserCheck } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import { ApiClientError } from '@/shared/api/errors';
@@ -25,6 +25,7 @@ import {
   type PendingUserRow,
   type SeatUsage,
 } from '../api';
+import { DEFAULT_EMPLOYEE_PASSWORD } from '../constants';
 
 type ActivationStepProps = {
   /** 啟用成功回呼（給段 3 顯示預設密碼用） */
@@ -140,11 +141,19 @@ export function ActivationStep({ onActivated }: ActivationStepProps) {
     <section className="space-y-4">
       <SeatBadge usage={usage} effectiveUsed={effectiveUsed} selectedCount={selectedCount} />
 
-      {successCount !== null ? (
+      {successCount !== null && successCount > 0 ? (
         <div className="glass-card rounded-xl border border-emerald-500/40 p-4">
           <div className="flex items-center gap-2 text-emerald-300">
             <CheckCircle2 className="h-4 w-4" />
             <span className="font-semibold">已啟用 {successCount} 名員工</span>
+          </div>
+          <div className="mt-3 flex items-start gap-2 rounded-lg border border-border/70 bg-secondary/40 p-3">
+            <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-sm leading-relaxed text-foreground">
+              預設密碼皆為{' '}
+              <code className="rounded bg-background/60 px-1.5 py-0.5 font-mono text-primary">{DEFAULT_EMPLOYEE_PASSWORD}</code>
+              、員工首次登入時系統會強制要求修改密碼。
+            </p>
           </div>
         </div>
       ) : null}
