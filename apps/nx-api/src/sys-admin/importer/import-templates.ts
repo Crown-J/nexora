@@ -33,7 +33,7 @@ export const EMPLOYEE_TEMPLATE: TemplateSpec = {
     { header: 'Email（登入帳號）', field: 'email', required: true, example: 'employee@company.com' },
     { header: '電話', field: 'phone', required: false, example: '0912-345-678' },
     { header: '角色名稱（可空）', field: 'roleName', required: false, hint: '若該角色不存在、本筆會跳過角色綁定（建議匯入後到「設定→角色與權限」建好角色再回頭指派）', example: '業務' },
-    { header: '啟用（是/否）', field: 'isActive', required: false, hint: '預設「是」', example: '是' },
+    // 「啟用」欄已拿掉（2026-06-03）：匯入一律未啟用、之後在精靈內挑啟用（受席次上限保護）
   ],
 };
 
