@@ -70,9 +70,12 @@ function makeService(state: State): UserService {
         };
       }),
       findMany: vi.fn(async (args: { where: { tenantId: string; id: { in: string[] } } }) => {
-        return args.where.id.in
-          .map((id) => state.users.get(id))
-          .filter((u): u is UserStub => Boolean(u) && u.tenantId === args.where.tenantId);
+        const result: UserStub[] = [];
+        for (const id of args.where.id.in) {
+          const u = state.users.get(id);
+          if (u && u.tenantId === args.where.tenantId) result.push(u);
+        }
+        return result;
       }),
       update: vi.fn(async (args: { where: { id: string }; data: { isActive?: boolean } }) => {
         const u = state.users.get(args.where.id);

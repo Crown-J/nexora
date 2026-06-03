@@ -37,6 +37,10 @@ export class Nx01ListQueryDto {
   search?: string;
 
   @IsOptional()
+  // @Type(() => Object) 防止 class-transformer 在 enableImplicitConversion=true 時
+  // 對 design:type=Boolean 做 native Boolean(value) coercion（Boolean('false')=true 的坑）。
+  // 沒這行，@Transform 拿到的是已被 implicit coerce 的 true，回 false 也來不及。
+  @Type(() => Object)
   @Transform(({ value }) => toOptionalBool(value))
   @IsBoolean()
   isActive?: boolean;
