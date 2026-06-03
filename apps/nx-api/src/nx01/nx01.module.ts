@@ -6,6 +6,8 @@ import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.contr
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
 import { BulletinService } from './bulletin/bulletin.service';
+import { CalendarEventController } from './calendar-event/calendar-event.controller';
+import { CalendarEventService } from './calendar-event/calendar-event.service';
 import { UserPrefController } from './user-pref/user-pref.controller';
 import { UserPrefService } from './user-pref/user-pref.service';
 import { CarBrandController } from './car-brand/car-brand.controller';
@@ -102,6 +104,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleViewController,
     PermissionController,
     UserPrefController,
+    CalendarEventController,
   ],
   providers: [
     SiteService,
@@ -136,6 +139,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleViewService,
     PermissionService,
     UserPrefService,
+    CalendarEventService,
   ],
 })
 export class Nx01Module {}
