@@ -79,9 +79,12 @@ type UserListResponse = {
   total?: number;
 };
 
-/** 拉「目前未啟用」員工清單（精靈挑啟用用） */
+/** 拉「目前未啟用」員工清單（精靈挑啟用用）
+ *  pageSize 上限 100（Nx01ListQueryDto.@Max(100)、避免 ValidationPipe 拒絕）。
+ *  LITE 客戶 seats 上限 10、未啟用員工正常情境一頁夠用。
+ */
 export async function fetchPendingEmployees(): Promise<PendingUserRow[]> {
-  const res = await apiJson<UserListResponse>('/nx01/users?isActive=false&pageSize=200', {
+  const res = await apiJson<UserListResponse>('/nx01/users?isActive=false&pageSize=100', {
     method: 'GET',
   });
   return (res.rows ?? []).map((r) => ({

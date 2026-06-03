@@ -44,21 +44,26 @@ export function ActivationStep({ onActivated }: ActivationStepProps) {
   const reload = useCallback(async () => {
     setLoading(true);
     setErr(null);
+    // 拆兩個獨立 await：一個失敗不要連累另一個（避免「目前沒有未啟用的員工」誤顯示）
+    const errs: string[] = [];
     try {
-      const [u, p] = await Promise.all([fetchSeatUsage(), fetchPendingEmployees()]);
-      setUsage(u);
-      setPending(p);
+      setUsage(await fetchSeatUsage());
     } catch (e: unknown) {
-      if (e instanceof ApiClientError) {
-        setErr(`讀取失敗（HTTP ${e.status}）`);
-      } else if (e instanceof Error) {
-        setErr(e.message);
-      } else {
-        setErr('讀取失敗');
-      }
-    } finally {
-      setLoading(false);
+      if (e instanceof ApiClientError) errs.push(`席次（HTTP ${e.status}）`);
+      else if (e instanceof Error) errs.push(`席次：${e.message}`);
+      else errs.push('席次讀取失敗');
+      setUsage(null);
     }
+    try {
+      setPending(await fetchPendingEmployees());
+    } catch (e: unknown) {
+      if (e instanceof ApiClientError) errs.push(`員工清單（HTTP ${e.status}）`);
+      else if (e instanceof Error) errs.push(`員工清單：${e.message}`);
+      else errs.push('員工清單讀取失敗');
+      setPending([]);
+    }
+    if (errs.length > 0) setErr(`讀取失敗：${errs.join('、')}`);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -158,11 +163,11 @@ export function ActivationStep({ onActivated }: ActivationStepProps) {
         </div>
       ) : null}
 
-      {pending.length === 0 ? (
+      {pending.length === 0 && !err ? (
         <div className="glass-card rounded-xl border-2 border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
           目前沒有未啟用的員工
         </div>
-      ) : (
+      ) : pending.length === 0 ? null : (
         <div className="glass-card overflow-hidden rounded-xl border border-border/70">
           <ul className="divide-y divide-border/60">
             {pending.map((u) => {
@@ -223,7 +228,11 @@ export function ActivationStep({ onActivated }: ActivationStepProps) {
           className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
         >
           {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserCheck className="h-3.5 w-3.5" />}
-          {submitting ? '啟用中…' : `啟用 ${selectedCount || ''} 名員工`}
+          {submitting
+            ? '啟用中…'
+            : selectedCount > 0
+              ? `啟用 ${selectedCount} 名員工`
+              : '啟用員工'}
         </button>
       </div>
     </section>
