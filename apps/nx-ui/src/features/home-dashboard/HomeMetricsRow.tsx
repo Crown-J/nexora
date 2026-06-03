@@ -12,8 +12,10 @@
 import { Plus, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { METRIC_OPTIONS, EMPTY_METRICS, type MetricsPrefValue } from './metric-options.config';
+import { METRIC_OPTIONS, EMPTY_METRICS, type MetricType, type MetricsPrefValue } from './metric-options.config';
 import { MetricPickerModal } from './MetricPickerModal';
+import { MetricRenderer } from './MetricRenderer';
+import { useMetricValue } from './useMetricValue';
 import { fetchMetricsPref, saveMetricsPref } from './user-pref-api';
 
 const SLOT_COUNT = 5;
@@ -81,6 +83,7 @@ export function HomeMetricsRow() {
               label={option.label}
               category={option.category}
               metricType={option.metricType}
+              endpoint={option.endpoint}
               onConfigure={() => setActiveSlot(idx)}
             />
           );
@@ -124,18 +127,22 @@ function EmptyMetricInvite({ loaded, onClick }: { loaded: boolean; onClick: () =
   );
 }
 
-/** 已設定格：label + 段 C 數字位置 + 右上齒輪改 */
+/** 已設定格：拉 endpoint 顯示數字、右上齒輪改 */
 function ConfiguredMetricSlot({
   label,
   category,
   metricType,
+  endpoint,
   onConfigure,
 }: {
   label: string;
   category: string;
-  metricType: string;
+  metricType: MetricType;
+  endpoint: string;
   onConfigure: () => void;
 }) {
+  const { value, loading, error } = useMetricValue(endpoint || null);
+
   return (
     <div
       className={[
@@ -159,11 +166,7 @@ function ConfiguredMetricSlot({
         </button>
       </header>
 
-      {/* 段 C 預留：根據 metricType 換成 大數字 / 趨勢線 / 環形 / 圓餅 */}
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-semibold text-zinc-500">—</span>
-        <span className="text-[10px] text-zinc-700">{metricType}</span>
-      </div>
+      <MetricRenderer metricType={metricType} value={value} loading={loading} error={error} />
     </div>
   );
 }
