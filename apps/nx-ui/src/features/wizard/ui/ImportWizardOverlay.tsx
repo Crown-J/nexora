@@ -29,6 +29,7 @@ import {
 } from '../api';
 import type { ImportBatch } from '../types';
 import { IMPORT_TYPES } from '../types';
+import { ActivationStep } from './ActivationStep';
 
 interface Props {
   onClose: () => void;
@@ -423,6 +424,18 @@ function ImporterPage({
       ) : null}
 
       {err ? <div className="text-sm text-destructive">{err}</div> : null}
+
+      {page === 'employee' ? (
+        <div className="space-y-3 border-t border-border/60 pt-6">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">挑啟用（受席次上限保護）</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              員工資料筆數不限、同時啟用受訂閱席次上限管制。負責人已計入「目前啟用」、不需重複勾。
+            </p>
+          </div>
+          <ActivationStep />
+        </div>
+      ) : null}
 
       <div className="flex justify-between pt-4">
         <button onClick={onPrev} className={GHOST_BTN}>

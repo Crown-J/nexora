@@ -48,6 +48,64 @@ export function listImportHistory(): Promise<ImportBatch[]> {
   return apiJson('/wizard/import/history');
 }
 
+// ── 席次制（2026-06-03、Crown 拍板）：精靈第二步「挑啟用」API client ──
+
+export type SeatUsage = {
+  /** 已啟用使用者數（含負責人） */
+  used: number;
+  /** 訂閱席次上限 */
+  total: number;
+  /** 剩餘可啟用席次（=total-used、最小 0） */
+  available: number;
+};
+
+export type PendingUserRow = {
+  id: string;
+  username: string; // 員工編號
+  displayName: string;
+  email: string | null;
+  jobTitle: string | null;
+};
+
+type UserListResponse = {
+  rows?: Array<{
+    id: string;
+    username?: string;
+    displayName?: string;
+    email?: string | null;
+    jobTitle?: string | null;
+    isActive?: boolean;
+  }>;
+  total?: number;
+};
+
+/** 拉「目前未啟用」員工清單（精靈挑啟用用） */
+export async function fetchPendingEmployees(): Promise<PendingUserRow[]> {
+  const res = await apiJson<UserListResponse>('/nx01/users?isActive=false&pageSize=200', {
+    method: 'GET',
+  });
+  return (res.rows ?? []).map((r) => ({
+    id: r.id,
+    username: r.username ?? '',
+    displayName: r.displayName ?? r.username ?? '',
+    email: r.email ?? null,
+    jobTitle: r.jobTitle ?? null,
+  }));
+}
+
+/** 拉席次使用情況（已用 X / 總 Y） */
+export function fetchSeatUsage(): Promise<SeatUsage> {
+  return apiJson<SeatUsage>('/nx01/users/seat-usage', { method: 'GET' });
+}
+
+/** 批次啟用（後端會 SE-001 / SE-002 守門） */
+export function bulkActivateUsers(userIds: string[]): Promise<{ activated: number; seatUsage: SeatUsage }> {
+  return apiJson('/nx01/users/bulk-activate', {
+    method: 'PUT',
+    body: JSON.stringify({ userIds }),
+  });
+}
+
 /// 下載 Excel 範本：fetch 帶 JWT、blob 觸發瀏覽器下載
 /// 原本用 window.open 直接開連結、沒帶 Authorization → 後端 401
 export async function downloadTemplate(importType: string): Promise<void> {
