@@ -30,7 +30,10 @@ export const EMPLOYEE_TEMPLATE: TemplateSpec = {
   sheetName: '員工',
   columns: [
     { header: '姓名', field: 'userName', required: true, example: '王小明' },
-    { header: 'Email（登入帳號）', field: 'email', required: true, example: 'employee@company.com' },
+    // 2026-06-03 員工編號制對齊：登入用「員工編號」（租戶內唯一、自由文字），不再用 Email 當登入
+    { header: '員工編號（登入用）', field: 'employeeAccount', required: true, hint: '租戶內唯一、客戶可沿用舊系統習慣（如 Y0053 / 001 / wang）', example: 'Y0053' },
+    // Email 改選填、純聯絡用（之後重設密碼/系統通知會用）
+    { header: 'Email（選填、聯絡用）', field: 'email', required: false, example: 'employee@company.com' },
     { header: '電話', field: 'phone', required: false, example: '0912-345-678' },
     { header: '角色名稱（可空）', field: 'roleName', required: false, hint: '若該角色不存在、本筆會跳過角色綁定（建議匯入後到「設定→角色與權限」建好角色再回頭指派）', example: '業務' },
     // 「啟用」欄已拿掉（2026-06-03）：匯入一律未啟用、之後在精靈內挑啟用（受席次上限保護）
