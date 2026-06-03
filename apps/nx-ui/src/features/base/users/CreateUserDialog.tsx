@@ -23,8 +23,12 @@ import { createUser, type UserDto } from '@/features/base/api/user';
 import { FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
 import { cn } from '@/lib/utils';
 
-/** 預設密碼：所有新建使用者一律以此建立，首次登入時系統會強制要求修改 */
-const DEFAULT_PASSWORD = 'nexora@2026';
+/**
+ * 預設密碼：所有新建使用者一律以此建立，首次登入時系統會強制要求修改。
+ * ⚠️ 與精靈 `features/wizard/constants.ts` + 後端 `employee-defaults.ts`
+ *    同名常數保持同步、Email 通知功能上線後三處一起拿掉改隨機產生。
+ */
+const DEFAULT_PASSWORD = 'changeme';
 
 type FormState = {
   username: string;

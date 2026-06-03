@@ -21,7 +21,7 @@
 | 項 | 值 |
 |---|---|
 | 今日定位 | 員工啟用 + 席次控管 + 預設密碼五段任務、做完段 1/1.5/2/5、**正在做段 3** |
-| 下一步動作 | 段 3：精靈內 ActivationStep 啟用成功後顯示預設密碼 `Temp123!` |
+| 下一步動作 | 段 3：精靈內 ActivationStep 啟用成功後顯示預設密碼 `changeme` |
 | 真實客戶 | **恆迎企業**（`TW-100001`）、第一個簽約對象、Crown 親自驗收 |
 | 不能碰 | Railway production（落後 92 支 migration、簽約前 2-4 週才同步） |
 | 鐵律 | 0 schema（純邏輯）、0 推銷字眼、只露中文不露 NXxx、git add 精確路徑不用 -A |
@@ -462,7 +462,7 @@ OrderPage（第二步「建議匯入順序」）下方原本有 `border-amber-30
 | **段 1.5** | 範本對齊員編制（latent bug 修：原範本沒員編欄、所有匯入 100% 失敗）+ Email 退選填 | ✅ done | `789bbce` |
 | **段 5（提前）** | 後端 `user.service` 加 seats enforcement（`assertSeatCapacity` / `bulkActivate` / `getSeatUsage`）+ `update` 加 false→true 守門 | ✅ done | `b0341ea` |
 | **段 2** | 精靈 ActivationStep UI：席次計數 + checkbox 清單 + 滿了 disable | ✅ done | `53f8edb` |
-| **段 3** | ActivationStep 啟用成功後顯示預設密碼 `Temp123!` + 提示首登改密 | 🟠 **下一步** | — |
+| **段 3** | ActivationStep 啟用成功後顯示預設密碼 `changeme` + 提示首登改密 | 🟠 **下一步** | — |
 | **段 4** | 主檔切換啟用同樣走守門（service 已加、UI 跑通即可） | ⏸️ pending | — |
 
 ### AC.2 已落地的後端 API（給段 3/4 用）
@@ -481,7 +481,7 @@ PATCH  /nx01/users/:id  { isActive: true } → 走同個守門（段 4 主檔切
 
 - 在 `ActivationStep.tsx` 內、`onActivated` 回呼或 successCount 區、顯示密碼欄
 - 密碼值：**從前端常數讀**（不從後端傳、避免額外 endpoint）；保持與 backend `DEFAULT_EMPLOYEE_PASSWORD` 同步
-- 文案：「預設密碼：`Temp123!`、請通知員工首次登入後修改」
+- 文案：「預設密碼：`changeme`、請通知員工首次登入後修改」
 - 不要顯示在「啟用按鈕旁邊」常駐、只在啟用成功後顯示
 
 ### AC.4 段 4 開工要點（接手後）
@@ -504,7 +504,7 @@ PATCH  /nx01/users/:id  { isActive: true } → 走同個守門（段 4 主檔切
 | onboarding seats | 硬編 **10**（onboarding.service.ts:195、所有新租戶都是 10） |
 | 含負責人 | 負責人（OWNER / 林翰杰）開戶時 `isActive=true`、**計入「目前啟用」**、所以從 `1/10` 起算、能再勾 9 個 |
 | 匯入員工 | 一律 `isActive=false`（範本沒「啟用」欄）、之後在精靈「挑啟用」步驟勾 |
-| 預設密碼 | `Temp123!`（沿用、首登 `mustChangePassword=true` 強制改）；Email 通知做好後改隨機 |
+| 預設密碼 | `changeme`（沿用、首登 `mustChangePassword=true` 強制改）；Email 通知做好後改隨機 |
 | 滿擋 | UI checkbox disable + 文字「已達席次上限（10 席）」；後端 SE-001 保底 |
 | **絕無推銷** | 不寫「升級 / 加購 / 聯絡 / upgrade / contact」（spec 內負面斷言驗證） |
 | 未啟用員工 | 之後可在主檔挑啟用（段 4）；資料筆數無限制 |
@@ -561,7 +561,7 @@ PATCH  /nx01/users/:id  { isActive: true } → 走同個守門（段 4 主檔切
 |---|---|
 | 登入時保底檢查 | 啟用已硬擋、登入不會超、極端邊界之後補（Crown 拍板 defer） |
 | 真實定價 | 目前所有 plan baseFeeMonth / seatFeeMonth 是 placeholder、Crown 還沒給定價 |
-| Email 通知 | 系統隨機密碼 → 寄信、目前用統一 `Temp123!` |
+| Email 通知 | 系統隨機密碼 → 寄信、目前用統一 `changeme` |
 | 線上付費加購 | 加席次 / 升級 plan 流程；目前 Crown 後台手動改 nx99_subscription |
 
 ### AE.5 既有技術債（不擋核心）
