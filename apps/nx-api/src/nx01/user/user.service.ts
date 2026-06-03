@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcryptjs';
-import { ConflictException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, HttpStatus, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -80,6 +80,9 @@ export type Nx01UserPublicDto = {
 
 @Injectable()
 export class UserService {
+  // 2026-06-03 Crown 走查席次清單撈不到、bug-04 trace 用、回報後拆
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
@@ -224,6 +227,11 @@ export class UserService {
         select: LIST_SELECT,
       }),
     ]);
+    // ⚠️ 2026-06-03 Crown 走查席次清單撈不到、bug-04 trace；回報後拆。
+    // 印實際 query / 組出來的 where / 撈到的筆數、給 Crown 重啟後走查比對。
+    this.logger.log(
+      `[bug-04 trace] caller=${user.sub} tenant=${tenantId} isSysadmin=${isSysadmin(user)} q=${JSON.stringify(q)} where=${JSON.stringify(where)} total=${total} rowsReturned=${rows.length}`,
+    );
     return { page, pageSize, total, rows: rows.map((r) => this.toPublicUserFromListRow(r)) };
   }
 
