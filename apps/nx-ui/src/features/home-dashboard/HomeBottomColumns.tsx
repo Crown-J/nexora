@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/home-dashboard/HomeBottomColumns.tsx
 // 首頁儀表板下方：三欄等寬（任務清單 / 行事曆 / 事件簿）
 //
-// 段 D：左欄拉 nx98/task-pool、中欄自寫 mini month grid、右欄拉 nx01/calendar-event
-//       中欄選日連動右欄事件列表
+// 2026-06-03 滿版自適應：min-h-0 + flex-1、三欄繼承父高度撐滿；
+//             手機單欄堆疊、桌面 3 欄
 
 'use client';
 
@@ -64,7 +64,7 @@ export function HomeBottomColumns() {
   }, [viewMonth]);
 
   return (
-    <section className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+    <section className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-3">
       <TaskListPanel />
       <CalendarPanel
         events={events}
@@ -72,11 +72,7 @@ export function HomeBottomColumns() {
         onSelectDate={setSelectedDate}
         onChangeMonth={(y, m) => setViewMonth({ y, m })}
       />
-      <EventBookPanel
-        events={events}
-        selectedDate={selectedDate}
-        loading={eventsLoading}
-      />
+      <EventBookPanel events={events} selectedDate={selectedDate} loading={eventsLoading} />
     </section>
   );
 }

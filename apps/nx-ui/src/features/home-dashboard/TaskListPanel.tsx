@@ -1,14 +1,19 @@
 // apps/nx-ui/src/features/home-dashboard/TaskListPanel.tsx
-// 首頁下方：左欄任務清單 — 接 nx98/task-pool（OPEN/CLAIMED 顯示前 10 筆）
+// 首頁下方：左欄任務清單 — 接 nx98/task-pool（前 10 筆）
+//
+// 2026-06-03 對齊主檔中心：glass-card + Section header + token 化、滿版撐高
 
 'use client';
 
 import { AlertCircle, ClipboardList } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { cn } from '@/lib/utils';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { apiJson } from '@/shared/api/client';
 import { ApiClientError } from '@/shared/api/errors';
+
+import { HomeSectionHeader } from './HomeSectionHeader';
 
 type TaskRow = {
   id: string;
@@ -25,8 +30,7 @@ type TaskPoolResponse = {
 };
 
 function priorityBadge(p: string | null | undefined) {
-  if (p === 'U') return { label: '緊急', cls: 'border-rose-700/50 bg-rose-900/30 text-rose-300' };
-  if (p === 'H') return { label: '高', cls: 'border-amber-700/50 bg-amber-900/30 text-amber-300' };
+  if (p === 'U' || p === 'H') return { label: p === 'U' ? '緊急' : '高', cls: 'border-primary/40 bg-primary/10 text-primary' };
   return null;
 }
 
@@ -40,11 +44,10 @@ function isOverdue(due: string | null | undefined): boolean {
 export function TaskListPanel() {
   const { me, view } = useSessionMe();
   const [rows, setRows] = useState<TaskRow[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Race fix：等 useSessionMe 拿到 me（token 已就緒）才 fetch；
-  // 401 由 useSessionMe 處理 redirect，本元件不顯紅字
   useEffect(() => {
     if (view.loading || !me) return;
     let cancelled = false;
@@ -54,17 +57,16 @@ export function TaskListPanel() {
       .then((res) => {
         if (cancelled) return;
         setRows(Array.isArray(res.rows) ? res.rows : []);
+        setTotal(typeof res.total === 'number' ? res.total : (res.rows?.length ?? 0));
         setLoading(false);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
         if (err instanceof ApiClientError) {
-          // 401 → useSessionMe 會 redirect / 不顯訊息
           if (err.status === 401) {
             setLoading(false);
             return;
           }
-          // 400/403/500 → 顯示具體 status，方便走查時定位
           setErrorMsg(`HTTP ${err.status}`);
         } else if (err instanceof Error) {
           setErrorMsg(err.message);
@@ -81,22 +83,20 @@ export function TaskListPanel() {
   }, [view.loading, me]);
 
   return (
-    <div className="flex min-h-[280px] flex-col gap-2 rounded-xl border border-zinc-800 bg-[#11111A]/70 backdrop-blur-sm p-4">
-      <header className="flex items-center justify-between border-b border-zinc-900 pb-2">
-        <div className="flex items-center gap-2">
-          <ClipboardList className="size-4 text-zinc-400" strokeWidth={1.5} />
-          <h3 className="text-sm font-medium tracking-wide text-zinc-100">任務清單</h3>
-        </div>
-        <span className="text-[10px] text-zinc-500">最新 10 筆</span>
-      </header>
+    <div className="glass-card flex h-full min-h-0 flex-col gap-2 rounded-xl border border-border/80 p-4 shadow-sm">
+      <HomeSectionHeader
+        Icon={ClipboardList}
+        title="任務清單"
+        count={total != null ? `${rows.length} / ${total}` : undefined}
+      />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="-mx-1 flex-1 overflow-y-auto px-1">
         {loading ? (
-          <p className="py-6 text-center text-[11px] text-zinc-600">載入中...</p>
+          <p className="py-6 text-center text-[11px] text-muted-foreground">載入中...</p>
         ) : errorMsg ? (
-          <p className="py-6 text-center text-[11px] text-rose-400">讀取失敗：{errorMsg}</p>
+          <p className="py-6 text-center text-[11px] text-destructive">讀取失敗：{errorMsg}</p>
         ) : rows.length === 0 ? (
-          <p className="py-6 text-center text-[11px] text-zinc-600">目前沒有待辦</p>
+          <p className="py-6 text-center text-[11px] text-muted-foreground">目前沒有待辦</p>
         ) : (
           <ul className="space-y-1">
             {rows.map((r) => {
@@ -105,7 +105,10 @@ export function TaskListPanel() {
               return (
                 <li
                   key={r.id}
-                  className="group rounded border border-transparent px-2 py-1.5 transition-colors hover:border-zinc-800 hover:bg-zinc-900/40"
+                  className={cn(
+                    'group rounded-md border border-transparent px-2 py-1.5 transition-colors',
+                    'hover:border-border/60 hover:bg-secondary/40',
+                  )}
                 >
                   <div className="flex items-start gap-2">
                     {badge ? (
@@ -113,19 +116,17 @@ export function TaskListPanel() {
                         {badge.label}
                       </span>
                     ) : null}
-                    <span className="flex-1 truncate text-xs text-zinc-200" title={r.title}>
+                    <span className="flex-1 truncate text-xs text-foreground" title={r.title}>
                       {r.title}
                     </span>
                     {overdue ? (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-400">
-                        <AlertCircle className="size-3" />
+                      <span className="inline-flex items-center gap-0.5 text-[10px] text-destructive">
+                        <AlertCircle className="h-3 w-3" />
                         逾期
                       </span>
                     ) : null}
                   </div>
-                  {r.module ? (
-                    <span className="ml-1 text-[10px] text-zinc-600">{r.module}</span>
-                  ) : null}
+                  {r.module ? <span className="ml-1 text-[10px] text-muted-foreground">{r.module}</span> : null}
                 </li>
               );
             })}

@@ -1,15 +1,16 @@
 // apps/nx-ui/src/features/home-dashboard/CalendarPanel.tsx
-// 首頁下方：中欄行事曆 — 自寫 mini month grid（不引入新 lib）
+// 首頁下方：中欄行事曆 — mini month grid
 //
-// 上方：‹ 2026 / 06 ›（月份切換）
-// 中間：7x6 日格、有事件當日以圓點標、選中日 highlight
-// 點日 → 觸發 onSelectDate
+// 2026-06-03 對齊主檔中心：glass-card + Section header + token 化、滿版自適應
 
 'use client';
 
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
+import { HomeSectionHeader } from './HomeSectionHeader';
 import type { CalendarEvent } from './event-types';
 
 const WEEK_HEAD = ['日', '一', '二', '三', '四', '五', '六'];
@@ -23,7 +24,7 @@ function ymd(d: Date): string {
 
 function buildMonthGrid(year: number, month0: number) {
   const first = new Date(year, month0, 1);
-  const startWeekday = first.getDay(); // 0=Sun
+  const startWeekday = first.getDay();
   const daysInMonth = new Date(year, month0 + 1, 0).getDate();
   const cells: Array<{ date: Date | null; ymd: string | null }> = [];
   for (let i = 0; i < startWeekday; i++) cells.push({ date: null, ymd: null });
@@ -83,42 +84,42 @@ export function CalendarPanel({
   }
 
   return (
-    <div className="flex min-h-[280px] flex-col gap-2 rounded-xl border border-zinc-800 bg-[#11111A]/70 backdrop-blur-sm p-4">
-      <header className="flex items-center justify-between border-b border-zinc-900 pb-2">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="size-4 text-zinc-400" strokeWidth={1.5} />
-          <h3 className="text-sm font-medium tracking-wide text-zinc-100">行事曆</h3>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            aria-label="上月"
-            onClick={() => shift(-1)}
-            className="rounded p-0.5 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-          >
-            <ChevronLeft className="size-4" />
-          </button>
-          <span className="text-xs tabular-nums text-zinc-300">
-            {view.y} / {String(view.m + 1).padStart(2, '0')}
-          </span>
-          <button
-            type="button"
-            aria-label="下月"
-            onClick={() => shift(1)}
-            className="rounded p-0.5 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
-          >
-            <ChevronRight className="size-4" />
-          </button>
-        </div>
-      </header>
+    <div className="glass-card flex h-full min-h-0 flex-col gap-2 rounded-xl border border-border/80 p-4 shadow-sm">
+      <HomeSectionHeader
+        Icon={CalendarDays}
+        title="行事曆"
+        count={`${view.y} / ${String(view.m + 1).padStart(2, '0')}`}
+      />
 
-      <div className="grid grid-cols-7 gap-px text-center text-[10px] text-zinc-600">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <button
+          type="button"
+          aria-label="上月"
+          onClick={() => shift(-1)}
+          className="rounded p-0.5 hover:bg-secondary hover:text-foreground"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="text-[10px] uppercase tracking-[0.2em]">月曆</span>
+        <button
+          type="button"
+          aria-label="下月"
+          onClick={() => shift(1)}
+          className="rounded p-0.5 hover:bg-secondary hover:text-foreground"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-px text-center text-[10px] text-muted-foreground">
         {WEEK_HEAD.map((w) => (
-          <span key={w} className="py-1">{w}</span>
+          <span key={w} className="py-1">
+            {w}
+          </span>
         ))}
       </div>
 
-      <div className="grid flex-1 grid-cols-7 grid-rows-6 gap-px">
+      <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-px">
         {cells.map((c, i) => {
           if (!c.date || !c.ymd) {
             return <div key={i} className="bg-transparent" />;
@@ -131,18 +132,18 @@ export function CalendarPanel({
               key={i}
               type="button"
               onClick={() => onSelectDate(c.ymd!)}
-              className={[
+              className={cn(
                 'group relative flex flex-col items-center justify-center rounded text-[11px] transition-colors',
                 isSelected
-                  ? 'bg-amber-500/20 text-amber-200 ring-1 ring-amber-500/60'
+                  ? 'bg-primary/15 text-primary ring-1 ring-primary/50'
                   : isToday
-                    ? 'text-amber-300 hover:bg-zinc-900'
-                    : 'text-zinc-400 hover:bg-zinc-900',
-              ].join(' ')}
+                    ? 'text-primary hover:bg-secondary'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+              )}
             >
               <span className="tabular-nums">{c.date.getDate()}</span>
               {hasEvent ? (
-                <span className="absolute bottom-0.5 size-1 rounded-full bg-amber-400" />
+                <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-primary" />
               ) : null}
             </button>
           );

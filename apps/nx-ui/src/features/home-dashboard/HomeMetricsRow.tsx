@@ -1,17 +1,17 @@
 // apps/nx-ui/src/features/home-dashboard/HomeMetricsRow.tsx
 // 首頁儀表板上方：5 個等寬「可由使用者設定」數據格
 //
-// 段 A：純殼（5 格邀請框）
-// 段 B（本軌）：點 + 跳 modal、依權限過濾、KPI 鎖、後端 nx01_user_pref 持久化（非 localStorage）
-// 段 C：依 metricType 接 endpoint 數字、render 4 種圖
-//
-// 設計語言：bg-[#11111A]/70 backdrop-blur-sm / border zinc-800 / accent amber / rounded-xl
+// 2026-06-03 對齊主檔中心：glass-card + border-border/80 + text-foreground/muted-foreground
+//   + Section header（業務數據 + 計數）+ hover lift（主檔卡片範式）
 
 'use client';
 
-import { Plus, Settings2 } from 'lucide-react';
+import { LayoutDashboard, Plus, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
+import { HomeSectionHeader } from './HomeSectionHeader';
 import { METRIC_OPTIONS, EMPTY_METRICS, type MetricType, type MetricsPrefValue } from './metric-options.config';
 import { MetricPickerModal } from './MetricPickerModal';
 import { MetricRenderer } from './MetricRenderer';
@@ -19,6 +19,11 @@ import { useMetricValue } from './useMetricValue';
 import { fetchMetricsPref, saveMetricsPref } from './user-pref-api';
 
 const SLOT_COUNT = 5;
+
+const SHELL_BASE =
+  'glass-card box-border rounded-xl border border-border/80 p-4 shadow-sm transition-all duration-300 ease-out';
+const SHELL_HOVER =
+  'hover:-translate-y-0.5 hover:scale-[1.005] hover:border-primary/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]';
 
 export function HomeMetricsRow() {
   const [pref, setPref] = useState<MetricsPrefValue>(EMPTY_METRICS);
@@ -41,6 +46,7 @@ export function HomeMetricsRow() {
     () => new Set(pref.slots.filter((k): k is string => Boolean(k))),
     [pref],
   );
+  const filledCount = usedKeys.size;
 
   async function pickForSlot(slotIndex: number, optionKey: string) {
     const newSlots = [...pref.slots];
@@ -51,7 +57,7 @@ export function HomeMetricsRow() {
     try {
       await saveMetricsPref(next);
     } catch {
-      // 段 F 整測時可加 toast；段 B 失敗不擋 UI
+      // 段 F 整測時可加 toast
     }
   }
 
@@ -63,13 +69,16 @@ export function HomeMetricsRow() {
     setActiveSlot(null);
     try {
       await saveMetricsPref(next);
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 
   return (
-    <section className="w-full">
+    <section className="flex shrink-0 flex-col gap-2">
+      <HomeSectionHeader
+        Icon={LayoutDashboard}
+        title="儀表數據"
+        count={`${filledCount} / ${SLOT_COUNT} 已設定`}
+      />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: SLOT_COUNT }).map((_, idx) => {
           const slotKey = pref.slots[idx] ?? null;
@@ -105,7 +114,6 @@ export function HomeMetricsRow() {
   );
 }
 
-/** 空格邀請框：「+ 點擊設定數據」、虛線 */
 function EmptyMetricInvite({ loaded, onClick }: { loaded: boolean; onClick: () => void }) {
   return (
     <button
@@ -113,21 +121,20 @@ function EmptyMetricInvite({ loaded, onClick }: { loaded: boolean; onClick: () =
       aria-label="設定數據"
       disabled={!loaded}
       onClick={onClick}
-      className={[
-        'group flex aspect-[3/2] min-h-[140px] flex-col items-center justify-center gap-2',
-        'rounded-xl border-2 border-dashed border-zinc-800',
-        'bg-[#11111A]/40 backdrop-blur-sm transition-colors',
-        loaded ? 'hover:border-amber-500/60 hover:bg-[#1a1a25] cursor-pointer' : 'opacity-40 cursor-wait',
-        'text-zinc-600 hover:text-amber-300',
-      ].join(' ')}
+      className={cn(
+        'group flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border/60 bg-secondary/20 p-4 backdrop-blur-sm transition-all',
+        loaded
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:bg-secondary/30 hover:text-primary'
+          : 'cursor-wait opacity-40',
+        'text-muted-foreground',
+      )}
     >
-      <Plus className="size-7" strokeWidth={1.5} />
-      <span className="text-sm font-medium tracking-wide">點擊設定數據</span>
+      <Plus className="h-6 w-6" strokeWidth={1.5} />
+      <span className="text-xs font-medium tracking-wide">點擊設定數據</span>
     </button>
   );
 }
 
-/** 已設定格：拉 endpoint 顯示數字、右上齒輪改 */
 function ConfiguredMetricSlot({
   label,
   category,
@@ -144,25 +151,21 @@ function ConfiguredMetricSlot({
   const { value, loading, error } = useMetricValue(endpoint || null);
 
   return (
-    <div
-      className={[
-        'group relative flex aspect-[3/2] min-h-[140px] flex-col justify-between',
-        'rounded-xl border border-zinc-800 bg-[#11111A]/70 backdrop-blur-sm p-4',
-        'transition-colors hover:border-amber-500/30',
-      ].join(' ')}
-    >
-      <header className="flex items-start justify-between">
-        <div className="flex flex-col">
-          <span className="text-[10px] uppercase tracking-widest text-zinc-500">{category}</span>
-          <span className="mt-0.5 text-sm font-medium text-zinc-100">{label}</span>
+    <div className={cn(SHELL_BASE, SHELL_HOVER, 'group relative flex min-h-[120px] flex-col justify-between')}>
+      <header className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-col">
+          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{category}</span>
+          <span className="mt-0.5 truncate text-sm font-semibold text-foreground" title={label}>
+            {label}
+          </span>
         </div>
         <button
           type="button"
           onClick={onConfigure}
           aria-label="變更數據"
-          className="rounded p-1 text-zinc-600 opacity-0 transition-opacity hover:bg-zinc-900 hover:text-zinc-200 group-hover:opacity-100"
+          className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-foreground group-hover:opacity-100"
         >
-          <Settings2 className="size-4" />
+          <Settings2 className="h-3.5 w-3.5" />
         </button>
       </header>
 
