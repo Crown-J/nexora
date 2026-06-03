@@ -1345,6 +1345,7 @@ model Nx01User {
   rev_Nx01UserTeam_userId                  Nx01UserTeam[]                @relation("R_Nx01UserTeam_userId")
   rev_Nx01UserWarehouse_userId             Nx01UserWarehouse[]           @relation("R_Nx01UserWarehouse_userId")
   rev_Nx01UserPageGuide_userId             Nx01UserPageGuide[]           @relation("R_Nx01UserPageGuide_userId")
+  rev_Nx01UserPref_userId                  Nx01UserPref[]                @relation("R_Nx01UserPref_userId")
   rev_Nx01ImportBatch_uploadedBy           Nx01ImportBatch[]             @relation("R_Nx01ImportBatch_uploadedBy")
   rev_Nx01BulletinAttachment_uploader      Nx01BulletinAttachment[]      @relation("R_Nx01BulletinAttachment_uploaderUserId")
   rev_Nx01BulletinReadLog_userId           Nx01BulletinReadLog[]         @relation("R_Nx01BulletinReadLog_userId")
@@ -7030,6 +7031,7 @@ model Nx99Tenant {
   quoteDefaultValidityDays                 Int                           @default(30) @map("quote_default_validity_days")
   rev_Nx01ImportBatch_tenantId             Nx01ImportBatch[]             @relation("R_Nx01ImportBatch_tenantId")
   rev_Nx01UserPageGuide_tenantId           Nx01UserPageGuide[]           @relation("R_Nx01UserPageGuide_tenantId")
+  rev_Nx01UserPref_tenantId                Nx01UserPref[]                @relation("R_Nx01UserPref_tenantId")
   rev_Nx01AuditLog_tenantId                Nx01AuditLog[]                @relation("R_Nx01AuditLog_tenantId")
   rev_Nx01BrandCodeRule_tenantId           Nx01BrandCodeRule[]           @relation("R_Nx01BrandCodeRule_tenantId")
   rev_Nx01Bulletin_tenantId                Nx01Bulletin[]                @relation("R_Nx01Bulletin_tenantId")
@@ -8567,4 +8569,39 @@ model PlatformAdmin {
   updatedBy           String    @map("updated_by") @db.VarChar(15)
 
   @@map("platform_admin")
+}
+
+/// =======================================================
+/// Nx01UserPref — DB table `nx01_user_pref`
+/// 使用者層級個人偏好設定（2026-06-03 段 B 前置）
+///
+/// 性質：⚠️ 非 spec 驅動、手動維護（不在 docs/spec/ CSV 範圍）
+/// 用途：user × pref_key、pref_value JSONB、彈性結構
+///       首頁儀表板 5 格設定 / 未來主題 / 預設頁 / 提醒設定都走這張表
+/// 範式：對齊 nx01_user_page_guide（同樣是 user × key 設計、是它兄弟）
+/// =======================================================
+model Nx01UserPref {
+  /// [NX01]+[UPRF]+[7碼流水號]，EX : NX01UPRF0000001
+  id        String   @id @default(dbgenerated("gen_nx01_user_pref_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵、查詢 scope）
+  tenantId  String   @map("tenant_id") @db.VarChar(15)
+  /// 使用者 ID（外鍵、設定擁有者）
+  userId    String   @map("user_id") @db.VarChar(15)
+  /// 偏好設定 key（例 'home.dashboard.metrics'、'theme'、'default-landing'）
+  prefKey   String   @map("pref_key") @db.VarChar(100)
+  /// 偏好設定值（JSONB、彈性結構）
+  prefValue Json     @map("pref_value")
+  /// 建立時間
+  createdAt DateTime @default(now()) @map("created_at")
+  /// 建立人
+  createdBy String   @map("created_by") @db.VarChar(15)
+  /// 更新時間
+  updatedAt DateTime @updatedAt @map("updated_at")
+  /// 更新人
+  updatedBy String   @map("updated_by") @db.VarChar(15)
+  tenant    Nx99Tenant @relation("R_Nx01UserPref_tenantId", fields: [tenantId], references: [id])
+  user      Nx01User   @relation("R_Nx01UserPref_userId", fields: [userId], references: [id])
+
+  @@unique([userId, prefKey])
+  @@map("nx01_user_pref")
 }
