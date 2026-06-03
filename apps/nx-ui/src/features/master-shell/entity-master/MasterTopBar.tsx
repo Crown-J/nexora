@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Bell, ChevronDown, ChevronRight, ClipboardList, LogOut, Megaphone, Search, User, Wand2 } from 'lucide-react';
+import { Bell, ChevronDown, ChevronRight, ClipboardList, LogOut, Megaphone, Search, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -29,7 +29,6 @@ import {
   MASTER_HUB_SECTION_TITLES,
 } from '@/features/base/config/master-cards';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { NEXORA_REOPEN_WIZARD_EVENT } from '@/features/wizard/ui/WizardLauncher';
 import { apiJson } from '@/shared/api/client';
 
 const MASTER_HREF = '/dashboard/base';
@@ -161,11 +160,6 @@ export function MasterTopBar({
 
   const effectiveAnnouncements = unreadAnnouncements ?? bulletinCount;
 
-  function openWizard() {
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent(NEXORA_REOPEN_WIZARD_EVENT));
-    }
-  }
   const [kw, setKw] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -484,14 +478,6 @@ export function MasterTopBar({
           </div>
         ) : null}
       </div>
-
-      {/* 精靈引導（無 badge、簡單觸發 reset+reopen） */}
-      <NotifyButton
-        icon={Wand2}
-        badgeTone="amber"
-        label="精靈引導"
-        onClick={openWizard}
-      />
 
       {/* 通知（紅色 badge） */}
       <div className="relative" ref={notifyMenu.ref}>
