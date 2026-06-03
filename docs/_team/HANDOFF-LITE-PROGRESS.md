@@ -6,13 +6,28 @@
 > 第一版撰寫：2026-05-28（M1 開工前）
 > 第二版更新：2026-05-28（M3-2 完工後、M3-3 開工前）
 > 第三版更新：2026-05-28（M6 closure 完成）
-> ⭐ **第四版更新：2026-05-29（Crown 反映原交接太單薄、加 Part 0 給新 Alex 完整脈絡）— 本次更新**
-> 對應 main HEAD：`32f721d`（NX03 closure 收尾 git-state、merge `7ae0c2a` + tag `v1.3.0-nx03-stock-lite-closure`）
-> feature/nx03-stock-lite：已 merge main、可考慮刪除
+> 第四版：2026-05-29（加 Part 0 給新 Alex 完整脈絡）
+> ⭐ **第五版：2026-06-03（NX04 → v1.2 對齊全軌 → 平台分離 → 首頁 → 精靈 → 席次制中、本次更新、給接手的新 Alex）**
+> 對應 main HEAD：`53f8edb`（席次制段 2 精靈挑啟用 UI、HEAD 後續會隨段 3/4 推進）
 > 接班對象：
->   - **新 Alex（PM、AI）**：必讀 Part 0、再看 §1~§9（Hank 視角的進度細節）
->   - **新 Hank（Cursor IDE / Claude Code）**：必讀 Part 0 §G（NX04 業務細節）+ §1.2（授權邊界）+ §6（紀律）+ §8（起手 checklist）
-> 觸發原因：Crown 發現原交接太單薄、新 Alex 跟不上、要求補完脈絡（為什麼 + 由來、不只結論）
+>   - **新 Alex（PM、AI、本次主要讀者）**：起手讀 §AA~§AF（最新進度脈絡、Crown 給的 A-F 涵蓋）→ 再 Part 0（路線歷史脈絡 §0~§J、需要時查）→ Part 1（Hank git 細節）只在需要時查
+>   - **新 Hank（Cursor IDE / Claude Code）**：必讀 §AE（已拍板規則 + 鐵律）、§AF（pending 與起手指引）
+> 觸發原因：Crown 即將換 Alex 對話、需讓新 Alex 無縫接手「目前正在做席次制段 3」、本次補完從 NX04 → 目前的所有業務脈絡 + 技術現況
+
+---
+
+## ⚡ 新 Alex 30 秒上手
+
+| 項 | 值 |
+|---|---|
+| 今日定位 | 員工啟用 + 席次控管 + 預設密碼五段任務、做完段 1/1.5/2/5、**正在做段 3** |
+| 下一步動作 | 段 3：精靈內 ActivationStep 啟用成功後顯示預設密碼 `Temp123!` |
+| 真實客戶 | **恆迎企業**（`TW-100001`）、第一個簽約對象、Crown 親自驗收 |
+| 不能碰 | Railway production（落後 92 支 migration、簽約前 2-4 週才同步） |
+| 鐵律 | 0 schema（純邏輯）、0 推銷字眼、只露中文不露 NXxx、git add 精確路徑不用 -A |
+| 給 Crown 回報 | 一般員工口吻、不帶內部術語 / 編號（公司範式 §0.4） |
+
+→ 接著看 **§AA**（定位與角色）然後 **§AE**（已拍板規則彙整）。
 
 ---
 
@@ -320,6 +335,315 @@ Crown 自己放真實業務資料測（部分模組）、其他模組 Crown 依�
    - **沿用 NX03 stocktake `approvalStatus` 範式**（不要重發明）
    - 含**變更歷史**、核可通過自動套新毛利、退回維持原等級
    - 這個 Crown 明確要、不要被當「OOTB CRM 流程」處理掉
+
+---
+
+# Part 0+ — 第五版增量（2026-06-03、給新 Alex 接手用）
+
+> 從 NX04 之後到目前的所有業務脈絡 + 技術現況。
+> 涵蓋 Crown 給的 A-F 六大塊（定位 / 本段完成 / 進行中 / 已拍板規則 / pending / 技術現況）。
+> 風格對齊 Part 0：「為什麼 + 怎麼做 + 影響」、不只 commit log。
+
+## §AA. 定位與角色
+
+### AA.1 NEXORA LITE 做什麼
+
+NEXORA 是「**汽車零件業 ERP**」、Crown 自身的恆迎企業是先導客戶。
+LITE 是入門版（最便宜、5-15 席、月費）、PLUS / PRO 是進階版。
+
+**LITE 範圍**（六大模組）：
+1. **主檔中心**（NX01）：員工、客戶、供應商、產品、倉庫、品牌、車型、職務角色...
+2. **進貨**（NX02）：採購需求 → 詢價（不發單、業務 LINE 問）→ 採購單 → 進貨單 → 保固
+3. **庫存**（NX03）：庫存查詢、撿貨、包貨、盤點、異常回報、調撥
+4. **銷貨**（NX04）：報價、銷貨單（部分出貨）、銷退、同行調貨
+5. **財務**（NX05）：應收/應付帳款、票據、月關帳、401 兩個月雙報（已上報 vs 未上報）
+6. **報表**（NX08）：個人月報、進貨、銷售、庫存、損益、營運 — 6 張、桌面+手機+Excel 三模式
+
+每模組都有「業務中文名」（採購需求/詢價單/...）給客戶看、**內部 NXxx 不露**（Crown 鐵律）。
+
+### AA.2 恆迎企業（TW-100001、第一個真客戶）
+
+| 項 | 值 |
+|---|---|
+| tenantCode | `TW-100001`（規格 TW/ZT-{6digits}、平台軌 P6.3 定下） |
+| 行業 | 汽車零件批發、保養廠 / 同行業務 |
+| 訂閱方案 | LITE（onboarding 開戶硬編 seats=10） |
+| Crown 角色 | 既是 NEXORA 創辦人、也是恆迎負責人；用恆迎當測試 + 上線首發 |
+| 簽約預期 | 2026 年下半 / 待 Crown 拍板實際時程 |
+
+### AA.3 三人團隊範式（PROJECT_RULES §0.4）
+
+| 角色 | 名稱 | 載體 | 職責 |
+|---|---|---|---|
+| 總經理 | **Crown** | 真人 | 拍業務決策、看交付、不做中間驗證（瀏覽器測 AI 做不到、跳過） |
+| PM | **Alex** | AI 對話 | 寫意圖（業務需求 / 拍板紀錄 / FU 管理）、不寫程式 |
+| 工程師 | **Hank** | Cursor IDE / Claude Code | 寫實作（schema / code / 操作手冊）、隸屬 Alex |
+
+#### AA.3.1 對 Crown 的回報範式（重要）
+- **一般員工口吻**、不帶內部術語 / 編號（例：別寫「FU-onboarding-05」、寫「首次登入強制改密」）
+- **絕無推銷**（席次滿不寫「升級 / 加購 / 聯絡我們」、就說「已達席次上限」）
+- 該講的講完、不延伸別的軌
+
+#### AA.3.2 Crown 授權邊界（速查）
+| 動作 | 授權 |
+|---|---|
+| dev DB migration（localhost） | ✅ 自走 |
+| git push main / feature | ✅ 自走 |
+| merge to main `--no-ff` + tag | ✅ 自走 |
+| commit 大小決定 | ✅ 自走（漸進式 Step-by-Step、每段 stop review） |
+| 順手清技術債（不改外部行為 + commit 標示 + 回報列出） | ✅ 自走 |
+| Railway production migration | ❌ **不動**（落後 92 支、客戶簽約前 2-4 週才同步） |
+| `.env` localhost 改動 | ❌ 不改 |
+| 破壞性 schema 變更（新表 / 刪欄 / 重命名） | ⚠️ STOP 報 Crown 拍板 |
+| 不確定方向 | ⚠️ 標 ⚠️ 回報 Alex 拍板 |
+
+#### AA.3.3 決策分級
+- **業務規則**：Crown 拍板（席次規則、員編制、無推銷、客戶見字、流程設計）
+- **PM/方案選擇**：Alex 提 2-3 案 + 推薦、Crown 點頭
+- **工程實作**：Hank 自走（架構決定 / 抽常數 / 抽 helper / 命名）
+- **跨段順序**：Crown 給策略（「先做段 5 再 2、4 共用」）、Hank 拆執行
+
+### AA.4 跟舊 Alex 的差異（給新 Alex 的提醒）
+
+舊 Alex 撰寫了 docs/_team/HANDOFF.md（封存交棒、2026-05-28）、之後是「分段對話接力」範式：模組 closure 後才換對話、中間不換。但本次 Crown 在席次制中段換你、因為對話接近上限、不換會斷線。所以：
+- 你的「起點」是 main HEAD `53f8edb`、席次制段 5/2 已 commit、段 3 待開
+- 「我說的」=本檔 + git log + 對應 spec 檔
+- 換手後第一次走查、Crown 會稍微觀察你是否有對齊「無推銷」「員工口吻」這些細微規則
+
+---
+
+## §AB. 本段完成（首頁儀表板 + 設定精靈）
+
+### AB.1 首頁儀表板大改造（11 commit、ttsdK `1281f58` → `5bd3755`）
+
+#### AB.1.1 為什麼改
+Crown 看舊首頁（Win8 磚式 + Pro/Lite 雙 body mock 渲染）不喜歡：「磚體沒辨識度、PRO 假資料、客戶看不懂」。要重設計成「**四區塊 dashboard**」：
+- 上方：5 個用戶可設定數據格
+- 下方三欄：任務清單 / 行事曆 / 事件簿
+
+#### AB.1.2 設計重點（已定稿）
+| 區塊 | 行為 |
+|---|---|
+| 5 數據格 | 空 = 虛線「+ 點擊設定數據」；點 → modal 列可選數據（**依使用者權限過濾**、KPI 標🔒升級套件不可選）；已設定 = 自動拉 endpoint 顯示計數 |
+| 設定持久化 | 新表 `nx01_user_pref`（user × pref_key + JSONB pref_value）、跟使用者帳號跑、不 localStorage |
+| 任務清單 | `/nx98/task-pool` 拉前 10 筆、緊急 badge + 逾期 |
+| 行事曆 | mini month grid（自寫、不引 lib）、有事件圓點、選日連動右欄；資料源 `Nx01CalendarEvent` 表既存、但**目前無寫入端**（PENDING） |
+| 事件簿 | filter 當日事件、S/C/R type badge |
+| TopBar 三 icon | 公告 / 任務 / 精靈引導 全收 MasterTopBar、右下浮動鈕拿掉 |
+| 視覺 | 對齊主檔中心 `glass-card.nx-glass-raised` + ParticleField 星空背景 |
+
+#### AB.1.3 重要決策（避免被新 Alex 誤解）
+- **5 格用戶可自選**：不是固定 21 卡（上一輪是、Crown 否決）
+- **公告/任務獨立按鈕已刪**：全走 TopBar icon、避免雙入口
+- **精靈引導浮動鈕已刪**：改 TopBar icon + window CustomEvent 觸發（WizardLauncher 只渲染 overlay）
+
+### AB.2 設定精靈（3 個調整、commit `aca4d37`）
+
+#### AB.2.1 🔴 下載範本 401 修了
+- 根因：`window.open(url)` 直接開、瀏覽器新分頁不帶 Bearer
+- 修法：fetch + Authorization + blob URL 觸發下載、Content-Disposition 解 filename
+- 7 個 importer 共用同函式、一處修全修
+
+#### AB.2.2 玻璃化
+overlay shell / progress bar / 各內容 box 改 `glass-card` + token、對齊首頁打磨後風格。
+
+#### AB.2.3 拿掉黃色依賴提示框
+OrderPage（第二步「建議匯入順序」）下方原本有 `border-amber-300 bg-amber-50` 區塊講「沒先匯產品、進貨匯入時找不到產品」— Crown 認為多餘、整塊刪。
+
+---
+
+## §AC. 進行中（員工啟用 + 席次控管 + 預設密碼五段）
+
+### AC.1 任務分段與當前進度
+
+| 段 | 範圍 | 狀態 | commit |
+|---|---|---|---|
+| **段 1** | 範本拿掉「啟用」欄 + Importer 一律 `isActive=false` + 抽 `DEFAULT_EMPLOYEE_PASSWORD` | ✅ done | `34a130a` |
+| **段 1.5** | 範本對齊員編制（latent bug 修：原範本沒員編欄、所有匯入 100% 失敗）+ Email 退選填 | ✅ done | `789bbce` |
+| **段 5（提前）** | 後端 `user.service` 加 seats enforcement（`assertSeatCapacity` / `bulkActivate` / `getSeatUsage`）+ `update` 加 false→true 守門 | ✅ done | `b0341ea` |
+| **段 2** | 精靈 ActivationStep UI：席次計數 + checkbox 清單 + 滿了 disable | ✅ done | `53f8edb` |
+| **段 3** | ActivationStep 啟用成功後顯示預設密碼 `Temp123!` + 提示首登改密 | 🟠 **下一步** | — |
+| **段 4** | 主檔切換啟用同樣走守門（service 已加、UI 跑通即可） | ⏸️ pending | — |
+
+### AC.2 已落地的後端 API（給段 3/4 用）
+
+```
+GET    /nx01/users/seat-usage              → { used, total, available }
+PUT    /nx01/users/bulk-activate           → { activated, seatUsage }
+PATCH  /nx01/users/:id  { isActive: true } → 走同個守門（段 4 主檔切換用同 endpoint）
+```
+
+錯誤碼：
+- **SE-001** Conflict：「已達席次上限（X/Y 席）、本次無法啟用 N 名使用者」
+- **SE-002** Conflict：「租戶尚無有效訂閱、無法啟用使用者」（防護）
+
+### AC.3 段 3 開工要點（給接手後）
+
+- 在 `ActivationStep.tsx` 內、`onActivated` 回呼或 successCount 區、顯示密碼欄
+- 密碼值：**從前端常數讀**（不從後端傳、避免額外 endpoint）；保持與 backend `DEFAULT_EMPLOYEE_PASSWORD` 同步
+- 文案：「預設密碼：`Temp123!`、請通知員工首次登入後修改」
+- 不要顯示在「啟用按鈕旁邊」常駐、只在啟用成功後顯示
+
+### AC.4 段 4 開工要點（接手後）
+
+- 主檔 user 列表已存在（`dashboard/base/users`）、切換啟用走 PATCH `/nx01/users/:id`
+- 段 5 已在 `update` 加 false→true 守門、所以後端已就緒
+- 主檔 UI 只需：失敗時 catch ApiClientError → 顯示「已達席次上限（X/Y 席）」訊息（無推銷）
+- 順手可加 toolbar 上「X / Y 席」徽章（沿用 SeatBadge）
+
+---
+
+## §AD. 已拍板規則（Crown 親拍、未來不重議）
+
+### AD.1 席次制（2026-06-03）
+
+| 規則 | 內容 |
+|---|---|
+| 資料筆數 | **不限制**（員工可建 1000 筆都行） |
+| 啟用受限 | 已啟用使用者數（**含負責人**）≤ 訂閱 seats |
+| onboarding seats | 硬編 **10**（onboarding.service.ts:195、所有新租戶都是 10） |
+| 含負責人 | 負責人（OWNER / 林翰杰）開戶時 `isActive=true`、**計入「目前啟用」**、所以從 `1/10` 起算、能再勾 9 個 |
+| 匯入員工 | 一律 `isActive=false`（範本沒「啟用」欄）、之後在精靈「挑啟用」步驟勾 |
+| 預設密碼 | `Temp123!`（沿用、首登 `mustChangePassword=true` 強制改）；Email 通知做好後改隨機 |
+| 滿擋 | UI checkbox disable + 文字「已達席次上限（10 席）」；後端 SE-001 保底 |
+| **絕無推銷** | 不寫「升級 / 加購 / 聯絡 / upgrade / contact」（spec 內負面斷言驗證） |
+| 未啟用員工 | 之後可在主檔挑啟用（段 4）；資料筆數無限制 |
+| 停用方向 | true→false 永遠放行、不檢查（idempotent） |
+
+### AD.2 員工編號制（2026-06-02、平台軌 P6.3 之後）
+
+| 規則 | 內容 |
+|---|---|
+| 員工帳號 | `userAccount` = 員工編號（自由文字、租戶內唯一） |
+| 客戶可用舊習慣 | 例：`Y0053`、`001`、`wang` — 不強制格式（不補 Y、不補零） |
+| Email | 改選填、純聯絡用（之後寄信 / 重設密碼） |
+| 員編可改 | 改完不斷 FK 關聯（FK 全指 id、員編只是顯示） |
+
+### AD.3 公司範式（PROJECT_RULES §0.4、2026-05-26）
+
+- Crown = 總經理、Alex = PM、Hank = 工程師
+- 對 Crown 回報用一般員工口吻、不帶內部術語 / 編號
+- worklog ⛔ 不寫（改 commit 訊息）
+- merge-verify ⛔ 不獨立文件（merge commit 訊息詳列）
+- 範圍超出原本指示時：可直接做 + 事後回報（危險命令除外、例如 reset --hard / force push）
+
+### AD.4 客戶見字鐵律
+- 只露中文業務名（「採購需求」「詢價單」「採購單」「進貨單」「客戶」「員工」...）
+- **不露任何 NXxx**（NX02 / NX03 / FU-xx / TASK-xx / commit SHA）
+- 報表 / 訊息 / button label / 錯誤訊息 全部走中文業務語意
+
+---
+
+## §AE. PENDING / DEFER backlog
+
+### AE.1 行事曆資料源未定 ⚠️
+- table `Nx01CalendarEvent` 已存在（schema 261）、read-only endpoint `/nx01/calendar-event` 已做
+- 但**沒有任何寫入端**（沒人把事件塞進這張表）
+- 候選方案（待 Crown 拍）：
+  1. 採購單到期日 / 銷貨單交期 → 自動寫事件
+  2. user 手動建（CRUD UI 走完）
+  3. 兩者並存
+- 現況：首頁行事曆顯示「當日無事件」、不影響其他功能
+
+### AE.2 「新公司從零建立」精靈引導未設計 ⚠️
+- 目前精靈只有「匯入舊資料」流程（7 個 importer）
+- 完全新公司（無舊資料）目前的選項是「全部略過、之後再說」
+- 缺一條路徑：引導建立第一個客戶 / 第一個產品 / 第一個倉庫的單體流程
+- 待 Crown 拍板要不要做（不擋 LITE 上線）
+
+### AE.3 首頁質感 — 有資料再調
+- 目前 5 數據格全 `count` 型（KPI ratio/trend/share 全標 isPremium 鎖）
+- 等真實資料進來再看是否要加「上週/本週對比」「微縮趨勢線」之類
+- 不擋上線
+
+### AE.4 上線前必做（**全 defer**）
+| 項 | 內容 |
+|---|---|
+| 登入時保底檢查 | 啟用已硬擋、登入不會超、極端邊界之後補（Crown 拍板 defer） |
+| 真實定價 | 目前所有 plan baseFeeMonth / seatFeeMonth 是 placeholder、Crown 還沒給定價 |
+| Email 通知 | 系統隨機密碼 → 寄信、目前用統一 `Temp123!` |
+| 線上付費加購 | 加席次 / 升級 plan 流程；目前 Crown 後台手動改 nx99_subscription |
+
+### AE.5 既有技術債（不擋核心）
+- `useSessionMe` 回傳 `tenantLogoUrl` 但 type 沒寫進 `UseSessionMeResult`（tsc 顯 2 個錯、不擋 build）
+- 全站掃描禁露 NXxx（i18n 反向檢查工具未做）
+- mocks/dashboard.ts 還有 PRO 元件依賴（ProExpRankBar / ProNx10LeftPanel / ProTodayAttendancePanel）— 等 PLUS/PRO 真實接時清
+
+### AE.6 順手提（員工範本「員編制」latent bug 已修）
+- 段 1.5 已修：範本對齊員編制（新欄「員工編號（登入用）」、Email 退選填）
+- 寫了 vitest 6 項驗證：raw Excel → extractDataRows → handler → prisma.create 端到端
+
+---
+
+## §AF. 技術現況 + 鐵律 + 起手指引
+
+### AF.1 技術棧
+| 項 | 值 |
+|---|---|
+| Backend | NestJS + Prisma 7 + PostgreSQL (localhost dev) |
+| Frontend | Next.js 15 (App Router) + Tailwind + Radix UI + lucide-react + recharts |
+| Monorepo | pnpm workspaces：`apps/nx-api` / `apps/nx-ui` / `packages/db-core` |
+| Auth | JWT Bearer（client 存 localStorage）、`@UseGuards(JwtAuthGuard, RolesGuard)` |
+| Test | vitest（nx-api）；nx-ui 暫無 vitest 環境（本軌不引入） |
+| Shell | Windows PowerShell + Bash 都可（Hank 主要用 Bash tool） |
+
+### AF.2 main HEAD + 最新 tag
+- **main HEAD**：`53f8edb`（席次制段 2、2026-06-03）
+- **最新業務 tag**：`v2.2.0-platform-tenant-separation`（平台/租戶層分離軌、2026-06-02）
+- **前一個業務 tag**：`v2.1.0-lite-complete`（LITE 完整實測動線、2026-06-01）
+- **席次制本軌結束時**：預計 closure tag 由 Crown 拍板（候選：`v2.3.0-seats-enforcement`）
+
+### AF.3 各模組狀態
+| 模組 | 狀態 | tag |
+|---|---|---|
+| NX01 主檔（25 主檔遷鋼鐵星球範式） | ✅ | `v1.0-nx01-closure` |
+| NX02 進貨 | ✅ | `v1.2.0-nx02-purchase-lite-closure` |
+| NX03 庫存 | ✅ | `v1.3.0-nx03-stock-lite-closure` |
+| NX04 銷貨 | ✅ | `v1.4.0-nx04-sales-lite-closure` |
+| NX05 財務（含 401 兩個月雙報、月關帳） | ✅ | `v2.0.6-alignment-f-complete` |
+| NX08 報表（6 張） | ✅ | `v2.0.7-alignment-h-complete` |
+| 手機殼（5 工作站 + dock + FAB + BarcodeScanner） | ✅ | `v2.0.8-alignment-g-complete` |
+| LITE 整合（4 補連線：退貨→保固、PR 3 來源、國外進貨 UI、hub 11 redirect） | ✅ | `v2.1.0-lite-complete` |
+| 平台 / 租戶分離（platform_admin 表 + JWT scope + /platform/login + TW/ZT 規格） | ✅ | `v2.2.0-platform-tenant-separation` |
+| 首頁儀表板大改造 | ✅ | （無單獨 tag、commit `1281f58`→`5bd3755`） |
+| 設定精靈打磨 | ✅ | （commit `aca4d37`） |
+| 員工啟用 + 席次制 | 🟠 進行中段 3 | — |
+
+### AF.4 鐵律（給新 Hank 起手前必讀、給新 Alex 配合審查時用）
+
+| # | 規則 | 為什麼 |
+|---|---|---|
+| 1 | **Railway 0 碰**（落後 92 支 migration） | 真實客戶簽約前 2-4 週才同步、現在動會壞 production |
+| 2 | **全 localhost**（`.env` 不動） | dev 流程穩定、改 env 會打散其他人 |
+| 3 | **git add 精確路徑、不用 `-A`** | 避免帶到 `.env` / 隨機檔；公司範式既定 |
+| 4 | **破壞性 schema 才 STOP**（新表 / 刪欄 / 重命名）；additive 直接做 | 同既有「破壞性結構變更才 review」範式 |
+| 5 | **0 推銷字眼**（席次 / 升級訊息） | Crown 明確、客戶覺得被推銷會反感 |
+| 6 | **只露中文名、不露 NXxx** | 客戶見字鐵律 |
+| 7 | **驗證附證據**（vitest / grep / actual URL）、不憑記憶 | Crown 2026-06-02 走查抓到「Sub 2 commit 說改了實際沒改」事件後立的鐵律 |
+| 8 | **段段 stop review**（漸進式重構） | Crown 不喜歡一次大改、看不到中間決策；改 commit 後 stop 等核可 |
+| 9 | **Edit 後驗證**（grep/Read 確認改了、commit 前 git diff、測前端實際 URL） | 同 #7 |
+| 10 | **危險命令前確認**（reset --hard / force push / 跨檔 sed sweep） | 公司範式：範圍超出可直接做、但危險命令例外 |
+
+### AF.5 新 Alex 起手 checklist
+
+1. **看本檔 §AA～§AF**（最新進度脈絡）
+2. **`git log --oneline -20`**（看 commit 序列 / Crown 回應節奏）
+3. **看席次制 5 個 commit 的訊息**：`34a130a` / `789bbce` / `b0341ea` / `53f8edb`（段 1 / 1.5 / 5 / 2）
+4. **看 PROJECT_RULES §0.4**（公司範式）— `docs/PROJECT_RULES.md`
+5. **跑一次測試確認環境**：`cd apps/nx-api && pnpm exec vitest run src/nx01/user/__tests__/seat-enforcement.spec.ts`（應該 12/12 過）
+6. **準備接 Crown 的「段 2 review 通過、接段 3」訊息**、先別動、等 Crown 主動
+
+### AF.6 新 Hank 起手 checklist
+
+1. 本檔 §AA～§AF 全讀
+2. `docs/PROJECT_RULES.md` Part III Hank 段
+3. `git log --oneline -30`、看上輪 commit 風格
+4. 對應 spec：`apps/nx-api/src/nx01/user/__tests__/seat-enforcement.spec.ts`、`apps/nx-api/src/sys-admin/importer/__tests__/employee-template.spec.ts` 跑過確認
+5. 接 Crown 段 3 指示開工
+
+---
+
+> 第五版到此結束。後續每個 closure tag 後可再加 §AG / §AH 增量、保持時序、不動 Part 1。
 
 ---
 
