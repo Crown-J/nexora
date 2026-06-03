@@ -10,8 +10,41 @@
 
 ## A. 當前 Git 狀態快照
 
-> **快照時間：2026-06-02 ⭐⭐ 平台層 vs 租戶層分離軌 Phase 1~6 全 closure**
-> **當前分支：`main`**（HEAD = Phase 6.7 tag commit、tag `v2.2.0-platform-tenant-separation`）
+> **快照時間：2026-06-04 ⭐ 席次制 closure（員工啟用 + 預設密碼 + 框架 isActive 轉型修正）**
+> **當前分支：`main`**（HEAD = `9544aea`「[SEATS pwd] 員工預設密碼統一改 changeme」、tag `v2.3.0-seats-enforcement`）
+
+### A.-2 ⭐ 2026-06-04 席次制 closure（席次控管 + 員工啟用流程、12 commits）
+
+> ⚠️ **移除前的完整存檔點**：「席次控管核心」（主檔切換啟用守門 + X/Y 席徽章 + SE-001 + 停用放行）保留為客戶日常功能；但「精靈內挑啟用 + 批次匯入」即將因方向轉向被移除（客戶端拿掉批次匯入、改 Innova 代建）。
+> 此 tag = 「移除前的完整存檔點」、若日後需追溯精靈端席次 UI 邏輯、回到 `v2.3.0-seats-enforcement` 即可。
+
+業務規則（Crown 拍板）：員工資料筆數不限、但「啟用（佔 seats、能登入）」受訂閱席次上限管制；含負責人計入。
+
+| 階段 | Commit | 內容 |
+|---|---|---|
+| 段 1 | `34a130a` | 員工範本拿掉「啟用」欄、importer 一律 `isActive=false` |
+| 段 1.5 | `789bbce` | 範本對齊員工編號制（latent bug、原範本沒員編欄、匯入 100% 失敗）|
+| 段 5 | `b0341ea` | 後端 user.service 加 seats enforcement（`assertSeatCapacity` / `bulkActivate` / `getSeatUsage`、SE-001/002 錯誤碼）|
+| 段 2 | `53f8edb` | 精靈第二步「挑啟用」UI（席次計數 + checkbox 清單 + 滿了 disable）|
+| 段 3 | `d33439e` | 啟用成功後顯示預設密碼 + 首登改密提示 |
+| 段 4 | `7415e45` | 主檔員工切換啟用接住席次守門 + 工具列「X/Y 席」徽章 |
+| bug-02 | `cfc3786` | 修挑啟用 3 個 bug：`pageSize=200` 超 `@Max(100)` 400 / 按鈕文案 / 空狀態誤顯示 |
+| bug-03 | `d15ca6e` | 修 `isActive='false'` 被錯轉成 true（class-transformer @Type Boolean 第一輪）|
+| bug-04 trace | `b853179` | 暫時 trace、回報後拆 |
+| bug-04 fix | `3104099` | 真因：ValidationPipe `enableImplicitConversion` 在 `@Transform` 之後 native Boolean coerce、用 `@Type(() => Object)` 避過。端到端實證 161 筆 inactive 員工撈得到 |
+| pwd 統一 | `9544aea` | 員工預設密碼統一 `changeme`（後端 + 精靈 + 主檔單筆三處同步）|
+
+**核心成果**：
+- 後端 `Nx01ListQueryDto.isActive` 升級為 ValidationPipe 安全 transform、20+ list endpoint 同步修好「`isActive=false` 被吃掉」潛在 bug
+- 席次守門：`current active + delta ≤ subscription.seats`、含負責人、訊息**無「升級/加購/聯絡」推銷字眼**（spec 負面斷言驗證）
+- 全 codebase grep `Temp123` / `nexora@2026` = 0 殘留、員工預設密碼三處一致
+- vitest 30+/30+ 全綠（pagination-isactive 10 / pagination-pipe 8 / seat-enforcement 12 / employee-template 6）
+- 0 schema（純邏輯、用既有 `nx99_subscription.seats` + `nx01_user.isActive`）
+- 0 Railway
+
+詳細業務脈絡見 [HANDOFF-LITE-PROGRESS §AC §AD §AE](HANDOFF-LITE-PROGRESS.md)。
+
+---
 
 ### A.-1 ⭐⭐ 2026-06-02 平台/租戶層分離軌 closure（main 直推 Phase 1~6、14 commits）
 
@@ -138,6 +171,7 @@ LITE 完整版 closure 後、總經理啟動實測發現「開戶後台缺正式
 | `v1.1.0-partner-six-classes-closure` | `0cb89e3` | **LITE 藍圖階段 0 partner 改制 closure**（partner_type 六分類：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商 + canTransferStock 旗標、17 service filter + DTO enum 清 + 前端 UI + seed 空殼 + 4 nx00 孤兒刪、Crown 2026-05-28 拍板）|
 | `v1.2.0-nx02-purchase-lite-closure` | `9bf8419` | **LITE 藍圖階段 1 進貨模組 closure**（NX02 + nx98 共用核心 + tiered-form framework）14 commits 整軌：詢價→比價→PO/TI 分流→驗收+移動平均+國外攤分→自動 AP / 保固單兩型+附件+5階段+4結果 / 客套話設定 / 供應商等級重算 / 產品定價重算 / 共享待辦池框架 / 三層欄位框架 / 操作手冊 |
 | `v1.3.0-nx03-stock-lite-closure` ⭐ | `7ae0c2a` | **LITE 藍圖階段 2 庫存模組 closure**（NX03）11 commits 整軌：M1 schema 1 新表 + 4 欄位 + AutoReplenish 標 deprecated / M2-A~F backend（盤點核可 + nx98 補貨通知 + 庫存查詢 3 維度 + IssueReport 跨模組異常 + PartStockSetting）/ M3-1~M3-3b frontend 5 畫面（盤點工作台 / 庫存查詢 / 庫位 / 產品設定 / 異常回報 / 重組分解）/ M4 整合驗證 / M5 操作手冊 13 章節 |
+| `v2.3.0-seats-enforcement` ⭐ | `9544aea` | **席次制 closure**（員工啟用 + seats 守門 + 預設密碼 + 框架 isActive 轉型修正）12 commits 整軌、見 §A.-2。**移除前的完整存檔點**：精靈內挑啟用 + 批次匯入即將因方向轉向被移除（客戶端拿掉批次匯入、改 Innova 代建）；席次控管核心（主檔切換啟用守門 + X/Y 席徽章 + SE-001 + 停用放行）保留為客戶日常功能 |
 
 ### A.3 工作樹狀態
 
@@ -147,11 +181,11 @@ Your branch is up to date with 'origin/main'.
 nothing to commit, working tree clean
 ```
 
-> ⚠️ 本檔在 main 分支 update（不是 feature 分支）— 本軌已 merge、git-state 跟著 main 走。
-> ⚠️ 本次 TASK-NX03-STOCK-LITE 收尾含：
->   1 個 [MERGE]（feature/nx03-stock-lite → main、--no-ff、merge commit `7ae0c2a`、整軌 11 commits）
->   + 1 個 tag（`v1.3.0-nx03-stock-lite-closure` 指向 `7ae0c2a`、已 push origin）
->   + 即將加 [GIT-STATE]（本檔、main 分支上 commit）
+> ⚠️ 本檔在 main 分支 update。本軌（席次制）main 直推、無 feature 分支。
+> ⚠️ 本次 closure 含：
+>   12 個 commits（席次五段 + bug-02/03/04 + pwd 統一）
+>   + 1 個 tag（`v2.3.0-seats-enforcement` 指向 `9544aea`、已 push origin）
+>   + 1 個 [GIT-STATE]（本檔、main 分支上 commit）
 
 ---
 
