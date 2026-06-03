@@ -65,6 +65,7 @@ import {
 } from '@/features/base/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
+import { fetchSeatUsage, type SeatUsage } from '@/features/wizard/api';
 
 import { UserFormZoned } from './UserFormZoned';
 import {
@@ -124,6 +125,9 @@ export function UserZonedPage({
 
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
+  // 席次徽章（員工主檔專用、顯示「X / Y 席」）
+  const [seatUsage, setSeatUsage] = useState<SeatUsage | null>(null);
+
   // ── B1：新增使用者 dialog ──
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -143,6 +147,21 @@ export function UserZonedPage({
     const t = setTimeout(() => setDebouncedKw(keyword), 300);
     return () => clearTimeout(t);
   }, [keyword]);
+
+  // 席次：mount 拉一次、reloadTick 變化（任何 CRUD 後）也重拉、保持同步
+  useEffect(() => {
+    let cancelled = false;
+    fetchSeatUsage()
+      .then((u) => {
+        if (!cancelled) setSeatUsage(u);
+      })
+      .catch(() => {
+        if (!cancelled) setSeatUsage(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadTick]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -549,7 +568,12 @@ export function UserZonedPage({
             showToast(turningOff ? '已停用' : '已啟用', 'success');
             setReloadTick((t) => t + 1);
           } catch (e) {
-            showToast((e as Error)?.message ?? '操作失敗', 'danger');
+            // setUserActive 內 assertOk 失敗會丟 Error、message 格式：
+            //   `[nxui_base_user_set_active] 409 已達席次上限（X/Y 席）...`
+            // 將前綴剝掉、只留客戶看得懂的中文業務訊息
+            const raw = (e as Error)?.message ?? '操作失敗';
+            const cleaned = raw.replace(/^\[[^\]]+\]\s*\d{3}\s*/, '').trim() || raw;
+            showToast(cleaned, 'danger');
           }
         })();
       },
@@ -820,6 +844,18 @@ export function UserZonedPage({
           onBatchDisable={() => {}}
         />
       </div>
+      {seatUsage ? (
+        <div className="flex items-center justify-end gap-2 px-3 pb-1 text-xs">
+          <span className="text-muted-foreground">席次</span>
+          <span className="inline-flex items-center rounded-md border border-border/70 bg-secondary/40 px-2 py-0.5 font-mono tabular-nums text-foreground">
+            <span className="text-primary">{seatUsage.used}</span>
+            <span className="mx-0.5 text-muted-foreground">/</span>
+            <span>{seatUsage.total}</span>
+            <span className="ml-1 text-muted-foreground">席</span>
+          </span>
+          <span className="text-muted-foreground">（已啟用含負責人）</span>
+        </div>
+      ) : null}
       <SearchPanel
         open={searchOpen}
         value={keyword}
