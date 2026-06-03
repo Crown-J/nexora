@@ -46,7 +46,7 @@ export function EventBookPanel({ events, selectedDate, loading }: EventBookPanel
   });
 
   return (
-    <div className="glass-card flex h-full min-h-0 flex-col gap-2 rounded-xl border border-border/80 p-4 shadow-sm">
+    <div className="glass-card nx-glass-raised flex h-full min-h-0 flex-col gap-2 rounded-xl border border-border/80 p-4">
       <HomeSectionHeader Icon={FileText} title="事件簿" count={selectedDate} />
 
       <div className="-mx-1 flex-1 overflow-y-auto px-1">

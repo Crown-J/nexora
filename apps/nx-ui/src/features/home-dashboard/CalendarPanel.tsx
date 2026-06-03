@@ -84,7 +84,7 @@ export function CalendarPanel({
   }
 
   return (
-    <div className="glass-card flex h-full min-h-0 flex-col gap-2 rounded-xl border border-border/80 p-4 shadow-sm">
+    <div className="glass-card nx-glass-raised flex h-full min-h-0 flex-col gap-2 rounded-xl border border-border/80 p-4">
       <HomeSectionHeader
         Icon={CalendarDays}
         title="行事曆"

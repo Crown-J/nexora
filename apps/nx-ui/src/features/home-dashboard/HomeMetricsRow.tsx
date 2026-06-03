@@ -21,9 +21,9 @@ import { fetchMetricsPref, saveMetricsPref } from './user-pref-api';
 const SLOT_COUNT = 5;
 
 const SHELL_BASE =
-  'glass-card box-border rounded-xl border border-border/80 p-4 shadow-sm transition-all duration-300 ease-out';
+  'glass-card nx-glass-raised box-border rounded-xl border border-border/80 p-4 transition-all duration-300 ease-out';
 const SHELL_HOVER =
-  'hover:-translate-y-0.5 hover:scale-[1.005] hover:border-primary/35 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]';
+  'hover:-translate-y-0.5 hover:scale-[1.005] hover:border-primary/35 hover:shadow-[0_18px_46px_rgba(0,0,0,0.45)]';
 
 export function HomeMetricsRow() {
   const [pref, setPref] = useState<MetricsPrefValue>(EMPTY_METRICS);
@@ -122,11 +122,12 @@ function EmptyMetricInvite({ loaded, onClick }: { loaded: boolean; onClick: () =
       disabled={!loaded}
       onClick={onClick}
       className={cn(
-        'group flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border/60 bg-secondary/20 p-4 backdrop-blur-sm transition-all',
+        // 沿用 glass-card 底色 + inset 高光、邊框換虛線「可設定」語意
+        'glass-card group flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-xl p-4 text-muted-foreground transition-all duration-300 ease-out',
+        '!border-2 !border-dashed !border-border/60',
         loaded
-          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:bg-secondary/30 hover:text-primary'
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:!border-primary/55 hover:text-primary hover:shadow-[0_18px_46px_rgba(0,0,0,0.45)]'
           : 'cursor-wait opacity-40',
-        'text-muted-foreground',
       )}
     >
       <Plus className="h-6 w-6" strokeWidth={1.5} />
