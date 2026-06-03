@@ -1,39 +1,37 @@
 // apps/nx-ui/src/features/wizard/ui/WizardLauncher.tsx
-// v1.2 對齊軌 C：匯入精靈 launcher + 主畫面右上「精靈引導」按鈕
+// v1.2 對齊軌 C：匯入精靈 launcher（首次登入自動跳）
 //
-// 用法：放在 DashboardShell、首次登入自動跳、之後按鈕重開
+// 2026-06-03：移除右下浮動「精靈引導」按鈕、改由 MasterTopBar 精靈 icon 觸發。
+// 透過 window CustomEvent `nexora:reopen-wizard` 觸發 reset+reopen，
+// 避免跨元件共享 state 改寫 useWizardGate。
 
 'use client';
 
-import { Wand2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 import { resetImportWizard } from '../api';
 import { useWizardGate } from '../hooks/useWizardGate';
 import { ImportWizardOverlay } from './ImportWizardOverlay';
 
+export const NEXORA_REOPEN_WIZARD_EVENT = 'nexora:reopen-wizard';
+
 export function WizardLauncher() {
   const { showImportWizard, close, reopen } = useWizardGate();
 
-  const handleReopen = async () => {
-    try {
-      await resetImportWizard();
-      reopen();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : '重開失敗');
-    }
-  };
+  useEffect(() => {
+    const handler = () => {
+      void (async () => {
+        try {
+          await resetImportWizard();
+          reopen();
+        } catch (e) {
+          alert(e instanceof Error ? e.message : '重開失敗');
+        }
+      })();
+    };
+    window.addEventListener(NEXORA_REOPEN_WIZARD_EVENT, handler);
+    return () => window.removeEventListener(NEXORA_REOPEN_WIZARD_EVENT, handler);
+  }, [reopen]);
 
-  return (
-    <>
-      <button
-        onClick={() => void handleReopen()}
-        title="重開匯入精靈"
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border bg-background px-4 py-2 text-xs shadow-lg hover:bg-muted"
-      >
-        <Wand2 className="h-4 w-4" />
-        精靈引導
-      </button>
-      {showImportWizard ? <ImportWizardOverlay onClose={close} /> : null}
-    </>
-  );
+  return showImportWizard ? <ImportWizardOverlay onClose={close} /> : null;
 }

@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Bell, ChevronDown, ChevronRight, LogOut, Megaphone, Search, User } from 'lucide-react';
+import { Bell, ChevronDown, ChevronRight, ClipboardList, LogOut, Megaphone, Search, User, Wand2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -29,6 +29,8 @@ import {
   MASTER_HUB_SECTION_TITLES,
 } from '@/features/base/config/master-cards';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { NEXORA_REOPEN_WIZARD_EVENT } from '@/features/wizard/ui/WizardLauncher';
+import { apiJson } from '@/shared/api/client';
 
 const MASTER_HREF = '/dashboard/base';
 const MASTER_MODULE_IDX = HOME_DOCK_ITEMS.findIndex((m) => m.href === MASTER_HREF);
@@ -75,12 +77,26 @@ function usePopover() {
 const PANEL =
   'absolute z-50 mt-2 rounded-xl border border-[#2A2A30] bg-[#131316]/97 shadow-2xl backdrop-blur-xl';
 
+type TopBarBulletinRow = {
+  id: string;
+  title: string;
+  importance?: string | null;
+};
+
+type TopBarTaskRow = {
+  id: string;
+  title: string;
+  priority?: string | null;
+  dueDate?: string | null;
+  status?: string | null;
+};
+
 export function MasterTopBar({
   category,
   title,
   count,
   requestNavigate,
-  unreadAnnouncements = 0,
+  unreadAnnouncements,
   unreadNotifications = 0,
 }: {
   category: string;
@@ -88,16 +104,68 @@ export function MasterTopBar({
   count: string;
   /** 跳轉（由父層提供、含編輯 dirty 攔截） */
   requestNavigate: (href: string) => void;
+  /** 覆寫公告未讀數；未傳則內部自動拉 /nx01/bulletins */
   unreadAnnouncements?: number;
   unreadNotifications?: number;
 }) {
-  const { displayName, tenantNameZh, planCode, me, logout } = useSessionMe();
+  const { displayName, tenantNameZh, planCode, me, view, logout } = useSessionMe();
   const pathname = usePathname();
 
   const moduleMenu = usePopover();
   const announceMenu = usePopover();
   const notifyMenu = usePopover();
+  const taskMenu = usePopover();
   const userMenu = usePopover();
+
+  // 公告 / 任務 未讀數：等 session 就緒後拉一次（race fix 同 TaskListPanel）
+  const [bulletinCount, setBulletinCount] = useState<number>(0);
+  const [taskCount, setTaskCount] = useState<number>(0);
+  const [taskRows, setTaskRows] = useState<TopBarTaskRow[]>([]);
+  const [bulletinRows, setBulletinRows] = useState<TopBarBulletinRow[]>([]);
+
+  useEffect(() => {
+    if (view.loading || !me) return;
+    let cancelled = false;
+    apiJson<{ rows?: TopBarBulletinRow[]; total?: number }>(
+      '/nx01/bulletins?status=published&pageSize=10',
+      { method: 'GET' },
+    )
+      .then((res) => {
+        if (cancelled) return;
+        setBulletinRows(Array.isArray(res.rows) ? res.rows : []);
+        setBulletinCount(typeof res.total === 'number' ? res.total : (res.rows?.length ?? 0));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setBulletinRows([]);
+        setBulletinCount(0);
+      });
+    apiJson<{ rows?: TopBarTaskRow[]; total?: number }>(
+      '/nx98/task-pool?pageSize=10',
+      { method: 'GET' },
+    )
+      .then((res) => {
+        if (cancelled) return;
+        setTaskRows(Array.isArray(res.rows) ? res.rows : []);
+        setTaskCount(typeof res.total === 'number' ? res.total : (res.rows?.length ?? 0));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTaskRows([]);
+        setTaskCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [view.loading, me]);
+
+  const effectiveAnnouncements = unreadAnnouncements ?? bulletinCount;
+
+  function openWizard() {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(NEXORA_REOPEN_WIZARD_EVENT));
+    }
+  }
   const [kw, setKw] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -352,31 +420,78 @@ export function MasterTopBar({
       <div className="relative" ref={announceMenu.ref}>
         <NotifyButton
           icon={Megaphone}
-          badge={unreadAnnouncements}
+          badge={effectiveAnnouncements}
           badgeTone="amber"
           label="公司公告"
           active={announceMenu.open}
           onClick={() => announceMenu.setOpen((o) => !o)}
         />
         {announceMenu.open ? (
-          <div className={cn(PANEL, 'right-0 w-[min(88vw,18rem)] p-3')}>
+          <div className={cn(PANEL, 'right-0 w-[min(88vw,20rem)] p-3')}>
             <PanelTitle text="公司公告" />
-            <p className="px-1 py-2 text-xs text-[#888892]">
-              {unreadAnnouncements > 0 ? `有 ${unreadAnnouncements} 則未讀公告` : '目前沒有未讀公告'}
-            </p>
+            {bulletinRows.length === 0 ? (
+              <p className="px-1 py-6 text-center text-xs text-[#888892]">目前沒有公告</p>
+            ) : (
+              <ul className="max-h-72 overflow-y-auto py-1">
+                {bulletinRows.map((r) => (
+                  <li key={r.id} className="border-t border-[#22222A] px-2 py-1.5 first:border-t-0">
+                    <p className="text-xs text-[#E8E8EB]">{r.title}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
             <button
               type="button"
               onClick={() => {
                 announceMenu.setOpen(false);
                 requestNavigate('/dashboard/base/bulletins');
               }}
-              className="mt-1 w-full rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-3 py-1.5 text-xs font-medium text-[#E8A020] transition-colors hover:bg-[#E8A020]/20"
+              className="mt-2 w-full rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-3 py-1.5 text-xs font-medium text-[#E8A020] transition-colors hover:bg-[#E8A020]/20"
             >
               查看全部公告
             </button>
           </div>
         ) : null}
       </div>
+
+      {/* 任務（琥珀 badge、未完成數量） */}
+      <div className="relative" ref={taskMenu.ref}>
+        <NotifyButton
+          icon={ClipboardList}
+          badge={taskCount}
+          badgeTone="amber"
+          label="待辦任務"
+          active={taskMenu.open}
+          onClick={() => taskMenu.setOpen((o) => !o)}
+        />
+        {taskMenu.open ? (
+          <div className={cn(PANEL, 'right-0 w-[min(88vw,20rem)] p-3')}>
+            <PanelTitle text="待辦任務" />
+            {taskRows.length === 0 ? (
+              <p className="px-1 py-6 text-center text-xs text-[#888892]">目前沒有待辦</p>
+            ) : (
+              <ul className="max-h-72 overflow-y-auto py-1">
+                {taskRows.map((r) => (
+                  <li key={r.id} className="border-t border-[#22222A] px-2 py-1.5 first:border-t-0">
+                    <p className="text-xs text-[#E8E8EB]">{r.title}</p>
+                    {r.dueDate ? (
+                      <p className="mt-0.5 text-[10px] text-[#888892]">{r.dueDate.slice(0, 10)}</p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      {/* 精靈引導（無 badge、簡單觸發 reset+reopen） */}
+      <NotifyButton
+        icon={Wand2}
+        badgeTone="amber"
+        label="精靈引導"
+        onClick={openWizard}
+      />
 
       {/* 通知（紅色 badge） */}
       <div className="relative" ref={notifyMenu.ref}>
