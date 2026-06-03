@@ -2,6 +2,7 @@
 // 使用者偏好設定 service — list / get / upsert / delete
 
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -39,10 +40,11 @@ export class UserPrefService {
       where: { userId: user.sub, prefKey },
       select: { id: true },
     });
+    const json = prefValue as Prisma.InputJsonValue;
     if (existing) {
       await this.prisma.nx01UserPref.update({
         where: { id: existing.id },
-        data: { prefValue, updatedBy: user.sub },
+        data: { prefValue: json, updatedBy: user.sub },
       });
     } else {
       await this.prisma.nx01UserPref.create({
@@ -50,7 +52,7 @@ export class UserPrefService {
           tenantId,
           userId: user.sub,
           prefKey,
-          prefValue,
+          prefValue: json,
           createdBy: user.sub,
           updatedBy: user.sub,
         },
