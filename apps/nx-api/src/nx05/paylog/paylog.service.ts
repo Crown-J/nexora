@@ -1,7 +1,7 @@
 // apps/nx-api/src/nx05/paylog/paylog.service.ts
 // v1.2 階段 F P5 B：paylog + 一對多 settlement 共用 service
 
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -41,6 +41,13 @@ export class PaylogService {
       const payType = dto.noteType === 'R' ? 'CR' : 'CP';
       const payMethod = payMethodToDbCode(dto.paymentMethod);
 
+      // [BUG #4 真因 fix] currencyId 必須是 nx01_currency.id（如 NX01CURR0000001）、不是 code 'TWD'。
+      // 舊 code 寫死 'TWD' → FK constraint nx05_paylog_currency_id_fkey 擋 → 500。
+      // 改：查 TWD 對應的 id；若該 tenant 連 TWD 都沒 seed 直接 throw。
+      const twd = await tx.nx01Currency.findFirst({ where: { code: 'TWD' }, select: { id: true } });
+      if (!twd) throw new BadRequestException('預設幣別 TWD 未在 nx01_currency seed、無法建收付款單');
+      const currencyId = twd.id;
+
       // 既有 nx05_paylog 有單一 arId/apId（一對一 schema）、本軌一對多走 settlement 表
       // → 為兼容既有查詢、若 settlement 只 1 筆、把該 AR/AP id 寫入既有欄；多筆則留 null
       const first = dto.settlements[0]!;
@@ -59,7 +66,7 @@ export class PaylogService {
           arId: singleArId,
           apId: singleApId,
           amount: new PrismaNs.Decimal(dto.amount),
-          currencyId: 'TWD',
+          currencyId,
           payMethod,
           status: 'POSTED',
           postedAt: new Date(),

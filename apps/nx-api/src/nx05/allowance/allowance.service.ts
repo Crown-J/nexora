@@ -342,6 +342,9 @@ export class AllowanceService {
         existing.allowanceType === 'S' ? 'RC' : 'CP',
         orgCodeFromDocNo(existing.docNo),
       );
+      // [BUG #4 真因 fix] currencyId 必須是 nx01_currency.id（如 NX01CURR0000001）、不是 code 'TWD'
+      const twd = await tx.nx01Currency.findFirst({ where: { code: 'TWD' }, select: { id: true } });
+      if (!twd) throw new BadRequestException('預設幣別 TWD 未在 nx01_currency seed、無法建折讓沖銷單');
       const paylog = await tx.nx05Paylog.create({
         data: {
           tenantId,
@@ -352,7 +355,7 @@ export class AllowanceService {
           arId: existing.refArId,
           apId: existing.refApId,
           amount: new PrismaNs.Decimal(existing.totalAmount),
-          currencyId: 'TWD',
+          currencyId: twd.id,
           payMethod: 'AL', // AL=折讓（非標準 4 種、用 'AL' 標示「折讓沖銷」）
           status: 'POSTED',
           postedAt: new Date(),
