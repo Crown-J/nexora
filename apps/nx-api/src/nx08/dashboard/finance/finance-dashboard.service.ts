@@ -83,9 +83,12 @@ export class Nx08FinanceDashboardService {
   //   營業費用 = SUM(Paylog WHERE payType='EX' AND accountCode.category='E' AND payDate in period)
   //   營業淨利 = 毛利 − 營業費用
   //
-  // ⚠️ 簡化版說明：
-  //   - 「真正」會計上的銷貨成本 = 賣出商品的成本（依出庫成本算），需 lineItem 級別 cost
-  //   - LITE 階段用「進銷法」簡化（許多小公司也這麼算）、後續軌可升級為移動平均成本拆算
+  // ⚠️ 算法說明（BUG #5 fix 後）：
+  //   - cogs = Σ(SO item part.cost × qty)、跟個人月報（sales-rep-dashboard.service.ts:212）一致
+  //   - 舊算法「進銷淨額法」（cogs = sumRR − sumPR）已棄用、會把所有進貨當成本、
+  //     囤庫存月份嚴重失真（例：進 10 萬只賣 3 萬、cogs 算成 10 萬 → grossProfit 變極負）
+  //   - part.cost 是料件主檔的進貨成本（業務員手動填）、不是 stock_balance.avg_cost；
+  //     之後可升級成「真正移動平均成本」（需 lineItem 級別 stock_ledger 抓出庫當下成本）
   //   - 完整損益表（含營業外損益/所得稅）列後續軌
   // ────────────────────────────────────────────────────────────
 
@@ -104,7 +107,7 @@ export class Nx08FinanceDashboardService {
     }
     end.setHours(23, 59, 59, 999);
 
-    const [so, sr, rr, pr, expensesByCode, expenseRows] = await Promise.all([
+    const [so, sr, rr, pr, expensesByCode, expenseRows, soItems] = await Promise.all([
       this.prisma.nx04So.aggregate({
         where: { tenantId, soDate: { gte: start, lte: end }, cancelledAt: null },
         _sum: { totalAmount: true },
@@ -141,6 +144,12 @@ export class Nx08FinanceDashboardService {
         where: { tenantId, category: 'E' },
         select: { id: true, code: true, name: true },
       }),
+      // [BUG #5 fix] 銷貨成本拉 SO items（跟個人月報一致：cogs = Σ part.cost × qty）
+      // 取代舊「進銷淨額法」（cogs = RR 進貨 − PR 退供應商）、避免囤庫存時嚴重失真
+      this.prisma.nx04SoItem.findMany({
+        where: { so: { tenantId, soDate: { gte: start, lte: end }, cancelledAt: null } },
+        select: { qty: true, part: { select: { cost: true } } },
+      }),
     ]);
 
     const acMap = new Map(expenseRows.map((r) => [r.id, r] as const));
@@ -163,7 +172,16 @@ export class Nx08FinanceDashboardService {
     const sumPR = new PrismaNs.Decimal(pr._sum.totalAmount ?? 0);
 
     const revenue = sumSO.minus(sumSR);
-    const cogs = sumRR.minus(sumPR);
+
+    // [BUG #5 fix] cogs = Σ(賣出明細的 part.cost × qty)、跟個人月報一致
+    // 舊算法 sumRR.minus(sumPR)（進銷淨額法）會把所有進貨當成本、
+    // 即使大部分還在庫存沒賣 → 老闆月份報表嚴重失真。
+    let cogs = new PrismaNs.Decimal(0);
+    for (const it of soItems) {
+      const c = new PrismaNs.Decimal(it.part?.cost ?? 0);
+      const q = new PrismaNs.Decimal(it.qty);
+      cogs = cogs.plus(c.mul(q));
+    }
     const grossProfit = revenue.minus(cogs);
 
     const opex = expenseDetail.reduce(
@@ -185,9 +203,12 @@ export class Nx08FinanceDashboardService {
         srCount: sr._count._all,
       },
       cogs: {
-        gross: sumRR.toString(),
-        return: sumPR.toString(),
+        // [BUG #5 fix] net = Σ(SO item part.cost × qty)、跟個人月報一致
         net: cogs.toString(),
+        soItemCount: soItems.length,
+        // 期內進貨統計（不影響 cogs 計算、保留供會計參考期內進貨流量）
+        purchaseGross: sumRR.toString(),
+        purchaseReturn: sumPR.toString(),
         rrCount: rr._count._all,
         prCount: pr._count._all,
       },
@@ -199,7 +220,7 @@ export class Nx08FinanceDashboardService {
       },
       operatingIncome: operatingIncome.toString(),
       opMarginPct: opMarginPct.toFixed(2),
-      note: '進銷淨額法（簡化版）：成本=進貨淨額；完整 lineItem 移動平均成本算法列後續軌',
+      note: '銷貨成本算法 = Σ(SO 明細 part.cost × qty)、跟個人月報一致；期內 RR/PR 進貨統計另列 purchaseGross/Return 供會計參考',
     };
   }
 }
