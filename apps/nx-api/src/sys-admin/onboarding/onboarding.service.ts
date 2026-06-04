@@ -209,6 +209,33 @@ export class OnboardingService {
         },
       });
 
+      // 4.7 開戶完成檢查（BUG #1 LITE 上線防呆、避免後續軌靜默掛丟）
+      // 在 transaction 末段驗證「負責人真的掛好 OWNER」、不對則整個 rollback、
+      // 避免 Innova 操作完成顯示成功、實際客戶拿到不能用的系統。
+      const verifyUserRole = await tx.nx01UserRole.findFirst({
+        where: {
+          tenantId: tenant.id,
+          userId: owner.id,
+          roleId: ownerRole.id,
+          isActive: true,
+        },
+        select: { id: true },
+      });
+      if (!verifyUserRole) {
+        throw new BadRequestException(
+          `開戶完成檢查失敗：負責人 ${owner.id} 未掛 OWNER role、整個 onboarding rollback`,
+        );
+      }
+      const verifyOwnerFlag = await tx.nx01User.findFirst({
+        where: { id: owner.id, isTenantOwner: true, isActive: true },
+        select: { id: true },
+      });
+      if (!verifyOwnerFlag) {
+        throw new BadRequestException(
+          `開戶完成檢查失敗：負責人 ${owner.id} isTenantOwner 非 true 或停用、整個 onboarding rollback`,
+        );
+      }
+
       return { tenant, owner, ownerRole, site, warehouse, subscription };
     });
 
