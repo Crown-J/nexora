@@ -56,8 +56,12 @@ function yearMonth(d: Date): string {
 
 // v1.2 階段 F P3 D：將任意 closingDate 規範化為「該月最後一日」
 //   - 約定每月一筆關帳、closingDate 統一指向月底（idempotency + 顯示一致）
+// [BUG #6 fix] 用 UTC 函數、避免 local→UTC 轉換倒退一天：
+//   舊算法 new Date(d.getFullYear(), d.getMonth() + 1, 0) 用 local time、
+//   結果寫 DB DATE 欄位時用 UTC、Asia/Taipei UTC+8 會倒退一天（6/30 → 6/29）。
+//   改用 UTC + 中午 12:00 為時間部分、無論 timezone 轉換 DATE 部分都不偏移。
 function normalizeMonthEnd(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0); // day 0 of next month = last day of this month
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0, 12, 0, 0));
 }
 
 @Injectable()
@@ -279,10 +283,13 @@ export class PeriodCloseService {
   /**
    * 預覽該 401 期（雙月一期）的銷項 / 進項彙整。
    *
-   * 計算來源（基礎版本、本軌只彙總既有單據總額；發票稅額拆分 P5 接 TXT 格式時補）：
-   *   - 銷項：SUM(nx04_so.totalAmount)（出貨完成 / SHIPPED 以上）+ SUM(nx04_sr.totalAmount) 為負
-   *   - 進項：SUM(nx02_rr.totalAmount)（驗收 POSTED）+ SUM(nx02_pr.totalAmount) 為負
-   *   - 應納稅額：銷項 - 進項（簡化版、未計 5% 稅率分離、P5 接 TXT 時補）
+   * [BUG #6 fix] 改算法跟 TXT export 對齊（拆 5% 稅）：
+   *   - 銷項淨額：SUM(so.subtotal) − SUM(sr.subtotal)（未稅淨額）
+   *   - 進項淨額：SUM(rr.subtotal) − SUM(pr.subtotal)（未稅淨額）
+   *   - 銷項稅額：SUM(so.taxAmount) − SUM(sr.taxAmount)
+   *   - 進項稅額：SUM(rr.taxAmount) − SUM(pr.taxAmount)
+   *   - 應納稅額：銷項稅額 − 進項稅額（正確算法、跟 TXT 一致）
+   * 舊算法用 totalAmount（含稅）相減當「應納稅額」、實際是毛差額、跟 TXT 差 20 倍。
    */
   async previewPeriod401(user: RequestUser, yp: string) {
     const tenantId = requireTenantId(user);
@@ -302,22 +309,22 @@ export class PeriodCloseService {
     const [so, sr, rr, pr, closings] = await Promise.all([
       this.prisma.nx04So.aggregate({
         where: { tenantId, soDate: { gte: startDate, lte: endDate }, cancelledAt: null },
-        _sum: { totalAmount: true },
+        _sum: { totalAmount: true, subtotal: true, taxAmount: true },
         _count: { id: true },
       }),
       this.prisma.nx04Sr.aggregate({
         where: { tenantId, srDate: { gte: startDate, lte: endDate } },
-        _sum: { totalAmount: true },
+        _sum: { totalAmount: true, subtotal: true, taxAmount: true },
         _count: { id: true },
       }),
       this.prisma.nx02Rr.aggregate({
         where: { tenantId, rrDate: { gte: startDate, lte: endDate }, status: 'POSTED' },
-        _sum: { totalAmount: true },
+        _sum: { totalAmount: true, subtotal: true, taxAmount: true },
         _count: { id: true },
       }),
       this.prisma.nx02Pr.aggregate({
         where: { tenantId, prDate: { gte: startDate, lte: endDate }, status: 'POSTED' },
-        _sum: { totalAmount: true },
+        _sum: { totalAmount: true, subtotal: true, taxAmount: true },
         _count: { id: true },
       }),
       this.prisma.nx05Closing.findMany({
@@ -327,13 +334,26 @@ export class PeriodCloseService {
       }),
     ]);
 
+    // [BUG #6 fix] 跟 TXT 一致：用 subtotal（未稅淨額）跟 taxAmount（5% 稅額）
+    // 舊算法用 totalAmount（含稅）相減當應納稅額、實際是毛差額、跟 TXT 差 20 倍
     const salesGross = new PrismaNs.Decimal(so._sum.totalAmount ?? 0);
     const salesReturn = new PrismaNs.Decimal(sr._sum.totalAmount ?? 0);
-    const salesNet = salesGross.minus(salesReturn);
+    const salesSubtotal = new PrismaNs.Decimal(so._sum.subtotal ?? 0).minus(
+      new PrismaNs.Decimal(sr._sum.subtotal ?? 0),
+    );
+    const salesTaxOutput = new PrismaNs.Decimal(so._sum.taxAmount ?? 0).minus(
+      new PrismaNs.Decimal(sr._sum.taxAmount ?? 0),
+    );
     const purchaseGross = new PrismaNs.Decimal(rr._sum.totalAmount ?? 0);
     const purchaseReturn = new PrismaNs.Decimal(pr._sum.totalAmount ?? 0);
-    const purchaseNet = purchaseGross.minus(purchaseReturn);
-    const taxPayable = salesNet.minus(purchaseNet);
+    const purchaseSubtotal = new PrismaNs.Decimal(rr._sum.subtotal ?? 0).minus(
+      new PrismaNs.Decimal(pr._sum.subtotal ?? 0),
+    );
+    const purchaseTaxInput = new PrismaNs.Decimal(rr._sum.taxAmount ?? 0).minus(
+      new PrismaNs.Decimal(pr._sum.taxAmount ?? 0),
+    );
+    // 應納稅額 = 銷項稅 − 進項稅（跟 TXT 一致、不再是 totalAmount 毛差額）
+    const taxPayable = salesTaxOutput.minus(purchaseTaxInput);
 
     return {
       reportPeriod: yp,
@@ -341,19 +361,23 @@ export class PeriodCloseService {
       startDate,
       endDate,
       sales: {
+        // [BUG #6 fix] gross/return 保留含稅顯示給會計參考、net 改為未稅淨額（subtotal、跟 TXT 一致）
         gross: salesGross.toString(),
         return: salesReturn.toString(),
-        net: salesNet.toString(),
+        net: salesSubtotal.toString(),
+        outputTax: salesTaxOutput.toString(),
         soCount: so._count.id,
         srCount: sr._count.id,
       },
       purchase: {
         gross: purchaseGross.toString(),
         return: purchaseReturn.toString(),
-        net: purchaseNet.toString(),
+        net: purchaseSubtotal.toString(),
+        inputTax: purchaseTaxInput.toString(),
         rrCount: rr._count.id,
         prCount: pr._count.id,
       },
+      // [BUG #6 fix] taxPayable = outputTax − inputTax（跟 TXT 一致、應納稅額正確算法）
       taxPayable: taxPayable.toString(),
       closings: closings.map((c) => ({
         id: c.id,
@@ -364,7 +388,7 @@ export class PeriodCloseService {
       })),
       filed: closings.some((c) => c.reportFiledAt != null),
       readyToFile: closings.filter((c) => c.status === ClosingStatus.CLOSED).length >= 2,
-      note: '本期彙總為基礎版（未拆 5% 稅率）；401 TXT 精確格式待 P5 補（依財政部規範）',
+      note: '應納稅額算法已拆 5%（跟 TXT 一致）：銷項稅 − 進項稅；sales.gross/return 仍顯示含稅總額供會計參考、net 為未稅淨額',
     };
   }
 
