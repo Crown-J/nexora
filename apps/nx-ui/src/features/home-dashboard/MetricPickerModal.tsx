@@ -39,7 +39,12 @@ export function MetricPickerModal({
   const { me } = useSessionMe();
 
   const grouped = useMemo(() => {
-    const visible = METRIC_OPTIONS.filter((opt) => canRead(me as MeDto | null, opt.viewCode));
+    // [4-1] 2026-06-05：KPI 套件鎖頭對所有方案「隱藏不顯示」（NX-MANUAL-02 v2.0 §④）。
+    // 原本對 LITE 顯示鎖頭徽章 + disabled 卡、現改為直接不渲染（!isPremium）。
+    // 未來若 KPI 套件購買邏輯接通、再依擁有狀態 unfilter。
+    const visible = METRIC_OPTIONS.filter(
+      (opt) => canRead(me as MeDto | null, opt.viewCode) && !opt.isPremium,
+    );
     const byCat: Record<string, MetricOptionDef[]> = {};
     for (const opt of visible) {
       (byCat[opt.category] ??= []).push(opt);

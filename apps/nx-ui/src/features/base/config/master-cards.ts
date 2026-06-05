@@ -386,11 +386,11 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/model-type',
   },
-  // ─── 交易對象延伸（客戶等級、PLUS）────────────────────────────────
+  // ─── 交易對象延伸（客戶等級）────────────────────────────────
+  // [4-1] 2026-06-05：手冊 §11.4 揭露「LITE 全版本開放」、移除 minPlan: 'PLUS' 鎖
   {
     id: 'customer-grade',
     section: 'partner',
-    minPlan: 'PLUS',
     title: '客戶分級基本資料',
     description: '依交易額／信用條件分級，影響定價與付款條件',
     icon: Award,

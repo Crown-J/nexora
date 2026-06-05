@@ -29,7 +29,12 @@ import {
 import { cn } from '@/lib/utils';
 // QWERTY 快捷格已移除（鋼鐵星球範式不再需要）
 import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
-import { getMasterHubSections } from '@/features/base/config/master-cards';
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import {
+  canAccessMasterCard,
+  getMasterHubSections,
+  normalizePlanCode,
+} from '@/features/base/config/master-cards';
 
 export type DockNavItem = {
   icon: LucideIcon;
@@ -323,11 +328,15 @@ export function NavPlanetMenu() {
   const menuLevelRef = useRef<MenuLevel>('root');
   const openRef = useRef(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  // 25 主檔 list（業界改革 #22 v1.0 範式：master hub 卡片 metadata）
-  const allBaseCards = useMemo(
-    () => getMasterHubSections().flatMap((s) => s.cards),
-    [],
-  );
+  // 25 主檔 list（業界改革 #22 v1.0 範式：master hub 卡片 metadata）。
+  // [4-1] 2026-06-05：依使用者方案 filter 套件 / 高版本主檔、LITE 客戶不渲染（NX-MANUAL-02 v2.0 §④）。
+  const { planCode } = useSessionMe();
+  const allBaseCards = useMemo(() => {
+    const userPlan = normalizePlanCode(planCode);
+    return getMasterHubSections()
+      .flatMap((s) => s.cards)
+      .filter((c) => canAccessMasterCard(userPlan, c.minPlan));
+  }, [planCode]);
 
   useEffect(() => {
     openRef.current = open;

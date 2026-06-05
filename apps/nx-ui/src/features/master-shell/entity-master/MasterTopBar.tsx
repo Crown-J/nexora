@@ -27,6 +27,9 @@ import {
   MASTER_HUB_CARDS,
   MASTER_HUB_SECTION_ORDER,
   MASTER_HUB_SECTION_TITLES,
+  canAccessMasterCard,
+  normalizePlanCode,
+  type MasterHubMinPlan,
 } from '@/features/base/config/master-cards';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { apiJson } from '@/shared/api/client';
@@ -37,12 +40,15 @@ const MASTER_MODULE_IDX = HOME_DOCK_ITEMS.findIndex((m) => m.href === MASTER_HRE
 type NavLink = { label: string; href: string };
 type NavGroup = { title: string; items: NavLink[] };
 
-/** 模組 → 子分頁。主檔列出分區 + 主檔；其他模組先佔位（之後做該模組再填）。 */
-function moduleGroups(moduleHref: string): NavGroup[] {
+/** 模組 → 子分頁。主檔列出分區 + 主檔；其他模組先佔位（之後做該模組再填）。
+ *  [4-1] 2026-06-05：依使用者方案 filter 套件 / 高版本主檔、LITE 客戶不渲染（NX-MANUAL-02 v2.0 §④）。 */
+function moduleGroups(moduleHref: string, userPlan: MasterHubMinPlan): NavGroup[] {
   if (moduleHref === MASTER_HREF) {
     return MASTER_HUB_SECTION_ORDER.map((sid) => ({
       title: MASTER_HUB_SECTION_TITLES[sid],
-      items: MASTER_HUB_CARDS.filter((c) => c.section === sid).map((c) => ({
+      items: MASTER_HUB_CARDS.filter(
+        (c) => c.section === sid && canAccessMasterCard(userPlan, c.minPlan),
+      ).map((c) => ({
         label: c.title,
         href: c.href,
       })),
@@ -171,7 +177,9 @@ export function MasterTopBar({
 
   const activeModule = HOME_DOCK_ITEMS[moduleIdx]?.href ?? MASTER_HREF;
   const activeItem = HOME_DOCK_ITEMS[moduleIdx];
-  const groups = useMemo(() => moduleGroups(activeModule), [activeModule]);
+  // [4-1] 2026-06-05：依使用者方案 filter 套件 / 高版本主檔（不渲染）
+  const userPlan = useMemo(() => normalizePlanCode(planCode), [planCode]);
+  const groups = useMemo(() => moduleGroups(activeModule, userPlan), [activeModule, userPlan]);
   const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
 
   // Alt+X 開模組選單
@@ -190,7 +198,7 @@ export function MasterTopBar({
   useEffect(() => {
     if (moduleMenu.open) {
       setKw('');
-      const masterFlat = moduleGroups(MASTER_HREF).flatMap((g) => g.items);
+      const masterFlat = moduleGroups(MASTER_HREF, userPlan).flatMap((g) => g.items);
       const curIdx = masterFlat.findIndex((it) => it.href === pathname);
       setModuleIdx(MASTER_MODULE_IDX < 0 ? 0 : MASTER_MODULE_IDX);
       if (curIdx >= 0) {
@@ -259,12 +267,16 @@ export function MasterTopBar({
       ?.scrollIntoView({ block: 'nearest' });
   }, [subIdx, navCol, moduleMenu.open]);
 
-  // 搜尋結果（跨主檔）
+  // 搜尋結果（跨主檔）。[4-1] 2026-06-05：依使用者方案 filter（不渲染 LITE 不能用的）
   const searchHits = useMemo(() => {
     const s = kw.trim();
     if (!s) return [];
-    return MASTER_HUB_CARDS.filter((c) => c.title.includes(s) || c.description.includes(s));
-  }, [kw]);
+    return MASTER_HUB_CARDS.filter(
+      (c) =>
+        canAccessMasterCard(userPlan, c.minPlan) &&
+        (c.title.includes(s) || c.description.includes(s)),
+    );
+  }, [kw, userPlan]);
 
   const userInitial = (displayName || me?.username || 'U').slice(0, 1).toUpperCase();
 

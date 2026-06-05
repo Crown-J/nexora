@@ -2,43 +2,39 @@
  * File: apps/nx-ui/src/features/nx02/shared/ui/PlanUpgradePrompt.tsx
  * Project: NEXORA (Monorepo)
  *
- * Purpose:
- * - NX02-SHR-UI-002：LITE 方案顯示 PLUS 升級提示（不顯示功能內容）
+ * [4-1] 2026-06-05：NX-MANUAL-02 v2.0 §④ 對齊：
+ * 套件 / 高版本功能對 LITE 客戶「隱藏不顯示、不是反灰」。
  *
- * @FUNCTION_CODE NX02-SHR-UI-002-F01
+ * 此元件原為「LITE 客戶顯示 PLUS 升級提示卡」、現改為直接 redirect 回首頁、不再渲染推銷文案。
+ * Props 保留供既有 caller 通過 TypeScript、值不再使用（NX02-SHR-UI-002）。
+ *
+ * 影響 callers：
+ * - nx02 套件鎖頭頁（transfer/shortage/auto-replenish）
+ * - nx01 PoLiteAware（採購單 PLUS 鎖）
  */
 
 'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export type PlanUpgradePromptProps = {
   requiredPlan?: string;
   /** 左上角小標，例如 NX02 / NX01 */
   kicker?: string;
-  /** 覆寫標題；未傳則為「需要 {requiredPlan} 方案」 */
+  /** 覆寫標題；不再使用 */
   title?: string;
-  /** 覆寫說明文案 */
+  /** 覆寫說明文案；不再使用 */
   description?: string;
 };
 
 /**
  * @FUNCTION_CODE NX02-SHR-UI-002-F01
  */
-export function PlanUpgradePrompt({
-  requiredPlan = 'PLUS',
-  kicker = 'NX02',
-  title,
-  description,
-}: PlanUpgradePromptProps) {
-  const resolvedTitle = title ?? `需要 ${requiredPlan} 方案`;
-  const resolvedDescription =
-    description ??
-    '此功能僅開放給 PLUS 或 PRO 方案。若需使用調撥、缺貨簿與自動補貨等進階庫存作業，請升級方案後再試。';
-
-  return (
-    <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-6 py-8 text-center">
-      <p className="text-xs tracking-[0.35em] text-muted-foreground">{kicker}</p>
-      <h1 className="mt-2 text-xl font-semibold text-foreground">{resolvedTitle}</h1>
-      <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">{resolvedDescription}</p>
-    </div>
-  );
+export function PlanUpgradePrompt(_: PlanUpgradePromptProps = {}) {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+  return null;
 }
