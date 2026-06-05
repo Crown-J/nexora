@@ -41,12 +41,12 @@ export function HubStepBadge({ label }: { label: string }) {
   );
 }
 
+/**
+ * [4-2] 2026-06-05：PRO 鎖頭徽章對齊「不出現鎖頭、不出現灰卡」（NX-MANUAL-02 v2.0 §④）。
+ * 元件保留 export 不破壞既有 import、實際內容改 null。
+ */
 export function HubProBadge() {
-  return (
-    <span className="shrink-0 rounded border border-muted-foreground/40 bg-muted/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-      🔒 PRO
-    </span>
-  );
+  return null;
 }
 
 export function ModuleHubSection({
@@ -93,16 +93,12 @@ export function HubLinkCard({
 }) {
   const motion = hubShellMotion();
 
-  const onClickPro = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!pro) return;
-    e.preventDefault();
-    window.alert('PRO版功能，升級後解鎖');
-  };
+  // [4-2] 2026-06-05：PRO 卡「升級後解鎖」alert / 灰階對齊不出現推銷字眼（NX-MANUAL-02 v2.0 §④）。
+  // pro prop 保留供未來真接 plan filter 後使用、目前 noop。
 
   return (
     <Link
       href={href}
-      onClick={onClickPro}
       className={cx(
         hubCardShellBaseClass,
         // 手機 full width 覆寫原本的 w-[220px]；桌面 lg+ 回到 220px 固定寬（R4-C）
@@ -111,7 +107,6 @@ export function HubLinkCard({
         motion,
         'active:scale-[0.998]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-        pro && 'opacity-60 grayscale',
       )}
     >
       <div className="flex shrink-0 items-start justify-between gap-2">
@@ -125,7 +120,6 @@ export function HubLinkCard({
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           {stepLabel ? <HubStepBadge label={stepLabel} /> : null}
-          {pro ? <HubProBadge /> : null}
           <ChevronRight
             className={cx(
               'h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-all duration-300',

@@ -118,7 +118,7 @@ export function Nx01DashboardPage() {
               subtitle={
                 showPlus
                   ? `進行中 ${data.po.total} 筆（草稿／已送出）`
-                  : 'LITE 可瀏覽升級說明；開通 PLUS 後管理採購單'
+                  : '此功能不在您目前的方案內'
               }
               plusOnly
               showPlus={showPlus}

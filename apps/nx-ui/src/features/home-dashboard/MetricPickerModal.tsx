@@ -119,9 +119,10 @@ export function MetricPickerModal({
                         <div className="flex w-full items-center gap-2">
                           <span className="text-sm font-medium text-foreground">{opt.label}</span>
                           {opt.isPremium ? (
+                            // [4-2] dead code 路徑（grouped 已 filter !isPremium）、保留結構避免動 disabled/used 邏輯
                             <span className="ml-auto inline-flex items-center gap-1 rounded border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
                               <Lock className="h-3 w-3" />
-                              升級 KPI 套件
+                              KPI 套件
                             </span>
                           ) : used ? (
                             <span className="ml-auto text-[10px] text-muted-foreground">已使用</span>
