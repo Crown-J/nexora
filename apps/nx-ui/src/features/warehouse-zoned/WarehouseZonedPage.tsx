@@ -334,13 +334,7 @@ export function WarehouseZonedPage({
     [mode, isDirty, performSave, performCancel],
   );
 
-  const handleExit = useCallback(() => {
-    if (mode === 'edit' && isDirty) {
-      handleCancel();
-      return;
-    }
-    router.push('/dashboard');
-  }, [mode, isDirty, handleCancel, router]);
+  // [1-2] 2026-06-05：handleExit / Alt+Q 已移除（離開主檔改走星球選單 Alt+X）
 
   const requestNavigate = useCallback(
     (href: string) => {
@@ -410,7 +404,6 @@ export function WarehouseZonedPage({
             f: toggleSearch,
             d: () => selected && handleDelete(),
             r: () => setReloadTick((t) => t + 1),
-            q: handleExit,
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -463,7 +456,6 @@ export function WarehouseZonedPage({
     handleCreate,
     handleEdit,
     handleDelete,
-    handleExit,
     handleSave,
     handleCancel,
     toggleSearch,
@@ -568,7 +560,6 @@ export function WarehouseZonedPage({
           onDelete={handleDelete}
           onExport={handleExport}
           onRefresh={() => setReloadTick((t) => t + 1)}
-          onExit={handleExit}
           onSave={handleSave}
           onCancel={handleCancel}
           showInactive={showInactive}

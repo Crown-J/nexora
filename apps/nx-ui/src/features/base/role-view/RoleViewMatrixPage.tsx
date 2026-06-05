@@ -4,7 +4,7 @@
  *
  * 上方：選職務（下拉，系統管理員不顯示，對齊既有鎖定）
  * 下方：畫面（依模組分群）× 5 種權限（瀏覽 / 新增 / 修改 / 停用 / 匯出）矩陣
- * 鍵盤：↑↓ 換畫面列、←→ 換權限欄、空白 勾選/取消、Alt+S 存檔、Alt+Q 結束
+ * 鍵盤：↑↓ 換畫面列、←→ 換權限欄、空白 勾選/取消、Alt+S 存檔（離開改走星球選單 Alt+X）
  * staged：本地累積、Alt+S 才批次寫入後端（create / update / delete）
  */
 'use client';
@@ -254,14 +254,13 @@ export function RoleViewMatrixPage() {
     [isDirty, router],
   );
 
-  // 鍵盤：↑↓ 換列、←→ 換欄、空白 勾選、Alt+S 存檔、Alt+Q 結束
+  // 鍵盤：↑↓ 換列、←→ 換欄、空白 勾選、Alt+S 存檔（離開改走星球選單 Alt+X、[1-2] 2026-06-05 Alt+Q 移除）
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement?.tagName ?? '').toLowerCase();
       if (e.altKey) {
         const k = e.key.toLowerCase();
         if (k === 's') { e.preventDefault(); handleSave(); }
-        else if (k === 'q') { e.preventDefault(); requestNavigate('/dashboard'); }
         else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
           // Alt+↑↓：切上 / 下一個職務
           e.preventDefault();

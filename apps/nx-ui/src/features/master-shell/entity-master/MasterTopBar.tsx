@@ -273,7 +273,7 @@ export function MasterTopBar({
       className="flex items-center gap-2 border-b border-[#2A2A30] px-2 py-2 sm:gap-3 sm:px-4"
       style={{ backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)' }}
     >
-      {/* 模組選單（小星球）— 可跳任何頁，故不再放返回箭頭（瀏覽器上一頁 / Alt+Q 結束） */}
+      {/* 模組選單（小星球）— 可跳任何頁，故不再放返回箭頭（瀏覽器上一頁、或星球選單切走） */}
       <div className="relative" ref={moduleMenu.ref}>
         <button
           type="button"

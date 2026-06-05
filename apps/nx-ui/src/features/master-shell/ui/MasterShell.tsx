@@ -8,7 +8,7 @@
  * - 頁面 radial-gradient 背景（#11111A 頂 → #06060A 底，鋼鐵 + 太空感）
  * - 左側 MasterSidebar：星球選單 + 多 section nav 配置
  * - 右側 main：MasterTopHeader（標題 + 通知/公告/日期時間）+ children（toolbar / table / detail）
- * - sidebarRef：給外部用於 Alt+Q 焦點轉移
+ * - sidebarRef：給外部 nav 容器引用（[1-2] 2026-06-05 起 Alt+Q 已移除、ref 仍保留供 layout 使用）
  * - onReturnToTable：sidebar nav item 點擊或 Enter 觸發（回到表格 + 第一筆）
  *
  * Sidebar 配置採資料驅動，各主檔頁面定義自己的 SidebarConfig。

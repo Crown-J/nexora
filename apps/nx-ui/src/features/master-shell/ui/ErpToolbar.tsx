@@ -5,9 +5,12 @@
  * 舊 ERP 工具列範式（鋼鐵星球視覺 + Alt 快捷鍵）。
  *
  * 三分支：
- *  - browse（瀏覽）：分頁鈕 + A 新增 / E 更正 / F 查詢 / D 停用 / 匯出 P / R 重新整理 / 選取 / Q 結束
+ *  - browse（瀏覽）：分頁鈕 + A 新增 / E 更正 / F 查詢 / D 停用 / 匯出 P / R 重新整理 / 選取
  *  - edit（編輯）：S 存檔 / C 取消
  *  - selection（選取批次）：完成選取 / 批次啟用 / 批次停用
+ *
+ * 註：[1-2] 2026-06-05 起移除「Q 結束」按鈕與 Alt+Q：導覽改走星球選單（Alt+X）、
+ *     離開主檔只需切到別頁、不再需要返回左側 nav 的「結束」概念。
  *
  * NEXORA 系統設計：不能刪除資料（防止破壞已串接的關聯資料），「停用」為軟刪除（isActive=false）。
  * onDelete prop / handleDelete 內部名稱保留 delete 為通用慣例，UI label 為「停用」。
@@ -34,7 +37,6 @@ import {
   FileSpreadsheet,
   FileText,
   Filter,
-  LogOut,
   Pencil,
   Plus,
   Power,
@@ -74,7 +76,6 @@ export function ErpToolbar({
   onDelete,
   onExport,
   onRefresh,
-  onExit,
   onSave,
   onCancel,
   showInactive,
@@ -103,7 +104,6 @@ export function ErpToolbar({
   onDelete: () => void;
   onExport: (format: ExportFormat) => void;
   onRefresh: () => void;
-  onExit: () => void;
   onSave: () => void;
   onCancel: () => void;
   /** 列表 filter：是否含已停用列。提供時顯示「顯示停用」toggle 按鈕（位於選取按鈕前）；未提供則隱藏。 */
@@ -234,7 +234,6 @@ export function ErpToolbar({
         />
       ) : null}
       <ToolbarButton icon={CheckSquare} label="選取" enabled onClick={onToggleSelection} />
-      <ToolbarButton icon={LogOut} letter="Q" label="結束" enabled onClick={onExit} />
     </div>
   );
 }

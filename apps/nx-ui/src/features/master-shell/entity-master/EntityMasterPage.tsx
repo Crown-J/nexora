@@ -415,13 +415,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     [mode, isDirty, performSave, performCancel],
   );
 
-  const handleExit = useCallback(() => {
-    if (mode === 'edit' && isDirty) {
-      handleCancel();
-      return;
-    }
-    router.push('/dashboard');
-  }, [mode, isDirty, handleCancel, router]);
+  // [1-2] 2026-06-05：handleExit / Alt+Q 已移除（離開主檔改走星球選單 Alt+X）
 
   // 模組選單 / 公告等跳轉：編輯中且 dirty 先 3-way confirm（Next client 導航不觸發 beforeunload）
   const requestNavigate = useCallback(
@@ -509,7 +503,6 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
             f: toggleSearch,
             d: () => selected && handleDelete(),
             r: () => setReloadTick((t) => t + 1),
-            q: handleExit,
             l: toggleColumns,
             t: toggleFilter,
           });
@@ -555,7 +548,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, tab, displayRows, selectedId, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleExit, handleSave, handleCancel, toggleSearch, toggleColumns, toggleFilter]);
+  }, [mode, tab, displayRows, selectedId, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleSave, handleCancel, toggleSearch, toggleColumns, toggleFilter]);
 
   // beforeunload（dirty 攔截）
   useEffect(() => {
@@ -656,7 +649,6 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           onDelete={handleDelete}
           onExport={handleExport}
           onRefresh={() => setReloadTick((t) => t + 1)}
-          onExit={handleExit}
           onSave={handleSave}
           onCancel={handleCancel}
           showInactive={showInactive}
