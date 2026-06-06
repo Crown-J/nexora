@@ -251,6 +251,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/part-relation',
   },
+  // 02 對齊第二批 C 軌 CP2-c：通用件群組（多 part 互為替代品、各自售價、雙向）
+  {
+    id: 'part-compat-group',
+    section: 'product',
+    title: '通用件群組基本資料',
+    description: '主件／替代品互為通用、可指定群組內專屬售價（雙向／單向）',
+    icon: Link2,
+    statLabel: '群組',
+    statValue: '—',
+    href: '/dashboard/base/part-compat-group',
+  },
   {
     id: 'part-model',
     section: 'product',
@@ -479,6 +490,9 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   // 02 對齊第二批 C 軌 CP1：地區主檔
   region: '地區基本資料',
   regions: '地區基本資料',
+  // 02 對齊第二批 C 軌 CP2-c：通用件群組
+  'part-compat-group': '通用件群組基本資料',
+  'part-compat-groups': '通用件群組基本資料',
 };
 
 export function isValidBaseSegment(segment: string): boolean {

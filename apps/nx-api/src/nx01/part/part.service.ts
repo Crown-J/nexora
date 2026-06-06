@@ -92,9 +92,11 @@ export function buildDisplayCode(
   return out;
 }
 
-/** 搜尋正規化：去空格 / 連字號 / # 後小寫，讓 VAG-03H、VAG 03H、03H 115 562 都能比對 */
+/** 搜尋正規化：去空格 / 連字號 / # / * / . 後小寫
+ *  讓「VAG-03H」「VAG 03H」「03H 115 562」「03H.115.562」「03H*115*562」都比對到。
+ *  02 對齊第二批 C 軌 CP2-c 2026-06-06：加 * 跟 . 兩個分隔（總經理拍板「料號通用件 + 查詢正規化」）。 */
 function normalizeCode(s: string): string {
-  return s.replace(/[\s#-]/g, '').toLowerCase();
+  return s.replace(/[\s#\-*.]/g, '').toLowerCase();
 }
 
 /**
@@ -291,13 +293,14 @@ export class PartService {
       // 讓「VAG-03H」「VAG 03H」「03H 115 562」三種寫法都命中（part.code 存完整料號）。
       const norm = `%${normalizeCode(term)}%`;
       const raw = `%${term.toLowerCase()}%`;
+      // 02 對齊第二批 C 軌 CP2-c：正規化字元集擴增（[ #-*.] 五個 separator）
       const matched = await this.prisma.$queryRawUnsafe<{ id: string }[]>(
         `SELECT id FROM nx01_part WHERE tenant_id = $1 AND (
-           regexp_replace(lower(code), '[ #-]', '', 'g') LIKE $2
+           regexp_replace(lower(code), '[ #\\-*.]', '', 'g') LIKE $2
            OR lower(name) LIKE $3
-           OR regexp_replace(lower(coalesce(old_code,'')), '[ #-]', '', 'g') LIKE $2
-           OR regexp_replace(lower(coalesce(sec_code,'')), '[ #-]', '', 'g') LIKE $2
-           OR id IN (SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #-]', '', 'g') LIKE $2)
+           OR regexp_replace(lower(coalesce(old_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
+           OR regexp_replace(lower(coalesce(sec_code,'')), '[ #\\-*.]', '', 'g') LIKE $2
+           OR id IN (SELECT part_id FROM nx01_part_oem_code WHERE tenant_id = $1 AND regexp_replace(lower(oem_code), '[ #\\-*.]', '', 'g') LIKE $2)
          )`,
         tenantId,
         norm,

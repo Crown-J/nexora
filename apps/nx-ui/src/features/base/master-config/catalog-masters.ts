@@ -174,6 +174,24 @@ export const BRAND_MASTER: EntityMasterConfig = {
   ],
 };
 
+// ── 通用件群組 / 02 對齊第二批 C 軌 CP2-c ──────────────────
+// 群組主檔本身 CRUD；member 多對多衛星表（成員 / 角色 / 各自售價 / 雙向）由
+// dashboard/base/part-compat-group/[id] 詳細頁編輯（後續軌補 UI；endpoint 已暴露 /nx01/part-compat-groups/:id/members）。
+export const PART_COMPAT_GROUP_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/part-compat-groups',
+  category: '產品料號',
+  title: '通用件群組基本資料',
+  entityNoun: '通用件群組',
+  errorCodePrefix: 'nxui_base_part_compat_group',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '群組代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'name', label: '群組名稱', required: true, minWidthClass: 'min-w-[200px]' },
+    { key: 'remark', label: '備註', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // ── 客戶分類 / 02 對齊第二批 C 軌 CP1 ─────────────────────
 export const REGION_MASTER: EntityMasterConfig = {
   basePath: 'nx01/regions',

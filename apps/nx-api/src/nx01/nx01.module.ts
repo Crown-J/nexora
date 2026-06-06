@@ -6,6 +6,8 @@ import { BrandController } from './brand/brand.controller';
 import { BrandService } from './brand/brand.service';
 import { RegionController } from './region/region.controller';
 import { RegionService } from './region/region.service';
+import { PartCompatGroupController } from './part-compat-group/part-compat-group.controller';
+import { PartCompatGroupService } from './part-compat-group/part-compat-group.service';
 import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
@@ -89,6 +91,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PhoneticDictionaryController,
     BrandController,
     RegionController,
+    PartCompatGroupController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -121,6 +124,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     SeqCounterService,
     BrandService,
     RegionService,
+    PartCompatGroupService,
     UserService,
     RoleService,
     BulletinService,
