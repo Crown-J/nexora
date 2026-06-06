@@ -80,6 +80,12 @@ export class CreatePartDto {
   @MaxLength(15)
   partBrandId?: string;
 
+  /** W6 [3-8] 2026-06-06 品牌合併：新 brandId 為主、partBrandId 保留待後續軌 drop */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  brandId?: string;
+
   /**
    * W5 [3-7] 2026-06-06 Crown 拍板四層編碼：
    *   零件料號 = 顯示主碼、必填。新增時若 user 未填、service 端 fallback 帶入 oldCode（舊有料號）。
@@ -293,6 +299,12 @@ export class UpdatePartDto {
   @IsString()
   @MaxLength(15)
   partBrandId?: string | null;
+
+  /** W6 [3-8] 2026-06-06 品牌合併：新 brandId */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  brandId?: string | null;
 
   @IsOptional()
   @IsString()

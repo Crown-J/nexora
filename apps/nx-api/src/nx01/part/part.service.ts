@@ -30,6 +30,8 @@ const SEL = {
   seg5: true,
   countryId: true,
   partBrandId: true,
+  // W6 [3-8] 2026-06-06 品牌合併：新 brandId 為主、partBrandId 保留待後續軌 drop
+  brandId: true,
   type: true,
   partGroupId: true,
   spec: true,
@@ -48,6 +50,8 @@ const SEL = {
   updatedAt: true,
   updatedBy: true,
   partBrand: { select: { code: true } },
+  // W6 [3-8] 2026-06-06 品牌合併：brand relation 為主（後續軌 drop partBrand）
+  brand: { select: { code: true, name: true, isCar: true, isPart: true } },
   country: { select: { code: true } },
 } as const;
 
@@ -342,6 +346,21 @@ export class PartService {
       // M2-b：dto 沒傳 priceA~D 時、後端依 cost × margin 自動算（系統算為主、手動微調走 dto 覆寫）
       const cost = new PrismaNs.Decimal(dto.cost ?? 0);
       const defaults = await this.calcDefaultPrices(tx, tenantId, cost);
+      // W6 [3-8]：dto.brandId 為主、若舊 caller 仍送 partBrandId → service 端 lookup brand by code 對齊
+      let effectiveBrandId = dto.brandId?.trim() || null;
+      if (!effectiveBrandId && dto.partBrandId?.trim()) {
+        const pb = await tx.nx01PartBrand.findFirst({
+          where: { id: dto.partBrandId.trim(), tenantId },
+          select: { code: true },
+        });
+        if (pb) {
+          const b = await tx.nx01Brand.findFirst({
+            where: { tenantId, code: pb.code, isPart: true },
+            select: { id: true },
+          });
+          effectiveBrandId = b?.id ?? null;
+        }
+      }
       const created = await tx.nx01Part.create({
         data: {
           tenantId,
@@ -358,7 +377,9 @@ export class PartService {
           seg4: trimOrNull(dto.seg4),
           seg5: trimOrNull(dto.seg5),
           countryId: dto.countryId?.trim() || null,
+          // W6 [3-8]：寫入舊 partBrandId 同時寫 brandId（dual-write 過渡期、後續軌 stop 寫舊欄位）
           partBrandId: dto.partBrandId?.trim() || null,
+          brandId: effectiveBrandId,
           partGroupId: dto.partGroupId?.trim() || null,
           type: dto.partType ?? 1,
           spec: dto.spec?.trim() || null,
@@ -495,6 +516,8 @@ export class PartService {
         ...(dto.seg5 !== undefined ? { seg5: trimOrNull(dto.seg5) } : {}),
         ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),
         ...(dto.partBrandId !== undefined ? { partBrandId: dto.partBrandId?.trim() || null } : {}),
+        // W6 [3-8]：brandId 寫入（dto 端可直接送、不再需 partBrandId 走 lookup）
+        ...(dto.brandId !== undefined ? { brandId: dto.brandId?.trim() || null } : {}),
         ...(dto.partGroupId !== undefined ? { partGroupId: dto.partGroupId?.trim() || null } : {}),
         ...(dto.partType !== undefined ? { type: dto.partType } : {}),
         ...(dto.spec !== undefined ? { spec: dto.spec } : {}),
@@ -567,10 +590,12 @@ export class PartService {
   }
 
   private mapRow(row: Row) {
-    const { type, cost, priceA, priceB, priceC, priceD, partBrand, country, ...rest } = row;
+    const { type, cost, priceA, priceB, priceC, priceD, partBrand, brand, country, ...rest } = row;
+    // W6 [3-8]：品牌 code 優先用新 brand relation、fallback 舊 partBrand（過渡期）
+    const brandCode = brand?.code ?? partBrand?.code ?? '';
     // displayCode：未選編碼規則→原樣手動料號；選了→完整格式即時組合（不存 DB）
     const displayCode = rest.codeRuleId
-      ? buildDisplayCode(partBrand?.code ?? '', [rest.seg1, rest.seg2, rest.seg3, rest.seg4, rest.seg5], country?.code ?? '')
+      ? buildDisplayCode(brandCode, [rest.seg1, rest.seg2, rest.seg3, rest.seg4, rest.seg5], country?.code ?? '')
       : rest.code;
     return {
       ...rest,
@@ -581,6 +606,9 @@ export class PartService {
       priceC: decimalStr(priceC),
       priceD: decimalStr(priceD),
       partBrandCode: partBrand?.code ?? null,
+      // W6 [3-8] 新增 brand 完整資訊
+      brandCode: brand?.code ?? null,
+      brandName: brand?.name ?? null,
       countryCode: country?.code ?? null,
       displayCode,
     };

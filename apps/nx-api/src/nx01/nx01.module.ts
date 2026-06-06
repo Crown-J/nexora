@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { PrismaModule } from '../prisma/prisma.module';
 
+import { BrandController } from './brand/brand.controller';
+import { BrandService } from './brand/brand.service';
 import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
@@ -88,6 +90,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     BulletinController,
     PhoneticDictionaryController,
     CarBrandController,
+    BrandController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -119,6 +122,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     CustomerGradeService,
     SupplierGradeService,
     SeqCounterService,
+    BrandService,
     UserService,
     RoleService,
     BulletinService,
