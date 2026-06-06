@@ -606,6 +606,9 @@ export class PartService {
       : rest.code;
     return {
       ...rest,
+      // W6-切換軌 2026-06-06：partBrandId 對前端 picker 顯示用、優先 brandId（match refOptions value）
+      // fallback 舊 part_brand.id 讓 brand 未 backfill 的舊 row 仍能對到舊 picker（過渡期）
+      partBrandId: rest.brandId ?? rest.partBrandId,
       partType: type,
       cost: decimalStr(cost),
       priceA: decimalStr(priceA),
@@ -613,7 +616,6 @@ export class PartService {
       priceC: decimalStr(priceC),
       priceD: decimalStr(priceD),
       partBrandCode: partBrand?.code ?? null,
-      // W6 [3-8] 新增 brand 完整資訊
       brandCode: brand?.code ?? null,
       brandName: brand?.name ?? null,
       countryCode: country?.code ?? null,

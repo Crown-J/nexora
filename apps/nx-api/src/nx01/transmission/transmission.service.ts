@@ -6,6 +6,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { resolveCarBrandRefs } from '../../shared/nx01/resolve-brand-refs';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -14,6 +15,7 @@ import type {
   UpdateTransmissionDto,
 } from './dto/transmission.dto';
 
+// W6-切換軌 2026-06-06：select 加 brandId + brand relation；mapRow brand 為主
 const SEL = {
   id: true,
   tenantId: true,
@@ -23,6 +25,7 @@ const SEL = {
   transmissionType: true,
   gearCount: true,
   carBrandId: true,
+  brandId: true,
   remark: true,
   sortNo: true,
   isActive: true,
@@ -31,6 +34,7 @@ const SEL = {
   updatedAt: true,
   updatedBy: true,
   carBrand: { select: { code: true, name: true } },
+  brand: { select: { code: true, name: true, isCar: true, isPart: true } },
 } as const;
 
 type Row = Prisma.Nx01TransmissionGetPayload<{ select: typeof SEL }>;
@@ -43,11 +47,13 @@ export class TransmissionService {
   ) {}
 
   private mapRow(r: Row) {
-    const { carBrand, ...rest } = r;
+    const { carBrand, brand, ...rest } = r;
     return {
       ...rest,
-      carBrandCode: carBrand?.code ?? null,
-      carBrandName: carBrand?.name ?? null,
+      // W6-切換軌：carBrandId 對前端 picker 顯示用、優先 brandId
+      carBrandId: rest.brandId ?? rest.carBrandId,
+      carBrandCode: brand?.code ?? carBrand?.code ?? null,
+      carBrandName: brand?.name ?? carBrand?.name ?? null,
     };
   }
 
@@ -64,7 +70,11 @@ export class TransmissionService {
       ];
     }
     if (q.transmissionType !== undefined) where.transmissionType = q.transmissionType;
-    if (q.carBrandId?.trim()) where.carBrandId = q.carBrandId.trim();
+    // W6-切換軌：input 可能是 brand.id 或 car_brand.id
+    if (q.carBrandId?.trim()) {
+      const cb = q.carBrandId.trim();
+      where.OR = [...(where.OR ?? []), { carBrandId: cb }, { brandId: cb }];
+    }
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
   }
@@ -106,6 +116,8 @@ export class TransmissionService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Transmission code already exists in this tenant');
+    // W6-切換軌：dual-resolve carBrandId（接 brand.id 或 car_brand.id）
+    const refs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
     const row = await this.prisma.nx01Transmission.create({
       data: {
         tenantId,
@@ -114,7 +126,8 @@ export class TransmissionService {
         nameEn: dto.nameEn?.trim() || null,
         transmissionType: dto.transmissionType,
         gearCount: dto.gearCount ?? null,
-        carBrandId: dto.carBrandId?.trim() || null,
+        carBrandId: refs.carBrandId,
+        brandId: refs.brandId,
         remark: dto.remark?.trim() || null,
         sortNo: dto.sortNo ?? 0,
         isActive: dto.isActive ?? true,
@@ -144,6 +157,11 @@ export class TransmissionService {
       select: SEL,
     });
     if (!existing) throw new NotFoundException('Transmission not found');
+    // W6-切換軌：dual-resolve carBrandId
+    const brandRefs =
+      dto.carBrandId !== undefined
+        ? await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId)
+        : null;
     const row = await this.prisma.nx01Transmission.update({
       where: { id },
       data: {
@@ -152,7 +170,7 @@ export class TransmissionService {
         ...(dto.nameEn !== undefined ? { nameEn: dto.nameEn?.trim() || null } : {}),
         ...(dto.transmissionType !== undefined ? { transmissionType: dto.transmissionType } : {}),
         ...(dto.gearCount !== undefined ? { gearCount: dto.gearCount } : {}),
-        ...(dto.carBrandId !== undefined ? { carBrandId: dto.carBrandId?.trim() || null } : {}),
+        ...(brandRefs ? { carBrandId: brandRefs.carBrandId, brandId: brandRefs.brandId } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),

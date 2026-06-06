@@ -188,7 +188,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     void (async () => {
       const entries = await Promise.all(
         refFields.map(async (f) => {
-          const opts = await fetchRefOptions(f.refBasePath as string, f.refLabelKeys);
+          const opts = await fetchRefOptions(f.refBasePath as string, f.refLabelKeys, f.refExtraFilters);
           return [f.key, opts] as const;
         }),
       );

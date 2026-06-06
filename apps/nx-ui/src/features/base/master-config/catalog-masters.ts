@@ -103,7 +103,7 @@ export const ENGINE_MASTER: EntityMasterConfig = {
       key: 'aspirationType', label: '進氣方式', type: 'select', numeric: true, inList: false,
       options: [{ value: 1, label: '自然進氣 NA' }, { value: 2, label: '渦輪 TC' }, { value: 3, label: '機械增壓 SC' }, { value: 4, label: '雙增壓' }],
     },
-    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/car-brands', inList: false },
+    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -127,7 +127,7 @@ export const TRANSMISSION_MASTER: EntityMasterConfig = {
     },
     { key: 'gearCount', label: '檔位數', type: 'number', inList: false },
     { key: 'nameEn', label: '英文名稱', inList: false },
-    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/car-brands', inList: false },
+    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, inList: false },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };
@@ -142,7 +142,7 @@ export const MODEL_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'code', label: '車型代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '車型名稱', required: true, minWidthClass: 'min-w-[140px]' },
-    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/car-brands', required: true, minWidthClass: 'min-w-[120px]' },
+    { key: 'carBrandId', label: '車廠品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isCar: 'true' }, required: true, minWidthClass: 'min-w-[120px]' },
     { key: 'modelYearFrom', label: '年式(起)', type: 'number', required: true },
     { key: 'modelYearTo', label: '年式(迄)', type: 'number', inList: false },
     { key: 'engineId', label: '引擎', type: 'ref', refBasePath: 'nx01/engines', inList: false },
@@ -407,7 +407,7 @@ export const PART_MASTER: EntityMasterConfig = {
     { key: 'name', label: '品名', required: true, minWidthClass: 'min-w-[160px]' },
     // codeRuleId 後端強制必填（須先有品牌料號規則）
     { key: 'codeRuleId', label: '編碼規則', type: 'ref', refBasePath: 'nx01/brand-code-rules', refLabelKeys: ['name'], required: true, inList: false },
-    { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/part-brands', minWidthClass: 'min-w-[120px]' },
+    { key: 'partBrandId', label: '零件廠牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isPart: 'true' }, minWidthClass: 'min-w-[120px]' },
     { key: 'partGroupId', label: '零件群組', type: 'ref', refBasePath: 'nx01/part-groups', inList: false },
     { key: 'countryId', label: '產地', type: 'ref', refBasePath: 'nx01/countries', inList: false },
     {
@@ -435,7 +435,7 @@ export const BRAND_CODE_RULE_MASTER: EntityMasterConfig = {
   minPlan: 'PLUS',
   fields: [
     { key: 'name', label: '規則名稱', required: true, minWidthClass: 'min-w-[160px]' },
-    { key: 'partBrandId', label: '零件品牌', type: 'ref', refBasePath: 'nx01/part-brands', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'partBrandId', label: '零件品牌', type: 'ref', refBasePath: 'nx01/brands', refExtraFilters: { isPart: 'true' }, required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'description', label: '說明', type: 'textarea', inList: false },
     { key: 'seg1Length', label: 'SEG1 最大字數', type: 'number', required: true, defaultValue: '3', minWidthClass: 'min-w-[90px]' },
     { key: 'seg2Length', label: 'SEG2 最大字數', type: 'number', required: true, defaultValue: '3', inList: false },

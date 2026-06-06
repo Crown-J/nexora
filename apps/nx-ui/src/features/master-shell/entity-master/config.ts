@@ -55,12 +55,14 @@ export type EntityFieldDef = {
   numeric?: boolean;
 
   // ── type 'ref'（外鍵下拉，從另一主檔 endpoint 載入）──
-  /** ref 來源主檔 endpoint，e.g. 'nx01/car-brands' */
+  /** ref 來源主檔 endpoint，e.g. 'nx01/brands' */
   refBasePath?: string;
   /** 組 option label 的欄位（預設 ['code','name']），e.g. ['name'] */
   refLabelKeys?: string[];
   /** row 上對應的「顯示名稱」欄位（後端 join 帶出時用；否則以載入的 options 對照） */
   refDisplayKey?: string;
+  /** W6-切換軌 2026-06-06：picker 額外 query filter（如 isCar=true / isPart=true）*/
+  refExtraFilters?: Record<string, string>;
 
   // ── type 'computed'（唯讀即時預覽，不存 DB、不送後端）──
   /** 依目前表單值即時計算顯示字串（如料號分段預覽）；editing 時讀 draft、瀏覽時讀 row */

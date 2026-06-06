@@ -1,5 +1,6 @@
 /**
- * Part brand（零件廠牌）API — 對齊 nx-api `nx01/part-brands`
+ * Part brand（零件廠牌）API
+ * W6-切換軌 2026-06-06：BASE 改 `/nx01/brands`、list/默認 isPart=true 過濾
  */
 
 import { apiFetch } from '@/shared/api/client';
@@ -8,7 +9,7 @@ import { assertOk } from '@/shared/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { BrandDto, CreateBrandBody, PagedResult, UpdateBrandBody } from '@/features/shared/master/brand/types';
 
-const BASE = '/nx01/part-brands';
+const BASE = '/nx01/brands';
 
 function normalizePaged<T>(raw: unknown): PagedResult<T> {
   const j = raw as Record<string, unknown>;
@@ -30,11 +31,13 @@ export type ListBrandParams = {
 
 export async function listBrand(params: ListBrandParams): Promise<PagedResult<BrandDto>> {
   const pageSize = clampNx01ListPageSize(params.pageSize, 20);
+  // W6-切換軌：part 廠牌語意 → isPart=true 過濾
   const query = buildQueryString({
     page: String(params.page),
     pageSize: String(pageSize),
     search: params.q?.trim() ? params.q.trim() : undefined,
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
+    isPart: 'true',
   });
 
   const res = await apiFetch(`${BASE}${query}`, { method: 'GET' });

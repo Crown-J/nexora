@@ -6,6 +6,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { resolveCarBrandRefs } from '../../shared/nx01/resolve-brand-refs';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
@@ -14,12 +15,14 @@ import type {
   UpdateModelDto,
 } from './dto/model.dto';
 
+// W6-切換軌 2026-06-06：select 加 brandId + brand relation；mapRow brand 為主
 const SEL = {
   id: true,
   tenantId: true,
   code: true,
   name: true,
   carBrandId: true,
+  brandId: true,
   modelYearFrom: true,
   modelYearTo: true,
   engineId: true,
@@ -34,6 +37,7 @@ const SEL = {
   updatedAt: true,
   updatedBy: true,
   carBrand: { select: { code: true, name: true } },
+  brand: { select: { code: true, name: true, isCar: true, isPart: true } },
   engine: { select: { code: true, name: true } },
   transmission: { select: { code: true, name: true } },
   drivetrain: { select: { code: true, name: true } },
@@ -50,11 +54,13 @@ export class ModelService {
   ) {}
 
   private mapRow(r: Row) {
-    const { carBrand, engine, transmission, drivetrain, modelType, ...rest } = r;
+    const { carBrand, brand, engine, transmission, drivetrain, modelType, ...rest } = r;
     return {
       ...rest,
-      carBrandCode: carBrand?.code ?? null,
-      carBrandName: carBrand?.name ?? null,
+      // W6-切換軌：carBrandId 對前端 picker 顯示用、優先 brandId
+      carBrandId: rest.brandId ?? rest.carBrandId,
+      carBrandCode: brand?.code ?? carBrand?.code ?? null,
+      carBrandName: brand?.name ?? carBrand?.name ?? null,
       engineCode: engine?.code ?? null,
       engineName: engine?.name ?? null,
       transmissionCode: transmission?.code ?? null,
@@ -98,7 +104,11 @@ export class ModelService {
         { name: { contains: s, mode: 'insensitive' } },
       ];
     }
-    if (q.carBrandId?.trim()) where.carBrandId = q.carBrandId.trim();
+    // W6-切換軌：input 可能是 brand.id 或 car_brand.id
+    if (q.carBrandId?.trim()) {
+      const cb = q.carBrandId.trim();
+      where.OR = [...(where.OR ?? []), { carBrandId: cb }, { brandId: cb }];
+    }
     if (q.modelYearFrom !== undefined) where.modelYearFrom = q.modelYearFrom;
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
@@ -139,12 +149,21 @@ export class ModelService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Model code already exists in this tenant');
+    // W6-切換軌：dual-resolve carBrandId（接 brand.id 或 car_brand.id）
+    // Model.carBrandId 為 NOT NULL、必須 lookup 到值；找不到 throw（Phase 1 已雙向 backfill、邊界 case 才會 hit）
+    const refs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
+    if (!refs.carBrandId) {
+      throw new BadRequestException(
+        'carBrandId 對應不到車廠品牌（請確認 picker value 為 nx01_brand isCar=true row）',
+      );
+    }
     const row = await this.prisma.nx01Model.create({
       data: {
         tenantId,
         code,
         name: dto.name.trim(),
-        carBrandId: dto.carBrandId.trim(),
+        carBrandId: refs.carBrandId,
+        brandId: refs.brandId,
         modelYearFrom: dto.modelYearFrom,
         modelYearTo: dto.modelYearTo ?? null,
         engineId: dto.engineId?.trim() || null,
@@ -183,12 +202,23 @@ export class ModelService {
     const nextTo = dto.modelYearTo !== undefined ? dto.modelYearTo : existing.modelYearTo;
     this.validateYears(nextFrom, nextTo);
 
+    // W6-切換軌：dual-resolve carBrandId（Model 為 NOT NULL、找不到 throw）
+    let brandRefs: { brandId: string | null; carBrandId: string | null } | null = null;
+    if (dto.carBrandId !== undefined) {
+      brandRefs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
+      if (!brandRefs.carBrandId) {
+        throw new BadRequestException(
+          'carBrandId 對應不到車廠品牌（請確認 picker value 為 nx01_brand isCar=true row）',
+        );
+      }
+    }
+
     const row = await this.prisma.nx01Model.update({
       where: { id },
       data: {
         ...(dto.code !== undefined ? { code: dto.code.trim().toUpperCase() } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
-        ...(dto.carBrandId !== undefined ? { carBrandId: dto.carBrandId.trim() } : {}),
+        ...(brandRefs ? { carBrandId: brandRefs.carBrandId!, brandId: brandRefs.brandId } : {}),
         ...(dto.modelYearFrom !== undefined ? { modelYearFrom: dto.modelYearFrom } : {}),
         ...(dto.modelYearTo !== undefined ? { modelYearTo: dto.modelYearTo } : {}),
         ...(dto.engineId !== undefined ? { engineId: dto.engineId?.trim() || null } : {}),

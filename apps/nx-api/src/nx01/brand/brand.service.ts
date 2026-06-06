@@ -192,6 +192,8 @@ export class BrandService {
       ...scalar,
       countryCode: country?.code ?? null,
       countryName: country?.name ?? null,
+      // W6-切換軌：originCountry alias 對齊舊 part_brand 表前端 BrandDto SSOT
+      originCountry: country?.code ?? null,
     };
   }
 }
