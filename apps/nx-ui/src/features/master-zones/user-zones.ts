@@ -22,10 +22,21 @@ export const USER_ZONES: ZoneDef<UserZone>[] = [
 
 export const USER_FIELDS: FieldDef<UserZone>[] = [
   // ─── basic 基本資料區 ───
-  { key: 'userAccount', label: '員工編號', zone: 'basic', required: true, notes: '登入帳號、租戶內唯一、可修改（內碼不變）' },
+  // W3 [3-1] 員工編號 = 登入帳號（Crown 拍板）；新增時未填→系統自動產 Y0001、可手動覆寫
+  { key: 'userAccount', label: '員工編號', zone: 'basic', notes: '= 登入帳號、未填系統自動產 Y+4 碼、可手動覆寫' },
   { key: 'userName', label: '姓名', zone: 'basic', required: true },
   { key: 'email', label: '聯絡信箱', zone: 'basic', notes: '通知 / 重設密碼用、非登入帳號' },
   { key: 'phone', label: '電話', zone: 'basic' },
+  // W3 [3-3] basic zone 補 7 欄位（NX-MANUAL-02 v2.0 §4.1）
+  { key: 'gender', label: '性別', zone: 'basic', notes: 'M=男 / F=女 / O=其他' },
+  { key: 'birthday', label: '生日', zone: 'basic', notes: 'YYYY-MM-DD' },
+  { key: 'nationalId', label: '身分證字號', zone: 'basic' },
+  { key: 'address', label: '通訊地址', zone: 'basic' },
+  { key: 'hireDate', label: '到職日期', zone: 'basic', notes: 'YYYY-MM-DD' },
+  { key: 'emergencyContact', label: '緊急聯絡人', zone: 'basic' },
+  { key: 'emergencyPhone', label: '緊急聯絡電話', zone: 'basic' },
+  // W3 [3-2] 舊代號（純對照、不綁 FK）
+  { key: 'legacyCode', label: '舊代號', zone: 'basic', notes: '舊系統員工編號、純對照不綁 FK' },
 
   // ─── permission 權限區 ───
   {

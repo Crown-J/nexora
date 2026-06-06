@@ -57,8 +57,23 @@ function readUserRowField(row: UserRow, zoneKey: string): unknown {
   return r[mapped];
 }
 
-/** 本軌可編欄位（DTO 已支援）的 keys */
-export const BASIC_WRITABLE = new Set(['userAccount', 'userName', 'email', 'phone']);
+/** 本軌可編欄位（DTO 已支援）的 keys。W3 [3-2][3-3]：加 7 個 basic 欄位 + legacyCode */
+export const BASIC_WRITABLE = new Set([
+  'userAccount',
+  'userName',
+  'email',
+  'phone',
+  // W3 [3-3] basic zone 7 欄位
+  'gender',
+  'birthday',
+  'nationalId',
+  'address',
+  'hireDate',
+  'emergencyContact',
+  'emergencyPhone',
+  // W3 [3-2] 舊代號
+  'legacyCode',
+]);
 export const PERMISSION_WRITABLE = new Set(['isActive']);
 
 /** 後端 row → 編輯 draft（自動 mapping userAccount↔username / userName↔displayName） */
@@ -96,7 +111,22 @@ export function emptyUserDraft(): UserDraft {
  * - editableZones 過濾後再交叉「DTO 支援」白名單
  * - 員工編號制改造（2026-06-02）：userAccount 編輯模式可送（UpdateUserDto 已支援）
  */
-const DTO_SUPPORTED = new Set(['userAccount', 'userName', 'email', 'phone', 'isActive']);
+const DTO_SUPPORTED = new Set([
+  'userAccount',
+  'userName',
+  'email',
+  'phone',
+  'isActive',
+  // W3 [3-2][3-3]：basic zone 7 欄位 + legacyCode（CreateUserDto / UpdateUserDto 已支援）
+  'gender',
+  'birthday',
+  'nationalId',
+  'address',
+  'hireDate',
+  'emergencyContact',
+  'emergencyPhone',
+  'legacyCode',
+]);
 
 export function userDraftToBody(
   draft: UserDraft,

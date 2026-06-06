@@ -29,6 +29,8 @@ export type PartnerDto = {
   creditStatus: string;
   paymentTermImport: string | null;
   incoterm: string | null;
+  // W3 [3-2] 舊代號（純對照）
+  legacyCode?: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername: string | null;
@@ -40,7 +42,8 @@ export type PartnerDto = {
 };
 
 export type CreatePartnerBody = {
-  code: string;
+  // W3 [3-1]：code 改 optional（未填系統自動產 類型碼+4 碼）
+  code?: string;
   name: string;
   partnerType?: PartnerType;
   canTransferStock?: boolean;
@@ -58,6 +61,8 @@ export type CreatePartnerBody = {
   paymentTermImport?: string;
   incoterm?: string;
   isActive?: boolean;
+  // W3 [3-2] 舊代號
+  legacyCode?: string | null;
 };
 
 export type UpdatePartnerBody = {
@@ -78,6 +83,8 @@ export type UpdatePartnerBody = {
   paymentTermImport?: string | null;
   incoterm?: string | null;
   isActive?: boolean;
+  // W3 [3-2] 舊代號
+  legacyCode?: string | null;
 };
 
 const BASE = '/nx01/partners';

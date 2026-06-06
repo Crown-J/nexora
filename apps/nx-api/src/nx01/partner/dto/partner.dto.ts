@@ -37,7 +37,6 @@ export class CreatePartnerDto {
   /** 往來對象代碼。未填則自動產生 類型碼+4 碼 */
   @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(30)
   code?: string;
 

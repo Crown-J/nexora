@@ -47,6 +47,8 @@ export type PartnerDto = {
   defaultCurrencyId?: string | null;
   defaultCurrencyCode?: string | null;
   defaultCurrencyName?: string | null;
+  // W3 [3-2] 舊代號（純對照）
+  legacyCode?: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername?: string | null;
@@ -92,10 +94,13 @@ export type PartnerWritableFields = {
   defaultWarehouseId?: string | null;
   salesUserId?: string | null;
   defaultCurrencyId?: string | null;
+  // W3 [3-2] 舊代號（純對照）
+  legacyCode?: string | null;
 };
 
+// W3 [3-1]：code 改 optional（未填系統自動產 類型碼+4 碼、可手動覆寫）
 export type CreatePartnerBody = PartnerWritableFields & {
-  code: string;
+  code?: string;
   name: string;
 };
 

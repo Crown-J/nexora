@@ -24,7 +24,8 @@ export const PARTNER_ZONES: ZoneDef<PartnerZone>[] = [
 
 export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   // ─── basic 基本資料區 ───
-  { key: 'code', label: '公司代碼', zone: 'basic', required: true, notes: 'unique per tenant' },
+  // W3 [3-1] 對外編號 = 類型碼+4 碼（C0001/O0001/...）；新增時未填→系統自動產、可手動覆寫
+  { key: 'code', label: '公司代碼', zone: 'basic', notes: '= 類型碼+4 碼、未填系統自動產、可手動覆寫' },
   { key: 'name', label: '公司名稱', zone: 'basic', required: true },
   { key: 'shortName', label: '公司簡稱', zone: 'basic' },
   { key: 'nameEn', label: '英文名稱', zone: 'basic' },
@@ -38,6 +39,8 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'email', label: 'Email', zone: 'basic' },
   { key: 'website', label: '官網', zone: 'basic' },
   { key: 'address', label: '地址（自由文字）', zone: 'basic', notes: '結構化地址在 delivery / finance 衛星表' },
+  // W3 [3-2] 舊代號（純對照、不綁 FK）
+  { key: 'legacyCode', label: '舊代號', zone: 'basic', notes: '舊系統往來對象代號、純對照不綁 FK' },
 
   // ─── sales 銷貨區 ───
   { key: 'customerGradeId', label: '客戶等級', zone: 'sales', notes: 'C / O 用、影響 ABCD 定價' },

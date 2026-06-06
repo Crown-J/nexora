@@ -17,6 +17,15 @@ export type UserDto = {
   /** 舊版 API 相容（已改為多據點 summary 後可能仍短暫存在） */
   warehouseCode?: string | null;
   warehouseName?: string | null;
+  // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
+  gender?: string | null;
+  birthday?: string | null;
+  nationalId?: string | null;
+  address?: string | null;
+  hireDate?: string | null;
+  emergencyContact?: string | null;
+  emergencyPhone?: string | null;
+  legacyCode?: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername: string | null;
@@ -73,23 +82,49 @@ export async function getUser(id: string): Promise<UserDto> {
 
 /** 後端 CreateUserDto 與 UpdateUserDto 用 userAccount / userName 命名；
  *  client 對外保留 username / displayName（list/get response 用法），內部 transform。
- *  email / phone 為 null 或空字串時不送（後端 DTO 不接受 null）。 */
+ *  email / phone 為 null 或空字串時不送（後端 DTO 不接受 null）。
+ *  W3 [3-1] 2026-06-06：username 改 optional（未填系統自動產 Y+4 碼）；
+ *  W3 [3-2][3-3]：新增 7 basic 欄位 + legacyCode 透傳。 */
+export type UserBasicWritable = {
+  gender?: string | null;
+  birthday?: string | null;
+  nationalId?: string | null;
+  address?: string | null;
+  hireDate?: string | null;
+  emergencyContact?: string | null;
+  emergencyPhone?: string | null;
+  legacyCode?: string | null;
+};
+
+function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBasicWritable>): void {
+  if (body.gender !== undefined) apiBody.gender = body.gender;
+  if (body.birthday !== undefined) apiBody.birthday = body.birthday;
+  if (body.nationalId !== undefined) apiBody.nationalId = body.nationalId;
+  if (body.address !== undefined) apiBody.address = body.address;
+  if (body.hireDate !== undefined) apiBody.hireDate = body.hireDate;
+  if (body.emergencyContact !== undefined) apiBody.emergencyContact = body.emergencyContact;
+  if (body.emergencyPhone !== undefined) apiBody.emergencyPhone = body.emergencyPhone;
+  if (body.legacyCode !== undefined) apiBody.legacyCode = body.legacyCode;
+}
+
 export async function createUser(body: {
-  username: string;
+  /** W3 [3-1]：未填則後端 service 自動產 Y+4 碼 */
+  username?: string;
   password: string;
   displayName: string;
   email?: string | null;
   phone?: string | null;
   isActive?: boolean;
-}): Promise<UserDto> {
+} & UserBasicWritable): Promise<UserDto> {
   const apiBody: Record<string, unknown> = {
-    userAccount: body.username,
     password: body.password,
     userName: body.displayName,
   };
+  if (body.username != null && body.username !== '') apiBody.userAccount = body.username;
   if (body.email != null && body.email !== '') apiBody.email = body.email;
   if (body.phone != null && body.phone !== '') apiBody.phone = body.phone;
   if (body.isActive !== undefined) apiBody.isActive = body.isActive;
+  writeBasicToApi(apiBody, body);
   const res = await apiFetch(BASE, {
     method: 'POST',
     body: JSON.stringify(apiBody),
@@ -101,19 +136,22 @@ export async function createUser(body: {
 export async function updateUser(
   id: string,
   body: {
+    username?: string;
     password?: string;
     displayName?: string;
     email?: string | null;
     phone?: string | null;
     isActive?: boolean;
-  },
+  } & UserBasicWritable,
 ): Promise<UserDto> {
   const apiBody: Record<string, unknown> = {};
+  if (body.username !== undefined) apiBody.userAccount = body.username;
   if (body.password !== undefined) apiBody.password = body.password;
   if (body.displayName !== undefined) apiBody.userName = body.displayName;
   if (body.email != null) apiBody.email = body.email;
   if (body.phone != null) apiBody.phone = body.phone;
   if (body.isActive !== undefined) apiBody.isActive = body.isActive;
+  writeBasicToApi(apiBody, body);
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(apiBody),

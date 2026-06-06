@@ -56,7 +56,6 @@ export class CreateUserDto {
   /** 員工編號（= 登入帳號）。未填則自動產生 Y + 4 碼 */
   @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(50)
   userAccount?: string;
 
