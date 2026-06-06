@@ -53,7 +53,7 @@ import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolba
 import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
 import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
 
-// partner 改制六分類（Crown 2026-05-28）
+// partner 改制七分類（W4 [3-5] 2026-06-06 加 L 散客）
 const PARTNER_TYPE_LABEL: Record<string, string> = {
   C: '保養廠',
   O: '同行',
@@ -61,6 +61,7 @@ const PARTNER_TYPE_LABEL: Record<string, string> = {
   T: '外包物流',
   V: '一般廠商',
   B: '銀行',
+  L: '散客',
 };
 
 function partnerTypeLabel(t: string): string {
@@ -68,7 +69,7 @@ function partnerTypeLabel(t: string): string {
   return PARTNER_TYPE_LABEL[k] ?? k;
 }
 
-/** 表單選項：新六分類 */
+/** 表單選項：新七分類（W4 [3-5] 加 L 散客） */
 const PARTNER_TYPE_FORM_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'C', label: 'C　保養廠' },
   { value: 'O', label: 'O　同行' },
@@ -76,6 +77,7 @@ const PARTNER_TYPE_FORM_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'T', label: 'T　外包物流' },
   { value: 'V', label: 'V　一般廠商' },
   { value: 'B', label: 'B　銀行' },
+  { value: 'L', label: 'L　散客' },
 ];
 
 const PAY_DOM_OPTIONS: { value: string; label: string }[] = [

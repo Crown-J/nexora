@@ -174,6 +174,34 @@ export class OnboardingService {
         },
       });
 
+      // 4.5b 建散客 partner（W4 [3-5] 2026-06-06、NX-MANUAL-02 v2.0 §3.5）
+      // - 每租戶內建一筆「散客」L0001、給 B2C 無統編散戶交易統收用
+      // - 只能現銷（PREPAY）、固定二聯、不允許賒帳（creditStatus=N、creditLimit=0）
+      // - 同時建 PARTNER_L seq_counter row（nextNo=2、下次取號從 2 起）
+      const retailPartner = await tx.nx01Partner.create({
+        data: {
+          tenantId: tenant.id,
+          code: 'L0001',
+          name: '散客',
+          partnerType: 'L',
+          canTransferStock: false,
+          paymentTermDomestic: 'PREPAY',
+          creditStatus: 'N',
+          creditLimit: 0,
+          defaultInvoiceCopies: 2,
+          isActive: true,
+          createdBy: SYSADMIN_USER_ID,
+          updatedBy: SYSADMIN_USER_ID,
+        },
+      });
+      await tx.nx01SeqCounter.create({
+        data: {
+          tenantId: tenant.id,
+          scope: 'PARTNER_L',
+          nextNo: 2,
+        },
+      });
+
       // 4.6 建訂閱（2026-06-02 補：對齊 seed/test/lite/tenant.ts 範式）
       // 之前 onboarding 漏建 nx99_subscription、導致 me API plan_code=null、
       // 客戶端 21 卡載入失敗 / mustChange redirect race / 報表 plan 判斷錯

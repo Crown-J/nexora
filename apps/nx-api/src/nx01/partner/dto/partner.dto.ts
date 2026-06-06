@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -12,9 +13,11 @@ import {
 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 
-// partner 改制六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
+// partner 改制七分類：W4 [3-5] 2026-06-06 加 L=散客（B2C 統收、只能現銷、固定二聯）
+// 既有六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
 // 舊 BOTH/CUST/SUP 已於 migration 20260528100000 backfill 為 C/C/S
-const PARTNER_TYPES = ['C', 'O', 'S', 'T', 'V', 'B'] as const;
+const PARTNER_TYPES = ['C', 'O', 'S', 'T', 'V', 'B', 'L'] as const;
+const INVOICE_COPIES = [2, 3] as const;
 const PAY_DOM = ['PREPAY', 'NET30', 'NET60', 'NET90'] as const;
 const PAY_IMP = ['TT', 'LC', 'DP', 'DA'] as const;
 const CREDIT_STAT = ['N', 'W', 'F'] as const;
@@ -148,6 +151,9 @@ export class CreatePartnerDto {
 
   // ── v1.2 階段 E P2：finance 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string;
+
+  /** W4 [3-6] 預設發票聯式（2=二聯 / 3=三聯）。散客 L 強制 2、service 端覆寫不可改 */
+  @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) defaultInvoiceCopies?: number;
 }
 
 export class UpdatePartnerDto {
@@ -261,4 +267,7 @@ export class UpdatePartnerDto {
 
   /** W3 [3-2] 舊系統往來對象代號 */
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;
+
+  /** W4 [3-6] 預設發票聯式（2/3）。散客 L 強制 2 */
+  @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) defaultInvoiceCopies?: number;
 }

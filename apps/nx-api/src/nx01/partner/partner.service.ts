@@ -45,6 +45,8 @@ const SEL = {
   defaultCurrencyId: true,
   // W3 [3-2] 舊系統代號
   legacyCode: true,
+  // W4 [3-6] 預設發票聯式
+  defaultInvoiceCopies: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -57,6 +59,27 @@ const SEL = {
 } as const;
 
 type Row = Prisma.Nx01PartnerGetPayload<{ select: typeof SEL }>;
+
+/**
+ * W4 [3-5] 2026-06-06：散客 L 強制業務規則（NX-MANUAL-02 v2.0 §3.5）
+ *   - 只能現銷 → paymentTermDomestic = 'PREPAY'
+ *   - 不允許賒帳 → creditStatus = 'N'、creditLimit = 0
+ *   - 固定二聯 → defaultInvoiceCopies = 2
+ * service 端在 create / update 對 partnerType='L' 強制覆寫 caller 任何值。
+ */
+const RETAIL_TYPE = 'L';
+type RetailForced = {
+  paymentTermDomestic: string;
+  creditStatus: string;
+  creditLimit: number;
+  defaultInvoiceCopies: number;
+};
+const RETAIL_FORCED: RetailForced = {
+  paymentTermDomestic: 'PREPAY',
+  creditStatus: 'N',
+  creditLimit: 0,
+  defaultInvoiceCopies: 2,
+};
 
 /**
  * M2-c：付款條件 → 供應商等級代碼映射（Crown 拍板：付款條件對我方越有利等級越高）。
@@ -153,6 +176,8 @@ export class PartnerService {
     if (dup) throw new ConflictException('往來對象代碼已被其他人使用、請改用其他編號');
     // 同行 'O' service 層預設 canTransferStock=true（業務語意：同行天然可調貨）；其他類型 default false、DTO 可覆寫
     const defaultCanTransferStock = dto.partnerType === 'O';
+    // W4 [3-5] 散客 L 業務規則強制：PREPAY + creditStatus N + creditLimit 0 + 二聯
+    const isRetail = partnerType === RETAIL_TYPE;
     const row = await this.prisma.nx01Partner.create({
       data: {
         tenantId,
@@ -167,10 +192,12 @@ export class PartnerService {
         address: dto.address?.trim() || null,
         remark: dto.remark?.trim() || null,
         taxId: dto.taxId?.trim() || null,
-        paymentTermDomestic: dto.paymentTermDomestic?.trim() || 'NET30',
+        paymentTermDomestic: isRetail
+          ? RETAIL_FORCED.paymentTermDomestic
+          : (dto.paymentTermDomestic?.trim() || 'NET30'),
         customerGradeId: dto.customerGradeId?.trim() || null,
-        creditLimit: dto.creditLimit ?? 0,
-        creditStatus: dto.creditStatus?.trim() || 'N',
+        creditLimit: isRetail ? RETAIL_FORCED.creditLimit : (dto.creditLimit ?? 0),
+        creditStatus: isRetail ? RETAIL_FORCED.creditStatus : (dto.creditStatus?.trim() || 'N'),
         paymentTermImport: dto.paymentTermImport?.trim() || 'TT',
         incoterm: dto.incoterm?.trim() || 'FOB',
         isActive: dto.isActive ?? true,
@@ -189,6 +216,10 @@ export class PartnerService {
         supplierGradeId: dto.supplierGradeId?.trim() || null,
         // W3 [3-2] 舊系統代號
         legacyCode: dto.legacyCode?.trim() || null,
+        // W4 [3-6] 預設發票聯式（散客 L 強制 2、其餘 default 3）
+        defaultInvoiceCopies: isRetail
+          ? RETAIL_FORCED.defaultInvoiceCopies
+          : (dto.defaultInvoiceCopies ?? 3),
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -212,6 +243,10 @@ export class PartnerService {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Partner.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Partner not found');
+    // W4 [3-5]：散客 L 強制業務規則（PREPAY + N + 0 + 2 聯）、不允許 caller 覆寫
+    // 散客身分判定：取 update 後的 partnerType（若 dto 沒改、用 existing）
+    const effectiveType = (dto.partnerType ?? existing.partnerType).toUpperCase();
+    const isRetail = effectiveType === RETAIL_TYPE;
     const row = await this.prisma.nx01Partner.update({
       where: { id },
       data: {
@@ -225,17 +260,29 @@ export class PartnerService {
         ...(dto.address !== undefined ? { address: dto.address } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.taxId !== undefined ? { taxId: dto.taxId?.trim() || null } : {}),
-        ...(dto.paymentTermDomestic !== undefined
-          ? { paymentTermDomestic: dto.paymentTermDomestic.trim() }
-          : {}),
+        // W4 [3-5]：散客 L 強制 PREPAY；其他類型沿用 dto
+        ...(isRetail
+          ? { paymentTermDomestic: RETAIL_FORCED.paymentTermDomestic }
+          : dto.paymentTermDomestic !== undefined
+            ? { paymentTermDomestic: dto.paymentTermDomestic.trim() }
+            : {}),
         ...(dto.customerGradeId !== undefined
           ? { customerGradeId: dto.customerGradeId?.trim() || null }
           : {}),
         ...(dto.supplierGradeId !== undefined
           ? { supplierGradeId: dto.supplierGradeId?.trim() || null }
           : {}),
-        ...(dto.creditLimit !== undefined ? { creditLimit: dto.creditLimit } : {}),
-        ...(dto.creditStatus !== undefined ? { creditStatus: dto.creditStatus.trim() } : {}),
+        // W4 [3-5]：散客 L 強制 creditLimit=0 / creditStatus=N
+        ...(isRetail
+          ? { creditLimit: RETAIL_FORCED.creditLimit }
+          : dto.creditLimit !== undefined
+            ? { creditLimit: dto.creditLimit }
+            : {}),
+        ...(isRetail
+          ? { creditStatus: RETAIL_FORCED.creditStatus }
+          : dto.creditStatus !== undefined
+            ? { creditStatus: dto.creditStatus.trim() }
+            : {}),
         ...(dto.paymentTermImport !== undefined
           ? { paymentTermImport: dto.paymentTermImport?.trim() || null }
           : {}),
@@ -262,6 +309,12 @@ export class PartnerService {
           : {}),
         // W3 [3-2] 舊系統代號
         ...(dto.legacyCode !== undefined ? { legacyCode: dto.legacyCode?.trim() || null } : {}),
+        // W4 [3-6]：散客 L 強制 2 聯；其他類型沿用 dto
+        ...(isRetail
+          ? { defaultInvoiceCopies: RETAIL_FORCED.defaultInvoiceCopies }
+          : dto.defaultInvoiceCopies !== undefined
+            ? { defaultInvoiceCopies: dto.defaultInvoiceCopies }
+            : {}),
         updatedBy: user.sub,
       },
       select: SEL,

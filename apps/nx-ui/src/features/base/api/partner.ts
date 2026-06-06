@@ -4,8 +4,8 @@ import { assertOk } from '@/shared/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 
-// partner 改制六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
-export type PartnerType = 'C' | 'O' | 'S' | 'T' | 'V' | 'B';
+// partner 改制七分類：W4 [3-5] 2026-06-06 加 L=散客
+export type PartnerType = 'C' | 'O' | 'S' | 'T' | 'V' | 'B' | 'L';
 
 export type PartnerDto = {
   id: string;
@@ -31,6 +31,8 @@ export type PartnerDto = {
   incoterm: string | null;
   // W3 [3-2] 舊代號（純對照）
   legacyCode?: string | null;
+  // W4 [3-6] 預設發票聯式
+  defaultInvoiceCopies?: number | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername: string | null;
@@ -63,6 +65,8 @@ export type CreatePartnerBody = {
   isActive?: boolean;
   // W3 [3-2] 舊代號
   legacyCode?: string | null;
+  // W4 [3-6] 預設發票聯式
+  defaultInvoiceCopies?: number;
 };
 
 export type UpdatePartnerBody = {
@@ -85,6 +89,8 @@ export type UpdatePartnerBody = {
   isActive?: boolean;
   // W3 [3-2] 舊代號
   legacyCode?: string | null;
+  // W4 [3-6] 預設發票聯式
+  defaultInvoiceCopies?: number;
 };
 
 const BASE = '/nx01/partners';

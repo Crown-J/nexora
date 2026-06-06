@@ -66,6 +66,8 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'paymentTermImport', label: '國外付款條件', zone: 'finance', notes: 'TT / LC / DP / DA' },
   { key: 'incoterm', label: '貿易條件', zone: 'finance', notes: 'FOB / CIF / EXW / DDP' },
   { key: 'defaultCurrencyId', label: '預設幣別', zone: 'finance' },
+  // W4 [3-6] 預設發票聯式：partner 級預設、SO 開單可逐筆改；散客 L 強制 2 不可改
+  { key: 'defaultInvoiceCopies', label: '預設發票聯式', zone: 'finance', notes: '2=二聯 / 3=三聯；散客 L 強制 2' },
   { key: 'supplierGradeId', label: '供應商等級', zone: 'finance', notes: 'S 純供應商用' },
   {
     key: 'billingAddress',
@@ -92,6 +94,8 @@ export function visibleZonesByPartnerType(partnerType: string | null | undefined
     case 'T': // 物流
       return new Set(['basic', 'delivery']);
     case 'V': // 一般廠商
+      return new Set(['basic', 'finance']);
+    case 'L': // 散客（W4 [3-5]）：B2C 統收、只能現銷、固定二聯 → basic + finance（看付款條件 / 發票聯式 / 統編）
       return new Set(['basic', 'finance']);
     default:
       // 未知 / 未填、保守只顯示基本資料

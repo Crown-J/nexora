@@ -16,7 +16,7 @@ import type {
 
 export type PartnerDraft = Record<string, string | boolean>;
 
-/** partnerType 六分類中文標籤（對齊 catalog-masters） */
+/** partnerType 七分類中文標籤（W4 [3-5] 2026-06-06 加 L 散客；對齊 catalog-masters） */
 export const PARTNER_TYPE_LABEL: Record<PartnerType, string> = {
   C: '保養廠',
   O: '同行',
@@ -24,6 +24,7 @@ export const PARTNER_TYPE_LABEL: Record<PartnerType, string> = {
   T: '外包物流',
   V: '一般廠商',
   B: '銀行',
+  L: '散客',
 };
 
 export const PARTNER_TYPE_OPTIONS: { value: PartnerType; label: string }[] = [
@@ -33,6 +34,13 @@ export const PARTNER_TYPE_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'T', label: '外包物流' },
   { value: 'V', label: '一般廠商' },
   { value: 'B', label: '銀行' },
+  { value: 'L', label: '散客' },
+];
+
+/** W4 [3-6] 發票聯式選項（partner 預設 + SO 逐筆改皆用） */
+export const INVOICE_COPIES_OPTIONS: { value: number; label: string }[] = [
+  { value: 2, label: '二聯' },
+  { value: 3, label: '三聯' },
 ];
 
 export const PAY_DOM_OPTIONS = [
