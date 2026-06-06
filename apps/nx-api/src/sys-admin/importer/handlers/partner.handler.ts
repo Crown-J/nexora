@@ -86,7 +86,8 @@ export async function importPartners(
         partnerType,
         canTransferStock: partnerType === 'O',
         taxId: data.taxId || null,
-        address: data.address || null,
+        // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、importer 暫不接結構化地址
+        // 後續軌補：CSV 加 city/district/詳細地址欄位、import 時建 partner_address 衛星
         phone: data.phone || null,
         isActive: true,
         createdBy: ctx.userId,

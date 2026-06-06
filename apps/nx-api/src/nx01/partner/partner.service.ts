@@ -22,7 +22,8 @@ const SEL = {
   phone: true,
   mobile: true,
   email: true,
-  address: true,
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改走 partner_address 衛星表（addressType BILLING/SHIPPING）
+  countryId: true,
   remark: true,
   isActive: true,
   taxId: true,
@@ -203,7 +204,8 @@ export class PartnerService {
         phone: dto.phone?.trim() || null,
         mobile: dto.mobile?.trim() || null,
         email: dto.email?.trim() || null,
-        address: dto.address?.trim() || null,
+        // 02 對齊第二批 A 軌 CP2：純文字 address DROP、countryId 預設 null=TW
+        countryId: dto.countryId?.trim() || null,
         remark: dto.remark?.trim() || null,
         taxId: dto.taxId?.trim() || null,
         paymentTermDomestic: isRetail
@@ -284,7 +286,8 @@ export class PartnerService {
         ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
         ...(dto.mobile !== undefined ? { mobile: dto.mobile } : {}),
         ...(dto.email !== undefined ? { email: dto.email } : {}),
-        ...(dto.address !== undefined ? { address: dto.address } : {}),
+        // 02 對齊第二批 A 軌 CP2：純文字 address DROP、改 countryId
+        ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.taxId !== undefined ? { taxId: dto.taxId?.trim() || null } : {}),
         // W4 [3-5]：散客 L 強制 PREPAY；其他類型沿用 dto

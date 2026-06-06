@@ -8,6 +8,10 @@ import { RegionController } from './region/region.controller';
 import { RegionService } from './region/region.service';
 import { PartCompatGroupController } from './part-compat-group/part-compat-group.controller';
 import { PartCompatGroupService } from './part-compat-group/part-compat-group.service';
+import { AddressCatalogController } from './address-catalog/address-catalog.controller';
+import { AddressCatalogService } from './address-catalog/address-catalog.service';
+import { PartnerAddressController } from './partner-address/partner-address.controller';
+import { PartnerAddressService } from './partner-address/partner-address.service';
 import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
@@ -92,6 +96,8 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     BrandController,
     RegionController,
     PartCompatGroupController,
+    AddressCatalogController,
+    PartnerAddressController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -125,6 +131,8 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     BrandService,
     RegionService,
     PartCompatGroupService,
+    AddressCatalogService,
+    PartnerAddressService,
     UserService,
     RoleService,
     BulletinService,

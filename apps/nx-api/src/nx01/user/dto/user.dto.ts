@@ -88,7 +88,16 @@ export class CreateUserDto {
   @IsOptional() @IsString() @IsIn(['M', 'F', 'O']) gender?: string;
   @IsOptional() @IsDateString() birthday?: string;
   @IsOptional() @IsString() @MaxLength(20) nationalId?: string;
-  @IsOptional() @IsString() @MaxLength(200) address?: string;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組（戶籍 + 通訊）+ countryId
+  @IsOptional() @IsString() @MaxLength(15) countryId?: string;
+  @IsOptional() @IsString() @MaxLength(15) householdCityId?: string;
+  @IsOptional() @IsString() @MaxLength(15) householdDistrictId?: string;
+  @IsOptional() @IsString() @MaxLength(10) householdPostalCode?: string;
+  @IsOptional() @IsString() @MaxLength(200) householdDetail?: string;
+  @IsOptional() @IsString() @MaxLength(15) mailingCityId?: string;
+  @IsOptional() @IsString() @MaxLength(15) mailingDistrictId?: string;
+  @IsOptional() @IsString() @MaxLength(10) mailingPostalCode?: string;
+  @IsOptional() @IsString() @MaxLength(200) mailingDetail?: string;
   @IsOptional() @IsDateString() hireDate?: string;
   @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string;
   @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string;
@@ -162,7 +171,16 @@ export class UpdateUserDto {
   @IsOptional() @IsString() @IsIn(['M', 'F', 'O']) gender?: string | null;
   @IsOptional() @IsDateString() birthday?: string | null;
   @IsOptional() @IsString() @MaxLength(20) nationalId?: string | null;
-  @IsOptional() @IsString() @MaxLength(200) address?: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組 + countryId
+  @IsOptional() @IsString() @MaxLength(15) countryId?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) householdCityId?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) householdDistrictId?: string | null;
+  @IsOptional() @IsString() @MaxLength(10) householdPostalCode?: string | null;
+  @IsOptional() @IsString() @MaxLength(200) householdDetail?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) mailingCityId?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) mailingDistrictId?: string | null;
+  @IsOptional() @IsString() @MaxLength(10) mailingPostalCode?: string | null;
+  @IsOptional() @IsString() @MaxLength(200) mailingDetail?: string | null;
   @IsOptional() @IsDateString() hireDate?: string | null;
   @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string | null;
   @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string | null;

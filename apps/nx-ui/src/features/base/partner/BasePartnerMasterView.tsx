@@ -255,7 +255,9 @@ function dtoToRow(d: PartnerDto): PartnerRow {
     phone: d.phone ?? null,
     mobile: d.mobile ?? null,
     email: d.email ?? null,
-    address: d.address ?? null,
+    // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、暫填 null 維持 PartnerRow 型別
+    // 此 legacy View 後續軌改用結構化 partner_address 衛星表顯示
+    address: null,
     remark: d.remark ?? null,
     taxId: d.taxId ?? null,
     paymentTermDomestic: d.paymentTermDomestic ?? 'NET30',

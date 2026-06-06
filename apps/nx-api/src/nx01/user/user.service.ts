@@ -35,7 +35,16 @@ const SEL = {
   gender: true,
   birthday: true,
   nationalId: true,
-  address: true,
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組（戶籍 + 通訊）+ countryId
+  countryId: true,
+  householdCityId: true,
+  householdDistrictId: true,
+  householdPostalCode: true,
+  householdDetail: true,
+  mailingCityId: true,
+  mailingDistrictId: true,
+  mailingPostalCode: true,
+  mailingDetail: true,
   hireDate: true,
   emergencyContact: true,
   emergencyPhone: true,
@@ -88,7 +97,16 @@ export type Nx01UserPublicDto = {
   gender: string | null;
   birthday: string | null;
   nationalId: string | null;
-  address: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06
+  countryId: string | null;
+  householdCityId: string | null;
+  householdDistrictId: string | null;
+  householdPostalCode: string | null;
+  householdDetail: string | null;
+  mailingCityId: string | null;
+  mailingDistrictId: string | null;
+  mailingPostalCode: string | null;
+  mailingDetail: string | null;
   hireDate: string | null;
   emergencyContact: string | null;
   emergencyPhone: string | null;
@@ -181,7 +199,16 @@ export class UserService {
       gender: row.gender ?? null,
       birthday: row.birthday ? row.birthday.toISOString().slice(0, 10) : null,
       nationalId: row.nationalId ?? null,
-      address: row.address ?? null,
+      // 02 對齊第二批 A 軌 CP2：純文字 address DROP、改結構化兩組地址 + countryId
+      countryId: row.countryId ?? null,
+      householdCityId: row.householdCityId ?? null,
+      householdDistrictId: row.householdDistrictId ?? null,
+      householdPostalCode: row.householdPostalCode ?? null,
+      householdDetail: row.householdDetail ?? null,
+      mailingCityId: row.mailingCityId ?? null,
+      mailingDistrictId: row.mailingDistrictId ?? null,
+      mailingPostalCode: row.mailingPostalCode ?? null,
+      mailingDetail: row.mailingDetail ?? null,
       hireDate: row.hireDate ? row.hireDate.toISOString().slice(0, 10) : null,
       emergencyContact: row.emergencyContact ?? null,
       emergencyPhone: row.emergencyPhone ?? null,
@@ -334,7 +361,16 @@ export class UserService {
         gender: dto.gender ?? null,
         birthday: dto.birthday ? new Date(dto.birthday) : null,
         nationalId: dto.nationalId?.trim() || null,
-        address: dto.address?.trim() || null,
+        // 02 對齊第二批 A 軌 CP2：純文字 address DROP、改結構化
+        countryId: dto.countryId?.trim() || null,
+        householdCityId: dto.householdCityId?.trim() || null,
+        householdDistrictId: dto.householdDistrictId?.trim() || null,
+        householdPostalCode: dto.householdPostalCode?.trim() || null,
+        householdDetail: dto.householdDetail?.trim() || null,
+        mailingCityId: dto.mailingCityId?.trim() || null,
+        mailingDistrictId: dto.mailingDistrictId?.trim() || null,
+        mailingPostalCode: dto.mailingPostalCode?.trim() || null,
+        mailingDetail: dto.mailingDetail?.trim() || null,
         hireDate: dto.hireDate ? new Date(dto.hireDate) : null,
         emergencyContact: dto.emergencyContact?.trim() || null,
         emergencyPhone: dto.emergencyPhone?.trim() || null,
@@ -399,7 +435,16 @@ export class UserService {
         ? { birthday: dto.birthday ? new Date(dto.birthday) : null }
         : {}),
       ...(dto.nationalId !== undefined ? { nationalId: dto.nationalId } : {}),
-      ...(dto.address !== undefined ? { address: dto.address } : {}),
+      // 02 對齊第二批 A 軌 CP2：純文字 address DROP、改結構化
+      ...(dto.countryId !== undefined ? { countryId: dto.countryId } : {}),
+      ...(dto.householdCityId !== undefined ? { householdCityId: dto.householdCityId } : {}),
+      ...(dto.householdDistrictId !== undefined ? { householdDistrictId: dto.householdDistrictId } : {}),
+      ...(dto.householdPostalCode !== undefined ? { householdPostalCode: dto.householdPostalCode } : {}),
+      ...(dto.householdDetail !== undefined ? { householdDetail: dto.householdDetail } : {}),
+      ...(dto.mailingCityId !== undefined ? { mailingCityId: dto.mailingCityId } : {}),
+      ...(dto.mailingDistrictId !== undefined ? { mailingDistrictId: dto.mailingDistrictId } : {}),
+      ...(dto.mailingPostalCode !== undefined ? { mailingPostalCode: dto.mailingPostalCode } : {}),
+      ...(dto.mailingDetail !== undefined ? { mailingDetail: dto.mailingDetail } : {}),
       ...(dto.hireDate !== undefined
         ? { hireDate: dto.hireDate ? new Date(dto.hireDate) : null }
         : {}),

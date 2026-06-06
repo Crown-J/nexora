@@ -9,6 +9,7 @@ import { Prisma as PrismaNs } from 'db-core';
 import type { RequestUser } from '../auth/strategies/jwt.strategy';
 import { PrismaService } from '../prisma/prisma.service';
 import { requireTenantId } from '../shared/nx01/require-tenant';
+import { composePartnerDefaultShippingAddress } from '../shared/nx01/compose-partner-address';
 import { allocNx06DnDocNo } from '../shared/nx06/nx06-doc-no';
 import { Nx06ListQueryDto } from '../shared/nx06/nx06-list-query.dto';
 import {
@@ -501,9 +502,11 @@ export class DnLogisticsService {
       if (dup) throw new BadRequestException('Return pickup already exists for this SR');
       const cust = await tx.nx01Partner.findFirst({
         where: { id: sr.customerId, tenantId },
-        select: { address: true, contactName: true, phone: true, mobile: true },
+        select: { contactName: true, phone: true, mobile: true },
       });
-      const addr = dto.pickupAddress?.trim() || cust?.address?.trim();
+      // 02 對齊第二批 A 軌 CP2 2026-06-06：partner.address 已 DROP、改取 partner_address 預設送貨地址
+      const defaultShipping = await composePartnerDefaultShippingAddress(this.prisma, tenantId, sr.customerId);
+      const addr = dto.pickupAddress?.trim() || defaultShipping?.oneLine;
       if (!addr) throw new BadRequestException('pickupAddress or customer address required');
       const wh = await tx.nx01Warehouse.findFirst({
         where: { id: dto.warehouseId ?? sr.warehouseId, tenantId },

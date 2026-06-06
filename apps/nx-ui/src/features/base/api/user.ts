@@ -21,7 +21,16 @@ export type UserDto = {
   gender?: string | null;
   birthday?: string | null;
   nationalId?: string | null;
-  address?: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組（戶籍 + 通訊）+ countryId
+  countryId?: string | null;
+  householdCityId?: string | null;
+  householdDistrictId?: string | null;
+  householdPostalCode?: string | null;
+  householdDetail?: string | null;
+  mailingCityId?: string | null;
+  mailingDistrictId?: string | null;
+  mailingPostalCode?: string | null;
+  mailingDetail?: string | null;
   hireDate?: string | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
@@ -94,7 +103,16 @@ export type UserBasicWritable = {
   gender?: string | null;
   birthday?: string | null;
   nationalId?: string | null;
-  address?: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組（戶籍 + 通訊）+ countryId
+  countryId?: string | null;
+  householdCityId?: string | null;
+  householdDistrictId?: string | null;
+  householdPostalCode?: string | null;
+  householdDetail?: string | null;
+  mailingCityId?: string | null;
+  mailingDistrictId?: string | null;
+  mailingPostalCode?: string | null;
+  mailingDetail?: string | null;
   hireDate?: string | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
@@ -110,7 +128,16 @@ function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBas
   if (body.gender !== undefined) apiBody.gender = body.gender;
   if (body.birthday !== undefined) apiBody.birthday = body.birthday;
   if (body.nationalId !== undefined) apiBody.nationalId = body.nationalId;
-  if (body.address !== undefined) apiBody.address = body.address;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組
+  if (body.countryId !== undefined) apiBody.countryId = body.countryId;
+  if (body.householdCityId !== undefined) apiBody.householdCityId = body.householdCityId;
+  if (body.householdDistrictId !== undefined) apiBody.householdDistrictId = body.householdDistrictId;
+  if (body.householdPostalCode !== undefined) apiBody.householdPostalCode = body.householdPostalCode;
+  if (body.householdDetail !== undefined) apiBody.householdDetail = body.householdDetail;
+  if (body.mailingCityId !== undefined) apiBody.mailingCityId = body.mailingCityId;
+  if (body.mailingDistrictId !== undefined) apiBody.mailingDistrictId = body.mailingDistrictId;
+  if (body.mailingPostalCode !== undefined) apiBody.mailingPostalCode = body.mailingPostalCode;
+  if (body.mailingDetail !== undefined) apiBody.mailingDetail = body.mailingDetail;
   if (body.hireDate !== undefined) apiBody.hireDate = body.hireDate;
   if (body.emergencyContact !== undefined) apiBody.emergencyContact = body.emergencyContact;
   if (body.emergencyPhone !== undefined) apiBody.emergencyPhone = body.emergencyPhone;

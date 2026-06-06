@@ -376,6 +376,10 @@ model Nx01Country {
   rev_Nx01City_countryId      Nx01City[]      @relation("R_Nx01City_countryId")
   // W6 [3-8] Phase 5 2026-06-06 品牌合併（舊 Nx01CarBrand / Nx01PartBrand 已 DROP）
   rev_Nx01Brand_countryId     Nx01Brand[]     @relation("R_Nx01Brand_countryId")
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：partner / partnerAddress / user 國別
+  rev_Nx01Partner_countryId        Nx01Partner[]        @relation("R_Nx01Partner_countryId")
+  rev_Nx01PartnerAddress_countryId Nx01PartnerAddress[] @relation("R_Nx01PartnerAddress_countryId")
+  rev_Nx01User_countryId           Nx01User[]           @relation("R_Nx01User_countryId")
 
   @@unique([code])
   @@map("nx01_country")
@@ -1006,8 +1010,8 @@ model Nx01Partner {
   mobile                                   String?                      @db.VarChar(30)
   /// Email（可空）；啟用最低需求版本：LITE
   email                                    String?                      @db.VarChar(100)
-  /// 地址（可空）；啟用最低需求版本：LITE
-  address                                  String?                      @db.VarChar(200)
+  /// 國別 FK（null 視為 TW 預設）；02 對齊第二批 A 軌 CP2 2026-06-06 新增
+  countryId                                String?                      @map("country_id") @db.VarChar(15)
   /// 備註（例：習慣月結、送貨時間、黑名單原因等）；啟用最低需求版本：LITE
   remark                                   String?                      @db.VarChar(200)
   /// 是否啟用（停用後不可再開單）；啟用最低需求版本：LITE
@@ -1089,10 +1093,11 @@ model Nx01Partner {
   rev_Nx06DnStop_partnerId                 Nx06DnStop[]                 @relation("R_Nx06DnStop_partnerId")
   rev_Nx08PurchaseCache_supplierId         Nx08PurchaseCache[]          @relation("R_Nx08PurchaseCache_supplierId")
   rev_Nx08SalesCache_customerId            Nx08SalesCache[]             @relation("R_Nx08SalesCache_customerId")
-  rev_Nx01PartnerBillingAddress_partnerId  Nx01PartnerBillingAddress?   @relation("R_Nx01PartnerBillingAddress_partnerId")
-  rev_Nx01PartnerShippingAddress_partnerId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_partnerId")
+  rev_Nx01PartnerAddress_partnerId         Nx01PartnerAddress[]         @relation("R_Nx01PartnerAddress_partnerId")
   rev_Nx02WarrantyClaim_supplierId         Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_supplierId")
   rev_Nx01PartnerGradeHistory_partnerId    Nx01PartnerGradeHistory[]    @relation("R_Nx01PartnerGradeHistory_partnerId")
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：國別
+  country                                  Nx01Country?                 @relation("R_Nx01Partner_countryId", fields: [countryId], references: [id], onDelete: SetNull)
   // 02 對齊第二批 C 軌 CP1 2026-06-06
   region                                   Nx01Region?                  @relation("R_Nx01Partner_regionId", fields: [regionId], references: [id], onDelete: SetNull)
   parentPartner                            Nx01Partner?                 @relation("Nx01Partner_parent", fields: [parentPartnerId], references: [id], onDelete: SetNull)
@@ -1312,8 +1317,24 @@ model Nx01User {
   birthday                                 DateTime?                     @db.Date
   /// 身分證字號；W3 [3-3] 2026-06-06 新增
   nationalId                               String?                       @map("national_id") @db.VarChar(20)
-  /// 通訊地址；W3 [3-3] 2026-06-06 新增
-  address                                  String?                       @db.VarChar(200)
+  /// 國別 FK（null 視為 TW 預設）；02 對齊第二批 A 軌 CP2 2026-06-06 新增
+  countryId                                String?                       @map("country_id") @db.VarChar(15)
+  /// 戶籍地址：縣市；02 對齊第二批 A 軌 CP2 2026-06-06 新增
+  householdCityId                          String?                       @map("household_city_id") @db.VarChar(15)
+  /// 戶籍地址：鄉鎮；02 對齊第二批 A 軌 CP2 2026-06-06 新增
+  householdDistrictId                      String?                       @map("household_district_id") @db.VarChar(15)
+  /// 戶籍地址：3 碼郵遞區號（TW 從 district 帶、國外手填）；02 對齊第二批 A 軌 CP2 新增
+  householdPostalCode                      String?                       @map("household_postal_code") @db.VarChar(10)
+  /// 戶籍地址：路巷弄號樓室自由填（國外時整段地址也放這）；02 對齊第二批 A 軌 CP2 新增
+  householdDetail                          String?                       @map("household_detail") @db.VarChar(200)
+  /// 通訊地址：縣市；02 對齊第二批 A 軌 CP2 2026-06-06 新增
+  mailingCityId                            String?                       @map("mailing_city_id") @db.VarChar(15)
+  /// 通訊地址：鄉鎮；02 對齊第二批 A 軌 CP2 2026-06-06 新增
+  mailingDistrictId                        String?                       @map("mailing_district_id") @db.VarChar(15)
+  /// 通訊地址：3 碼郵遞區號；02 對齊第二批 A 軌 CP2 新增
+  mailingPostalCode                        String?                       @map("mailing_postal_code") @db.VarChar(10)
+  /// 通訊地址：路巷弄號樓室自由填；02 對齊第二批 A 軌 CP2 新增
+  mailingDetail                            String?                       @map("mailing_detail") @db.VarChar(200)
   /// 到職日期；W3 [3-3] 2026-06-06 新增
   hireDate                                 DateTime?                     @map("hire_date") @db.Date
   /// 緊急聯絡人；W3 [3-3] 2026-06-06 新增
@@ -1359,6 +1380,12 @@ model Nx01User {
   tenant                                   Nx99Tenant                    @relation("R_Nx01User_tenantId", fields: [tenantId], references: [id])
   hrRole                                   Nx01Role?                     @relation("R_Nx01User_hrRoleId", fields: [roleId], references: [id])
   hrDepartment                             Nx01Department?               @relation("R_Nx01User_hrDepartmentId", fields: [departmentId], references: [id])
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：國別 + 戶籍 + 通訊兩組地址
+  country                                  Nx01Country?                  @relation("R_Nx01User_countryId", fields: [countryId], references: [id], onDelete: SetNull)
+  householdCity                            Nx01City?                     @relation("R_Nx01User_householdCityId", fields: [householdCityId], references: [id], onDelete: SetNull)
+  householdDistrict                        Nx01District?                 @relation("R_Nx01User_householdDistrictId", fields: [householdDistrictId], references: [id], onDelete: SetNull)
+  mailingCity                              Nx01City?                     @relation("R_Nx01User_mailingCityId", fields: [mailingCityId], references: [id], onDelete: SetNull)
+  mailingDistrict                          Nx01District?                 @relation("R_Nx01User_mailingDistrictId", fields: [mailingDistrictId], references: [id], onDelete: SetNull)
   createdByUser                            Nx01User?                     @relation("Nx01UserCreatedBy", fields: [createdBy], references: [id])
   updatedByUser                            Nx01User?                     @relation("Nx01UserUpdatedBy", fields: [updatedBy], references: [id])
   usersCreated                             Nx01User[]                    @relation("Nx01UserCreatedBy")
@@ -7213,8 +7240,7 @@ model Nx99Tenant {
   rev_Nx10TeamTaskLog_tenantId             Nx10TeamTaskLog[]             @relation("R_Nx10TeamTaskLog_tenantId")
   rev_Nx98DocLink_tenantId                 Nx98DocLink[]                 @relation("R_Nx98DocLink_tenantId")
   rev_Nx99Subscription_tenantId            Nx99Subscription[]            @relation("R_Nx99Subscription_tenantId")
-  rev_Nx01PartnerBillingAddress_tenantId   Nx01PartnerBillingAddress[]   @relation("R_Nx01PartnerBillingAddress_tenantId")
-  rev_Nx01PartnerShippingAddress_tenantId  Nx01PartnerShippingAddress[]  @relation("R_Nx01PartnerShippingAddress_tenantId")
+  rev_Nx01PartnerAddress_tenantId          Nx01PartnerAddress[]          @relation("R_Nx01PartnerAddress_tenantId")
   rev_Nx01SupplierGrade_tenantId           Nx01SupplierGrade[]           @relation("R_Nx01SupplierGrade_tenantId")
   rev_Nx02WarrantyClaim_tenantId           Nx02WarrantyClaim[]           @relation("R_Nx02WarrantyClaim_tenantId")
   rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
@@ -7266,8 +7292,9 @@ model Nx01City {
 
   country                               Nx01Country                  @relation("R_Nx01City_countryId", fields: [countryId], references: [id])
   rev_Nx01District_cityId               Nx01District[]               @relation("R_Nx01District_cityId")
-  rev_Nx01PartnerBillingAddress_cityId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_cityId")
-  rev_Nx01PartnerShippingAddress_cityId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_cityId")
+  rev_Nx01PartnerAddress_cityId         Nx01PartnerAddress[]         @relation("R_Nx01PartnerAddress_cityId")
+  rev_Nx01User_householdCityId          Nx01User[]                   @relation("R_Nx01User_householdCityId")
+  rev_Nx01User_mailingCityId            Nx01User[]                   @relation("R_Nx01User_mailingCityId")
   rev_Nx01Warehouse_cityId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_cityId")
 
   @@unique([countryId, code])
@@ -7288,6 +7315,8 @@ model Nx01District {
   name      String   @db.VarChar(20)
   /// 英文名（如 Wenshan District）；啟用最低需求版本：LITE
   nameEn    String?  @map("name_en") @db.VarChar(50)
+  /// 3 碼郵遞區號（中華郵政、選縣市→鄉鎮自動帶；02 對齊第二批 A 軌 CP1 2026-06-06 新增）；啟用最低需求版本：LITE
+  postalCode String? @map("postal_code") @db.VarChar(3)
   /// 區內排序；啟用最低需求版本：LITE
   sortOrder Int      @default(0) @map("sort_order")
   /// 是否啟用；啟用最低需求版本：LITE
@@ -7303,8 +7332,9 @@ model Nx01District {
 
   city                                      Nx01City                     @relation("R_Nx01District_cityId", fields: [cityId], references: [id])
   rev_Nx01Street_districtId                 Nx01Street[]                 @relation("R_Nx01Street_districtId")
-  rev_Nx01PartnerBillingAddress_districtId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_districtId")
-  rev_Nx01PartnerShippingAddress_districtId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_districtId")
+  rev_Nx01PartnerAddress_districtId         Nx01PartnerAddress[]         @relation("R_Nx01PartnerAddress_districtId")
+  rev_Nx01User_householdDistrictId          Nx01User[]                   @relation("R_Nx01User_householdDistrictId")
+  rev_Nx01User_mailingDistrictId            Nx01User[]                   @relation("R_Nx01User_mailingDistrictId")
   rev_Nx01Warehouse_districtId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_districtId")
 
   @@unique([cityId, code])
@@ -7340,8 +7370,6 @@ model Nx01Street {
   updatedBy   String   @map("updated_by") @db.VarChar(15)
 
   district                                Nx01District                 @relation("R_Nx01Street_districtId", fields: [districtId], references: [id])
-  rev_Nx01PartnerBillingAddress_streetId  Nx01PartnerBillingAddress[]  @relation("R_Nx01PartnerBillingAddress_streetId")
-  rev_Nx01PartnerShippingAddress_streetId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_streetId")
   rev_Nx01Warehouse_streetId              Nx01Warehouse[]              @relation("R_Nx01Warehouse_streetId")
 
   @@unique([districtId, name])
@@ -7442,115 +7470,57 @@ model Nx01Region {
 }
 
 /// =======================================================
-/// Nx01PartnerBillingAddress — DB table `nx01_partner_billing_address`（NX01-04 客戶地址 v1.0）
+/// Nx01PartnerAddress — DB table `nx01_partner_address`（02 對齊第二批 A 軌 CP2 2026-06-06）
 /// =======================================================
-model Nx01PartnerBillingAddress {
-  /// [NX01]+[PBAD]+[7碼流水號]，EX : NX01PBAD0000001；啟用最低需求版本：LITE
-  id             String   @id @default(dbgenerated("gen_nx01_partner_billing_address_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId       String   @map("tenant_id") @db.VarChar(15)
-  /// 客戶 ID（FK to nx01_partner、UNIQUE 一對一、ON DELETE CASCADE）；啟用最低需求版本：LITE
-  partnerId      String   @map("partner_id") @db.VarChar(15)
-  /// 縣市 ID（FK to nx01_city）；啟用最低需求版本：LITE
-  cityId         String   @map("city_id") @db.VarChar(15)
-  /// 鄉鎮市區 ID（FK to nx01_district）；啟用最低需求版本：LITE
-  districtId     String   @map("district_id") @db.VarChar(15)
-  /// 路街 ID（FK to nx01_street、自帶 3+3 郵遞區號）；啟用最低需求版本：LITE
-  streetId       String   @map("street_id") @db.VarChar(15)
-  /// 巷（純數字、可空）；啟用最低需求版本：LITE
-  lane           Int?
-  /// 弄（純數字、可空）；啟用最低需求版本：LITE
-  alley          Int?
-  /// 號（必填、純數字）；啟用最低需求版本：LITE
-  buildingNo     Int      @map("building_no")
-  /// 號的子號（之 N、純數字、可空）；啟用最低需求版本：LITE
-  buildingSubNo  Int?     @map("building_sub_no")
-  /// 樓層（容納 B1 / 3F 等變體）；啟用最低需求版本：LITE
-  floor          String?  @db.VarChar(10)
-  /// 室號（容納 12 / A 等變體）；啟用最低需求版本：LITE
-  roomNo         String?  @map("room_no") @db.VarChar(20)
-  /// 收件人；啟用最低需求版本：LITE
-  recipientName  String   @map("recipient_name") @db.VarChar(50)
-  /// 收件電話；啟用最低需求版本：LITE
-  recipientPhone String   @map("recipient_phone") @db.VarChar(30)
-  /// 備註（業務人員填）；啟用最低需求版本：LITE
-  note           String?  @db.VarChar(200)
-  /// 建立時間；啟用最低需求版本：LITE
-  createdAt      DateTime @default(now()) @map("created_at")
-  /// 建立人；啟用最低需求版本：LITE
-  createdBy      String   @map("created_by") @db.VarChar(15)
-  /// 更新時間；啟用最低需求版本：LITE
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  /// 更新人；啟用最低需求版本：LITE
-  updatedBy      String   @map("updated_by") @db.VarChar(15)
+/// 合 Nx01PartnerBillingAddress + Nx01PartnerShippingAddress 統一衛星表。
+/// addressType: BILLING 收帳（同 partner 內最多 1 筆）/ SHIPPING 送貨（多筆、一筆 isDefault）。
+/// 國別分流：countryId=null 預設 TW 走 city/district/postalCode 字典 + 結構化門牌；
+///           countryId=非 TW 走 freeformAddress + postalCode 自由填。
+model Nx01PartnerAddress {
+  id              String        @id @default(dbgenerated("gen_nx01_partner_address_id()")) @db.VarChar(15)
+  tenantId        String        @map("tenant_id") @db.VarChar(15)
+  partnerId       String        @map("partner_id") @db.VarChar(15)
+  /// 地址類型：BILLING 收帳 / SHIPPING 送貨
+  addressType     String        @map("address_type") @db.VarChar(10)
+  /// 顯示用標籤（送貨用、如「總公司」「桃園倉」）
+  label           String?       @db.VarChar(50)
+  /// 預設旗標（同 partner+type 內最多 1 筆 isDefault=true、partial unique）
+  isDefault       Boolean       @default(false) @map("is_default")
+  /// 國別 FK（null 視為 TW 預設、走字典；非 null 走 freeform）
+  countryId       String?       @map("country_id") @db.VarChar(15)
+  /// TW 字典：縣市
+  cityId          String?       @map("city_id") @db.VarChar(15)
+  /// TW 字典：鄉鎮市區（從 district 自動帶 postalCode）
+  districtId      String?       @map("district_id") @db.VarChar(15)
+  /// 3 碼郵遞區號（TW 從 district 帶入、國外手填）
+  postalCode      String?       @map("postal_code") @db.VarChar(10)
+  /// 結構化門牌（TW 用、國外可全空走 freeform）
+  streetName      String?       @map("street_name") @db.VarChar(100)
+  lane            String?       @db.VarChar(20)
+  alley           String?       @db.VarChar(20)
+  buildingNo      String?       @map("building_no") @db.VarChar(20)
+  buildingSubNo   String?       @map("building_sub_no") @db.VarChar(20)
+  floor           String?       @db.VarChar(20)
+  roomNo          String?       @map("room_no") @db.VarChar(20)
+  /// 國外自由填整段地址（country 非 TW 時用）
+  freeformAddress String?       @map("freeform_address") @db.VarChar(500)
+  /// 收件 / 送達聯絡
+  recipientName   String?       @map("recipient_name") @db.VarChar(50)
+  recipientPhone  String?       @map("recipient_phone") @db.VarChar(50)
+  note            String?       @db.VarChar(200)
+  isActive        Boolean       @default(true) @map("is_active")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  createdBy       String        @map("created_by") @db.VarChar(15)
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  updatedBy       String        @map("updated_by") @db.VarChar(15)
+  tenant          Nx99Tenant    @relation("R_Nx01PartnerAddress_tenantId", fields: [tenantId], references: [id])
+  partner         Nx01Partner   @relation("R_Nx01PartnerAddress_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
+  country         Nx01Country?  @relation("R_Nx01PartnerAddress_countryId", fields: [countryId], references: [id], onDelete: SetNull)
+  city            Nx01City?     @relation("R_Nx01PartnerAddress_cityId", fields: [cityId], references: [id], onDelete: SetNull)
+  district        Nx01District? @relation("R_Nx01PartnerAddress_districtId", fields: [districtId], references: [id], onDelete: SetNull)
 
-  tenant   Nx99Tenant   @relation("R_Nx01PartnerBillingAddress_tenantId", fields: [tenantId], references: [id])
-  partner  Nx01Partner  @relation("R_Nx01PartnerBillingAddress_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
-  city     Nx01City     @relation("R_Nx01PartnerBillingAddress_cityId", fields: [cityId], references: [id])
-  district Nx01District @relation("R_Nx01PartnerBillingAddress_districtId", fields: [districtId], references: [id])
-  street   Nx01Street   @relation("R_Nx01PartnerBillingAddress_streetId", fields: [streetId], references: [id])
-
-  @@unique([partnerId])
-  @@map("nx01_partner_billing_address")
-}
-
-/// =======================================================
-/// Nx01PartnerShippingAddress — DB table `nx01_partner_shipping_address`（NX01-04 客戶地址 v1.0）
-/// =======================================================
-model Nx01PartnerShippingAddress {
-  /// [NX01]+[PSAD]+[7碼流水號]，EX : NX01PSAD0000001；啟用最低需求版本：LITE
-  id             String   @id @default(dbgenerated("gen_nx01_partner_shipping_address_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId       String   @map("tenant_id") @db.VarChar(15)
-  /// 客戶 ID（FK to nx01_partner、ON DELETE CASCADE、一對多）；啟用最低需求版本：LITE
-  partnerId      String   @map("partner_id") @db.VarChar(15)
-  /// 地址標籤（如「台北倉」、同 partner 內 unique）；啟用最低需求版本：LITE
-  label          String   @db.VarChar(50)
-  /// 是否預設送貨地址（同 partner 只能 1 筆 true、partial unique index 強制）；啟用最低需求版本：LITE
-  isDefault      Boolean  @default(false) @map("is_default")
-  /// 是否啟用（停用後不可選、既有 DN 仍 snapshot 顯示）；啟用最低需求版本：LITE
-  isActive       Boolean  @default(true) @map("is_active")
-  /// 縣市 ID（FK to nx01_city）；啟用最低需求版本：LITE
-  cityId         String   @map("city_id") @db.VarChar(15)
-  /// 鄉鎮市區 ID（FK to nx01_district）；啟用最低需求版本：LITE
-  districtId     String   @map("district_id") @db.VarChar(15)
-  /// 路街 ID（FK to nx01_street、自帶 3+3 郵遞區號）；啟用最低需求版本：LITE
-  streetId       String   @map("street_id") @db.VarChar(15)
-  /// 巷（純數字、可空）；啟用最低需求版本：LITE
-  lane           Int?
-  /// 弄（純數字、可空）；啟用最低需求版本：LITE
-  alley          Int?
-  /// 號（必填、純數字）；啟用最低需求版本：LITE
-  buildingNo     Int      @map("building_no")
-  /// 號的子號（之 N、純數字、可空）；啟用最低需求版本：LITE
-  buildingSubNo  Int?     @map("building_sub_no")
-  /// 樓層（容納 B1 / 3F 等變體）；啟用最低需求版本：LITE
-  floor          String?  @db.VarChar(10)
-  /// 室號（容納 12 / A 等變體）；啟用最低需求版本：LITE
-  roomNo         String?  @map("room_no") @db.VarChar(20)
-  /// 收件人；啟用最低需求版本：LITE
-  recipientName  String   @map("recipient_name") @db.VarChar(50)
-  /// 收件電話；啟用最低需求版本：LITE
-  recipientPhone String   @map("recipient_phone") @db.VarChar(30)
-  /// 備註（業務人員填）；啟用最低需求版本：LITE
-  note           String?  @db.VarChar(200)
-  /// 建立時間；啟用最低需求版本：LITE
-  createdAt      DateTime @default(now()) @map("created_at")
-  /// 建立人；啟用最低需求版本：LITE
-  createdBy      String   @map("created_by") @db.VarChar(15)
-  /// 更新時間；啟用最低需求版本：LITE
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  /// 更新人；啟用最低需求版本：LITE
-  updatedBy      String   @map("updated_by") @db.VarChar(15)
-
-  tenant   Nx99Tenant   @relation("R_Nx01PartnerShippingAddress_tenantId", fields: [tenantId], references: [id])
-  partner  Nx01Partner  @relation("R_Nx01PartnerShippingAddress_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
-  city     Nx01City     @relation("R_Nx01PartnerShippingAddress_cityId", fields: [cityId], references: [id])
-  district Nx01District @relation("R_Nx01PartnerShippingAddress_districtId", fields: [districtId], references: [id])
-  street   Nx01Street   @relation("R_Nx01PartnerShippingAddress_streetId", fields: [streetId], references: [id])
-
-  @@unique([partnerId, label])
-  @@map("nx01_partner_shipping_address")
+  @@index([tenantId, partnerId, addressType])
+  @@map("nx01_partner_address")
 }
 
 /// =======================================================

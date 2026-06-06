@@ -17,7 +17,8 @@ export type PartnerDto = {
   phone: string | null;
   mobile: string | null;
   email: string | null;
-  address: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化地址走 partner_address 衛星
+  countryId?: string | null;
   remark: string | null;
   isActive: boolean;
   taxId: string | null;
@@ -57,7 +58,8 @@ export type CreatePartnerBody = {
   phone?: string | null;
   mobile?: string | null;
   email?: string | null;
-  address?: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化走 partner_address 衛星
+  countryId?: string | null;
   remark?: string | null;
   taxId?: string | null;
   paymentTermDomestic?: string;
@@ -85,7 +87,8 @@ export type UpdatePartnerBody = {
   phone?: string | null;
   mobile?: string | null;
   email?: string | null;
-  address?: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化走 partner_address 衛星
+  countryId?: string | null;
   remark?: string | null;
   taxId?: string | null;
   paymentTermDomestic?: string;

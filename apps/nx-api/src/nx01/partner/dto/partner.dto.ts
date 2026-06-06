@@ -82,10 +82,9 @@ export class CreatePartnerDto {
   @MaxLength(100)
   email?: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  address?: string;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化地址走 partner_address 衛星表
+  /** 國別 FK（null = 預設 TW；非 TW = 國外、地址改 freeform） */
+  @IsOptional() @IsString() @MaxLength(15) countryId?: string;
 
   @IsOptional()
   @IsString()
@@ -203,10 +202,8 @@ export class UpdatePartnerDto {
   @MaxLength(100)
   email?: string | null;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  address?: string | null;
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP
+  @IsOptional() @IsString() @MaxLength(15) countryId?: string | null;
 
   @IsOptional()
   @IsString()

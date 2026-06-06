@@ -38,7 +38,8 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'fax', label: '傳真', zone: 'basic' },
   { key: 'email', label: 'Email', zone: 'basic' },
   { key: 'website', label: '官網', zone: 'basic' },
-  { key: 'address', label: '地址（自由文字）', zone: 'basic', notes: '結構化地址在 delivery / finance 衛星表' },
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化地址改走 partner_address 衛星表
+  { key: 'countryId', label: '國別', zone: 'basic', notes: '空白=台灣（走縣市/鄉鎮字典）；非台灣=國外自由填' },
   // 02 對齊第二批 C 軌 CP1：地區 + 總公司
   { key: 'regionId', label: '地區', zone: 'basic', notes: '地區下拉、不入 partner code 編號' },
   { key: 'parentPartnerId', label: '總公司', zone: 'basic', notes: '連鎖母子、self-FK、null=自己就是總公司' },

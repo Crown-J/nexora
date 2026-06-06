@@ -49,9 +49,53 @@ export async function createReturnPickupFromPostedSr(
 
   const cust = await tx.nx01Partner.findFirst({
     where: { id: sr.customerId, tenantId: p.tenantId },
-    select: { address: true, contactName: true, phone: true, mobile: true },
+    select: { contactName: true, phone: true, mobile: true },
   });
-  const addr = cust?.address?.trim();
+  // 02 對齊第二批 A 軌 CP2 2026-06-06：partner.address 已 DROP、tx 內手動組 partner_address SHIPPING 預設
+  const shipping =
+    (await tx.nx01PartnerAddress.findFirst({
+      where: {
+        tenantId: p.tenantId,
+        partnerId: sr.customerId,
+        addressType: 'SHIPPING',
+        isActive: true,
+        isDefault: true,
+      },
+      include: {
+        city: { select: { name: true } },
+        district: { select: { name: true } },
+        country: { select: { code: true, name: true } },
+      },
+    })) ??
+    (await tx.nx01PartnerAddress.findFirst({
+      where: {
+        tenantId: p.tenantId,
+        partnerId: sr.customerId,
+        addressType: 'SHIPPING',
+        isActive: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        city: { select: { name: true } },
+        district: { select: { name: true } },
+        country: { select: { code: true, name: true } },
+      },
+    }));
+  if (!shipping) return null;
+  const isTW = !shipping.countryId || shipping.country?.code === 'TWN';
+  const addr = !isTW && shipping.freeformAddress
+    ? [shipping.country?.name, shipping.postalCode, shipping.freeformAddress].filter(Boolean).join(' ').trim()
+    : [
+        shipping.postalCode,
+        shipping.city?.name,
+        shipping.district?.name,
+        shipping.streetName,
+        shipping.lane ? `${shipping.lane}巷` : '',
+        shipping.alley ? `${shipping.alley}弄` : '',
+        shipping.buildingNo ? `${shipping.buildingNo}號${shipping.buildingSubNo ? '之' + shipping.buildingSubNo : ''}` : '',
+        shipping.floor ? `${shipping.floor}樓` : '',
+        shipping.roomNo ? `${shipping.roomNo}室` : '',
+      ].filter(Boolean).join('').trim();
   if (!addr) return null;
 
   const wh = await tx.nx01Warehouse.findFirst({
