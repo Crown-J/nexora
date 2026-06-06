@@ -93,6 +93,13 @@ export class CreateUserDto {
   @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string;
   @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string;
 
+  // ── 02 對齊第二批 B 軌：basic zone 補 5 欄位 ──────────────────
+  @IsOptional() @IsString() @MaxLength(20) highestEducation?: string;
+  @IsOptional() @IsString() @MaxLength(100) graduateSchool?: string;
+  @IsOptional() @IsString() @MaxLength(20) militaryService?: string;
+  @IsOptional() @IsDateString() healthCheckDate?: string;
+  @IsOptional() @IsString() @MaxLength(20) healthCheckResult?: string;
+
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
 }
@@ -159,6 +166,13 @@ export class UpdateUserDto {
   @IsOptional() @IsDateString() hireDate?: string | null;
   @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string | null;
   @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string | null;
+
+  // ── 02 對齊第二批 B 軌：basic zone 補 5 欄位 ──────────────────
+  @IsOptional() @IsString() @MaxLength(20) highestEducation?: string | null;
+  @IsOptional() @IsString() @MaxLength(100) graduateSchool?: string | null;
+  @IsOptional() @IsString() @MaxLength(20) militaryService?: string | null;
+  @IsOptional() @IsDateString() healthCheckDate?: string | null;
+  @IsOptional() @IsString() @MaxLength(20) healthCheckResult?: string | null;
 
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;

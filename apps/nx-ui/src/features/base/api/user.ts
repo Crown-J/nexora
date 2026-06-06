@@ -17,7 +17,7 @@ export type UserDto = {
   /** 舊版 API 相容（已改為多據點 summary 後可能仍短暫存在） */
   warehouseCode?: string | null;
   warehouseName?: string | null;
-  // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
+  // W3 [3-3] basic zone 7 欄位 + 02 對齊第二批 B 軌 5 欄位 + [3-2] legacyCode
   gender?: string | null;
   birthday?: string | null;
   nationalId?: string | null;
@@ -25,6 +25,11 @@ export type UserDto = {
   hireDate?: string | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
+  highestEducation?: string | null;
+  graduateSchool?: string | null;
+  militaryService?: string | null;
+  healthCheckDate?: string | null;
+  healthCheckResult?: string | null;
   legacyCode?: string | null;
   createdAt: string;
   createdBy: string | null;
@@ -93,6 +98,11 @@ export type UserBasicWritable = {
   hireDate?: string | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
+  highestEducation?: string | null;
+  graduateSchool?: string | null;
+  militaryService?: string | null;
+  healthCheckDate?: string | null;
+  healthCheckResult?: string | null;
   legacyCode?: string | null;
 };
 
@@ -104,6 +114,11 @@ function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBas
   if (body.hireDate !== undefined) apiBody.hireDate = body.hireDate;
   if (body.emergencyContact !== undefined) apiBody.emergencyContact = body.emergencyContact;
   if (body.emergencyPhone !== undefined) apiBody.emergencyPhone = body.emergencyPhone;
+  if (body.highestEducation !== undefined) apiBody.highestEducation = body.highestEducation;
+  if (body.graduateSchool !== undefined) apiBody.graduateSchool = body.graduateSchool;
+  if (body.militaryService !== undefined) apiBody.militaryService = body.militaryService;
+  if (body.healthCheckDate !== undefined) apiBody.healthCheckDate = body.healthCheckDate;
+  if (body.healthCheckResult !== undefined) apiBody.healthCheckResult = body.healthCheckResult;
   if (body.legacyCode !== undefined) apiBody.legacyCode = body.legacyCode;
 }
 

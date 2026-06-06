@@ -71,6 +71,12 @@ export const BASIC_WRITABLE = new Set([
   'hireDate',
   'emergencyContact',
   'emergencyPhone',
+  // 02 對齊第二批 B 軌：basic zone 補 5 欄位
+  'highestEducation',
+  'graduateSchool',
+  'militaryService',
+  'healthCheckDate',
+  'healthCheckResult',
   // W3 [3-2] 舊代號
   'legacyCode',
 ]);
@@ -125,6 +131,12 @@ const DTO_SUPPORTED = new Set([
   'hireDate',
   'emergencyContact',
   'emergencyPhone',
+  // 02 對齊第二批 B 軌：basic zone 補 5 欄位
+  'highestEducation',
+  'graduateSchool',
+  'militaryService',
+  'healthCheckDate',
+  'healthCheckResult',
   'legacyCode',
 ]);
 

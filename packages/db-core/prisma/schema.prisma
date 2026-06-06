@@ -1308,6 +1308,16 @@ model Nx01User {
   emergencyContact                         String?                       @map("emergency_contact") @db.VarChar(50)
   /// 緊急聯絡電話；W3 [3-3] 2026-06-06 新增
   emergencyPhone                           String?                       @map("emergency_phone") @db.VarChar(30)
+  /// 最高學歷（高中/專科/大學/碩士/博士 等、basic zone）；02 對齊第二批 B 軌 2026-06-06 新增
+  highestEducation                         String?                       @map("highest_education") @db.VarChar(20)
+  /// 畢業學校；02 對齊第二批 B 軌 2026-06-06 新增
+  graduateSchool                           String?                       @map("graduate_school") @db.VarChar(100)
+  /// 服兵役（已服/未服/免役/替代役/服役中 等、basic zone）；02 對齊第二批 B 軌 2026-06-06 新增
+  militaryService                          String?                       @map("military_service") @db.VarChar(20)
+  /// 體檢日期；02 對齊第二批 B 軌 2026-06-06 新增
+  healthCheckDate                          DateTime?                     @map("health_check_date") @db.Date
+  /// 體檢結果（合格/不合格/複檢/未體檢 等、純文字保留延伸彈性）；02 對齊第二批 B 軌 2026-06-06 新增
+  healthCheckResult                        String?                       @map("health_check_result") @db.VarChar(20)
   /// 舊系統員工編號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
   legacyCode                               String?                       @map("legacy_code") @db.VarChar(50)
   /// 人資主檔同步：主要職務角色（選填，與 nx01_user_role 並存）；啟用最低需求版本：PRO

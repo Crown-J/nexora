@@ -39,6 +39,12 @@ const SEL = {
   hireDate: true,
   emergencyContact: true,
   emergencyPhone: true,
+  // 02 對齊第二批 B 軌：basic zone 補 5 欄位（學歷/學校/兵役/體檢日/體檢結果）
+  highestEducation: true,
+  graduateSchool: true,
+  militaryService: true,
+  healthCheckDate: true,
+  healthCheckResult: true,
   legacyCode: true,
   createdAt: true,
   createdBy: true,
@@ -86,6 +92,12 @@ export type Nx01UserPublicDto = {
   hireDate: string | null;
   emergencyContact: string | null;
   emergencyPhone: string | null;
+  // 02 對齊第二批 B 軌：basic zone 補 5 欄位
+  highestEducation: string | null;
+  graduateSchool: string | null;
+  militaryService: string | null;
+  healthCheckDate: string | null;
+  healthCheckResult: string | null;
   legacyCode: string | null;
   createdAt: string;
   createdBy: string;
@@ -163,7 +175,7 @@ export class UserService {
     return where;
   }
 
-  /** W3 [3-3] / [3-2]：把 user row 的 basic 欄位 + legacyCode 攤平給 public DTO */
+  /** W3 [3-3] / [3-2] + 02 對齊第二批 B 軌：把 user row 的 basic 欄位 + legacyCode 攤平給 public DTO */
   private basicAndLegacy(row: Row | ListRow) {
     return {
       gender: row.gender ?? null,
@@ -173,6 +185,11 @@ export class UserService {
       hireDate: row.hireDate ? row.hireDate.toISOString().slice(0, 10) : null,
       emergencyContact: row.emergencyContact ?? null,
       emergencyPhone: row.emergencyPhone ?? null,
+      highestEducation: row.highestEducation ?? null,
+      graduateSchool: row.graduateSchool ?? null,
+      militaryService: row.militaryService ?? null,
+      healthCheckDate: row.healthCheckDate ? row.healthCheckDate.toISOString().slice(0, 10) : null,
+      healthCheckResult: row.healthCheckResult ?? null,
       legacyCode: row.legacyCode ?? null,
     };
   }
@@ -321,6 +338,12 @@ export class UserService {
         hireDate: dto.hireDate ? new Date(dto.hireDate) : null,
         emergencyContact: dto.emergencyContact?.trim() || null,
         emergencyPhone: dto.emergencyPhone?.trim() || null,
+        // 02 對齊第二批 B 軌：basic zone 補 5 欄位
+        highestEducation: dto.highestEducation?.trim() || null,
+        graduateSchool: dto.graduateSchool?.trim() || null,
+        militaryService: dto.militaryService?.trim() || null,
+        healthCheckDate: dto.healthCheckDate ? new Date(dto.healthCheckDate) : null,
+        healthCheckResult: dto.healthCheckResult?.trim() || null,
         // W3 [3-2] legacyCode
         legacyCode: dto.legacyCode?.trim() || null,
         createdBy: user.sub,
@@ -382,6 +405,14 @@ export class UserService {
         : {}),
       ...(dto.emergencyContact !== undefined ? { emergencyContact: dto.emergencyContact } : {}),
       ...(dto.emergencyPhone !== undefined ? { emergencyPhone: dto.emergencyPhone } : {}),
+      // 02 對齊第二批 B 軌：basic zone 補 5 欄位
+      ...(dto.highestEducation !== undefined ? { highestEducation: dto.highestEducation } : {}),
+      ...(dto.graduateSchool !== undefined ? { graduateSchool: dto.graduateSchool } : {}),
+      ...(dto.militaryService !== undefined ? { militaryService: dto.militaryService } : {}),
+      ...(dto.healthCheckDate !== undefined
+        ? { healthCheckDate: dto.healthCheckDate ? new Date(dto.healthCheckDate) : null }
+        : {}),
+      ...(dto.healthCheckResult !== undefined ? { healthCheckResult: dto.healthCheckResult } : {}),
       // W3 [3-2] legacyCode
       ...(dto.legacyCode !== undefined ? { legacyCode: dto.legacyCode } : {}),
     };
