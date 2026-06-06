@@ -60,6 +60,7 @@ import { TransmissionController } from './transmission/transmission.controller';
 import { TransmissionService } from './transmission/transmission.service';
 import { UserController } from './user/user.controller';
 import { UserService } from './user/user.service';
+import { SeqCounterService } from '../shared/nx01/seq-counter.service';
 import { UserRoleController } from './user-role/user-role.controller';
 import { UserRoleService } from './user-role/user-role.service';
 import { UserWarehouseController } from './user-warehouse/user-warehouse.controller';
@@ -117,6 +118,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartnerService,
     CustomerGradeService,
     SupplierGradeService,
+    SeqCounterService,
     UserService,
     RoleService,
     BulletinService,

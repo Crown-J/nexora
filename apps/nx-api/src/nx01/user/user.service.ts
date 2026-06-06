@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NexoraHttpException } from '../../shared/errors/nexora-error';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { isSysadmin, SYSADMIN_ROLE_CODE } from '../../shared/nx01/is-sysadmin';
+import { SeqCounterService } from '../../shared/nx01/seq-counter.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { BulkActivateUsersDto, CreateUserDto, ListUserQueryDto, UpdateUserDto } from './dto/user.dto';
@@ -30,6 +31,15 @@ const SEL = {
   phone: true,
   isActive: true,
   lastLoginAt: true,
+  // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
+  gender: true,
+  birthday: true,
+  nationalId: true,
+  address: true,
+  hireDate: true,
+  emergencyContact: true,
+  emergencyPhone: true,
+  legacyCode: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -68,6 +78,15 @@ export type Nx01UserPublicDto = {
   warehouseSummary: string | null;
   warehouseCode: string | null;
   warehouseName: string | null;
+  // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
+  gender: string | null;
+  birthday: string | null;
+  nationalId: string | null;
+  address: string | null;
+  hireDate: string | null;
+  emergencyContact: string | null;
+  emergencyPhone: string | null;
+  legacyCode: string | null;
   createdAt: string;
   createdBy: string;
   createdByUsername: string | null;
@@ -83,6 +102,7 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    private readonly seq: SeqCounterService,
   ) {}
 
   private whereList(tenantId: string, q: ListUserQueryDto): Prisma.Nx01UserWhereInput {
@@ -143,6 +163,20 @@ export class UserService {
     return where;
   }
 
+  /** W3 [3-3] / [3-2]：把 user row 的 basic 欄位 + legacyCode 攤平給 public DTO */
+  private basicAndLegacy(row: Row | ListRow) {
+    return {
+      gender: row.gender ?? null,
+      birthday: row.birthday ? row.birthday.toISOString().slice(0, 10) : null,
+      nationalId: row.nationalId ?? null,
+      address: row.address ?? null,
+      hireDate: row.hireDate ? row.hireDate.toISOString().slice(0, 10) : null,
+      emergencyContact: row.emergencyContact ?? null,
+      emergencyPhone: row.emergencyPhone ?? null,
+      legacyCode: row.legacyCode ?? null,
+    };
+  }
+
   private toPublicUserFromListRow(row: ListRow): Nx01UserPublicDto {
     const whRows = row.rev_Nx01UserWarehouse_userId.map((x) => x.warehouse).filter(Boolean);
     const parts = whRows.map((w) => `${w.code} ${w.name}`.trim()).filter(Boolean);
@@ -161,6 +195,7 @@ export class UserService {
       warehouseSummary,
       warehouseCode: firstWh?.code ?? null,
       warehouseName: firstWh?.name ?? null,
+      ...this.basicAndLegacy(row),
       createdAt: row.createdAt.toISOString(),
       createdBy: row.createdBy,
       createdByUsername: row.createdByUser?.userAccount ?? null,
@@ -185,6 +220,7 @@ export class UserService {
       warehouseSummary: null,
       warehouseCode: null,
       warehouseName: null,
+      ...this.basicAndLegacy(row),
       createdAt: row.createdAt.toISOString(),
       createdBy: row.createdBy,
       createdByUsername: null,
@@ -254,12 +290,19 @@ export class UserService {
 
   async create(user: RequestUser, dto: CreateUserDto) {
     const tenantId = requireTenantId(user);
-    const acc = dto.userAccount.trim();
+    // W3 [3-1]：userAccount 未填 → 自動取下一個 Y 編號；已填 → 用填的（手動覆寫）+ 推進 counter 防衝突
+    let acc = dto.userAccount?.trim();
+    if (!acc) {
+      acc = await this.seq.nextEmployeeNo(tenantId);
+    } else {
+      const n = SeqCounterService.parseSerialNumber(acc, 'Y');
+      if (n != null) await this.seq.reserveIfHigher(tenantId, 'EMPLOYEE', n);
+    }
     const dup = await this.prisma.nx01User.findFirst({
       where: { tenantId, userAccount: { equals: acc, mode: 'insensitive' } },
       select: { id: true },
     });
-    if (dup) throw new ConflictException('User account already exists in tenant');
+    if (dup) throw new ConflictException('員工編號已被其他人使用、請改用其他編號');
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const row = await this.prisma.nx01User.create({
       data: {
@@ -270,6 +313,16 @@ export class UserService {
         email: dto.email?.trim() || null,
         phone: dto.phone?.trim() || null,
         isActive: dto.isActive ?? true,
+        // W3 [3-3] basic zone 7 欄位
+        gender: dto.gender ?? null,
+        birthday: dto.birthday ? new Date(dto.birthday) : null,
+        nationalId: dto.nationalId?.trim() || null,
+        address: dto.address?.trim() || null,
+        hireDate: dto.hireDate ? new Date(dto.hireDate) : null,
+        emergencyContact: dto.emergencyContact?.trim() || null,
+        emergencyPhone: dto.emergencyPhone?.trim() || null,
+        // W3 [3-2] legacyCode
+        legacyCode: dto.legacyCode?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -317,6 +370,20 @@ export class UserService {
       ...(dto.email !== undefined ? { email: dto.email } : {}),
       ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
       ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
+      // W3 [3-3] basic zone 7 欄位
+      ...(dto.gender !== undefined ? { gender: dto.gender } : {}),
+      ...(dto.birthday !== undefined
+        ? { birthday: dto.birthday ? new Date(dto.birthday) : null }
+        : {}),
+      ...(dto.nationalId !== undefined ? { nationalId: dto.nationalId } : {}),
+      ...(dto.address !== undefined ? { address: dto.address } : {}),
+      ...(dto.hireDate !== undefined
+        ? { hireDate: dto.hireDate ? new Date(dto.hireDate) : null }
+        : {}),
+      ...(dto.emergencyContact !== undefined ? { emergencyContact: dto.emergencyContact } : {}),
+      ...(dto.emergencyPhone !== undefined ? { emergencyPhone: dto.emergencyPhone } : {}),
+      // W3 [3-2] legacyCode
+      ...(dto.legacyCode !== undefined ? { legacyCode: dto.legacyCode } : {}),
     };
     if (dto.password) {
       data.passwordHash = await bcrypt.hash(dto.password, 10);

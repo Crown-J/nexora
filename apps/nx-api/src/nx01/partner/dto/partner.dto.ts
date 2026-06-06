@@ -26,11 +26,20 @@ export class ListPartnerQueryDto extends Nx01ListQueryDto {
   partnerType?: string;
 }
 
+/**
+ * W3 [3-1] 2026-06-06：往來對象編號類型 + 4 碼制（NX-MANUAL-02 v2.0 §3.1）
+ *   - code 未填 → service create 自動取下一個 類型碼+4 碼（每 partnerType 各一條獨立流水）
+ *   - code 已填 → 直接用（手動覆寫）；若符合「partnerType+4碼」格式且 ≥ counter.next_no 自動跳號
+ *
+ * W3 [3-2]：加 legacyCode（舊系統往來對象代號、純對照不綁 FK）
+ */
 export class CreatePartnerDto {
+  /** 往來對象代碼。未填則自動產生 類型碼+4 碼 */
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(30)
-  code!: string;
+  code?: string;
 
   @IsString()
   @MinLength(1)
@@ -40,6 +49,9 @@ export class CreatePartnerDto {
   @IsString()
   @IsIn(PARTNER_TYPES)
   partnerType!: string;
+
+  /** W3 [3-2] 舊系統往來對象代號（純對照） */
+  @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
 
   @IsOptional()
   @IsString()
@@ -247,4 +259,7 @@ export class UpdatePartnerDto {
 
   // ── v1.2 階段 E P2：finance 區補欄 ──
   @IsOptional() @IsString() @MaxLength(15) defaultCurrencyId?: string | null;
+
+  /** W3 [3-2] 舊系統往來對象代號 */
+  @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;
 }

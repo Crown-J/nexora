@@ -4,6 +4,7 @@ import type { Prisma } from 'db-core';
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { SeqCounterService, type SeqScope } from '../../shared/nx01/seq-counter.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreatePartnerDto, ListPartnerQueryDto, UpdatePartnerDto } from './dto/partner.dto';
@@ -42,6 +43,8 @@ const SEL = {
   salesUserId: true,
   // v1.2 階段 E P2：finance 補欄
   defaultCurrencyId: true,
+  // W3 [3-2] 舊系統代號
+  legacyCode: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -85,6 +88,7 @@ export class PartnerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    private readonly seq: SeqCounterService,
   ) {}
 
   private whereList(tenantId: string, q: ListPartnerQueryDto): Prisma.Nx01PartnerWhereInput {
@@ -130,12 +134,23 @@ export class PartnerService {
 
   async create(user: RequestUser, dto: CreatePartnerDto) {
     const tenantId = requireTenantId(user);
-    const code = dto.code.trim();
+    // W3 [3-1]：code 未填 → 自動取下一個 類型+4 碼；已填 → 直接用 + 推進 counter 防衝突
+    const partnerType = dto.partnerType.toUpperCase();
+    let code = dto.code?.trim();
+    if (!code) {
+      code = await this.seq.nextPartnerCode(tenantId, partnerType);
+    } else {
+      const n = SeqCounterService.parseSerialNumber(code, partnerType);
+      if (n != null) {
+        const scope = `PARTNER_${partnerType}` as SeqScope;
+        await this.seq.reserveIfHigher(tenantId, scope, n);
+      }
+    }
     const dup = await this.prisma.nx01Partner.findFirst({
       where: { tenantId, code: { equals: code, mode: 'insensitive' } },
       select: { id: true },
     });
-    if (dup) throw new ConflictException('Partner code already exists');
+    if (dup) throw new ConflictException('往來對象代碼已被其他人使用、請改用其他編號');
     // 同行 'O' service 層預設 canTransferStock=true（業務語意：同行天然可調貨）；其他類型 default false、DTO 可覆寫
     const defaultCanTransferStock = dto.partnerType === 'O';
     const row = await this.prisma.nx01Partner.create({
@@ -172,6 +187,8 @@ export class PartnerService {
         defaultCurrencyId: dto.defaultCurrencyId?.trim() || null,
         // v1.2 階段 E P2：supplierGradeId 純供應商 S 用
         supplierGradeId: dto.supplierGradeId?.trim() || null,
+        // W3 [3-2] 舊系統代號
+        legacyCode: dto.legacyCode?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -243,6 +260,8 @@ export class PartnerService {
         ...(dto.defaultCurrencyId !== undefined
           ? { defaultCurrencyId: dto.defaultCurrencyId?.trim() || null }
           : {}),
+        // W3 [3-2] 舊系統代號
+        ...(dto.legacyCode !== undefined ? { legacyCode: dto.legacyCode?.trim() || null } : {}),
         updatedBy: user.sub,
       },
       select: SEL,

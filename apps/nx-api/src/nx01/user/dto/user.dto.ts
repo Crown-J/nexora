@@ -4,6 +4,8 @@ import {
   ArrayMinSize,
   IsArray,
   IsBoolean,
+  IsDateString,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
@@ -41,11 +43,22 @@ export class ListUserQueryDto extends Nx01ListQueryDto {
   primaryRoleIds?: string[];
 }
 
+/**
+ * W3 [3-1] 2026-06-06：員工編號 Y + 4 碼制（Crown 拍板 employeeNo = userAccount = 登入帳號）
+ *   - userAccount 未填 → service create 自動取下一個 Y 編號
+ *   - userAccount 已填 → 直接用（手動覆寫）；若 Y\d{4} 格式且 ≥ counter.next_no 自動跳號防衝突
+ *   - 不強制 Y 格式（彈性、給系統帳號 / 資料匯入用）
+ *
+ * W3 [3-3]：basic zone 補 7 欄位（性別 / 生日 / 身分證 / 地址 / 到職 / 緊急聯絡 / 緊急電話）
+ * W3 [3-2]：加 legacyCode（舊系統員工編號、純對照）
+ */
 export class CreateUserDto {
+  /** 員工編號（= 登入帳號）。未填則自動產生 Y + 4 碼 */
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(50)
-  userAccount!: string;
+  userAccount?: string;
 
   @IsString()
   @MinLength(6)
@@ -71,6 +84,18 @@ export class CreateUserDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  // ── W3 [3-3] basic zone 7 欄位 ────────────────────────────
+  @IsOptional() @IsString() @IsIn(['M', 'F', 'O']) gender?: string;
+  @IsOptional() @IsDateString() birthday?: string;
+  @IsOptional() @IsString() @MaxLength(20) nationalId?: string;
+  @IsOptional() @IsString() @MaxLength(200) address?: string;
+  @IsOptional() @IsDateString() hireDate?: string;
+  @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string;
+  @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string;
+
+  // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
+  @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
 }
 
 /**
@@ -126,4 +151,16 @@ export class UpdateUserDto {
   @Type(() => Boolean)
   @IsBoolean()
   isActive?: boolean;
+
+  // ── W3 [3-3] basic zone 7 欄位 ────────────────────────────
+  @IsOptional() @IsString() @IsIn(['M', 'F', 'O']) gender?: string | null;
+  @IsOptional() @IsDateString() birthday?: string | null;
+  @IsOptional() @IsString() @MaxLength(20) nationalId?: string | null;
+  @IsOptional() @IsString() @MaxLength(200) address?: string | null;
+  @IsOptional() @IsDateString() hireDate?: string | null;
+  @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string | null;
+  @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string | null;
+
+  // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
+  @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;
 }

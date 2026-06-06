@@ -104,7 +104,14 @@ function makeService(state: State): UserService {
   } as never;
 
   const audit = { write: vi.fn().mockResolvedValue(undefined) } as never;
-  return new UserService(prisma, audit);
+  // W3 [3-1]：SeqCounterService 注入；本 test 涵蓋席次制 update/bulkActivate 路徑、不會走 create 自動取號
+  const seq = {
+    nextEmployeeNo: vi.fn(),
+    nextPartnerCode: vi.fn(),
+    next: vi.fn(),
+    reserveIfHigher: vi.fn(),
+  } as never;
+  return new UserService(prisma, audit, seq);
 }
 
 function seedState(seats: number | null, users: UserStub[]): State {
