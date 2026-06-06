@@ -27,6 +27,7 @@ import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 
 import {
   CREDIT_STATUS_OPTIONS,
+  INVOICE_COPIES_OPTIONS,
   PARTNER_TYPE_LABEL,
   PARTNER_TYPE_OPTIONS,
   PAY_DOM_OPTIONS,
@@ -217,6 +218,23 @@ export function PartnerFormZoned({
                     ...(f.required ? [] : [{ value: '', label: '（未指定）' }]),
                     ...opts.map((o) => ({ value: o.value, label: o.label })),
                   ]}
+                  ariaLabel={f.label}
+                  onChange={(v) => setDraft({ ...draft, [f.key]: v })}
+                />
+              </FieldShell>
+            );
+          }
+
+          // W4 [3-6] defaultInvoiceCopies 靜態下拉（2/3 聯）；散客 L 強制 2、UI 仍 render 但 service 端守門
+          if (fieldEditable && f.key === 'defaultInvoiceCopies') {
+            return (
+              <FieldShell key={f.key} label={f.label}>
+                <KeyboardSelect
+                  value={String(draft[f.key] ?? '3')}
+                  options={INVOICE_COPIES_OPTIONS.map((o) => ({
+                    value: String(o.value),
+                    label: o.label,
+                  }))}
                   ariaLabel={f.label}
                   onChange={(v) => setDraft({ ...draft, [f.key]: v })}
                 />

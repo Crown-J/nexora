@@ -90,12 +90,9 @@ export function CreateUserDialog({
 
   const handleSubmit = async () => {
     setError(null);
+    // W4 [風險① 補] 員工編號（= 登入帳號）改 optional：留空 → 後端自動產 Y+4 碼
     const username = form.username.trim();
     const displayName = form.displayName.trim();
-    if (!username) {
-      setError('請填寫帳號');
-      return;
-    }
     if (!displayName) {
       setError('請填寫姓名');
       return;
@@ -103,7 +100,8 @@ export function CreateUserDialog({
     setSubmitting(true);
     try {
       const created = await createUser({
-        username,
+        // username 為空時不傳、後端 SeqCounterService 自動產 Y0001
+        ...(username ? { username } : {}),
         password: DEFAULT_PASSWORD,
         displayName,
         email: form.email.trim() || null,
@@ -142,11 +140,9 @@ export function CreateUserDialog({
 
         {/* Form */}
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 px-5 pb-1 pt-5 sm:grid-cols-2">
-          <RequiredInput
-            label="帳號"
+          <OptionalEmployeeNoInput
             value={form.username}
             onChange={(v) => update('username', v)}
-            placeholder="例：admin / finance1"
             inputRef={firstInputRef}
           />
           <RequiredInput
@@ -258,6 +254,34 @@ function RequiredInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        className="rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors placeholder:text-[#5A5A60] focus:border-[#E8A020]/60 focus:bg-[#0A0A0C] focus:ring-1 focus:ring-[#E8A020]/40"
+      />
+    </div>
+  );
+}
+
+/** W4 [風險① 補] 員工編號 input：optional + placeholder 提示自動產號 */
+function OptionalEmployeeNoInput({
+  value,
+  onChange,
+  inputRef,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+        員工編號
+        <span className="ml-1 text-[10px] font-normal text-[#5A5A60]">（可留空、系統自動產 Y+4 碼）</span>
+      </span>
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="留空自動產 Y0001（也可手動填、例 Y0042 / admin）"
         className="rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors placeholder:text-[#5A5A60] focus:border-[#E8A020]/60 focus:bg-[#0A0A0C] focus:ring-1 focus:ring-[#E8A020]/40"
       />
     </div>

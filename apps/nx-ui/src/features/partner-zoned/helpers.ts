@@ -122,6 +122,12 @@ export function partnerDraftToBody(
         if (Number.isFinite(n)) body[f.key] = n;
         continue;
       }
+      // W4 [3-6] defaultInvoiceCopies：字串 → number（2 / 3）
+      if (f.key === 'defaultInvoiceCopies') {
+        const n = Number(trimmed);
+        if (Number.isFinite(n)) body[f.key] = n;
+        continue;
+      }
       body[f.key] = trimmed;
       continue;
     }
