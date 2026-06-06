@@ -649,6 +649,16 @@ export function MobileDock() {
   const planCtx = useDashboardHomePlanOptional();
   const isDashboardHome = pathname === '/dashboard';
 
+  // [2-1 polish] 手機 dock「主檔」按鈕：依使用者方案 filter 25 主檔、做 contextual dropdown
+  // （比照桌面 NavPlanetMenu base level 範式、不再導向已 redirect 的 /dashboard/base hub）
+  const { planCode } = useSessionMe();
+  const baseCardsForUser = useMemo(() => {
+    const userPlan = normalizePlanCode(planCode);
+    return getMasterHubSections()
+      .flatMap((s) => s.cards)
+      .filter((c) => canAccessMasterCard(userPlan, c.minPlan));
+  }, [planCode]);
+
   // QWERTY 快捷格已移除（首頁手機底部 dock 隨 QWERTY 一起退場、模組導覽改走 MasterTopBar）
   if (shouldHideMobileDock(pathname) || isDashboardHome) {
     return null;
@@ -663,31 +673,88 @@ export function MobileDock() {
       {HOME_DOCK_ITEMS.map((item) => {
         const active = isDockActive(pathname, item.href);
         const Icon = item.icon;
+
+        const itemBodyCls = cn(
+          'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border border-border/50 p-1.5',
+          'bg-gradient-to-b from-muted/45 to-muted/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
+          'transition-colors active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          active ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground',
+        );
+        const iconBoxCls = cn(
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50',
+          active ? 'border-primary/40 bg-primary/10 text-primary' : 'text-foreground',
+        );
+        const itemLabelEl = (
+          <span className="line-clamp-2 max-w-full text-center text-[9px] font-medium leading-tight text-foreground">
+            {item.label}
+          </span>
+        );
+
+        // 「主檔」項：改成 dropdown contextual trigger（不導航 hub、列 25 主檔依方案 filter）
+        if (item.href === '/dashboard/base') {
+          return (
+            <DropdownMenu key={item.href}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  title={item.label}
+                  aria-label={`${item.label}（開啟主檔選單）`}
+                  className={itemBodyCls}
+                >
+                  <span className={iconBoxCls}>
+                    <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden />
+                  </span>
+                  {itemLabelEl}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="top"
+                align="center"
+                sideOffset={8}
+                className="max-h-[60vh] w-[min(86vw,18rem)] overflow-y-auto border-border/80 bg-popover/95 p-1 shadow-2xl backdrop-blur-xl"
+              >
+                <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal uppercase tracking-[0.18em] text-muted-foreground">
+                  主檔導覽
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-border/60" />
+                {baseCardsForUser.map((card) => {
+                  const CardIcon = card.icon;
+                  const isActive = pathname === card.href || pathname.startsWith(`${card.href}/`);
+                  return (
+                    <DropdownMenuItem key={card.id} asChild className={dockItemFocusCls}>
+                      <Link
+                        href={card.href}
+                        className={cn(
+                          'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs',
+                          isActive ? 'bg-primary/15 text-primary' : 'text-foreground',
+                        )}
+                      >
+                        <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-border/60 bg-secondary/50 text-foreground">
+                          <CardIcon className="size-3.5" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium">{card.title}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        }
+
         return (
           <Link
             key={item.href}
             href={item.href}
             title={item.label}
             aria-label={item.label}
-            className={cn(
-              'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg border border-border/50 p-1.5',
-              'bg-gradient-to-b from-muted/45 to-muted/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]',
-              'transition-colors active:scale-[0.98] hover:border-primary/45 hover:from-primary/15 hover:to-primary/8',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-              active ? 'border-primary/40 text-primary' : 'text-muted-foreground hover:text-foreground',
-            )}
+            className={itemBodyCls}
           >
-            <span
-              className={cn(
-                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-secondary/50',
-                active ? 'border-primary/40 bg-primary/10 text-primary' : 'text-foreground',
-              )}
-            >
+            <span className={iconBoxCls}>
               <Icon className="h-4 w-4" strokeWidth={1.65} aria-hidden />
             </span>
-            <span className="line-clamp-2 max-w-full text-center text-[9px] font-medium leading-tight text-foreground">
-              {item.label}
-            </span>
+            {itemLabelEl}
           </Link>
         );
       })}
