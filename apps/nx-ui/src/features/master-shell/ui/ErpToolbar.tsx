@@ -56,9 +56,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
+import type { ExportFormat } from '@/features/master-shell/hooks/useExportTable';
+
 export type ErpMode = 'browse' | 'edit';
 
-export type ExportFormat = 'csv' | 'pdf' | 'print';
+// ExportFormat 真相來源：useExportTable hook（[2-1] 2026-06-06 統一、本檔 re-export 保向後相容）
+export type { ExportFormat };
 
 export function ErpToolbar({
   mode,

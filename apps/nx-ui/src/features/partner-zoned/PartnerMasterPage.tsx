@@ -25,6 +25,7 @@ import {
   type ErpMode,
   type ExportFormat,
 } from '@/features/master-shell/ui/ErpToolbar';
+import { exportTable } from '@/features/master-shell/hooks/useExportTable';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import {
   MasterTable,
@@ -408,33 +409,24 @@ export function PartnerMasterPage({
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
-      if (format !== 'csv') {
-        showToast(`${format.toUpperCase()} 匯出尚未開放，先用 CSV`, 'info');
-        return;
-      }
-      const cols = ['code', 'name', 'partnerType', 'contactName', 'phone'];
-      const header = ['代碼', '名稱', '類型', '聯絡人', '電話'].join(',');
-      const lines = rows.map((r) =>
-        cols
-          .map((c) => {
-            const raw = (r as unknown as Record<string, unknown>)[c];
-            const display = c === 'partnerType'
-              ? PARTNER_TYPE_LABEL[String(raw).toUpperCase() as PartnerType] ?? ''
-              : String(raw ?? '');
-            return `"${display.replace(/"/g, '""')}"`;
-          })
-          .join(','),
-      );
-      const csv = [header, ...lines].join('\n');
-      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pageTitle}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      // [2-1] 三模式匯出（CSV / PDF / 列印）「所見即所得」
+      exportTable(format, {
+        title: pageTitle,
+        columns: [
+          { label: '代碼', get: (r) => r.code },
+          { label: '名稱', get: (r) => r.name },
+          {
+            label: '類型',
+            get: (r) =>
+              PARTNER_TYPE_LABEL[String(r.partnerType).toUpperCase() as PartnerType] ?? '',
+          },
+          { label: '聯絡人', get: (r) => r.contactName ?? '' },
+          { label: '電話', get: (r) => r.phone ?? '' },
+        ],
+        rows,
+      });
     },
-    [rows, pageTitle, showToast],
+    [rows, pageTitle],
   );
 
   const toggleSearch = useCallback(() => setSearchOpen((s) => !s), []);

@@ -22,6 +22,7 @@ import {
   type ErpMode,
   type ExportFormat,
 } from '@/features/master-shell/ui/ErpToolbar';
+import { exportTable } from '@/features/master-shell/hooks/useExportTable';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import {
   MasterTable,
@@ -365,26 +366,20 @@ export function WarehouseZonedPage({
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
-      if (format !== 'csv') {
-        showToast(`${format.toUpperCase()} 匯出尚未開放，先用 CSV`, 'info');
-        return;
-      }
-      const header = ['代碼', '名稱', '據點', '倉別', '主倉'].join(',');
-      const lines = rows.map((r) =>
-        [r.code, r.name, r.siteName ?? '', r.warehouseTypeName ?? '', r.isMain ? '是' : '否']
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(','),
-      );
-      const csv = [header, ...lines].join('\n');
-      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pageTitle}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      // [2-1] 三模式匯出（CSV / PDF / 列印）「所見即所得」
+      exportTable(format, {
+        title: pageTitle,
+        columns: [
+          { label: '代碼', get: (r) => r.code },
+          { label: '名稱', get: (r) => r.name },
+          { label: '據點', get: (r) => r.siteName ?? '' },
+          { label: '倉別', get: (r) => r.warehouseTypeName ?? '' },
+          { label: '主倉', get: (r) => (r.isMain ? '是' : '否') },
+        ],
+        rows,
+      });
     },
-    [rows, pageTitle, showToast],
+    [rows, pageTitle],
   );
 
   const toggleSearch = useCallback(() => setSearchOpen((s) => !s), []);

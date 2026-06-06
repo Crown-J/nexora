@@ -24,8 +24,8 @@ import { formatDateTimeZh } from './format';
 import {
   ErpToolbar,
   type ErpMode,
-  type ExportFormat,
 } from '@/features/master-shell/ui/ErpToolbar';
+import { exportTable, type ExportFormat } from '@/features/master-shell/hooks/useExportTable';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import {
   MasterTable,
@@ -447,26 +447,17 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
-      if (format !== 'csv') {
-        showToast(`${format.toUpperCase()} 匯出尚未開放，先用 CSV`, 'info');
-        return;
-      }
-      // 匯出對齊「所見即所得」：只匯出可見欄位 + 篩選後資料列
-      const cols = listFields(config).filter((c) => !hiddenCols.has(c.key));
-      const header = cols.map((c) => c.label).join(',');
-      const lines = displayRows.map((r) =>
-        cols.map((c) => `"${String(r[c.key] ?? '').replace(/"/g, '""')}"`).join(','),
-      );
-      const csv = [header, ...lines].join('\n');
-      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${config.basePath.replace(/\//g, '')}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      // [2-1] 匯出三模式（CSV / PDF / 列印）「所見即所得」：只匯出可見欄位 + 篩選後資料列
+      const cols = listFields(config)
+        .filter((c) => !hiddenCols.has(c.key))
+        .map((c) => ({ label: c.label, get: (r: EntityRow) => getCellText(r, c.key) }));
+      exportTable(format, {
+        title: config.title ?? config.basePath.replace(/\//g, ''),
+        columns: cols,
+        rows: displayRows,
+      });
     },
-    [config, displayRows, hiddenCols, showToast],
+    [config, displayRows, hiddenCols, getCellText],
   );
 
   // 三個工具列下方面板互斥開關（搜尋 / 欄位 / 篩選只開一個）

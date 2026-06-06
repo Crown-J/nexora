@@ -32,6 +32,7 @@ import {
   type ErpMode,
   type ExportFormat,
 } from '@/features/master-shell/ui/ErpToolbar';
+import { exportTable } from '@/features/master-shell/hooks/useExportTable';
 import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
 import {
   MasterTable,
@@ -638,26 +639,20 @@ export function UserZonedPage({
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
-      if (format !== 'csv') {
-        showToast(`${format.toUpperCase()} 匯出尚未開放，先用 CSV`, 'info');
-        return;
-      }
-      const header = ['帳號', '姓名', 'Email', '電話', '狀態'].join(',');
-      const lines = rows.map((r) =>
-        [r.username, r.displayName, r.email ?? '', r.phone ?? '', r.isActive ? '啟用' : '停用']
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(','),
-      );
-      const csv = [header, ...lines].join('\n');
-      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${pageTitle}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      // [2-1] 三模式匯出（CSV / PDF / 列印）「所見即所得」
+      exportTable(format, {
+        title: pageTitle,
+        columns: [
+          { label: '帳號', get: (r) => r.username },
+          { label: '姓名', get: (r) => r.displayName },
+          { label: 'Email', get: (r) => r.email ?? '' },
+          { label: '電話', get: (r) => r.phone ?? '' },
+          { label: '狀態', get: (r) => (r.isActive ? '啟用' : '停用') },
+        ],
+        rows,
+      });
     },
-    [rows, pageTitle, showToast],
+    [rows, pageTitle],
   );
 
   const toggleSearch = useCallback(() => setSearchOpen((s) => !s), []);
