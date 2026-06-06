@@ -19,6 +19,8 @@ const SEL = {
   id: true,
   tenantId: true,
   partBrandId: true,
+  // W6-切換軌 2026-06-06：brand 為主、partBrand 保留 dual-write 過渡期
+  brandId: true,
   name: true,
   description: true,
   seg1Length: true,
@@ -31,6 +33,7 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  brand: { select: { code: true, name: true } },
 } as const;
 
 @Injectable()
@@ -47,6 +50,27 @@ export class BrandCodeRuleService {
       select: { id: true },
     });
     if (!pb) throw new ConflictException('Part brand not found in tenant');
+  }
+
+  /**
+   * W6-切換軌：依 partBrandId 查對應的新 brand.id（lookup by code）。
+   * 過渡期 dual-write：caller 仍可送 partBrandId、service 端 lookup 對應 brandId。
+   * 未來軌 caller 直接送 brandId、partBrandId 可廢。
+   */
+  private async resolveBrandIdFromPartBrand(
+    tenantId: string,
+    partBrandId: string,
+  ): Promise<string | null> {
+    const pb = await this.prisma.nx01PartBrand.findFirst({
+      where: { id: partBrandId, tenantId },
+      select: { code: true },
+    });
+    if (!pb) return null;
+    const b = await this.prisma.nx01Brand.findFirst({
+      where: { tenantId, code: pb.code, isPart: true },
+      select: { id: true },
+    });
+    return b?.id ?? null;
   }
 
   private whereList(
@@ -99,10 +123,16 @@ export class BrandCodeRuleService {
     });
     if (dup) throw new ConflictException('Rule name already exists for this part brand');
 
+    // W6-切換軌：brandId 寫入（dual-write）；dto.brandId 為主、未送則 lookup partBrandId 對應的 brand
+    const brandId =
+      dto.brandId?.trim() ||
+      (await this.resolveBrandIdFromPartBrand(tenantId, dto.partBrandId));
+
     const row = await this.prisma.nx01BrandCodeRule.create({
       data: {
         tenantId,
         partBrandId: dto.partBrandId,
+        brandId,
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
         seg1Length: dto.seg1Length,

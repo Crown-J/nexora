@@ -70,6 +70,8 @@ export type PartWriteBody = {
   seg5?: string | null;
   countryId?: string | null;
   partBrandId?: string | null;
+  /** W6-切換軌 2026-06-06：新 brand 表 id；後端 dual-write 過渡期 */
+  brandId?: string | null;
   partGroupId?: string | null;
   partType?: number;
   spec?: string | null;
@@ -145,6 +147,8 @@ export async function previewPartCode(body: {
   seg4?: string;
   seg5?: string;
   partBrandId?: string;
+  /** W6-切換軌 2026-06-06：新 brand 表 id；後端優先用此 lookup brand code */
+  brandId?: string;
   countryId?: string;
 }): Promise<string> {
   const res = await apiFetch(`${BASE}/preview-code`, { method: 'POST', body: JSON.stringify(body) });

@@ -18,6 +18,12 @@ export class CreateBrandCodeRuleDto {
   @MaxLength(15)
   partBrandId!: string;
 
+  /** W6-切換軌：新 brandId（dual-write 過渡期、未送 service 端 lookup partBrandId 對應） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  brandId?: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(50)

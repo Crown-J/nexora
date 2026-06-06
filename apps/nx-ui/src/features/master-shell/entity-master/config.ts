@@ -203,12 +203,18 @@ export async function setEntityActive(
   return res.json() as Promise<EntityRow>;
 }
 
-/** 載入外鍵下拉選項（ref 欄位用）：list active → {value:id, label} */
+/** 載入外鍵下拉選項（ref 欄位用）：list active → {value:id, label}
+ *  W6-切換軌 2026-06-06：加 extraFilters 第三 arg，picker 可帶 isPart=true / isCar=true 等 query 過濾 */
 export async function fetchRefOptions(
   refBasePath: string,
   labelKeys: string[] = ['code', 'name'],
+  extraFilters?: Record<string, string>,
 ): Promise<SelectOption[]> {
-  const qs = buildQueryString({ pageSize: '100', isActive: 'true' });
+  const qs = buildQueryString({
+    pageSize: '100',
+    isActive: 'true',
+    ...(extraFilters ?? {}),
+  });
   const res = await apiFetch(`${refBasePath}${qs}`, { method: 'GET' });
   if (!res.ok) return [];
   const data = (await res.json()) as { items?: EntityRow[]; rows?: EntityRow[] };

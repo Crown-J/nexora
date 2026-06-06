@@ -141,7 +141,9 @@ export function PartZonedPage({
     void (async () => {
       const [cr, pb, pg, co, ruleRes, gradeRes] = await Promise.all([
         fetchRefOptions('nx01/brand-code-rules', ['name']),
-        fetchRefOptions('nx01/part-brands'),
+        // W6-切換軌 2026-06-06：picker 走新 brand API + isPart=true 過濾
+        // value = brand.id（非 part_brand.id）；submit body 走 brandId 寫入 part.brand_id
+        fetchRefOptions('nx01/brands', ['code', 'name'], { isPart: 'true' }),
         fetchRefOptions('nx01/part-groups'),
         fetchRefOptions('nx01/countries'),
         // A1：載入完整 brand-code-rule（含 SEG 字數限制欄位、後面 ruleSegLengths 用）
@@ -241,7 +243,8 @@ export function PartZonedPage({
             seg3: String(draft.seg3 ?? ''),
             seg4: String(draft.seg4 ?? ''),
             seg5: String(draft.seg5 ?? ''),
-            partBrandId: String(draft.partBrandId ?? '') || undefined,
+            // W6-切換軌 2026-06-06：draft.partBrandId 內容已是 brand.id、走 brandId 預覽
+            brandId: String(draft.partBrandId ?? '') || undefined,
             countryId: String(draft.countryId ?? '') || undefined,
           });
           if (alive) setCodePreview(typeof res === 'string' ? res : (res as { code: string }).code ?? '');

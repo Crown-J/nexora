@@ -38,6 +38,8 @@ export class PartController {
       codeRuleId: dto.codeRuleId,
       segs: [dto.seg1, dto.seg2, dto.seg3, dto.seg4, dto.seg5],
       partBrandId: dto.partBrandId ?? null,
+      // W6-切換軌 2026-06-06：新 brandId 為主、service 端優先 lookup brand 表
+      brandId: dto.brandId ?? null,
       countryId: dto.countryId ?? null,
     });
     return { code };

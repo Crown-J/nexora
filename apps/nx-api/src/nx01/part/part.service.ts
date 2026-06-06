@@ -246,12 +246,19 @@ export class PartService {
     codeRuleId: string;
     segs: (string | null | undefined)[]; // up to 5 segs
     partBrandId?: string | null;
+    brandId?: string | null;
     countryId?: string | null;
   }): Promise<string> {
     // 收尾軌完整料號格式：{零件品牌代碼} - {SEG1 SEG2 …（單空格）} #{產地代碼}
-    // 規則分隔符已移除、SEG 一律單空格；前綴用零件本身的 partBrand、產地用 country。
+    // W6-切換軌 2026-06-06：brandId 優先 lookup nx01_brand、fallback 舊 partBrandId lookup nx01_part_brand
     let brandCode = '';
-    if (input.partBrandId?.trim()) {
+    if (input.brandId?.trim()) {
+      const b = await this.prisma.nx01Brand.findFirst({
+        where: { id: input.brandId.trim(), tenantId: input.tenantId },
+        select: { code: true },
+      });
+      brandCode = b?.code ?? '';
+    } else if (input.partBrandId?.trim()) {
       const pb = await this.prisma.nx01PartBrand.findFirst({
         where: { id: input.partBrandId.trim(), tenantId: input.tenantId },
         select: { code: true },

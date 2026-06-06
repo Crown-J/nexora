@@ -112,6 +112,12 @@ export function partDraftToBody(
         body['partType'] = trimmed;
         continue;
       }
+      // W6-切換軌 2026-06-06：partBrandId 內容已是 brand.id（picker 走 nx01/brands?isPart=true）
+      // 送後端走 brandId 寫入 part.brand_id；舊 part.part_brand_id 不再新寫入（既有資料保留）
+      if (f.key === 'partBrandId') {
+        body['brandId'] = trimmed;
+        continue;
+      }
       body[f.key] = trimmed;
       continue;
     }

@@ -62,6 +62,8 @@ export class PreviewPartCodeDto {
   @IsOptional() @IsString() @MaxLength(10) seg5?: string;
 
   @IsOptional() @IsString() @MaxLength(15) partBrandId?: string;
+  /** W6-切換軌 2026-06-06：brandId 為主、service 端 fallback partBrandId 查 part_brand 表 */
+  @IsOptional() @IsString() @MaxLength(15) brandId?: string;
   @IsOptional() @IsString() @MaxLength(15) countryId?: string;
 }
 
