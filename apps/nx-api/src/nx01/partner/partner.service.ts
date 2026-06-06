@@ -7,6 +7,8 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { SeqCounterService, type SeqScope } from '../../shared/nx01/seq-counter.service';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
+import { searchPhoneticSourceIds, syncPhoneticIndex } from '../../shared/nx01/sync-phonetic-index';
+
 import type { CreatePartnerDto, ListPartnerQueryDto, UpdatePartnerDto } from './dto/partner.dto';
 
 const SEL = {
@@ -139,6 +141,14 @@ export class PartnerService {
     const pageSize = q.pageSize ?? 20;
     const skip = (page - 1) * pageSize;
     const where = this.whereList(tenantId, q);
+    // 02 對齊第二批 C 軌 CP2-b：注音搜尋（兩 step：先查 phonetic_index 取 ids、再 filter partner）
+    if (q.phonetic?.trim()) {
+      const ids = await searchPhoneticSourceIds(this.prisma, tenantId, 'nx01_partner', q.phonetic.trim());
+      if (ids.length === 0) {
+        return { page, pageSize, total: 0, rows: [] };
+      }
+      where.id = { in: ids };
+    }
     const [total, rows] = await Promise.all([
       this.prisma.nx01Partner.count({ where }),
       this.prisma.nx01Partner.findMany({
@@ -244,6 +254,15 @@ export class PartnerService {
       summary: '建立夥伴',
       afterData: row as object,
     });
+    // 02 對齊第二批 C 軌 CP2-b：同步 phonetic_index（name + shortName 連起來索引）
+    await syncPhoneticIndex(this.prisma, {
+      tenantId,
+      sourceTable: 'nx01_partner',
+      sourceId: row.id,
+      sourceField: 'name',
+      sourceText: [row.name, row.shortName].filter(Boolean).join(' '),
+      userId: user.sub,
+    });
     return this.mapRow(row);
   }
 
@@ -345,6 +364,17 @@ export class PartnerService {
       beforeData: existing as object,
       afterData: row as object,
     });
+    // 02 對齊第二批 C 軌 CP2-b：同步 phonetic_index（name/shortName 變動時觸發）
+    if (dto.name !== undefined || dto.shortName !== undefined) {
+      await syncPhoneticIndex(this.prisma, {
+        tenantId,
+        sourceTable: 'nx01_partner',
+        sourceId: row.id,
+        sourceField: 'name',
+        sourceText: [row.name, row.shortName].filter(Boolean).join(' '),
+        userId: user.sub,
+      });
+    }
     return this.mapRow(row);
   }
 

@@ -43,7 +43,13 @@ const RETURN_POLICIES = ['F', 'S', 'R', 'N', 'W'] as const;
 const PART_TYPE_MIN = 1;
 const PART_TYPE_MAX = 4;
 
-export class ListPartQueryDto extends Nx01ListQueryDto {}
+export class ListPartQueryDto extends Nx01ListQueryDto {
+  /** 02 對齊第二批 C 軌 CP2-b：注音搜尋（partner 同範式）*/
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  phonetic?: string;
+}
 
 /**
  * Crown Q7=B：part.code 預覽 DTO

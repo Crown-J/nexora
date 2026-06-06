@@ -28,6 +28,12 @@ export class ListPartnerQueryDto extends Nx01ListQueryDto {
   @IsString()
   @IsIn(PARTNER_TYPES)
   partnerType?: string;
+
+  /** 02 對齊第二批 C 軌 CP2-b：注音搜尋（phoneticFull / phoneticCode contains）*/
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  phonetic?: string;
 }
 
 /**

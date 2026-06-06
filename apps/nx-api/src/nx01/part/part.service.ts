@@ -11,6 +11,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
+import { searchPhoneticSourceIds, syncPhoneticIndex } from '../../shared/nx01/sync-phonetic-index';
+
 import type { CreatePartDto, ListPartQueryDto, UpdatePartDto } from './dto/part.dto';
 
 const SEL = {
@@ -274,6 +276,15 @@ export class PartService {
     const where: Prisma.Nx01PartWhereInput = { tenantId };
     if (q.isActive !== undefined) where.isActive = q.isActive;
 
+    // 02 對齊第二批 C 軌 CP2-b：注音搜尋（先取 ids、再 filter；跟主料號 search 並存可疊加）
+    if (q.phonetic?.trim()) {
+      const phoneticIds = await searchPhoneticSourceIds(this.prisma, tenantId, 'nx01_part', q.phonetic.trim());
+      if (phoneticIds.length === 0) {
+        return { page, pageSize, total: 0, rows: [] };
+      }
+      where.id = { in: phoneticIds };
+    }
+
     const term = q.search?.trim() ?? '';
     if (term) {
       // C + 收尾軌 item 8：正規化（去空格/-/#）後比對 主料號(含完整格式) / 舊料號 / 副廠 / 正廠對應料號；品名用原詞。
@@ -396,6 +407,15 @@ export class PartService {
       entityCode: row.code,
       summary: '建立料號',
       afterData: row as object,
+    });
+    // 02 對齊第二批 C 軌 CP2-b：同步 phonetic_index（part.name 進索引）
+    await syncPhoneticIndex(this.prisma, {
+      tenantId,
+      sourceTable: 'nx01_part',
+      sourceId: row.id,
+      sourceField: 'name',
+      sourceText: row.name,
+      userId: user.sub,
     });
     return this.mapRow(row);
   }
@@ -544,6 +564,17 @@ export class PartService {
       beforeData: existing as object,
       afterData: row as object,
     });
+    // 02 對齊第二批 C 軌 CP2-b：name 變動時同步 phonetic_index
+    if (dto.name !== undefined) {
+      await syncPhoneticIndex(this.prisma, {
+        tenantId,
+        sourceTable: 'nx01_part',
+        sourceId: row.id,
+        sourceField: 'name',
+        sourceText: row.name,
+        userId: user.sub,
+      });
+    }
     return this.mapRow(row);
   }
 
