@@ -128,6 +128,12 @@ export function partnerDraftToBody(
         if (Number.isFinite(n)) body[f.key] = n;
         continue;
       }
+      // 02 對齊第二批 C 軌 CP1：customMarginPct 字串 → number（Decimal）
+      if (f.key === 'customMarginPct') {
+        const n = Number(trimmed);
+        if (Number.isFinite(n)) body[f.key] = n;
+        continue;
+      }
       body[f.key] = trimmed;
       continue;
     }

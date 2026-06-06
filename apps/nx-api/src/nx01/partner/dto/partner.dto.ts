@@ -154,6 +154,14 @@ export class CreatePartnerDto {
 
   /** W4 [3-6] 預設發票聯式（2=二聯 / 3=三聯）。散客 L 強制 2、service 端覆寫不可改 */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) defaultInvoiceCopies?: number;
+
+  // ── 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率 ──
+  /** 地區 ID（FK nx01_region、不入 partner code 編號） */
+  @IsOptional() @IsString() @MaxLength(15) regionId?: string;
+  /** 總公司 ID（self-FK nx01_partner、連鎖母子、null=自己就是總公司或無母公司） */
+  @IsOptional() @IsString() @MaxLength(15) parentPartnerId?: string;
+  /** 個別客戶毛利率覆寫 customer_grade.margin_pct（Decimal 5,2、業務口語「個別折數」） */
+  @IsOptional() @Type(() => Number) customMarginPct?: number;
 }
 
 export class UpdatePartnerDto {
@@ -270,4 +278,9 @@ export class UpdatePartnerDto {
 
   /** W4 [3-6] 預設發票聯式（2/3）。散客 L 強制 2 */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) defaultInvoiceCopies?: number;
+
+  // ── 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率 ──
+  @IsOptional() @IsString() @MaxLength(15) regionId?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) parentPartnerId?: string | null;
+  @IsOptional() @Type(() => Number) customMarginPct?: number | null;
 }

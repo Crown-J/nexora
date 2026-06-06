@@ -33,6 +33,10 @@ export type PartnerDto = {
   legacyCode?: string | null;
   // W4 [3-6] 預設發票聯式
   defaultInvoiceCopies?: number | null;
+  // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
+  regionId?: string | null;
+  parentPartnerId?: string | null;
+  customMarginPct?: string | null;
   createdAt: string;
   createdBy: string | null;
   createdByUsername: string | null;
@@ -67,6 +71,10 @@ export type CreatePartnerBody = {
   legacyCode?: string | null;
   // W4 [3-6] 預設發票聯式
   defaultInvoiceCopies?: number;
+  // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
+  regionId?: string | null;
+  parentPartnerId?: string | null;
+  customMarginPct?: number | null;
 };
 
 export type UpdatePartnerBody = {
@@ -91,6 +99,10 @@ export type UpdatePartnerBody = {
   legacyCode?: string | null;
   // W4 [3-6] 預設發票聯式
   defaultInvoiceCopies?: number;
+  // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
+  regionId?: string | null;
+  parentPartnerId?: string | null;
+  customMarginPct?: number | null;
 };
 
 const BASE = '/nx01/partners';

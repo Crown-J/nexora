@@ -390,6 +390,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/customer-grade',
   },
+  // 02 對齊第二批 C 軌 CP1：地區小型主檔（不入 partner code 編號）
+  {
+    id: 'region',
+    section: 'partner',
+    title: '地區基本資料',
+    description: '客戶分區下拉、純展示分類、不影響 partner 編號',
+    icon: MapPin,
+    statLabel: '地區',
+    statValue: '—',
+    href: '/dashboard/base/region',
+  },
   // ─── 系統設定延伸（注音字典、PRO）─────────────────────────────────
   {
     id: 'phonetic-dictionary',
@@ -465,6 +476,9 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   // 交易對象延伸 & 系統設定延伸（命名對齊 NX01-03 / NX01-10 spec）
   'customer-grade': '客戶分級基本資料',
   'phonetic-dictionary': '注音字典基本資料',
+  // 02 對齊第二批 C 軌 CP1：地區主檔
+  region: '地區基本資料',
+  regions: '地區基本資料',
 };
 
 export function isValidBaseSegment(segment: string): boolean {

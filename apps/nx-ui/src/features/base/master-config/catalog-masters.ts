@@ -174,6 +174,21 @@ export const BRAND_MASTER: EntityMasterConfig = {
   ],
 };
 
+// ── 客戶分類 / 02 對齊第二批 C 軌 CP1 ─────────────────────
+export const REGION_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/regions',
+  category: '客戶分類',
+  title: '地區基本資料',
+  entityNoun: '地區',
+  errorCodePrefix: 'nxui_base_region',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '地區代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    { key: 'name', label: '地區名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // ── 產品料號 ────────────────────────────────────────────
 export const PART_BRAND_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-brands',

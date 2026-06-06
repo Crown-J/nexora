@@ -39,11 +39,16 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'email', label: 'Email', zone: 'basic' },
   { key: 'website', label: '官網', zone: 'basic' },
   { key: 'address', label: '地址（自由文字）', zone: 'basic', notes: '結構化地址在 delivery / finance 衛星表' },
+  // 02 對齊第二批 C 軌 CP1：地區 + 總公司
+  { key: 'regionId', label: '地區', zone: 'basic', notes: '地區下拉、不入 partner code 編號' },
+  { key: 'parentPartnerId', label: '總公司', zone: 'basic', notes: '連鎖母子、self-FK、null=自己就是總公司' },
   // W3 [3-2] 舊代號（純對照、不綁 FK）
   { key: 'legacyCode', label: '舊代號', zone: 'basic', notes: '舊系統往來對象代號、純對照不綁 FK' },
 
   // ─── sales 銷貨區 ───
   { key: 'customerGradeId', label: '客戶等級', zone: 'sales', notes: 'C / O 用、影響 ABCD 定價' },
+  // 02 對齊第二批 C 軌 CP1：個別毛利率覆寫
+  { key: 'customMarginPct', label: '個別毛利率%', zone: 'sales', notes: '覆寫客戶分級的最低毛利率、留空=用分級預設' },
   { key: 'creditLimit', label: '信用額度', zone: 'sales', notes: '0 = 不限制' },
   { key: 'creditStatus', label: '信用狀態', zone: 'sales', notes: 'N=正常 / W=僅收現金 / F=凍結' },
   { key: 'defaultWarehouseId', label: '預設取貨倉', zone: 'sales' },

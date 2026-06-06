@@ -47,6 +47,10 @@ const SEL = {
   legacyCode: true,
   // W4 [3-6] 預設發票聯式
   defaultInvoiceCopies: true,
+  // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
+  regionId: true,
+  parentPartnerId: true,
+  customMarginPct: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -220,6 +224,10 @@ export class PartnerService {
         defaultInvoiceCopies: isRetail
           ? RETAIL_FORCED.defaultInvoiceCopies
           : (dto.defaultInvoiceCopies ?? 3),
+        // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
+        regionId: dto.regionId?.trim() || null,
+        parentPartnerId: dto.parentPartnerId?.trim() || null,
+        customMarginPct: dto.customMarginPct ?? null,
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -315,6 +323,12 @@ export class PartnerService {
           : dto.defaultInvoiceCopies !== undefined
             ? { defaultInvoiceCopies: dto.defaultInvoiceCopies }
             : {}),
+        // 02 對齊第二批 C 軌 CP1：地區 / 總公司 / 個別毛利率
+        ...(dto.regionId !== undefined ? { regionId: dto.regionId?.trim() || null } : {}),
+        ...(dto.parentPartnerId !== undefined
+          ? { parentPartnerId: dto.parentPartnerId?.trim() || null }
+          : {}),
+        ...(dto.customMarginPct !== undefined ? { customMarginPct: dto.customMarginPct } : {}),
         updatedBy: user.sub,
       },
       select: SEL,

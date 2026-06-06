@@ -1022,6 +1022,12 @@ model Nx01Partner {
   legacyCode                               String?                      @map("legacy_code") @db.VarChar(50)
   /// 預設發票聯式（2=二聯 / 3=三聯）。SO 建單自動帶入、可逐筆改。散客 L 強制 2、不可改。；W4 [3-6] 2026-06-06 新增
   defaultInvoiceCopies                     Int                          @default(3) @map("default_invoice_copies") @db.SmallInt
+  /// 地區 ID（FK nx01_region、顯示用、不入 partner code 編號）；02 對齊第二批 C 軌 CP1 2026-06-06 新增
+  regionId                                 String?                      @map("region_id") @db.VarChar(15)
+  /// 總公司 ID（self-FK、連鎖母子關係、null=自己就是總公司或無總公司）；02 對齊第二批 C 軌 CP1 2026-06-06 新增
+  parentPartnerId                          String?                      @map("parent_partner_id") @db.VarChar(15)
+  /// 個別客戶毛利率覆寫（覆寫 customer_grade.margin_pct、業務口語「個別折數」）；02 對齊第二批 C 軌 CP1 2026-06-06 新增
+  customMarginPct                          Decimal?                     @map("custom_margin_pct") @db.Decimal(5, 2)
   /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
   taxId                                    String?                      @map("tax_id") @db.VarChar(20)
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
@@ -1085,6 +1091,10 @@ model Nx01Partner {
   rev_Nx01PartnerShippingAddress_partnerId Nx01PartnerShippingAddress[] @relation("R_Nx01PartnerShippingAddress_partnerId")
   rev_Nx02WarrantyClaim_supplierId         Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_supplierId")
   rev_Nx01PartnerGradeHistory_partnerId    Nx01PartnerGradeHistory[]    @relation("R_Nx01PartnerGradeHistory_partnerId")
+  // 02 對齊第二批 C 軌 CP1 2026-06-06
+  region                                   Nx01Region?                  @relation("R_Nx01Partner_regionId", fields: [regionId], references: [id], onDelete: SetNull)
+  parentPartner                            Nx01Partner?                 @relation("Nx01Partner_parent", fields: [parentPartnerId], references: [id], onDelete: SetNull)
+  rev_Nx01Partner_parentPartnerId          Nx01Partner[]                @relation("Nx01Partner_parent")
 
   @@unique([tenantId, code])
   @@map("nx01_partner")
@@ -7209,6 +7219,8 @@ model Nx99Tenant {
   rev_Nx02RfqGreetingTemplate_tenantId     Nx02RfqGreetingTemplate[]     @relation("R_Nx02RfqGreetingTemplate_tenantId")
   rev_Nx98TaskPool_tenantId                Nx98TaskPool[]                @relation("R_Nx98TaskPool_tenantId")
   rev_Nx01PartnerGradeHistory_tenantId     Nx01PartnerGradeHistory[]     @relation("R_Nx01PartnerGradeHistory_tenantId")
+  /// 02 對齊第二批 C 軌 CP1 2026-06-06
+  rev_Nx01Region_tenantId                  Nx01Region[]                  @relation("R_Nx01Region_tenantId")
   /// 階段 F P5 加：一票對多沖銷 + 催款歷史
   rev_Nx05PaylogSettlement_tenantId        Nx05PaylogSettlement[]        @relation("R_Nx05PaylogSettlement_tenantId")
   rev_Nx05ArReminderLog_tenantId           Nx05ArReminderLog[]           @relation("R_Nx05ArReminderLog_tenantId")
@@ -7330,6 +7342,39 @@ model Nx01Street {
 
   @@unique([districtId, name])
   @@map("nx01_street")
+}
+
+/// =======================================================
+/// Nx01Region — DB table `nx01_region`（02 對齊第二批 C 軌 CP1：客戶地區下拉）
+/// =======================================================
+/// 地區小型主檔（tenant 內、不入 partner code 編號、純展示分類）。
+/// 業務範例：北部 / 中部 / 南部 / 東部 / 離島；或更細：台北 / 新北 / 桃園 / 新竹 ...
+model Nx01Region {
+  /// [NX01]+[REGN]+[7碼流水號]，EX : NX01REGN0000001；啟用最低需求版本：LITE
+  id        String      @id @default(dbgenerated("gen_nx01_region_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
+  tenantId  String      @map("tenant_id") @db.VarChar(15)
+  /// 地區代碼（tenant 內唯一、業務自行決定如 N/C/S/E 或 TPE/TAO 等）；啟用最低需求版本：LITE
+  code      String      @db.VarChar(20)
+  /// 地區名稱（顯示用）；啟用最低需求版本：LITE
+  name      String      @db.VarChar(50)
+  /// 排序用；啟用最低需求版本：LITE
+  sortNo    Int         @default(0) @map("sort_no")
+  /// 是否啟用；啟用最低需求版本：LITE
+  isActive  Boolean     @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE
+  createdAt DateTime    @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE
+  createdBy String      @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE
+  updatedAt DateTime    @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE
+  updatedBy String      @map("updated_by") @db.VarChar(15)
+  tenant    Nx99Tenant  @relation("R_Nx01Region_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01Partner_regionId Nx01Partner[] @relation("R_Nx01Partner_regionId")
+
+  @@unique([tenantId, code])
+  @@map("nx01_region")
 }
 
 /// =======================================================

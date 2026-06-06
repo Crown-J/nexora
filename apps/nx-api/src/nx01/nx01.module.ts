@@ -4,6 +4,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 import { BrandController } from './brand/brand.controller';
 import { BrandService } from './brand/brand.service';
+import { RegionController } from './region/region.controller';
+import { RegionService } from './region/region.service';
 import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
@@ -86,6 +88,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     BulletinController,
     PhoneticDictionaryController,
     BrandController,
+    RegionController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -117,6 +120,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     SupplierGradeService,
     SeqCounterService,
     BrandService,
+    RegionService,
     UserService,
     RoleService,
     BulletinService,
