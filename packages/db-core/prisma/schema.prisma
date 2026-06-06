@@ -1037,6 +1037,9 @@ model Nx01Partner {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
   updatedBy                                String                       @map("updated_by") @db.VarChar(15)
   /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
+  /// 舊系統往來對象代號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
+  legacyCode                               String?                      @map("legacy_code") @db.VarChar(50)
+  /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
   taxId                                    String?                      @map("tax_id") @db.VarChar(20)
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
   paymentTermDomestic                      String                       @default("NET30") @map("payment_term_domestic") @db.VarChar(10)
@@ -1308,6 +1311,22 @@ model Nx01User {
   email                                    String?                       @db.VarChar(100)
   /// 電話（可選填）；啟用最低需求版本：LITE
   phone                                    String?                       @db.VarChar(20)
+  /// 性別（M=男 / F=女 / O=其他、可空、basic zone）；W3 [3-3] 2026-06-06 新增（NX-MANUAL-02 v2.0 §4.1）
+  gender                                   String?                       @db.VarChar(1)
+  /// 生日；W3 [3-3] 2026-06-06 新增
+  birthday                                 DateTime?                     @db.Date
+  /// 身分證字號；W3 [3-3] 2026-06-06 新增
+  nationalId                               String?                       @map("national_id") @db.VarChar(20)
+  /// 通訊地址；W3 [3-3] 2026-06-06 新增
+  address                                  String?                       @db.VarChar(200)
+  /// 到職日期；W3 [3-3] 2026-06-06 新增
+  hireDate                                 DateTime?                     @map("hire_date") @db.Date
+  /// 緊急聯絡人；W3 [3-3] 2026-06-06 新增
+  emergencyContact                         String?                       @map("emergency_contact") @db.VarChar(50)
+  /// 緊急聯絡電話；W3 [3-3] 2026-06-06 新增
+  emergencyPhone                           String?                       @map("emergency_phone") @db.VarChar(30)
+  /// 舊系統員工編號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
+  legacyCode                               String?                       @map("legacy_code") @db.VarChar(50)
   /// 人資主檔同步：主要職務角色（選填，與 nx01_user_role 並存）；啟用最低需求版本：PRO
   roleId                                   String?                       @map("role_id") @db.VarChar(15)
   /// 人資主檔同步：部門（選填）；啟用最低需求版本：PRO
@@ -1392,6 +1411,32 @@ model Nx01User {
   @@unique([tenantId, userAccount])
   @@unique([tenantId, email])
   @@map("nx01_user")
+}
+
+/// =======================================================
+/// Nx01SeqCounter — DB table `nx01_seq_counter`（W3 [3-1] 2026-06-06 租戶內編號流水）
+/// 用途：
+///   - 員工編號 Y0001 ~ Y9999（scope='EMPLOYEE'）— Crown 拍板 employeeNo = userAccount
+///   - 往來對象編號類型碼 + 4 碼（scope='PARTNER_C' / PARTNER_O / PARTNER_S / PARTNER_V / PARTNER_T / PARTNER_B / PARTNER_L）
+/// 取號方式：service 層原子取號（UPDATE ... SET next_no = next_no + 1）
+/// 手動覆寫：caller 傳 code 時直接寫入；若手動值 ≥ next_no 自動跳號（防衝突）
+/// 對齊 NX-MANUAL-02 v2.0 §3.1 員工編號 + §3.5/§3.6 往來對象六分類 + 散客 L。
+/// =======================================================
+model Nx01SeqCounter {
+  /// [NX01]+[SQCT]+[7碼流水號]，EX : NX01SQCT0000001
+  id        String     @id @default(dbgenerated("gen_nx01_seq_counter_id()")) @db.VarChar(15)
+  /// 租戶 ID
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  /// 流水範圍 enum：EMPLOYEE / PARTNER_C / PARTNER_O / PARTNER_S / PARTNER_V / PARTNER_T / PARTNER_B / PARTNER_L
+  scope     String     @db.VarChar(20)
+  /// 下一個自動編號流水值（每次取號後 +1）
+  nextNo    Int        @default(1) @map("next_no")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  tenant    Nx99Tenant @relation("R_Nx01SeqCounter_tenantId", fields: [tenantId], references: [id])
+
+  @@unique([tenantId, scope])
+  @@map("nx01_seq_counter")
 }
 
 /// =======================================================
@@ -7172,6 +7217,8 @@ model Nx99Tenant {
   /// 階段 F P5 加：一票對多沖銷 + 催款歷史
   rev_Nx05PaylogSettlement_tenantId        Nx05PaylogSettlement[]        @relation("R_Nx05PaylogSettlement_tenantId")
   rev_Nx05ArReminderLog_tenantId           Nx05ArReminderLog[]           @relation("R_Nx05ArReminderLog_tenantId")
+  /// W3 [3-1] 2026-06-06：租戶內編號流水（員工 Y + partner 各分類）
+  rev_Nx01SeqCounter_tenantId              Nx01SeqCounter[]              @relation("R_Nx01SeqCounter_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")
@@ -8536,37 +8583,37 @@ model Nx02RfqGreetingTemplate {
 /// =======================================================
 model PlatformAdmin {
   /// [PLAT]+[ADMN]+[7碼流水號]，EX : PLATADMN0000001
-  id                  String    @id @default(dbgenerated("gen_platform_admin_id()")) @db.VarChar(15)
+  id                 String    @id @default(dbgenerated("gen_platform_admin_id()")) @db.VarChar(15)
   /// 平台登入帳號（跨平台唯一、不分租戶）
-  account             String    @unique @db.VarChar(50)
+  account            String    @unique @db.VarChar(50)
   /// 密碼雜湊
-  passwordHash        String    @map("password_hash") @db.VarChar(255)
+  passwordHash       String    @map("password_hash") @db.VarChar(255)
   /// 顯示名稱
-  displayName         String    @map("display_name") @db.VarChar(50)
+  displayName        String    @map("display_name") @db.VarChar(50)
   /// Email（選填）
-  email               String?   @db.VarChar(100)
+  email              String?   @db.VarChar(100)
   /// 電話（選填）
-  phone               String?   @db.VarChar(20)
+  phone              String?   @db.VarChar(20)
   /// 是否啟用（停用後不可登入）
-  isActive            Boolean   @default(true) @map("is_active")
+  isActive           Boolean   @default(true) @map("is_active")
   /// 首次登入強制改密碼
-  mustChangePassword  Boolean   @default(false) @map("must_change_password")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
   /// 最後登入時間
-  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginAt        DateTime? @map("last_login_at")
   /// 連續失敗登入次數
-  failedLoginCount    Int       @default(0) @map("failed_login_count")
+  failedLoginCount   Int       @default(0) @map("failed_login_count")
   /// 帳號鎖定到何時
-  lockedUntil         DateTime? @map("locked_until")
+  lockedUntil        DateTime? @map("locked_until")
   /// 備註
-  remark              String?   @db.VarChar(200)
+  remark             String?   @db.VarChar(200)
   /// 建立時間
-  createdAt           DateTime  @default(now()) @map("created_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
   /// 建立人（VARCHAR scalar、無 FK、首筆 seed 自參考）
-  createdBy           String    @map("created_by") @db.VarChar(15)
+  createdBy          String    @map("created_by") @db.VarChar(15)
   /// 更新時間
-  updatedAt           DateTime  @updatedAt @map("updated_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
   /// 更新人（VARCHAR scalar、無 FK）
-  updatedBy           String    @map("updated_by") @db.VarChar(15)
+  updatedBy          String    @map("updated_by") @db.VarChar(15)
 
   @@map("platform_admin")
 }
@@ -8582,23 +8629,23 @@ model PlatformAdmin {
 /// =======================================================
 model Nx01UserPref {
   /// [NX01]+[UPRF]+[7碼流水號]，EX : NX01UPRF0000001
-  id        String   @id @default(dbgenerated("gen_nx01_user_pref_id()")) @db.VarChar(15)
+  id        String     @id @default(dbgenerated("gen_nx01_user_pref_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵、查詢 scope）
-  tenantId  String   @map("tenant_id") @db.VarChar(15)
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
   /// 使用者 ID（外鍵、設定擁有者）
-  userId    String   @map("user_id") @db.VarChar(15)
+  userId    String     @map("user_id") @db.VarChar(15)
   /// 偏好設定 key（例 'home.dashboard.metrics'、'theme'、'default-landing'）
-  prefKey   String   @map("pref_key") @db.VarChar(100)
+  prefKey   String     @map("pref_key") @db.VarChar(100)
   /// 偏好設定值（JSONB、彈性結構）
-  prefValue Json     @map("pref_value")
+  prefValue Json       @map("pref_value")
   /// 建立時間
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime   @default(now()) @map("created_at")
   /// 建立人
-  createdBy String   @map("created_by") @db.VarChar(15)
+  createdBy String     @map("created_by") @db.VarChar(15)
   /// 更新時間
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
   /// 更新人
-  updatedBy String   @map("updated_by") @db.VarChar(15)
+  updatedBy String     @map("updated_by") @db.VarChar(15)
   tenant    Nx99Tenant @relation("R_Nx01UserPref_tenantId", fields: [tenantId], references: [id])
   user      Nx01User   @relation("R_Nx01UserPref_userId", fields: [userId], references: [id])
 
