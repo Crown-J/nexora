@@ -77,7 +77,10 @@ model Nx01BrandCodeRule {
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
   tenantId                String     @map("tenant_id") @db.VarChar(15)
   /// 零件品牌 ID（FK nx01_part_brand；軸翻轉自 carBrandId、規格下半場 A）；同品牌可多規則、以 name 區分；啟用最低需求版本：LITE
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   partBrandId             String     @map("part_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表（取代 partBrandId、本軌 nullable 待 backfill、後續軌 SET NOT NULL）
+  brandId                 String?    @map("brand_id") @db.VarChar(15)
   /// 規則名稱（區分同品牌的多個規則）；啟用最低需求版本：LITE
   name                    String     @db.VarChar(50)
   /// 規則描述；啟用最低需求版本：LITE
@@ -103,6 +106,7 @@ model Nx01BrandCodeRule {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
   updatedBy               String     @map("updated_by") @db.VarChar(15)
   tenant                  Nx99Tenant @relation("R_Nx01BrandCodeRule_tenantId", fields: [tenantId], references: [id])
+  brand                   Nx01Brand? @relation("R_Nx01BrandCodeRule_brandId", fields: [brandId], references: [id], onDelete: Restrict)
   rev_Nx01Part_codeRuleId Nx01Part[] @relation("R_Nx01Part_codeRuleId")
 
   @@unique([tenantId, partBrandId, name])
@@ -336,6 +340,60 @@ model Nx01CarBrand {
 }
 
 /// =======================================================
+/// Nx01Brand — DB table `nx01_brand`（W6 [3-8] 2026-06-06 品牌合併、NX-MANUAL-02 v2.0 §3.8）
+/// 合 Nx01CarBrand + Nx01PartBrand → 單一 Nx01Brand：
+///   - isCar / isPart 雙開關區分用途（同 code 可同時是車牌跟零件廠牌、e.g. VAG）
+///   - is_oem 拿掉、改由零件主檔 part.isOem 決定（業界 muscle memory：BOSCH 等品牌同時出原廠件與副廠件、原廠與否是零件層級屬性）
+///   - 零件「品牌」picker 過濾 isPart=true；車型字典 5 表 picker 過濾 isCar=true
+/// 8 個 FK 重綁：Engine / Transmission / Model / VinLookup / Part / PartOemCode / StItem / BrandCodeRule
+/// 1 個 snapshot 改名：PartVersion.partBrandIdSnapshot → brandIdSnapshot（後續軌處理）
+/// 舊 Nx01CarBrand + Nx01PartBrand：保留 schema 暫不 drop、application 層停用、後續軌物理 drop
+/// =======================================================
+model Nx01Brand {
+  /// [NX01]+[BRND]+[7碼流水號]，EX : NX01BRND0000001
+  id        String       @id @default(dbgenerated("gen_nx01_brand_id()")) @db.VarChar(15)
+  /// 租戶 ID
+  tenantId  String       @map("tenant_id") @db.VarChar(15)
+  /// 品牌代碼（業界縮寫、tenant 內 unique、例：VAG / POR / BMW / BEN / BOSCH）
+  code      String       @db.VarChar(30)
+  /// 品牌中文名
+  name      String       @db.VarChar(100)
+  /// 品牌英文名（國際對照、由 CarBrand 結構合入；零件品牌可空）
+  nameEn    String?      @map("name_en") @db.VarChar(100)
+  /// 品牌國家
+  countryId String?      @map("country_id") @db.VarChar(15)
+  /// 品牌 Logo URL（由 CarBrand 結構合入；v2.0+ UI 渲染）
+  logoUrl   String?      @map("logo_url") @db.VarChar(500)
+  /// 是否汽車品牌（影響車型字典 / 引擎 / 變速箱 / 車型 / VIN 查詢 picker 過濾）
+  isCar     Boolean      @default(false) @map("is_car")
+  /// 是否零件品牌（影響零件主檔 / 編碼規則 / 進貨 / StItem picker 過濾）
+  isPart    Boolean      @default(false) @map("is_part")
+  /// 備註
+  remark    String?      @db.VarChar(200)
+  isActive  Boolean      @default(true) @map("is_active")
+  sortNo    Int          @default(0) @map("sort_no")
+  createdAt DateTime     @default(now()) @map("created_at")
+  createdBy String       @map("created_by") @db.VarChar(15)
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  updatedBy String       @map("updated_by") @db.VarChar(15)
+  tenant    Nx99Tenant   @relation("R_Nx01Brand_tenantId", fields: [tenantId], references: [id])
+  country   Nx01Country? @relation("R_Nx01Brand_countryId", fields: [countryId], references: [id], onDelete: SetNull)
+
+  // 8 個 reverse relations（FK 重綁範圍）
+  rev_Nx01Part_brandId          Nx01Part[]          @relation("R_Nx01Part_brandId")
+  rev_Nx01PartOemCode_brandId   Nx01PartOemCode[]   @relation("R_Nx01PartOemCode_brandId")
+  rev_Nx03StItem_brandId        Nx03StItem[]        @relation("R_Nx03StItem_brandId")
+  rev_Nx01BrandCodeRule_brandId Nx01BrandCodeRule[] @relation("R_Nx01BrandCodeRule_brandId")
+  rev_Nx01Engine_brandId        Nx01Engine[]        @relation("R_Nx01Engine_brandId")
+  rev_Nx01Transmission_brandId  Nx01Transmission[]  @relation("R_Nx01Transmission_brandId")
+  rev_Nx01Model_brandId         Nx01Model[]         @relation("R_Nx01Model_brandId")
+  rev_Nx09VinLookup_brandId     Nx09VinLookup[]     @relation("R_Nx09VinLookup_brandId")
+
+  @@unique([tenantId, code])
+  @@map("nx01_brand")
+}
+
+/// =======================================================
 /// Nx01Country — DB table `nx01_country`
 /// =======================================================
 model Nx01Country {
@@ -361,6 +419,8 @@ model Nx01Country {
   rev_Nx01Part_countryId      Nx01Part[]      @relation("R_Nx01Part_countryId")
   rev_Nx01PartBrand_countryId Nx01PartBrand[] @relation("R_Nx01PartBrand_countryId")
   rev_Nx01City_countryId      Nx01City[]      @relation("R_Nx01City_countryId")
+  // W6 [3-8] 2026-06-06 品牌合併
+  rev_Nx01Brand_countryId     Nx01Brand[]     @relation("R_Nx01Brand_countryId")
 
   @@unique([code])
   @@map("nx01_country")
@@ -776,7 +836,10 @@ model Nx01Part {
   /// 產地 (外鍵)；啟用最低需求版本：LITE
   countryId                       String?                @map("country_id") @db.VarChar(15)
   /// 零件品牌（可空，因為有些料號可能還沒補齊）；啟用最低需求版本：LITE
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   partBrandId                     String?                @map("part_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表（取代 partBrandId）
+  brandId                         String?                @map("brand_id") @db.VarChar(15)
   /// 零件類型 (1=專用型 / 2=通用型 / 3=組合型 / 4=拆解型、軸 1 升 SmallInt、對齊 NX01-14/15 範式)；啟用最低需求版本：LITE
   type                            Int?                   @default(1) @db.SmallInt
   /// 零件種類 id (外鍵)；啟用最低需求版本：LITE
@@ -815,6 +878,7 @@ model Nx01Part {
   codeRule                        Nx01BrandCodeRule?     @relation("R_Nx01Part_codeRuleId", fields: [codeRuleId], references: [id])
   country                         Nx01Country?           @relation("R_Nx01Part_countryId", fields: [countryId], references: [id])
   partBrand                       Nx01PartBrand?         @relation("R_Nx01Part_partBrandId", fields: [partBrandId], references: [id])
+  brand                           Nx01Brand?             @relation("R_Nx01Part_brandId", fields: [brandId], references: [id], onDelete: SetNull)
   partGroup                       Nx01PartGroup?         @relation("R_Nx01Part_partGroupId", fields: [partGroupId], references: [id])
   rev_Nx01PartRelation_partIdFrom Nx01PartRelation[]     @relation("R_Nx01PartRelation_partIdFrom")
   rev_Nx01PartRelation_partIdTo   Nx01PartRelation[]     @relation("R_Nx01PartRelation_partIdTo")
@@ -865,24 +929,29 @@ model Nx01Part {
 /// =======================================================
 model Nx01PartOemCode {
   /// [NX01]+[POEM]+[7碼流水號]；啟用最低需求版本：LITE
-  id          String   @id @default(dbgenerated("gen_nx01_part_oem_code_id()")) @db.VarChar(15)
+  id          String     @id @default(dbgenerated("gen_nx01_part_oem_code_id()")) @db.VarChar(15)
   /// 租戶 ID；啟用最低需求版本：LITE
-  tenantId    String   @map("tenant_id") @db.VarChar(15)
+  tenantId    String     @map("tenant_id") @db.VarChar(15)
   /// 所屬零件 ID（FK nx01_part，刪零件連帶刪）；啟用最低需求版本：LITE
-  partId      String   @map("part_id") @db.VarChar(15)
+  partId      String     @map("part_id") @db.VarChar(15)
   /// 對應廠牌 ID（FK nx01_part_brand，scalar）；啟用最低需求版本：LITE
-  partBrandId String?  @map("part_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
+  partBrandId String?    @map("part_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表
+  brandId     String?    @map("brand_id") @db.VarChar(15)
   /// 正廠料號（文字）；啟用最低需求版本：LITE
-  oemCode     String   @map("oem_code") @db.VarChar(50)
+  oemCode     String     @map("oem_code") @db.VarChar(50)
   /// 備註（如「Golf 7 用」「3 系列用」）；啟用最低需求版本：LITE
-  remark      String?  @db.VarChar(200)
+  remark      String?    @db.VarChar(200)
   /// 排序；啟用最低需求版本：LITE
-  sortNo      Int      @default(0) @map("sort_no")
-  createdAt   DateTime @default(now()) @map("created_at")
-  createdBy   String   @map("created_by") @db.VarChar(15)
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  updatedBy   String   @map("updated_by") @db.VarChar(15)
-  part        Nx01Part @relation("R_Nx01PartOemCode_partId", fields: [partId], references: [id], onDelete: Cascade)
+  sortNo      Int        @default(0) @map("sort_no")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  createdBy   String     @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  updatedBy   String     @map("updated_by") @db.VarChar(15)
+  part        Nx01Part   @relation("R_Nx01PartOemCode_partId", fields: [partId], references: [id], onDelete: Cascade)
+  /// W6 [3-8] 2026-06-06 品牌合併
+  brand       Nx01Brand? @relation("R_Nx01PartOemCode_brandId", fields: [brandId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, oemCode])
   @@index([partId])
@@ -3091,7 +3160,10 @@ model Nx03StItem {
   /// 品名快照；啟用最低需求版本：PLUS
   partName       String           @map("part_name") @db.VarChar(200)
   /// 品牌（可空）；啟用最低需求版本：PLUS
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   partBrandId    String?          @map("part_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表
+  brandId        String?          @map("brand_id") @db.VarChar(15)
   /// 出貨庫位；啟用最低需求版本：PLUS
   fromLocationId String?          @map("from_location_id") @db.VarChar(15)
   /// 目標庫位；啟用最低需求版本：PLUS
@@ -3120,6 +3192,8 @@ model Nx03StItem {
   part           Nx01Part         @relation("R_Nx03StItem_partId", fields: [partId], references: [id])
   partVersion    Nx01PartVersion? @relation("R_Nx03StItem_partVersionId", fields: [partVersionId], references: [id])
   partBrand      Nx01PartBrand?   @relation("R_Nx03StItem_partBrandId", fields: [partBrandId], references: [id])
+  /// W6 [3-8] 2026-06-06 品牌合併
+  brand          Nx01Brand?       @relation("R_Nx03StItem_brandId", fields: [brandId], references: [id], onDelete: SetNull)
   fromLocation   Nx01Location?    @relation("R_Nx03StItem_fromLocationId", fields: [fromLocationId], references: [id])
   toLocation     Nx01Location?    @relation("R_Nx03StItem_toLocationId", fields: [toLocationId], references: [id])
   sourceSoItem   Nx04SoItem?      @relation("R_Nx03StItem_sourceSoItemId", fields: [sourceSoItemId], references: [id])
@@ -7222,6 +7296,8 @@ model Nx99Tenant {
   rev_Nx05ArReminderLog_tenantId           Nx05ArReminderLog[]           @relation("R_Nx05ArReminderLog_tenantId")
   /// W3 [3-1] 2026-06-06：租戶內編號流水（員工 Y + partner 各分類）
   rev_Nx01SeqCounter_tenantId              Nx01SeqCounter[]              @relation("R_Nx01SeqCounter_tenantId")
+  /// W6 [3-8] 2026-06-06：品牌合併（汽車 + 零件 → 單一 brand）
+  rev_Nx01Brand_tenantId                   Nx01Brand[]                   @relation("R_Nx01Brand_tenantId")
 
   @@unique([code])
   @@map("nx99_tenant")
@@ -7594,7 +7670,10 @@ model Nx01Engine {
   /// 增壓方式（1=NA 自然進氣 / 2=TC 渦輪 / 3=SC 機械 / 4=TC+SC 雙增壓、EV 可空、Crown 拍 Q2=A）；啟用最低需求版本：LITE
   aspirationType         Int?          @default(1) @map("aspiration_type") @db.SmallInt
   /// 關聯車型品牌 FK（可空、業界 EA888=VAG / 2GR=TOY / N20=BMW、跨品牌通用留空、Crown 拍 Q3=A）；啟用最低需求版本：LITE
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   carBrandId             String?       @map("car_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表
+  brandId                String?       @map("brand_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
   remark                 String?       @db.VarChar(200)
   /// 排序用（下拉選單顯示順序）；啟用最低需求版本：LITE
@@ -7611,6 +7690,8 @@ model Nx01Engine {
   updatedBy              String        @map("updated_by") @db.VarChar(15)
   tenant                 Nx99Tenant    @relation("R_Nx01Engine_tenantId", fields: [tenantId], references: [id])
   carBrand               Nx01CarBrand? @relation("R_Nx01Engine_carBrandId", fields: [carBrandId], references: [id])
+  /// W6 [3-8] 2026-06-06 品牌合併
+  brand                  Nx01Brand?    @relation("R_Nx01Engine_brandId", fields: [brandId], references: [id], onDelete: SetNull)
   rev_Nx01Model_engineId Nx01Model[]   @relation("R_Nx01Model_engineId")
 
   @@unique([tenantId, code])
@@ -7639,7 +7720,10 @@ model Nx01Transmission {
   /// 檔位數（手排 / 自排 / 雙離合可填、CVT 為 null）；啟用最低需求版本：LITE
   gearCount                    Int?          @map("gear_count")
   /// 關聯車型品牌 FK（可空、跨品牌通用引擎留空）；啟用最低需求版本：LITE
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   carBrandId                   String?       @map("car_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表
+  brandId                      String?       @map("brand_id") @db.VarChar(15)
   /// 備註說明；啟用最低需求版本：LITE
   remark                       String?       @db.VarChar(200)
   /// 排序用（下拉顯示順序）；啟用最低需求版本：LITE
@@ -7656,6 +7740,8 @@ model Nx01Transmission {
   updatedBy                    String        @map("updated_by") @db.VarChar(15)
   tenant                       Nx99Tenant    @relation("R_Nx01Transmission_tenantId", fields: [tenantId], references: [id])
   carBrand                     Nx01CarBrand? @relation("R_Nx01Transmission_carBrandId", fields: [carBrandId], references: [id])
+  /// W6 [3-8] 2026-06-06 品牌合併
+  brand                        Nx01Brand?    @relation("R_Nx01Transmission_brandId", fields: [brandId], references: [id], onDelete: SetNull)
   rev_Nx01Model_transmissionId Nx01Model[]   @relation("R_Nx01Model_transmissionId")
 
   @@unique([tenantId, code])
@@ -7751,7 +7837,10 @@ model Nx01Model {
   /// 車型全名（正式名稱、報表/客戶單據用、例：Golf 7 GTI）；啟用最低需求版本：LITE
   name                                String                    @db.VarChar(100)
   /// 車型品牌 FK（必填、規格 §3.2 Crown Q3=A）；啟用最低需求版本：LITE
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   carBrandId                          String                    @map("car_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表（本軌 nullable 待 backfill、後續軌 SET NOT NULL）
+  brandId                             String?                   @map("brand_id") @db.VarChar(15)
   /// 起始年份（必填、業務檢核 ≥ 1900 + ≤ 當前年+5、規格 §3.3）；啟用最低需求版本：LITE
   modelYearFrom                       Int                       @map("model_year_from")
   /// 結束年份（可空、現役留空、若填必 ≥ modelYearFrom、規格 §3.3）；啟用最低需求版本：LITE
@@ -7780,6 +7869,8 @@ model Nx01Model {
   updatedBy                           String                    @map("updated_by") @db.VarChar(15)
   tenant                              Nx99Tenant                @relation("R_Nx01Model_tenantId", fields: [tenantId], references: [id])
   carBrand                            Nx01CarBrand              @relation("R_Nx01Model_carBrandId", fields: [carBrandId], references: [id])
+  /// W6 [3-8] 2026-06-06 品牌合併（本軌 nullable 待 backfill、後續軌 SET NOT NULL）
+  brand                               Nx01Brand?                @relation("R_Nx01Model_brandId", fields: [brandId], references: [id], onDelete: Restrict)
   engine                              Nx01Engine?               @relation("R_Nx01Model_engineId", fields: [engineId], references: [id])
   transmission                        Nx01Transmission?         @relation("R_Nx01Model_transmissionId", fields: [transmissionId], references: [id])
   drivetrain                          Nx01Drivetrain?           @relation("R_Nx01Model_drivetrainId", fields: [drivetrainId], references: [id])
@@ -8215,7 +8306,10 @@ model Nx09VinLookup {
   /// VIN 17 碼國際標準（ISO 3779 / SAE J853）；啟用最低需求版本：PRO
   vin            String        @db.VarChar(17)
   /// 車型品牌 FK（NHTSA Make 對照或業務員手動指定、可空）；啟用最低需求版本：PRO
+  /// W6 [3-8] 2026-06-06：已合併至 brandId、保留欄位待後續軌 drop
   carBrandId     String?       @map("car_brand_id") @db.VarChar(15)
+  /// W6 [3-8] 2026-06-06 品牌合併：指向新 Nx01Brand 表
+  brandId        String?       @map("brand_id") @db.VarChar(15)
   /// 車型 FK（業務員手動關聯後即可走 PartModel 鏈、可空）；啟用最低需求版本：PRO
   modelId        String?       @map("model_id") @db.VarChar(15)
   /// 資料來源（API=NHTSA / MANUAL=業務員手動）；啟用最低需求版本：PRO
@@ -8238,6 +8332,8 @@ model Nx09VinLookup {
   updatedBy      String        @map("updated_by") @db.VarChar(15)
   tenant         Nx99Tenant    @relation("R_Nx09VinLookup_tenantId", fields: [tenantId], references: [id])
   carBrand       Nx01CarBrand? @relation("R_Nx09VinLookup_carBrandId", fields: [carBrandId], references: [id])
+  /// W6 [3-8] 2026-06-06 品牌合併
+  brand          Nx01Brand?    @relation("R_Nx09VinLookup_brandId", fields: [brandId], references: [id], onDelete: SetNull)
   model          Nx01Model?    @relation("R_Nx09VinLookup_modelId", fields: [modelId], references: [id])
 
   @@unique([tenantId, vin], map: "nx09_vin_lookup_tenant_vin_key")
