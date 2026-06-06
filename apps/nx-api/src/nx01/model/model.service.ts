@@ -15,13 +15,12 @@ import type {
   UpdateModelDto,
 } from './dto/model.dto';
 
-// W6-切換軌 2026-06-06：select 加 brandId + brand relation；mapRow brand 為主
+// W6-Phase 5 2026-06-06：舊 car_brand_id 已 drop、brandId 為主鍵
 const SEL = {
   id: true,
   tenantId: true,
   code: true,
   name: true,
-  carBrandId: true,
   brandId: true,
   modelYearFrom: true,
   modelYearTo: true,
@@ -36,8 +35,7 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
-  carBrand: { select: { code: true, name: true } },
-  brand: { select: { code: true, name: true, isCar: true, isPart: true } },
+  brand: { select: { code: true, name: true } },
   engine: { select: { code: true, name: true } },
   transmission: { select: { code: true, name: true } },
   drivetrain: { select: { code: true, name: true } },
@@ -54,13 +52,13 @@ export class ModelService {
   ) {}
 
   private mapRow(r: Row) {
-    const { carBrand, brand, engine, transmission, drivetrain, modelType, ...rest } = r;
+    const { brand, engine, transmission, drivetrain, modelType, ...rest } = r;
     return {
       ...rest,
-      // W6-切換軌：carBrandId 對前端 picker 顯示用、優先 brandId
-      carBrandId: rest.brandId ?? rest.carBrandId,
-      carBrandCode: brand?.code ?? carBrand?.code ?? null,
-      carBrandName: brand?.name ?? carBrand?.name ?? null,
+      // W6-Phase 5：前端 picker key carBrandId、值為 brand.id
+      carBrandId: rest.brandId,
+      carBrandCode: brand?.code ?? null,
+      carBrandName: brand?.name ?? null,
       engineCode: engine?.code ?? null,
       engineName: engine?.name ?? null,
       transmissionCode: transmission?.code ?? null,
@@ -104,11 +102,8 @@ export class ModelService {
         { name: { contains: s, mode: 'insensitive' } },
       ];
     }
-    // W6-切換軌：input 可能是 brand.id 或 car_brand.id
-    if (q.carBrandId?.trim()) {
-      const cb = q.carBrandId.trim();
-      where.OR = [...(where.OR ?? []), { carBrandId: cb }, { brandId: cb }];
-    }
+    // W6-Phase 5：filter by brandId
+    if (q.carBrandId?.trim()) where.brandId = q.carBrandId.trim();
     if (q.modelYearFrom !== undefined) where.modelYearFrom = q.modelYearFrom;
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
@@ -149,10 +144,9 @@ export class ModelService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Model code already exists in this tenant');
-    // W6-切換軌：dual-resolve carBrandId（接 brand.id 或 car_brand.id）
-    // Model.carBrandId 為 NOT NULL、必須 lookup 到值；找不到 throw（Phase 1 已雙向 backfill、邊界 case 才會 hit）
+    // W6-Phase 5：dto.carBrandId 為 brand.id、必須驗證到 isCar=true brand
     const refs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
-    if (!refs.carBrandId) {
+    if (!refs.brandId) {
       throw new BadRequestException(
         'carBrandId 對應不到車廠品牌（請確認 picker value 為 nx01_brand isCar=true row）',
       );
@@ -162,7 +156,6 @@ export class ModelService {
         tenantId,
         code,
         name: dto.name.trim(),
-        carBrandId: refs.carBrandId,
         brandId: refs.brandId,
         modelYearFrom: dto.modelYearFrom,
         modelYearTo: dto.modelYearTo ?? null,
@@ -202,15 +195,16 @@ export class ModelService {
     const nextTo = dto.modelYearTo !== undefined ? dto.modelYearTo : existing.modelYearTo;
     this.validateYears(nextFrom, nextTo);
 
-    // W6-切換軌：dual-resolve carBrandId（Model 為 NOT NULL、找不到 throw）
-    let brandRefs: { brandId: string | null; carBrandId: string | null } | null = null;
+    // W6-Phase 5：dto.carBrandId 為 brand.id、必須驗證
+    let brandRefs: { brandId: string } | null = null;
     if (dto.carBrandId !== undefined) {
-      brandRefs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
-      if (!brandRefs.carBrandId) {
+      const r = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
+      if (!r.brandId) {
         throw new BadRequestException(
           'carBrandId 對應不到車廠品牌（請確認 picker value 為 nx01_brand isCar=true row）',
         );
       }
+      brandRefs = { brandId: r.brandId };
     }
 
     const row = await this.prisma.nx01Model.update({
@@ -218,7 +212,7 @@ export class ModelService {
       data: {
         ...(dto.code !== undefined ? { code: dto.code.trim().toUpperCase() } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
-        ...(brandRefs ? { carBrandId: brandRefs.carBrandId!, brandId: brandRefs.brandId } : {}),
+        ...(brandRefs ? { brandId: brandRefs.brandId } : {}),
         ...(dto.modelYearFrom !== undefined ? { modelYearFrom: dto.modelYearFrom } : {}),
         ...(dto.modelYearTo !== undefined ? { modelYearTo: dto.modelYearTo } : {}),
         ...(dto.engineId !== undefined ? { engineId: dto.engineId?.trim() || null } : {}),

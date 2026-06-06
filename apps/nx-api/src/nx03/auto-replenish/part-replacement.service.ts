@@ -16,7 +16,8 @@ import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../prisma/prisma.service';
 
-/** 替代品牌候選（含 fitLevel + isOem 雙標記）。 */
+/** 替代品牌候選（含 fitLevel + isOem 雙標記）。
+ *  W6-Phase 4b 2026-06-06：partBrandId 內容仍是「同品牌識別」、值改用 brand.id（part_brand_id 即將 drop）*/
 export type ReplacementCandidate = {
   partId: string;
   partBrandId: string | null;
@@ -70,13 +71,13 @@ export class PartReplacementService {
       select: {
         partId: true,
         fitLevel: true,
-        part: { select: { partBrandId: true, isOem: true } },
+        part: { select: { brandId: true, isOem: true } },
       },
     });
 
     return partModels.map((pm) => ({
       partId: pm.partId,
-      partBrandId: pm.part.partBrandId,
+      partBrandId: pm.part.brandId,
       fitLevel: pm.fitLevel,
       isOem: pm.part.isOem,
     }));

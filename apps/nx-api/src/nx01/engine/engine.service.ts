@@ -15,7 +15,7 @@ import type {
   UpdateEngineDto,
 } from './dto/engine.dto';
 
-// W6-切換軌 2026-06-06：select 加 brandId + brand relation；mapRow 顯示 brand 為主、fallback carBrand
+// W6-Phase 5 2026-06-06：舊 car_brand_id 已 drop、只剩 brandId（指向 nx01_brand isCar=true）
 const SEL = {
   id: true,
   tenantId: true,
@@ -25,7 +25,6 @@ const SEL = {
   cylinderConfig: true,
   fuelType: true,
   aspirationType: true,
-  carBrandId: true,
   brandId: true,
   remark: true,
   sortNo: true,
@@ -34,8 +33,7 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
-  carBrand: { select: { code: true, name: true } },
-  brand: { select: { code: true, name: true, isCar: true, isPart: true } },
+  brand: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01EngineGetPayload<{ select: typeof SEL }>;
@@ -48,13 +46,13 @@ export class EngineService {
   ) {}
 
   private mapRow(r: Row) {
-    const { carBrand, brand, ...rest } = r;
+    const { brand, ...rest } = r;
     return {
       ...rest,
-      // W6-切換軌：carBrandId 對前端 picker 顯示用、優先 brandId（match refOptions value）
-      carBrandId: rest.brandId ?? rest.carBrandId,
-      carBrandCode: brand?.code ?? carBrand?.code ?? null,
-      carBrandName: brand?.name ?? carBrand?.name ?? null,
+      // W6-Phase 5：前端 picker 仍用 carBrandId key、值為 brand.id
+      carBrandId: rest.brandId,
+      carBrandCode: brand?.code ?? null,
+      carBrandName: brand?.name ?? null,
     };
   }
 
@@ -69,11 +67,8 @@ export class EngineService {
     }
     if (q.fuelType !== undefined) where.fuelType = q.fuelType;
     if (q.aspirationType !== undefined) where.aspirationType = q.aspirationType;
-    // W6-切換軌：input 可能是 brand.id 或 car_brand.id、兩個欄位都 OR 比對
-    if (q.carBrandId?.trim()) {
-      const cb = q.carBrandId.trim();
-      where.OR = [...(where.OR ?? []), { carBrandId: cb }, { brandId: cb }];
-    }
+    // W6-Phase 5：filter by brandId（input 為 brand.id）
+    if (q.carBrandId?.trim()) where.brandId = q.carBrandId.trim();
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
   }
@@ -112,8 +107,7 @@ export class EngineService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Engine code already exists in this tenant');
-    // W6-切換軌 2026-06-06：dto.carBrandId 可能是 brand.id（新 picker）或 car_brand.id（舊兼容）
-    // helper 兩種都接、回兩個欄位 id 用於 dual-write
+    // W6-Phase 5：dto.carBrandId 為 brand.id、驗證 isCar=true
     const refs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
     const row = await this.prisma.nx01Engine.create({
       data: {
@@ -124,7 +118,6 @@ export class EngineService {
         cylinderConfig: dto.cylinderConfig?.trim() || null,
         fuelType: dto.fuelType,
         aspirationType: dto.aspirationType ?? null,
-        carBrandId: refs.carBrandId,
         brandId: refs.brandId,
         remark: dto.remark?.trim() || null,
         sortNo: dto.sortNo ?? 0,
@@ -168,7 +161,7 @@ export class EngineService {
           : {}),
         ...(dto.fuelType !== undefined ? { fuelType: dto.fuelType } : {}),
         ...(dto.aspirationType !== undefined ? { aspirationType: dto.aspirationType } : {}),
-        ...(brandRefs ? { carBrandId: brandRefs.carBrandId, brandId: brandRefs.brandId } : {}),
+        ...(brandRefs ? { brandId: brandRefs.brandId } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),

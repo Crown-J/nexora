@@ -1,6 +1,6 @@
 // apps/nx-api/src/nx01/brand-code-rule/brand-code-rule.service.ts
-// 下半場 A：軸翻轉 carBrandId → partBrandId、拿掉 JSON segDefinitions、改 SEG1~5 字數欄位。
-// 同一零件品牌可有多個規則（以 name 區分）；範例料號改前端即時預覽（不存 DB）。
+// W6-Phase 5 2026-06-06：軸再轉 brandId（part_brand_id 已 drop）、單表查 nx01_brand isPart=true。
+// 同一品牌可有多個規則（以 name 區分）；範例料號改前端即時預覽（不存 DB）。
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from 'db-core';
 
@@ -18,8 +18,6 @@ import type {
 const SEL = {
   id: true,
   tenantId: true,
-  partBrandId: true,
-  // W6-切換軌 2026-06-06：brand 為主、partBrand 保留 dual-write 過渡期
   brandId: true,
   name: true,
   description: true,
@@ -43,34 +41,13 @@ export class BrandCodeRuleService {
     private readonly audit: Nx01AuditLogWriterService,
   ) {}
 
-  /** 確認 partBrandId 屬同租戶（外鍵防呆） */
-  private async verifyPartBrand(tenantId: string, partBrandId: string): Promise<void> {
-    const pb = await this.prisma.nx01PartBrand.findFirst({
-      where: { id: partBrandId, tenantId },
-      select: { id: true },
-    });
-    if (!pb) throw new ConflictException('Part brand not found in tenant');
-  }
-
-  /**
-   * W6-切換軌：依 partBrandId 查對應的新 brand.id（lookup by code）。
-   * 過渡期 dual-write：caller 仍可送 partBrandId、service 端 lookup 對應 brandId。
-   * 未來軌 caller 直接送 brandId、partBrandId 可廢。
-   */
-  private async resolveBrandIdFromPartBrand(
-    tenantId: string,
-    partBrandId: string,
-  ): Promise<string | null> {
-    const pb = await this.prisma.nx01PartBrand.findFirst({
-      where: { id: partBrandId, tenantId },
-      select: { code: true },
-    });
-    if (!pb) return null;
+  /** 確認 brandId 屬同租戶 + isPart=true（外鍵防呆） */
+  private async verifyBrand(tenantId: string, brandId: string): Promise<void> {
     const b = await this.prisma.nx01Brand.findFirst({
-      where: { tenantId, code: pb.code, isPart: true },
+      where: { id: brandId, tenantId, isPart: true },
       select: { id: true },
     });
-    return b?.id ?? null;
+    if (!b) throw new ConflictException('Brand not found in tenant (isPart=true required)');
   }
 
   private whereList(
@@ -81,7 +58,9 @@ export class BrandCodeRuleService {
     if (q.search?.trim()) {
       where.name = { contains: q.search.trim(), mode: 'insensitive' };
     }
-    if (q.partBrandId?.trim()) where.partBrandId = q.partBrandId.trim();
+    // 兼容舊 partBrandId query key、值為 brand.id
+    const brandFilter = q.brandId?.trim() || q.partBrandId?.trim();
+    if (brandFilter) where.brandId = brandFilter;
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
   }
@@ -102,36 +81,40 @@ export class BrandCodeRuleService {
         select: SEL,
       }),
     ]);
-    return { page, pageSize, total, rows };
+    return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
   }
 
   async getById(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
     const row = await this.prisma.nx01BrandCodeRule.findFirst({ where: { id, tenantId }, select: SEL });
     if (!row) throw new NotFoundException('Brand code rule not found');
-    return row;
+    return this.mapRow(row);
+  }
+
+  private mapRow(row: Prisma.Nx01BrandCodeRuleGetPayload<{ select: typeof SEL }>) {
+    // 前端 picker key partBrandId、值 = brand.id（refOptions match）
+    return { ...row, partBrandId: row.brandId };
   }
 
   async create(user: RequestUser, dto: CreateBrandCodeRuleDto) {
     const tenantId = requireTenantId(user);
-    await this.verifyPartBrand(tenantId, dto.partBrandId);
+    // W6-Phase 5：dto.brandId 為主、dto.partBrandId（兼容舊 caller）也是 brand.id
+    const brandId = dto.brandId?.trim() || dto.partBrandId?.trim();
+    if (!brandId) {
+      throw new ConflictException('brandId 必填（W6-Phase 5：partBrandId 已 deprecated、值為 brand.id）');
+    }
+    await this.verifyBrand(tenantId, brandId);
 
-    // 同品牌可多規則、但同品牌內 name 不可重複（對齊 @@unique([tenantId, partBrandId, name])）
+    // 同品牌可多規則、但同品牌內 name 不可重複（對齊 @@unique([tenantId, brandId, name])）
     const dup = await this.prisma.nx01BrandCodeRule.findFirst({
-      where: { tenantId, partBrandId: dto.partBrandId, name: dto.name.trim() },
+      where: { tenantId, brandId, name: dto.name.trim() },
       select: { id: true },
     });
-    if (dup) throw new ConflictException('Rule name already exists for this part brand');
-
-    // W6-切換軌：brandId 寫入（dual-write）；dto.brandId 為主、未送則 lookup partBrandId 對應的 brand
-    const brandId =
-      dto.brandId?.trim() ||
-      (await this.resolveBrandIdFromPartBrand(tenantId, dto.partBrandId));
+    if (dup) throw new ConflictException('Rule name already exists for this brand');
 
     const row = await this.prisma.nx01BrandCodeRule.create({
       data: {
         tenantId,
-        partBrandId: dto.partBrandId,
         brandId,
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
@@ -157,7 +140,7 @@ export class BrandCodeRuleService {
       summary: '建立品牌料號規則',
       afterData: row as object,
     });
-    return row;
+    return this.mapRow(row);
   }
 
   async update(user: RequestUser, id: string, dto: UpdateBrandCodeRuleDto) {
@@ -192,7 +175,7 @@ export class BrandCodeRuleService {
       beforeData: existing as object,
       afterData: row as object,
     });
-    return row;
+    return this.mapRow(row);
   }
 
   async softDelete(user: RequestUser, id: string) {
@@ -216,6 +199,6 @@ export class BrandCodeRuleService {
       beforeData: existing as object,
       afterData: row as object,
     });
-    return row;
+    return this.mapRow(row);
   }
 }

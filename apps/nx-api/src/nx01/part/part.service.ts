@@ -29,8 +29,7 @@ const SEL = {
   seg4: true,
   seg5: true,
   countryId: true,
-  partBrandId: true,
-  // W6 [3-8] 2026-06-06 品牌合併：新 brandId 為主、partBrandId 保留待後續軌 drop
+  // W6-Phase 5 2026-06-06：part_brand_id 已 drop、brandId 為單一品牌欄位
   brandId: true,
   type: true,
   partGroupId: true,
@@ -49,8 +48,7 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
-  partBrand: { select: { code: true } },
-  // W6 [3-8] 2026-06-06 品牌合併：brand relation 為主（後續軌 drop partBrand）
+  // W6-Phase 5：partBrand relation 已 drop、brand 為主
   brand: { select: { code: true, name: true, isCar: true, isPart: true } },
   country: { select: { code: true } },
 } as const;
@@ -200,24 +198,23 @@ export class PartService {
   }
 
   /**
-   * Crown Q9=C：UNK 為系統保留字、tenant 不可用作 partBrand.code / country.code。
-   * service 端 guard：若 dto 傳入的 partBrandId / countryId 對應 row code === 'UNK'、拒絕。
-   * （未來軌建議在 part-brand / country create 端也加 guard、本軌不跨範圍）
+   * Crown Q9=C：UNK 為系統保留字、tenant 不可用作 brand.code / country.code。
+   * W6-Phase 5：partBrandId 已 drop、改驗 brand.id（isPart=true）對應 code !== 'UNK'
    */
   private async validateUnkReservedNotUsed(
     tx: Prisma.TransactionClient,
     tenantId: string,
-    partBrandId: string | null | undefined,
+    brandId: string | null | undefined,
     countryId: string | null | undefined,
   ): Promise<void> {
-    if (partBrandId?.trim()) {
-      const pb = await tx.nx01PartBrand.findFirst({
-        where: { id: partBrandId.trim(), tenantId },
+    if (brandId?.trim()) {
+      const b = await tx.nx01Brand.findFirst({
+        where: { id: brandId.trim(), tenantId, isPart: true },
         select: { code: true },
       });
-      if (!pb) throw new NotFoundException('partBrandId not found for tenant');
-      if (pb.code === 'UNK') {
-        throw new BadRequestException('partBrand.code "UNK" 為系統保留字、不可作為 part 引用');
+      if (!b) throw new NotFoundException('brandId not found for tenant');
+      if (b.code === 'UNK') {
+        throw new BadRequestException('brand.code "UNK" 為系統保留字、不可作為 part 引用');
       }
     }
     if (countryId?.trim()) {
@@ -245,12 +242,11 @@ export class PartService {
     tenantId: string;
     codeRuleId: string;
     segs: (string | null | undefined)[]; // up to 5 segs
-    partBrandId?: string | null;
     brandId?: string | null;
     countryId?: string | null;
   }): Promise<string> {
     // 收尾軌完整料號格式：{零件品牌代碼} - {SEG1 SEG2 …（單空格）} #{產地代碼}
-    // W6-切換軌 2026-06-06：brandId 優先 lookup nx01_brand、fallback 舊 partBrandId lookup nx01_part_brand
+    // W6-Phase 5 2026-06-06：舊 nx01_part_brand 已 drop、單表查
     let brandCode = '';
     if (input.brandId?.trim()) {
       const b = await this.prisma.nx01Brand.findFirst({
@@ -258,12 +254,6 @@ export class PartService {
         select: { code: true },
       });
       brandCode = b?.code ?? '';
-    } else if (input.partBrandId?.trim()) {
-      const pb = await this.prisma.nx01PartBrand.findFirst({
-        where: { id: input.partBrandId.trim(), tenantId: input.tenantId },
-        select: { code: true },
-      });
-      brandCode = pb?.code ?? '';
     }
     let countryCode = '';
     if (input.countryId?.trim()) {
@@ -349,25 +339,12 @@ export class PartService {
     const row = await this.prisma.$transaction(async (tx) => {
       // W5 [3-7]：codeRuleId 改 optional（編碼規則引擎屬汽車資料庫套件、LITE 不在）
       const codeRuleId = await this.resolveCodeRuleId(tx, tenantId, dto.codeRuleId);
-      await this.validateUnkReservedNotUsed(tx, tenantId, dto.partBrandId, dto.countryId);
+      // W6-Phase 5：dto.brandId 為主（舊 partBrandId 接 brand.id 也認）
+      const effectiveBrandId = dto.brandId?.trim() || dto.partBrandId?.trim() || null;
+      await this.validateUnkReservedNotUsed(tx, tenantId, effectiveBrandId, dto.countryId);
       // M2-b：dto 沒傳 priceA~D 時、後端依 cost × margin 自動算（系統算為主、手動微調走 dto 覆寫）
       const cost = new PrismaNs.Decimal(dto.cost ?? 0);
       const defaults = await this.calcDefaultPrices(tx, tenantId, cost);
-      // W6 [3-8]：dto.brandId 為主、若舊 caller 仍送 partBrandId → service 端 lookup brand by code 對齊
-      let effectiveBrandId = dto.brandId?.trim() || null;
-      if (!effectiveBrandId && dto.partBrandId?.trim()) {
-        const pb = await tx.nx01PartBrand.findFirst({
-          where: { id: dto.partBrandId.trim(), tenantId },
-          select: { code: true },
-        });
-        if (pb) {
-          const b = await tx.nx01Brand.findFirst({
-            where: { tenantId, code: pb.code, isPart: true },
-            select: { id: true },
-          });
-          effectiveBrandId = b?.id ?? null;
-        }
-      }
       const created = await tx.nx01Part.create({
         data: {
           tenantId,
@@ -384,8 +361,6 @@ export class PartService {
           seg4: trimOrNull(dto.seg4),
           seg5: trimOrNull(dto.seg5),
           countryId: dto.countryId?.trim() || null,
-          // W6 [3-8]：寫入舊 partBrandId 同時寫 brandId（dual-write 過渡期、後續軌 stop 寫舊欄位）
-          partBrandId: dto.partBrandId?.trim() || null,
           brandId: effectiveBrandId,
           partGroupId: dto.partGroupId?.trim() || null,
           type: dto.partType ?? 1,
@@ -461,7 +436,8 @@ export class PartService {
         effectiveTo: null,
         codeSnapshot: partRow.code,
         nameSnapshot: partRow.name,
-        partBrandIdSnapshot: partRow.partBrandId,
+        // W6-Phase 5：partBrandIdSnapshot 仍是 PartVersion 表欄位（snapshot 用、不 FK）、寫 brandId 值即可
+        partBrandIdSnapshot: partRow.brandId,
         countryIdSnapshot: partRow.countryId,
         specSnapshot: partRow.spec,
         priceASnapshot: partRow.priceA,
@@ -480,15 +456,11 @@ export class PartService {
     const existing = await this.prisma.nx01Part.findFirst({ where: { id, tenantId }, select: SEL });
     if (!existing) throw new NotFoundException('Part not found');
 
-    // Q9=C UNK guard：只在 dto 傳新值時驗（不重驗既有 row）
-    if (dto.partBrandId !== undefined || dto.countryId !== undefined) {
+    // Q9=C UNK guard：只在 dto 傳新值時驗（W6-Phase 5：brandId 為主、partBrandId 接 brand.id 也認）
+    const newBrandId = dto.brandId ?? dto.partBrandId;
+    if (newBrandId !== undefined || dto.countryId !== undefined) {
       await this.prisma.$transaction(async (tx) => {
-        await this.validateUnkReservedNotUsed(
-          tx,
-          tenantId,
-          dto.partBrandId,
-          dto.countryId,
-        );
+        await this.validateUnkReservedNotUsed(tx, tenantId, newBrandId, dto.countryId);
       });
     }
 
@@ -522,9 +494,12 @@ export class PartService {
         ...(dto.seg4 !== undefined ? { seg4: trimOrNull(dto.seg4) } : {}),
         ...(dto.seg5 !== undefined ? { seg5: trimOrNull(dto.seg5) } : {}),
         ...(dto.countryId !== undefined ? { countryId: dto.countryId?.trim() || null } : {}),
-        ...(dto.partBrandId !== undefined ? { partBrandId: dto.partBrandId?.trim() || null } : {}),
-        // W6 [3-8]：brandId 寫入（dto 端可直接送、不再需 partBrandId 走 lookup）
-        ...(dto.brandId !== undefined ? { brandId: dto.brandId?.trim() || null } : {}),
+        // W6-Phase 5：brandId 為主、舊 partBrandId（若送）也接 brand.id 值
+        ...(dto.brandId !== undefined
+          ? { brandId: dto.brandId?.trim() || null }
+          : dto.partBrandId !== undefined
+          ? { brandId: dto.partBrandId?.trim() || null }
+          : {}),
         ...(dto.partGroupId !== undefined ? { partGroupId: dto.partGroupId?.trim() || null } : {}),
         ...(dto.partType !== undefined ? { type: dto.partType } : {}),
         ...(dto.spec !== undefined ? { spec: dto.spec } : {}),
@@ -597,25 +572,23 @@ export class PartService {
   }
 
   private mapRow(row: Row) {
-    const { type, cost, priceA, priceB, priceC, priceD, partBrand, brand, country, ...rest } = row;
-    // W6 [3-8]：品牌 code 優先用新 brand relation、fallback 舊 partBrand（過渡期）
-    const brandCode = brand?.code ?? partBrand?.code ?? '';
+    const { type, cost, priceA, priceB, priceC, priceD, brand, country, ...rest } = row;
+    const brandCode = brand?.code ?? '';
     // displayCode：未選編碼規則→原樣手動料號；選了→完整格式即時組合（不存 DB）
     const displayCode = rest.codeRuleId
       ? buildDisplayCode(brandCode, [rest.seg1, rest.seg2, rest.seg3, rest.seg4, rest.seg5], country?.code ?? '')
       : rest.code;
     return {
       ...rest,
-      // W6-切換軌 2026-06-06：partBrandId 對前端 picker 顯示用、優先 brandId（match refOptions value）
-      // fallback 舊 part_brand.id 讓 brand 未 backfill 的舊 row 仍能對到舊 picker（過渡期）
-      partBrandId: rest.brandId ?? rest.partBrandId,
+      // W6-Phase 5：前端 picker key partBrandId、值 = brand.id（match refOptions value）
+      partBrandId: rest.brandId,
       partType: type,
       cost: decimalStr(cost),
       priceA: decimalStr(priceA),
       priceB: decimalStr(priceB),
       priceC: decimalStr(priceC),
       priceD: decimalStr(priceD),
-      partBrandCode: partBrand?.code ?? null,
+      partBrandCode: brand?.code ?? null,
       brandCode: brand?.code ?? null,
       brandName: brand?.name ?? null,
       countryCode: country?.code ?? null,
@@ -628,9 +601,17 @@ export class PartService {
     const rows = await this.prisma.nx01PartOemCode.findMany({
       where: { tenantId, partId },
       orderBy: [{ sortNo: 'asc' }, { createdAt: 'asc' }],
-      select: { id: true, partBrandId: true, oemCode: true, remark: true, sortNo: true },
+      // W6-Phase 5：part_brand_id 已 drop、回 brandId
+      select: { id: true, brandId: true, oemCode: true, remark: true, sortNo: true },
     });
-    return rows;
+    // 仍以舊 partBrandId key 對外回傳（前端兼容）、值 = brand.id
+    return rows.map((r) => ({
+      id: r.id,
+      partBrandId: r.brandId,
+      oemCode: r.oemCode,
+      remark: r.remark,
+      sortNo: r.sortNo,
+    }));
   }
 
   /** 取代某零件的正廠對應料號（先刪後建，於 tx 內）；oemCodes=undefined 不動 */
@@ -651,7 +632,8 @@ export class PartService {
         data: {
           tenantId,
           partId,
-          partBrandId: o.partBrandId?.trim() || null,
+          // W6-Phase 5：part_brand_id 已 drop、寫 brandId（o.partBrandId 值已是 brand.id）
+          brandId: o.partBrandId?.trim() || null,
           oemCode,
           remark: o.remark?.trim() || null,
           sortNo: sortNo++,

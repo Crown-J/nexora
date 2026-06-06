@@ -43,6 +43,7 @@ const TR_SEL = {
   updatedBy: true,
 } as const;
 
+// W6-Phase 4b 2026-06-06：select 切 brandId（Phase 5 drop part_brand_id 欄位）
 const TR_ITEM_SEL = {
   id: true,
   stId: true,
@@ -50,7 +51,7 @@ const TR_ITEM_SEL = {
   partId: true,
   partNo: true,
   partName: true,
-  partBrandId: true,
+  brandId: true,
   fromLocationId: true,
   toLocationId: true,
   qty: true,
@@ -296,7 +297,8 @@ export class TransferService {
         partId: it.partId.trim(),
         partNo: snap.partNo,
         partName: snap.partName,
-        partBrandId: it.partBrandId?.trim() || null,
+        // W6-Phase 4b：寫 brandId（partBrandId 欄位即將 drop、frontend 已切 brand.id 語意）
+        brandId: it.partBrandId?.trim() || null,
         fromLocationId: it.fromLocationId.trim(),
         toLocationId: it.toLocationId.trim(),
         qty,

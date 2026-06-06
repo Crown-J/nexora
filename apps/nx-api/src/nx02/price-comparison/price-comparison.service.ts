@@ -47,9 +47,10 @@ export class PriceComparisonService {
     const recentCutoff = new Date(now.getTime() - recentDays * 24 * 60 * 60 * 1000);
 
     // 校驗 part 存在
+    // W6-Phase 4b 2026-06-06：select 切 brandId + brand relation（Phase 5 將 drop part_brand_id）
     const part = await this.prisma.nx01Part.findFirst({
       where: { id: partId, tenantId },
-      select: { id: true, code: true, name: true, isOem: true, partBrandId: true, partBrand: { select: { code: true, name: true } } },
+      select: { id: true, code: true, name: true, isOem: true, brandId: true, brand: { select: { code: true, name: true } } },
     });
     if (!part) throw new NotFoundException('Part not found');
 
@@ -227,7 +228,8 @@ export class PriceComparisonService {
         code: part.code,
         name: part.name,
         isOem: part.isOem,
-        partBrand: part.partBrand,
+        // W6-Phase 4b：output key 仍叫 partBrand 對齊 frontend 相容、內容改 brand relation
+        partBrand: part.brand,
       },
       windowMeta: { lookbackDays, recentDays },
       dimensions: {

@@ -42,17 +42,23 @@ export async function listLookupBrand(params: ListLookupsParams = {}): Promise<L
 
 /**
  * @FUNCTION_CODE NX00-UI-NX00-LOOKUPS-API-001-F01B
- * 說明：
- * - listLookupCarBrand：汽車廠牌下拉（nx01_car_brand）
- * - GET /lookup/car-brand?isActive=true
+ * W6-Phase 4a 2026-06-06：car brand → 切 nx01/brands + isCar=true（單一 brand 表）
+ * - 舊 /lookup/car-brand 端點本就不存在於 backend、本 hook 載入即 404，視同死碼修復
+ * - 回傳結構 normalize 成 LookupRow（id/code/name/isActive）對齊舊 hook 介面、caller 不需改
  */
 export async function listLookupCarBrand(params: ListLookupsParams = {}): Promise<LookupRow[]> {
     const q = buildQueryString({
+        pageSize: '100',
         isActive: params.isActive === undefined ? undefined : String(params.isActive),
-        q: params.q?.trim() ? params.q.trim() : undefined,
+        search: params.q?.trim() ? params.q.trim() : undefined,
+        isCar: 'true',
     });
 
-    return getJson<LookupRow[]>(`/lookup/car-brand${q}`, 'nxui_master_lookup_car_brand_list_001');
+    const raw = await getJson<{ rows?: LookupRow[]; items?: LookupRow[] }>(
+      `/nx01/brands${q}`,
+      'nxui_master_lookup_car_brand_list_001',
+    );
+    return raw.rows ?? raw.items ?? [];
 }
 
 /**

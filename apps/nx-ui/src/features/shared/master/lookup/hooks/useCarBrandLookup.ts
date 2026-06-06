@@ -1,5 +1,6 @@
 /**
- * Car brand lookup（nx01_car_brand）— 表單下拉用
+ * Car brand lookup — 表單下拉用
+ * W6-Phase 4a 2026-06-06：底層 listLookupCarBrand 已切 nx01/brands + isCar=true、本 hook 介面不變
  */
 
 'use client';

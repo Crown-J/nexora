@@ -15,7 +15,7 @@ import type {
   UpdateTransmissionDto,
 } from './dto/transmission.dto';
 
-// W6-切換軌 2026-06-06：select 加 brandId + brand relation；mapRow brand 為主
+// W6-Phase 5 2026-06-06：舊 car_brand_id 已 drop、只剩 brandId
 const SEL = {
   id: true,
   tenantId: true,
@@ -24,7 +24,6 @@ const SEL = {
   nameEn: true,
   transmissionType: true,
   gearCount: true,
-  carBrandId: true,
   brandId: true,
   remark: true,
   sortNo: true,
@@ -33,8 +32,7 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
-  carBrand: { select: { code: true, name: true } },
-  brand: { select: { code: true, name: true, isCar: true, isPart: true } },
+  brand: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01TransmissionGetPayload<{ select: typeof SEL }>;
@@ -47,13 +45,13 @@ export class TransmissionService {
   ) {}
 
   private mapRow(r: Row) {
-    const { carBrand, brand, ...rest } = r;
+    const { brand, ...rest } = r;
     return {
       ...rest,
-      // W6-切換軌：carBrandId 對前端 picker 顯示用、優先 brandId
-      carBrandId: rest.brandId ?? rest.carBrandId,
-      carBrandCode: brand?.code ?? carBrand?.code ?? null,
-      carBrandName: brand?.name ?? carBrand?.name ?? null,
+      // W6-Phase 5：前端 picker key carBrandId、值為 brand.id
+      carBrandId: rest.brandId,
+      carBrandCode: brand?.code ?? null,
+      carBrandName: brand?.name ?? null,
     };
   }
 
@@ -70,11 +68,8 @@ export class TransmissionService {
       ];
     }
     if (q.transmissionType !== undefined) where.transmissionType = q.transmissionType;
-    // W6-切換軌：input 可能是 brand.id 或 car_brand.id
-    if (q.carBrandId?.trim()) {
-      const cb = q.carBrandId.trim();
-      where.OR = [...(where.OR ?? []), { carBrandId: cb }, { brandId: cb }];
-    }
+    // W6-Phase 5：filter by brandId
+    if (q.carBrandId?.trim()) where.brandId = q.carBrandId.trim();
     if (q.isActive !== undefined) where.isActive = q.isActive;
     return where;
   }
@@ -116,7 +111,7 @@ export class TransmissionService {
       select: { id: true },
     });
     if (dup) throw new ConflictException('Transmission code already exists in this tenant');
-    // W6-切換軌：dual-resolve carBrandId（接 brand.id 或 car_brand.id）
+    // W6-Phase 5：dto.carBrandId 為 brand.id、驗證 isCar=true
     const refs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
     const row = await this.prisma.nx01Transmission.create({
       data: {
@@ -126,7 +121,6 @@ export class TransmissionService {
         nameEn: dto.nameEn?.trim() || null,
         transmissionType: dto.transmissionType,
         gearCount: dto.gearCount ?? null,
-        carBrandId: refs.carBrandId,
         brandId: refs.brandId,
         remark: dto.remark?.trim() || null,
         sortNo: dto.sortNo ?? 0,
@@ -170,7 +164,7 @@ export class TransmissionService {
         ...(dto.nameEn !== undefined ? { nameEn: dto.nameEn?.trim() || null } : {}),
         ...(dto.transmissionType !== undefined ? { transmissionType: dto.transmissionType } : {}),
         ...(dto.gearCount !== undefined ? { gearCount: dto.gearCount } : {}),
-        ...(brandRefs ? { carBrandId: brandRefs.carBrandId, brandId: brandRefs.brandId } : {}),
+        ...(brandRefs ? { brandId: brandRefs.brandId } : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),

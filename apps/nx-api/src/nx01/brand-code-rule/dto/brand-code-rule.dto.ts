@@ -6,6 +6,12 @@ import { IsBoolean, IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength 
 import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 
 export class ListBrandCodeRuleQueryDto extends Nx01ListQueryDto {
+  /** W6-Phase 5：brandId 為主、partBrandId 兼容舊 caller（值已是 brand.id） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  brandId?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(15)
@@ -13,16 +19,17 @@ export class ListBrandCodeRuleQueryDto extends Nx01ListQueryDto {
 }
 
 export class CreateBrandCodeRuleDto {
+  /** W6-Phase 5：brandId 為主、partBrandId 兼容舊 caller（值已是 brand.id） */
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(15)
-  partBrandId!: string;
+  brandId?: string;
 
-  /** W6-切換軌：新 brandId（dual-write 過渡期、未送 service 端 lookup partBrandId 對應） */
   @IsOptional()
   @IsString()
   @MaxLength(15)
-  brandId?: string;
+  partBrandId?: string;
 
   @IsString()
   @MinLength(1)

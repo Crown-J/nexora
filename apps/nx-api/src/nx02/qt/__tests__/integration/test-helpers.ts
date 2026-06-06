@@ -72,20 +72,21 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
   });
   if (!warehouse) throw new Error('No warehouse in LITE tenant');
 
-  const partBrand = await prisma.nx01PartBrand.findFirst({
-    where: { tenantId: tenant.id },
+  // W6-Phase 5 2026-06-06：舊 nx01_part_brand 已 DROP、單表查 nx01_brand isPart=true
+  const newBrand = await prisma.nx01Brand.findFirst({
+    where: { tenantId: tenant.id, isPart: true, isActive: true },
     select: { id: true },
   });
-  if (!partBrand) throw new Error('No part_brand in LITE tenant');
+  if (!newBrand) throw new Error('No nx01_brand isPart=true in LITE tenant');
 
-  // brand_code_rule（下半場 A 軸翻轉：對應零件品牌、同品牌可多規則以 name 區分；SEG1~3 各 3 字）
+  // brand_code_rule（W6-Phase 5：軸 brandId、同品牌可多規則以 name 區分；SEG1~3 各 3 字）
   const codeRule = await prisma.nx01BrandCodeRule.upsert({
     where: {
-      tenantId_partBrandId_name: { tenantId: tenant.id, partBrandId: partBrand.id, name: 'B5TEST-RULE' },
+      tenantId_brandId_name: { tenantId: tenant.id, brandId: newBrand.id, name: 'B5TEST-RULE' },
     } as never,
     create: {
       tenantId: tenant.id,
-      partBrandId: partBrand.id,
+      brandId: newBrand.id,
       name: 'B5TEST-RULE',
       seg1Length: 3,
       seg2Length: 3,
@@ -97,14 +98,14 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
     select: { id: true },
   } as never).catch(async () => {
     const found = await prisma.nx01BrandCodeRule.findFirst({
-      where: { tenantId: tenant.id, partBrandId: partBrand.id },
+      where: { tenantId: tenant.id, brandId: newBrand.id },
       select: { id: true },
     });
     if (found) return found;
     return prisma.nx01BrandCodeRule.create({
       data: {
         tenantId: tenant.id,
-        partBrandId: partBrand.id,
+        brandId: newBrand.id,
         name: 'B5TEST-RULE',
         seg1Length: 3,
         seg2Length: 3,
@@ -129,7 +130,7 @@ export async function loadOrCreateB5Fixture(prisma: PrismaClient): Promise<B5Fix
         codeRuleId: (codeRule as { id: string }).id,
         code: partCode,
         name: 'B5 測試用零件',
-        partBrandId: partBrand.id,
+        brandId: newBrand.id,
         isActive: true,
         createdBy: user.id,
         updatedBy: user.id,

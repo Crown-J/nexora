@@ -138,7 +138,8 @@ export class PurchaseSuggestionService {
         take: pageSize,
         select: {
           ...DEMAND_SEL,
-          part: { select: { code: true, name: true, isOem: true, partBrandId: true } },
+          // W6-Phase 4b 2026-06-06：part_brand_id → brand_id（Phase 5 drop 舊欄位）
+          part: { select: { code: true, name: true, isOem: true, brandId: true } },
           warehouse: { select: { code: true, name: true } },
           customer: { select: { code: true, name: true } },
         },

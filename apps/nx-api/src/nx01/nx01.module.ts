@@ -12,8 +12,7 @@ import { CalendarEventController } from './calendar-event/calendar-event.control
 import { CalendarEventService } from './calendar-event/calendar-event.service';
 import { UserPrefController } from './user-pref/user-pref.controller';
 import { UserPrefService } from './user-pref/user-pref.service';
-import { CarBrandController } from './car-brand/car-brand.controller';
-import { CarBrandService } from './car-brand/car-brand.service';
+// W6-Phase 5 2026-06-06：CarBrand / PartBrand 模組已 DROP、合併至 BrandController
 import { CountryController } from './country/country.controller';
 import { CountryService } from './country/country.service';
 import { SiteController } from './site/site.controller';
@@ -36,8 +35,6 @@ import { ModelController } from './model/model.controller';
 import { ModelService } from './model/model.service';
 import { ModelTypeController } from './model-type/model-type.controller';
 import { ModelTypeService } from './model-type/model-type.service';
-import { PartBrandController } from './part-brand/part-brand.controller';
-import { PartBrandService } from './part-brand/part-brand.service';
 import { PartGroupController } from './part-group/part-group.controller';
 import { PartGroupService } from './part-group/part-group.service';
 import { PartModelController } from './part-model/part-model.controller';
@@ -80,7 +77,6 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     CurrencyController,
     WarehouseController,
     WarehouseTypeController,
-    PartBrandController,
     PartController,
     PartnerController,
     CustomerGradeController,
@@ -89,7 +85,6 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleController,
     BulletinController,
     PhoneticDictionaryController,
-    CarBrandController,
     BrandController,
     BrandCodeRuleController,
     EngineController,
@@ -116,7 +111,6 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     CurrencyService,
     WarehouseService,
     WarehouseTypeService,
-    PartBrandService,
     PartService,
     PartnerService,
     CustomerGradeService,
@@ -127,7 +121,6 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     RoleService,
     BulletinService,
     PhoneticDictionaryService,
-    CarBrandService,
     BrandCodeRuleService,
     EngineService,
     TransmissionService,

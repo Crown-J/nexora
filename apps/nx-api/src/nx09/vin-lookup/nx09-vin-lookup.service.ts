@@ -37,7 +37,7 @@ export class Nx09VinLookupService {
       orderBy: { updatedAt: 'desc' },
       take: 100,
       include: {
-        carBrand: { select: { id: true, code: true, name: true, nameEn: true } },
+        brand: { select: { id: true, code: true, name: true, nameEn: true } },
         model: { select: { id: true, code: true, name: true, modelYearFrom: true, modelYearTo: true } },
       },
     });
@@ -49,7 +49,7 @@ export class Nx09VinLookupService {
     const row = await this.prisma.nx09VinLookup.findFirst({
       where: { id: id.trim(), tenantId },
       include: {
-        carBrand: { select: { id: true, code: true, name: true, nameEn: true } },
+        brand: { select: { id: true, code: true, name: true, nameEn: true } },
         model: { select: { id: true, code: true, name: true } },
       },
     });
@@ -64,7 +64,7 @@ export class Nx09VinLookupService {
     const row = await this.prisma.nx09VinLookup.findFirst({
       where: { tenantId, vin: clean },
       include: {
-        carBrand: { select: { id: true, code: true, name: true, nameEn: true } },
+        brand: { select: { id: true, code: true, name: true, nameEn: true } },
         model: { select: { id: true, code: true, name: true } },
       },
     });
@@ -88,9 +88,8 @@ export class Nx09VinLookupService {
 
     const decoded = await decodeVinFromNhtsa(cleanVin);
 
-    // 嘗試對應品牌（case-insensitive Make vs nameEn）
-    // W6-切換軌 2026-06-06：優先查新 nx01_brand isCar=true、fallback 舊 nx01_car_brand
-    let carBrandId: string | null = null;
+    // 對應品牌（NHTSA Make case-insensitive vs nx01_brand.nameEn、isCar=true）
+    // W6-Phase 5 2026-06-06：舊 nx01_car_brand 已 drop、單表查
     let brandId: string | null = null;
     if (decoded.make) {
       const nb = await this.prisma.nx01Brand.findFirst({
@@ -100,33 +99,9 @@ export class Nx09VinLookupService {
           isCar: true,
           nameEn: { equals: decoded.make, mode: 'insensitive' },
         },
-        select: { id: true, code: true },
+        select: { id: true },
       });
-      if (nb) {
-        brandId = nb.id;
-        const cb = await this.prisma.nx01CarBrand.findFirst({
-          where: { tenantId, code: nb.code },
-          select: { id: true },
-        });
-        carBrandId = cb?.id ?? null;
-      } else {
-        const cb = await this.prisma.nx01CarBrand.findFirst({
-          where: {
-            tenantId,
-            isActive: true,
-            nameEn: { equals: decoded.make, mode: 'insensitive' },
-          },
-          select: { id: true, code: true },
-        });
-        if (cb) {
-          carBrandId = cb.id;
-          const nb2 = await this.prisma.nx01Brand.findFirst({
-            where: { tenantId, code: cb.code, isCar: true },
-            select: { id: true },
-          });
-          brandId = nb2?.id ?? null;
-        }
-      }
+      brandId = nb?.id ?? null;
     }
 
     const existing = await this.prisma.nx09VinLookup.findFirst({
@@ -138,8 +113,6 @@ export class Nx09VinLookupService {
       source: decoded.ok ? 'API' : 'MANUAL',
       decodedAt: decoded.ok ? new Date() : null,
       rawApiResponse: decoded.rawResponse ? JSON.stringify(decoded.rawResponse).slice(0, 50000) : null,
-      carBrandId,
-      // W6-切換軌：dual-write brandId
       brandId,
       notes: dto.notes?.trim() ?? null,
       updatedBy: user.sub,
@@ -170,7 +143,7 @@ export class Nx09VinLookupService {
       entityTable: 'nx09_vin_lookup',
       entityId: row.id,
       summary: `VIN decode ${decoded.ok ? 'API' : 'MANUAL fallback'}：${cleanVin} → make=${decoded.make ?? 'null'} model=${decoded.model ?? 'null'} year=${decoded.modelYear ?? 'null'}`,
-      afterData: { vin: cleanVin, decoded, carBrandId } as object,
+      afterData: { vin: cleanVin, decoded, brandId } as object,
     });
 
     return {
@@ -189,10 +162,10 @@ export class Nx09VinLookupService {
     const cleanVin = dto.vin.trim().toUpperCase();
     if (cleanVin.length !== 17) throw new BadRequestException('VIN must be 17 chars');
 
-    // 對應 carBrand / model 校驗
-    // W6-切換軌：dual-resolve（dto.carBrandId 可為 brand.id 或 car_brand.id）
+    // 對應 brand / model 校驗
+    // W6-Phase 5：dto.carBrandId 為 brand.id（picker 已切）
     const manualRefs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
-    if (dto.carBrandId && !manualRefs.carBrandId && !manualRefs.brandId) {
+    if (dto.carBrandId && !manualRefs.brandId) {
       throw new BadRequestException('carBrandId invalid or inactive');
     }
     if (dto.modelId) {
@@ -209,8 +182,6 @@ export class Nx09VinLookupService {
     });
 
     const payload = {
-      carBrandId: manualRefs.carBrandId,
-      // W6-切換軌：dual-write brandId
       brandId: manualRefs.brandId,
       modelId: dto.modelId?.trim() ?? null,
       source: 'MANUAL',
@@ -238,11 +209,11 @@ export class Nx09VinLookupService {
     });
     if (!existing) throw new NotFoundException('VinLookup not found');
 
-    // W6-切換軌：patch 也走 dual-resolve
-    let patchRefs: { brandId: string | null; carBrandId: string | null } | null = null;
+    // W6-Phase 5：dto.carBrandId 為 brand.id
+    let patchRefs: { brandId: string | null } | null = null;
     if (dto.carBrandId !== undefined) {
       patchRefs = await resolveCarBrandRefs(this.prisma, tenantId, dto.carBrandId);
-      if (dto.carBrandId && !patchRefs.carBrandId && !patchRefs.brandId) {
+      if (dto.carBrandId && !patchRefs.brandId) {
         throw new BadRequestException('carBrandId invalid');
       }
     }
@@ -257,7 +228,7 @@ export class Nx09VinLookupService {
     const updated = await this.prisma.nx09VinLookup.update({
       where: { id: existing.id },
       data: {
-        ...(patchRefs ? { carBrandId: patchRefs.carBrandId, brandId: patchRefs.brandId } : {}),
+        ...(patchRefs ? { brandId: patchRefs.brandId } : {}),
         ...(dto.modelId !== undefined ? { modelId: dto.modelId?.trim() || null } : {}),
         ...(dto.notes !== undefined ? { notes: dto.notes?.trim() ?? null } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
