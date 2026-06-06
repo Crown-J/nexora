@@ -31,4 +31,8 @@ apps/nx-api/.uploads/
 Thumbs.db
 
 # Claude Code 本地設定（每位開發者獨立、勿入 repo）
-.claude/settings.local.jsondev-backups/
+.claude/settings.local.json
+
+# Dev DB 備份（pg_dump 本地檔、勿入 repo）
+dev-backups/
+

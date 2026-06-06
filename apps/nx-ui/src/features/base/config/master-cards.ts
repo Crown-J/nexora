@@ -207,25 +207,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/parts',
   },
+  // W6 [3-8] 2026-06-06 品牌合併：car-brand + part-brand → 單一 brand 卡
+  // 舊 car-brand / part-brand 路由保留向後相容（後續軌可改 redirect）
   {
-    id: 'car-brand',
+    id: 'brand',
     section: 'product',
-    title: '車廠品牌基本資料',
-    description: '汽車品牌代碼、國家與啟用狀態（NX01-12）',
-    icon: CarFront,
-    statLabel: '汽車廠牌',
-    statValue: '—',
-    href: '/dashboard/base/car-brand',
-  },
-  {
-    id: 'part-brand',
-    section: 'product',
-    title: '零件廠牌基本資料',
-    description: '零件品牌代碼、國家與啟用狀態',
+    title: '品牌基本資料',
+    description: '汽車品牌 + 零件廠牌雙開關（NX-MANUAL-02 v2.0 §3.8 合表）',
     icon: Tags,
-    statLabel: '零件廠牌',
+    statLabel: '品牌',
     statValue: '—',
-    href: '/dashboard/base/part-brand',
+    href: '/dashboard/base/brand',
   },
   {
     id: 'part-group',
@@ -435,6 +427,7 @@ export function getMasterHubSections(): MasterHubSectionGroup[] {
 export const BASE_SEGMENT_TITLES: Record<string, string> = {
   // 命名統一（2026-05-27）：全主檔顯示名 = 各頁 config.title 的「○○基本資料」。
   // 例外（非單純主檔，不加後綴）：使用者職務設定 / 使用者據點設定 / 職務權限設定。
+  // W6 [3-8] 2026-06-06 品牌合併：brand 為主、car-brand / part-brand 後續軌 deprecate
   user: '使用者基本資料',
   users: '使用者基本資料',
   'user-role': '使用者職務設定',
@@ -446,8 +439,9 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   permissions: '職務權限設定',
   part: '零件基本資料',
   parts: '零件基本資料',
-  brand: '廠牌基本資料',
-  brands: '汽車／零件廠牌基本資料',
+  // W6 [3-8] 2026-06-06 品牌合併：brand 對齊新 Nx01Brand 主檔（雙開關 isCar/isPart）
+  brand: '品牌基本資料',
+  brands: '品牌基本資料',
   country: '國家基本資料',
   currency: '幣別基本資料',
   'part-group': '零件群組基本資料',

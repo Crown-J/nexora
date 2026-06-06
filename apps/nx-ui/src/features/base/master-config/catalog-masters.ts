@@ -153,6 +153,27 @@ export const MODEL_MASTER: EntityMasterConfig = {
   ],
 };
 
+// ── W6 [3-8] 2026-06-06 品牌合併：新 Brand 主檔（合 PartBrand + CarBrand 雙開關） ────
+export const BRAND_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/brands',
+  category: '產品料號',
+  title: '品牌基本資料',
+  entityNoun: '品牌',
+  errorCodePrefix: 'nxui_base_brand',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '品牌代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    { key: 'nameEn', label: '英文名稱', inList: false },
+    { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]' },
+    { key: 'isCar', label: '汽車品牌', type: 'toggle', defaultValue: false, minWidthClass: 'min-w-[90px]' },
+    { key: 'isPart', label: '零件品牌', type: 'toggle', defaultValue: false, minWidthClass: 'min-w-[90px]' },
+    { key: 'logoUrl', label: 'Logo 網址', inList: false },
+    { key: 'remark', label: '備註', inList: false },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // ── 產品料號 ────────────────────────────────────────────
 export const PART_BRAND_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-brands',
