@@ -37,8 +37,9 @@ export const PARTNER_TYPE_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'L', label: '散客' },
 ];
 
-/** W4 [3-6] 發票聯式選項（partner 預設 + SO 逐筆改皆用） */
+/** W4 [3-6] / 02 對齊第二批 C 軌 CP2 發票聯式選項（partner 預設 + SO 逐筆改皆用） */
 export const INVOICE_COPIES_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: '不開發票' },
   { value: 2, label: '二聯' },
   { value: 3, label: '三聯' },
 ];

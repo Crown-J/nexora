@@ -17,7 +17,8 @@ import { Nx01ListQueryDto } from '../../../shared/nx01/pagination.dto';
 // 既有六分類（Crown 2026-05-28）：C=保養廠 / O=同行 / S=供應商 / T=外包物流 / B=銀行 / V=一般廠商
 // 舊 BOTH/CUST/SUP 已於 migration 20260528100000 backfill 為 C/C/S
 const PARTNER_TYPES = ['C', 'O', 'S', 'T', 'V', 'B', 'L'] as const;
-const INVOICE_COPIES = [2, 3] as const;
+// 02 對齊第二批 C 軌 CP2 2026-06-06：0=不開發票（新增）；2=二聯；3=三聯
+const INVOICE_COPIES = [0, 2, 3] as const;
 const PAY_DOM = ['PREPAY', 'NET30', 'NET60', 'NET90'] as const;
 const PAY_IMP = ['TT', 'LC', 'DP', 'DA'] as const;
 const CREDIT_STAT = ['N', 'W', 'F'] as const;

@@ -107,7 +107,7 @@ export class Nx08FinanceDashboardService {
     }
     end.setHours(23, 59, 59, 999);
 
-    const [so, sr, rr, pr, expensesByCode, expenseRows, soItems] = await Promise.all([
+    const [so, sr, rr, pr, expensesByCode, expenseRows, soItems, soNoInvoice] = await Promise.all([
       this.prisma.nx04So.aggregate({
         where: { tenantId, soDate: { gte: start, lte: end }, cancelledAt: null },
         _sum: { totalAmount: true },
@@ -149,6 +149,12 @@ export class Nx08FinanceDashboardService {
       this.prisma.nx04SoItem.findMany({
         where: { so: { tenantId, soDate: { gte: start, lte: end }, cancelledAt: null } },
         select: { qty: true, part: { select: { cost: true } } },
+      }),
+      // 02 對齊第二批 C 軌 CP2：未開發票銷貨（invoiceCopies=0）= 「現金交易但客戶不要發票」金額
+      this.prisma.nx04So.aggregate({
+        where: { tenantId, soDate: { gte: start, lte: end }, cancelledAt: null, invoiceCopies: 0 },
+        _sum: { totalAmount: true },
+        _count: { _all: true },
       }),
     ]);
 
@@ -192,6 +198,9 @@ export class Nx08FinanceDashboardService {
     const grossMarginPct = revenue.gt(0) ? grossProfit.div(revenue).mul(100) : new PrismaNs.Decimal(0);
     const opMarginPct = revenue.gt(0) ? operatingIncome.div(revenue).mul(100) : new PrismaNs.Decimal(0);
 
+    // 02 對齊第二批 C 軌 CP2：未開發票金額（總經理拍板損益底部呈現）
+    const sumNoInvoice = new PrismaNs.Decimal(soNoInvoice._sum.totalAmount ?? 0);
+
     return {
       periodStart: q.periodStart,
       periodEnd: q.periodEnd,
@@ -201,6 +210,9 @@ export class Nx08FinanceDashboardService {
         net: revenue.toString(),
         soCount: so._count._all,
         srCount: sr._count._all,
+        // 02 對齊第二批 C 軌 CP2：未開發票銷貨佔比、報表呈現用
+        noInvoice: sumNoInvoice.toString(),
+        noInvoiceCount: soNoInvoice._count._all,
       },
       cogs: {
         // [BUG #5 fix] net = Σ(SO item part.cost × qty)、跟個人月報一致

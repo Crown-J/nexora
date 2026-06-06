@@ -14,7 +14,8 @@ import {
 } from 'class-validator';
 
 // W4 [3-6] 2026-06-06 發票聯式：銷貨單可逐筆改、預設帶 partner.defaultInvoiceCopies
-const INVOICE_COPIES = [2, 3] as const;
+// 02 對齊第二批 C 軌 CP2 2026-06-06：0=不開發票（新增）；2=二聯；3=三聯
+const INVOICE_COPIES = [0, 2, 3] as const;
 
 export class CreateSoItemDto {
   @IsString()

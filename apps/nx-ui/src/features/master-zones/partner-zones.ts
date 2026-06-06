@@ -71,8 +71,8 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'paymentTermImport', label: '國外付款條件', zone: 'finance', notes: 'TT / LC / DP / DA' },
   { key: 'incoterm', label: '貿易條件', zone: 'finance', notes: 'FOB / CIF / EXW / DDP' },
   { key: 'defaultCurrencyId', label: '預設幣別', zone: 'finance' },
-  // W4 [3-6] 預設發票聯式：partner 級預設、SO 開單可逐筆改；散客 L 強制 2 不可改
-  { key: 'defaultInvoiceCopies', label: '預設發票聯式', zone: 'finance', notes: '2=二聯 / 3=三聯；散客 L 強制 2' },
+  // W4 [3-6] / 02 對齊第二批 C 軌 CP2：預設發票聯式（partner 級預設、SO 可逐筆改；散客 L 強制 2 不可改）
+  { key: 'defaultInvoiceCopies', label: '預設發票聯式', zone: 'finance', notes: '0=不開發票 / 2=二聯 / 3=三聯；散客 L 強制 2' },
   { key: 'supplierGradeId', label: '供應商等級', zone: 'finance', notes: 'S 純供應商用' },
   {
     key: 'billingAddress',

@@ -201,7 +201,16 @@ export async function getLowStockAlert(): Promise<{
 export type PnL = {
   periodStart: string;
   periodEnd: string;
-  revenue: { gross: string; return: string; net: string };
+  // 02 對齊第二批 C 軌 CP2 2026-06-06：未開發票銷貨佔比（總經理拍板損益底部呈現）
+  revenue: {
+    gross: string;
+    return: string;
+    net: string;
+    soCount?: number;
+    srCount?: number;
+    noInvoice?: string;
+    noInvoiceCount?: number;
+  };
   cogs: string;
   grossProfit: string;
   grossMarginPct: string;

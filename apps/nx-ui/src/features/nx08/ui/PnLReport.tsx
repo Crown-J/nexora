@@ -213,6 +213,17 @@ export function PnLReport() {
                       {fmtMoney(operatingIncome)} <span className="text-[10px] text-[#5A5A60]">({op.toFixed(1)}%)</span>
                     </td>
                   </tr>
+                  {/* 02 對齊第二批 C 軌 CP2 2026-06-06：未開發票金額底部呈現（總經理拍板） */}
+                  {data.revenue.noInvoice !== undefined ? (
+                    <tr className="bg-[#0A0A0C]/30">
+                      <td className="px-3 py-2 pl-6 text-[10px] uppercase tracking-wider text-[#888892]">
+                        其中：未開發票銷貨（含 {data.revenue.noInvoiceCount ?? 0} 筆）
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono text-[10px] text-[#888892]">
+                        {fmtMoney(data.revenue.noInvoice)}
+                      </td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>
