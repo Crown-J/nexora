@@ -23,12 +23,14 @@ export const PART_ZONES: ZoneDef<PartZone>[] = [
 
 export const PART_FIELDS: FieldDef<PartZone>[] = [
   // ─── basic 基本資料區 ───
-  { key: 'code', label: '料號', zone: 'basic', required: true, notes: 'unique per (tenant, country)' },
+  // W5 [3-7] Crown 拍板四層編碼：①內碼=part.id ②舊料號 ③零件料號（必填、新增留空帶入舊料號、建立後鎖）④副廠料號
+  // 編碼規則引擎屬汽車資料庫套件、LITE 不在範圍（codeRuleId optional）
+  { key: 'code', label: '零件料號（顯示主碼）', zone: 'basic', notes: '必填顯示主碼；新增時可留空、系統自動帶入「舊料號」；建立後鎖定不可改' },
   { key: 'name', label: '品名', zone: 'basic', required: true },
-  { key: 'codeRuleId', label: '編碼規則', zone: 'basic' },
+  { key: 'codeRuleId', label: '編碼規則', zone: 'basic', notes: 'LITE 不在範圍、編碼規則屬汽車資料庫套件、可留空' },
   { key: 'isOem', label: '正廠件', zone: 'basic' },
-  { key: 'secCode', label: '副廠料號', zone: 'basic' },
-  { key: 'oldCode', label: '舊料號', zone: 'basic', notes: '轉系統客戶用' },
+  { key: 'secCode', label: '副廠料號', zone: 'basic', notes: '可空、廠牌對照用' },
+  { key: 'oldCode', label: '舊料號', zone: 'basic', notes: '舊系統料號、新增時 service 端會 fallback 進「零件料號」' },
   { key: 'seg1', label: '料號段 1', zone: 'basic' },
   { key: 'seg2', label: '料號段 2', zone: 'basic' },
   { key: 'seg3', label: '料號段 3', zone: 'basic' },

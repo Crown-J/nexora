@@ -80,10 +80,16 @@ export class CreatePartDto {
   @MaxLength(15)
   partBrandId?: string;
 
+  /**
+   * W5 [3-7] 2026-06-06 Crown 拍板四層編碼：
+   *   零件料號 = 顯示主碼、必填。新增時若 user 未填、service 端 fallback 帶入 oldCode（舊有料號）。
+   *   DTO 改 optional 讓 service 決定（兩者皆空才拒收）；UI 端表單應 oldCode → code mirror。
+   *   建立後 code 鎖定不可改（UpdatePartDto 已無 code 欄位、確保 NX 內碼錨點不漂移）。
+   */
+  @IsOptional()
   @IsString()
-  @MinLength(1)
   @MaxLength(50)
-  code!: string;
+  code?: string;
 
   @IsString()
   @MinLength(1)
@@ -219,6 +225,12 @@ export class CreatePartDto {
   changeReason?: string;
 }
 
+/**
+ * W5 [3-7] 2026-06-06 Crown 拍板四層編碼鎖定：
+ *   零件料號（code）建立後鎖定不可改、本 DTO 無 code 欄位 = service.update 不會寫 code。
+ *   舊料號（oldCode）+ 副廠料號（secCode）仍可改、僅內碼（part.id）+ 顯示主碼（code）鎖定。
+ *   內碼錨點：part.id（NX01PART0000001）= 17+ 業務單據明細 FK、永不變、單據顯示用 partNo snapshot。
+ */
 export class UpdatePartDto {
   @IsOptional()
   @IsString()

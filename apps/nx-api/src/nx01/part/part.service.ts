@@ -176,20 +176,17 @@ export class PartService {
   }
 
   /**
-   * 規格 §3 / §5 + Crown Q5=A 拍板：
-   *   業務必先建 brand_code_rule、part 建立時 codeRuleId 必填
-   *   auto-vivify 已正式拿掉（hotfix 暫保留簽名相容、本軌正式清理）
+   * 編碼規則 ID 解析（W5 [3-7] 2026-06-06 改、對齊 Crown 拍板）：
+   *   - 舊：Crown Q5=A 強制必填（業務先建 brand_code_rule、再建 part）
+   *   - 新：LITE 編碼規則引擎不在範圍（屬汽車資料庫套件）、code 改手動填預設帶 oldCode、codeRuleId optional
+   *   - schema 已 nullable、本 helper 拿掉強制必填、回傳 null 表示「未綁規則、純手動填料號」
    */
   private async resolveCodeRuleId(
     tx: Prisma.TransactionClient,
     tenantId: string,
     codeRuleId: string | undefined,
-  ): Promise<string> {
-    if (!codeRuleId?.trim()) {
-      throw new BadRequestException(
-        'codeRuleId is required. 業務必先在 brand_code_rule 建規則、再建 part（Q5=A）',
-      );
-    }
+  ): Promise<string | null> {
+    if (!codeRuleId?.trim()) return null;
     const r = await tx.nx01BrandCodeRule.findFirst({
       where: { id: codeRuleId.trim(), tenantId },
       select: { id: true },
@@ -327,7 +324,19 @@ export class PartService {
 
   async create(user: RequestUser, dto: CreatePartDto) {
     const tenantId = requireTenantId(user);
+    // W5 [3-7] 2026-06-06 Crown 拍板四層編碼：
+    //   零件料號 code 必填、新增時若 user 未填 → fallback 帶入 oldCode（舊有料號）；
+    //   兩者皆空 → 拒收（零件料號是顯示主碼、不可為空）
+    const codeInput = dto.code?.trim();
+    const oldCodeInput = dto.oldCode?.trim();
+    const effectiveCode = codeInput || oldCodeInput;
+    if (!effectiveCode) {
+      throw new BadRequestException(
+        '零件料號（code）必填；可手動填或讓系統帶入舊料號（oldCode）',
+      );
+    }
     const row = await this.prisma.$transaction(async (tx) => {
+      // W5 [3-7]：codeRuleId 改 optional（編碼規則引擎屬汽車資料庫套件、LITE 不在）
       const codeRuleId = await this.resolveCodeRuleId(tx, tenantId, dto.codeRuleId);
       await this.validateUnkReservedNotUsed(tx, tenantId, dto.partBrandId, dto.countryId);
       // M2-b：dto 沒傳 priceA~D 時、後端依 cost × margin 自動算（系統算為主、手動微調走 dto 覆寫）
@@ -337,7 +346,7 @@ export class PartService {
         data: {
           tenantId,
           codeRuleId,
-          code: dto.code.trim(),
+          code: effectiveCode,
           name: dto.name.trim(),
           isOem: dto.isOem ?? true,
           secCode: trimOrNull(dto.secCode),
