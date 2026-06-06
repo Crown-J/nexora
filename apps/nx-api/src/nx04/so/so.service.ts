@@ -65,6 +65,8 @@ const SO_SEL = {
   totalAmount: true,
   status: true,
   paymentTerm: true,
+  // W4 [3-6] 發票聯式（2/3、建單時從 partner.defaultInvoiceCopies 帶入、可逐筆改）
+  invoiceCopies: true,
   remark: true,
   cancelledAt: true,
   cancelledBy: true,
@@ -74,6 +76,10 @@ const SO_SEL = {
   updatedAt: true,
   updatedBy: true,
 } as const;
+
+// W4 [3-5] 散客 L 強制二聯（service 端守門、不允許 SO 對散客客戶改 invoiceCopies）
+const RETAIL_PARTNER_TYPE = 'L';
+const RETAIL_INVOICE_COPIES = 2;
 
 const SO_ITEM_SEL = {
   id: true,
@@ -145,22 +151,38 @@ export class SoService {
   }
 
   /**
-   * 校驗 customerId 為 partner_type IN ('C', 'O')（保養廠或同行）+ isActive、並回傳 partner 完整資訊
-   * partner 改制六分類：同行 O 也是客戶（會向我買貨）、客戶選單篩選 = C+O
+   * 校驗 customerId 為 partner_type IN ('C', 'O', 'L')（保養廠 / 同行 / 散客）+ isActive、回傳 partner 完整資訊
+   * partner 改制七分類：W4 [3-5] 加散客 L（手冊 §3.5「銷貨單客戶欄可直接選散客」）
    */
   private async assertCustomerC(tx: Prisma.TransactionClient, tenantId: string, partnerId: string) {
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O', 'L'] } },
       select: {
         id: true,
+        partnerType: true,
         paymentTermDomestic: true,
         defaultWarehouseId: true,
         creditLimit: true,
         creditStatus: true,
+        // W4 [3-6]：建單時從 customer 帶入 invoiceCopies 預設值
+        defaultInvoiceCopies: true,
       },
     });
-    if (!p) throw new BadRequestException("customerId must be an active partner with partnerType IN ('C', 'O')");
+    if (!p) throw new BadRequestException("customerId must be an active partner with partnerType IN ('C', 'O', 'L')");
     return p;
+  }
+
+  /**
+   * W4 [3-6] 解 SO invoiceCopies 寫入值：
+   * - 散客 L 強制 RETAIL_INVOICE_COPIES（2）、不可手動覆寫
+   * - 其他 partner：dto.invoiceCopies > customer.defaultInvoiceCopies > 3（fallback）
+   */
+  private resolveInvoiceCopies(
+    customer: { partnerType: string; defaultInvoiceCopies: number },
+    dtoInvoiceCopies: number | undefined,
+  ): number {
+    if (customer.partnerType === RETAIL_PARTNER_TYPE) return RETAIL_INVOICE_COPIES;
+    return dtoInvoiceCopies ?? customer.defaultInvoiceCopies ?? 3;
   }
 
   private lineAmount(qty: PrismaNs.Decimal, unit: PrismaNs.Decimal) {
@@ -330,6 +352,8 @@ export class SoService {
           totalAmount: 0,
           status: SoStatus.DRAFT,
           paymentTerm,
+          // W4 [3-6] 發票聯式：散客 L 強制 2、其他從 customer.defaultInvoiceCopies 帶入、dto 可手動覆寫
+          invoiceCopies: this.resolveInvoiceCopies(customer, dto.invoiceCopies),
           remark: dto.remark?.trim() || null,
           createdBy: user.sub,
           updatedBy: user.sub,
@@ -581,6 +605,8 @@ export class SoService {
           totalAmount: 0,
           status: SoStatus.DRAFT,
           paymentTerm,
+          // W4 [3-6] 從 quote→SO 轉、走 customer.defaultInvoiceCopies；散客 L 強制 2（service helper）
+          invoiceCopies: this.resolveInvoiceCopies(customer, undefined),
           createdBy: user.sub,
           updatedBy: user.sub,
         },
@@ -695,6 +721,18 @@ export class SoService {
       if (dto.status === SoStatus.SHIPPED && headBefore.status === SoStatus.PICKING) {
         await this.applySoShipping(tx, { id: headBefore.id, tenantId: headBefore.tenantId }, user.sub);
       }
+      // W4 [3-6] 散客 L 銷貨單不允許改 invoiceCopies（service 守門）；其他 partner 可逐筆改
+      let invoiceCopiesUpdate: number | undefined;
+      if (dto.invoiceCopies !== undefined) {
+        const customer = await tx.nx01Partner.findFirst({
+          where: { id: existing.customerId, tenantId },
+          select: { partnerType: true },
+        });
+        if (customer?.partnerType === RETAIL_PARTNER_TYPE && dto.invoiceCopies !== RETAIL_INVOICE_COPIES) {
+          throw new BadRequestException('散客銷貨單發票聯式固定 2 聯、不可改');
+        }
+        invoiceCopiesUpdate = dto.invoiceCopies;
+      }
       await tx.nx04So.update({
         where: { id },
         data: {
@@ -705,6 +743,7 @@ export class SoService {
           ...(dto.deliveryAddress !== undefined
             ? { deliveryAddress: dto.deliveryAddress?.trim() || null }
             : {}),
+          ...(invoiceCopiesUpdate !== undefined ? { invoiceCopies: invoiceCopiesUpdate } : {}),
           ...(dto.status === SoStatus.CANCELLED
             ? {
                 cancelledAt: new Date(),

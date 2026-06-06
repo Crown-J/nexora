@@ -93,7 +93,11 @@ export class Nx04SoTranslatorService {
     dto: TranslateSoDto,
   ): Promise<TranslateSoResult> {
     // 1. 校驗
-    const paymentTerm = await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
+    const customerInfo = await this.assertCustomerC(tx, tenantId, dto.customerId.trim());
+    const paymentTerm = customerInfo.paymentTerm;
+    // W4 [3-6]：translator 路徑也帶 invoiceCopies；散客 L 強制 2、其他用 partner.default
+    const invoiceCopies =
+      customerInfo.partnerType === 'L' ? 2 : customerInfo.defaultInvoiceCopies;
     const wh = await tx.nx01Warehouse.findFirst({
       where: { id: dto.warehouseId.trim(), tenantId, isActive: true },
       select: { id: true, code: true },
@@ -130,6 +134,7 @@ export class Nx04SoTranslatorService {
         totalAmount: 0,
         status: 'CONFIRMED', // translator 出來的 SO 直接 CONFIRMED（跳過 DRAFT）
         paymentTerm,
+        invoiceCopies, // W4 [3-6]
         remark: dto.remark?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -281,18 +286,23 @@ export class Nx04SoTranslatorService {
     tx: Prisma.TransactionClient,
     tenantId: string,
     partnerId: string,
-  ): Promise<string> {
+  ): Promise<{ paymentTerm: string; partnerType: string; defaultInvoiceCopies: number }> {
+    // W4 [3-5]：translator 也允許散客 L（手冊 §3.5 銷貨單客戶欄可直接選散客）
     const p = await tx.nx01Partner.findFirst({
-      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O'] } },
-      select: { paymentTermDomestic: true },
+      where: { id: partnerId, tenantId, isActive: true, partnerType: { in: ['C', 'O', 'L'] } },
+      select: { paymentTermDomestic: true, partnerType: true, defaultInvoiceCopies: true },
     });
     if (!p) {
       throw new TranslatorInvalidInputError(
         'CUSTOMER_NOT_C_PARTNER',
-        `客戶 '${partnerId}' 不存在或不是有效客戶（partner_type 須為 C 保養廠或 O 同行）`,
+        `客戶 '${partnerId}' 不存在或不是有效客戶（partner_type 須為 C 保養廠 / O 同行 / L 散客）`,
       );
     }
-    return p.paymentTermDomestic ?? 'NET30';
+    return {
+      paymentTerm: p.paymentTermDomestic ?? 'NET30',
+      partnerType: p.partnerType,
+      defaultInvoiceCopies: p.defaultInvoiceCopies,
+    };
   }
 
   // ----- retry wrapper（D4-impl §2 取捨 2）-----

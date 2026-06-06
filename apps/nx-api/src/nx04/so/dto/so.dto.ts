@@ -3,6 +3,8 @@ import {
   ArrayMinSize,
   IsArray,
   IsDateString,
+  IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -10,6 +12,9 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+
+// W4 [3-6] 2026-06-06 發票聯式：銷貨單可逐筆改、預設帶 partner.defaultInvoiceCopies
+const INVOICE_COPIES = [2, 3] as const;
 
 export class CreateSoItemDto {
   @IsString()
@@ -98,6 +103,9 @@ export class CreateSoDto {
   @Type(() => CreateSoItemDto)
   @ArrayMinSize(0)
   items?: CreateSoItemDto[];
+
+  /** W4 [3-6] 發票聯式（2/3）。未填則從 partner.defaultInvoiceCopies 帶入；散客 L service 端強制 2 */
+  @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) invoiceCopies?: number;
 }
 
 export class UpdateSoDto {
@@ -129,6 +137,9 @@ export class UpdateSoDto {
   @IsString()
   @MaxLength(200)
   deliveryAddress?: string;
+
+  /** W4 [3-6] 發票聯式（2/3）。SO 編輯時逐筆改；散客 L 不可改（service 端守門） */
+  @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) invoiceCopies?: number;
 }
 
 export class PatchSoItemDto {
