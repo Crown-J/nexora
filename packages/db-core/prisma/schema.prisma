@@ -1036,9 +1036,10 @@ model Nx01Partner {
   updatedAt                                DateTime                     @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
   updatedBy                                String                       @map("updated_by") @db.VarChar(15)
-  /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
   /// 舊系統往來對象代號（純對照、不綁 FK、對齊零件 oldCode 範式）；W3 [3-2] 2026-06-06 新增
   legacyCode                               String?                      @map("legacy_code") @db.VarChar(50)
+  /// 預設發票聯式（2=二聯 / 3=三聯）。SO 建單自動帶入、可逐筆改。散客 L 強制 2、不可改。；W4 [3-6] 2026-06-06 新增
+  defaultInvoiceCopies                     Int                          @default(3) @map("default_invoice_copies") @db.SmallInt
   /// 統一編號（開立發票用，客戶與廠商均可填寫，選填）。；啟用最低需求版本：LITE-CORE
   taxId                                    String?                      @map("tax_id") @db.VarChar(20)
   /// 國內付款條件（PREPAY=先付款/NET30=月結30天/NET60=月結60天/NET90=月結90天）。影響國內採購AP/AR到期日計算。建立採購單時自動帶入，可手動覆蓋。；啟用最低需求版本：LITE-CORE
@@ -4029,6 +4030,8 @@ model Nx04So {
   status                 String         @default("DRAFT") @db.VarChar(30)
   /// 付款條件（快照自nx01_partner.payment_term）。影響AR產生時機。；啟用最低需求版本：LITE-CORE
   paymentTerm            String         @default("NET30") @map("payment_term") @db.VarChar(10)
+  /// 發票聯式（2=二聯 / 3=三聯）。建單時 service 從 partner.defaultInvoiceCopies 帶入、可逐筆改；散客 L 強制 2。；W4 [3-6] 2026-06-06 新增
+  invoiceCopies          Int            @default(3) @map("invoice_copies") @db.SmallInt
   /// 預計出貨日（選填）。；啟用最低需求版本：LITE-CORE
   expectedDeliveryDate   DateTime?      @map("expected_delivery_date") @db.Date
   /// 取消原因（status=X時必填）。；啟用最低需求版本：LITE-CORE
