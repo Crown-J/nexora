@@ -72,6 +72,8 @@ export type UseSessionMeResult = {
   tenantNameZh: string;
   /** 租戶英文名；無則空字串 */
   tenantNameEn: string;
+  /** 拼好的 LOGO public URL、空字串表示沒上傳 */
+  tenantLogoUrl: string;
   /** 訂閱方案（LITE / PLUS / PRO）；已合併 JWT／API 的 planCode 與 plan_code */
   planCode: string | null;
 
