@@ -1257,7 +1257,56 @@ git ls-files | grep -i keyword
    - 是 → 揭露給 Crown 拍（對齊 G.8 範圍擴散揭露不擅自）
 ```
 
-### III.8.8 紀律速查表
+### III.8.8 prisma 7 已知陷阱（PRZ-01、PRZ-02、W3.5 落地）
+
+**規則 1（PRZ-01）：partial unique 每次 generated migration 必檢查並手動移除 DROP INDEX**
+
+⛔ 問題：prisma 7 不支援 partial unique（`WHERE is_main = true` 之類）。`prisma migrate dev --create-only` 每次都會把這類 index 視為「schema 沒宣告的 drift」、產生 `DROP INDEX` 想清掉。
+
+✅ 對應 partial unique 的索引（W3.5 落地、業務 invariant）：
+- `nx01_site_tenant_id_is_main_unique`（每 tenant 只 1 個主據點）
+- `nx01_warehouse_tenant_id_is_main_unique`（每 tenant 只 1 個主倉）
+
+✅ 範式：每次跑 `prisma migrate dev --create-only` 後、**先打開 generated migration.sql、grep `DROP INDEX`、把上面兩個索引的 DROP 行刪掉**、再 apply。
+
+⚠️ 反 pattern：直接 apply generated migration → 業務 invariant 被無聲移除、之後同 tenant 可建多個 isMain=true、DB 層守門失效。
+
+**規則 2（PRZ-02）：prisma 7 RENAME CONSTRAINT + ALTER COLUMN 不能混 multi-clause**
+
+⛔ 問題：prisma 7 generator 把 PK rename 跟 ALTER COLUMN SET DATA TYPE 寫進同一個 `ALTER TABLE ... RENAME ..., ALTER COLUMN ...;`，但 PostgreSQL 邏輯上 RENAME 是 separate top-level command；混 multi-clause 時 RENAME 後面的 ALTER COLUMN sub-action **被無聲吞掉、no error**。W3.5 第一次 apply 時 5 個 timestamp 截斷 + 1 個 DROP DEFAULT + 1 個 PK rename 沒生效、靠 verify 才抓到。
+
+✅ 範式：apply 前先檢查 migration.sql、若 `ALTER TABLE` 同 statement 同時含 `RENAME CONSTRAINT` 跟 `ALTER COLUMN`，**拆成兩個獨立 statement**：
+
+```sql
+-- BAD（prisma generator 寫法、會吞 ALTER COLUMN）：
+ALTER TABLE "xxx" RENAME CONSTRAINT "pk_xxx" TO "xxx_pkey",
+ALTER COLUMN "a" SET DATA TYPE TIMESTAMP(3),
+ALTER COLUMN "b" SET DATA TYPE TIMESTAMP(3);
+
+-- GOOD（拆開、PG 正確處理）：
+ALTER TABLE "xxx" RENAME CONSTRAINT "pk_xxx" TO "xxx_pkey";
+ALTER TABLE "xxx"
+  ALTER COLUMN "a" SET DATA TYPE TIMESTAMP(3),
+  ALTER COLUMN "b" SET DATA TYPE TIMESTAMP(3);
+```
+
+⚠️ 反 pattern：apply 後不 verify 直接過、無聲失敗的 op 無法察覺、長期 schema drift 累積。
+
+**規則 3：破壞性 migration apply 後必 verify**
+
+✅ apply 含 `ALTER COLUMN SET DATA TYPE` / `DROP DEFAULT` / `DROP INDEX` / `RENAME CONSTRAINT` 的 migration 後、必跑 `information_schema.columns` / `pg_indexes` / `pg_constraint` 確認真的生效。**不能假設 `\i migration.sql` 沒報 error 就等於成功**（multi-clause sub-action 失敗會無聲）。
+
+W3.5 業務測試範式：對 partial unique、跑 INSERT 第二筆衝突資料、看 DB 是否擋。
+
+**檢查清單**（每次 schema breaking migration apply 後）：
+```
+1. 含 partial unique？ → generated migration 內的 DROP INDEX 兩行是否移除
+2. 含 RENAME CONSTRAINT + ALTER COLUMN？ → 是否拆成獨立 statement
+3. 套用後跑 verify SQL（pg_indexes / pg_constraint / information_schema.columns）
+4. partial unique 業務測試（INSERT 預期衝突資料、看 DB 擋下）
+```
+
+### III.8.9 紀律速查表
 
 | 規則 | 觸發時機 | 動作 |
 |------|---------|------|
@@ -1267,7 +1316,9 @@ git ls-files | grep -i keyword
 | G.4 歷史 fact 保留 | spec docs 歷史描述 | 加 HTML 註解、不 replace |
 | A066 Read-before-Edit | Edit/Write 既有檔案 | 先 Read、必要時 replace_all=true |
 | G.8 範圍超出可執行 | impl 階段發現超範圍 | 直接做 + commit 留紀錄 + 事後回報（§0.4-③）；危險命令除外 |
-| **G.9 verify 通配 grep** | **「是否存在」斷言前** | **通配 grep（find -iname）、禁單檔 ls** |
+| G.9 verify 通配 grep | 「是否存在」斷言前 | 通配 grep（find -iname）、禁單檔 ls |
+| **PRZ-01 prisma 7 partial unique drop** | **每次 `migrate dev --create-only` 後** | **打開 migration.sql、移除 nx01_site / nx01_warehouse 兩個 DROP INDEX 行** |
+| **PRZ-02 prisma 7 multi-clause RENAME 吞 op** | **generated migration 含 RENAME CONSTRAINT + ALTER COLUMN** | **拆成獨立 statement、apply 後跑 verify SQL 確認生效** |
 
 ---
 
