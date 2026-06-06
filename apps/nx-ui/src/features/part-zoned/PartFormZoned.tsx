@@ -25,6 +25,7 @@ import {
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
 import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/satellite/SatelliteSection';
+import { StockSettingsSatellite } from './StockSettingsSatellite';
 import type { PartDto, PartOemCodeItem } from '@/features/shared/master/part/types';
 import type { BrandCodeRuleDto } from '@/features/base/api/brand-code-rule';
 import { Calculator, Plus, X } from 'lucide-react';
@@ -445,12 +446,23 @@ function renderPartSatellite(
     );
   }
 
-  // 4 個 endpoint 衛星：暫不接 fetch、顯示 endpoint 路徑 hint、CRUD UI 列入 closure 後續軌
+  // W5 [2-2] 2026-06-06：stockSettings 從 placeholder 升級為 fetch + 顯示
+  if (key === 'stockSettings') {
+    return (
+      <StockSettingsSatellite
+        partId={selected?.id}
+        label={label}
+        satelliteName={satelliteName}
+        notes={notes}
+      />
+    );
+  }
+
+  // 3 個 endpoint 衛星：暫不接 fetch、顯示 endpoint 路徑 hint、CRUD UI 列入 closure 後續軌
   const endpointMap: Record<string, string> = {
     relations: '/nx01/part-relations?partIdFrom=…',
     models: '/nx01/part-models?partId=…',
     versions: '/nx01/part-versions?partId=…',
-    stockSettings: '/nx03/part-stock-setting?partId=…',
   };
   const endpoint = endpointMap[key];
 
