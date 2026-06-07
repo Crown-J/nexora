@@ -159,23 +159,23 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     id: 'user-role',
     section: 'account',
     title: '使用者職務設定',
-    description: '依職務批次匯入或移除隸屬使用者（reverse 視角，PRO 進階批次工具）',
+    description: '依職務批次匯入或移除隸屬使用者（reverse 視角批次工具）',
     icon: UserCog,
     statLabel: '關聯筆數',
     statValue: '—',
+    // 02 第四批 軌 2 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本、只差人數」）
     href: '/dashboard/base/user-role',
-    minPlan: 'PRO',
   },
   {
     id: 'user-warehouse',
     section: 'account',
     title: '使用者據點設定',
-    description: '依倉庫據點批次匯入或移除隸屬使用者（reverse 視角，PRO 進階批次工具）',
+    description: '依倉庫據點批次匯入或移除隸屬使用者（reverse 視角批次工具）',
     icon: MapPin,
     statLabel: '關聯筆數',
     statValue: '—',
+    // 02 第四批 軌 2 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本、只差人數」）
     href: '/dashboard/base/user-warehouse',
-    minPlan: 'PRO',
   },
   {
     id: 'role-view',
