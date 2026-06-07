@@ -34,6 +34,8 @@ export class Nx01AudienceQueryService {
       where: {
         tenantId,
         isLeader: true,
+        // 05 批 T3 2026-06-07：加 isActive=true 過濾、避免已撤銷的舊組長 leak（schema 加 isActive 後對齊）
+        isActive: true,
         user: { isActive: true },
       },
       select: { userId: true },
@@ -54,6 +56,8 @@ export class Nx01AudienceQueryService {
       where: {
         tenantId,
         teamId,
+        // 05 批 T3 2026-06-07：加 isActive=true 過濾、避免已撤銷的成員 leak
+        isActive: true,
         user: { isActive: true },
       },
       select: { userId: true },
@@ -76,6 +80,8 @@ export class Nx01AudienceQueryService {
     const rows = await this.prisma.nx01UserTeam.findMany({
       where: {
         tenantId,
+        // 05 批 T3 2026-06-07：加 isActive=true 過濾、避免已撤銷的成員 leak
+        isActive: true,
         team: { department: { code: departmentCode } },
         user: { isActive: true },
       },

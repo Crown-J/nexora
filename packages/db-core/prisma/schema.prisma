@@ -1638,6 +1638,17 @@ model Nx01UserTeam {
   teamId    String     @map("team_id") @db.VarChar(15)
   /// 是否為該組組長。；啟用最低需求版本：LITE-CORE
   isLeader  Boolean    @default(false) @map("is_leader")
+  /// 是否為員工的主組（決定 user.hrDepartmentId）；05 批 T3 2026-06-07 新增、範式同 nx01_user_role.is_primary
+  /// 每位員工至多 1 筆 isPrimary=true（service 層守、切換時把其他筆改 false）。
+  isPrimary  Boolean   @default(false) @map("is_primary")
+  /// 是否生效（軟刪除、TRUE=當前生效、FALSE=已撤銷但保留紀錄）；05 批 T3 2026-06-07 新增、範式同 nx01_user_role.is_active
+  isActive   Boolean   @default(true) @map("is_active")
+  /// 指派時間；05 批 T3 2026-06-07 新增
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+  /// 指派者（使用者 ID）；05 批 T3 2026-06-07 新增
+  assignedBy String?   @map("assigned_by") @db.VarChar(15)
+  /// 取消指派時間（保留歷史用）；05 批 T3 2026-06-07 新增
+  revokedAt  DateTime? @map("revoked_at")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
   createdAt DateTime   @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
@@ -1646,6 +1657,8 @@ model Nx01UserTeam {
   user      Nx01User   @relation("R_Nx01UserTeam_userId", fields: [userId], references: [id])
   team      Nx01Team   @relation("R_Nx01UserTeam_teamId", fields: [teamId], references: [id])
 
+  // 05 批 T3 2026-06-07：同員工同組不可重複指派（含已撤銷紀錄、撤銷後若要重指派要 service 端切回 isActive=true）
+  @@unique([tenantId, userId, teamId])
   @@map("nx01_user_team")
 }
 

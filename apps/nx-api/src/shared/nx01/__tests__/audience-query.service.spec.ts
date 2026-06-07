@@ -30,6 +30,8 @@ describe('Nx01AudienceQueryService', () => {
         where: {
           tenantId: TENANT_ID,
           isLeader: true,
+          // 05 批 T3 2026-06-07：加 isActive=true 過濾
+          isActive: true,
           user: { isActive: true },
         },
         select: { userId: true },
@@ -58,6 +60,8 @@ describe('Nx01AudienceQueryService', () => {
         where: {
           tenantId: TENANT_ID,
           teamId,
+          // 05 批 T3 2026-06-07：加 isActive=true 過濾
+          isActive: true,
           user: { isActive: true },
         },
         select: { userId: true },
@@ -80,6 +84,8 @@ describe('Nx01AudienceQueryService', () => {
       expect(findMany).toHaveBeenCalledWith({
         where: {
           tenantId: TENANT_ID,
+          // 05 批 T3 2026-06-07：加 isActive=true 過濾
+          isActive: true,
           team: { department: { code: 'SALES' } },
           user: { isActive: true },
         },

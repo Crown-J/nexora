@@ -89,6 +89,9 @@ import { UserPhotoService } from './user-photo/user-photo.service';
 // 05 批 T2 2026-06-07：組主檔（揭露既有 Nx01Team schema、含部門 FK + 自我 ref 子組）
 import { TeamController } from './team/team.controller';
 import { TeamService } from './team/team.service';
+// 05 批 T3 2026-06-07：UserTeam 衛星（員工 ↔ 組 m-n、主組旗標、isLeader、自動帶 hrDepartmentId）
+import { UserTeamController } from './user-team/user-team.controller';
+import { UserTeamService } from './user-team/user-team.service';
 
 @Module({
   imports: [PrismaModule],
@@ -116,6 +119,7 @@ import { TeamService } from './team/team.service';
     UserPhotoController,
     DepartmentController,
     TeamController,
+    UserTeamController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -156,6 +160,7 @@ import { TeamService } from './team/team.service';
     UserPhotoService,
     DepartmentService,
     TeamService,
+    UserTeamService,
     UserService,
     RoleService,
     BulletinService,
