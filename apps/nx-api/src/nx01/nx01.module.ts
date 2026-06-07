@@ -14,6 +14,8 @@ import { PartnerAddressController } from './partner-address/partner-address.cont
 import { PartnerAddressService } from './partner-address/partner-address.service';
 import { PartnerContactController } from './partner-contact/partner-contact.controller';
 import { PartnerContactService } from './partner-contact/partner-contact.service';
+import { PartPhotoController } from './part-photo/part-photo.controller';
+import { PartPhotoService } from './part-photo/part-photo.service';
 import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
@@ -78,6 +80,9 @@ import { WarehouseController } from './warehouse/warehouse.controller';
 import { WarehouseService } from './warehouse/warehouse.service';
 import { WarehouseTypeController } from './warehouse-type/warehouse-type.controller';
 import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
+// 02 第三批 T1 後續 2026-06-07：部門主檔 controller / service（schema 既有）
+import { DepartmentController } from './department/department.controller';
+import { DepartmentService } from './department/department.service';
 
 @Module({
   imports: [PrismaModule],
@@ -101,6 +106,8 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     AddressCatalogController,
     PartnerAddressController,
     PartnerContactController,
+    PartPhotoController,
+    DepartmentController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -137,6 +144,8 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     AddressCatalogService,
     PartnerAddressService,
     PartnerContactService,
+    PartPhotoService,
+    DepartmentService,
     UserService,
     RoleService,
     BulletinService,

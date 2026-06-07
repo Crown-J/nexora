@@ -692,6 +692,22 @@ export function PartZonedPage({
           </span>
         ),
       },
+      // 02 第三批 T4 2026-06-07：照片管理 sub-page 入口
+      {
+        key: 'photos',
+        label: '照片',
+        minWidthClass: 'min-w-[50px]',
+        render: (row) => (
+          <a
+            href={`/dashboard/base/parts/${row.id}/photos`}
+            className="text-xs text-[#22D88F] hover:underline"
+            onClick={(e) => e.stopPropagation()}
+            title="照片管理"
+          >
+            📷
+          </a>
+        ),
+      },
     ],
     [],
   );

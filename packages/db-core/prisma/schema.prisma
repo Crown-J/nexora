@@ -876,6 +876,8 @@ model Nx01Part {
   rev_Nx01PartOemCode_partId      Nx01PartOemCode[]      @relation("R_Nx01PartOemCode_partId")
   // 02 對齊第二批 C 軌 CP2-c 2026-06-06：通用件群組成員反向
   rev_Nx01PartCompatGroupMember_partId Nx01PartCompatGroupMember[] @relation("R_Nx01PartCompatGroupMember_partId")
+  // 02 第三批 T4 2026-06-07：零件照片子表
+  rev_Nx01PartPhoto_partId             Nx01PartPhoto[]              @relation("R_Nx01PartPhoto_partId")
 
   @@unique([tenantId, code, countryId])
   @@index([tenantId, code])
@@ -923,6 +925,32 @@ model Nx01PartOemCode {
 /// =======================================================
 /// Nx01PartGroup — DB table `nx01_part_group`
 /// =======================================================
+/// =======================================================
+/// Nx01PartPhoto — DB table `nx01_part_photo`（02 第三批 T4 2026-06-07）
+/// =======================================================
+/// 零件照片子表：每顆 part 最多 5 張、sortNo=0 為主圖。
+/// storageKey 由 FileUploadService 產（{tenantId}/part-photo/{yyyy}/{mm}/{uuid}{ext}）。
+/// dev 用 local filesystem、production 後續可換 R2 / S3 不動 caller。
+model Nx01PartPhoto {
+  id              String     @id @default(dbgenerated("gen_nx01_part_photo_id()")) @db.VarChar(15)
+  tenantId        String     @map("tenant_id") @db.VarChar(15)
+  partId          String     @map("part_id") @db.VarChar(15)
+  /// FileUploadService 產的 storage key（{tenantId}/part-photo/{yyyy}/{mm}/{uuid}{ext}）
+  storageKey      String     @map("storage_key") @db.VarChar(255)
+  mimeType        String     @map("mime_type") @db.VarChar(50)
+  fileSize        Int        @map("file_size")
+  origFilename    String?    @map("orig_filename") @db.VarChar(200)
+  /// 排序：sortNo=0 為主圖、其他依數字遞增；同 part 內可重排
+  sortNo          Int        @default(0) @map("sort_no")
+  uploaderUserId  String     @map("uploader_user_id") @db.VarChar(15)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  tenant          Nx99Tenant @relation("R_Nx01PartPhoto_tenantId", fields: [tenantId], references: [id])
+  part            Nx01Part   @relation("R_Nx01PartPhoto_partId", fields: [partId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, partId, sortNo])
+  @@map("nx01_part_photo")
+}
+
 model Nx01PartGroup {
   /// [NX01]+[PAGR]+[7碼流水號]，EX : NX01PAGR0000001；啟用最低需求版本：LITE
   id                       String     @id @default(dbgenerated("gen_nx01_part_group_id()")) @db.VarChar(15)
@@ -7257,6 +7285,8 @@ model Nx99Tenant {
   rev_Nx01PartnerAddress_tenantId          Nx01PartnerAddress[]          @relation("R_Nx01PartnerAddress_tenantId")
   // 02 第三批 T2 2026-06-07：聯絡窗口子表
   rev_Nx01PartnerContact_tenantId          Nx01PartnerContact[]          @relation("R_Nx01PartnerContact_tenantId")
+  // 02 第三批 T4 2026-06-07：零件照片子表
+  rev_Nx01PartPhoto_tenantId               Nx01PartPhoto[]               @relation("R_Nx01PartPhoto_tenantId")
   rev_Nx01SupplierGrade_tenantId           Nx01SupplierGrade[]           @relation("R_Nx01SupplierGrade_tenantId")
   rev_Nx02WarrantyClaim_tenantId           Nx02WarrantyClaim[]           @relation("R_Nx02WarrantyClaim_tenantId")
   rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
