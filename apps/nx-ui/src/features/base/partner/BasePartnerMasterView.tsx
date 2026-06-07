@@ -773,9 +773,16 @@ export function BasePartnerMasterView() {
           </td>
         );
       case 'address':
+        // 02 \u5c0d\u9f4a\u7b2c\u4e8c\u6279\u524d\u7aef\u6536\u5c3e\u8ecc FE-CP2 2026-06-07\uff1a\u5730\u5740\u6539 partner_address \u885b\u661f\u8868\u3001\u9023\u5230 sub-page \u7ba1\u7406
         return (
-          <td key={key} className="max-w-[220px] truncate px-2 py-2.5 text-xs text-muted-foreground">
-            {row.address?.trim() ? row.address : '\u2014'}
+          <td key={key} className="px-2 py-2.5 text-xs text-muted-foreground">
+            <a
+              href={`/dashboard/base/partners/${row.id}/addresses`}
+              className="text-[#22D88F] hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              \u2192 \u5730\u5740\u7ba1\u7406
+            </a>
           </td>
         );
       case 'remark':

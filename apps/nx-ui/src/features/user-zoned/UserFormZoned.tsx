@@ -26,6 +26,20 @@ import { type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { type WarehouseDto } from '@/features/base/api/warehouse';
 
 import { BASIC_WRITABLE, PERMISSION_WRITABLE, type UserDraft } from './helpers';
+import { UserAddressMiniPicker } from '@/features/shared/address/UserAddressMiniPicker';
+
+// 02 對齊第二批前端收尾軌 FE-CP3 2026-06-07：地址 9 個 key 跳過 inline、由 UserAddressSection 統一渲染
+const ADDRESS_KEYS_HANDLED_BY_SECTION = new Set([
+  'countryId',
+  'householdCityId',
+  'householdDistrictId',
+  'householdPostalCode',
+  'householdDetail',
+  'mailingCityId',
+  'mailingDistrictId',
+  'mailingPostalCode',
+  'mailingDetail',
+]);
 
 export type UserFormZonedProps = {
   mode: 'browse' | 'edit';
@@ -123,6 +137,8 @@ export function UserFormZoned({
       {/* fields */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {fieldsForZone.map((f) => {
+          // 02 對齊第二批前端收尾軌 FE-CP3：地址 9 keys 統一由 UserAddressSection 渲染
+          if (ADDRESS_KEYS_HANDLED_BY_SECTION.has(f.key)) return null;
           // 衛星表
           if (f.isSatellite) {
             // B2~B5：roles 衛星改為 inline 編輯區（從舊版 UserMasterPage 移植）
@@ -231,6 +247,11 @@ export function UserFormZoned({
         })}
       </div>
 
+      {/* 02 對齊第二批前端收尾軌 FE-CP3：basic zone 末尾兩組地址 picker（戶籍 + 通訊） */}
+      {safeActiveZone === 'basic' ? (
+        <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
+      ) : null}
+
       {/* B3：permission zone 末尾插入「隸屬倉庫」inline 編輯區（warehouse 不在 USER_FIELDS） */}
       {safeActiveZone === 'permission' ? (
         <WarehousesInlineSection
@@ -242,6 +263,88 @@ export function UserFormZoned({
           onRevoke={onRevokeWarehouse}
         />
       ) : null}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// 02 對齊第二批前端收尾軌 FE-CP3：user 兩組地址 section（戶籍 + 通訊）
+// ──────────────────────────────────────────────────────────────
+function UserAddressSection({
+  editing,
+  draft,
+  setDraft,
+}: {
+  editing: boolean;
+  draft: UserDraft;
+  setDraft: (next: UserDraft) => void;
+}) {
+  const countryId = (draft.countryId as string | undefined) ?? null;
+  return (
+    <div className="mt-4 space-y-4 rounded-lg border border-[#2A2A30] bg-[#0E0E12] p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
+          地址（戶籍 + 通訊）
+        </h3>
+        <span className="text-[10px] text-[#5A5A60]">空白國別 = 台灣（走字典）；其他國家 = 國外自由填</span>
+      </div>
+      <div>
+        <label className="mb-1 block text-[10px] uppercase tracking-wider text-[#888892]">國別</label>
+        <input
+          type="text"
+          className="h-9 w-full rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-sm text-[#E8E8EC] disabled:opacity-50"
+          value={countryId ?? ''}
+          onChange={(e) => setDraft({ ...draft, countryId: e.target.value || '' })}
+          placeholder="留空 = 台灣；非台灣請填國家 ID"
+          disabled={!editing}
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <div className="mb-2 text-[11px] font-medium text-[#E8E8EC]">戶籍地址</div>
+          <UserAddressMiniPicker
+            value={{
+              cityId: (draft.householdCityId as string | undefined) ?? null,
+              districtId: (draft.householdDistrictId as string | undefined) ?? null,
+              postalCode: (draft.householdPostalCode as string | undefined) ?? null,
+              detail: (draft.householdDetail as string | undefined) ?? null,
+            }}
+            onChange={(v) =>
+              setDraft({
+                ...draft,
+                householdCityId: v.cityId ?? '',
+                householdDistrictId: v.districtId ?? '',
+                householdPostalCode: v.postalCode ?? '',
+                householdDetail: v.detail ?? '',
+              })
+            }
+            countryId={countryId}
+            disabled={!editing}
+          />
+        </div>
+        <div>
+          <div className="mb-2 text-[11px] font-medium text-[#E8E8EC]">通訊地址</div>
+          <UserAddressMiniPicker
+            value={{
+              cityId: (draft.mailingCityId as string | undefined) ?? null,
+              districtId: (draft.mailingDistrictId as string | undefined) ?? null,
+              postalCode: (draft.mailingPostalCode as string | undefined) ?? null,
+              detail: (draft.mailingDetail as string | undefined) ?? null,
+            }}
+            onChange={(v) =>
+              setDraft({
+                ...draft,
+                mailingCityId: v.cityId ?? '',
+                mailingDistrictId: v.districtId ?? '',
+                mailingPostalCode: v.postalCode ?? '',
+                mailingDetail: v.detail ?? '',
+              })
+            }
+            countryId={countryId}
+            disabled={!editing}
+          />
+        </div>
+      </div>
     </div>
   );
 }
