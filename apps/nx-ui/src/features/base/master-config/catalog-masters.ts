@@ -165,7 +165,9 @@ export const BRAND_MASTER: EntityMasterConfig = {
   errorCodePrefix: 'nxui_base_brand',
   deleteMode: SOFT,
   fields: [
-    { key: 'code', label: '品牌代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
+    // 02 第四批 軌 4 2026-06-07：品牌代碼固定 3 碼大寫英文（總經理拍板、業界縮寫範式）。
+    // 老資料不動（建立後不可改、舊碼若 != 3 碼維持原樣）；只擋新增 / 編輯。
+    { key: 'code', label: '品牌代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minLength: 3, maxLength: 3, placeholder: 'BMW', minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '品牌名稱', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'nameEn', label: '英文名稱', inList: false },
     { key: 'countryId', label: '國別', type: 'ref', refBasePath: 'nx01/countries', minWidthClass: 'min-w-[120px]' },

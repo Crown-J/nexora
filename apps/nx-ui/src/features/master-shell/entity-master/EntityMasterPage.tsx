@@ -293,6 +293,20 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         }
       }
     }
+    // 長度驗證（02 第四批 軌 4 2026-06-07）：text 欄位的 min/maxLength
+    for (const f of config.fields) {
+      if (f.type === 'toggle' || f.type === 'ref' || f.type === 'select') continue;
+      const v = String(draft[f.key] ?? '').trim();
+      if (!v) continue; // 空值由 required 已守、選填欄空值不檢長度
+      if (f.minLength != null && v.length < f.minLength) {
+        showToast(`「${f.label}」至少 ${f.minLength} 字`, 'danger');
+        return;
+      }
+      if (f.maxLength != null && v.length > f.maxLength) {
+        showToast(`「${f.label}」最多 ${f.maxLength} 字`, 'danger');
+        return;
+      }
+    }
     const body = draftToBody(config, draft);
     try {
       if (creating) {
@@ -846,6 +860,7 @@ function DetailPane({
                   value={String(draft[f.key] ?? '')}
                   onChange={(v) => setDraft({ ...draft, [f.key]: v })}
                   placeholder={f.placeholder}
+                  maxLength={f.maxLength}
                 />
               );
             }

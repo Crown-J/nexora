@@ -32,6 +32,10 @@ export type EntityFieldDef = {
   type?: FieldType;
   /** 編輯模式必填（空值擋存檔） */
   required?: boolean;
+  /** 文字欄位最小長度（提交時擋、含 trim 後字數）；02 第四批 軌 4 2026-06-07 新增 */
+  minLength?: number;
+  /** 文字欄位最大長度（native input maxLength 硬限）；02 第四批 軌 4 2026-06-07 新增 */
+  maxLength?: number;
   /** 送出前轉大寫（code 類） */
   uppercase?: boolean;
   /** 不 trim、且空字串也照送（如分隔符可為空格 / 空字串「無」） */

@@ -1,11 +1,12 @@
 // apps/nx-api/src/nx01/brand/dto/brand.dto.ts
 // W6 [3-8] 2026-06-06 品牌合併（合 PartBrand + CarBrand → Brand、雙開關 isCar / isPart）
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   Min,
   MinLength,
@@ -28,9 +29,16 @@ export class ListBrandQueryDto extends Nx01ListQueryDto {
 }
 
 export class CreateBrandDto {
+  // 02 第四批 軌 4 2026-06-07：品牌代碼固定 3 碼大寫英文（業界縮寫範式、總經理拍板）。
+  // @Transform 在 validator 前先 trim + uppercase、@Matches 強制 ^[A-Z]{3}$。
+  // 老資料不動（service 不回填、UpdateBrandDto 不收 code、lockedOnEdit）。
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim().toUpperCase() : value,
+  )
   @IsString()
-  @MinLength(1)
-  @MaxLength(30)
+  @MinLength(3, { message: '品牌代碼必須 3 碼' })
+  @MaxLength(3, { message: '品牌代碼必須 3 碼' })
+  @Matches(/^[A-Z]{3}$/, { message: '品牌代碼必須是 3 碼大寫英文（A-Z）' })
   code!: string;
 
   @IsString()

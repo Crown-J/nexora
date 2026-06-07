@@ -63,11 +63,13 @@ export function FormInput({
   value,
   onChange,
   placeholder,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChange: (next: string) => void;
   placeholder?: string;
+  maxLength?: number;
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -79,6 +81,7 @@ export function FormInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
         className="rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors placeholder:text-[#5A5A60] focus:border-[#E8A020]/60 focus:bg-[#0A0A0C] focus:ring-1 focus:ring-[#E8A020]/40"
       />
     </div>
