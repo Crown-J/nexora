@@ -51,6 +51,12 @@ const PO_SEL = {
   paidAt: true,
   shippedAt: true,
   arrivedAt: true,
+  // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
+  approvedAt: true,
+  approvedBy: true,
+  sentAt: true,
+  supplierConfirmedAt: true,
+  rejectReason: true,
   voidedAt: true,
   voidedBy: true,
   createdAt: true,
@@ -364,6 +370,12 @@ export class PoService {
       // - CONFIRMED（廠商確認備貨）：呼叫 createApFromConfirmedPo 產生應付（業務語意「先款後貨」）
       const isApproving = nextStatus === PoStatus.APPROVED && existing.status !== PoStatus.APPROVED;
       const isVendorConfirming = nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
+      // T1 2026-06-07：APPROVED → DRAFT 視為「主管退件」、寫 sentAt 改 null 並清核准印（防混淆）；rejectReason 從 dto 寫入
+      const isRejecting =
+        nextStatus === PoStatus.DRAFT && existing.status === PoStatus.APPROVED;
+      // T1：APPROVED → SUBMITTED 視為「寄出給廠商」、寫 sentAt
+      const isSendingToSupplier =
+        nextStatus === PoStatus.SUBMITTED && existing.status === PoStatus.APPROVED;
       await tx.nx02Po.update({
         where: { id },
         data: {
@@ -372,7 +384,19 @@ export class PoService {
           ...(dto.expectedDate !== undefined ? { expectedDate: dto.expectedDate ? new Date(dto.expectedDate) : null } : {}),
           ...(dto.status !== undefined ? { status: nextStatus } : {}),
           ...(dto.taxRate !== undefined ? { taxRate } : {}),
-          ...(isApproving ? { approvedAt: new Date(), approvedBy: user.sub } : {}),
+          ...(isApproving ? { approvedAt: new Date(), approvedBy: user.sub, rejectReason: null } : {}),
+          ...(isSendingToSupplier ? { sentAt: new Date() } : {}),
+          ...(isVendorConfirming ? { supplierConfirmedAt: new Date() } : {}),
+          ...(isRejecting
+            ? {
+                rejectReason: dto.rejectReason?.trim() || existing.rejectReason || '無敘述',
+                approvedAt: null,
+                approvedBy: null,
+                sentAt: null,
+              }
+            : dto.rejectReason !== undefined
+              ? { rejectReason: dto.rejectReason }
+              : {}),
           updatedBy: user.sub,
         },
       });

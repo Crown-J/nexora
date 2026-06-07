@@ -9,18 +9,44 @@ export function rfqStatusLabel(s: string): string {
   return m[s] ?? s;
 }
 
+// T1 進貨對齊批次 2026-06-07：露完整 7 階狀態（對齊 backend PoStatus 全名）
+//   DRAFT 草稿 → APPROVED 已核准 → SUBMITTED 已寄廠商 → CONFIRMED 廠商已確認
+//                                                       ↓
+//                                            PARTIAL_RECEIVED 部分驗收 / RECEIVED 全部驗收 → CLOSED 結案
+//                                            CANCELLED 作廢
+// 短碼保留 fallback（PR 範式雙吃、避免歷史資料顯示 raw 字串）。
 export function poStatusLabel(s: string): string {
   const m: Record<string, string> = {
+    // 全名（backend 主用）
+    DRAFT: '草稿',
+    APPROVED: '已核准',
+    SUBMITTED: '已寄廠商',
+    CONFIRMED: '廠商已確認',
+    PARTIAL_RECEIVED: '部分驗收',
+    RECEIVED: '全部驗收',
+    CLOSED: '已結案',
+    CANCELLED: '作廢',
+    // 短碼（fallback）
     D: '草稿',
-    S: '已送出',
-    C: '已關閉',
+    A: '已核准',
+    S: '已寄廠商',
+    CF: '廠商已確認',
+    PR: '部分驗收',
+    R: '全部驗收',
+    C: '已結案',
     V: '作廢',
   };
   return m[s] ?? s;
 }
 
+// T0/T1：RR 雙吃（PR 範式：PATCH /:id { status: 'POSTED' / 'CANCELLED' }）
 export function rrStatusLabel(s: string): string {
   const m: Record<string, string> = {
+    DRAFT: '草稿',
+    INSPECTING: '驗收中',
+    POSTED: '已過帳',
+    REJECTED: '退件',
+    CANCELLED: '作廢',
     D: '草稿',
     P: '已過帳',
     C: '已取消',

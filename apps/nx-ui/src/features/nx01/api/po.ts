@@ -110,3 +110,12 @@ export async function patchPoStatus(id: string, status: string): Promise<void> {
   });
   await assertOk(res, 'nxui_nx01_po_status_001');
 }
+
+// T1 2026-06-07：主管退件（status: APPROVED → DRAFT、填 rejectReason）
+export async function rejectPo(id: string, rejectReason: string): Promise<void> {
+  const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'DRAFT', rejectReason }),
+  });
+  await assertOk(res, 'nxui_nx01_po_reject_001');
+}

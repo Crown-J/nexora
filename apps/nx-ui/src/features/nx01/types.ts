@@ -90,6 +90,12 @@ export type PoDetailDto = {
   totalAmount: number;
   expectedDate: string | null;
   remark: string | null;
+  // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
+  approvedAt?: string | null;
+  approvedBy?: string | null;
+  sentAt?: string | null;
+  supplierConfirmedAt?: string | null;
+  rejectReason?: string | null;
   createdAt: string;
   voidedAt: string | null;
   items: {

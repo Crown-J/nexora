@@ -7,9 +7,22 @@ import { useCallback, useEffect, useState } from 'react';
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
 
-import { getPo, patchPoStatus, poToRr, voidPo } from '../../api/po';
+import { getPo, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
 import type { PoDetailDto } from '../../types';
 import { poStatusLabel } from '../../shared/nx01-labels';
+
+// T1 進貨對齊批次 2026-06-07：採購單狀態判斷（雙吃短碼 + 全名）
+function statusIs(s: string, ...candidates: string[]): boolean {
+  return candidates.includes(s);
+}
+const ST_DRAFT = ['DRAFT', 'D'];
+const ST_APPROVED = ['APPROVED', 'A'];
+const ST_SUBMITTED = ['SUBMITTED', 'S'];
+const ST_CONFIRMED = ['CONFIRMED', 'CF'];
+const ST_PARTIAL_RECEIVED = ['PARTIAL_RECEIVED', 'PR'];
+const ST_RECEIVED = ['RECEIVED', 'R'];
+const ST_CLOSED = ['CLOSED', 'C'];
+const ST_CANCELLED = ['CANCELLED', 'V'];
 
 export function PoDetailView({ id }: { id: string }) {
   const router = useRouter();
@@ -22,6 +35,10 @@ export function PoDetailView({ id }: { id: string }) {
   const [rrWh, setRrWh] = useState('');
   const [rrPick, setRrPick] = useState<Record<string, { on: boolean; qty: string }>>({});
   const [whOpts, setWhOpts] = useState<LookupRow[]>([]);
+
+  // T1 進貨對齊批次 2026-06-07：退件 modal 狀態
+  const [showReject, setShowReject] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,44 +81,110 @@ export function PoDetailView({ id }: { id: string }) {
     return <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">{error ?? '找不到'}</div>;
   }
 
-  const canVoid = doc.status === 'D';
-  const canMarkSent = doc.status === 'D';
-  const canToRr = doc.status === 'S' && doc.items.some((it) => it.qty - it.receivedQty > 0);
+  // T1 進貨對齊批次 2026-06-07：依 7 階狀態決定按鈕（雙吃短碼 + 全名）
+  // 流程：DRAFT → 送審 → APPROVED → 寄出廠商 → SUBMITTED → 廠商確認 → CONFIRMED → 轉進貨 → PARTIAL_RECEIVED / RECEIVED → 結案 → CLOSED
+  //                  ↘ 退件（回 DRAFT + 填 rejectReason）
+  const isDraft = statusIs(doc.status, ...ST_DRAFT);
+  const isApproved = statusIs(doc.status, ...ST_APPROVED);
+  const isSubmitted = statusIs(doc.status, ...ST_SUBMITTED);
+  const isConfirmed = statusIs(doc.status, ...ST_CONFIRMED);
+  const isPartialReceived = statusIs(doc.status, ...ST_PARTIAL_RECEIVED);
+  const isReceived = statusIs(doc.status, ...ST_RECEIVED);
+  const canVoid = isDraft;
+  const canSubmitForReview = isDraft;
+  const canReject = isApproved;
+  const canSendToSupplier = isApproved;
+  const canSupplierConfirm = isSubmitted;
+  const canToRr = (isConfirmed || isPartialReceived) && doc.items.some((it) => it.qty - it.receivedQty > 0);
+  const canClose = isReceived;
+
+  const runStatus = async (next: string, confirmMsg?: string) => {
+    if (confirmMsg && !confirm(confirmMsg)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await patchPoStatus(doc.id, next);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '失敗');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-xs tracking-[0.35em] text-muted-foreground">NX01</p>
+          <p className="text-xs tracking-[0.35em] text-muted-foreground">採購單</p>
           <h1 className="text-xl font-semibold">採購 {doc.docNo}</h1>
           <p className="text-sm text-muted-foreground">
             {poStatusLabel(doc.status)} · {doc.poDate} · {doc.supplierName}
           </p>
+          {/* T1：審計時間印（核准 / 寄出 / 廠商確認） */}
+          {(doc.approvedAt || doc.sentAt || doc.supplierConfirmedAt) ? (
+            <p className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+              {doc.approvedAt ? <span>核准 {doc.approvedAt.slice(0, 10)}</span> : null}
+              {doc.sentAt ? <span>寄出廠商 {doc.sentAt.slice(0, 10)}</span> : null}
+              {doc.supplierConfirmedAt ? <span>廠商確認 {doc.supplierConfirmedAt.slice(0, 10)}</span> : null}
+            </p>
+          ) : null}
         </div>
         <Link href="/dashboard/purchase/po" className="text-sm text-muted-foreground underline">
           返回
         </Link>
       </header>
 
+      {/* T1：退件原因 banner（status=DRAFT 且歷史曾被退件、提醒業務員修改後重送） */}
+      {isDraft && doc.rejectReason ? (
+        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+          <span className="font-semibold text-amber-300">退件原因：</span>
+          <span className="text-amber-100">{doc.rejectReason}</span>
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
-        {canMarkSent ? (
+        {canSubmitForReview ? (
           <button
             type="button"
-            className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
             disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              try {
-                await patchPoStatus(doc.id, 'S');
-                await load();
-              } catch (e) {
-                setError(e instanceof Error ? e.message : '失敗');
-              } finally {
-                setBusy(false);
-              }
+            onClick={() => runStatus('APPROVED', '送審？（會直接記主管核准、寫 approvedBy）')}
+          >
+            送審 / 核准
+          </button>
+        ) : null}
+        {canReject ? (
+          <button
+            type="button"
+            className="rounded-lg border border-amber-500/50 px-3 py-1.5 text-sm text-amber-300 disabled:opacity-50"
+            disabled={busy}
+            onClick={() => {
+              setRejectReason('');
+              setShowReject(true);
             }}
           >
-            標示為已送出
+            退件
+          </button>
+        ) : null}
+        {canSendToSupplier ? (
+          <button
+            type="button"
+            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
+            disabled={busy}
+            onClick={() => runStatus('SUBMITTED', '寄出給廠商？')}
+          >
+            寄出廠商
+          </button>
+        ) : null}
+        {canSupplierConfirm ? (
+          <button
+            type="button"
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            disabled={busy}
+            onClick={() => runStatus('CONFIRMED', '廠商確認接單？（會自動產生應付帳款、業務語意「先款後貨」）')}
+          >
+            廠商確認接單
           </button>
         ) : null}
         {canToRr ? (
@@ -109,8 +192,15 @@ export function PoDetailView({ id }: { id: string }) {
             轉進貨
           </button>
         ) : null}
-        {doc.status === 'D' ? (
-          <p className="self-center text-xs text-muted-foreground">轉進貨前請先「標示為已送出」</p>
+        {canClose ? (
+          <button
+            type="button"
+            className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+            disabled={busy}
+            onClick={() => runStatus('CLOSED', '結案此採購單？')}
+          >
+            結案
+          </button>
         ) : null}
         {canVoid ? (
           <button
@@ -133,7 +223,53 @@ export function PoDetailView({ id }: { id: string }) {
             作廢
           </button>
         ) : null}
+        {/* 終態提示 */}
+        {statusIs(doc.status, ...ST_CLOSED, ...ST_CANCELLED) ? (
+          <p className="self-center text-xs text-muted-foreground">{poStatusLabel(doc.status)}（終態、無可執行動作）</p>
+        ) : null}
       </div>
+
+      {/* T1：退件 modal（要填原因） */}
+      {showReject ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4">
+          <div className="w-full max-w-md rounded-xl border bg-card p-4 shadow-lg">
+            <h2 className="text-lg font-semibold">退件採購單</h2>
+            <p className="mt-1 text-sm text-muted-foreground">填寫退件原因、業務員會看到此訊息修改後重送。</p>
+            <textarea
+              className="mt-3 w-full rounded-md border bg-background p-2 text-sm"
+              rows={4}
+              placeholder="例：單價超出本月預算上限、請改為 NET60 付款後再送"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" className="rounded-lg border px-3 py-2 text-sm" onClick={() => setShowReject(false)}>
+                取消
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-amber-600 px-3 py-2 text-sm text-white disabled:opacity-50"
+                disabled={busy || !rejectReason.trim()}
+                onClick={async () => {
+                  setBusy(true);
+                  setError(null);
+                  try {
+                    await rejectPo(doc.id, rejectReason.trim());
+                    setShowReject(false);
+                    await load();
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : '退件失敗');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                確定退件
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="overflow-x-auto rounded-xl border border-border/70">
         <table className="w-full min-w-[640px] text-left text-sm">

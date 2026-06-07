@@ -63,9 +63,14 @@ export function PoListView() {
           }}
         >
           <option value="">全部</option>
-          <option value="D">草稿</option>
-          <option value="S">已送出</option>
-          <option value="C">已關閉</option>
+          <option value="DRAFT">草稿</option>
+          <option value="APPROVED">已核准</option>
+          <option value="SUBMITTED">已寄廠商</option>
+          <option value="CONFIRMED">廠商已確認</option>
+          <option value="PARTIAL_RECEIVED">部分驗收</option>
+          <option value="RECEIVED">全部驗收</option>
+          <option value="CLOSED">已結案</option>
+          <option value="CANCELLED">作廢</option>
         </select>
       </label>
 

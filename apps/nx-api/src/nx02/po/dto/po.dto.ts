@@ -116,6 +116,12 @@ export class UpdatePoDto {
   @IsOptional()
   @IsDateString()
   expectedDate?: string | null;
+
+  // T1 進貨對齊批次 2026-06-07：採購主管退件原因（status APPROVED → DRAFT 時填）
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  rejectReason?: string | null;
 }
 
 export class PatchPoItemDto {
