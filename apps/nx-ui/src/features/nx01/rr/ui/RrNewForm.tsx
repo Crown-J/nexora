@@ -15,6 +15,8 @@ import {
 } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
 
+import { lookupStockBalance } from '@/features/nx03/stock-balance/api/lookup';
+
 import { getRfq, listRfq } from '../../api/rfq';
 import { getPo, listPo } from '../../api/po';
 import { createRr } from '../../api/rr';
@@ -85,6 +87,11 @@ export function RrNewForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [seedDone, setSeedDone] = useState(false);
+  // T4 進貨對齊批次 2026-06-08：驗收當下庫存
+  // 純前端 join Nx03StockBalance（GET /nx03/stock-balance?partId=&warehouseId=）。
+  // cache key=partId、value=onHandQty 或 null（=該倉從未進過此料）；
+  // warehouseId 變化全清重 fetch（換倉庫等同重新查庫存）。
+  const [stockMap, setStockMap] = useState<Record<string, number | null>>({});
 
   useEffect(() => {
     listLookupWarehouse({ isActive: true })
@@ -211,6 +218,42 @@ export function RrNewForm() {
       .then(setLocOpts)
       .catch(() => setLocOpts([]));
   }, [warehouseId]);
+
+  // T4：warehouseId 變化清空 cache（換倉 = 庫存全變）
+  useEffect(() => {
+    setStockMap({});
+  }, [warehouseId]);
+
+  // T4：lines 新增料件時、fetch 當下庫存（用 cache 避免重複打 API）
+  useEffect(() => {
+    if (!warehouseId) return;
+    const missing = lines.map((l) => l.partId).filter((id) => id && !(id in stockMap));
+    if (missing.length === 0) return;
+    const uniq = Array.from(new Set(missing));
+    let cancelled = false;
+    void (async () => {
+      // 平行 fetch（小批量、進貨單通常 < 20 行）
+      const entries = await Promise.all(
+        uniq.map(async (pid) => {
+          try {
+            const b = await lookupStockBalance(pid, warehouseId);
+            return [pid, b?.onHandQty ?? null] as const;
+          } catch {
+            return [pid, null] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setStockMap((prev) => {
+        const next = { ...prev };
+        for (const [pid, qty] of entries) next[pid] = qty;
+        return next;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [lines, warehouseId, stockMap]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -520,6 +563,18 @@ export function RrNewForm() {
                 setLines((p) => p.map((x) => (x.key === ln.key ? { ...x, [k]: v } : x)));
               const dq = Number(ln.defectQty);
               const showDefectDetail = Number.isFinite(dq) && dq > 0;
+              // T4 進貨對齊批次 2026-06-08：當下庫存燈號（純前端讀 cache、不在 render 內 fetch）
+              // cache 值：undefined=loading、null=該倉從未進過、number=onHandQty（可能負）
+              const stock = stockMap[ln.partId];
+              const stockLoading = stock === undefined;
+              const stockText = stockLoading ? '查詢中…' : stock == null ? '未曾入庫' : `${stock}`;
+              const stockTone =
+                stockLoading ? 'text-muted-foreground' :
+                stock == null ? 'text-muted-foreground' :
+                stock < 0 ? 'text-destructive' :
+                stock === 0 ? 'text-amber-400' :
+                stock < 10 ? 'text-amber-300' :
+                'text-emerald-400';
               return (
                 <tr key={ln.key} className="border-t border-border/60 align-top">
                   <td className="py-2 font-mono text-xs" colSpan={5}>
@@ -549,7 +604,16 @@ export function RrNewForm() {
                         onChange={(e) => patch('unitCost', e.target.value)}
                         title="單位成本"
                       />
-                      <span className="text-[10px] text-muted-foreground truncate">{ln.partName}</span>
+                      <span className="text-[10px] text-muted-foreground truncate">
+                        {ln.partName}
+                        {/* T4：當下庫存燈號（提示驗收人有沒有囤貨） */}
+                        <span
+                          className={`ml-2 font-mono ${stockTone}`}
+                          title="此料件目前在本倉庫的庫存量（未含本次驗收）"
+                        >
+                          目前 {stockText}
+                        </span>
+                      </span>
                       <button
                         type="button"
                         className="text-xs text-destructive underline"
