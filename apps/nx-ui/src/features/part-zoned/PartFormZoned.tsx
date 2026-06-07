@@ -20,8 +20,11 @@ import { cn } from '@/lib/utils';
 import {
   PART_FIELDS,
   PART_ZONES,
+  isFieldVisibleAtPlan,
+  normalizePlanTier,
   type PartZone,
 } from '@/features/master-zones';
+import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
 import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/satellite/SatelliteSection';
@@ -112,6 +115,12 @@ export function PartFormZoned({
 }: PartFormZonedProps) {
   const editing = mode === 'edit';
 
+  // 02 第四批 軌 3a 2026-06-07：LITE 隱藏汽車資料庫套件欄位（編碼規則 / SEG / 車型適配）。
+  // 載入未完成期間保守視為 LITE、避免 LITE 用戶 flicker 看到不該見的欄位。
+  const { planCode } = useSessionMe();
+  const currentPlan = normalizePlanTier(planCode);
+  const isLite = currentPlan === 'LITE';
+
   /** 主檔中心 → 全 zone；模組頁 → editableZones 即可見 zones */
   const visibleZones = useMemo<Set<PartZone>>(
     () => editableZones ?? new Set(PART_ZONES.map((z) => z.zone)),
@@ -133,9 +142,11 @@ export function PartFormZoned({
         if (f.zone !== safeActiveZone) return false;
         // A1：basic zone 的編碼規則 / 料號 / SEG 用專屬區塊渲染、不走通用 loop
         if (safeActiveZone === 'basic' && SPECIAL_BASIC_KEYS.has(f.key)) return false;
+        // 02 第四批 軌 3a 2026-06-07：版本門檻 — 低於 minPlan 的 UI 隱藏（資料保留）
+        if (!isFieldVisibleAtPlan(f, currentPlan)) return false;
         return true;
       }),
-    [safeActiveZone],
+    [safeActiveZone, currentPlan],
   );
 
   // A1：當前選的 codeRule（顯示「依規則 XX 字數限制」用）
@@ -180,10 +191,12 @@ export function PartFormZoned({
         ) : null}
       </div>
 
-      {/* A1：basic zone 的編碼規則 + 料號 + SEG 分段輸入區（從舊版 PartMasterPage 移植） */}
+      {/* A1：basic zone 的編碼規則 + 料號 + SEG 分段輸入區（從舊版 PartMasterPage 移植）
+            02 第四批 軌 3a：LITE 隱藏編碼規則 + SEG 分段（屬汽車資料庫套件）、保留料號 + 舊料號（核心） */}
       {safeActiveZone === 'basic' ? (
         <CodeRuleSection
           editing={editing}
+          showCodeRuleAndSeg={!isLite}
           codeRuleId={String(draft.codeRuleId ?? '')}
           code={String(draft.code ?? '')}
           oldCode={String(draft.oldCode ?? '')}
@@ -495,6 +508,7 @@ function renderPartSatellite(
  */
 function CodeRuleSection({
   editing,
+  showCodeRuleAndSeg,
   codeRuleId,
   code,
   oldCode,
@@ -510,6 +524,8 @@ function CodeRuleSection({
   onSegChange,
 }: {
   editing: boolean;
+  // 02 第四批 軌 3a 2026-06-07：LITE 不顯示編碼規則 / SEG 分段（屬汽車資料庫套件）
+  showCodeRuleAndSeg: boolean;
   codeRuleId: string;
   code: string;
   oldCode: string;
@@ -525,29 +541,33 @@ function CodeRuleSection({
   onSegChange: (i: number, v: string) => void;
 }) {
   const ruleOpts = brandCodeRules.map((r) => ({ value: r.id, label: r.name }));
+  // LITE 模式：強制走「手動料號」路徑（即使 draft 已存 codeRuleId、預覽 widget 也不顯）
+  const useAutoCode = showCodeRuleAndSeg && editing && Boolean(codeRuleId);
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {/* 編碼規則 */}
-        {editing ? (
-          <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
-              編碼規則
-            </span>
-            <KeyboardSelect
-              value={codeRuleId}
-              options={[{ value: '', label: '（不套用、手動輸入料號）' }, ...ruleOpts]}
-              placeholder="（不套用、手動輸入料號）"
-              ariaLabel="編碼規則"
-              onChange={onCodeRuleChange}
-            />
-          </div>
-        ) : (
-          <FormField label="編碼規則" value={selectedRule?.name ?? '（手動料號）'} />
-        )}
+        {/* 編碼規則（LITE 隱藏） */}
+        {showCodeRuleAndSeg ? (
+          editing ? (
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                編碼規則
+              </span>
+              <KeyboardSelect
+                value={codeRuleId}
+                options={[{ value: '', label: '（不套用、手動輸入料號）' }, ...ruleOpts]}
+                placeholder="（不套用、手動輸入料號）"
+                ariaLabel="編碼規則"
+                onChange={onCodeRuleChange}
+              />
+            </div>
+          ) : (
+            <FormField label="編碼規則" value={selectedRule?.name ?? '（手動料號）'} />
+          )
+        ) : null}
 
-        {/* 料號：選規則 → 預覽（唯讀）；未選 + 編輯中 → 手動輸入；鎖定中 → readonly */}
-        {editing && codeRuleId ? (
+        {/* 料號：(PLUS+ 選規則 → 預覽唯讀)；(未選 / LITE) 編輯中 → 手動輸入；鎖定中 → readonly */}
+        {useAutoCode ? (
           <FormField label="料號（自動）" value={codePreview || '（輸入分段後預覽）'} mono />
         ) : editing && !lockedCodeNow ? (
           <FormInput label="料號 *" value={code} onChange={onCodeChange} />
@@ -563,8 +583,8 @@ function CodeRuleSection({
         )}
       </div>
 
-      {/* 分段 SEG 輸入（選了規則才出現） */}
-      {editing && selectedRule ? (
+      {/* 分段 SEG 輸入（LITE 隱藏；PLUS+ 選了規則才出現） */}
+      {showCodeRuleAndSeg && editing && selectedRule ? (
         <div className="rounded-lg border border-[#2A2A30] bg-[#0E0E12] p-3">
           <div className="mb-2 text-[11px] font-semibold text-[#B8B8C0]">
             分段輸入（依規則「{selectedRule.name}」字數限制）
@@ -589,8 +609,8 @@ function CodeRuleSection({
         </div>
       ) : null}
 
-      {/* 瀏覽既有資料時的 SEG 顯示 */}
-      {!editing && segValues.some((v) => v) ? (
+      {/* 瀏覽既有資料時的 SEG 顯示（LITE 隱藏） */}
+      {showCodeRuleAndSeg && !editing && segValues.some((v) => v) ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
           {segValues.map((v, i) => (v ? <FormField key={i} label={`SEG${i + 1}`} value={v} mono /> : null))}
         </div>

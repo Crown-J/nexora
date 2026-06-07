@@ -11,6 +11,12 @@
 /// - 'master-full'：主檔中心、render 全部分區
 export type ZoneRenderContext = 'module-view' | 'master-full';
 
+/// 版本門檻（對齊 master-cards.ts MasterHubMinPlan、版本只差功能廣度）
+/// - 'LITE'（預設、未指定 = LITE）：所有版本皆顯示
+/// - 'PLUS'：LITE 版隱藏；PLUS / PRO 顯示
+/// - 'PRO'：LITE / PLUS 版隱藏；PRO 顯示
+export type PlanTier = 'LITE' | 'PLUS' | 'PRO';
+
 /// Zone 定義（label / 描述等元資料）
 export interface ZoneDef<Z extends string> {
   zone: Z;
@@ -36,6 +42,29 @@ export interface FieldDef<Z extends string> {
   notes?: string;
   /// 衛星表名稱（isSatellite=true 時填、給 UI 知道用哪個 sub-component）
   satelliteName?: string;
+  /// 版本門檻；02 第四批 軌 3a 2026-06-07 新增。
+  /// 不指定 = 全版本顯示；指定 PLUS / PRO = 低於該版本的租戶 UI 隱藏（資料結構保留、API 仍可寫）。
+  minPlan?: PlanTier;
+}
+
+/// 版本層級數字（純內部排序、由低至高）
+const PLAN_RANK: Record<PlanTier, number> = { LITE: 0, PLUS: 1, PRO: 2 };
+
+/// 將任意 planCode 字串收斂為 PlanTier（對齊 master-cards.ts normalizePlanCode）
+export function normalizePlanTier(raw: string | null | undefined): PlanTier {
+  const p = (raw ?? '').trim().toUpperCase().replace(/^NEXORA-/, '');
+  if (p === 'PRO' || p === 'ENTERPRISE') return 'PRO';
+  if (p === 'PLUS') return 'PLUS';
+  return 'LITE';
+}
+
+/// 判定欄位是否在目前版本可見
+export function isFieldVisibleAtPlan<Z extends string>(
+  field: FieldDef<Z>,
+  currentPlan: PlanTier,
+): boolean {
+  const required = field.minPlan ?? 'LITE';
+  return PLAN_RANK[currentPlan] >= PLAN_RANK[required];
 }
 
 /// 對某個 zone 過濾欄位

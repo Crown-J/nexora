@@ -3,10 +3,16 @@
 
 export type {
   FieldDef,
+  PlanTier,
   ZoneDef,
   ZoneRenderContext,
 } from './types';
-export { fieldsInZone, fieldsInZones } from './types';
+export {
+  fieldsInZone,
+  fieldsInZones,
+  isFieldVisibleAtPlan,
+  normalizePlanTier,
+} from './types';
 
 export type { PartnerZone } from './partner-zones';
 export {

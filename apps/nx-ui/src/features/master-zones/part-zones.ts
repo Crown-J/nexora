@@ -27,15 +27,17 @@ export const PART_FIELDS: FieldDef<PartZone>[] = [
   // 編碼規則引擎屬汽車資料庫套件、LITE 不在範圍（codeRuleId optional）
   { key: 'code', label: '零件料號（顯示主碼）', zone: 'basic', notes: '必填顯示主碼；新增時可留空、系統自動帶入「舊料號」；建立後鎖定不可改' },
   { key: 'name', label: '品名', zone: 'basic', required: true },
-  { key: 'codeRuleId', label: '編碼規則', zone: 'basic', notes: 'LITE 不在範圍、編碼規則屬汽車資料庫套件、可留空' },
+  // 02 第四批 軌 3a 2026-06-07：編碼規則屬汽車資料庫套件、LITE 隱藏（資料結構保留、可留空）
+  { key: 'codeRuleId', label: '編碼規則', zone: 'basic', minPlan: 'PLUS', notes: '汽車資料庫套件、LITE 隱藏；可留空' },
   { key: 'isOem', label: '正廠件', zone: 'basic' },
   { key: 'secCode', label: '副廠料號', zone: 'basic', notes: '可空、廠牌對照用' },
   { key: 'oldCode', label: '舊料號', zone: 'basic', notes: '舊系統料號、新增時 service 端會 fallback 進「零件料號」' },
-  { key: 'seg1', label: '料號段 1', zone: 'basic' },
-  { key: 'seg2', label: '料號段 2', zone: 'basic' },
-  { key: 'seg3', label: '料號段 3', zone: 'basic' },
-  { key: 'seg4', label: '料號段 4', zone: 'basic' },
-  { key: 'seg5', label: '料號段 5', zone: 'basic' },
+  // 02 第四批 軌 3a 2026-06-07：seg1~5 屬汽車資料庫套件、LITE 隱藏（資料結構保留）
+  { key: 'seg1', label: '料號段 1', zone: 'basic', minPlan: 'PLUS' },
+  { key: 'seg2', label: '料號段 2', zone: 'basic', minPlan: 'PLUS' },
+  { key: 'seg3', label: '料號段 3', zone: 'basic', minPlan: 'PLUS' },
+  { key: 'seg4', label: '料號段 4', zone: 'basic', minPlan: 'PLUS' },
+  { key: 'seg5', label: '料號段 5', zone: 'basic', minPlan: 'PLUS' },
   { key: 'partBrandId', label: '零件品牌', zone: 'basic' },
   { key: 'partGroupId', label: '零件族群', zone: 'basic' },
   { key: 'type', label: '零件類型', zone: 'basic', notes: '1 專用 / 2 通用 / 3 組合 / 4 拆解' },
@@ -59,21 +61,25 @@ export const PART_FIELDS: FieldDef<PartZone>[] = [
     satelliteName: 'nx01_part_relation',
     notes: '新舊型號互通',
   },
+  // 02 第四批 軌 3a 2026-06-07：車型適配屬汽車資料庫套件、LITE 隱藏（資料結構保留）
   {
     key: 'models',
     label: '車型適配',
     zone: 'basic',
+    minPlan: 'PLUS',
     isSatellite: true,
     satelliteName: 'nx01_part_model',
-    notes: '通用零件適用車型',
+    notes: '汽車資料庫套件、通用零件適用車型',
   },
+  // versions 為系統自動寫入的「規格變更歷史快照」，被 NX02/NX03 多支業務 FK 綁、屬庫存稽核核心而非套件。
+  // 但業務員不直接編輯、手冊已移除「版本」欄、後續軌討論是否從零件主檔 UI 隱藏（保留 read-only API）；本軌暫不動。
   {
     key: 'versions',
     label: '版本',
     zone: 'basic',
     isSatellite: true,
     satelliteName: 'nx01_part_version',
-    notes: '規格變更歷史',
+    notes: '規格變更歷史（系統自動寫、唯讀）',
   },
 
   // ─── sales 銷貨區（決策 3.2 屏障 1：只放銷售模組頁）───
