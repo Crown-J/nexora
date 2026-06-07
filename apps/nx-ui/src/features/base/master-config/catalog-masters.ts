@@ -354,6 +354,24 @@ export const CUSTOMER_GRADE_MASTER: EntityMasterConfig = {
   ],
 };
 
+// 05 批 T4 2026-06-07：供應商分級半開放（可新增自訂等級、A/B/C/D 內建後端鎖刪）
+//   後端守：partner.recalcSupplierGradeByPaymentTerm 依賴內建 A/B/C/D code、service softDelete 拋 403。
+//   業務員操作：新增 VIP / 列管 等自訂等級可改可停用；按刪除內建會收到後端錯誤訊息（UX 友善）。
+export const SUPPLIER_GRADE_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/supplier-grades',
+  category: '交易對象',
+  title: '供應商分級基本資料',
+  entityNoun: '供應商分級',
+  errorCodePrefix: 'nxui_base_supplier_grade',
+  deleteMode: 'soft-delete-rest',
+  fields: [
+    { key: 'code', label: '分級代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]', placeholder: 'VIP' },
+    { key: 'name', label: '分級名稱', required: true, minWidthClass: 'min-w-[140px]', placeholder: '優質供應商' },
+    { key: 'description', label: '說明', minWidthClass: 'min-w-[200px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 export const PARTNER_MASTER: EntityMasterConfig = {
   basePath: 'nx01/partners',
   category: '交易對象',

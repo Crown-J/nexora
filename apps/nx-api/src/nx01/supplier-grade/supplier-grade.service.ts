@@ -1,7 +1,8 @@
 // apps/nx-api/src/nx01/supplier-grade/supplier-grade.service.ts
 // LITE 階段 1 M2-c：供應商分級 service（CRUD）。
-// 對齊 customer-grade service 範式。
-import { Injectable, NotFoundException } from '@nestjs/common';
+// 05 批 T4 2026-06-07：半開放升級 — 開放 Create、A/B/C/D 內建 lock（不可刪、name/desc/sort/active 可改）。
+//   守住 partner.recalcSupplierGradeByPaymentTerm 依賴的自動分級邏輯（hard-code 映射到 A/B/C/D）。
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -10,9 +11,17 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type {
+  CreateSupplierGradeDto,
   ListSupplierGradeQueryDto,
   UpdateSupplierGradeDto,
 } from './dto/supplier-grade.dto';
+
+/** 內建鎖定 code（partner.recalcSupplierGradeByPaymentTerm 依賴、不可刪）。 */
+const BUILTIN_SUPPLIER_GRADE_CODES = new Set(['A', 'B', 'C', 'D']);
+
+export function isBuiltinSupplierGradeCode(code: string | null | undefined): boolean {
+  return BUILTIN_SUPPLIER_GRADE_CODES.has(String(code ?? '').trim().toUpperCase());
+}
 
 const SEL = {
   id: true,
@@ -28,7 +37,13 @@ const SEL = {
   updatedBy: true,
 } as const;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Row = Prisma.Nx01SupplierGradeGetPayload<{ select: typeof SEL }>;
+
+/** 對外 row：加 isBuiltin 旗標、前端用來鎖刪除按鈕 */
+function withIsBuiltin<T extends { code: string }>(row: T): T & { isBuiltin: boolean } {
+  return { ...row, isBuiltin: isBuiltinSupplierGradeCode(row.code) };
+}
 
 @Injectable()
 export class SupplierGradeService {
@@ -69,7 +84,7 @@ export class SupplierGradeService {
         select: SEL,
       }),
     ]);
-    return { page, pageSize, total, rows };
+    return { page, pageSize, total, rows: rows.map(withIsBuiltin) };
   }
 
   async getById(user: RequestUser, id: string) {
@@ -79,7 +94,84 @@ export class SupplierGradeService {
       select: SEL,
     });
     if (!row) throw new NotFoundException('Supplier grade not found');
-    return row;
+    return withIsBuiltin(row);
+  }
+
+  /**
+   * 05 批 T4 2026-06-07：開放客戶新增自訂等級（例：VIP / 列管）。
+   * - code 大寫 + tenant 內唯一（service 自防、schema 無 unique 限制）
+   * - 內建 A/B/C/D 與自訂等級平起平坐、純評等用、無加成率參數
+   */
+  async create(user: RequestUser, dto: CreateSupplierGradeDto) {
+    const tenantId = requireTenantId(user);
+    const code = dto.code.trim().toUpperCase();
+    const dup = await this.prisma.nx01SupplierGrade.findFirst({
+      where: { tenantId, code: { equals: code, mode: 'insensitive' } },
+      select: { id: true },
+    });
+    if (dup) throw new ConflictException('分級代碼已存在、請改用其他代碼');
+    const row = await this.prisma.nx01SupplierGrade.create({
+      data: {
+        tenantId,
+        code,
+        name: dto.name.trim(),
+        description: dto.description?.trim() || null,
+        sortNo: dto.sortNo ?? 0,
+        isActive: dto.isActive ?? true,
+        createdBy: user.sub,
+        updatedBy: user.sub,
+      },
+      select: SEL,
+    });
+    await this.audit.write({
+      tenantId,
+      actorUserId: user.sub,
+      moduleCode: 'NX01',
+      action: 'CREATE',
+      entityTable: 'nx01_supplier_grade',
+      entityId: row.id,
+      entityCode: row.code,
+      summary: '建立供應商分級',
+      afterData: row as object,
+    });
+    return withIsBuiltin(row);
+  }
+
+  /**
+   * 05 批 T4 2026-06-07：軟刪除（停用）。
+   * - A/B/C/D 內建鎖：拋 403（保 partner.recalcSupplierGradeByPaymentTerm 依賴）
+   * - 自訂等級可停用（保留紀錄、partner.supplierGradeId 既有指派不動）
+   */
+  async softDelete(user: RequestUser, id: string) {
+    const tenantId = requireTenantId(user);
+    const existing = await this.prisma.nx01SupplierGrade.findFirst({
+      where: { id, tenantId },
+      select: SEL,
+    });
+    if (!existing) throw new NotFoundException('Supplier grade not found');
+    if (isBuiltinSupplierGradeCode(existing.code)) {
+      throw new ForbiddenException(
+        `供應商分級「${existing.code}」為內建等級、不可刪除（保自動分級規則）；如要隱藏可改 isActive=false`,
+      );
+    }
+    const row = await this.prisma.nx01SupplierGrade.update({
+      where: { id },
+      data: { isActive: false, updatedBy: user.sub },
+      select: SEL,
+    });
+    await this.audit.write({
+      tenantId,
+      actorUserId: user.sub,
+      moduleCode: 'NX01',
+      action: 'DELETE',
+      entityTable: 'nx01_supplier_grade',
+      entityId: id,
+      entityCode: row.code,
+      summary: '軟刪除供應商分級（自訂等級）',
+      beforeData: existing as object,
+      afterData: row as object,
+    });
+    return withIsBuiltin(row);
   }
 
   /**
@@ -116,6 +208,6 @@ export class SupplierGradeService {
       beforeData: existing as object,
       afterData: row as object,
     });
-    return row;
+    return withIsBuiltin(row);
   }
 }

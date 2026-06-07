@@ -424,6 +424,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/customer-grade',
   },
+  // 05 批 T4 2026-06-07：供應商分級半開放（A/B/C/D 內建鎖 + 客戶可加自訂 VIP / 列管）
+  {
+    id: 'supplier-grade',
+    section: 'partner',
+    title: '供應商分級基本資料',
+    description: '純評等標籤（A/B/C/D 內建依付款條件自動分級、客戶可加自訂等級如 VIP / 列管）',
+    icon: Award,
+    statLabel: '等級',
+    statValue: '—',
+    href: '/dashboard/base/supplier-grade',
+  },
   // 02 對齊第二批 C 軌 CP1：地區小型主檔（不入 partner code 編號）
   {
     id: 'region',
@@ -486,6 +497,9 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   // 05 批 T2 2026-06-07：組主檔（揭露既有 Nx01Team）
   team: '組基本資料',
   teams: '組基本資料',
+  // 05 批 T4 2026-06-07：供應商分級半開放
+  'supplier-grade': '供應商分級基本資料',
+  'supplier-grades': '供應商分級基本資料',
   'role-view': '職務權限設定',
   permissions: '職務權限設定',
   part: '零件基本資料',
