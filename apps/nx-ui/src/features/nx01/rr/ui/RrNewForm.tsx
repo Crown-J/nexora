@@ -264,7 +264,7 @@ export function RrNewForm() {
         poId: poId ?? null,
         items,
       });
-      router.push(`/dashboard/nx01/rr/${encodeURIComponent(r.id)}`);
+      router.push(`/dashboard/purchase/rr/${encodeURIComponent(r.id)}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : '建立失敗');
     } finally {
@@ -279,7 +279,7 @@ export function RrNewForm() {
           <p className="text-xs tracking-[0.35em] text-muted-foreground">NX01</p>
           <h1 className="text-xl font-semibold">新增進貨單</h1>
         </div>
-        <Link href="/dashboard/nx01/rr" className="text-sm text-muted-foreground underline">
+        <Link href="/dashboard/purchase/rr" className="text-sm text-muted-foreground underline">
           返回
         </Link>
       </header>

@@ -203,7 +203,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
                         <td className="px-2 py-2">
                           {r.refRfqId ? (
                             <Link
-                              href={`/dashboard/nx01/rfq/${encodeURIComponent(r.refRfqId)}`}
+                              href={`/dashboard/purchase/rfq/${encodeURIComponent(r.refRfqId)}`}
                               className="font-mono text-xs text-primary underline"
                             >
                               {r.refRfqId}
@@ -284,7 +284,7 @@ export function ShortageView({ vm }: ShortageViewProps) {
                       <div className="flex items-center gap-3">
                         {r.refRfqId ? (
                           <Link
-                            href={`/dashboard/nx01/rfq/${encodeURIComponent(r.refRfqId)}`}
+                            href={`/dashboard/purchase/rfq/${encodeURIComponent(r.refRfqId)}`}
                             className="font-mono text-primary underline"
                           >
                             {r.refRfqId}

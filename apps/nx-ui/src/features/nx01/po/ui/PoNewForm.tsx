@@ -185,7 +185,7 @@ export function PoNewForm() {
         rfqId: source === 'direct' ? null : rfqId,
         items,
       });
-      router.push(`/dashboard/nx01/po/${encodeURIComponent(r.id)}`);
+      router.push(`/dashboard/purchase/po/${encodeURIComponent(r.id)}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : '建立失敗');
     } finally {
@@ -200,7 +200,7 @@ export function PoNewForm() {
           <p className="text-xs tracking-[0.35em] text-muted-foreground">NX01</p>
           <h1 className="text-xl font-semibold">新增採購單</h1>
         </div>
-        <Link href="/dashboard/nx01/po" className="text-sm text-muted-foreground underline">
+        <Link href="/dashboard/purchase/po" className="text-sm text-muted-foreground underline">
           返回列表
         </Link>
       </header>

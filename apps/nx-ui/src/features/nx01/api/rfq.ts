@@ -1,6 +1,16 @@
 /**
  * File: apps/nx-ui/src/features/nx01/api/rfq.ts
  * Project: NEXORA (Monorepo)
+ *
+ * T0 路徑收斂 2026-06-07：path /nx01/rfq → /nx02/rfq。
+ *
+ * ⚠️ 已對齊：list / get / create / patch（基本 CRUD）。
+ * ⚠️ 待對齊（T1+）：
+ *   - patchRfqReply：後端 reply 範式改走 QT（POST /nx02/qt）、本 helper 暫保留死路徑
+ *   - patchRfqStatus：後端用 PATCH /:id { status } 統一範式（本 helper 暫保留 /:id/status）
+ *   - voidRfq：後端用 DELETE /:id 或 POST /:id/cancel；本 helper 暫保留 /:id/void
+ *   - rfqToPo / rfqToRr：後端走 POST /nx02/qt/:id/adopt（QT 採用觸發）；本 helper 暫保留
+ * RFQ UI 深度依賴這些 action endpoint、是 T1+ 重接範圍、T0 只做 path 替換。
  */
 
 import { apiFetch } from '@/shared/api/client';
@@ -23,13 +33,13 @@ export async function listRfq(params: ListRfqParams): Promise<Nx01Paged<RfqListR
     q: params.q?.trim() || undefined,
     status: params.status || undefined,
   });
-  const res = await apiFetch(`/nx01/rfq${q}`, { method: 'GET' });
+  const res = await apiFetch(`/nx02/rfq${q}`, { method: 'GET' });
   await assertOk(res, 'nxui_nx01_rfq_list_001');
   return (await res.json()) as Nx01Paged<RfqListRow>;
 }
 
 export async function getRfq(id: string): Promise<RfqDetailDto> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}`, { method: 'GET' });
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}`, { method: 'GET' });
   await assertOk(res, 'nxui_nx01_rfq_get_001');
   return (await res.json()) as RfqDetailDto;
 }
@@ -45,7 +55,7 @@ export type CreateRfqBody = {
 };
 
 export async function createRfq(body: CreateRfqBody): Promise<{ id: string }> {
-  const res = await apiFetch('/nx01/rfq', {
+  const res = await apiFetch('/nx02/rfq', {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -69,7 +79,7 @@ export type PatchRfqBody = {
 };
 
 export async function patchRfq(id: string, body: PatchRfqBody): Promise<RfqDetailDto> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}`, {
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
@@ -82,7 +92,7 @@ export type PatchRfqReplyBody = {
 };
 
 export async function patchRfqReply(id: string, body: PatchRfqReplyBody): Promise<RfqDetailDto> {
-  const res = await apiFetch(`/nx01/rfq/reply/${encodeURIComponent(id)}`, {
+  const res = await apiFetch(`/nx02/rfq/reply/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
@@ -91,7 +101,7 @@ export async function patchRfqReply(id: string, body: PatchRfqReplyBody): Promis
 }
 
 export async function patchRfqStatus(id: string, status: string): Promise<void> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/status`, {
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
   });
@@ -99,7 +109,7 @@ export async function patchRfqStatus(id: string, status: string): Promise<void> 
 }
 
 export async function voidRfq(id: string): Promise<void> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/void`, { method: 'POST' });
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/void`, { method: 'POST' });
   await assertOk(res, 'nxui_nx01_rfq_void_001');
 }
 
@@ -110,7 +120,7 @@ export type RfqToRrBody = {
 };
 
 export async function rfqToRr(id: string, body: RfqToRrBody): Promise<{ id: string }> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/to-rr`, {
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/to-rr`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -121,7 +131,7 @@ export async function rfqToRr(id: string, body: RfqToRrBody): Promise<{ id: stri
 export type RfqToPoBody = { items: { rfqItemId: string; qty: number }[] };
 
 export async function rfqToPo(id: string, body: RfqToPoBody): Promise<{ id: string }> {
-  const res = await apiFetch(`/nx01/rfq/${encodeURIComponent(id)}/to-po`, {
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/to-po`, {
     method: 'POST',
     body: JSON.stringify(body),
   });

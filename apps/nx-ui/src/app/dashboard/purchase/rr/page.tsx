@@ -1,13 +1,7 @@
-/**
- * @FUNCTION_CODE NX02-RR-UI-001-F01
- */
+'use client';
 
-import { RrDocPage } from '@/features/document-demo/RrDocPage';
+import { RrListView } from '@/features/nx01/rr/ui/RrListView';
 
-export default function PurchaseRrPage() {
-  return (
-    <div className="flex min-h-[calc(100dvh-12.5rem)] w-full min-w-0 max-w-full flex-1 flex-col overflow-x-hidden px-1 pb-6 pt-1 md:px-2">
-      <RrDocPage />
-    </div>
-  );
+export default function Nx01RrListPage() {
+  return <RrListView />;
 }

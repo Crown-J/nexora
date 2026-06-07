@@ -70,4 +70,15 @@ export class PoController {
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.softDelete(user, id);
   }
+
+  // T0 路徑收斂 2026-06-07：採購單轉進貨單 wrapper（前端 PoDetailView「轉進貨」按鈕用）
+  @Post(':id/to-rr')
+  @Permission('purchase.po.edit')
+  toRr(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: { warehouseId: string; items: { poItemId: string; qty: number; locationId?: string | null }[] },
+  ) {
+    return this.svc.toRr(user, id, dto);
+  }
 }

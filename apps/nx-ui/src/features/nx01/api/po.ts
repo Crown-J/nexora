@@ -1,6 +1,12 @@
 /**
  * File: apps/nx-ui/src/features/nx01/api/po.ts
  * Project: NEXORA (Monorepo)
+ *
+ * T0 路徑收斂 2026-06-07：
+ * - path /nx01/po → /nx02/po（既有 nx01/po 後端不存在、是死路徑）
+ * - patchPoStatus 改用 PATCH /:id { status: 全名 }（對齊 PR 範式、UpdatePoDto 已收 status）
+ * - voidPo 改用 DELETE /:id（後端 softDelete 改 status=CANCELLED）
+ * - poToRr 後端新增 POST /:id/to-rr wrapper（內部走 RR.create 帶 poId）
  */
 
 import { apiFetch } from '@/shared/api/client';
@@ -23,13 +29,13 @@ export async function listPo(params: ListPoParams): Promise<Nx01Paged<PoListRow>
     q: params.q?.trim() || undefined,
     status: params.status || undefined,
   });
-  const res = await apiFetch(`/nx01/po${q}`, { method: 'GET' });
+  const res = await apiFetch(`/nx02/po${q}`, { method: 'GET' });
   await assertOk(res, 'nxui_nx01_po_list_001');
   return (await res.json()) as Nx01Paged<PoListRow>;
 }
 
 export async function getPo(id: string): Promise<PoDetailDto> {
-  const res = await apiFetch(`/nx01/po/${encodeURIComponent(id)}`, { method: 'GET' });
+  const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}`, { method: 'GET' });
   await assertOk(res, 'nxui_nx01_po_get_001');
   return (await res.json()) as PoDetailDto;
 }
@@ -53,7 +59,7 @@ export type CreatePoBody = {
 };
 
 export async function createPo(body: CreatePoBody): Promise<{ id: string }> {
-  const res = await apiFetch('/nx01/po', {
+  const res = await apiFetch('/nx02/po', {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -67,7 +73,7 @@ export type PoToRrBody = {
 };
 
 export async function poToRr(id: string, body: PoToRrBody): Promise<{ id: string }> {
-  const res = await apiFetch(`/nx01/po/${encodeURIComponent(id)}/to-rr`, {
+  const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}/to-rr`, {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -75,15 +81,32 @@ export async function poToRr(id: string, body: PoToRrBody): Promise<{ id: string
   return (await res.json()) as { id: string };
 }
 
+// T0：作廢用 DELETE（後端 softDelete 改 status=CANCELLED）
 export async function voidPo(id: string): Promise<void> {
-  const res = await apiFetch(`/nx01/po/${encodeURIComponent(id)}/void`, { method: 'POST' });
+  const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}`, { method: 'DELETE' });
   await assertOk(res, 'nxui_nx01_po_void_001');
 }
 
+/**
+ * T0：狀態切換用 PATCH /:id { status: 全名 }（UpdatePoDto 已收 status）。
+ * 短碼 → 全名 alias（DRAFT/APPROVED/SUBMITTED/CONFIRMED/PARTIAL_RECEIVED/RECEIVED/CLOSED/CANCELLED）。
+ * 舊呼叫端傳短碼仍可用（自動展開）；UI 可直接傳全名（T1 後改）。
+ */
+const PO_STATUS_ALIAS: Record<string, string> = {
+  D: 'DRAFT',
+  A: 'APPROVED',
+  S: 'SUBMITTED',
+  CF: 'CONFIRMED',
+  PR: 'PARTIAL_RECEIVED',
+  R: 'RECEIVED',
+  C: 'CLOSED',
+  V: 'CANCELLED',
+};
 export async function patchPoStatus(id: string, status: string): Promise<void> {
-  const res = await apiFetch(`/nx01/po/${encodeURIComponent(id)}/status`, {
+  const full = PO_STATUS_ALIAS[status] ?? status;
+  const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status: full }),
   });
   await assertOk(res, 'nxui_nx01_po_status_001');
 }

@@ -358,7 +358,7 @@ export function RfqDetailView({ id }: { id: string }) {
           >
             {inquiryBusy ? '產生中…' : '📋 產生詢價文字'}
           </button>
-          <Link href="/dashboard/nx01/rfq" className="text-sm text-muted-foreground underline">
+          <Link href="/dashboard/purchase/rfq" className="text-sm text-muted-foreground underline">
             返回列表
           </Link>
         </div>
@@ -775,14 +775,14 @@ export function RfqDetailView({ id }: { id: string }) {
       {doc.status === 'R' ? (
         <div className="flex flex-wrap gap-2">
           <Link
-            href={`/dashboard/nx01/rr/new?rfq=${encodeURIComponent(doc.id)}`}
+            href={`/dashboard/purchase/rr/new?rfq=${encodeURIComponent(doc.id)}`}
             className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium"
           >
             轉為進貨單（RR）
           </Link>
           {showPlus ? (
             <Link
-              href={`/dashboard/nx01/po/new?rfq=${encodeURIComponent(doc.id)}`}
+              href={`/dashboard/purchase/po/new?rfq=${encodeURIComponent(doc.id)}`}
               className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium"
             >
               轉為採購單（PO）

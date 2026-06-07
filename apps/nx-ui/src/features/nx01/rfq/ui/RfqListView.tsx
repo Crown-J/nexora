@@ -44,7 +44,7 @@ export function RfqListView() {
           <h1 className="text-xl font-semibold">詢價單</h1>
         </div>
         <Link
-          href="/dashboard/nx01/rfq/new"
+          href="/dashboard/purchase/rfq/new"
           className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
         >
           + 新增詢價
@@ -92,7 +92,7 @@ export function RfqListView() {
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/50 hover:bg-muted/20">
                 <td className="px-3 py-2">
-                  <Link href={`/dashboard/nx01/rfq/${encodeURIComponent(r.id)}`} className="font-mono text-primary hover:underline">
+                  <Link href={`/dashboard/purchase/rfq/${encodeURIComponent(r.id)}`} className="font-mono text-primary hover:underline">
                     {r.docNo}
                   </Link>
                 </td>

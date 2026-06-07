@@ -43,7 +43,7 @@ export function PrListView() {
           <p className="text-xs tracking-[0.35em] text-muted-foreground">NX01</p>
           <h1 className="text-xl font-semibold">退貨單</h1>
         </div>
-        <Link href="/dashboard/nx01/pr/new" className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
+        <Link href="/dashboard/purchase/pr/new" className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
           + 新增退貨
         </Link>
       </header>
@@ -86,7 +86,7 @@ export function PrListView() {
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/50 hover:bg-muted/20">
                 <td className="px-3 py-2">
-                  <Link href={`/dashboard/nx01/pr/${encodeURIComponent(r.id)}`} className="font-mono text-primary hover:underline">
+                  <Link href={`/dashboard/purchase/pr/${encodeURIComponent(r.id)}`} className="font-mono text-primary hover:underline">
                     {r.docNo}
                   </Link>
                 </td>

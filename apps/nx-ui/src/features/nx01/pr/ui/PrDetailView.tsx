@@ -68,7 +68,7 @@ export function PrDetailView({ id }: { id: string }) {
             {doc.rrDocNo ? ` · 來源 ${doc.rrDocNo}` : ''}
           </p>
         </div>
-        <Link href="/dashboard/nx01/pr" className="text-sm text-muted-foreground underline">
+        <Link href="/dashboard/purchase/pr" className="text-sm text-muted-foreground underline">
           返回
         </Link>
       </header>

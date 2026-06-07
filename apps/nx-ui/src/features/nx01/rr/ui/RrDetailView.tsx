@@ -47,7 +47,7 @@ export function RrDetailView({ id }: { id: string }) {
             {rrStatusLabel(doc.status)} · {doc.rrDate} · {doc.warehouseName} · {doc.supplierName}
           </p>
         </div>
-        <Link href="/dashboard/nx01/rr" className="text-sm text-muted-foreground underline">
+        <Link href="/dashboard/purchase/rr" className="text-sm text-muted-foreground underline">
           返回
         </Link>
       </header>
@@ -96,7 +96,7 @@ export function RrDetailView({ id }: { id: string }) {
         ) : null}
         {doc.status === 'P' ? (
           <Link
-            href={`/dashboard/nx01/pr/new?rr=${encodeURIComponent(doc.id)}`}
+            href={`/dashboard/purchase/pr/new?rr=${encodeURIComponent(doc.id)}`}
             className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium"
           >
             由此進貨單建立退貨 →

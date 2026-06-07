@@ -129,7 +129,7 @@ export function RfqNewView() {
         remark: remark.trim() || null,
         items,
       });
-      router.push(`/dashboard/nx01/rfq/${encodeURIComponent(r.id)}`);
+      router.push(`/dashboard/purchase/rfq/${encodeURIComponent(r.id)}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : '建立失敗');
     } finally {
@@ -145,7 +145,7 @@ export function RfqNewView() {
           <h1 className="text-xl font-semibold">新增詢價單</h1>
           <p className="mt-1 text-sm text-muted-foreground">倉庫用於產生單號倉別碼，建立後仍可在後續轉進貨時指定進貨倉。</p>
         </div>
-        <Link href="/dashboard/nx01/rfq" className="text-sm text-muted-foreground underline">
+        <Link href="/dashboard/purchase/rfq" className="text-sm text-muted-foreground underline">
           返回列表
         </Link>
       </header>

@@ -20,6 +20,8 @@ import { syncApLedgerFromPo } from '../../shared/nx05/nx05-sync-ap-from-po';
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 
 import type { CreatePoDto, CreatePoItemDto, PatchPoItemDto, UpdatePoDto } from './dto/po.dto';
+// T0 2026-06-07：採購單轉進貨單 wrapper（避免前端組明細快照）
+import { RrService } from '../rr/rr.service';
 
 const PO_SEL = {
   id: true,
@@ -82,7 +84,58 @@ export class PoService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    private readonly rrService: RrService,
   ) {}
+
+  /**
+   * T0 路徑收斂 2026-06-07：採購單轉進貨單 wrapper。
+   * 業務語意：PoDetailView「轉進貨」按鈕、選收貨倉 + 勾要收的明細 → 建草稿 RR、UI 跳到 RR 詳細頁過帳。
+   * 內部：抓 PoItem 取 partId / unitCost（avoiding caller 自己組）、組 RrService.create dto。
+   */
+  async toRr(
+    user: RequestUser,
+    poId: string,
+    dto: { warehouseId: string; items: { poItemId: string; qty: number; locationId?: string | null }[] },
+  ) {
+    const tenantId = requireTenantId(user);
+    const po = await this.prisma.nx02Po.findFirst({
+      where: { id: poId, tenantId, voidedAt: null },
+      include: { rev_Nx02PoItem_poId: true },
+    });
+    if (!po) throw new NotFoundException('PO not found');
+    if (!dto.items?.length) throw new BadRequestException('items required');
+
+    const wh = await this.prisma.nx01Warehouse.findFirst({
+      where: { id: dto.warehouseId, tenantId, isActive: true },
+      select: { id: true },
+    });
+    if (!wh) throw new BadRequestException('warehouseId invalid');
+
+    const itemMap = new Map(po.rev_Nx02PoItem_poId.map((it) => [it.id, it]));
+    const rrItems: { partId: string; locationId: string; qty: number; unitPriceSnapshot: number; remark?: string }[] = [];
+    for (const i of dto.items) {
+      const it = itemMap.get(i.poItemId);
+      if (!it) throw new BadRequestException(`poItemId ${i.poItemId} not in PO`);
+      const remain = Number(it.qty) - Number(it.receivedQty ?? 0);
+      if (i.qty > remain) throw new BadRequestException(`qty ${i.qty} exceeds remaining ${remain} for ${it.partNo}`);
+      rrItems.push({
+        partId: it.partId,
+        locationId: i.locationId?.trim() || '',
+        qty: i.qty,
+        unitPriceSnapshot: Number(it.unitCost),
+      });
+    }
+    if (rrItems.some((x) => !x.locationId)) {
+      throw new BadRequestException('locationId required for every item');
+    }
+    return this.rrService.create(user, {
+      rrDate: new Date().toISOString().slice(0, 10),
+      warehouseId: dto.warehouseId,
+      supplierId: po.supplierId,
+      poId,
+      items: rrItems,
+    });
+  }
 
   private whereList(tenantId: string, q: PoListQueryDto): Prisma.Nx02PoWhereInput {
     const where: Prisma.Nx02PoWhereInput = { tenantId, voidedAt: null };

@@ -29,10 +29,10 @@ type FlowNodeDef = {
 };
 
 const INBOUND_NODES: FlowNodeDef[] = [
-  { key: 'arrive', label: '待到貨', href: '/dashboard/nx01/po' },
-  { key: 'recv', label: '驗收', href: '/dashboard/nx01/rr' },
-  { key: 'return', label: '退貨', href: '/dashboard/nx01/pr' },
-  { key: 'post', label: '入帳', href: '/dashboard/nx01/rr' },
+  { key: 'arrive', label: '待到貨', href: '/dashboard/purchase/po' },
+  { key: 'recv', label: '驗收', href: '/dashboard/purchase/rr' },
+  { key: 'return', label: '退貨', href: '/dashboard/purchase/pr' },
+  { key: 'post', label: '入帳', href: '/dashboard/purchase/rr' },
   {
     key: 'putaway',
     label: '分貨上架',

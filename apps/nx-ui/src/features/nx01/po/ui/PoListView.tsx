@@ -43,7 +43,7 @@ export function PoListView() {
           <p className="text-xs tracking-[0.35em] text-muted-foreground">NX01</p>
           <h1 className="text-xl font-semibold">採購單</h1>
         </div>
-        <Link href="/dashboard/nx01/po/new" className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
+        <Link href="/dashboard/purchase/po/new" className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
           + 新增採購
         </Link>
       </header>
@@ -87,7 +87,7 @@ export function PoListView() {
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/50 hover:bg-muted/20">
                 <td className="px-3 py-2">
-                  <Link href={`/dashboard/nx01/po/${encodeURIComponent(r.id)}`} className="font-mono text-primary hover:underline">
+                  <Link href={`/dashboard/purchase/po/${encodeURIComponent(r.id)}`} className="font-mono text-primary hover:underline">
                     {r.docNo}
                   </Link>
                 </td>

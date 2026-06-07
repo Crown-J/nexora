@@ -44,25 +44,25 @@ const SECTIONS: HubSection[] = [
     title: '採購流程（國內）',
     items: [
       {
-        href: '/dashboard/nx01/rfq',
+        href: '/dashboard/purchase/rfq',
         title: '詢價單 RFQ',
         description: '選料件 + 數量 → 產生詢價文字 → 多家供應商並排比價',
         icon: FileText,
       },
       {
-        href: '/dashboard/nx01/po',
+        href: '/dashboard/purchase/po',
         title: '採購單 PO',
         description: '比價選定後開採購單、對象 = 供應商 partner_type=S',
         icon: ShoppingCart,
       },
       {
-        href: '/dashboard/nx01/rr',
+        href: '/dashboard/purchase/rr',
         title: '進貨單 + 驗收 RR',
         description: '貨到→建單→按「驗收」→自動入庫 + 自動產生應付帳',
         icon: Inbox,
       },
       {
-        href: '/dashboard/nx01/pr',
+        href: '/dashboard/purchase/pr',
         title: '退貨單 PR',
         description: '驗收發現問題退回供應商（國內 / 國外通用）',
         icon: RotateCcw,

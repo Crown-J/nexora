@@ -100,7 +100,7 @@ export function Nx01DashboardPage() {
           </p>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
             <FlowStep
-              href="/dashboard/nx01/rfq"
+              href="/dashboard/purchase/rfq"
               step={1}
               title="詢價 RFQ"
               pending={data.rfq.pending}
@@ -111,7 +111,7 @@ export function Nx01DashboardPage() {
               <ChevronRight className="size-5 shrink-0" aria-hidden />
             </div>
             <FlowStep
-              href="/dashboard/nx01/po"
+              href="/dashboard/purchase/po"
               step={2}
               title="採購 PO"
               pending={data.po.pending}
@@ -127,7 +127,7 @@ export function Nx01DashboardPage() {
               <ChevronRight className="size-5 shrink-0" aria-hidden />
             </div>
             <FlowStep
-              href="/dashboard/nx01/rr"
+              href="/dashboard/purchase/rr"
               step={3}
               title="進貨 RR"
               pending={data.rr.pending}
@@ -138,7 +138,7 @@ export function Nx01DashboardPage() {
               <ChevronRight className="size-5 shrink-0" aria-hidden />
             </div>
             <FlowStep
-              href="/dashboard/nx01/pr"
+              href="/dashboard/purchase/pr"
               step={4}
               title="退貨 PR"
               pending={data.pr.inProgress}
@@ -151,25 +151,25 @@ export function Nx01DashboardPage() {
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Link
-          href="/dashboard/nx01/rfq/new"
+          href="/dashboard/purchase/rfq/new"
           className="rounded-xl border border-border/70 bg-card/40 px-4 py-3 text-sm font-medium hover:bg-card/70"
         >
           + 新增詢價
         </Link>
         <Link
-          href="/dashboard/nx01/po/new"
+          href="/dashboard/purchase/po/new"
           className="rounded-xl border border-border/70 bg-card/40 px-4 py-3 text-sm font-medium hover:bg-card/70"
         >
           + 新增採購（PLUS）
         </Link>
         <Link
-          href="/dashboard/nx01/rr/new"
+          href="/dashboard/purchase/rr/new"
           className="rounded-xl border border-border/70 bg-card/40 px-4 py-3 text-sm font-medium hover:bg-card/70"
         >
           + 新增進貨
         </Link>
         <Link
-          href="/dashboard/nx01/pr/new"
+          href="/dashboard/purchase/pr/new"
           className="rounded-xl border border-border/70 bg-card/40 px-4 py-3 text-sm font-medium hover:bg-card/70"
         >
           + 新增退貨

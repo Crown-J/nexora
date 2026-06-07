@@ -76,9 +76,9 @@ const domesticMain: PurchaseCardConfig[] = [
     countKind: 'pending',
     countKey: 'rfq',
     subItems: [
-      { label: '新增詢價單', href: '/dashboard/nx01/rfq/new' },
-      { label: '詢價單列表', href: '/dashboard/nx01/rfq' },
-      { label: '待回覆詢價單', href: '/dashboard/nx01/rfq' },
+      { label: '新增詢價單', href: '/dashboard/purchase/rfq/new' },
+      { label: '詢價單列表', href: '/dashboard/purchase/rfq' },
+      { label: '待回覆詢價單', href: '/dashboard/purchase/rfq' },
     ],
   },
   {
@@ -89,9 +89,9 @@ const domesticMain: PurchaseCardConfig[] = [
     countKind: 'pending',
     countKey: 'po',
     subItems: [
-      { label: '新增進貨單', href: '/dashboard/nx01/po/new' },
-      { label: '進貨單列表', href: '/dashboard/nx01/po' },
-      { label: '待確認進貨單', href: '/dashboard/nx01/po' },
+      { label: '新增進貨單', href: '/dashboard/purchase/po/new' },
+      { label: '進貨單列表', href: '/dashboard/purchase/po' },
+      { label: '待確認進貨單', href: '/dashboard/purchase/po' },
     ],
   },
   {
@@ -102,9 +102,9 @@ const domesticMain: PurchaseCardConfig[] = [
     countKind: 'pending',
     countKey: 'receipt',
     subItems: [
-      { label: '待驗收列表', href: '/dashboard/nx01/rr' },
-      { label: '驗收作業', href: '/dashboard/nx01/rr' },
-      { label: '已驗收記錄', href: '/dashboard/nx01/rr' },
+      { label: '待驗收列表', href: '/dashboard/purchase/rr' },
+      { label: '驗收作業', href: '/dashboard/purchase/rr' },
+      { label: '已驗收記錄', href: '/dashboard/purchase/rr' },
     ],
   },
 ];
@@ -117,8 +117,8 @@ const domesticBranchReturn: PurchaseCardConfig = {
   countKind: 'pending',
   countKey: 'return',
   subItems: [
-    { label: '新增退貨單', href: '/dashboard/nx01/pr/new' },
-    { label: '退貨單列表', href: '/dashboard/nx01/pr' },
+    { label: '新增退貨單', href: '/dashboard/purchase/pr/new' },
+    { label: '退貨單列表', href: '/dashboard/purchase/pr' },
   ],
 };
 

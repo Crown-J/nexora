@@ -78,7 +78,7 @@ export function PoDetailView({ id }: { id: string }) {
             {poStatusLabel(doc.status)} · {doc.poDate} · {doc.supplierName}
           </p>
         </div>
-        <Link href="/dashboard/nx01/po" className="text-sm text-muted-foreground underline">
+        <Link href="/dashboard/purchase/po" className="text-sm text-muted-foreground underline">
           返回
         </Link>
       </header>
@@ -232,7 +232,7 @@ export function PoDetailView({ id }: { id: string }) {
                   try {
                     const r = await poToRr(doc.id, { warehouseId: rrWh.trim(), items });
                     setShowRr(false);
-                    router.push(`/dashboard/nx01/rr/${encodeURIComponent(r.id)}`);
+                    router.push(`/dashboard/purchase/rr/${encodeURIComponent(r.id)}`);
                   } catch (e) {
                     setError(e instanceof Error ? e.message : '失敗');
                   } finally {
