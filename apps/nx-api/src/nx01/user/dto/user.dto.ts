@@ -112,6 +112,12 @@ export class CreateUserDto {
   // ── 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE） ──
   @IsOptional() @IsString() @MaxLength(15) departmentId?: string;
 
+  // ── 02 第四批 軌 1 2026-06-07：主要據點（forward 視角、單值 ref、A 拍板） ──
+  @IsOptional() @IsString() @MaxLength(15) primarySiteId?: string;
+
+  // ── 02 第四批 軌 1 2026-06-07：離職日期（留空=在職、不刪資料） ──
+  @IsOptional() @IsDateString() leftAt?: string;
+
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
 }
@@ -197,6 +203,12 @@ export class UpdateUserDto {
 
   // ── 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 LITE） ──
   @IsOptional() @IsString() @MaxLength(15) departmentId?: string | null;
+
+  // ── 02 第四批 軌 1 2026-06-07：主要據點 ──
+  @IsOptional() @IsString() @MaxLength(15) primarySiteId?: string | null;
+
+  // ── 02 第四批 軌 1 2026-06-07：離職日期 ──
+  @IsOptional() @IsDateString() leftAt?: string | null;
 
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;

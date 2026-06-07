@@ -56,6 +56,13 @@ const SEL = {
   militaryService: true,
   healthCheckDate: true,
   healthCheckResult: true,
+  // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期 / 大頭貼 4 欄
+  primarySiteId: true,
+  leftAt: true,
+  photoStorageKey: true,
+  photoMimeType: true,
+  photoFileSize: true,
+  photoOrigFilename: true,
   legacyCode: true,
   createdAt: true,
   createdBy: true,
@@ -120,6 +127,11 @@ export type Nx01UserPublicDto = {
   militaryService: string | null;
   healthCheckDate: string | null;
   healthCheckResult: string | null;
+  // 02 第四批 軌 1 2026-06-07
+  primarySiteId: string | null;
+  leftAt: string | null;
+  /** true 表示有大頭貼、URL 走 GET /nx01/users/:id/photo/raw */
+  hasPhoto: boolean;
   legacyCode: string | null;
   createdAt: string;
   createdBy: string;
@@ -223,6 +235,10 @@ export class UserService {
       militaryService: row.militaryService ?? null,
       healthCheckDate: row.healthCheckDate ? row.healthCheckDate.toISOString().slice(0, 10) : null,
       healthCheckResult: row.healthCheckResult ?? null,
+      // 02 第四批 軌 1 2026-06-07
+      primarySiteId: row.primarySiteId ?? null,
+      leftAt: row.leftAt ? row.leftAt.toISOString().slice(0, 10) : null,
+      hasPhoto: Boolean(row.photoStorageKey),
       legacyCode: row.legacyCode ?? null,
     };
   }
@@ -388,6 +404,9 @@ export class UserService {
         militaryService: dto.militaryService?.trim() || null,
         healthCheckDate: dto.healthCheckDate ? new Date(dto.healthCheckDate) : null,
         healthCheckResult: dto.healthCheckResult?.trim() || null,
+        // 02 第四批 軌 1 2026-06-07
+        primarySiteId: dto.primarySiteId?.trim() || null,
+        leftAt: dto.leftAt ? new Date(dto.leftAt) : null,
         // W3 [3-2] legacyCode
         legacyCode: dto.legacyCode?.trim() || null,
         createdBy: user.sub,
@@ -468,6 +487,11 @@ export class UserService {
         ? { healthCheckDate: dto.healthCheckDate ? new Date(dto.healthCheckDate) : null }
         : {}),
       ...(dto.healthCheckResult !== undefined ? { healthCheckResult: dto.healthCheckResult } : {}),
+      // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期
+      ...(dto.primarySiteId !== undefined ? { primarySiteId: dto.primarySiteId } : {}),
+      ...(dto.leftAt !== undefined
+        ? { leftAt: dto.leftAt ? new Date(dto.leftAt) : null }
+        : {}),
       // W3 [3-2] legacyCode
       ...(dto.legacyCode !== undefined ? { legacyCode: dto.legacyCode } : {}),
     };

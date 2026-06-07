@@ -83,6 +83,9 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
 // 02 第三批 T1 後續 2026-06-07：部門主檔 controller / service（schema 既有）
 import { DepartmentController } from './department/department.controller';
 import { DepartmentService } from './department/department.service';
+// 02 第四批 軌 1 2026-06-07：使用者大頭貼（單張、scalar 欄位掛 nx01_user）
+import { UserPhotoController } from './user-photo/user-photo.controller';
+import { UserPhotoService } from './user-photo/user-photo.service';
 
 @Module({
   imports: [PrismaModule],
@@ -107,6 +110,7 @@ import { DepartmentService } from './department/department.service';
     PartnerAddressController,
     PartnerContactController,
     PartPhotoController,
+    UserPhotoController,
     DepartmentController,
     BrandCodeRuleController,
     EngineController,
@@ -145,6 +149,7 @@ import { DepartmentService } from './department/department.service';
     PartnerAddressService,
     PartnerContactService,
     PartPhotoService,
+    UserPhotoService,
     DepartmentService,
     UserService,
     RoleService,
