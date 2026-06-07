@@ -1,11 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { getRr, postRr, voidRr } from '../../api/rr';
 import type { RrDetailDto } from '../../types';
 import { rrStatusLabel } from '../../shared/nx01-labels';
+
+// T2-c 進貨對齊批次 2026-06-07：瑕疵類型代碼對應顯示文字
+const DEFECT_TYPE_LABEL: Record<string, string> = {
+  D: '外觀損壞',
+  F: '功能異常',
+  W: '規格不符',
+  O: '其他',
+};
 
 export function RrDetailView({ id }: { id: string }) {
   const [doc, setDoc] = useState<RrDetailDto | null>(null);
@@ -167,26 +175,71 @@ export function RrDetailView({ id }: { id: string }) {
             </tr>
           </thead>
           <tbody>
-            {doc.items.map((it) => (
-              <tr key={it.id} className="border-b border-border/50">
-                <td className="px-3 py-2">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
-                <td className="px-3 py-2">{it.locationCode ?? it.locationId}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{it.unitCost}</td>
-                {doc.rrImport && (
-                  <>
-                    <td className="px-3 py-2 text-right tabular-nums text-blue-300">
-                      {it.allocatedImportFee != null ? String(it.allocatedImportFee) : '0'}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums font-semibold text-emerald-300">
-                      {it.actualUnitCost != null ? String(it.actualUnitCost) : String(it.unitCost)}
-                    </td>
-                  </>
-                )}
-                <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
-              </tr>
-            ))}
+            {doc.items.map((it) => {
+              const defectN = it.defectQty != null ? Number(it.defectQty) : 0;
+              const hasDefect = defectN > 0;
+              const showVerifyRow =
+                it.expectedQty != null ||
+                it.actualQty != null ||
+                hasDefect ||
+                !!it.batchNo ||
+                !!it.warrantyExpiredAt;
+              return (
+                <Fragment key={it.id}>
+                  <tr className="border-b border-border/50">
+                    <td className="px-3 py-2">{it.lineNo}</td>
+                    <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                    <td className="px-3 py-2">{it.locationCode ?? it.locationId}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{it.unitCost}</td>
+                    {doc.rrImport && (
+                      <>
+                        <td className="px-3 py-2 text-right tabular-nums text-blue-300">
+                          {it.allocatedImportFee != null ? String(it.allocatedImportFee) : '0'}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums font-semibold text-emerald-300">
+                          {it.actualUnitCost != null ? String(it.actualUnitCost) : String(it.unitCost)}
+                        </td>
+                      </>
+                    )}
+                    <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
+                  </tr>
+                  {/* T2-c 進貨對齊批次 2026-06-07：驗收欄位（預期/實際/瑕疵/批號/保固到期）唯讀顯示 */}
+                  {showVerifyRow ? (
+                    <tr className="border-b border-border/30 bg-muted/5">
+                      <td colSpan={doc.rrImport ? 8 : 6} className="px-3 py-1.5">
+                        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground sm:grid-cols-5">
+                          <div>
+                            預期量 <span className="ml-1 tabular-nums text-foreground">{it.expectedQty != null ? String(it.expectedQty) : '—'}</span>
+                          </div>
+                          <div>
+                            實際量 <span className="ml-1 tabular-nums text-foreground">{it.actualQty != null ? String(it.actualQty) : '—'}</span>
+                          </div>
+                          <div>
+                            瑕疵量{' '}
+                            <span className={`ml-1 tabular-nums ${hasDefect ? 'font-semibold text-amber-400' : 'text-foreground'}`}>
+                              {it.defectQty != null ? String(it.defectQty) : '0'}
+                            </span>
+                          </div>
+                          <div>
+                            批號 <span className="ml-1 font-mono text-foreground">{it.batchNo ?? '—'}</span>
+                          </div>
+                          <div>
+                            保固到期 <span className="ml-1 tabular-nums text-foreground">{it.warrantyExpiredAt ? it.warrantyExpiredAt.slice(0, 10) : '—'}</span>
+                          </div>
+                          {hasDefect ? (
+                            <div className="sm:col-span-5 text-amber-300">
+                              瑕疵類型：{it.defectType ? `${it.defectType} ${DEFECT_TYPE_LABEL[it.defectType] ?? ''}` : '—'} ／ 描述：
+                              <span className="text-foreground">{it.defectDesc ?? '—'}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

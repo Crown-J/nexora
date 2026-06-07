@@ -187,6 +187,14 @@ export type RrDetailDto = {
     lineAmount: number;
     poItemId: string | null;
     rfqItemId: string | null;
+    /** T2-b 進貨對齊批次 2026-06-07：驗收欄位（預期量+實際量+瑕疵+批號+保固到期） */
+    expectedQty?: number | string;
+    actualQty?: number | string | null;
+    defectQty?: number | string;
+    defectType?: 'D' | 'F' | 'W' | 'O' | null;
+    defectDesc?: string | null;
+    batchNo?: string | null;
+    warrantyExpiredAt?: string | null;
     remark: string | null;
   }[];
 };

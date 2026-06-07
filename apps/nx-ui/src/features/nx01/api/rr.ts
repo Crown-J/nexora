@@ -53,6 +53,14 @@ export type CreateRrBody = {
     unitCost: number;
     poItemId?: string | null;
     rfqItemId?: string | null;
+    // T2-c 進貨對齊批次 2026-06-07：驗收欄位
+    expectedQty?: number;
+    actualQty?: number | null;
+    defectQty?: number;
+    defectType?: 'D' | 'F' | 'W' | 'O' | null;
+    defectDesc?: string | null;
+    batchNo?: string | null;
+    warrantyExpiredAt?: string | null;
     remark?: string | null;
   }[];
 };

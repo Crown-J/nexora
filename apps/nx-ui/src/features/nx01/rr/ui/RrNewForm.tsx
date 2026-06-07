@@ -22,6 +22,17 @@ import type { RfqListRow, PoListRow } from '../../types';
 
 type Source = 'direct' | 'rfq' | 'po';
 
+// T2-c 進貨對齊批次 2026-06-07：明細加 7 個驗收欄位（schema/dto 已備齊）
+// expectedQty 預設 = qty、actualQty 預設 null（驗收後填）、defectQty 預設 0
+// batchNo 留空時後端會依 RR 日期+lineNo 自動產（YYYYMM + 3 碼）
+// warrantyExpiredAt 留空時後端會依 part.warrantyMonths 自動算
+const DEFECT_TYPE_LABEL: Record<'D' | 'F' | 'W' | 'O', string> = {
+  D: 'D 外觀損壞',
+  F: 'F 功能異常',
+  W: 'W 規格不符',
+  O: 'O 其他',
+};
+
 type Line = {
   key: string;
   partId: string;
@@ -32,6 +43,14 @@ type Line = {
   unitCost: string;
   poItemId?: string | null;
   rfqItemId?: string | null;
+  // T2-c 驗收欄位（表單字串值、submit 時 parse）
+  expectedQty: string;
+  actualQty: string;
+  defectQty: string;
+  defectType: '' | 'D' | 'F' | 'W' | 'O';
+  defectDesc: string;
+  batchNo: string;
+  warrantyExpiredAt: string;
 };
 
 function todayYmd(): string {
@@ -109,6 +128,13 @@ export function RrNewForm() {
           unitCost: String(it.unitPrice),
           rfqItemId: it.id,
           poItemId: null,
+          expectedQty: String(it.qty),
+          actualQty: '',
+          defectQty: '0',
+          defectType: '',
+          defectDesc: '',
+          batchNo: '',
+          warrantyExpiredAt: '',
         });
       }
       if (!next.length) {
@@ -141,6 +167,13 @@ export function RrNewForm() {
           unitCost: String(it.unitCost),
           poItemId: it.id,
           rfqItemId: it.rfqItemId,
+          expectedQty: String(remain),
+          actualQty: '',
+          defectQty: '0',
+          defectType: '',
+          defectDesc: '',
+          batchNo: '',
+          warrantyExpiredAt: '',
         });
       }
       if (!next.length) {
@@ -206,6 +239,13 @@ export function RrNewForm() {
           unitCost: '0',
           poItemId: null,
           rfqItemId: null,
+          expectedQty: '1',
+          actualQty: '',
+          defectQty: '0',
+          defectType: '',
+          defectDesc: '',
+          batchNo: '',
+          warrantyExpiredAt: '',
         },
       ]);
       setPartQ('');
@@ -240,6 +280,28 @@ export function RrNewForm() {
         setError(`明細無效：${ln.partNo}`);
         return;
       }
+      // T2-c：驗收欄位 parse + 業務規則前端守一道（後端 validateDefect 也守、雙保險）
+      const expectedQty = ln.expectedQty.trim() ? Number(ln.expectedQty) : undefined;
+      const actualQty = ln.actualQty.trim() === '' ? null : Number(ln.actualQty);
+      const defectQty = ln.defectQty.trim() === '' ? 0 : Number(ln.defectQty);
+      if (!Number.isFinite(defectQty) || defectQty < 0) {
+        setError(`${ln.partNo} 瑕疵量無效`);
+        return;
+      }
+      if (defectQty > 0) {
+        if (!ln.defectType) {
+          setError(`${ln.partNo} 瑕疵量>0 請選瑕疵類型`);
+          return;
+        }
+        if (!ln.defectDesc.trim()) {
+          setError(`${ln.partNo} 瑕疵量>0 請填瑕疵描述`);
+          return;
+        }
+        if (actualQty != null && defectQty > actualQty) {
+          setError(`${ln.partNo} 瑕疵量 ${defectQty} 超過實際量 ${actualQty}`);
+          return;
+        }
+      }
       items.push({
         partId: ln.partId,
         locationId: ln.locationId,
@@ -247,6 +309,13 @@ export function RrNewForm() {
         unitCost,
         poItemId: ln.poItemId ?? undefined,
         rfqItemId: ln.rfqItemId ?? undefined,
+        expectedQty,
+        actualQty,
+        defectQty,
+        defectType: ln.defectType || null,
+        defectDesc: ln.defectDesc.trim() || null,
+        batchNo: ln.batchNo.trim() || null,
+        warrantyExpiredAt: ln.warrantyExpiredAt.trim() || null,
       });
     }
     setSaving(true);
@@ -446,46 +515,132 @@ export function RrNewForm() {
             </tr>
           </thead>
           <tbody>
-            {lines.map((ln) => (
-              <tr key={ln.key} className="border-t border-border/60">
-                <td className="py-2 font-mono text-xs">{ln.partNo}</td>
-                <td className="py-2">
-                  <select
-                    className="max-w-[140px] rounded border px-1 text-xs"
-                    value={ln.locationId}
-                    onChange={(e) =>
-                      setLines((p) => p.map((x) => (x.key === ln.key ? { ...x, locationId: e.target.value } : x)))
-                    }
-                  >
-                    <option value="">選庫位</option>
-                    {locOpts.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.code}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="py-2">
-                  <input
-                    className="w-16 rounded border px-1"
-                    value={ln.qty}
-                    onChange={(e) => setLines((p) => p.map((x) => (x.key === ln.key ? { ...x, qty: e.target.value } : x)))}
-                  />
-                </td>
-                <td className="py-2">
-                  <input
-                    className="w-20 rounded border px-1"
-                    value={ln.unitCost}
-                    onChange={(e) => setLines((p) => p.map((x) => (x.key === ln.key ? { ...x, unitCost: e.target.value } : x)))}
-                  />
-                </td>
-                <td className="py-2">
-                  <button type="button" className="text-xs text-destructive underline" onClick={() => setLines((p) => p.filter((x) => x.key !== ln.key))}>
-                    移除
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {lines.map((ln) => {
+              const patch = (k: keyof Line, v: string) =>
+                setLines((p) => p.map((x) => (x.key === ln.key ? { ...x, [k]: v } : x)));
+              const dq = Number(ln.defectQty);
+              const showDefectDetail = Number.isFinite(dq) && dq > 0;
+              return (
+                <tr key={ln.key} className="border-t border-border/60 align-top">
+                  <td className="py-2 font-mono text-xs" colSpan={5}>
+                    <div className="grid grid-cols-[110px_140px_60px_70px_1fr_auto] items-center gap-2">
+                      <span>{ln.partNo}</span>
+                      <select
+                        className="rounded border px-1 text-xs"
+                        value={ln.locationId}
+                        onChange={(e) => patch('locationId', e.target.value)}
+                      >
+                        <option value="">選庫位</option>
+                        {locOpts.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.code}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        className="w-full rounded border px-1"
+                        value={ln.qty}
+                        onChange={(e) => patch('qty', e.target.value)}
+                        title="進貨數量"
+                      />
+                      <input
+                        className="w-full rounded border px-1"
+                        value={ln.unitCost}
+                        onChange={(e) => patch('unitCost', e.target.value)}
+                        title="單位成本"
+                      />
+                      <span className="text-[10px] text-muted-foreground truncate">{ln.partName}</span>
+                      <button
+                        type="button"
+                        className="text-xs text-destructive underline"
+                        onClick={() => setLines((p) => p.filter((x) => x.key !== ln.key))}
+                      >
+                        移除
+                      </button>
+                    </div>
+                    {/* T2-c 進貨對齊批次 2026-06-07：驗收欄位（瑕疵 / 批號 / 保固到期）
+                        子排顯示：預期/實際/瑕疵 + 條件式類型/描述。
+                        批號 + 保固到期日留空時後端會自動產（YYYYMM+lineNo / part.warrantyMonths）。 */}
+                    <div className="mt-2 grid gap-2 rounded-md border border-border/40 bg-muted/10 p-2 text-xs sm:grid-cols-[1fr_1fr_1fr_140px_140px]">
+                      <label className="flex flex-col gap-0.5 text-muted-foreground">
+                        預期量
+                        <input
+                          className="rounded border bg-background px-1 py-0.5"
+                          value={ln.expectedQty}
+                          onChange={(e) => patch('expectedQty', e.target.value)}
+                          placeholder="預設 = 進貨量"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-0.5 text-muted-foreground">
+                        實際量
+                        <input
+                          className="rounded border bg-background px-1 py-0.5"
+                          value={ln.actualQty}
+                          onChange={(e) => patch('actualQty', e.target.value)}
+                          placeholder="驗收後填、留空=以數量為準"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-0.5 text-muted-foreground">
+                        瑕疵量
+                        <input
+                          className="rounded border bg-background px-1 py-0.5"
+                          value={ln.defectQty}
+                          onChange={(e) => patch('defectQty', e.target.value)}
+                        />
+                      </label>
+                      <label className="flex flex-col gap-0.5 text-muted-foreground">
+                        批號（可留空自動產）
+                        <input
+                          className="rounded border bg-background px-1 py-0.5"
+                          value={ln.batchNo}
+                          onChange={(e) => patch('batchNo', e.target.value)}
+                          maxLength={30}
+                          placeholder="YYYYMM + 流水"
+                        />
+                      </label>
+                      <label className="flex flex-col gap-0.5 text-muted-foreground">
+                        保固到期日（可留空自動算）
+                        <input
+                          type="date"
+                          className="rounded border bg-background px-1 py-0.5"
+                          value={ln.warrantyExpiredAt}
+                          onChange={(e) => patch('warrantyExpiredAt', e.target.value)}
+                        />
+                      </label>
+                      {showDefectDetail ? (
+                        <>
+                          <label className="flex flex-col gap-0.5 text-amber-300 sm:col-span-2">
+                            瑕疵類型 <span className="text-amber-400">*</span>
+                            <select
+                              className="rounded border bg-background px-1 py-0.5 text-foreground"
+                              value={ln.defectType}
+                              onChange={(e) => patch('defectType', e.target.value)}
+                            >
+                              <option value="">請選</option>
+                              {(['D', 'F', 'W', 'O'] as const).map((k) => (
+                                <option key={k} value={k}>
+                                  {DEFECT_TYPE_LABEL[k]}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="flex flex-col gap-0.5 text-amber-300 sm:col-span-3">
+                            瑕疵描述 <span className="text-amber-400">*</span>
+                            <input
+                              className="rounded border bg-background px-1 py-0.5 text-foreground"
+                              value={ln.defectDesc}
+                              onChange={(e) => patch('defectDesc', e.target.value)}
+                              maxLength={200}
+                              placeholder="例：5 個外觀刮傷 / 1 個無法啟動"
+                            />
+                          </label>
+                        </>
+                      ) : null}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
