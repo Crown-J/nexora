@@ -837,6 +837,14 @@ model Nx01Part {
   priceUpdatedAt                  DateTime?              @map("price_updated_at")
   /// 建議售價最後更新人（採購組長，使用者ID）。；啟用最低需求版本：LITE-CORE
   priceUpdatedBy                  String?                @map("price_updated_by") @db.VarChar(15)
+  /// 最後進貨時間（驗收入庫過帳時自動寫、取單據業務日期 inboundDate；02 第四批 軌 3b 2026-06-07 新增）
+  /// 業務員業績指標：看「最後一次進貨」是何時、判斷補貨節奏。
+  /// 寫入點：Nx03Inbound 從 INSPECTING → POSTED 時、applyInboundPosting 內 ledger 寫完後更新（取 max 防舊單覆蓋新單）。
+  lastPurchaseAt                  DateTime?              @map("last_purchase_at")
+  /// 最後銷售時間（出貨過帳時自動寫、取單據業務日期 outboundDate；02 第四批 軌 3b 2026-06-07 新增）
+  /// 業務員業績指標：看「最後一次賣出」是何時、判斷滯銷風險。
+  /// 寫入點：Nx03Outbound 從 PACKED → SHIPPED 時、applyOutboundShipping 內 ledger 寫完後更新（取 max 防舊單覆蓋新單）。
+  lastSaleAt                      DateTime?              @map("last_sale_at")
   tenant                          Nx99Tenant             @relation("R_Nx01Part_tenantId", fields: [tenantId], references: [id])
   codeRule                        Nx01BrandCodeRule?     @relation("R_Nx01Part_codeRuleId", fields: [codeRuleId], references: [id])
   country                         Nx01Country?           @relation("R_Nx01Part_countryId", fields: [countryId], references: [id])

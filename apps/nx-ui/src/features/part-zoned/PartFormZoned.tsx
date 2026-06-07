@@ -264,14 +264,22 @@ export function PartFormZoned({
             );
           }
 
-          // priceUpdatedAt/By 永遠 browse-only（service 自動寫）
-          if (f.key === 'priceUpdatedAt' || f.key === 'priceUpdatedBy') {
+          // priceUpdatedAt/By + lastPurchaseAt/SaleAt 永遠 browse-only（service 自動寫）
+          // 02 第四批 軌 3b 2026-06-07：新增最後進貨/銷售時間（採購頁 / 銷貨頁分別顯示）
+          if (
+            f.key === 'priceUpdatedAt' ||
+            f.key === 'priceUpdatedBy' ||
+            f.key === 'lastPurchaseAt' ||
+            f.key === 'lastSaleAt'
+          ) {
+            const isDateField =
+              f.key === 'priceUpdatedAt' || f.key === 'lastPurchaseAt' || f.key === 'lastSaleAt';
             return (
               <FormField
                 key={f.key}
                 label={f.label}
                 value={String(draft[f.key] ?? '—') || '—'}
-                mono={f.key === 'priceUpdatedAt'}
+                mono={isDateField}
                 dim
               />
             );

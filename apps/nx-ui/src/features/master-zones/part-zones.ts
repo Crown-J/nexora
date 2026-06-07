@@ -84,9 +84,13 @@ export const PART_FIELDS: FieldDef<PartZone>[] = [
   { key: 'priceD', label: 'D 級售價', zone: 'sales' },
   { key: 'priceUpdatedAt', label: '售價更新時間', zone: 'sales' },
   { key: 'priceUpdatedBy', label: '售價更新人', zone: 'sales' },
+  // 02 第四批 軌 3b 2026-06-07：最後銷售時間（出貨過帳自動寫、唯讀、業績指標）
+  { key: 'lastSaleAt', label: '最後銷售時間', zone: 'sales', notes: '出貨過帳自動寫、唯讀（取單據業務日 outboundDate、max）' },
 
   // ─── purchase 採購區（決策 3.2 屏障 1：只放進貨模組頁）───
   { key: 'cost', label: '進貨成本', zone: 'purchase', notes: '業務員填、價格重算基準' },
+  // 02 第四批 軌 3b 2026-06-07：最後進貨時間（驗收入庫過帳自動寫、唯讀、業績指標）
+  { key: 'lastPurchaseAt', label: '最後進貨時間', zone: 'purchase', notes: '驗收入庫過帳自動寫、唯讀（取單據業務日 inboundDate、max）' },
 
   // ─── inventory 庫存區 ───
   { key: 'returnPolicy', label: '退貨政策', zone: 'inventory', required: true, notes: 'F/S/R/N/W、影響貼紙' },

@@ -139,6 +139,18 @@ export class OutboundService {
         sourceItemId: item.id,
       });
     }
+
+    // 02 第四批 軌 3b 2026-06-07：更新 part.lastSaleAt（取單據業務日 outboundDate、max 防舊單覆蓋新單）
+    const partIds = Array.from(new Set(items.map((it) => it.partId)));
+    if (partIds.length > 0) {
+      await tx.nx01Part.updateMany({
+        where: {
+          id: { in: partIds },
+          OR: [{ lastSaleAt: null }, { lastSaleAt: { lt: ob.outboundDate } }],
+        },
+        data: { lastSaleAt: ob.outboundDate },
+      });
+    }
   }
 
   private mapDetail(row: { rev_Nx03OutboundItem_outboundId: unknown[] } & Record<string, unknown>) {

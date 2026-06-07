@@ -75,8 +75,15 @@ export function emptyPartDraft(): PartDraft {
  * - editableZones=Set 時、只送該 zones 內的 scalar 欄位
  * - 編輯模式 code 鎖死（lockedOnEdit）
  * - priceUpdatedAt/By 永遠不送（service 自動寫）
+ * - lastPurchaseAt/SaleAt 永遠不送（service 自動寫、02 第四批 軌 3b 新增）
  */
-const AUTO_FILLED_BY_SERVICE = new Set(['priceUpdatedAt', 'priceUpdatedBy']);
+const AUTO_FILLED_BY_SERVICE = new Set([
+  'priceUpdatedAt',
+  'priceUpdatedBy',
+  // 02 第四批 軌 3b 2026-06-07：最後進貨/銷售時間（service 自動寫）
+  'lastPurchaseAt',
+  'lastSaleAt',
+]);
 
 export function partDraftToBody(
   draft: PartDraft,

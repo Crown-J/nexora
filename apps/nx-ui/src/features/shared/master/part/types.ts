@@ -50,6 +50,9 @@ export type PartDto = {
   priceD: string | null;
   priceUpdatedAt: string | null;
   priceUpdatedBy: string | null;
+  // 02 第四批 軌 3b 2026-06-07：最後進貨/銷售時間（service 自動寫、業務員業績指標）
+  lastPurchaseAt: string | null;
+  lastSaleAt: string | null;
 
   // v1.2 階段 E P3 補（DTO 已支援、types 對齊）
   cost: string | null;

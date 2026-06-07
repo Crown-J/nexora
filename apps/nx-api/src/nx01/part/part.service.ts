@@ -46,6 +46,9 @@ const SEL = {
   priceD: true,
   priceUpdatedAt: true,
   priceUpdatedBy: true,
+  // 02 第四批 軌 3b 2026-06-07：最後進貨/銷售時間（service 自動寫、業務員業績指標）
+  lastPurchaseAt: true,
+  lastSaleAt: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
