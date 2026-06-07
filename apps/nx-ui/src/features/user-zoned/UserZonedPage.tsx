@@ -20,12 +20,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, Warehouse as WarehouseIcon } from 'lucide-react';
+import { Briefcase, UsersRound, Warehouse as WarehouseIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { USER_FIELDS, type UserZone } from '@/features/master-zones';
 // 02 第四批 軌 1 2026-06-07：員工列表姓名前小圓頭像
 import { UserAvatarSmall } from '@/features/shared/user-photo/UserPhotoManager';
+// 05 批 T3 2026-06-07：UserTeam 衛星 API（員工隸屬組 m-n、主組旗標、isLeader、自動帶 hrDepartmentId）
+import {
+  assignUserTeam,
+  listUserTeams,
+  revokeUserTeam,
+  setUserTeamLeader,
+  setUserTeamPrimary,
+  type UserTeamDto,
+} from '@/features/base/api/user-team';
+import { listTeams as listTeamsApi, type TeamDto } from '@/features/base/api/team';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -144,6 +154,12 @@ export function UserZonedPage({
   const [rolePickerOpen, setRolePickerOpen] = useState(false);
   const [warehousePickerOpen, setWarehousePickerOpen] = useState(false);
 
+  // 05 批 T3 2026-06-07：UserTeam 衛星即時範式（非 staged、寫操作直接 PATCH）
+  // 理由：「組」操作頻率低於職務、即時範式複雜度大幅降低；後續可再考慮對齊 staged。
+  const [selectedUserTeams, setSelectedUserTeams] = useState<UserTeamDto[]>([]);
+  const [teamsReloadTick, setTeamsReloadTick] = useState(0);
+  const [teamPickerOpen, setTeamPickerOpen] = useState(false);
+
   const sidebarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -243,6 +259,26 @@ export function UserZonedPage({
       alive = false;
     };
   }, [selectedId, tab, warehousesReloadTick]);
+
+  // 05 批 T3 2026-06-07：載入 selected user 的 teams（permission zone 顯示）
+  useEffect(() => {
+    if (!selectedId || tab !== 'detail') {
+      setSelectedUserTeams([]);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await listUserTeams({ userId: selectedId, isActive: true, pageSize: 100 });
+        if (alive) setSelectedUserTeams(res.items);
+      } catch {
+        if (alive) setSelectedUserTeams([]);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [selectedId, tab, teamsReloadTick]);
 
   // 切換 selected / 退出編輯 → 清 staged ops
   useEffect(() => {
@@ -453,6 +489,108 @@ export function UserZonedPage({
       return [...prev, { kind: 'remove', userWarehouseId: uw.id }];
     });
   }, []);
+
+  // 05 批 T3 2026-06-07：UserTeam 即時 PATCH handlers（非 staged、寫操作直接落地）
+  const handleTeamPickerSearch = useCallback(
+    (q: string) => listTeamsApi({ q: q || undefined, isActive: true, pageSize: 50 }),
+    [],
+  );
+
+  const effectiveAssignedTeamIds = useMemo(
+    () => new Set(selectedUserTeams.map((ut) => ut.teamId)),
+    [selectedUserTeams],
+  );
+
+  /**
+   * Picker apply：add → 立即 assign；remove → 立即 revoke。
+   * 與 role staged 範式不同（即時範式、保 user.departmentId 同步即時生效）。
+   */
+  const handleTeamPickerApply = useCallback(
+    async (added: TeamDto[], removedTeamIds: string[]) => {
+      if (!selectedId) return;
+      let ok = 0;
+      let fail = 0;
+      for (const t of added) {
+        try {
+          await assignUserTeam({ userId: selectedId, teamId: t.id });
+          ok++;
+        } catch {
+          fail++;
+        }
+      }
+      for (const teamId of removedTeamIds) {
+        const ut = selectedUserTeams.find((x) => x.teamId === teamId);
+        if (!ut) continue;
+        try {
+          await revokeUserTeam(ut.id);
+          ok++;
+        } catch {
+          fail++;
+        }
+      }
+      if (fail === 0 && ok > 0) showToast(`已套用 ${ok} 個變更`, 'success');
+      else if (fail > 0) showToast(`部分失敗：成功 ${ok} / 失敗 ${fail}`, 'danger');
+      setTeamsReloadTick((t) => t + 1);
+      setReloadTick((t) => t + 1); // user.departmentId 已自動同步、重 fetch user
+    },
+    [selectedId, selectedUserTeams, showToast],
+  );
+
+  const handleRevokeTeam = useCallback(
+    (ut: UserTeamDto) => {
+      setConfirm({
+        title: '撤銷組',
+        message: `確定將「${ut.teamName ?? ut.teamCode ?? ut.teamId}」從此員工撤銷？（軟刪除、保留紀錄${ut.isPrimary ? '；主組撤銷後系統自動把剩餘最新組設為主組' : ''}）`,
+        confirmLabel: '撤銷',
+        variant: 'danger',
+        onConfirm: () => {
+          void (async () => {
+            try {
+              await revokeUserTeam(ut.id);
+              showToast('已撤銷', 'success');
+              setTeamsReloadTick((t) => t + 1);
+              setReloadTick((t) => t + 1);
+            } catch (e) {
+              showToast((e as Error)?.message ?? '撤銷失敗', 'danger');
+            }
+          })();
+        },
+      });
+    },
+    [showToast],
+  );
+
+  const handleSetTeamPrimary = useCallback(
+    (ut: UserTeamDto) => {
+      if (ut.isPrimary) return;
+      void (async () => {
+        try {
+          await setUserTeamPrimary(ut.id, true);
+          showToast(`已設「${ut.teamName ?? ut.teamCode}」為主組`, 'success');
+          setTeamsReloadTick((t) => t + 1);
+          setReloadTick((t) => t + 1); // user.departmentId 同步
+        } catch (e) {
+          showToast((e as Error)?.message ?? '設主組失敗', 'danger');
+        }
+      })();
+    },
+    [showToast],
+  );
+
+  const handleToggleTeamLeader = useCallback(
+    (ut: UserTeamDto) => {
+      void (async () => {
+        try {
+          await setUserTeamLeader(ut.id, !ut.isLeader);
+          showToast(ut.isLeader ? '已取消組長' : '已標記為組長', 'success');
+          setTeamsReloadTick((t) => t + 1);
+        } catch (e) {
+          showToast((e as Error)?.message ?? '組長切換失敗', 'danger');
+        }
+      })();
+    },
+    [showToast],
+  );
 
   const handleEdit = useCallback(() => {
     if (!selected) return;
@@ -911,6 +1049,12 @@ export function UserZonedPage({
             onSetRolePrimary={handleSetRolePrimary}
             onRevokeRole={handleRevokeRole}
             onRevokeWarehouse={handleRevokeWarehouse}
+            // 05 批 T3 2026-06-07：teams 即時範式
+            selectedUserTeams={selectedUserTeams}
+            onOpenTeamPicker={() => setTeamPickerOpen(true)}
+            onSetTeamPrimary={handleSetTeamPrimary}
+            onToggleTeamLeader={handleToggleTeamLeader}
+            onRevokeTeam={handleRevokeTeam}
             onRequestSave={handleSave}
           />
         )}
@@ -970,6 +1114,27 @@ export function UserZonedPage({
           )
         }
       />
+      {/* 05 批 T3 2026-06-07：組 picker（即時 PATCH 範式、apply 後立即寫 DB） */}
+      <EntityPickerDialog<TeamDto>
+        open={teamPickerOpen}
+        onClose={() => setTeamPickerOpen(false)}
+        title="管理隸屬組"
+        subtitle="Manage Teams"
+        icon={UsersRound}
+        searchPlaceholder="搜尋組代碼 / 名稱..."
+        search={handleTeamPickerSearch}
+        getId={(t) => t.id}
+        getLabel={(t) => t.name}
+        getDescription={(t) => (t.departmentName ? `${t.code} · ${t.departmentName}` : t.code)}
+        preselectedIds={effectiveAssignedTeamIds}
+        onApplyChanges={handleTeamPickerApply}
+        onApplied={(addedCount, removedCount) =>
+          showToast(
+            `已套用：新增 ${addedCount} · 撤銷 ${removedCount}（立即寫入、主組決定員工部門）`,
+            'success',
+          )
+        }
+      />
       <nav ref={sidebarRef} className="sr-only" aria-hidden />
     </div>
   );
@@ -997,6 +1162,12 @@ function DetailPane({
   onSetRolePrimary,
   onRevokeRole,
   onRevokeWarehouse,
+  // 05 批 T3 2026-06-07：teams 即時範式
+  selectedUserTeams,
+  onOpenTeamPicker,
+  onSetTeamPrimary,
+  onToggleTeamLeader,
+  onRevokeTeam,
   onRequestSave,
 }: {
   creating: boolean;
@@ -1020,6 +1191,12 @@ function DetailPane({
   onSetRolePrimary: (role: UserRoleDto) => void;
   onRevokeRole: (role: UserRoleDto) => void;
   onRevokeWarehouse: (uw: UserWarehouseDto) => void;
+  // 05 批 T3 2026-06-07：teams 即時範式 props
+  selectedUserTeams: UserTeamDto[];
+  onOpenTeamPicker: () => void;
+  onSetTeamPrimary: (ut: UserTeamDto) => void;
+  onToggleTeamLeader: (ut: UserTeamDto) => void;
+  onRevokeTeam: (ut: UserTeamDto) => void;
   onRequestSave: () => void;
 }) {
   const formRef = useRef<HTMLDivElement>(null);
@@ -1085,6 +1262,12 @@ function DetailPane({
             onSetRolePrimary={onSetRolePrimary}
             onRevokeRole={onRevokeRole}
             onRevokeWarehouse={onRevokeWarehouse}
+            // 05 批 T3 2026-06-07：teams 即時範式（permission zone TeamsInlineSection）
+            selectedUserTeams={selectedUserTeams}
+            onOpenTeamPicker={onOpenTeamPicker}
+            onSetTeamPrimary={onSetTeamPrimary}
+            onToggleTeamLeader={onToggleTeamLeader}
+            onRevokeTeam={onRevokeTeam}
           />
         </div>
         {!creating && selected ? (

@@ -25,6 +25,8 @@ import { type RoleDto } from '@/features/base/api/role';
 import { type UserRoleDto } from '@/features/base/api/user-role';
 import { type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { type WarehouseDto } from '@/features/base/api/warehouse';
+// 05 批 T3 2026-06-07：teams 即時範式 inline 渲染
+import { type UserTeamDto } from '@/features/base/api/user-team';
 import Link from 'next/link';
 import { ImageIcon } from 'lucide-react';
 
@@ -73,6 +75,12 @@ export type UserFormZonedProps = {
   onSetRolePrimary?: (role: UserRoleDto) => void;
   onRevokeRole?: (role: UserRoleDto) => void;
   onRevokeWarehouse?: (uw: UserWarehouseDto) => void;
+  // 05 批 T3 2026-06-07：teams 即時範式（permission zone inline）
+  selectedUserTeams?: UserTeamDto[];
+  onOpenTeamPicker?: () => void;
+  onSetTeamPrimary?: (ut: UserTeamDto) => void;
+  onToggleTeamLeader?: (ut: UserTeamDto) => void;
+  onRevokeTeam?: (ut: UserTeamDto) => void;
 };
 
 export function UserFormZoned({
@@ -97,6 +105,12 @@ export function UserFormZoned({
   onSetRolePrimary,
   onRevokeRole,
   onRevokeWarehouse,
+  // 05 批 T3 2026-06-07：teams 即時範式
+  selectedUserTeams,
+  onOpenTeamPicker,
+  onSetTeamPrimary,
+  onToggleTeamLeader,
+  onRevokeTeam,
 }: UserFormZonedProps) {
   const editing = mode === 'edit';
 
@@ -105,6 +119,18 @@ export function UserFormZoned({
   useEffect(() => {
     void fetchRefOptions('nx01/sites').then(setSiteOptions).catch(() => setSiteOptions([]));
   }, []);
+
+  // 05 批 T3 2026-06-07：部門下拉選項（basic zone departmentId 用、有主組時 readonly）
+  const [departmentOptions, setDepartmentOptions] = useState<SelectOption[]>([]);
+  useEffect(() => {
+    void fetchRefOptions('nx01/departments').then(setDepartmentOptions).catch(() => setDepartmentOptions([]));
+  }, []);
+
+  // 05 批 T3 2026-06-07：當前選中主組（決定 departmentId 是否走 readonly fallback）
+  const primaryTeam = useMemo(
+    () => (selectedUserTeams ?? []).find((ut) => ut.isPrimary) ?? null,
+    [selectedUserTeams],
+  );
 
   const visibleZones = useMemo<Set<UserZone>>(
     () => editableZones ?? new Set(USER_ZONES.map((z) => z.zone)),
@@ -159,6 +185,21 @@ export function UserFormZoned({
           if (ADDRESS_KEYS_HANDLED_BY_SECTION.has(f.key)) return null;
           // 衛星表
           if (f.isSatellite) {
+            // 05 批 T3 2026-06-07：teams 衛星 inline 編輯（即時 PATCH 範式、主組決定員工部門）
+            if (f.key === 'teams') {
+              return (
+                <div key={f.key} className="sm:col-span-2">
+                  <TeamsInlineSection
+                    editing={editing}
+                    items={selectedUserTeams ?? []}
+                    onOpenPicker={onOpenTeamPicker}
+                    onSetPrimary={onSetTeamPrimary}
+                    onToggleLeader={onToggleTeamLeader}
+                    onRevoke={onRevokeTeam}
+                  />
+                </div>
+              );
+            }
             // B2~B5：roles 衛星改為 inline 編輯區（從舊版 UserMasterPage 移植）
             if (f.key === 'roles') {
               return (
@@ -197,6 +238,50 @@ export function UserFormZoned({
           //   現解鎖、依賴 schema @@unique[tenantId, userAccount] + service 端 ConflictException 防衝突
           const lockedNow = false;
           const fieldEditable = editing && isWritable && zoneEditable && !lockedNow;
+
+          // 05 批 T3 2026-06-07：departmentId 特殊處理
+          //   - 有主組（primaryTeam）→ readonly + 顯示「from 主組」徽章
+          //   - 無主組 → ref dropdown 編輯（fallback、行政員工手動設）
+          if (f.key === 'departmentId') {
+            const draftValue = String(draft[f.key] ?? '');
+            const effectiveValue = primaryTeam?.departmentId ?? draftValue;
+            const matched = departmentOptions.find((o) => String(o.value) === effectiveValue);
+            const labelText = matched?.label ?? (effectiveValue || '—');
+            if (primaryTeam) {
+              // 唯讀（顯示主組部門 + 來源徽章）
+              return (
+                <FieldShell key={f.key} label={f.label}>
+                  <div className="flex items-center gap-2 rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40 px-2.5 py-1.5">
+                    <span className="text-sm text-[#E8E8EB]">{primaryTeam.departmentName ?? labelText}</span>
+                    <span className="ml-auto rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[#E8A020]">
+                      自動帶（主組）
+                    </span>
+                  </div>
+                </FieldShell>
+              );
+            }
+            // 無主組 → fallback editable
+            if (fieldEditable) {
+              return (
+                <FieldShell key={f.key} label={f.label}>
+                  <select
+                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 text-sm text-[#E8E8EB] outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                    value={draftValue}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                  >
+                    <option value="">（未指定）</option>
+                    {departmentOptions.map((opt) => (
+                      <option key={String(opt.value)} value={String(opt.value)} className="bg-[#131316]">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-[#5A5A60]">無主組 fallback、行政員工手動設</span>
+                </FieldShell>
+              );
+            }
+            return <FormField key={f.key} label={f.label} value={labelText || '—'} />;
+          }
 
           // 02 第四批 軌 1 2026-06-07：primarySiteId 走「ref 下拉」、不走純文字 input
           if (f.key === 'primarySiteId') {
@@ -676,6 +761,147 @@ function FieldShell({
         {label + (required ? ' *' : '')}
       </span>
       {children}
+    </div>
+  );
+}
+
+// 05 批 T3 2026-06-07：員工隸屬組 inline 區塊（permission zone、即時 PATCH 範式）
+// 與 RolesInlineSection 的差異：本元件操作即時生效（assign/revoke/setPrimary/setLeader 直接 PATCH）、無 staged 暫存。
+function TeamsInlineSection({
+  editing,
+  items,
+  onOpenPicker,
+  onSetPrimary,
+  onToggleLeader,
+  onRevoke,
+}: {
+  editing: boolean;
+  items: UserTeamDto[];
+  onOpenPicker?: () => void;
+  onSetPrimary?: (ut: UserTeamDto) => void;
+  onToggleLeader?: (ut: UserTeamDto) => void;
+  onRevoke?: (ut: UserTeamDto) => void;
+}) {
+  const primary = items.find((ut) => ut.isPrimary);
+  return (
+    <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40">
+      <div className="flex items-center justify-between border-b border-[#2A2A30] px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#E8E8EB]">
+            隸屬組
+          </span>
+          <span className="rounded bg-[#2A2A30] px-1.5 py-0.5 text-[10px] text-[#B8B8C0]">
+            {items.length} 筆
+          </span>
+          {primary?.departmentName ? (
+            <span className="ml-1 text-[10px] text-[#5A5A60]">
+              主組決定員工部門：{primary.departmentName}
+            </span>
+          ) : null}
+        </div>
+        {editing && onOpenPicker ? (
+          <button
+            type="button"
+            onClick={onOpenPicker}
+            data-formchain="3"
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/12 px-2.5 text-[11px] font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
+          >
+            設定組
+          </button>
+        ) : null}
+      </div>
+      <div className="px-3 py-2.5">
+        {items.length === 0 ? (
+          <div className="text-xs text-[#5A5A60]">
+            尚未指派組（員工部門可由「基本資料 → 部門」手動設定 fallback）
+          </div>
+        ) : (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wider text-[#5A5A60]">
+                <th className="py-1.5 pr-3">組代碼</th>
+                <th className="py-1.5 pr-3">組名</th>
+                <th className="py-1.5 pr-3">隸屬部門</th>
+                <th className="py-1.5 pr-3">主組</th>
+                <th className="py-1.5 pr-3">組長</th>
+                <th className="py-1.5 pr-3">指派時間</th>
+                {editing ? <th className="py-1.5">操作</th> : null}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((ut) => (
+                <tr key={ut.id} className="border-t border-[#2A2A30]/60">
+                  <td className="py-1.5 pr-3 font-mono text-[#888892]">{ut.teamCode ?? '—'}</td>
+                  <td className="py-1.5 pr-3">{ut.teamName ?? '—'}</td>
+                  <td className="py-1.5 pr-3 text-[#888892]">{ut.departmentName ?? '—'}</td>
+                  <td className="py-1.5 pr-3">
+                    {ut.isPrimary ? (
+                      <span className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] text-[#E8A020]">
+                        主組
+                      </span>
+                    ) : (
+                      <span className="text-[#5A5A60]">—</span>
+                    )}
+                  </td>
+                  <td className="py-1.5 pr-3">
+                    {ut.isLeader ? (
+                      <span className="rounded border border-[#22D88F]/40 bg-[#22D88F]/10 px-1.5 py-0.5 text-[10px] text-[#22D88F]">
+                        組長
+                      </span>
+                    ) : (
+                      <span className="text-[#5A5A60]">—</span>
+                    )}
+                  </td>
+                  <td className="py-1.5 pr-3 text-[#888892]">
+                    {ut.assignedAt ? formatDateTimeZh(ut.assignedAt) : '—'}
+                  </td>
+                  {editing ? (
+                    <td className="py-1.5">
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          disabled={ut.isPrimary}
+                          onClick={() => onSetPrimary?.(ut)}
+                          title={ut.isPrimary ? '已是主組' : '設為主組（自動帶員工部門）'}
+                          className={cn(
+                            'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
+                            ut.isPrimary
+                              ? 'cursor-not-allowed border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]/60'
+                              : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+                          )}
+                        >
+                          {ut.isPrimary ? '主組' : '設為主組'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onToggleLeader?.(ut)}
+                          title={ut.isLeader ? '取消組長' : '標記為組長（影響公告對象）'}
+                          className={cn(
+                            'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
+                            ut.isLeader
+                              ? 'border-[#22D88F]/40 bg-[#22D88F]/12 text-[#22D88F] hover:bg-[#22D88F]/20'
+                              : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#22D88F]/40 hover:bg-[#22D88F]/10 hover:text-[#22D88F]',
+                          )}
+                        >
+                          {ut.isLeader ? '組長' : '設組長'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onRevoke?.(ut)}
+                          title="撤銷此組（軟刪除、保留紀錄）"
+                          className="inline-flex h-6 items-center rounded-md border border-[#5A2A2A] bg-[#1F1212] px-2 text-[10px] font-medium text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]"
+                        >
+                          撤銷
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }
