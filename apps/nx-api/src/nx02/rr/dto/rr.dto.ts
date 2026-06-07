@@ -3,12 +3,18 @@ import {
   ArrayMinSize,
   IsArray,
   IsDateString,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+
+// T2-b 進貨對齊批次 2026-06-07：驗收欄位後端補（5 欄）
+// 業務規則：defectQty>0 時 defectType+defectDesc 必填；warrantyExpiredAt 預設由 part.warrantyMonths 自動算；
+//          batchNo 預設由 service 依 RR 日期 + line_no 自動產（YYYYMM + 3 碼）。
+const DEFECT_TYPES = ['D', 'F', 'W', 'O'] as const;
 
 export class CreateRrItemDto {
   @IsString()
@@ -33,6 +39,30 @@ export class CreateRrItemDto {
   @IsOptional()
   @IsNumber()
   actualQty?: number | null;
+
+  // T2-b：瑕疵 / 批號 / 保固 5 欄
+  @IsOptional()
+  @IsNumber()
+  defectQty?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(DEFECT_TYPES as unknown as string[])
+  defectType?: 'D' | 'F' | 'W' | 'O' | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  defectDesc?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  batchNo?: string | null;
+
+  @IsOptional()
+  @IsDateString()
+  warrantyExpiredAt?: string | null;
 
   @IsOptional()
   @IsString()
@@ -119,6 +149,30 @@ export class PatchRrItemDto {
   @IsOptional()
   @IsNumber()
   actualQty?: number | null;
+
+  // T2-b：瑕疵 / 批號 / 保固 5 欄
+  @IsOptional()
+  @IsNumber()
+  defectQty?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(DEFECT_TYPES as unknown as string[])
+  defectType?: 'D' | 'F' | 'W' | 'O' | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  defectDesc?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  batchNo?: string | null;
+
+  @IsOptional()
+  @IsDateString()
+  warrantyExpiredAt?: string | null;
 
   @IsOptional()
   @IsString()

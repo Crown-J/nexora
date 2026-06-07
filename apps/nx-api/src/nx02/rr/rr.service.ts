@@ -63,6 +63,12 @@ const RR_ITEM_SEL = {
   lineAmount: true,
   expectedQty: true,
   actualQty: true,
+  // T2-b 進貨對齊批次 2026-06-07：驗收欄位（瑕疵 / 批號 / 保固到期）
+  defectQty: true,
+  defectType: true,
+  defectDesc: true,
+  batchNo: true,
+  warrantyExpiredAt: true,
   remark: true,
   createdAt: true,
   createdBy: true,
@@ -100,10 +106,61 @@ export class RrService {
   private async loadPartSnapshot(tx: Prisma.TransactionClient, tenantId: string, partId: string) {
     const p = await tx.nx01Part.findFirst({
       where: { id: partId, tenantId },
-      select: { code: true, name: true },
+      select: { code: true, name: true, warrantyMonths: true },
     });
     if (!p) throw new NotFoundException(`Part ${partId} not found`);
-    return { partNo: p.code, partName: p.name };
+    return { partNo: p.code, partName: p.name, warrantyMonths: p.warrantyMonths };
+  }
+
+  /**
+   * T2-b 進貨對齊批次 2026-06-07：保固到期日自動算。
+   * warrantyMonths=0 視為「不保固」回 null；否則 rrDate + warrantyMonths 月。
+   */
+  private calcWarrantyExpiredAt(rrDate: Date, warrantyMonths: number): Date | null {
+    if (!warrantyMonths || warrantyMonths <= 0) return null;
+    const d = new Date(rrDate);
+    d.setMonth(d.getMonth() + warrantyMonths);
+    return d;
+  }
+
+  /**
+   * T2-b 進貨對齊批次 2026-06-07：批號自動產（YYYYMM + 3 碼 lineNo）。
+   * 例：rrDate=2026-06-07, lineNo=1 → "202606001"
+   */
+  private genBatchNo(rrDate: Date, lineNo: number): string {
+    const y = rrDate.getFullYear();
+    const m = String(rrDate.getMonth() + 1).padStart(2, '0');
+    const n = String(lineNo).padStart(3, '0');
+    return `${y}${m}${n}`;
+  }
+
+  /**
+   * T2-b 進貨對齊批次 2026-06-07：驗收欄位業務規則驗證。
+   * - defectQty 為負 → 拒
+   * - defectQty>0 必填 defectType + defectDesc（schema 註解明示）
+   * - defectQty>0 且 actualQty 存在 → defectQty <= actualQty（驗收後才知道實際瑕疵）
+   * - defectType 必須在 [D, F, W, O] 之內（dto 已守、service 不重複）
+   */
+  private validateDefect(args: {
+    partNo: string;
+    defectQty?: number | null;
+    defectType?: string | null;
+    defectDesc?: string | null;
+    actualQty?: number | null;
+  }): void {
+    const dq = args.defectQty;
+    if (dq == null) return;
+    if (dq < 0) throw new BadRequestException(`${args.partNo} defectQty 不可為負`);
+    if (dq === 0) return;
+    if (!args.defectType?.trim()) {
+      throw new BadRequestException(`${args.partNo} defectQty>0 必填 defectType（D/F/W/O）`);
+    }
+    if (!args.defectDesc?.trim()) {
+      throw new BadRequestException(`${args.partNo} defectQty>0 必填 defectDesc`);
+    }
+    if (args.actualQty != null && dq > args.actualQty) {
+      throw new BadRequestException(`${args.partNo} defectQty (${dq}) 不可超過 actualQty (${args.actualQty})`);
+    }
   }
 
   private async recalcRrTotals(tx: Prisma.TransactionClient, rrId: string, taxRate: PrismaNs.Decimal) {
@@ -356,6 +413,7 @@ export class RrService {
         },
         select: RR_SEL,
       });
+      const rrDate = new Date(dto.rrDate);
       let line = 1;
       for (const it of dto.items) {
         const loc = await tx.nx01Location.findFirst({
@@ -368,10 +426,20 @@ export class RrService {
         const unit = new PrismaNs.Decimal(it.unitPriceSnapshot);
         const expQ = it.expectedQty != null ? new PrismaNs.Decimal(it.expectedQty) : qty;
         const lineAmount = this.lineAmount(qty, unit);
+        // T2-b：驗收欄位（瑕疵驗證 / 保固到期 / 批號 預設自動產）
+        this.validateDefect({ partNo: snap.partNo, defectQty: it.defectQty, defectType: it.defectType, defectDesc: it.defectDesc, actualQty: it.actualQty });
+        const lineNo = line++;
+        const batchNo = it.batchNo?.trim() || this.genBatchNo(rrDate, lineNo);
+        const warrantyExpiredAt =
+          it.warrantyExpiredAt !== undefined
+            ? it.warrantyExpiredAt
+              ? new Date(it.warrantyExpiredAt)
+              : null
+            : this.calcWarrantyExpiredAt(rrDate, snap.warrantyMonths);
         await tx.nx02RrItem.create({
           data: {
             rrId: rr.id,
-            lineNo: line++,
+            lineNo,
             partId: it.partId.trim(),
             partNo: snap.partNo,
             partName: snap.partName,
@@ -386,6 +454,12 @@ export class RrService {
             lineAmount,
             expectedQty: expQ,
             actualQty: it.actualQty != null ? new PrismaNs.Decimal(it.actualQty) : null,
+            // T2-b 驗收欄位
+            defectQty: it.defectQty != null ? new PrismaNs.Decimal(it.defectQty) : new PrismaNs.Decimal(0),
+            defectType: it.defectType ?? null,
+            defectDesc: it.defectDesc?.trim() || null,
+            batchNo,
+            warrantyExpiredAt,
             remark: it.remark?.trim() || null,
             createdBy: user.sub,
             updatedBy: user.sub,
@@ -523,6 +597,16 @@ export class RrService {
     const unit = new PrismaNs.Decimal(dto.unitPriceSnapshot);
     const expQ = dto.expectedQty != null ? new PrismaNs.Decimal(dto.expectedQty) : qty;
     const lineAmount = this.lineAmount(qty, unit);
+    // T2-b：驗收欄位（瑕疵驗證 / 保固到期 / 批號 預設自動產）
+    this.validateDefect({ partNo: snap.partNo, defectQty: dto.defectQty, defectType: dto.defectType, defectDesc: dto.defectDesc, actualQty: dto.actualQty });
+    const rrDateForItem = rr.rrDate ?? new Date();
+    const batchNo = dto.batchNo?.trim() || this.genBatchNo(rrDateForItem, lineNo);
+    const warrantyExpiredAt =
+      dto.warrantyExpiredAt !== undefined
+        ? dto.warrantyExpiredAt
+          ? new Date(dto.warrantyExpiredAt)
+          : null
+        : this.calcWarrantyExpiredAt(rrDateForItem, snap.warrantyMonths);
     const row = await this.prisma.nx02RrItem.create({
       data: {
         rrId,
@@ -540,6 +624,12 @@ export class RrService {
         lineAmount,
         expectedQty: expQ,
         actualQty: dto.actualQty != null ? new PrismaNs.Decimal(dto.actualQty) : null,
+        // T2-b 驗收欄位
+        defectQty: dto.defectQty != null ? new PrismaNs.Decimal(dto.defectQty) : new PrismaNs.Decimal(0),
+        defectType: dto.defectType ?? null,
+        defectDesc: dto.defectDesc?.trim() || null,
+        batchNo,
+        warrantyExpiredAt,
         remark: dto.remark?.trim() || null,
         createdBy: user.sub,
         updatedBy: user.sub,
@@ -573,6 +663,16 @@ export class RrService {
     const unit =
       dto.unitPriceSnapshot !== undefined ? new PrismaNs.Decimal(dto.unitPriceSnapshot) : new PrismaNs.Decimal(existing.unitCost);
     const lineAmount = this.lineAmount(qty, unit);
+    // T2-b：驗收欄位 patch 也守瑕疵業務規則（actualQty 比對也吃 patch 後值）
+    const effectiveActualQty =
+      dto.actualQty !== undefined ? (dto.actualQty == null ? null : Number(dto.actualQty)) : existing.actualQty != null ? Number(existing.actualQty) : null;
+    this.validateDefect({
+      partNo: existing.partNo,
+      defectQty: dto.defectQty !== undefined ? dto.defectQty : Number(existing.defectQty),
+      defectType: dto.defectType !== undefined ? dto.defectType : existing.defectType,
+      defectDesc: dto.defectDesc !== undefined ? dto.defectDesc : existing.defectDesc,
+      actualQty: effectiveActualQty,
+    });
     const row = await this.prisma.nx02RrItem.update({
       where: { id: itemId },
       data: {
@@ -582,6 +682,14 @@ export class RrService {
         lineAmount,
         ...(dto.expectedQty !== undefined ? { expectedQty: new PrismaNs.Decimal(dto.expectedQty) } : {}),
         ...(dto.actualQty !== undefined ? { actualQty: dto.actualQty == null ? null : new PrismaNs.Decimal(dto.actualQty) } : {}),
+        // T2-b 驗收欄位 patch
+        ...(dto.defectQty !== undefined ? { defectQty: new PrismaNs.Decimal(dto.defectQty) } : {}),
+        ...(dto.defectType !== undefined ? { defectType: dto.defectType } : {}),
+        ...(dto.defectDesc !== undefined ? { defectDesc: dto.defectDesc } : {}),
+        ...(dto.batchNo !== undefined ? { batchNo: dto.batchNo } : {}),
+        ...(dto.warrantyExpiredAt !== undefined
+          ? { warrantyExpiredAt: dto.warrantyExpiredAt ? new Date(dto.warrantyExpiredAt) : null }
+          : {}),
         ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
         updatedBy: user.sub,
       },
