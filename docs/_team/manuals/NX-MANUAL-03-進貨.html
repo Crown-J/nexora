@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NX-MANUAL-03 進貨</title>
+<style>
+:root{--navy:#1F3A5F;--navy2:#2d4f7c;--ink:#1c2530;--sub:#5d6675;--line:#e6eaf0;--amber:#c8881f;--shell:#0e1622;
+--star-bg:#fbf3e2;--star-tx:#7a4e09;--warn-bg:#fcecec;--warn-bd:#e09a9a;--warn-tx:#962d2d;
+--note-bg:#eef1f5;--note-bd:#c3ccd8;--note-tx:#4a5563;--info-bg:#e6f1fb;--info-tx:#0c447c;--green-bg:#eaf3de;--green-tx:#3b6d11;}
+*{box-sizing:border-box;} html{scroll-behavior:smooth;}
+body{margin:0;background:#f4f6f9;color:var(--ink);font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;line-height:1.78;font-size:16px;}
+a{color:inherit;}
+.topbar{position:sticky;top:0;z-index:20;background:var(--shell);display:flex;align-items:center;gap:4px;padding:0 16px;height:54px;overflow-x:auto;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.topbar .mk{display:flex;align-items:center;gap:9px;margin-right:10px;flex:none;}
+.topbar .mk .logo{width:30px;height:30px;border-radius:7px;background:#0a0c10;border:1.5px solid var(--amber);color:#f0b94e;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.topbar .mk .nm{color:#eef3f8;font-size:14px;font-weight:600;letter-spacing:.05em;white-space:nowrap;}
+.topbar nav{display:flex;gap:2px;}
+.topbar nav a{color:#9fb0c4;font-size:13px;padding:7px 13px;border-radius:6px;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;}
+.topbar nav a:hover{color:#fff;background:rgba(255,255,255,.06);}
+.topbar nav a.active{color:#fff;background:rgba(200,136,31,.16);border-bottom-color:var(--amber);}
+.wrap{max-width:900px;margin:0 auto;padding:0 32px 120px;}
+.cover{padding:46px 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px;}
+.cover-tag{display:inline-block;font-size:13px;letter-spacing:.14em;color:var(--amber);border:1px solid var(--amber);border-radius:20px;padding:4px 14px;margin-bottom:18px;}
+.cover-title{font-size:38px;color:var(--navy);margin:0;font-weight:700;}
+.cover-name{font-size:23px;color:var(--navy2);margin:2px 0 14px;font-weight:600;}
+.ver{border-collapse:collapse;font-size:13px;margin:6px 0 16px;}
+.ver td{border:1px solid var(--line);padding:5px 12px;}
+.ver .vk{background:#f3f6fa;color:var(--navy);font-weight:600;}
+.cover-sub{color:var(--sub);font-size:15px;line-height:1.9;margin:0;}
+.clog{margin:18px 0 6px;}
+.clog-h{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+h1.chap{font-size:25px;color:var(--navy);margin:54px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--navy);font-weight:700;scroll-margin-top:66px;}
+h2{font-size:18px;color:var(--navy);margin:30px 0 12px;padding-left:11px;border-left:4px solid var(--amber);font-weight:600;scroll-margin-top:66px;}
+h3{font-size:15.5px;color:var(--navy2);margin:22px 0 8px;font-weight:600;}
+p{margin:11px 0;} ul{margin:11px 0;padding-left:22px;} li{margin:5px 0;}
+.master{margin:34px 0 10px;padding-left:12px;border-left:4px solid var(--amber);}
+.master .m-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.master .m-title{font-size:20px;font-weight:700;color:var(--navy);}
+.master .m-tags{display:flex;gap:5px;}
+.mtag{font-size:11px;padding:1.5px 9px;border-radius:10px;}
+.mtag.type{background:var(--note-bg);color:var(--note-tx);}
+.mtag.plan-LITE{background:var(--green-bg);color:var(--green-tx);}
+.mtag.plan-PLUS{background:var(--star-bg);color:var(--star-tx);}
+.mtag.plan-PRO{background:var(--info-bg);color:var(--info-tx);}
+.master .m-menu{font-size:12.5px;color:var(--sub);margin-top:4px;}
+.master .m-menu .m-k{display:inline-block;background:#f3f6fa;color:var(--navy);font-weight:600;border-radius:4px;padding:0 7px;margin-right:7px;}
+.panel{background:#fff;border:0.5px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0;}
+.p-head{background:var(--navy);color:#fff;font-size:14px;font-weight:600;padding:9px 16px;}
+.frow{display:flex;gap:16px;padding:11px 16px;border-bottom:0.5px solid var(--line);}
+.frow.last{border-bottom:0;}
+.fn{flex:none;width:150px;}
+.fnm{font-size:14px;font-weight:600;color:var(--navy);display:inline;}
+.tag{font-size:10.5px;padding:1px 7px;border-radius:9px;margin-left:5px;white-space:nowrap;display:inline-block;}
+.fd{flex:1;font-size:13.5px;color:var(--sub);line-height:1.62;}
+.steps{background:#f7f9fc;border:0.5px solid var(--line);border-radius:10px;padding:10px 16px 10px;margin:12px 0;}
+.steps .s-head{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+.steps ol{margin:4px 0;padding-left:20px;}
+.steps li{margin:3px 0;font-size:14px;}
+.imgph{margin:14px 0;}
+.imgph .ph-box{border:1.5px dashed #c3ccd8;border-radius:10px;background:#fafbfc;padding:22px 16px;text-align:center;display:flex;flex-direction:column;gap:3px;}
+.imgph .ph-ic{font-size:13px;font-weight:700;color:var(--navy2);}
+.imgph .ph-fn{font-family:Consolas,monospace;font-size:13px;color:var(--amber);}
+.imgph .ph-tip{font-size:11.5px;color:#9aa6b6;}
+.imgph figcaption{font-size:12.5px;color:var(--sub);text-align:center;margin-top:5px;}
+table.data{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;border:0.5px solid var(--line);border-radius:8px;overflow:hidden;}
+table.data th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+table.data td{border-top:0.5px solid var(--line);padding:8px 12px;}
+table.data tr:nth-child(even) td{background:#f8fafc;}
+.badge{border-radius:8px;padding:12px 15px;margin:14px 0;font-size:14.5px;border-left:5px solid;line-height:1.66;}
+.badge .lb{font-weight:700;margin-right:5px;}
+.badge.star{background:var(--star-bg);border-color:var(--amber);} .badge.star .lb{color:var(--star-tx);}
+.badge.warn{background:var(--warn-bg);border-color:var(--warn-bd);} .badge.warn .lb{color:var(--warn-tx);}
+.badge.note{background:var(--note-bg);border-color:var(--note-bd);} .badge.note .lb{color:var(--note-tx);}
+.totop{position:fixed;right:24px;bottom:24px;width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:19px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
+@media(max-width:680px){.wrap{padding:0 14px 80px;}.frow{flex-direction:column;gap:3px;}.fn{width:auto;}}
+</style></head>
+<body>
+<div class="topbar"><span class="mk"><span class="logo">N</span><span class="nm">NX-MANUAL-03</span></span><nav id="nav"><a href="#c-0">通用操作</a><a href="#c-1">主檔管理</a><a href="#c-2">國內採購</a><a href="#c-3">國外採購</a><a href="#c-4">特殊採購</a><a href="#c-5">進貨延伸</a><a href="#c-6">業績指標</a></nav></div>
+<div class="wrap"><header class="cover" id="top"><div class="cover-tag">NEXORA GRID · LITE 操作手冊</div><h1 class="cover-title">NX-MANUAL-03</h1><div class="cover-name">進貨</div><table class="ver"><tr><td class="vk">版本</td><td>Ver 1.0（初稿）</td><td class="vk">日期</td><td>2026-06-07</td><td class="vk">維護</td><td>Hank（工程師初稿）／Alex（PM 審）</td></tr></table><p class="cover-sub">從採購需求到貨到入庫的完整流程：需求 → 詢價 → 採購單 → 進貨驗收 → 退貨／保固。<br>含國外進貨 6 階段追蹤與進口費用攤分、保固申請 4 種結果。</p></header>
+<div class="clog"><div class="clog-h">文件修訂紀錄</div><table class="data"><thead><tr><th>版本</th><th>日期</th><th>修改人</th><th>變更說明</th></tr></thead><tbody><tr><td>1.0</td><td>2026-06-07</td><td>Hank</td><td>初稿：對齊採購中心 hub 三大區（主檔管理 / 國內採購 / 特殊採購）+ 國外進貨 + 進貨延伸（保固、客套話）；逐單據逐欄「是什麼＋怎麼操作」</td></tr></tbody></table></div>
+
+<h1 class="chap" id="c-0">通用操作（所有進貨單據共通）</h1>
+<p>進貨在 NEXORA 是一套有先後順序的流程：先有「採購需求」、再去「詢價」、選定供應商開「採購單」、貨到開「進貨單」驗收、發現問題開「退貨單」或「保固申請」。整套都集中在「採購中心」。</p>
+
+<h2 id="s-1">怎麼進到採購中心</h2>
+<p>按左上角的星球選單鈕（快速鍵 Alt+X）→ 選「進貨」→ 進入採購中心。也可以從下方工具列（dock）的「進貨」項展開進入。採購中心首頁分三個分區：</p>
+<ul>
+<li><strong>主檔管理</strong>（2 卡）：採購視角的「產品」「供應商」入口，可以直接在採購中心改進貨成本、付款條件，不必跑去主檔中心。</li>
+<li><strong>國內採購</strong>（6 卡）：完整的國內進貨流程，從需求到退貨。本手冊主軸。</li>
+<li><strong>特殊採購</strong>（3 卡）：掃貨／機會採購用，跳過詢價、直接開採購單。</li>
+</ul>
+<div class="badge note"><span class="lb">【說明】</span>本手冊每個畫面開頭都會標「選單位置」，照著點就能找到該畫面。</div>
+
+<h2 id="s-2">三種畫面版面</h2>
+<p>進貨畫面依用途分成三種：</p>
+<h3>A　單據列表＋詳細頁</h3>
+<p>大部分單據（詢價、採購、進貨、退貨、保固）都是這種。上半部「資料列表」（含狀態下拉過濾、單號／日期／供應商／金額／狀態欄），點「新增」進入空白表單、點某一列進入既有單詳細頁。詳細頁通常有「儲存草稿／送出／作廢」等動作按鈕。</p>
+<h3>B　工作台（流程聚合）</h3>
+<p>需求池、國內採購工作台、國外進貨追蹤頁屬這種。把「該處理的事」聚合到一個畫面，業務員一眼看到目前有哪些待辦、進到哪個階段。</p>
+<h3>C　設定頁</h3>
+<p>客套話設定屬這種。一個租戶 1 筆設定，沒有「新增／撤銷」，只有「修改」。</p>
+
+<h2 id="s-3">單據狀態流</h2>
+<p>進貨單據的狀態用單一英文字母代號：</p>
+<table class="data"><thead><tr><th>單據</th><th>狀態流</th></tr></thead><tbody>
+<tr><td>詢價單 RFQ</td><td>D 草稿 → S 已發出 → R 已回覆 → C 已關閉</td></tr>
+<tr><td>採購單 PO</td><td>D 草稿 → S 已送出 → C 已關閉</td></tr>
+<tr><td>進貨單 RR</td><td>D 草稿 → P 已過帳（過帳即入庫＋產生應付帳）</td></tr>
+<tr><td>退貨單 PR</td><td>D 草稿 → P 已過帳（過帳即扣庫＋產生應付帳沖銷）</td></tr>
+<tr><td>採購需求</td><td>O 待處理 → P 處理中 → C 已完成 ／ I 已忽略</td></tr>
+<tr><td>保固申請</td><td>D 草稿 → S 已送出 → R 審核中 → C 已完成 ／ V 作廢</td></tr>
+<tr><td>國外進貨（6 階段）</td><td>1 備貨中 → 2 要求付款 → 3 待出貨 → 4 出貨上船 → 5 已到港 → 6 驗收完成</td></tr>
+</tbody></table>
+<div class="badge warn"><span class="lb">【提醒】</span>已過帳的進貨單、退貨單不能直接刪除（會影響庫存平均成本與應付帳）；要更正必須開「反向單」沖銷。已關閉的詢價單／採購單可重開。</div>
+
+<h2 id="s-4">欄位標記說明</h2>
+<p>欄位後面會有徽章標示屬性：</p>
+<ul>
+<li><strong>必填</strong>：空白無法存檔。</li>
+<li><strong>建立後不可改</strong>：第一次存檔後就鎖定（例如單號、來源來源）。</li>
+<li><strong>進階</strong>：列表預設不顯示，但詳細頁仍可填可看。</li>
+<li><strong>系統自動寫</strong>：純顯示、業務員無法手動填（例如過帳人、入庫成本、最後進貨時間）。</li>
+</ul>
+
+<h2 id="s-5">版本門檻</h2>
+<p>本手冊涵蓋 LITE 版完整功能。少數進階功能屬加購套件，會在該單據開頭標 PLUS 徽章：</p>
+<ul>
+<li><strong>自動補貨建議</strong>：依安全量／最高量自動排定補貨計畫（PLUS 起）。</li>
+<li><strong>SOP 精品示範</strong>：手機 9 步走完採購、防呆 UX（屬展示用、不綁版本）。</li>
+</ul>
+
+<h1 class="chap" id="c-1">主檔管理（採購視角）</h1>
+<p>採購中心保留兩張主檔卡，方便採購人員不必跑去「主檔中心」就能改進貨成本與付款條件。欄位與「主檔中心」完全一樣（同一筆資料、同一張表）、只是入口和介面排版不同——本章只列「採購中心專屬視角」的重點，完整欄位請翻 NX-MANUAL-02 核心主檔。</p>
+
+<div class="master" id="m-1-1">
+<div class="m-row"><span class="m-title">產品管理（採購視角）</span><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 主檔管理 → 產品管理</div>
+</div>
+<p>產品列表加上採購視角分區編輯：可改「進貨成本」「安全量／最高量／預設庫位」「保固月數」「退貨政策」等採購相關欄位，不影響「銷貨成本」「售價 ABCD」「規格／品名」等非採購欄位（那些走主檔中心或銷貨頁）。</p>
+<div class="badge note"><span class="lb">【說明】</span>採購頁編輯的零件欄位範圍由「產品分區」決定。完整欄位定義見 NX-MANUAL-02 §「零件基本資料」。</div>
+
+<div class="master" id="m-1-2">
+<div class="m-row"><span class="m-title">供應商管理（採購視角）</span><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 主檔管理 → 供應商管理</div>
+</div>
+<p>往來對象列表加上採購視角分區編輯：可改「付款條件（國內／進口）」「貿易條件」「預設幣別」「供應商分級」等財務相關欄位。重點：</p>
+<ul>
+<li>列表預設只列<strong>對象類型 = S 供應商</strong>的對象（採購用不到客戶／同行／銀行）。</li>
+<li>右上有「依付款條件重算」按鈕（自動把供應商分級依國內付款條件對到 A/B/C/D，見下表）。</li>
+</ul>
+<table class="data"><thead><tr><th>國內付款條件</th><th>對應供應商分級</th><th>意義</th></tr></thead><tbody>
+<tr><td>NET90 月結 90</td><td>A</td><td>對我方最有利（晚 90 天才付）</td></tr>
+<tr><td>NET60</td><td>B</td><td>—</td></tr>
+<tr><td>NET30</td><td>C</td><td>—</td></tr>
+<tr><td>PREPAY 預付</td><td>D</td><td>對我方最不利（要先付才出貨）</td></tr>
+</tbody></table>
+<div class="badge note"><span class="lb">【說明】</span>客戶可加自訂等級（例如「VIP 優先」「列管」），但內建 A/B/C/D 不可刪改（自動分級要用）。詳見 NX-MANUAL-02 §「供應商分級基本資料」。</div>
+
+<h1 class="chap" id="c-2">國內採購</h1>
+<p>國內採購流程從「採購需求」開始、經「詢價」「採購單」「進貨單」、可能走到「退貨單」。本章依採購中心「國內採購」分區的順序逐一說明 6 張卡。</p>
+
+<div class="master" id="m-2-1">
+<div class="m-row"><span class="m-title">採購需求</span><div class="m-tags"><span class="mtag type">工作台</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → 需求</div>
+</div>
+<p>採購需求是「該採購但還沒開單」的待辦池。聚合三個來源、業務員一眼看到目前所有要採購的料件：</p>
+<ul>
+<li><strong>S 補貨自動</strong>：盤點低於安全量、系統自動建。</li>
+<li><strong>O 客訂</strong>：銷貨單下單時庫存不足、系統自動建（標客戶名）。</li>
+<li><strong>手動</strong>：業務員主動新增（例如預期下個月會需要的料）。</li>
+</ul>
+
+<div class="panel"><div class="p-head">採購需求欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">單號</span></div><div class="fd">系統自動產生（D + 年月 + 流水號）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">來源</span></div><div class="fd">補貨自動 / 客訂 / 手動，三種徽章顏色不同。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">零件</span></div><div class="fd">料號＋品名。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">倉庫</span></div><div class="fd">需求要進到哪個倉。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">數量</span></div><div class="fd">需求量（補貨自動 = 安全量 − 現有量；客訂 = 缺貨量）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">客戶</span></div><div class="fd">客訂來源才有值（要追蹤哪一張銷貨單缺料）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">期望到貨日</span></div><div class="fd">手動新增時填。客訂取銷貨單的承諾交期。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">O 待處理 / P 處理中 / C 已完成 / I 已忽略。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">備註</span></div><div class="fd">自由文字。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>看「來源」欄知道這筆是怎麼來的（補貨自動／客訂／手動）。</li>
+<li>點「處理」進入詢價或採購單建立流程，狀態自動推到「處理中」。</li>
+<li>若決定不採購（例如先用替代品），可點「忽略」標 I 已忽略，保留紀錄。</li>
+<li>採購完成（PO 或 RR 建立）後系統自動標「已完成」。</li>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-demand-list-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>採購需求列表（三來源聚合）</figcaption></figure>
+
+<div class="badge note"><span class="lb">【說明】</span>採購需求只是「待辦標記」，不是正式單據。實際採購行為要走詢價或採購單。</div>
+
+<div class="master" id="m-2-2">
+<div class="m-row"><span class="m-title">詢價單 RFQ</span><div class="m-tags"><span class="mtag type">一般表格＋並排比價</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → 詢價</div>
+</div>
+<p>對多家供應商詢同一批料的價、並排比較後選定。系統幫你產生客套化的「詢價文字」可一鍵複製貼到 LINE／Email。</p>
+
+<div class="panel"><div class="p-head">詢價單表頭欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">建立後不可改</span></div><div class="fd">系統自動產生（RFQ + 年月 + 倉別 + 流水）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">日期</span></div><div class="fd">詢價單建立日期，預設今天。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">供應商</span></div><div class="fd">下拉（來源：往來對象主檔、partnerType=S）。可一張詢價單一家、也可不指定供應商（同詢價多家報價）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">D 草稿 / S 已發出 / R 已回覆 / C 已關閉。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">備註</span></div><div class="fd">自由文字。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">詢價明細欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">料號</span></div><div class="fd">用料號或品名搜尋零件主檔加入。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">品名</span></div><div class="fd">從零件主檔自動帶。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">數量</span></div><div class="fd">要詢的量。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">備註</span></div><div class="fd">這料的特殊需求（例如「要 OEM」「同型號可替代」）。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">並排比價區（草稿外的詢價單）</div>
+<div class="frow"><div class="fn"><span class="fnm">排名</span></div><div class="fd">按單價排序顯示，最便宜在最上。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">供應商</span></div><div class="fd">回報報價的供應商名稱。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">單價／數量</span></div><div class="fd">該供應商回報的單價與可供量。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">交期</span></div><div class="fd">供應商承諾出貨日。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">P 待採購決定 / A 已採用 / 已拒絕。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">動作</span></div><div class="fd">「採用」按鈕：把這筆報價標 A、自動建草稿採購單（一鍵轉 PO）。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>在詢價列表點「新增詢價單」。</li>
+<li>選日期、選供應商（可不指定，事後再加）、用搜尋框加料號／品名到明細。</li>
+<li>點「儲存草稿」（狀態變 D）。</li>
+<li>點「產生詢價文字」按鈕、系統依據「客套話設定」開頭結尾＋明細產生整段詢價文字，點「複製」貼到 LINE/Email。</li>
+<li>狀態改「已發出」（S）。</li>
+<li>供應商回報後，點「新增報價」逐家輸入單價／交期，狀態變「已回覆」（R）。</li>
+<li>並排比較後點某筆報價的「採用」、系統自動把這筆改 A、其他標拒絕，並建一張草稿採購單帶過去。</li>
+<li>採購單存檔後可關閉本詢價單（狀態 C）。</li>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-rfq-list-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>詢價單列表（可依狀態過濾）</figcaption></figure>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-rfq-compare-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>詢價單詳細頁 — 並排比價區</figcaption></figure>
+
+<div class="badge star"><span class="lb">【重點】</span>「採用」一筆報價會自動建草稿 PO，PO 帶供應商、料號、數量、單價過去，業務員只要檢查再送出即可，不必重新輸入。</div>
+
+<div class="master" id="m-2-3">
+<div class="m-row"><span class="m-title">採購單 PO</span><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → 採購單</div>
+</div>
+<p>正式對供應商下單。可以從詢價單一鍵帶過來、從採購需求轉、也可直接手動新增。</p>
+
+<div class="panel"><div class="p-head">採購單表頭欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">建立後不可改</span></div><div class="fd">系統自動產生（PO + 年月 + 倉別 + 流水）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">日期</span></div><div class="fd">採購單日期，預設今天。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">供應商</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">下拉（往來對象 partnerType=S）。建立後不可改（要改請開新單）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">來源</span></div><div class="fd">P 詢價採用（自動帶 RFQ id）／D 需求轉（自動帶採購需求 id）／M 手動／B 特殊採購。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">倉庫</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">這批貨預計進到哪個倉。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">幣別</span></div><div class="fd">下拉（幣別主檔），預設供應商的預設幣別。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">付款條件</span></div><div class="fd">預設供應商的國內付款條件（NET30/60/90/PREPAY）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">D 草稿 / S 已送出 / C 已關閉。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">總額</span></div><div class="fd">明細小計合計、系統自動算。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">採購明細欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">料號</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">搜尋零件加入。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">採購量</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">本次採購數量。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">單價</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">採購單價。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">已收</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">系統自動寫</span></div><div class="fd">已驗收入庫的數量。每次「轉進貨」過帳後自動累加。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">小計</span></div><div class="fd">採購量 × 單價。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟（手動新增）</div>
+<ol>
+<li>點「新增採購單」。</li>
+<li>選供應商（必填）、倉庫、幣別、付款條件。</li>
+<li>用搜尋框加料號到明細，填採購量／單價。</li>
+<li>點「儲存草稿」（狀態 D），檢查無誤點「送出」（狀態 S，正式對供應商下單）。</li>
+<li>貨到時點「轉進貨」進入進貨單建立流程，系統把採購單的料號／已收 / 單價自動帶過去（見下節）。</li>
+<li>整張採購單全部已收後可點「關閉」（狀態 C），未來不再從這張單轉進貨。</li>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-po-list-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>採購單列表</figcaption></figure>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-po-detail-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>採購單詳細頁（含「轉進貨」按鈕）</figcaption></figure>
+
+<div class="badge note"><span class="lb">【說明】</span>採購單可分批進貨（同一張 PO 開多張 RR）。每張 RR 過帳後 PO 的「已收」欄位累加，直到等於「採購量」為止。</div>
+
+<div class="master" id="m-2-4">
+<div class="m-row"><span class="m-title">進貨單 RR（驗收入庫）</span><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → 進貨單</div>
+</div>
+<p>貨到時開的單，記錄實際收到的數量、單價、入庫位置。<strong>過帳即入庫、且自動建應付帳款</strong>，是進貨流程裡最關鍵的一步。</p>
+
+<div class="panel"><div class="p-head">進貨單表頭欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">建立後不可改</span></div><div class="fd">系統自動產生（RR + 年月 + 倉別 + 流水）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">日期</span></div><div class="fd">進貨單日期，預設今天。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">來源採購單</span></div><div class="fd">下拉（草稿狀態的 PO），選了之後明細自動帶 PO 的料號／剩餘可收量／單價。也可不選 PO（直接進貨、特殊採購用）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">供應商</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">下拉（往來對象 partnerType=S）。從 PO 帶來時自動填。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">倉庫</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">收貨倉。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">幣別／匯率</span></div><div class="fd">國內幣別預設 TWD（匯率 1）。國外進貨改幣別＋填當日匯率，系統用此換算 TWD 入庫成本。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">D 草稿 / P 已過帳。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">總額</span></div><div class="fd">明細小計合計（原幣）。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">進貨明細欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">料號</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">從 PO 帶或手動加。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">庫位</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">下拉（庫位主檔、只列所選倉庫的庫位）。決定這筆貨放哪。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">數量</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">實際收到的數量（可能比採購量少，例如缺料／壞品先退）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">單價</span></div><div class="fd">原幣單價。國內 = TWD；國外 = 外幣未換匯。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">攤分費用</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">系統自動寫</span></div><div class="fd">國外進貨才顯示。系統按金額比例把進口費用攤到每料件（見「國外採購」章節）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">入庫成本</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">系統自動寫</span></div><div class="fd">實際入庫成本（含換匯＋攤分），是過帳後寫入庫存帳本（移動平均）的成本。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">小計</span></div><div class="fd">數量 × 單價（原幣）。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">國外進貨額外欄位（國內進貨不顯示）</div>
+<div class="frow"><div class="fn"><span class="fnm">海運費</span></div><div class="fd">本批的海運費（TWD）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">關稅</span></div><div class="fd">本批的關稅（TWD）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">報關費</span></div><div class="fd">本批的報關費（TWD）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">倉儲費</span></div><div class="fd">本批的倉儲費（TWD）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">其他雜費</span></div><div class="fd">不屬上述四類的進口雜費（TWD）。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">貿易條件</span></div><div class="fd">FOB／CIF／EXW 等，預設供應商的貿易條件、可改。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>點「新增進貨單」。</li>
+<li>選「來源採購單」（推薦做法、明細自動帶）；或留空手動填（特殊採購／無 PO 進貨）。</li>
+<li>檢查料號／庫位／數量／單價，數量可比 PO 少（缺料／壞品先退）。</li>
+<li>國外進貨：填海運費／關稅／報關費／倉儲費／其他雜費＋當日匯率。系統自動把總費用按各料金額比例攤分到每料，並換匯產生「入庫成本」。</li>
+<li>點「儲存草稿」（狀態 D），檢查無誤點「過帳」（狀態 P）。</li>
+<li>過帳的瞬間系統做四件事：</li>
+<ul>
+<li>把每料件數量加到對應庫位的庫存。</li>
+<li>用入庫成本走「移動平均」更新該料件的平均成本。</li>
+<li>建立應付帳款（金額 = 進貨單總額、付款條件 = 供應商主檔的國內付款條件）。</li>
+<li>更新該料的「最後進貨時間」（見業績指標章節）。</li>
+</ul>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-rr-new-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>進貨單新增頁（含 PO 來源帶料）</figcaption></figure>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-rr-foreign-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>國外進貨單（含進口費用攤分區）</figcaption></figure>
+
+<div class="badge warn"><span class="lb">【提醒】</span>已過帳的進貨單不可改、不可刪。要更正請開「退貨單」沖銷或聯絡 IT。過帳前務必檢查單價、數量、庫位。</div>
+
+<div class="master" id="m-2-5">
+<div class="m-row"><span class="m-title">退貨單 PR</span><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → 退貨單</div>
+</div>
+<p>驗收後發現問題、或庫存壞品要退供應商時開的單。<strong>過帳即扣庫＋產生應付帳款沖銷</strong>。</p>
+
+<div class="panel"><div class="p-head">退貨單表頭欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">建立後不可改</span></div><div class="fd">系統自動產生（PR + 年月 + 倉別 + 流水）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">日期</span></div><div class="fd">退貨日期，預設今天。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">來源進貨單</span></div><div class="fd">下拉（已過帳的 RR），選了明細自動帶 RR 的料號／原進貨量／單價。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">供應商</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">從 RR 帶來時自動填。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">處置</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">三種徽章顏色不同：<strong>走保固</strong>（橘）／<strong>壞品退</strong>（紅）／<strong>一般退</strong>（灰）。決定後續處理流程。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">D 草稿 / P 已過帳。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">總額</span></div><div class="fd">明細小計合計（沖銷金額）。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">退貨明細欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">料號</span></div><div class="fd">從 RR 帶或手動加。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">品名</span></div><div class="fd">自動帶。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">原進貨量</span></div><div class="fd">該料件從來源 RR 進的總量。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">退貨數量</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">要退多少（不可超過原進貨量）。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">單價／小計</span></div><div class="fd">用 RR 的單價計算沖銷金額。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>點「新增退貨單」。</li>
+<li>選「來源進貨單」、明細自動帶。</li>
+<li>選「處置」：</li>
+<ul>
+<li><strong>走保固</strong>：壞品但供應商有保固、走保固索賠流程。系統自動產生對應的「保固申請單」（見 §5.1）。</li>
+<li><strong>壞品退</strong>：直接扣庫＋沖應付帳，不走保固。</li>
+<li><strong>一般退</strong>：例如下單數量錯、規格不符等非品質問題退。</li>
+</ul>
+<li>填退貨數量。</li>
+<li>點「儲存草稿」（D），檢查無誤點「過帳」（P）。</li>
+<li>過帳的瞬間系統做兩件事：扣對應庫位的庫存（用該料當前移動平均成本扣）；建立應付帳款沖銷（金額為負、自動沖既有應付）。</li>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-pr-list-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>退貨單列表（含處置欄徽章）</figcaption></figure>
+
+<div class="badge star"><span class="lb">【重點】</span>「處置 = 走保固」時系統自動建保固申請單，業務員不必再去保固單另開一次；走完保固後系統自動把保固申請單的結果（換新／退錢／修後還／駁回）回填到原單。</div>
+
+<div class="master" id="m-2-6">
+<div class="m-row"><span class="m-title">SOP 精品示範</span><div class="m-tags"><span class="mtag type">工作台（手機 SOP）</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → SOP 精品示範 🔥</div>
+</div>
+<p>手機精品 UX 示範：跟著 9 步走完一次完整採購流程，內建防呆與步驟提示，不容易漏步驟。適合新進業務員自學或培訓用。</p>
+<div class="badge note"><span class="lb">【說明】</span>SOP 精品示範本身不會產生正式單據（操作的是練習用 mock 資料）。實際採購請走「需求 → 詢價 → 採購單 → 進貨單」正規流程。</div>
+
+<h1 class="chap" id="c-3">國外採購</h1>
+<p>國外進貨比國內多兩個重點：<strong>6 階段時程追蹤</strong>（從備貨到到港）與<strong>進口費用攤分</strong>（海運／關稅／報關／倉儲攤到每料件成本）。</p>
+
+<div class="master" id="m-3-1">
+<div class="m-row"><span class="m-title">國外進貨追蹤頁</span><div class="m-tags"><span class="mtag type">工作台（雙欄）</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 國內採購 → 採購單（過濾「國外」）／或從 /dashboard/purchase/foreign 直達</div>
+</div>
+<p>畫面分左右兩欄：左欄列當前有國外採購單（依階段顯示徽章）、右欄顯示選定 PO 的 6 階段 timeline 與推進按鈕。</p>
+
+<div class="panel"><div class="p-head">國外進貨 6 階段</div>
+<div class="frow"><div class="fn"><span class="fnm">1 備貨中</span></div><div class="fd">供應商正在備貨，剛下 PO 的預設階段。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">2 要求付款</span></div><div class="fd">供應商通知可以付款（TT／LC／DP／DA 看貿易條件）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">3 待出貨</span></div><div class="fd">付款完成、等供應商安排船期。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">4 出貨上船</span></div><div class="fd">貨櫃已上船、填船號／貨櫃號。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">5 已到港</span></div><div class="fd">報關行通知到港、填實際到港日。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">6 驗收完成</span></div><div class="fd">海關放行＋到倉驗收完成。點此會跳轉到對應進貨單建立頁（RR 國外版）。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">物流資訊（階段 4 後顯示）</div>
+<div class="frow"><div class="fn"><span class="fnm">船號</span></div><div class="fd">船公司船名/航班代號。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">貨櫃號</span></div><div class="fd">貨櫃編號（追蹤用）。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">實際到港</span></div><div class="fd">階段 5 推進時填。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>在左欄選一筆國外採購單。</li>
+<li>右欄顯示 6 階段 timeline、目前在第幾階段反白。</li>
+<li>狀況更新時點下一階段的「推進」按鈕、填對應資訊（船號、貨櫃號、到港日等）。</li>
+<li>階段 6「驗收完成」會跳到 RR 國外進貨單建立頁、填海運費／關稅等進口費用、過帳入庫。</li>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-foreign-track-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>國外進貨追蹤頁（6 階段 timeline）</figcaption></figure>
+
+<div class="badge note"><span class="lb">【說明】</span>船號 / 貨櫃號 / 實際到港的編輯入口在採購單詳細頁；本追蹤頁僅顯示與推進階段。實體提貨單與包裹拆分另接 NX03 庫存模組（後續軌）。</div>
+
+<h2 id="s-3-2">進口費用攤分（RR 國外版）</h2>
+<p>RR 國外進貨單裡填的海運費／關稅／報關費／倉儲費／其他雜費，系統會按各料件「金額（量 × 原幣單價 × 匯率）比例」攤分到每料件，再加上換匯後的單價，得到「入庫成本」寫入庫存帳本。</p>
+<table class="data"><thead><tr><th>欄位</th><th>計算公式</th></tr></thead><tbody>
+<tr><td>原幣小計</td><td>數量 × 原幣單價</td></tr>
+<tr><td>換匯後 TWD 小計</td><td>原幣小計 × 匯率</td></tr>
+<tr><td>本料攤分費用</td><td>進口費用總額 × （本料換匯 TWD 小計 ÷ 整單換匯 TWD 總額）</td></tr>
+<tr><td>入庫成本（單顆）</td><td>（換匯後 TWD 小計 + 本料攤分費用） ÷ 數量</td></tr>
+</tbody></table>
+<div class="badge star"><span class="lb">【重點】</span>用「金額比例」攤分（不是「重量比例」或「件數比例」），對「貴的料攤多、便宜的料攤少」，符合實務上「重要進口品成本較高、應分擔較多費用」的原則。如要改攤分方式請聯絡 IT。</div>
+
+<h1 class="chap" id="c-4">特殊採購</h1>
+<p>特殊採購＝跳過詢價、直接開採購單。常見場景：</p>
+<ul>
+<li><strong>掃貨採購</strong>：路過供應商順手撿便宜貨，現場決定。</li>
+<li><strong>機會採購</strong>：限時促銷、限量出清。</li>
+<li><strong>緊急採購</strong>：客訂催料、來不及詢價。</li>
+<li><strong>小額採購</strong>：金額太小不值得走詢價流程。</li>
+</ul>
+
+<div class="master" id="m-4-1">
+<div class="m-row"><span class="m-title">特殊採購（採購單／進貨單／退貨單）</span><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → 採購中心 → 特殊採購（3 卡）</div>
+</div>
+<p>畫面與操作和「國內採購」三張單據完全一樣，只是 PO 的「來源」欄會自動標 <strong>B 特殊採購</strong>、跳過詢價／需求關聯。</p>
+
+<div class="badge note"><span class="lb">【說明】</span>特殊採購的單據與一般採購共用同一表（後端同套 API、加 purchaseType=B 旗標）。報表分析時可依此區分「正規採購 vs 特殊採購」的金額比例。</div>
+
+<h1 class="chap" id="c-5">進貨延伸功能</h1>
+<p>進貨延伸是非主流程、但業務員經常用的功能。</p>
+
+<div class="master" id="m-5-1">
+<div class="m-row"><span class="m-title">保固申請單</span><div class="m-tags"><span class="mtag type">一般表格＋附件</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → /dashboard/nx02/warranty-claim（從 NX02 進貨延伸入口進）</div>
+</div>
+<p>對供應商主張保固（產品在保固內壞掉、要求換新／退錢／維修）。分兩種類型、有 4 種結果與 3 種退款方式。</p>
+
+<div class="panel"><div class="p-head">保固申請單欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">建立後不可改</span></div><div class="fd">系統自動產生（WC + 年月 + 流水）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">類型</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">CUST 客訴型（連銷貨單、客戶反映壞掉）／SELF 自用型（庫存自己發現壞掉、無客戶）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">來源銷貨單</span></div><div class="fd">客訴型必填、自用型不顯示。記錄是哪張 SO 的客戶反映的。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">供應商</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">這料件當初從哪家供應商買的，要對誰主張保固。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">零件</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">壞掉的料件（料號＋品名）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">數量</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">壞掉的數量。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">申請日</span></div><div class="fd">建單日期。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">問題描述</span><span class="tag" style="background:var(--warn-bg);color:var(--warn-tx);">必填</span></div><div class="fd">壞掉的症狀描述。寫詳細給供應商判斷。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">狀態</span></div><div class="fd">D 草稿 / S 已送出 / R 審核中 / C 已完成 / V 作廢。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">結果</span></div><div class="fd">審核中可選四種結果（見下）。結果決定後狀態自動推到 C。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">附件</span></div><div class="fd">行照／問題照片／影片三類，base64 上傳。多筆。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">4 種保固結果</div>
+<div class="frow"><div class="fn"><span class="fnm">NEW 換新</span></div><div class="fd">供應商換一顆新的給我們。系統不動帳，業務員另開「退貨單（走保固）」沖原進貨 + 進貨單新進一顆。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">REF 退錢</span></div><div class="fd">供應商不換、直接退錢。要填「退錢金額」「退錢方式」（見下）。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">RPR 維修後還</span></div><div class="fd">供應商修好還我們。系統不動帳、純記錄。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">REJ 駁回</span></div><div class="fd">供應商認為非品質問題、不接受保固。要填駁回原因。</div></div>
+</div>
+
+<div class="panel"><div class="p-head">REF 退錢方式（總經理 2026-06-01 拍板 3 種）</div>
+<div class="frow"><div class="fn"><span class="fnm">O 下次扣抵</span></div><div class="fd">純記錄、業務下次採購時手動從應付帳款扣這筆。</div></div>
+<div class="frow"><div class="fn"><span class="fnm">A 折讓單</span></div><div class="fd">系統自動建草稿折讓單、財務核可後沖應付帳款。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">R 直接退現</span></div><div class="fd">純記錄、業務員用收付款開「付款」沖應付。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>進入保固申請單列表、點「新增」。</li>
+<li>選類型（CUST／SELF）、選供應商、選零件、填問題描述、上傳附件（行照／問題照片／影片）。</li>
+<li>點「送出」（狀態 S）對供應商主張保固。</li>
+<li>供應商回覆要審核時點「進入審核」（狀態 R）。</li>
+<li>審核結果出來時點「登記結果」、選 NEW／REF／RPR／REJ，REF 要填退錢金額＋方式。</li>
+<li>登記完狀態自動推到 C（已完成）。</li>
+<li>若整張單作廢，點「作廢」（狀態 V）保留紀錄。</li>
+</ol></div>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-warranty-list-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>保固申請單列表（含結果欄）</figcaption></figure>
+
+<figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m03-warranty-result-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>保固登記結果（REF 退錢需填金額+方式）</figcaption></figure>
+
+<div class="badge star"><span class="lb">【重點】</span>客戶來反映壞掉時、業務員的標準動作是：(1) 先建「保固申請單」追供應商；(2) 同時看狀況決定要不要立刻換新給客戶（先換、等供應商賠）。退貨單「處置=走保固」會自動建保固單、是反過來的流程入口。</div>
+
+<div class="master" id="m-5-2">
+<div class="m-row"><span class="m-title">詢價客套話設定</span><div class="m-tags"><span class="mtag type">設定頁（1 筆／租戶）</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>進貨 → /dashboard/nx02/rfq-greeting-template（從 NX02 進貨延伸入口進）</div>
+</div>
+<p>詢價單「產生詢價文字」功能會把這裡設定的「開頭」「結尾」客套話接在明細前後、貼到 LINE/Email。每個租戶 1 筆設定。</p>
+
+<div class="panel"><div class="p-head">客套話欄位</div>
+<div class="frow"><div class="fn"><span class="fnm">開頭客套話</span></div><div class="fd">詢價文字開頭，例如「您好，又見面了！我們急需以下品項，麻煩您回報報價與最快交期：」多行文字。</div></div>
+<div class="frow last"><div class="fn"><span class="fnm">結尾客套話</span></div><div class="fd">詢價文字結尾，例如「感謝您的協助！如有疑問請隨時聯繫。」多行文字。</div></div>
+</div>
+
+<div class="steps"><div class="s-head">操作步驟</div>
+<ol>
+<li>進入客套話設定頁、修改開頭／結尾文字。</li>
+<li>點「儲存」、立即生效。</li>
+<li>之後每次在詢價單點「產生詢價文字」、開頭結尾會自動帶。</li>
+</ol></div>
+
+<div class="badge note"><span class="lb">【說明】</span>客套話只影響「產生詢價文字」這個按鈕的輸出，不影響詢價單本身的資料結構。每個租戶可有自己的風格（正式／親切／搞笑都行）。</div>
+
+<h1 class="chap" id="c-6">業績指標</h1>
+<p>進貨流程影響零件主檔的「最後進貨時間」「最後銷售時間」兩個業績指標欄位（02 第四批 P5 拍板加）。</p>
+
+<div class="master" id="m-6-1">
+<div class="m-row"><span class="m-title">最後進貨時間 / 最後銷售時間（指路 NX-MANUAL-02）</span><div class="m-tags"><span class="mtag type">系統自動寫</span><span class="mtag plan-LITE">LITE</span></div></div>
+<div class="m-menu"><span class="m-k">選單位置</span>主檔 → 產品與料號 → 零件基本資料 → 採購分頁 / 銷貨分頁</div>
+</div>
+<p>每張進貨單過帳時、系統自動把「該料件最後進貨時間」更新為進貨單日期（取較新值，舊單不會覆蓋新單）。同樣的，銷貨單出貨過帳時更新「最後銷售時間」。</p>
+<ul>
+<li><strong>最後進貨時間</strong>顯示在零件主檔的「採購分頁」、業務員看「久未進貨的料」用。</li>
+<li><strong>最後銷售時間</strong>顯示在零件主檔的「銷貨分頁」、業務員看「呆滯料（最後賣很久了）」用。</li>
+<li>兩個搭配看可抓出「進得多、賣得少」的庫存風險料件。</li>
+</ul>
+<div class="badge note"><span class="lb">【說明】</span>詳細欄位與機制請見 NX-MANUAL-02 §「零件基本資料 → 採購分頁／銷貨分頁」。</div>
+
+<a class="totop" href="#top">↑</a>
+</div>
+</body></html>
