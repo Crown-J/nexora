@@ -161,12 +161,15 @@ const PART_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'D', label: 'D 拆解型' },
 ];
 
+// 02 第三批 T3 2026-06-07：簡化三選項（總經理拍板）
+//   N = 不可退不保固
+//   S = 未使用可退（原「標準退貨」、業務語意：未拆未用可退）
+//   W = 走保固流程（搭配 warranty_months 判斷是否在保固內）
+// 既有 F / R 視為舊值、業務員編輯時請改成新三選項；service 端 DTO 仍接 5 值不破壞舊資料。
 const RETURN_POLICY_OPTIONS: { value: string; label: string }[] = [
-  { value: 'S', label: 'S 標準退貨' },
-  { value: 'F', label: 'F 自由退貨' },
-  { value: 'R', label: 'R 限制退貨' },
-  { value: 'N', label: 'N 不可退貨' },
-  { value: 'W', label: 'W 保固處理' },
+  { value: 'N', label: '不可退不保固' },
+  { value: 'S', label: '未使用可退' },
+  { value: 'W', label: '走保固流程' },
 ];
 
 function returnPolicyLabel(code: string | null | undefined): string {

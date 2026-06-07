@@ -34,6 +34,8 @@ export class PartOemCodeDto {
   remark?: string | null;
 }
 
+// 02 第三批 T3 2026-06-07：總經理拍板簡化三選項（N=不可退不保固 / S=未使用可退 / W=走保固流程）
+// 既有舊值 F / R 仍接受讀（不破壞既有 row）、新寫入接 5 值但 UI 只顯示 3 個
 const RETURN_POLICIES = ['F', 'S', 'R', 'N', 'W'] as const;
 
 /**
