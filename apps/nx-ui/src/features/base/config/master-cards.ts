@@ -446,13 +446,13 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/region',
   },
-  // ─── 系統設定延伸（注音字典、PRO）─────────────────────────────────
+  // ─── 系統設定延伸（注音字典）────────────────────────────────────
+  // 02 結案 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本」、注音快搜屬核心、對齊手冊 LITE）。
   {
     id: 'phonetic-dictionary',
     section: 'system',
-    minPlan: 'PRO',
     title: '注音字典基本資料',
-    description: '漢字注音對照、加速 F4 櫃台快搜（NX01-10、PRO 限定）',
+    description: '漢字注音對照、加速 F4 櫃台快搜（NX01-10）',
     icon: BookOpen,
     statLabel: '字典條目',
     statValue: '—',

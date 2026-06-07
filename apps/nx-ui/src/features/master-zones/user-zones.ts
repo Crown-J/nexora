@@ -66,8 +66,9 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   },
   { key: 'isTenantOwner', label: '是否負責人', zone: 'permission', notes: '系統內建旗標、非客戶自訂角色' },
   { key: 'isActive', label: '帳號啟用', zone: 'permission' },
-  // 02 第四批 軌 1 2026-06-07：主要據點 forward ref（A 拍板、與 user_warehouse 多倉衛星並存）
-  { key: 'primarySiteId', label: '主要據點', zone: 'permission', notes: '單值、一人一個；多倉存取走「使用者據點設定」批次工具' },
+  // 02 第四批 軌 1 2026-06-07：隸屬據點 forward ref（A 拍板、與 user_warehouse 多倉衛星並存）
+  // 02 結案 2026-06-07：label 由「主要據點」改「隸屬據點」對齊手冊用詞
+  { key: 'primarySiteId', label: '隸屬據點', zone: 'permission', notes: '單值、一人一個；多倉存取走「使用者據點設定」批次工具' },
 
   // ─── security 安全區（負責人 admin 看）───
   { key: 'mustChangePassword', label: '強制改密', zone: 'security', notes: '首次登入 true' },
