@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
 
-import { getPo, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
+import { getPo, patchPo, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
 import type { PoDetailDto } from '../../types';
 import { poStatusLabel } from '../../shared/nx01-labels';
 
@@ -124,6 +124,39 @@ export function PoDetailView({ id }: { id: string }) {
           <p className="text-sm text-muted-foreground">
             {poStatusLabel(doc.status)} · {doc.poDate} · {doc.supplierName}
           </p>
+          {/* T2-a 進貨對齊批次 2026-06-07：預計到貨日 UI 暴露
+              · DRAFT 階段可編輯（onBlur 直接 patch、不另開 modal）
+              · 其他階段唯讀顯示 */}
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>預計到貨：</span>
+            {isDraft ? (
+              <input
+                type="date"
+                className="rounded border border-border bg-background px-2 py-0.5 text-xs"
+                value={doc.expectedDate ?? ''}
+                min={doc.poDate}
+                disabled={busy}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setDoc((d) => (d ? { ...d, expectedDate: v || null } : d));
+                }}
+                onBlur={async (e) => {
+                  const v = e.target.value.trim() || null;
+                  setBusy(true);
+                  try {
+                    await patchPo(doc.id, { expectedDate: v });
+                    await load();
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : '預計到貨日存檔失敗');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+            ) : (
+              <span className="text-foreground">{doc.expectedDate ?? '—'}</span>
+            )}
+          </div>
           {/* T1：審計時間印（核准 / 寄出 / 廠商確認） */}
           {(doc.submittedForReviewAt || doc.approvedAt || doc.sentAt || doc.supplierConfirmedAt) ? (
             <p className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">

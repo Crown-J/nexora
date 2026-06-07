@@ -67,6 +67,22 @@ export async function createPo(body: CreatePoBody): Promise<{ id: string }> {
   return (await res.json()) as { id: string };
 }
 
+// T2-a 進貨對齊批次 2026-06-07：採購單表頭可編輯欄位（預交貨日 / 備註 / 採購日期 等）
+// 限 DRAFT 草稿階段（後端 service 已守、UI 也只在 DRAFT 顯示編輯入口）
+export type PatchPoBody = {
+  poDate?: string;
+  expectedDate?: string | null;
+  remark?: string | null;
+};
+
+export async function patchPo(id: string, body: PatchPoBody): Promise<void> {
+  const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+  await assertOk(res, 'nxui_nx01_po_patch_001');
+}
+
 export type PoToRrBody = {
   warehouseId: string;
   items: { poItemId: string; qty: number; locationId?: string | null }[];

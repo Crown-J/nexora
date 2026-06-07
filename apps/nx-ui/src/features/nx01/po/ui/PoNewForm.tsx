@@ -46,6 +46,8 @@ export function PoNewForm() {
   const [warehouseId, setWarehouseId] = useState('');
   const [whOpts, setWhOpts] = useState<LookupRow[]>([]);
   const [poDate, setPoDate] = useState(todayYmd);
+  // T2-a 進貨對齊批次 2026-06-07：預交貨日 UI 暴露（schema/dto 已備齊）
+  const [expectedDate, setExpectedDate] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [suppliers, setSuppliers] = useState<PartnerDto[]>([]);
   const [remark, setRemark] = useState('');
@@ -181,6 +183,7 @@ export function PoNewForm() {
         warehouseId: warehouseId.trim(),
         poDate,
         supplierId: supplierId.trim(),
+        expectedDate: expectedDate.trim() || null,
         remark: remark.trim() || null,
         rfqId: source === 'direct' ? null : rfqId,
         items,
@@ -280,6 +283,16 @@ export function PoNewForm() {
         <label className="flex flex-col gap-1 text-xs text-muted-foreground">
           採購日期
           <input type="date" className="rounded-lg border border-border bg-background px-3 py-2 text-sm" value={poDate} onChange={(e) => setPoDate(e.target.value)} />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+          預計到貨日
+          <input
+            type="date"
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            value={expectedDate}
+            onChange={(e) => setExpectedDate(e.target.value)}
+            min={poDate}
+          />
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted-foreground md:col-span-2">
           供應商
