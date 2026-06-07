@@ -88,10 +88,13 @@ export const BASIC_WRITABLE = new Set([
   'healthCheckResult',
   // 02 第三批 T1 2026-06-07：隸屬部門（解綁 PRO → LITE）
   'departmentId',
+  // 02 第四批 軌 1 2026-06-07：離職日期（basic zone）
+  'leftAt',
   // W3 [3-2] 舊代號
   'legacyCode',
 ]);
-export const PERMISSION_WRITABLE = new Set(['isActive']);
+// 02 第四批 軌 1 2026-06-07：primarySiteId（permission zone、單值 ref、A 拍板）
+export const PERMISSION_WRITABLE = new Set(['isActive', 'primarySiteId']);
 
 /** 後端 row → 編輯 draft（自動 mapping userAccount↔username / userName↔displayName） */
 export function userRowToDraft(row: UserRow): UserDraft {
@@ -159,6 +162,9 @@ const DTO_SUPPORTED = new Set([
   'healthCheckResult',
   // 02 第三批 T1 2026-06-07：隸屬部門
   'departmentId',
+  // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期
+  'primarySiteId',
+  'leftAt',
   'legacyCode',
 ]);
 

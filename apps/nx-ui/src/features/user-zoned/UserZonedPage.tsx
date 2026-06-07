@@ -24,6 +24,8 @@ import { Briefcase, Warehouse as WarehouseIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { USER_FIELDS, type UserZone } from '@/features/master-zones';
+// 02 第四批 軌 1 2026-06-07：員工列表姓名前小圓頭像
+import { UserAvatarSmall } from '@/features/shared/user-photo/UserPhotoManager';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -750,8 +752,18 @@ export function UserZonedPage({
       {
         key: 'displayName',
         label: '姓名',
-        minWidthClass: 'min-w-[120px]',
-        render: (row) => <span>{row.displayName}</span>,
+        minWidthClass: 'min-w-[140px]',
+        // 02 第四批 軌 1 2026-06-07：姓名前小圓頭像（無大頭貼則顯示姓名首字）
+        render: (row) => (
+          <span className="flex items-center gap-2">
+            <UserAvatarSmall
+              userId={row.id}
+              hasPhoto={Boolean(row.hasPhoto)}
+              displayName={row.displayName}
+            />
+            <span>{row.displayName}</span>
+          </span>
+        ),
       },
       {
         key: 'email',
@@ -1057,6 +1069,9 @@ function DetailPane({
             activeZone={activeZone}
             setActiveZone={setActiveZone}
             editableZones={editableZones}
+            // 02 第四批 軌 1 2026-06-07：傳當前員工 id + 大頭貼旗標、給大頭貼 sub-page 連結用
+            selectedUserId={selected?.id ?? null}
+            selectedHasPhoto={selected?.hasPhoto ?? false}
             // B2~B5：傳 roles + warehouses 給 permission zone inline 渲染
             selectedUserRoles={selectedUserRoles}
             selectedUserWarehouses={selectedUserWarehouses}

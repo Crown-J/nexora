@@ -20,10 +20,13 @@ import {
 import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
 import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
+import { fetchRefOptions, type SelectOption } from '@/features/master-shell/entity-master/config';
 import { type RoleDto } from '@/features/base/api/role';
 import { type UserRoleDto } from '@/features/base/api/user-role';
 import { type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { type WarehouseDto } from '@/features/base/api/warehouse';
+import Link from 'next/link';
+import { ImageIcon } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 
@@ -53,6 +56,10 @@ export type UserFormZonedProps = {
   setActiveZone: (z: UserZone) => void;
   /** v1.1 §1 可編 zones。undefined = 主檔中心、全 zone */
   editableZones?: Set<UserZone>;
+  /** 02 第四批 軌 1 2026-06-07：當前選中員工 id（編輯 / 瀏覽既有時）、用於大頭貼 sub-page 連結 */
+  selectedUserId?: string | null;
+  /** 後端 hasPhoto 旗標、決定大頭貼按鈕文案（管理 vs 新增） */
+  selectedHasPhoto?: boolean;
   // ── B2~B5：permission zone inline 渲染所需 ──
   selectedUserRoles?: UserRoleDto[];
   selectedUserWarehouses?: UserWarehouseDto[];
@@ -76,6 +83,8 @@ export function UserFormZoned({
   activeZone,
   setActiveZone,
   editableZones,
+  selectedUserId,
+  selectedHasPhoto,
   selectedUserRoles,
   selectedUserWarehouses,
   stagedRemovedRoleIds,
@@ -90,6 +99,12 @@ export function UserFormZoned({
   onRevokeWarehouse,
 }: UserFormZonedProps) {
   const editing = mode === 'edit';
+
+  // 02 第四批 軌 1 2026-06-07：主要據點下拉選項（permission zone primarySiteId 用）
+  const [siteOptions, setSiteOptions] = useState<SelectOption[]>([]);
+  useEffect(() => {
+    void fetchRefOptions('nx01/sites').then(setSiteOptions).catch(() => setSiteOptions([]));
+  }, []);
 
   const visibleZones = useMemo<Set<UserZone>>(
     () => editableZones ?? new Set(USER_ZONES.map((z) => z.zone)),
@@ -183,6 +198,33 @@ export function UserFormZoned({
           const lockedNow = false;
           const fieldEditable = editing && isWritable && zoneEditable && !lockedNow;
 
+          // 02 第四批 軌 1 2026-06-07：primarySiteId 走「ref 下拉」、不走純文字 input
+          if (f.key === 'primarySiteId') {
+            const value = String(draft[f.key] ?? '');
+            if (fieldEditable) {
+              return (
+                <FieldShell key={f.key} label={f.label}>
+                  <select
+                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 text-sm text-[#E8E8EB] outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                    value={value}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                  >
+                    <option value="">（未指定）</option>
+                    {siteOptions.map((opt) => (
+                      <option key={String(opt.value)} value={String(opt.value)} className="bg-[#131316]">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </FieldShell>
+              );
+            }
+            const matched = siteOptions.find((o) => String(o.value) === value);
+            return (
+              <FormField key={f.key} label={f.label} value={matched?.label ?? (value || '—')} />
+            );
+          }
+
           // isActive toggle（permission 區）
           if (f.key === 'isActive' && fieldEditable) {
             const on = Boolean(draft[f.key]);
@@ -253,6 +295,27 @@ export function UserFormZoned({
       {/* 02 對齊第二批前端收尾軌 FE-CP3：basic zone 末尾兩組地址 picker（戶籍 + 通訊） */}
       {safeActiveZone === 'basic' ? (
         <UserAddressSection editing={editing} draft={draft} setDraft={setDraft} />
+      ) : null}
+
+      {/* 02 第四批 軌 1 2026-06-07：basic zone 大頭貼進入連結（編輯 / 瀏覽既有員工才顯示、新增中不顯示） */}
+      {safeActiveZone === 'basic' && !creating && selectedUserId ? (
+        <div className="mt-4 flex items-center justify-between rounded-lg border border-[#2A2A30] bg-[#0E0E12] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="size-4 text-[#888892]" />
+            <div>
+              <div className="text-xs font-medium text-[#E8E8EC]">大頭貼</div>
+              <div className="text-[10px] text-[#5A5A60]">
+                {selectedHasPhoto ? '已上傳、點右方按鈕管理（取代 / 刪除）' : '尚未上傳、點右方按鈕新增'}
+              </div>
+            </div>
+          </div>
+          <Link
+            href={`/dashboard/base/users/${selectedUserId}/photo`}
+            className="rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-3 py-1.5 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
+          >
+            {selectedHasPhoto ? '管理大頭貼' : '新增大頭貼'}
+          </Link>
+        </div>
       ) : null}
 
       {/* B3：permission zone 末尾插入「隸屬倉庫」inline 編輯區（warehouse 不在 USER_FIELDS） */}

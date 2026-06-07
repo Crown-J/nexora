@@ -41,6 +41,11 @@ export type UserDto = {
   healthCheckResult?: string | null;
   // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
   departmentId?: string | null;
+  // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期 / 大頭貼旗標
+  primarySiteId?: string | null;
+  leftAt?: string | null;
+  /** 後端 hasPhoto = Boolean(photoStorageKey)、不外洩 storage key */
+  hasPhoto?: boolean;
   legacyCode?: string | null;
   createdAt: string;
   createdBy: string | null;
@@ -125,6 +130,9 @@ export type UserBasicWritable = {
   healthCheckResult?: string | null;
   // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
   departmentId?: string | null;
+  // 02 第四批 軌 1 2026-06-07
+  primarySiteId?: string | null;
+  leftAt?: string | null;
   legacyCode?: string | null;
 };
 
@@ -152,6 +160,9 @@ function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBas
   if (body.healthCheckResult !== undefined) apiBody.healthCheckResult = body.healthCheckResult;
   // 02 第三批 T1 2026-06-07：隸屬部門
   if (body.departmentId !== undefined) apiBody.departmentId = body.departmentId;
+  // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期
+  if (body.primarySiteId !== undefined) apiBody.primarySiteId = body.primarySiteId;
+  if (body.leftAt !== undefined) apiBody.leftAt = body.leftAt;
   if (body.legacyCode !== undefined) apiBody.legacyCode = body.legacyCode;
 }
 
