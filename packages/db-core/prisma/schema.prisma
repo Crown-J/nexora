@@ -757,6 +757,8 @@ model Nx01Site {
   updatedAt                DateTime        @updatedAt @map("updated_at")
   updatedBy                String          @map("updated_by") @db.VarChar(15)
   rev_Nx01Warehouse_siteId Nx01Warehouse[] @relation("R_Nx01Warehouse_siteId")
+  // 02 第四批 軌 1 2026-06-07：使用者「主要據點」單值 ref（一人一個、forward 視角）
+  rev_Nx01User_primarySiteId Nx01User[]    @relation("R_Nx01User_primarySiteId")
 
   @@unique([tenantId, code])
   @@map("nx01_site")
@@ -1399,6 +1401,18 @@ model Nx01User {
   roleId                                   String?                       @map("role_id") @db.VarChar(15)
   /// 員工隸屬部門（選填）；02 第三批 T1 2026-06-07 從 PRO 解綁 → LITE（總經理拍板：組織欄位各版本都能用、不綁版本）；啟用最低需求版本：LITE
   departmentId                             String?                       @map("department_id") @db.VarChar(15)
+  /// 主要據點 ID（FK nx01_site、選填、forward 視角一人一個；02 第四批 軌 1 2026-06-07 新增、與 nx01_user_warehouse 多倉衛星並存）；啟用最低需求版本：LITE
+  primarySiteId                            String?                       @map("primary_site_id") @db.VarChar(15)
+  /// 離職日期（選填、留空=在職、有值=已離職、不刪資料）；02 第四批 軌 1 2026-06-07 新增
+  leftAt                                   DateTime?                     @map("left_at") @db.Date
+  /// 大頭貼 storage key（FileUploadService 產的 {tenantId}/user-photo/{yyyy}/{mm}/{uuid}{ext}；單張、無則 null）；02 第四批 軌 1 2026-06-07 新增
+  photoStorageKey                          String?                       @map("photo_storage_key") @db.VarChar(255)
+  /// 大頭貼 MIME type（image/png / image/jpeg / image/gif / image/webp）
+  photoMimeType                            String?                       @map("photo_mime_type") @db.VarChar(50)
+  /// 大頭貼檔案大小（bytes）
+  photoFileSize                            Int?                          @map("photo_file_size")
+  /// 大頭貼原始檔名
+  photoOrigFilename                        String?                       @map("photo_orig_filename") @db.VarChar(200)
   /// 是否啟用（停用後不可登入）；啟用最低需求版本：LITE
   isActive                                 Boolean                       @default(true) @map("is_active")
   /// 最後登入時間；啟用最低需求版本：LITE
@@ -1422,6 +1436,8 @@ model Nx01User {
   tenant                                   Nx99Tenant                    @relation("R_Nx01User_tenantId", fields: [tenantId], references: [id])
   hrRole                                   Nx01Role?                     @relation("R_Nx01User_hrRoleId", fields: [roleId], references: [id])
   hrDepartment                             Nx01Department?               @relation("R_Nx01User_hrDepartmentId", fields: [departmentId], references: [id])
+  // 02 第四批 軌 1 2026-06-07：主要據點 forward ref（與 user_warehouse 多倉衛星並存）
+  primarySite                              Nx01Site?                     @relation("R_Nx01User_primarySiteId", fields: [primarySiteId], references: [id], onDelete: SetNull)
   // 02 對齊第二批 A 軌 CP2 2026-06-06：國別 + 戶籍 + 通訊兩組地址
   country                                  Nx01Country?                  @relation("R_Nx01User_countryId", fields: [countryId], references: [id], onDelete: SetNull)
   householdCity                            Nx01City?                     @relation("R_Nx01User_householdCityId", fields: [householdCityId], references: [id], onDelete: SetNull)
