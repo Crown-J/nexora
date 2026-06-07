@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useState } from 'react';
 import {
   ClipboardList,
   Search,
@@ -17,9 +17,10 @@ import {
   AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
+// T1-fix-c 進貨對齊批次 2026-06-07：移除 showPlus 版本守、審核節點對所有版本顯示。
+// 註：KPI BAR（isPro）屬 NX10 遊戲化付費差異、不在進貨範圍、保留。
 import { cn } from '@/lib/utils';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,7 +32,6 @@ type FlowNodeDef = {
   icon: LucideIcon;
   count: number;
   isDone?: boolean;
-  plusOnly?: boolean;
   /** 支線節點所屬主線節點 ID */
   branchFrom?: StepId;
 };
@@ -42,7 +42,7 @@ const MAIN_NODES: FlowNodeDef[] = [
   { id: 'demand',  label: '需求',   icon: ClipboardList, count: 3 },
   { id: 'rfq',     label: '詢價',   icon: Search,        count: 2 },
   { id: 'po',      label: '採購單', icon: FileText,      count: 1 },
-  { id: 'approve', label: '審核',   icon: ShieldCheck,   count: 1, plusOnly: true },
+  { id: 'approve', label: '審核',   icon: ShieldCheck,   count: 1 },
   { id: 'rr',      label: '驗收',   icon: PackageCheck,  count: 2 },
   { id: 'posting', label: '入帳',   icon: Banknote,      count: 1 },
   { id: 'done',    label: '完成',   icon: CheckCircle2,  count: 9, isDone: true },
@@ -885,13 +885,7 @@ function DoneContent() {
 
 export function ProcurementFlowHub() {
   const { planCode } = useSessionMe();
-  const showPlus = planSupportsNx02PlusFeatures(planCode);
   const isPro = planCode === 'PRO';
-
-  const visibleMainNodes = useMemo(
-    () => MAIN_NODES.filter((n) => !n.plusOnly || showPlus),
-    [showPlus],
-  );
 
   const [activeId, setActiveId] = useState<StepId>('demand');
 
@@ -902,7 +896,7 @@ export function ProcurementFlowHub() {
 
       {/* 兩層流程圖 */}
       <FlowChart
-        mainNodes={visibleMainNodes}
+        mainNodes={MAIN_NODES}
         branchNodes={BRANCH_NODES}
         activeId={activeId}
         onSelect={setActiveId}

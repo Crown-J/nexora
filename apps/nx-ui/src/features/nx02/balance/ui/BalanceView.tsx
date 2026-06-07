@@ -34,13 +34,14 @@ const ntd4 = new Intl.NumberFormat('zh-TW', {
 
 export type BalanceViewProps = {
   vm: BalanceVm;
-  showPlus: boolean;
 };
 
 /**
  * @FUNCTION_CODE NX02-BAL-UI-001-F01
+ *
+ * T1-fix-c 進貨對齊批次 2026-06-07：拿掉 showPlus 版本守、「調撥中」欄三版本全顯示。
  */
-export function BalanceView({ vm, showPlus }: BalanceViewProps) {
+export function BalanceView({ vm }: BalanceViewProps) {
   const {
     qInput,
     setQInput,
@@ -146,9 +147,7 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
               <SortTh field="on_hand_qty">現存量</SortTh>
               <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">佔用量</th>
               <SortTh field="available_qty">可用量</SortTh>
-              {showPlus ? (
-                <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">調撥中</th>
-              ) : null}
+              <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">調撥中</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">單位</th>
               <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">移動均價</th>
               <SortTh field="stock_value">庫存金額</SortTh>
@@ -159,13 +158,13 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={showPlus ? 13 : 12} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={13} className="px-3 py-8 text-center text-muted-foreground">
                   載入中…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={showPlus ? 13 : 12} className="px-3 py-8 text-center text-muted-foreground">
+                <td colSpan={13} className="px-3 py-8 text-center text-muted-foreground">
                   無資料
                 </td>
               </tr>
@@ -197,9 +196,7 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
                     <td className="px-3 py-2 text-right tabular-nums">{r.onHandQty.toLocaleString('zh-TW')}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.reservedQty.toLocaleString('zh-TW')}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.availableQty.toLocaleString('zh-TW')}</td>
-                    {showPlus ? (
-                      <td className="px-3 py-2 text-right tabular-nums">{r.inTransitQty.toLocaleString('zh-TW')}</td>
-                    ) : null}
+                    <td className="px-3 py-2 text-right tabular-nums">{r.inTransitQty.toLocaleString('zh-TW')}</td>
                     <td className="px-3 py-2">{r.uom}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-xs">{ntd4.format(r.avgCost)}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{ntd0.format(r.stockValue)}</td>
@@ -265,12 +262,7 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
                     <div className="text-xs text-muted-foreground">{r.uom}</div>
                   </div>
                 </div>
-                <div
-                  className={cx(
-                    'mt-3 grid gap-2 border-t border-border/40 pt-2 text-xs',
-                    showPlus ? 'grid-cols-4' : 'grid-cols-3',
-                  )}
-                >
+                <div className="mt-3 grid grid-cols-4 gap-2 border-t border-border/40 pt-2 text-xs">
                   <div>
                     <div className="text-muted-foreground">現存</div>
                     <div className="tabular-nums text-foreground">{r.onHandQty.toLocaleString('zh-TW')}</div>
@@ -279,12 +271,10 @@ export function BalanceView({ vm, showPlus }: BalanceViewProps) {
                     <div className="text-muted-foreground">佔用</div>
                     <div className="tabular-nums text-foreground">{r.reservedQty.toLocaleString('zh-TW')}</div>
                   </div>
-                  {showPlus ? (
-                    <div>
-                      <div className="text-muted-foreground">調撥中</div>
-                      <div className="tabular-nums text-foreground">{r.inTransitQty.toLocaleString('zh-TW')}</div>
-                    </div>
-                  ) : null}
+                  <div>
+                    <div className="text-muted-foreground">調撥中</div>
+                    <div className="tabular-nums text-foreground">{r.inTransitQty.toLocaleString('zh-TW')}</div>
+                  </div>
                   <div>
                     <div className="text-muted-foreground">安全量</div>
                     <div

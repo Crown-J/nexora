@@ -3,13 +3,11 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
 import type { PartnerDto } from '@/features/shared/master/partner/types';
 import { listLookupPart } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 import {
   getRfq,
@@ -48,9 +46,6 @@ type ReplyRow = {
 };
 
 export function RfqDetailView({ id }: { id: string }) {
-  const { planCode } = useSessionMe();
-  const showPlus = planSupportsNx02PlusFeatures(planCode);
-
   const [doc, setDoc] = useState<RfqDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -780,16 +775,12 @@ export function RfqDetailView({ id }: { id: string }) {
           >
             轉為進貨單（RR）
           </Link>
-          {showPlus ? (
-            <Link
-              href={`/dashboard/purchase/po/new?rfq=${encodeURIComponent(doc.id)}`}
-              className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium"
-            >
-              轉為採購單（PO）
-            </Link>
-          ) : (
-            <span className="self-center text-xs text-muted-foreground">採購單需 PLUS 方案</span>
-          )}
+          <Link
+            href={`/dashboard/purchase/po/new?rfq=${encodeURIComponent(doc.id)}`}
+            className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium"
+          >
+            轉為採購單（PO）
+          </Link>
         </div>
       ) : null}
 

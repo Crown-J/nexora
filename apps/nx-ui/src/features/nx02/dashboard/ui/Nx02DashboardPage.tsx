@@ -5,15 +5,12 @@
  * Purpose:
  * - NX02-DSH-UI-002：庫存模組首頁（CARD 區塊 + 統計）
  *
- * Notes:
- * - PLUS 卡片依方案（NEXORA-PLUS／NEXORA-PRO 或簡寫 PLUS／PRO）顯示；LITE 隱藏
- * - @FUNCTION_CODE NX02-DSH-UI-002-F01
+ * T1-fix-c 進貨對齊批次 2026-06-07：拿掉 showPlus 版本守、調撥單 / 缺貨簿 / 自動補貨三版本一致。
+ *
+ * @FUNCTION_CODE NX02-DSH-UI-002-F01
  */
 
 'use client';
-
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 import { useDashboard } from '../hooks/useDashboard';
 import { Nx02StatCard } from './Nx02StatCard';
@@ -29,9 +26,7 @@ type Nx02DashboardPageProps = {
  * @FUNCTION_CODE NX02-DSH-UI-002-F01
  */
 export function Nx02DashboardPage({ surface = 'legacy' }: Nx02DashboardPageProps) {
-  const { planCode } = useSessionMe();
   const { data, loading, error } = useDashboard();
-  const showPlus = planSupportsNx02PlusFeatures(planCode);
   const codeLabel = surface === 'v2' ? 'INVENTORY' : 'NX02';
 
   return (
@@ -108,39 +103,35 @@ export function Nx02DashboardPage({ surface = 'legacy' }: Nx02DashboardPageProps
                   進行中 <span className="font-semibold">{data.stockTake.inProgressCount}</span> 張
                 </p>
               </Nx02StatCard>
-              {showPlus ? (
-                <Nx02StatCard title="調撥單" description="倉與倉調撥（PLUS）" href="/dashboard/nx02/transfer">
-                  <p className="tabular-nums text-foreground">
-                    進行中 <span className="font-semibold">{data.transfer.inProgressCount}</span> 張
-                  </p>
-                </Nx02StatCard>
-              ) : null}
+              <Nx02StatCard title="調撥單" description="倉與倉調撥" href="/dashboard/nx02/transfer">
+                <p className="tabular-nums text-foreground">
+                  進行中 <span className="font-semibold">{data.transfer.inProgressCount}</span> 張
+                </p>
+              </Nx02StatCard>
             </div>
           </section>
 
-          {showPlus ? (
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold tracking-wide text-foreground border-b border-border/70 pb-2">
-                庫存警示
-              </h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Nx02StatCard title="缺貨簿" description="低於安全量之缺貨清單" href="/dashboard/nx02/shortage">
-                  <p className="tabular-nums text-foreground">
-                    缺貨中 <span className="font-semibold">{data.shortage.openCount}</span> 筆
-                  </p>
-                </Nx02StatCard>
-                <Nx02StatCard
-                  title="自動補貨設定"
-                  description="跨倉補貨規則"
-                  href="/dashboard/nx02/auto-replenish"
-                >
-                  <p className="tabular-nums text-foreground">
-                    已設定 <span className="font-semibold">{data.autoReplenish.activeRuleCount}</span> 條規則
-                  </p>
-                </Nx02StatCard>
-              </div>
-            </section>
-          ) : null}
+          <section className="space-y-4">
+            <h2 className="text-sm font-semibold tracking-wide text-foreground border-b border-border/70 pb-2">
+              庫存警示
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Nx02StatCard title="缺貨簿" description="低於安全量之缺貨清單" href="/dashboard/nx02/shortage">
+                <p className="tabular-nums text-foreground">
+                  缺貨中 <span className="font-semibold">{data.shortage.openCount}</span> 筆
+                </p>
+              </Nx02StatCard>
+              <Nx02StatCard
+                title="自動補貨設定"
+                description="跨倉補貨規則"
+                href="/dashboard/nx02/auto-replenish"
+              >
+                <p className="tabular-nums text-foreground">
+                  已設定 <span className="font-semibold">{data.autoReplenish.activeRuleCount}</span> 條規則
+                </p>
+              </Nx02StatCard>
+            </div>
+          </section>
         </>
       ) : null}
     </div>

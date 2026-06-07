@@ -1,20 +1,11 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/nx02/balance/page.tsx
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - 庫存一覽（QUERY）
- */
-
+// apps/nx-ui/src/app/dashboard/nx02/balance/page.tsx
+// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 showPlus prop、庫存一覽三版本一致。
 'use client';
 
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { useBalance } from '@/features/nx02/balance/hooks/useBalance';
 import { BalanceView } from '@/features/nx02/balance/ui/BalanceView';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 export default function Nx02BalancePage() {
-  const { planCode } = useSessionMe();
   const vm = useBalance();
-  return <BalanceView vm={vm} showPlus={planSupportsNx02PlusFeatures(planCode)} />;
+  return <BalanceView vm={vm} />;
 }

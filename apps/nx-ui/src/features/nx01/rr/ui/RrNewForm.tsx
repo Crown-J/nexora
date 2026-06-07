@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
 import type { PartnerDto } from '@/features/shared/master/partner/types';
@@ -15,7 +14,6 @@ import {
   type LookupLocationRow,
 } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 import { getRfq, listRfq } from '../../api/rfq';
 import { getPo, listPo } from '../../api/po';
@@ -48,8 +46,6 @@ function isSupplier(p: PartnerDto): boolean {
 export function RrNewForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { planCode } = useSessionMe();
-  const showPlus = planSupportsNx02PlusFeatures(planCode);
 
   const [source, setSource] = useState<Source>('direct');
   const [rfqId, setRfqId] = useState<string | null>(null);
@@ -86,12 +82,12 @@ export function RrNewForm() {
         .then((r) => setRfqRows(r.data))
         .catch(() => setRfqRows([]));
     }
-    if (source === 'po' && showPlus) {
+    if (source === 'po') {
       listPo({ page: 1, pageSize: 100, status: 'S' })
         .then((r) => setPoRows(r.data))
         .catch(() => setPoRows([]));
     }
-  }, [source, showPlus]);
+  }, [source]);
 
   const applyFromRfq = useCallback(async (rid: string) => {
     setError(null);
@@ -164,14 +160,14 @@ export function RrNewForm() {
       setSource('rfq');
       setSeedDone(true);
       void applyFromRfq(qRfq);
-    } else if (qPo && showPlus) {
+    } else if (qPo) {
       setSource('po');
       setSeedDone(true);
       void applyFromPo(qPo);
     } else {
       setSeedDone(true);
     }
-  }, [searchParams, seedDone, showPlus, applyFromRfq, applyFromPo]);
+  }, [searchParams, seedDone, applyFromRfq, applyFromPo]);
 
   useEffect(() => {
     if (!warehouseId) {
@@ -318,22 +314,20 @@ export function RrNewForm() {
           />
           從詢價單帶入（已回覆）
         </label>
-        {showPlus ? (
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="rr-src"
-              checked={source === 'po'}
-              onChange={() => {
-                setSource('po');
-                setRfqId(null);
-                setPoId(null);
-                setLines([]);
-              }}
-            />
-            從採購單帶入（PLUS）
-          </label>
-        ) : null}
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="radio"
+            name="rr-src"
+            checked={source === 'po'}
+            onChange={() => {
+              setSource('po');
+              setRfqId(null);
+              setPoId(null);
+              setLines([]);
+            }}
+          />
+          從採購單帶入
+        </label>
       </fieldset>
 
       {source === 'rfq' ? (
@@ -360,7 +354,7 @@ export function RrNewForm() {
         </div>
       ) : null}
 
-      {source === 'po' && showPlus ? (
+      {source === 'po' ? (
         <div className="space-y-2">
           <label className="text-xs text-muted-foreground">
             選擇採購單（已送出）

@@ -1,6 +1,8 @@
 /**
  * @FUNCTION_CODE NX03-DASH-UI-001-F01
  * 庫存中心首頁：版型與採購中心一致；數字取自 /nx02/balance/dashboard（與原庫存首頁相同資料源）
+ *
+ * T1-fix-c 進貨對齊批次 2026-06-07：拿掉 showPlus 版本守、調撥單 / 缺貨警示三版本一致。
  */
 
 'use client';
@@ -16,8 +18,6 @@ import {
   Settings,
   Warehouse,
 } from 'lucide-react';
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 import { useDashboard } from '@/features/nx02/dashboard/hooks/useDashboard';
 import {
   CenterHubCardWrap,
@@ -28,9 +28,7 @@ import {
 const ACCENT = '#E8A020';
 
 export function InventoryCenterHub() {
-  const { planCode } = useSessionMe();
   const { data, loading, error } = useDashboard();
-  const showPlus = planSupportsNx02PlusFeatures(planCode);
 
   const b = data?.balance;
   const ledger = data?.ledger;
@@ -161,57 +159,53 @@ export function InventoryCenterHub() {
               ]}
             />
           </CenterHubCardWrap>
-          {showPlus ? (
-            <CenterHubCardWrap>
-              <CenterHubFlowCard
-                title="調撥單"
-                description="倉與倉調撥（PLUS）"
-                icon={ArrowLeftRight}
-                footerBadge={transfer ? `${transfer.inProgressCount}` : '—'}
-                accentHex={ACCENT}
-                subItems={[
-                  { label: '調撥單', href: '/dashboard/nx02/transfer' },
-                  { label: '自動補貨', href: '/dashboard/nx02/auto-replenish' },
-                ]}
-              />
-            </CenterHubCardWrap>
-          ) : null}
+          <CenterHubCardWrap>
+            <CenterHubFlowCard
+              title="調撥單"
+              description="倉與倉調撥"
+              icon={ArrowLeftRight}
+              footerBadge={transfer ? `${transfer.inProgressCount}` : '—'}
+              accentHex={ACCENT}
+              subItems={[
+                { label: '調撥單', href: '/dashboard/nx02/transfer' },
+                { label: '自動補貨', href: '/dashboard/nx02/auto-replenish' },
+              ]}
+            />
+          </CenterHubCardWrap>
         </div>
       </section>
 
-      {showPlus ? (
-        <section className="space-y-4" aria-labelledby="inv-group-alert">
-          <CenterHubGroupHeading id="inv-group-alert" title="庫存警示（PLUS）" />
-          <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
-            <CenterHubCardWrap>
-              <CenterHubFlowCard
-                title="缺貨簿"
-                description="低於安全量之缺貨清單"
-                icon={AlertTriangle}
-                footerBadge={shortage ? `${shortage.openCount}` : '—'}
-                accentHex={ACCENT}
-                subItems={[
-                  { label: '缺貨簿', href: '/dashboard/nx02/shortage' },
-                  { label: '工作台', href: '/dashboard/nx03/workspace' },
-                ]}
-              />
-            </CenterHubCardWrap>
-            <CenterHubCardWrap>
-              <CenterHubFlowCard
-                title="自動補貨設定"
-                description="跨倉補貨規則"
-                icon={RefreshCw}
-                footerBadge={autoReplenish ? `${autoReplenish.activeRuleCount}` : '—'}
-                accentHex={ACCENT}
-                subItems={[
-                  { label: '自動補貨', href: '/dashboard/nx02/auto-replenish' },
-                  { label: '庫存首頁', href: '/dashboard/nx03/workspace' },
-                ]}
-              />
-            </CenterHubCardWrap>
-          </div>
-        </section>
-      ) : null}
+      <section className="space-y-4" aria-labelledby="inv-group-alert">
+        <CenterHubGroupHeading id="inv-group-alert" title="庫存警示" />
+        <div className="relative z-10 flex min-w-0 flex-col items-stretch gap-6 md:flex-row md:flex-nowrap md:items-center md:justify-start md:overflow-x-auto md:pb-1">
+          <CenterHubCardWrap>
+            <CenterHubFlowCard
+              title="缺貨簿"
+              description="低於安全量之缺貨清單"
+              icon={AlertTriangle}
+              footerBadge={shortage ? `${shortage.openCount}` : '—'}
+              accentHex={ACCENT}
+              subItems={[
+                { label: '缺貨簿', href: '/dashboard/nx02/shortage' },
+                { label: '工作台', href: '/dashboard/nx03/workspace' },
+              ]}
+            />
+          </CenterHubCardWrap>
+          <CenterHubCardWrap>
+            <CenterHubFlowCard
+              title="自動補貨設定"
+              description="跨倉補貨規則"
+              icon={RefreshCw}
+              footerBadge={autoReplenish ? `${autoReplenish.activeRuleCount}` : '—'}
+              accentHex={ACCENT}
+              subItems={[
+                { label: '自動補貨', href: '/dashboard/nx02/auto-replenish' },
+                { label: '庫存首頁', href: '/dashboard/nx03/workspace' },
+              ]}
+            />
+          </CenterHubCardWrap>
+        </div>
+      </section>
     </div>
   );
 }

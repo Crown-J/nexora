@@ -1,10 +1,11 @@
+// apps/nx-ui/src/features/nx01/dashboard/ui/Nx01DashboardPage.tsx
+// T1-fix-c 進貨對齊批次 2026-06-07：清掉 PLUS 鎖頭 + 「PLUS 方案」推銷文案，
+// 採購單三版本一致（DRAFT → PENDING_APPROVAL → APPROVED → SUBMITTED → CONFIRMED）。
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, Lock } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 import { cn } from '@/lib/utils';
 
 import { useNx01Dashboard } from '../hooks/useNx01Dashboard';
@@ -15,13 +16,10 @@ type FlowStepProps = {
   title: string;
   pending: number;
   subtitle: string;
-  plusOnly?: boolean;
-  showPlus: boolean;
 };
 
-function FlowStep({ href, step, title, pending, subtitle, plusOnly, showPlus }: FlowStepProps) {
+function FlowStep({ href, step, title, pending, subtitle }: FlowStepProps) {
   const hasWork = pending > 0;
-  const locked = plusOnly && !showPlus;
 
   return (
     <Link
@@ -31,19 +29,12 @@ function FlowStep({ href, step, title, pending, subtitle, plusOnly, showPlus }: 
         hasWork
           ? 'border-amber-500/60 ring-1 ring-amber-500/30'
           : 'border-border/70',
-        locked && 'opacity-95',
       )}
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-medium tabular-nums tracking-wider text-muted-foreground">
           STEP {step}
         </span>
-        {locked ? (
-          <span className="flex items-center gap-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            <Lock className="size-3" aria-hidden />
-            PLUS
-          </span>
-        ) : null}
       </div>
       <h3 className="mt-1 text-sm font-semibold text-foreground">{title}</h3>
       <p
@@ -61,8 +52,6 @@ function FlowStep({ href, step, title, pending, subtitle, plusOnly, showPlus }: 
 }
 
 export function Nx01DashboardPage() {
-  const { planCode } = useSessionMe();
-  const showPlus = planSupportsNx02PlusFeatures(planCode);
   const { data, loading, error, reload } = useNx01Dashboard();
 
   return (
@@ -73,7 +62,7 @@ export function Nx01DashboardPage() {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">採購與進貨作業</h1>
             <p className="text-sm text-muted-foreground">
-              依流程檢視各階段待辦：詢價 → 採購（PLUS）→ 進貨 → 退貨
+              依流程檢視各階段待辦：詢價 → 採購 → 進貨 → 退貨
             </p>
           </div>
           <button
@@ -105,7 +94,6 @@ export function Nx01DashboardPage() {
               title="詢價 RFQ"
               pending={data.rfq.pending}
               subtitle={`進行中單據 ${data.rfq.total} 筆（含草稿／已發出／已回覆）`}
-              showPlus={showPlus}
             />
             <div className="hidden items-center justify-center text-muted-foreground lg:flex">
               <ChevronRight className="size-5 shrink-0" aria-hidden />
@@ -115,13 +103,7 @@ export function Nx01DashboardPage() {
               step={2}
               title="採購 PO"
               pending={data.po.pending}
-              subtitle={
-                showPlus
-                  ? `進行中 ${data.po.total} 筆（草稿／已送出）`
-                  : '此功能不在您目前的方案內'
-              }
-              plusOnly
-              showPlus={showPlus}
+              subtitle={`進行中 ${data.po.total} 筆（草稿／待核准／已核准／已送出）`}
             />
             <div className="hidden items-center justify-center text-muted-foreground lg:flex">
               <ChevronRight className="size-5 shrink-0" aria-hidden />
@@ -132,7 +114,6 @@ export function Nx01DashboardPage() {
               title="進貨 RR"
               pending={data.rr.pending}
               subtitle={`草稿 ${data.rr.pending} 筆 · 本月已過帳 ${data.posted.thisMonth} 筆`}
-              showPlus={showPlus}
             />
             <div className="hidden items-center justify-center text-muted-foreground lg:flex">
               <ChevronRight className="size-5 shrink-0" aria-hidden />
@@ -143,7 +124,6 @@ export function Nx01DashboardPage() {
               title="退貨 PR"
               pending={data.pr.inProgress}
               subtitle="草稿狀態、尚待過帳的退貨單"
-              showPlus={showPlus}
             />
           </div>
         </section>
@@ -160,7 +140,7 @@ export function Nx01DashboardPage() {
           href="/dashboard/purchase/po/new"
           className="rounded-xl border border-border/70 bg-card/40 px-4 py-3 text-sm font-medium hover:bg-card/70"
         >
-          + 新增採購（PLUS）
+          + 新增採購
         </Link>
         <Link
           href="/dashboard/purchase/rr/new"

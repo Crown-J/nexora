@@ -1,24 +1,11 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/nx02/auto-replenish/page.tsx
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - 自動補貨設定（PLUS）
- */
-
+// apps/nx-ui/src/app/dashboard/nx02/auto-replenish/page.tsx
+// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 PlanUpgradePrompt 版本守、自動補貨三版本一致。
 'use client';
 
-import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { PlanUpgradePrompt } from '@/features/nx02/shared/ui/PlanUpgradePrompt';
 import { useAutoReplenish } from '@/features/nx02/auto-replenish/hooks/useAutoReplenish';
 import { AutoReplenishSplitView } from '@/features/nx02/auto-replenish/ui/AutoReplenishSplitView';
-import { planSupportsNx02PlusFeatures } from '@/shared/lib/plan-plus-support';
 
 export default function Nx02AutoReplenishPage() {
-  const { planCode } = useSessionMe();
   const vm = useAutoReplenish();
-  if (!planSupportsNx02PlusFeatures(planCode)) {
-    return <PlanUpgradePrompt requiredPlan="PLUS" />;
-  }
   return <AutoReplenishSplitView vm={vm} />;
 }
