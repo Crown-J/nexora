@@ -28,6 +28,10 @@ export class CreateRoleDto {
   @MaxLength(200)
   description?: string;
 
+  // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
+  @IsOptional() @IsString() @MaxLength(20) level?: string;
+  @IsOptional() @IsString() @MaxLength(15) departmentId?: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -50,6 +54,10 @@ export class UpdateRoleDto {
   @IsString()
   @MaxLength(200)
   description?: string | null;
+
+  // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
+  @IsOptional() @IsString() @MaxLength(20) level?: string | null;
+  @IsOptional() @IsString() @MaxLength(15) departmentId?: string | null;
 
   @IsOptional()
   @Type(() => Number)

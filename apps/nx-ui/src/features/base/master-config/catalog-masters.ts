@@ -32,6 +32,9 @@ export const ROLE_MASTER: EntityMasterConfig = {
     { key: 'code', label: '職務代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
     { key: 'name', label: '職務名稱', required: true, minWidthClass: 'min-w-[140px]' },
     { key: 'description', label: '說明', inList: false },
+    // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
+    { key: 'level', label: '層級', minWidthClass: 'min-w-[100px]' },
+    { key: 'departmentId', label: '隸屬部門', type: 'ref', refBasePath: 'nx01/departments', minWidthClass: 'min-w-[140px]' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };

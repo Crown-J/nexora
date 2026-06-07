@@ -490,6 +490,8 @@ model Nx01Department {
   tenant                                 Nx99Tenant           @relation("R_Nx01Department_tenantId", fields: [tenantId], references: [id])
   rev_Nx01Team_departmentId              Nx01Team[]           @relation("R_Nx01Team_departmentId")
   rev_Nx01User_hrDepartmentId            Nx01User[]           @relation("R_Nx01User_hrDepartmentId")
+  /// 02 第三批 T1 2026-06-07：職務隸屬部門反向
+  rev_Nx01Role_departmentId              Nx01Role[]           @relation("R_Nx01Role_departmentId")
   rev_Nx07EmployeeChange_newDepartmentId Nx07EmployeeChange[] @relation("R_Nx07EmployeeChange_newDepartmentId")
   rev_Nx09Document_deptId                Nx09Document[]       @relation("R_Nx09Document_deptId")
   rev_Nx09KmArticle_deptId               Nx09KmArticle[]      @relation("R_Nx09KmArticle_deptId")
@@ -1121,6 +1123,10 @@ model Nx01Role {
   name                                 String                  @db.VarChar(50)
   /// 角色說明（可選）；啟用最低需求版本：LITE
   description                          String?                 @db.VarChar(200)
+  /// 職務層級（如 G1-G5、總經理/經理/組長/員工、業務命名彈性、純文字）；02 第三批 T1 2026-06-07 新增、啟用最低需求版本：LITE
+  level                                String?                 @db.VarChar(20)
+  /// 隸屬部門 ID（FK nx01_department、職務歸屬部門）；02 第三批 T1 2026-06-07 新增、啟用最低需求版本：LITE
+  departmentId                         String?                 @map("department_id") @db.VarChar(15)
   /// 是否系統內建角色（內建可限制刪除/改代碼）；啟用最低需求版本：LITE
   isSystem                             Boolean                 @default(false) @map("is_system")
   /// 是否啟用（停用後不可再指派）；啟用最低需求版本：LITE
@@ -1136,6 +1142,8 @@ model Nx01Role {
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
   updatedBy                            String                  @map("updated_by") @db.VarChar(15)
   tenant                               Nx99Tenant              @relation("R_Nx01Role_tenantId", fields: [tenantId], references: [id])
+  /// 02 第三批 T1 2026-06-07：隸屬部門 relation
+  department                           Nx01Department?         @relation("R_Nx01Role_departmentId", fields: [departmentId], references: [id], onDelete: SetNull)
   rev_Nx01KpiTarget_roleId             Nx01KpiTarget[]         @relation("R_Nx01KpiTarget_roleId")
   rev_Nx01RolePermission_roleId        Nx01RolePermission[]    @relation("R_Nx01RolePermission_roleId")
   rev_Nx01RoleView_roleId              Nx01RoleView[]          @relation("R_Nx01RoleView_roleId")
@@ -1355,7 +1363,7 @@ model Nx01User {
   legacyCode                               String?                       @map("legacy_code") @db.VarChar(50)
   /// 人資主檔同步：主要職務角色（選填，與 nx01_user_role 並存）；啟用最低需求版本：PRO
   roleId                                   String?                       @map("role_id") @db.VarChar(15)
-  /// 人資主檔同步：部門（選填）；啟用最低需求版本：PRO
+  /// 員工隸屬部門（選填）；02 第三批 T1 2026-06-07 從 PRO 解綁 → LITE（總經理拍板：組織欄位各版本都能用、不綁版本）；啟用最低需求版本：LITE
   departmentId                             String?                       @map("department_id") @db.VarChar(15)
   /// 是否啟用（停用後不可登入）；啟用最低需求版本：LITE
   isActive                                 Boolean                       @default(true) @map("is_active")

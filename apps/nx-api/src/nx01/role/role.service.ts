@@ -20,6 +20,9 @@ const SEL = {
   code: true,
   name: true,
   description: true,
+  // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
+  level: true,
+  departmentId: true,
   isSystem: true,
   isActive: true,
   sortNo: true,
@@ -27,6 +30,7 @@ const SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  department: { select: { code: true, name: true } },
 } as const;
 
 type Row = Prisma.Nx01RoleGetPayload<{ select: typeof SEL }>;
@@ -100,6 +104,9 @@ export class RoleService {
         code,
         name: dto.name.trim(),
         description: dto.description?.trim() || null,
+        // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
+        level: dto.level?.trim() || null,
+        departmentId: dto.departmentId?.trim() || null,
         sortNo: dto.sortNo ?? 0,
         isSystem: false,
         isActive: dto.isActive ?? true,
@@ -134,6 +141,9 @@ export class RoleService {
       data: {
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
         ...(dto.description !== undefined ? { description: dto.description } : {}),
+        // 02 第三批 T1 2026-06-07
+        ...(dto.level !== undefined ? { level: dto.level?.trim() || null } : {}),
+        ...(dto.departmentId !== undefined ? { departmentId: dto.departmentId?.trim() || null } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,
@@ -183,6 +193,11 @@ export class RoleService {
   }
 
   private mapRow(row: Row) {
-    return { ...row };
+    const { department, ...rest } = row;
+    return {
+      ...rest,
+      departmentCode: department?.code ?? null,
+      departmentName: department?.name ?? null,
+    };
   }
 }

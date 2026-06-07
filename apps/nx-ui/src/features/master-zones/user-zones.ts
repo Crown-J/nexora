@@ -74,7 +74,8 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   // ─── hr 人資區（PRO）───
   { key: 'employeeId', label: '員工主檔', zone: 'hr', notes: 'PRO 才啟用' },
   { key: 'roleId', label: '人資主檔職務角色', zone: 'hr', notes: 'PRO、與 user_role 並存' },
-  { key: 'departmentId', label: '部門', zone: 'hr', notes: 'PRO' },
+  // 02 第三批 T1 2026-06-07：解綁 PRO → 移到 basic zone（總經理拍板：組織欄位各版本都能用）
+  { key: 'departmentId', label: '部門', zone: 'basic', notes: '隸屬部門、LITE 起可編' },
   {
     key: 'teams',
     label: '團隊（可多筆）',

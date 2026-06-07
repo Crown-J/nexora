@@ -86,6 +86,8 @@ export const BASIC_WRITABLE = new Set([
   'militaryService',
   'healthCheckDate',
   'healthCheckResult',
+  // 02 第三批 T1 2026-06-07：隸屬部門（解綁 PRO → LITE）
+  'departmentId',
   // W3 [3-2] 舊代號
   'legacyCode',
 ]);
@@ -155,6 +157,8 @@ const DTO_SUPPORTED = new Set([
   'militaryService',
   'healthCheckDate',
   'healthCheckResult',
+  // 02 第三批 T1 2026-06-07：隸屬部門
+  'departmentId',
   'legacyCode',
 ]);
 

@@ -109,6 +109,9 @@ export class CreateUserDto {
   @IsOptional() @IsDateString() healthCheckDate?: string;
   @IsOptional() @IsString() @MaxLength(20) healthCheckResult?: string;
 
+  // ── 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE） ──
+  @IsOptional() @IsString() @MaxLength(15) departmentId?: string;
+
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
 }
@@ -191,6 +194,9 @@ export class UpdateUserDto {
   @IsOptional() @IsString() @MaxLength(20) militaryService?: string | null;
   @IsOptional() @IsDateString() healthCheckDate?: string | null;
   @IsOptional() @IsString() @MaxLength(20) healthCheckResult?: string | null;
+
+  // ── 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 LITE） ──
+  @IsOptional() @IsString() @MaxLength(15) departmentId?: string | null;
 
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;

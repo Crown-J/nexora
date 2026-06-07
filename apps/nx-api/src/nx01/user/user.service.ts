@@ -31,6 +31,8 @@ const SEL = {
   phone: true,
   isActive: true,
   lastLoginAt: true,
+  // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
+  departmentId: true,
   // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
   gender: true,
   birthday: true,
@@ -94,6 +96,8 @@ export type Nx01UserPublicDto = {
   warehouseCode: string | null;
   warehouseName: string | null;
   // W3 [3-3] basic zone 7 欄位 + [3-2] legacyCode
+  // 02 第三批 T1 2026-06-07：員工隸屬部門（LITE）
+  departmentId: string | null;
   gender: string | null;
   birthday: string | null;
   nationalId: string | null;
@@ -196,6 +200,8 @@ export class UserService {
   /** W3 [3-3] / [3-2] + 02 對齊第二批 B 軌：把 user row 的 basic 欄位 + legacyCode 攤平給 public DTO */
   private basicAndLegacy(row: Row | ListRow) {
     return {
+      // 02 第三批 T1 2026-06-07
+      departmentId: row.departmentId ?? null,
       gender: row.gender ?? null,
       birthday: row.birthday ? row.birthday.toISOString().slice(0, 10) : null,
       nationalId: row.nationalId ?? null,
@@ -358,6 +364,8 @@ export class UserService {
         phone: dto.phone?.trim() || null,
         isActive: dto.isActive ?? true,
         // W3 [3-3] basic zone 7 欄位
+        // 02 第三批 T1 2026-06-07：隸屬部門
+        departmentId: dto.departmentId?.trim() || null,
         gender: dto.gender ?? null,
         birthday: dto.birthday ? new Date(dto.birthday) : null,
         nationalId: dto.nationalId?.trim() || null,
@@ -430,6 +438,8 @@ export class UserService {
       ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
       ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
       // W3 [3-3] basic zone 7 欄位
+      // 02 第三批 T1 2026-06-07：隸屬部門
+      ...(dto.departmentId !== undefined ? { departmentId: dto.departmentId } : {}),
       ...(dto.gender !== undefined ? { gender: dto.gender } : {}),
       ...(dto.birthday !== undefined
         ? { birthday: dto.birthday ? new Date(dto.birthday) : null }

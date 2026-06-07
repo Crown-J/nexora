@@ -39,6 +39,8 @@ export type UserDto = {
   militaryService?: string | null;
   healthCheckDate?: string | null;
   healthCheckResult?: string | null;
+  // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
+  departmentId?: string | null;
   legacyCode?: string | null;
   createdAt: string;
   createdBy: string | null;
@@ -121,6 +123,8 @@ export type UserBasicWritable = {
   militaryService?: string | null;
   healthCheckDate?: string | null;
   healthCheckResult?: string | null;
+  // 02 第三批 T1 2026-06-07：員工隸屬部門（解綁 PRO → LITE）
+  departmentId?: string | null;
   legacyCode?: string | null;
 };
 
@@ -146,6 +150,8 @@ function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBas
   if (body.militaryService !== undefined) apiBody.militaryService = body.militaryService;
   if (body.healthCheckDate !== undefined) apiBody.healthCheckDate = body.healthCheckDate;
   if (body.healthCheckResult !== undefined) apiBody.healthCheckResult = body.healthCheckResult;
+  // 02 第三批 T1 2026-06-07：隸屬部門
+  if (body.departmentId !== undefined) apiBody.departmentId = body.departmentId;
   if (body.legacyCode !== undefined) apiBody.legacyCode = body.legacyCode;
 }
 

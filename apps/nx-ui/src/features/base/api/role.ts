@@ -9,6 +9,11 @@ export type RoleDto = {
   code: string;
   name: string;
   description: string | null;
+  // 02 第三批 T1 2026-06-07：職務層級 + 隸屬部門
+  level?: string | null;
+  departmentId?: string | null;
+  departmentCode?: string | null;
+  departmentName?: string | null;
   isSystem: boolean;
   isActive: boolean;
   sortNo: number;
@@ -63,6 +68,9 @@ export async function createRole(body: {
   code: string;
   name: string;
   description?: string | null;
+  // 02 第三批 T1 2026-06-07
+  level?: string | null;
+  departmentId?: string | null;
   isSystem?: boolean;
   isActive?: boolean;
   sortNo?: number;
@@ -81,6 +89,9 @@ export async function updateRole(
     code?: string;
     name?: string;
     description?: string | null;
+    // 02 第三批 T1 2026-06-07
+    level?: string | null;
+    departmentId?: string | null;
     isActive?: boolean;
     sortNo?: number;
   },
