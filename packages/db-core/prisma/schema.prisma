@@ -1126,6 +1126,7 @@ model Nx01Partner {
   defaultWarehouse                         Nx01Warehouse?               @relation("R_Nx01Partner_defaultWarehouseId", fields: [defaultWarehouseId], references: [id], onDelete: SetNull)
   rev_Nx02Demand_customerId                Nx02Demand[]                 @relation("R_Nx02Demand_customerId")
   rev_Nx02Po_supplierId                    Nx02Po[]                     @relation("R_Nx02Po_supplierId")
+  rev_Nx02Po_customsAgentPartnerId         Nx02Po[]                     @relation("R_Nx02Po_customsAgentPartnerId")
   rev_Nx02Pr_supplierId                    Nx02Pr[]                     @relation("R_Nx02Pr_supplierId")
   rev_Nx02Qt_inquiryPartnerId              Nx02Qt[]                     @relation("R_Nx02Qt_inquiryPartnerId")
   rev_Nx02Rfq_supplierId                   Nx02Rfq[]                    @relation("R_Nx02Rfq_supplierId")
@@ -2036,8 +2037,20 @@ model Nx02Po {
   shippedAt             DateTime?      @map("shipped_at")
   /// 實際到港時間（stage=5 觸發、報關行 email 通知、相對既有 eta 預計時間）；啟用最低需求版本：LITE-CORE
   arrivedAt             DateTime?      @map("arrived_at")
+  /// T6 進貨對齊批次 2026-06-08：國內物流追蹤編號（黑貓 / 嘉里 / 大榮 / 新竹 等）。
+  /// purchase_type=D/B 時用；UI 在採購單詳細頁顯示供採購員追蹤包裹。；啟用最低需求版本：LITE-CORE
+  domesticTrackingNo    String?        @map("domestic_tracking_no") @db.VarChar(50)
+  /// T6 進貨對齊批次 2026-06-08：付款里程碑（國內外通用）。
+  /// null=未啟動 / N=廠商通知付款 / D=已付。國外既有 paidAt 是 stage=3 觸發、語意不同不複用。；啟用最低需求版本：LITE-CORE
+  paymentMilestone      String?        @map("payment_milestone") @db.VarChar(1)
+  /// T6 進貨對齊批次 2026-06-08：帳款年月（YYYY-MM、月結用、寫入 AP 帳期歸戶）。
+  /// 預設由建單日 + 付款條件推算（如 NET30 = 建單月+1）、可手動覆寫。；啟用最低需求版本：LITE-CORE
+  apMonth               String?        @map("ap_month") @db.VarChar(7)
+  /// T6 進貨對齊批次 2026-06-08：報關行廠商（國外採購用、FK nx01_partner、partnerType='T' 外包物流、application 層 guard）。；啟用最低需求版本：LITE-CORE
+  customsAgentPartnerId String?        @map("customs_agent_partner_id") @db.VarChar(15)
   tenant                Nx99Tenant     @relation("R_Nx02Po_tenantId", fields: [tenantId], references: [id])
   supplier              Nx01Partner    @relation("R_Nx02Po_supplierId", fields: [supplierId], references: [id])
+  customsAgent          Nx01Partner?   @relation("R_Nx02Po_customsAgentPartnerId", fields: [customsAgentPartnerId], references: [id])
   rfq                   Nx02Rfq?       @relation("R_Nx02Po_rfqId", fields: [rfqId], references: [id])
   rev_Nx02PoItem_poId   Nx02PoItem[]   @relation("R_Nx02PoItem_poId")
   rev_Nx02Rr_poId       Nx02Rr[]       @relation("R_Nx02Rr_poId")
@@ -2045,6 +2058,7 @@ model Nx02Po {
   rev_Nx05ApLedger_poId Nx05ApLedger[] @relation("R_Nx05ApLedger_poId")
 
   @@unique([docNo])
+  @@index([customsAgentPartnerId])
   @@map("nx02_po")
 }
 
@@ -2432,6 +2446,8 @@ model Nx02Rr {
   approvedAt            DateTime?      @map("approved_at")
   /// 入帳核准人（倉管組長，使用者ID）。；啟用最低需求版本：LITE-CORE
   approvedBy            String?        @map("approved_by") @db.VarChar(15)
+  /// T6 進貨對齊批次 2026-06-08：提貨單號（國外進口報關行核發、僅 import RR 用、國內 RR 留空）。；啟用最低需求版本：LITE-CORE
+  deliveryOrderNo       String?        @map("delivery_order_no") @db.VarChar(50)
   tenant                Nx99Tenant     @relation("R_Nx02Rr_tenantId", fields: [tenantId], references: [id])
   warehouse             Nx01Warehouse  @relation("R_Nx02Rr_warehouseId", fields: [warehouseId], references: [id])
   supplier              Nx01Partner    @relation("R_Nx02Rr_supplierId", fields: [supplierId], references: [id])

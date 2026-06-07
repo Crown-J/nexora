@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 
-import { getRr, postRr, voidRr } from '../../api/rr';
+import { getRr, patchRr, postRr, voidRr } from '../../api/rr';
 import type { RrDetailDto } from '../../types';
 import { rrStatusLabel } from '../../shared/nx01-labels';
 
@@ -116,6 +116,35 @@ export function RrDetailView({ id }: { id: string }) {
       {doc.rrImport && (
         <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-4">
           <h2 className="mb-2 text-sm font-semibold text-blue-300">🛳️ 國外進貨資訊（提貨單）</h2>
+          {/* T6 進貨對齊批次 2026-06-08：提貨單號（報關行核發、報關行 email 通知後填入）
+              限 DRAFT/INSPECTING 階段可編輯（POSTED 後依範式鎖定、避免改稽核點） */}
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-blue-300/80">提貨單號（D/O No）：</span>
+            {draft || doc.status === 'INSPECTING' ? (
+              <input
+                className="rounded border border-blue-500/30 bg-background/40 px-2 py-1 font-mono text-foreground"
+                defaultValue={doc.deliveryOrderNo ?? ''}
+                placeholder="例：DO-2026-06-001"
+                maxLength={50}
+                disabled={busy}
+                onBlur={async (e) => {
+                  const v = e.target.value.trim();
+                  if (v === (doc.deliveryOrderNo ?? '')) return;
+                  setBusy(true);
+                  try {
+                    await patchRr(doc.id, { deliveryOrderNo: v || null });
+                    await load();
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : '存檔失敗');
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              />
+            ) : (
+              <span className="font-mono text-foreground">{doc.deliveryOrderNo ?? '—'}</span>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-4">
             <div>
               <div className="text-muted-foreground">買入匯率（鎖定）</div>

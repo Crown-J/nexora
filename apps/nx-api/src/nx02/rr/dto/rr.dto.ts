@@ -131,6 +131,12 @@ export class UpdateRrDto {
   @IsString()
   @MaxLength(200)
   remark?: string | null;
+
+  // T6 進貨對齊批次 2026-06-08：提貨單號（國外進口用、報關行核發）
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  deliveryOrderNo?: string | null;
 }
 
 export class PatchRrItemDto {

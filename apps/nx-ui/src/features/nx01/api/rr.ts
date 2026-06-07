@@ -83,6 +83,19 @@ export async function postRr(id: string): Promise<void> {
   await assertOk(res, 'nxui_nx01_rr_post_001');
 }
 
+// T6 進貨對齊批次 2026-06-08：進貨單表頭可編輯欄位（目前限 deliveryOrderNo、後續可擴）
+export type PatchRrBody = {
+  deliveryOrderNo?: string | null;
+};
+
+export async function patchRr(id: string, body: PatchRrBody): Promise<void> {
+  const res = await apiFetch(`/nx02/rr/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+  await assertOk(res, 'nxui_nx01_rr_patch_001');
+}
+
 // T0：作廢走 DELETE /:id（後端 softDelete 改 status=CANCELLED）
 export async function voidRr(id: string): Promise<void> {
   const res = await apiFetch(`/nx02/rr/${encodeURIComponent(id)}`, { method: 'DELETE' });

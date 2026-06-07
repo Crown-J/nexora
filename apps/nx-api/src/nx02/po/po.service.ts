@@ -53,6 +53,11 @@ const PO_SEL = {
   paidAt: true,
   shippedAt: true,
   arrivedAt: true,
+  // T6 進貨對齊批次 2026-06-08：B 級小欄位（國內物流 / 付款里程碑 / 帳款年月 / 報關行）
+  domesticTrackingNo: true,
+  paymentMilestone: true,
+  apMonth: true,
+  customsAgentPartnerId: true,
   // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
   // T1-fix 2026-06-07：加送審稽核欄
   submittedForReviewAt: true,
@@ -394,6 +399,24 @@ export class PoService {
           permissionCode: 'purchase.po.approve',
         });
       }
+      // T6 進貨對齊批次 2026-06-08：B 級小欄位驗證
+      // apMonth 格式守 YYYY-MM、customsAgentPartnerId 守 partnerType='T' 外包物流
+      if (dto.apMonth !== undefined && dto.apMonth !== null && dto.apMonth !== '') {
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(dto.apMonth)) {
+          throw new BadRequestException('apMonth 格式須為 YYYY-MM');
+        }
+      }
+      if (dto.customsAgentPartnerId !== undefined && dto.customsAgentPartnerId !== null && dto.customsAgentPartnerId !== '') {
+        const ca = await tx.nx01Partner.findFirst({
+          where: { id: dto.customsAgentPartnerId, tenantId },
+          select: { partnerType: true, isActive: true },
+        });
+        if (!ca) throw new BadRequestException('customsAgentPartnerId not found');
+        if (ca.partnerType !== 'T') {
+          throw new BadRequestException(`報關行廠商須為 partnerType='T' 外包物流、實得 '${ca.partnerType}'`);
+        }
+        if (!ca.isActive) throw new BadRequestException('報關行廠商已停用');
+      }
       await tx.nx02Po.update({
         where: { id },
         data: {
@@ -402,6 +425,11 @@ export class PoService {
           ...(dto.expectedDate !== undefined ? { expectedDate: dto.expectedDate ? new Date(dto.expectedDate) : null } : {}),
           ...(dto.status !== undefined ? { status: nextStatus } : {}),
           ...(dto.taxRate !== undefined ? { taxRate } : {}),
+          // T6：B 級小欄位 4 欄寫入（空字串 → null、便於 UI 清除）
+          ...(dto.domesticTrackingNo !== undefined ? { domesticTrackingNo: dto.domesticTrackingNo?.trim() || null } : {}),
+          ...(dto.paymentMilestone !== undefined ? { paymentMilestone: dto.paymentMilestone || null } : {}),
+          ...(dto.apMonth !== undefined ? { apMonth: dto.apMonth?.trim() || null } : {}),
+          ...(dto.customsAgentPartnerId !== undefined ? { customsAgentPartnerId: dto.customsAgentPartnerId?.trim() || null } : {}),
           // T1-fix：送審寫 submittedForReviewAt + By（與 approvedAt 對稱、稽核完整）
           ...(isSubmittingForReview
             ? { submittedForReviewAt: new Date(), submittedForReviewBy: user.sub, rejectReason: null }

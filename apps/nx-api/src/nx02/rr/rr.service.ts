@@ -40,6 +40,8 @@ const RR_SEL = {
   postedAt: true,
   postedBy: true,
   rrDate: true,
+  // T6 進貨對齊批次 2026-06-08：提貨單號（國外進口用）
+  deliveryOrderNo: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -513,6 +515,8 @@ export class RrService {
             ...(dto.rrDate !== undefined ? { rrDate: new Date(dto.rrDate) } : {}),
             ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
             ...(dto.taxRate !== undefined ? { taxRate } : {}),
+            // T6：提貨單號（過帳同 patch 路徑也允許寫入、報關行可能晚補）
+            ...(dto.deliveryOrderNo !== undefined ? { deliveryOrderNo: dto.deliveryOrderNo?.trim() || null } : {}),
             updatedBy: user.sub,
           },
         });
@@ -524,6 +528,8 @@ export class RrService {
             ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
             ...(dto.status !== undefined ? { status: dto.status } : {}),
             ...(dto.taxRate !== undefined ? { taxRate } : {}),
+            // T6 進貨對齊批次 2026-06-08：提貨單號（國外進口、報關行核發）
+            ...(dto.deliveryOrderNo !== undefined ? { deliveryOrderNo: dto.deliveryOrderNo?.trim() || null } : {}),
             updatedBy: user.sub,
           },
         });

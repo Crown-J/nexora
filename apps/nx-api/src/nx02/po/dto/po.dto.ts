@@ -16,6 +16,12 @@ import { Nx02ListQueryDto } from '../../../shared/nx02/nx02-list-query.dto';
 /** 採購類型（D=國內一般 / I=國外進口 / B=掃貨 Bulk）。對齊 schema nx02_po.purchase_type default 'D'、overview §3.2 + Crown Q2。 */
 const PURCHASE_TYPES = ['D', 'I', 'B'] as const;
 
+/** T6 進貨對齊批次 2026-06-08：付款里程碑（null=未啟動、N=廠商通知付款、D=已付）。 */
+const PAYMENT_MILESTONES = ['N', 'D'] as const;
+
+/** apMonth 格式驗證：YYYY-MM（2020-01 ~ 2099-12 合理區間、避免亂填）。 */
+const AP_MONTH_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+
 /**
  * PO 列表查詢（含 purchaseType filter、階段 I P4 國外進貨 UI 用）。
  * 預設不帶 = 全部、'I' = 國外進口、'D' = 國內、'B' = 掃貨。
@@ -122,6 +128,27 @@ export class UpdatePoDto {
   @IsString()
   @MaxLength(200)
   rejectReason?: string | null;
+
+  // T6 進貨對齊批次 2026-06-08：B 級小欄位（國內物流 / 付款里程碑 / 帳款年月 / 報關行）
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  domesticTrackingNo?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(PAYMENT_MILESTONES as unknown as string[])
+  paymentMilestone?: 'N' | 'D' | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(7)
+  apMonth?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  customsAgentPartnerId?: string | null;
 }
 
 export class PatchPoItemDto {

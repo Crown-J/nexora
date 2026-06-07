@@ -90,6 +90,8 @@ export type PoDetailDto = {
   totalAmount: number;
   expectedDate: string | null;
   remark: string | null;
+  /** 採購類型（D 國內 / I 國外 / B 掃貨） */
+  purchaseType?: 'D' | 'I' | 'B';
   // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
   // T1-fix 2026-06-07：加送審稽核欄
   submittedForReviewAt?: string | null;
@@ -99,6 +101,11 @@ export type PoDetailDto = {
   sentAt?: string | null;
   supplierConfirmedAt?: string | null;
   rejectReason?: string | null;
+  // T6 進貨對齊批次 2026-06-08：B 級小欄位
+  domesticTrackingNo?: string | null;
+  paymentMilestone?: 'N' | 'D' | null;
+  apMonth?: string | null;
+  customsAgentPartnerId?: string | null;
   createdAt: string;
   voidedAt: string | null;
   items: {
@@ -153,6 +160,8 @@ export type RrDetailDto = {
   createdAt: string;
   postedAt: string | null;
   voidedAt: string | null;
+  /** T6 進貨對齊批次 2026-06-08：提貨單號（國外進口報關行核發） */
+  deliveryOrderNo?: string | null;
   /** 國外進貨提貨單（國內 RR 無、可選） */
   rrImport?: {
     id: string;

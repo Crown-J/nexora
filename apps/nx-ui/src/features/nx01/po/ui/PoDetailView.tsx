@@ -6,10 +6,19 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
+import { fetchAllPages } from '@/shared/api/fetchAllPages';
+import { listPartner } from '@/features/shared/master/partner/api/partner';
+import type { PartnerDto } from '@/features/shared/master/partner/types';
 
 import { getPo, patchPo, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
 import type { PoDetailDto } from '../../types';
 import { poStatusLabel } from '../../shared/nx01-labels';
+
+// T6 進貨對齊批次 2026-06-08：付款里程碑顯示對照
+const PAYMENT_MILESTONE_LABEL: Record<string, string> = {
+  N: '廠商已通知付款',
+  D: '已付款',
+};
 
 // T1 進貨對齊批次 2026-06-07：採購單狀態判斷（雙吃短碼 + 全名）
 function statusIs(s: string, ...candidates: string[]): boolean {
@@ -42,6 +51,9 @@ export function PoDetailView({ id }: { id: string }) {
   const [showReject, setShowReject] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
+  // T6 進貨對齊批次 2026-06-08：報關行廠商下拉（partnerType='T' 外包物流）
+  const [customsAgents, setCustomsAgents] = useState<PartnerDto[]>([]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -64,7 +76,30 @@ export function PoDetailView({ id }: { id: string }) {
     listLookupWarehouse({ isActive: true })
       .then(setWhOpts)
       .catch(() => setWhOpts([]));
+    // T6：載入外包物流（partnerType='T'）供報關行下拉
+    fetchAllPages((page, pageSize) => listPartner({ page, pageSize }), { pageSize: 100, maxPages: 50 })
+      .then((items) => setCustomsAgents(items.filter((p) => p.partnerType === 'T' && p.isActive)))
+      .catch(() => setCustomsAgents([]));
   }, []);
+
+  // T6：B 級小欄位 patch helper（DRAFT/PENDING_APPROVAL/APPROVED 階段允許）
+  // 業務語意：採購員建單後、廠商出貨前、可隨時補追蹤編號 / 付款里程碑 / 帳款年月 / 報關行
+  const patchMilestone = useCallback(
+    async (patch: Parameters<typeof patchPo>[1]) => {
+      if (!doc) return;
+      setBusy(true);
+      setError(null);
+      try {
+        await patchPo(doc.id, patch);
+        await load();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '存檔失敗');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [doc, load],
+  );
 
   const openToRr = () => {
     if (!doc) return;
@@ -275,6 +310,95 @@ export function PoDetailView({ id }: { id: string }) {
           <p className="self-center text-xs text-muted-foreground">{poStatusLabel(doc.status)}（終態、無可執行動作）</p>
         ) : null}
       </div>
+
+      {/* T6 進貨對齊批次 2026-06-08：B 級小欄位（採購里程碑 / 物流 / 帳款 / 報關行）
+          終態（CLOSED / CANCELLED）唯讀；其他階段允許 inline 編輯（onBlur 直接 patch、不另開 modal）。
+          - 國內物流追蹤編號 / 國內付款里程碑：purchase_type=D/B 顯示（國外見既有 paidAt / arrivedAt 等 6 階段）
+          - 報關行：purchase_type=I 顯示
+          - 帳款年月：所有採購類型通用 */}
+      {!statusIs(doc.status, ...ST_CLOSED, ...ST_CANCELLED) ? (
+        <fieldset className="grid gap-3 rounded-xl border border-border/60 bg-card/40 p-4 text-sm md:grid-cols-2 lg:grid-cols-4">
+          <legend className="px-1 text-xs font-medium tracking-wider text-muted-foreground">採購里程碑 / 物流</legend>
+          {doc.purchaseType !== 'I' ? (
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              國內物流追蹤編號
+              <input
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+                placeholder="例：黑貓 1234567890"
+                defaultValue={doc.domesticTrackingNo ?? ''}
+                maxLength={50}
+                disabled={busy}
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (v !== (doc.domesticTrackingNo ?? '')) void patchMilestone({ domesticTrackingNo: v || null });
+                }}
+              />
+            </label>
+          ) : null}
+          {doc.purchaseType !== 'I' ? (
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              國內付款里程碑
+              <select
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+                value={doc.paymentMilestone ?? ''}
+                disabled={busy}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  void patchMilestone({ paymentMilestone: (v || null) as 'N' | 'D' | null });
+                }}
+              >
+                <option value="">未啟動</option>
+                <option value="N">廠商已通知付款</option>
+                <option value="D">已付款</option>
+              </select>
+            </label>
+          ) : null}
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            帳款年月（月結）
+            <input
+              type="month"
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+              defaultValue={doc.apMonth ?? ''}
+              disabled={busy}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v !== (doc.apMonth ?? '')) void patchMilestone({ apMonth: v || null });
+              }}
+            />
+          </label>
+          {doc.purchaseType === 'I' ? (
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              報關行廠商
+              <select
+                className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+                value={doc.customsAgentPartnerId ?? ''}
+                disabled={busy}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  void patchMilestone({ customsAgentPartnerId: v || null });
+                }}
+              >
+                <option value="">未指派</option>
+                {customsAgents.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}（{p.code}）
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </fieldset>
+      ) : (
+        // 終態唯讀顯示
+        (doc.domesticTrackingNo || doc.paymentMilestone || doc.apMonth || doc.customsAgentPartnerId) ? (
+          <div className="grid gap-2 rounded-xl border border-border/40 bg-muted/20 p-3 text-xs text-muted-foreground md:grid-cols-2 lg:grid-cols-4">
+            {doc.domesticTrackingNo ? <div>物流：<span className="text-foreground">{doc.domesticTrackingNo}</span></div> : null}
+            {doc.paymentMilestone ? <div>付款：<span className="text-foreground">{PAYMENT_MILESTONE_LABEL[doc.paymentMilestone] ?? doc.paymentMilestone}</span></div> : null}
+            {doc.apMonth ? <div>帳款年月：<span className="text-foreground">{doc.apMonth}</span></div> : null}
+            {doc.customsAgentPartnerId ? <div>報關行：<span className="text-foreground font-mono">{customsAgents.find((p) => p.id === doc.customsAgentPartnerId)?.name ?? doc.customsAgentPartnerId}</span></div> : null}
+          </div>
+        ) : null
+      )}
 
       {/* T1：退件 modal（要填原因） */}
       {showReject ? (
