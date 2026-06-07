@@ -845,6 +845,11 @@ model Nx01Part {
   /// 業務員業績指標：看「最後一次賣出」是何時、判斷滯銷風險。
   /// 寫入點：Nx03Outbound 從 PACKED → SHIPPED 時、applyOutboundShipping 內 ledger 寫完後更新（取 max 防舊單覆蓋新單）。
   lastSaleAt                      DateTime?              @map("last_sale_at")
+  /// 建議保存期限（月、選填、可覆寫族群 default、空=取族群預設）；02 第四批 軌 6 2026-06-07 新增
+  /// 繼承+覆寫範式同客戶分級加成率 + Partner.customMarginPct：
+  ///   - 新增零件選 partGroup 時、若此欄空、UI/API 帶入族群 defaultShelfLifeMonths（前端預填）
+  ///   - 業務員可手改此欄（不動族群）；effective = COALESCE(part.shelfLifeMonths, partGroup.defaultShelfLifeMonths)
+  shelfLifeMonths                 Int?                   @map("shelf_life_months")
   tenant                          Nx99Tenant             @relation("R_Nx01Part_tenantId", fields: [tenantId], references: [id])
   codeRule                        Nx01BrandCodeRule?     @relation("R_Nx01Part_codeRuleId", fields: [codeRuleId], references: [id])
   country                         Nx01Country?           @relation("R_Nx01Part_countryId", fields: [countryId], references: [id])
@@ -970,6 +975,9 @@ model Nx01PartGroup {
   code                     String     @db.VarChar(30)
   /// 族群名稱（使用者自訂）；啟用最低需求版本：LITE
   name                     String     @db.VarChar(100)
+  /// 預設建議保存期限（月、選填）；02 第四批 軌 6 2026-06-07 新增
+  /// 新增零件選此族群時、Part.shelfLifeMonths 預設帶入此值、業務員可覆寫（範式同 CustomerGrade.marginPct + Partner.customMarginPct）。
+  defaultShelfLifeMonths   Int?       @map("default_shelf_life_months")
   /// 排序；啟用最低需求版本：LITE
   sortNo                   Int        @default(0) @map("sort_no")
   /// 是否啟用；啟用最低需求版本：LITE

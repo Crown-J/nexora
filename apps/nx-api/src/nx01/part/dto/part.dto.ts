@@ -203,6 +203,14 @@ export class CreatePartDto {
   @Max(600)
   warrantyMonths?: number;
 
+  // 02 第四批 軌 6 2026-06-07：建議保存期限（月、可覆寫族群預設、留空=取族群預設）
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(600)
+  shelfLifeMonths?: number;
+
   @IsOptional()
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 4 })
@@ -355,6 +363,14 @@ export class UpdatePartDto {
   @Min(0)
   @Max(600)
   warrantyMonths?: number;
+
+  // 02 第四批 軌 6 2026-06-07：建議保存期限（月、可覆寫族群預設、留空=取族群預設）
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(600)
+  shelfLifeMonths?: number | null;
 
   @IsOptional()
   @Type(() => Number)

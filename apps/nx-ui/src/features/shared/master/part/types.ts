@@ -43,6 +43,8 @@ export type PartDto = {
 
   returnPolicy: string;
   warrantyMonths: number;
+  // 02 第四批 軌 6 2026-06-07：建議保存期限（可空、空=取族群預設）
+  shelfLifeMonths: number | null;
   /** API 以字串表示 Decimal */
   priceA: string | null;
   priceB: string | null;

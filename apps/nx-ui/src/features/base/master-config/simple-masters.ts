@@ -50,6 +50,8 @@ export const PART_GROUP_MASTER: EntityMasterConfig = {
   fields: [
     { key: 'code', label: '族群代碼', required: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[100px]' },
     { key: 'name', label: '族群名稱', required: true, minWidthClass: 'min-w-[140px]' },
+    // 02 第四批 軌 6 2026-06-07：族群層預設保存期限（新增零件選此族群時自動帶入個別零件、可覆寫）
+    { key: 'defaultShelfLifeMonths', label: '預設建議保存期限(月)', type: 'number', placeholder: '12', minWidthClass: 'min-w-[140px]' },
     { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
   ],
 };

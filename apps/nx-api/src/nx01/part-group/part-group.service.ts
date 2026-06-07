@@ -19,6 +19,8 @@ const SEL = {
   tenantId: true,
   code: true,
   name: true,
+  // 02 第四批 軌 6 2026-06-07：族群預設保存期限
+  defaultShelfLifeMonths: true,
   sortNo: true,
   isActive: true,
   createdAt: true,
@@ -86,6 +88,8 @@ export class PartGroupService {
         tenantId,
         code,
         name: dto.name.trim(),
+        // 02 第四批 軌 6 2026-06-07：族群預設保存期限
+        defaultShelfLifeMonths: dto.defaultShelfLifeMonths ?? null,
         sortNo: dto.sortNo ?? 0,
         isActive: dto.isActive ?? true,
         createdBy: user.sub,
@@ -119,6 +123,8 @@ export class PartGroupService {
       data: {
         ...(dto.code !== undefined ? { code: dto.code.trim().toUpperCase() } : {}),
         ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+        // 02 第四批 軌 6 2026-06-07：族群預設保存期限（可送 null 清除）
+        ...(dto.defaultShelfLifeMonths !== undefined ? { defaultShelfLifeMonths: dto.defaultShelfLifeMonths } : {}),
         ...(dto.sortNo !== undefined ? { sortNo: dto.sortNo } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         updatedBy: user.sub,

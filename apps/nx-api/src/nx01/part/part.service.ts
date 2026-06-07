@@ -49,6 +49,8 @@ const SEL = {
   // 02 第四批 軌 3b 2026-06-07：最後進貨/銷售時間（service 自動寫、業務員業績指標）
   lastPurchaseAt: true,
   lastSaleAt: true,
+  // 02 第四批 軌 6 2026-06-07：建議保存期限（可覆寫族群預設、空=取族群預設）
+  shelfLifeMonths: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -362,6 +364,17 @@ export class PartService {
       // M2-b：dto 沒傳 priceA~D 時、後端依 cost × margin 自動算（系統算為主、手動微調走 dto 覆寫）
       const cost = new PrismaNs.Decimal(dto.cost ?? 0);
       const defaults = await this.calcDefaultPrices(tx, tenantId, cost);
+      // 02 第四批 軌 6 2026-06-07：建議保存期限繼承族群預設（範式同客戶分級加成率）
+      //   dto 有給 → 用 dto；dto 沒給 + 有 partGroupId → fetch partGroup.defaultShelfLifeMonths；皆無 → null
+      const effectivePartGroupId = dto.partGroupId?.trim() || null;
+      let effectiveShelfLifeMonths: number | null = dto.shelfLifeMonths ?? null;
+      if (dto.shelfLifeMonths === undefined && effectivePartGroupId) {
+        const pg = await tx.nx01PartGroup.findFirst({
+          where: { id: effectivePartGroupId, tenantId },
+          select: { defaultShelfLifeMonths: true },
+        });
+        effectiveShelfLifeMonths = pg?.defaultShelfLifeMonths ?? null;
+      }
       const created = await tx.nx01Part.create({
         data: {
           tenantId,
@@ -379,13 +392,15 @@ export class PartService {
           seg5: trimOrNull(dto.seg5),
           countryId: dto.countryId?.trim() || null,
           brandId: effectiveBrandId,
-          partGroupId: dto.partGroupId?.trim() || null,
+          partGroupId: effectivePartGroupId,
           type: dto.partType ?? 1,
           spec: dto.spec?.trim() || null,
           uom: dto.uom?.trim() || 'pcs',
           isActive: dto.isActive ?? true,
           returnPolicy: dto.returnPolicy?.trim() || 'S',
           warrantyMonths: dto.warrantyMonths ?? 0,
+          // 02 第四批 軌 6 2026-06-07：繼承族群預設（dto 未送時自動帶族群值）
+          shelfLifeMonths: effectiveShelfLifeMonths,
           priceA: dto.priceA ?? defaults.priceA,
           priceB: dto.priceB ?? defaults.priceB,
           priceC: dto.priceC ?? defaults.priceC,
@@ -533,6 +548,8 @@ export class PartService {
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         ...(dto.returnPolicy !== undefined ? { returnPolicy: dto.returnPolicy.trim() } : {}),
         ...(dto.warrantyMonths !== undefined ? { warrantyMonths: dto.warrantyMonths } : {}),
+        // 02 第四批 軌 6 2026-06-07：建議保存期限可送 null 清空（回族群預設、effective 由前端 fallback 計算）
+        ...(dto.shelfLifeMonths !== undefined ? { shelfLifeMonths: dto.shelfLifeMonths } : {}),
         // 優先：dto 手動覆寫 > autoPrices（cost 改時自動算） > 不動
         ...(dto.priceA !== undefined ? { priceA: dto.priceA } : autoPrices ? { priceA: autoPrices.priceA } : {}),
         ...(dto.priceB !== undefined ? { priceB: dto.priceB } : autoPrices ? { priceB: autoPrices.priceB } : {}),

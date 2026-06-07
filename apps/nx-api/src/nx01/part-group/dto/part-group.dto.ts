@@ -18,6 +18,12 @@ export class CreatePartGroupDto {
   @MaxLength(100)
   name!: string;
 
+  // 02 第四批 軌 6 2026-06-07：預設建議保存期限（月、選填、可為 0/1+）
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  defaultShelfLifeMonths?: number;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -41,6 +47,12 @@ export class UpdatePartGroupDto {
   @MinLength(1)
   @MaxLength(100)
   name?: string;
+
+  // 02 第四批 軌 6 2026-06-07：預設建議保存期限（月、null 可清除、業務員手動清空時送 null）
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  defaultShelfLifeMonths?: number | null;
 
   @IsOptional()
   @Type(() => Number)

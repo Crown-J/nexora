@@ -95,6 +95,8 @@ export const PART_FIELDS: FieldDef<PartZone>[] = [
   // ─── inventory 庫存區 ───
   { key: 'returnPolicy', label: '退貨政策', zone: 'inventory', required: true, notes: 'F/S/R/N/W、影響貼紙' },
   { key: 'warrantyMonths', label: '保固月數', zone: 'inventory', required: true, notes: '0 = 不保固' },
+  // 02 第四批 軌 6 2026-06-07：建議保存期限（可覆寫族群預設、留空=取族群 defaultShelfLifeMonths）
+  { key: 'shelfLifeMonths', label: '建議保存期限', zone: 'inventory', notes: '月、留空=取族群預設；新增零件選族群時自動帶入族群預設值' },
   {
     key: 'stockSettings',
     label: '安全量 / 最高量 / 預設庫位（per 倉）',

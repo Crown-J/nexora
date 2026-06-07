@@ -103,6 +103,18 @@ export function partDraftToBody(
     }
     if (typeof v === 'string') {
       const trimmed = v.trim();
+      // 02 第四批 軌 6 2026-06-07：shelfLifeMonths 空字串特殊處理
+      //   - 新增模式空字串 → 不送（後端 fetch 族群 defaultShelfLifeMonths 帶入、繼承範式）
+      //   - 編輯模式空字串 → 送 null（明確清空、回族群預設）
+      if (f.key === 'shelfLifeMonths') {
+        if (trimmed === '') {
+          if (!options.isCreate) body[f.key] = null;
+          continue;
+        }
+        const n = Number(trimmed);
+        if (Number.isFinite(n)) body[f.key] = n;
+        continue;
+      }
       if (trimmed === '' && !f.required) continue;
       // 數值欄位（cost / price ABCD / warrantyMonths）轉 number
       if (
