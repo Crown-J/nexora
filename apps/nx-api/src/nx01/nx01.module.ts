@@ -12,6 +12,8 @@ import { AddressCatalogController } from './address-catalog/address-catalog.cont
 import { AddressCatalogService } from './address-catalog/address-catalog.service';
 import { PartnerAddressController } from './partner-address/partner-address.controller';
 import { PartnerAddressService } from './partner-address/partner-address.service';
+import { PartnerContactController } from './partner-contact/partner-contact.controller';
+import { PartnerContactService } from './partner-contact/partner-contact.service';
 import { BrandCodeRuleController } from './brand-code-rule/brand-code-rule.controller';
 import { BrandCodeRuleService } from './brand-code-rule/brand-code-rule.service';
 import { BulletinController } from './bulletin/bulletin.controller';
@@ -98,6 +100,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartCompatGroupController,
     AddressCatalogController,
     PartnerAddressController,
+    PartnerContactController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -133,6 +136,7 @@ import { WarehouseTypeService } from './warehouse-type/warehouse-type.service';
     PartCompatGroupService,
     AddressCatalogService,
     PartnerAddressService,
+    PartnerContactService,
     UserService,
     RoleService,
     BulletinService,

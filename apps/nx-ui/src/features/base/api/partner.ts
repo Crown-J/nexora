@@ -21,6 +21,8 @@ export type PartnerDto = {
   countryId?: string | null;
   // 02 真正完工軌 2026-06-07：partner.list 一行式地址（從 SHIPPING isDefault 組）、列表直接顯示
   shippingOneLine?: string | null;
+  // 02 第三批 T2 2026-06-07：對方公司負責人
+  ownerName?: string | null;
   remark: string | null;
   isActive: boolean;
   taxId: string | null;
@@ -62,6 +64,8 @@ export type CreatePartnerBody = {
   email?: string | null;
   // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化走 partner_address 衛星
   countryId?: string | null;
+  // 02 第三批 T2 2026-06-07
+  ownerName?: string | null;
   remark?: string | null;
   taxId?: string | null;
   paymentTermDomestic?: string;
@@ -91,6 +95,8 @@ export type UpdatePartnerBody = {
   email?: string | null;
   // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、結構化走 partner_address 衛星
   countryId?: string | null;
+  // 02 第三批 T2 2026-06-07
+  ownerName?: string | null;
   remark?: string | null;
   taxId?: string | null;
   paymentTermDomestic?: string;

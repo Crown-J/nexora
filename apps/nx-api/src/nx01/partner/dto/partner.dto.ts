@@ -86,6 +86,9 @@ export class CreatePartnerDto {
   /** 國別 FK（null = 預設 TW；非 TW = 國外、地址改 freeform） */
   @IsOptional() @IsString() @MaxLength(15) countryId?: string;
 
+  // 02 第三批 T2 2026-06-07：對方公司負責人（非業務歸屬）
+  @IsOptional() @IsString() @MaxLength(50) ownerName?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)
@@ -204,6 +207,9 @@ export class UpdatePartnerDto {
 
   // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP
   @IsOptional() @IsString() @MaxLength(15) countryId?: string | null;
+
+  // 02 第三批 T2 2026-06-07：對方公司負責人
+  @IsOptional() @IsString() @MaxLength(50) ownerName?: string | null;
 
   @IsOptional()
   @IsString()

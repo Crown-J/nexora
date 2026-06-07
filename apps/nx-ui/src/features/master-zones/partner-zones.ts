@@ -32,7 +32,9 @@ export const PARTNER_FIELDS: FieldDef<PartnerZone>[] = [
   { key: 'partnerType', label: '身分類別', zone: 'basic', required: true, notes: 'C/O/S/T/B/V 六分類' },
   { key: 'remark', label: '備註', zone: 'basic' },
   { key: 'serviceLocation', label: '服務區域', zone: 'basic', notes: '業務分區 / 區域代碼' },
-  { key: 'contactName', label: '聯絡人', zone: 'basic' },
+  { key: 'contactName', label: '聯絡人', zone: 'basic', notes: '主要單一聯絡人；多窗口走聯絡窗口子表' },
+  // 02 第三批 T2 2026-06-07：對方公司負責人（與業務歸屬不同）
+  { key: 'ownerName', label: '公司負責人', zone: 'basic', notes: '對方公司負責人姓名' },
   { key: 'phone', label: '電話', zone: 'basic' },
   { key: 'mobile', label: '手機', zone: 'basic' },
   { key: 'fax', label: '傳真', zone: 'basic' },

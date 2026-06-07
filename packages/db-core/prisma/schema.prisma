@@ -1004,8 +1004,10 @@ model Nx01Partner {
   partnerType                              String                       @default("C") @map("partner_type") @db.VarChar(1)
   /// 可調貨旗標。partner_type=O 同行業務上預設 true（service 層 create 時帶入）；partner_type=C 保養廠預設 false、少數保養廠偶爾調貨時可手動開啟。調貨對象篩選 = WHERE partner_type='O' OR canTransferStock=true。對齊 can_* 範式；啟用最低需求版本：LITE
   canTransferStock                         Boolean                      @default(false) @map("can_transfer_stock")
-  /// 聯絡人（可空）；啟用最低需求版本：LITE
+  /// 聯絡人（可空、主要單一聯絡人；多窗口走 nx01_partner_contact 子表）；啟用最低需求版本：LITE
   contactName                              String?                      @map("contact_name") @db.VarChar(50)
+  /// 對方公司負責人姓名（與本公司業務歸屬 sales_user_id 不同）；02 第三批 T2 2026-06-07 新增、啟用最低需求版本：LITE
+  ownerName                                String?                      @map("owner_name") @db.VarChar(50)
   /// 電話（可空）；啟用最低需求版本：LITE
   phone                                    String?                      @db.VarChar(30)
   /// 手機（可空）；啟用最低需求版本：LITE
@@ -1098,6 +1100,8 @@ model Nx01Partner {
   rev_Nx01PartnerAddress_partnerId         Nx01PartnerAddress[]         @relation("R_Nx01PartnerAddress_partnerId")
   rev_Nx02WarrantyClaim_supplierId         Nx02WarrantyClaim[]          @relation("R_Nx02WarrantyClaim_supplierId")
   rev_Nx01PartnerGradeHistory_partnerId    Nx01PartnerGradeHistory[]    @relation("R_Nx01PartnerGradeHistory_partnerId")
+  // 02 第三批 T2 2026-06-07：聯絡窗口子表
+  rev_Nx01PartnerContact_partnerId         Nx01PartnerContact[]         @relation("R_Nx01PartnerContact_partnerId")
   // 02 對齊第二批 A 軌 CP2 2026-06-06：國別
   country                                  Nx01Country?                 @relation("R_Nx01Partner_countryId", fields: [countryId], references: [id], onDelete: SetNull)
   // 02 對齊第二批 C 軌 CP1 2026-06-06
@@ -7249,6 +7253,8 @@ model Nx99Tenant {
   rev_Nx98DocLink_tenantId                 Nx98DocLink[]                 @relation("R_Nx98DocLink_tenantId")
   rev_Nx99Subscription_tenantId            Nx99Subscription[]            @relation("R_Nx99Subscription_tenantId")
   rev_Nx01PartnerAddress_tenantId          Nx01PartnerAddress[]          @relation("R_Nx01PartnerAddress_tenantId")
+  // 02 第三批 T2 2026-06-07：聯絡窗口子表
+  rev_Nx01PartnerContact_tenantId          Nx01PartnerContact[]          @relation("R_Nx01PartnerContact_tenantId")
   rev_Nx01SupplierGrade_tenantId           Nx01SupplierGrade[]           @relation("R_Nx01SupplierGrade_tenantId")
   rev_Nx02WarrantyClaim_tenantId           Nx02WarrantyClaim[]           @relation("R_Nx02WarrantyClaim_tenantId")
   rev_Nx02WarrantyClaimAttachment_tenantId Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_tenantId")
@@ -7484,6 +7490,35 @@ model Nx01Region {
 /// addressType: BILLING 收帳（同 partner 內最多 1 筆）/ SHIPPING 送貨（多筆、一筆 isDefault）。
 /// 國別分流：countryId=null 預設 TW 走 city/district/postalCode 字典 + 結構化門牌；
 ///           countryId=非 TW 走 freeformAddress + postalCode 自由填。
+/// =======================================================
+/// Nx01PartnerContact — DB table `nx01_partner_contact`（02 第三批 T2 2026-06-07 聯絡窗口子表）
+/// =======================================================
+/// 客戶（partner）多筆聯絡窗口：對方公司不同窗口（採購／業務／會計／倉管 等）
+model Nx01PartnerContact {
+  id          String      @id @default(dbgenerated("gen_nx01_partner_contact_id()")) @db.VarChar(15)
+  tenantId    String      @map("tenant_id") @db.VarChar(15)
+  partnerId   String      @map("partner_id") @db.VarChar(15)
+  contactName String      @map("contact_name") @db.VarChar(50)
+  /// 職務部門（自由文字、不綁本租戶 nx01_department、對方公司部門名）
+  jobTitle    String?     @map("job_title") @db.VarChar(50)
+  phone       String?     @db.VarChar(30)
+  phoneExt    String?     @map("phone_ext") @db.VarChar(20)
+  mobile      String?     @db.VarChar(30)
+  email       String?     @db.VarChar(100)
+  note        String?     @db.VarChar(200)
+  sortNo      Int         @default(0) @map("sort_no")
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  createdBy   String      @map("created_by") @db.VarChar(15)
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  updatedBy   String      @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant  @relation("R_Nx01PartnerContact_tenantId", fields: [tenantId], references: [id])
+  partner     Nx01Partner @relation("R_Nx01PartnerContact_partnerId", fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, partnerId])
+  @@map("nx01_partner_contact")
+}
+
 model Nx01PartnerAddress {
   id              String        @id @default(dbgenerated("gen_nx01_partner_address_id()")) @db.VarChar(15)
   tenantId        String        @map("tenant_id") @db.VarChar(15)

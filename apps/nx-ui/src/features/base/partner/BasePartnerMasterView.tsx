@@ -776,7 +776,7 @@ export function BasePartnerMasterView() {
           </td>
         );
       case 'address':
-        // 02 \u771f\u6b63\u5b8c\u5de5\u8ecc 2026-06-07\uff1a\u5217\u8868\u76f4\u63a5\u986f\u793a\u4e00\u884c\u5730\u5740\uff08\u5f9e SHIPPING isDefault \u7d44\uff09+ \u65c1\u908a\u7ba1\u7406\u9023\u7d50
+        // 02 \u771f\u6b63\u5b8c\u5de5\u8ecc 2026-06-07 + \u7b2c\u4e09\u6279 T2\uff1a\u5217\u8868\u986f\u793a\u4e00\u884c\u5730\u5740 + \u806f\u7d61\u7a97\u53e3\u7ba1\u7406\u9023\u7d50
         return (
           <td key={key} className="max-w-[280px] px-2 py-2.5 text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -788,7 +788,14 @@ export function BasePartnerMasterView() {
                 className="shrink-0 text-[10px] text-[#22D88F] hover:underline"
                 onClick={(e) => e.stopPropagation()}
               >
-                \u7ba1\u7406
+                \u5730\u5740
+              </a>
+              <a
+                href={`/dashboard/base/partners/${row.id}/contacts`}
+                className="shrink-0 text-[10px] text-[#22D88F] hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                \u7a97\u53e3
               </a>
             </div>
           </td>
