@@ -80,12 +80,14 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   { key: 'roleId', label: '人資主檔職務角色', zone: 'hr', notes: 'PRO、與 user_role 並存' },
   // 02 第三批 T1 2026-06-07：解綁 PRO → 移到 basic zone（總經理拍板：組織欄位各版本都能用）
   { key: 'departmentId', label: '部門', zone: 'basic', notes: '隸屬部門、LITE 起可編' },
+  // 05 批 T2 2026-06-07：teams 衛星從 hr/PRO 解綁、移到 permission zone（與職務並列、LITE 起可用）
+  // 業務語意：員工歸屬組（多筆、可標主組 + 組長 isLeader）；影響 NX01-08 公告對象、員工部門自動帶（T3 動）。
   {
     key: 'teams',
-    label: '團隊（可多筆）',
-    zone: 'hr',
+    label: '隸屬組（可多筆）',
+    zone: 'permission',
     isSatellite: true,
     satelliteName: 'nx01_user_team',
-    notes: 'PRO',
+    notes: 'm-n、主組決定員工部門、isLeader 標組長（影響公告對象）',
   },
 ];

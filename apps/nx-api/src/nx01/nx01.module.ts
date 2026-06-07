@@ -86,6 +86,9 @@ import { DepartmentService } from './department/department.service';
 // 02 第四批 軌 1 2026-06-07：使用者大頭貼（單張、scalar 欄位掛 nx01_user）
 import { UserPhotoController } from './user-photo/user-photo.controller';
 import { UserPhotoService } from './user-photo/user-photo.service';
+// 05 批 T2 2026-06-07：組主檔（揭露既有 Nx01Team schema、含部門 FK + 自我 ref 子組）
+import { TeamController } from './team/team.controller';
+import { TeamService } from './team/team.service';
 
 @Module({
   imports: [PrismaModule],
@@ -112,6 +115,7 @@ import { UserPhotoService } from './user-photo/user-photo.service';
     PartPhotoController,
     UserPhotoController,
     DepartmentController,
+    TeamController,
     BrandCodeRuleController,
     EngineController,
     TransmissionController,
@@ -151,6 +155,7 @@ import { UserPhotoService } from './user-photo/user-photo.service';
     PartPhotoService,
     UserPhotoService,
     DepartmentService,
+    TeamService,
     UserService,
     RoleService,
     BulletinService,

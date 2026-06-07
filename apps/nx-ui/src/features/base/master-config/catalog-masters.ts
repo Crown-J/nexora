@@ -54,6 +54,24 @@ export const DEPARTMENT_MASTER: EntityMasterConfig = {
   ],
 };
 
+// 05 批 T2 2026-06-07：組主檔揭露（後端 Nx01Team schema 既有：departmentId 必填 + 自我 ref 子組）
+export const TEAM_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/teams',
+  category: '帳號與權限',
+  title: '組基本資料',
+  entityNoun: '組',
+  errorCodePrefix: 'nxui_base_team',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '組代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
+    { key: 'name', label: '組名', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'departmentId', label: '隸屬部門', type: 'ref', refBasePath: 'nx01/departments', required: true, minWidthClass: 'min-w-[140px]' },
+    // 上層組（選填、支援子組；服務端會驗「子組與上層組同部門」+「不可自己當自己父」）
+    { key: 'parentTeamId', label: '上層組', type: 'ref', refBasePath: 'nx01/teams', minWidthClass: 'min-w-[140px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // ── 車型字典 ────────────────────────────────────────────
 export const DRIVETRAIN_MASTER: EntityMasterConfig = {
   basePath: 'nx01/drivetrains',

@@ -8,6 +8,7 @@
 
 import {
   Users,
+  UsersRound,
   Briefcase,
   UserCog,
   MapPin,
@@ -160,6 +161,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '部門',
     statValue: '—',
     href: '/dashboard/base/department',
+  },
+  // 05 批 T2 2026-06-07：組主檔揭露（揭露既有 Nx01Team、隸屬部門 + 自我 ref 子組）
+  {
+    id: 'team',
+    section: 'account',
+    title: '組基本資料',
+    description: '組代碼、名稱、隸屬部門與上層組（支援部門→組→員工三層結構）',
+    icon: UsersRound,
+    statLabel: '組',
+    statValue: '—',
+    href: '/dashboard/base/team',
   },
   // 軌 A commit A1（業界改革 #22 v1.2 累積調整）：
   // user-role / user-warehouse 兩主檔卡片降階為「批次工具」入口。
@@ -471,6 +483,9 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   // 05 批 T1 2026-06-07：部門主檔（從 nx07 升級到 base）
   department: '部門基本資料',
   departments: '部門基本資料',
+  // 05 批 T2 2026-06-07：組主檔（揭露既有 Nx01Team）
+  team: '組基本資料',
+  teams: '組基本資料',
   'role-view': '職務權限設定',
   permissions: '職務權限設定',
   part: '零件基本資料',
