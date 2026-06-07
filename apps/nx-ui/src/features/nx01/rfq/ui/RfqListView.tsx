@@ -67,10 +67,11 @@ export function RfqListView() {
             }}
           >
             <option value="">全部</option>
-            <option value="D">草稿</option>
-            <option value="S">已發出</option>
-            <option value="R">已回覆</option>
-            <option value="C">已關閉</option>
+            <option value="DRAFT">草稿</option>
+            <option value="SENT">已發出</option>
+            <option value="REPLIED">已回覆</option>
+            <option value="CLOSED">已關閉</option>
+            <option value="CANCELLED">作廢</option>
           </select>
         </label>
       </div>

@@ -91,25 +91,43 @@ export type PatchRfqReplyBody = {
   items: { id: string; unit_price: number | null; lead_time_days: number | null; status: 'R' | 'C' }[];
 };
 
+/**
+ * ⚠️ T1b 2026-06-07：patchRfqReply 走死路徑（後端 /nx02/rfq/reply/:id 不存在）。
+ * 業務員按「報價回填」會 fetch fail。新範式建議走並排比價區的「新增報價（QT）+ 採用」。
+ * 後續軌（T1c+）決定是否砍 reply UI 全收斂到 QT 主流程。本 helper 暫保留簽名以維持類型相容。
+ */
 export async function patchRfqReply(id: string, body: PatchRfqReplyBody): Promise<RfqDetailDto> {
   const res = await apiFetch(`/nx02/rfq/reply/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
-  await assertOk(res, 'nxui_nx01_rfq_reply_001');
+  await assertOk(res, 'nxui_nx01_rfq_reply_001_DEAD');
   return (await res.json()) as RfqDetailDto;
 }
 
+// T1b 詢價單動作重接 2026-06-07：對齊 backend RfqStatus 全名 + 範式
+// RfqStatus: DRAFT / SENT / REPLIED / CLOSED / CANCELLED
+const RFQ_STATUS_ALIAS: Record<string, string> = {
+  D: 'DRAFT',
+  S: 'SENT',
+  R: 'REPLIED',
+  C: 'CLOSED',
+  V: 'CANCELLED',
+};
+
 export async function patchRfqStatus(id: string, status: string): Promise<void> {
-  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/status`, {
+  const full = RFQ_STATUS_ALIAS[status] ?? status;
+  // 改 PATCH /:id（UpdateRfqDto 已收 status、對齊 PR / PO 範式）
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status: full }),
   });
   await assertOk(res, 'nxui_nx01_rfq_status_001');
 }
 
+// T1b 2026-06-07：作廢走 backend QtController 既有 POST /nx02/rfq/:id/cancel
 export async function voidRfq(id: string): Promise<void> {
-  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/void`, { method: 'POST' });
+  const res = await apiFetch(`/nx02/rfq/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
   await assertOk(res, 'nxui_nx01_rfq_void_001');
 }
 

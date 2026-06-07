@@ -168,7 +168,7 @@ export function RfqDetailView({ id }: { id: string }) {
     try {
       const d = await getRfq(id);
       setDoc(d);
-      if (d.status === 'D') {
+      if (d.status === 'D' || d.status === 'DRAFT') {
         setHeaderDraft({
           rfqDate: d.rfqDate,
           supplierId: d.supplierId ?? '',
@@ -187,7 +187,7 @@ export function RfqDetailView({ id }: { id: string }) {
           })),
         );
       }
-      if (d.status === 'S') {
+      if (d.status === 'S' || d.status === 'SENT') {
         const rs: Record<string, ReplyRow> = {};
         for (const it of d.items) {
           rs[it.id] = {
@@ -287,7 +287,7 @@ export function RfqDetailView({ id }: { id: string }) {
     try {
       const ok = await saveDraft();
       if (!ok) return;
-      await patchRfqStatus(doc.id, 'S');
+      await patchRfqStatus(doc.id, 'SENT');
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : '發出失敗');
@@ -512,7 +512,7 @@ export function RfqDetailView({ id }: { id: string }) {
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm">{error}</div>
       ) : null}
 
-      {doc.status === 'D' ? (
+      {(doc.status === 'D' || doc.status === 'DRAFT') ? (
         <div className="space-y-4 rounded-xl border border-border/70 p-4">
           <h2 className="text-sm font-semibold">草稿編輯</h2>
           <div className="grid gap-3 md:grid-cols-2">
@@ -683,7 +683,7 @@ export function RfqDetailView({ id }: { id: string }) {
         </div>
       ) : null}
 
-      {doc.status === 'S' ? (
+      {(doc.status === 'S' || doc.status === 'SENT') ? (
         <div className="space-y-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
           <h2 className="text-sm font-semibold">供應商回覆（已發出）</h2>
           <p className="text-xs text-muted-foreground">料號與數量唯讀；填寫單價、交期，並標示每列已回覆或不採用。</p>
@@ -772,7 +772,7 @@ export function RfqDetailView({ id }: { id: string }) {
         </div>
       ) : null}
 
-      {doc.status === 'R' ? (
+      {(doc.status === 'R' || doc.status === 'REPLIED') ? (
         <div className="flex flex-wrap gap-2">
           <Link
             href={`/dashboard/purchase/rr/new?rfq=${encodeURIComponent(doc.id)}`}

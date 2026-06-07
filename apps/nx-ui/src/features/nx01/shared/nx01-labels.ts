@@ -1,5 +1,11 @@
+// T1b 詢價對齊 2026-06-07：露 backend RfqStatus 全名 + 短碼雙吃
 export function rfqStatusLabel(s: string): string {
   const m: Record<string, string> = {
+    DRAFT: '草稿',
+    SENT: '已發出',
+    REPLIED: '已回覆',
+    CLOSED: '已關閉',
+    CANCELLED: '作廢',
     D: '草稿',
     S: '已發出',
     R: '已回覆',
