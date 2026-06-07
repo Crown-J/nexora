@@ -68,6 +68,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
       '/dashboard/base/customer-grade',
       '/dashboard/base/phonetic-dictionary',
       '/dashboard/base/partners',
+      // T3 進貨對齊批次 2026-06-08：供應商供貨對應主檔
+      '/dashboard/base/partner-part',
       '/dashboard/base/site',
       '/dashboard/base/location',
       '/dashboard/base/parts',

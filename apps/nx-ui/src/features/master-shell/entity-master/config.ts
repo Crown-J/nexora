@@ -17,7 +17,9 @@ import { buildQueryString } from '@/shared/api/query';
 import { assertOk } from '@/shared/api/http';
 import type { PagedResult } from '@/features/base/api/types';
 
-export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref' | 'textarea' | 'json' | 'computed';
+// T3 進貨對齊批次 2026-06-07：加 'date' 支援 PartnerPart 主檔的 validFrom / validTo
+// 等通用 date 欄位（HTML5 input type="date"、後端接 ISO 'YYYY-MM-DD'）。
+export type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'ref' | 'textarea' | 'json' | 'computed' | 'date';
 
 /** 送後端的 body（json 欄位值為物件 / 陣列，故放寬型別） */
 export type EntityBody = Record<string, unknown>;
@@ -239,7 +241,11 @@ export function rowToDraft(cfg: EntityMasterConfig, row: EntityRow): EntityDraft
     const v = row[f.key];
     if (f.type === 'toggle') draft[f.key] = Boolean(v);
     else if (f.type === 'json') draft[f.key] = v == null ? '' : JSON.stringify(v, null, 2);
-    else draft[f.key] = v == null ? '' : String(v);
+    else if (f.type === 'date') {
+      // T3：date 欄位後端回 ISO 8601 字串（'YYYY-MM-DDTHH:mm:ss.sssZ' 或 'YYYY-MM-DD'），
+      // input type="date" 需 'YYYY-MM-DD' 才能正確顯示。
+      draft[f.key] = v == null || v === '' ? '' : String(v).slice(0, 10);
+    } else draft[f.key] = v == null ? '' : String(v);
   }
   return draft;
 }

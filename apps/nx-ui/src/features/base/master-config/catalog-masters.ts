@@ -425,6 +425,72 @@ export const PARTNER_MASTER: EntityMasterConfig = {
   ],
 };
 
+// ── 供應商供貨對應（T3 進貨對齊批次 2026-06-08）─────────────
+// 這是工作流第 2 步「查可跟誰詢價」的核心主檔：哪家供應商賣哪些料件、
+// 廠商料號 / 預設單價 / 預設交期 / MOQ / 主要供應商旗標。
+// 三版本一致（schema 啟用最低需求版本 = LITE-CORE、不掛任何 minPlan）。
+// 後端：apps/nx-api/src/nx02/partner-part（5 endpoint：list/getById/create/patch/softDelete）
+export const PARTNER_PART_MASTER: EntityMasterConfig = {
+  basePath: 'nx02/partner-part',
+  category: '交易對象',
+  title: '供應商供貨對應',
+  entityNoun: '供貨對應',
+  errorCodePrefix: 'nxui_base_partner_part',
+  deleteMode: SOFT,
+  fields: [
+    {
+      key: 'partnerId', label: '供應商', type: 'ref', required: true,
+      refBasePath: 'nx01/partners',
+      // 後端 service.assertPartnerIsSupplier 守 partnerType='S'，UI 也只列純供應商
+      refExtraFilters: { partnerType: 'S' },
+      minWidthClass: 'min-w-[180px]',
+      lockedOnEdit: true,
+    },
+    {
+      key: 'partId', label: '料件', type: 'ref', required: true,
+      refBasePath: 'nx01/parts',
+      minWidthClass: 'min-w-[180px]',
+      lockedOnEdit: true,
+    },
+    {
+      key: 'isPrimary', label: '主要供應商', type: 'toggle', defaultValue: false,
+      minWidthClass: 'min-w-[110px]',
+    },
+    {
+      key: 'supplierPartNo', label: '廠商料號', maxLength: 50,
+      minWidthClass: 'min-w-[140px]',
+      placeholder: '例：Bosch 0986AS0050',
+    },
+    {
+      key: 'defaultUnitCost', label: '預設單價', type: 'number',
+      minWidthClass: 'min-w-[110px]',
+    },
+    {
+      key: 'defaultLeadDays', label: '預設交期(天)', type: 'number',
+      minWidthClass: 'min-w-[120px]',
+    },
+    {
+      key: 'moq', label: 'MOQ', type: 'number',
+      minWidthClass: 'min-w-[100px]',
+    },
+    {
+      key: 'source', label: '來源', type: 'select', defaultValue: 'M',
+      minWidthClass: 'min-w-[100px]',
+      options: [
+        { value: 'M', label: '手動維護' },
+        { value: 'S', label: '系統同步' },
+      ],
+    },
+    {
+      key: 'validFrom', label: '生效起期', type: 'date', inList: false,
+      // 後端 unique [tenantId, partnerId, partId, validFrom]、改 validFrom 等同新建
+      lockedOnEdit: true,
+    },
+    { key: 'validTo', label: '生效迄期', type: 'date', inList: false },
+    { key: 'remark', label: '備註', inList: false, maxLength: 200 },
+  ],
+};
+
 // ── 系統設定 ────────────────────────────────────────────
 export const PHONETIC_DICTIONARY_MASTER: EntityMasterConfig = {
   basePath: 'nx01/phonetic-dictionary',

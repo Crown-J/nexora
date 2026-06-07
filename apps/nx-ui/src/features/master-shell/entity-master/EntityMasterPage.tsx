@@ -851,6 +851,22 @@ function DetailPane({
                 </div>
               );
             }
+            // 編輯模式：date（T3 進貨對齊批次 2026-06-07）
+            if (editing && !lockedNow && f.type === 'date') {
+              return (
+                <div key={f.key} className="flex flex-col gap-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                    {f.label + (f.required ? ' *' : '')}
+                  </span>
+                  <input
+                    type="date"
+                    value={String(draft[f.key] ?? '')}
+                    onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                    className="rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                  />
+                </div>
+              );
+            }
             // 編輯模式：text / number
             if (editing && !lockedNow && f.type !== 'toggle') {
               return (

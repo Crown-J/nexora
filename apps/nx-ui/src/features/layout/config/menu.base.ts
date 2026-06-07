@@ -68,7 +68,9 @@ export function getNx00SideMenu(): SideMenuGroup[] {
     {
       group: '往來對象',
       items: [
-        { key: 'base.partners', label: '往來對象基本資料', href: '/dashboard/base/partners' },
+        { key: 'base.partners',     label: '往來對象基本資料', href: '/dashboard/base/partners' },
+        // T3 進貨對齊批次 2026-06-08：撐起工作流第 2 步「查可跟誰詢價」
+        { key: 'base.partner-part', label: '供應商供貨對應',   href: '/dashboard/base/partner-part' },
       ],
     },
   ];
