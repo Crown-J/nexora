@@ -12,6 +12,8 @@ import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo } from '../../shared/nx02/nx02-doc-no';
 import { Nx02ListQueryDto } from '../../shared/nx02/nx02-list-query.dto';
+// T1-fix-b 2026-06-07：核准權限檢查 helper（RoleView.canApprove 聯集 RolePermission code）
+import { requireApprovePermission } from '../../shared/nx01/approve-permission';
 
 import type { PoListQueryDto } from './dto/po.dto';
 import { assertPoStatusTransition, PoStatus } from '../../shared/nx02/nx02-state-machine';
@@ -383,6 +385,15 @@ export class PoService {
         nextStatus === PoStatus.SUBMITTED && existing.status === PoStatus.APPROVED;
       const isVendorConfirming =
         nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
+      // T1-fix-b 2026-06-07：核准/退件守「purchase.po.approve」權限
+      // 聯集判斷：RoleView.canApprove（客戶從矩陣勾） OR RolePermission code（既有範式）
+      // SYSADMIN / OWNER 永遠 pass、未來主管以外角色不可亂按
+      if (isApproving || isRejecting) {
+        await requireApprovePermission(this.prisma, user, {
+          viewCode: 'NX02_PO',
+          permissionCode: 'purchase.po.approve',
+        });
+      }
       await tx.nx02Po.update({
         where: { id },
         data: {

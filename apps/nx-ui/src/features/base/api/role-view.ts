@@ -1,7 +1,8 @@
 // apps/nx-ui/src/features/base/api/role-view.ts
 /**
  * 職務權限設定 API client（對接 nx01/views 畫面字典 + nx01/role-views 權限 join）
- * 供 RoleViewMatrixPage（職務 × 畫面 × 5 權限矩陣）。
+ * 供 RoleViewMatrixPage（職務 × 畫面 × 6 權限矩陣）。
+ * T1-fix-b 2026-06-07：加 canApprove 第 6 欄（核准權限、與後端 RoleView.canApprove 對應）。
  */
 
 import { apiFetch } from '@/shared/api/client';
@@ -28,6 +29,8 @@ export type RoleViewDto = {
   canUpdate: boolean;
   canDelete: boolean;
   canExport: boolean;
+  // T1-fix-b 2026-06-07：核准權限第 6 欄
+  canApprove: boolean;
   isActive: boolean;
   roleCode: string | null;
   roleName: string | null;
@@ -41,6 +44,7 @@ export type RoleViewPerms = {
   canUpdate?: boolean;
   canDelete?: boolean;
   canExport?: boolean;
+  canApprove?: boolean;
 };
 
 function normalize<T>(data: { page: number; pageSize: number; total: number; items?: T[]; rows?: T[] }): PagedResult<T> {

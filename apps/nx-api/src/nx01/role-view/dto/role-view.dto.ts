@@ -35,6 +35,8 @@ export class CreateRoleViewDto {
   @IsOptional() @Type(() => Boolean) @IsBoolean() canUpdate?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() canDelete?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() canExport?: boolean;
+  // T1-fix-b 2026-06-07：核准權限第 6 欄（schema 已 預埋）。對採購單/保固/盤點等審核流程畫面有意義、其餘 N/A 不勾。
+  @IsOptional() @Type(() => Boolean) @IsBoolean() canApprove?: boolean;
 }
 
 export class UpdateRoleViewDto {
@@ -43,5 +45,7 @@ export class UpdateRoleViewDto {
   @IsOptional() @Type(() => Boolean) @IsBoolean() canUpdate?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() canDelete?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() canExport?: boolean;
+  // T1-fix-b 2026-06-07：核准權限第 6 欄
+  @IsOptional() @Type(() => Boolean) @IsBoolean() canApprove?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() isActive?: boolean;
 }

@@ -19,6 +19,15 @@ import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PERMISSIONS_KEY } from '../decorators/permission.decorator';
 
+// T1-fix-b 進貨對齊批次 2026-06-07：permission code → nx01_view.code 對照
+// 命名範式不一致（permission 走 module.entity.action、view 走 NXxx_ENTITY 大寫底線）、用 map 顯式對應。
+// 新加審核流程時、來這加一行即可。
+const APPROVE_PERMISSION_TO_VIEW: Record<string, string> = {
+  'purchase.po.approve': 'NX02_PO',
+  'purchase.warranty-claim.approve': 'NX02_WARRANTY',
+  'inventory.stocktake.approve': 'NX03_STOCK_TAKE',
+};
+
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(
@@ -91,14 +100,34 @@ export class PermissionsGuard implements CanActivate {
         .map((g) => g.permission.code),
     );
 
-    const hasAny = requiredPermissions.some((req) => ownedCodes.has(req));
-
-    if (!hasAny) {
-      throw new ForbiddenException(
-        `Permission denied. Required: [${requiredPermissions.join(', ')}]`,
-      );
+    // 既有 RolePermission 範式（保固 / 盤點核准向後相容）
+    if (requiredPermissions.some((req) => ownedCodes.has(req))) {
+      return true;
     }
 
-    return true;
+    // T1-fix-b 2026-06-07：聯集 RoleView.canApprove
+    // 對 'xxx.approve' permission code、若 user 角色對 mapped view 有 canApprove=true 也通過。
+    // 客戶從職務權限矩陣勾「核准」即可、無需另設 RolePermission（向後相容、不破壞既有）。
+    const approvePermissions = requiredPermissions.filter((p) => APPROVE_PERMISSION_TO_VIEW[p]);
+    if (approvePermissions.length > 0) {
+      const viewCodes = approvePermissions.map((p) => APPROVE_PERMISSION_TO_VIEW[p]);
+      const approveGrants = await this.prisma.nx01RoleView.findMany({
+        where: {
+          roleId: { in: activeRoleIds },
+          isActive: true,
+          canApprove: true,
+          view: { code: { in: viewCodes } },
+        },
+        select: { id: true },
+        take: 1,
+      });
+      if (approveGrants.length > 0) {
+        return true;
+      }
+    }
+
+    throw new ForbiddenException(
+      `Permission denied. Required: [${requiredPermissions.join(', ')}]`,
+    );
   }
 }

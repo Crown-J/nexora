@@ -27,6 +27,8 @@ const SEL = {
   canUpdate: true,
   canDelete: true,
   canExport: true,
+  // T1-fix-b 2026-06-07：核准權限第 6 欄
+  canApprove: true,
   isActive: true,
   grantedAt: true,
   grantedBy: true,
@@ -52,6 +54,8 @@ export class RoleViewService {
       canUpdate: row.canUpdate,
       canDelete: row.canDelete,
       canExport: row.canExport,
+      // T1-fix-b 2026-06-07：核准權限第 6 欄
+      canApprove: row.canApprove,
       isActive: row.isActive,
       grantedAt: row.grantedAt.toISOString(),
       grantedBy: row.grantedBy,
@@ -131,6 +135,8 @@ export class RoleViewService {
         canUpdate: dto.canUpdate ?? false,
         canDelete: dto.canDelete ?? false,
         canExport: dto.canExport ?? false,
+        // T1-fix-b 2026-06-07
+        canApprove: dto.canApprove ?? false,
         isActive: true,
         grantedBy: user.sub,
       },
@@ -151,6 +157,8 @@ export class RoleViewService {
         ...(dto.canUpdate !== undefined ? { canUpdate: dto.canUpdate } : {}),
         ...(dto.canDelete !== undefined ? { canDelete: dto.canDelete } : {}),
         ...(dto.canExport !== undefined ? { canExport: dto.canExport } : {}),
+        // T1-fix-b 2026-06-07
+        ...(dto.canApprove !== undefined ? { canApprove: dto.canApprove } : {}),
         ...(dto.isActive !== undefined
           ? { isActive: dto.isActive, revokedAt: dto.isActive ? null : new Date() }
           : {}),

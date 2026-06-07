@@ -26,7 +26,10 @@ import {
   type RoleViewPerms,
 } from '@/features/base/api/role-view';
 
-const PERM_KEYS = ['canRead', 'canCreate', 'canUpdate', 'canDelete', 'canExport'] as const;
+// T1-fix-b 進貨對齊批次 2026-06-07：加第 6 欄「核准」（canApprove、schema 已預埋）
+// 業務語意：核准權限只對有審核流程的畫面有意義（採購單 NX02_PO / 保固 NX02_WARRANTY / 盤點 NX03_STOCK_TAKE 等）；
+// 其他畫面勾了不會生效（後端 service 只在需要核准的 transition 才檢查）。
+const PERM_KEYS = ['canRead', 'canCreate', 'canUpdate', 'canDelete', 'canExport', 'canApprove'] as const;
 type PermKey = (typeof PERM_KEYS)[number];
 const PERM_LABELS: Record<PermKey, string> = {
   canRead: '瀏覽',
@@ -34,6 +37,7 @@ const PERM_LABELS: Record<PermKey, string> = {
   canUpdate: '修改',
   canDelete: '停用',
   canExport: '匯出',
+  canApprove: '核准',
 };
 
 // 模組內碼 → 中文名（不顯示 NX01 這種內碼給用戶）
@@ -54,8 +58,8 @@ function moduleLabel(mc: string): string {
   return MODULE_LABELS[String(mc ?? '').trim().toUpperCase()] ?? (mc || '其他');
 }
 
-type Cell = { recordId: string | null; canRead: boolean; canCreate: boolean; canUpdate: boolean; canDelete: boolean; canExport: boolean };
-const EMPTY_CELL: Omit<Cell, 'recordId'> = { canRead: false, canCreate: false, canUpdate: false, canDelete: false, canExport: false };
+type Cell = { recordId: string | null; canRead: boolean; canCreate: boolean; canUpdate: boolean; canDelete: boolean; canExport: boolean; canApprove: boolean };
+const EMPTY_CELL: Omit<Cell, 'recordId'> = { canRead: false, canCreate: false, canUpdate: false, canDelete: false, canExport: false, canApprove: false };
 
 // 全鍵盤焦點導覽列：模組標題列（可收合）或畫面列
 type NavRow =
@@ -120,6 +124,7 @@ export function RoleViewMatrixPage() {
             canUpdate: rv.canUpdate,
             canDelete: rv.canDelete,
             canExport: rv.canExport,
+            canApprove: rv.canApprove ?? false,
           };
         }
         setCells(map);
@@ -148,7 +153,7 @@ export function RoleViewMatrixPage() {
       const cur = prev[viewId] ?? { recordId: null, ...EMPTY_CELL };
       const allOn = PERM_KEYS.every((k) => cur[k]);
       const next = !allOn;
-      return { ...prev, [viewId]: { ...cur, canRead: next, canCreate: next, canUpdate: next, canDelete: next, canExport: next } };
+      return { ...prev, [viewId]: { ...cur, canRead: next, canCreate: next, canUpdate: next, canDelete: next, canExport: next, canApprove: next } };
     });
   }, []);
 
@@ -160,7 +165,7 @@ export function RoleViewMatrixPage() {
       const out = { ...prev };
       for (const vid of viewIds) {
         const cur = out[vid] ?? { recordId: null, ...EMPTY_CELL };
-        out[vid] = { ...cur, canRead: next, canCreate: next, canUpdate: next, canDelete: next, canExport: next };
+        out[vid] = { ...cur, canRead: next, canCreate: next, canUpdate: next, canDelete: next, canExport: next, canApprove: next };
       }
       return out;
     });
@@ -223,7 +228,7 @@ export function RoleViewMatrixPage() {
         const changed = PERM_KEYS.some((k) => c[k] !== o[k]);
         if (!changed) continue;
         const hasAny = PERM_KEYS.some((k) => c[k]);
-        const perms: RoleViewPerms = { canRead: c.canRead, canCreate: c.canCreate, canUpdate: c.canUpdate, canDelete: c.canDelete, canExport: c.canExport };
+        const perms: RoleViewPerms = { canRead: c.canRead, canCreate: c.canCreate, canUpdate: c.canUpdate, canDelete: c.canDelete, canExport: c.canExport, canApprove: c.canApprove };
         try {
           if (c.recordId) {
             if (hasAny) await updateRoleView(c.recordId, perms);
@@ -240,7 +245,7 @@ export function RoleViewMatrixPage() {
       // 重載對齊真相
       const res = await listRoleViews({ roleId, pageSize: 100 });
       const map: Record<string, Cell> = {};
-      for (const rv of res.items) map[rv.viewId] = { recordId: rv.id, canRead: rv.canRead, canCreate: rv.canCreate, canUpdate: rv.canUpdate, canDelete: rv.canDelete, canExport: rv.canExport };
+      for (const rv of res.items) map[rv.viewId] = { recordId: rv.id, canRead: rv.canRead, canCreate: rv.canCreate, canUpdate: rv.canUpdate, canDelete: rv.canDelete, canExport: rv.canExport, canApprove: rv.canApprove ?? false };
       setCells(map);
       setOriginal(structuredClone(map));
     })();
@@ -357,9 +362,9 @@ export function RoleViewMatrixPage() {
         ) : (
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
-              <col style={{ width: '36%' }} />
+              <col style={{ width: '34%' }} />
               {PERM_KEYS.map((k) => (
-                <col key={k} style={{ width: '12.8%' }} />
+                <col key={k} style={{ width: '11%' }} />
               ))}
             </colgroup>
             <thead className="sticky top-0 z-10" style={{ backgroundImage: 'linear-gradient(180deg, rgba(20,20,26,0.97) 0%, rgba(16,16,20,0.97) 100%)' }}>
@@ -399,7 +404,7 @@ export function RoleViewMatrixPage() {
                           <button
                             type="button"
                             onClick={() => toggleModuleAll(nr.viewIds)}
-                            title="本模組所有畫面 5 種權限一次全勾 / 全清"
+                            title="本模組所有畫面 6 種權限一次全勾 / 全清"
                             className={cn(
                               'inline-flex h-7 items-center gap-1.5 rounded-md border px-3 text-[11px] font-semibold transition-colors',
                               moduleAllOn
@@ -426,7 +431,7 @@ export function RoleViewMatrixPage() {
                         <button
                           type="button"
                           onClick={() => toggleViewAll(view.id)}
-                          title="本畫面 5 種權限一次全勾 / 全清（鍵盤：A）"
+                          title="本畫面 6 種權限一次全勾 / 全清（鍵盤：A）"
                           className={cn(
                             'inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold transition-colors',
                             viewAllOn
