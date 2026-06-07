@@ -25,8 +25,11 @@ import { type UserRoleDto } from '@/features/base/api/user-role';
 import { type UserWarehouseDto } from '@/features/base/api/user-warehouse';
 import { type WarehouseDto } from '@/features/base/api/warehouse';
 
+import { useEffect, useState } from 'react';
+
 import { BASIC_WRITABLE, PERMISSION_WRITABLE, type UserDraft } from './helpers';
 import { UserAddressMiniPicker } from '@/features/shared/address/UserAddressMiniPicker';
+import { fetchCountries, type CountryRow } from '@/features/shared/address/country-helper';
 
 // 02 對齊第二批前端收尾軌 FE-CP3 2026-06-07：地址 9 個 key 跳過 inline、由 UserAddressSection 統一渲染
 const ADDRESS_KEYS_HANDLED_BY_SECTION = new Set([
@@ -280,6 +283,10 @@ function UserAddressSection({
   setDraft: (next: UserDraft) => void;
 }) {
   const countryId = (draft.countryId as string | undefined) ?? null;
+  const [countries, setCountries] = useState<CountryRow[]>([]);
+  useEffect(() => {
+    void fetchCountries().then(setCountries);
+  }, []);
   return (
     <div className="mt-4 space-y-4 rounded-lg border border-[#2A2A30] bg-[#0E0E12] p-4">
       <div className="flex items-center justify-between">
@@ -290,14 +297,22 @@ function UserAddressSection({
       </div>
       <div>
         <label className="mb-1 block text-[10px] uppercase tracking-wider text-[#888892]">國別</label>
-        <input
-          type="text"
+        {/* 02 真正完工軌 2026-06-07：國別改 select dropdown、不用純 input 填 ID */}
+        <select
           className="h-9 w-full rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-sm text-[#E8E8EC] disabled:opacity-50"
           value={countryId ?? ''}
           onChange={(e) => setDraft({ ...draft, countryId: e.target.value || '' })}
-          placeholder="留空 = 台灣；非台灣請填國家 ID"
           disabled={!editing}
-        />
+        >
+          <option value="">台灣（預設）</option>
+          {countries
+            .filter((c) => c.code !== 'TWN')
+            .map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.code})
+              </option>
+            ))}
+        </select>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

@@ -5,6 +5,8 @@ import type { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
+import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { syncPhoneticIndex } from '../../shared/nx01/sync-phonetic-index';
 
 import type {
   CreatePhoneticDictionaryDto,
@@ -124,5 +126,53 @@ export class PhoneticDictionaryService {
       data: { isActive: false, updatedBy: user.sub },
       select: SEL,
     });
+  }
+
+  /**
+   * 02 真正完工軌 2026-06-07：重建本租戶 partner + part 的 phonetic_index
+   *
+   * 用途：灌字典 seed 後、把既有 partner.name / part.name 的索引 re-sync
+   *       （既有 row 之前用 char fallback、字典灌完後改用注音）
+   *
+   * 跳過 isManual=true 的 row（業務員手動改過的不覆蓋、syncPhoneticIndex 內部已守）
+   */
+  async rebuildIndexForTenant(user: RequestUser) {
+    const tenantId = requireTenantId(user);
+
+    const partners = await this.prisma.nx01Partner.findMany({
+      where: { tenantId, isActive: true },
+      select: { id: true, name: true, shortName: true },
+    });
+    for (const p of partners) {
+      await syncPhoneticIndex(this.prisma, {
+        tenantId,
+        sourceTable: 'nx01_partner',
+        sourceId: p.id,
+        sourceField: 'name',
+        sourceText: [p.name, p.shortName].filter(Boolean).join(' '),
+        userId: user.sub,
+      });
+    }
+
+    const parts = await this.prisma.nx01Part.findMany({
+      where: { tenantId, isActive: true },
+      select: { id: true, name: true },
+    });
+    for (const part of parts) {
+      await syncPhoneticIndex(this.prisma, {
+        tenantId,
+        sourceTable: 'nx01_part',
+        sourceId: part.id,
+        sourceField: 'name',
+        sourceText: part.name,
+        userId: user.sub,
+      });
+    }
+
+    return {
+      ok: true,
+      partnersIndexed: partners.length,
+      partsIndexed: parts.length,
+    };
   }
 }

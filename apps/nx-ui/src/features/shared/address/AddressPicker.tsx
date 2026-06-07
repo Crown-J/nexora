@@ -10,22 +10,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { apiFetch } from '@/shared/api/client';
-
 import { listCities, listDistricts, type CityRow, type DistrictRow } from './address-catalog-api';
-
-type CountryRow = { id: string; code: string; name: string };
-
-async function fetchCountries(): Promise<CountryRow[]> {
-  try {
-    const res = await apiFetch('/nx01/countries?pageSize=100&isActive=true', { method: 'GET' });
-    if (!res.ok) return [];
-    const j = (await res.json()) as { items?: CountryRow[]; rows?: CountryRow[] };
-    return j.items ?? j.rows ?? [];
-  } catch {
-    return [];
-  }
-}
+import { fetchCountries, findTaiwanId, isTaiwan, type CountryRow } from './country-helper';
 
 export type AddressValue = {
   countryId?: string | null;
@@ -50,9 +36,6 @@ export type AddressPickerProps = {
   disabled?: boolean;
 };
 
-// TWN 國家 ID（dev seed 固定）；過渡期 hard-code、未來改 lookup country.code='TWN'
-const TWN_COUNTRY_ID = 'NX01COUN0000001';
-
 const fieldCls =
   'h-9 w-full rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-sm text-[#E8E8EC] focus:border-[#22D88F]/40 focus:outline-none disabled:opacity-50';
 const labelCls = 'block text-[10px] uppercase tracking-wider text-[#888892] mb-1';
@@ -66,12 +49,14 @@ export function AddressPicker({ value, onChange, labelPrefix, disabled }: Addres
     void fetchCountries().then(setCountries);
   }, []);
 
-  useEffect(() => {
-    void listCities({ countryId: TWN_COUNTRY_ID }).then(setCities).catch(() => setCities([]));
-  }, []);
+  // 02 真正完工軌 2026-06-07：TW id 動態從 country lookup 取
+  const twnId = useMemo(() => findTaiwanId(countries), [countries]);
+  const isTW = isTaiwan(value.countryId, countries);
 
-  // TW 字典模式：countryId=null 或 TWN
-  const isTW = !value.countryId || value.countryId === TWN_COUNTRY_ID;
+  useEffect(() => {
+    if (!twnId) return;
+    void listCities({ countryId: twnId }).then(setCities).catch(() => setCities([]));
+  }, [twnId]);
 
   useEffect(() => {
     if (!isTW || !value.cityId) {
@@ -124,7 +109,7 @@ export function AddressPicker({ value, onChange, labelPrefix, disabled }: Addres
         >
           <option value="">台灣（預設）</option>
           {countries
-            .filter((c) => c.id !== TWN_COUNTRY_ID)
+            .filter((c) => c.code !== 'TWN')
             .map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name} ({c.code})
@@ -282,12 +267,13 @@ export function AddressPicker({ value, onChange, labelPrefix, disabled }: Addres
   );
 }
 
-/** 把 AddressValue 組成單行字串顯示（與 backend composePartnerDefaultShippingAddress 對齊） */
+/** 把 AddressValue 組成單行字串顯示（與 backend composePartnerDefaultShippingAddress 對齊）
+ *  02 真正完工軌：判斷 TW 改靠 ctx.countryCode（caller 傳）、不依賴 hard-code id */
 export function formatAddressOneLine(
   v: AddressValue,
-  ctx?: { countryName?: string | null; cityName?: string | null; districtName?: string | null },
+  ctx?: { countryName?: string | null; countryCode?: string | null; cityName?: string | null; districtName?: string | null },
 ): string {
-  const isTW = !v.countryId || v.countryId === TWN_COUNTRY_ID;
+  const isTW = !v.countryId || ctx?.countryCode === 'TWN' || !ctx?.countryCode;
   if (!isTW && v.freeformAddress) {
     return [ctx?.countryName, v.postalCode, v.freeformAddress].filter(Boolean).join(' ').trim();
   }

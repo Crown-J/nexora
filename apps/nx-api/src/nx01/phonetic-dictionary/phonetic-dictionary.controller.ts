@@ -18,9 +18,19 @@ import { PhoneticDictionaryService } from './phonetic-dictionary.service';
 
 @Controller('nx01/phonetic-dictionary')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SYSADMIN')
+@Roles('SYSADMIN', 'OWNER')
 export class PhoneticDictionaryController {
   constructor(private readonly svc: PhoneticDictionaryService) {}
+
+  /**
+   * 02 真正完工軌 2026-06-07：重建本租戶 partner + part 的 phonetic_index
+   * 用途：灌完字典 seed 後、把既有資料 re-sync（既有 row 之前是 char fallback、現在改為注音）
+   * 業務員不需用、為 OWNER 一次性操作
+   */
+  @Post('rebuild-index')
+  rebuildIndex(@CurrentUser() user: RequestUser) {
+    return this.svc.rebuildIndexForTenant(user);
+  }
 
   @Get()
   list(@Query() q: ListPhoneticDictionaryQueryDto) {

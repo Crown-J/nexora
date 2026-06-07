@@ -160,7 +160,66 @@ export class PartnerService {
         select: SEL,
       }),
     ]);
-    return { page, pageSize, total, rows: rows.map((r) => this.mapRow(r)) };
+    // 02 真正完工軌 2026-06-07：批量帶 partner 預設送貨地址一行字串、列表直接顯示
+    // N+1 防：用 IN query 一次撈所有 SHIPPING isDefault 地址、組 map
+    const shippingMap = await this.loadShippingOneLineMap(tenantId, rows.map((r) => r.id));
+    return {
+      page,
+      pageSize,
+      total,
+      rows: rows.map((r) => ({
+        ...this.mapRow(r),
+        shippingOneLine: shippingMap.get(r.id) ?? null,
+      })),
+    };
+  }
+
+  /** 批量取 partner 預設送貨地址、組單行字串 map（避開 N+1） */
+  private async loadShippingOneLineMap(
+    tenantId: string,
+    partnerIds: string[],
+  ): Promise<Map<string, string | null>> {
+    const result = new Map<string, string | null>();
+    if (partnerIds.length === 0) return result;
+    const addrs = await this.prisma.nx01PartnerAddress.findMany({
+      where: {
+        tenantId,
+        partnerId: { in: partnerIds },
+        addressType: 'SHIPPING',
+        isDefault: true,
+        isActive: true,
+      },
+      include: {
+        city: { select: { name: true } },
+        district: { select: { name: true } },
+        country: { select: { code: true, name: true } },
+      },
+    });
+    for (const a of addrs) {
+      const isTW = !a.countryId || a.country?.code === 'TWN';
+      let oneLine = '';
+      if (!isTW && a.freeformAddress) {
+        oneLine = [a.country?.name, a.postalCode, a.freeformAddress].filter(Boolean).join(' ').trim();
+      } else {
+        const parts: string[] = [];
+        if (a.postalCode) parts.push(a.postalCode);
+        if (a.city?.name) parts.push(a.city.name);
+        if (a.district?.name) parts.push(a.district.name);
+        if (a.streetName) parts.push(a.streetName);
+        if (a.lane) parts.push(`${a.lane}巷`);
+        if (a.alley) parts.push(`${a.alley}弄`);
+        if (a.buildingNo) {
+          let bn = `${a.buildingNo}號`;
+          if (a.buildingSubNo) bn += `之${a.buildingSubNo}`;
+          parts.push(bn);
+        }
+        if (a.floor) parts.push(`${a.floor}樓`);
+        if (a.roomNo) parts.push(`${a.roomNo}室`);
+        oneLine = parts.join('').trim();
+      }
+      result.set(a.partnerId, oneLine || null);
+    }
+    return result;
   }
 
   async getById(user: RequestUser, id: string) {

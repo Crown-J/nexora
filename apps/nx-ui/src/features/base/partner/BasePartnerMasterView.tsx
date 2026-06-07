@@ -135,6 +135,8 @@ type PartnerRow = {
   mobile: string | null;
   email: string | null;
   address: string | null;
+  // 02 真正完工軌 2026-06-07：列表直接顯示一行地址（partner.list shippingOneLine）
+  shippingOneLine: string | null;
   remark: string | null;
   taxId: string | null;
   paymentTermDomestic: string;
@@ -255,9 +257,10 @@ function dtoToRow(d: PartnerDto): PartnerRow {
     phone: d.phone ?? null,
     mobile: d.mobile ?? null,
     email: d.email ?? null,
-    // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、暫填 null 維持 PartnerRow 型別
-    // 此 legacy View 後續軌改用結構化 partner_address 衛星表顯示
+    // 02 對齊第二批 A 軌 CP2 + 真正完工軌 2026-06-07：
+    // address 純文字已 DROP；列表顯示用 partner.list 帶來的 shippingOneLine
     address: null,
+    shippingOneLine: d.shippingOneLine ?? null,
     remark: d.remark ?? null,
     taxId: d.taxId ?? null,
     paymentTermDomestic: d.paymentTermDomestic ?? 'NET30',
@@ -773,16 +776,21 @@ export function BasePartnerMasterView() {
           </td>
         );
       case 'address':
-        // 02 \u5c0d\u9f4a\u7b2c\u4e8c\u6279\u524d\u7aef\u6536\u5c3e\u8ecc FE-CP2 2026-06-07\uff1a\u5730\u5740\u6539 partner_address \u885b\u661f\u8868\u3001\u9023\u5230 sub-page \u7ba1\u7406
+        // 02 \u771f\u6b63\u5b8c\u5de5\u8ecc 2026-06-07\uff1a\u5217\u8868\u76f4\u63a5\u986f\u793a\u4e00\u884c\u5730\u5740\uff08\u5f9e SHIPPING isDefault \u7d44\uff09+ \u65c1\u908a\u7ba1\u7406\u9023\u7d50
         return (
-          <td key={key} className="px-2 py-2.5 text-xs text-muted-foreground">
-            <a
-              href={`/dashboard/base/partners/${row.id}/addresses`}
-              className="text-[#22D88F] hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              \u2192 \u5730\u5740\u7ba1\u7406
-            </a>
+          <td key={key} className="max-w-[280px] px-2 py-2.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="truncate" title={row.shippingOneLine ?? ''}>
+                {row.shippingOneLine?.trim() ? row.shippingOneLine : '\u2014'}
+              </span>
+              <a
+                href={`/dashboard/base/partners/${row.id}/addresses`}
+                className="shrink-0 text-[10px] text-[#22D88F] hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                \u7ba1\u7406
+              </a>
+            </div>
           </td>
         );
       case 'remark':

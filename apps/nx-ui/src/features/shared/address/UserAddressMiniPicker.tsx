@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { listCities, listDistricts, type CityRow, type DistrictRow } from './address-catalog-api';
+import { fetchCountries, findTaiwanId, isTaiwan, type CountryRow } from './country-helper';
 
 export type UserMiniAddressValue = {
   cityId?: string | null;
@@ -15,8 +16,6 @@ export type UserMiniAddressValue = {
   postalCode?: string | null;
   detail?: string | null;
 };
-
-const TWN_COUNTRY_ID = 'NX01COUN0000001';
 const fieldCls =
   'h-9 w-full rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-sm text-[#E8E8EC] focus:border-[#22D88F]/40 focus:outline-none disabled:opacity-50';
 
@@ -31,14 +30,21 @@ export function UserAddressMiniPicker({
   countryId?: string | null;
   disabled?: boolean;
 }) {
-  const isTW = !countryId || countryId === TWN_COUNTRY_ID;
+  const [countries, setCountries] = useState<CountryRow[]>([]);
   const [cities, setCities] = useState<CityRow[]>([]);
   const [districts, setDistricts] = useState<DistrictRow[]>([]);
 
   useEffect(() => {
-    if (!isTW) return;
-    void listCities({ countryId: TWN_COUNTRY_ID }).then(setCities).catch(() => setCities([]));
-  }, [isTW]);
+    void fetchCountries().then(setCountries);
+  }, []);
+
+  const isTW = isTaiwan(countryId, countries);
+  const twnId = useMemo(() => findTaiwanId(countries), [countries]);
+
+  useEffect(() => {
+    if (!isTW || !twnId) return;
+    void listCities({ countryId: twnId }).then(setCities).catch(() => setCities([]));
+  }, [isTW, twnId]);
 
   useEffect(() => {
     if (!isTW || !value.cityId) {
