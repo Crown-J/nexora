@@ -68,6 +68,16 @@ export class PartController {
     return this.svc.recalcPricesByCost(user, id);
   }
 
+  /**
+   * 02 對齊第二批前端收尾軌 FE-CP6 2026-06-07：通用件查詢自動帶替代品（總經理核心體驗）
+   * 業務範式：查一顆零件 → 列出同群組所有可替代零件 + 庫存合計
+   * 用途：銷貨單開單時、零件斷貨時、業務員快速找替代品
+   */
+  @Get(':id/compat-alternatives')
+  compatAlternatives(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.findCompatAlternatives(user, id);
+  }
+
   @Delete(':id')
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.softDelete(user, id);

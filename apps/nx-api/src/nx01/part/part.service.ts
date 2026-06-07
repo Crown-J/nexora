@@ -581,6 +581,111 @@ export class PartService {
     return this.mapRow(row);
   }
 
+  /**
+   * 02 對齊第二批前端收尾軌 FE-CP6 2026-06-07：通用件查詢 fan-out（總經理核心體驗）
+   *
+   * 業務語意：給定 partId、找它屬於哪些 compat_group、回該 part 在每群組的成員資訊
+   * + 同群組其他成員（可替代零件）+ 各 part 的庫存合計（stock_balance 加總跨倉）。
+   *
+   * 雙向過濾：
+   *   - sourceMember.isBidirectional=true → 列群組內所有其他成員（A↔B）
+   *   - sourceMember.isBidirectional=false → 不列（A→B 單向、查 A 不帶 B）
+   *
+   * 回傳 shape：{
+   *   sourcePart: { id, code, name },
+   *   groups: [{ groupId, groupCode, groupName, sourceRole, members: [{partId, code, name, role, customPrice, stockOnHand}] }]
+   * }
+   */
+  async findCompatAlternatives(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+    const source = await this.prisma.nx01Part.findFirst({
+      where: { id: partId, tenantId },
+      select: { id: true, code: true, name: true },
+    });
+    if (!source) throw new NotFoundException('Part not found');
+
+    // 查 part 屬於哪些 group（自身的 member rows）
+    const sourceMemberships = await this.prisma.nx01PartCompatGroupMember.findMany({
+      where: { tenantId, partId, isActive: true },
+      select: {
+        groupId: true,
+        role: true,
+        isBidirectional: true,
+        group: { select: { code: true, name: true } },
+      },
+    });
+
+    const groups: Array<{
+      groupId: string;
+      groupCode: string;
+      groupName: string;
+      sourceRole: number;
+      members: Array<{
+        memberId: string;
+        partId: string;
+        code: string;
+        name: string;
+        role: number;
+        customPrice: string | null;
+        isBidirectional: boolean;
+        stockOnHand: string;
+      }>;
+    }> = [];
+
+    for (const m of sourceMemberships) {
+      // 雙向 false → 跳過（A→B 單向時、查 A 不列同群組成員）
+      if (!m.isBidirectional) continue;
+
+      const peers = await this.prisma.nx01PartCompatGroupMember.findMany({
+        where: { tenantId, groupId: m.groupId, isActive: true, NOT: { partId } },
+        orderBy: [{ role: 'asc' }, { sortNo: 'asc' }],
+        select: {
+          id: true,
+          partId: true,
+          role: true,
+          customPrice: true,
+          isBidirectional: true,
+          part: { select: { code: true, name: true } },
+        },
+      });
+
+      // 庫存合計：同 part 跨倉 stock_balance.qtyOnHand sum
+      const peerPartIds = peers.map((p) => p.partId);
+      const stockAgg = peerPartIds.length
+        ? await this.prisma.nx03StockBalance.groupBy({
+            by: ['partId'],
+            where: { tenantId, partId: { in: peerPartIds } },
+            _sum: { onHandQty: true },
+          })
+        : [];
+      const stockMap = new Map(stockAgg.map((s) => [s.partId, s._sum?.onHandQty?.toString() ?? '0']));
+
+      groups.push({
+        groupId: m.groupId,
+        groupCode: m.group.code,
+        groupName: m.group.name,
+        sourceRole: m.role,
+        members: peers.map((p) => ({
+          memberId: p.id,
+          partId: p.partId,
+          code: p.part.code,
+          name: p.part.name,
+          role: p.role,
+          customPrice: p.customPrice?.toString() ?? null,
+          isBidirectional: p.isBidirectional,
+          stockOnHand: stockMap.get(p.partId) ?? '0',
+        })),
+      });
+    }
+
+    return {
+      sourcePart: source,
+      groups,
+      groupCount: groups.length,
+      alternativeCount: groups.reduce((acc, g) => acc + g.members.length, 0),
+    };
+  }
+
   async softDelete(user: RequestUser, id: string) {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx01Part.findFirst({ where: { id, tenantId }, select: SEL });

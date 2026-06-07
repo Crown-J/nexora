@@ -11,6 +11,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { Nx10ExpService } from '../../nx10/exp/nx10-exp.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
+import { composePartnerDefaultShippingAddress } from '../../shared/nx01/compose-partner-address';
 import { resolveCurrencyId } from '../../shared/nx02/nx02-currency';
 import { allocDocNo as allocNx02DocNo } from '../../shared/nx02/nx02-doc-no';
 import {
@@ -335,6 +336,19 @@ export class SoService {
       });
       const paymentTerm = creditResult.adjustedPaymentTerm;
 
+      // 02 對齊第二批前端收尾軌 FE-CP4 2026-06-07：SO 自動帶 partner 預設送貨地址
+      // dto 沒給 deliveryAddress 時、從 partner_address SHIPPING isDefault 取一筆組字串
+      let deliveryAddressResolved: string | null =
+        (dto as { deliveryAddress?: string }).deliveryAddress?.trim() || null;
+      if (!deliveryAddressResolved) {
+        const defaultShipping = await composePartnerDefaultShippingAddress(
+          this.prisma,
+          tenantId,
+          dto.customerId.trim(),
+        );
+        deliveryAddressResolved = defaultShipping?.oneLine ?? null;
+      }
+
       const so = await tx.nx04So.create({
         data: {
           tenantId,
@@ -344,6 +358,7 @@ export class SoService {
           customerId: dto.customerId.trim(),
           quoteId: dto.quoteId?.trim() || null,
           deliveryType: dto.deliveryType.trim(),
+          deliveryAddress: deliveryAddressResolved,
           sourceType: 'S',
           currencyId,
           taxRate,
