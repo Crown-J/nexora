@@ -1127,6 +1127,8 @@ model Nx01Partner {
   rev_Nx02Demand_customerId                Nx02Demand[]                 @relation("R_Nx02Demand_customerId")
   rev_Nx02Po_supplierId                    Nx02Po[]                     @relation("R_Nx02Po_supplierId")
   rev_Nx02Po_customsAgentPartnerId         Nx02Po[]                     @relation("R_Nx02Po_customsAgentPartnerId")
+  rev_Nx02Po_invoiceToPartnerId            Nx02Po[]                     @relation("R_Nx02Po_invoiceToPartnerId")
+  rev_Nx02Po_shipToPartnerId               Nx02Po[]                     @relation("R_Nx02Po_shipToPartnerId")
   rev_Nx02Pr_supplierId                    Nx02Pr[]                     @relation("R_Nx02Pr_supplierId")
   rev_Nx02Qt_inquiryPartnerId              Nx02Qt[]                     @relation("R_Nx02Qt_inquiryPartnerId")
   rev_Nx02Rfq_supplierId                   Nx02Rfq[]                    @relation("R_Nx02Rfq_supplierId")
@@ -2048,9 +2050,24 @@ model Nx02Po {
   apMonth               String?        @map("ap_month") @db.VarChar(7)
   /// T6 進貨對齊批次 2026-06-08：報關行廠商（國外採購用、FK nx01_partner、partnerType='T' 外包物流、application 層 guard）。；啟用最低需求版本：LITE-CORE
   customsAgentPartnerId String?        @map("customs_agent_partner_id") @db.VarChar(15)
+  /// T7 進貨對齊批次 2026-06-08：付款對象（FK partner、null = 跟 supplier 同）。
+  /// 業務語意：母公司付款 / 集團代付。發票對此 partner 開、AP 帳目對此 partner 歸戶。；啟用最低需求版本：LITE-CORE
+  invoiceToPartnerId    String?        @map("invoice_to_partner_id") @db.VarChar(15)
+  /// T7 進貨對齊批次 2026-06-08：指送對象（FK partner、null = 跟 supplier 同 / 我方收貨）。
+  /// 業務語意：分店收貨（指定我方分店 partner）/ 直送客戶現場（指定 customer partner、不進倉）。；啟用最低需求版本：LITE-CORE
+  shipToPartnerId       String?        @map("ship_to_partner_id") @db.VarChar(15)
+  /// T7 進貨對齊批次 2026-06-08：收貨地址（FK nx01_partner_address、應屬 shipToPartnerId 或 supplier）。
+  /// null = 用 partner 預設地址。application 層守 partnerId 一致。；啟用最低需求版本：LITE-CORE
+  shipToAddressId       String?        @map("ship_to_address_id") @db.VarChar(15)
+  /// T7 進貨對齊批次 2026-06-08：交貨地點（自由文字、直送客戶現場用、覆寫 shipToAddressId）。
+  /// 業務語意：臨時工地、會場、客戶口頭指定的地址、不必入主檔。；啟用最低需求版本：LITE-CORE
+  deliveryAddress       String?        @map("delivery_address") @db.VarChar(200)
   tenant                Nx99Tenant     @relation("R_Nx02Po_tenantId", fields: [tenantId], references: [id])
   supplier              Nx01Partner    @relation("R_Nx02Po_supplierId", fields: [supplierId], references: [id])
   customsAgent          Nx01Partner?   @relation("R_Nx02Po_customsAgentPartnerId", fields: [customsAgentPartnerId], references: [id])
+  invoiceToPartner      Nx01Partner?   @relation("R_Nx02Po_invoiceToPartnerId", fields: [invoiceToPartnerId], references: [id])
+  shipToPartner         Nx01Partner?   @relation("R_Nx02Po_shipToPartnerId", fields: [shipToPartnerId], references: [id])
+  shipToAddress         Nx01PartnerAddress? @relation("R_Nx02Po_shipToAddressId", fields: [shipToAddressId], references: [id])
   rfq                   Nx02Rfq?       @relation("R_Nx02Po_rfqId", fields: [rfqId], references: [id])
   rev_Nx02PoItem_poId   Nx02PoItem[]   @relation("R_Nx02PoItem_poId")
   rev_Nx02Rr_poId       Nx02Rr[]       @relation("R_Nx02Rr_poId")
@@ -2059,6 +2076,9 @@ model Nx02Po {
 
   @@unique([docNo])
   @@index([customsAgentPartnerId])
+  @@index([invoiceToPartnerId])
+  @@index([shipToPartnerId])
+  @@index([shipToAddressId])
   @@map("nx02_po")
 }
 
@@ -7658,6 +7678,8 @@ model Nx01PartnerAddress {
   country         Nx01Country?  @relation("R_Nx01PartnerAddress_countryId", fields: [countryId], references: [id], onDelete: SetNull)
   city            Nx01City?     @relation("R_Nx01PartnerAddress_cityId", fields: [cityId], references: [id], onDelete: SetNull)
   district        Nx01District? @relation("R_Nx01PartnerAddress_districtId", fields: [districtId], references: [id], onDelete: SetNull)
+
+  rev_Nx02Po_shipToAddressId Nx02Po[] @relation("R_Nx02Po_shipToAddressId")
 
   @@index([tenantId, partnerId, addressType])
   @@map("nx01_partner_address")

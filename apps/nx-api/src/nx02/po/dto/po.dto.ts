@@ -149,6 +149,28 @@ export class UpdatePoDto {
   @IsString()
   @MaxLength(15)
   customsAgentPartnerId?: string | null;
+
+  // T7 進貨對齊批次 2026-06-08：對象分開（付款 / 指送 / 收貨地址 / 直送現場）
+  // 4 欄全 nullable、null = 跟 supplier 同
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  invoiceToPartnerId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  shipToPartnerId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  shipToAddressId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  deliveryAddress?: string | null;
 }
 
 export class PatchPoItemDto {

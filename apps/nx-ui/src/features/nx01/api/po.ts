@@ -70,6 +70,7 @@ export async function createPo(body: CreatePoBody): Promise<{ id: string }> {
 // T2-a 進貨對齊批次 2026-06-07：採購單表頭可編輯欄位（預交貨日 / 備註 / 採購日期 等）
 // 限 DRAFT 草稿階段（後端 service 已守、UI 也只在 DRAFT 顯示編輯入口）
 // T6 進貨對齊批次 2026-06-08：加 B 級小欄位（國內物流 / 付款里程碑 / 帳款年月 / 報關行）
+// T7 進貨對齊批次 2026-06-08：加對象分開（付款 / 指送 / 收貨地址 / 直送現場）
 export type PatchPoBody = {
   poDate?: string;
   expectedDate?: string | null;
@@ -78,6 +79,10 @@ export type PatchPoBody = {
   paymentMilestone?: 'N' | 'D' | null;
   apMonth?: string | null;
   customsAgentPartnerId?: string | null;
+  invoiceToPartnerId?: string | null;
+  shipToPartnerId?: string | null;
+  shipToAddressId?: string | null;
+  deliveryAddress?: string | null;
 };
 
 export async function patchPo(id: string, body: PatchPoBody): Promise<void> {

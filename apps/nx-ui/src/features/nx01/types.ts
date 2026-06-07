@@ -106,6 +106,11 @@ export type PoDetailDto = {
   paymentMilestone?: 'N' | 'D' | null;
   apMonth?: string | null;
   customsAgentPartnerId?: string | null;
+  // T7 進貨對齊批次 2026-06-08：對象分開（4 欄全 nullable、null = 跟 supplier 同）
+  invoiceToPartnerId?: string | null;
+  shipToPartnerId?: string | null;
+  shipToAddressId?: string | null;
+  deliveryAddress?: string | null;
   createdAt: string;
   voidedAt: string | null;
   items: {

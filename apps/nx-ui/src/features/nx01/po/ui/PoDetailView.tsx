@@ -9,6 +9,7 @@ import type { LookupRow } from '@/features/shared/master/lookup/types';
 import { fetchAllPages } from '@/shared/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
 import type { PartnerDto } from '@/features/shared/master/partner/types';
+import { listPartnerAddresses, type PartnerAddressRow } from '@/features/shared/address/partner-address-api';
 
 import { getPo, patchPo, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
 import type { PoDetailDto } from '../../types';
@@ -53,6 +54,9 @@ export function PoDetailView({ id }: { id: string }) {
 
   // T6 進貨對齊批次 2026-06-08：報關行廠商下拉（partnerType='T' 外包物流）
   const [customsAgents, setCustomsAgents] = useState<PartnerDto[]>([]);
+  // T7 進貨對齊批次 2026-06-08：對象分開用、全廠商下拉 + ship-to partner 的地址下拉
+  const [allPartners, setAllPartners] = useState<PartnerDto[]>([]);
+  const [shipToAddresses, setShipToAddresses] = useState<PartnerAddressRow[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,11 +80,31 @@ export function PoDetailView({ id }: { id: string }) {
     listLookupWarehouse({ isActive: true })
       .then(setWhOpts)
       .catch(() => setWhOpts([]));
-    // T6：載入外包物流（partnerType='T'）供報關行下拉
+    // T6/T7：載入所有 active 廠商一次、衍生報關行（T）與全廠商兩份
     fetchAllPages((page, pageSize) => listPartner({ page, pageSize }), { pageSize: 100, maxPages: 50 })
-      .then((items) => setCustomsAgents(items.filter((p) => p.partnerType === 'T' && p.isActive)))
-      .catch(() => setCustomsAgents([]));
+      .then((items) => {
+        const active = items.filter((p) => p.isActive);
+        setAllPartners(active);
+        setCustomsAgents(active.filter((p) => p.partnerType === 'T'));
+      })
+      .catch(() => {
+        setAllPartners([]);
+        setCustomsAgents([]);
+      });
   }, []);
+
+  // T7：載入「指送對象」（shipToPartnerId ?? supplierId）的 SHIPPING 地址供下拉
+  useEffect(() => {
+    if (!doc) return;
+    const ownerId = doc.shipToPartnerId || doc.supplierId;
+    if (!ownerId) {
+      setShipToAddresses([]);
+      return;
+    }
+    listPartnerAddresses(ownerId)
+      .then((rows) => setShipToAddresses(rows.filter((r) => r.addressType === 'SHIPPING' && r.isActive)))
+      .catch(() => setShipToAddresses([]));
+  }, [doc]);
 
   // T6：B 級小欄位 patch helper（DRAFT/PENDING_APPROVAL/APPROVED 階段允許）
   // 業務語意：採購員建單後、廠商出貨前、可隨時補追蹤編號 / 付款里程碑 / 帳款年月 / 報關行
@@ -396,6 +420,99 @@ export function PoDetailView({ id }: { id: string }) {
             {doc.paymentMilestone ? <div>付款：<span className="text-foreground">{PAYMENT_MILESTONE_LABEL[doc.paymentMilestone] ?? doc.paymentMilestone}</span></div> : null}
             {doc.apMonth ? <div>帳款年月：<span className="text-foreground">{doc.apMonth}</span></div> : null}
             {doc.customsAgentPartnerId ? <div>報關行：<span className="text-foreground font-mono">{customsAgents.find((p) => p.id === doc.customsAgentPartnerId)?.name ?? doc.customsAgentPartnerId}</span></div> : null}
+          </div>
+        ) : null
+      )}
+
+      {/* T7 進貨對齊批次 2026-06-08：對象分開（付款 / 指送 / 收貨地址 / 直送現場）
+          業務語意：母公司付款、分店收貨、或直送客戶現場不進倉。
+          4 欄全 nullable、null = 跟 supplier 同（UI 顯示「跟供應商同」hint）。
+          終態（CLOSED/CANCELLED）唯讀條列；其他階段 inline 編輯。 */}
+      {!statusIs(doc.status, ...ST_CLOSED, ...ST_CANCELLED) ? (
+        <fieldset className="grid gap-3 rounded-xl border border-border/60 bg-card/40 p-4 text-sm md:grid-cols-2 lg:grid-cols-4">
+          <legend className="px-1 text-xs font-medium tracking-wider text-muted-foreground">對象與地址</legend>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            付款對象（發票收件）
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+              value={doc.invoiceToPartnerId ?? ''}
+              disabled={busy}
+              onChange={(e) => {
+                const v = e.target.value;
+                void patchMilestone({ invoiceToPartnerId: v || null });
+              }}
+            >
+              <option value="">跟供應商同（{doc.supplierName}）</option>
+              {allPartners.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}（{p.code}）
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            指送對象（收貨方）
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+              value={doc.shipToPartnerId ?? ''}
+              disabled={busy}
+              onChange={(e) => {
+                const v = e.target.value;
+                // 改指送對象 → 清地址（地址必屬該 partner、不可跨）
+                void patchMilestone({ shipToPartnerId: v || null, shipToAddressId: null });
+              }}
+            >
+              <option value="">跟供應商同（{doc.supplierName}）</option>
+              {allPartners.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}（{p.code}）
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            收貨地址（主檔）
+            <select
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+              value={doc.shipToAddressId ?? ''}
+              disabled={busy || shipToAddresses.length === 0}
+              onChange={(e) => {
+                const v = e.target.value;
+                void patchMilestone({ shipToAddressId: v || null });
+              }}
+            >
+              <option value="">使用預設地址</option>
+              {shipToAddresses.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.label ?? '(無標籤)'}
+                  {a.isDefault ? ' ⭐' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+            交貨地點（直送現場）
+            <input
+              className="rounded-md border border-border bg-background px-2 py-1 text-sm text-foreground"
+              placeholder="例：台北市信義區工地 A 棟"
+              defaultValue={doc.deliveryAddress ?? ''}
+              maxLength={200}
+              disabled={busy}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v !== (doc.deliveryAddress ?? '')) void patchMilestone({ deliveryAddress: v || null });
+              }}
+            />
+          </label>
+        </fieldset>
+      ) : (
+        // 終態唯讀條列
+        (doc.invoiceToPartnerId || doc.shipToPartnerId || doc.shipToAddressId || doc.deliveryAddress) ? (
+          <div className="grid gap-2 rounded-xl border border-border/40 bg-muted/20 p-3 text-xs text-muted-foreground md:grid-cols-2 lg:grid-cols-4">
+            {doc.invoiceToPartnerId ? <div>付款對象：<span className="text-foreground">{allPartners.find((p) => p.id === doc.invoiceToPartnerId)?.name ?? doc.invoiceToPartnerId}</span></div> : null}
+            {doc.shipToPartnerId ? <div>指送對象：<span className="text-foreground">{allPartners.find((p) => p.id === doc.shipToPartnerId)?.name ?? doc.shipToPartnerId}</span></div> : null}
+            {doc.shipToAddressId ? <div>收貨地址：<span className="text-foreground font-mono">{shipToAddresses.find((a) => a.id === doc.shipToAddressId)?.label ?? doc.shipToAddressId}</span></div> : null}
+            {doc.deliveryAddress ? <div className="md:col-span-2 lg:col-span-1">直送現場：<span className="text-foreground">{doc.deliveryAddress}</span></div> : null}
           </div>
         ) : null
       )}

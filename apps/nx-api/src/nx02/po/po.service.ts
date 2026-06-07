@@ -58,6 +58,11 @@ const PO_SEL = {
   paymentMilestone: true,
   apMonth: true,
   customsAgentPartnerId: true,
+  // T7 進貨對齊批次 2026-06-08：對象分開（付款 / 指送 / 收貨地址 / 直送現場）
+  invoiceToPartnerId: true,
+  shipToPartnerId: true,
+  shipToAddressId: true,
+  deliveryAddress: true,
   // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
   // T1-fix 2026-06-07：加送審稽核欄
   submittedForReviewAt: true,
@@ -417,6 +422,38 @@ export class PoService {
         }
         if (!ca.isActive) throw new BadRequestException('報關行廠商已停用');
       }
+      // T7 進貨對齊批次 2026-06-08：對象分開驗證
+      // - invoiceToPartnerId / shipToPartnerId：必為本租戶 active partner（任何 partnerType 都允許、業務上母公司/分店/客戶皆可）
+      // - shipToAddressId：必為 shipToPartnerId（若指定）或 supplierId 的 active address
+      for (const [k, v] of [
+        ['invoiceToPartnerId', dto.invoiceToPartnerId],
+        ['shipToPartnerId', dto.shipToPartnerId],
+      ] as const) {
+        if (v != null && v !== '') {
+          const p = await tx.nx01Partner.findFirst({
+            where: { id: v, tenantId },
+            select: { isActive: true },
+          });
+          if (!p) throw new BadRequestException(`${k} not found in tenant`);
+          if (!p.isActive) throw new BadRequestException(`${k} 已停用`);
+        }
+      }
+      if (dto.shipToAddressId != null && dto.shipToAddressId !== '') {
+        // 預期屬於 shipToPartnerId（若有改）或 supplier（預設）
+        const expectedPartnerId =
+          dto.shipToPartnerId !== undefined ? dto.shipToPartnerId : existing.shipToPartnerId;
+        const ownerPartnerId = expectedPartnerId || existing.supplierId;
+        const addr = await tx.nx01PartnerAddress.findFirst({
+          where: { id: dto.shipToAddressId, tenantId, isActive: true },
+          select: { partnerId: true },
+        });
+        if (!addr) throw new BadRequestException('shipToAddressId not found or inactive');
+        if (addr.partnerId !== ownerPartnerId) {
+          throw new BadRequestException(
+            `shipToAddressId 必須屬於指送對象（partnerId=${ownerPartnerId}）、實得 partnerId=${addr.partnerId}`,
+          );
+        }
+      }
       await tx.nx02Po.update({
         where: { id },
         data: {
@@ -430,6 +467,11 @@ export class PoService {
           ...(dto.paymentMilestone !== undefined ? { paymentMilestone: dto.paymentMilestone || null } : {}),
           ...(dto.apMonth !== undefined ? { apMonth: dto.apMonth?.trim() || null } : {}),
           ...(dto.customsAgentPartnerId !== undefined ? { customsAgentPartnerId: dto.customsAgentPartnerId?.trim() || null } : {}),
+          // T7：對象分開 4 欄寫入
+          ...(dto.invoiceToPartnerId !== undefined ? { invoiceToPartnerId: dto.invoiceToPartnerId?.trim() || null } : {}),
+          ...(dto.shipToPartnerId !== undefined ? { shipToPartnerId: dto.shipToPartnerId?.trim() || null } : {}),
+          ...(dto.shipToAddressId !== undefined ? { shipToAddressId: dto.shipToAddressId?.trim() || null } : {}),
+          ...(dto.deliveryAddress !== undefined ? { deliveryAddress: dto.deliveryAddress?.trim() || null } : {}),
           // T1-fix：送審寫 submittedForReviewAt + By（與 approvedAt 對稱、稽核完整）
           ...(isSubmittingForReview
             ? { submittedForReviewAt: new Date(), submittedForReviewBy: user.sub, rejectReason: null }
