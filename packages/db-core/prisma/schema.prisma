@@ -1998,6 +1998,10 @@ model Nx02Po {
   voidedAt              DateTime?      @map("voided_at")
   /// 作廢人（使用者 ID）；啟用最低需求版本：PLUS
   voidedBy              String?        @map("voided_by") @db.VarChar(15)
+  /// 採購員送審時間（T1-fix 2026-06-07：DRAFT → PENDING_APPROVAL 觸發、與 approvedAt 對稱）
+  submittedForReviewAt  DateTime?      @map("submitted_for_review_at")
+  /// 採購員送審人（使用者 ID、T1-fix 2026-06-07）
+  submittedForReviewBy  String?        @map("submitted_for_review_by") @db.VarChar(15)
   /// 採購組長核准時間。；啟用最低需求版本：PLUS-CORE
   approvedAt            DateTime?      @map("approved_at")
   /// 採購組長核准人（使用者ID）。；啟用最低需求版本：PLUS-CORE

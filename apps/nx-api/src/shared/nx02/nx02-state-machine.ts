@@ -9,26 +9,31 @@ export const RfqStatus = {
 } as const;
 
 /**
- * PoStatus 採購單狀態（v1.2 階段 F P3 對齊總經理拍板 + Alex Q3=a）
+ * PoStatus 採購單狀態（T1-fix 進貨對齊批次 2026-06-07 加 PENDING_APPROVAL）
  *
- * 狀態流：DRAFT → APPROVED → SUBMITTED → CONFIRMED → PARTIAL_RECEIVED / RECEIVED → CLOSED
- *                                            ↑
- *                                  「廠商確認」應付產生點（createApFromConfirmedPo 觸發）
+ * 狀態流：
+ *   DRAFT →〔送審 採購員〕→ PENDING_APPROVAL →〔核准 主管〕→ APPROVED →〔寄出 採購員〕→ SUBMITTED
+ *                                            →〔退件 主管〕→ DRAFT（填 rejectReason、清核准印）
+ *   SUBMITTED →〔廠商確認〕→ CONFIRMED → PARTIAL_RECEIVED / RECEIVED → CLOSED
+ *                                          ↑
+ *                                「廠商確認」應付產生點（createApFromConfirmedPo 觸發）
  *
- * 業務語意（總經理 2026-05-31 拍板）：
- * - DRAFT       草稿（業務建單中）
- * - APPROVED    主管審核通過（業務送審完成、寫 approvedAt + approvedBy）
- * - SUBMITTED   已向廠商提出（採購方按「提出」、等廠商回覆）
- * - CONFIRMED   廠商確認備貨（廠商回覆 OK、應付認列、業務語意「先款後貨」）
- * - PARTIAL_RECEIVED 部分驗收
- * - RECEIVED    全部驗收
- * - CLOSED      結案
- * - CANCELLED   取消
+ * 業務語意（Alex 拍板 2026-06-07：三版本一致、不簡化）：
+ * - DRAFT             草稿（業務建單中）
+ * - PENDING_APPROVAL  待核准（業務送審完、等主管 review）
+ * - APPROVED          已核准（主管核准、寫 approvedAt + approvedBy）
+ * - SUBMITTED         已寄廠商（採購方按「寄出」、等廠商回覆、寫 sentAt）
+ * - CONFIRMED         廠商確認備貨（廠商回覆 OK、應付認列、業務語意「先款後貨」、寫 supplierConfirmedAt）
+ * - PARTIAL_RECEIVED  部分驗收
+ * - RECEIVED          全部驗收
+ * - CLOSED            結案
+ * - CANCELLED         取消
  *
- * 兼容性：既有 createApFromConfirmedPo 觸發點不動（CONFIRMED 業務語意改為「廠商確認」、helper 名稱保留）
+ * 兼容性：既有 createApFromConfirmedPo 觸發點不動（CONFIRMED 業務語意保留）
  */
 export const PoStatus = {
   DRAFT: 'DRAFT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
   APPROVED: 'APPROVED',
   SUBMITTED: 'SUBMITTED',
   CONFIRMED: 'CONFIRMED',
@@ -64,9 +69,10 @@ const RFQ_EDGES: Record<string, Set<string>> = {
 };
 
 const PO_EDGES: Record<string, Set<string>> = {
-  // v1.2 階段 F P3：拆 4 段（DRAFT → APPROVED → SUBMITTED → CONFIRMED）
-  [PoStatus.DRAFT]: new Set([PoStatus.APPROVED, PoStatus.CANCELLED]),
-  [PoStatus.APPROVED]: new Set([PoStatus.SUBMITTED, PoStatus.DRAFT, PoStatus.CANCELLED]),
+  // T1-fix 2026-06-07：拆 5 段（DRAFT →〔送審〕PENDING_APPROVAL →〔核准/退件〕APPROVED → SUBMITTED → CONFIRMED）
+  [PoStatus.DRAFT]: new Set([PoStatus.PENDING_APPROVAL, PoStatus.CANCELLED]),
+  [PoStatus.PENDING_APPROVAL]: new Set([PoStatus.APPROVED, PoStatus.DRAFT, PoStatus.CANCELLED]),
+  [PoStatus.APPROVED]: new Set([PoStatus.SUBMITTED, PoStatus.PENDING_APPROVAL, PoStatus.CANCELLED]),
   [PoStatus.SUBMITTED]: new Set([PoStatus.CONFIRMED, PoStatus.APPROVED, PoStatus.CANCELLED]),
   [PoStatus.CONFIRMED]: new Set([PoStatus.PARTIAL_RECEIVED, PoStatus.RECEIVED, PoStatus.CANCELLED]),
   [PoStatus.PARTIAL_RECEIVED]: new Set([PoStatus.RECEIVED, PoStatus.CLOSED, PoStatus.CANCELLED]),

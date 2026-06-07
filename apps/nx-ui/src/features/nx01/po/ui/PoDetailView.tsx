@@ -16,6 +16,8 @@ function statusIs(s: string, ...candidates: string[]): boolean {
   return candidates.includes(s);
 }
 const ST_DRAFT = ['DRAFT', 'D'];
+// T1-fix 2026-06-07：加 PENDING_APPROVAL 待核准（草稿與已核准之間）
+const ST_PENDING_APPROVAL = ['PENDING_APPROVAL'];
 const ST_APPROVED = ['APPROVED', 'A'];
 const ST_SUBMITTED = ['SUBMITTED', 'S'];
 const ST_CONFIRMED = ['CONFIRMED', 'CF'];
@@ -81,20 +83,21 @@ export function PoDetailView({ id }: { id: string }) {
     return <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm">{error ?? '找不到'}</div>;
   }
 
-  // T1 進貨對齊批次 2026-06-07：依 7 階狀態決定按鈕（雙吃短碼 + 全名）
-  // 流程：DRAFT → 送審 → APPROVED → 寄出廠商 → SUBMITTED → 廠商確認 → CONFIRMED → 轉進貨 → PARTIAL_RECEIVED / RECEIVED → 結案 → CLOSED
-  //                  ↘ 退件（回 DRAFT + 填 rejectReason）
+  // T1-fix 2026-06-07：依 9 階狀態決定按鈕（三版本一致、不簡化）
+  // 流程：DRAFT →〔送審〕→ PENDING_APPROVAL →〔核准/退件〕→ APPROVED →〔寄出〕→ SUBMITTED →〔廠商確認〕→ CONFIRMED → 轉進貨 → PARTIAL_RECEIVED / RECEIVED → CLOSED
   const isDraft = statusIs(doc.status, ...ST_DRAFT);
+  const isPendingApproval = statusIs(doc.status, ...ST_PENDING_APPROVAL);
   const isApproved = statusIs(doc.status, ...ST_APPROVED);
   const isSubmitted = statusIs(doc.status, ...ST_SUBMITTED);
   const isConfirmed = statusIs(doc.status, ...ST_CONFIRMED);
   const isPartialReceived = statusIs(doc.status, ...ST_PARTIAL_RECEIVED);
   const isReceived = statusIs(doc.status, ...ST_RECEIVED);
   const canVoid = isDraft;
-  const canSubmitForReview = isDraft;
-  const canReject = isApproved;
-  const canSendToSupplier = isApproved;
-  const canSupplierConfirm = isSubmitted;
+  const canSubmitForReview = isDraft;             // DRAFT → PENDING_APPROVAL
+  const canApprove = isPendingApproval;           // PENDING_APPROVAL → APPROVED（T1-fix-b 加 canApprove 權限 gate）
+  const canReject = isPendingApproval;            // PENDING_APPROVAL → DRAFT（同上 gate）
+  const canSendToSupplier = isApproved;           // APPROVED → SUBMITTED
+  const canSupplierConfirm = isSubmitted;         // SUBMITTED → CONFIRMED（觸發應付）
   const canToRr = (isConfirmed || isPartialReceived) && doc.items.some((it) => it.qty - it.receivedQty > 0);
   const canClose = isReceived;
 
@@ -122,8 +125,9 @@ export function PoDetailView({ id }: { id: string }) {
             {poStatusLabel(doc.status)} · {doc.poDate} · {doc.supplierName}
           </p>
           {/* T1：審計時間印（核准 / 寄出 / 廠商確認） */}
-          {(doc.approvedAt || doc.sentAt || doc.supplierConfirmedAt) ? (
+          {(doc.submittedForReviewAt || doc.approvedAt || doc.sentAt || doc.supplierConfirmedAt) ? (
             <p className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+              {doc.submittedForReviewAt ? <span>送審 {doc.submittedForReviewAt.slice(0, 10)}</span> : null}
               {doc.approvedAt ? <span>核准 {doc.approvedAt.slice(0, 10)}</span> : null}
               {doc.sentAt ? <span>寄出廠商 {doc.sentAt.slice(0, 10)}</span> : null}
               {doc.supplierConfirmedAt ? <span>廠商確認 {doc.supplierConfirmedAt.slice(0, 10)}</span> : null}
@@ -149,9 +153,19 @@ export function PoDetailView({ id }: { id: string }) {
             type="button"
             className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
             disabled={busy}
-            onClick={() => runStatus('APPROVED', '送審？（會直接記主管核准、寫 approvedBy）')}
+            onClick={() => runStatus('PENDING_APPROVAL', '送審給主管核准？')}
           >
-            送審 / 核准
+            送審
+          </button>
+        ) : null}
+        {canApprove ? (
+          <button
+            type="button"
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            disabled={busy}
+            onClick={() => runStatus('APPROVED', '核准此採購單？（會寫 approvedBy=您）')}
+          >
+            核准
           </button>
         ) : null}
         {canReject ? (

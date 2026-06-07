@@ -64,6 +64,7 @@ export function PoListView() {
         >
           <option value="">全部</option>
           <option value="DRAFT">草稿</option>
+          <option value="PENDING_APPROVAL">待核准</option>
           <option value="APPROVED">已核准</option>
           <option value="SUBMITTED">已寄廠商</option>
           <option value="CONFIRMED">廠商已確認</option>

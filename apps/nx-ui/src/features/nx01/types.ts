@@ -91,6 +91,9 @@ export type PoDetailDto = {
   expectedDate: string | null;
   remark: string | null;
   // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
+  // T1-fix 2026-06-07：加送審稽核欄
+  submittedForReviewAt?: string | null;
+  submittedForReviewBy?: string | null;
   approvedAt?: string | null;
   approvedBy?: string | null;
   sentAt?: string | null;

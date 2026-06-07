@@ -52,6 +52,9 @@ const PO_SEL = {
   shippedAt: true,
   arrivedAt: true,
   // T1 進貨對齊批次 2026-06-07：核准/寄出/廠商確認/退件審計欄
+  // T1-fix 2026-06-07：加送審稽核欄
+  submittedForReviewAt: true,
+  submittedForReviewBy: true,
   approvedAt: true,
   approvedBy: true,
   sentAt: true,
@@ -368,14 +371,18 @@ export class PoService {
       // v1.2 階段 F P3：拆兩個觸發時機
       // - APPROVED（主管審核通過）：寫 approvedAt + approvedBy
       // - CONFIRMED（廠商確認備貨）：呼叫 createApFromConfirmedPo 產生應付（業務語意「先款後貨」）
-      const isApproving = nextStatus === PoStatus.APPROVED && existing.status !== PoStatus.APPROVED;
-      const isVendorConfirming = nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
-      // T1 2026-06-07：APPROVED → DRAFT 視為「主管退件」、寫 sentAt 改 null 並清核准印（防混淆）；rejectReason 從 dto 寫入
+      // T1-fix 2026-06-07：5 個 transition 觸發點（送審 / 核准 / 退件 / 寄出 / 廠商確認）
+      // 退件兩種情境並存：PENDING_APPROVAL → DRAFT（主管退件、本軌主流程）、APPROVED → PENDING_APPROVAL（取消核准重審、罕見）
+      const isSubmittingForReview =
+        nextStatus === PoStatus.PENDING_APPROVAL && existing.status === PoStatus.DRAFT;
+      const isApproving =
+        nextStatus === PoStatus.APPROVED && existing.status === PoStatus.PENDING_APPROVAL;
       const isRejecting =
-        nextStatus === PoStatus.DRAFT && existing.status === PoStatus.APPROVED;
-      // T1：APPROVED → SUBMITTED 視為「寄出給廠商」、寫 sentAt
+        nextStatus === PoStatus.DRAFT && existing.status === PoStatus.PENDING_APPROVAL;
       const isSendingToSupplier =
         nextStatus === PoStatus.SUBMITTED && existing.status === PoStatus.APPROVED;
+      const isVendorConfirming =
+        nextStatus === PoStatus.CONFIRMED && existing.status !== PoStatus.CONFIRMED;
       await tx.nx02Po.update({
         where: { id },
         data: {
@@ -384,15 +391,21 @@ export class PoService {
           ...(dto.expectedDate !== undefined ? { expectedDate: dto.expectedDate ? new Date(dto.expectedDate) : null } : {}),
           ...(dto.status !== undefined ? { status: nextStatus } : {}),
           ...(dto.taxRate !== undefined ? { taxRate } : {}),
+          // T1-fix：送審寫 submittedForReviewAt + By（與 approvedAt 對稱、稽核完整）
+          ...(isSubmittingForReview
+            ? { submittedForReviewAt: new Date(), submittedForReviewBy: user.sub, rejectReason: null }
+            : {}),
           ...(isApproving ? { approvedAt: new Date(), approvedBy: user.sub, rejectReason: null } : {}),
           ...(isSendingToSupplier ? { sentAt: new Date() } : {}),
           ...(isVendorConfirming ? { supplierConfirmedAt: new Date() } : {}),
           ...(isRejecting
             ? {
                 rejectReason: dto.rejectReason?.trim() || existing.rejectReason || '無敘述',
+                // 退件清送審+核准印（業務員重送、重置稽核）
+                submittedForReviewAt: null,
+                submittedForReviewBy: null,
                 approvedAt: null,
                 approvedBy: null,
-                sentAt: null,
               }
             : dto.rejectReason !== undefined
               ? { rejectReason: dto.rejectReason }
