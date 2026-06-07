@@ -573,9 +573,17 @@ export function PoDetailView({ id }: { id: string }) {
           </thead>
           <tbody>
             {doc.items.map((it) => (
-              <tr key={it.id} className="border-b border-border/50">
+              <tr key={it.id} className="border-b border-border/50 align-top">
                 <td className="px-3 py-2">{it.lineNo}</td>
-                <td className="px-3 py-2 font-mono text-xs">{it.partNo}</td>
+                {/* T8 進貨對齊批次 2026-06-08：樣式 A — 我方料號主行 + 廠牌料號小字下行（空白隱藏） */}
+                <td className="px-3 py-2 font-mono text-xs">
+                  <div>{it.partNo}</div>
+                  {it.secCode ? (
+                    <div className="mt-0.5 text-[10px] text-muted-foreground" title="廠牌料號">
+                      {it.secCode}
+                    </div>
+                  ) : null}
+                </td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.receivedQty}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{it.unitCost}</td>

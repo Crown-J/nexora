@@ -98,6 +98,8 @@ const PO_ITEM_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // T8 進貨對齊批次 2026-06-08：runtime JOIN 廠牌料號（mapPoDetail 平鋪為 secCode）
+  part: { select: { secCode: true } },
 } as const;
 
 @Injectable()
@@ -261,10 +263,15 @@ export class PoService {
     const { rev_Nx02PoItem_poId, ...rest } = row;
     return {
       ...rest,
-      items: rev_Nx02PoItem_poId.map((it) => ({
-        ...it,
-        unitPriceSnapshot: it.unitCost,
-      })),
+      items: rev_Nx02PoItem_poId.map((it) => {
+        // T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode、刪去 nested part 物件
+        const { part, ...itemRest } = it;
+        return {
+          ...itemRest,
+          unitPriceSnapshot: it.unitCost,
+          secCode: part?.secCode ?? null,
+        };
+      }),
     };
   }
 

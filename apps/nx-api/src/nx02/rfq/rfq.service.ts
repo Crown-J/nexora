@@ -63,10 +63,20 @@ const ITEM_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // T8 進貨對齊批次 2026-06-08：runtime JOIN 廠牌料號（mapItems 平鋪為 secCode）
+  part: { select: { secCode: true } },
 } as const;
 
 type RfqRow = Prisma.Nx02RfqGetPayload<{ select: typeof RFQ_SEL }>;
 type ItemRow = Prisma.Nx02RfqItemGetPayload<{ select: typeof ITEM_SEL }>;
+
+// T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode
+function flattenItems(items: ItemRow[]) {
+  return items.map((it) => {
+    const { part, ...rest } = it;
+    return { ...rest, secCode: part?.secCode ?? null };
+  });
+}
 
 @Injectable()
 export class RfqService {
@@ -127,7 +137,7 @@ export class RfqService {
     });
     if (!row) throw new NotFoundException('RFQ not found');
     const { rev_Nx02RfqItem_rfqId, ...rest } = row;
-    return { ...rest, items: rev_Nx02RfqItem_rfqId };
+    return { ...rest, items: flattenItems(rev_Nx02RfqItem_rfqId) };
   }
 
   /**
@@ -336,7 +346,7 @@ export class RfqService {
         afterData: full as object,
       });
       const { rev_Nx02RfqItem_rfqId, ...r } = full!;
-      return { ...r, items: rev_Nx02RfqItem_rfqId };
+      return { ...r, items: flattenItems(rev_Nx02RfqItem_rfqId) };
     });
   }
 
@@ -389,7 +399,7 @@ export class RfqService {
       afterData: full as object,
     });
     const { rev_Nx02RfqItem_rfqId, ...r } = full!;
-    return { ...r, items: rev_Nx02RfqItem_rfqId };
+    return { ...r, items: flattenItems(rev_Nx02RfqItem_rfqId) };
   }
 
   async softDelete(user: RequestUser, id: string) {
@@ -425,7 +435,7 @@ export class RfqService {
       afterData: full as object,
     });
     const { rev_Nx02RfqItem_rfqId, ...r } = full!;
-    return { ...r, items: rev_Nx02RfqItem_rfqId };
+    return { ...r, items: flattenItems(rev_Nx02RfqItem_rfqId) };
   }
 
   async addItem(user: RequestUser, rfqId: string, dto: CreateRfqItemDto) {

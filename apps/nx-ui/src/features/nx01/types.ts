@@ -37,6 +37,8 @@ export type RfqItemDto = {
   partId: string;
   partNo: string;
   partName: string;
+  /** T8 進貨對齊批次 2026-06-08：廠牌料號（runtime JOIN nx01_part.secCode） */
+  secCode?: string | null;
   qty: number;
   unitPrice: number | null;
   leadTimeDays: number | null;
@@ -126,6 +128,8 @@ export type PoDetailDto = {
     lineAmount: number;
     expectedDate: string | null;
     remark: string | null;
+    /** T8 進貨對齊批次 2026-06-08：廠牌料號（runtime JOIN nx01_part.secCode） */
+    secCode?: string | null;
   }[];
 };
 
@@ -188,6 +192,8 @@ export type RrDetailDto = {
     partId: string;
     partNo: string;
     partName: string;
+    /** T8 進貨對齊批次 2026-06-08：廠牌料號（runtime JOIN nx01_part.secCode） */
+    secCode?: string | null;
     locationId: string;
     locationCode: string | null;
     qty: number;

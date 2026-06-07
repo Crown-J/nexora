@@ -40,6 +40,8 @@ type Line = {
   partId: string;
   partNo: string;
   partName: string;
+  /** T8 進貨對齊批次 2026-06-08：廠牌料號（lookup 或來源單據帶入、顯示用） */
+  secCode?: string | null;
   locationId: string;
   qty: string;
   unitCost: string;
@@ -130,6 +132,7 @@ export function RrNewForm() {
           partId: it.partId,
           partNo: it.partNo,
           partName: it.partName,
+          secCode: it.secCode ?? null,
           locationId: '',
           qty: String(it.qty),
           unitCost: String(it.unitPrice),
@@ -169,6 +172,7 @@ export function RrNewForm() {
           partId: it.partId,
           partNo: it.partNo,
           partName: it.partName,
+          secCode: it.secCode ?? null,
           locationId: '',
           qty: String(remain),
           unitCost: String(it.unitCost),
@@ -277,6 +281,8 @@ export function RrNewForm() {
           partId: p.id,
           partNo: p.code,
           partName: p.name ?? '',
+          // T8 進貨對齊批次 2026-06-08：lookup 帶廠牌料號（LookupRow.secCode optional、空值容忍）
+          secCode: p.secCode ?? null,
           locationId: defaultLoc,
           qty: '1',
           unitCost: '0',
@@ -578,8 +584,16 @@ export function RrNewForm() {
               return (
                 <tr key={ln.key} className="border-t border-border/60 align-top">
                   <td className="py-2 font-mono text-xs" colSpan={5}>
-                    <div className="grid grid-cols-[110px_140px_60px_70px_1fr_auto] items-center gap-2">
-                      <span>{ln.partNo}</span>
+                    <div className="grid grid-cols-[110px_140px_60px_70px_1fr_auto] items-start gap-2">
+                      {/* T8 進貨對齊批次 2026-06-08：樣式 A — 我方料號主行 + 廠牌料號小字下行 */}
+                      <span>
+                        <div>{ln.partNo}</div>
+                        {ln.secCode ? (
+                          <div className="mt-0.5 text-[10px] font-normal text-muted-foreground" title="廠牌料號">
+                            {ln.secCode}
+                          </div>
+                        ) : null}
+                      </span>
                       <select
                         className="rounded border px-1 text-xs"
                         value={ln.locationId}

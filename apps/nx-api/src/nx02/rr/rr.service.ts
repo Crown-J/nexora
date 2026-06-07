@@ -76,6 +76,8 @@ const RR_ITEM_SEL = {
   createdBy: true,
   updatedAt: true,
   updatedBy: true,
+  // T8 進貨對齊批次 2026-06-08：runtime JOIN 廠牌料號（mapRrDetail 平鋪為 secCode）
+  part: { select: { secCode: true } },
 } as const;
 
 @Injectable()
@@ -369,10 +371,15 @@ export class RrService {
     const { rev_Nx02RrItem_rrId, ...rest } = row;
     return {
       ...rest,
-      items: rev_Nx02RrItem_rrId.map((it) => ({
-        ...it,
-        unitPriceSnapshot: it.unitCost,
-      })),
+      items: rev_Nx02RrItem_rrId.map((it) => {
+        // T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode
+        const { part, ...itemRest } = it;
+        return {
+          ...itemRest,
+          unitPriceSnapshot: it.unitCost,
+          secCode: part?.secCode ?? null,
+        };
+      }),
     };
   }
 
@@ -654,7 +661,9 @@ export class RrService {
       summary: '新增進貨明細',
       afterData: row as object,
     });
-    return { ...row, unitPriceSnapshot: row.unitCost };
+    // T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode
+    const { part, ...rowRest } = row;
+    return { ...rowRest, unitPriceSnapshot: row.unitCost, secCode: part?.secCode ?? null };
   }
 
   async patchItem(user: RequestUser, rrId: string, itemId: string, dto: PatchRrItemDto) {
@@ -714,7 +723,9 @@ export class RrService {
       beforeData: existing as object,
       afterData: row as object,
     });
-    return { ...row, unitPriceSnapshot: row.unitCost };
+    // T8 進貨對齊批次 2026-06-08：平鋪 part.secCode 為 secCode
+    const { part, ...rowRest } = row;
+    return { ...rowRest, unitPriceSnapshot: row.unitCost, secCode: part?.secCode ?? null };
   }
 
   async removeItem(user: RequestUser, rrId: string, itemId: string) {

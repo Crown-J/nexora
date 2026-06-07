@@ -15,6 +15,8 @@ export type LookupRow = {
     name: string;
     nameEn?: string | null;
     isActive: boolean;
+    /** T8 進貨對齊批次 2026-06-08：廠牌料號（部分 lookup 端點不返、optional 容忍） */
+    secCode?: string | null;
 };
 
 export type PartStatusRow = {
