@@ -39,6 +39,21 @@ export const ROLE_MASTER: EntityMasterConfig = {
   ],
 };
 
+// 05 批 T1 2026-06-07：部門主檔揭露（後端 controller/service 第三批 T1 已補；UI 從 nx07 placeholder 升級成通用範式）
+export const DEPARTMENT_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/departments',
+  category: '帳號與權限',
+  title: '部門基本資料',
+  entityNoun: '部門',
+  errorCodePrefix: 'nxui_base_department',
+  deleteMode: SOFT,
+  fields: [
+    { key: 'code', label: '部門代碼', required: true, uppercase: true, lockedOnEdit: true, mono: true, minWidthClass: 'min-w-[120px]' },
+    { key: 'name', label: '部門名稱', required: true, minWidthClass: 'min-w-[160px]' },
+    { key: 'sortNo', label: '排序', type: 'number', defaultValue: '0', inList: false },
+  ],
+};
+
 // ── 車型字典 ────────────────────────────────────────────
 export const DRIVETRAIN_MASTER: EntityMasterConfig = {
   basePath: 'nx01/drivetrains',

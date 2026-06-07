@@ -150,6 +150,17 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statValue: '—',
     href: '/dashboard/base/roles',
   },
+  // 05 批 T1 2026-06-07：部門主檔揭露（從 nx07 placeholder 升級到主檔中心）
+  {
+    id: 'department',
+    section: 'account',
+    title: '部門基本資料',
+    description: '部門代碼、名稱與啟用狀態（員工 / 職務 / 組均隸屬部門）',
+    icon: Building2,
+    statLabel: '部門',
+    statValue: '—',
+    href: '/dashboard/base/department',
+  },
   // 軌 A commit A1（業界改革 #22 v1.2 累積調整）：
   // user-role / user-warehouse 兩主檔卡片降階為「批次工具」入口。
   // - LITE / PLUS 用戶於 USER 詳細頁直接管理擔任職務 / 隸屬倉庫（forward 視角）
@@ -457,6 +468,9 @@ export const BASE_SEGMENT_TITLES: Record<string, string> = {
   role: '職務基本資料',
   roles: '職務基本資料',
   positions: '職務基本資料',
+  // 05 批 T1 2026-06-07：部門主檔（從 nx07 升級到 base）
+  department: '部門基本資料',
+  departments: '部門基本資料',
   'role-view': '職務權限設定',
   permissions: '職務權限設定',
   part: '零件基本資料',

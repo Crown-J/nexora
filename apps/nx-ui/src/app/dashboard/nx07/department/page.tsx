@@ -1,13 +1,10 @@
 // apps/nx-ui/src/app/dashboard/nx07/department/page.tsx
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// 05 批 T1 2026-06-07：部門主檔已升級到 /dashboard/base/department、本路徑 redirect 過去
+//
+// 為什麼：舊 placeholder 屬 NX07 人資模組、現在部門是核心主檔（被 8 個業務表用）、
+// 應該歸在「主檔中心 → 帳號與權限」、與職務 / 使用者並列。
+import { redirect } from 'next/navigation';
 
-// @FUNCTION_CODE NX07-DEPARTMENT-UI-001-F01
-export default function Page() {
-  return (
-    <NxWorkspacePlaceholder
-      functionCode="NX07-DEPARTMENT-UI-001-F01"
-      title="部門組織（亞羅 6 部門）"
-      desc="Nx01Department 主檔 + Nx01Role 角色（含 HR_ADMIN / SALES / WAREHOUSE / PURCHASING / FINANCE / OWNER）。樹狀組織圖留後續軌（parentId 擴充候選）"
-    />
-  );
+export default function Page(): never {
+  redirect('/dashboard/base/department');
 }
