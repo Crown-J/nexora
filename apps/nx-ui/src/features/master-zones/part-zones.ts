@@ -71,16 +71,11 @@ export const PART_FIELDS: FieldDef<PartZone>[] = [
     satelliteName: 'nx01_part_model',
     notes: '汽車資料庫套件、通用零件適用車型',
   },
-  // versions 為系統自動寫入的「規格變更歷史快照」，被 NX02/NX03 多支業務 FK 綁、屬庫存稽核核心而非套件。
-  // 但業務員不直接編輯、手冊已移除「版本」欄、後續軌討論是否從零件主檔 UI 隱藏（保留 read-only API）；本軌暫不動。
-  {
-    key: 'versions',
-    label: '版本',
-    zone: 'basic',
-    isSatellite: true,
-    satelliteName: 'nx01_part_version',
-    notes: '規格變更歷史（系統自動寫、唯讀）',
-  },
+  // 02 第四批 軌 3a B 拍板 2026-06-07：versions 為系統自動寫入的「規格變更歷史快照」，
+  // 屬庫存稽核核心（被 NX02/NX03 退貨/驗收/期初/盤點/報廢/轉換/不良品 7 支業務 FK 綁），
+  // 而非汽車資料庫套件。從零件主檔 UI 拉掉、不在此渲染；schema + read-only API 保留，
+  // 後續軌在報表模組 NX08 做「料件異動歷史」報表給人查。
+  // 退貨/盤點/保固照常使用快照、資料完整保留。
 
   // ─── sales 銷貨區（決策 3.2 屏障 1：只放銷售模組頁）───
   { key: 'priceA', label: 'A 級售價', zone: 'sales' },

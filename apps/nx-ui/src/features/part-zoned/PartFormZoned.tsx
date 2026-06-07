@@ -5,7 +5,7 @@
 // - 決策 3.2（v1.1）：成本保密「不」做 service 層欄位過濾、靠兩道屏障
 //   屏障 1：模組權限（進貨成本只放進貨頁、售價只放銷售頁）— 本元件 editableZones 落實
 //   屏障 2：主檔中心存取權限（master.product.*）— 路由層 RBAC 負責、本元件不管
-// - 決策 3.3：part 衛星表（oemCodes/relations/models/versions/stockSettings）目前 placeholder、P5 啟用
+// - 決策 3.3：part 衛星表 oemCodes/relations/models/stockSettings（versions 屬庫存稽核、不在主檔 UI 渲染、見 part-zones.ts 註解）
 //
 // 用於 4 種場景：
 //   1) 主檔中心 part 編輯頁（全 4 zone）
@@ -396,8 +396,9 @@ function FieldShell({
  * v1.2 階段 E P5：part 5 衛星表渲染範式（SatelliteSection）
  *
  * - oemCodes：part.service.getById 整批回傳、本軌可直接讀 selected.oemCodes 渲染
- * - relations / models / versions：endpoint /nx01/part-relations | part-models | part-versions（partId query）
+ * - relations / models：endpoint /nx01/part-relations | part-models（partId query）
  *   本軌只提供「endpoint 路徑」hint、實際 fetch + CRUD UI 列入 closure 後續軌
+ * - versions：02 第四批 軌 3a B 拍板 2026-06-07 從零件主檔拉掉、未來在 NX08 報表做「料件異動歷史」
  * - stockSettings：endpoint /nx03/part-stock-setting（partId + warehouseId query）、同上
  */
 function renderPartSatellite(
@@ -471,11 +472,11 @@ function renderPartSatellite(
     );
   }
 
-  // 3 個 endpoint 衛星：暫不接 fetch、顯示 endpoint 路徑 hint、CRUD UI 列入 closure 後續軌
+  // 2 個 endpoint 衛星：暫不接 fetch、顯示 endpoint 路徑 hint、CRUD UI 列入 closure 後續軌
+  // versions 已從零件主檔 UI 拉掉（02 第四批 軌 3a B 拍板）、未來走 NX08 報表
   const endpointMap: Record<string, string> = {
     relations: '/nx01/part-relations?partIdFrom=…',
     models: '/nx01/part-models?partId=…',
-    versions: '/nx01/part-versions?partId=…',
   };
   const endpoint = endpointMap[key];
 
