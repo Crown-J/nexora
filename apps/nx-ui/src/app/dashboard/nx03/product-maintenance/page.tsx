@@ -1,20 +1,9 @@
 // apps/nx-ui/src/app/dashboard/nx03/product-maintenance/page.tsx
-// v1.2 階段 E P3：庫存 → 產品維護（part basic + inventory 分區）
-// 對齊 v1.1 §4.5：庫存頁只顯示安全量 / 最高量 / 預設庫位
-// stockSettings 衛星表（per 倉）P5 啟用
-'use client';
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、產品（庫存視角）收斂到 /dashboard/purchase/product。
+// 產品主檔走進貨命名空間（與採購視角共用單一入口）、進去後分區編輯。
 
-import { PartZonedPage } from '@/features/part-zoned';
+import { redirect } from 'next/navigation';
 
-const EDITABLE_ZONES = new Set(['basic', 'inventory'] as const);
-
-export default function Nx03ProductMaintenancePage() {
-  return (
-    <PartZonedPage
-      pageCategory="庫存"
-      pageTitle="產品維護（庫存）"
-      entityNoun="產品"
-      editableZones={EDITABLE_ZONES}
-    />
-  );
+export default function Nx03ProductMaintenanceRedirect(): never {
+  redirect('/dashboard/purchase/product');
 }

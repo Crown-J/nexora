@@ -1,17 +1,8 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/nx02/ledger/page.tsx
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - 庫存台帳（QUERY）
- */
+// apps/nx-ui/src/app/dashboard/nx02/ledger/page.tsx
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、庫存台帳收斂到 /dashboard/inventory/ledger。
 
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useLedger } from '@/features/nx02/ledger/hooks/useLedger';
-import { LedgerView } from '@/features/nx02/ledger/ui/LedgerView';
-
-export default function Nx02LedgerPage() {
-  const vm = useLedger();
-  return <LedgerView vm={vm} />;
+export default function Nx02LedgerRedirect(): never {
+  redirect('/dashboard/inventory/ledger');
 }

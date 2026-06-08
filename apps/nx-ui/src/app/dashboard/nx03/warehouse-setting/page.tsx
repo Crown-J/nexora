@@ -1,13 +1,8 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+// apps/nx-ui/src/app/dashboard/nx03/warehouse-setting/page.tsx
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、倉位管理收斂到 /dashboard/inventory/warehouse。
 
-// @FUNCTION_CODE NX03-WH-UI-001-F01
-// 路由：/dashboard/nx03/warehouse-setting
-export default function Nx03WarehouseSettingPage() {
-  return (
-    <NxWorkspacePlaceholder
-      functionCode="NX03-WH-UI-001-F01"
-      title="庫位管理"
-      desc="庫位設定與安全量建議"
-    />
-  );
+import { redirect } from 'next/navigation';
+
+export default function Nx03WarehouseSettingRedirect(): never {
+  redirect('/dashboard/inventory/warehouse');
 }

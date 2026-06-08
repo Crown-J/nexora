@@ -88,6 +88,8 @@ export function isDockActive(pathname: string, href: string): boolean {
     return pathname.startsWith('/dashboard/sale') || pathname.startsWith('/dashboard/sales') || pathname.startsWith('/dashboard/nx04');
   }
   if (href === '/dashboard/inventory') {
+    // 庫存路徑收斂 D 2026-06-08：所有庫存路徑收斂到 /dashboard/inventory/*；
+    // 保留 nx02 庫存 8 子頁 / nx03 prefix 是過渡期 redirect 殼、仍視為「庫存」當前。
     return (
       pathname.startsWith('/dashboard/inventory') ||
       pathname.startsWith('/dashboard/nx03') ||
@@ -98,8 +100,7 @@ export function isDockActive(pathname: string, href: string): boolean {
       pathname.startsWith('/dashboard/nx02/stock-setting') ||
       pathname.startsWith('/dashboard/nx02/transfer') ||
       pathname.startsWith('/dashboard/nx02/shortage') ||
-      pathname.startsWith('/dashboard/nx02/auto-replenish') ||
-      pathname === '/dashboard/nx02'
+      pathname.startsWith('/dashboard/nx02/auto-replenish')
     );
   }
   if (href === '/dashboard/finance') {
@@ -271,15 +272,16 @@ function InventoryCenterSub({ pathname }: { pathname: string }) {
         </div>
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent sideOffset={6} className="min-w-[12rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl">
+        {/* 庫存路徑收斂 D 2026-06-08：URL 一律 /dashboard/inventory/*、不露 nx 代碼 */}
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">庫存作業</DropdownMenuLabel>
-        <DockSubLink href="/dashboard/nx03/workspace" label="庫存一覽" kbd="V" />
-        <DockSubLink href="/dashboard/nx02/ledger" label="庫存台帳" kbd="L" />
-        <DockSubLink href="/dashboard/nx02/stock-take" label="盤點單" kbd="S" />
-        <DockSubLink href="/dashboard/nx02/transfer" label="調撥單" kbd="T" />
-        <DockSubLink href="/dashboard/nx02/init" label="開帳單" kbd="I" />
+        <DockSubLink href="/dashboard/inventory/balance" label="庫存一覽" kbd="V" />
+        <DockSubLink href="/dashboard/inventory/ledger" label="庫存台帳" kbd="L" />
+        <DockSubLink href="/dashboard/inventory/stocktake" label="盤點單" kbd="S" />
+        <DockSubLink href="/dashboard/inventory/transfer" label="調撥單" kbd="T" />
+        <DockSubLink href="/dashboard/inventory/init" label="開帳單" kbd="I" />
         <DropdownMenuSeparator className="bg-border/60" />
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
-        <DockSubLink href="/dashboard/nx03/warehouse-setting" label="倉位/庫位管理" kbd="—" />
+        <DockSubLink href="/dashboard/inventory/warehouse" label="倉位/庫位管理" kbd="—" />
         <DockSubLink href="/dashboard/purchase/product" label="產品管理" kbd="—" />
       </DropdownMenuSubContent>
     </DropdownMenuSub>

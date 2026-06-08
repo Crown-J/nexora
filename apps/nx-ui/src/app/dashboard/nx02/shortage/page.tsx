@@ -1,11 +1,8 @@
 // apps/nx-ui/src/app/dashboard/nx02/shortage/page.tsx
-// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 PlanUpgradePrompt 版本守、缺貨簿三版本一致。
-'use client';
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、缺貨簿收斂到 /dashboard/inventory/shortage。
 
-import { useShortage } from '@/features/nx02/shortage/hooks/useShortage';
-import { ShortageView } from '@/features/nx02/shortage/ui/ShortageView';
+import { redirect } from 'next/navigation';
 
-export default function Nx02ShortagePage() {
-  const vm = useShortage();
-  return <ShortageView vm={vm} />;
+export default function Nx02ShortageRedirect(): never {
+  redirect('/dashboard/inventory/shortage');
 }

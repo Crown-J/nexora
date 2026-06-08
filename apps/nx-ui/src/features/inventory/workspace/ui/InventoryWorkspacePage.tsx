@@ -39,7 +39,7 @@ const INBOUND_NODES: FlowNodeDef[] = [
     href: '/dashboard/nx01/stock-replenishment',
     // TODO: 分貨任務 API 就緒後替換
   },
-  { key: 'done_in', label: '完成', href: '/dashboard/nx02/ledger' },
+  { key: 'done_in', label: '完成', href: '/dashboard/inventory/ledger' },
 ];
 
 const OUTBOUND_NODES: FlowNodeDef[] = [
@@ -47,25 +47,25 @@ const OUTBOUND_NODES: FlowNodeDef[] = [
   {
     key: 'abnormal',
     label: '異常',
-    href: '/dashboard/nx02/shortage',
+    href: '/dashboard/inventory/shortage',
     badgeFrom: (d) => d.shortage.openCount,
   },
   { key: 'pack', label: '包貨', href: '/dashboard/nx04/domestic' },
   { key: 'ship', label: '出貨', href: '/dashboard/nx04/domestic' },
-  { key: 'done_out', label: '完成', href: '/dashboard/nx02/ledger' },
+  { key: 'done_out', label: '完成', href: '/dashboard/inventory/ledger' },
 ];
 
 const STOCKTAKE_NODES: FlowNodeDef[] = [
-  { key: 'pending', label: '待盤點', href: '/dashboard/nx02/stock-take' },
+  { key: 'pending', label: '待盤點', href: '/dashboard/inventory/stocktake' },
   {
     key: 'counting',
     label: '盤點中',
-    href: '/dashboard/nx02/stock-take',
+    href: '/dashboard/inventory/stocktake',
     badgeFrom: (d) => d.stockTake.inProgressCount,
   },
-  { key: 'diff', label: '差異確認', href: '/dashboard/nx02/stock-take' },
-  { key: 'exc', label: '異常處理', href: '/dashboard/nx02/stock-take' },
-  { key: 'done_st', label: '完成', href: '/dashboard/nx02/stock-take' },
+  { key: 'diff', label: '差異確認', href: '/dashboard/inventory/stocktake' },
+  { key: 'exc', label: '異常處理', href: '/dashboard/inventory/stocktake' },
+  { key: 'done_st', label: '完成', href: '/dashboard/inventory/stocktake' },
 ];
 
 function formatBadge(d: Nx02DashboardDto | null, fn?: (x: Nx02DashboardDto) => number | null): string {

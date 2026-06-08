@@ -1,17 +1,8 @@
-/**
- * File: apps/nx-ui/src/app/dashboard/nx02/init/page.tsx
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - 開帳存清單
- */
+// apps/nx-ui/src/app/dashboard/nx02/init/page.tsx
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、開帳單收斂到 /dashboard/inventory/init。
 
-'use client';
+import { redirect } from 'next/navigation';
 
-import { InitListView } from '@/features/nx02/init/ui/InitListView';
-import { useInitList } from '@/features/nx02/init/hooks/useInitList';
-
-export default function Nx02InitListPage() {
-  const vm = useInitList();
-  return <InitListView vm={vm} />;
+export default function Nx02InitRedirect(): never {
+  redirect('/dashboard/inventory/init');
 }

@@ -1,11 +1,8 @@
 // apps/nx-ui/src/app/dashboard/nx02/balance/page.tsx
-// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 showPlus prop、庫存一覽三版本一致。
-'use client';
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、庫存一覽收斂到 /dashboard/inventory/balance。
 
-import { useBalance } from '@/features/nx02/balance/hooks/useBalance';
-import { BalanceView } from '@/features/nx02/balance/ui/BalanceView';
+import { redirect } from 'next/navigation';
 
-export default function Nx02BalancePage() {
-  const vm = useBalance();
-  return <BalanceView vm={vm} />;
+export default function Nx02BalanceRedirect(): never {
+  redirect('/dashboard/inventory/balance');
 }

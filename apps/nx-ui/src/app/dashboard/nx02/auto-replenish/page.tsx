@@ -1,11 +1,8 @@
 // apps/nx-ui/src/app/dashboard/nx02/auto-replenish/page.tsx
-// T1-fix-c 進貨對齊批次 2026-06-07：拿掉 PlanUpgradePrompt 版本守、自動補貨三版本一致。
-'use client';
+// 庫存路徑收斂 D 2026-06-08：URL 不露 nx 代碼、自動補貨收斂到 /dashboard/inventory/auto-replenish。
 
-import { useAutoReplenish } from '@/features/nx02/auto-replenish/hooks/useAutoReplenish';
-import { AutoReplenishSplitView } from '@/features/nx02/auto-replenish/ui/AutoReplenishSplitView';
+import { redirect } from 'next/navigation';
 
-export default function Nx02AutoReplenishPage() {
-  const vm = useAutoReplenish();
-  return <AutoReplenishSplitView vm={vm} />;
+export default function Nx02AutoReplenishRedirect(): never {
+  redirect('/dashboard/inventory/auto-replenish');
 }
