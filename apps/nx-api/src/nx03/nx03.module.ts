@@ -1,6 +1,7 @@
 // apps/nx-api/src/nx03/nx03.module.ts
 import { Module } from '@nestjs/common';
 
+import { Nx04Module } from '../nx04/nx04.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 import { ArCalculatorService } from './auto-replenish/ar-calculator.service';
@@ -44,7 +45,9 @@ import { TransferController } from './transfer/transfer.controller';
 import { TransferService } from './transfer/transfer.service';
 
 @Module({
-  imports: [PrismaModule],
+  // F1 特價售出 2026-06-08：import Nx04Module 取 SoService（給 IssueReportService.dispose('X') 用）
+  // Nx04Module 不依賴 Nx03Module、無 circular、可直接 import
+  imports: [PrismaModule, Nx04Module],
   controllers: [
     StockBalanceController,
     StockLedgerController,

@@ -21,6 +21,7 @@ import type { Prisma } from 'db-core';
 import { Prisma as PrismaNs } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
+import { SoService } from '../../nx04/so/so.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { allocNx03DocNo } from '../../shared/nx03/nx03-doc-no';
@@ -84,6 +85,8 @@ export class IssueReportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    // F1 特價售出 2026-06-08：dispose('X') 自動建特價 SO 用、走 SoService 完整 create flow
+    private readonly so: SoService,
   ) {}
 
   private whereList(tenantId: string, q: ListIssueReportQueryDto): Prisma.Nx03IssueReportWhereInput {
@@ -273,7 +276,7 @@ export class IssueReportService {
     return this.transition(user, id, 'REPORTED', '提交異常回報');
   }
 
-  /** REPORTED → PROCESSING：選處置 5 之 1 + 關聯單據 ID */
+  /** REPORTED → PROCESSING：選處置 6 之 1 + 關聯單據 ID */
   async dispose(user: RequestUser, id: string, dto: DisposeIssueReportDto) {
     const tenantId = requireTenantId(user);
     const existing = await this.prisma.nx03IssueReport.findFirst({
@@ -287,9 +290,43 @@ export class IssueReportService {
     assertStatusTransition(existing.status, 'PROCESSING');
 
     const disp: DispositionType = dto.dispositionType;
-    const related = dto.relatedDocId?.trim() || null;
+    let related = dto.relatedDocId?.trim() || null;
     // ⚠️ M2 不強制 relatedDocId（M3 UI 可先建處置單再回 patch）；只 N 處置不需要 ID、其他建議要
     // 若 relatedDocId 為空且 disposition ≠ 'N'：仍允許（軟連結、UI 可後續補）
+
+    // F1 特價售出 2026-06-08：dispositionType='X' 且未帶 relatedDocId → 自動建特價 SO
+    // 業務語意：成本 avgCost / 售價=特價（業務手動填）/ 走一般銷貨應收（不走折讓）
+    // 三必要欄位：customerId / warehouseId（預設取 IR.warehouseId） / unitPrice
+    if (disp === 'X' && !related) {
+      if (!dto.customerId?.trim()) {
+        throw new BadRequestException('特價售出（X）必填 customerId（指定買家）');
+      }
+      if (dto.unitPrice == null || dto.unitPrice < 0) {
+        throw new BadRequestException('特價售出（X）必填 unitPrice ≥ 0（業務填特價）');
+      }
+      const whId = dto.warehouseId?.trim() || existing.warehouseId;
+      // F1：呼叫 SoService.create 走完整建單 flow（含 docNo / paymentTerm / invoiceCopies 帶入）
+      // type assertion 因 SoService.create 返 mapDetail Record<string, unknown>、id 在 runtime 有
+      const soResult = await this.so.create(user, {
+        warehouseId: whId,
+        soDate: new Date().toISOString().slice(0, 10),
+        customerId: dto.customerId.trim(),
+        deliveryType: 'P', // 自取為預設（異常品通常現買現帶、業務可建單後改）
+        taxRate: 5,
+        specialPriceFlag: true,
+        remark: `異常處置 X 特價售出（來源 IR ${existing.docNo}）`,
+        items: [
+          {
+            partId: existing.partId,
+            warehouseId: whId,
+            qty: Number(existing.qty),
+            unitPriceSnapshot: dto.unitPrice,
+          },
+        ],
+      });
+      const soId = (soResult as unknown as { id: string }).id;
+      related = soId;
+    }
 
     const row = await this.prisma.nx03IssueReport.update({
       where: { id },
@@ -404,6 +441,9 @@ export class IssueReportService {
         return '重組分解';
       case 'D':
         return '報廢';
+      // F1 特價售出 2026-06-08：第 6 處置
+      case 'X':
+        return '特價售出';
       case 'N':
       default:
         return '未處置';

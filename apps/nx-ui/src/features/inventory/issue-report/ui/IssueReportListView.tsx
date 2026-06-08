@@ -69,6 +69,8 @@ export const DISPOSITION_LABEL: Record<string, string> = {
   C: '重組分解',
   D: '報廢',
   N: '未處置',
+  // F1 特價售出 2026-06-08：第 6 處置
+  X: '特價售出',
 };
 
 export function IssueReportListView() {

@@ -4,7 +4,8 @@
 export const ISSUE_TYPES = ['D', 'E', 'S', 'L', 'O'] as const;
 export type IssueType = (typeof ISSUE_TYPES)[number];
 
-export const DISPOSITION_TYPES = ['R', 'W', 'C', 'D', 'N'] as const;
+// F1 特價售出 2026-06-08：第 6 處置 X（建特價 SO、specialPriceFlag=true）
+export const DISPOSITION_TYPES = ['R', 'W', 'C', 'D', 'N', 'X'] as const;
 export type DispositionType = (typeof DISPOSITION_TYPES)[number];
 
 export const ISSUE_STATUSES = ['DRAFT', 'REPORTED', 'PROCESSING', 'CLOSED', 'CANCELLED'] as const;
@@ -75,6 +76,10 @@ export interface UpdateIssueReportPayload {
 export interface DisposeIssueReportPayload {
   dispositionType: DispositionType;
   relatedDocId?: string;
+  // F1 特價售出 2026-06-08：dispositionType='X' 且未帶 relatedDocId 時、後端自動建特價 SO 需要：
+  customerId?: string;
+  warehouseId?: string;
+  unitPrice?: number;
 }
 
 export interface CloseIssueReportPayload {

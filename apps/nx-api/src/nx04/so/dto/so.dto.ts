@@ -107,6 +107,11 @@ export class CreateSoDto {
 
   /** W4 [3-6] 發票聯式（2/3）。未填則從 partner.defaultInvoiceCopies 帶入；散客 L service 端強制 2 */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) invoiceCopies?: number;
+
+  /** F1 特價售出 2026-06-08：標記此 SO 來自異常處置 X 特價售出（成本走 avgCost、單價=特價、不走折讓）。
+   *  業務情境：異常品低價出清、由 IssueReportService.dispose 自動建單帶入。
+   *  Caller（前端 / 一般 SO 建單流程）不應傳此旗標；service 信任 caller 但不額外驗證。 */
+  @IsOptional() specialPriceFlag?: boolean;
 }
 
 export class UpdateSoDto {

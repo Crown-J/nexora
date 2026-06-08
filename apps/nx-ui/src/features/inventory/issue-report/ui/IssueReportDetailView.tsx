@@ -35,6 +35,8 @@ const DISPOSITION_FORM_OPTIONS: { value: DispositionType; label: string }[] = [
   { value: 'C', label: 'C 重組分解（→ Nx03Conversion）' },
   { value: 'D', label: 'D 報廢（→ Nx03Disposal）' },
   { value: 'N', label: 'N 未處置' },
+  // F1 特價售出 2026-06-08：第 6 處置（總經理拍板：借 SO + specialPriceFlag）
+  { value: 'X', label: 'X 特價售出（→ Nx04So specialPriceFlag）' },
 ];
 
 const ISSUE_EDIT_OPTIONS: { value: IssueType; label: string }[] = [
@@ -164,7 +166,13 @@ function StatusActions(props: {
   busy: boolean;
   canCancel: boolean;
   onReport: () => Promise<void>;
-  onDispose: (payload: { dispositionType: DispositionType; relatedDocId?: string }) => Promise<void>;
+  onDispose: (payload: {
+    dispositionType: DispositionType;
+    relatedDocId?: string;
+    customerId?: string;
+    warehouseId?: string;
+    unitPrice?: number;
+  }) => Promise<void>;
   onClose: (remark: string) => Promise<void>;
   onCancel: () => Promise<void>;
 }) {
@@ -172,6 +180,9 @@ function StatusActions(props: {
   const [dispType, setDispType] = useState<DispositionType>('N');
   const [relatedDocId, setRelatedDocId] = useState('');
   const [closeRemark, setCloseRemark] = useState('');
+  // F1 特價售出 2026-06-08：X 處置時的特價 SO 三必填欄
+  const [xCustomerId, setXCustomerId] = useState('');
+  const [xUnitPrice, setXUnitPrice] = useState('');
 
   return (
     <section className="space-y-3 rounded border bg-muted/20 p-3">
@@ -200,39 +211,91 @@ function StatusActions(props: {
       </div>
 
       {ir.status === 'REPORTED' ? (
-        <div className="grid gap-2 rounded border bg-background p-3 md:grid-cols-[1fr_1fr_auto]">
-          <label className="text-sm">
-            <span className="block mb-1 text-xs text-muted-foreground">2️⃣ 處置分流 *</span>
-            <select
-              value={dispType}
-              onChange={(e) => setDispType(e.target.value as DispositionType)}
-              className="w-full rounded border bg-background px-2 py-1"
-            >
-              {DISPOSITION_FORM_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            <span className="block mb-1 text-xs text-muted-foreground">關聯處置單 ID（軟連結、可後補）</span>
-            <input
-              value={relatedDocId}
-              onChange={(e) => setRelatedDocId(e.target.value)}
-              placeholder="如 NX02RR... / NX03CV..."
-              className="w-full rounded border bg-background px-2 py-1 font-mono text-xs"
-            />
-          </label>
+        <div className="space-y-2 rounded border bg-background p-3">
+          <div className="grid gap-2 md:grid-cols-[1fr_1fr]">
+            <label className="text-sm">
+              <span className="block mb-1 text-xs text-muted-foreground">2️⃣ 處置分流 *</span>
+              <select
+                value={dispType}
+                onChange={(e) => setDispType(e.target.value as DispositionType)}
+                className="w-full rounded border bg-background px-2 py-1"
+              >
+                {DISPOSITION_FORM_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm">
+              <span className="block mb-1 text-xs text-muted-foreground">關聯處置單 ID（軟連結、可後補）</span>
+              <input
+                value={relatedDocId}
+                onChange={(e) => setRelatedDocId(e.target.value)}
+                placeholder="如 NX02RR... / NX03CV...（X 處置未填則自動建特價 SO）"
+                className="w-full rounded border bg-background px-2 py-1 font-mono text-xs"
+              />
+            </label>
+          </div>
+          {/* F1 特價售出 2026-06-08：X 處置且未填 relatedDocId 時、補三必要欄位產特價 SO */}
+          {dispType === 'X' && !relatedDocId.trim() ? (
+            <div className="grid gap-2 rounded border border-amber-500/40 bg-amber-500/5 p-2 md:grid-cols-2">
+              <label className="text-sm md:col-span-2">
+                <span className="block mb-1 text-xs text-amber-300">X 特價售出 → 自動建特價 SO（成本走 avgCost、單價=您填的特價）</span>
+              </label>
+              <label className="text-sm">
+                <span className="block mb-1 text-xs text-muted-foreground">買家 customerId *（partner_type=C）</span>
+                <input
+                  value={xCustomerId}
+                  onChange={(e) => setXCustomerId(e.target.value)}
+                  placeholder="如 NX01PRTN0000001"
+                  className="w-full rounded border bg-background px-2 py-1 font-mono text-xs"
+                />
+              </label>
+              <label className="text-sm">
+                <span className="block mb-1 text-xs text-muted-foreground">特價單價 *（每顆售價）</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={xUnitPrice}
+                  onChange={(e) => setXUnitPrice(e.target.value)}
+                  placeholder="例：100"
+                  className="w-full rounded border bg-background px-2 py-1 tabular-nums"
+                />
+              </label>
+            </div>
+          ) : null}
           <button
             disabled={busy}
-            onClick={() =>
-              void onDispose({
+            onClick={() => {
+              const payload: {
+                dispositionType: DispositionType;
+                relatedDocId?: string;
+                customerId?: string;
+                warehouseId?: string;
+                unitPrice?: number;
+              } = {
                 dispositionType: dispType,
                 relatedDocId: relatedDocId.trim() || undefined,
-              })
-            }
-            className="self-end rounded bg-amber-600 px-3 py-1 text-sm text-white disabled:opacity-50"
+              };
+              if (dispType === 'X' && !relatedDocId.trim()) {
+                if (!xCustomerId.trim()) {
+                  window.alert('特價售出（X）必填買家 customerId');
+                  return;
+                }
+                const price = Number(xUnitPrice);
+                if (!Number.isFinite(price) || price < 0) {
+                  window.alert('特價售出（X）必填特價單價 ≥ 0');
+                  return;
+                }
+                payload.customerId = xCustomerId.trim();
+                payload.unitPrice = price;
+                payload.warehouseId = ir.warehouseId;
+              }
+              void onDispose(payload);
+            }}
+            className="rounded bg-amber-600 px-3 py-1 text-sm text-white disabled:opacity-50"
           >
             送出處置 (REPORTED → PROCESSING)
           </button>

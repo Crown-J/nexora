@@ -53,5 +53,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     Nx04IssueReportService,
     { provide: APP_FILTER, useClass: TranslatorErrorFilter },
   ],
+  // F1 特價售出 2026-06-08：export SoService 給 NX03 IssueReportService.dispose('X') 建特價 SO 用
+  exports: [SoService],
 })
 export class Nx04Module {}
