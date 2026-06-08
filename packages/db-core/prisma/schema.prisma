@@ -4434,6 +4434,83 @@ model Nx04SrItem {
 }
 
 /// =======================================================
+/// Nx04Promotion — DB table `nx04_promotion`
+/// F1-D 銷貨優惠價子系統 2026-06-08（Alex Q1/Q2/Q3/Q4 拍板）
+/// =======================================================
+/// 業務語意：時段 × 商品範圍 × 優惠絕對單價；含出清旗標 + 批量買 N 件條件。
+/// 「商品範圍」走 Nx04PromotionScope 子表多對多、Alex Q1 拍板 3 種類型：P=part / B=brand / G=partGroup。
+/// 「優惠價」純絕對單價（Alex Q2）、不存折扣率或折抵金額（DiscountCode 留事後折讓沖帳用、跟促銷規則分層）。
+/// 同商品多優惠（含客戶分級 priceA~D + 個別折數 customMarginPct）取最低（Alex Q4）。
+/// 優惠價低於成本→警示+必填理由（沿用 SoItem.belowMinReason）、放行。
+model Nx04Promotion {
+  /// [NX04]+[PRMO]+[7碼流水號]、EX：NX04PRMO0000001；啟用最低需求版本：LITE-CORE
+  id            String               @id @default(dbgenerated("gen_nx04_promotion_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId      String               @map("tenant_id") @db.VarChar(15)
+  /// 促銷代碼（租戶內唯一、業務員自定）；啟用最低需求版本：LITE-CORE
+  code          String               @db.VarChar(30)
+  /// 促銷名稱（顯示用）；啟用最低需求版本：LITE-CORE
+  name          String               @db.VarChar(100)
+  /// 優惠絕對單價（Alex Q2 純絕對價、不存折扣率/折抵金額）；啟用最低需求版本：LITE-CORE
+  priceOverride Decimal              @map("price_override") @db.Decimal(14, 4)
+  /// 生效起期（application 層守 validFrom ≤ validTo）；啟用最低需求版本：LITE-CORE
+  validFrom     DateTime             @map("valid_from") @db.Date
+  /// 生效迄期；啟用最低需求版本：LITE-CORE
+  validTo       DateTime             @map("valid_to") @db.Date
+  /// 出清旗標（業務語意：報表分類 + UI 標示「出清品」用、不影響引擎邏輯）；啟用最低需求版本：LITE-CORE
+  isClearance   Boolean              @default(false) @map("is_clearance")
+  /// 批量買 N 件條件（買滿 N 件以上才套用、null = 無限制）；啟用最低需求版本：LITE-CORE
+  minBuyQty     Decimal?             @map("min_buy_qty") @db.Decimal(14, 4)
+  /// 備註；啟用最低需求版本：LITE-CORE
+  remark        String?              @db.VarChar(200)
+  /// 是否啟用（停用 = 引擎查不到、不影響歷史套用紀錄）；啟用最低需求版本：LITE-CORE
+  isActive      Boolean              @default(true) @map("is_active")
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt     DateTime             @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE-CORE
+  createdBy     String               @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt     DateTime             @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE-CORE
+  updatedBy     String               @map("updated_by") @db.VarChar(15)
+  tenant        Nx99Tenant           @relation("R_Nx04Promotion_tenantId", fields: [tenantId], references: [id])
+  scopes        Nx04PromotionScope[] @relation("R_Nx04PromotionScope_promotionId")
+
+  @@unique([tenantId, code])
+  @@index([tenantId, isActive])
+  @@index([tenantId, validFrom, validTo])
+  @@map("nx04_promotion")
+}
+
+/// =======================================================
+/// Nx04PromotionScope — DB table `nx04_promotion_scope`
+/// 促銷規則範圍多對多子表（scopeType discriminator）
+/// =======================================================
+model Nx04PromotionScope {
+  /// [NX04]+[PRSC]+[7碼流水號]、EX：NX04PRSC0000001；啟用最低需求版本：LITE-CORE
+  id          String        @id @default(dbgenerated("gen_nx04_promotion_scope_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId    String        @map("tenant_id") @db.VarChar(15)
+  /// 對應促銷規則表頭（FK Nx04Promotion、ON DELETE CASCADE）；啟用最低需求版本：LITE-CORE
+  promotionId String        @map("promotion_id") @db.VarChar(15)
+  /// 範圍類型（Alex Q1 拍板 3 種：P=part 指定料件 / B=brand 品牌 / G=partGroup 料件族群）。
+  /// 車型 modelId 歸汽車資料庫套件、不在 LITE 範圍。；啟用最低需求版本：LITE-CORE
+  scopeType   String        @map("scope_type") @db.VarChar(1)
+  /// 範圍 ID（依 scopeType 對應 nx01_part / nx01_brand / nx01_part_group、application 層 guard）；啟用最低需求版本：LITE-CORE
+  scopeId     String        @map("scope_id") @db.VarChar(15)
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt   DateTime      @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE-CORE
+  createdBy   String        @map("created_by") @db.VarChar(15)
+  tenant      Nx99Tenant    @relation("R_Nx04PromotionScope_tenantId", fields: [tenantId], references: [id])
+  promotion   Nx04Promotion @relation("R_Nx04PromotionScope_promotionId", fields: [promotionId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, promotionId, scopeType, scopeId])
+  @@index([tenantId, scopeType, scopeId])
+  @@map("nx04_promotion_scope")
+}
+
+/// =======================================================
 /// Nx05AccountCode — DB table `nx05_account_code`
 /// =======================================================
 model Nx05AccountCode {
@@ -7206,6 +7283,9 @@ model Nx99Tenant {
   remark                                   String?                       @db.VarChar(200)
   /// 排序；啟用最低需求版本：LITE-CORE
   sortNo                                   Int                           @map("sort_no")
+  /// F1-D 銷貨優惠價子系統 2026-06-08：即期提醒門檻（天數、Alex Q3 拍板全域設定）。
+  /// 引擎用 part.shelfLifeMonths 算保固到期、剩餘天數 < 此值 → 標即期、自動套即期類促銷規則。；啟用最低需求版本：LITE
+  shelfLifeWarningDays                     Int                           @default(30) @map("shelf_life_warning_days")
   /// 是否啟用；啟用最低需求版本：LITE-CORE
   isActive                                 Boolean                       @map("is_active")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
@@ -7312,6 +7392,8 @@ model Nx99Tenant {
   rev_Nx04Quote_tenantId                   Nx04Quote[]                   @relation("R_Nx04Quote_tenantId")
   rev_Nx04So_tenantId                      Nx04So[]                      @relation("R_Nx04So_tenantId")
   rev_Nx04Sr_tenantId                      Nx04Sr[]                      @relation("R_Nx04Sr_tenantId")
+  rev_Nx04Promotion_tenantId               Nx04Promotion[]               @relation("R_Nx04Promotion_tenantId")
+  rev_Nx04PromotionScope_tenantId          Nx04PromotionScope[]          @relation("R_Nx04PromotionScope_tenantId")
   rev_Nx05AccountCode_tenantId             Nx05AccountCode[]             @relation("R_Nx05AccountCode_tenantId")
   rev_Nx05Allowance_tenantId               Nx05Allowance[]               @relation("R_Nx05Allowance_tenantId")
   rev_Nx05ApLedger_tenantId                Nx05ApLedger[]                @relation("R_Nx05ApLedger_tenantId")
