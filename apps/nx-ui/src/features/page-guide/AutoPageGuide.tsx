@@ -34,7 +34,8 @@ const PATH_TO_PAGE_KEY: { pathPrefix: string; pageKey: string }[] = [
   { pathPrefix: '/dashboard/purchase/rr', pageKey: 'purchase.rr' },
   { pathPrefix: '/dashboard/purchase/vendor', pageKey: 'purchase.vendor' },
   { pathPrefix: '/dashboard/purchase/product', pageKey: 'purchase.product' },
-  { pathPrefix: '/dashboard/nx02/warranty-claim', pageKey: 'purchase.warranty-claim' },
+  // 03 收尾 B 2026-06-08：保固路徑收斂到 /dashboard/purchase/warranty
+  { pathPrefix: '/dashboard/purchase/warranty', pageKey: 'purchase.warranty-claim' },
   // pr 退貨單沒專屬 page、共用 rr 引導（或者忽略）
   { pathPrefix: '/dashboard/nx02/return', pageKey: 'purchase.pr' },
 

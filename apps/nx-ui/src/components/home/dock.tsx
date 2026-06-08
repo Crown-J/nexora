@@ -201,12 +201,15 @@ function PurchaseCenterSub({ pathname }: { pathname: string }) {
         sideOffset={6}
         className="min-w-[13rem] border-border/80 bg-popover/95 p-1 shadow-lg backdrop-blur-xl"
       >
+        {/* 03 收尾 B 2026-06-08：對齊手冊「進貨沒有採購中心」、dock 展開完整 7 流程 + 主檔 */}
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">採購流程</DropdownMenuLabel>
         <DockSubLink href="/dashboard/purchase/domestic" label="採購需求" kbd="R" />
         <DockSubLink href="/dashboard/purchase/rfq" label="詢價單" kbd="F" />
         <DockSubLink href="/dashboard/purchase/po" label="採購單" kbd="P" />
         <DockSubLink href="/dashboard/purchase/rr" label="進貨單" kbd="I" />
-        <DockSubLink href="/dashboard/purchase" label="退貨單" kbd="B" />
+        <DockSubLink href="/dashboard/purchase/pr" label="退貨單" kbd="B" />
+        <DockSubLink href="/dashboard/purchase/foreign" label="國外進貨追蹤" kbd="—" />
+        <DockSubLink href="/dashboard/purchase/warranty" label="保固申請" kbd="—" />
         <DropdownMenuSeparator className="bg-border/60" />
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
         <DockSubLink href="/dashboard/purchase/product" label="產品管理" kbd="—" />

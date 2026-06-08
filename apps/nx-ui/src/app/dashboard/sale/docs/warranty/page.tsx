@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/docs/warranty/page.tsx
-// v1.2 階段 I P5：舊版路徑 redirect 到 NX02 保固理賠工作台
+// 03 收尾 B 2026-06-08：舊版路徑 redirect 到保固申請（採購中心 Hub 已移除）
 import { redirect } from 'next/navigation';
 
 export default function Page() {
-  redirect('/dashboard/purchase');
+  redirect('/dashboard/purchase/warranty');
 }
