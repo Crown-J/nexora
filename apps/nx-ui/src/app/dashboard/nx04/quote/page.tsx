@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/nx04/quote/page.tsx
-// NX04-M3 C1：QT 報價單工作台入口
+// F1-B 銷貨路徑收斂 2026-06-08：URL 不露 nx 代碼、報價單收斂到 /dashboard/sale/qt。
 
-import { QuoteListView } from '@/features/sale/quote/ui/QuoteListView';
+import { redirect } from 'next/navigation';
 
-export default function Nx04QuoteRoute() {
-  return <QuoteListView />;
+export default function Nx04QuoteRedirect(): never {
+  redirect('/dashboard/sale/qt');
 }

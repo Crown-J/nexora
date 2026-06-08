@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/nx04/sales-order/page.tsx
-// NX04-M3 C2：SO 銷貨單工作台 - list route
+// F1-B 銷貨路徑收斂 2026-06-08：URL 不露 nx 代碼、銷貨單收斂到 /dashboard/sale/so。
 
-import { SoListView } from '@/features/sale/so/ui/SoListView';
+import { redirect } from 'next/navigation';
 
-export default function SalesOrderListPage() {
-  return <SoListView />;
+export default function Nx04SalesOrderRedirect(): never {
+  redirect('/dashboard/sale/so');
 }

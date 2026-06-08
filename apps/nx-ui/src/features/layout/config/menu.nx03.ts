@@ -3,10 +3,7 @@
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
- * - NX04 銷售管理側邊選單
- *
- * Notes:
- * - TASK-0420 v2：NX04 銷售管理 → /dashboard/nx04/*
+ * - 舊銷售管理側邊選單（F1-B 銷貨路徑收斂 2026-06-08：URL 改 /dashboard/sale/* 不露 nx 代碼）
  */
 
 import type { SideMenuGroup } from '@/features/layout/config/menu.base';
@@ -16,10 +13,9 @@ export function getNx03SideMenu(): SideMenuGroup[] {
     {
       group: '銷售管理',
       items: [
-        { key: 'sales.home',     label: '銷售模組首頁',         href: '/dashboard/nx04/domestic' },
-        { key: 'sales.domestic', label: '國內銷售作業',         href: '/dashboard/nx04/domestic' },
-        { key: 'sales.export',   label: '國外銷售作業（PLUS）', href: '/dashboard/nx04/export' },
-        { key: 'sales.customer', label: '客戶管理',             href: '/dashboard/nx04/customer' },
+        { key: 'sales.so',       label: '銷貨單工作台',          href: '/dashboard/sale/so' },
+        { key: 'sales.return',   label: '銷退單工作台',          href: '/dashboard/sale/return' },
+        { key: 'sales.customer', label: '客戶主檔',              href: '/dashboard/base/partners' },
       ],
     },
   ];

@@ -40,7 +40,7 @@ const PRIMARY_NAV: NavEntry[] = [
   {
     key: 'sale',
     label: '銷貨',
-    href: '/dashboard/nx04',
+    href: '/dashboard/sale/so',
     permissions: [
       'sale.quote.list',
       'sale.so.list',

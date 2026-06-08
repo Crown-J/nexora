@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/nx04/sales-return/page.tsx
-// NX04-M3 C4：SR 銷退單工作台 - list route
+// F1-B 銷貨路徑收斂 2026-06-08：URL 不露 nx 代碼、銷退單收斂到 /dashboard/sale/return。
 
-import { SalesReturnListView } from '@/features/sale/sales-return/ui/SalesReturnListView';
+import { redirect } from 'next/navigation';
 
-export default function SalesReturnListPage() {
-  return <SalesReturnListView />;
+export default function Nx04SalesReturnRedirect(): never {
+  redirect('/dashboard/sale/return');
 }

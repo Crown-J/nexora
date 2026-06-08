@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/export/page.tsx
-// v1.2 階段 I P5：舊版路徑 redirect 到 NX04 國外銷售工作台
+// F1-B 銷貨路徑收斂 2026-06-08：URL 不露 nx 代碼、銷退頁直接收斂。
 import { redirect } from 'next/navigation';
 
 export default function Page() {
-  redirect('/dashboard/nx04/export');
+  redirect('/dashboard/sale/return');
 }

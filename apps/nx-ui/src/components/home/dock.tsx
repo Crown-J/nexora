@@ -246,7 +246,8 @@ function SaleCenterSub({ pathname }: { pathname: string }) {
         <DockSubLink href="/dashboard/sale" label="銷退單" kbd="R" />
         <DropdownMenuSeparator className="bg-border/60" />
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
-        <DockSubLink href="/dashboard/nx04/customer" label="客戶管理" kbd="—" />
+        {/* F1-B 銷貨路徑收斂 2026-06-08：客戶主檔走六分類共用入口、URL 不露 nx 代碼 */}
+        <DockSubLink href="/dashboard/base/partners" label="客戶管理" kbd="—" />
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );

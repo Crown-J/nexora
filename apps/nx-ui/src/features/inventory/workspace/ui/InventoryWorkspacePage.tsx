@@ -43,15 +43,15 @@ const INBOUND_NODES: FlowNodeDef[] = [
 ];
 
 const OUTBOUND_NODES: FlowNodeDef[] = [
-  { key: 'pick', label: '待撿貨', href: '/dashboard/nx04/domestic' },
+  { key: 'pick', label: '待撿貨', href: '/dashboard/sale/so' },
   {
     key: 'abnormal',
     label: '異常',
     href: '/dashboard/inventory/shortage',
     badgeFrom: (d) => d.shortage.openCount,
   },
-  { key: 'pack', label: '包貨', href: '/dashboard/nx04/domestic' },
-  { key: 'ship', label: '出貨', href: '/dashboard/nx04/domestic' },
+  { key: 'pack', label: '包貨', href: '/dashboard/sale/so' },
+  { key: 'ship', label: '出貨', href: '/dashboard/sale/so' },
   { key: 'done_out', label: '完成', href: '/dashboard/inventory/ledger' },
 ];
 
