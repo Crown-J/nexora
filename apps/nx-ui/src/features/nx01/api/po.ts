@@ -137,6 +137,23 @@ export async function patchPoStatus(id: string, status: string): Promise<void> {
   await assertOk(res, 'nxui_nx01_po_status_001');
 }
 
+// 03 收尾 A 2026-06-08：採購單明細 patch（取消量、預交貨日、備註）
+export type PatchPoItemBody = {
+  qty?: number;
+  unitPriceSnapshot?: number;
+  expectedDate?: string | null;
+  remark?: string | null;
+  cancelledQty?: number;
+};
+
+export async function patchPoItem(poId: string, itemId: string, body: PatchPoItemBody): Promise<void> {
+  const res = await apiFetch(
+    `/nx02/po/${encodeURIComponent(poId)}/items/${encodeURIComponent(itemId)}`,
+    { method: 'PATCH', body: JSON.stringify(body) },
+  );
+  await assertOk(res, 'nxui_nx01_po_patch_item_001');
+}
+
 // T1 2026-06-07：主管退件（status: APPROVED → DRAFT、填 rejectReason）
 export async function rejectPo(id: string, rejectReason: string): Promise<void> {
   const res = await apiFetch(`/nx02/po/${encodeURIComponent(id)}`, {

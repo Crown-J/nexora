@@ -165,7 +165,8 @@ export function RrNewForm() {
       setSupplierId(d.supplierId);
       const next: Line[] = [];
       for (const it of d.items) {
-        const remain = it.qty - it.receivedQty;
+        // 03 收尾 A 2026-06-08：剩餘可收扣除已取消量
+        const remain = it.qty - it.receivedQty - (it.cancelledQty ?? 0);
         if (remain <= 0) continue;
         next.push({
           key: `po-${it.id}`,

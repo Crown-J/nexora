@@ -90,6 +90,8 @@ const PO_ITEM_SEL = {
   partName: true,
   qty: true,
   receivedQty: true,
+  // 03 收尾 A 2026-06-08：取消量（剩餘可收 = qty - receivedQty - cancelledQty）
+  cancelledQty: true,
   unitCost: true,
   lineAmount: true,
   expectedDate: true,
@@ -139,7 +141,8 @@ export class PoService {
     for (const i of dto.items) {
       const it = itemMap.get(i.poItemId);
       if (!it) throw new BadRequestException(`poItemId ${i.poItemId} not in PO`);
-      const remain = Number(it.qty) - Number(it.receivedQty ?? 0);
+      // 03 收尾 A 2026-06-08：剩餘可收 = qty - receivedQty - cancelledQty
+      const remain = Number(it.qty) - Number(it.receivedQty ?? 0) - Number(it.cancelledQty ?? 0);
       if (i.qty > remain) throw new BadRequestException(`qty ${i.qty} exceeds remaining ${remain} for ${it.partNo}`);
       rrItems.push({
         partId: it.partId,
@@ -616,6 +619,21 @@ export class PoService {
     const unit =
       dto.unitPriceSnapshot !== undefined ? new PrismaNs.Decimal(dto.unitPriceSnapshot) : existing.unitCost;
     const lineAmount = this.lineAmount(qty, unit);
+    // 03 收尾 A 2026-06-08：取消量業務規則 — cancelledQty + receivedQty ≤ qty
+    // 避免超量取消（已收 + 取消 不可超過採購量）
+    if (dto.cancelledQty !== undefined) {
+      const cancelN = Number(dto.cancelledQty);
+      if (!Number.isFinite(cancelN) || cancelN < 0) {
+        throw new BadRequestException(`${existing.partNo} cancelledQty 不可為負`);
+      }
+      const recvN = Number(existing.receivedQty);
+      const qtyN = Number(qty);
+      if (cancelN + recvN > qtyN) {
+        throw new BadRequestException(
+          `${existing.partNo} cancelledQty (${cancelN}) + receivedQty (${recvN}) 不可超過 qty (${qtyN})`,
+        );
+      }
+    }
     const row = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.nx02PoItem.update({
         where: { id: itemId },
@@ -625,6 +643,8 @@ export class PoService {
           lineAmount,
           ...(dto.expectedDate !== undefined ? { expectedDate: dto.expectedDate ? new Date(dto.expectedDate) : null } : {}),
           ...(dto.remark !== undefined ? { remark: dto.remark } : {}),
+          // 03 收尾 A：取消量寫入
+          ...(dto.cancelledQty !== undefined ? { cancelledQty: new PrismaNs.Decimal(dto.cancelledQty) } : {}),
           updatedBy: user.sub,
         },
         select: PO_ITEM_SEL,

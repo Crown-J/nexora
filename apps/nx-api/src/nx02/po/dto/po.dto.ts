@@ -190,4 +190,10 @@ export class PatchPoItemDto {
   @IsString()
   @MaxLength(200)
   remark?: string | null;
+
+  // 03 收尾 A 2026-06-08：取消量（部分進貨後採購員取消剩餘把單收掉）
+  // 業務規則：cancelledQty + receivedQty ≤ qty（service 守、避免超量取消）
+  @IsOptional()
+  @IsNumber()
+  cancelledQty?: number;
 }

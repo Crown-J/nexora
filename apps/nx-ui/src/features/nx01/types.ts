@@ -124,6 +124,8 @@ export type PoDetailDto = {
     partName: string;
     qty: number;
     receivedQty: number;
+    /** 03 收尾 A 2026-06-08：取消量（剩餘可收 = qty - receivedQty - cancelledQty） */
+    cancelledQty?: number;
     unitCost: number;
     lineAmount: number;
     expectedDate: string | null;

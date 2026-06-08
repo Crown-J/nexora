@@ -2104,6 +2104,8 @@ model Nx02PoItem {
   qty          Decimal      @default(0) @db.Decimal(14, 4)
   /// 已收數量（預設 0，RR 過帳時累加）；啟用最低需求版本：PLUS
   receivedQty  Decimal      @default(0) @map("received_qty") @db.Decimal(14, 4)
+  /// 03 收尾 A 2026-06-08：取消量（部分進貨後採購員可取消剩餘量、把單收掉）。剩餘可收 = qty - receivedQty - cancelledQty；當所有 line 剩餘=0、可結案 PO。；啟用最低需求版本：LITE-CORE
+  cancelledQty Decimal      @default(0) @map("cancelled_qty") @db.Decimal(14, 4)
   /// 採購單價；啟用最低需求版本：PLUS
   unitCost     Decimal      @default(0) @map("unit_cost") @db.Decimal(14, 4)
   /// 明細金額（qty * unit_cost）；啟用最低需求版本：PLUS

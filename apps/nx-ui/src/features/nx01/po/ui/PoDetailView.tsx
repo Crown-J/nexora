@@ -11,7 +11,7 @@ import { listPartner } from '@/features/shared/master/partner/api/partner';
 import type { PartnerDto } from '@/features/shared/master/partner/types';
 import { listPartnerAddresses, type PartnerAddressRow } from '@/features/shared/address/partner-address-api';
 
-import { getPo, patchPo, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
+import { getPo, patchPo, patchPoItem, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
 import type { PoDetailDto } from '../../types';
 import { poStatusLabel } from '../../shared/nx01-labels';
 
@@ -129,7 +129,7 @@ export function PoDetailView({ id }: { id: string }) {
     if (!doc) return;
     const next: Record<string, { on: boolean; qty: string }> = {};
     for (const it of doc.items) {
-      const remain = it.qty - it.receivedQty;
+      const remain = it.qty - it.receivedQty - (it.cancelledQty ?? 0);
       next[it.id] = { on: remain > 0, qty: remain > 0 ? String(remain) : '0' };
     }
     setRrPick(next);
@@ -157,7 +157,7 @@ export function PoDetailView({ id }: { id: string }) {
   const canReject = isPendingApproval;            // PENDING_APPROVAL → DRAFT（同上 gate）
   const canSendToSupplier = isApproved;           // APPROVED → SUBMITTED
   const canSupplierConfirm = isSubmitted;         // SUBMITTED → CONFIRMED（觸發應付）
-  const canToRr = (isConfirmed || isPartialReceived) && doc.items.some((it) => it.qty - it.receivedQty > 0);
+  const canToRr = (isConfirmed || isPartialReceived) && doc.items.some((it) => it.qty - it.receivedQty - (it.cancelledQty ?? 0) > 0);
   const canClose = isReceived;
 
   const runStatus = async (next: string, confirmMsg?: string) => {
@@ -572,24 +572,59 @@ export function PoDetailView({ id }: { id: string }) {
             </tr>
           </thead>
           <tbody>
-            {doc.items.map((it) => (
-              <tr key={it.id} className="border-b border-border/50 align-top">
-                <td className="px-3 py-2">{it.lineNo}</td>
-                {/* T8 進貨對齊批次 2026-06-08：樣式 A — 我方料號主行 + 廠牌料號小字下行（空白隱藏） */}
-                <td className="px-3 py-2 font-mono text-xs">
-                  <div>{it.partNo}</div>
-                  {it.secCode ? (
-                    <div className="mt-0.5 text-[10px] text-muted-foreground" title="廠牌料號">
-                      {it.secCode}
-                    </div>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{it.receivedQty}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{it.unitCost}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
-              </tr>
-            ))}
+            {doc.items.map((it) => {
+              // 03 收尾 A 2026-06-08：剩餘可收 = qty - receivedQty - cancelledQty
+              const cancelled = it.cancelledQty ?? 0;
+              const remain = it.qty - it.receivedQty - cancelled;
+              // 可取消條件：CONFIRMED 或 PARTIAL_RECEIVED 階段（已下單給廠商、廠商出不出貨才需取消剩餘）
+              const canCancelRemain = remain > 0 && (isConfirmed || isPartialReceived);
+              return (
+                <tr key={it.id} className="border-b border-border/50 align-top">
+                  <td className="px-3 py-2">{it.lineNo}</td>
+                  {/* T8 進貨對齊批次 2026-06-08：樣式 A — 我方料號主行 + 廠牌料號小字下行（空白隱藏） */}
+                  <td className="px-3 py-2 font-mono text-xs">
+                    <div>{it.partNo}</div>
+                    {it.secCode ? (
+                      <div className="mt-0.5 text-[10px] text-muted-foreground" title="廠牌料號">
+                        {it.secCode}
+                      </div>
+                    ) : null}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    <div>{it.receivedQty}</div>
+                    {/* 03 收尾 A：取消量小字 + 取消剩餘按鈕（CONFIRMED/PARTIAL_RECEIVED 顯示） */}
+                    {cancelled > 0 ? (
+                      <div className="mt-0.5 text-[10px] text-amber-400" title="已取消量">取消 {cancelled}</div>
+                    ) : null}
+                    {canCancelRemain ? (
+                      <button
+                        type="button"
+                        className="mt-1 text-[10px] text-amber-400 underline decoration-dotted hover:text-amber-300 disabled:opacity-40"
+                        disabled={busy}
+                        title="把這 line 剩餘可收量設為已取消、不再期待廠商出貨（用於缺貨／部分到貨後收尾）"
+                        onClick={async () => {
+                          if (!confirm(`取消 ${it.partNo} 的剩餘 ${remain} 個？\n（設定後本筆不能再轉進貨、PO 可走結案）`)) return;
+                          setBusy(true);
+                          try {
+                            await patchPoItem(doc.id, it.id, { cancelledQty: cancelled + remain });
+                            await load();
+                          } catch (e) {
+                            setError(e instanceof Error ? e.message : '取消剩餘失敗');
+                          } finally {
+                            setBusy(false);
+                          }
+                        }}
+                      >
+                        取消剩餘 ({remain})
+                      </button>
+                    ) : null}
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">{it.unitCost}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -612,7 +647,7 @@ export function PoDetailView({ id }: { id: string }) {
             </label>
             <ul className="mt-4 space-y-2 text-sm">
               {doc.items.map((it) => {
-                const remain = it.qty - it.receivedQty;
+                const remain = it.qty - it.receivedQty - (it.cancelledQty ?? 0);
                 const row = rrPick[it.id] ?? { on: false, qty: '0' };
                 return (
                   <li key={it.id} className="flex flex-wrap items-center gap-2 border-b py-2">
