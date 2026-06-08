@@ -640,3 +640,51 @@ export const ROLE_VIEW_MASTER: EntityMasterConfig = {
   ],
 };
 
+// ── 折扣代碼（F1-A 銷貨優惠價子系統 2026-06-08）────────────────
+// 業務員自助管理 DEFECT/USED/VIP/BULK 等代碼、配合 QuoteItem/SoItem.discountCodeId 引用
+// 預設 seed 4 碼、業務員可依需要新增（例：CLEAR 出清、HOLIDAY 節慶等）
+export const DISCOUNT_CODE_MASTER: EntityMasterConfig = {
+  basePath: 'nx01/discount-codes',
+  category: '銷售管理',
+  title: '折扣代碼',
+  entityNoun: '折扣代碼',
+  errorCodePrefix: 'nxui_base_discount_code',
+  deleteMode: SOFT,
+  fields: [
+    {
+      key: 'code', label: '代碼', required: true, uppercase: true, lockedOnEdit: true,
+      mono: true, maxLength: 20,
+      placeholder: '例：DEFECT / USED / VIP / BULK',
+      minWidthClass: 'min-w-[100px]',
+    },
+    {
+      key: 'name', label: '名稱', required: true, maxLength: 50,
+      placeholder: '例：瑕疵品折扣、中古件折扣',
+      minWidthClass: 'min-w-[160px]',
+    },
+    {
+      key: 'discountType', label: '折扣方式', type: 'select', required: true, defaultValue: 'P',
+      minWidthClass: 'min-w-[100px]',
+      options: [
+        { value: 'P', label: 'P 率%' },
+        { value: 'A', label: 'A 金額' },
+      ],
+    },
+    {
+      key: 'discountValue', label: '折扣值', type: 'number', required: true,
+      placeholder: 'P：百分比（20 表 8 折）/ A：固定金額',
+      minWidthClass: 'min-w-[120px]',
+    },
+    {
+      key: 'managedBy', label: '管理角色', type: 'select', defaultValue: 'P',
+      minWidthClass: 'min-w-[100px]',
+      options: [
+        { value: 'P', label: 'P 採購組長' },
+        { value: 'S', label: 'S 銷售組長' },
+      ],
+    },
+    { key: 'remark', label: '備註', inList: false, maxLength: 200 },
+  ],
+};
+
+

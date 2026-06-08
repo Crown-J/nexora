@@ -73,5 +73,12 @@ export function getNx00SideMenu(): SideMenuGroup[] {
         { key: 'base.partner-part', label: '供應商供貨對應',   href: '/dashboard/base/partner-part' },
       ],
     },
+    {
+      // F1-A 銷貨優惠價子系統 2026-06-08：折扣代碼業務員自助管理
+      group: '銷售管理',
+      items: [
+        { key: 'base.discount-code', label: '折扣代碼', href: '/dashboard/base/discount-code' },
+      ],
+    },
   ];
 }

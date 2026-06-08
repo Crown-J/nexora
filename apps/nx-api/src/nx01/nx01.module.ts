@@ -27,6 +27,8 @@ import { UserPrefService } from './user-pref/user-pref.service';
 // W6-Phase 5 2026-06-06：CarBrand / PartBrand 模組已 DROP、合併至 BrandController
 import { CountryController } from './country/country.controller';
 import { CountryService } from './country/country.service';
+import { DiscountCodeController } from './discount-code/discount-code.controller';
+import { DiscountCodeService } from './discount-code/discount-code.service';
 import { SiteController } from './site/site.controller';
 import { SiteService } from './site/site.service';
 import { CurrencyController } from './currency/currency.controller';
@@ -98,6 +100,7 @@ import { UserTeamService } from './user-team/user-team.service';
   controllers: [
     SiteController,
     CountryController,
+    DiscountCodeController,
     CurrencyController,
     WarehouseController,
     WarehouseTypeController,
@@ -142,6 +145,7 @@ import { UserTeamService } from './user-team/user-team.service';
   providers: [
     SiteService,
     CountryService,
+    DiscountCodeService,
     CurrencyService,
     WarehouseService,
     WarehouseTypeService,

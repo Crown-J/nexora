@@ -70,6 +70,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
       '/dashboard/base/partners',
       // T3 進貨對齊批次 2026-06-08：供應商供貨對應主檔
       '/dashboard/base/partner-part',
+      // F1-A 銷貨優惠價子系統 2026-06-08：折扣代碼主檔
+      '/dashboard/base/discount-code',
       '/dashboard/base/site',
       '/dashboard/base/location',
       '/dashboard/base/parts',
