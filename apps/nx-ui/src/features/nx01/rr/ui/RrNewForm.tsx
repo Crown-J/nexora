@@ -476,7 +476,7 @@ export function RrNewForm() {
       {source === 'po' ? (
         <div className="space-y-2">
           <label className="text-xs text-muted-foreground">
-            選擇採購單（已送出）
+            選擇採購單（已寄廠商）
             <select
               className="mt-1 w-full max-w-md rounded-lg border border-border bg-background px-3 py-2 text-sm"
               value={poId ?? ''}

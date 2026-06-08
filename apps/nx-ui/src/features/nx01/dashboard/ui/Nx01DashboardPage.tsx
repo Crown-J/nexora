@@ -103,7 +103,7 @@ export function Nx01DashboardPage() {
               step={2}
               title="採購 PO"
               pending={data.po.pending}
-              subtitle={`進行中 ${data.po.total} 筆（草稿／待核准／已核准／已送出）`}
+              subtitle={`進行中 ${data.po.total} 筆（草稿／待核准／已核准／已寄廠商）`}
             />
             <div className="hidden items-center justify-center text-muted-foreground lg:flex">
               <ChevronRight className="size-5 shrink-0" aria-hidden />
