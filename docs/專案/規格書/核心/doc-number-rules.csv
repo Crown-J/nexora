@@ -2,11 +2,11 @@
 說明,統一格式,,,[類型代碼]-[年月]-[倉庫/機構代碼]-[5碼流水號],倉庫代碼：Z01/Z02...；無倉庫時使用機構代碼（預設HQ0，可於系統設定自訂，例如：HEY=恆迎）
 NX02,採購需求單,DR,Demand Request,DR-202604-HQ0-00001,無倉庫時使用機構代碼
 NX02,詢價單,RF,Request for Quotation,RF-202604-Z01-00001,
-NX02,採購單,PO,Purchase Order,PO-202604-Z01-00001,PLUS 限定
+NX02,採購單,PO,Purchase Order,PO-202604-Z01-00001,
 NX02,調貨單,TI,Transfer In,TI-202604-Z01-00001,向同行調貨
 NX02,進貨單,RR,Receiving Report,RR-202604-Z01-00001,
 NX02,退供應商單,PR,Purchase Return,PR-202604-Z01-00001,
-NX03,調撥單,ST,Stock Transfer,ST-202604-Z01-00001,PLUS 限定
+NX03,調撥單,ST,Stock Transfer,ST-202604-Z01-00001,
 NX03,盤點單,SL,Stocktaking List,SL-202604-Z01-00001,
 NX03,開帳單,IN,Inventory Init,IN-202604-Z01-00001,
 NX03,撿貨單,PK,Picking List,PK-202604-Z01-00001,
