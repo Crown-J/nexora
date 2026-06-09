@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createSo, listSo } from '../api/so';
-import type { CreateSoPayload, So, SoStatus } from '../types';
+import { SALES_METHOD_OPTIONS, type CreateSoPayload, type So, type SoStatus } from '../types';
 import { SO_STATUSES, SO_STATUS_LABEL } from '../types';
 import { SO_HEADER_STATUS_BADGE_CLASS } from '../utils';
 
@@ -207,6 +207,10 @@ function QuickCreateForm({
   const [deliveryType, setDeliveryType] = useState('P');
   const [taxRate, setTaxRate] = useState('5');
   const [remark, setRemark] = useState('');
+  // 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月
+  const [salesPersonId, setSalesPersonId] = useState('');
+  const [salesMethod, setSalesMethod] = useState('');
+  const [accountPeriod, setAccountPeriod] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -226,6 +230,10 @@ function QuickCreateForm({
         deliveryType,
         taxRate: Number(taxRate) || 0,
         remark: remark.trim() || undefined,
+        // 05 補做 C2/C3/C4 2026-06-09
+        salesPersonId: salesPersonId.trim() || undefined,
+        salesMethod: salesMethod.trim() || undefined,
+        accountPeriod: accountPeriod.trim() || undefined,
       };
       const so = await createSo(payload);
       onCreated(so.id);
@@ -295,6 +303,40 @@ function QuickCreateForm({
             onChange={(e) => setTaxRate(e.target.value)}
             className="w-full rounded border bg-background px-2 py-1 tabular-nums"
             required
+          />
+        </label>
+        {/* 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月 */}
+        <label className="text-sm">
+          <span className="block mb-1">⚪ 業務員 ID</span>
+          <input
+            value={salesPersonId}
+            onChange={(e) => setSalesPersonId(e.target.value)}
+            placeholder="NX01USER...（選填）"
+            className="w-full rounded border bg-background px-2 py-1 font-mono text-xs"
+          />
+        </label>
+        <label className="text-sm">
+          <span className="block mb-1">⚪ 銷貨方式</span>
+          <input
+            list="sales-method-options"
+            value={salesMethod}
+            onChange={(e) => setSalesMethod(e.target.value)}
+            placeholder="自叫 / 網路單 / 櫃台 …"
+            className="w-full rounded border bg-background px-2 py-1"
+          />
+          <datalist id="sales-method-options">
+            {SALES_METHOD_OPTIONS.map((o) => (
+              <option key={o} value={o} />
+            ))}
+          </datalist>
+        </label>
+        <label className="text-sm">
+          <span className="block mb-1">⚪ 帳款年月（YYYY-MM-01）</span>
+          <input
+            type="month"
+            value={accountPeriod.slice(0, 7)}
+            onChange={(e) => setAccountPeriod(e.target.value ? `${e.target.value}-01` : '')}
+            className="w-full rounded border bg-background px-2 py-1"
           />
         </label>
         <label className="text-sm md:col-span-3">

@@ -11,6 +11,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { lookupStockBalance } from '@/features/nx03/stock-balance/api/lookup';
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
@@ -134,6 +135,23 @@ function SoDetailInner({ id }: { id: string }) {
             ) : null}
             {so.paymentTerm ? (
               <span className="rounded bg-muted px-2 py-0.5 text-xs">付款 {so.paymentTerm}</span>
+            ) : null}
+            {/* 05 補做 C2/C3/C4/D1 2026-06-09：業務員 / 銷貨方式 / 帳款年月 / 揀貨整體狀態 */}
+            {so.salesPersonId ? (
+              <span className="rounded bg-muted px-2 py-0.5 text-xs">業務員 {so.salesPersonId}</span>
+            ) : null}
+            {so.salesMethod ? (
+              <span className="rounded bg-muted px-2 py-0.5 text-xs">銷貨方式 {so.salesMethod}</span>
+            ) : null}
+            {so.accountPeriod ? (
+              <span className="rounded bg-muted px-2 py-0.5 text-xs">
+                帳款 {so.accountPeriod.slice(0, 7)}
+              </span>
+            ) : null}
+            {so.pickingStatus ? (
+              <span className="rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-900">
+                揀貨狀態 {FULFILL_STATUS_LABEL[so.pickingStatus] ?? so.pickingStatus}
+              </span>
             ) : null}
           </div>
         </div>
@@ -356,6 +374,29 @@ function ItemsSection({
   editable: boolean;
   onChanged: () => void | Promise<void>;
 }) {
+  // 05 補做 C5 2026-06-09：庫位現量 — 純前端 join Nx03StockBalance、按 (partId, warehouseId) 查
+  const [qtyOnHandByLine, setQtyOnHandByLine] = useState<Record<string, number | null>>({});
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const result: Record<string, number | null> = {};
+      await Promise.all(
+        items.map(async (it) => {
+          try {
+            const r = await lookupStockBalance(it.partId, it.warehouseId);
+            result[it.id] = r ? r.onHandQty : null;
+          } catch {
+            result[it.id] = null;
+          }
+        }),
+      );
+      if (!cancelled) setQtyOnHandByLine(result);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [items]);
+
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-semibold">明細（{items.length} 行）</h2>
@@ -366,8 +407,8 @@ function ItemsSection({
             <thead className="bg-muted text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 text-left">#</th>
-                <th className="px-3 py-2 text-left">料號 / 品名</th>
-                <th className="px-3 py-2 text-right">數量</th>
+                <th className="px-3 py-2 text-left">料號 / 品名 / 廠牌</th>
+                <th className="px-3 py-2 text-right">數量 / 庫位現量</th>
                 <th className="px-3 py-2 text-right">單價</th>
                 <th className="px-3 py-2 text-right">金額</th>
                 <th className="px-3 py-2 text-left">來源</th>
@@ -381,17 +422,30 @@ function ItemsSection({
                 const combined = combinedStatusLabel(it.transferStatus, it.fulfillStatus);
                 const isIto = it.transferSourceType === 'G';
                 const sourceLabel = TRANSFER_SOURCE_LABEL[it.transferSourceType] ?? it.transferSourceType;
+                const onHand = qtyOnHandByLine[it.id];
                 return (
                   <tr key={it.id} className="border-t hover:bg-muted/30">
                     <td className="px-3 py-2 text-xs text-muted-foreground">{it.lineNo}</td>
                     <td className="px-3 py-2 text-xs">
                       <div className="font-mono">{it.partNo}</div>
                       <div className="text-muted-foreground">{it.partName}</div>
+                      {/* 05 補做 B5 2026-06-09：廠牌 snapshot 顯示 */}
+                      {it.brandName ? (
+                        <div className="mt-0.5 inline-block rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] text-indigo-700">
+                          廠牌：{it.brandName}
+                        </div>
+                      ) : null}
                       {it.quoteItemId ? (
                         <div className="text-emerald-700">📜 拉自 QT</div>
                       ) : null}
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{it.qty}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      <div>{it.qty}</div>
+                      {/* 05 補做 C5 2026-06-09：庫位現量（業務參考、業務語意：本倉本料目前實際庫存） */}
+                      <div className="text-[10px] text-muted-foreground">
+                        現量：{onHand === undefined ? '…' : onHand === null ? '—' : onHand}
+                      </div>
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums">{it.unitPrice}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{it.lineAmount}</td>
                     <td className="px-3 py-2 text-xs">

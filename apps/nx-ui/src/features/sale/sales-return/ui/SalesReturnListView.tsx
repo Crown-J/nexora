@@ -200,6 +200,8 @@ function QuickCreateForm({
   const [soId, setSoId] = useState('');
   const [srDate, setSrDate] = useState(new Date().toISOString().slice(0, 10));
   const [returnMethod, setReturnMethod] = useState('R');
+  // 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回）
+  const [initiationType, setInitiationType] = useState<'A' | 'B' | ''>('A');
   const [taxRate, setTaxRate] = useState('5');
   const [remark, setRemark] = useState('');
   const [busy, setBusy] = useState(false);
@@ -218,6 +220,8 @@ function QuickCreateForm({
         soId: soId.trim(),
         srDate,
         returnMethod,
+        // 05 補做 C1 2026-06-09
+        initiationType: initiationType || undefined,
         taxRate: Number(taxRate) || 0,
         remark: remark.trim() || undefined,
       };
@@ -267,6 +271,19 @@ function QuickCreateForm({
                 {o.label}
               </option>
             ))}
+          </select>
+        </label>
+        {/* 05 補做 C1 2026-06-09：退回方式 */}
+        <label className="text-sm">
+          <span className="block mb-1">🟢 退回方式</span>
+          <select
+            value={initiationType}
+            onChange={(e) => setInitiationType((e.target.value as 'A' | 'B' | '') || '')}
+            className="w-full rounded border bg-background px-2 py-1"
+          >
+            <option value="A">A 業務發起（計畫性）</option>
+            <option value="B">B 送貨員當場帶回（臨時）</option>
+            <option value="">— 未指定</option>
           </select>
         </label>
         <label className="text-sm">

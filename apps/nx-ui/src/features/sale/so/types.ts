@@ -1,7 +1,16 @@
 // apps/nx-ui/src/features/sale/so/types.ts
 // NX04-M3 C2：SO 銷貨單型別（對齊 nx-api SO_SEL / SO_ITEM_SEL）
 
-export const SO_STATUSES = ['DRAFT', 'CONFIRMED', 'PICKING', 'SHIPPED', 'INVOICED', 'CANCELLED'] as const;
+export const SO_STATUSES = [
+  'DRAFT',
+  'CONFIRMED',
+  'PICKING',
+  'SHIPPED',
+  'INVOICED',
+  // 05 補做 C6 2026-06-09：已完成（送達簽收後 + 全 lines fulfillStatus='F' 自動推進）
+  'COMPLETED',
+  'CANCELLED',
+] as const;
 export type SoStatus = (typeof SO_STATUSES)[number];
 
 export const SO_STATUS_LABEL: Record<SoStatus, string> = {
@@ -10,6 +19,7 @@ export const SO_STATUS_LABEL: Record<SoStatus, string> = {
   PICKING: '撿貨中',
   SHIPPED: '已出貨',
   INVOICED: '已開立',
+  COMPLETED: '已完成',
   CANCELLED: '已取消',
 };
 
@@ -40,6 +50,9 @@ export const FULFILL_STATUS_LABEL: Record<string, string> = {
   F: '已完成',
 };
 
+/// 05 補做 C3 2026-06-09：銷貨方式 datalist 常用值（業界口語、可手填）
+export const SALES_METHOD_OPTIONS = ['自叫', '網路單', '櫃台', '業務上門', 'LINE 下單'] as const;
+
 export interface SoItem {
   id: string;
   soId: string;
@@ -48,6 +61,9 @@ export interface SoItem {
   partId: string;
   partNo: string;
   partName: string;
+  /** 05 補做 B5 2026-06-09：廠牌 snapshot */
+  brandId?: string | null;
+  brandName?: string | null;
   warehouseId: string;
   locationId: string | null;
   qty: string;
@@ -85,6 +101,12 @@ export interface So {
   totalAmount: string;
   status: SoStatus;
   paymentTerm: string | null;
+  /** 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月 */
+  salesPersonId?: string | null;
+  salesMethod?: string | null;
+  accountPeriod?: string | null;
+  /** 05 補做 D1 2026-06-09：header 揀貨/出貨整體進度（derived from line.fulfillStatus）*/
+  pickingStatus?: string | null;
   remark: string | null;
   cancelledAt: string | null;
   cancelledBy: string | null;
@@ -127,6 +149,10 @@ export interface CreateSoPayload {
   taxRate: number;
   remark?: string;
   items?: CreateSoItemPayload[];
+  /** 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月（YYYY-MM-DD） */
+  salesPersonId?: string;
+  salesMethod?: string;
+  accountPeriod?: string;
 }
 
 export interface UpdateSoPayload {
@@ -136,6 +162,10 @@ export interface UpdateSoPayload {
   cancelReason?: string;
   deliveryType?: string;
   deliveryAddress?: string;
+  /** 05 補做 C2/C3/C4 2026-06-09 */
+  salesPersonId?: string;
+  salesMethod?: string;
+  accountPeriod?: string;
 }
 
 export interface PatchSoItemPayload {

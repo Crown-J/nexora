@@ -15,6 +15,8 @@ export const SoStatus = {
   PICKING: 'PICKING',
   SHIPPED: 'SHIPPED',
   INVOICED: 'INVOICED',
+  /// 05 補做 C6 2026-06-09：已完成（送達簽收後、配送單 Nx06Dn.signedAt 全簽 → 自動推進）。
+  COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
 } as const;
 
@@ -39,8 +41,10 @@ const SO_EDGES: Record<string, Set<string>> = {
   [SoStatus.DRAFT]: new Set([SoStatus.CONFIRMED, SoStatus.CANCELLED]),
   [SoStatus.CONFIRMED]: new Set([SoStatus.PICKING, SoStatus.CANCELLED]),
   [SoStatus.PICKING]: new Set([SoStatus.SHIPPED, SoStatus.CANCELLED]),
-  [SoStatus.SHIPPED]: new Set([SoStatus.INVOICED]),
-  [SoStatus.INVOICED]: new Set(),
+  // 05 補做 C6 2026-06-09：SHIPPED 可直推 COMPLETED（簽收後但發票未開）或經 INVOICED
+  [SoStatus.SHIPPED]: new Set([SoStatus.INVOICED, SoStatus.COMPLETED]),
+  [SoStatus.INVOICED]: new Set([SoStatus.COMPLETED]),
+  [SoStatus.COMPLETED]: new Set(),
   [SoStatus.CANCELLED]: new Set(),
 };
 

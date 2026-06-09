@@ -18,6 +18,7 @@ import {
   type LogisticsKindValue,
 } from '../shared/nx06/nx06-state-machine';
 import { Nx01AuditLogWriterService } from '../shared/services/nx01-audit-log-writer.service';
+import { SoService } from '../nx04/so/so.service';
 
 import {
   CreateDeliveryDto,
@@ -117,6 +118,8 @@ export class DnLogisticsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: Nx01AuditLogWriterService,
+    // 05 補做 C6 2026-06-09：簽收後推 SO line.fulfillStatus='F' + 推 SO header → COMPLETED
+    private readonly soService: SoService,
   ) {}
 
   private whereList(tenantId: string, kind: LogisticsKindValue, q: Nx06ListQueryDto): Prisma.Nx06DnWhereInput {
@@ -606,13 +609,14 @@ export class DnLogisticsService {
       signatureUrl?: string | null;
       stopId?: string | null;
     },
-  ) {
+  ): Promise<{ affectedSoIds: string[] }> {
     const stops = await tx.nx06DnStop.findMany({
       where: { dnId: p.dnId, ...(p.stopId ? { id: p.stopId } : {}) },
       select: { id: true },
     });
     if (!stops.length) throw new BadRequestException('No stops to sign');
     const now = new Date();
+    const affectedSoIds = new Set<string>();
     for (const s of stops) {
       await tx.nx06DnStop.update({
         where: { id: s.id },
@@ -630,7 +634,22 @@ export class DnLogisticsService {
         where: { stopId: s.id },
         data: { deliveryStatus: 'C', updatedBy: p.userId },
       });
+      // 05 補做 C6 2026-06-09：簽收後對應 SO line fulfillStatus = 'F'（已送達）
+      const items = await tx.nx06DnItem.findMany({
+        where: { stopId: s.id, sourceDocType: 'SO' },
+        select: { sourceDocId: true, sourceItemId: true },
+      });
+      for (const it of items) {
+        if (it.sourceItemId) {
+          await tx.nx04SoItem.update({
+            where: { id: it.sourceItemId },
+            data: { fulfillStatus: 'F', updatedBy: p.userId },
+          });
+        }
+        if (it.sourceDocId) affectedSoIds.add(it.sourceDocId);
+      }
     }
+    return { affectedSoIds: [...affectedSoIds] };
   }
 
   async patchDelivery(user: RequestUser, id: string, dto: PatchDeliveryDto) {
@@ -656,7 +675,9 @@ export class DnLogisticsService {
     dto: PatchDeliveryDto | PatchPickupDto | PatchIntlShippingDto | PatchReturnPickupDto,
   ) {
     const tenantId = requireTenantId(user);
-    return this.prisma.$transaction(async (tx) => {
+    // 05 補做 C6 2026-06-09：簽收後收集影響的 SO ids、tx 外推 maybeCompleteAfterDelivery
+    let affectedSoIds: string[] = [];
+    const result = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.nx06Dn.findFirst({
         where: { id, tenantId, logisticsType: kind },
         select: { ...DN_SEL },
@@ -674,7 +695,7 @@ export class DnLogisticsService {
         if (sig.signerType !== 'C' && sig.signerType !== 'W') {
           throw new BadRequestException('signature.signerType must be C or W');
         }
-        await this.applySignatureToStops(tx, {
+        const signResult = await this.applySignatureToStops(tx, {
           dnId: id,
           userId: user.sub,
           signerType: sig.signerType,
@@ -682,6 +703,7 @@ export class DnLogisticsService {
           signatureUrl: sig.signatureUrl ?? null,
           stopId: sig.stopId?.trim() || null,
         });
+        affectedSoIds = signResult.affectedSoIds;
       }
       const departLeg =
         (next === 'DISPATCHED' && existing.status === 'DRAFT') ||
@@ -732,6 +754,16 @@ export class DnLogisticsService {
       });
       return full;
     });
+    // 05 補做 C6 2026-06-09：tx 完成後、對所有影響的 SO 嘗試自動推 COMPLETED
+    // 冪等：maybeCompleteAfterDelivery 內部會 skip 不適用狀態
+    for (const soId of affectedSoIds) {
+      try {
+        await this.soService.maybeCompleteAfterDelivery(tenantId, soId, user.sub);
+      } catch {
+        // 推進失敗不影響 DN patch；下次操作可再觸發
+      }
+    }
+    return result;
   }
 
   async patchDeliveryLocation(user: RequestUser, id: string, dto: PatchDnLocationDto) {

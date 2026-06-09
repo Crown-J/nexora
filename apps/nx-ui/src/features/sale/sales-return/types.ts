@@ -27,6 +27,12 @@ export const RETURN_METHOD_LABEL: Record<string, string> = {
   X: 'X 換新品',
 };
 
+/// 05 補做 C1 2026-06-09：退回方式 initiationType
+export const INITIATION_TYPE_LABEL: Record<string, string> = {
+  A: 'A 業務發起（計畫性、業務接到客戶要退）',
+  B: 'B 送貨員當場帶回（臨時、配送時被告知）',
+};
+
 /// 過帳 returnAction（POSTED 時帶入）
 export const RETURN_ACTION_LABEL: Record<string, string> = {
   R: 'R 退錢（NX05 Allowance）',
@@ -74,6 +80,8 @@ export interface Sr {
   customerId: string;
   soId: string;
   returnMethod: string;
+  /** 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回） */
+  initiationType?: 'A' | 'B' | null;
   status: SrStatus;
   subtotal: string;
   taxRate: string;
@@ -115,6 +123,8 @@ export interface CreateSrPayload {
   srDate: string;
   /// R 退錢 / D 折讓 / X 換新
   returnMethod: string;
+  /** 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回） */
+  initiationType?: 'A' | 'B';
   taxRate: number;
   remark?: string;
   items?: CreateSrItemPayload[];
@@ -126,6 +136,8 @@ export interface UpdateSrPayload {
   status?: SrStatus;
   rejectReason?: string;
   returnAction?: 'R' | 'D' | 'X';
+  /** 05 補做 C1 2026-06-09 */
+  initiationType?: 'A' | 'B';
 }
 
 export interface PatchSrItemPayload {

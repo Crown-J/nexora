@@ -243,7 +243,8 @@ function SaleCenterSub({ pathname }: { pathname: string }) {
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">銷售流程</DropdownMenuLabel>
         <DockSubLink href="/dashboard/sale/qt" label="報價單" kbd="Q" />
         <DockSubLink href="/dashboard/sale/so" label="銷貨單" kbd="S" />
-        <DockSubLink href="/dashboard/sale" label="銷退單" kbd="R" />
+        {/* C7 dock bug fix 2026-06-09：銷退單應到 sale/return、不是 sale（會 redirect 回 SO） */}
+        <DockSubLink href="/dashboard/sale/return" label="銷退單" kbd="R" />
         <DropdownMenuSeparator className="bg-border/60" />
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">定價工具</DropdownMenuLabel>
         {/* F1-D 銷貨優惠價子系統 2026-06-08：促銷規則入口 */}

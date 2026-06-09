@@ -118,6 +118,23 @@ export class CreateSoDto {
    *  業務情境：異常品低價出清、由 IssueReportService.dispose 自動建單帶入。
    *  Caller（前端 / 一般 SO 建單流程）不應傳此旗標；service 信任 caller 但不額外驗證。 */
   @IsOptional() specialPriceFlag?: boolean;
+
+  /** 05 補做 C2 2026-06-09：業務員（跟開單人員 createdBy 分開） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  salesPersonId?: string;
+
+  /** 05 補做 C3 2026-06-09：銷貨方式（自叫／網路單／櫃台…） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  salesMethod?: string;
+
+  /** 05 補做 C4 2026-06-09：帳款年月（YYYY-MM-DD、UI 用月份第一天） */
+  @IsOptional()
+  @IsDateString()
+  accountPeriod?: string;
 }
 
 export class UpdateSoDto {
@@ -152,6 +169,11 @@ export class UpdateSoDto {
 
   /** W4 [3-6] 發票聯式（2/3）。SO 編輯時逐筆改；散客 L 不可改（service 端守門） */
   @IsOptional() @Type(() => Number) @IsInt() @IsIn(INVOICE_COPIES) invoiceCopies?: number;
+
+  /** 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月 */
+  @IsOptional() @IsString() @MaxLength(15) salesPersonId?: string;
+  @IsOptional() @IsString() @MaxLength(20) salesMethod?: string;
+  @IsOptional() @IsDateString() accountPeriod?: string;
 }
 
 export class PatchSoItemDto {

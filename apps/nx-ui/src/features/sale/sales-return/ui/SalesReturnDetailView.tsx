@@ -112,6 +112,12 @@ function SrDetailInner({ id }: { id: string }) {
             <span className="rounded bg-muted px-2 py-0.5 text-xs">SO {sr.soId}</span>
             <span className="rounded bg-muted px-2 py-0.5 text-xs">倉庫 {sr.warehouseId}</span>
             <span className="rounded bg-muted px-2 py-0.5 text-xs">退款 {sr.returnMethod}</span>
+            {/* 05 補做 C1 2026-06-09：退回方式 A=業務發起 / B=送貨員當場帶回 */}
+            {sr.initiationType ? (
+              <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs text-indigo-900">
+                退回方式 {sr.initiationType === 'A' ? 'A 業務發起' : 'B 送貨員當場帶回'}
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">

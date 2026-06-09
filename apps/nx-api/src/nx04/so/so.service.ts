@@ -52,6 +52,37 @@ function deriveTransferStatus(sourceType: string): string {
   return sourceType === 'S' ? 'C' : 'P';
 }
 
+/**
+ * 05 補做 D1 2026-06-09：header 揀貨狀態 = lines 中最落後的 fulfillStatus。
+ * 值序：W(等貨) < PK(撿貨中) < PL(包貨中) < D(配送中) < F(已送達)
+ * 顯示瓶頸：只要還有 line 在等貨、header 就標 W。
+ */
+const FULFILL_ORDER: Record<string, number> = { W: 0, PK: 1, PL: 2, D: 3, F: 4 };
+function derivePickingStatus(items: { fulfillStatus?: string }[]): string | null {
+  if (!items || items.length === 0) return null;
+  let worst: string | null = null;
+  let worstRank = 99;
+  for (const it of items) {
+    const s = it.fulfillStatus;
+    if (!s) continue;
+    const r = FULFILL_ORDER[s] ?? 99;
+    if (r < worstRank) {
+      worst = s;
+      worstRank = r;
+    }
+  }
+  return worst;
+}
+
+/**
+ * 05 補做 C6 2026-06-09：所有 lines 都 fulfillStatus='F'（已送達）→ true
+ * SO 自動推 COMPLETED 的判斷依據；空 items 視為 false（不應推進）。
+ */
+function isAllLinesDelivered(items: { fulfillStatus?: string }[]): boolean {
+  if (!items || items.length === 0) return false;
+  return items.every((it) => it.fulfillStatus === 'F');
+}
+
 const SO_SEL = {
   id: true,
   tenantId: true,
@@ -74,6 +105,10 @@ const SO_SEL = {
   invoiceCopies: true,
   // F1 特價售出 2026-06-08：標記此 SO 來自異常處置 X 處置
   specialPriceFlag: true,
+  // 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月
+  salesPersonId: true,
+  salesMethod: true,
+  accountPeriod: true,
   remark: true,
   cancelledAt: true,
   cancelledBy: true,
@@ -96,6 +131,9 @@ const SO_ITEM_SEL = {
   partId: true,
   partNo: true,
   partName: true,
+  // 05 補做 B5 2026-06-09：廠牌 snapshot（建單時 snapshot 自 part.brand）
+  brandId: true,
+  brandName: true,
   warehouseId: true,
   locationId: true,
   qty: true,
@@ -239,10 +277,16 @@ export class SoService {
   private async loadPartSnapshot(tx: Prisma.TransactionClient, tenantId: string, partId: string) {
     const p = await tx.nx01Part.findFirst({
       where: { id: partId, tenantId },
-      select: { code: true, name: true },
+      // 05 補做 B5 2026-06-09：snapshot 廠牌（避免主檔 brand 更名後影響歷史 SO 顯示）
+      select: { code: true, name: true, brandId: true, brand: { select: { name: true } } },
     });
     if (!p) throw new NotFoundException(`Part ${partId} not found`);
-    return { partNo: p.code, partName: p.name };
+    return {
+      partNo: p.code,
+      partName: p.name,
+      brandId: p.brandId ?? null,
+      brandName: p.brand?.name ?? null,
+    };
   }
 
   private async recalcSoTotals(tx: Prisma.TransactionClient, soId: string, taxRate: PrismaNs.Decimal) {
@@ -268,9 +312,14 @@ export class SoService {
 
   private mapDetail(row: { rev_Nx04SoItem_soId: unknown[] } & Record<string, unknown>) {
     const { rev_Nx04SoItem_soId: items, ...rest } = row;
+    const mappedItems = (items as object[]).map((it) => mapSoItemApi(it as never));
     return {
       ...rest,
-      items: (items as object[]).map((it) => mapSoItemApi(it as never)),
+      // 05 補做 D1 2026-06-09：揀貨/出貨整體進度 = lines 中最落後的 fulfillStatus
+      // 值序：W(等貨) < PK(撿貨中) < PL(包貨中) < D(配送中) < F(已送達)
+      // null=無 lines；UI 直接拿這欄顯示「header 揀貨狀態」
+      pickingStatus: derivePickingStatus(mappedItems as { fulfillStatus?: string }[]),
+      items: mappedItems,
     };
   }
 
@@ -417,6 +466,13 @@ export class SoService {
           invoiceCopies: this.resolveInvoiceCopies(customer, dto.invoiceCopies),
           // F1 特價售出 2026-06-08：來自異常處置 X 處置的特價 SO 旗標
           specialPriceFlag: dto.specialPriceFlag ?? false,
+          // 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月
+          salesPersonId: dto.salesPersonId?.trim() || null,
+          salesMethod: dto.salesMethod?.trim() || null,
+          // C4：帳款年月、給了用之、未給 default = soDate 月份第一天
+          accountPeriod: dto.accountPeriod
+            ? new Date(dto.accountPeriod)
+            : new Date(new Date(dto.soDate).toISOString().slice(0, 8) + '01'),
           remark: dto.remark?.trim() || null,
           createdBy: user.sub,
           updatedBy: user.sub,
@@ -592,6 +648,9 @@ export class SoService {
         partId: it.partId.trim(),
         partNo: snap.partNo,
         partName: snap.partName,
+        // 05 補做 B5 2026-06-09：廠牌 snapshot
+        brandId: snap.brandId,
+        brandName: snap.brandName,
         warehouseId: whId,
         locationId: locId,
         qty,
@@ -822,6 +881,16 @@ export class SoService {
             ? { deliveryAddress: dto.deliveryAddress?.trim() || null }
             : {}),
           ...(invoiceCopiesUpdate !== undefined ? { invoiceCopies: invoiceCopiesUpdate } : {}),
+          // 05 補做 C2/C3/C4 2026-06-09：業務員 / 銷貨方式 / 帳款年月（patch optional）
+          ...(dto.salesPersonId !== undefined
+            ? { salesPersonId: dto.salesPersonId?.trim() || null }
+            : {}),
+          ...(dto.salesMethod !== undefined
+            ? { salesMethod: dto.salesMethod?.trim() || null }
+            : {}),
+          ...(dto.accountPeriod !== undefined
+            ? { accountPeriod: dto.accountPeriod ? new Date(dto.accountPeriod) : null }
+            : {}),
           ...(dto.status === SoStatus.CANCELLED
             ? {
                 cancelledAt: new Date(),
@@ -1003,6 +1072,48 @@ export class SoService {
       afterData: mapSoItemApi(row) as object,
     });
     return mapSoItemApi(row);
+  }
+
+  /**
+   * 05 補做 C6 2026-06-09：所有 lines fulfillStatus='F' → 自動推 SO header → COMPLETED。
+   * 觸發點：Nx06Dn 簽收（signedAt 寫入）後外部呼叫。
+   * 冪等：SO 已 COMPLETED / CANCELLED 直接 skip；INVOICED/SHIPPED 可推進、其他狀態保留。
+   */
+  async maybeCompleteAfterDelivery(tenantId: string, soId: string, actorUserId: string): Promise<boolean> {
+    const so = await this.prisma.nx04So.findFirst({
+      where: { id: soId, tenantId },
+      select: { id: true, docNo: true, status: true },
+    });
+    if (!so) return false;
+    if (so.status === SoStatus.COMPLETED || so.status === SoStatus.CANCELLED) return false;
+    if (so.status !== SoStatus.SHIPPED && so.status !== SoStatus.INVOICED) return false;
+
+    const items = await this.prisma.nx04SoItem.findMany({
+      where: { soId },
+      select: { fulfillStatus: true },
+    });
+    if (!isAllLinesDelivered(items)) return false;
+
+    assertSoStatusTransition(so.status, SoStatus.COMPLETED);
+    await this.prisma.nx04So.update({
+      where: { id: soId },
+      data: {
+        status: SoStatus.COMPLETED,
+        completedAt: new Date(),
+        updatedBy: actorUserId,
+      },
+    });
+    await this.audit.write({
+      tenantId,
+      actorUserId,
+      moduleCode: 'NX04',
+      action: 'UPDATE',
+      entityTable: 'nx04_so',
+      entityId: soId,
+      entityCode: so.docNo,
+      summary: '銷貨單自動完成（全部 lines 已送達）',
+    });
+    return true;
   }
 
   /**

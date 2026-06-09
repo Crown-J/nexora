@@ -1480,6 +1480,7 @@ model Nx01User {
   rev_Nx01BulletinReadLog_userId           Nx01BulletinReadLog[]         @relation("R_Nx01BulletinReadLog_userId")
   rev_Nx02WarrantyClaimAttachment_uploader Nx02WarrantyClaimAttachment[] @relation("R_Nx02WarrantyClaimAttachment_uploaderUserId")
   rev_Nx06Dn_driverUserId                  Nx06Dn[]                      @relation("R_Nx06Dn_driverUserId")
+  rev_Nx04So_salesPersonId                 Nx04So[]                      @relation("R_Nx04So_salesPersonId")
   rev_Nx06DnHandover_fromDriverId          Nx06DnHandover[]              @relation("R_Nx06DnHandover_fromDriverId")
   rev_Nx06DnHandover_toDriverId            Nx06DnHandover[]              @relation("R_Nx06DnHandover_toDriverId")
   rev_Nx06PushSubscription_userId          Nx06PushSubscription[]        @relation("R_Nx06PushSubscription_userId")
@@ -4172,6 +4173,18 @@ model Nx04So {
   customerId             String         @map("customer_id") @db.VarChar(15)
   /// 來源報價單ID（FK nx04_quote，可空=即時報價直接開單）。；啟用最低需求版本：LITE-CORE
   quoteId                String?        @map("quote_id") @db.VarChar(15)
+  /// 業務員（FK Nx01User、跟 createdBy 開單人員分開）；05 補做 C2 2026-06-09
+  /// 業務語意：負責此筆生意的業務、可能跟實際開單的內勤不同人；歸帳/業績計算用。
+  /// 啟用最低需求版本：LITE-CORE
+  salesPersonId          String?        @map("sales_person_id") @db.VarChar(15)
+  /// 銷貨方式（業界口語：自叫／網路單／櫃台／業務上門…）；05 補做 C3 2026-06-09
+  /// UI 端 datalist 常用值、可手填新類型；不建主檔避免複雜化。
+  /// 啟用最低需求版本：LITE-CORE
+  salesMethod            String?        @map("sales_method") @db.VarChar(20)
+  /// 帳款年月（存月份第一天、例 2026-06-01 表 2026 年 6 月）；05 補做 C4 2026-06-09
+  /// 業務語意：這筆生意算哪個月的帳；應收歸帳查詢用、null=預設取 soDate 月份。
+  /// 啟用最低需求版本：LITE-CORE
+  accountPeriod          DateTime?      @map("account_period") @db.Date
   /// 出貨方式（D=配送/P=自取/C=寄貨）。影響後續流程分流與AR產生時機。；啟用最低需求版本：LITE-CORE
   deliveryType           String         @map("delivery_type") @db.VarChar(1)
   /// @deprecated 2026-04-25 (Phase 0 D3)：改由 line item 的 transfer_source_type 決定；header 此欄無語意。trigger 將防寫入。
@@ -4224,6 +4237,7 @@ model Nx04So {
   customer               Nx01Partner    @relation("R_Nx04So_customerId", fields: [customerId], references: [id])
   quote                  Nx04Quote?     @relation("R_Nx04So_quoteId", fields: [quoteId], references: [id])
   currency               Nx01Currency   @relation("R_Nx04So_currencyId", fields: [currencyId], references: [id])
+  salesPerson            Nx01User?      @relation("R_Nx04So_salesPersonId", fields: [salesPersonId], references: [id])
   rev_Nx03PkItem_refSoId Nx03PkItem[]   @relation("R_Nx03PkItem_refSoId")
   rev_Nx03St_refSoId     Nx03St[]       @relation("R_Nx03St_refSoId")
   rev_Nx04SoItem_soId    Nx04SoItem[]   @relation("R_Nx04SoItem_soId")
@@ -4233,6 +4247,8 @@ model Nx04So {
 
   @@unique([docNo])
   @@index([specialPriceFlag])
+  @@index([salesPersonId])
+  @@index([tenantId, accountPeriod])
   @@map("nx04_so")
 }
 
@@ -4254,6 +4270,11 @@ model Nx04SoItem {
   partNo                        String            @map("part_no") @db.VarChar(50)
   /// 零件名稱快照。；啟用最低需求版本：LITE-CORE
   partName                      String            @map("part_name") @db.VarChar(200)
+  /// 廠牌 ID 快照（建單時 snapshot 自 part.brandId、避免主檔 brand 更名後影響歷史 SO 顯示）；
+  /// 05 補做 B5 2026-06-09。null=未指定（料件當時沒設廠牌）；啟用最低需求版本：LITE-CORE
+  brandId                       String?           @map("brand_id") @db.VarChar(15)
+  /// 廠牌名稱快照；05 補做 B5 2026-06-09。；啟用最低需求版本：LITE-CORE
+  brandName                     String?           @map("brand_name") @db.VarChar(100)
   /// 出貨倉庫ID（FK nx01_warehouse，可與表頭不同支援跨倉銷售）。；啟用最低需求版本：LITE-CORE
   warehouseId                   String            @map("warehouse_id") @db.VarChar(15)
   /// 出貨庫位ID（FK nx01_location）。；啟用最低需求版本：LITE-CORE
@@ -4345,6 +4366,10 @@ model Nx04Sr {
   soId                  String        @map("so_id") @db.VarChar(15)
   /// 退貨取件方式（S=客戶自行送回/C=外務順路取回/P=客戶自行寄回）。由外務組長在 NX07 決定並更新，NX04 建立時可預填供參考。；啟用最低需求版本：LITE-CORE
   returnMethod          String        @map("return_method") @db.VarChar(1)
+  /// 退回方式（A=業務發起／計畫性、B=送貨員當場帶回／臨時）。
+  /// 05 補做 C1 2026-06-09：總經理拍板兩種起單方式、操作流程不同（A 業務建單再派取、B 送貨員先帶回再判退）。
+  /// 啟用最低需求版本：LITE-CORE
+  initiationType        String?       @map("initiation_type") @db.VarChar(1)
   /// 狀態（DRAFT / INSPECTING / POSTED / REJECTED / CANCELLED）。；啟用最低需求版本：LITE-CORE
   status                String        @default("DRAFT") @db.VarChar(30)
   /// 退款小計（明細加總，未稅）。；啟用最低需求版本：LITE-CORE

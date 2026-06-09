@@ -77,6 +77,13 @@ export class CreateSalesReturnDto {
   @MaxLength(1)
   returnMethod!: string;
 
+  /** 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回） */
+  @IsOptional()
+  @IsString()
+  @IsIn(['A', 'B'])
+  @MaxLength(1)
+  initiationType?: 'A' | 'B';
+
   @IsNumber()
   @Min(0)
   taxRate!: number;
@@ -113,6 +120,13 @@ export class UpdateSalesReturnDto {
   @IsString()
   @MaxLength(200)
   rejectReason?: string;
+
+  /** 05 補做 C1 2026-06-09：退回方式 patch */
+  @IsOptional()
+  @IsString()
+  @IsIn(['A', 'B'])
+  @MaxLength(1)
+  initiationType?: 'A' | 'B';
 
   /**
    * 退款方式（status=POSTED 時建議帶入、純 in-memory 分流：

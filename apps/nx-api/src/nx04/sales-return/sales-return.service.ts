@@ -39,6 +39,8 @@ const SR_SEL = {
   customerId: true,
   soId: true,
   returnMethod: true,
+  // 05 補做 C1 2026-06-09：退回方式（A=業務發起 / B=送貨員當場帶回）
+  initiationType: true,
   status: true,
   subtotal: true,
   taxRate: true,
@@ -417,6 +419,8 @@ export class SalesReturnService {
           customerId: so.customerId,
           soId: so.id,
           returnMethod: dto.returnMethod.trim(),
+          // 05 補做 C1 2026-06-09：退回方式
+          initiationType: dto.initiationType ?? null,
           status: SalesReturnStatus.DRAFT,
           taxRate,
           subtotal: 0,
@@ -516,6 +520,8 @@ export class SalesReturnService {
                 receivedBy: user.sub,
               }
             : {}),
+          // 05 補做 C1 2026-06-09：退回方式 patch
+          ...(dto.initiationType !== undefined ? { initiationType: dto.initiationType } : {}),
           updatedBy: user.sub,
         },
       });
