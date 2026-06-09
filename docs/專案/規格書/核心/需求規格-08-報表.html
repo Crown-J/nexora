@@ -1,0 +1,129 @@
+<!-- 檔案位置：docs/專案/規格書/核心/需求規格-08-報表.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：報表模組（NX08）功能需求（施工級藍圖）。以報表手冊為設計意圖、標注資料完整性與待重驗項。
+     狀態：✅資料完整 / 🟡部分或待重驗 / ❌暫無資料 / 🔵設計如此(LITE) / ⚠️待確認。對應《操作手冊-07》。 -->
+<!DOCTYPE html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求規格 08 — 報表 v1.0</title>
+<style>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;--ok:#1f6b3a;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.7;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:30px 0 8px;padding:7px 13px;border-radius:5px;}
+h2 .st{font-size:12px;font-weight:600;margin-left:8px;}
+h3{color:var(--navy);font-size:14px;margin:14px 0 4px;padding-left:9px;border-left:4px solid var(--amber);}
+p{margin:6px 0;font-size:13.5px;}
+ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0;}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+td.k{font-weight:700;color:var(--navy);white-space:nowrap;}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:0 7px;}
+.t-ok{background:#e6f4ea;color:var(--ok);} .t-part{background:#fdf3e3;color:#7a4e09;}
+.t-no{background:#f0eef0;color:#555;} .t-fix{background:#fbeeee;color:var(--warn);} .t-dsn{background:#eef3f9;color:#33507a;}
+.cal{border-radius:5px;padding:8px 13px;margin:7px 0;font-size:12.5px;line-height:1.6;}
+.cal.warn{background:#fbf0f0;border:1px solid #e6c4c4;border-left:4px solid var(--warn);}
+.cal.note{background:#eef3f9;border:1px solid #cfddee;border-left:4px solid #33507a;}
+.cal.star{background:#fdf6e9;border:1px solid #ecd9b0;border-left:4px solid var(--amber);}
+.cal b{color:var(--navy);}
+.lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
+footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style></head><body>
+<header class="doc"><h1>需求規格 08 — 報表</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-08-報表.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX08（核心 / LITE）<br>
+<b>說明：</b>報表模組需求＝報表手冊 v1.1（設計意圖）＋資料完整性標注。狀態：<span class="tag t-ok">✅完整</span> <span class="tag t-part">🟡部分/待重驗</span> <span class="tag t-no">❌暫無</span> <span class="tag t-dsn">🔵設計如此</span> <span class="tag t-fix">⚠️待確認</span>。操作見《操作手冊-07》。</div></header>
+<p class="lead">報表模組把日常單據整理成「看得懂的數字與圖表」。六張報表：個人月報、銷售、進貨、庫存、損益表、營運。共通操作一致：右上角皆有「匯出 Excel」與「重新整理」。報表只讀、吃各模組（銷貨/庫存/採購/財務）既有資料。</p>
+
+<h2>0. 資料完整性總覽</h2>
+<table>
+<tr><th>報表</th><th>狀態</th><th>說明</th></tr>
+<tr><td class="k">銷售報表</td><td><span class="tag t-ok">✅完整</span></td><td>可作日常營運判斷。</td></tr>
+<tr><td class="k">庫存報表</td><td><span class="tag t-ok">✅完整</span></td><td>低庫存警報需先在零件主檔設安全庫存。</td></tr>
+<tr><td class="k">個人月報</td><td><span class="tag t-part">🟡待重驗</span></td><td>業績準；毛利原註「偏高、待採購串接」——採購已串通，待重驗是否已準。</td></tr>
+<tr><td class="k">進貨報表</td><td><span class="tag t-fix">⚠️待重驗</span></td><td>原註「採購建置中、暫無資料」——<b>採購已串通，應已有資料，待 Hank 確認</b>。</td></tr>
+<tr><td class="k">損益表</td><td><span class="tag t-part">🟡簡化版</span></td><td>銷貨淨額準；成本原註待採購（已串通、待重驗）；費用無記帳介面，營業淨利不可當財報。</td></tr>
+<tr><td class="k">營運報表</td><td><span class="tag t-dsn">🔵OWNER限定</span></td><td>部門業績/KPI 需 PRO 人資模組；BCG 定位 LITE 可用。</td></tr>
+</table>
+<div class="cal warn"><b>⚠️ 跨模組重驗（同財務發現）：</b>本手冊 v1.1（2026-06）多處狀態綁「採購建置中」，但 Hank 已確認採購流程串通（PO→AP）。<b>進貨報表、個人月報毛利、損益表成本</b>應已改善，須請 Hank 重驗實際資料、並更新報表手冊。</div>
+
+<h2>1. 個人月報 <span class="st"><span class="tag t-part">🟡待重驗</span></span></h2>
+<p><b>給誰看：</b>員工看自己當月業績/開單/工作量；主管可選看某員工（標「負責人視角」）。</p>
+<p><b>篩選：</b>員工下拉（預設「我」，無權限選別人會被擋）；期間「日／月」（不可跨月或自訂區間）。</p>
+<table>
+<tr><th>區塊</th><th>內容</th></tr>
+<tr><td class="k">業績</td><td>銷貨額、毛利、毛利率（依高低變色）、銷貨成本。</td></tr>
+<tr><td class="k">開單數</td><td>銷貨單、報價單、採購單各幾張（一般員工採購單多為 0，正常）。</td></tr>
+<tr><td class="k">工作量</td><td>撿貨件數、出貨件數、跑客戶家數。</td></tr>
+</table>
+<p>匯出 Excel（業績/開單數/工作量三工作表）。</p>
+
+<h2>2. 銷售報表 <span class="st"><span class="tag t-ok">✅完整</span></span></h2>
+<p><b>給誰看：</b>業務主管、老闆。上方三按鈕切換「產品／客戶／員工」三角度。期間固定近 90 天。</p>
+<table>
+<tr><th>角度</th><th>內容</th></tr>
+<tr><td class="k">產品</td><td>產品銷售排行 Top 10 長條圖＋明細（名次、料號、品名、銷量、銷售金額）。</td></tr>
+<tr><td class="k">客戶</td><td>VIP 客戶 Top 10（採購金額）長條圖；<b>客戶流失預警</b>：紅框列出「滿 90 天沒下單」客戶與最後下單日。</td></tr>
+<tr><td class="k">員工</td><td>三卡（員工人數、銷售總計、平均業績）＋員工業績排行長條圖。</td></tr>
+</table>
+<p>匯出 Excel 依目前角度匯出對應內容。</p>
+
+<h2>3. 進貨報表 <span class="st"><span class="tag t-fix">⚠️待重驗</span></span></h2>
+<p><b>給誰看：</b>採購主管。設計三段：採購單統計、供應商排行、比價分析。期間固定近 90 天。匯出 Excel。</p>
+<div class="cal warn"><b>⚠️ 狀態待重驗：</b>手冊原註「採購流程建置中、暫無資料」。但採購已串通——請 Hank 確認本報表現是否已有資料；若有，更新手冊狀態為「完整」。</div>
+
+<h2>4. 庫存報表 <span class="st"><span class="tag t-ok">✅完整</span></span></h2>
+<p><b>給誰看：</b>倉管、採購、老闆。頂部三摘要卡（週轉品項、呆滯品項、低庫存警報）。當前時點（無期間）。</p>
+<table>
+<tr><th>分頁</th><th>欄位/內容</th></tr>
+<tr><td class="k">週轉</td><td>料號、品名、現有庫存、出貨量、週轉率。</td></tr>
+<tr><td class="k">呆滯品</td><td>超過 90 天沒動：滯留庫存、最後動向、滯留天數。</td></tr>
+<tr><td class="k">低庫存警報</td><td>低於安全庫存：現有庫存、安全庫存、<b>缺料量＝安全庫存−現有庫存（不為負）</b>。</td></tr>
+</table>
+<div class="cal warn"><b>⚠️ 待確認：</b>低庫存警報需零件主檔設「安全庫存量」（未設＝0、永不警報）。手冊原註「安全庫存設定建置中」——但核心主檔需求已列「安全量」欄位，請 Hank 確認此設定是否已可用。</div>
+<p>匯出 Excel（三分頁各一工作表）。</p>
+
+<h2>5. 損益表 <span class="st"><span class="tag t-part">🟡簡化版</span></span></h2>
+<p><b>給誰看：</b>老闆、會計師。可自訂任意期間。</p>
+<ul>
+<li>四張指標卡：銷貨淨額、毛利（含毛利率）、營業費用、營業淨利。</li>
+<li>損益結構瀑布圖：銷貨總額一路扣到營業淨利。</li>
+<li>會計式損益表：銷貨總額 → 減銷退 → 銷貨淨額 → 減銷貨成本 → 營業毛利 → 減營業費用 → 營業淨利。</li>
+<li>費用明細：依會計科目列出（LITE 大多為空）。</li>
+</ul>
+<div class="cal warn"><b>⚠️ 簡化版限制：</b>銷貨淨額準確；銷貨成本原註待採購（已串通、待重驗）；<b>營業費用無記帳介面（多為 0）</b>，故「營業淨利」目前約等於毛利、不真實，僅供毛利層級參考、不可作正式財報。匯出 Excel（損益表＋費用明細）。</div>
+
+<h2>6. 營運報表 <span class="st"><span class="tag t-dsn">🔵OWNER 限定</span></span></h2>
+<p><b>給誰看：</b>負責人/系統管理員（一般員工/主管見鎖頭頁）。期間近 90 天。</p>
+<table>
+<tr><th>區塊</th><th>內容</th><th>LITE 狀況</th></tr>
+<tr><td class="k">全公司指標</td><td>部門數、部門業績、KPI 平均達成、商品定位數</td><td>多數為 0</td></tr>
+<tr><td class="k">部門業績排行</td><td>各部門總業績長條圖</td><td>需 PRO 人資模組</td></tr>
+<tr><td class="k">員工 KPI 達成率</td><td>目標、實績、差額、達成率</td><td>需 PRO，目前空</td></tr>
+<tr><td class="k">商品 BCG 定位</td><td>明星／金牛／問題／落水狗 四象限散布圖</td><td><b>LITE 可用</b>（有銷貨資料就能算）</td></tr>
+</table>
+<p>BCG 四象限：明星（高成長高市佔，加碼）／金牛（低成長高市佔，穩定獲利）／問題（高成長低市佔，評估）／落水狗（低成長低市佔，考慮淘汰）。</p>
+
+<h2>7. 通用操作與權限</h2>
+<ul>
+<li>每張報表右上：匯出 Excel、重新整理。載入中顯示「載入中…」，無資料顯示友善提示。圖表可 hover 看數字，<b>目前不能點圖表鑽取明細</b>。</li>
+<li><b>期間範圍：</b>個人月報（日/月）、銷售/進貨/營運（固定近 90 天）、庫存（當前時點）、損益表（可自訂任意期間）。<b>不支援跨期間自動比較</b>。</li>
+<li><b>權限：</b>各報表可見性由「職務權限設定」控制。預設：個人月報（全員看自己、主管看別人）、銷售（業務/主管/老闆）、進貨（採購/主管/老闆）、庫存（倉管/採購/業務/老闆）、損益表（財務/老闆）、營運（限負責人/系統管理員）。</li>
+<li><b>進階分析（PRO）：</b>路徑分析、供應商四象限、商品 BCG 進階——PRO 限定，LITE 見卡片點不進。</li>
+</ul>
+
+<h2>8. 未開放 / 待釐清</h2>
+<table>
+<tr><th>項目</th><th>狀態</th><th>說明</th></tr>
+<tr><td class="k">採購相關狀態重驗</td><td><span class="tag t-fix">⚠️待 Hank</span></td><td>進貨報表資料、個人月報毛利、損益表成本——採購已串通，待重驗是否已準並更新手冊。</td></tr>
+<tr><td class="k">安全庫存設定</td><td><span class="tag t-fix">⚠️待 Hank</span></td><td>低庫存警報依賴它；核心主檔已列欄位，待確認可用性。</td></tr>
+<tr><td class="k">損益表費用記帳</td><td><span class="tag t-dsn">🔵設計如此</span></td><td>LITE 無費用記帳介面，營業淨利不可作財報。是否補費用記帳＝產品範疇（待 CEO 議）。</td></tr>
+<tr><td class="k">營運報表部門/KPI</td><td><span class="tag t-dsn">🔵需 PRO</span></td><td>需 PRO 人資模組。</td></tr>
+<tr><td class="k">匯出 PDF/列印/CSV</td><td><span class="tag t-no">❌未開放</span></td><td>目前僅 Excel。</td></tr>
+<tr><td class="k">跨期比較、圖表鑽取</td><td><span class="tag t-no">❌未開放</span></td><td>—</td></tr>
+</table>
+<footer>需求規格 08 報表 v1.0　·　來源：報表手冊 v1.1（設計意圖）＋資料完整性標注　·　採購相關狀態待 Hank 重驗後升版。</footer>
+</body></html>

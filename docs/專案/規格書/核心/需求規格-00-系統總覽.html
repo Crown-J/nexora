@@ -1,0 +1,92 @@
+<!-- 檔案位置：docs/專案/規格書/核心/需求規格-00-系統總覽.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：NEXORA GRID 需求規格的頂層大框架——整個 ERP 有哪些模組功能、彼此怎麼串，
+     以及各模組需求規格的索引。細節在各模組需求規格（01～07 + 套件）。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求規格 00 — 系統總覽 v1.0</title>
+<style>
+  :root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--mod:#7a4e09;}
+  *{box-sizing:border-box;}
+  body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;
+       line-height:1.75;max-width:940px;margin:0 auto;padding:40px 28px 80px;background:#fff;}
+  header.doc{border-bottom:3px solid var(--navy);padding-bottom:18px;margin-bottom:8px;}
+  header.doc h1{color:var(--navy);font-size:25px;margin:0 0 6px;}
+  .meta{color:var(--sub);font-size:12.5px;line-height:1.6;}
+  .meta b{color:var(--navy);}
+  h2{color:var(--navy);font-size:19px;margin:36px 0 10px;padding-left:11px;border-left:5px solid var(--amber);}
+  p{margin:8px 0;}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--navy);color:#fff;font-weight:600;}
+  tr:nth-child(even) td{background:var(--bg);}
+  td.num{text-align:center;font-weight:700;color:var(--navy);white-space:nowrap;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:1px 8px;}
+  .p-core{background:#eef2f8;color:var(--navy);}
+  .p-mod{background:#fdf3e3;color:var(--mod);}
+  .flow{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:12px 0;
+        font-size:14px;line-height:2;}
+  .flow b{color:var(--navy);}
+  .note{background:#fdf8ee;border:1px solid #ecd9b0;border-left:4px solid var(--amber);
+        border-radius:6px;padding:10px 14px;margin:12px 0;font-size:13.5px;}
+  .note b{color:var(--navy);}
+  footer{margin-top:50px;padding-top:16px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <h1>需求規格 00 — 系統總覽</h1>
+  <div class="meta">
+    <b>檔案位置：</b>docs/專案/規格書/核心/需求規格-00-系統總覽.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）<br>
+    <b>說明：</b>整個 ERP 有哪些模組功能、彼此怎麼串，以及各模組需求規格的索引。各模組細節見其需求規格。
+  </div>
+</header>
+
+<p>NEXORA GRID 的功能分兩類：<b>核心模組</b>（LITE 內含、每家都用）與<b>加購模組</b>（按需選購）。每個核心模組各有一份需求規格，編號與《操作手冊》對齊（規格說「該做成怎樣」、手冊說「怎麼用」，成對）。</p>
+
+<h2>核心模組（LITE 內含）</h2>
+<table>
+  <tr><th>編號</th><th>模組</th><th>範疇</th><th>對應需求規格 / 手冊</th></tr>
+  <tr><td class="num">01</td><td>登入・首頁・員工啟用</td><td>登入、首頁儀表板、設定精靈、員工啟用與<b>席次制</b>、角色權限</td><td>需求規格-01 ↔ 手冊-01</td></tr>
+  <tr><td class="num">02</td><td>核心主檔</td><td>所有單據的資料底座：零件（含<b>四層編碼</b>）、客戶、廠商、員工、會計科目、折扣代碼、品牌/族群</td><td>需求規格-02 ↔ 手冊-02</td></tr>
+  <tr><td class="num">03</td><td>進貨</td><td>進貨單、進退貨、保固</td><td>需求規格-03 ↔ 手冊-03</td></tr>
+  <tr><td class="num">04</td><td>庫存</td><td>查詢、產品庫存設定、倉位庫位、盤點、<b>異常處置（含瑕疵/中古）</b>、重組分解、撿包送、配送</td><td>需求規格-04 ↔ 手冊-04</td></tr>
+  <tr><td class="num">05</td><td>銷貨</td><td>報價、銷貨單、銷貨退回、優惠價子系統</td><td>需求規格-05 ↔ 手冊-05</td></tr>
+  <tr><td class="num">06</td><td>財務</td><td>應收、應付、折讓、401 兩月雙報、月關帳</td><td>需求規格-06 ↔ 手冊-06</td></tr>
+  <tr><td class="num">07</td><td>報表</td><td>六張經營報表</td><td>需求規格-07 ↔ 手冊-07</td></tr>
+</table>
+
+<h2>加購模組</h2>
+<table>
+  <tr><th>模組</th><th>範疇</th></tr>
+  <tr><td>汽車資料庫</td><td>編碼規則引擎、品牌/車型/引擎字典、TecDoc 對照</td></tr>
+  <tr><td>電子發票</td><td>發票開立</td></tr>
+  <tr><td>401 上傳</td><td>營業稅申報上傳</td></tr>
+  <tr><td>打卡出勤</td><td>出缺勤記錄</td></tr>
+  <tr><td>KPI</td><td>業績績效（與打卡合稱「人資系統」）</td></tr>
+  <tr><td>EIP 資訊平台</td><td>企業知識/資訊平台（重點主打）</td></tr>
+  <tr><td>第三方串接</td><td>LINE / Lalamove 等</td></tr>
+  <tr><td>多據點</td><td>多分店/倉（PLUS 免費送、LITE 亦可加購）</td></tr>
+</table>
+<p>各加購模組另有獨立的套件需求規格（置於 規格書/選購套件/）。</p>
+
+<h2>業務主流程（模組怎麼串）</h2>
+<div class="flow">
+  <b>核心主檔</b>（零件/客戶/廠商… 貫穿全程，所有單據都引用）<br>
+  &nbsp;&nbsp;└ <b>進貨</b> → <b>庫存</b>（盤點 / 異常處置）→ <b>銷貨</b>（報價 → 銷貨單）<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ 撿包送 / 配送（屬庫存）→ <b>財務</b>（應收 / 應付 / 折讓）→ <b>報表</b>
+</div>
+<p>員工啟用與席次（01）橫切全系統：決定誰能登入、佔幾席。</p>
+
+<div class="note"><b>文件層次：</b>本份（00 總覽）是大框架 → 各模組需求規格（01～07）逐一細談「該做成怎樣」→ 各模組《操作手冊》談「怎麼用」。三層由粗到細。</div>
+
+<footer>
+  需求規格 00 系統總覽 v1.0　·　模組增減 / 改名時更新本份並升版　·　各模組需求規格逐一建立中。
+</footer>
+
+</body>
+</html>

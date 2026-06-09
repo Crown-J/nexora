@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-07-report.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-07-report.md -->
+<!-- 檔案版本：v1.2 -->
+<!-- 檔案說明：NEXORA GRID 操作手冊 07 — 報表與分析（6 大核心報表 + 進階分析降指路）；等 HTML 化、目前 .md 草稿。 -->
 
 # NX-MANUAL-07 報表與分析
 

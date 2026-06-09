@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-06-finance.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-06-finance.md -->
+<!-- 檔案版本：v1.2 -->
+<!-- 檔案說明：NEXORA GRID 操作手冊 06 — 財務管理（應收/應付/月結/折讓/付款）；等 HTML 化、目前 .md 草稿。 -->
 
 # NX-MANUAL-06 財務管理
 

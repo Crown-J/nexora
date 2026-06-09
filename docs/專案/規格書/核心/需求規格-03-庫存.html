@@ -1,0 +1,158 @@
+<!-- 檔案位置：docs/專案/規格書/核心/需求規格-03-庫存.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：庫存模組（NX03）完整功能需求（施工級藍圖）。含異常六種處置、重組分解、撿包送、開帳存。
+     對應《操作手冊-04》。落差/待釐清以 ⚠️ 標示，待 Hank 對 schema 驗證。 -->
+<!DOCTYPE html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求規格 03 — 庫存 v1.0</title>
+<style>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.7;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:32px 0 8px;padding:7px 13px;border-radius:5px;}
+h3.sub{color:var(--navy);font-size:14px;margin:16px 0 4px;border-bottom:1px dashed var(--line);padding-bottom:2px;}
+h3.ent{color:var(--navy);font-size:15.5px;margin:20px 0 3px;padding-left:10px;border-left:4px solid var(--amber);}
+.mt{display:inline-block;font-size:10.5px;font-weight:700;background:#eef2f8;color:var(--navy);border-radius:3px;padding:0 6px;margin-left:5px;vertical-align:middle;}
+.ent-menu{color:var(--sub);font-size:12px;margin:0 0 6px;}
+p{margin:6px 0;font-size:13.5px;}
+.ep{margin:8px 0;} .ep-h{font-size:12.5px;font-weight:700;color:var(--star);background:#fdf6e9;border:1px solid #ecd9b0;border-bottom:none;border-radius:5px 5px 0 0;padding:4px 10px;}
+table.fields{border-collapse:collapse;width:100%;font-size:12.5px;margin:0 0 4px;}
+table.fields th,table.fields td{border:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top;}
+table.fields th{background:#33507a;color:#fff;font-weight:600;}
+table.fields tr:nth-child(even) td{background:var(--bg);}
+table.stt td:first-child{font-weight:700;color:var(--navy);white-space:nowrap;}
+td.fnm{font-weight:700;color:var(--navy);white-space:nowrap;}
+td.prop{white-space:nowrap;color:#6a4a12;font-size:11.5px;}
+.cal{border-radius:5px;padding:7px 12px;margin:6px 0;font-size:12.5px;line-height:1.6;}
+.cal.warn{background:#fbf0f0;border:1px solid #e6c4c4;border-left:4px solid var(--warn);}
+.cal.note{background:#eef3f9;border:1px solid #cfddee;border-left:4px solid #33507a;}
+.cal.star{background:#fdf6e9;border:1px solid #ecd9b0;border-left:4px solid var(--amber);}
+.cal b{color:var(--navy);}
+.lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
+ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
+footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style></head><body>
+<header class="doc"><h1>需求規格 03 — 庫存</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-03-庫存.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX03（核心 / LITE）<br>
+<b>說明：</b>庫存模組「該做成怎樣」的施工級需求——逐主檔/單據列欄位、狀態、規則、關聯。操作步驟見《操作手冊-04》；工程慣例見《核心系統規格》。</div></header>
+<p class="lead">庫存模組涵蓋：庫存查詢與異動流水、產品庫存設定、倉位庫位、盤點、<b>異常處置（六種，含特價售出）</b>、重組分解、進貨工作站（驗貨上架）、撿包送出貨、開帳存（初次導入）。入庫源自進貨、出庫連動銷貨、特價售出與報廢連動財務。</p>
+
+<h2>通用操作</h2>
+<p>庫存的功能大多是各自獨立的作業（查庫存、盤點、處理異常、重組分解等），不像進貨那樣是一條長流程。這一章先講共通的操作。</p>
+<h3 class="sub">怎麼進到庫存作業</h3>
+<p>按左上角的星球選單鈕（快速鍵 Alt+X）→ 選「庫存」，或從下方工具列（dock）的「庫存」項展開進入。庫存底下就是各項作業：庫存查詢、產品庫存設定、倉位庫位、盤點、異常處置、重組分解、進貨工作站、撿包送、開帳存。</p>
+<div class="cal note">【說明】 庫存沒有中間的「庫存中心」頁；各項作業從星球選單或 dock 直接進。</div>
+<h3 class="sub">欄位徽章說明</h3>
+<div class="ep"><div class="ep-h">徽章意思</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">必填</td><td class="prop">選填</td><td>不填不能存檔。</td></tr><tr><td class="fnm">建立後不可改</td><td class="prop">選填</td><td>存檔後就鎖住。</td></tr><tr><td class="fnm">系統自動</td><td class="prop">選填</td><td>系統自動帶或自動算。</td></tr><tr><td class="fnm">進階</td><td class="prop">選填</td><td>進階／少用欄位。</td></tr></table></div>
+
+<h2>庫存查詢</h2>
+
+<h3 class="ent">庫存查詢 <span class="mt">清單頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 庫存查詢</div>
+<p>查每個料件在各倉的庫存狀況。庫存帳由系統自動維護（進貨入庫加、出貨扣），這裡只看、不手改。</p>
+<div class="ep"><div class="ep-h">庫存查詢欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">料件</td><td class="prop">選填</td><td>我方料號＋廠牌料號＋品名。</td></tr><tr><td class="fnm">倉庫</td><td class="prop">選填</td><td>哪個倉。</td></tr><tr><td class="fnm">庫存數量</td><td class="prop">系統自動</td><td>本倉目前現量。</td></tr><tr><td class="fnm">調撥中</td><td class="prop">系統自動</td><td>正在跨倉調撥途中的數量。</td></tr><tr><td class="fnm">預出量</td><td class="prop">系統自動</td><td>已開銷貨單、還沒出貨的預留數量。</td></tr><tr><td class="fnm">平均進價</td><td class="prop">系統自動</td><td>成本參考。</td></tr></table></div>
+
+<h3 class="ent">庫存異動流水 <span class="mt">清單頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 庫存查詢 → 異動明細</div>
+<p>每一筆讓庫存增減的動作都會留下一筆流水（進貨、出貨、調撥、盤點調整、報廢等），可追每顆料件的庫存怎麼變的。</p>
+<div class="ep"><div class="ep-h">異動流水欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">異動日期 / 類型</td><td class="prop">系統自動</td><td>什麼時候、哪種異動（進／出／調整）。</td></tr><tr><td class="fnm">來源單據</td><td class="prop">系統自動</td><td>由哪張單造成的。</td></tr><tr><td class="fnm">數量 / 異動後餘額</td><td class="prop">系統自動</td><td>增減多少、異動後剩多少。</td></tr></table></div>
+
+<h2>產品庫存設定</h2>
+
+<h3 class="ent">產品庫存設定 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 產品庫存設定</div>
+<p>為每個料件、每個倉設定安全量、最高量與預設庫位。低於安全量時系統會列進缺貨簿、提醒補貨。</p>
+<div class="ep"><div class="ep-h">產品庫存設定欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">料件</td><td class="prop">必填</td><td>哪個料件。</td></tr><tr><td class="fnm">倉庫</td><td class="prop">必填</td><td>哪個倉（同一料件可在不同倉各設一組）。</td></tr><tr><td class="fnm">安全量</td><td class="prop">選填</td><td>低於這個量就該補貨；系統依此列缺貨簿。</td></tr><tr><td class="fnm">最高量</td><td class="prop">選填</td><td>庫存上限參考。</td></tr><tr><td class="fnm">預設庫位</td><td class="prop">選填</td><td>這料件在本倉的預設擺放位置。</td></tr></table></div>
+
+<h2>倉位與庫位</h2>
+
+<h3 class="ent">倉庫 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 倉位與庫位 → 倉庫</div>
+<p>管理有哪些倉庫。倉庫綁著庫存的流向邏輯，是庫存帳的基本單位。</p>
+<div class="ep"><div class="ep-h">倉庫欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">倉庫代碼</td><td class="prop">必填 / 建立後不可改</td><td>倉庫的代碼。</td></tr><tr><td class="fnm">倉庫名稱</td><td class="prop">必填</td><td>倉庫名稱。</td></tr><tr><td class="fnm">地址 / 聯絡</td><td class="prop">進階</td><td>倉庫所在與聯絡資訊。</td></tr></table></div>
+
+<h3 class="ent">庫位 <span class="mt">一般表格</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 倉位與庫位 → 庫位</div>
+<p>倉庫底下細分的擺放位置（如 A 區 3 排 2 層）。料件可指定預設庫位，撿貨、上架時依庫位找貨。</p>
+<div class="ep"><div class="ep-h">庫位欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">所屬倉庫</td><td class="prop">必填</td><td>這個庫位在哪個倉。</td></tr><tr><td class="fnm">庫位代碼</td><td class="prop">必填</td><td>庫位編號。</td></tr><tr><td class="fnm">說明</td><td class="prop">選填</td><td>位置描述。</td></tr></table></div>
+
+<h2>盤點</h2>
+
+<h3 class="ent">盤點工作台 <span class="mt">詳細頁（表頭＋明細）</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 盤點</div>
+<p>實地清點庫存、把帳面量和實際量對齊。盤出差異後調整入帳，庫存帳就和現場一致。</p>
+<div class="ep"><div class="ep-h">盤點單表頭欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>盤點單號。</td></tr><tr><td class="fnm">倉庫</td><td class="prop">必填</td><td>盤哪個倉。</td></tr><tr><td class="fnm">盤點日</td><td class="prop">必填</td><td>盤點的日期。</td></tr><tr><td class="fnm">盤點人</td><td class="prop">系統自動</td><td>由建立人／操作人帶入。</td></tr><tr><td class="fnm">狀態</td><td class="prop">系統自動</td><td>盤點的進度。</td></tr></table></div>
+<div class="ep"><div class="ep-h">盤點明細欄位（逐筆料件）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">料件</td><td class="prop">選填</td><td>盤點的料件。</td></tr><tr><td class="fnm">庫位</td><td class="prop">必填</td><td>盤哪個庫位。</td></tr><tr><td class="fnm">帳面量</td><td class="prop">系統自動</td><td>系統帳上的數量。</td></tr><tr><td class="fnm">實盤量</td><td class="prop">必填</td><td>實際數到多少。</td></tr><tr><td class="fnm">差異</td><td class="prop">系統自動</td><td>實盤量 − 帳面量。</td></tr><tr><td class="fnm">單位成本</td><td class="prop">系統自動</td><td>計算差異金額用。</td></tr></table></div>
+
+<h2>異常處置</h2>
+<p>庫存裡發現異常的件（損毀、過期、數量短缺、放錯庫位、其他）時，先開「異常回報」記錄下來，再依狀況選一種處置。異常回報本身只是記錄、不動庫存帳；真正的庫存增減，由你選的處置對應的單據去做。</p>
+
+<h3 class="ent">異常回報 <span class="mt">清單頁＋詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 異常處置</div>
+<div class="ep"><div class="ep-h">異常回報欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>異常單號。</td></tr><tr><td class="fnm">異常類型</td><td class="prop">必填</td><td>損毀／過期／數量短缺／放錯庫位／其他。</td></tr><tr><td class="fnm">回報日期</td><td class="prop">必填</td><td>什麼時候發現的。</td></tr><tr><td class="fnm">倉庫</td><td class="prop">必填</td><td>在哪個倉發現的。</td></tr><tr><td class="fnm">料件 / 數量</td><td class="prop">必填</td><td>哪個料件、幾顆有問題。</td></tr><tr><td class="fnm">庫位</td><td class="prop">選填</td><td>選「放錯庫位」時必填——錯放在哪個庫位。</td></tr><tr><td class="fnm">來源</td><td class="prop">選填</td><td>從哪裡發現的（如銷貨檢貨、盤點時發現），系統可連回來源單據。</td></tr><tr><td class="fnm">照片</td><td class="prop">選填</td><td>佐證照片。</td></tr><tr><td class="fnm">處置方式</td><td class="prop">選填</td><td>選一種處置（見下方六種）。</td></tr><tr><td class="fnm">狀態</td><td class="prop">系統自動</td><td>草稿 → 已回報 → 處理中 → 結案（可取消）。</td></tr></table></div>
+<div class="cal note">【說明】 異常回報只記錄、不動庫存帳。選定處置後，庫存的實際增減由下游單據處理。</div>
+<h3 class="sub">六種處置</h3>
+<div class="ep"><div class="ep-h">處置方式（六選一）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">退貨</td><td class="prop">選填</td><td>退回供應商，走《進貨》的退貨單。</td></tr><tr><td class="fnm">保固</td><td class="prop">選填</td><td>向供應商主張保固，走《進貨》的保固申請單。</td></tr><tr><td class="fnm">重組分解</td><td class="prop">選填</td><td>把件拆解或組合（見下一章），不進損益。</td></tr><tr><td class="fnm">報廢</td><td class="prop">選填</td><td>報廢出庫（不自動進損益、由會計手動處理）。</td></tr><tr><td class="fnm">特價售出</td><td class="prop">選填</td><td>把堪用的瑕疵／即期／中古件用特價賣掉、回收價值，系統會產生一張特價銷貨單。</td></tr><tr><td class="fnm">未處置</td><td class="prop">選填</td><td>預設值。先記著、之後再處理。</td></tr></table></div>
+
+<h3 class="ent">報廢單 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 報廢</div>
+<p>確定要報廢的件開報廢單，過帳後從庫存扣掉。</p>
+<div class="ep"><div class="ep-h">報廢單欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>報廢單號。</td></tr><tr><td class="fnm">倉庫</td><td class="prop">必填</td><td>從哪個倉報廢。</td></tr><tr><td class="fnm">報廢明細</td><td class="prop">必填</td><td>料件、庫位、數量、報廢原因（原因選「其他」時需填說明）。</td></tr><tr><td class="fnm">狀態</td><td class="prop">系統自動</td><td>草稿 → 過帳 → （可作廢）。</td></tr></table></div>
+<div class="cal note">【說明】 報廢過帳會出庫、扣庫存，但不自動進損益表——損失由會計手動入帳（這是刻意的邊界）。</div>
+
+<h3 class="ent">特價售出 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 異常處置（異常單詳細頁選「特價售出」）</div>
+<p>異常件選「特價售出」處置時，系統會建一張特價銷貨單，填買家與特價售出，貨從庫存出、應收進財務。把瑕疵但堪用、即期、中古的件用特價賣掉回收價值，而不是直接報廢虧光。</p>
+<div class="ep"><div class="ep-h">特價售出（產生特價銷貨單）</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">買家</td><td class="prop">必填</td><td>賣給誰。</td></tr><tr><td class="fnm">特價</td><td class="prop">必填</td><td>這次特價售出的單價（由你填）。</td></tr><tr><td class="fnm">數量</td><td class="prop">必填</td><td>賣出數量。</td></tr><tr><td class="fnm">成本</td><td class="prop">系統自動</td><td>用原平均成本計入；售價是特價，毛利會反映折損。</td></tr></table></div>
+<div class="cal star">【重點】 特價售出走一般銷貨的流程（出庫、應收），只是標記為「特價」。怎麼定特價、即期／瑕疵／中古的優惠價規則，見《銷貨》操作手冊。</div>
+
+<h2>重組分解</h2>
+
+<h3 class="ent">重組分解 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 重組分解</div>
+<p>把庫存的料件「組合」或「拆解」。例如把零件組裝成套件（合併），或把整組拆成單品（分解）。系統會把投入的料件扣庫存、把產出的料件加庫存，並算好成本。</p>
+<div class="ep"><div class="ep-h">重組分解欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>重組分解單號。</td></tr><tr><td class="fnm">模式</td><td class="prop">必填</td><td>合併（多件組成一件）／分解（一件拆成多件）。</td></tr><tr><td class="fnm">投入料件</td><td class="prop">必填</td><td>要消耗的料件與數量（扣庫存）。</td></tr><tr><td class="fnm">產出料件</td><td class="prop">必填</td><td>產生的料件與數量（加庫存）。</td></tr><tr><td class="fnm">成本</td><td class="prop">系統自動</td><td>合併：投入成本加總；分解：依 A 級建議售價比例攤分到各產出料件。</td></tr></table></div>
+<div class="cal note">【說明】 重組分解只在倉庫內換料件型態、會動庫存帳，但不進損益（不是買賣）。</div>
+
+<h2>進貨工作站</h2>
+
+<h3 class="ent">進貨工作站（驗貨上架） <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 進貨工作站</div>
+<p>倉庫端收貨時的作業：核對到貨、把貨上架到庫位。概念上和《進貨》的進貨單搭配：進貨單記「收了什麼、驗收結果」，進貨工作站處理「實體貨怎麼上架到哪個庫位」。</p>
+<div class="ep"><div class="ep-h">進貨工作站欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">料件 / 數量</td><td class="prop">選填</td><td>驗貨上架的料件與數量。</td></tr><tr><td class="fnm">庫位</td><td class="prop">選填</td><td>上架到哪個庫位。</td></tr></table></div>
+
+<h2>撿包送</h2>
+<p>出貨端的三步作業：撿貨、包裝、出貨。多在手機螢幕上操作，倉管邊走邊撿邊掃。</p>
+
+<h3 class="ent">撿貨 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 撿包送 → 撿貨</div>
+<div class="ep"><div class="ep-h">撿貨欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">對應出貨單</td><td class="prop">選填</td><td>依哪張銷貨／出貨單撿。</td></tr><tr><td class="fnm">料件 / 數量 / 庫位</td><td class="prop">選填</td><td>要撿的料件、數量、去哪個庫位撿。</td></tr><tr><td class="fnm">已撿量</td><td class="prop">選填</td><td>撿了多少。</td></tr></table></div>
+
+<h3 class="ent">包裝 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 撿包送 → 包裝</div>
+<div class="ep"><div class="ep-h">包裝欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">撿好的料件</td><td class="prop">選填</td><td>撿貨完成的料件。</td></tr><tr><td class="fnm">包裹</td><td class="prop">選填</td><td>裝成幾個包裹、各裝什麼。</td></tr><tr><td class="fnm">包裹規格</td><td class="prop">進階</td><td>長寬高重。</td></tr></table></div>
+
+<h3 class="ent">出貨 <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 撿包送 → 出貨</div>
+<div class="ep"><div class="ep-h">出貨欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">包裹</td><td class="prop">選填</td><td>要出的包裹。</td></tr><tr><td class="fnm">配送方式</td><td class="prop">選填</td><td>怎麼送（自取／物流）。</td></tr><tr><td class="fnm">出貨確認</td><td class="prop">選填</td><td>確認出貨、庫存正式扣掉。</td></tr></table></div>
+<div class="cal note">【說明】 撿貨路徑最佳化、GPS、外送整合（Lalamove 等）屬加購套件，見對應的套件手冊。</div>
+
+<h2>開帳存</h2>
+
+<h3 class="ent">開帳存（初次導入） <span class="mt">詳細頁</span> <span class="mt">LITE</span></h3>
+<div class="ent-menu">選單位置 庫存 → 開帳存</div>
+<p>系統剛上線時，把現有的庫存初值一次導入：每個料件在各倉有多少、成本多少。這是一次性的起始動作（通常由 Innova 代為匯入），導入後庫存帳就從這個初值開始跑。</p>
+<div class="ep"><div class="ep-h">開帳存欄位</div><table class="fields"><tr><th>欄位</th><th>性質</th><th>規則／來源／說明</th></tr><tr><td class="fnm">單號</td><td class="prop">系統自動</td><td>開帳單號。</td></tr><tr><td class="fnm">倉庫</td><td class="prop">必填</td><td>哪個倉的初值。</td></tr><tr><td class="fnm">開帳日</td><td class="prop">必填</td><td>庫存初值的基準日。</td></tr><tr><td class="fnm">明細</td><td class="prop">必填</td><td>料件、期初數量、期初成本。</td></tr></table></div>
+<div class="cal note">【說明】 開帳存是一次性的起始導入，不是日常作業；新客戶上線時由 Innova 代為匯入。</div>
+<h2>待釐清 / 待驗證</h2>
+<ul>
+<li>① <b>特價售出連動銷貨＋財務：</b>處置選「特價售出」會產生一張特價銷貨單，售價脫離客戶分級毛利、低於成本屬正常。系統須「認得是瑕疵特價、不跳毛利警示」，且與正常銷貨分流、避免污染毛利報表。須與《需求規格-04 銷貨》《財務》對齊欄位與過帳。</li>
+<li>② <b>報廢過帳：</b>報廢單過帳從庫存扣掉，但「不自動進損益、由會計手動處理」——此手動處理的科目與時點，連動財務 NX05。</li>
+<li>③ <b>在途量／可用庫存：</b>採購已核准未入庫的在途量，是否計入可用庫存（與進貨 ① 同題）。</li>
+<li>④ <b>開帳存（初次導入）：</b>與 Innova 代建匯入工具的關係——期初庫存由代建匯入或經開帳存單建立，須界定。</li>
+</ul>
+<footer>需求規格 03 庫存 v1.0　·　來源：操作手冊-04（as-built，逐欄抽取）　·　待 Hank 對 schema 驗證落差項後升版。</footer>
+</body></html>

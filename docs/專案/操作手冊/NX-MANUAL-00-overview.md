@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-00-overview.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-00-overview.md -->
+<!-- 檔案版本：v1.2 -->
+<!-- 檔案說明：NEXORA GRID 操作手冊 00 — 整體導覽（LITE 手冊與選購套件手冊的結構分流入口）；等 HTML 化、目前 .md 草稿。 -->
 
 # NX-MANUAL-00 整體導覽
 

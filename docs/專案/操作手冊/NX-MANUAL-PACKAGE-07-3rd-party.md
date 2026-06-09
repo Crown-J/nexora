@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-PACKAGE-07-3rd-party.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-PACKAGE-07-3rd-party.md -->
+<!-- 檔案版本：v0.1 骨架 -->
+<!-- 檔案說明：選購套件操作手冊 PACKAGE-07 — 第三方整合套件（物流 API / Lalamove 等）；骨架待 HTML 化。 -->
 
 # NX-MANUAL-PACKAGE-07 第三方串接套件
 

@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-01-login-home.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-01-login-home.md -->
+<!-- 檔案版本：v1.1 -->
+<!-- 檔案說明：NEXORA GRID 操作手冊 01 — 登入流程與首頁工作台；等 HTML 化、目前 .md 草稿。 -->
 
 # NX-MANUAL-01 登入及首頁
 

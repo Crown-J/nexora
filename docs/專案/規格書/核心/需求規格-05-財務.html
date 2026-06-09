@@ -1,0 +1,119 @@
+<!-- 檔案位置：docs/專案/規格書/核心/需求規格-05-財務.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：財務模組（NX05）功能需求（施工級藍圖）。以財務手冊為設計意圖、疊加 Hank 程式碼完成度盤點（commit 311165db）。
+     狀態標記：✅已建 / 🟡部分 / ❌未開放 / ⚠️補做候選 / 🔵設計如此。對應《操作手冊-06》。 -->
+<!DOCTYPE html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求規格 05 — 財務 v1.0</title>
+<style>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;--ok:#1f6b3a;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.7;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:32px 0 8px;padding:7px 13px;border-radius:5px;}
+h2 .st{font-size:12px;font-weight:600;margin-left:8px;}
+h3{color:var(--navy);font-size:14.5px;margin:16px 0 4px;padding-left:9px;border-left:4px solid var(--amber);}
+p{margin:6px 0;font-size:13.5px;}
+ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0;}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+td.k{font-weight:700;color:var(--navy);white-space:nowrap;}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:0 7px;}
+.t-ok{background:#e6f4ea;color:var(--ok);} .t-part{background:#fdf3e3;color:#7a4e09;}
+.t-no{background:#f0eef0;color:#555;} .t-fix{background:#fbeeee;color:var(--warn);} .t-dsn{background:#eef3f9;color:#33507a;}
+.cal{border-radius:5px;padding:8px 13px;margin:7px 0;font-size:12.5px;line-height:1.6;}
+.cal.warn{background:#fbf0f0;border:1px solid #e6c4c4;border-left:4px solid var(--warn);}
+.cal.note{background:#eef3f9;border:1px solid #cfddee;border-left:4px solid #33507a;}
+.cal.star{background:#fdf6e9;border:1px solid #ecd9b0;border-left:4px solid var(--amber);}
+.cal b{color:var(--navy);}
+.lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
+footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style></head><body>
+<header class="doc"><h1>需求規格 05 — 財務</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-05-財務.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）　|　<b>NX 碼：</b>NX05（核心 / LITE）<br>
+<b>說明：</b>財務模組需求＝財務手冊（設計意圖）＋ Hank 程式碼盤點（commit 311165db）。狀態標記：<span class="tag t-ok">✅已建</span> <span class="tag t-part">🟡部分</span> <span class="tag t-no">❌未開放</span> <span class="tag t-fix">⚠️補做候選</span> <span class="tag t-dsn">🔵設計如此</span>。操作見《操作手冊-06》。</div></header>
+<p class="lead">財務模組管「錢的進出」：客戶欠多少（<b>應收 AR</b>）、欠廠商多少（<b>應付 AP</b>）、每筆<b>收付款</b>怎麼沖帳、<b>折讓</b>怎麼核可、<b>月關帳與 401</b>。核心觀念：應收應付<b>不手動建立</b>，一律由單據自動產生（AR 來自銷貨開票、AP 來自採購廠商確認與銷退退款）。</p>
+
+<h2>1. 應收 AR <span class="st"><span class="tag t-ok">✅已建</span></span></h2>
+<p><b>來源（自動產生、無新增鈕）：</b>銷貨單開立發票 → 自動產生 AR；亦接收庫存「特價售出」產生之特價銷貨單 AR。</p>
+<table>
+<tr><th>項目</th><th>需求</th></tr>
+<tr><td class="k">工作台</td><td>頂部三張即時統計卡：未收餘額、今日到期、逾期未收（紅）。搜尋＋狀態篩選（全部/未到期/逾期/部分收款/已收）。列表：單號、來源、客戶、應收日/到期日、未收餘額、狀態。</td></tr>
+<tr><td class="k">每筆四操作</td><td><b>沖銷</b>（開收款視窗、登記收款沖掉，可一次沖多張）／<b>折讓</b>（開銷貨折讓、待主管核可）／<b>歷史</b>（哪天用哪張票沖了多少）／<b>催款</b>（純內部記錄、<u>不</u>自動寄 email/簡訊）。</td></tr>
+<tr><td class="k">狀態自動判定</td><td>未到期 → 逾期／部分收款 → 已收。依到期日與餘額自動判定；逾期門檻採租戶設定（creditOverdueDaysThreshold）。</td></tr>
+</table>
+<div class="cal note">列表「來源」標示 <b>PR</b> ＝廠商退費衍生的應收（如廠商超收退回），非採購需求單，勿混淆。</div>
+
+<h2>2. 應付 AP <span class="st"><span class="tag t-ok">✅已建（含採購應付）</span></span></h2>
+<table>
+<tr><th>來源</th><th>需求</th><th>狀態</th></tr>
+<tr><td class="k">⭐ 採購單廠商確認 → 應付</td><td>採購單狀態轉「廠商確認（CONFIRMED）」時自動產生應付：apDate＝採購日、到期日＝採購日＋供應商付款條件（預設 NET30）、金額＝採購單總額；採購單改價會同步更新應付。冪等：同一採購單只產一筆。</td><td><span class="tag t-ok">✅</span></td></tr>
+<tr><td class="k">驗收（RR）→ 應付</td><td>進貨驗收亦可產生應付。</td><td><span class="tag t-ok">✅</span></td></tr>
+<tr><td class="k">銷退退款</td><td>客戶退貨要退的錢，由銷退單自動帶來（唯讀彙整，實際核可在折讓核可工作台）。</td><td><span class="tag t-ok">✅</span></td></tr>
+</table>
+<p><b>工作台：</b>四張統計卡（未付總額、採購應付、銷退退款、逾期未付）；三分頁（全部、採購應付、銷退退款）。操作：沖銷、折讓、歷史。<b>無手動新建</b>應付（全由上游單據自動產生）。</p>
+<div class="cal warn"><b>⚠️ 更正手冊：</b>財務手冊 v1.1 寫「採購應付＝建置中、目前不通」<b>已過時</b>——此鏈已完整串通。請 Hank 更新手冊狀態。</div>
+
+<h2>3. 收付款 / 票據 <span class="st"><span class="tag t-part">🟡部分</span></span></h2>
+<p>記錄每筆收款/付款（現金/匯款/支票/信用卡），同時沖掉一張或多張應收/應付。</p>
+<h3>3.1 一票沖多筆（核心）</h3>
+<p>一筆收/付款可同時沖多張帳、各自指定金額（例：客戶付 10,000 → 沖 A單5,000＋B單3,000＋C單2,000）。操作：新增收/付款 → 選對象（系統自動載入該對象所有未結清帳）→ 填日期/金額/付款方式 → 勾選要沖的帳填金額 → 「自動分配剩餘」→ 確認（沖銷總額須＝票額，容差 0.01）。送出後自動扣對應 AR/AP 餘額、更新狀態。</p>
+<div class="cal note"><b>收付方向過濾（防掛錯帳）：</b>收款只能選客戶/同行；付款只能選供應商/廠商/物流/銀行。選不到對象多半是方向不符。</div>
+<div class="cal warn"><b>⚠️ 補做候選（Hank 標為唯一明顯坑）：</b>後端目前信任前端傳的沖帳明細、<b>未校驗「沖帳總和＝票額」、未自動補餘到最後一筆</b>。需補：後端加總和校驗，或 UI 自動算。高優先、工小。</div>
+
+<h2>4. 折讓核可 <span class="st"><span class="tag t-ok">✅已建</span></span></h2>
+<p>折讓＝少收或少付的補償；設計成「先開單、主管核可後才真正沖帳」，防隨意打折短收。</p>
+<table>
+<tr><th>項目</th><th>需求</th></tr>
+<tr><td class="k">兩方向</td><td><b>銷貨折讓</b>（少收客戶，如退貨/瑕疵補償）／<b>進貨折讓</b>（少付廠商，如來貨瑕疵抵下次採購）。</td></tr>
+<tr><td class="k">誰開誰核可</td><td>業務/財務開立（草稿）；主管/負責人核可。誰能開、誰能核可由<b>角色權限控制（不寫死）</b>，於職務權限設定配置。</td></tr>
+<tr><td class="k">核可</td><td>跳雙重確認 → 自動建立沖銷紀錄、直接扣 AR/AP 餘額。<b>核可不可復原</b>（須反向開單修正）。</td></tr>
+<tr><td class="k">駁回</td><td>須填駁回原因（永久保存供稽核）。</td></tr>
+<tr><td class="k">銷退自動折讓</td><td>客戶退貨選「退錢」→ 系統自動建折讓草稿，與人工折讓一起進「待核可」，核可後一樣自動沖銷；可追溯回原應收/銷退單。</td></tr>
+<tr><td class="k">期間鎖</td><td>修改/核可前一律檢查所屬期間是否已關帳（不可改已關帳期間）。</td></tr>
+</table>
+
+<h2>5. 月關帳與 401 <span class="st"><span class="tag t-ok">✅已建</span></span></h2>
+<h3>5.1 月關帳</h3>
+<p>建立當月關帳單（開立）→ 確認單據齊全後「執行關帳」（已關帳，鎖住當月銷貨/進貨/收付款不能再改）→ 必要時「解除關帳」（須填原因永久保存；限「已關帳」且該期 401「未上報」）。每月只能一張。關帳檢查被 AR/AP/折讓/票據/收付款等 27 處寫入前一律調用。</p>
+<h3>5.2 401 雙月一期</h3>
+<table>
+<tr><th>項目</th><th>需求</th></tr>
+<tr><td class="k">期碼</td><td>雙月一期、一年六期：1–2月＝當年-01、3–4月＝-02、5–6月＝-03、7–8月＝-04、9–10月＝-05、11–12月＝-06。</td></tr>
+<tr><td class="k">彙整預覽</td><td>輸入期碼預覽：銷售/進貨總額、銷項/進項淨額、應納稅額統計卡（銷項/進項拆 5% 稅計算）。</td></tr>
+<tr><td class="k">下載 TXT</td><td>一次下載兩檔（進銷項資料檔＋主表檔，檔名＝公司統編），格式對齊財政部媒體申報要點。</td></tr>
+<tr><td class="k">標記上報</td><td>限「已關帳」且同期兩月都關帳才允許。</td></tr>
+</table>
+<div class="cal warn"><b>⚠️ 標記上報不可逆：</b>一旦標記，該期整整兩個月所有銷貨/進貨/收付款永久鎖死、無法再改、不能取消上報、解除關帳鈕消失。須實際送交國稅局並收回執後才標記；錯誤需聯繫 Innova。</div>
+
+<h2>6. 未開放 / 待拍 <span class="st"></span></h2>
+<table>
+<tr><th>項目</th><th>狀態</th><th>說明</th></tr>
+<tr><td class="k">手動新建 AR/AP</td><td><span class="tag t-dsn">🔵設計如此</span></td><td>帳一律由單據自動產生、不開放手動新建（折讓可人工開）。維持設計。</td></tr>
+<tr><td class="k">催款自動通知客戶</td><td><span class="tag t-dsn">🔵設計如此</span></td><td>催款僅內部記錄、不寄 email/簡訊。維持設計。</td></tr>
+<tr><td class="k">401 特殊明細</td><td><span class="tag t-part">🟡待拍</span></td><td>進口/零稅率/免稅/不得扣抵未細分（基礎版只算銷項減進項，由會計師調整）。<b>⚠️ 待 CEO 確認</b>是否要納入系統。</td></tr>
+<tr><td class="k">自有銀行帳戶管理</td><td><span class="tag t-fix">⚠️補做候選</span></td><td>目前僅票據上有銀行文字欄、無獨立銀行帳戶主檔/CRUD。低優先。</td></tr>
+</table>
+
+<h2>7. 跨模組接點</h2>
+<table>
+<tr><th>接點</th><th>狀態</th><th>說明</th></tr>
+<tr><td class="k">進貨：採購廠商確認 → 應付</td><td><span class="tag t-ok">✅完整串通</span></td><td>冪等（同採購單只一筆）、採購改價同步應付。對應《需求規格-02 進貨》。</td></tr>
+<tr><td class="k">庫存：特價售出 → 應收</td><td><span class="tag t-fix">⚠️補做候選</span></td><td>特價銷貨單會自動產 AR ✅；但 <b>AR 帳未分流</b>正常/特價（可由 so 旗標反查）。違反產品鐵則「特價與正常分流、不污染毛利報表」——應補 sourceTag 或讓 AR 列表帶特價旗標。對應《需求規格-03 庫存》《04 銷貨》。</td></tr>
+<tr><td class="k">銷貨：開票 → 應收 / 銷退退款 → 應付</td><td><span class="tag t-ok">✅</span></td><td>對應《需求規格-04 銷貨》。</td></tr>
+</table>
+
+<h2>待釐清 / 補做候選彙整</h2>
+<ul>
+<li>⚠️ <b>收付款後端校驗：</b>沖帳總和＝票額、自動補餘（高優先、工小）。</li>
+<li>⚠️ <b>特價售出 AR 分流：</b>加 sourceTag='SPECIAL' 或 AR 列表帶特價旗標，落實毛利報表不被特價污染。</li>
+<li>🟡 <b>401 特殊明細：</b>是否納入進口/零稅率/免稅/不得扣抵（待 CEO 拍）。</li>
+<li>⚠️ <b>銀行帳戶主檔：</b>是否建獨立主檔（低優先）。</li>
+<li>📘 <b>改手冊：</b>財務手冊「採購應付建置中」「催款未開放」已過時，請 Hank 更新。</li>
+</ul>
+<footer>需求規格 05 財務 v1.0　·　來源：財務手冊 v1.1（設計意圖）＋ Hank 程式碼盤點 commit 311165db　·　補做/待拍項解決後升版。</footer>
+</body></html>

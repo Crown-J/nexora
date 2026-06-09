@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-PACKAGE-01-auto-database.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-PACKAGE-01-auto-database.md -->
+<!-- 檔案版本：v0.1 骨架 -->
+<!-- 檔案說明：選購套件操作手冊 PACKAGE-01 — 汽車資料庫套件（車型字典/車輛分類）；骨架待 HTML 化。 -->
 
 # NX-MANUAL-PACKAGE-01 汽車資料庫套件
 

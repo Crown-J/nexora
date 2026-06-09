@@ -1,4 +1,6 @@
-<!-- C:/NEXORA/docs/_team/manuals/NX-MANUAL-PACKAGE-05-kpi.md -->
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-PACKAGE-05-kpi.md -->
+<!-- 檔案版本：v0.1 骨架 -->
+<!-- 檔案說明：選購套件操作手冊 PACKAGE-05 — KPI / OKR 績效管理套件；骨架待 HTML 化。 -->
 
 # NX-MANUAL-PACKAGE-05 KPI 系統套件
 
