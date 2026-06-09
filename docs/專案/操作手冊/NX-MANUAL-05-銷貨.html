@@ -1,0 +1,261 @@
+<!-- 檔案位置：docs/專案/操作手冊/NX-MANUAL-05-銷貨.html -->
+<!-- 檔案版本：Ver 1.3 -->
+<!-- 檔案說明：NEXORA GRID LITE 操作手冊 05 — 銷貨（報價/銷貨單/銷退/優惠價子系統/組合套餐⋯）；由 Alex 維護。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NX-MANUAL-05 銷貨</title>
+<style>
+:root{--navy:#1F3A5F;--navy2:#2d4f7c;--ink:#1c2530;--sub:#5d6675;--line:#e6eaf0;--amber:#c8881f;--shell:#0e1622;
+--star-bg:#fbf3e2;--star-tx:#7a4e09;--warn-bg:#fcecec;--warn-bd:#e09a9a;--warn-tx:#962d2d;
+--note-bg:#eef1f5;--note-bd:#c3ccd8;--note-tx:#4a5563;--info-bg:#e6f1fb;--info-tx:#0c447c;--green-bg:#eaf3de;--green-tx:#3b6d11;}
+*{box-sizing:border-box;} html{scroll-behavior:smooth;}
+body{margin:0;background:#f4f6f9;color:var(--ink);font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;line-height:1.78;font-size:16px;}
+a{color:inherit;}
+.topbar{position:sticky;top:0;z-index:20;background:var(--shell);display:flex;align-items:center;gap:4px;padding:0 16px;height:54px;overflow-x:auto;box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.topbar .mk{display:flex;align-items:center;gap:9px;margin-right:10px;flex:none;}
+.topbar .mk .logo{width:30px;height:30px;border-radius:7px;background:#0a0c10;border:1.5px solid var(--amber);color:#f0b94e;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.topbar .mk .nm{color:#eef3f8;font-size:14px;font-weight:600;letter-spacing:.05em;white-space:nowrap;}
+.topbar nav{display:flex;gap:2px;}
+.topbar nav a{color:#9fb0c4;font-size:13px;padding:7px 13px;border-radius:6px;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;}
+.topbar nav a:hover{color:#fff;background:rgba(255,255,255,.06);}
+.topbar nav a.active{color:#fff;background:rgba(200,136,31,.16);border-bottom-color:var(--amber);}
+.wrap{max-width:900px;margin:0 auto;padding:0 32px 120px;}
+.cover{padding:46px 0 8px;border-bottom:1px solid var(--line);margin-bottom:8px;}
+.cover-tag{display:inline-block;font-size:13px;letter-spacing:.14em;color:var(--amber);border:1px solid var(--amber);border-radius:20px;padding:4px 14px;margin-bottom:18px;}
+.cover-title{font-size:38px;color:var(--navy);margin:0;font-weight:700;}
+.cover-name{font-size:23px;color:var(--navy2);margin:2px 0 14px;font-weight:600;}
+.ver{border-collapse:collapse;font-size:13px;margin:6px 0 16px;}
+.ver td{border:1px solid var(--line);padding:5px 12px;}
+.ver .vk{background:#f3f6fa;color:var(--navy);font-weight:600;}
+.cover-sub{color:var(--sub);font-size:15px;line-height:1.9;margin:0;}
+.clog{margin:18px 0 6px;}
+.clog-h{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+h1.chap{font-size:25px;color:var(--navy);margin:54px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--navy);font-weight:700;scroll-margin-top:66px;}
+h2{font-size:18px;color:var(--navy);margin:30px 0 12px;padding-left:11px;border-left:4px solid var(--amber);font-weight:600;scroll-margin-top:66px;}
+h3{font-size:15.5px;color:var(--navy2);margin:22px 0 8px;font-weight:600;}
+p{margin:11px 0;} ul{margin:11px 0;padding-left:22px;} li{margin:5px 0;}
+.master{margin:34px 0 10px;padding-left:12px;border-left:4px solid var(--amber);}
+.master .m-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.master .m-title{font-size:20px;font-weight:700;color:var(--navy);}
+.master .m-tags{display:flex;gap:5px;}
+.mtag{font-size:11px;padding:1.5px 9px;border-radius:10px;}
+.mtag.type{background:var(--note-bg);color:var(--note-tx);}
+.mtag.plan-LITE{background:var(--green-bg);color:var(--green-tx);}
+.mtag.plan-PLUS{background:var(--star-bg);color:var(--star-tx);}
+.mtag.plan-PRO{background:var(--info-bg);color:var(--info-tx);}
+.master .m-menu{font-size:12.5px;color:var(--sub);margin-top:4px;}
+.master .m-menu .m-k{display:inline-block;background:#f3f6fa;color:var(--navy);font-weight:600;border-radius:4px;padding:0 7px;margin-right:7px;}
+.panel{background:#fff;border:0.5px solid var(--line);border-radius:12px;overflow:hidden;margin:12px 0;}
+.p-head{background:var(--navy);color:#fff;font-size:14px;font-weight:600;padding:9px 16px;}
+.frow{display:flex;gap:16px;padding:11px 16px;border-bottom:0.5px solid var(--line);}
+.frow.last{border-bottom:0;}
+.fn{flex:none;width:150px;}
+.fnm{font-size:14px;font-weight:600;color:var(--navy);display:inline;}
+.tag{font-size:10.5px;padding:1px 7px;border-radius:9px;margin-left:5px;white-space:nowrap;display:inline-block;}
+.fd{flex:1;font-size:13.5px;color:var(--sub);line-height:1.62;}
+.steps{background:#f7f9fc;border:0.5px solid var(--line);border-radius:10px;padding:10px 16px 10px;margin:12px 0;}
+.steps .s-head{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+.steps ol{margin:4px 0;padding-left:20px;}
+.steps li{margin:3px 0;font-size:14px;}
+.imgph{margin:14px 0;}
+.imgph .ph-box{border:1.5px dashed #c3ccd8;border-radius:10px;background:#fafbfc;padding:22px 16px;text-align:center;display:flex;flex-direction:column;gap:3px;}
+.imgph .ph-ic{font-size:13px;font-weight:700;color:var(--navy2);}
+.imgph .ph-fn{font-family:Consolas,monospace;font-size:13px;color:var(--amber);}
+.imgph .ph-tip{font-size:11.5px;color:#9aa6b6;}
+.imgph figcaption{font-size:12.5px;color:var(--sub);text-align:center;margin-top:5px;}
+table.data{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;border:0.5px solid var(--line);border-radius:8px;overflow:hidden;}
+table.data th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-weight:600;}
+table.data td{border-top:0.5px solid var(--line);padding:8px 12px;}
+table.data tr:nth-child(even) td{background:#f8fafc;}
+.badge{border-radius:8px;padding:12px 15px;margin:14px 0;font-size:14.5px;border-left:5px solid;line-height:1.66;}
+.badge .lb{font-weight:700;margin-right:5px;}
+.badge.star{background:var(--star-bg);border-color:var(--amber);} .badge.star .lb{color:var(--star-tx);}
+.badge.warn{background:var(--warn-bg);border-color:var(--warn-bd);} .badge.warn .lb{color:var(--warn-tx);}
+.badge.note{background:var(--note-bg);border-color:var(--note-bd);} .badge.note .lb{color:var(--note-tx);}
+.totop{position:fixed;right:24px;bottom:24px;width:42px;height:42px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:19px;box-shadow:0 3px 12px rgba(0,0,0,.25);}
+@media(max-width:680px){.wrap{padding:0 14px 80px;}.frow{flex-direction:column;gap:3px;}.fn{width:auto;}}
+</style></head>
+<body>
+<div class="topbar"><span class="mk"><span class="logo">N</span><span class="nm">NX-MANUAL-05</span></span><nav id="nav"><a href="#c-0">通用操作</a><a href="#c-3">銷貨主流程</a><a href="#c-4">報價單</a><a href="#c-5">銷貨單</a><a href="#c-7">銷貨退回</a><a href="#c-10">優惠價子系統</a><a href="#c-18">客戶與定價設定</a></nav></div>
+<div class="wrap"><header class="cover" id="top"><div class="cover-tag">NEXORA GRID · LITE 操作手冊</div><h1 class="cover-title">NX-MANUAL-05</h1><div class="cover-name">銷貨</div><table class="ver"><tr><td class="vk">版本</td><td>Ver 1.3</td><td class="vk">日期</td><td>2026-06-09</td><td class="vk">維護</td><td>Alex（PM）</td></tr></table><p class="cover-sub">把貨賣給客戶的完整內銷流程：查貨 → 報價 → 銷貨單 → 撿包送 → 配送送達，加上銷貨退回。（外銷尚未開始）<br>另含「優惠價子系統」：促銷、出清、即期、組合套餐怎麼設、怎麼自動套用、怎麼取最低。</p></header><div class="clog"><div class="clog-h">文件修訂紀錄</div><table class="data"><thead><tr><th>版本</th><th>日期</th><th>修改人</th><th>變更說明</th></tr></thead><tbody><tr><td>1.0</td><td>2026-06-09</td><td>Alex</td><td>銷貨手冊定版：流程式格式；涵蓋報價／銷貨單（含信用管控）／銷貨退回／優惠價子系統（折扣代碼、促銷規則、即期自動、組合套餐、取最低、低於成本警示）／客戶與定價設定；對齊系統現況（路徑收斂、F1 優惠價子系統、F2 套餐）</td></tr><tr><td>1.1</td><td>2026-06-09</td><td>Alex</td><td>依總經理回饋修正：主流程改為真實內銷七步（查貨→報價/缺貨同行詢價→銷貨單/缺貨調貨→撿貨單[備貨中]→包貨單[包裹編號]→配送單→送達[已完成]）、標明撿貨單起屬庫存範疇；銷貨單補欄（開單人員/業務員/銷貨方式/帳款年月/揀貨狀態、明細補廠牌/備註/庫位現量）；發票相關註明屬財務；外銷未做不寫</td></tr><tr><td>1.2</td><td>2026-06-09</td><td>Alex</td><td>依總經理回饋補強流程分支：主流程圖加「報價→缺貨→同行調貨入庫」連線；銷貨退回拆為兩種方式（A 業務發起建單派送貨員取回、B 送貨員當場帶回檢查），新增退回流程圖與退回方式欄</td></tr><tr><td>1.3</td><td>2026-06-09</td><td>Alex</td><td>依逐欄核對對齊系統最終狀態：補做後對齊（業務員/銷貨方式/帳款年月/退回方式/已完成狀態/庫位現量/廠牌/揀貨整體進度）；修正（銷貨單狀態加已完成、折扣代碼歸核心主檔、退貨類型改一般/業務通融、信用狀態非表頭欄改開單時管控、折讓走財務折讓單）</td></tr></tbody></table></div><h1 class="chap" id="c-0">通用操作</h1><p>銷貨是「把貨賣給客戶」的完整流程，從報價到收款，再加上退貨。這一章先講共通操作。</p><h2 id="s-1">怎麼進到銷貨作業</h2><p>按左上角的星球選單鈕（快速鍵 Alt+X）→ 選「銷貨」，或從下方工具列（dock）的「銷貨」項展開進入。銷貨底下有：報價單、銷貨單、銷貨退回，以及一組「定價工具」（折扣代碼、促銷規則、組合套餐）。</p><div class="badge note"><span class="lb">【說明】</span>銷貨沒有中間的「銷貨中心」頁；各項作業從星球選單或 dock 直接進。</div><h2 id="s-2">欄位徽章說明</h2><div class="panel"><div class="p-head">徽章意思</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">必填</span></div><div class="fd">不填不能存檔。</div></div><div class="frow"><div class="fn"><span class="fnm">建立後不可改</span></div><div class="fd">存檔後就鎖住。</div></div><div class="frow"><div class="fn"><span class="fnm">系統自動</span></div><div class="fd">系統自動帶或自動算。</div></div><div class="frow last"><div class="fn"><span class="fnm">進階</span></div><div class="fd">進階／少用欄位。</div></div></div></div><h1 class="chap" id="c-3">銷貨主流程</h1><p>目前只做內銷（外銷尚未開始）。一筆內銷生意從客戶來電查貨開始，到送達簽收、銷貨單顯示「已完成」。</p><figure style="margin:18px 0;text-align:center;background:#fff;border:0.5px solid var(--line);border-radius:12px;padding:14px 8px;"><div style="max-width:640px;margin:0 auto;"><svg viewBox="0 0 920 980" xmlns="http://www.w3.org/2000/svg" font-family="'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif">
+  <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L6,3 L0,6 Z" fill="#1F3A5F"/></marker></defs>
+  <style>
+    .box{fill:#fff;stroke:#1F3A5F;stroke-width:1.5;}
+    .gbox{fill:#f7f8fa;stroke:#8a93a3;stroke-width:1.4;}
+    .gtab{fill:#8a93a3;}
+    .tab{fill:#c8881f;}
+    .dia{fill:#fff;stroke:#1F3A5F;stroke-width:1.6;}
+    .t{fill:#1F3A5F;font-size:14px;font-weight:700;}
+    .gt{fill:#3f4753;font-size:14px;font-weight:700;}
+    .s{fill:#5d6675;font-size:11.5px;}
+    .dt{fill:#1F3A5F;font-size:12.5px;font-weight:700;}
+    .conn{stroke:#1F3A5F;stroke-width:1.5;fill:none;marker-end:url(#ah);}
+    .line{stroke:#1F3A5F;stroke-width:1.5;fill:none;}
+    .brlbl{fill:#7a4e09;font-size:11.5px;font-weight:700;}
+    .zone{fill:#3f4753;font-size:12px;font-weight:700;}
+    .xbox{fill:#fff;stroke:#962d2d;stroke-width:1.4;stroke-dasharray:5 4;}
+    .xtab{fill:#962d2d;}
+    .xt{fill:#962d2d;font-size:13.5px;font-weight:700;}
+    .xconn{stroke:#962d2d;stroke-width:1.4;fill:none;stroke-dasharray:5 4;marker-end:url(#ah);}
+  </style>
+  <text x="400" y="26" text-anchor="middle" class="t" font-size="18">銷貨主流程（內銷）</text>
+
+  <!-- 1 查貨 -->
+  <g><rect class="box" x="185" y="44" width="280" height="50" rx="9"/><rect class="tab" x="185" y="44" width="5" height="50"/>
+    <text x="205" y="64" class="t">查貨</text><text x="205" y="83" class="s">客戶來電 → 查庫存有沒有貨</text></g>
+  <path class="line" d="M325,94 L325,108"/>
+  <!-- 有貨? diamond -->
+  <polygon class="dia" points="325,108 392,138 325,168 258,138"/>
+  <text x="325" y="143" text-anchor="middle" class="dt">有貨?</text>
+  <!-- 沒貨 → 同行詢價 -->
+  <path class="conn" d="M392,138 L560,138"/><text x="468" y="130" text-anchor="middle" class="brlbl">沒貨</text>
+  <g><rect class="box" x="560" y="113" width="300" height="50" rx="9"/><rect class="tab" x="560" y="113" width="5" height="50"/>
+    <text x="580" y="133" class="t">同行詢價</text><text x="580" y="152" class="s">向同行問價，用同行價報</text></g>
+  <path class="line" d="M710,163 L710,192 L325,192"/>
+  <!-- 有貨 ↓ -->
+  <text x="338" y="186" class="brlbl">有貨</text>
+  <path class="conn" d="M325,168 L325,214"/>
+  <!-- 2 報價 -->
+  <g><rect class="box" x="185" y="216" width="280" height="50" rx="9"/><rect class="tab" x="185" y="216" width="5" height="50"/>
+    <text x="205" y="236" class="t">報價</text><text x="205" y="255" class="s">向客戶報價（客戶接受 → 下一步）</text></g>
+  <path class="conn" d="M325,266 L325,296"/><text x="344" y="288" class="brlbl">有貨</text>
+  <path class="conn" d="M465,238 L720,238 L720,298"/><text x="610" y="230" text-anchor="middle" class="brlbl">缺貨／沒貨</text>
+  <!-- 3 建單 + 同行調貨 -->
+  <g><rect class="box" x="185" y="298" width="280" height="56" rx="9"/><rect class="tab" x="185" y="298" width="5" height="56"/>
+    <text x="205" y="320" class="t">建立銷貨單</text><text x="205" y="340" class="s">客戶確定要 → 建單</text></g>
+  <g><rect class="box" x="560" y="300" width="300" height="52" rx="9"/><rect class="tab" x="560" y="300" width="5" height="52"/>
+    <text x="580" y="321" class="t">同行調貨入庫</text><text x="580" y="340" class="s">（缺貨時）詳見《庫存》</text></g>
+  <path class="conn" d="M560,326 L465,326"/>
+
+  <!-- 庫存分隔 -->
+  <line x1="120" y1="378" x2="800" y2="378" stroke="#8a93a3" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="400" y="396" text-anchor="middle" class="zone">↓ 以下屬庫存模組：撿包送 ＋ 配送（詳見《庫存》），銷貨單狀態隨進度更新</text>
+  <path class="conn" d="M325,354 L325,416"/>
+
+  <!-- 4 撿貨單 -->
+  <g><rect class="gbox" x="185" y="418" width="280" height="50" rx="9"/><rect class="gtab" x="185" y="418" width="5" height="50"/>
+    <text x="205" y="438" class="gt">撿貨單</text><text x="205" y="457" class="s">銷貨單確認 → 產生，狀態「備貨中」</text></g>
+  <path class="conn" d="M325,468 L325,490"/>
+  <!-- 5 包貨單 -->
+  <g><rect class="gbox" x="185" y="492" width="280" height="50" rx="9"/><rect class="gtab" x="185" y="492" width="5" height="50"/>
+    <text x="205" y="512" class="gt">包貨單</text><text x="205" y="531" class="s">撿完貨 → 包貨、產生包裹編號</text></g>
+  <path class="line" d="M325,542 L325,560"/>
+  <!-- 配送方式? diamond -->
+  <polygon class="dia" points="325,560 402,592 325,624 248,592"/>
+  <text x="325" y="596" text-anchor="middle" class="dt">配送方式?</text>
+  <!-- 自取/寄貨 → 右 -->
+  <path class="conn" d="M402,592 L560,592"/><text x="478" y="584" text-anchor="middle" class="brlbl">自取／寄貨</text>
+  <g><rect class="box" x="560" y="566" width="300" height="52" rx="9"/><rect class="tab" x="560" y="566" width="5" height="52"/>
+    <text x="580" y="587" class="t">客戶自取／直接寄出</text><text x="580" y="606" class="s">不需配送單</text></g>
+  <path class="line" d="M710,618 L710,838 L465,838"/>
+  <!-- 配送 ↓ -->
+  <text x="340" y="640" class="brlbl">配送</text>
+  <path class="conn" d="M325,624 L325,650"/>
+  <!-- 6 配送單 -->
+  <g><rect class="gbox" x="185" y="652" width="280" height="50" rx="9"/><rect class="gtab" x="185" y="652" width="5" height="50"/>
+    <text x="205" y="672" class="gt">配送單</text><text x="205" y="691" class="s">指派誰送哪些包裹</text></g>
+  <path class="conn" d="M325,702 L325,724"/>
+  <!-- 7 送達簽收 -->
+  <g><rect class="gbox" x="185" y="726" width="280" height="50" rx="9"/><rect class="gtab" x="185" y="726" width="5" height="50"/>
+    <text x="205" y="746" class="gt">送達簽收</text><text x="205" y="765" class="s">送達客戶、客戶簽名</text></g>
+  <path class="conn" d="M325,776 L325,814"/>
+  <!-- 已完成 -->
+  <g><rect class="box" x="185" y="816" width="280" height="46" rx="9" fill="#1F3A5F"/>
+    <text x="325" y="845" text-anchor="middle" class="t" fill="#fff">銷貨單：已完成</text></g>
+
+  <!-- 售後 銷退 -->
+  <path class="xconn" d="M325,862 L325,888"/>
+  <text x="730" y="912" text-anchor="middle" class="xt" font-size="12">售後（視情況）</text>
+  <g><rect class="xbox" x="185" y="890" width="430" height="64" rx="9"/><rect class="xtab" x="185" y="890" width="5" height="64"/>
+    <text x="205" y="916" class="xt">銷貨退回</text>
+    <text x="205" y="938" class="s">客戶退貨：全退／部分退／折讓 → 組長核准 → 退貨配送、庫存回補</text></g>
+</svg>
+</div><figcaption style="font-size:12.5px;color:var(--sub);margin-top:8px;">銷貨主流程（內銷）：查貨 → 報價 → 銷貨單 →〔撿貨單 → 包貨單 → 配送單 → 送達〕</figcaption></figure><div class="steps"><div class="s-head">操作步驟</div><ol><li>客戶來電，先查庫存有沒有貨。</li><li>有貨直接報價；缺貨先向同行詢價、用同行價報。</li><li>客戶確定要就建銷貨單；缺貨先「同行調貨入庫」（見《庫存》）再建單。</li><li>銷貨單確認後，系統產生撿貨單、銷貨單狀態變「備貨中」。</li><li>撿完貨建包貨單、把貨拉進來、產生包裹編號。</li><li>配送方式為「配送」時，建配送單、指派誰送哪些包裹（自取則略過）。</li><li>送達客戶、客戶簽名後，銷貨單顯示「已完成」。</li></ol></div><div class="badge note"><span class="lb">【說明】</span>從「撿貨單」起（撿貨／包貨／配送／送達）屬庫存模組的撿包送＋配送，詳見《庫存》；銷貨單狀態會隨進度更新。開發票與收款屬財務、詳見《財務》。</div><h1 class="chap" id="c-4">報價單</h1><div class="master"><div class="m-row"><div class="m-title">報價單</div><div class="m-tags"><span class="mtag type">詳細頁（表頭＋明細）</span><span class="mtag plan-LITE">LITE</span></div></div><div class="m-menu"><span class="m-k">選單位置</span>銷貨 → 報價單</div></div><p>給客戶報價。可以把同一個需求的原廠／副廠選項並列、讓客戶挑；客戶接受後一鍵轉成銷貨單。</p><figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m05-quote-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>報價單詳細頁</figcaption></figure><div class="panel"><div class="p-head">報價單表頭欄位</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">報價單號。</div></div><div class="frow"><div class="fn"><span class="fnm">客戶</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">報給哪個客戶。</div></div><div class="frow"><div class="fn"><span class="fnm">狀態</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">草稿 → 已送出 → 已接受／已拒絕／已過期（可取消）。</div></div><div class="frow last"><div class="fn"><span class="fnm">有效期限</span></div><div class="fd">報價有效到哪天。</div></div></div></div><div class="panel"><div class="p-head">報價明細欄位（逐筆料件）</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">料件</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">報價的料件。</div></div><div class="frow"><div class="fn"><span class="fnm">數量 / 單價</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">報價數量與單價（單價會帶系統算出的優惠價、見第 6 章）。</div></div><div class="frow"><div class="fn"><span class="fnm">最低售價警示</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">單價低於最低售價守則時會警示、必填原因。</div></div><div class="frow last"><div class="fn"><span class="fnm">選項分組</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">進階</span></div><div class="fd">把同需求的原廠／副廠選項分一組並列、讓客戶挑一個。</div></div></div></div><div class="steps"><div class="s-head">操作步驟</div><ol><li>選客戶、加報價料件與數量（單價系統帶優惠價、可改）。</li><li>需要時把原廠／副廠並列成選項組。</li><li>送出報價；客戶接受後，一鍵「採用」轉成銷貨單。</li></ol></div><h1 class="chap" id="c-5">銷貨單</h1><div class="master"><div class="m-row"><div class="m-title">銷貨單</div><div class="m-tags"><span class="mtag type">詳細頁（表頭＋明細）</span><span class="mtag plan-LITE">LITE</span></div></div><div class="m-menu"><span class="m-k">選單位置</span>銷貨 → 銷貨單</div></div><p>正式的銷售訂單。開單時系統先做信用管控把關，確認後產生應收、進入撿包送。</p><figure class="imgph"><div class="ph-box"><span class="ph-ic">畫面截圖</span><span class="ph-fn">nx-m05-so-01.png</span><span class="ph-tip">（待補：依此檔名截圖放入 images 資料夾即自動顯示）</span></div><figcaption>銷貨單詳細頁</figcaption></figure><div class="panel"><div class="p-head">銷貨單表頭欄位</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">銷貨單號。</div></div><div class="frow"><div class="fn"><span class="fnm">客戶</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">賣給哪個客戶。</div></div><div class="frow"><div class="fn"><span class="fnm">開單人員</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">建立這張單的人。</div></div><div class="frow"><div class="fn"><span class="fnm">業務員</span></div><div class="fd">負責這筆生意的業務（可與開單人員不同）。</div></div><div class="frow"><div class="fn"><span class="fnm">銷貨方式</span></div><div class="fd">下單方式：自叫（客戶來電）／網路單／櫃台／業務上門／LINE 下單。</div></div><div class="frow"><div class="fn"><span class="fnm">帳款年月</span></div><div class="fd">這筆算哪個月的帳（應收用）。</div></div><div class="frow"><div class="fn"><span class="fnm">配送方式</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">自取／配送。</div></div><div class="frow"><div class="fn"><span class="fnm">揀貨狀態</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">整體撿貨進度（取最落後的明細、顯示瓶頸）；撿包送執行在庫存、見《庫存》。</div></div><div class="frow last"><div class="fn"><span class="fnm">狀態</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">草稿 → 已確認 → 備貨中 → 已出貨 → 已完成（送達簽收後自動推進）（可取消）。開發票屬財務里程碑。</div></div></div></div><div class="panel"><div class="p-head">銷貨明細欄位（逐筆料件）</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">料件</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">含廠牌、基準料號、品名。</div></div><div class="frow"><div class="fn"><span class="fnm">數量 / 單價</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">賣多少、單價（系統帶優惠價、取最低、見第 6 章；手動改若低於成本需填原因）。</div></div><div class="frow"><div class="fn"><span class="fnm">庫位現量</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">該料件目前庫存（庫存資訊、供業務參考）。</div></div><div class="frow"><div class="fn"><span class="fnm">備註</span></div><div class="fd">單項註記。</div></div><div class="frow last"><div class="fn"><span class="fnm">撿包送進度</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">這項的撿貨／包裝／出貨進度（庫存）。</div></div></div></div><h2 id="s-6">信用管控</h2><p>開銷貨單時，系統自動檢查四件事，避免賣給有風險的客戶：</p><div class="panel"><div class="p-head">信用管控四道把關</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">黑名單</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">客戶被列黑名單 → 擋。</div></div><div class="frow"><div class="fn"><span class="fnm">信用額度</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">超過客戶的信用額度 → 擋／警示。</div></div><div class="frow"><div class="fn"><span class="fnm">逾期帳款</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">客戶有逾期未收的帳 → 擋／警示。</div></div><div class="frow last"><div class="fn"><span class="fnm">付款條件</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">依客戶付款條件判斷。</div></div></div></div><div class="badge note"><span class="lb">【說明】</span>信用管控是開單時即時檢查，銷貨單上沒有「信用狀態」欄；客戶的信用狀態與額度在客戶主檔（見《核心主檔》）。確認銷貨單會產生應收帳款。發票相關（稅則／發票類型、應稅金額、稅額、含稅總額、發票號、發票日期、抬頭備註）屬財務、詳見《財務》。</div><h1 class="chap" id="c-7">銷貨退回</h1><p>客戶退貨有兩種方式：業務先接到、建單再派人取回（計畫性）；或送貨員當場被告知、直接帶回檢查（臨時）。兩種最後都走「檢查能不能退 → 核准 → 過帳」。</p><figure style="margin:18px 0;text-align:center;background:#fff;border:0.5px solid var(--line);border-radius:12px;padding:14px 8px;"><div style="max-width:640px;margin:0 auto;"><svg viewBox="0 0 840 470" xmlns="http://www.w3.org/2000/svg" font-family="'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif">
+  <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L6,3 L0,6 Z" fill="#1F3A5F"/></marker></defs>
+  <style>
+    .box{fill:#fff;stroke:#1F3A5F;stroke-width:1.4;}
+    .tab{fill:#c8881f;}
+    .t{fill:#1F3A5F;font-size:13px;font-weight:700;}
+    .s{fill:#5d6675;font-size:11px;}
+    .conn{stroke:#1F3A5F;stroke-width:1.4;fill:none;marker-end:url(#ah);}
+    .col{fill:#7a4e09;font-size:12.5px;font-weight:700;}
+  </style>
+  <text x="420" y="24" text-anchor="middle" class="t" font-size="16">銷貨退回的兩種方式</text>
+  <text x="215" y="50" text-anchor="middle" class="col">方式 A：業務發起（計畫性退貨）</text>
+  <text x="625" y="50" text-anchor="middle" class="col">方式 B：送貨員當場（臨時退貨）</text>
+
+  <!-- A -->
+  <g><rect class="box" x="30" y="62" width="370" height="52" rx="8"/><rect class="tab" x="30" y="62" width="4" height="52"/>
+    <text x="48" y="83" class="t">業務接到客戶要退 → 建銷退單</text><text x="48" y="103" class="s">銷售業務發起</text></g>
+  <path class="conn" d="M215,114 L215,134"/>
+  <g><rect class="box" x="30" y="136" width="370" height="56" rx="8"/><rect class="tab" x="30" y="136" width="4" height="56"/>
+    <text x="48" y="158" class="t">庫存指派送貨員取回</text><text x="48" y="178" class="s">送貨員可能待命中、或正在配送中（屬庫存配送）</text></g>
+  <path class="conn" d="M215,192 L215,214"/>
+  <g><rect class="box" x="30" y="216" width="370" height="48" rx="8"/><rect class="tab" x="30" y="216" width="4" height="48"/>
+    <text x="48" y="245" class="t">送貨員取回貨</text></g>
+
+  <!-- B -->
+  <g><rect class="box" x="440" y="62" width="370" height="52" rx="8"/><rect class="tab" x="440" y="62" width="4" height="52"/>
+    <text x="458" y="83" class="t">客戶當場跟送貨員說要退</text><text x="458" y="103" class="s">送貨員配送時被告知</text></g>
+  <path class="conn" d="M625,114 L625,134"/>
+  <g><rect class="box" x="440" y="136" width="370" height="56" rx="8"/><rect class="tab" x="440" y="136" width="4" height="56"/>
+    <text x="458" y="158" class="t">送貨員把貨帶回</text><text x="458" y="178" class="s">先帶回、不一定退得成</text></g>
+
+  <!-- 匯流 -->
+  <path class="conn" d="M215,264 L215,330 L232,330"/>
+  <path class="conn" d="M625,192 L625,330 L608,330"/>
+  <g><rect class="box" x="234" y="304" width="372" height="52" rx="9"/><rect class="tab" x="234" y="304" width="4" height="52"/>
+    <text x="252" y="325" class="t">倉管／業務檢查能不能退</text><text x="252" y="344" class="s">確認品項、狀況、是否符合退貨條件</text></g>
+  <path class="conn" d="M420,356 L420,380"/>
+  <g><rect class="box" x="190" y="382" width="460" height="54" rx="9" fill="#1F3A5F"/>
+    <text x="420" y="404" text-anchor="middle" class="t" fill="#fff">可退 → 組長核准 → 過帳</text>
+    <text x="420" y="424" text-anchor="middle" class="s" fill="#cdd8e6">庫存回補、財務沖帳</text></g>
+</svg>
+</div><figcaption style="font-size:12.5px;color:var(--sub);margin-top:8px;">銷貨退回的兩種方式</figcaption></figure><h2 id="s-8">方式 A：業務發起（計畫性退貨）</h2><p>業務接到客戶要退貨 → 建銷退單 → 由庫存指派送貨員去取回（送貨員可能待命中、或正在配送中，屬庫存配送）→ 取回後檢查、核准、過帳。</p><h2 id="s-9">方式 B：送貨員當場（臨時退貨）</h2><p>客戶當場直接跟送貨員說這個要退 → 送貨員先把貨帶回 → 交給倉管或業務檢查能不能退 → 可退就建銷退單、核准、過帳。</p><div class="master"><div class="m-row"><div class="m-title">銷貨退回單</div><div class="m-tags"><span class="mtag type">詳細頁（表頭＋明細）</span><span class="mtag plan-LITE">LITE</span></div></div><div class="m-menu"><span class="m-k">選單位置</span>銷貨 → 銷貨退回</div></div><div class="panel"><div class="p-head">銷貨退回欄位</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">單號</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">退回單號。</div></div><div class="frow"><div class="fn"><span class="fnm">原銷貨單</span></div><div class="fd">退的是哪張銷貨單的貨。</div></div><div class="frow"><div class="fn"><span class="fnm">退回方式</span></div><div class="fd">業務發起（A）／送貨員當場帶回（B）。</div></div><div class="frow"><div class="fn"><span class="fnm">退貨類型</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">一般／業務通融。</div></div><div class="frow"><div class="fn"><span class="fnm">取件方式</span></div><div class="fd">客戶自送／外務取回／客戶寄回。</div></div><div class="frow last"><div class="fn"><span class="fnm">狀態</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">草稿 → 驗收中 → 已過帳／已拒絕（可取消）。</div></div></div></div><div class="badge note"><span class="lb">【說明】</span>「全退／部分退」是逐項決定退回數量、不是退貨類型；「折讓」（不退貨、只退錢）走財務的折讓單，詳見《財務》。</div><div class="badge note"><span class="lb">【說明】</span>取回的送貨員調度、退貨配送屬庫存配送，詳見《庫存》；財務沖帳詳見《財務》。</div><h1 class="chap" id="c-10">優惠價子系統</h1><p>優惠價是「針對特定商品（或套餐）給特定售價」，不是整張單打折。開銷貨單／報價時，系統會逐項商品算出該給的價、自動帶入。</p><h2 id="s-11">定價分三層</h2><p>商品的價分三層：基準價（商品本身的建議售價＋客戶等級）、促銷規則（臨時優惠：促銷／出清／即期）、個案特價（瑕疵／中古件個案，見《庫存》的特價售出）。系統開單時，把所有適用的價放進「候選價池」、取最低，就是這個商品給這個客戶的最終價。</p><figure style="margin:18px 0;text-align:center;background:#fff;border:0.5px solid var(--line);border-radius:12px;padding:14px 8px;"><div style="max-width:640px;margin:0 auto;"><svg viewBox="0 0 780 470" xmlns="http://www.w3.org/2000/svg" font-family="'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif">
+  <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L6,3 L0,6 Z" fill="#1F3A5F"/></marker></defs>
+  <style>
+    .box{fill:#fff;stroke:#1F3A5F;stroke-width:1.4;}
+    .tab{fill:#c8881f;}
+    .t{fill:#1F3A5F;font-size:13.5px;font-weight:700;}
+    .s{fill:#5d6675;font-size:11px;}
+    .conn{stroke:#1F3A5F;stroke-width:1.4;fill:none;marker-end:url(#ah);}
+    .lbl{fill:#7a4e09;font-size:12.5px;font-weight:700;}
+    .warn{fill:#962d2d;font-size:11.5px;font-weight:600;}
+  </style>
+  <text x="390" y="26" text-anchor="middle" class="t" font-size="17">優惠價怎麼算：候選價取最低</text>
+  <text x="390" y="50" text-anchor="middle" class="lbl">候選價池（每個商品逐項算）</text>
+
+  <g><rect class="box" x="22" y="62" width="138" height="58" rx="8"/><rect class="tab" x="22" y="62" width="4" height="58"/>
+    <text x="36" y="84" class="t" font-size="12.5">客戶分級價</text><text x="36" y="104" class="s">依客戶等級/個別折數</text></g>
+  <g><rect class="box" x="170" y="62" width="138" height="58" rx="8"/><rect class="tab" x="170" y="62" width="4" height="58"/>
+    <text x="184" y="84" class="t" font-size="12.5">折扣代碼</text><text x="184" y="104" class="s">瑕疵/中古/VIP/量</text></g>
+  <g><rect class="box" x="318" y="62" width="138" height="58" rx="8"/><rect class="tab" x="318" y="62" width="4" height="58"/>
+    <text x="332" y="84" class="t" font-size="12.5">促銷活動</text><text x="332" y="104" class="s">時段×範圍×價</text></g>
+  <g><rect class="box" x="466" y="62" width="138" height="58" rx="8"/><rect class="tab" x="466" y="62" width="4" height="58"/>
+    <text x="480" y="84" class="t" font-size="12.5">出清</text><text x="480" y="104" class="s">出清旗標特價</text></g>
+  <g><rect class="box" x="614" y="62" width="144" height="58" rx="8"/><rect class="tab" x="614" y="62" width="4" height="58"/>
+    <text x="628" y="84" class="t" font-size="12.5">即期</text><text x="628" y="104" class="s">批號快到期自動帶</text></g>
+
+  <path class="conn" d="M91,120 L91,150 L390,150 L390,176"/>
+  <path class="conn" d="M239,120 L239,150"/>
+  <path class="conn" d="M387,120 L387,150"/>
+  <path class="conn" d="M535,120 L535,150 L390,150"/>
+  <path class="conn" d="M686,120 L686,150 L390,150"/>
+
+  <g><rect class="box" x="280" y="178" width="220" height="58" rx="9" fill="#c8881f"/>
+    <text x="390" y="213" text-anchor="middle" class="t" fill="#fff" font-size="15">取最低</text></g>
+  <path class="conn" d="M390,236 L390,262"/>
+  <g><rect class="box" x="260" y="264" width="260" height="58" rx="9" fill="#1F3A5F"/>
+    <text x="390" y="299" text-anchor="middle" class="t" fill="#fff" font-size="15">這個商品的最終單價</text></g>
+
+  <text x="390" y="356" text-anchor="middle" class="warn">⚠ 最終單價 ≤ 成本（虧本賣，如出清/即期）→ 系統警示、必填原因後放行</text>
+  <text x="390" y="384" text-anchor="middle" class="s">VIP 若分級價本來就最低 → 保有自己的低價（不會被促銷拉高）</text>
+  <text x="390" y="410" text-anchor="middle" class="s">組合套餐另計：選套餐就用整組打包價，組內商品不再各自套促銷</text>
+</svg>
+</div><figcaption style="font-size:12.5px;color:var(--sub);margin-top:8px;">優惠價怎麼算：候選價池取最低</figcaption></figure><h2 id="s-12">第 1 層：基準售價</h2><div class="panel"><div class="p-head">基準售價（既有，見《核心主檔》）</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">四級建議售價</span></div><div class="fd">每個料件有 A／B／C／D 四級建議價。</div></div><div class="frow"><div class="fn"><span class="fnm">客戶分級</span></div><div class="fd">客戶分 A／B／C／D 級，對應挑哪一級建議價。</div></div><div class="frow last"><div class="fn"><span class="fnm">個別折數</span></div><div class="fd">個別客戶可覆寫分級、設專屬折數。</div></div></div></div><h2 id="s-13">第 2 層：促銷規則</h2><div class="master"><div class="m-row"><div class="m-title">促銷規則</div><div class="m-tags"><span class="mtag type">詳細頁（表頭＋範圍）</span><span class="mtag plan-LITE">LITE</span></div></div><div class="m-menu"><span class="m-k">選單位置</span>銷貨 → 定價工具 → 促銷規則</div></div><p>一條規則 = 在某段時間、對某範圍的商品、給一個優惠價。促銷、出清、批量折扣都用這一個引擎設。</p><div class="panel"><div class="p-head">促銷規則欄位</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">代碼 / 名稱</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">規則代碼與名稱。</div></div><div class="frow"><div class="fn"><span class="fnm">生效時段</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">起迄日期；只在這段時間內套用。</div></div><div class="frow"><div class="fn"><span class="fnm">商品範圍</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">指定料件（可多選）／品牌／料件族群（三選一範圍類型）。</div></div><div class="frow"><div class="fn"><span class="fnm">優惠價</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">這個範圍的商品在此時段賣多少（絕對單價）。</div></div><div class="frow"><div class="fn"><span class="fnm">出清旗標</span></div><div class="fd">標為出清；出清價只套在即期批、不套新鮮批。</div></div><div class="frow"><div class="fn"><span class="fnm">買 N 件以上</span></div><div class="fd">批量折扣：買到一定數量才套。</div></div><div class="frow last"><div class="fn"><span class="fnm">啟用</span></div><div class="fd">開／關這條規則。</div></div></div></div><div class="badge note"><span class="lb">【說明】</span>按「車型」促銷需要車型字典，屬「汽車資料庫套件」，詳見套件手冊；LITE 的促銷範圍是料件／品牌／族群。</div><h2 id="s-14">即期自動</h2><p>系統會看每個批號快不快到期：批號的保固到期日距今小於「即期門檻天數」時，自動把它列為即期、套用即期類（出清）優惠價。新鮮的批不會被套出清價。</p><div class="panel"><div class="p-head">即期判定</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">即期門檻天數</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">全域設定（預設 30 天）：到期前幾天算即期。</div></div><div class="frow last"><div class="fn"><span class="fnm">到期日來源</span><span class="tag" style="background:var(--info-bg);color:var(--info-tx);">系統自動</span></div><div class="fd">優先用批號驗收時填的保固到期日；沒填時用「進貨日＋建議保存期限」推算（建議保存期限見《核心主檔》、族群設預設、零件可覆寫）。</div></div></div></div><h2 id="s-15">第 3 層 + 折扣代碼</h2><div class="master"><div class="m-row"><div class="m-title">折扣代碼</div><div class="m-tags"><span class="mtag type">一般表格</span><span class="mtag plan-LITE">LITE</span></div></div><div class="m-menu"><span class="m-k">選單位置</span>核心主檔 → 折扣代碼</div></div><p>折扣代碼（瑕疵、中古、VIP、量大等）在《核心主檔》維護，銷貨開單時掛在明細上引用。個案特價（瑕疵／中古件的特價售出）由《庫存》的異常處置產生、屬第 3 層。</p><div class="panel"><div class="p-head">折扣代碼欄位</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">代碼 / 名稱</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">折扣代碼與名稱。</div></div><div class="frow"><div class="fn"><span class="fnm">折扣方式</span></div><div class="fd">折扣率（%）／折抵金額。</div></div><div class="frow last"><div class="fn"><span class="fnm">啟用</span></div><div class="fd">開／關。</div></div></div></div><h2 id="s-16">組合套餐</h2><div class="master"><div class="m-row"><div class="m-title">組合套餐</div><div class="m-tags"><span class="mtag type">詳細頁（表頭＋組成）</span><span class="mtag plan-LITE">LITE</span></div></div><div class="m-menu"><span class="m-k">選單位置</span>銷貨 → 定價工具 → 組合套餐</div></div><p>把多個商品綁成一組、賣一個打包價（例如 a+b 賣 100）。開單選套餐時，系統帶出組成料件（各自出庫扣庫存），總價就是套餐價。</p><div class="panel"><div class="p-head">組合套餐欄位</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">代碼 / 名稱</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">套餐代碼與名稱。</div></div><div class="frow"><div class="fn"><span class="fnm">套餐價</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">整組打包賣多少。</div></div><div class="frow"><div class="fn"><span class="fnm">生效時段</span></div><div class="fd">套餐有效期間。</div></div><div class="frow last"><div class="fn"><span class="fnm">組成料件</span><span class="tag" style="background:var(--star-bg);color:var(--star-tx);">必填</span></div><div class="fd">套餐裡有哪些料件、各幾個。</div></div></div></div><div class="badge note"><span class="lb">【說明】</span>選了套餐，組內商品「不再各自套促銷」——套餐價就是整組的最終價（避免重複折）。套餐價會按各料件比例分攤回各明細、確保總和等於套餐價。</div><h2 id="s-17">取最低與低於成本警示</h2><p>開單時每個商品把候選價（客戶分級價＋所有適用的促銷／出清／即期）放一起，取最低，就是最終單價。</p><div class="badge note"><span class="lb">【說明】</span>VIP 若分級價本來就比促銷低，他保有自己的低價（不會被促銷拉高）——客戶永遠拿到對他最划算的價。</div><div class="badge warn"><span class="lb">【注意】</span>最終單價低於成本（虧本賣，例如出清、即期）→ 系統警示、必填原因後放行（出清／即期本來就可能認賠）。</div><h1 class="chap" id="c-18">客戶與定價設定</h1><p>這裡講銷貨視角的客戶設定；客戶主檔的完整欄位見《核心主檔》的交易對象。</p><div class="panel"><div class="p-head">銷貨視角的客戶設定</div><div class="p-body"><div class="frow"><div class="fn"><span class="fnm">客戶分級</span></div><div class="fd">A／B／C／D 級，決定挑哪一級建議價、最低毛利率守則。</div></div><div class="frow"><div class="fn"><span class="fnm">個別折數</span></div><div class="fd">覆寫客戶分級、設這個客戶專屬的折數。</div></div><div class="frow"><div class="fn"><span class="fnm">信用額度</span></div><div class="fd">這個客戶最多能欠多少（信用管控用）。</div></div><div class="frow"><div class="fn"><span class="fnm">付款條件</span></div><div class="fd">如 NET30／預付等。</div></div><div class="frow last"><div class="fn"><span class="fnm">預設出貨倉 / 發票份數</span><span class="tag" style="background:var(--note-bg);color:var(--note-tx);">進階</span></div><div class="fd">開單時的預設值。</div></div></div></div><div class="badge note"><span class="lb">【說明】</span>客戶分級主檔（各級的最低毛利率）也在主檔維護，詳見《核心主檔》。</div></div>
+<a class="totop" href="#top" aria-label="回到頂端">&uarr;</a>
+<script>
+(function(){var links=[].slice.call(document.querySelectorAll('#nav a'));var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});var heads=[].slice.call(document.querySelectorAll('h1.chap'));
+function sp(){var pos=window.scrollY+90,cur=null;heads.forEach(function(h){if(h.offsetTop<=pos)cur=h.id;});links.forEach(function(a){a.classList.remove('active');});if(cur&&map[cur]){map[cur].classList.add('active');map[cur].scrollIntoView({inline:'center',block:'nearest'});}}
+window.addEventListener('scroll',sp);sp();})();
+</script>
+</body></html>
