@@ -18,6 +18,7 @@ import {
   type ScopeType,
   SCOPE_TYPE_LABEL,
 } from '../types';
+import { ScopePicker } from './ScopePicker';
 
 function todayYmd(offsetDays = 0): string {
   const d = new Date();
@@ -324,7 +325,9 @@ function CreateDialog({
                 value={s.scopeType}
                 onChange={(e) =>
                   setScopes((p) =>
-                    p.map((x, idx) => (idx === i ? { ...x, scopeType: e.target.value as ScopeType } : x)),
+                    p.map((x, idx) =>
+                      idx === i ? { ...x, scopeType: e.target.value as ScopeType, scopeId: '' } : x,
+                    ),
                   )
                 }
                 className="rounded-md border bg-background px-2 py-1"
@@ -333,17 +336,13 @@ function CreateDialog({
                 <option value="B">B {SCOPE_TYPE_LABEL.B}</option>
                 <option value="G">G {SCOPE_TYPE_LABEL.G}</option>
               </select>
-              <input
+              {/* F1-E 2026-06-09：scope picker（取代手動 ID 輸入） */}
+              <ScopePicker
+                scopeType={s.scopeType}
                 value={s.scopeId}
-                onChange={(e) =>
-                  setScopes((p) => p.map((x, idx) => (idx === i ? { ...x, scopeId: e.target.value } : x)))
+                onChange={(id) =>
+                  setScopes((p) => p.map((x, idx) => (idx === i ? { ...x, scopeId: id } : x)))
                 }
-                placeholder={
-                  s.scopeType === 'P' ? '料件 ID（NX01PART...）' :
-                  s.scopeType === 'B' ? '品牌 ID（NX01BRND...）' :
-                  '族群 ID（NX01PRTG...）'
-                }
-                className="rounded-md border bg-background px-2 py-1 font-mono text-xs"
               />
               <button
                 type="button"

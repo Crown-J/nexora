@@ -164,6 +164,12 @@ export class PatchSoItemDto {
   @Min(0)
   unitPriceSnapshot?: number;
 
+  /** F1-E 銷貨促銷引擎 2026-06-09：改價低於 cost/minPrice 時必填理由（沿用既有範式） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  belowMinReason?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)

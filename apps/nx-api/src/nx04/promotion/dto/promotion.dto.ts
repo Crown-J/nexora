@@ -141,3 +141,31 @@ export class ReplacePromotionScopesDto {
   @Type(() => CreatePromotionScopeDto)
   scopes!: CreatePromotionScopeDto[];
 }
+
+/** F1-E 引擎 resolvePrice 查詢參數（開單時呼叫） */
+export class ResolvePromotionPriceQueryDto {
+  @IsString()
+  @MaxLength(15)
+  customerId!: string;
+
+  @IsString()
+  @MaxLength(15)
+  partId!: string;
+
+  @IsNumberString({ no_symbols: false })
+  qty!: string;
+
+  @IsOptional()
+  @IsDateString()
+  asOfDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  rrItemId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  warehouseId?: string;
+}

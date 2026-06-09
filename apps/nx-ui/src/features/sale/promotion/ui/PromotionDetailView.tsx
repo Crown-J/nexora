@@ -14,6 +14,7 @@ import {
   type ScopeType,
   SCOPE_TYPE_LABEL,
 } from '../types';
+import { ScopePicker } from './ScopePicker';
 
 export function PromotionDetailView({ id }: { id: string }) {
   const [doc, setDoc] = useState<Promotion | null>(null);
@@ -310,7 +311,9 @@ export function PromotionDetailView({ id }: { id: string }) {
                   value={s.scopeType}
                   onChange={(e) =>
                     setScopeDraft((p) =>
-                      p.map((x, idx) => (idx === i ? { ...x, scopeType: e.target.value as ScopeType } : x)),
+                      p.map((x, idx) =>
+                        idx === i ? { ...x, scopeType: e.target.value as ScopeType, scopeId: '' } : x,
+                      ),
                     )
                   }
                   className="rounded-md border bg-background px-2 py-1"
@@ -319,15 +322,13 @@ export function PromotionDetailView({ id }: { id: string }) {
                   <option value="B">B {SCOPE_TYPE_LABEL.B}</option>
                   <option value="G">G {SCOPE_TYPE_LABEL.G}</option>
                 </select>
-                <input
+                {/* F1-E 2026-06-09：scope picker（取代手動 ID 輸入） */}
+                <ScopePicker
+                  scopeType={s.scopeType}
                   value={s.scopeId}
-                  onChange={(e) =>
-                    setScopeDraft((p) => p.map((x, idx) => (idx === i ? { ...x, scopeId: e.target.value } : x)))
+                  onChange={(id) =>
+                    setScopeDraft((p) => p.map((x, idx) => (idx === i ? { ...x, scopeId: id } : x)))
                   }
-                  placeholder={
-                    s.scopeType === 'P' ? '料件 ID' : s.scopeType === 'B' ? '品牌 ID' : '族群 ID'
-                  }
-                  className="rounded-md border bg-background px-2 py-1 font-mono text-xs"
                 />
                 <button
                   type="button"
@@ -341,7 +342,7 @@ export function PromotionDetailView({ id }: { id: string }) {
           )}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          ⚠️ 此版 scope ID 為手動輸入；F1-E 引擎軌升級成 partId / brandId / partGroupId 真實 lookup picker。
+          ⚠️ 改範圍後請按上方「存範圍」整批送出（範式：整批取代）
         </p>
       </section>
 

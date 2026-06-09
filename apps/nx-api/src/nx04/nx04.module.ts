@@ -13,6 +13,7 @@ import { Nx04IssueReportController } from './issue-report/issue-report.controlle
 import { Nx04IssueReportService } from './issue-report/issue-report.service';
 import { PartnerGradeHistoryController } from './partner-grade-history/partner-grade-history.controller';
 import { PartnerGradeHistoryService } from './partner-grade-history/partner-grade-history.service';
+import { PromotionEngineService } from './promotion/promotion-engine.service';
 import { PromotionController } from './promotion/promotion.controller';
 import { PromotionService } from './promotion/promotion.service';
 import { QuoteController } from './quote/quote.controller';
@@ -55,9 +56,11 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     PartnerGradeHistoryService,
     Nx04IssueReportService,
     PromotionService,
+    PromotionEngineService,
     { provide: APP_FILTER, useClass: TranslatorErrorFilter },
   ],
   // F1 特價售出 2026-06-08：export SoService 給 NX03 IssueReportService.dispose('X') 建特價 SO 用
-  exports: [SoService],
+  // F1-E 引擎 2026-06-09：export PromotionEngineService 給 SoService 開單時取建議價 + 警示用
+  exports: [SoService, PromotionEngineService],
 })
 export class Nx04Module {}

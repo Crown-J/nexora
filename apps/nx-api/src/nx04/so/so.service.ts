@@ -34,6 +34,8 @@ import { updateRankingFromPerformance } from '../../shared/nx10/nx10-update-rank
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 // NX04-IMPL-01 Phase 3 commit 3a：授信擋單接點（Crown Q7 + Q-C4=A）
 import { CreditGuardService } from '../credit-guard/credit-guard.service';
+// F1-E 引擎 2026-06-09：取建議價 + 警示
+import { PromotionEngineService } from '../promotion/promotion-engine.service';
 // NX04-M2 §A C2：拉報價建 SO 時 cascade quote 失效
 import { QuoteService } from '../quote/quote.service';
 
@@ -98,6 +100,8 @@ const SO_ITEM_SEL = {
   unitPrice: true,
   lineAmount: true,
   reservedQty: true,
+  // F1-E 銷貨促銷引擎 2026-06-09：低於 cost/minPrice 時必填的理由（沿用 QuoteService 範式）
+  belowMinReason: true,
   remark: true,
   itemStatus: true,
   /// NX04-M3 C2 自行判斷項：UI 雙段狀態組合 + IT-O 警示橫條偵測依賴此 4 欄位、
@@ -141,7 +145,41 @@ export class SoService {
     private readonly expService: Nx10ExpService,
     // NX04-M2 §A C2：cascade QT 失效 wire
     private readonly quoteService: QuoteService,
+    // F1-E 銷貨促銷引擎 2026-06-09：開單時取建議價 + belowMinReason 警示
+    private readonly promotionEngine: PromotionEngineService,
   ) {}
+
+  /**
+   * F1-E 開單套用促銷引擎：把 unitPrice 跟 cost/minPrice 比、必要時要求 belowMinReason。
+   * 邏輯沿用 QuoteService.assertMinPriceReason：unitPrice < minPrice → 必填 belowMinReason，
+   * Alex F1-E：「最終單價 ≤ 成本 → 警示 + 必填 belowMinReason」（出清/即期破底線照走、填理由放行）。
+   */
+  private async assertSoLinePriceReason(
+    user: RequestUser,
+    customerId: string,
+    partId: string,
+    qty: PrismaNs.Decimal,
+    unitPrice: PrismaNs.Decimal,
+    warehouseId: string,
+    belowMinReason: string | null | undefined,
+  ): Promise<void> {
+    const r = await this.promotionEngine.resolvePrice(user, {
+      customerId,
+      partId,
+      qty: qty.toString(),
+      warehouseId,
+    });
+    const minPriceTrigger =
+      r.minPrice !== null && unitPrice.lt(new PrismaNs.Decimal(r.minPrice));
+    const costTrigger = r.cost !== null && unitPrice.lte(new PrismaNs.Decimal(r.cost));
+    if ((minPriceTrigger || costTrigger) && !belowMinReason?.trim()) {
+      throw new BadRequestException(
+        `unitPrice (${unitPrice.toString()}) 低於 ${
+          costTrigger ? `成本 ${r.cost}` : `最低售價 ${r.minPrice}`
+        }；belowMinReason 必填`,
+      );
+    }
+  }
 
   private whereList(tenantId: string, q: Nx04ListQueryDto): Prisma.Nx04SoWhereInput {
     const where: Prisma.Nx04SoWhereInput = { tenantId, cancelledAt: null };
@@ -382,6 +420,16 @@ export class SoService {
       let line = 1;
       if (dto.items?.length) {
         for (const it of dto.items) {
+          // F1-E 銷貨促銷引擎 2026-06-09：unitPrice ≤ cost 或 < minPrice → 必填 belowMinReason
+          await this.assertSoLinePriceReason(
+            user,
+            dto.customerId.trim(),
+            it.partId.trim(),
+            new PrismaNs.Decimal(it.qty),
+            new PrismaNs.Decimal(it.unitPriceSnapshot),
+            it.warehouseId.trim(),
+            it.belowMinReason,
+          );
           await this.createSoItemTx(tx, user, so.id, line++, it);
         }
       }
@@ -829,6 +877,16 @@ export class SoService {
     this.assertSoItemsEditable(head.status);
     const maxLine = await this.prisma.nx04SoItem.aggregate({ where: { soId }, _max: { lineNo: true } });
     const lineNo = (maxLine._max.lineNo ?? 0) + 1;
+    // F1-E 銷貨促銷引擎 2026-06-09：unitPrice ≤ cost 或 < minPrice → 必填 belowMinReason
+    await this.assertSoLinePriceReason(
+      user,
+      head.customerId,
+      dto.partId.trim(),
+      new PrismaNs.Decimal(dto.qty),
+      new PrismaNs.Decimal(dto.unitPriceSnapshot),
+      dto.warehouseId.trim(),
+      dto.belowMinReason,
+    );
     await this.prisma.$transaction(async (tx) => {
       await this.createSoItemTx(tx, user, soId, lineNo, dto);
       await this.recalcSoTotals(tx, soId, new PrismaNs.Decimal(String(head.taxRate)));
@@ -883,6 +941,20 @@ export class SoService {
       dto.unitPriceSnapshot !== undefined
         ? new PrismaNs.Decimal(dto.unitPriceSnapshot)
         : new PrismaNs.Decimal(existing.unitPrice);
+    // F1-E 銷貨促銷引擎 2026-06-09：qty / unitPrice 任一改、重跑警示（belowMinReason 沿用 existing 或 dto）
+    if (dto.qty !== undefined || dto.unitPriceSnapshot !== undefined) {
+      const effectiveReason =
+        (dto as { belowMinReason?: string }).belowMinReason ?? existing.belowMinReason ?? undefined;
+      await this.assertSoLinePriceReason(
+        user,
+        head.customerId,
+        existing.partId,
+        qty,
+        unit,
+        existing.warehouseId,
+        effectiveReason,
+      );
+    }
     const row = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.nx04SoItem.update({
         where: { id: itemId },
@@ -892,6 +964,10 @@ export class SoService {
           unitPrice: unit,
           lineAmount: this.lineAmount(qty, unit),
           ...(dto.remark !== undefined ? { remark: dto.remark?.trim() || null } : {}),
+          // F1-E 2026-06-09：改價低於 cost/minPrice 時的理由 patch
+          ...(dto.belowMinReason !== undefined
+            ? { belowMinReason: dto.belowMinReason?.trim() || null }
+            : {}),
           updatedBy: user.sub,
         },
         select: SO_ITEM_SEL,

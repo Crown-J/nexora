@@ -13,15 +13,34 @@ import {
   CreatePromotionDto,
   ListPromotionQueryDto,
   ReplacePromotionScopesDto,
+  ResolvePromotionPriceQueryDto,
   UpdatePromotionDto,
 } from './dto/promotion.dto';
+import { PromotionEngineService } from './promotion-engine.service';
 import { PromotionService } from './promotion.service';
 
 @Controller('nx04/promotion')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('SYSADMIN', 'OWNER')
 export class PromotionController {
-  constructor(private readonly svc: PromotionService) {}
+  constructor(
+    private readonly svc: PromotionService,
+    private readonly engine: PromotionEngineService,
+  ) {}
+
+  // F1-E 引擎：開單時呼叫帶建議價（業務員可用、不限 admin、@Roles() 開放給已登入者）
+  @Get('resolve')
+  @Roles()
+  resolvePrice(@CurrentUser() user: RequestUser, @Query() q: ResolvePromotionPriceQueryDto) {
+    return this.engine.resolvePrice(user, {
+      customerId: q.customerId,
+      partId: q.partId,
+      qty: q.qty,
+      asOfDate: q.asOfDate,
+      rrItemId: q.rrItemId,
+      warehouseId: q.warehouseId,
+    });
+  }
 
   // 全域設定（必須放在 :id 之前、否則被吃路徑）
   @Get('settings/shelf-life-warning-days')

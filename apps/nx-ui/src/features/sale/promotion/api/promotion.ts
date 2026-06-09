@@ -74,3 +74,62 @@ export function setShelfLifeWarningDays(days: number): Promise<{ shelfLifeWarnin
     body: JSON.stringify({ shelfLifeWarningDays: days }),
   });
 }
+
+/** F1-E 引擎：開單時取建議價 + 警示 */
+export interface PriceCandidate {
+  source: 'NORMAL' | 'PROMOTION' | 'EXPIRY';
+  price: string;
+  code?: string;
+  name?: string;
+  promotionId?: string;
+  isClearance?: boolean;
+}
+
+export interface ExpiryInfo {
+  rrItemId: string | null;
+  warrantyExpiredAt: string | null;
+  effectiveExpiry: string | null;
+  remainingDays: number | null;
+  thresholdDays: number;
+  isExpiring: boolean;
+  fallbackUsed: boolean;
+}
+
+export interface ResolvePriceResult {
+  partId: string;
+  customerId: string;
+  qty: string;
+  asOfDate: string;
+  normalPrice: string | null;
+  normalPriceSource: 'GRADE_PRICE' | 'NONE';
+  gradeCode: string | null;
+  candidates: PriceCandidate[];
+  applicablePromotions: PriceCandidate[];
+  suggested: PriceCandidate;
+  expiry: ExpiryInfo;
+  cost: string | null;
+  minPrice: string | null;
+  belowCost: boolean;
+  belowMinPrice: boolean;
+}
+
+export interface ResolvePriceParams {
+  customerId: string;
+  partId: string;
+  qty: string | number;
+  asOfDate?: string;
+  rrItemId?: string;
+  warehouseId?: string;
+}
+
+export function resolvePromotionPrice(params: ResolvePriceParams): Promise<ResolvePriceResult> {
+  const qs = buildQueryString({
+    customerId: params.customerId,
+    partId: params.partId,
+    qty: String(params.qty),
+    asOfDate: params.asOfDate,
+    rrItemId: params.rrItemId,
+    warehouseId: params.warehouseId,
+  });
+  return apiJson(`/nx04/promotion/resolve${qs}`);
+}
