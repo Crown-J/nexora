@@ -34,6 +34,8 @@ import { updateRankingFromPerformance } from '../../shared/nx10/nx10-update-rank
 import { Nx01AuditLogWriterService } from '../../shared/services/nx01-audit-log-writer.service';
 // NX04-IMPL-01 Phase 3 commit 3a：授信擋單接點（Crown Q7 + Q-C4=A）
 import { CreditGuardService } from '../credit-guard/credit-guard.service';
+// F2 組合套餐 2026-06-09：分攤 bundlePrice 到各 line
+import { BundleService } from '../bundle/bundle.service';
 // F1-E 引擎 2026-06-09：取建議價 + 警示
 import { PromotionEngineService } from '../promotion/promotion-engine.service';
 // NX04-M2 §A C2：拉報價建 SO 時 cascade quote 失效
@@ -102,6 +104,8 @@ const SO_ITEM_SEL = {
   reservedQty: true,
   // F1-E 銷貨促銷引擎 2026-06-09：低於 cost/minPrice 時必填的理由（沿用 QuoteService 範式）
   belowMinReason: true,
+  // F2 組合套餐 2026-06-09：line 屬於哪個套餐（null=非套餐）
+  bundleId: true,
   remark: true,
   itemStatus: true,
   /// NX04-M3 C2 自行判斷項：UI 雙段狀態組合 + IT-O 警示橫條偵測依賴此 4 欄位、
@@ -147,6 +151,8 @@ export class SoService {
     private readonly quoteService: QuoteService,
     // F1-E 銷貨促銷引擎 2026-06-09：開單時取建議價 + belowMinReason 警示
     private readonly promotionEngine: PromotionEngineService,
+    // F2 組合套餐 2026-06-09：套用套餐到 SO 時分攤 bundlePrice
+    private readonly bundleService: BundleService,
   ) {}
 
   /**
@@ -421,15 +427,18 @@ export class SoService {
       if (dto.items?.length) {
         for (const it of dto.items) {
           // F1-E 銷貨促銷引擎 2026-06-09：unitPrice ≤ cost 或 < minPrice → 必填 belowMinReason
-          await this.assertSoLinePriceReason(
-            user,
-            dto.customerId.trim(),
-            it.partId.trim(),
-            new PrismaNs.Decimal(it.qty),
-            new PrismaNs.Decimal(it.unitPriceSnapshot),
-            it.warehouseId.trim(),
-            it.belowMinReason,
-          );
+          // F2 組合套餐 2026-06-09：bundleId 非空 → 跳過引擎檢查（套餐價即最終價、避免重複折）
+          if (!it.bundleId?.trim()) {
+            await this.assertSoLinePriceReason(
+              user,
+              dto.customerId.trim(),
+              it.partId.trim(),
+              new PrismaNs.Decimal(it.qty),
+              new PrismaNs.Decimal(it.unitPriceSnapshot),
+              it.warehouseId.trim(),
+              it.belowMinReason,
+            );
+          }
           await this.createSoItemTx(tx, user, so.id, line++, it);
         }
       }
@@ -590,6 +599,8 @@ export class SoService {
         lineAmount: this.lineAmount(qty, unit),
         reservedQty: new PrismaNs.Decimal(0),
         belowMinReason: it.belowMinReason?.trim() || null,
+        // F2 組合套餐 2026-06-09：line 屬於哪個套餐（null=非套餐）
+        bundleId: it.bundleId?.trim() || null,
         remark: it.remark?.trim() || null,
         itemStatus: 'WP',
         transferSourceType,
@@ -878,15 +889,18 @@ export class SoService {
     const maxLine = await this.prisma.nx04SoItem.aggregate({ where: { soId }, _max: { lineNo: true } });
     const lineNo = (maxLine._max.lineNo ?? 0) + 1;
     // F1-E 銷貨促銷引擎 2026-06-09：unitPrice ≤ cost 或 < minPrice → 必填 belowMinReason
-    await this.assertSoLinePriceReason(
-      user,
-      head.customerId,
-      dto.partId.trim(),
-      new PrismaNs.Decimal(dto.qty),
-      new PrismaNs.Decimal(dto.unitPriceSnapshot),
-      dto.warehouseId.trim(),
-      dto.belowMinReason,
-    );
+    // F2 組合套餐 2026-06-09：bundleId 非空 → 跳過引擎檢查（套餐價即最終價、避免重複折）
+    if (!dto.bundleId?.trim()) {
+      await this.assertSoLinePriceReason(
+        user,
+        head.customerId,
+        dto.partId.trim(),
+        new PrismaNs.Decimal(dto.qty),
+        new PrismaNs.Decimal(dto.unitPriceSnapshot),
+        dto.warehouseId.trim(),
+        dto.belowMinReason,
+      );
+    }
     await this.prisma.$transaction(async (tx) => {
       await this.createSoItemTx(tx, user, soId, lineNo, dto);
       await this.recalcSoTotals(tx, soId, new PrismaNs.Decimal(String(head.taxRate)));
@@ -942,7 +956,8 @@ export class SoService {
         ? new PrismaNs.Decimal(dto.unitPriceSnapshot)
         : new PrismaNs.Decimal(existing.unitPrice);
     // F1-E 銷貨促銷引擎 2026-06-09：qty / unitPrice 任一改、重跑警示（belowMinReason 沿用 existing 或 dto）
-    if (dto.qty !== undefined || dto.unitPriceSnapshot !== undefined) {
+    // F2 組合套餐 2026-06-09：套餐 line（existing.bundleId 非空）跳過引擎檢查（套餐價即最終價）
+    if ((dto.qty !== undefined || dto.unitPriceSnapshot !== undefined) && !existing.bundleId) {
       const effectiveReason =
         (dto as { belowMinReason?: string }).belowMinReason ?? existing.belowMinReason ?? undefined;
       await this.assertSoLinePriceReason(
@@ -988,6 +1003,60 @@ export class SoService {
       afterData: mapSoItemApi(row) as object,
     });
     return mapSoItemApi(row);
+  }
+
+  /**
+   * F2 組合套餐 2026-06-09：把套餐套用到 SO（新增 N 條 line、總金額 = bundle.bundlePrice）
+   * 各 line 帶 bundleId、單價 = 分攤後（priceA × qty 比例）；line.bundleId 非空 → 引擎跳過。
+   */
+  async applyBundle(
+    user: RequestUser,
+    soId: string,
+    args: { bundleId: string; warehouseId: string; locationId?: string },
+  ) {
+    const tenantId = requireTenantId(user);
+    const head = await this.prisma.nx04So.findFirst({ where: { id: soId, tenantId }, select: SO_SEL });
+    if (!head) throw new NotFoundException('SO not found');
+    if (head.cancelledAt) throw new BadRequestException('SO is cancelled');
+    this.assertSoItemsEditable(head.status);
+
+    const allocation = await this.bundleService.allocateBundleLines(tenantId, args.bundleId.trim());
+    const whId = args.warehouseId.trim();
+    const locId = args.locationId?.trim();
+
+    await this.prisma.$transaction(async (tx) => {
+      const maxLine = await tx.nx04SoItem.aggregate({ where: { soId }, _max: { lineNo: true } });
+      let lineNo = (maxLine._max.lineNo ?? 0);
+      for (const ln of allocation.lines) {
+        lineNo += 1;
+        await this.createSoItemTx(tx, user, soId, lineNo, {
+          partId: ln.partId,
+          warehouseId: whId,
+          locationId: locId,
+          qty: Number(ln.qty.toString()),
+          unitPriceSnapshot: Number(ln.unitPrice.toString()),
+          bundleId: args.bundleId.trim(),
+        } as CreateSoItemDto);
+      }
+      await this.recalcSoTotals(tx, soId, new PrismaNs.Decimal(String(head.taxRate)));
+    });
+
+    await this.audit.write({
+      tenantId,
+      actorUserId: user.sub,
+      moduleCode: 'NX04',
+      action: 'UPDATE',
+      entityTable: 'nx04_so',
+      entityId: soId,
+      entityCode: head.docNo,
+      summary: `套用套餐 ${allocation.bundleCode}（${allocation.lines.length} 行、總價 ${allocation.bundlePrice.toString()}）`,
+    });
+    return {
+      bundleId: args.bundleId,
+      bundleCode: allocation.bundleCode,
+      bundlePrice: allocation.bundlePrice.toString(),
+      addedLines: allocation.lines.length,
+    };
   }
 
   /**

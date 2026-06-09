@@ -877,6 +877,7 @@ model Nx01Part {
   rev_Nx03InboundItem_partId      Nx03InboundItem[]      @relation("R_Nx03InboundItem_partId")
   rev_Nx03OutboundItem_partId     Nx03OutboundItem[]     @relation("R_Nx03OutboundItem_partId")
   rev_Nx03DisposalItem_partId     Nx03DisposalItem[]     @relation("R_Nx03DisposalItem_partId")
+  rev_Nx04BundleItem_partId       Nx04BundleItem[]       @relation("R_Nx04BundleItem_partId")
   rev_Nx03ConversionInput_partId  Nx03ConversionInput[]  @relation("R_Nx03ConversionInput_partId")
   rev_Nx03ConversionOutput_partId Nx03ConversionOutput[] @relation("R_Nx03ConversionOutput_partId")
   rev_Nx03IssueReport_partId      Nx03IssueReport[]      @relation("R_Nx03IssueReport_partId")
@@ -4294,6 +4295,10 @@ model Nx04SoItem {
   fulfillStatus                 String            @default("W") @map("fulfill_status") @db.VarChar(2)
   /// 關聯客戶訂單ID（transfer_source_type=B時填入，FK nx04_co）。；啟用最低需求版本：LITE-CORE
   coId                          String?           @map("co_id") @db.VarChar(15)
+  /// F2 組合套餐 2026-06-09：line 屬於哪個套餐（null=非套餐 line）。
+  /// 引擎 assertSoLinePriceReason 偵測 bundleId 非空時 skip（避免重複折）；
+  /// 報表分類用：套餐銷售追蹤 + 退貨對沖整組價。；啟用最低需求版本：LITE-CORE
+  bundleId                      String?           @map("bundle_id") @db.VarChar(15)
   so                            Nx04So            @relation("R_Nx04SoItem_soId", fields: [soId], references: [id])
   quoteItem                     Nx04QuoteItem?    @relation("R_Nx04SoItem_quoteItemId", fields: [quoteItemId], references: [id])
   part                          Nx01Part          @relation("R_Nx04SoItem_partId", fields: [partId], references: [id])
@@ -4303,6 +4308,7 @@ model Nx04SoItem {
   ti                            Nx02Ti?           @relation("R_Nx04SoItem_tiId", fields: [tiId], references: [id])
   st                            Nx03St?           @relation("R_Nx04SoItem_stId", fields: [stId], references: [id])
   co                            Nx04Co?           @relation("R_Nx04SoItem_coId", fields: [coId], references: [id])
+  bundle                        Nx04Bundle?       @relation("R_Nx04SoItem_bundleId", fields: [bundleId], references: [id])
   rev_Nx03PkItem_refSoItemId    Nx03PkItem[]      @relation("R_Nx03PkItem_refSoItemId")
   rev_Nx04SrItem_soItemId       Nx04SrItem[]      @relation("R_Nx04SrItem_soItemId")
   rev_Nx02Rfq_sourceSoItemId    Nx02Rfq[]         @relation("R_Nx02Rfq_sourceSoItemId")
@@ -4315,6 +4321,7 @@ model Nx04SoItem {
   @@index([transferSourceType, stId], map: "nx04_so_item_xfer_st_idx")
   @@index([transferSourceType, tiId], map: "nx04_so_item_xfer_ti_idx")
   @@index([transferSourceType, coId], map: "nx04_so_item_xfer_co_idx")
+  @@index([bundleId], map: "nx04_so_item_bundle_id_idx")
   @@map("nx04_so_item")
 }
 
@@ -4508,6 +4515,79 @@ model Nx04PromotionScope {
   @@unique([tenantId, promotionId, scopeType, scopeId])
   @@index([tenantId, scopeType, scopeId])
   @@map("nx04_promotion_scope")
+}
+
+/// =======================================================
+/// Nx04Bundle — DB table `nx04_bundle`
+/// F2 組合套餐 2026-06-09（Alex Phase 2 收尾）
+/// =======================================================
+/// 業務語意：套餐名稱 / 套餐總價 / 時段 / 啟停；組成走 Nx04BundleItem 子表。
+/// SO 套用時、各組成料件逐項出庫扣庫存、line.bundleId 標記屬此套餐、
+/// 整組總價按 priceA × qty 比例分攤到各 line。
+/// ⚠️ 選了套餐、組內料件「不再各自跑促銷引擎」（套餐價就是整組最終價、避免重複折）。
+model Nx04Bundle {
+  /// [NX04]+[BNDL]+[7碼流水號]、EX：NX04BNDL0000001；啟用最低需求版本：LITE-CORE
+  id          String           @id @default(dbgenerated("gen_nx04_bundle_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId    String           @map("tenant_id") @db.VarChar(15)
+  /// 套餐代碼（租戶內唯一、業務員自定）；啟用最低需求版本：LITE-CORE
+  code        String           @db.VarChar(30)
+  /// 套餐名稱（顯示用）；啟用最低需求版本：LITE-CORE
+  name        String           @db.VarChar(100)
+  /// 套餐整組總價（業務員設、SO 套用時按比例分攤到各 line）；啟用最低需求版本：LITE-CORE
+  bundlePrice Decimal          @map("bundle_price") @db.Decimal(14, 2)
+  /// 生效起期；啟用最低需求版本：LITE-CORE
+  validFrom   DateTime         @map("valid_from") @db.Date
+  /// 生效迄期；啟用最低需求版本：LITE-CORE
+  validTo     DateTime         @map("valid_to") @db.Date
+  /// 是否啟用；啟用最低需求版本：LITE-CORE
+  isActive    Boolean          @default(true) @map("is_active")
+  /// 備註；啟用最低需求版本：LITE-CORE
+  remark      String?          @db.VarChar(200)
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt   DateTime         @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE-CORE
+  createdBy   String           @map("created_by") @db.VarChar(15)
+  /// 更新時間；啟用最低需求版本：LITE-CORE
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  /// 更新人；啟用最低需求版本：LITE-CORE
+  updatedBy   String           @map("updated_by") @db.VarChar(15)
+  tenant      Nx99Tenant       @relation("R_Nx04Bundle_tenantId", fields: [tenantId], references: [id])
+  items       Nx04BundleItem[] @relation("R_Nx04BundleItem_bundleId")
+  rev_Nx04SoItem_bundleId Nx04SoItem[] @relation("R_Nx04SoItem_bundleId")
+
+  @@unique([tenantId, code])
+  @@index([tenantId, isActive])
+  @@index([tenantId, validFrom, validTo])
+  @@map("nx04_bundle")
+}
+
+/// =======================================================
+/// Nx04BundleItem — DB table `nx04_bundle_item`
+/// 套餐組成料件
+/// =======================================================
+model Nx04BundleItem {
+  /// [NX04]+[BDIT]+[7碼流水號]、EX：NX04BDIT0000001；啟用最低需求版本：LITE-CORE
+  id        String     @id @default(dbgenerated("gen_nx04_bundle_item_id()")) @db.VarChar(15)
+  /// 租戶 ID（外鍵）；啟用最低需求版本：LITE-CORE
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
+  /// 對應套餐表頭（FK Nx04Bundle、ON DELETE CASCADE）；啟用最低需求版本：LITE-CORE
+  bundleId  String     @map("bundle_id") @db.VarChar(15)
+  /// 組成料件（FK Nx01Part）；啟用最低需求版本：LITE-CORE
+  partId    String     @map("part_id") @db.VarChar(15)
+  /// 套餐內此料件數量；啟用最低需求版本：LITE-CORE
+  qty       Decimal    @db.Decimal(14, 4)
+  /// 建立時間；啟用最低需求版本：LITE-CORE
+  createdAt DateTime   @default(now()) @map("created_at")
+  /// 建立人；啟用最低需求版本：LITE-CORE
+  createdBy String     @map("created_by") @db.VarChar(15)
+  tenant    Nx99Tenant @relation("R_Nx04BundleItem_tenantId", fields: [tenantId], references: [id])
+  bundle    Nx04Bundle @relation("R_Nx04BundleItem_bundleId", fields: [bundleId], references: [id], onDelete: Cascade)
+  part      Nx01Part   @relation("R_Nx04BundleItem_partId", fields: [partId], references: [id])
+
+  @@unique([bundleId, partId])
+  @@index([tenantId, partId])
+  @@map("nx04_bundle_item")
 }
 
 /// =======================================================
@@ -7394,6 +7474,8 @@ model Nx99Tenant {
   rev_Nx04Sr_tenantId                      Nx04Sr[]                      @relation("R_Nx04Sr_tenantId")
   rev_Nx04Promotion_tenantId               Nx04Promotion[]               @relation("R_Nx04Promotion_tenantId")
   rev_Nx04PromotionScope_tenantId          Nx04PromotionScope[]          @relation("R_Nx04PromotionScope_tenantId")
+  rev_Nx04Bundle_tenantId                  Nx04Bundle[]                  @relation("R_Nx04Bundle_tenantId")
+  rev_Nx04BundleItem_tenantId              Nx04BundleItem[]              @relation("R_Nx04BundleItem_tenantId")
   rev_Nx05AccountCode_tenantId             Nx05AccountCode[]             @relation("R_Nx05AccountCode_tenantId")
   rev_Nx05Allowance_tenantId               Nx05Allowance[]               @relation("R_Nx05Allowance_tenantId")
   rev_Nx05ApLedger_tenantId                Nx05ApLedger[]                @relation("R_Nx05ApLedger_tenantId")

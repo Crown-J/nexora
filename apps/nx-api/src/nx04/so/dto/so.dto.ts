@@ -57,6 +57,12 @@ export class CreateSoItemDto {
   @MaxLength(200)
   belowMinReason?: string;
 
+  /** F2 組合套餐 2026-06-09：line 屬於哪個套餐（null=非套餐 line、引擎跳過促銷套用避免重複折） */
+  @IsOptional()
+  @IsString()
+  @MaxLength(15)
+  bundleId?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(200)

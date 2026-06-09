@@ -5,6 +5,8 @@ import { Nx10Module } from '../nx10/nx10.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TranslatorErrorFilter } from '../shared/filters/translator-error.filter';
 
+import { BundleController } from './bundle/bundle.controller';
+import { BundleService } from './bundle/bundle.service';
 import { CoEstimateController } from './co-estimate/co-estimate.controller';
 import { CoEstimateService } from './co-estimate/co-estimate.service';
 import { CreditGuardController } from './credit-guard/credit-guard.controller';
@@ -42,6 +44,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     PartnerGradeHistoryController,
     Nx04IssueReportController,
     PromotionController,
+    BundleController,
   ],
   providers: [
     QuoteService,
@@ -57,6 +60,7 @@ import { Nx04SoTranslatorService } from './so/translator/translator.service';
     Nx04IssueReportService,
     PromotionService,
     PromotionEngineService,
+    BundleService,
     { provide: APP_FILTER, useClass: TranslatorErrorFilter },
   ],
   // F1 特價售出 2026-06-08：export SoService 給 NX03 IssueReportService.dispose('X') 建特價 SO 用

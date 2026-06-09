@@ -248,6 +248,8 @@ function SaleCenterSub({ pathname }: { pathname: string }) {
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">定價工具</DropdownMenuLabel>
         {/* F1-D 銷貨優惠價子系統 2026-06-08：促銷規則入口 */}
         <DockSubLink href="/dashboard/sale/promotion" label="促銷規則" kbd="P" />
+        {/* F2 組合套餐 2026-06-09 */}
+        <DockSubLink href="/dashboard/sale/bundle" label="組合套餐" kbd="B" />
         <DropdownMenuSeparator className="bg-border/60" />
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
         {/* F1-B 銷貨路徑收斂 2026-06-08：客戶主檔走六分類共用入口、URL 不露 nx 代碼 */}

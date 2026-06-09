@@ -9,6 +9,8 @@ import { PermissionsGuard } from '../../shared/guards/permissions.guard';
 import { RolesGuard } from '../../shared/guards/roles.guard';
 import { Nx04ListQueryDto } from '../../shared/nx04/nx04-list-query.dto';
 
+import type { ApplyBundleToSoDto } from '../bundle/dto/bundle.dto';
+
 import { CreateSoDto, CreateSoItemDto, CreateTiFromSoDto, PatchSoItemDto, UpdateSoDto } from './dto/so.dto';
 import { SoService } from './so.service';
 
@@ -76,6 +78,17 @@ export class SoController {
   @Permission('sale.so.edit')
   removeItem(@CurrentUser() user: RequestUser, @Param('id') id: string, @Param('itemId') itemId: string) {
     return this.svc.removeItem(user, id, itemId);
+  }
+
+  /// F2 組合套餐 2026-06-09：把套餐套用到 SO（新增 N 條 line、總金額 = bundle.bundlePrice）
+  @Post(':id/apply-bundle')
+  @Permission('sale.so.edit')
+  applyBundle(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() dto: ApplyBundleToSoDto,
+  ) {
+    return this.svc.applyBundle(user, id, dto);
   }
 
   @Get(':id')
