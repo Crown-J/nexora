@@ -136,6 +136,41 @@ export function patchPk(id: string, payload: { status?: PkStatus; remark?: strin
   });
 }
 
+/** 撿包送 LITE-OP-UI 2026-06-09：建撿貨單 */
+export interface CreatePkPayload {
+  warehouseId: string;
+  pkDate: string;
+  triggerSource: 'S' | 'T';
+  deliveryType: 'D' | 'P' | 'C' | 'T';
+  remark?: string;
+  items?: Array<{
+    refSoId?: string;
+    refSoItemId?: string;
+    refStId?: string;
+    partId: string;
+    locationId?: string;
+    qty: number;
+  }>;
+}
+
+export function createPk(payload: CreatePkPayload): Promise<Pk> {
+  return apiJson(`/nx03/pk`, { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export interface PatchPkItemPayload {
+  status?: 'P' | 'C' | 'M';
+  notFoundReason?: string;
+  qty?: number;
+  remark?: string;
+}
+
+export function patchPkItem(id: string, itemId: string, payload: PatchPkItemPayload): Promise<PkItem> {
+  return apiJson(`/nx03/pk/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
 /**
  * 撿貨「一鍵完成」：P → C → F sequential（state machine 不允許 P → F 直跳）。
  * 若已 C 則只 patch C → F。
@@ -181,6 +216,20 @@ export function patchPl(
   payload: { status?: PlStatus; remark?: string; logisticsProvider?: string; logisticsTrackingNo?: string },
 ): Promise<Pl> {
   return apiJson(`/nx03/pl/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+/** 撿包送 LITE-OP-UI 2026-06-09：包貨明細 patch（分配包裹/微調數量） */
+export interface PatchPlItemPayload {
+  parcelId?: string;
+  qty?: number;
+  remark?: string;
+}
+
+export function patchPlItem(id: string, itemId: string, payload: PatchPlItemPayload): Promise<PlItem> {
+  return apiJson(`/nx03/pl/${encodeURIComponent(id)}/items/${encodeURIComponent(itemId)}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
@@ -278,8 +327,55 @@ export function getDn(id: string): Promise<DnDetail> {
   return apiJson(`/nx06/delivery/${encodeURIComponent(id)}`);
 }
 
-export function patchDn(id: string, payload: { status: DnStatus; remark?: string; vehicleNo?: string }): Promise<Dn> {
+/** 撿包送 LITE-OP-UI 2026-06-09：配送單簽收（terminal 狀態時必填 signature） */
+export interface SignaturePayload {
+  signerType: 'C' | 'W';
+  signerName: string;
+  signatureUrl?: string;
+  stopId?: string;
+}
+
+export function patchDn(
+  id: string,
+  payload: {
+    status: DnStatus;
+    remark?: string;
+    vehicleNo?: string;
+    signature?: SignaturePayload;
+  },
+): Promise<Dn> {
   return apiJson(`/nx06/delivery/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+/** 撿包送 LITE-OP-UI 2026-06-09：列退貨取件單 RETURN_PICKUP */
+export type ReturnPickupStatus = 'DRAFT' | 'DISPATCHED' | 'PICKED_UP' | 'FAILED' | 'VOIDED';
+
+export interface ReturnPickup extends Omit<Dn, 'status' | 'sourceSoId'> {
+  status: ReturnPickupStatus;
+  sourceSrId?: string | null;
+}
+
+export function listReturnPickups(q: ListQuery = {}): Promise<ListResponse<ReturnPickup>> {
+  return apiJson(`/nx06/return-pickup${qs(q)}`);
+}
+
+export function getReturnPickup(id: string): Promise<ReturnPickup & { stops?: DnStop[] }> {
+  return apiJson(`/nx06/return-pickup/${encodeURIComponent(id)}`);
+}
+
+export function patchReturnPickup(
+  id: string,
+  payload: {
+    status: ReturnPickupStatus;
+    remark?: string;
+    vehicleNo?: string;
+    signature?: SignaturePayload;
+  },
+): Promise<ReturnPickup> {
+  return apiJson(`/nx06/return-pickup/${encodeURIComponent(id)}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });

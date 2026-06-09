@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/inventory/delivery/page.tsx
-// TASK-BUSINESS-RESTRUCTURE Phase 9:庫存中心 · 送貨作業入口(手機版)。
+// 撿包送 LITE-OP-UI 軌 3 2026-06-09：配送單清單路由
 
-import { MobileDeliveryListPage } from '@/features/inventory/workstation/delivery/MobileDeliveryListPage';
+import { DeliveryListView } from '@/features/inventory/delivery/ui/DeliveryListView';
 
 export default function InventoryDeliveryRoute() {
-  return <MobileDeliveryListPage />;
+  return <DeliveryListView />;
 }

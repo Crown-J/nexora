@@ -1,8 +1,8 @@
 // apps/nx-ui/src/app/dashboard/inventory/picking/page.tsx
-// TASK-BUSINESS-RESTRUCTURE Phase 9:庫存中心 · 撿貨作業入口(手機版)。
+// 撿包送 LITE-OP-UI 軌 1 2026-06-09：撿貨單清單路由（取代原 MobilePickingListPage）
 
-import { MobilePickingListPage } from '@/features/inventory/workstation/picking/MobilePickingListPage';
+import { PickingListView } from '@/features/inventory/picking/ui/PickingListView';
 
 export default function InventoryPickingRoute() {
-  return <MobilePickingListPage />;
+  return <PickingListView />;
 }
