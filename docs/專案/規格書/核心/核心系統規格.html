@@ -1,0 +1,215 @@
+<!-- 檔案位置：docs/專案/規格書/核心/核心系統規格.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：NEXORA GRID 工程慣例權威版（命名/ID/單據編號/通用慣例/過帳/seed/錯誤碼/路由/設計紅線）。
+     以現行程式碼為準（base：commit cff73a1a，schema.prisma 9000+行 + nx-api ~150 service + nx-ui dashboard）。
+     取代 PROJECT_RULES / PROJECT_CONTEXT 的工程慣例段（待本份確認後歸檔）。 -->
+<!DOCTYPE html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>核心系統規格 v1.0</title>
+<style>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;--ok:#1f6b3a;--code:#0b3d2e;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.7;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:25px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:32px 0 8px;padding:7px 13px;border-radius:5px;}
+h3{color:var(--navy);font-size:14.5px;margin:16px 0 4px;padding-left:9px;border-left:4px solid var(--amber);}
+p{margin:6px 0;font-size:13.5px;}
+ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0;}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+td.k{font-weight:700;color:var(--navy);white-space:nowrap;}
+code{background:#eef2f8;border-radius:4px;padding:1px 5px;font-size:12px;color:#234;}
+pre{background:#0f2230;color:#d7e6f0;border-radius:6px;padding:10px 13px;font-size:12px;overflow-x:auto;line-height:1.55;}
+pre code{background:none;color:inherit;padding:0;}
+.cal{border-radius:5px;padding:8px 13px;margin:7px 0;font-size:12.5px;line-height:1.6;}
+.cal.warn{background:#fbf0f0;border:1px solid #e6c4c4;border-left:4px solid var(--warn);}
+.cal.star{background:#fdf6e9;border:1px solid #ecd9b0;border-left:4px solid var(--amber);}
+.cal b{color:var(--navy);}
+.lead{background:var(--bg);border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:13.5px;}
+footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+.diff td:first-child{font-weight:700;color:var(--warn);white-space:nowrap;}
+</style></head><body>
+<header class="doc"><h1>核心系統規格</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/核心系統規格.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex），工程真相由 Hank 驗證<br>
+<b>說明：</b>NEXORA GRID 的工程慣例權威版。以現行程式碼為準（base：commit cff73a1a）。涵蓋命名、ID、單據編號、通用慣例、過帳、seed、錯誤碼、路由、設計紅線九節。</div></header>
+<p class="lead">本份是<b>工程慣例的唯一真相</b>——所有模組共用的命名、ID、單據編號、過帳、權限、錯誤碼等底層約定。各模組的功能需求見其《需求規格》；本份只管「全系統共通的工程規則」。內容由 Hank 對 schema/service/dashboard 逐項驗證。</p>
+
+<h2>1. 命名規範</h2>
+<h3>1.1 三層命名範式（全表一致）</h3>
+<table>
+<tr><th>層</th><th>格式</th><th>範例</th></tr>
+<tr><td class="k">DB 表名</td><td><code>nx{NN}_{snake_case}</code></td><td>nx04_so、nx05_ar_ledger</td></tr>
+<tr><td class="k">Prisma model</td><td><code>Nx{NN}{PascalCase}</code></td><td>Nx04So、Nx05ArLedger</td></tr>
+<tr><td class="k">DB 欄位</td><td><code>snake_case</code></td><td>created_at、customer_id</td></tr>
+<tr><td class="k">Prisma 欄位</td><td><code>camelCase</code> via <code>@map</code></td><td>createdAt @map("created_at")</td></tr>
+</table>
+<h3>1.2 業務代碼欄</h3>
+<p>主檔有人讀的 <code>code</code> 欄（VARCHAR、tenant 內唯一 <code>@@unique([tenantId, code])</code>），與系統 <code>id</code>（15 字）分開。</p>
+<h3>1.3 平台層特例</h3>
+<p>平台層表<b>無 nx 前綴</b>（如 <code>platform_admin</code>），但 ID generator 仍循同範式（<code>gen_platform_admin_id()</code>）。</p>
+
+<h2>2. 模組 NX 碼 + ID 規則</h2>
+<h3>2.1 ID 格式總則</h3>
+<p>全表 <code>id = VARCHAR(15)</code>，由 DB function 自動產生。格式 <code>NX{NN}{XXXX}{7碼流水}</code>＝NX＋2 碼模組＋4 碼表代碼＋7 碼流水。例：<code>NX01USER0000001</code>、<code>NX04PRMO0000001</code>。</p>
+<h3>2.2 ID generator 機制</h3>
+<pre><code>CREATE SEQUENCE seq_nx04_promotion_id START 1;
+CREATE FUNCTION gen_nx04_promotion_id() RETURNS VARCHAR AS $$
+  SELECT 'NX04PRMO' || LPAD(nextval('seq_nx04_promotion_id')::text, 7, '0');
+$$ LANGUAGE sql;
+-- Prisma: id String @id @default(dbgenerated("gen_nx04_promotion_id()")) @db.VarChar(15)</code></pre>
+<h3>2.3 模組分配（code-truth）</h3>
+<table>
+<tr><th>NX</th><th>模組</th><th>表數量</th></tr>
+<tr><td class="k">NX01</td><td>主檔管理</td><td>30+（user/role/partner/part/warehouse…）</td></tr>
+<tr><td class="k">NX02</td><td>採購（進貨）</td><td>14（rfq/po/rr/pr/ti…）</td></tr>
+<tr><td class="k">NX03</td><td>庫存</td><td>25+（stock_balance/ledger/pk/pl/parcel/dn…）</td></tr>
+<tr><td class="k">NX04</td><td>銷貨</td><td>14（quote/so/sr/promotion/bundle…）</td></tr>
+<tr><td class="k">NX05</td><td>財務</td><td>8（ar/ap/paylog/note/allowance/closing）</td></tr>
+<tr><td class="k">NX06</td><td>物流</td><td>8（dn/stop/item/handover…）</td></tr>
+<tr><td class="k">NX07</td><td>人資</td><td>部分落地</td></tr>
+<tr><td class="k">NX08</td><td>報表</td><td>derived、無獨立表</td></tr>
+<tr><td class="k">NX09 / NX10</td><td>EIP·KM / 遊戲化</td><td>部分</td></tr>
+<tr><td class="k">NX98 / NX99 / platform</td><td>保留 / 平台租戶層 / 跨租戶平台</td><td>nx99_tenant、platform_admin（無 nx 前綴）</td></tr>
+</table>
+<p>完整表清單見 <code>規格書/核心/nx-table.csv</code>。</p>
+
+<h2>3. 單據編號規則</h2>
+<h3>3.1 統一格式</h3>
+<p><code>[類型代碼]-[YYYYMM]-[倉/機構代碼]-[5碼流水]</code>，例：<code>SO-202604-Z01-00001</code>、<code>AP-202604-HQ0-00001</code>。</p>
+<h3>3.2 類型代碼清單（22 類）</h3>
+<table>
+<tr><th>模組</th><th>代碼</th><th>單據</th><th>倉/機構</th></tr>
+<tr><td>NX02</td><td class="k">DR / RF / PO / TI / RR / PR</td><td>採購需求 / 詢價 / 採購單 / 同行調貨 / 進貨 / 退供應商</td><td>DR=HQ0，餘 Z01</td></tr>
+<tr><td>NX03</td><td class="k">ST / SL / IN / PK / PL / BX</td><td>跨倉調撥 / 盤點 / 開帳 / 撿貨 / 包貨 / 包裹</td><td>Z01</td></tr>
+<tr><td>NX04</td><td class="k">QT / SO / SR</td><td>報價 / 銷貨 / 銷退</td><td>Z01</td></tr>
+<tr><td>NX05</td><td class="k">AP / AR / AL / PY / NT / CL</td><td>應付 / 應收 / 折讓 / 收付款 / 票據 / 關帳</td><td>HQ0</td></tr>
+<tr><td>NX06</td><td class="k">DN</td><td>送貨單（配送/取件/退貨取件/調撥）</td><td>Z01</td></tr>
+</table>
+<h3>3.3 機構代碼</h3>
+<p>預設 <code>HQ0</code>（無倉場景）；客戶可設三碼客製（如 <code>HEY</code>=恆迎、<code>INN</code>=伊諾瓦）。</p>
+<h3>3.4 allocDocNo 實作</h3>
+<p>統一介面 <code>allocNx{02,04,05,06}DocNo</code>（<code>shared/nx{NN}/*-doc-no.ts</code>）：以 <code>prefix=KIND-YYYYMM-WH-</code> 查最大流水 +1。</p>
+<div class="cal warn"><b>⚠️ 待清理：</b><code>doc-number-rules.csv</code> 把 PO / ST 標「PLUS 限定」——違反 §9.2「功能全模組化、不綁版本」。請 Hank 刪除該版本標註（程式碼本身無此閘門，僅 CSV 註記為舊痕）。</div>
+
+<h2>4. 通用資料慣例</h2>
+<h3>4.1 必填四件套 + 多租戶</h3>
+<p>每張業務表（NX01~NX10）必有：</p>
+<pre><code>tenantId   @map("tenant_id")  VarChar(15)
+createdAt  @default(now())    createdBy  VarChar(15)
+updatedAt  @updatedAt         updatedBy  VarChar(15)</code></pre>
+<h3>4.2 多租戶強制</h3>
+<p>每個 service query 必 <code>where: { tenantId, … }</code>（helper <code>requireTenantId</code>）；缺 tenantId → 400。跨租戶查詢僅 SYSADMIN / platform_admin 可。</p>
+<h3>4.3 軟刪除範式</h3>
+<table>
+<tr><th>類型</th><th>範式</th><th>例</th></tr>
+<tr><td class="k">主檔</td><td><code>isActive: Boolean</code> + setActive(false)，UI 標「停用」（非刪除）</td><td>Nx01Part、Nx01Partner</td></tr>
+<tr><td class="k">業務單據</td><td><code>voidedAt / voidedBy / voidReason</code>（作廢、留歷史）</td><td>Nx04Quote</td></tr>
+<tr><td class="k">出貨/銷貨</td><td><code>cancelledAt / cancelledBy / cancelReason</code></td><td>Nx04So</td></tr>
+</table>
+<div class="cal star"><b>軟刪除絕對主義：</b>沒有任何業務表允許硬 DELETE。所有「刪除」UI 動作後端皆為 setActive=false 或 cancelledAt/voidedAt 寫入。</div>
+<h3>4.4 建立後鎖定</h3>
+<p><code>code</code>（業務代碼）、<code>docNo</code>（單據編號）、<code>id</code>、<code>tenantId</code> 建立後永不可改。</p>
+
+<h2>5. 過帳邏輯</h2>
+<h3>5.1 @FUNCTION_CODE 規範</h3>
+<p>業務關鍵函式標 <code>@FUNCTION_CODE NX{NN}-{ENT}-{LAYER}-{NNN}-F{NN}</code>（約 340 處），供業務規格追溯。與錯誤碼 <code>XX-NNN</code>（對使用者）三層共存。</p>
+<h3>5.2 自動過帳觸發點（code-truth）</h3>
+<table>
+<tr><th>事件</th><th>觸發</th><th>寫入</th></tr>
+<tr><td class="k">SO 推進 SHIPPED</td><td>createArFromShippedSo + 出庫 ledger</td><td>應收 AR + 庫存出庫</td></tr>
+<tr><td class="k">PO 廠商確認 CONFIRMED</td><td>createApFromConfirmedPo</td><td>應付 AP（到期＝採購日＋付款條件）</td></tr>
+<tr><td class="k">RR 驗收 POSTED</td><td>createApFromPostedRr + 入庫</td><td>應付 AP + 庫存增加</td></tr>
+<tr><td class="k">PR 退供應商 POSTED</td><td>createArFromPostedPr</td><td>廠商 AR（廠商欠退款）</td></tr>
+<tr><td class="k">SR 銷退 POSTED</td><td>createAllowanceFromSalesReturn(草稿) + 退貨取件 DN</td><td>折讓草稿 + NX06 DN 草稿</td></tr>
+<tr><td class="k">Allowance 核可 APPROVED</td><td>applySettlementsForPaylog</td><td>扣 AR/AP 餘額</td></tr>
+<tr><td class="k">Paylog 收付款 POSTED</td><td>applySettlementsForPaylog</td><td>扣 AR/AP + 狀態 PAID/PARTIAL</td></tr>
+<tr><td class="k">DN 簽收 signedAt</td><td>fulfillStatus='F' → maybeCompleteAfterDelivery</td><td>SO header → COMPLETED</td></tr>
+<tr><td class="k">異常處置 dispose='X' 特價售出</td><td>SoService.create specialPriceFlag=true</td><td>特價 SO（流入正常 AR）</td></tr>
+<tr><td class="k">SO CONFIRMED→PICKING</td><td>autoCreateTransferFromSo</td><td>NX03 ST 跨倉調撥草稿</td></tr>
+</table>
+<h3>5.3 冪等鎖統一範式</h3>
+<p>每個自動建單 helper 先查 dup 再建：AR by <code>(tenantId, soId)</code>、AP by <code>(tenantId, poId)</code>、Allowance by <code>SR:{docNo}</code>、DN by <code>sourceSoId</code>。重觸發回傳既有 id。</p>
+<h3>5.4 期間鎖</h3>
+<p>月關帳 <code>Nx05Closing.status='CLOSED'</code> → 該月 NX02~NX06 寫入由 <code>assertFinancePeriodMutable</code> 守（27 處）；401 期 markFiled → 該期兩月全鎖、不可解。</p>
+<div class="cal warn"><b>⚠️ 特價售出未分流（補做候選）：</b>特價 SO 流入正常 AR、未帶分流旗標——與《需求規格-03/04/05》同一待補項：應加 sourceTag 落實「特價不污染毛利報表」。</div>
+
+<h2>6. Seed / 系統內建</h2>
+<h3>6.1 兩層 seed</h3>
+<table>
+<tr><th>層</th><th>範圍</th><th>環境</th></tr>
+<tr><td class="k">system/</td><td>SYSTEM 租戶 + SYSADMIN + 9 plans + view/currency/country/warehouse_type</td><td>所有環境</td></tr>
+<tr><td class="k">template/</td><td>各模組共用 template（建租戶時套用）</td><td>建立新 tenant</td></tr>
+<tr><td class="k">test/</td><td>3 測試租戶（LITE/PLUS/PRO）</td><td>development/test</td></tr>
+</table>
+<h3>6.2 系統內建主檔</h3>
+<p>9 plans（席次制 LITE 15/PLUS 50/PRO 100）、country（TW+ISO-2）、currency（TWD/USD/EUR/JPY/CNY）、warehouse_type（H總部/M主倉/W分倉/S衛星倉）、view 字典（配 Nx01RoleView）。</p>
+<h3>6.3 系統內建角色（bypass）</h3>
+<table>
+<tr><th>Role</th><th>範圍</th><th>bypass</th></tr>
+<tr><td class="k">SYSADMIN</td><td>NEXORA 跨租戶系統管理（伊諾瓦 IT）</td><td>兩 Guard 全 bypass</td></tr>
+<tr><td class="k">OWNER</td><td>客戶租戶內最高權限</td><td>兩 Guard 全 bypass</td></tr>
+</table>
+<p><code>SUPER_ROLES = {'SYSADMIN','OWNER'}</code>（PermissionsGuard / RolesGuard）。這兩個角色不出現在職務下拉（本就全權限）。</p>
+<h3>6.4 預設密碼 + 負責人</h3>
+<p><code>DEFAULT_EMPLOYEE_PASSWORD = 'changeme'</code>（<code>shared/nx01/employee-defaults.ts</code>）+ <code>mustChangePassword=true</code> 首登強制改。客戶開戶時系統自動建 1 個 OWNER user（同預設密碼）。</p>
+<h3>6.5 平台層 platform_admin</h3>
+<p>表 <code>platform_admin</code>（跨租戶、無 nx 前綴），供伊諾瓦 IT 開戶/客服/運維，走 <code>PlatformAdminGuard</code> + 獨立 JWT scope，與租戶 SYSADMIN <b>分開</b>。</p>
+<div class="cal star"><b>已退役：</b>舊 <code>INNOVA</code> 內部租戶範式已於 2026-06-02 退役（isActive=false），營運身分遷至 platform_admin。</div>
+
+<h2>7. 錯誤碼體系</h2>
+<h3>7.1 格式</h3>
+<p>對使用者的錯誤碼為 6 字 <code>XX-NNN</code>（正則 <code>/^[A-Z]{2}-\d{3}$/</code>），實作於 <code>shared/errors/nexora-error.ts</code>。</p>
+<h3>7.2 序號分區</h3>
+<p>001–099 一般 / 100–199 狀態 / 300–399 驗證 / 400–499 限流鎖定（後續軌）/ 500–999 系統。</p>
+<h3>7.3 模組縮寫（13 模組、Crown 拍板）</h3>
+<p>AU（認證，已落地 12 碼）、NW（網路，1 碼前端）；MS/PO/IN/SO/FN/DN/HR/RP/KM/GM/SY 為 NX01~10＋系統（schema 預留）。<b>不可用：</b>AR/PR/RR（已被 NX 模組業務代碼占用）。</p>
+<h3>7.4 既有錯誤碼（code-truth）</h3>
+<table>
+<tr><th>碼</th><th>意義</th></tr>
+<tr><td class="k">AU-001~003</td><td>登入失敗（租戶/帳號/密碼）</td></tr>
+<tr><td class="k">AU-101 / 102</td><td>公司停用 / 帳號停用</td></tr>
+<tr><td class="k">AU-301~304</td><td>輸入驗證</td></tr>
+<tr><td class="k">AU-401 / 402</td><td>鎖定 / IP 限流（後續軌、未落地）</td></tr>
+<tr><td class="k">SE-001</td><td>席次已滿（席次制 closure 新增）</td></tr>
+</table>
+<div class="cal warn"><b>⚠️ 改文件：</b><code>nexora-error-code-spec.md</code> v1.3 未列 SE-001（席次制 2026-06-04 新增）。本規格已收錄；該舊 spec 待歸檔。</div>
+
+<h2>8. 路由慣例</h2>
+<h3>8.1 後端 API（帶 NX、內部）</h3>
+<p><code>/nx01/…</code>、<code>/nx02/po/…</code>、<code>/nx04/so/…</code>、<code>/nx05/ar/…</code>、<code>/nx06/delivery/…</code>——工程內部用、客戶看不到。</p>
+<h3>8.2 前端 dashboard（不露 NX）</h3>
+<p>URL 用業務中文意、<b>絕不出現 nx 代碼</b>：<code>/dashboard/base/{users,partners,parts,warehouses}</code>（主檔）、<code>/purchase</code>、<code>/inventory</code>、<code>/sale/{qt,so,return,promotion,bundle}</code>、<code>/finance</code>。</p>
+<h3>8.3 主檔六分類共用入口</h3>
+<p><code>/dashboard/base/partners</code> 統一入口（不分客戶/廠商，由 partnerType 控制）。partnerType：C 保養廠 / O 同行 / S 供應商 / T 外包物流 / B 銀行 / V 一般廠商 / L 散客。「同行」用代號 O + <code>canTransferStock</code> 旗標。</p>
+<div class="cal warn"><b>⚠️ 待清理：</b><code>route-table-v2.md</code> 標「採購 PLUS+」「進口 PLUS+」——違反 §9.2，且僅列 25 條（實際 dashboard 子路徑 100+）。該舊檔待歸檔。</div>
+
+<h2>9. 設計紅線（產品鐵則）</h2>
+<table>
+<tr><th>#</th><th>紅線</th></tr>
+<tr><td class="k">9.1</td><td><b>三版「只」差人數上限</b>（LITE 15 / PLUS 50 / PRO 100）。席次制＝唯一版本機制（席次數＝啟用員工帳號數）；超出 → SE-001 擋啟用、不擋停用。</td></tr>
+<tr><td class="k">9.2</td><td><b>功能全模組化、不綁版本</b>。絕不做「版本功能閘門」（舊 Plan Guard 已廢、不可復活）。所有模組＋套件任何版本皆可加購；「免費送哪些」是銷售包配、非技術閘門。</td></tr>
+<tr><td class="k">9.3</td><td><b>客戶端介面不露技術代碼</b>。URL 不出現 nx 代碼；主檔/單據用業務中文名。</td></tr>
+<tr><td class="k">9.4</td><td><b>平台層 vs 租戶層嚴格隔離</b>。platform_admin + PlatformAdminGuard + 獨立 JWT；租戶走 Nx01User + JwtAuthGuard + tenant-scoped JWT。絕不混用。</td></tr>
+<tr><td class="k">9.5</td><td><b>多租戶嚴格隔離</b>。每業務表必有 tenantId、每 query 必 filter；跨租戶僅 SYSADMIN/platform_admin。</td></tr>
+<tr><td class="k">9.6</td><td><b>軟刪除絕對主義</b>。任何刪除皆 setActive=false 或 voidedAt/cancelledAt；已過帳資料加期間鎖 + POSTED 雙重防護。</td></tr>
+<tr><td class="k">9.7</td><td><b>工程紀律</b>。改 schema/跨表/過帳前必 grep 確認現狀；migration 一律 additive（不刪欄不改型不重命名）+ 必備份；Railway production 0 動（dev 操作、prod 等明確指示）。</td></tr>
+</table>
+
+<h2>附錄 — 待處理（13 條舊文件差異的去向）</h2>
+<table class="diff">
+<tr><th>項</th><th>去向</th></tr>
+<tr><td>version-feature-matrix.csv 全表綁版本</td><td>歸檔（違反 §9.2，已裁示）</td></tr>
+<tr><td>doc-number-rules.csv「PO/ST PLUS 限定」標註</td><td>請 Hank 刪除標註（程式碼無此閘門）</td></tr>
+<tr><td>route-table-v2.md「採購/進口 PLUS+」</td><td>歸檔（違反 §9.2）</td></tr>
+<tr><td>nexora-error-code-spec.md 未列 SE-001</td><td>本規格已收錄 → 該檔歸檔</td></tr>
+<tr><td>PROJECT_RULES「軟刪除是 D 刪除」「廠商確認建置中」</td><td>本規格已寫正 → 該檔歸檔</td></tr>
+<tr><td>PROJECT_CONTEXT INNOVA 內部租戶範式</td><td>已退役 → 本規格寫 platform_admin → 該檔歸檔</td></tr>
+<tr><td>nx-table.csv「nx00_*」「Nx01Employee PRO-CORE」</td><td>歷史痕跡/無此表 → 以 schema 為準</td></tr>
+</table>
+
+<footer>核心系統規格 v1.0　·　原料：Hank code-truth 彙整（base commit cff73a1a）+ nx-table.csv / doc-number-rules.csv　·　本份確認後，PROJECT_RULES / PROJECT_CONTEXT / error-code-spec / route-table 即可歸檔。</footer>
+</body></html>

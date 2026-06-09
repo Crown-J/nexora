@@ -1,92 +1,88 @@
 <!-- 檔案位置：docs/專案/規格書/核心/需求規格-00-系統總覽.html -->
-<!-- 檔案版本：v1.0 -->
-<!-- 檔案說明：NEXORA GRID 需求規格的頂層大框架——整個 ERP 有哪些模組功能、彼此怎麼串，
-     以及各模組需求規格的索引。細節在各模組需求規格（01～07 + 套件）。 -->
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>需求規格 00 — 系統總覽 v1.0</title>
+<!-- 檔案版本：v2.0 -->
+<!-- 檔案說明：NEXORA GRID 需求規格頂層大框架。模組以 NX 碼為永久身分、各帶「核心/加購」層級旗標。
+     含 NX碼↔手冊號對照表。v2.0 改用 NX 碼編號、補層級旗標、釐清 06/07 屬加購。 -->
+<!DOCTYPE html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求規格 00 — 系統總覽 v2.0</title>
 <style>
-  :root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--mod:#7a4e09;}
-  *{box-sizing:border-box;}
-  body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;
-       line-height:1.75;max-width:940px;margin:0 auto;padding:40px 28px 80px;background:#fff;}
-  header.doc{border-bottom:3px solid var(--navy);padding-bottom:18px;margin-bottom:8px;}
-  header.doc h1{color:var(--navy);font-size:25px;margin:0 0 6px;}
-  .meta{color:var(--sub);font-size:12.5px;line-height:1.6;}
-  .meta b{color:var(--navy);}
-  h2{color:var(--navy);font-size:19px;margin:36px 0 10px;padding-left:11px;border-left:5px solid var(--amber);}
-  p{margin:8px 0;}
-  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13.5px;}
-  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
-  th{background:var(--navy);color:#fff;font-weight:600;}
-  tr:nth-child(even) td{background:var(--bg);}
-  td.num{text-align:center;font-weight:700;color:var(--navy);white-space:nowrap;}
-  .pill{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:1px 8px;}
-  .p-core{background:#eef2f8;color:var(--navy);}
-  .p-mod{background:#fdf3e3;color:var(--mod);}
-  .flow{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:12px 0;
-        font-size:14px;line-height:2;}
-  .flow b{color:var(--navy);}
-  .note{background:#fdf8ee;border:1px solid #ecd9b0;border-left:4px solid var(--amber);
-        border-radius:6px;padding:10px 14px;margin:12px 0;font-size:13.5px;}
-  .note b{color:var(--navy);}
-  footer{margin-top:50px;padding-top:16px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
-</style>
-</head>
-<body>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--mod:#7a4e09;--ok:#1f6b3a;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.75;max-width:960px;margin:0 auto;padding:40px 28px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:18px;margin-bottom:8px;}
+header.doc h1{color:var(--navy);font-size:25px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:17px;margin:32px 0 10px;padding:7px 13px;border-radius:5px;}
+p{margin:8px 0;font-size:13.5px;}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+td.code{text-align:center;font-weight:700;color:var(--navy);white-space:nowrap;}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:1px 8px;}
+.p-core{background:#e6f4ea;color:var(--ok);} .p-mod{background:#fdf3e3;color:var(--mod);}
+.flow{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:12px 0;font-size:13.5px;line-height:2;}
+.flow b{color:var(--navy);}
+.note{background:#fdf8ee;border:1px solid #ecd9b0;border-left:4px solid var(--amber);border-radius:6px;padding:10px 14px;margin:12px 0;font-size:13px;}
+.note b{color:var(--navy);}
+.warn{background:#fbf0f0;border:1px solid #e6c4c4;border-left:4px solid var(--warn);border-radius:6px;padding:10px 14px;margin:12px 0;font-size:13px;}
+.warn b{color:var(--navy);}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style></head><body>
+<header class="doc"><h1>需求規格 00 — 系統總覽</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-00-系統總覽.html　|　<b>版本：</b>v2.0　|　<b>維護：</b>CTO（Alex）<br>
+<b>說明：</b>整個 ERP 有哪些模組、彼此怎麼串、各模組需求規格索引。模組以 <b>NX 碼</b>為永久身分，各帶 <span class="pill p-core">核心</span> / <span class="pill p-mod">加購</span> 層級旗標。</div></header>
 
-<header class="doc">
-  <h1>需求規格 00 — 系統總覽</h1>
-  <div class="meta">
-    <b>檔案位置：</b>docs/專案/規格書/核心/需求規格-00-系統總覽.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）<br>
-    <b>說明：</b>整個 ERP 有哪些模組功能、彼此怎麼串，以及各模組需求規格的索引。各模組細節見其需求規格。
-  </div>
-</header>
-
-<p>NEXORA GRID 的功能分兩類：<b>核心模組</b>（LITE 內含、每家都用）與<b>加購模組</b>（按需選購）。每個核心模組各有一份需求規格，編號與《操作手冊》對齊（規格說「該做成怎樣」、手冊說「怎麼用」，成對）。</p>
+<p>模組分兩層：<span class="pill p-core">核心</span>（LITE 內含、每家都用）與 <span class="pill p-mod">加購</span>（按需選購）。<b>NX 碼是模組的永久身分證、不隨分類改動</b>；「核心/加購」是另一個屬性、由旗標表達（故碼會跳號，屬正常）。每個核心模組各有一份需求規格。</p>
 
 <h2>核心模組（LITE 內含）</h2>
 <table>
-  <tr><th>編號</th><th>模組</th><th>範疇</th><th>對應需求規格 / 手冊</th></tr>
-  <tr><td class="num">01</td><td>登入・首頁・員工啟用</td><td>登入、首頁儀表板、設定精靈、員工啟用與<b>席次制</b>、角色權限</td><td>需求規格-01 ↔ 手冊-01</td></tr>
-  <tr><td class="num">02</td><td>核心主檔</td><td>所有單據的資料底座：零件（含<b>四層編碼</b>）、客戶、廠商、員工、會計科目、折扣代碼、品牌/族群</td><td>需求規格-02 ↔ 手冊-02</td></tr>
-  <tr><td class="num">03</td><td>進貨</td><td>進貨單、進退貨、保固</td><td>需求規格-03 ↔ 手冊-03</td></tr>
-  <tr><td class="num">04</td><td>庫存</td><td>查詢、產品庫存設定、倉位庫位、盤點、<b>異常處置（含瑕疵/中古）</b>、重組分解、撿包送、配送</td><td>需求規格-04 ↔ 手冊-04</td></tr>
-  <tr><td class="num">05</td><td>銷貨</td><td>報價、銷貨單、銷貨退回、優惠價子系統</td><td>需求規格-05 ↔ 手冊-05</td></tr>
-  <tr><td class="num">06</td><td>財務</td><td>應收、應付、折讓、401 兩月雙報、月關帳</td><td>需求規格-06 ↔ 手冊-06</td></tr>
-  <tr><td class="num">07</td><td>報表</td><td>六張經營報表</td><td>需求規格-07 ↔ 手冊-07</td></tr>
+<tr><th>NX 碼</th><th>模組</th><th>範疇</th><th>需求規格</th></tr>
+<tr><td class="code">NX01</td><td>核心主檔</td><td>所有單據的資料底座：零件（含四層編碼）、客戶、廠商、員工、會計科目、折扣代碼、品牌/族群、組織據點倉位</td><td>需求規格-01</td></tr>
+<tr><td class="code">NX02</td><td>進貨</td><td>採購需求→詢價比價→採購單→進貨驗收；退貨、國外進貨、保固申請</td><td>需求規格-02</td></tr>
+<tr><td class="code">NX03</td><td>庫存</td><td>查詢、產品庫存設定、倉位庫位、盤點、異常六種處置（含特價售出）、重組分解、撿包送、開帳存</td><td>需求規格-03</td></tr>
+<tr><td class="code">NX04</td><td>銷貨</td><td>報價→銷貨→銷退；優惠價子系統、三層定價、信用管控</td><td>需求規格-04</td></tr>
+<tr><td class="code">NX05</td><td>財務</td><td>應收、應付、收付款票據、折讓核可、月關帳、401 雙月雙報</td><td>需求規格-05</td></tr>
+<tr><td class="code">NX08</td><td>報表</td><td>個人月報、銷售、進貨、庫存、損益表、營運六報表</td><td>需求規格-08</td></tr>
 </table>
+<p>另：<b>登入・首頁儀表板・員工啟用與席次</b>屬平台橫切層（決定誰能登入、佔幾席），對應操作手冊-01；其需求規格歸屬（平台層或併入 NX01）待定。</p>
 
-<h2>加購模組</h2>
+<h2>加購模組（按需選購）</h2>
 <table>
-  <tr><th>模組</th><th>範疇</th></tr>
-  <tr><td>汽車資料庫</td><td>編碼規則引擎、品牌/車型/引擎字典、TecDoc 對照</td></tr>
-  <tr><td>電子發票</td><td>發票開立</td></tr>
-  <tr><td>401 上傳</td><td>營業稅申報上傳</td></tr>
-  <tr><td>打卡出勤</td><td>出缺勤記錄</td></tr>
-  <tr><td>KPI</td><td>業績績效（與打卡合稱「人資系統」）</td></tr>
-  <tr><td>EIP 資訊平台</td><td>企業知識/資訊平台（重點主打）</td></tr>
-  <tr><td>第三方串接</td><td>LINE / Lalamove 等</td></tr>
-  <tr><td>多據點</td><td>多分店/倉（PLUS 免費送、LITE 亦可加購）</td></tr>
+<tr><th>NX 碼</th><th>模組</th><th>範疇</th><th>版本免費送</th></tr>
+<tr><td class="code">NX06</td><td>物流</td><td>進階配送：GPS 追蹤、第三方物流（核心配送/簽收已在 NX03 庫存）</td><td>—</td></tr>
+<tr><td class="code">NX07</td><td>人資</td><td>打卡出勤、KPI 績效（台式 OKR）、薪資</td><td>PRO</td></tr>
+<tr><td class="code">—</td><td>汽車資料庫</td><td>編碼規則引擎、品牌/車型/引擎字典、TecDoc 對照</td><td>—</td></tr>
+<tr><td class="code">—</td><td>電子發票</td><td>發票開立</td><td>—</td></tr>
+<tr><td class="code">—</td><td>多據點</td><td>多分店/倉</td><td>PLUS</td></tr>
+<tr><td class="code">—</td><td>EIP 資訊平台 / KM</td><td>企業知識/資訊平台</td><td>—</td></tr>
+<tr><td class="code">—</td><td>第三方串接</td><td>LINE / Lalamove 等</td><td>—</td></tr>
 </table>
-<p>各加購模組另有獨立的套件需求規格（置於 規格書/選購套件/）。</p>
+<div class="warn"><b>⚠️ 待 CEO 確認加購清單與 NX 碼：</b>舊矩陣另出現 NX09（KM/知識）、NX10（遊戲化）；而「401 進階」「汽車資料庫」「電子發票」「多據點」「第三方」尚未指定 NX 碼。加購模組的完整清單與編碼，待您一次定版，我再補進本表並開選購套件需求規格。</div>
+
+<h2>NX 碼 ↔ 操作手冊號 對照</h2>
+<p>需求規格用 NX 碼、操作手冊用自己的號，兩套號不同，對照如下（規格說「該做成怎樣」、手冊說「怎麼用」）：</p>
+<table>
+<tr><th>模組</th><th>需求規格</th><th>操作手冊</th></tr>
+<tr><td>系統總覽</td><td>需求規格-00</td><td>手冊-00</td></tr>
+<tr><td>登入/首頁/席次</td><td>（平台層、待定）</td><td>手冊-01</td></tr>
+<tr><td>核心主檔</td><td>需求規格-01</td><td>手冊-02</td></tr>
+<tr><td>進貨</td><td>需求規格-02</td><td>手冊-03</td></tr>
+<tr><td>庫存</td><td>需求規格-03</td><td>手冊-04</td></tr>
+<tr><td>銷貨</td><td>需求規格-04</td><td>手冊-05</td></tr>
+<tr><td>財務</td><td>需求規格-05</td><td>手冊-06</td></tr>
+<tr><td>報表</td><td>需求規格-08</td><td>手冊-07</td></tr>
+</table>
 
 <h2>業務主流程（模組怎麼串）</h2>
 <div class="flow">
-  <b>核心主檔</b>（零件/客戶/廠商… 貫穿全程，所有單據都引用）<br>
-  &nbsp;&nbsp;└ <b>進貨</b> → <b>庫存</b>（盤點 / 異常處置）→ <b>銷貨</b>（報價 → 銷貨單）<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ 撿包送 / 配送（屬庫存）→ <b>財務</b>（應收 / 應付 / 折讓）→ <b>報表</b>
+<b>核心主檔（NX01）</b>貫穿全程，所有單據都引用<br>
+&nbsp;&nbsp;└ <b>進貨 NX02</b> →（廠商確認自動產生應付 → 財務）→ <b>庫存 NX03</b>（盤點 / 異常處置）<br>
+&nbsp;&nbsp;&nbsp;&nbsp;→ <b>銷貨 NX04</b>（報價→銷貨單，特價售出產生特價銷貨單）→ 撿包送/配送（NX03）<br>
+&nbsp;&nbsp;&nbsp;&nbsp;→ <b>財務 NX05</b>（應收/應付/折讓/月關帳/401）→ <b>報表 NX08</b>
 </div>
-<p>員工啟用與席次（01）橫切全系統：決定誰能登入、佔幾席。</p>
 
-<div class="note"><b>文件層次：</b>本份（00 總覽）是大框架 → 各模組需求規格（01～07）逐一細談「該做成怎樣」→ 各模組《操作手冊》談「怎麼用」。三層由粗到細。</div>
+<div class="note"><b>文件層次：</b>本份（00 總覽）大框架 → 核心各模組需求規格（01/02/03/04/05/08）細談「該做成怎樣」→ 各模組操作手冊談「怎麼用」。加購模組另置「選購套件」層需求規格。</div>
 
-<footer>
-  需求規格 00 系統總覽 v1.0　·　模組增減 / 改名時更新本份並升版　·　各模組需求規格逐一建立中。
-</footer>
-
-</body>
-</html>
+<footer>需求規格 00 系統總覽 v2.0　·　v2.0：改用 NX 碼編號、補核心/加購層級旗標、加 NX碼↔手冊號對照表、釐清 06物流/07人資屬加購（核心需求規格 00/01/02/03/04/05/08 為完整集）。</footer>
+</body></html>
