@@ -22,29 +22,14 @@ import { cn } from '@/lib/utils';
 function getActiveModule(pathname: string): string {
   if (pathname.startsWith('/dashboard/base')) return 'base';
   if (pathname.startsWith('/dashboard/purchase')) return 'purchase';
-  if (pathname.startsWith('/dashboard/nx01')) return 'purchase';
-  if (
-    pathname.startsWith('/dashboard/purchase/domestic') ||
-    pathname.startsWith('/dashboard/purchase/foreign') ||
-    pathname.startsWith('/dashboard/purchase/special') ||
-    pathname.startsWith('/dashboard/purchase/product') ||
-    pathname.startsWith('/dashboard/purchase/vendor')
-  ) {
-    return 'purchase';
-  }
   if (pathname.startsWith('/dashboard/sale')) return 'sales';
   if (pathname.startsWith('/dashboard/inventory')) return 'inventory';
-  if (pathname.startsWith('/dashboard/inventory')) return 'inventory';
-  if (pathname.startsWith('/dashboard/nx04')) return 'sales';
   if (pathname.startsWith('/dashboard/finance')) return 'finance';
-  if (pathname.startsWith('/dashboard/nx05')) return 'finance'; // 過渡：舊 nx05 URL 還在 redirect
-  if (pathname.startsWith('/dashboard/purchase')) return 'inventory';
-  if (pathname.startsWith('/dashboard/delivery') || pathname.startsWith('/dashboard/nx06')) return 'logistics';
-  if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return 'hr';
   if (pathname.startsWith('/dashboard/report')) return 'report';
-  if (pathname.startsWith('/dashboard/nx08')) return 'report'; // 過渡：舊 nx08 URL 還在 redirect
-  if (pathname.startsWith('/dashboard/knowledge') || pathname.startsWith('/dashboard/nx09')) return 'knowledge';
-  if (pathname.startsWith('/dashboard/nx10')) return 'game';
+  if (pathname.startsWith('/dashboard/delivery')) return 'logistics';
+  if (pathname.startsWith('/dashboard/hr')) return 'hr';
+  if (pathname.startsWith('/dashboard/knowledge')) return 'knowledge';
+  if (pathname.startsWith('/dashboard/nx10')) return 'game'; // nx10 暫擱（橫向遊戲化機制、非獨立頁面）
   return '';
 }
 
