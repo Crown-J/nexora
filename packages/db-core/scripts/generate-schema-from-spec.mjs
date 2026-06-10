@@ -21,7 +21,6 @@ const FIELD_FILES = [
   'nx07_field_v1.csv',
   'nx08_field_v1.csv',
   'nx09_field_v1.csv',
-  'nx10_field_v1.csv',
   'nx98_field_v1.csv',
   'nx99_field_v1.csv',
 ];
@@ -217,7 +216,7 @@ function main() {
 // =============================================================================
 // 產生：node scripts/generate-schema-from-spec.mjs（packages/db-core）
 // 規格來源：
-//   - docs/spec/nx01_field_v1.csv … nx10_field_v1.csv、nx98、nx99
+//   - docs/spec/nx01_field_v1.csv … nx09_field_v1.csv、nx98、nx99
 //   - docs/spec/nx_table_v7.csv（表清單／模組／說明）
 //   - docs/spec/nx_model_v2.csv（模組定義）
 //   - docs/spec/version_plan.csv、version_feature_matrix.csv（方案與功能）

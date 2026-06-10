@@ -34,6 +34,7 @@ export async function applyWelcomeBulletin(
     type: 'S',
     categoryId: systemCategory?.id ?? null,
     importance: 'normal',
+    audienceUserIds: [],
     status: 'published',
     isPinned: true,
     isActive: true,

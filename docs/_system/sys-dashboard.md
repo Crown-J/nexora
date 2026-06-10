@@ -214,10 +214,8 @@
 
 **頭像 + 等級圈**
 - 圓形頭像（姓名首字），左下角顯示等級數字
-- 資料來源：`nx10_user_exp.current_level`
 
 **稱號 + 等級**
-- 稱號：`nx10_medal_level.level_name`（例：黃金大師）
 - 等級：`Lv.XX`
 - 星星圖示（依勳章階級顯示顏色）
 
@@ -262,13 +260,10 @@
             下午04:52 簽到
 ```
 - 計時器即時更新（每秒）
-- 連續天數：`nx10_checkin_log` 連續打卡天數
-- 資料來源：`nx10_checkin_log.checkin_date`
 
 **獎勵按鈕（點擊）→ 開啟簽到獎勵 Modal：**
 - 連續簽到週期獎勵（第1天 50XP / 第2天 100幣 / 第7天 獎品...）
 - 額外成就勳章（新手達人7天 / 效率專家14天 / 堅持不懈21天 / 傳奇員工28天）
-- 資料來源：`nx10_checkin_reward`
 
 ### 5-2 本日目標
 
@@ -283,10 +278,8 @@
 已完成 2 / 4 項
 ```
 
-- 資料來源：`nx10_task_log`（當日任務）
 - 已完成：綠色打勾 + 刪除線
 - 有截止時間：時鐘圖示 + 時間
-- 點擊任務列：跳轉對應作業頁面（依 `nx10_task.target_view_code`）
 
 ### 5-3 本月目標
 
@@ -412,13 +405,11 @@
 ```
 所有版本共用，從各模組自動彙整待辦事項：
 
-LITE / PLUS（無 nx10，由系統模組直接產生）：
   → NX02：待處理詢價單 / 待驗收進貨單
   → NX03：待撿貨 / 待包貨
   → NX04：待出貨銷貨單 / 待回覆報價
   → NX05：到期 AP / 逾期 AR
 
-PRO（額外加上 nx10_task_log）：
   → 以上所有 + KPI 任務 / 簽到任務 / 填日報等遊戲化任務
 ```
 
@@ -434,7 +425,6 @@ PRO（額外加上 nx10_task_log）：
 - 點擊任務：跳轉對應作業頁面
 
 **底部：**
-- 「查看所有工作 →」→ PRO 跳轉 `/dashboard/nx10` / LITE、PLUS 跳轉 `/dashboard`
 
 ---
 
@@ -493,18 +483,11 @@ PRO（額外加上 nx10_task_log）：
 | 區塊 | 資料表 | 版本 |
 |------|--------|------|
 | 公告 dropdown | `nx01_bulletin` | ALL |
-| EXP BAR | `nx10_user_exp` | PRO |
-| 勳章稱號 | `nx10_medal_level` | PRO |
-| 今日簽到 | `nx10_checkin_log` | PRO |
-| 簽到獎勵 | `nx10_checkin_reward` | PRO |
-| 本日目標 | `nx10_task_log` | PRO |
 | 本月目標 | `nx01_kpi_record` + `nx01_kpi_target` | PRO |
 | 行事曆 | `nx01_calendar_event` | ALL |
 | 今日上班 | `nx07_attendance` | PLUS+ |
 | 今日工作（模組待辦）| `nx02_rfq` / `nx03_pk` / `nx04_so` / `nx05_ar` 等 | ALL |
-| 今日工作（遊戲化任務）| `nx10_task_log` | PRO |
 | 工作日誌 | `nx08_daily_report` | PRO |
-| 排行榜 | `nx10_user_exp` | PRO |
 
 ---
 

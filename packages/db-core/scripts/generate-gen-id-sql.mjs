@@ -22,7 +22,6 @@ const FIELD_FILES = [
   'nx07_field_v1.csv',
   'nx08_field_v1.csv',
   'nx09_field_v1.csv',
-  'nx10_field_v1.csv',
   'nx98_field_v1.csv',
   'nx99_field_v1.csv',
 ];

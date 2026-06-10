@@ -94,7 +94,7 @@ nx99_product_module,14,updated_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NO
 nx99_product_module,15,updated_by,LITE-CORE,VARCHAR(15),False,False,True,True,nx01_user,,更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）
 nx99_product_module_map,1,id,LITE-CORE,VARCHAR(15),True,True,True,False,,GEN,[NX99]+[PRMM]+[7碼流水號]，EX : NX99PRMM0000001
 nx99_product_module_map,2,product_module_id,LITE-CORE,VARCHAR(15),False,False,True,True,nx99_product_module,,所屬產品模組（SKU）
-nx99_product_module_map,3,app_module_code,LITE-CORE,VARCHAR(10),False,False,True,False,,,程式碼模組代號：NX01~NX10/NX98/NX99（新版模組代碼）。
+nx99_product_module_map,3,app_module_code,LITE-CORE,VARCHAR(10),False,False,True,False,,,程式碼模組代號：NX01~NX09/NX98/NX99（新版模組代碼）。
 nx99_product_module_map,4,is_required,LITE-CORE,BOOLEAN,False,False,True,False,,TRUE,是否必含（通常 TRUE）
 nx99_product_module_map,5,remark,LITE-CORE,VARCHAR(200),False,False,False,False,,,備註
 nx99_product_module_map,6,created_at,LITE-CORE,TIMESTAMP,False,False,True,False,,NOW,建立時間。

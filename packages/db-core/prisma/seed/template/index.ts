@@ -23,7 +23,6 @@ import { applyDepartment } from './apply-department';
 import { applyDiscountCode } from './apply-discount-code';
 import { applyDrivetrain } from './apply-drivetrain';
 import { applyLeaveType } from './apply-leave-type';
-import { applyMedalLevel } from './apply-medal-level';
 import { applyModelType } from './apply-model-type';
 import { applyPartBrand } from './apply-part-brand';
 import { applyPartGroup } from './apply-part-group';
@@ -78,7 +77,6 @@ export async function applyTemplateToTenant(
   // === PRO 專屬 ===
   if (tier === 'PRO') {
     await applyLeaveType(prisma, params);
-    await applyMedalLevel(prisma, params);
   }
 
   // === 權限矩陣（依 tier 載入對應 role_view）===

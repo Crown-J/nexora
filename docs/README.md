@@ -44,7 +44,7 @@ docs/
 │   ├── 2026-04-28_file-placement-decisions.md  ← Q5 拍板過程
 │   └── 2026-04/               ← 歷史 task log（business-restructure / demo-emergency / d3-so 等）
 │
-├── nx01/ ... nx10/            ← 業務模組
+├── nx01/ ... nx09/            ← 業務模組
 │   ├── nxXX-overview.md       ← 主檔規格書（Alex 寫）
 │   ├── nxXX-summary.md        ← Claude.AI 上傳簡化版（待 Alex 撰寫）
 │   ├── nxXX-worklog.md        ← 模組 task log（Hank 寫）
@@ -79,7 +79,6 @@ docs/
 | nx07 | 人資管理（PRO）| `nx07/ui/hr-workspace.md` + workflow/primary/h-w*.md |
 | nx08 | 經營分析（PRO）| `nx08/ui/report-workspace.md` + workflow/primary/r-w*.md |
 | nx09 | 知識管理（PRO）| `nx09/ui/km-workspace.md` |
-| nx10 | 遊戲化系統（PRO）| `nx10/ui/game-workspace.md` |
 | nx98 | 共用核心 | `nx98/reference/field-definitions.csv` |
 | nx99 | 系統管理 | `nx99/reference/field-definitions.csv` |
 

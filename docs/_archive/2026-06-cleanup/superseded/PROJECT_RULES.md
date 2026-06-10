@@ -71,7 +71,7 @@ Hank (Claude in Cursor IDE / Claude Code) — 工程師
 ├── _template/spec-template.md  ← 規格書範本
 ├── _system/                    ← 系統層
 ├── _archive/                   ← 一次性歷史 ADR / Plan
-└── nx01~nx10/                  ← 各模組
+└── nx01~nx09/                  ← 各模組
     ├── nxXX-overview.md
     ├── nxXX-summary.md         ← 給 Claude.AI 上傳簡化版
     ├── nxXX-worklog.md         ← ⚠️ 歷史保留、不再更新（見 §0.4-④）
@@ -712,7 +712,6 @@ Alex 整合 + 簡化給 Crown（白話 TL;DR）
 | NX07 | 人資管理 | PRO |
 | NX08 | 經營分析 | PRO |
 | NX09 | 知識管理 | PRO |
-| NX10 | 遊戲化系統 | PRO |
 | NX98 | 共用核心 | LITE（不對外顯示）|
 | NX99 | 系統管理 | LITE（不對外顯示）|
 
@@ -870,10 +869,10 @@ NX{模組}-{子系統}-{層級}-{序號}-F{兩位數}
 ```
 apps/nx-ui/src/
 ├── app/dashboard/
-│   ├── nx01/ ... nx10/   ← 路由按模組分
+│   ├── nx01/ ... nx09/   ← 路由按模組分
 │   └── base/             ← 主檔工作站（route v2、跨模組共用）
 ├── features/
-│   ├── nx01/ ... nx10/   ← 模組業務元件
+│   ├── nx01/ ... nx09/   ← 模組業務元件
 │   ├── base/             ← 主檔 generic（如 BasePartModelMasterView）
 │   └── shared/ui/        ← 跨模組 UI primitive
 └── shared/
@@ -886,7 +885,7 @@ apps/nx-ui/src/
 ```
 apps/nx-api/src/
 ├── auth/          ← JWT 登入驗證
-├── nx01/ ... nx10/← 模組業務 controller + service + dto
+├── nx01/ ... nx09/← 模組業務 controller + service + dto
 ├── prisma/
 └── shared/
     ├── decorators/    ← @CurrentUser / @Roles

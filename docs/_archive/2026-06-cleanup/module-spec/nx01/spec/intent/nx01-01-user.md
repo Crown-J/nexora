@@ -27,7 +27,7 @@ NX01-01 = NX01 主檔模組的「**用戶管理工作站**」子規格書。
 
 user 是 NEXORA 全模組引用最廣的主檔之一：
 - partner.sales_user_id 業務歸屬（NX01-03）
-- 全業務單據 createdBy / updatedBy（NX02~NX10）
+- 全業務單據 createdBy / updatedBy（NX02~NX09）
 - 角色權限執行單位（NX01-02）
 
 → user 改動可能影響全 NEXORA、走擴充原則 #23。
@@ -82,7 +82,6 @@ user 是 NEXORA 引用最廣的主檔之一：
 | NX06 物流 | 配送單建立人 | createdBy / updatedBy |
 | NX07 人資（之後）| employee → user FK 連結 | user_id |
 | NX08 報表 | 按 user 維度統計業績 | salesman_id |
-| NX10 遊戲化 | 勳章 / 排行榜歸屬 | user_id |
 
 → user 改動可能影響全 NEXORA、走擴充原則 #23。
 

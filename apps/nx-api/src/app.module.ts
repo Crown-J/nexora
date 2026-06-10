@@ -19,7 +19,6 @@ import { Nx06Module } from './nx06/nx06.module';
 import { Nx07Module } from './nx07/nx07.module';
 import { Nx08Module } from './nx08/nx08.module';
 import { Nx09Module } from './nx09/nx09.module';
-import { Nx10Module } from './nx10/nx10.module';
 import { Nx98Module } from './nx98/nx98.module';
 import { Nx99Module } from './nx99/nx99.module';
 import { SysAdminModule } from './sys-admin/sys-admin.module';
@@ -42,7 +41,6 @@ import { SysAdminModule } from './sys-admin/sys-admin.module';
     Nx07Module,
     Nx08Module,
     Nx09Module,
-    Nx10Module,
     Nx98Module,
     SysAdminModule,
   ],

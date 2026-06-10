@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 
-import { Nx10Module } from '../nx10/nx10.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TranslatorErrorFilter } from '../shared/filters/translator-error.filter';
 
@@ -32,7 +31,7 @@ import { SoTranslatorController } from './so/translator/translator.controller';
 import { Nx04SoTranslatorService } from './so/translator/translator.service';
 
 @Module({
-  imports: [PrismaModule, Nx10Module],
+  imports: [PrismaModule],
   controllers: [
     QuoteController,
     SoController,

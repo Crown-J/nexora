@@ -4,7 +4,6 @@
 import { Module } from '@nestjs/common';
 
 import { Nx04Module } from '../nx04/nx04.module';
-import { Nx10Module } from '../nx10/nx10.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
 import { DeliveryController } from './delivery/delivery.controller';
@@ -29,7 +28,7 @@ import { WebPushController } from './web-push/web-push.controller';
 import { WebPushService } from './web-push/web-push.service';
 
 @Module({
-  imports: [PrismaModule, Nx10Module, Nx04Module],
+  imports: [PrismaModule, Nx04Module],
   controllers: [
     DeliveryController,
     PickupController,

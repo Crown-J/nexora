@@ -109,11 +109,3 @@ NX09_KM_TAG,知識庫標籤,/dashboard/nx09/km/tags,PRO,知識庫分類標籤管
 NX09_DOCUMENT,文件庫,/dashboard/nx09/document,PRO,公司制度/SOP/工作說明書查看與上傳（NX09-W02）
 NX09_MEETING,會議管理,/dashboard/nx09/meeting,PRO,會議預約/出席確認/紀錄管理（NX09-W03）
 NX09_MEETING_ACTION,會議追蹤事項,/dashboard/nx09/meeting/actions,PRO,個人會議決議待辦追蹤
-NX10_DASHBOARD,遊戲化首頁,/dashboard/nx10,PRO,個人勳章/Exp/排行榜/任務進度總覽
-NX10_MEDAL_SETTING,勳章等級設定,/dashboard/nx10/medal,PRO,20 階勳章等級與 Exp 門檻管理
-NX10_TASK_SETTING,任務範本設定,/dashboard/nx10/task,PRO,任務類型/週期/Exp 規則定義
-NX10_TEAM_TASK,門市團隊任務,/dashboard/nx10/team-task,PRO,門市整體目標任務設定與達成記錄
-NX10_SPRINT,限時衝刺設定,/dashboard/nx10/sprint,PRO,限時衝刺任務建立（週衝刺/月末衝刺/季度排行）
-NX10_PROMOTION,轉職條件設定,/dashboard/nx10/promotion,PRO,職務升遷條件定義（NX10-W02）
-NX10_MY_PROGRESS,我的轉職進度,/dashboard/nx10/my-progress,PRO,員工查看個人轉職條件達成狀況
-NX10_EXP_LOG,Exp 異動記錄,/dashboard/nx10/exp-log,PRO,員工 Exp 異動歷史查詢（不可刪除）
