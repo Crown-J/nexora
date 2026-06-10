@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/app/dashboard/nx02/ledger/page.tsx
+ * File: apps/nx-ui/src/app/dashboard/inventory/ledger/page.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
@@ -8,8 +8,8 @@
 
 'use client';
 
-import { useLedger } from '@/features/nx02/ledger/hooks/useLedger';
-import { LedgerView } from '@/features/nx02/ledger/ui/LedgerView';
+import { useLedger } from '@/features/nx03/ledger/hooks/useLedger';
+import { LedgerView } from '@/features/nx03/ledger/ui/LedgerView';
 
 export default function Nx02LedgerPage() {
   const vm = useLedger();

@@ -14,11 +14,11 @@ import { PageGuideHost } from './PageGuideHost';
 /// 用 startsWith 比對、第一個命中為準（順序：細到粗）
 const PATH_TO_PAGE_KEY: { pathPrefix: string; pageKey: string }[] = [
   // 銷貨 NX04 LITE（5）
-  { pathPrefix: '/dashboard/nx04/partner-grade-history', pageKey: 'sale.customer-grade-history' },
+  { pathPrefix: '/dashboard/sale/partner-grade-history', pageKey: 'sale.customer-grade-history' },
   { pathPrefix: '/dashboard/owner/grade-approvals', pageKey: 'sale.customer-grade-history' },
-  { pathPrefix: '/dashboard/nx04/sales-order', pageKey: 'sale.so' },
-  { pathPrefix: '/dashboard/nx04/sales-return', pageKey: 'sale.sr' },
-  { pathPrefix: '/dashboard/nx04/quote', pageKey: 'sale.quote' },
+  { pathPrefix: '/dashboard/sale/so', pageKey: 'sale.so' },
+  { pathPrefix: '/dashboard/sale/return', pageKey: 'sale.sr' },
+  { pathPrefix: '/dashboard/sale/qt', pageKey: 'sale.quote' },
 
   // 庫存 NX03 LITE（6）
   { pathPrefix: '/dashboard/inventory/stocktake', pageKey: 'inventory.stocktake' },
@@ -37,7 +37,7 @@ const PATH_TO_PAGE_KEY: { pathPrefix: string; pageKey: string }[] = [
   // 03 收尾 B 2026-06-08：保固路徑收斂到 /dashboard/purchase/warranty
   { pathPrefix: '/dashboard/purchase/warranty', pageKey: 'purchase.warranty-claim' },
   // pr 退貨單沒專屬 page、共用 rr 引導（或者忽略）
-  { pathPrefix: '/dashboard/nx02/return', pageKey: 'purchase.pr' },
+  { pathPrefix: '/dashboard/purchase/return', pageKey: 'purchase.pr' },
 
   // 主檔（4 個核心）
   { pathPrefix: '/dashboard/base/partners', pageKey: 'master.partners' },

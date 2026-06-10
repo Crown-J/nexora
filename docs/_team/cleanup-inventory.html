@@ -1,0 +1,469 @@
+<!-- 檔案位置：docs/_team/cleanup-inventory.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：專案檔案大掃除「階段一：盤點」。掃全 repo 把每個檔案/目錄歸入六桶
+     （正式碼／規格手冊／團隊文件／設定工具鏈／疑似垃圾／灰色地帶），
+     疑似垃圾每筆附「路徑／理由／引用檢查」三件頭。
+     純盤點不刪不移，給 CTO + CEO review 後才會進階段三刪除。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>專案檔案大掃除 — 階段一盤點清單 v1.0</title>
+<style>
+:root{
+  --navy:#1F3A5F; --amber:#c8881f; --sub:#5d6675; --line:#e3e7ee;
+  --warn:#962d2d; --warn-bg:#fdecec; --gray:#7a4a00; --gray-bg:#fdf3df;
+  --ok:#1f6b3a; --ok-bg:#eaf6ee; --bg:#fafbfc;
+}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;
+     color:#26303d;line-height:1.65;max-width:1100px;margin:0 auto;
+     padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;}
+.meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:16px;margin:32px 0 10px;
+   padding:8px 14px;border-radius:5px;}
+h3{color:var(--navy);font-size:14.5px;margin:18px 0 8px;
+   border-left:4px solid var(--amber);padding-left:10px;}
+p{margin:6px 0;font-size:13.2px;}
+ul{padding-left:22px;}
+li{margin:3px 0;font-size:13px;}
+code{background:#f0f2f5;padding:1px 6px;border-radius:3px;font-family:Consolas,monospace;
+     font-size:12.5px;color:#1f3a5f;}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:10px 0;}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+.summary{background:#f4f7fb;border-left:5px solid var(--navy);padding:14px 18px;
+         margin:14px 0 24px;border-radius:0 5px 5px 0;}
+.summary p{margin:5px 0;}
+.badge{display:inline-block;padding:1px 8px;border-radius:11px;font-size:11.5px;
+       font-weight:600;margin-right:5px;}
+.b-trash{background:var(--warn-bg);color:var(--warn);}
+.b-gray{background:var(--gray-bg);color:var(--gray);}
+.b-ok{background:var(--ok-bg);color:var(--ok);}
+.b-info{background:#e8f0fb;color:var(--navy);}
+.trash-card{border:1px solid var(--line);border-left:4px solid var(--warn);
+            background:#fff;padding:10px 14px;margin:8px 0;border-radius:0 4px 4px 0;}
+.gray-card{border:1px solid var(--line);border-left:4px solid var(--gray);
+           background:#fff;padding:10px 14px;margin:8px 0;border-radius:0 4px 4px 0;}
+.trash-card .path,.gray-card .path{font-family:Consolas,monospace;color:var(--navy);
+            font-weight:600;font-size:13px;}
+.trash-card .reason,.gray-card .reason,
+.trash-card .verify,.gray-card .verify{font-size:12.5px;margin:4px 0;}
+.trash-card .reason b,.gray-card .reason b,
+.trash-card .verify b,.gray-card .verify b{color:var(--navy);}
+.verify-pass{color:var(--ok);font-weight:600;}
+.verify-fail{color:var(--warn);font-weight:600;}
+.note{background:#fff8e7;border-left:4px solid var(--amber);padding:10px 14px;
+      margin:10px 0;font-size:12.8px;border-radius:0 4px 4px 0;}
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <h1>專案檔案大掃除 — 階段一盤點清單</h1>
+  <div class="meta">
+    <p><b>產出者</b>：Hank（全端核心工程師）　<b>產出時間</b>：2026-06-10</p>
+    <p><b>掃描範圍</b>：C:\nexora（全 repo、排除 node_modules/.git/build 產物）
+       <b>追蹤檔案總數（git ls-files）</b>：2,178 檔</p>
+    <p><b>紀律</b>：純盤點 — 不刪、不移、不改名、不動內容；
+       疑似垃圾每筆附 路徑／理由／引用檢查 三件頭。</p>
+  </div>
+</header>
+
+<div class="summary">
+  <p><b>掃描摘要（白話）</b></p>
+  <p>
+    1. <b>沒有誤 commit 的 build 產物</b> — <code>.next/</code>、<code>dist/</code>、
+       <code>build/</code>、<code>node_modules/</code> 全部正確被 .gitignore 擋掉、git 內 0 筆。
+  </p>
+  <p>
+    2. <b>三個頂層幽靈目錄</b> — <code>.tmp-docker-test/</code>、<code>prisma/</code>、
+       <code>scripts/</code> 三個 repo 根目錄已是空殼（git 內 0 檔）、純本地殘留；
+       其中 <code>prisma/migrations/</code> 內有一筆 <b>未 commit</b> 的舊 migration 空殼
+       <code>20260425100100_phase0_so_data_model_tighten</code>、真正用的 prisma 在
+       <code>packages/db-core/prisma/</code>。
+  </p>
+  <p>
+    3. <b>兩個大型疑似廢棄目錄</b>：
+    <code>dailylog/</code>（21 檔、2026-04-28 後停更、工作流已改用 commit 訊息、
+    違 CLAUDE.md §9 文件紀律）；
+    <code>demo/</code>（173 檔、2026-03 留下的 Next.js 腳手架「demo 參考專案」、
+    僅 dock.tsx 註解一句「與 demo/home 一致」、無任何 import 引用）。
+  </p>
+  <p>
+    4. <b>程式內三組孤兒檔</b>：<code>apps/nx-ui/src/features/document-demo/</code>（QtDocPage / SoDocPage / mockData、
+    0 外部引用、只自相互 import）；<code>apps/nx-ui/src/app/lab/accounts/</code>、
+    <code>lab/users/</code>（看起來像實驗 scratch、無 nav 引）。
+  </p>
+  <p>
+    5. <b>docs/_system/</b> 4 檔（plan-sys-dashboard、sys-dashboard、sys-layout、workflow/*）
+    是 2026-04 ~ 05 的舊版設計稿、檔內 path 指向已不存在的 <code>docs/flows/</code>、
+    並引用已被 _archive 的 PROJECT_RULES / ROUTE_TABLE_v2，現役文件無一引用。
+  </p>
+  <p>
+    6. <b>README.md（repo 根）內容嚴重過時</b> — 指 docs/PROJECT_CONTEXT.md（已搬 _archive/superseded/）、
+    docs/spec/、docs/workflow/、docs/ui/（均不存在）、dailylog/、自稱「Cursor AI 工作規範」、
+    現實是 Claude Code。<b>放灰色地帶</b>：是 repo 入口、不該刪、該翻修。
+  </p>
+  <p>
+    7. <b>沒有 .docx / .bak / .tmp / -old / -copy / -backup 命名的孤兒檔</b>
+    （node_modules 除外、那些是套件內檔）。文件治理算乾淨。
+  </p>
+  <p>
+    <b>盤點結論</b>：疑似垃圾 <b>8 條</b>（合計約 <b>207 個檔</b>，含整 demo/dailylog 目錄）；
+    灰色地帶 <b>7 條</b>；無建議任何「先動再說」的清理。等 CTO + CEO 拍板分類、進階段三才動。
+  </p>
+</div>
+
+<!-- ============================================================ -->
+
+<h2>一、總表</h2>
+<table>
+  <tr>
+    <th>桶</th>
+    <th>說明</th>
+    <th>筆數（條目）</th>
+    <th>檔數（粗估、git tracked）</th>
+  </tr>
+  <tr>
+    <td><span class="badge b-ok">1</span> 正式程式碼</td>
+    <td>nx-ui / nx-api 實際 build/部署用</td>
+    <td>2 個 app</td>
+    <td>~2,164（nx-ui 886 + nx-api 639 + db-core 265 + infra 1 + .vscode 1 + 根設定檔 5、未含內含的舊資產）</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-info">2</span> 規格書／手冊</td>
+    <td>docs/專案/規格書 + 操作手冊（HTML + 殘留 .md）</td>
+    <td>~25 條</td>
+    <td>規格書 9 + 操作手冊 16 + _archive 約 60 + _team 4 + _template 1</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-info">3</span> 團隊文件</td>
+    <td>CLAUDE.md / _team/ / _archive/handoffs/</td>
+    <td>~10 條</td>
+    <td>CLAUDE.md + _team 4 + handoffs 4 + 等</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-info">4</span> 設定／工具鏈</td>
+    <td>package.json、tsconfig、prisma schema、CI、docker</td>
+    <td>~15 條</td>
+    <td>根設定 5 + 各 app 設定 + db-core/prisma schema + docker-compose</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-trash">5</span> 疑似垃圾</td>
+    <td>幽靈目錄／廢棄工作流／孤兒檔／過期設計稿</td>
+    <td><b>8 條</b></td>
+    <td><b>~207</b>（demo 173 + dailylog 21 + document-demo 3 + lab 2 + _system 4 + 3 幽靈空目錄 + README 1 灰、另算）</td>
+  </tr>
+  <tr>
+    <td><span class="badge b-gray">6</span> 灰色地帶</td>
+    <td>不確定是否要保／要改／要丟的</td>
+    <td><b>7 條</b></td>
+    <td>~15</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+
+<h2>二、桶 1 — 正式程式碼</h2>
+
+<h3>2.1 apps/nx-ui（Next.js 16.1.6 前端、Vercel）</h3>
+<ul>
+  <li><code>apps/nx-ui/src/app/</code> — App Router（dashboard / platform / sys-admin / login / lab / coming-soon / change-password / pricing）</li>
+  <li><code>apps/nx-ui/src/features/</code> — 22 個 feature module（auth, base, finance, home-dashboard, inventory, layout, master-shell, master-zones, nx01~98, page-guide, part-zoned, partner-zoned, sales 等）</li>
+  <li><code>apps/nx-ui/src/components/</code> — dashboard, document, home, layout, login, theme, ui</li>
+  <li><code>apps/nx-ui/src/shared/</code> — api, errors, format, hooks, lib, types, ui</li>
+  <li><code>apps/nx-ui/src/mocks/</code> — dashboard.ts, finance-hub.ts, purchase-hub.ts, report-hub.ts, sales-hub.ts（10 個元件引用、是真實 mock 不是垃圾）</li>
+  <li><code>apps/nx-ui/src/hooks/</code> / <code>middleware.ts</code> / <code>public/</code></li>
+  <li>設定：<code>next.config.ts</code>、<code>tsconfig.json</code>、<code>postcss.config.mjs</code>、<code>eslint.config.mjs</code>、<code>package.json</code></li>
+</ul>
+
+<h3>2.2 apps/nx-api（NestJS 後端、Railway）</h3>
+<ul>
+  <li><code>apps/nx-api/src/</code> — auth, nx01~nx10, nx98, nx99, platform-auth, platform-tenants, prisma, public-files, shared, sys-admin, __tests__</li>
+  <li><code>apps/nx-api/src/__tests__/sanity.spec.ts</code> — 唯一一支 unit test</li>
+  <li><code>apps/nx-api/scripts/nx0X-crud-fetch-test.mjs</code>（9 支）— 各模組 CRUD smoke 試打<span class="badge b-gray">灰</span>（見 §6.6）</li>
+  <li>設定：<code>Dockerfile</code>、<code>vitest.config.ts</code>、<code>tsconfig.json</code>、<code>package.json</code></li>
+</ul>
+
+<h3>2.3 packages/db-core（Prisma 7 + seed + 工具）</h3>
+<ul>
+  <li><code>packages/db-core/prisma/schema.prisma</code> — schema 真相</li>
+  <li><code>packages/db-core/prisma/migrations/</code> — 12 支 migration（_archive_migrations 含早期合併前的歷史快照）</li>
+  <li><code>packages/db-core/prisma/seed/</code> — system / template / test 三層（TASK-SEED-REFACTOR-01 範式）</li>
+  <li><code>packages/db-core/prisma/sql/</code> — id_generators.sql / mw1_baseline_id_generators.sql</li>
+  <li><code>packages/db-core/scripts/</code> — generate-* / merge-baseline / verify / cleanup-20260602-*.sql<span class="badge b-gray">灰</span>（見 §6.4）</li>
+  <li><code>packages/db-core/src/index.ts</code></li>
+</ul>
+
+<!-- ============================================================ -->
+
+<h2>三、桶 2 — 規格書／手冊（權威版）</h2>
+
+<h3>3.1 規格書（CTO Alex 寫）</h3>
+<ul>
+  <li><code>docs/專案/規格書/核心/核心系統規格.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-00-系統總覽.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-01-核心主檔.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-02-進貨.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-03-庫存.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-04-銷貨.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-05-財務.html</code></li>
+  <li><code>docs/專案/規格書/核心/需求規格-08-報表.html</code></li>
+  <li><code>docs/專案/規格書/核心/doc-number-rules.csv</code>、<code>nx-table.csv</code></li>
+  <li><code>docs/專案/規格書/選購套件/</code> — <b>目前空</b>（Phase 3 待進場）</li>
+</ul>
+
+<h3>3.2 操作手冊（Hank 維護、Alex 從 2026-06-05 起代維護 .md）</h3>
+<ul>
+  <li>HTML（已搬上來的）：<code>NX-MANUAL-02-核心主檔.html</code>、<code>03-進貨.html</code>、<code>04-庫存.html</code>、<code>05-銷貨.html</code></li>
+  <li>.md（Alex 維護中、待轉 HTML）：<code>NX-MANUAL-00-overview.md</code>、<code>01-login-home.md</code>、<code>06-finance.md</code>、<code>07-report.md</code></li>
+  <li>套件手冊：<code>NX-MANUAL-PACKAGE-01-auto-database.md</code> ~ <code>08-multi-site.md</code>（8 本）</li>
+</ul>
+
+<h3>3.3 介面規格（Hana 寫）</h3>
+<ul>
+  <li><code>docs/專案/介面規格/</code> — <b>目前空</b>（只有 .gitkeep）</li>
+</ul>
+
+<h3>3.4 範本</h3>
+<ul>
+  <li><code>docs/_template/spec-template.md</code></li>
+</ul>
+
+<!-- ============================================================ -->
+
+<h2>四、桶 3 — 團隊文件</h2>
+<ul>
+  <li><code>CLAUDE.md</code>（Hank 工作規範、v2.0 兩層化版）</li>
+  <li><code>docs/_team/HANK-工具紀律.md</code>（§10 速查表的完整版）</li>
+  <li><code>docs/_team/platform-track-backlog.md</code></li>
+  <li><code>docs/_team/核心系統規格-原料-2026-06-09.md</code></li>
+  <li><code>docs/_team/驗證與補做清單.html</code>（v1.0、目前 untracked、是執行長產的最新清單）</li>
+  <li><code>docs/_team/seed/台灣地址-縣市鄉鎮-3碼郵遞區號-seed.csv</code></li>
+  <li><code>docs/_archive/2026-06-cleanup/handoffs/</code> — HANDOFF.md / HANDOFF-LITE-PROGRESS.md / git-state.md / system-architecture.md（已歸檔交棒文件）</li>
+  <li><code>docs/README.md</code></li>
+</ul>
+
+<!-- ============================================================ -->
+
+<h2>五、桶 4 — 設定／工具鏈</h2>
+<ul>
+  <li>根：<code>package.json</code>、<code>pnpm-workspace.yaml</code>、<code>pnpm-lock.yaml</code>、
+      <code>turbo.json</code>、<code>tsconfig.json</code>（不存在實體、本地推導）、
+      <code>.gitignore</code>、<code>.gitattributes</code>、<code>.npmrc</code></li>
+  <li><code>infra/docker/docker-compose.yml</code> — 本機 PostgreSQL 16（port 5433）</li>
+  <li><code>apps/nx-ui/</code>：<code>next.config.ts</code>、<code>tsconfig.json</code>、<code>postcss.config.mjs</code>、
+      <code>eslint.config.mjs</code>、<code>.env.example</code>、<code>.env.local.example</code></li>
+  <li><code>apps/nx-api/</code>：<code>Dockerfile</code>、<code>tsconfig.json</code>、<code>vitest.config.ts</code>、<code>.env.example</code></li>
+  <li><code>packages/db-core/</code>：<code>prisma.config.ts</code>、<code>tsconfig.json</code>、<code>.env.example</code></li>
+  <li><code>.vscode/settings.json</code>、<code>.claude/settings.json</code>（本地、settings.local.json 已 gitignore）</li>
+</ul>
+
+<div class="note">
+  <b>⚠️ 觀察</b>：根 <code>package.json</code> 內 <code>main</code> / <code>types</code> / <code>exports</code> 指
+  <code>dist/index.js</code> 與 <code>dist/index.d.ts</code>、但根目錄無 <code>dist/</code>、也無對應 <code>src/</code>。
+  可能是 monorepo root 不需要這三欄、是模板殘留。建議 CTO 看一眼是否該移除（小問題、不影響運行）。
+</div>
+
+<!-- ============================================================ -->
+
+<h2>五-b、桶 4 補充 — 沒有誤 commit 的 build 產物</h2>
+<p><span class="verify-pass">✅ 通過</span>
+<code>git ls-files | grep -E "(\\.next/|/dist/|/build/|node_modules/|\\.cache/)" | wc -l</code> = <b>0</b>。
+本地存在的 <code>apps/nx-ui/tsconfig.tsbuildinfo</code>、
+<code>apps/nx-ui/next-env.d.ts</code>、<code>apps/nx-api/dist/</code>、
+<code>packages/db-core/dist/</code> 全部正確被 .gitignore 擋住、未進版控。</p>
+
+<!-- ============================================================ -->
+
+<h2>六、桶 5 — <span style="color:var(--warn);">疑似垃圾</span></h2>
+
+<div class="trash-card">
+  <p class="path">T1. <code>.tmp-docker-test/</code>（repo 根目錄）</p>
+  <p class="reason"><b>判定理由</b>：目錄名稱即「臨時 Docker 測試」、2026-04-03 建立後從未提交過任何檔、
+     本地是完全空殼（只有 . 和 ..）。Hank 跨多次對話從未動過、應是早期 docker compose 試打時 mkdir 後就遺忘。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無引用</span> —
+     <code>git ls-files .tmp-docker-test/</code> = 0 筆；
+     <code>git log -- .tmp-docker-test/</code> = 無歷史紀錄。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T2. <code>prisma/</code>（repo 根目錄、含 <code>migrations/20260425100100_phase0_so_data_model_tighten/</code>）</p>
+  <p class="reason"><b>判定理由</b>：真正的 Prisma 在 <code>packages/db-core/prisma/</code>、根目錄這個 prisma 是早期 monorepo 化前留下的空殼。
+     內含的 migration 子目錄為空、無 migration.sql、無任何被引用。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無引用</span> —
+     <code>git ls-files prisma/</code> = 0 筆；根目錄 package.json 雖有 <code>prisma:migrate</code> script、
+     但實際 Prisma 設定指向 <code>packages/db-core/prisma/</code>（package.json 內 <code>"prisma"</code> 區塊 + db-core 的 prisma.config.ts）。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T3. <code>scripts/</code>（repo 根目錄）</p>
+  <p class="reason"><b>判定理由</b>：根目錄這個 scripts/ 是空殼。實際工具腳本都在
+     <code>apps/nx-api/scripts/</code> 和 <code>packages/db-core/scripts/</code>。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無引用</span> —
+     <code>git ls-files scripts/</code> = 0 筆；
+     <code>ls scripts/</code> 僅有 <code>.</code> 和 <code>..</code>。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T4. <code>dailylog/</code>（21 個 .md + README.md）</p>
+  <p class="reason"><b>判定理由</b>：每日工作日誌的舊工作流（從 2026-03-26 寫到 2026-04-28、之後完全停寫）。
+     原為 Alex（PM）與 Hank（Cursor）跨對話銜接用、但 <b>新範式已改為「進度走 commit 訊息」</b>
+     （見 CLAUDE.md §9 文件紀律：「進度紀錄 = Hank（commit 訊息）= Git log」）。
+     README.md 內還指向已不存在的 <code>.cursorrules</code>（Cursor 時代產物）。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">基本無引用</span> —
+     <code>grep -r dailylog</code>：僅 <code>docs/_team/platform-track-backlog.md</code>
+     一處註記「dailylog/_archive 不該改」（就是要保留歷史、但不再新寫）、
+     和 repo 根 <code>README.md</code> 一處（README 本身已是灰色地帶、見 §6.G1）。
+     <b>注意</b>：屬「歷史紀錄」性質、刪前建議先打 tar 或搬 <code>_archive/</code>。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T5. <code>demo/</code>（173 檔；包含 <code>demo/home/</code> + <code>demo/login/</code>）</p>
+  <p class="reason"><b>判定理由</b>：2026-03-27 commit「<i>ErpAppShell 殼層、Dock/底欄與 demo 參考專案</i>」帶進來的
+     Next.js 腳手架（兩個獨立 Next 專案、各自帶 <code>package.json</code> / <code>pnpm-lock.yaml</code> /
+     <code>components/ui</code>（shadcn 預設 50+ 個元件全套）/ <code>tailwind.config.ts</code>）。
+     用途是當「外觀參考」、實際 UI 已搬進 <code>apps/nx-ui/</code>。最後 commit 在 2026-03-27、之後 75 天無動過。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無程式碼引用</span> —
+     <code>grep -r demo/home OR demo/login</code> 全 repo（排除 node_modules）：
+     <b>僅 1 處</b>命中、是 <code>apps/nx-ui/src/components/home/dock.tsx:45</code> 註解
+     「<i>與 demo/home 一致；連結對應 NEXORA 實際路由</i>」、純文字描述、無 import。
+     <code>apps/nx-ui/src/features/auth/demo-session</code> 的「demo」是不同概念（demo 模式登入、非此目錄）。
+     <code>pnpm-workspace.yaml</code> 也沒把 <code>demo/*</code> 列為 workspace。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T6. <code>apps/nx-ui/src/features/document-demo/</code>（3 檔：<code>QtDocPage.tsx</code>、<code>SoDocPage.tsx</code>、<code>mockData.ts</code>）</p>
+  <p class="reason"><b>判定理由</b>：Quotation / SO 文件預覽的 demo 頁面、僅檔內彼此互相 import
+     （兩個 Page 各從 <code>mockData</code> 取 MOCK_CUSTOMERS / MOCK_QT_LIST / MOCK_SO_LIST）、
+     無 App Router 路由載入、無其他 feature 引用。
+     正式 SO/Quotation 流程已在 <code>features/sale/</code> 完成。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無外部引用</span> —
+     <code>grep -rn "QtDocPage|SoDocPage" apps/ packages/</code>：
+     只命中 document-demo/ 自家兩支檔的 export 行、0 個 import 點。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T7. <code>apps/nx-ui/src/app/lab/accounts/page.tsx</code> + <code>app/lab/users/page.tsx</code></p>
+  <p class="reason"><b>判定理由</b>：路徑 <code>/lab/*</code>、檔頭註解「<i>避開 dashboard layout 的 TopBar wrap、純 root layout</i>」、
+     看起來是 Hank 早期測試 master-shell 風格隔離時的 scratch 頁面。
+     正式的「帳號管理 / 用戶管理」已在 <code>/dashboard/sys-admin/users</code> 與 platform 層完成。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無導航引用</span> —
+     <code>grep -rn "/lab/accounts|/lab/users" apps/nx-ui/src</code>：
+     只命中兩支檔自己的檔頭路徑註解、無任何 Link / router.push / nav 引用。</p>
+</div>
+
+<div class="trash-card">
+  <p class="path">T8. <code>docs/_system/</code>（4 檔：<code>plan-sys-dashboard.md</code>、<code>sys-dashboard.md</code>、<code>sys-layout.md</code>、<code>workflow/sys-w01~w04-*.md</code>）</p>
+  <p class="reason"><b>判定理由</b>：2026-04 ~ 05 的舊版設計稿。
+     <code>plan-sys-dashboard.md</code> 檔頭寫「存放位置：<code>nexora/docs/flows/PLAN_SYS_DASHBOARD_首頁儀表板.md</code>」
+     （路徑都不對、<code>docs/flows/</code> 不存在）、並引用「ROUTE_TABLE_v2.0」（已在 <code>_archive/2026-06-cleanup/superseded/</code>）。
+     <code>sys-dashboard.md</code> 內參考「<code>C:\nexora\demo\home_v2</code>」（demo/ 內也沒有 home_v2、只有 home/login、可能更早已不存在的版本）。
+     <code>sys-layout.md</code> 是舊版路由總覽、現已被 <code>需求規格-00-系統總覽.html</code> 取代。</p>
+  <p class="verify"><b>引用檢查</b>：<span class="verify-pass">無現役文件引用</span> —
+     <code>grep -r _system</code> 範圍 <code>CLAUDE.md</code> / <code>docs/_team/</code> / <code>docs/專案/</code>：
+     <b>0 筆</b>命中。</p>
+</div>
+
+<!-- ============================================================ -->
+
+<h2>七、桶 6 — <span style="color:var(--gray);">灰色地帶</span></h2>
+
+<div class="gray-card">
+  <p class="path">G1. <code>README.md</code>（repo 根）</p>
+  <p class="reason"><b>狀況</b>：repo 入口文件、不能刪、但內容已過時。
+     指向 <code>docs/PROJECT_CONTEXT.md</code>（已搬 <code>_archive/2026-06-cleanup/superseded/</code>）、
+     <code>docs/spec/</code> / <code>docs/workflow/</code> / <code>docs/ui/</code>（三者都不存在）、
+     <code>dailylog/</code>（疑似垃圾 T4）、稱「<i>Cursor AI 工作規範</i>」（已改 Claude Code）。
+     建議：保留檔、內容翻修。</p>
+</div>
+
+<div class="gray-card">
+  <p class="path">G2. <code>docs/_archive/</code> 根的 3 個鬆散檔：
+     <code>2026-04-24_workstation-pivot-plan.md</code>、<code>2026-04-24_workstation-pivot.md</code>、
+     <code>2026-04-28_file-placement-decisions.md</code></p>
+  <p class="reason"><b>狀況</b>：是已歸檔的舊文件、但放在 _archive/ 根層、而不是任何子主題目錄。
+     其他 _archive 內容都已分類進 <code>2026-04/</code>、<code>2026-06-cleanup/</code> 子目錄。
+     建議：搬進 <code>_archive/2026-04/</code> 一起、或保留現狀（不至於誤導）。</p>
+</div>
+
+<div class="gray-card">
+  <p class="path">G3. <code>docs/_reference/</code>、<code>docs/參考/</code>、<code>docs/專案/介面規格/</code>（均空）</p>
+  <p class="reason"><b>狀況</b>：三個空目錄、各自只有 <code>.gitkeep</code> 或無檔。<code>介面規格/</code> 是 Hana 還沒開始輸出、保留位置合理。
+     <code>_reference/</code> 與 <code>參考/</code> 看起來功能重複（一個英文底線、一個中文）、可能其中一個是計畫但沒落地。
+     建議：CTO 拍板二選一、或 Hana 開工時補。</p>
+</div>
+
+<div class="gray-card">
+  <p class="path">G4. <code>packages/db-core/scripts/cleanup-20260602-*.sql</code>（4 支）</p>
+  <p class="reason"><b>狀況</b>：2026-06-02 Phase 6 平台租戶分離時跑的一次性 SQL：
+     <code>hengying-add-subscription</code> / <code>hengying-pre-employee-id-redo</code> /
+     <code>phase6-2-dirty-tenants</code> / <code>phase6-final-verification-residue</code>。
+     已跑過、不會再用。保留可當歷史佐證、刪掉也 OK。
+     建議：CTO 拍板是否搬 <code>_archive_migrations/</code> 旁邊一起歸檔。</p>
+</div>
+
+<div class="gray-card">
+  <p class="path">G5. <code>apps/nx-ui/src/features/home/</code>（只剩 <code>api/</code> 子目錄、本身無檔）</p>
+  <p class="reason"><b>狀況</b>：<code>features/home/api/bulletin.ts</code>、<code>calendar-event.ts</code> 都還在用
+     （3 個 component 引用）、檔內容是真的、不能刪。
+     但 <code>features/home-dashboard/</code>（13 檔、完整實作）才是現役首頁、
+     <code>features/home/</code> 看起來是重構後的殘殼。
+     建議：把 <code>home/api/</code> 兩支搬進 <code>home-dashboard/</code> 或 <code>shared/api/</code>、然後刪 <code>home/</code>。
+     需 review 變動範圍、不是純垃圾、所以歸灰。</p>
+</div>
+
+<div class="gray-card">
+  <p class="path">G6. <code>apps/nx-api/scripts/nx0X-crud-fetch-test.mjs</code>（9 支）</p>
+  <p class="reason"><b>狀況</b>：各模組 CRUD smoke 試打腳本。是 Hank 對齊時手寫的、不是 vitest 正式測試。
+     <code>vitest.config.ts</code> 沒包含 .mjs 副檔名、所以不會被自動跑。
+     可能仍用於手動 verify、也可能已被新測試取代。
+     建議：CTO 確認是否要進 CI、要就改 .spec.ts、不要就刪。</p>
+</div>
+
+<div class="gray-card">
+  <p class="path">G7. 根 <code>package.json</code> 的 <code>main</code> / <code>types</code> / <code>exports</code> 設定</p>
+  <p class="reason"><b>狀況</b>：指向不存在的 <code>dist/index.js</code> / <code>dist/index.d.ts</code>。
+     monorepo root 通常不需要這三欄、可能是初建 repo 時的模板殘留。
+     不影響運行、但容易誤導讀者。
+     建議：CTO 拍板移除、或補對應的根 build 機制。</p>
+</div>
+
+<!-- ============================================================ -->
+
+<h2>八、其他確認過、<b>不</b>歸垃圾的</h2>
+<ul>
+  <li><span class="badge b-ok">OK</span> <code>dev-backups/</code>（11 支 .sql pg_dump）— 已在 .gitignore 內、不入版控、Hank 本地工作流。</li>
+  <li><span class="badge b-ok">OK</span> <code>apps/nx-ui/src/mocks/</code>（5 檔）— 被 10 個 component 引用、是現役 mock。</li>
+  <li><span class="badge b-ok">OK</span> <code>apps/nx-ui/src/app/coming-soon/page.tsx</code> — <code>HUB_PLACEHOLDER_HREF = '/coming-soon'</code> 用、是現役 placeholder。</li>
+  <li><span class="badge b-ok">OK</span> <code>apps/nx-ui/src/app/dashboard/purchase/sop-demo/</code>、<code>sale/sop-demo/</code> — 雖名稱有 demo、但 dock.tsx 和 WorkstationSection 都引用、是正式 SOP 工作站。</li>
+  <li><span class="badge b-ok">OK</span> <code>docs/_archive/2026-06-cleanup/</code> 整批 — 已是「正式歸檔區」、結構良好（audits / handoffs / module-spec / old-operation-manuals / staging / superseded / v1.2-alignment）。</li>
+  <li><span class="badge b-ok">OK</span> 操作手冊內 <code>.md</code> 版（00、01、06、07、PACKAGE 01-08）— 最近 commit 都在 2026-06-09、是 Alex 維護中的權威 .md 版、不是被取代的舊版。</li>
+  <li><span class="badge b-ok">OK</span> <code>packages/db-core/prisma/_archive_migrations/</code> — 是歷史 migration 歸檔（12 檔、tracked）、不是垃圾。</li>
+  <li><span class="badge b-ok">OK</span> 全 repo 0 個 .docx / .bak / .tmp 檔；唯一 <code>-old</code> 命名檔
+      <code>docs/_archive/2026-04/project-context-old.md</code> 已正確在 _archive 內。</li>
+</ul>
+
+<!-- ============================================================ -->
+
+<h2>九、回報事項</h2>
+<ul>
+  <li><b>意外狀況</b>：發現 3 個幽靈空目錄（<code>.tmp-docker-test/</code>、<code>prisma/</code>、<code>scripts/</code>）、其中 <code>prisma/</code> 內藏一筆未 commit 的空 migration 目錄、值得 CTO 確認是否有歷史脈絡。</li>
+  <li><b>無誤 commit 的 build 產物</b>。</li>
+  <li><b>無重複的規格書版本</b>（HTML 是現役、.md 多數是 Alex 維護中的另一批模組、不是同一份文件的兩版）。</li>
+  <li><b>跑不到的孤兒程式碼</b>：3 組（<code>document-demo/</code>、<code>/lab/*</code>、<code>features/home/</code> 殘殼）。</li>
+  <li><b>過期入口文件</b>：repo 根 <code>README.md</code> 內所有文件導航連結幾乎全失效、建議下次重整時翻修。</li>
+</ul>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sub);">
+— 本文件由 Hank 階段一盤點產出、純讀取、未動任何檔案。等 CTO + CEO review 後進階段三才執行刪除。—
+</p>
+
+</body>
+</html>

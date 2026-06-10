@@ -107,7 +107,7 @@ function QuoteDetailInner({ id }: { id: string }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/nx04/quote" className="rounded border px-3 py-1 text-sm hover:bg-muted">
+          <Link href="/dashboard/sale/qt" className="rounded border px-3 py-1 text-sm hover:bg-muted">
             ← 返回列表
           </Link>
           <button

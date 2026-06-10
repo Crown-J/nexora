@@ -1,0 +1,79 @@
+<!-- 檔案位置：docs/_team/驗證與補做清單.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：六模組需求規格 + 核心系統規格所有 ⚠️ 去重彙整。分「Hank 驗證/補做」與「待定義」兩群。
+     已濾除已實作的設計註記（非缺口）。Hank 驗證/補做後更新狀態欄。 -->
+<!DOCTYPE html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>驗證與補做清單 v1.0</title>
+<style>
+:root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--ok:#1f6b3a;}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;color:#26303d;line-height:1.65;max-width:1000px;margin:0 auto;padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;} .meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:16px;margin:28px 0 8px;padding:7px 13px;border-radius:5px;}
+p{margin:6px 0;font-size:13px;}
+table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0;}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+td.n{text-align:center;font-weight:700;color:var(--navy);}
+td.mod{white-space:nowrap;font-size:11.5px;color:var(--sub);}
+.pri{display:inline-block;font-size:10.5px;font-weight:700;border-radius:3px;padding:0 6px;}
+.p-hi{background:#fbeeee;color:var(--warn);} .p-mid{background:#fdf3e3;color:#7a4e09;} .p-lo{background:#eef3f9;color:#33507a;}
+footer{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
+</style></head><body>
+<header class="doc"><h1>⚠️ 驗證與補做清單</h1>
+<div class="meta"><b>檔案位置：</b>docs/_team/驗證與補做清單.html　|　<b>版本：</b>v1.0　|　<b>維護：</b>CTO（Alex）<br>
+<b>說明：</b>六模組需求規格 + 核心系統規格所有 ⚠️ 去重彙整（已濾除已實作的設計註記）。優先：<span class="pri p-hi">高</span> <span class="pri p-mid">中</span> <span class="pri p-lo">低</span>。</div></header>
+
+<h2>群組 1 — Hank 驗證 / 補做</h2>
+<p><b>A. 補做候選（該有但缺、要寫 code）</b></p>
+<table>
+<tr><th>#</th><th>項目</th><th>模組</th><th>優先</th><th>動作</th></tr>
+<tr><td class="n">A1</td><td>收付款後端校驗</td><td class="mod">NX05</td><td><span class="pri p-hi">高</span></td><td>後端目前信任前端傳的沖帳明細、未校驗「沖帳總和＝票額」、未自動補餘 → 補後端校驗或 UI 自動算。Hank 標為唯一明顯坑、工小。</td></tr>
+<tr><td class="n">A2</td><td>特價售出 AR 分流</td><td class="mod">NX03/04/05/核心</td><td><span class="pri p-mid">中</span></td><td>特價 SO 流入正常 AR、未帶分流旗標 → 加 sourceTag='SPECIAL' 或 AR 列表帶特價旗標，落實鐵則「特價不污染毛利報表」。跨四處同一題。</td></tr>
+<tr><td class="n">A3</td><td>銀行帳戶主檔</td><td class="mod">NX05</td><td><span class="pri p-lo">低</span></td><td>目前僅票據有銀行文字欄、無獨立主檔/CRUD。是否建獨立主檔。</td></tr>
+</table>
+<p><b>B. 查證（系統「有沒有」＋「該不該有」）</b></p>
+<table>
+<tr><th>#</th><th>項目</th><th>模組</th><th>優先</th><th>動作</th></tr>
+<tr><td class="n">B1</td><td>版本閘門殘留</td><td class="mod">核心 §9.2</td><td><span class="pri p-hi">高</span></td><td>舊矩陣列的功能（多倉/部門層級/完整員工主檔/採購單/出口/KPI…）在 code 是否還有「依版本擋」的閘門？有 → 違反鐵則、要拆。</td></tr>
+<tr><td class="n">B2</td><td>在途量／預進量</td><td class="mod">NX02/03</td><td><span class="pri p-mid">中</span></td><td>採購「已核准未入庫」的在途量，系統是否記錄、是否計入「可用庫存」供下單參考。查現況＋判該不該有。</td></tr>
+<tr><td class="n">B3</td><td>採購相關狀態重驗</td><td class="mod">NX08</td><td><span class="pri p-mid">中</span></td><td>採購已串通，進貨報表/個人月報毛利/損益表成本 應已改善 → 重驗實際資料、更新報表手冊狀態。</td></tr>
+<tr><td class="n">B4</td><td>安全庫存設定可用性</td><td class="mod">NX08/01</td><td><span class="pri p-mid">中</span></td><td>低庫存警報依賴零件主檔「安全量」；核心主檔已列欄位 → 確認設定功能是否已可用（手冊原註建置中）。</td></tr>
+<tr><td class="n">B5</td><td>零件主碼錨點</td><td class="mod">NX01</td><td><span class="pri p-mid">中</span></td><td>是否有獨立於「零件料號」的系統內碼作永久錨點，或料號本身即不可改錨點。影響改號與歷史單據。</td></tr>
+<tr><td class="n">B6</td><td>員編格式對齊</td><td class="mod">NX01</td><td><span class="pri p-lo">低</span></td><td>手冊「Y＋4碼自動可覆寫」vs 產品方向「自由文字不強制格式」→ 確認現況以「自動給號為預設、可覆寫成任意唯一文字」對齊。</td></tr>
+</table>
+<p><b>E. 改手冊（Hank 維護）</b></p>
+<table>
+<tr><th>#</th><th>項目</th><th>模組</th><th>動作</th></tr>
+<tr><td class="n">E1</td><td>財務手冊過時</td><td class="mod">NX05</td><td>「採購應付建置中」「催款未開放」已過時 → 更新。</td></tr>
+<tr><td class="n">E2</td><td>報表手冊過時</td><td class="mod">NX08</td><td>多處「採購建置中」狀態 → 重驗後一併更新（與 B3 連動）。</td></tr>
+</table>
+
+<h2>群組 2 — 待定義（需 CTO / CEO 拍）</h2>
+<p><b>C. 待釐清（業務/設計，CTO 定義後 Hank 才實作）</b></p>
+<table>
+<tr><th>#</th><th>項目</th><th>模組</th><th>說明</th></tr>
+<tr><td class="n">C1</td><td>廠商確認→應付 過帳細節</td><td class="mod">NX02/05</td><td>過帳時點、科目、與驗收/發票勾稽（鏈已通、細節要定）。</td></tr>
+<tr><td class="n">C2</td><td>報廢過帳</td><td class="mod">NX03/05</td><td>不自動進損益、會計手動 → 科目與時點。</td></tr>
+<tr><td class="n">C3</td><td>三層定價取最低</td><td class="mod">NX04</td><td>基準/促銷/折扣三層取最低的優先序；低於成本警示觸發（含特價豁免）。</td></tr>
+<tr><td class="n">C4</td><td>信用管控</td><td class="mod">NX04</td><td>依信用額度/狀態(NWF)擋單放行的觸發點、誰能覆寫。</td></tr>
+<tr><td class="n">C5</td><td>銷退兩方式回沖</td><td class="mod">NX04</td><td>方式 A/B 的庫存回沖與財務沖帳時點差異。</td></tr>
+<tr><td class="n">C6</td><td>採購核准流程</td><td class="mod">NX02</td><td>哪些單據強制走核准（採購單/保固/盤點）。</td></tr>
+<tr><td class="n">C7</td><td>國外進貨六階段</td><td class="mod">NX02</td><td>各階段觸發、應記欄位（船期/報關/稅費）、成本歸集。</td></tr>
+<tr><td class="n">C8</td><td>開帳存 vs 代建</td><td class="mod">NX03</td><td>期初庫存由 Innova 代建匯入或開帳存單建立，界定分工。</td></tr>
+<tr><td class="n">C9</td><td>零件編碼細節</td><td class="mod">NX01</td><td>主碼舊碼切換歷史單據處理／沒套件舊碼擋重複／套件加購編碼銜接。</td></tr>
+</table>
+<p><b>D. 待 CEO 拍（產品範疇）</b></p>
+<table>
+<tr><th>#</th><th>項目</th><th>模組</th><th>說明</th></tr>
+<tr><td class="n">D1</td><td>加購清單與 NX 碼定版</td><td class="mod">NX00</td><td>NX09 KM/NX10 遊戲化 + 401進階/汽車資料庫/電子發票/多據點/第三方 的 NX 碼。定版後開選購套件需求規格。</td></tr>
+<tr><td class="n">D2</td><td>401 特殊明細</td><td class="mod">NX05</td><td>進口/零稅率/免稅/不得扣抵 是否納入系統（現為由會計師調整）。</td></tr>
+<tr><td class="n">D3</td><td>損益表費用記帳</td><td class="mod">NX08</td><td>LITE 是否補費用記帳介面（現營業淨利≈毛利、不可作財報）。</td></tr>
+</table>
+
+<footer>驗證與補做清單 v1.0　·　來源：六模組需求規格 + 核心系統規格的 ⚠️ 去重彙整　·　Hank 處理群組 1（A/B/E），群組 2（C/D）待 CTO/CEO 定義後再排。</footer>
+</body></html>

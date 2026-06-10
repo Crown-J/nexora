@@ -1,0 +1,227 @@
+<!-- docs/_team/route-realignment-plan.html -->
+<!-- 檔案版本：v1.0 -->
+<!-- 檔案說明：全線路重整 階段 B 施工設計方案（CTO Alex 撰、CEO 拍板後 Hank 施工）。
+     原則：對內留 NX 編號（利於分類）、對外一律業務名（不露代碼）。
+     三件事一起理：前端編號校準／網址業務名化／清死碼。nx10 遊戲化暫擱。 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>全線路重整 — 施工設計方案 v1.0</title>
+<style>
+:root{
+  --navy:#1F3A5F; --amber:#c8881f; --sub:#5d6675; --line:#e3e7ee;
+  --warn:#962d2d; --warn-bg:#fdecec; --ok:#1f6b3a; --ok-bg:#eaf6ee;
+  --hold:#7a4a00; --hold-bg:#fdf3df; --bg:#fafbfc;
+}
+*{box-sizing:border-box;}
+body{font-family:'PingFang TC','Microsoft JhengHei','Noto Sans TC',sans-serif;
+     color:#26303d;line-height:1.65;max-width:1080px;margin:0 auto;
+     padding:38px 26px 80px;background:#fff;}
+header.doc{border-bottom:3px solid var(--navy);padding-bottom:16px;margin-bottom:6px;}
+header.doc h1{color:var(--navy);font-size:24px;margin:0 0 6px;}
+.meta{color:var(--sub);font-size:12.5px;line-height:1.6;}
+.meta b{color:var(--navy);}
+h2{color:#fff;background:var(--navy);font-size:16px;margin:32px 0 10px;
+   padding:8px 14px;border-radius:5px;}
+h3{color:var(--navy);font-size:14.5px;margin:18px 0 8px;
+   border-left:4px solid var(--amber);padding-left:10px;}
+p{margin:6px 0;font-size:13.2px;}
+ul,ol{padding-left:22px;}
+li{margin:3px 0;font-size:13px;}
+code{background:#f0f2f5;padding:1px 6px;border-radius:3px;font-family:Consolas,monospace;
+     font-size:12.5px;color:#1f3a5f;}
+table{border-collapse:collapse;width:100%;font-size:12.3px;margin:10px 0;}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+th{background:#33507a;color:#fff;font-weight:600;}
+tr:nth-child(even) td{background:var(--bg);}
+.summary{background:#f4f7fb;border-left:5px solid var(--navy);padding:14px 18px;
+         margin:14px 0 24px;border-radius:0 5px 5px 0;}
+.summary p{margin:5px 0;}
+.badge{display:inline-block;padding:1px 8px;border-radius:11px;font-size:11px;
+       font-weight:600;}
+.b-warn{background:var(--warn-bg);color:var(--warn);}
+.b-ok{background:var(--ok-bg);color:var(--ok);}
+.b-hold{background:var(--hold-bg);color:var(--hold);}
+.b-info{background:#e8f0fb;color:var(--navy);}
+.note{background:#fff8e7;border-left:4px solid var(--amber);padding:10px 14px;
+      margin:10px 0;font-size:12.8px;border-radius:0 4px 4px 0;}
+.danger{background:var(--warn-bg);border-left:4px solid var(--warn);padding:10px 14px;
+        margin:10px 0;font-size:12.8px;border-radius:0 4px 4px 0;}
+.step{border:1px solid var(--line);border-left:4px solid var(--navy);
+      background:#fff;padding:10px 14px;margin:10px 0;border-radius:0 4px 4px 0;}
+.step .t{font-weight:600;color:var(--navy);font-size:13.5px;}
+.arrow{color:var(--amber);font-weight:600;}
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <h1>全線路重整 — 施工設計方案</h1>
+  <div class="meta">
+    <p><b>撰寫</b>：Alex（CTO）　<b>日期</b>：2026-06-10　<b>狀態</b>：待 CEO 拍板 → 拍板後 Hank 施工</p>
+    <p><b>依據</b>：階段 A 測繪報告 <code>docs/_team/system-routes-survey.md</code></p>
+    <p><b>分支</b>：接續 <code>chore/cleanup-phase3</code>（或另開 <code>refactor/route-realignment</code>，由 Hank 定）</p>
+  </div>
+</header>
+
+<div class="summary">
+  <p><b>一句話</b>：把「線路打架」一次理乾淨——前端資料夾編號對齊後端、客戶端網址全部業務名化、死碼清掉。原則是 <b>對內留 NX 編號（利於分類）、對外一律業務名（不露代碼）</b>。</p>
+  <p><b>本次三件事</b>：① 前端 <code>features</code> 編號校準　② 客戶端網址業務名化（102 條、372 處引用）　③ 清死碼（4 確定 + 3 待確認）。</p>
+  <p><b>本次不碰</b>：<span class="badge b-hold">暫擱</span> nx10 遊戲化（是橫向貫穿介面與 KPI 的機制、非獨立頁面，留待遊戲化專案單獨規劃）。</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>一、業界基準（別人怎麼做）</h2>
+<p>「系統內部用代碼、對外用人看得懂的名字」是成熟系統的通用分層做法，不是我們發明的。常見三層：</p>
+<table>
+  <tr><th>層</th><th>給誰看</th><th>命名原則</th><th>NEXORA 對應</th></tr>
+  <tr><td>內部模組 / 程式碼</td><td>工程師、維運</td><td>穩定代碼，永不隨業務改名而變</td><td><code>features/nx0X</code>、後端 <code>nx0X</code></td></tr>
+  <tr><td>對外路由 / 網址</td><td>客戶</td><td>業務語意、好懂、好記、可分享</td><td><code>/dashboard/{業務名}</code></td></tr>
+  <tr><td>顯示文字 / 選單</td><td>客戶</td><td>業務中文名</td><td>進貨 / 庫存 / 銷貨…</td></tr>
+</table>
+<p>關鍵慣例：<b>對外名字可以變、對內代碼不該變</b>。所以網址改成業務名，但資料夾保留 <code>nx0X</code> 編號——這正是執行長定的方向。</p>
+
+<!-- ============================================================ -->
+<h2>二、痛點分析（現在為什麼亂）</h2>
+<h3>痛點 1：前端編號停在舊制、與後端錯位</h3>
+<p>早期編號是 <code>nx00=主檔、nx01=採購…</code>；後來整批 +1 改成 <code>nx01=主檔、nx02=採購…</code>。<b>後端已改新制，前端 features 還停在舊制</b>，於是同一個編號前後端意思差一位：</p>
+<table>
+  <tr><th>編號</th><th>後端（新制）</th><th>前端 features（舊制殘留）</th><th>狀態</th></tr>
+  <tr><td><code>nx01</code></td><td>主檔</td><td>採購（po/rfq/rr）</td><td><span class="badge b-warn">錯位</span></td></tr>
+  <tr><td><code>nx02</code></td><td>採購</td><td>庫存</td><td><span class="badge b-warn">錯位</span></td></tr>
+  <tr><td><code>nx03</code></td><td>庫存</td><td>銷貨 workflow + 庫存混雜</td><td><span class="badge b-warn">錯位+混雜</span></td></tr>
+  <tr><td><code>nx05/nx08</code></td><td>財務 / 報表</td><td>財務 / 報表</td><td><span class="badge b-ok">已對齊</span></td></tr>
+</table>
+
+<h3>痛點 2：客戶端網址露 NX 代碼（違產品鐵則）</h3>
+<p>共 <b>102 條活躍頁面</b>露出 <code>/dashboard/nx0X</code>，全 repo 被硬寫引用 <b>372 次</b>。客戶會直接看到內部代碼，違反「對外不露代碼」鐵則。</p>
+
+<h3>痛點 3：擺錯資料夾 + 死碼殘留</h3>
+<p>採購 feature 內混了散主檔；nx03 同時裝銷貨與庫存；另有 4 個被取代但沒刪的死 hub。這些讓「一個資料夾 = 一個業務」的直覺破功。</p>
+
+<!-- ============================================================ -->
+<h2>三、設計｜A. 前端 features 編號校準對照</h2>
+<p>把前端 features 編號往後挪、對齊後端新制，同時把擺錯的東西歸位。</p>
+<table>
+  <tr><th>現況前端</th><th class="arrow">→</th><th>校準後</th><th>內容怎麼動</th></tr>
+  <tr><td><code>features/nx01</code>（採購+散主檔）</td><td class="arrow">→</td><td><code>features/nx02</code></td><td>採購相關留下改 nx02；散主檔（customer-grade/engine/model/phonetic-dictionary/vehicle-classification）搬回主檔區（base）</td></tr>
+  <tr><td><code>features/nx02</code>（庫存）</td><td class="arrow">→</td><td><code>features/nx03</code></td><td>整體對齊後端庫存=nx03；與既有 <code>features/inventory</code> 整併</td></tr>
+  <tr><td><code>features/nx03</code>（銷貨+庫存混）</td><td class="arrow">→</td><td>拆解</td><td>銷貨 workflow 併入 <code>features/sale</code>（後端 nx04）；stock-balance 併入庫存（nx03）；原 nx03 資料夾清空刪除</td></tr>
+  <tr><td><code>features/nx05</code>（財務）</td><td class="arrow">→</td><td><code>features/nx05</code></td><td>已對齊，不動</td></tr>
+  <tr><td><code>features/nx08</code>（報表）</td><td class="arrow">→</td><td><code>features/nx08</code></td><td>已對齊，不動</td></tr>
+</table>
+<div class="danger">
+  <b>⚠️ 撞名風險與對策</b>：編號往後挪會出現「新舊 nx02 並存」的瞬間。施工<b>必須由後往前、且每步先確認目標編號沒被占用</b>，避免覆蓋。詳見第五節施工順序。
+</div>
+
+<!-- ============================================================ -->
+<h2>三、設計｜B. 客戶端網址業務名對照</h2>
+<p>所有 <code>/dashboard/nx0X/*</code> 改為業務名。對內 feature 編號維持（校準後）。</p>
+<table>
+  <tr><th>現況網址</th><th class="arrow">→</th><th>業務名網址</th><th>業務</th><th>引用數</th><th>工程量</th></tr>
+  <tr><td><code>/dashboard/nx02/*</code></td><td class="arrow">→</td><td><code>/dashboard/purchase/*</code>（庫存子頁改 inventory）</td><td>採購</td><td>95</td><td><span class="badge b-warn">最大</span></td></tr>
+  <tr><td><code>/dashboard/nx08/*</code></td><td class="arrow">→</td><td><code>/dashboard/report/*</code></td><td>報表</td><td>60</td><td><span class="badge b-warn">大</span></td></tr>
+  <tr><td><code>/dashboard/nx04/*</code></td><td class="arrow">→</td><td><code>/dashboard/sale/*</code></td><td>銷貨</td><td>43</td><td>中</td></tr>
+  <tr><td><code>/dashboard/nx03/*</code></td><td class="arrow">→</td><td><code>/dashboard/inventory/*</code> + <code>/sale/*</code>（拆）</td><td>庫存/銷貨</td><td>37</td><td>中</td></tr>
+  <tr><td><code>/dashboard/nx06/*</code></td><td class="arrow">→</td><td><code>/dashboard/delivery/*</code></td><td>配送</td><td>36</td><td>中</td></tr>
+  <tr><td><code>/dashboard/nx05/*</code></td><td class="arrow">→</td><td><code>/dashboard/finance/*</code></td><td>財務</td><td>29</td><td>小</td></tr>
+  <tr><td><code>/dashboard/nx09/*</code></td><td class="arrow">→</td><td><code>/dashboard/knowledge/*</code></td><td>知識管理</td><td>23</td><td>小</td></tr>
+  <tr><td><code>/dashboard/nx07/*</code></td><td class="arrow">→</td><td><code>/dashboard/hr/*</code></td><td>人資</td><td>20</td><td>小</td></tr>
+  <tr><td><code>/dashboard/nx01/*</code></td><td class="arrow">→</td><td><code>/dashboard/purchase/*</code>（併）+ 清 redirect</td><td>採購 root</td><td>6</td><td>最小</td></tr>
+  <tr><td><code>/dashboard/nx10/*</code></td><td class="arrow">→</td><td><span class="badge b-hold">暫擱</span> 不改</td><td>遊戲化</td><td>23</td><td>—</td></tr>
+</table>
+<div class="note">
+  <b>網址新名（CEO 已拍）</b>：配送 <code>delivery</code>、人資 <code>hr</code>、知識管理 <code>knowledge</code>。其餘沿用既有業務名。
+</div>
+<div class="note">
+  <b>nx10 待查</b>：測繪顯示現有 10 條 <code>/dashboard/nx10</code> 頁面、引用 23。與「遊戲化無專屬頁面」定位不符，施工前請 Hank 查清這 10 條實際是什麼（雛形佔位？歸錯？），但本次<b>一律不動</b>，留待遊戲化專案。
+</div>
+
+<!-- ============================================================ -->
+<h2>三、設計｜C. 死碼清除清單</h2>
+<table>
+  <tr><th>路徑</th><th>內容</th><th>外部引用</th><th>處置</th></tr>
+  <tr><td><code>features/finance/ui/FinanceCenterHub.tsx</code></td><td>舊財務 hub</td><td>0</td><td><span class="badge b-warn">刪</span></td></tr>
+  <tr><td><code>features/report/ui/ReportCenterHub.tsx</code></td><td>舊報表 hub</td><td>0</td><td><span class="badge b-warn">刪</span></td></tr>
+  <tr><td><code>features/sales/ui/SalesCenterHub.tsx</code></td><td>舊銷貨 hub</td><td>0</td><td><span class="badge b-warn">刪</span></td></tr>
+  <tr><td><code>features/nx06/push-subscription.ts</code></td><td>Web Push helper、未串入</td><td>0</td><td><span class="badge b-warn">刪</span></td></tr>
+</table>
+<h3>待確認 3 檔（施工時順手查清，不可盲刪）</h3>
+<ul>
+  <li><code>features/nx03/workflow/mock/*.ts</code> — 確認是否僅元件內部 import、grep 未抓到。</li>
+  <li><code>features/nx02/dashboard/Nx02DashboardPage.tsx</code> — 確認是否仍在某 menu 入口。</li>
+  <li><code>features/nx01/dashboard/Nx01DashboardPage.tsx</code> — 同上。</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>四、施工總原則</h2>
+<ul>
+  <li><b>每段獨立 commit</b>，訊息寫清楚動了什麼。</li>
+  <li><b>每段做完先驗證</b>：<code>tsc --noEmit</code> 0 錯誤 + grep 確認舊路徑/舊引用歸零 + 能起 dev。</li>
+  <li><b>舊網址留 redirect</b>：每條舊 <code>/dashboard/nx0X</code> 改名後，保留一條 redirect 指向新業務名網址（防書籤/外部連結失效），過渡期後再評估移除。</li>
+  <li><b>由低風險到高風險</b>：先清死碼、再改引用最少的模組、最後才動最大的採購/報表。</li>
+  <li><b>任一段驗證沒過就停手回報 CTO</b>，不硬推。</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>五、分階段施工順序</h2>
+
+<div class="step">
+  <p class="t">段 0｜清死碼（暖身、零風險）</p>
+  <p>刪 4 個確定死檔；查清並處置 3 個待確認檔。先把雜訊清掉，後面校準看得更清楚。</p>
+  <p><b>驗證</b>：tsc 0 錯誤、grep 死碼類名歸零。</p>
+</div>
+
+<div class="step">
+  <p class="t">段 1｜改「引用最少、無編號錯位」的模組網址（練手）</p>
+  <p>順序：nx07 人資（20）→ nx09 知識管理（23）→ nx06 配送（36）。這三個後端編號已對、前端也無 feature 撞名，純改網址 + 加 redirect，風險最低。</p>
+  <p><b>驗證</b>：每改一個，tsc + grep <code>/dashboard/nx0X</code> 歸零 + 新網址可進。</p>
+</div>
+
+<div class="step">
+  <p class="t">段 2｜改已對齊模組的網址：財務、報表</p>
+  <p>nx05 → finance（29）、nx08 → report（60）。後端編號已對、前端 feature 編號也已對，只差網址沒改，先收這兩個。</p>
+  <p><b>驗證</b>：同上。報表 60 處引用較多，改完仔細 grep。</p>
+</div>
+
+<div class="step">
+  <p class="t">段 3｜前端 feature 編號校準（核心、由後往前避撞名）</p>
+  <p>處理錯位段。<b>順序由後往前</b>：先把 <code>features/nx03</code>（銷貨+庫存混）拆解清空 → 再 <code>features/nx02</code>（庫存）改 <code>nx03</code> → 最後 <code>features/nx01</code>（採購）改 <code>nx02</code> 並把散主檔搬回 base。每步先確認目標編號已空，再搬，避免覆蓋。</p>
+  <p><b>驗證</b>：每搬一個 feature，全域更新 <code>@/features/nx0X</code> import 路徑、tsc 0 錯誤、grep 舊路徑歸零。</p>
+</div>
+
+<div class="step">
+  <p class="t">段 4｜改最大的網址：採購、銷貨、庫存（含拆分）</p>
+  <p>nx02 → purchase（95，庫存子頁分流到 inventory）、nx04 → sale（43）、nx03 → inventory+sale 拆分（37）、nx01 root 併入 purchase 並清掉「露碼跳露碼」的雙重 redirect。這是工程量最大、最後做。</p>
+  <p><b>驗證</b>：tsc 0 錯誤、所有 <code>/dashboard/nx0X</code> 引用歸零（nx10 除外）、各業務網址可進、dev 兩端起得來。</p>
+</div>
+
+<div class="step">
+  <p class="t">段 5｜收尾</p>
+  <p>更新 menu/nav/dock config、面包屑；複查全 repo 再無 <code>/dashboard/nx0X</code>（nx10 除外）；更新線路圖文件與 README。</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>六、回滾點</h2>
+<ul>
+  <li>每段一個 commit，出錯可單段 <code>revert</code>，不影響其他段。</li>
+  <li>段 3（編號校準）風險最高，施工前先在分支打 tag，萬一搬到一半亂掉可整段退回 tag。</li>
+  <li>全程在重整分支進行，main 不受影響；全部驗證通過、CEO 確認後才合 main。</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2>七、本次明確不做（立案備查）</h2>
+<ul>
+  <li><span class="badge b-hold">暫擱</span> <b>nx10 遊戲化</b>：橫向貫穿介面與 KPI 的機制，非獨立頁面，留待遊戲化專案。</li>
+  <li><span class="badge b-info">後續</span> 後端 controllers ↔ 前端 API client 端到端線路（survey §6 已列）。</li>
+  <li><span class="badge b-info">後續</span> <code>features/shared</code> 99 檔細分類、DB 197 models 業務分群。</li>
+</ul>
+
+<p style="margin-top:24px;font-size:12px;color:var(--sub);">
+— 本方案由 CTO Alex 依階段 A 測繪撰寫。CEO 拍板後，Hank 依第五節順序施工，逐段驗證、逐段回報。—
+</p>
+
+</body>
+</html>

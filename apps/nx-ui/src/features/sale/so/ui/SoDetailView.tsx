@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { lookupStockBalance } from '@/features/nx03/stock-balance/api/lookup';
+import { lookupStockBalance } from '@/features/inventory/stock-balance/api/lookup';
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 
@@ -156,7 +156,7 @@ function SoDetailInner({ id }: { id: string }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/nx04/sales-order" className="rounded border px-3 py-1 text-sm hover:bg-muted">
+          <Link href="/dashboard/sale/so" className="rounded border px-3 py-1 text-sm hover:bg-muted">
             ← 返回列表
           </Link>
           <button
@@ -222,7 +222,7 @@ function SoDetailInner({ id }: { id: string }) {
             setShowTiModal(false);
             void reload();
             // 跳轉 NX02 TI detail
-            window.location.href = `/dashboard/nx02/ti/${resp.tiId}`;
+            window.location.href = `/dashboard/purchase/ti/${resp.tiId}`;
           }}
         />
       ) : null}

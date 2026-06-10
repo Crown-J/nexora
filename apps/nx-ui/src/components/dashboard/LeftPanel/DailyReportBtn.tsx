@@ -31,7 +31,7 @@ export function DailyReportBtn() {
       type="button"
       onClick={() => {
         setFilled(true);
-        router.push('/dashboard/nx08/daily-report');
+        router.push('/dashboard/report/daily-report');
       }}
       className={cx(
         'flex w-full items-center justify-center gap-2 rounded-lg border border-primary/35 bg-primary/8 py-2.5 text-sm font-medium',

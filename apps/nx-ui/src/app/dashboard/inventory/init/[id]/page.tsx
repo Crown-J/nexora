@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/app/dashboard/nx02/init/[id]/page.tsx
+ * File: apps/nx-ui/src/app/dashboard/inventory/init/[id]/page.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
@@ -10,8 +10,8 @@
 
 import { useParams } from 'next/navigation';
 
-import { useInitDetail } from '@/features/nx02/init/hooks/useInitDetail';
-import { InitDetailView } from '@/features/nx02/init/ui/InitDetailView';
+import { useInitDetail } from '@/features/nx03/init/hooks/useInitDetail';
+import { InitDetailView } from '@/features/nx03/init/ui/InitDetailView';
 
 export default function Nx02InitDetailPage() {
   const params = useParams();

@@ -4,7 +4,7 @@
 
 import { Suspense } from 'react';
 
-import { PoNewForm } from '@/features/nx01/po/ui/PoNewForm';
+import { PoNewForm } from '@/features/nx02/po/ui/PoNewForm';
 
 export default function Nx01PoNewPage() {
   return (

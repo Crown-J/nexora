@@ -19,21 +19,21 @@ export function getNx09SideMenu(): SideMenuGroup[] {
     {
       group: 'EIP 企業資訊平台',
       items: [
-        { key: 'eip.home',     label: 'EIP 首頁',                href: '/dashboard/nx09/workspace' },
-        { key: 'eip.search',   label: '全文搜尋 ⭐',             href: '/dashboard/nx09/search' },
-        { key: 'eip.km',       label: 'KM 知識庫',               href: '/dashboard/nx09/km' },
-        { key: 'eip.document', label: '制度文件庫',              href: '/dashboard/nx09/document' },
-        { key: 'eip.manual',   label: '系統操作手冊 ⭐',         href: '/dashboard/nx09/manual' },
-        { key: 'eip.meeting',  label: '會議系統',                href: '/dashboard/nx09/meeting' },
+        { key: 'eip.home',     label: 'EIP 首頁',                href: '/dashboard/knowledge/workspace' },
+        { key: 'eip.search',   label: '全文搜尋 ⭐',             href: '/dashboard/knowledge/search' },
+        { key: 'eip.km',       label: 'KM 知識庫',               href: '/dashboard/knowledge/km' },
+        { key: 'eip.document', label: '制度文件庫',              href: '/dashboard/knowledge/document' },
+        { key: 'eip.manual',   label: '系統操作手冊 ⭐',         href: '/dashboard/knowledge/manual' },
+        { key: 'eip.meeting',  label: '會議系統',                href: '/dashboard/knowledge/meeting' },
       ],
     },
     {
       group: '亞羅汽配特色 + 子表（IMPL-02）',
       items: [
-        { key: 'eip.vin-lookup',     label: 'VIN 對照 ⭐⭐⭐',          href: '/dashboard/nx09/vin-lookup' },
-        { key: 'eip.repair-sop',     label: '維修 SOP ⭐⭐⭐',          href: '/dashboard/nx09/repair-sop' },
-        { key: 'eip.article-tag',    label: 'KM 文章標籤',             href: '/dashboard/nx09/article-tag' },
-        { key: 'eip.meeting-detail', label: '會議子表整合',            href: '/dashboard/nx09/meeting-detail' },
+        { key: 'eip.vin-lookup',     label: 'VIN 對照 ⭐⭐⭐',          href: '/dashboard/knowledge/vin-lookup' },
+        { key: 'eip.repair-sop',     label: '維修 SOP ⭐⭐⭐',          href: '/dashboard/knowledge/repair-sop' },
+        { key: 'eip.article-tag',    label: 'KM 文章標籤',             href: '/dashboard/knowledge/article-tag' },
+        { key: 'eip.meeting-detail', label: '會議子表整合',            href: '/dashboard/knowledge/meeting-detail' },
       ],
     },
   ];

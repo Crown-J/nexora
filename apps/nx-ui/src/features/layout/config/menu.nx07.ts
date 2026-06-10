@@ -18,14 +18,14 @@ export function getNx07SideMenu(): SideMenuGroup[] {
     {
       group: '人資管理',
       items: [
-        { key: 'hr.home',       label: '人資管理首頁',         href: '/dashboard/nx07/workspace' },
-        { key: 'hr.employee',   label: '員工主檔',             href: '/dashboard/nx07/employee' },
-        { key: 'hr.department', label: '部門組織',             href: '/dashboard/nx07/department' },
-        { key: 'hr.attendance', label: '出勤打卡',             href: '/dashboard/nx07/attendance' },
-        { key: 'hr.leave',      label: '請假 / 加班',          href: '/dashboard/nx07/leave' },
-        { key: 'hr.salary',     label: '薪資 + KPI 獎金 ⭐⭐⭐', href: '/dashboard/nx07/salary' },
-        { key: 'hr.kpi',        label: 'KPI 業績考核',         href: '/dashboard/nx07/kpi' },
-        { key: 'hr.medical',    label: '醫療管理 + 職災 ⭐',   href: '/dashboard/nx07/medical' },
+        { key: 'hr.home',       label: '人資管理首頁',         href: '/dashboard/hr/workspace' },
+        { key: 'hr.employee',   label: '員工主檔',             href: '/dashboard/hr/employee' },
+        { key: 'hr.department', label: '部門組織',             href: '/dashboard/hr/department' },
+        { key: 'hr.attendance', label: '出勤打卡',             href: '/dashboard/hr/attendance' },
+        { key: 'hr.leave',      label: '請假 / 加班',          href: '/dashboard/hr/leave' },
+        { key: 'hr.salary',     label: '薪資 + KPI 獎金 ⭐⭐⭐', href: '/dashboard/hr/salary' },
+        { key: 'hr.kpi',        label: 'KPI 業績考核',         href: '/dashboard/hr/kpi' },
+        { key: 'hr.medical',    label: '醫療管理 + 職災 ⭐',   href: '/dashboard/hr/medical' },
       ],
     },
   ];

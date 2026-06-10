@@ -4,7 +4,7 @@
 
 import { useParams } from 'next/navigation';
 
-import { PoDetailView } from '@/features/nx01/po/ui/PoDetailView';
+import { PoDetailView } from '@/features/nx02/po/ui/PoDetailView';
 
 export default function Nx01PoDetailPage() {
   const params = useParams();

@@ -128,7 +128,7 @@ export function SoListView() {
 
       {showNew ? (
         <QuickCreateForm
-          onCreated={(id) => router.push(`/dashboard/nx04/sales-order/${id}`)}
+          onCreated={(id) => router.push(`/dashboard/sale/so/${id}`)}
           onCancel={() => setShowNew(false)}
         />
       ) : null}
@@ -176,7 +176,7 @@ export function SoListView() {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <Link
-                      href={`/dashboard/nx04/sales-order/${r.id}`}
+                      href={`/dashboard/sale/so/${r.id}`}
                       className="text-primary hover:underline"
                     >
                       進入 →

@@ -74,40 +74,19 @@ export function isDockActive(pathname: string, href: string): boolean {
     return pathname.startsWith('/dashboard/base');
   }
   if (href === '/dashboard/purchase') {
-    return (
-      pathname.startsWith('/dashboard/purchase') ||
-      pathname.startsWith('/dashboard/nx02/domestic') ||
-      pathname.startsWith('/dashboard/nx02/import') ||
-      pathname.startsWith('/dashboard/nx02/special') ||
-      pathname.startsWith('/dashboard/nx02/product') ||
-      pathname.startsWith('/dashboard/nx02/vendor') ||
-      pathname.startsWith('/dashboard/nx01')
-    );
+    return pathname.startsWith('/dashboard/purchase');
   }
   if (href === '/dashboard/sale') {
-    return pathname.startsWith('/dashboard/sale') || pathname.startsWith('/dashboard/sales') || pathname.startsWith('/dashboard/nx04');
+    return pathname.startsWith('/dashboard/sale');
   }
   if (href === '/dashboard/inventory') {
-    // 庫存路徑收斂 D 2026-06-08：所有庫存路徑收斂到 /dashboard/inventory/*；
-    // 保留 nx02 庫存 8 子頁 / nx03 prefix 是過渡期 redirect 殼、仍視為「庫存」當前。
-    return (
-      pathname.startsWith('/dashboard/inventory') ||
-      pathname.startsWith('/dashboard/nx03') ||
-      pathname.startsWith('/dashboard/nx02/balance') ||
-      pathname.startsWith('/dashboard/nx02/ledger') ||
-      pathname.startsWith('/dashboard/nx02/init') ||
-      pathname.startsWith('/dashboard/nx02/stock-take') ||
-      pathname.startsWith('/dashboard/nx02/stock-setting') ||
-      pathname.startsWith('/dashboard/nx02/transfer') ||
-      pathname.startsWith('/dashboard/nx02/shortage') ||
-      pathname.startsWith('/dashboard/nx02/auto-replenish')
-    );
+    return pathname.startsWith('/dashboard/inventory');
   }
   if (href === '/dashboard/finance') {
-    return pathname.startsWith('/dashboard/finance') || pathname.startsWith('/dashboard/nx05');
+    return pathname.startsWith('/dashboard/finance');
   }
   if (href === '/dashboard/report') {
-    return pathname.startsWith('/dashboard/report') || pathname.startsWith('/dashboard/nx08');
+    return pathname.startsWith('/dashboard/report');
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

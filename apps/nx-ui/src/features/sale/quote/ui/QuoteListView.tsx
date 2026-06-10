@@ -130,7 +130,7 @@ export function QuoteListView() {
 
       {showNew ? (
         <QuickCreateForm
-          onCreated={(id) => router.push(`/dashboard/nx04/quote/${id}`)}
+          onCreated={(id) => router.push(`/dashboard/sale/qt/${id}`)}
           onCancel={() => setShowNew(false)}
         />
       ) : null}
@@ -178,7 +178,7 @@ export function QuoteListView() {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <Link
-                      href={`/dashboard/nx04/quote/${r.id}`}
+                      href={`/dashboard/sale/qt/${r.id}`}
                       className="text-primary hover:underline"
                     >
                       進入 →

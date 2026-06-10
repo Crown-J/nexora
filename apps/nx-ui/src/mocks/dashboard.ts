@@ -111,7 +111,7 @@ export const mockTasks: MockTask[] = [
     deadline: '10:00',
     xp: 30,
     status: 'pending',
-    targetRoute: '/dashboard/nx03/workbench',
+    targetRoute: '/dashboard/inventory/workspace',
   },
   {
     id: 2,
@@ -122,7 +122,7 @@ export const mockTasks: MockTask[] = [
     deadline: '11:30',
     xp: 20,
     status: 'in_progress',
-    targetRoute: '/dashboard/nx04',
+    targetRoute: '/dashboard/sale',
   },
   {
     id: 3,
@@ -133,7 +133,7 @@ export const mockTasks: MockTask[] = [
     deadline: '14:00',
     xp: 15,
     status: 'done',
-    targetRoute: '/dashboard/nx02/balance',
+    targetRoute: '/dashboard/inventory/balance',
   },
   {
     id: 4,

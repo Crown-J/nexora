@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 
-import { PrDetailView } from '@/features/nx01/pr/ui/PrDetailView';
+import { PrDetailView } from '@/features/nx02/pr/ui/PrDetailView';
 
 export default function Nx01PrDetailPage() {
   const params = useParams();

@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react';
 
-import { RrNewForm } from '@/features/nx01/rr/ui/RrNewForm';
+import { RrNewForm } from '@/features/nx02/rr/ui/RrNewForm';
 
 export default function Nx01RrNewPage() {
   return (

@@ -121,7 +121,7 @@ export function SalesReturnListView() {
 
       {showNew ? (
         <QuickCreateForm
-          onCreated={(id) => router.push(`/dashboard/nx04/sales-return/${id}`)}
+          onCreated={(id) => router.push(`/dashboard/sale/return/${id}`)}
           onCancel={() => setShowNew(false)}
         />
       ) : null}
@@ -172,7 +172,7 @@ export function SalesReturnListView() {
                   </td>
                   <td className="px-3 py-2 text-right">
                     <Link
-                      href={`/dashboard/nx04/sales-return/${r.id}`}
+                      href={`/dashboard/sale/return/${r.id}`}
                       className="text-primary hover:underline"
                     >
                       進入 →

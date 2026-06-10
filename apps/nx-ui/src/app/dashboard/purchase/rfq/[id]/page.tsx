@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 
-import { RfqDetailView } from '@/features/nx01/rfq/ui/RfqDetailView';
+import { RfqDetailView } from '@/features/nx02/rfq/ui/RfqDetailView';
 
 export default function Nx01RfqDetailPage() {
   const params = useParams();

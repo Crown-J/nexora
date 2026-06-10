@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx04/quote/[id]/page.tsx
+// apps/nx-ui/src/app/dashboard/sale/qt/[id]/page.tsx
 // NX04-M3 C1：QT 報價單詳情
 
 import { QuoteDetailView } from '@/features/sale/quote/ui/QuoteDetailView';

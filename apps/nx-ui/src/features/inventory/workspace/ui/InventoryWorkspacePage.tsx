@@ -14,8 +14,8 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { useDashboard } from '@/features/nx02/dashboard/hooks/useDashboard';
-import type { Nx02DashboardDto } from '@/features/nx02/dashboard/api/dashboard';
+import { useDashboard } from '@/features/nx03/dashboard/hooks/useDashboard';
+import type { Nx02DashboardDto } from '@/features/nx03/dashboard/api/dashboard';
 import { cx } from '@/shared/lib/cx';
 
 type WorkspaceTab = 'inbound' | 'outbound' | 'stocktake';
@@ -36,7 +36,7 @@ const INBOUND_NODES: FlowNodeDef[] = [
   {
     key: 'putaway',
     label: '分貨上架',
-    href: '/dashboard/nx01/stock-replenishment',
+    href: '/dashboard/inventory/stock-replenishment',
     // TODO: 分貨任務 API 就緒後替換
   },
   { key: 'done_in', label: '完成', href: '/dashboard/inventory/ledger' },
@@ -173,12 +173,12 @@ export function InventoryWorkspacePage() {
         </p>
         <ul className="mt-4 list-inside list-disc space-y-1.5 text-sm text-muted-foreground">
           <li>
-            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/nx03/workspace">
+            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/inventory/workspace">
               返回庫存模組首頁
             </Link>
           </li>
           <li>
-            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/nx03/warehouse-setting">
+            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/inventory/warehouse-setting">
               庫位與安全量設定
             </Link>
           </li>

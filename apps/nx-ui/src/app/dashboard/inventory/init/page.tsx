@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/app/dashboard/nx02/init/page.tsx
+ * File: apps/nx-ui/src/app/dashboard/inventory/init/page.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
@@ -8,8 +8,8 @@
 
 'use client';
 
-import { InitListView } from '@/features/nx02/init/ui/InitListView';
-import { useInitList } from '@/features/nx02/init/hooks/useInitList';
+import { InitListView } from '@/features/nx03/init/ui/InitListView';
+import { useInitList } from '@/features/nx03/init/hooks/useInitList';
 
 export default function Nx02InitListPage() {
   const vm = useInitList();
