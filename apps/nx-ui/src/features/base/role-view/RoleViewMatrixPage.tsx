@@ -47,7 +47,6 @@ const MODULE_LABELS: Record<string, string> = {
   NX07: '人資管理',
   NX08: '報表分析',
   NX09: '知識中心',
-  NX10: '員工激勵',
   NX99: '系統管理',
 };
 function moduleLabel(mc: string): string {

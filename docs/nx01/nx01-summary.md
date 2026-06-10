@@ -14,10 +14,10 @@
 
 ## 1.1 模組定位
 
-NX01 = **NEXORA 主檔管理層**、全 NX02~NX10 業務模組的底層基礎設施。
+NX01 = **NEXORA 主檔管理層**、全 NX02~NX09 業務模組的底層基礎設施。
 
 ```
-NX02 採購 / NX03 庫存 / NX04 銷貨 / NX05 財務 / NX06 物流 / NX07~NX10 PRO
+NX02 採購 / NX03 庫存 / NX04 銷貨 / NX05 財務 / NX06 物流 / NX07~NX09 PRO
                     ↓ 全部引用
 NX01 主檔（user / partner / part / warehouse / model / part_model ...）
                     ↓ 引用

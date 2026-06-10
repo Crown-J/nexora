@@ -6295,7 +6295,7 @@ model Nx99ProductModuleMap {
   id              String            @id @default(dbgenerated("gen_nx99_product_module_map_id()")) @db.VarChar(15)
   /// 所屬產品模組（SKU）；啟用最低需求版本：LITE-CORE
   productModuleId String            @map("product_module_id") @db.VarChar(15)
-  /// 程式碼模組代號：NX01~NX10/NX98/NX99（新版模組代碼）。；啟用最低需求版本：LITE-CORE
+  /// 程式碼模組代號：NX01~NX09/NX98/NX99（新版模組代碼）。；啟用最低需求版本：LITE-CORE
   appModuleCode   String            @map("app_module_code") @db.VarChar(10)
   /// 是否必含（通常 TRUE）；啟用最低需求版本：LITE-CORE
   isRequired      Boolean           @default(true) @map("is_required")

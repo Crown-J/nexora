@@ -44,7 +44,6 @@
 11. [PRO+]  nx01_department（物流/人資）
 12. nx05_account_code
 13. [PRO+]  nx07_leave_type
-14. [PRO+]  nx10_medal_level
 15. system/ nx01_view（118個畫面）
 16. system/ nx01_role_view（826筆權限）
 ```

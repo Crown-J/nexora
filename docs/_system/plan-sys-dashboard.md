@@ -458,11 +458,6 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 | `nx99_tenant` | 租戶名稱、planCode | ALL |
 | `nx01_bulletin` | 公告清單 | ALL |
 | `nx01_calendar_event` | 行事曆事件 | ALL |
-| `nx10_user_exp` | EXP / 等級 / 勳章 | PRO |
-| `nx10_medal_level` | 勳章稱號設定 | PRO |
-| `nx10_checkin_log` | 簽到記錄 | PRO |
-| `nx10_checkin_reward` | 簽到獎勵設定 | PRO |
-| `nx10_task_log` | 當日任務清單 | PRO |
 | `nx01_kpi_record` | KPI 達成值 | PRO |
 | `nx01_kpi_target` | KPI 目標值 | PRO |
 | `nx07_attendance` | 今日出勤 | PLUS+ |
@@ -478,8 +473,6 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 
 | 資料表 | 說明 | 筆數 |
 |--------|------|------|
-| `nx10_checkin_reward` | 連續簽到獎勵設定（1天/2天/7天...）| 7 筆 |
-| `nx10_medal_level` | 勳章等級設定（銅IV~白金I，共16階）| 16 筆 |
 | `nx01_bulletin` | 系統歡迎公告 | 1 筆 |
 
 ### 4-2 測試資料
@@ -489,9 +482,6 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 | `nx99_tenant` | 測試租戶「恆迎企業」，planCode = PRO | 1 筆 |
 | `nx01_bulletin` | 不同類型公告（緊急/公司/系統）| 5 筆 |
 | `nx01_calendar_event` | 本月各類事件（MEETING/EVENT/LEAVE/DEADLINE）| 8 筆 |
-| `nx10_user_exp` | 測試使用者 EXP（Lv.12，3200/4500）| 1 筆 |
-| `nx10_checkin_log` | 最近 30 天簽到記錄（含空缺天）| 30 筆 |
-| `nx10_task_log` | 今日任務 4 筆（2完成/2未完成）| 4 筆 |
 | `nx07_attendance` | 今日出勤 5 人（4出勤/1請假）| 5 筆 |
 
 ---
@@ -687,7 +677,6 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
   - `package.json`：`seed:system` / `seed:default` / `seed:test` / `seed:test:plus` / `seed:test:pro`；`prisma.config.ts` 的 `db seed` 指向 `default`。
   - 驗證：`nx01_view` 118 筆、`nx01_role_view` 826 筆；`SYSADMIN`（`NX01USER0000001`）`is_active=false`；租戶 admin（`NX01USER0000002`）`is_active=true`；恆迎企業 `NX99TANT0000001` 訂閱 `NEXORA-PRO`。
   - Schema 修正：`nx99_subscription.currency_id` 改為 `VARCHAR(15)`（migration `20260413140000_nx99_subscription_currency_id_len`），與 `nx01_currency.id` 對齊。
-  - **說明**：規格中的 `nx10_checkin_reward` 表尚未存在於 v7 schema，連續簽到 7 筆獎勵以 `nx10_task_template`（代碼 `STREAK_D1`～`STREAK_D7`）寫入。
 - **已知問題 / 待確認**：
   - `nx01_role` / `nx01_warehouse` 等表目前為 DB 層級 `code` 全域唯一（非 `tenant_id+code`）；多租戶正式上線前需 Crown 與 schema 一併檢視。
 - **Crown 驗收結果**：⏳ 待驗收
@@ -698,12 +687,7 @@ Props：current: number, max: number, variant ('gold'|'green'|'red')
 - **完成時間**：2026-04-14
 - **完成人**：Hank（Cursor）
 - **本次修改摘要**：
-  - **NX01～NX10 後端 API 已全部落地**（儀表板 Phase 5 後端範圍）：`Nx01Module`～`Nx10Module` 皆已掛入 `AppModule`；各模組 fetch 驗證腳本見 `apps/nx-api/scripts/nx*-crud-fetch-test.mjs`（NX08+NX09 共用 `nx08-nx09-crud-fetch-test.mjs`）。
-  - **NX10（PRO）**：`migration 20260418120000_nx10_checkin_log` 新增 `nx10_checkin_log`（`gen_nx10_checkin_log_id`）；EXP／勳章以 **`nx10_emp_medal` + `nx10_emp_exp_log`** 為準（規格名 `nx10_user_exp` 對應此設計）；連續簽到獎勵自 **`nx10_task_template`**（`STREAK_D1`～`STREAK_D7`）。
-  - **路由**：`GET/POST /nx10/exp/*`、`/nx10/checkin/*`、`/nx10/tasks/*`（**`GET /nx10/tasks/today` 僅 Jwt**，LITE/PLUS 可讀模組彙整；其餘 NX10 路由 **`Nx10ProPlanGuard`**）、`/nx10/medals/*`、`GET /nx10/leaderboard`；簽到／任務完成／ADMIN 發放 EXP 寫 **`nx01_audit_log`（moduleCode: NX10）**。
-  - **驗證**：`pnpm exec tsc --noEmit -p apps/nx-api`；`node apps/nx-api/scripts/nx10-crud-fetch-test.mjs`（含簽到 EXP、`STREAK_D1`、排行榜、`PATCH .../tasks/:id/done`）。
 - **已知問題 / 待確認**：
-  - 首頁 Phase 6 串接時，若採計畫書之 `/api/*` 語意路徑，需 **BFF 或 nx-ui rewrite** 對應現有 `/nx10/*` REST。
 - **Crown 驗收結果**：⏳ 待驗收
 
 ---

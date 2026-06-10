@@ -293,7 +293,7 @@ NX09 = 亞羅全公司知識入口 + NEXORA 自己使用說明書（IMPL-01）+ 
 - 內部 wire RepairSop ↔ PartModel 雙向查詢落地
 - NHTSA API mock fallback（API 失敗時 graceful degrade）
 - UI placeholder 補完
-- 治理檔對齊 NX02~NX10 範式
+- 治理檔對齊 NX02~NX09 範式
 
 ### 11.3 範圍不涵蓋（後續軌）
 

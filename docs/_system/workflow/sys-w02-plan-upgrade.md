@@ -135,7 +135,6 @@ PlusPlanGuard 自動解鎖以下路由：
   ✅ 文件庫（SOP/章則）
   ✅ 會議管理
 
-遊戲化（NX10）：
   ✅ 勳章等級系統（20階）
   ✅ KPI 任務 / Exp 系統
   ✅ 轉職申請流程
@@ -151,13 +150,11 @@ seed.ts upgrade(tenantId, 'PLUS', 'PRO') 執行：
   1. nx01_warehouse（HW1 + BW2 + BW3 + BW4 共 4 筆）
   2. nx01_department（物流部 + 人資部 共 2 筆）
   3. nx07_leave_type（特休/病假/事假/婚假/喪假/公假 6 筆）
-  4. nx10_medal_level（20 個勳章等級）
 ```
 
 **Step 3：解鎖 PRO 功能**
 ```
 JWT planCode 更新為 'PRO'
-ProPlanGuard 自動解鎖 NX07~NX10 所有路由
 ```
 
 **Step 4：客戶自行設定（建議完成）**

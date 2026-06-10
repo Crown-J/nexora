@@ -14,7 +14,6 @@
 | 類別 | 第一輪 | 第二輪（Alex 拍板）| 累計 |
 |------|--------|-------------------|------|
 | 🔴 刪除 | 84 檔 | **47 檔** | **131 檔** |
-| 🟢 保留 | — | — | 約 65 檔（_archive / _reference / _system / _template / 各模組 summary + NX01 spec + NX05~NX10 部分 spec/workflow/ui）|
 | ✏️ 編輯 | 1 檔（HANDOFF-LITE-PROGRESS.md §G）| 1 檔（本報告 §D 加拍板結果）| 2 檔 |
 
 ---
@@ -55,7 +54,6 @@
 
 ### B.2 各模組 worklog（10 檔、PROJECT_RULES §0.4 已廢）
 
-`docs/nx01/nx01-worklog.md` / `nx02/nx02-worklog.md` / `nx03/nx03-worklog.md` / `nx04/nx04-worklog.md` / `nx05/nx05-worklog.md` / `nx06/nx06-worklog.md` / `nx07/nx07-worklog.md` / `nx08/nx08-worklog.md` / `nx09/nx09-worklog.md` / `nx10/nx10-worklog.md`
 
 ### B.3 各模組 audit / impl 過程文件（41 檔）
 
@@ -71,7 +69,6 @@
 | NX07 | nx07-audit-01.md、spec/impl/nx07-impl-01-plan.md、nx07-impl-01-merge-verify.md |
 | NX08 | nx08-audit-01.md、spec/impl/nx08-impl-01-plan.md、nx08-impl-01-merge-verify.md |
 | NX09 | nx09-audit-01.md、nx09-audit-02.md、spec/impl/nx09-impl-01-plan.md、nx09-impl-01-merge-verify.md、nx09-impl-02-plan.md、nx09-impl-02-merge-verify.md |
-| NX10 | nx10-audit-01.md、spec/impl/nx10-impl-01-plan.md、nx10-impl-01-merge-verify.md、nx10-impl-02-plan.md、nx10-impl-02-merge-verify.md |
 
 ### B.4 auto-replenish 過程文件（3 檔）
 
@@ -138,7 +135,6 @@
 
 ### C.7 各模組 summary（10 檔）
 
-`docs/nxNN/nxNN-summary.md`（NX01 ~ NX10）— closure 摘要、長期 reference
 
 ### C.8 docs/nx01/spec/intent + reference 全保留（22 檔）
 
@@ -156,8 +152,6 @@ NX01 主檔層（25 主檔 closure）相對穩定、不會被 LITE v1.2 取代�
 | 類別 | 拍板 | 刪除數 |
 |------|------|-------|
 | D.1 模組 overview | B 變體（NX02/03/04/06v01/AR 砍、NX05/06v02/07-10 留）| 5 檔 |
-| D.2 workflow specs | B 變體（NX02/03/04 砍、NX05-NX10 留）| 24 檔 |
-| D.3 UI specs | B 變體（NX02/03/04 砍、NX05-NX10 留）| 8 檔 |
 | D.4 spec/impl 細節 | A 全砍 | 10 檔 |
 | **合計** | | **47 檔** |
 
@@ -180,9 +174,7 @@ NX01 主檔層（25 主檔 closure）相對穩定、不會被 LITE v1.2 取代�
 - `docs/nx07/spec/intent/nx07-overview.md`
 - `docs/nx08/spec/intent/nx08-overview.md`
 - `docs/nx09/spec/intent/nx09-overview.md`
-- `docs/nx10/spec/intent/nx10-overview.md`
 
-### ✅ D.2 各模組 workflow specs — 拍板 B 變體（刪 24、留 NX05-NX10 共 27 檔）
 
 🔴 已刪（NX02/03/04 共 24 檔）：
 - NX02：`docs/nx02/workflow/primary/p-w01~p-w09.md`（9 檔）+ `sub/p01-purchase-return.md`
@@ -195,7 +187,6 @@ NX01 主檔層（25 主檔 closure）相對穩定、不會被 LITE v1.2 取代�
 - NX07：`docs/nx07/workflow/primary/*`（6 檔）
 - NX08：`docs/nx08/workflow/primary/*`（8 檔）
 - NX09：3 檔
-- NX10：2 檔
 
 ### ✅ D.3 各模組 UI specs — 拍板 B 變體（刪 8 留 6）
 
@@ -210,7 +201,6 @@ NX01 主檔層（25 主檔 closure）相對穩定、不會被 LITE v1.2 取代�
 - `docs/nx07/ui/hr-workspace.md`
 - `docs/nx08/ui/report-workspace.md`
 - `docs/nx09/ui/km-workspace.md`
-- `docs/nx10/ui/game-workspace.md`
 
 ### ✅ D.4 各模組 spec/impl 細節 — 拍板 A 全砍（刪 10 檔）
 
@@ -261,7 +251,6 @@ docs/
 ├── nx07/                               # summary + overview + workflow(6) + ui(1) + reference 保留
 ├── nx08/                               # summary + overview + workflow(8) + ui(1) + reference 保留
 ├── nx09/                               # summary + overview + workflow(3) + ui(1) + reference 保留
-├── nx10/                               # summary + overview + workflow(2) + ui(1) + reference 保留
 ├── nx98/                               # reference 全保留
 ├── nx99/                               # reference + spec 全保留（系統 / 租戶層）
 └── auto-replenish/                     # 1 summary 保留

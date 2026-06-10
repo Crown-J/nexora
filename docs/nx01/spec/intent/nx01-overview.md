@@ -54,7 +54,7 @@ NX99 系統管理            ← 最底層（租戶 / 訂閱 / feature flag）
   ↓
 NX01 共用基礎模組        ← 本模組（人 / 物 / 場 / 對象 / 型錄 / 索引）
   ↓
-NX02 ~ NX10 業務模組    ← 引用 NX01 才能運作
+NX02 ~ NX09 業務模組    ← 引用 NX01 才能運作
 ```
 
 ### 1.2 NX01 戰略意義
@@ -74,7 +74,7 @@ Yaro 雙武器:
 
 ### 1.3 為什麼是其他模組地基
 
-NX02 ~ NX10 寫業務邏輯時、都會引用 NX01 主檔：
+NX02 ~ NX09 寫業務邏輯時、都會引用 NX01 主檔：
 
 ```
 NX02 採購 → partner（供應商）/ part / warehouse / currency
@@ -86,7 +86,6 @@ NX06 物流 → partner / warehouse / partner_shipping_address
 NX07 人資 → user / role
 NX08 報表 → user / partner / part
 NX09 知識 → user / role
-NX10 遊戲化 → user / role
 ```
 
 → NX01 改動可能影響所有業務模組（請走擴充性原則 #23）。
@@ -343,7 +342,7 @@ NX01 主檔不能「真刪除」、只能停用（`isActive = false`）：
 
 ### 3.5 與其他模組的依賴方向
 
-**單向依賴：** NX02 ~ NX10 引用 NX01、NX01 不反過來引用業務模組。
+**單向依賴：** NX02 ~ NX09 引用 NX01、NX01 不反過來引用業務模組。
 
 → NX01 改動可能影響所有業務模組（請走擴充性原則 #23）。
 
@@ -386,7 +385,7 @@ NX01 主檔不能「真刪除」、只能停用（`isActive = false`）：
 ☐ code 命名規則對齊（大寫 + tenant-scoped unique）
 ☐ 必填欄位列出（含系統自動的 5 欄）
 ☐ 跟既有 NX01 子模組的關係明確
-☐ 跨模組引用標明（NX02-NX10 哪些會引用）
+☐ 跨模組引用標明（NX02-NX09 哪些會引用）
 ☐ 子規格書編號接續分配（NX01-NN）
 ☐ Document Control Log 紀錄新增
 ☐ 注音索引（如為主檔型）：trigger 是否要監聽?
