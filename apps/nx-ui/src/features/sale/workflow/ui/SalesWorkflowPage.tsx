@@ -11,10 +11,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { cx } from '@/shared/lib/cx';
-import type { QuoteSnapshot } from '@/features/nx03/workflow/types';
-import { SalesDocumentsBrowse } from '@/features/nx03/workflow/ui/SalesDocumentsBrowse';
-import { SalesOperationWorkspace } from '@/features/nx03/workflow/ui/SalesOperationWorkspace';
-import { SalesOrderWorkspace } from '@/features/nx03/workflow/ui/SalesOrderWorkspace';
+import type { QuoteSnapshot } from '@/features/sale/workflow/types';
+import { SalesDocumentsBrowse } from '@/features/sale/workflow/ui/SalesDocumentsBrowse';
+import { SalesOperationWorkspace } from '@/features/sale/workflow/ui/SalesOperationWorkspace';
+import { SalesOrderWorkspace } from '@/features/sale/workflow/ui/SalesOrderWorkspace';
 
 type MainTab = 'operation' | 'documents';
 type OperationPhase = 'quote' | 'salesOrder';

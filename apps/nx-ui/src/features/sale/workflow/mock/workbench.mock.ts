@@ -5,7 +5,7 @@
  * - 即時報價工作台：由既有 PartVariantSnapshot 衍生本倉、倉別彙總、儲位 mock、牌價與比價列（不呼叫 API）
  */
 
-import type { PartVariantSnapshot } from '@/features/nx03/workflow/mock/operation.mock';
+import type { PartVariantSnapshot } from '@/features/sale/workflow/mock/operation.mock';
 
 /** 登入／作業倉別（mock：對應「本倉」） */
 export const WB_LOGIN_WAREHOUSE = 'B 倉（北區）';

@@ -16,10 +16,10 @@ import { cx } from '@/shared/lib/cx';
 import {
   browseSteps,
   mockBrowseDocsByStep,
-} from '@/features/nx03/workflow/mock/documentsBrowse.mock';
-import { WorkflowQuickActions } from '@/features/nx03/workflow/ui/WorkflowQuickActions';
-import { WorkflowStepBar } from '@/features/nx03/workflow/ui/WorkflowStepBar';
-import { WorkflowStepPanel } from '@/features/nx03/workflow/ui/WorkflowStepPanel';
+} from '@/features/sale/workflow/mock/documentsBrowse.mock';
+import { WorkflowQuickActions } from '@/features/sale/workflow/ui/WorkflowQuickActions';
+import { WorkflowStepBar } from '@/features/sale/workflow/ui/WorkflowStepBar';
+import { WorkflowStepPanel } from '@/features/sale/workflow/ui/WorkflowStepPanel';
 
 /**
  * @FUNCTION_CODE NX03-WKFL-UI-006-F01

@@ -15,7 +15,7 @@ import {
 } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
 
-import { lookupStockBalance } from '@/features/nx03/stock-balance/api/lookup';
+import { lookupStockBalance } from '@/features/inventory/stock-balance/api/lookup';
 
 import { getRfq, listRfq } from '../../api/rfq';
 import { getPo, listPo } from '../../api/po';

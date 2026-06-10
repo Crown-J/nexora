@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cx } from '@/shared/lib/cx';
-import type { QuoteSnapshot } from '@/features/nx03/workflow/types';
+import type { QuoteSnapshot } from '@/features/sale/workflow/types';
 
 const SO_BLOCK_IDS = ['nx03-so-block-1', 'nx03-so-block-2', 'nx03-so-block-3'] as const;
 

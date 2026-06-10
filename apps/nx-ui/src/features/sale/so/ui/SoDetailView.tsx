@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { lookupStockBalance } from '@/features/nx03/stock-balance/api/lookup';
+import { lookupStockBalance } from '@/features/inventory/stock-balance/api/lookup';
 import { IssueReportTrigger } from '@/features/shared/issue-report-trigger';
 import { TieredFormProvider } from '@/features/shared/tiered-form/TieredFormProvider';
 

@@ -14,7 +14,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { cx } from '@/shared/lib/cx';
-import type { DocCard, WorkflowStep } from '@/features/nx03/workflow/types';
+import type { DocCard, WorkflowStep } from '@/features/sale/workflow/types';
 
 export interface WorkflowStepPanelProps {
   stepId: string;

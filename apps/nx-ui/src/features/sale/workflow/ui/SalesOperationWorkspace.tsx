@@ -23,7 +23,7 @@ import {
   searchPartFamilies,
   type PartFamilyGroup,
   type PartVariantSnapshot,
-} from '@/features/nx03/workflow/mock/operation.mock';
+} from '@/features/sale/workflow/mock/operation.mock';
 import {
   buildWorkbenchDerived,
   findMockCustomerByCode,
@@ -33,8 +33,8 @@ import {
   WB_STAFF_LABEL,
   type WorkbenchComparisonRow,
   type WorkbenchDerived,
-} from '@/features/nx03/workflow/mock/workbench.mock';
-import type { QuoteSnapshot } from '@/features/nx03/workflow/types';
+} from '@/features/sale/workflow/mock/workbench.mock';
+import type { QuoteSnapshot } from '@/features/sale/workflow/types';
 
 const BLOCK_IDS = ['nx03-wb-block-1', 'nx03-wb-block-2', 'nx03-wb-block-3', 'nx03-wb-block-4'] as const;
 
