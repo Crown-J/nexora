@@ -1,8 +1,8 @@
 /**
- * File: apps/nx-ui/src/features/nx03/workflow/ui/SalesWorkflowPage.tsx
+ * File: apps/nx-ui/src/features/sale/workflow/ui/SalesWorkflowPage.tsx
  *
  * Purpose:
- * - NX03 銷貨首頁：流程圖式「建立報價單 → 建立銷貨單」與「瀏覽銷貨單據」（mock）
+ * - 銷貨流程首頁：流程圖式「建立報價單 → 建立銷貨單」與「瀏覽銷貨單據」（mock、未串入 app/dashboard）
  */
 
 'use client';

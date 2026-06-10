@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/features/nx03/workflow/ui/SalesOrderWorkspace.tsx
+ * File: apps/nx-ui/src/features/sale/workflow/ui/SalesOrderWorkspace.tsx
  *
  * Purpose:
  * - 「建立銷貨單」mock：三區塊（客戶確認 → 商品明細 → 出貨方式）與 Enter 鍵流

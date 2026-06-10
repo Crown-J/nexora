@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/features/nx03/workflow/ui/SalesOperationWorkspace.tsx
+ * File: apps/nx-ui/src/features/sale/workflow/ui/SalesOperationWorkspace.tsx
  *
  * Purpose:
  * - 銷貨即時報價工作台：四滿版垂直區塊 + scrollIntoView + 快捷鍵（mock）

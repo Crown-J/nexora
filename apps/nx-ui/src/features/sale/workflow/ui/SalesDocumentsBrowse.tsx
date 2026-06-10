@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/features/nx03/workflow/ui/SalesDocumentsBrowse.tsx
+ * File: apps/nx-ui/src/features/sale/workflow/ui/SalesDocumentsBrowse.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
