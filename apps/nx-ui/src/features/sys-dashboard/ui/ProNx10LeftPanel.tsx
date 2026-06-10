@@ -23,7 +23,7 @@ function formatTaiwanClock(d: Date) {
   return d.toLocaleTimeString('zh-TW', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-const dailyReportHref = '/dashboard/nx08/workspace';
+const dailyReportHref = '/dashboard/report/workspace';
 
 const goldBtn =
   'w-full rounded-lg border border-amber-500/45 bg-gradient-to-r from-[#E8A020] to-[#F5C842] py-2.5 text-sm font-semibold text-amber-950 shadow-sm transition hover:brightness-105';

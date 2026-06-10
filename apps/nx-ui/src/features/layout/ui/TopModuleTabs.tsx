@@ -42,7 +42,7 @@ function getActiveModule(pathname: string): string {
   if (pathname.startsWith('/dashboard/delivery') || pathname.startsWith('/dashboard/nx06')) return 'logistics';
   if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return 'hr';
   if (pathname.startsWith('/dashboard/report')) return 'report';
-  if (pathname.startsWith('/dashboard/nx08')) return 'report';
+  if (pathname.startsWith('/dashboard/nx08')) return 'report'; // 過渡：舊 nx08 URL 還在 redirect
   if (pathname.startsWith('/dashboard/knowledge') || pathname.startsWith('/dashboard/nx09')) return 'knowledge';
   if (pathname.startsWith('/dashboard/nx10')) return 'game';
   return '';
