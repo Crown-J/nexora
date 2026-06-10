@@ -1,10 +1,10 @@
-<!-- 檔案位置：docs/專案/規格書/核心/需求規格-02-核心主檔.html -->
+<!-- 檔案位置：docs/專案/規格書/核心/需求規格-01-核心主檔.html -->
 <!-- 檔案版本：v2.0 -->
-<!-- 檔案說明：核心主檔模組的完整功能需求（施工級藍圖）。逐主檔列欄位、性質、規則、來源、關聯。
+<!-- 檔案說明：核心主檔模組（NX01）完整功能需求（施工級藍圖）。逐主檔列欄位、性質、規則、來源、關聯。
      對應《操作手冊-02 Ver 2.7》。落差/待釐清以 ⚠️ 標示，待 Hank 對 schema 驗證。 -->
 <!DOCTYPE html><html lang="zh-Hant"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>需求規格 02 — 核心主檔 v2.0</title>
+<title>需求規格 01 — 核心主檔 v2.0</title>
 <style>
 :root{--navy:#1F3A5F;--amber:#c8881f;--sub:#5d6675;--line:#e3e7ee;--warn:#962d2d;--bg:#fafbfc;--star:#7a4e09;}
 *{box-sizing:border-box;}
@@ -36,8 +36,8 @@ ul{margin:6px 0;padding-left:22px;font-size:13.5px;} li{margin:4px 0;}
 code{background:#eef2f8;border-radius:4px;padding:1px 5px;font-size:12px;}
 footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:var(--sub);font-size:12px;}
 </style></head><body>
-<header class="doc"><h1>需求規格 02 — 核心主檔</h1>
-<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-02-核心主檔.html　|　<b>版本：</b>v2.0　|　<b>維護：</b>CTO（Alex）<br>
+<header class="doc"><h1>需求規格 01 — 核心主檔</h1>
+<div class="meta"><b>檔案位置：</b>docs/專案/規格書/核心/需求規格-01-核心主檔.html　|　<b>版本：</b>v2.0　|　<b>維護：</b>CTO（Alex）<br>
 <b>說明：</b>核心主檔「該做成怎樣」的施工級需求——逐主檔列欄位、性質、規則、來源、關聯。操作步驟見《操作手冊-02 Ver 2.7》；工程慣例見《核心系統規格》。</div></header>
 
 <p class="lead">核心主檔是<b>所有單據的資料底座</b>，進貨/庫存/銷貨/財務/報表全引用它。本模組含七大分區：帳號與權限、產品與料號、組織架構、交易對象、系統設定、內建主檔，外加所有主檔共通的通用需求。</p>
@@ -233,5 +233,5 @@ footer{margin-top:46px;padding-top:14px;border-top:1px solid var(--line);color:v
 <li>④ <b>汽車資料庫套件加購後</b>，LITE 既有零件編碼如何銜接到編碼規則引擎產生的統一格式。</li>
 <li>⑤ <b>員工編號格式：</b>手冊載「系統自動給 Y＋4 碼、可手動覆寫、建立後鎖定、即登入帳號」；產品方向為「員編自由文字、租戶內唯一、不強制格式」。兩者以「自動給號為預設、可覆寫成任意唯一文字」對齊，請 Hank 確認現況一致。</li>
 </ul>
-<footer>需求規格 02 核心主檔 v2.0　·　來源：操作手冊-02 Ver 2.7（as-built，逐欄抽取）＋ 產品決策（四層編碼）　·　v2.0 由 v1.0 摘要版改寫為施工級藍圖。</footer>
+<footer>需求規格 01 核心主檔 v2.0　·　來源：操作手冊-02 Ver 2.7（as-built，逐欄抽取）＋ 產品決策（四層編碼）　·　v2.0 由 v1.0 摘要版改寫為施工級藍圖。</footer>
 </body></html>
