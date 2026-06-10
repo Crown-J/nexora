@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 
-import { RrDetailView } from '@/features/nx01/rr/ui/RrDetailView';
+import { RrDetailView } from '@/features/nx02/rr/ui/RrDetailView';
 
 export default function Nx01RrDetailPage() {
   const params = useParams();

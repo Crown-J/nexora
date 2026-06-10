@@ -1,6 +1,6 @@
 'use client';
 
-import { RrListView } from '@/features/nx01/rr/ui/RrListView';
+import { RrListView } from '@/features/nx02/rr/ui/RrListView';
 
 export default function Nx01RrListPage() {
   return <RrListView />;
