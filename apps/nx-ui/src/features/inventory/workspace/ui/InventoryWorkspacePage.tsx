@@ -173,12 +173,12 @@ export function InventoryWorkspacePage() {
         </p>
         <ul className="mt-4 list-inside list-disc space-y-1.5 text-sm text-muted-foreground">
           <li>
-            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/nx03/workspace">
+            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/inventory/workspace">
               返回庫存模組首頁
             </Link>
           </li>
           <li>
-            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/nx03/warehouse-setting">
+            <Link className="text-primary underline-offset-2 hover:underline" href="/dashboard/inventory/warehouse-setting">
               庫位與安全量設定
             </Link>
           </li>

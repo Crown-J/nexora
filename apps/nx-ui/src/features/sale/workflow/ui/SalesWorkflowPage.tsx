@@ -74,7 +74,7 @@ export function SalesWorkflowPage() {
       <header className="space-y-1">
         <p className="text-sm">
           <Link
-            href="/dashboard/nx03"
+            href="/dashboard/inventory"
             className="text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
           >
             ← 銷貨流程總覽
@@ -150,7 +150,7 @@ export function SalesWorkflowPage() {
         </div>
 
         <Link
-          href="/dashboard/nx03/customer-sales"
+          href="/dashboard/inventory/customer-sales"
           className={cx(
             'inline-flex shrink-0 items-center rounded-t-lg px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors',
             'hover:bg-muted/40 hover:text-foreground'

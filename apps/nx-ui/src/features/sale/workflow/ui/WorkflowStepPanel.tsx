@@ -157,8 +157,8 @@ export function WorkflowStepPanel({ stepId, steps, docs }: WorkflowStepPanelProp
           stepId={stepId}
           onStock={() => push('/dashboard')}
           onRfq={() => push('/dashboard/purchase/rfq/new')}
-          onQuote={() => push('/dashboard/nx03/quote/new')}
-          onSo={() => push('/dashboard/nx03/so/new')}
+          onQuote={() => push('/dashboard/inventory/quote/new')}
+          onSo={() => push('/dashboard/inventory/so/new')}
         />
       </div>
 

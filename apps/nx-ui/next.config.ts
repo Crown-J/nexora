@@ -25,8 +25,7 @@ const nextConfig: NextConfig = {
       { source: "/base/:path*", destination: "/dashboard/base/:path*", permanent: true },
       { source: "/user", destination: "/dashboard/base/users", permanent: true },
 
-      { source: "/dashboard/inventory/workspace", destination: "/dashboard/nx03/workspace", permanent: true },
-      { source: "/dashboard/inventory/setting", destination: "/dashboard/nx03/warehouse-setting", permanent: true },
+      // 段 4 移除：inventory/* → nx03/* 過時、inventory 已是真實 hub + workspace 子頁
 
       { source: "/dashboard/sales", destination: "/dashboard/sale", permanent: true },
       { source: "/dashboard/sales/domestic", destination: "/dashboard/sale/so", permanent: true },
@@ -36,8 +35,7 @@ const nextConfig: NextConfig = {
 
       { source: "/dashboard/bulletin", destination: "/dashboard", permanent: true },
 
-      { source: "/dashboard/nx03/workbench", destination: "/dashboard/nx04/domestic", permanent: true },
-      { source: "/dashboard/nx03/customer-sales", destination: "/dashboard/nx04/domestic", permanent: true },
+      // 段 4 移除：nx03/{workbench,customer-sales} → nx04/* 過時、nx03 路徑已轉 inventory + sale
 
       { source: "/dashboard/sales/export", destination: "/dashboard/sale/return", permanent: true },
       { source: "/dashboard/sales/customer", destination: "/dashboard/base/partners", permanent: true },

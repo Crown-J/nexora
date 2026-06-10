@@ -92,7 +92,7 @@ export function isDockActive(pathname: string, href: string): boolean {
     // 保留 nx02 庫存 8 子頁 / nx03 prefix 是過渡期 redirect 殼、仍視為「庫存」當前。
     return (
       pathname.startsWith('/dashboard/inventory') ||
-      pathname.startsWith('/dashboard/nx03') ||
+      pathname.startsWith('/dashboard/inventory') ||
       pathname.startsWith('/dashboard/nx02/balance') ||
       pathname.startsWith('/dashboard/nx02/ledger') ||
       pathname.startsWith('/dashboard/nx02/init') ||

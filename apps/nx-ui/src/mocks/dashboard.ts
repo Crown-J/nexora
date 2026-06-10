@@ -121,7 +121,7 @@ export const mockTasks: MockTask[] = [
     deadline: '10:00',
     xp: 30,
     status: 'pending',
-    targetRoute: '/dashboard/nx03/workbench',
+    targetRoute: '/dashboard/inventory/workspace',
   },
   {
     id: 2,

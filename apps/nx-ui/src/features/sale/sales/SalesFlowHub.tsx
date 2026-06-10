@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 const PAGE_KICKER = 'SALES / NX03';
 const PAGE_TITLE = '銷貨與成交作業';
 
-const WORKBENCH_ORDER = '/dashboard/nx03/workbench?phase=salesOrder';
+const WORKBENCH_ORDER = '/dashboard/inventory/workbench?phase=salesOrder';
 
 export type WarehousePick = string;
 
@@ -195,7 +195,7 @@ type ToolbarAction = {
 
 const TOOLBAR_ACTIONS: ToolbarAction[] = [
   { key: 'customer', label: '客戶／往來搜尋', href: '/dashboard/base/partners', icon: Search },
-  { key: 'api-flow', label: '客戶銷貨流程（API）', href: '/dashboard/nx03/customer-sales', icon: ClipboardList },
+  { key: 'api-flow', label: '客戶銷貨流程（API）', href: '/dashboard/inventory/customer-sales', icon: ClipboardList },
   { key: 'export', label: '報表匯出', icon: Download, disabled: true },
   { key: 'history', label: '歷史紀錄', icon: Clock, disabled: true },
 ];
@@ -1100,7 +1100,7 @@ export function SalesFlowHub() {
   }, []);
 
   useEffect(() => {
-    if (pathname !== '/dashboard/nx03' || active !== 1) return;
+    if (pathname !== '/dashboard/inventory' || active !== 1) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return;
       if (!e.altKey || e.ctrlKey || e.metaKey) return;
@@ -1113,7 +1113,7 @@ export function SalesFlowHub() {
   }, [pathname, active]);
 
   useEffect(() => {
-    if (pathname !== '/dashboard/nx03') return;
+    if (pathname !== '/dashboard/inventory') return;
 
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat) return;

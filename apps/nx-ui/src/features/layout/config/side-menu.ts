@@ -49,7 +49,7 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   ) {
     return [];
   }
-  if (pathname.startsWith('/dashboard/nx03')) return getNx02SideMenu();
+  if (pathname.startsWith('/dashboard/inventory')) return getNx02SideMenu();
   // v1.2 對齊：/nx04 用新 LITE menu（getNx04SideMenu）而非 stale getNx03SideMenu
   if (pathname.startsWith('/dashboard/nx04')) return getNx04SideMenu();
   // /nx05 屬財務、暫無 sidebar menu（未做）
