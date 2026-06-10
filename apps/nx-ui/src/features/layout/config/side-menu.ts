@@ -53,7 +53,7 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   // v1.2 對齊：/nx04 用新 LITE menu（getNx04SideMenu）而非 stale getNx03SideMenu
   if (pathname.startsWith('/dashboard/nx04')) return getNx04SideMenu();
   // /nx05 屬財務、暫無 sidebar menu（未做）
-  if (pathname.startsWith('/dashboard/nx06')) return getNx06SideMenu();
+  if (pathname.startsWith('/dashboard/delivery') || pathname.startsWith('/dashboard/nx06')) return getNx06SideMenu();
   if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return getNx07SideMenu();
   if (pathname.startsWith('/dashboard/nx08')) return getNx08SideMenu();
   if (pathname.startsWith('/dashboard/knowledge') || pathname.startsWith('/dashboard/nx09')) return getNx09SideMenu();

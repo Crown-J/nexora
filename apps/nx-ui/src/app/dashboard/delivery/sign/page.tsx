@@ -1,8 +1,8 @@
-// apps/nx-ui/src/app/dashboard/nx06/sign/page.tsx
+// apps/nx-ui/src/app/dashboard/delivery/sign/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX06-SIGN-UI-001-F01
-// 路由：/dashboard/nx06/sign
+// 路由：/dashboard/delivery/sign
 // 性質：UI stub placeholder（TASK-NX06-IMPL-01 Phase 5、UI 獨立軌 backlog）
 export default function Nx06SignWorkspacePage() {
   return (

@@ -1,8 +1,8 @@
-// apps/nx-ui/src/app/dashboard/nx06/driver/page.tsx
+// apps/nx-ui/src/app/dashboard/delivery/driver/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX06-DRIVER-HOME-UI-001-F01
-// 路由：/dashboard/nx06/driver
+// 路由：/dashboard/delivery/driver
 // 性質：PWA driver home placeholder（TASK-NX06-IMPL-02 Phase 6、UI 獨立軌 backlog）
 export default function Nx06DriverHomePage() {
   return (

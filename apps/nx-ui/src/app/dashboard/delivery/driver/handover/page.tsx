@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx06/driver/handover/page.tsx
+// apps/nx-ui/src/app/dashboard/delivery/driver/handover/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX06-DRIVER-HANDOVER-UI-001-F01

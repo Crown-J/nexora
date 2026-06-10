@@ -1,8 +1,8 @@
-// apps/nx-ui/src/app/dashboard/nx06/exception/page.tsx
+// apps/nx-ui/src/app/dashboard/delivery/exception/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX06-EXCEPTION-UI-001-F01
-// 路由：/dashboard/nx06/exception
+// 路由：/dashboard/delivery/exception
 // 性質：UI stub placeholder（TASK-NX06-IMPL-01 Phase 5、UI 獨立軌 backlog）
 export default function Nx06ExceptionWorkspacePage() {
   return (
