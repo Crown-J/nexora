@@ -156,7 +156,7 @@ function SoDetailInner({ id }: { id: string }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/dashboard/nx04/sales-order" className="rounded border px-3 py-1 text-sm hover:bg-muted">
+          <Link href="/dashboard/sale/so" className="rounded border px-3 py-1 text-sm hover:bg-muted">
             ← 返回列表
           </Link>
           <button

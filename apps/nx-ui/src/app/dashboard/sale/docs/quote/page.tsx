@@ -3,5 +3,5 @@
 import { redirect } from 'next/navigation';
 
 export default function Page() {
-  redirect('/dashboard/nx04/quote');
+  redirect('/dashboard/sale/qt');
 }

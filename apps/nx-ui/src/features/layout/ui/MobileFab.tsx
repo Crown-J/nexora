@@ -47,7 +47,7 @@ const CATEGORIES: CategoryEntry[] = [
   {
     key: 'sale',
     label: '銷貨',
-    href: '/dashboard/nx04',
+    href: '/dashboard/sale',
     icon: TrendingUp,
     permissions: [
       'sale.quote.list',

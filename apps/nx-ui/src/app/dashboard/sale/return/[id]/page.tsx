@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx04/sales-return/[id]/page.tsx
+// apps/nx-ui/src/app/dashboard/sale/return/[id]/page.tsx
 // NX04-M3 C4：SR 銷退單 - detail route
 
 import { SalesReturnDetailView } from '@/features/sale/sales-return/ui/SalesReturnDetailView';

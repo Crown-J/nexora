@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/inventory/setting", destination: "/dashboard/nx03/warehouse-setting", permanent: true },
 
       { source: "/dashboard/sales", destination: "/dashboard/sale", permanent: true },
-      { source: "/dashboard/sales/domestic", destination: "/dashboard/nx04/domestic", permanent: true },
+      { source: "/dashboard/sales/domestic", destination: "/dashboard/sale/so", permanent: true },
 
       // 段 2 移除：finance/* 跟 report/* 已是真實 hub + 子頁、舊 redirects 全刪
       // 段 2 移除：原 report/{workspace,daily,monthly,export} → nx08/workspace 過時
@@ -39,10 +39,8 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/nx03/workbench", destination: "/dashboard/nx04/domestic", permanent: true },
       { source: "/dashboard/nx03/customer-sales", destination: "/dashboard/nx04/domestic", permanent: true },
 
-      { source: "/dashboard/nx04", destination: "/dashboard/nx05/workspace", permanent: false },
-
-      { source: "/dashboard/sales/export", destination: "/dashboard/nx04/export", permanent: true },
-      { source: "/dashboard/sales/customer", destination: "/dashboard/nx04/customer", permanent: true },
+      { source: "/dashboard/sales/export", destination: "/dashboard/sale/return", permanent: true },
+      { source: "/dashboard/sales/customer", destination: "/dashboard/base/partners", permanent: true },
     ];
   },
 };

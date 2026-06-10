@@ -132,7 +132,7 @@ export const mockTasks: MockTask[] = [
     deadline: '11:30',
     xp: 20,
     status: 'in_progress',
-    targetRoute: '/dashboard/nx04',
+    targetRoute: '/dashboard/sale',
   },
   {
     id: 3,

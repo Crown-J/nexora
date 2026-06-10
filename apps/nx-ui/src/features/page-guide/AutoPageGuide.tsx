@@ -14,11 +14,11 @@ import { PageGuideHost } from './PageGuideHost';
 /// 用 startsWith 比對、第一個命中為準（順序：細到粗）
 const PATH_TO_PAGE_KEY: { pathPrefix: string; pageKey: string }[] = [
   // 銷貨 NX04 LITE（5）
-  { pathPrefix: '/dashboard/nx04/partner-grade-history', pageKey: 'sale.customer-grade-history' },
+  { pathPrefix: '/dashboard/sale/partner-grade-history', pageKey: 'sale.customer-grade-history' },
   { pathPrefix: '/dashboard/owner/grade-approvals', pageKey: 'sale.customer-grade-history' },
-  { pathPrefix: '/dashboard/nx04/sales-order', pageKey: 'sale.so' },
-  { pathPrefix: '/dashboard/nx04/sales-return', pageKey: 'sale.sr' },
-  { pathPrefix: '/dashboard/nx04/quote', pageKey: 'sale.quote' },
+  { pathPrefix: '/dashboard/sale/so', pageKey: 'sale.so' },
+  { pathPrefix: '/dashboard/sale/return', pageKey: 'sale.sr' },
+  { pathPrefix: '/dashboard/sale/qt', pageKey: 'sale.quote' },
 
   // 庫存 NX03 LITE（6）
   { pathPrefix: '/dashboard/inventory/stocktake', pageKey: 'inventory.stocktake' },
