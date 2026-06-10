@@ -3,7 +3,7 @@
 // =============================================================================
 // 產生：node scripts/generate-schema-from-spec.mjs（packages/db-core）
 // 規格來源：
-//   - docs/spec/nx01_field_v1.csv … nx10_field_v1.csv、nx98、nx99
+//   - docs/spec/nx01_field_v1.csv … nx09_field_v1.csv、nx98、nx99
 //   - docs/spec/nx_table_v7.csv（表清單／模組／說明）
 //   - docs/spec/nx_model_v2.csv（模組定義）
 //   - docs/spec/version_plan.csv、version_feature_matrix.csv（方案與功能）
@@ -1109,38 +1109,36 @@ model Nx01Partner {
 /// =======================================================
 model Nx01Role {
   /// [NX01]+[ROLE]+[7碼流水號]，EX : NX01ROLE0000001；啟用最低需求版本：LITE
-  id                                   String                  @id @default(dbgenerated("gen_nx01_role_id()")) @db.VarChar(15)
+  id                               String               @id @default(dbgenerated("gen_nx01_role_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵）；啟用最低需求版本：LITE
-  tenantId                             String                  @map("tenant_id") @db.VarChar(15)
+  tenantId                         String               @map("tenant_id") @db.VarChar(15)
   /// 角色代碼（唯一），例：ADMIN、SALES、WH、OWNER；啟用最低需求版本：LITE
-  code                                 String                  @db.VarChar(30)
+  code                             String               @db.VarChar(30)
   /// 角色名稱（顯示用），例：管理者、業務、倉管；啟用最低需求版本：LITE
-  name                                 String                  @db.VarChar(50)
+  name                             String               @db.VarChar(50)
   /// 角色說明（可選）；啟用最低需求版本：LITE
-  description                          String?                 @db.VarChar(200)
+  description                      String?              @db.VarChar(200)
   /// 是否系統內建角色（內建可限制刪除/改代碼）；啟用最低需求版本：LITE
-  isSystem                             Boolean                 @default(false) @map("is_system")
+  isSystem                         Boolean              @default(false) @map("is_system")
   /// 是否啟用（停用後不可再指派）；啟用最低需求版本：LITE
-  isActive                             Boolean                 @default(true) @map("is_active")
+  isActive                         Boolean              @default(true) @map("is_active")
   /// 排序用（清單顯示順序）；啟用最低需求版本：LITE
-  sortNo                               Int                     @default(0) @map("sort_no")
+  sortNo                           Int                  @default(0) @map("sort_no")
   /// 建立時間。；啟用最低需求版本：LITE
-  createdAt                            DateTime                @default(now()) @map("created_at")
+  createdAt                        DateTime             @default(now()) @map("created_at")
   /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  createdBy                            String                  @map("created_by") @db.VarChar(15)
+  createdBy                        String               @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE
-  updatedAt                            DateTime                @updatedAt @map("updated_at")
+  updatedAt                        DateTime             @updatedAt @map("updated_at")
   /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE
-  updatedBy                            String                  @map("updated_by") @db.VarChar(15)
-  tenant                               Nx99Tenant              @relation("R_Nx01Role_tenantId", fields: [tenantId], references: [id])
-  rev_Nx01KpiTarget_roleId             Nx01KpiTarget[]         @relation("R_Nx01KpiTarget_roleId")
-  rev_Nx01RolePermission_roleId        Nx01RolePermission[]    @relation("R_Nx01RolePermission_roleId")
-  rev_Nx01RoleView_roleId              Nx01RoleView[]          @relation("R_Nx01RoleView_roleId")
-  rev_Nx01UserRole_roleId              Nx01UserRole[]          @relation("R_Nx01UserRole_roleId")
-  rev_Nx01User_hrRoleId                Nx01User[]              @relation("R_Nx01User_hrRoleId")
-  rev_Nx07EmployeeChange_newRoleId     Nx07EmployeeChange[]    @relation("R_Nx07EmployeeChange_newRoleId")
-  rev_Nx10PromotionCriteria_fromRoleId Nx10PromotionCriteria[] @relation("R_Nx10PromotionCriteria_fromRoleId")
-  rev_Nx10PromotionCriteria_toRoleId   Nx10PromotionCriteria[] @relation("R_Nx10PromotionCriteria_toRoleId")
+  updatedBy                        String               @map("updated_by") @db.VarChar(15)
+  tenant                           Nx99Tenant           @relation("R_Nx01Role_tenantId", fields: [tenantId], references: [id])
+  rev_Nx01KpiTarget_roleId         Nx01KpiTarget[]      @relation("R_Nx01KpiTarget_roleId")
+  rev_Nx01RolePermission_roleId    Nx01RolePermission[] @relation("R_Nx01RolePermission_roleId")
+  rev_Nx01RoleView_roleId          Nx01RoleView[]       @relation("R_Nx01RoleView_roleId")
+  rev_Nx01UserRole_roleId          Nx01UserRole[]       @relation("R_Nx01UserRole_roleId")
+  rev_Nx01User_hrRoleId            Nx01User[]           @relation("R_Nx01User_hrRoleId")
+  rev_Nx07EmployeeChange_newRoleId Nx07EmployeeChange[] @relation("R_Nx07EmployeeChange_newRoleId")
 
   @@unique([tenantId, code])
   @@map("nx01_role")
@@ -1373,15 +1371,6 @@ model Nx01User {
   rev_Nx09Meeting_organizerId              Nx09Meeting[]                 @relation("R_Nx09Meeting_organizerId")
   rev_Nx09MeetingAction_assigneeId         Nx09MeetingAction[]           @relation("R_Nx09MeetingAction_assigneeId")
   rev_Nx09MeetingAttendee_userId           Nx09MeetingAttendee[]         @relation("R_Nx09MeetingAttendee_userId")
-  rev_Nx10EmpExpLog_userId                 Nx10EmpExpLog[]               @relation("R_Nx10EmpExpLog_userId")
-  rev_Nx10CheckinLog_userId                Nx10CheckinLog[]              @relation("R_Nx10CheckinLog_userId")
-  rev_Nx10EmpMedal_userId                  Nx10EmpMedal[]                @relation("R_Nx10EmpMedal_userId")
-  rev_Nx10EmpTaskLog_userId                Nx10EmpTaskLog[]              @relation("R_Nx10EmpTaskLog_userId")
-  rev_Nx10MentorshipRecord_mentorId        Nx10MentorshipRecord[]        @relation("R_Nx10MentorshipRecord_mentorId")
-  rev_Nx10MentorshipRecord_menteeId        Nx10MentorshipRecord[]        @relation("R_Nx10MentorshipRecord_menteeId")
-  rev_Nx10PromotionRequest_userId          Nx10PromotionRequest[]        @relation("R_Nx10PromotionRequest_userId")
-  rev_Nx10SprintTaskLog_userId             Nx10SprintTaskLog[]           @relation("R_Nx10SprintTaskLog_userId")
-  rev_Nx10SurpriseBoxLog_userId            Nx10SurpriseBoxLog[]          @relation("R_Nx10SurpriseBoxLog_userId")
   rev_Nx01Partner_salesUserId              Nx01Partner[]                 @relation("R_Nx01Partner_salesUserId")
   rev_Nx01Warehouse_managerUserId          Nx01Warehouse[]               @relation("R_Nx01Warehouse_managerUserId")
   /// 階段 F P1 加：上報 401 申報記錄（C 案上報旗標）
@@ -1654,8 +1643,6 @@ model Nx01Warehouse {
   rev_Nx06DnStop_warehouseId            Nx06DnStop[]           @relation("R_Nx06DnStop_warehouseId")
   rev_Nx07IpWhitelist_warehouseId       Nx07IpWhitelist[]      @relation("R_Nx07IpWhitelist_warehouseId")
   rev_Nx08InventoryCache_warehouseId    Nx08InventoryCache[]   @relation("R_Nx08InventoryCache_warehouseId")
-  rev_Nx10TeamTask_warehouseId          Nx10TeamTask[]         @relation("R_Nx10TeamTask_warehouseId")
-  rev_Nx10TeamTaskLog_warehouseId       Nx10TeamTaskLog[]      @relation("R_Nx10TeamTaskLog_warehouseId")
 
   @@unique([tenantId, code])
   @@map("nx01_warehouse")
@@ -6176,498 +6163,6 @@ model Nx09MeetingMinutes {
 }
 
 /// =======================================================
-/// Nx10EmpExpLog — DB table `nx10_emp_exp_log`
-/// =======================================================
-model Nx10EmpExpLog {
-  /// [NX10]+[EXPG]+[7碼流水號]，EX : NX10EXPG0000001；啟用最低需求版本：PRO
-  id          String     @id @default(dbgenerated("gen_nx10_emp_exp_log_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId    String     @map("tenant_id") @db.VarChar(15)
-  /// 員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId      String     @map("user_id") @db.VarChar(15)
-  /// Exp 來源類型（CK=簽到/KP=KPI任務/MS=里程碑/PN=懲罰/BX=驚喜寶箱/TM=團隊任務/SP=衝刺獎勵/MN=帶新人）。；啟用最低需求版本：PRO
-  sourceType  String     @map("source_type") @db.VarChar(2)
-  /// Exp 異動值（正數=獲得/負數=扣除）。；啟用最低需求版本：PRO
-  expChange   Int        @default(0) @map("exp_change")
-  /// 異動後累積總Exp快照。；啟用最低需求版本：PRO
-  expAfter    Int        @default(0) @map("exp_after")
-  /// 來源記錄ID（可空，關聯任務/懲罰/寶箱等對應記錄）。；啟用最低需求版本：PRO
-  sourceRefId String?    @map("source_ref_id") @db.VarChar(15)
-  /// 異動原因說明（系統自動填入，例：2026-04-11 KPI達成率92%+46Exp）。；啟用最低需求版本：PRO
-  reason      String     @db.VarChar(200)
-  /// 異動時間（永久保存，不可刪除）。；啟用最低需求版本：PRO
-  createdAt   DateTime   @default(now()) @map("created_at")
-  /// 建立人（系統自動填入或人工審核懲罰時填入）。；啟用最低需求版本：PRO
-  createdBy   String     @map("created_by") @db.VarChar(15)
-  tenant      Nx99Tenant @relation("R_Nx10EmpExpLog_tenantId", fields: [tenantId], references: [id])
-  user        Nx01User   @relation("R_Nx10EmpExpLog_userId", fields: [userId], references: [id])
-
-  @@map("nx10_emp_exp_log")
-}
-
-/// =======================================================
-/// Nx10CheckinLog — DB table `nx10_checkin_log`
-/// =======================================================
-model Nx10CheckinLog {
-  /// [NX10]+[CKLG]+[7碼流水號]，EX : NX10CKLG0000001；啟用最低需求版本：PRO
-  id               String     @id @default(dbgenerated("gen_nx10_checkin_log_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId         String     @map("tenant_id") @db.VarChar(15)
-  /// 員工使用者 ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId           String     @map("user_id") @db.VarChar(15)
-  /// 簽到日（租戶時區之曆日）。；啟用最低需求版本：PRO
-  checkinDate      DateTime   @map("checkin_date") @db.Date
-  /// 簽到後連續天數。；啟用最低需求版本：PRO
-  consecutiveAfter Int        @default(0) @map("consecutive_after")
-  /// 當日簽到發放之 Exp 總額（含 STREAK_Dn）。；啟用最低需求版本：PRO
-  expEarned        Int        @default(0) @map("exp_earned")
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt        DateTime   @default(now()) @map("created_at")
-  /// 建立人（簽到者本人）。；啟用最低需求版本：PRO
-  createdBy        String     @map("created_by") @db.VarChar(15)
-  tenant           Nx99Tenant @relation("R_Nx10CheckinLog_tenantId", fields: [tenantId], references: [id])
-  user             Nx01User   @relation("R_Nx10CheckinLog_userId", fields: [userId], references: [id])
-
-  @@unique([tenantId, userId, checkinDate])
-  @@index([tenantId, userId], map: "nx10_checkin_log_tenant_id_user_id_idx")
-  @@map("nx10_checkin_log")
-}
-
-/// =======================================================
-/// Nx10EmpMedal — DB table `nx10_emp_medal`
-/// =======================================================
-model Nx10EmpMedal {
-  /// [NX10]+[EMMD]+[7碼流水號]，EX : NX10EMMD0000001；啟用最低需求版本：PRO
-  id                   String         @id @default(dbgenerated("gen_nx10_emp_medal_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId             String         @map("tenant_id") @db.VarChar(15)
-  /// 員工ID（每人一筆，FK nx01_user）。；啟用最低需求版本：PRO
-  userId               String         @map("user_id") @db.VarChar(15)
-  /// 當前勳章等級ID（FK nx10_medal_level）。；啟用最低需求版本：PRO
-  medalLevelId         String         @map("medal_level_id") @db.VarChar(15)
-  /// 累積總Exp（終身累積，不可減少）。；啟用最低需求版本：PRO
-  totalExp             Int            @default(0) @map("total_exp")
-  /// 當前等級起始Exp（升階時更新）。；啟用最低需求版本：PRO
-  currentLevelExp      Int            @default(0) @map("current_level_exp")
-  /// 降階保護期截止日（Exp低於門檻後14天才觸發降階）。；啟用最低需求版本：PRO
-  demotionProtectUntil DateTime?      @map("demotion_protect_until") @db.Date
-  /// 最後簽到日期（供系統判斷連續簽到）。；啟用最低需求版本：PRO
-  lastCheckinDate      DateTime?      @map("last_checkin_date") @db.Date
-  /// 連續簽到天數。；啟用最低需求版本：PRO
-  consecutiveCheckin   Int            @default(0) @map("consecutive_checkin")
-  /// 最後更新時間。；啟用最低需求版本：PRO
-  updatedAt            DateTime       @updatedAt @map("updated_at")
-  tenant               Nx99Tenant     @relation("R_Nx10EmpMedal_tenantId", fields: [tenantId], references: [id])
-  user                 Nx01User       @relation("R_Nx10EmpMedal_userId", fields: [userId], references: [id])
-  medalLevel           Nx10MedalLevel @relation("R_Nx10EmpMedal_medalLevelId", fields: [medalLevelId], references: [id])
-
-  @@unique([userId])
-  @@map("nx10_emp_medal")
-}
-
-/// =======================================================
-/// Nx10EmpTaskLog — DB table `nx10_emp_task_log`
-/// =======================================================
-model Nx10EmpTaskLog {
-  /// [NX10]+[EMTK]+[7碼流水號]，EX : NX10EMTK0000001；啟用最低需求版本：PRO
-  id             String           @id @default(dbgenerated("gen_nx10_emp_task_log_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId       String           @map("tenant_id") @db.VarChar(15)
-  /// 員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId         String           @map("user_id") @db.VarChar(15)
-  /// 任務範本ID（FK nx10_task_template）。；啟用最低需求版本：PRO
-  taskTemplateId String           @map("task_template_id") @db.VarChar(15)
-  /// 任務期間（日任務=YYYY-MM-DD / 週=YYYY-WXX / 月=YYYY-MM / 季=YYYY-QX）。；啟用最低需求版本：PRO
-  periodValue    String           @map("period_value") @db.VarChar(10)
-  /// KPI達成率（%，0~100，KPI類任務填入）。；啟用最低需求版本：PRO
-  achieveRate    Decimal          @default(0) @map("achieve_rate") @db.Decimal(5, 2)
-  /// 本次獲得Exp。；啟用最低需求版本：PRO
-  expEarned      Int              @default(0) @map("exp_earned")
-  /// 是否完成（簽到/里程碑類任務用）。；啟用最低需求版本：PRO
-  isCompleted    Boolean          @default(false) @map("is_completed")
-  /// 系統計算時間（每日自動寫入）。；啟用最低需求版本：PRO
-  calculatedAt   DateTime         @default(now()) @map("calculated_at")
-  tenant         Nx99Tenant       @relation("R_Nx10EmpTaskLog_tenantId", fields: [tenantId], references: [id])
-  user           Nx01User         @relation("R_Nx10EmpTaskLog_userId", fields: [userId], references: [id])
-  taskTemplate   Nx10TaskTemplate @relation("R_Nx10EmpTaskLog_taskTemplateId", fields: [taskTemplateId], references: [id])
-
-  @@map("nx10_emp_task_log")
-}
-
-/// =======================================================
-/// Nx10MedalLevel — DB table `nx10_medal_level`
-/// =======================================================
-model Nx10MedalLevel {
-  /// [NX10]+[MDLV]+[7碼流水號]，EX : NX10MDLV0000001；啟用最低需求版本：PRO
-  id                                        String                  @id @default(dbgenerated("gen_nx10_medal_level_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                                  String                  @map("tenant_id") @db.VarChar(15)
-  /// 等級代碼（唯一），例：BRONZE_IV / SILVER_I / DIAMOND_I。；啟用最低需求版本：PRO
-  levelCode                                 String                  @map("level_code") @db.VarChar(10)
-  /// 等級中文名稱，例：銅牌IV / 鑽石I。；啟用最低需求版本：PRO
-  levelName                                 String                  @map("level_name") @db.VarChar(20)
-  /// 大級距（BRONZE/SILVER/GOLD/PLATINUM/DIAMOND）。；啟用最低需求版本：PRO
-  tier                                      String                  @db.VarChar(10)
-  /// 小階（1~4，1=最高，4=最低）。；啟用最低需求版本：PRO
-  rank                                      Int
-  /// 排序號（1=最低銅IV，20=最高鑽I）。；啟用最低需求版本：PRO
-  sortNo                                    Int                     @map("sort_no")
-  /// 升至此等級所需最低累積Exp。；啟用最低需求版本：PRO
-  expThreshold                              Int                     @default(0) @map("exp_threshold")
-  /// 勳章圖示路徑（選填）。；啟用最低需求版本：PRO
-  iconUrl                                   String?                 @map("icon_url") @db.VarChar(500)
-  /// 是否啟用。；啟用最低需求版本：PRO
-  isActive                                  Boolean                 @default(true) @map("is_active")
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                                 DateTime                @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                                 String                  @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                                 DateTime                @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                                 String                  @map("updated_by") @db.VarChar(15)
-  tenant                                    Nx99Tenant              @relation("R_Nx10MedalLevel_tenantId", fields: [tenantId], references: [id])
-  rev_Nx10EmpMedal_medalLevelId             Nx10EmpMedal[]          @relation("R_Nx10EmpMedal_medalLevelId")
-  rev_Nx10PromotionCriteria_minMedalLevelId Nx10PromotionCriteria[] @relation("R_Nx10PromotionCriteria_minMedalLevelId")
-
-  @@unique([tenantId, levelCode])
-  @@map("nx10_medal_level")
-}
-
-/// =======================================================
-/// Nx10MentorshipRecord — DB table `nx10_mentorship_record`
-/// =======================================================
-model Nx10MentorshipRecord {
-  /// [NX10]+[MNSH]+[7碼流水號]，EX : NX10MNSH0000001；啟用最低需求版本：PRO
-  id            String     @id @default(dbgenerated("gen_nx10_mentorship_record_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId      String     @map("tenant_id") @db.VarChar(15)
-  /// 師傅員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  mentorId      String     @map("mentor_id") @db.VarChar(15)
-  /// 新人員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  menteeId      String     @map("mentee_id") @db.VarChar(15)
-  /// 帶新人開始日期（新人到職日）。；啟用最低需求版本：PRO
-  startDate     DateTime   @map("start_date") @db.Date
-  /// 帶新人結束日期（通過試用期或結束時）。；啟用最低需求版本：PRO
-  endDate       DateTime?  @map("end_date") @db.Date
-  /// 新人試用期KPI達成率（%，結束時填入）。；啟用最低需求版本：PRO
-  menteeKpiRate Decimal    @default(0) @map("mentee_kpi_rate") @db.Decimal(5, 2)
-  /// 帶新人獎勵Exp（預設500，結束時發放）。；啟用最低需求版本：PRO
-  rewardExp     Int        @default(500) @map("reward_exp")
-  /// 獎勵是否已發放。；啟用最低需求版本：PRO
-  rewardIssued  Boolean    @default(false) @map("reward_issued")
-  /// 獎勵發放時間。；啟用最低需求版本：PRO
-  issuedAt      DateTime?  @map("issued_at")
-  /// 備註。；啟用最低需求版本：PRO
-  remark        String?    @db.VarChar(500)
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt     DateTime   @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy     String     @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt     DateTime   @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy     String     @map("updated_by") @db.VarChar(15)
-  tenant        Nx99Tenant @relation("R_Nx10MentorshipRecord_tenantId", fields: [tenantId], references: [id])
-  mentor        Nx01User   @relation("R_Nx10MentorshipRecord_mentorId", fields: [mentorId], references: [id])
-  mentee        Nx01User   @relation("R_Nx10MentorshipRecord_menteeId", fields: [menteeId], references: [id])
-
-  @@map("nx10_mentorship_record")
-}
-
-/// =======================================================
-/// Nx10PromotionCriteria — DB table `nx10_promotion_criteria`
-/// =======================================================
-model Nx10PromotionCriteria {
-  /// [NX10]+[PMCR]+[7碼流水號]，EX : NX10PMCR0000001；啟用最低需求版本：PRO
-  id                                  String                 @id @default(dbgenerated("gen_nx10_promotion_criteria_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                            String                 @map("tenant_id") @db.VarChar(15)
-  /// 申請前職務ID（FK nx01_role）。；啟用最低需求版本：PRO
-  fromRoleId                          String                 @map("from_role_id") @db.VarChar(15)
-  /// 申請後職務ID（FK nx01_role）。；啟用最低需求版本：PRO
-  toRoleId                            String                 @map("to_role_id") @db.VarChar(15)
-  /// 最低勳章等級要求（FK nx10_medal_level）。；啟用最低需求版本：PRO
-  minMedalLevelId                     String                 @map("min_medal_level_id") @db.VarChar(15)
-  /// 最低在職月數。；啟用最低需求版本：PRO
-  minTenureMonths                     Int                    @default(0) @map("min_tenure_months")
-  /// 近3個月KPI平均達成率下限（%）。；啟用最低需求版本：PRO
-  minKpiRate                          Decimal                @default(0) @map("min_kpi_rate") @db.Decimal(5, 2)
-  /// 帶新人最低人數（0=不要求）。；啟用最低需求版本：PRO
-  minMentorshipCount                  Int                    @default(0) @map("min_mentorship_count")
-  /// 申請前X天內無重大懲罰記錄（0=不要求）。；啟用最低需求版本：PRO
-  noPenaltyDays                       Int                    @default(0) @map("no_penalty_days")
-  /// 是否啟用。；啟用最低需求版本：PRO
-  isActive                            Boolean                @default(true) @map("is_active")
-  /// 備註。；啟用最低需求版本：PRO
-  remark                              String?                @db.VarChar(500)
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                           DateTime               @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                           String                 @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                           DateTime               @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                           String                 @map("updated_by") @db.VarChar(15)
-  tenant                              Nx99Tenant             @relation("R_Nx10PromotionCriteria_tenantId", fields: [tenantId], references: [id])
-  fromRole                            Nx01Role               @relation("R_Nx10PromotionCriteria_fromRoleId", fields: [fromRoleId], references: [id])
-  toRole                              Nx01Role               @relation("R_Nx10PromotionCriteria_toRoleId", fields: [toRoleId], references: [id])
-  minMedalLevel                       Nx10MedalLevel         @relation("R_Nx10PromotionCriteria_minMedalLevelId", fields: [minMedalLevelId], references: [id])
-  rev_Nx10PromotionRequest_criteriaId Nx10PromotionRequest[] @relation("R_Nx10PromotionRequest_criteriaId")
-
-  @@map("nx10_promotion_criteria")
-}
-
-/// =======================================================
-/// Nx10PromotionRequest — DB table `nx10_promotion_request`
-/// =======================================================
-model Nx10PromotionRequest {
-  /// [NX10]+[PMRQ]+[7碼流水號]，EX : NX10PMRQ0000001；啟用最低需求版本：PRO
-  id                  String                @id @default(dbgenerated("gen_nx10_promotion_request_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId            String                @map("tenant_id") @db.VarChar(15)
-  /// 申請員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId              String                @map("user_id") @db.VarChar(15)
-  /// 轉職條件ID（FK nx10_promotion_criteria）。；啟用最低需求版本：PRO
-  criteriaId          String                @map("criteria_id") @db.VarChar(15)
-  /// 申請日期。；啟用最低需求版本：PRO
-  applyDate           DateTime              @map("apply_date") @db.Date
-  /// 系統條件驗證結果（P=通過/F=未通過）。申請時自動驗證。；啟用最低需求版本：PRO
-  sysVerifyResult     String                @default("P") @map("sys_verify_result") @db.VarChar(1)
-  /// 系統驗證詳細說明（未通過時列出未達條件）。；啟用最低需求版本：PRO
-  sysVerifyDetail     String?               @map("sys_verify_detail") @db.Text
-  /// 主管推薦意見（選填）。；啟用最低需求版本：PRO
-  supervisorRecommend String?               @map("supervisor_recommend") @db.Text
-  /// 負責人審核人（FK nx01_user）。；啟用最低需求版本：PRO
-  reviewedBy          String?               @map("reviewed_by") @db.VarChar(15)
-  /// 審核時間。；啟用最低需求版本：PRO
-  reviewedAt          DateTime?             @map("reviewed_at")
-  /// 狀態（P=待審核/A=已核准/R=已退件/E=已執行/X=已取消）。；啟用最低需求版本：PRO
-  status              String                @default("P") @db.VarChar(1)
-  /// 退件原因（status=R時必填）。；啟用最低需求版本：PRO
-  rejectReason        String?               @map("reject_reason") @db.VarChar(500)
-  /// 職務異動執行時間（status=E時填入）。；啟用最低需求版本：PRO
-  executedAt          DateTime?             @map("executed_at")
-  /// 備註。；啟用最低需求版本：PRO
-  remark              String?               @db.VarChar(500)
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt           DateTime              @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy           String                @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt           DateTime              @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy           String                @map("updated_by") @db.VarChar(15)
-  tenant              Nx99Tenant            @relation("R_Nx10PromotionRequest_tenantId", fields: [tenantId], references: [id])
-  user                Nx01User              @relation("R_Nx10PromotionRequest_userId", fields: [userId], references: [id])
-  criteria            Nx10PromotionCriteria @relation("R_Nx10PromotionRequest_criteriaId", fields: [criteriaId], references: [id])
-
-  @@map("nx10_promotion_request")
-}
-
-/// =======================================================
-/// Nx10SprintTask — DB table `nx10_sprint_task`
-/// =======================================================
-model Nx10SprintTask {
-  /// [NX10]+[SPTK]+[7碼流水號]，EX : NX10SPTK0000001；啟用最低需求版本：PRO
-  id                                 String              @id @default(dbgenerated("gen_nx10_sprint_task_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                           String              @map("tenant_id") @db.VarChar(15)
-  /// 衝刺任務名稱。；啟用最低需求版本：PRO
-  name                               String              @db.VarChar(100)
-  /// 衝刺類型（WS=週衝刺×2倍Exp/ME=月末衝刺/QR=季度排行）。；啟用最低需求版本：PRO
-  sprintType                         String              @default("WS") @map("sprint_type") @db.VarChar(2)
-  /// 有效開始日。；啟用最低需求版本：PRO
-  startDate                          DateTime            @map("start_date") @db.Date
-  /// 有效結束日。；啟用最低需求版本：PRO
-  endDate                            DateTime            @map("end_date") @db.Date
-  /// Exp 倍率（週衝刺=2.0，月末=1.5）。；啟用最低需求版本：PRO
-  expMultiplier                      Decimal             @map("exp_multiplier") @db.Decimal(4, 2)
-  /// 任務目標說明。；啟用最低需求版本：PRO
-  targetDesc                         String?             @map("target_desc") @db.VarChar(500)
-  /// 是否啟用。；啟用最低需求版本：PRO
-  isActive                           Boolean             @default(true) @map("is_active")
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                          DateTime            @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                          String              @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                          DateTime            @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                          String              @map("updated_by") @db.VarChar(15)
-  tenant                             Nx99Tenant          @relation("R_Nx10SprintTask_tenantId", fields: [tenantId], references: [id])
-  rev_Nx10SprintTaskLog_sprintTaskId Nx10SprintTaskLog[] @relation("R_Nx10SprintTaskLog_sprintTaskId")
-
-  @@map("nx10_sprint_task")
-}
-
-/// =======================================================
-/// Nx10SprintTaskLog — DB table `nx10_sprint_task_log`
-/// =======================================================
-model Nx10SprintTaskLog {
-  /// [NX10]+[SPTL]+[7碼流水號]，EX : NX10SPTL0000001；啟用最低需求版本：PRO
-  id           String         @id @default(dbgenerated("gen_nx10_sprint_task_log_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId     String         @map("tenant_id") @db.VarChar(15)
-  /// 衝刺任務ID（FK nx10_sprint_task）。；啟用最低需求版本：PRO
-  sprintTaskId String         @map("sprint_task_id") @db.VarChar(15)
-  /// 員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId       String         @map("user_id") @db.VarChar(15)
-  /// 原始Exp（未乘倍率前）。；啟用最低需求版本：PRO
-  baseExp      Int            @default(0) @map("base_exp")
-  /// 衝刺獎勵Exp（base_exp × (multiplier-1)）。；啟用最低需求版本：PRO
-  bonusExp     Int            @default(0) @map("bonus_exp")
-  /// 實際獲得總Exp（base_exp + bonus_exp）。；啟用最低需求版本：PRO
-  totalExp     Int            @default(0) @map("total_exp")
-  /// 排名（季度排行衝刺時填入）。；啟用最低需求版本：PRO
-  rankNo       Int?           @map("rank_no")
-  /// 計算時間。；啟用最低需求版本：PRO
-  calculatedAt DateTime       @default(now()) @map("calculated_at")
-  tenant       Nx99Tenant     @relation("R_Nx10SprintTaskLog_tenantId", fields: [tenantId], references: [id])
-  sprintTask   Nx10SprintTask @relation("R_Nx10SprintTaskLog_sprintTaskId", fields: [sprintTaskId], references: [id])
-  user         Nx01User       @relation("R_Nx10SprintTaskLog_userId", fields: [userId], references: [id])
-
-  @@map("nx10_sprint_task_log")
-}
-
-/// =======================================================
-/// Nx10SurpriseBoxLog — DB table `nx10_surprise_box_log`
-/// =======================================================
-model Nx10SurpriseBoxLog {
-  /// [NX10]+[SPBX]+[7碼流水號]，EX : NX10SPBX0000001；啟用最低需求版本：PRO
-  id          String     @id @default(dbgenerated("gen_nx10_surprise_box_log_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId    String     @map("tenant_id") @db.VarChar(15)
-  /// 員工ID（FK nx01_user）。；啟用最低需求版本：PRO
-  userId      String     @map("user_id") @db.VarChar(15)
-  /// 寶箱類型（N=普通/R=稀有/E=史詩）。升階時隨機決定。；啟用最低需求版本：PRO
-  boxType     String     @default("N") @map("box_type") @db.VarChar(1)
-  /// 觸發條件（LU=升階/MS=里程碑/OT=其他）。；啟用最低需求版本：PRO
-  triggerType String     @default("LU") @map("trigger_type") @db.VarChar(2)
-  /// 獲得Exp（隨機範圍：普通10~30/稀有31~80/史詩81~200）。；啟用最低需求版本：PRO
-  expEarned   Int        @default(0) @map("exp_earned")
-  /// 開啟時間。；啟用最低需求版本：PRO
-  openedAt    DateTime   @default(now()) @map("opened_at")
-  /// 當日第幾個寶箱（每日上限3個）。；啟用最低需求版本：PRO
-  dailyCount  Int        @default(1) @map("daily_count")
-  tenant      Nx99Tenant @relation("R_Nx10SurpriseBoxLog_tenantId", fields: [tenantId], references: [id])
-  user        Nx01User   @relation("R_Nx10SurpriseBoxLog_userId", fields: [userId], references: [id])
-
-  @@map("nx10_surprise_box_log")
-}
-
-/// =======================================================
-/// Nx10TaskTemplate — DB table `nx10_task_template`
-/// =======================================================
-model Nx10TaskTemplate {
-  /// [NX10]+[TKTM]+[7碼流水號]，EX : NX10TKTM0000001；啟用最低需求版本：PRO
-  id                                String           @id @default(dbgenerated("gen_nx10_task_template_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                          String           @map("tenant_id") @db.VarChar(15)
-  /// 任務代碼（唯一），例：DAILY_CHECKIN / KPI_SALES_DAILY。；啟用最低需求版本：PRO
-  code                              String           @db.VarChar(20)
-  /// 任務名稱，例：每日簽到 / 銷售KPI達成。；啟用最低需求版本：PRO
-  name                              String           @db.VarChar(100)
-  /// 任務週期（D=每日/W=每週/M=每月/Q=季度/O=里程碑）。；啟用最低需求版本：PRO
-  taskCycle                         String           @default("D") @map("task_cycle") @db.VarChar(1)
-  /// 適用職務代碼（逗號分隔，空=全員適用）。；啟用最低需求版本：PRO
-  applicableRoles                   String?          @map("applicable_roles") @db.VarChar(200)
-  /// 基礎Exp獎勵。；啟用最低需求版本：PRO
-  expBase                           Int              @default(0) @map("exp_base")
-  /// Exp計算公式說明，例：達成率×175（KPI任務）/ 固定+5（簽到）。；啟用最低需求版本：PRO
-  expFormula                        String?          @map("exp_formula") @db.VarChar(500)
-  /// 計算來源模組（NX04=銷售/NX02=採購/NX03=庫存/NX07=人資/NX08=報表）。；啟用最低需求版本：PRO
-  sourceModule                      String?          @map("source_module") @db.VarChar(10)
-  /// 關聯KPI指標代碼（source_module有值時填入）。；啟用最低需求版本：PRO
-  sourceKpiCode                     String?          @map("source_kpi_code") @db.VarChar(20)
-  /// 是否系統預設任務（TRUE=不可刪除）。；啟用最低需求版本：PRO
-  isSystem                          Boolean          @default(false) @map("is_system")
-  /// 是否啟用。；啟用最低需求版本：PRO
-  isActive                          Boolean          @default(true) @map("is_active")
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                         DateTime         @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                         String           @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                         DateTime         @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                         String           @map("updated_by") @db.VarChar(15)
-  tenant                            Nx99Tenant       @relation("R_Nx10TaskTemplate_tenantId", fields: [tenantId], references: [id])
-  rev_Nx10EmpTaskLog_taskTemplateId Nx10EmpTaskLog[] @relation("R_Nx10EmpTaskLog_taskTemplateId")
-
-  @@unique([code])
-  @@map("nx10_task_template")
-}
-
-/// =======================================================
-/// Nx10TeamTask — DB table `nx10_team_task`
-/// =======================================================
-model Nx10TeamTask {
-  /// [NX10]+[TMTK]+[7碼流水號]，EX : NX10TMTK0000001；啟用最低需求版本：PRO
-  id                             String            @id @default(dbgenerated("gen_nx10_team_task_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId                       String            @map("tenant_id") @db.VarChar(15)
-  /// 任務名稱，例：本週全員全勤 / 本月KPI達成率90%以上。；啟用最低需求版本：PRO
-  name                           String            @db.VarChar(100)
-  /// 目標類型（AT=全勤率/KP=KPI達成率/DR=日報表繳交率/OT=其他）。；啟用最低需求版本：PRO
-  targetType                     String            @default("AT") @map("target_type") @db.VarChar(2)
-  /// 目標門檻值（%）。；啟用最低需求版本：PRO
-  targetValue                    Decimal           @default(0) @map("target_value") @db.Decimal(5, 2)
-  /// 任務週期（W=每週/M=每月）。；啟用最低需求版本：PRO
-  taskCycle                      String            @default("W") @map("task_cycle") @db.VarChar(1)
-  /// 全員獲得Exp獎勵（達標時全員發放）。；啟用最低需求版本：PRO
-  rewardExp                      Int               @default(0) @map("reward_exp")
-  /// 適用倉庫ID（可空=全公司，FK nx01_warehouse）。；啟用最低需求版本：PRO
-  warehouseId                    String?           @map("warehouse_id") @db.VarChar(15)
-  /// 是否啟用。；啟用最低需求版本：PRO
-  isActive                       Boolean           @default(true) @map("is_active")
-  /// 建立時間。；啟用最低需求版本：PRO
-  createdAt                      DateTime          @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  createdBy                      String            @map("created_by") @db.VarChar(15)
-  /// 更新時間。；啟用最低需求版本：PRO
-  updatedAt                      DateTime          @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：PRO
-  updatedBy                      String            @map("updated_by") @db.VarChar(15)
-  tenant                         Nx99Tenant        @relation("R_Nx10TeamTask_tenantId", fields: [tenantId], references: [id])
-  warehouse                      Nx01Warehouse?    @relation("R_Nx10TeamTask_warehouseId", fields: [warehouseId], references: [id])
-  rev_Nx10TeamTaskLog_teamTaskId Nx10TeamTaskLog[] @relation("R_Nx10TeamTaskLog_teamTaskId")
-
-  @@map("nx10_team_task")
-}
-
-/// =======================================================
-/// Nx10TeamTaskLog — DB table `nx10_team_task_log`
-/// =======================================================
-model Nx10TeamTaskLog {
-  /// [NX10]+[TMTL]+[7碼流水號]，EX : NX10TMTL0000001；啟用最低需求版本：PRO
-  id           String        @id @default(dbgenerated("gen_nx10_team_task_log_id()")) @db.VarChar(15)
-  /// 租戶 ID（外鍵）。；啟用最低需求版本：PRO
-  tenantId     String        @map("tenant_id") @db.VarChar(15)
-  /// 團隊任務ID（FK nx10_team_task）。；啟用最低需求版本：PRO
-  teamTaskId   String        @map("team_task_id") @db.VarChar(15)
-  /// 執行倉庫ID（FK nx01_warehouse）。；啟用最低需求版本：PRO
-  warehouseId  String        @map("warehouse_id") @db.VarChar(15)
-  /// 任務期間（YYYY-WXX 或 YYYY-MM）。；啟用最低需求版本：PRO
-  periodValue  String        @map("period_value") @db.VarChar(10)
-  /// 實際達成值（%）。；啟用最低需求版本：PRO
-  actualValue  Decimal       @default(0) @map("actual_value") @db.Decimal(5, 2)
-  /// 是否達標。；啟用最低需求版本：PRO
-  isAchieved   Boolean       @default(false) @map("is_achieved")
-  /// 獎勵是否已發放。；啟用最低需求版本：PRO
-  rewardIssued Boolean       @default(false) @map("reward_issued")
-  /// 獎勵發放時間。；啟用最低需求版本：PRO
-  issuedAt     DateTime?     @map("issued_at")
-  /// 系統計算時間。；啟用最低需求版本：PRO
-  calculatedAt DateTime      @default(now()) @map("calculated_at")
-  tenant       Nx99Tenant    @relation("R_Nx10TeamTaskLog_tenantId", fields: [tenantId], references: [id])
-  teamTask     Nx10TeamTask  @relation("R_Nx10TeamTaskLog_teamTaskId", fields: [teamTaskId], references: [id])
-  warehouse    Nx01Warehouse @relation("R_Nx10TeamTaskLog_warehouseId", fields: [warehouseId], references: [id])
-
-  @@map("nx10_team_task_log")
-}
-
-/// =======================================================
 /// Nx98DocLink — DB table `nx98_doc_link`
 /// =======================================================
 model Nx98DocLink {
@@ -7145,20 +6640,6 @@ model Nx99Tenant {
   rev_Nx09SystemManual_tenantId            Nx09SystemManual[]            @relation("R_Nx09SystemManual_tenantId")
   rev_Nx09VinLookup_tenantId               Nx09VinLookup[]               @relation("R_Nx09VinLookup_tenantId")
   rev_Nx09RepairSop_tenantId               Nx09RepairSop[]               @relation("R_Nx09RepairSop_tenantId")
-  rev_Nx10EmpExpLog_tenantId               Nx10EmpExpLog[]               @relation("R_Nx10EmpExpLog_tenantId")
-  rev_Nx10CheckinLog_tenantId              Nx10CheckinLog[]              @relation("R_Nx10CheckinLog_tenantId")
-  rev_Nx10EmpMedal_tenantId                Nx10EmpMedal[]                @relation("R_Nx10EmpMedal_tenantId")
-  rev_Nx10EmpTaskLog_tenantId              Nx10EmpTaskLog[]              @relation("R_Nx10EmpTaskLog_tenantId")
-  rev_Nx10MedalLevel_tenantId              Nx10MedalLevel[]              @relation("R_Nx10MedalLevel_tenantId")
-  rev_Nx10MentorshipRecord_tenantId        Nx10MentorshipRecord[]        @relation("R_Nx10MentorshipRecord_tenantId")
-  rev_Nx10PromotionCriteria_tenantId       Nx10PromotionCriteria[]       @relation("R_Nx10PromotionCriteria_tenantId")
-  rev_Nx10PromotionRequest_tenantId        Nx10PromotionRequest[]        @relation("R_Nx10PromotionRequest_tenantId")
-  rev_Nx10SprintTask_tenantId              Nx10SprintTask[]              @relation("R_Nx10SprintTask_tenantId")
-  rev_Nx10SprintTaskLog_tenantId           Nx10SprintTaskLog[]           @relation("R_Nx10SprintTaskLog_tenantId")
-  rev_Nx10SurpriseBoxLog_tenantId          Nx10SurpriseBoxLog[]          @relation("R_Nx10SurpriseBoxLog_tenantId")
-  rev_Nx10TaskTemplate_tenantId            Nx10TaskTemplate[]            @relation("R_Nx10TaskTemplate_tenantId")
-  rev_Nx10TeamTask_tenantId                Nx10TeamTask[]                @relation("R_Nx10TeamTask_tenantId")
-  rev_Nx10TeamTaskLog_tenantId             Nx10TeamTaskLog[]             @relation("R_Nx10TeamTaskLog_tenantId")
   rev_Nx98DocLink_tenantId                 Nx98DocLink[]                 @relation("R_Nx98DocLink_tenantId")
   rev_Nx99Subscription_tenantId            Nx99Subscription[]            @relation("R_Nx99Subscription_tenantId")
   rev_Nx01PartnerBillingAddress_tenantId   Nx01PartnerBillingAddress[]   @relation("R_Nx01PartnerBillingAddress_tenantId")
@@ -8536,37 +8017,37 @@ model Nx02RfqGreetingTemplate {
 /// =======================================================
 model PlatformAdmin {
   /// [PLAT]+[ADMN]+[7碼流水號]，EX : PLATADMN0000001
-  id                  String    @id @default(dbgenerated("gen_platform_admin_id()")) @db.VarChar(15)
+  id                 String    @id @default(dbgenerated("gen_platform_admin_id()")) @db.VarChar(15)
   /// 平台登入帳號（跨平台唯一、不分租戶）
-  account             String    @unique @db.VarChar(50)
+  account            String    @unique @db.VarChar(50)
   /// 密碼雜湊
-  passwordHash        String    @map("password_hash") @db.VarChar(255)
+  passwordHash       String    @map("password_hash") @db.VarChar(255)
   /// 顯示名稱
-  displayName         String    @map("display_name") @db.VarChar(50)
+  displayName        String    @map("display_name") @db.VarChar(50)
   /// Email（選填）
-  email               String?   @db.VarChar(100)
+  email              String?   @db.VarChar(100)
   /// 電話（選填）
-  phone               String?   @db.VarChar(20)
+  phone              String?   @db.VarChar(20)
   /// 是否啟用（停用後不可登入）
-  isActive            Boolean   @default(true) @map("is_active")
+  isActive           Boolean   @default(true) @map("is_active")
   /// 首次登入強制改密碼
-  mustChangePassword  Boolean   @default(false) @map("must_change_password")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
   /// 最後登入時間
-  lastLoginAt         DateTime? @map("last_login_at")
+  lastLoginAt        DateTime? @map("last_login_at")
   /// 連續失敗登入次數
-  failedLoginCount    Int       @default(0) @map("failed_login_count")
+  failedLoginCount   Int       @default(0) @map("failed_login_count")
   /// 帳號鎖定到何時
-  lockedUntil         DateTime? @map("locked_until")
+  lockedUntil        DateTime? @map("locked_until")
   /// 備註
-  remark              String?   @db.VarChar(200)
+  remark             String?   @db.VarChar(200)
   /// 建立時間
-  createdAt           DateTime  @default(now()) @map("created_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
   /// 建立人（VARCHAR scalar、無 FK、首筆 seed 自參考）
-  createdBy           String    @map("created_by") @db.VarChar(15)
+  createdBy          String    @map("created_by") @db.VarChar(15)
   /// 更新時間
-  updatedAt           DateTime  @updatedAt @map("updated_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
   /// 更新人（VARCHAR scalar、無 FK）
-  updatedBy           String    @map("updated_by") @db.VarChar(15)
+  updatedBy          String    @map("updated_by") @db.VarChar(15)
 
   @@map("platform_admin")
 }
@@ -8582,23 +8063,23 @@ model PlatformAdmin {
 /// =======================================================
 model Nx01UserPref {
   /// [NX01]+[UPRF]+[7碼流水號]，EX : NX01UPRF0000001
-  id        String   @id @default(dbgenerated("gen_nx01_user_pref_id()")) @db.VarChar(15)
+  id        String     @id @default(dbgenerated("gen_nx01_user_pref_id()")) @db.VarChar(15)
   /// 租戶 ID（外鍵、查詢 scope）
-  tenantId  String   @map("tenant_id") @db.VarChar(15)
+  tenantId  String     @map("tenant_id") @db.VarChar(15)
   /// 使用者 ID（外鍵、設定擁有者）
-  userId    String   @map("user_id") @db.VarChar(15)
+  userId    String     @map("user_id") @db.VarChar(15)
   /// 偏好設定 key（例 'home.dashboard.metrics'、'theme'、'default-landing'）
-  prefKey   String   @map("pref_key") @db.VarChar(100)
+  prefKey   String     @map("pref_key") @db.VarChar(100)
   /// 偏好設定值（JSONB、彈性結構）
-  prefValue Json     @map("pref_value")
+  prefValue Json       @map("pref_value")
   /// 建立時間
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime   @default(now()) @map("created_at")
   /// 建立人
-  createdBy String   @map("created_by") @db.VarChar(15)
+  createdBy String     @map("created_by") @db.VarChar(15)
   /// 更新時間
-  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
   /// 更新人
-  updatedBy String   @map("updated_by") @db.VarChar(15)
+  updatedBy String     @map("updated_by") @db.VarChar(15)
   tenant    Nx99Tenant @relation("R_Nx01UserPref_tenantId", fields: [tenantId], references: [id])
   user      Nx01User   @relation("R_Nx01UserPref_userId", fields: [userId], references: [id])
 
