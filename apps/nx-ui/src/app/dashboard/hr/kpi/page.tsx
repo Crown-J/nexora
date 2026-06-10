@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx07/kpi/page.tsx
+// apps/nx-ui/src/app/dashboard/hr/kpi/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX07-KPI-UI-001-F01

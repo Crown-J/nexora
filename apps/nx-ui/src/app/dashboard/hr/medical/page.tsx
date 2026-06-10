@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx07/medical/page.tsx
+// apps/nx-ui/src/app/dashboard/hr/medical/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX07-MEDICAL-UI-001-F01

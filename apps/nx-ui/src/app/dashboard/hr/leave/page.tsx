@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx07/leave/page.tsx
+// apps/nx-ui/src/app/dashboard/hr/leave/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX07-LEAVE-UI-001-F01

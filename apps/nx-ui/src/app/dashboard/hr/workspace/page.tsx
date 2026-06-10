@@ -1,8 +1,8 @@
-// apps/nx-ui/src/app/dashboard/nx07/workspace/page.tsx
+// apps/nx-ui/src/app/dashboard/hr/workspace/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX07-WS-UI-001-F01
-// 路由：/dashboard/nx07/workspace
+// 路由：/dashboard/hr/workspace
 // 性質：UI stub placeholder（TASK-NX07-IMPL-01 Phase 5、UI 獨立軌 backlog）
 export default function Nx07WorkspacePage() {
   return (

@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx07/salary/page.tsx
+// apps/nx-ui/src/app/dashboard/hr/salary/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX07-SALARY-UI-001-F01

@@ -40,7 +40,7 @@ function getActiveModule(pathname: string): string {
   if (pathname.startsWith('/dashboard/nx05')) return 'finance';
   if (pathname.startsWith('/dashboard/nx02')) return 'inventory';
   if (pathname.startsWith('/dashboard/nx06')) return 'logistics';
-  if (pathname.startsWith('/dashboard/nx07')) return 'hr';
+  if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return 'hr';
   if (pathname.startsWith('/dashboard/report')) return 'report';
   if (pathname.startsWith('/dashboard/nx08')) return 'report';
   if (pathname.startsWith('/dashboard/nx09')) return 'knowledge';
