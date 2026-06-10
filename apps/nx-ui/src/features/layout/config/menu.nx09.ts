@@ -8,7 +8,7 @@
  * Notes:
  * - TASK-NX09-IMPL-01 Phase 6：1 group / 6 items（EIP 基礎）
  * - TASK-NX09-IMPL-02 Phase 6 升：2 group / 10 items（+ 亞羅特色 group 4 items：VIN / RepairSop / ArticleTag / MeetingDetail）
- * - 對齊 menu.nx05~nx10 範式
+ * - 對齊 menu.nx05~nx09 範式
  * - 4 ⭐ 業界改革標：manual（業界 ERP 標配）+ search（FTS 業界中小罕見）+ vin-lookup ⭐⭐⭐ + repair-sop ⭐⭐⭐
  */
 
