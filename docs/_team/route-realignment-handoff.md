@@ -37,15 +37,19 @@
 | 段 4a | nx04 → sale 業務名化（已對齊版） | ✅ 完成 | `347062f1` |
 | 段 4b | nx03 → inventory 業務名化 | ✅ 完成 | `392c35c6` |
 | 段 4c | nx02 → purchase/inventory 業務名化（最大批、95 處） | ✅ 完成 | `31207668` |
-| 段 5 | 收尾（命名導覽 / 全 repo 複查 / 線路圖 / README） | 🟡 進行中 | — |
+| 段 5a | 段 5 起點 — 交接文件 + 入庫 CTO 規劃 | ✅ 完成 | `56cca171` |
+| 段 5b | 命名與導覽收尾 — 拆除舊 nx0X 過渡判斷（16 處 + 6 import） | ✅ 完成 | `bc57e4d9` |
+| 段 5c | 全 repo 最終複查 — 順手修 sale/workflow 4 檔 stale 路徑頭 | ✅ 完成 | `f5a3442a` |
+| 段 5d | 線路圖更新 — 新增收尾版 system-routes-final.md | ✅ 完成 | `be53fe25` |
+| 段 5e | README 翻修 — 依掃乾淨真實結構重寫 | ✅ 完成 | `9d7bf2e0` |
 
-**已完成 commit 數**：12 支（段 0~4c）。
+**已完成 commit 數**：17 支（段 0 ~ 段 5e 全完成）。
 
 ---
 
-## 三、段 5 收尾項目
+## 三、段 5 收尾項目（已完成）
 
-### 3.1 命名與導覽收尾 🟡 進行中
+### 3.1 命名與導覽收尾 ✅ 完成（commit `bc57e4d9`）
 
 更新 menu / side-menu / dock / TopModuleTabs 裡剩餘的過渡 `startsWith('/dashboard/nx0X')` 判斷、改成業務名判斷：
 
@@ -58,16 +62,17 @@
 
 另：麵包屑（breadcrumb）顯示確認走業務名（候選位置：`app/dashboard/layout.tsx`）。
 
-### 3.2 全 repo 最終複查 🟡 待做
+### 3.2 全 repo 最終複查 ✅ 完成（commit `f5a3442a`）
 
-- `grep /dashboard/nx0X` → 確認只剩「檔自身路徑註解」與「歷史描述註解」，無任何業務功能 hardcode
-- `grep @/features/nx0X` → 確認編號都是校準後的新制、無舊制殘留
-- 確認段 4 留註 `features/sale/workflow/` placeholder 假路徑不影響功能
+grep 結果：
+- `/dashboard/nx0X` 29 hits / 28 檔 — 全屬檔自身路徑註解 + 歷史描述（合法）
+- `@/features/nx0X` — 全屬校準後新制（nx02 採購 / nx03 庫存 / nx05 財務 / nx08 報表）、無舊制殘留
+- `features/sale/workflow/` 確認非真實頁、純 mock、未串入 app/dashboard（per CTO 段 4 留註）
 
-### 3.3 線路圖與文件 🟡 待做
+### 3.3 線路圖與文件 ✅ 完成（commit `be53fe25`、`9d7bf2e0`）
 
-- 依最終結構更新線路圖（前後端編號對齊、對外業務名）
-- README 翻修：全中文、依掃乾淨後真實結構、前端區塊強化方便 Hana 看懂、啟動指令用 `post-cleanup-state.md` 真實版本
+- 新增 `docs/_team/system-routes-final.md` 收尾版線路圖（前後端編號對齊、對外業務名）
+- README 翻修：全中文、依掃乾淨真實結構、前端區塊強化（給 Hana）、啟動指令抄 `post-cleanup-state.md` §4
 
 ---
 
