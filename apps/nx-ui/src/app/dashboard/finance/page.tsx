@@ -31,13 +31,13 @@ export default function FinanceHubPage() {
             title="應收帳款"
             description="客戶帳款追蹤、月結請款、催收作業（含廠商退費衍生應收）"
             Icon={Receipt}
-            href="/dashboard/nx05/ar"
+            href="/dashboard/finance/ar"
           />
           <HubLinkCard
             title="應付帳款"
             description="採購應付（廠商確認）+ 銷退退款彙整、逾期提醒"
             Icon={Landmark}
-            href="/dashboard/nx05/ap"
+            href="/dashboard/finance/ap"
           />
         </ModuleHubSection>
 
@@ -46,13 +46,13 @@ export default function FinanceHubPage() {
             title="票據管理"
             description="現金 / 匯款 / 支票 / 信用卡 4 種方式、自動沖應收應付"
             Icon={CreditCard}
-            href="/dashboard/nx05/notes"
+            href="/dashboard/finance/notes"
           />
           <HubLinkCard
             title="折讓核可"
             description="人工折讓 DRAFT + 主管核可（防亂打折少收）、核可後自動沖"
             Icon={Percent}
-            href="/dashboard/nx05/allowance"
+            href="/dashboard/finance/allowance"
           />
         </ModuleHubSection>
 
@@ -61,7 +61,7 @@ export default function FinanceHubPage() {
             title="關帳作業 + 401"
             description="月關帳 + 401 雙月一期預覽 / 標記已上報 / 解除關帳"
             Icon={Lock}
-            href="/dashboard/nx05/closing"
+            href="/dashboard/finance/closing"
           />
           <HubLinkCard
             title="帳戶管理"

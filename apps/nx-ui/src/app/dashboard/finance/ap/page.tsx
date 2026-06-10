@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx05/ap/page.tsx
+// apps/nx-ui/src/app/dashboard/finance/ap/page.tsx
 // v1.2 階段 F P4：應付帳款工作台（含 SR 退款彙整視圖）
 'use client';
 

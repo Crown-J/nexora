@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx05/ar/page.tsx
+// apps/nx-ui/src/app/dashboard/finance/ar/page.tsx
 // v1.2 階段 F P4：應收帳款工作台
 'use client';
 

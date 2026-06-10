@@ -37,7 +37,7 @@ function getActiveModule(pathname: string): string {
   if (pathname.startsWith('/dashboard/nx03')) return 'inventory';
   if (pathname.startsWith('/dashboard/nx04')) return 'sales';
   if (pathname.startsWith('/dashboard/finance')) return 'finance';
-  if (pathname.startsWith('/dashboard/nx05')) return 'finance';
+  if (pathname.startsWith('/dashboard/nx05')) return 'finance'; // 過渡：舊 nx05 URL 還在 redirect
   if (pathname.startsWith('/dashboard/nx02')) return 'inventory';
   if (pathname.startsWith('/dashboard/delivery') || pathname.startsWith('/dashboard/nx06')) return 'logistics';
   if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return 'hr';

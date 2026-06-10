@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx05/allowance/page.tsx
+// apps/nx-ui/src/app/dashboard/finance/allowance/page.tsx
 // v1.2 階段 F P5-B (2)：折讓核可工作台
 'use client';
 

@@ -31,17 +31,8 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/sales", destination: "/dashboard/sale", permanent: true },
       { source: "/dashboard/sales/domestic", destination: "/dashboard/nx04/domestic", permanent: true },
 
-      { source: "/dashboard/finance/workspace", destination: "/dashboard/nx05/workspace", permanent: true },
-      { source: "/dashboard/finance/receivable", destination: "/dashboard/nx05/workspace", permanent: true },
-      { source: "/dashboard/finance/payable", destination: "/dashboard/nx05/workspace", permanent: true },
-      { source: "/dashboard/finance/cash", destination: "/dashboard/nx05/workspace", permanent: true },
-      { source: "/dashboard/finance/notes", destination: "/dashboard/nx05/workspace", permanent: true },
-      { source: "/dashboard/finance/closing", destination: "/dashboard/nx05/workspace", permanent: true },
-
-      { source: "/dashboard/report/workspace", destination: "/dashboard/nx08/workspace", permanent: true },
-      { source: "/dashboard/report/daily", destination: "/dashboard/nx08/workspace", permanent: true },
-      { source: "/dashboard/report/monthly", destination: "/dashboard/nx08/workspace", permanent: true },
-      { source: "/dashboard/report/export", destination: "/dashboard/nx08/workspace", permanent: true },
+      // 段 2 移除：finance/* 跟 report/* 已是真實 hub + 子頁、舊 redirects 全刪
+      // 段 2 移除：原 report/{workspace,daily,monthly,export} → nx08/workspace 過時
 
       { source: "/dashboard/bulletin", destination: "/dashboard", permanent: true },
 

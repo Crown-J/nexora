@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx05/notes/page.tsx
+// apps/nx-ui/src/app/dashboard/finance/notes/page.tsx
 // v1.2 階段 F P4：票據管理（收付款 4 種方式）
 'use client';
 

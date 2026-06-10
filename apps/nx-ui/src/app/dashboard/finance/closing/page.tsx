@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx05/closing/page.tsx
+// apps/nx-ui/src/app/dashboard/finance/closing/page.tsx
 // v1.2 階段 F P4：關帳作業（含 401 雙月一期預覽 + 上報旗標）
 'use client';
 
