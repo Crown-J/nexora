@@ -11,7 +11,7 @@
 import { useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
-import { PartLookupAutocomplete } from '@/features/nx02/shared/ui/PartLookupAutocomplete';
+import { PartLookupAutocomplete } from '@/features/nx03/shared/ui/PartLookupAutocomplete';
 import { cx } from '@/shared/lib/cx';
 import { parseIntInput } from '@/shared/lib/normalize-numeric-input';
 

@@ -8,8 +8,8 @@
 
 'use client';
 
-import { InitListView } from '@/features/nx02/init/ui/InitListView';
-import { useInitList } from '@/features/nx02/init/hooks/useInitList';
+import { InitListView } from '@/features/nx03/init/ui/InitListView';
+import { useInitList } from '@/features/nx03/init/hooks/useInitList';
 
 export default function Nx02InitListPage() {
   const vm = useInitList();

@@ -8,8 +8,8 @@
 
 'use client';
 
-import { useStockSetting } from '@/features/nx02/stock-setting/hooks/useStockSetting';
-import { StockSettingSplitView } from '@/features/nx02/stock-setting/ui/StockSettingSplitView';
+import { useStockSetting } from '@/features/nx03/stock-setting/hooks/useStockSetting';
+import { StockSettingSplitView } from '@/features/nx03/stock-setting/ui/StockSettingSplitView';
 
 export default function Nx02StockSettingPage() {
   const vm = useStockSetting();

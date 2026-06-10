@@ -4,8 +4,8 @@
 
 import { useParams } from 'next/navigation';
 
-import { useTransferDoc } from '@/features/nx02/transfer/hooks/useTransfer';
-import { TransferFormView } from '@/features/nx02/transfer/ui/TransferFormView';
+import { useTransferDoc } from '@/features/nx03/transfer/hooks/useTransfer';
+import { TransferFormView } from '@/features/nx03/transfer/ui/TransferFormView';
 
 export default function Nx02TransferDetailPage() {
   const params = useParams();

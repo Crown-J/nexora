@@ -14,8 +14,8 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { useDashboard } from '@/features/nx02/dashboard/hooks/useDashboard';
-import type { Nx02DashboardDto } from '@/features/nx02/dashboard/api/dashboard';
+import { useDashboard } from '@/features/nx03/dashboard/hooks/useDashboard';
+import type { Nx02DashboardDto } from '@/features/nx03/dashboard/api/dashboard';
 import { cx } from '@/shared/lib/cx';
 
 type WorkspaceTab = 'inbound' | 'outbound' | 'stocktake';

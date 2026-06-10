@@ -10,8 +10,8 @@
 
 import { useParams } from 'next/navigation';
 
-import { useStockTakeDetail } from '@/features/nx02/stock-take/hooks/useStockTakeDetail';
-import { StockTakeDetailView } from '@/features/nx02/stock-take/ui/StockTakeDetailView';
+import { useStockTakeDetail } from '@/features/nx03/stock-take/hooks/useStockTakeDetail';
+import { StockTakeDetailView } from '@/features/nx03/stock-take/ui/StockTakeDetailView';
 
 export default function Nx02StockTakeDetailPage() {
   const params = useParams();

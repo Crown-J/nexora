@@ -12,7 +12,7 @@ import {
   startReviewWarrantyClaim,
   submitWarrantyClaim,
   voidWarrantyClaim,
-} from '@/features/nx02/warranty-claim/api/warranty-claim';
+} from '@/features/nx03/warranty-claim/api/warranty-claim';
 import {
   CLAIM_RESULT_LABEL,
   CLAIM_STATUS_LABEL,
@@ -20,7 +20,7 @@ import {
   type ClaimResult,
   type ClaimType,
   type WarrantyClaimDto,
-} from '@/features/nx02/warranty-claim/types';
+} from '@/features/nx03/warranty-claim/types';
 import {
   TieredField,
   TieredFormProvider,

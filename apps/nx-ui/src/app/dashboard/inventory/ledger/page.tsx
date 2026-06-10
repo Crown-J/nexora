@@ -8,8 +8,8 @@
 
 'use client';
 
-import { useLedger } from '@/features/nx02/ledger/hooks/useLedger';
-import { LedgerView } from '@/features/nx02/ledger/ui/LedgerView';
+import { useLedger } from '@/features/nx03/ledger/hooks/useLedger';
+import { LedgerView } from '@/features/nx03/ledger/ui/LedgerView';
 
 export default function Nx02LedgerPage() {
   const vm = useLedger();

@@ -16,13 +16,13 @@ import {
   patchRfqStatus,
   voidRfq,
 } from '../../api/rfq';
-import { generateRfqInquiryText } from '@/features/nx02/rfq-greeting-template/api/rfq-greeting-template';
+import { generateRfqInquiryText } from '@/features/nx03/rfq-greeting-template/api/rfq-greeting-template';
 import {
   adoptQt,
   createQt,
   listQuotesByRfq,
   type QtRow,
-} from '@/features/nx02/qt/api/qt';
+} from '@/features/nx03/qt/api/qt';
 import type { RfqDetailDto } from '../../types';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 

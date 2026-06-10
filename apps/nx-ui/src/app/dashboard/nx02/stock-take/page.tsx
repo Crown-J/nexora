@@ -8,8 +8,8 @@
 
 'use client';
 
-import { useStockTakeList } from '@/features/nx02/stock-take/hooks/useStockTakeList';
-import { StockTakeListView } from '@/features/nx02/stock-take/ui/StockTakeListView';
+import { useStockTakeList } from '@/features/nx03/stock-take/hooks/useStockTakeList';
+import { StockTakeListView } from '@/features/nx03/stock-take/ui/StockTakeListView';
 
 export default function Nx02StockTakeListPage() {
   const vm = useStockTakeList();
