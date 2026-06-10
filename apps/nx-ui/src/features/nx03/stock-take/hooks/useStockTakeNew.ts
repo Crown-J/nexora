@@ -68,7 +68,7 @@ export function useStockTakeNew() {
         remark: remark.trim() || null,
         partIds,
       });
-      router.push(`/dashboard/nx02/stock-take/${d.id}`);
+      router.push(`/dashboard/inventory/stock-take/${d.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '建立失敗');
     } finally {
@@ -76,7 +76,7 @@ export function useStockTakeNew() {
     }
   }, [warehouseId, stockTakeDate, scopeType, selectedParts, remark, router]);
 
-  const back = useCallback(() => router.push('/dashboard/nx02/stock-take'), [router]);
+  const back = useCallback(() => router.push('/dashboard/inventory/stock-take'), [router]);
 
   return useMemo(
     () => ({

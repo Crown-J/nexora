@@ -495,7 +495,7 @@ export function RfqDetailView({ id }: { id: string }) {
           {copyHint && <p className="text-xs text-emerald-300">{copyHint}</p>}
           <p className="text-xs text-muted-foreground">
             想改開頭/結尾客套話？到{' '}
-            <Link href="/dashboard/nx02/rfq-greeting-template" className="underline">
+            <Link href="/dashboard/purchase/rfq-greeting-template" className="underline">
               客套話設定頁
             </Link>{' '}
             調整。

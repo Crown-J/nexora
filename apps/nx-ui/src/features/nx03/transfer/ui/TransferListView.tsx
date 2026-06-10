@@ -53,7 +53,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
             <option value="V">作廢</option>
           </select>
           <Link
-            href="/dashboard/nx02/transfer/new"
+            href="/dashboard/inventory/transfer/new"
             className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground lg:min-h-0 lg:py-2"
           >
             新增調撥
@@ -91,7 +91,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
                     return (
                       <tr key={r.id} className="border-b border-border/60 hover:bg-muted/20">
                         <td className="px-3 py-2">
-                          <Link href={`/dashboard/nx02/transfer/${r.id}`} className="font-mono text-primary underline">
+                          <Link href={`/dashboard/inventory/transfer/${r.id}`} className="font-mono text-primary underline">
                             {r.docNo}
                           </Link>
                         </td>
@@ -120,7 +120,7 @@ export function TransferListView({ vm }: TransferListViewProps) {
                 return (
                   <Link
                     key={r.id}
-                    href={`/dashboard/nx02/transfer/${r.id}`}
+                    href={`/dashboard/inventory/transfer/${r.id}`}
                     className="block rounded-xl border border-border/80 bg-card/40 p-3 transition hover:bg-card/60"
                   >
                     <div className="flex items-start justify-between gap-2">

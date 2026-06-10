@@ -55,7 +55,7 @@ export function InitListView({ vm }: InitListViewProps) {
           <h1 className="text-xl font-semibold text-foreground">開帳存</h1>
         </div>
         <Link
-          href="/dashboard/nx02/init/new"
+          href="/dashboard/inventory/init/new"
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
         >
           新增開帳存
@@ -130,7 +130,7 @@ export function InitListView({ vm }: InitListViewProps) {
                 return (
                   <tr key={r.id} className="border-b border-border/60">
                     <td className="px-3 py-2 font-mono text-xs">
-                      <Link href={`/dashboard/nx02/init/${r.id}`} className="text-primary hover:underline">
+                      <Link href={`/dashboard/inventory/init/${r.id}`} className="text-primary hover:underline">
                         {r.docNo}
                       </Link>
                     </td>

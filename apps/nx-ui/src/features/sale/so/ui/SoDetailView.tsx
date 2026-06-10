@@ -222,7 +222,7 @@ function SoDetailInner({ id }: { id: string }) {
             setShowTiModal(false);
             void reload();
             // 跳轉 NX02 TI detail
-            window.location.href = `/dashboard/nx02/ti/${resp.tiId}`;
+            window.location.href = `/dashboard/purchase/ti/${resp.tiId}`;
           }}
         />
       ) : null}

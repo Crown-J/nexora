@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx02/warranty-claim/page.tsx
+// apps/nx-ui/src/app/dashboard/purchase/warranty/page.tsx
 // LITE 階段 1 M3：保固申請單列表頁（minimal viewable + status 流轉）
 
 'use client';

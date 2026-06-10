@@ -37,7 +37,7 @@ const PATH_TO_PAGE_KEY: { pathPrefix: string; pageKey: string }[] = [
   // 03 收尾 B 2026-06-08：保固路徑收斂到 /dashboard/purchase/warranty
   { pathPrefix: '/dashboard/purchase/warranty', pageKey: 'purchase.warranty-claim' },
   // pr 退貨單沒專屬 page、共用 rr 引導（或者忽略）
-  { pathPrefix: '/dashboard/nx02/return', pageKey: 'purchase.pr' },
+  { pathPrefix: '/dashboard/purchase/return', pageKey: 'purchase.pr' },
 
   // 主檔（4 個核心）
   { pathPrefix: '/dashboard/base/partners', pageKey: 'master.partners' },

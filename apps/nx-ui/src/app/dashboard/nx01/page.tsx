@@ -8,5 +8,5 @@
 import { redirect } from 'next/navigation';
 
 export default function Nx01RedirectPage() {
-  redirect('/dashboard/nx02/domestic');
+  redirect('/dashboard/purchase/domestic');
 }

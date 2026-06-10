@@ -179,7 +179,7 @@ export function useInitDetail(initId: string) {
   }, []);
 
   const backToList = useCallback(() => {
-    router.push('/dashboard/nx02/init');
+    router.push('/dashboard/inventory/init');
   }, [router]);
 
   return useMemo(

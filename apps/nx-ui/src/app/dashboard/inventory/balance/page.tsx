@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx02/balance/page.tsx
+// apps/nx-ui/src/app/dashboard/inventory/balance/page.tsx
 // T1-fix-c 進貨對齊批次 2026-06-07：拿掉 showPlus prop、庫存一覽三版本一致。
 'use client';
 

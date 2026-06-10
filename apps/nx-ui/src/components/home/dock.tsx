@@ -76,11 +76,11 @@ export function isDockActive(pathname: string, href: string): boolean {
   if (href === '/dashboard/purchase') {
     return (
       pathname.startsWith('/dashboard/purchase') ||
-      pathname.startsWith('/dashboard/nx02/domestic') ||
-      pathname.startsWith('/dashboard/nx02/import') ||
-      pathname.startsWith('/dashboard/nx02/special') ||
-      pathname.startsWith('/dashboard/nx02/product') ||
-      pathname.startsWith('/dashboard/nx02/vendor') ||
+      pathname.startsWith('/dashboard/purchase/domestic') ||
+      pathname.startsWith('/dashboard/purchase/foreign') ||
+      pathname.startsWith('/dashboard/purchase/special') ||
+      pathname.startsWith('/dashboard/purchase/product') ||
+      pathname.startsWith('/dashboard/purchase/vendor') ||
       pathname.startsWith('/dashboard/nx01')
     );
   }
@@ -93,14 +93,14 @@ export function isDockActive(pathname: string, href: string): boolean {
     return (
       pathname.startsWith('/dashboard/inventory') ||
       pathname.startsWith('/dashboard/inventory') ||
-      pathname.startsWith('/dashboard/nx02/balance') ||
-      pathname.startsWith('/dashboard/nx02/ledger') ||
-      pathname.startsWith('/dashboard/nx02/init') ||
-      pathname.startsWith('/dashboard/nx02/stock-take') ||
-      pathname.startsWith('/dashboard/nx02/stock-setting') ||
-      pathname.startsWith('/dashboard/nx02/transfer') ||
-      pathname.startsWith('/dashboard/nx02/shortage') ||
-      pathname.startsWith('/dashboard/nx02/auto-replenish')
+      pathname.startsWith('/dashboard/inventory/balance') ||
+      pathname.startsWith('/dashboard/inventory/ledger') ||
+      pathname.startsWith('/dashboard/inventory/init') ||
+      pathname.startsWith('/dashboard/inventory/stock-take') ||
+      pathname.startsWith('/dashboard/inventory/stock-setting') ||
+      pathname.startsWith('/dashboard/inventory/transfer') ||
+      pathname.startsWith('/dashboard/inventory/shortage') ||
+      pathname.startsWith('/dashboard/inventory/auto-replenish')
     );
   }
   if (href === '/dashboard/finance') {

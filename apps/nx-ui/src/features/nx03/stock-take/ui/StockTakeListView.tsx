@@ -46,7 +46,7 @@ export function StockTakeListView({ vm }: StockTakeListViewProps) {
           <h1 className="text-lg font-semibold md:text-xl">盤點單</h1>
         </div>
         <Link
-          href="/dashboard/nx02/stock-take/new"
+          href="/dashboard/inventory/stock-take/new"
           className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground lg:min-h-0 lg:py-2"
         >
           新增盤點
@@ -116,7 +116,7 @@ export function StockTakeListView({ vm }: StockTakeListViewProps) {
                 return (
                   <tr key={r.id} className="border-b border-border/60">
                     <td className="px-2 py-2 font-mono text-xs">
-                      <Link href={`/dashboard/nx02/stock-take/${r.id}`} className="text-primary hover:underline">
+                      <Link href={`/dashboard/inventory/stock-take/${r.id}`} className="text-primary hover:underline">
                         {r.docNo}
                       </Link>
                     </td>
@@ -150,7 +150,7 @@ export function StockTakeListView({ vm }: StockTakeListViewProps) {
             return (
               <Link
                 key={r.id}
-                href={`/dashboard/nx02/stock-take/${r.id}`}
+                href={`/dashboard/inventory/stock-take/${r.id}`}
                 className="block rounded-xl border border-border/80 bg-card/40 p-3 transition hover:bg-card/60"
               >
                 <div className="flex items-start justify-between gap-2">

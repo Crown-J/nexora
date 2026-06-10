@@ -41,11 +41,11 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   if (pathname.startsWith('/dashboard/settings')) return [];
   if (pathname.startsWith('/dashboard/owner')) return [];
   if (
-    pathname.startsWith('/dashboard/nx02/domestic') ||
-    pathname.startsWith('/dashboard/nx02/import') ||
-    pathname.startsWith('/dashboard/nx02/special') ||
-    pathname.startsWith('/dashboard/nx02/product') ||
-    pathname.startsWith('/dashboard/nx02/vendor')
+    pathname.startsWith('/dashboard/purchase/domestic') ||
+    pathname.startsWith('/dashboard/purchase/foreign') ||
+    pathname.startsWith('/dashboard/purchase/special') ||
+    pathname.startsWith('/dashboard/purchase/product') ||
+    pathname.startsWith('/dashboard/purchase/vendor')
   ) {
     return [];
   }

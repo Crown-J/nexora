@@ -99,7 +99,7 @@ export function useInitCreate() {
         remark: remark.trim() || null,
         items: draftsToPayload(items),
       });
-      router.push(`/dashboard/nx02/init/${created.id}`);
+      router.push(`/dashboard/inventory/init/${created.id}`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : '建立失敗');
     } finally {
@@ -108,7 +108,7 @@ export function useInitCreate() {
   }, [warehouseId, initDate, remark, items, router]);
 
   const backToList = useCallback(() => {
-    router.push('/dashboard/nx02/init');
+    router.push('/dashboard/inventory/init');
   }, [router]);
 
   return useMemo(

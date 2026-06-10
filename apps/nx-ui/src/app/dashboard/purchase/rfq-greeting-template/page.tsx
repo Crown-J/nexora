@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx02/rfq-greeting-template/page.tsx
+// apps/nx-ui/src/app/dashboard/purchase/rfq-greeting-template/page.tsx
 // LITE 階段 1 M3：詢價客套話設定頁（每租戶 1:1、minimal settings form）
 
 'use client';

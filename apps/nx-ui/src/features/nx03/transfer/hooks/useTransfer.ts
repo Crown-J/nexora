@@ -169,7 +169,7 @@ export function useTransferDoc(transferId: string | undefined) {
           remark: remark.trim() || null,
           items,
         });
-        router.replace(`/dashboard/nx02/transfer/${created.id}`);
+        router.replace(`/dashboard/inventory/transfer/${created.id}`);
         return;
       }
       const updated = await patchTransfer(transferId, {
@@ -247,7 +247,7 @@ export function useTransferDoc(transferId: string | undefined) {
   }, []);
 
   const backToList = useCallback(() => {
-    router.push('/dashboard/nx02/transfer');
+    router.push('/dashboard/inventory/transfer');
   }, [router]);
 
   const warehousesLocked = Boolean(transferId);

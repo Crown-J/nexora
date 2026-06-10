@@ -152,7 +152,7 @@ export function useBalance() {
     (partCode: string) => {
       const p = new URLSearchParams();
       p.set('q', partCode);
-      return `/dashboard/nx02/ledger?${p.toString()}`;
+      return `/dashboard/inventory/ledger?${p.toString()}`;
     },
     [],
   );

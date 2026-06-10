@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/app/dashboard/nx02/stock-setting/page.tsx
+ * File: apps/nx-ui/src/app/dashboard/inventory/stock-setting/page.tsx
  * Project: NEXORA (Monorepo)
  *
  * Purpose:

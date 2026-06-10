@@ -36,7 +36,7 @@ const INBOUND_NODES: FlowNodeDef[] = [
   {
     key: 'putaway',
     label: '分貨上架',
-    href: '/dashboard/nx01/stock-replenishment',
+    href: '/dashboard/inventory/stock-replenishment',
     // TODO: 分貨任務 API 就緒後替換
   },
   { key: 'done_in', label: '完成', href: '/dashboard/inventory/ledger' },

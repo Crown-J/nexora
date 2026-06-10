@@ -152,7 +152,7 @@ export function useStockTakeDetail(id: string) {
     }
   }, [doc]);
 
-  const back = useCallback(() => router.push('/dashboard/nx02/stock-take'), [router]);
+  const back = useCallback(() => router.push('/dashboard/inventory/stock-take'), [router]);
 
   return useMemo(
     () => ({
