@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx09/document/page.tsx
+// apps/nx-ui/src/app/dashboard/knowledge/document/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX09-DOCUMENT-UI-001-F01

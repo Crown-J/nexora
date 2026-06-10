@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx09/repair-sop/page.tsx
+// apps/nx-ui/src/app/dashboard/knowledge/repair-sop/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX09-REPAIRSOP-UI-001-F01

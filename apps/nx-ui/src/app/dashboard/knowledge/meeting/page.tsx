@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx09/meeting/page.tsx
+// apps/nx-ui/src/app/dashboard/knowledge/meeting/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX09-MEETING-UI-001-F01

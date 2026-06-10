@@ -1,8 +1,8 @@
-// apps/nx-ui/src/app/dashboard/nx09/workspace/page.tsx
+// apps/nx-ui/src/app/dashboard/knowledge/workspace/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX09-WS-UI-001-F01
-// 路由：/dashboard/nx09/workspace
+// 路由：/dashboard/knowledge/workspace
 // 性質：UI stub placeholder（IMPL-01 + IMPL-02 closure 後升、UI 獨立軌 backlog）
 export default function Nx09WorkspacePage() {
   return (

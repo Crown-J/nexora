@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx09/article-tag/page.tsx
+// apps/nx-ui/src/app/dashboard/knowledge/article-tag/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX09-ARTICLETAG-UI-001-F01

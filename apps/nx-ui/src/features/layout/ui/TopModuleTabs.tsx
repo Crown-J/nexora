@@ -43,7 +43,7 @@ function getActiveModule(pathname: string): string {
   if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return 'hr';
   if (pathname.startsWith('/dashboard/report')) return 'report';
   if (pathname.startsWith('/dashboard/nx08')) return 'report';
-  if (pathname.startsWith('/dashboard/nx09')) return 'knowledge';
+  if (pathname.startsWith('/dashboard/knowledge') || pathname.startsWith('/dashboard/nx09')) return 'knowledge';
   if (pathname.startsWith('/dashboard/nx10')) return 'game';
   return '';
 }

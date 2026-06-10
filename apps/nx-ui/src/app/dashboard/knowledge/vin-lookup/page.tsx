@@ -1,4 +1,4 @@
-// apps/nx-ui/src/app/dashboard/nx09/vin-lookup/page.tsx
+// apps/nx-ui/src/app/dashboard/knowledge/vin-lookup/page.tsx
 import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX09-VINLOOKUP-UI-001-F01

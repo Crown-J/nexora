@@ -56,7 +56,7 @@ export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   if (pathname.startsWith('/dashboard/nx06')) return getNx06SideMenu();
   if (pathname.startsWith('/dashboard/hr') || pathname.startsWith('/dashboard/nx07')) return getNx07SideMenu();
   if (pathname.startsWith('/dashboard/nx08')) return getNx08SideMenu();
-  if (pathname.startsWith('/dashboard/nx09')) return getNx09SideMenu();
+  if (pathname.startsWith('/dashboard/knowledge') || pathname.startsWith('/dashboard/nx09')) return getNx09SideMenu();
   if (pathname.startsWith('/dashboard/nx10')) return getNx10SideMenu();
   return [];
 }
