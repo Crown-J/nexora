@@ -21,13 +21,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { fetchAllPages } from "@/shared/api/fetchAllPages"
-import type { CalendarEventDto } from "@/features/home/api/calendar-event"
+import type { CalendarEventDto } from "@/shared/api/calendar-event"
 import {
   createCalendarEvent,
   listCalendarEvents,
   setCalendarEventActive,
   updateCalendarEvent,
-} from "@/features/home/api/calendar-event"
+} from "@/shared/api/calendar-event"
 
 export interface HomeCalendarEvent {
   id: string
