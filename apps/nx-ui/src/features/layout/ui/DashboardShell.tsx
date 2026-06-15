@@ -75,9 +75,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const handleLogout = useCallback(() => {
     setIsLeaving(true);
     void (async () => {
+      // 第一段：飛中央 / 第二段：飛回 login slot
+      // 移除 setTimeout(100) race：placeAt rAF retry 自動等 login slot 出現
       await flyToCenter(800);
       logout();
-      await new Promise((r) => setTimeout(r, 100));
       await flyTo('login', 950);
     })();
   }, [flyToCenter, flyTo, logout]);

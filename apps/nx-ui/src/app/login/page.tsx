@@ -116,12 +116,13 @@ export default function LoginPage() {
         }));
       }
       setToken(result.token);
-      // 對齊 Hana A 段主轉場：表單同步 fade-out、星球先飛中央放大 0.8s、再進 TopBar 0.95s、共 ~1.8s
+      // 對齊 Hana A 段主轉場、修正路由順序：先 router.replace 讓 topbar slot 開始掛載、再 flyTo 等它出現
+      // （原本順序：flyToCenter → flyTo('topbar') → replace、topbar slot 那刻還沒 mount、placeAt 重試 40 幀放棄、星球僵在中央 → router 完進 dashboard 才被 useLayoutEffect 瞬移）
       setIsLeaving(true);
       void (async () => {
         await flyToCenter(800);
-        await flyTo('topbar', 950);
-        router.replace('/dashboard');
+        router.replace('/dashboard');  // dashboard mount、topbar slot 開始註冊；mode='flight' 期間 useLayoutEffect 自動歸位被 guard 擋住、不會瞬移
+        await flyTo('topbar', 950);     // placeAt 內建 retry 會等 topbar slot 出現、然後平滑飛過去停泊
       })();
       return;
     } catch (e: unknown) {
@@ -180,14 +181,15 @@ export default function LoginPage() {
         */}
         {/* Mobile：星球佔位（SharedPlanet 飛到此 slot rect、登入時放大顯示）*/}
         <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6 overflow-hidden">
-          <div className="relative aspect-square w-[clamp(180px,40dvh,280px)] max-w-full">
+          <div className="relative aspect-square w-[min(60vw,360px)] max-w-full">
             <PlanetSlot id="login" className="absolute inset-0" />
           </div>
         </div>
 
         <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative flex-col items-center justify-center">
-          {/* Desktop：星球佔位（對齊 Hana 截圖比例 ~25% viewport、縮小至 280-320px）*/}
-          <div className="relative z-10 w-72 h-72 xl:w-[320px] xl:h-[320px]">
+          {/* Desktop：星球佔位 — 對齊 Hana 原版 #lg-slot：min(42vw, 440px)
+              讓 planet scale 接近 1.0、飛中央只是 1.0→1.12 的輕微放大（不是 0.65→1.12 的暴脹手感差）*/}
+          <div className="relative z-10 aspect-square w-[min(42vw,440px)] max-w-[440px]">
             <PlanetSlot id="login" className="absolute inset-0" />
           </div>
 

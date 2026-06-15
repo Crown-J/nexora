@@ -29,9 +29,8 @@ export function HomeShell() {
       await flyToCenter(800);
       // 切到 /login（login 頁 mount + login slot 註冊）
       logout();
-      // 等 login 頁 mount + slot 註冊好
-      await new Promise((r) => setTimeout(r, 100));
       // 第二段：飛回 login slot 大圖位置 0.95s
+      // 移除原本的 setTimeout(100) race 賭注：placeAt 內建 rAF retry 會等 login slot 出現才飛、不需硬等
       await flyTo('login', 950);
     })();
   }, [flyToCenter, flyTo, logout]);
