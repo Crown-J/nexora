@@ -139,11 +139,17 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
         </button>
       </div>
 
-      {/* 對齊 Hana .lg-submit：amber gradient 金色按鈕 + 寬字距 + 金黃光暈陰影 */}
+      {/* 對齊 Hana .lg-submit：amber gradient 金色按鈕 + 寬字距 + 金黃光暈陰影
+          inline style 走 var(--nx-amber-*) 確保 Tailwind v4 gradient stop 解析、不會落空變透明 */}
       <button
         type="submit"
         disabled={!canSubmit || isSubmitting}
-        className="group relative flex w-full h-[50px] items-center justify-center gap-2 overflow-hidden rounded-[10px] bg-gradient-to-b from-[var(--nx-amber-bright)] to-[var(--nx-amber)] text-[14.5px] font-semibold tracking-[0.12em] text-[#1a1a1f] shadow-[0_6px_18px_-7px_rgba(232,160,32,0.55)] transition-all duration-200 hover:brightness-[1.04] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
+        style={{
+          background: 'linear-gradient(180deg, var(--nx-amber-bright), var(--nx-amber))',
+          boxShadow: '0 6px 18px -7px rgba(232, 160, 32, 0.55)',
+          color: '#1a1a1f',
+        }}
+        className="group relative flex w-full h-[50px] items-center justify-center gap-2 overflow-hidden rounded-[10px] text-[14.5px] font-semibold tracking-[0.12em] transition-all duration-200 hover:brightness-[1.04] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? (
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-black/20 border-t-black" />
