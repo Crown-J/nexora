@@ -1,0 +1,8 @@
+/* design/styles/globals.css — entry、僅 @import；token / 元件樣式 / utilities 各自獨立檔 */
+
+@import 'tailwindcss';
+@import './tw-animate.css';
+@import 'react-day-picker/style.css';
+@import './tokens.css';
+@import './components.css';
+@import './utilities-and-animations.css';

@@ -17,7 +17,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { NxPaletteHydration } from '@design/theme/NxPaletteHydration';
 import { PwaRegister } from '@design/framework/pwa-register';
 import { SharedPlanetRoot } from '@design/home/SharedPlanetRoot';
-import './globals.css';
+import '@design/styles/globals.css';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

@@ -1,0 +1,113 @@
+/* design/styles/components.css
+ * 來自 app/globals.css line 335-442
+ * 含：@layer base + @layer components（.nx-dash-card / .nx-dash-frame / .nx-exp-* / .nx-goal-*）
+ */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/**
+ * 首頁儀表板區塊：隨 html.light / 預設深色切換，避免硬編碼 zinc 導致淺色怪、深色過暗
+ */
+@layer components {
+  .nx-dash-card {
+    border-radius: calc(var(--radius) + 2px);
+    border: 1px solid color-mix(in oklch, var(--border) 92%, transparent);
+    background: color-mix(in oklch, var(--card) 96%, transparent);
+    color: var(--card-foreground);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  html:not(.light)[data-nx-palette='classic'] .nx-dash-card,
+  html:not(.light):not([data-nx-palette]) .nx-dash-card {
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.09),
+      0 0 0 1px oklch(1 0 0 / 0.04);
+  }
+  html:not(.light)[data-nx-palette='steel'] .nx-dash-card {
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #ffb800 16%, transparent),
+      0 0 0 1px color-mix(in srgb, #8e8e8e 12%, transparent);
+  }
+  html.light .nx-dash-card {
+    background: var(--card);
+    border-color: color-mix(in oklch, var(--border) 100%, transparent);
+    box-shadow:
+      0 1px 3px oklch(0.2 0.02 258 / 0.07),
+      inset 0 1px 0 oklch(1 0 0 / 0.9);
+  }
+
+  .nx-dash-frame {
+    border-radius: calc(var(--radius) + 2px);
+    border: 1px solid color-mix(in oklch, var(--border) 88%, transparent);
+    background: color-mix(in oklch, var(--card) 55%, var(--background));
+    color: var(--foreground);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  html:not(.light)[data-nx-palette='classic'] .nx-dash-frame,
+  html:not(.light):not([data-nx-palette]) .nx-dash-frame {
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.07);
+  }
+  html:not(.light)[data-nx-palette='steel'] .nx-dash-frame {
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #ffb800 12%, transparent);
+  }
+  html.light .nx-dash-frame {
+    background: color-mix(in oklch, var(--card) 88%, var(--background));
+    box-shadow: 0 1px 4px oklch(0.35 0.04 70 / 0.08);
+  }
+
+  .nx-exp-fill {
+    background: var(--nx-exp-gradient);
+  }
+
+  /** 儀表板 EXP：綠色流動條（與主題金／黃 primary 分離） */
+  .nx-exp-bar-fill {
+    background: linear-gradient(
+      90deg,
+      #0c5c3e 0%,
+      #147a52 22%,
+      #1d9e75 40%,
+      #45d4a8 50%,
+      #1d9e75 60%,
+      #147a52 78%,
+      #0c5c3e 100%
+    );
+    background-size: 240% 100%;
+    animation: nx-exp-flow 3.4s ease-in-out infinite;
+  }
+
+  .nx-exp-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 42%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+    animation: nx-exp-shine 2.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /** 儀表板目標 KPI：綠色完成度（靜態，無流動） */
+  .nx-goal-bar-track {
+    height: 0.375rem;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--muted) 100%, transparent);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+  }
+
+  .nx-goal-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #0f6b4a 0%, #1d9e75 45%, #34d399 100%);
+  }
+}
