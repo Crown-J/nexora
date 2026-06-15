@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { Award, BarChart3, User } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 interface CustomerItemDef {
   id: string;

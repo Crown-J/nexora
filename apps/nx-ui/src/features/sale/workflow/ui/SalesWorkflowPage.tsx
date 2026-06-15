@@ -10,7 +10,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { QuoteSnapshot } from '@data/types/sale/workflow';
 import { SalesDocumentsBrowse } from '@/features/sale/workflow/ui/SalesDocumentsBrowse';
 import { SalesOperationWorkspace } from '@/features/sale/workflow/ui/SalesOperationWorkspace';

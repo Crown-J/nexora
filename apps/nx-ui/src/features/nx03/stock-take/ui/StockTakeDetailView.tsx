@@ -8,8 +8,8 @@
 
 'use client';
 
-import { cx } from '@/shared/lib/cx';
-import { normalizeDecimalStringInput } from '@/shared/lib/normalize-numeric-input';
+import { cx } from '@design/utils/cx';
+import { normalizeDecimalStringInput } from '@design/utils/normalize-numeric-input';
 
 import type { StockTakeDetailVm } from '../hooks/useStockTakeDetail';
 

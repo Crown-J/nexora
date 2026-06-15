@@ -9,7 +9,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { PERM_MATRIX_COLS } from '@/features/shared/master/role-view/perm-labels';
 import type { PermKey, RoleViewDraftRow } from '@data/types/shared/master/role-view';
 

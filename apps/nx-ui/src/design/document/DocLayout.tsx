@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@design/primitives/dialog';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 export type DocViewMode = 'list' | 'detail';
 

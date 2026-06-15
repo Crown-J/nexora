@@ -15,7 +15,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 export type LookupAutocompleteProps<T> = {
   value: string;

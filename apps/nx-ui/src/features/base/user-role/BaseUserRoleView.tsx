@@ -15,7 +15,7 @@ import { X } from 'lucide-react';
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { ScrollArea } from '@design/primitives/scroll-area';
-import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
+import { LookupAutocomplete } from '@design/components/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';

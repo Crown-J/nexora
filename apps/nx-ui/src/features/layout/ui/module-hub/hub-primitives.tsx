@@ -9,8 +9,8 @@ import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { ChevronRight } from 'lucide-react';
 
-import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
-import { cx } from '@/shared/lib/cx';
+import { hubCardShellBaseClass } from '@design/utils/hubCardDimensions';
+import { cx } from '@design/utils/cx';
 
 /** DEMO 主線前，卡片暫導向此頁 */
 export const HUB_PLACEHOLDER_HREF = '/coming-soon';

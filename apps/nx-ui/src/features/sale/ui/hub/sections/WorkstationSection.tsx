@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { ChevronRight, Globe, Package, Search, Shield, Undo2 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 interface WorkstationItemDef {
   id: string;

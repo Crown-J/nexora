@@ -9,7 +9,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { arrayMove } from '@/shared/lib/arrayMove';
+import { arrayMove } from '@design/utils/arrayMove';
 
 export type ColumnDef<K extends string> = {
     key: K;

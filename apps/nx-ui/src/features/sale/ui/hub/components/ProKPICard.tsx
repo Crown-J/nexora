@@ -10,7 +10,7 @@
 
 import { Crown } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { KPIData, KPILevel } from '../mock-data/scenario';
 
 type KPIStatus = 'good' | 'warning' | 'danger';

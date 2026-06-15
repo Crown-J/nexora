@@ -19,7 +19,7 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, MapPin, Package } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { DocStatusBadge, type DocStatusTone } from '@/features/inventory/workstation/shared/DocStatusBadge';
 import {

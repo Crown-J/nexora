@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { MockDemand, MockRfqListRow, MockRfqStatusCode } from './mock-data';
 import { MOCK_RFQS_INITIAL } from './mock-data';
 import { PurchaseDomesticRfqFormView } from './PurchaseDomesticRfqFormView';

@@ -11,7 +11,7 @@
 
 import { CheckCircle2, type LucideIcon, Mic, Printer } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import type { QuoteMethod, SaleSopAction, SaleSopState } from '../types';
 import { StepWrapper } from './StepWrapper';

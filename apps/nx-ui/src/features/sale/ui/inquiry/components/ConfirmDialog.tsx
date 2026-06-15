@@ -12,7 +12,7 @@
 
 import { AlertCircle } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 interface ConfirmDialogProps {
   title: string;

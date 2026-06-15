@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 import { listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import type { StockTakeListVm } from '../hooks/useStockTakeList';
 

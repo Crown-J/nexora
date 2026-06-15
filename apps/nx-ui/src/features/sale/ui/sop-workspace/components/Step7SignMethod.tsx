@@ -23,7 +23,7 @@ import {
   Truck,
 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { PART_BY_SKU } from '../mock-data/parts';
 import { TAX_RATE } from '../mock-data/scenario';

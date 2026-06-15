@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import type { MockAttendanceUser } from '@/mocks/dashboard';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 type Props = { people: MockAttendanceUser[] };
 

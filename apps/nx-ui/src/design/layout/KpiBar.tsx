@@ -4,7 +4,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 type KpiBarProps = {
   children?: ReactNode;

@@ -12,8 +12,8 @@ import { useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
 import { PartLookupAutocomplete } from '@/features/nx03/shared/ui/PartLookupAutocomplete';
-import { cx } from '@/shared/lib/cx';
-import { parseIntInput } from '@/shared/lib/normalize-numeric-input';
+import { cx } from '@design/utils/cx';
+import { parseIntInput } from '@design/utils/normalize-numeric-input';
 
 import type { StockSettingVm } from '../hooks/useStockSetting';
 

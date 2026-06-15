@@ -12,7 +12,7 @@ import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { CheckCircle2, ClipboardList, Package, ScanBarcode, Truck } from 'lucide-react';
 
-import { NexoraBottomDock, type DockItem } from '@/shared/ui/NexoraBottomDock';
+import { NexoraBottomDock, type DockItem } from '@design/components/NexoraBottomDock';
 
 interface Workstation {
   key: string;

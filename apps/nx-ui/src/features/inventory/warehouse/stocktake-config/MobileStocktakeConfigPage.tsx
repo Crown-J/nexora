@@ -19,7 +19,7 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, Settings } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 type CycleValue = 'monthly' | 'quarterly' | 'semiannual' | 'annual';
 type HighValueCycleValue = 'monthly' | 'quarterly';

@@ -16,7 +16,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { InquiryListItem } from './components/InquiryListItem';
 import { useRFQStore } from './store';
 import type { RFQStatus } from './types';

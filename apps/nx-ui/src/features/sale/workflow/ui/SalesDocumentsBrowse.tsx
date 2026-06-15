@@ -12,7 +12,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import {
   browseSteps,
   mockBrowseDocsByStep,

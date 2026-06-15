@@ -7,7 +7,7 @@
 
 import { mockProAttendance } from '@/mocks/dashboard';
 import type { MockProAttendancePerson, MockProAttendanceStatus } from '@/mocks/dashboard';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 const statusDot: Record<MockProAttendanceStatus, string> = {
   present: 'bg-[var(--color-success)]',

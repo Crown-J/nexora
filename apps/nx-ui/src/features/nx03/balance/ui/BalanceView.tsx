@@ -15,7 +15,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import type { BalanceVm } from '../hooks/useBalance';
 

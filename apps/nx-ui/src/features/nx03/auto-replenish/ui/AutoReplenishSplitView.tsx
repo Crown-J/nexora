@@ -10,7 +10,7 @@
 
 'use client';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { useAutoReplenish } from '../hooks/useAutoReplenish';
 

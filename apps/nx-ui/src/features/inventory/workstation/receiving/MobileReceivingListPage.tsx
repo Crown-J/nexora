@@ -19,7 +19,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClipboardCheck, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import {
   listInbounds,

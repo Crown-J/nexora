@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
-import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
+import { LookupAutocomplete } from '@design/components/lookup/LookupAutocomplete';
 import { getWarehouseSingle } from '@data/endpoints/shared/master/warehouse/api/warehouse';
 import { listLocation } from '@data/endpoints/shared/master/location/api/location';
 import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';

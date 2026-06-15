@@ -44,7 +44,7 @@ import { usePathname } from 'next/navigation';
 import { NavPlanetMenu } from '@design/home/dock';
 import { useDashboardBulletinOptional } from '@/features/sys-dashboard/context/DashboardBulletinContext';
 import type { MockBulletin } from '@/mocks/dashboard';
-import { PlanChip, type PlanChipPlan } from '@/shared/ui/PlanChip';
+import { PlanChip, type PlanChipPlan } from '@design/components/PlanChip';
 
 function bulletinTypeLabel(t: MockBulletin['type']) {
   if (t === 'URGENT') return '緊急';

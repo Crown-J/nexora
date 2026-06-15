@@ -32,7 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@design/primitives/dialog';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { DemandSource, FlowNodeKey, MockDemand } from './mock-data';
 import {
   INITIAL_NODE_BADGES,

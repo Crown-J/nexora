@@ -14,7 +14,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { Part, QuoteItem } from '../types';
 
 interface ConsiderDialogProps {

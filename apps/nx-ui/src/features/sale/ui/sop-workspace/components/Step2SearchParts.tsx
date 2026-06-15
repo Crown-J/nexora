@@ -32,7 +32,7 @@ import {
   Search,
 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { useRFQStore } from '@/features/sale/ui/inquiry/store';
 

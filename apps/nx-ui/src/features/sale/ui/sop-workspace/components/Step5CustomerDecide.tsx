@@ -25,7 +25,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { useRFQStore } from '@/features/sale/ui/inquiry/store';
 
 import { PART_BY_SKU } from '../mock-data/parts';

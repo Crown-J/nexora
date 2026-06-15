@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { mockMonthlyKpi, type KpiScope } from '@/mocks/dashboard';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 const tabs: { key: KpiScope; label: string }[] = [
   { key: 'company', label: '公司' },

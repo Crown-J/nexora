@@ -15,7 +15,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { TodoItem } from '../mock-data/scenario';
 
 interface TodoGroupProps {

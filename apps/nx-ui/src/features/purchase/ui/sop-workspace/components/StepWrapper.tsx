@@ -14,7 +14,7 @@
 
 import type { ReactNode } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 export type StepWrapperProps = {
   children: ReactNode;

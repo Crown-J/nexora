@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { QuoteItem } from '../types';
 import type { Part } from '../types';
 

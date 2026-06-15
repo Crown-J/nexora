@@ -27,7 +27,7 @@ import {
   Truck,
 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
 
 interface DocumentItemDef {

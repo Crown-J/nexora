@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { useShortage } from '../hooks/useShortage';
 

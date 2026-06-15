@@ -16,7 +16,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 export type MobileHubSectionTabDef = {
   id: string;

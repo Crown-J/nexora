@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 export type SignaturePadModalProps = {
   customerContact?: string;

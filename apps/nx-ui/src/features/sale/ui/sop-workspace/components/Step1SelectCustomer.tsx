@@ -18,7 +18,7 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2, Search } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { MOCK_CUSTOMERS } from '../mock-data/customers';
 import type { Customer, SaleSopAction, SaleSopState } from '../types';

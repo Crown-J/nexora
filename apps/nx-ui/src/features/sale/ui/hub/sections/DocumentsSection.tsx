@@ -26,7 +26,7 @@ import {
   Undo2,
 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 interface DocumentItemDef {
   id: string;

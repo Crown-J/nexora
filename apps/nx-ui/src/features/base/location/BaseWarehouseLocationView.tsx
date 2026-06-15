@@ -23,9 +23,9 @@ import { Label } from '@design/primitives/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@design/primitives/tabs';
 import { Textarea } from '@design/primitives/textarea';
 import { cn } from '@/lib/utils';
-import { arrayMove } from '@/shared/lib/arrayMove';
+import { arrayMove } from '@design/utils/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';
-import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
+import { useListLocalPref } from '@design/hooks/useListLocalPref';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
 import {

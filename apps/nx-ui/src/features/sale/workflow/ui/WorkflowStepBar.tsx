@@ -11,7 +11,7 @@
 
 'use client';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { WorkflowStep } from '@data/types/sale/workflow';
 
 export interface WorkflowStepBarProps {

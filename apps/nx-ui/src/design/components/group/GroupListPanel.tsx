@@ -13,8 +13,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { cx } from '@/shared/lib/cx';
-import { GroupPanelShell } from '@/shared/ui/group/GroupPanelShell';
+import { cx } from '@design/utils/cx';
+import { GroupPanelShell } from '@design/components/group/GroupPanelShell';
 
 export type GroupListPanelProps<T> = {
     title: string;

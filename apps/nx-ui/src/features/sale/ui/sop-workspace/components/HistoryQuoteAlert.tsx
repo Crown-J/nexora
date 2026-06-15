@@ -15,7 +15,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { FileText, History, Search } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { HistoryRecord } from '../mock-data/quote-history';
 
 interface HistoryQuoteAlertProps {

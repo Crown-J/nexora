@@ -20,7 +20,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Building2, RefreshCw, Truck } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { listDns, patchDn, type Dn, type DnStatus } from '@data/endpoints/inventory/workstation/api';
 

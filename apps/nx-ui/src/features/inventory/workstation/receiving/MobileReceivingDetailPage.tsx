@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, Circle, ScanBarcode, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import {
   completeReceiving,

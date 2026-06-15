@@ -13,7 +13,7 @@
 
 import { Info, type LucideIcon, Package, ShoppingBag, Truck } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import type { Customer, DeliveryMethod, SaleSopAction, SaleSopState } from '../types';
 import { StepWrapper } from './StepWrapper';

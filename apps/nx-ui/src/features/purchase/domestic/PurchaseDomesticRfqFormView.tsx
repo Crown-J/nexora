@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@design/primitives/dialog';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { MockDemand, MockRfqListRow, MockVendor } from './mock-data';
 import {
   MOCK_RFQ_CREATOR_NAME,

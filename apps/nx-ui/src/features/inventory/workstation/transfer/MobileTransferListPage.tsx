@@ -19,7 +19,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeftRight, CheckCircle2 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
 import {

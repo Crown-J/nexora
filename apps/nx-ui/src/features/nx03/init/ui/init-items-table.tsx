@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { listLookupLocation } from '@data/endpoints/shared/master/lookup/api/lookup';
-import { normalizeDecimalStringInput } from '@/shared/lib/normalize-numeric-input';
+import { normalizeDecimalStringInput } from '@design/utils/normalize-numeric-input';
 
 import type { DraftItem } from '../hooks/useInitDetail';
 import { PartLookupAutocomplete } from '../../shared/ui/PartLookupAutocomplete';

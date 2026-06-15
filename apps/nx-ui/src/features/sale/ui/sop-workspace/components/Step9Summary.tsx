@@ -16,7 +16,7 @@
 
 import { Check, Home, Lightbulb, RotateCcw, Trophy } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { PART_BY_SKU } from '../mock-data/parts';
 import { MOCK_SALES_PERSON_MONTHLY, TAX_RATE, TIER_TARGET_MARGIN } from '../mock-data/scenario';

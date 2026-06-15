@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { TIER_TARGET_MARGIN } from '@/features/sale/ui/inquiry/types';
 import type { CustomerTier, Part, QuoteItem } from '../types';
 

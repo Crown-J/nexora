@@ -13,7 +13,7 @@
 
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { resolveSideMenuGroups } from '@/features/layout/config/side-menu';
 
 /**

@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { ChevronRight, MapPin, Settings } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 interface WarehouseItemDef {
   id: string;

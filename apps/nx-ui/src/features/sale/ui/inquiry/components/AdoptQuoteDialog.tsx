@@ -17,7 +17,7 @@
 import { useMemo, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { RFQ } from '../types';
 import { TIER_TARGET_MARGIN } from '../types';
 

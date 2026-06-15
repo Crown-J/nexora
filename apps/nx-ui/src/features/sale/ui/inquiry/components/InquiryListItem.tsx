@@ -14,7 +14,7 @@
 
 import { ChevronRight } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import type { RFQ } from '../types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

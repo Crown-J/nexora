@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
-import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
+import { hubCardShellBaseClass } from '@design/utils/hubCardDimensions';
 import { cn } from '@/lib/utils';
 
 export type HubFlowSubLink = { label: string; href: string };

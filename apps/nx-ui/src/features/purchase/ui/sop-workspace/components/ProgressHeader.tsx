@@ -10,7 +10,7 @@
 
 import { Fragment } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { STEPS_META } from '../mock-data/scenario';
 import type { StepNumber } from '../types';

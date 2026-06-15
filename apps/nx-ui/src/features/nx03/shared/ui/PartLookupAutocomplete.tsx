@@ -28,7 +28,7 @@ import { createPortal } from 'react-dom';
 
 import { listLookupPart } from '@data/endpoints/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@data/types/shared/master/lookup';
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 const DEBOUNCE_MS = 250;
 /** 高於常見 modal／側欄，避免被遮住 */

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Label } from '@design/primitives/label';
-import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
+import { LookupAutocomplete } from '@design/components/lookup/LookupAutocomplete';
 import { FlatMasterView, type FlatFieldDef } from '@/features/base/flat-master/FlatMasterView';
 import { listPart } from '@data/endpoints/shared/master/part/api/part';
 import type { PartDto } from '@data/types/shared/master/part';

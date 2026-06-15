@@ -16,7 +16,7 @@
 
 import { useState } from 'react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 import { useRFQStore } from '../store';
 
 interface VendorQuoteInputProps {

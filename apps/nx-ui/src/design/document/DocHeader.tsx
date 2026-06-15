@@ -5,7 +5,7 @@
 
 'use client';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 export type DocSystemRowProps = { children: React.ReactNode; className?: string };
 

@@ -12,7 +12,7 @@
 import { useMemo } from 'react';
 import { AlertTriangle, PackageX, ShoppingBag, Sparkles } from 'lucide-react';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { MOCK_REQUIREMENTS } from '../mock-data/scenario';
 import type {

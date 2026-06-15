@@ -12,7 +12,7 @@
 
 import Link from 'next/link';
 
-import { cx } from '@/shared/lib/cx';
+import { cx } from '@design/utils/cx';
 
 import { useTransferList } from '../hooks/useTransfer';
 
