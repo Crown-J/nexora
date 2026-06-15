@@ -2,6 +2,16 @@
 
 import { useEffect, useRef } from 'react';
 
+/**
+ * PlanetOrbit — 鋼鐵星球（對齊 Hana 成品）
+ *
+ * 視覺：金屬球體 hex pattern + 中央 reactor core + 3 條傾斜橢圓軌道
+ * 互動：
+ * - 衛星沿軌道旋轉（Hana 5 參數：起始角 / 速度 / rx / ry / tilt）
+ * - 滑鼠接近球體時、3 顆衛星進入「守護模式」朝滑鼠方向圍住、平滑跟隨
+ * - Hex pattern 從中心向外擴散 ripple wave（6.8s cycle，對齊 Hana @keyframes hexwave）
+ * - prefers-reduced-motion 停止位移與 ripple
+ */
 export function PlanetOrbit({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -12,8 +22,22 @@ export function PlanetOrbit({ className }: { className?: string }) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     let animationId: number;
-    let time = 0;
+
+    // 衛星持久狀態（軌道相位 + 當前實際座標、跨幀平滑跟隨用）
+    type SatState = { a: number; curX: number; curY: number; initialised: boolean };
+    const satStates: SatState[] = [
+      { a: 0.0, curX: 0, curY: 0, initialised: false },
+      { a: 2.1, curX: 0, curY: 0, initialised: false },
+      { a: 4.0, curX: 0, curY: 0, initialised: false },
+    ];
+
+    // 滑鼠位置（canvas-relative、未追蹤時為 null）
+    let mouseX: number | null = null;
+    let mouseY: number | null = null;
+    let mouseInside = false;
 
     const resize = () => {
       canvas.width = canvas.offsetWidth * window.devicePixelRatio;
@@ -22,8 +46,21 @@ export function PlanetOrbit({ className }: { className?: string }) {
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
 
+    // 滑鼠用 window 監聽、轉 canvas-relative，這樣滑鼠在 canvas 外（但仍在登入頁）也能讓衛星感知方向
+    const onPointerMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      mouseInside = true;
+    };
+    const onPointerLeave = () => {
+      mouseInside = false;
+    };
+
     resize();
     window.addEventListener('resize', resize);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerleave', onPointerLeave);
 
     const draw = () => {
       const width = canvas.offsetWidth;
@@ -35,16 +72,33 @@ export function PlanetOrbit({ className }: { className?: string }) {
 
       ctx.clearRect(0, 0, width, height);
 
-      const orbits = [
-        { rx: 130 * scale, ry: 50 * scale, rotation: -25, speed: 0.008, dotAngle: 0, hasGear: true },
-        { rx: 155 * scale, ry: 60 * scale, rotation: 25, speed: -0.006, dotAngle: Math.PI / 2, hasGear: false },
-        { rx: 110 * scale, ry: 42 * scale, rotation: 60, speed: 0.01, dotAngle: Math.PI, hasGear: true },
+      // 衛星 5 參數軌道（對齊 Hana sats）
+      const SATS = [
+        { sp: 0.0091, rx: 130 * scale, ry: 50 * scale, tilt: (-25 * Math.PI) / 180 },
+        { sp: -0.0076, rx: 155 * scale, ry: 60 * scale, tilt: (25 * Math.PI) / 180 },
+        { sp: 0.0102, rx: 110 * scale, ry: 42 * scale, tilt: (60 * Math.PI) / 180 },
       ];
+      const ORBIT_GEAR = [true, false, true];
 
-      orbits.forEach((orbit, index) => {
+      // 守護判定：滑鼠距球心 < 守護半徑（Hana = pwRect.width * 0.62）
+      const planetRadius = 38 * scale;
+      const guardRadius = Math.max(planetRadius * 4.2, 130 * scale);
+      let guarding = false;
+      let dxm = 0;
+      let dym = 0;
+      let dm = 0;
+      if (mouseInside && mouseX !== null && mouseY !== null) {
+        dxm = mouseX - centerX;
+        dym = mouseY - centerY;
+        dm = Math.hypot(dxm, dym);
+        guarding = dm < guardRadius;
+      }
+
+      // 先畫軌道線 + gear tick（純視覺、不受守護模式影響）
+      SATS.forEach((orbit, index) => {
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate((orbit.rotation * Math.PI) / 180);
+        ctx.rotate(orbit.tilt);
 
         ctx.beginPath();
         ctx.ellipse(0, 0, orbit.rx, orbit.ry, 0, 0, Math.PI * 2);
@@ -52,7 +106,7 @@ export function PlanetOrbit({ className }: { className?: string }) {
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        if (orbit.hasGear) {
+        if (ORBIT_GEAR[index]) {
           const tickCount = 36;
           const tickInset = 3 * scale;
           for (let t = 0; t < tickCount; t++) {
@@ -71,36 +125,74 @@ export function PlanetOrbit({ className }: { className?: string }) {
           }
         }
 
-        const dotAngle = orbit.dotAngle + time * orbit.speed;
-        const dotX = Math.cos(dotAngle) * orbit.rx;
-        const dotY = Math.sin(dotAngle) * orbit.ry;
+        ctx.restore();
+      });
 
+      // 衛星 dot：用 global 座標算（不再 translate+rotate）、守護模式 = 朝滑鼠方向 + (i-1)*0.46 offset
+      SATS.forEach((orbit, index) => {
+        const st = satStates[index];
+        if (!reduce) st.a += orbit.sp;
+
+        // 基本軌道位置（local → global、透過 tilt 旋轉）
+        const localX = Math.cos(st.a) * orbit.rx;
+        const localY = Math.sin(st.a) * orbit.ry;
+        const cR = Math.cos(orbit.tilt);
+        const sR = Math.sin(orbit.tilt);
+        const baseGX = centerX + localX * cR - localY * sR;
+        const baseGY = centerY + localX * sR + localY * cR;
+
+        // 目標位置
+        let targetX: number;
+        let targetY: number;
+        if (guarding && mouseX !== null && mouseY !== null) {
+          const ang = Math.atan2(dym, dxm) + (index - 1) * 0.46;
+          const gR = Math.max(planetRadius * 1.8, Math.min(dm * 0.66, planetRadius * 3.2));
+          targetX = centerX + Math.cos(ang) * gR;
+          targetY = centerY + Math.sin(ang) * gR;
+        } else {
+          targetX = baseGX;
+          targetY = baseGY;
+        }
+
+        // 第一幀直接定位、後續平滑跟隨
+        if (!st.initialised) {
+          st.curX = targetX;
+          st.curY = targetY;
+          st.initialised = true;
+        } else {
+          const k = guarding ? 0.16 : 0.085;
+          st.curX += (targetX - st.curX) * k;
+          st.curY += (targetY - st.curY) * k;
+        }
+
+        const dx = st.curX;
+        const dy = st.curY;
+
+        // 衛星外殼（金屬灰）
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 5 * scale, 0, Math.PI * 2);
+        ctx.arc(dx, dy, 5 * scale, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(180, 180, 190, 1)';
         ctx.fill();
         ctx.strokeStyle = 'rgba(100, 100, 110, 0.8)';
         ctx.lineWidth = 1;
         ctx.stroke();
 
+        // 衛星核心（amber 主色）
         ctx.beginPath();
-        ctx.arc(dotX, dotY, 2.5 * scale, 0, Math.PI * 2);
+        ctx.arc(dx, dy, 2.5 * scale, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 200, 80, 0.95)';
         ctx.fill();
 
-        const glowRadius = 15 * scale;
-        const gradient = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, glowRadius);
-        gradient.addColorStop(0, 'rgba(255, 200, 80, 0.5)');
+        // 衛星光暈（守護模式時略放大）
+        const glowRadius = (guarding ? 18 : 15) * scale;
+        const gradient = ctx.createRadialGradient(dx, dy, 0, dx, dy, glowRadius);
+        gradient.addColorStop(0, `rgba(255, 200, 80, ${guarding ? 0.7 : 0.5})`);
         gradient.addColorStop(1, 'rgba(255, 200, 80, 0)');
         ctx.beginPath();
-        ctx.arc(dotX, dotY, glowRadius, 0, Math.PI * 2);
+        ctx.arc(dx, dy, glowRadius, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
-
-        ctx.restore();
       });
-
-      const planetRadius = 38 * scale;
       const planetHighlightOffset = 12 * scale;
 
       const planetGradient = ctx.createRadialGradient(
@@ -138,6 +230,11 @@ export function PlanetOrbit({ className }: { className?: string }) {
 
       const hexSize = 12 * scale;
       const hexEdgeInset = 5 * scale;
+      // Ripple wave 參數（對齊 Hana @keyframes hexwave、cycle 6.8s、travel 1.1s）
+      const RIPPLE_CYCLE_MS = 6800;
+      const RIPPLE_TRAVEL_MS = 1100;
+      const rippleMaxD = planetRadius - hexEdgeInset;
+      const tMs = performance.now();
       for (let row = -3; row <= 3; row++) {
         for (let col = -3; col <= 3; col++) {
           const offsetX = (row % 2) * (hexSize * 0.5);
@@ -146,18 +243,47 @@ export function PlanetOrbit({ className }: { className?: string }) {
           const dist = Math.sqrt((hx - centerX) ** 2 + (hy - centerY) ** 2);
 
           if (dist < planetRadius - hexEdgeInset) {
-            ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-              const angle = (i * Math.PI) / 3 - Math.PI / 6;
-              const px = hx + Math.cos(angle) * (hexSize * 0.4);
-              const py = hy + Math.sin(angle) * (hexSize * 0.4);
-              if (i === 0) ctx.moveTo(px, py);
-              else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
+            const hexHalf = hexSize * 0.4;
+            const drawHex = (sc: number) => {
+              ctx.beginPath();
+              for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI) / 3 - Math.PI / 6;
+                const px = hx + Math.cos(angle) * hexHalf * sc;
+                const py = hy + Math.sin(angle) * hexHalf * sc;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+              }
+              ctx.closePath();
+            };
+
+            // 1) 底層 hex 描邊（既有靜態渲染）
+            drawHex(1);
             ctx.strokeStyle = `rgba(70, 70, 80, ${0.5 - dist * 0.008})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
+
+            // 2) Ripple 亮點（每 hex 在自己的 phase 短暫亮一下）
+            if (!reduce && rippleMaxD > 0) {
+              const delayMs = (dist / rippleMaxD) * RIPPLE_TRAVEL_MS;
+              let phaseT = (((tMs - delayMs) % RIPPLE_CYCLE_MS) + RIPPLE_CYCLE_MS) % RIPPLE_CYCLE_MS;
+              phaseT = phaseT / RIPPLE_CYCLE_MS;
+              let opacity = 0;
+              let rippleScale = 1;
+              if (phaseT < 0.03) {
+                const k = phaseT / 0.03;
+                opacity = k * 0.5;
+                rippleScale = 0.85 + k * 0.37;
+              } else if (phaseT < 0.1) {
+                const k = (phaseT - 0.03) / 0.07;
+                opacity = 0.5 * (1 - k);
+                rippleScale = 1.22 - k * 0.22;
+              }
+              if (opacity > 0.01) {
+                drawHex(rippleScale);
+                ctx.fillStyle = `rgba(196, 210, 228, ${opacity.toFixed(3)})`;
+                ctx.fill();
+              }
+            }
           }
         }
       }
@@ -220,7 +346,6 @@ export function PlanetOrbit({ className }: { className?: string }) {
       ctx.fillStyle = glowGradient;
       ctx.fill();
 
-      time += 1;
       animationId = requestAnimationFrame(draw);
     };
 
@@ -228,6 +353,8 @@ export function PlanetOrbit({ className }: { className?: string }) {
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerleave', onPointerLeave);
       cancelAnimationFrame(animationId);
     };
   }, []);
