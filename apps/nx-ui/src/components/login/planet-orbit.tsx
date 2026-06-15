@@ -78,7 +78,6 @@ export function PlanetOrbit({ className }: { className?: string }) {
         { sp: -0.0076, rx: 155 * scale, ry: 60 * scale, tilt: (25 * Math.PI) / 180 },
         { sp: 0.0102, rx: 110 * scale, ry: 42 * scale, tilt: (60 * Math.PI) / 180 },
       ];
-      const ORBIT_GEAR = [true, false, true];
 
       // 守護判定：滑鼠距球心 < 守護半徑（Hana = pwRect.width * 0.62）
       const planetRadius = 38 * scale;
@@ -94,41 +93,8 @@ export function PlanetOrbit({ className }: { className?: string }) {
         guarding = dm < guardRadius;
       }
 
-      // 先畫軌道線 + gear tick（純視覺、不受守護模式影響）
-      SATS.forEach((orbit, index) => {
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(orbit.tilt);
-
-        ctx.beginPath();
-        ctx.ellipse(0, 0, orbit.rx, orbit.ry, 0, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(160, 160, 170, ${0.25 - index * 0.05})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        if (ORBIT_GEAR[index]) {
-          const tickCount = 36;
-          const tickInset = 3 * scale;
-          for (let t = 0; t < tickCount; t++) {
-            const tickAngle = (t * Math.PI * 2) / tickCount;
-            const innerX = Math.cos(tickAngle) * (orbit.rx - tickInset);
-            const innerY = Math.sin(tickAngle) * (orbit.ry - tickInset);
-            const outerX = Math.cos(tickAngle) * (orbit.rx + tickInset);
-            const outerY = Math.sin(tickAngle) * (orbit.ry + tickInset);
-
-            ctx.beginPath();
-            ctx.moveTo(innerX, innerY);
-            ctx.lineTo(outerX, outerY);
-            ctx.strokeStyle = `rgba(120, 120, 130, ${0.3 - index * 0.08})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-        }
-
-        ctx.restore();
-      });
-
-      // 衛星 dot：用 global 座標算（不再 translate+rotate）、守護模式 = 朝滑鼠方向 + (i-1)*0.46 offset
+      // 衛星 dot：用 global 座標算、守護模式 = 朝滑鼠方向 + (i-1)*0.46 offset
+      // 軌道線與 gear tick 已移除（執行長拍板 2026-06-15 微調：星球本體更乾淨、衛星自由飄）
       SATS.forEach((orbit, index) => {
         const st = satStates[index];
         if (!reduce) st.a += orbit.sp;
@@ -168,26 +134,26 @@ export function PlanetOrbit({ className }: { className?: string }) {
         const dx = st.curX;
         const dy = st.curY;
 
-        // 衛星外殼（金屬灰）
+        // 衛星外殼（冷白金屬）
         ctx.beginPath();
         ctx.arc(dx, dy, 5 * scale, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(180, 180, 190, 1)';
+        ctx.fillStyle = 'rgba(232, 236, 244, 1)';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(100, 100, 110, 0.8)';
+        ctx.strokeStyle = 'rgba(160, 168, 184, 0.75)';
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // 衛星核心（amber 主色）
+        // 衛星核心（純白）
         ctx.beginPath();
         ctx.arc(dx, dy, 2.5 * scale, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 200, 80, 0.95)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
         ctx.fill();
 
-        // 衛星光暈（守護模式時略放大）
+        // 衛星光暈（白色、守護時略放大）
         const glowRadius = (guarding ? 18 : 15) * scale;
         const gradient = ctx.createRadialGradient(dx, dy, 0, dx, dy, glowRadius);
-        gradient.addColorStop(0, `rgba(255, 200, 80, ${guarding ? 0.7 : 0.5})`);
-        gradient.addColorStop(1, 'rgba(255, 200, 80, 0)');
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${guarding ? 0.7 : 0.5})`);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.beginPath();
         ctx.arc(dx, dy, glowRadius, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
@@ -389,10 +355,11 @@ export function ParticleField({ className }: { className?: string }) {
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
     type Layer = { n: number; rMin: number; rMax: number; depth: number; aMin: number; aMax: number; glow: 0 | 1 };
+    // 加密 50%（執行長 2026-06-15 微調：太空、提密度與層次）
     const LAYERS: Layer[] = [
-      { n: 300, rMin: 0.25, rMax: 0.8, depth: 5, aMin: 0.16, aMax: 0.42, glow: 0 },
-      { n: 140, rMin: 0.55, rMax: 1.4, depth: 14, aMin: 0.28, aMax: 0.6, glow: 0 },
-      { n: 42, rMin: 1.1, rMax: 2.3, depth: 30, aMin: 0.42, aMax: 0.82, glow: 1 },
+      { n: 480, rMin: 0.25, rMax: 0.8, depth: 5, aMin: 0.2, aMax: 0.5, glow: 0 },
+      { n: 220, rMin: 0.55, rMax: 1.4, depth: 14, aMin: 0.32, aMax: 0.68, glow: 0 },
+      { n: 70, rMin: 1.1, rMax: 2.3, depth: 30, aMin: 0.48, aMax: 0.9, glow: 1 },
     ];
     const TINTS = ['225,242,240', '220,238,238', '236,240,246', '190,250,236', '150,230,255', '198,172,255'];
 
@@ -433,7 +400,7 @@ export function ParticleField({ className }: { className?: string }) {
 
     const buildSprites = () => {
       sprites = [];
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < 28; i++) {
         sprites.push({
           x: Math.random(),
           y: Math.random(),
@@ -492,6 +459,19 @@ export function ParticleField({ className }: { className?: string }) {
       const ts = t * 0.001;
 
       ctx.clearRect(0, 0, W, H);
+
+      // 頂部極光色帶（對齊 Hana background：左上青 #28c8b4 + 右上紫 #7854c8 + 中上金 #a07420）
+      const drawAurora = (cxR: number, cyR: number, alpha: number, col: readonly [number, number, number]) => {
+        const r = Math.min(W, H) * 0.7;
+        const g = ctx.createRadialGradient(W * cxR, H * cyR, 0, W * cxR, H * cyR, r);
+        g.addColorStop(0, `rgba(${col[0]},${col[1]},${col[2]},${alpha})`);
+        g.addColorStop(1, `rgba(${col[0]},${col[1]},${col[2]},0)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      };
+      drawAurora(0.18, 0, 0.12, [40, 200, 180]);
+      drawAurora(0.82, 0, 0.14, [120, 84, 200]);
+      drawAurora(0.5, 0, 0.12, [160, 116, 32]);
 
       for (const s of stars) {
         const L = LAYERS[s.li];
