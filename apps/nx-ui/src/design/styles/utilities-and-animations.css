@@ -570,7 +570,6 @@ html.light .nx-topbar .nx-menu button:hover {
   background: color-mix(in oklch, var(--foreground) 6%, transparent) !important;
 }
 
-/* === NX00 stagger（原 globals.css line 1018-1036）=== */
 /* ============================================================
    NX00 儀表板進場 D 段錯落 stagger（對齊轉場與星球規格.html § D）
    - 基底：opacity 0 + translateY(28px)

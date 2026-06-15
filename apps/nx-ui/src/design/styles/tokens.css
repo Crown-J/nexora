@@ -334,7 +334,8 @@ html.light select {
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* === NX00 強調色 token（原 globals.css line 1011-1016）=== */
+/* ============================================================
+   NX00 強調色 token（對齊 Hana gold-bright 範式）
    - 深色：金黃 #f5c842（amber bright）
    - 淺色：橙紅 #c8550f（跟 TopBar 橙色 gradient 同色系）
    首頁 highlight 文字（名字 / 月份 / 金額 chip / 待處理計數）統一吃這個 token
