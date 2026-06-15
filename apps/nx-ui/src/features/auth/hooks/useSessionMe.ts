@@ -30,7 +30,7 @@ import {
   demoUserToMeDto,
   getDemoUser,
   isNextPublicDemoMode,
-} from '@/hooks/useDemoSession';
+} from '@data/hooks/useDemoSession';
 import type { MeDto } from '@/features/auth/types';
 import { clearToken, getToken } from '@/features/auth/token';
 

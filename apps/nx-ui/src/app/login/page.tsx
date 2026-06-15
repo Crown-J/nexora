@@ -23,7 +23,7 @@ import { ParticleField } from '@/components/login/planet-orbit';
 import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
 import { PlanetSlot, usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
 import { getVersionParts } from '@/lib/version';
-import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
+import { toNexoraClientError, type NexoraClientError } from '@data/errors/nexora-error';
 
 // TASK-AUTH-ERROR-CODE：對齊規範 v1.1 §5.3 §7
 // AU-301 公司空 / AU-302 使用者空 / AU-303 密碼空

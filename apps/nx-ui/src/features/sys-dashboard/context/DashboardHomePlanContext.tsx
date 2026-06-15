@@ -15,7 +15,7 @@ import {
   type SetStateAction,
 } from 'react';
 import { mockCurrentUser, type PlanCode } from '@/mocks/dashboard';
-import { useDemoSession } from '@/hooks/useDemoSession';
+import { useDemoSession } from '@data/hooks/useDemoSession';
 
 export type DashboardHomePlanContextValue = {
   planCode: PlanCode;

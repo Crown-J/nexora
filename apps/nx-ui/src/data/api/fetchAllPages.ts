@@ -1,4 +1,4 @@
-import { clampNx01ListPageSize, NX01_MAX_LIST_PAGE_SIZE } from '@/shared/lib/nx01Pagination';
+import { clampNx01ListPageSize, NX01_MAX_LIST_PAGE_SIZE } from '@data/utils/nx01Pagination';
 
 type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };
 

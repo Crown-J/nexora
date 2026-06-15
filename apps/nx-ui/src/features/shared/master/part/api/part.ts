@@ -10,7 +10,7 @@
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
+import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
 import type { CreatePartBody, PagedResult, PartDto, UpdatePartBody } from '@/features/shared/master/part/types';
 
 const BASE = '/nx01/parts';

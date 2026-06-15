@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Eye, EyeOff, Building2, User, Lock, ArrowRight, XCircle } from 'lucide-react';
 
-import type { NexoraClientError } from '@/shared/errors/nexora-error';
+import type { NexoraClientError } from '@data/errors/nexora-error';
 
 export type LoginFormFields = {
   companyAccount: string;

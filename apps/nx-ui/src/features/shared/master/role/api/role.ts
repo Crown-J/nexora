@@ -13,7 +13,7 @@
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
+import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
 import type { CreateRoleBody, PagedResult, RoleDto, UpdateRoleBody } from '@/features/shared/master/role/types';
 
 export type ListRoleParams = {

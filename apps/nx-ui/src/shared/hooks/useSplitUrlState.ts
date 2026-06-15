@@ -14,7 +14,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
+import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
 import { parsePositiveInt, trimOrEmpty } from '@/shared/lib/parse';
 
 export type SplitMode = 'empty' | 'new' | 'edit';

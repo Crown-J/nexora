@@ -11,7 +11,7 @@
 
 'use client';
 
-import { formatDatetimeZhTw } from '@/shared/format/datetime';
+import { formatDatetimeZhTw } from '@data/utils/datetime';
 
 type Props = {
     createdAt: string;

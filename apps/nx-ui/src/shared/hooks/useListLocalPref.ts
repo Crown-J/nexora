@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getToken } from '@/features/auth/token';
-import { decodeJwtSub } from '@/shared/lib/jwt';
+import { decodeJwtSub } from '@data/utils/jwt';
 
 function getLS(key: string) {
     try {
