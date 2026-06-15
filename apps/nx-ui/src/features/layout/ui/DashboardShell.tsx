@@ -20,6 +20,7 @@ import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
 import { PlanetDock } from '@/components/shell/PlanetDock';
+import { ParticleField } from '@/components/login/planet-orbit';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {
@@ -150,33 +151,39 @@ export function DashboardShell({ children }: DashboardShellProps) {
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
         <PageGuideProvider>
-          <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <UnifiedTopBar
-              displayName={nameText}
-              employeeNo={empNo}
-              onLogout={logout}
-              onDockToggle={toggleDock}
-              onHome={() => router.push('/dashboard')}
-            />
-            <PlanetDock open={dockOpen} onClose={closeDock} />
-            <main
-              className={cn(
-                'flex flex-1 min-h-0 flex-col px-3 py-3 sm:px-5',
-                isFillViewportSubPage ? 'gap-2' : 'gap-4',
-              )}
-            >
-              <BusinessTopNav />
-              <DashboardSubNav />
-              <div
+          <div className="relative flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
+            {/* 跟登入/首頁一致：滿屏星空 + 極光 */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+              <ParticleField className="w-full h-full" />
+            </div>
+            <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+              <UnifiedTopBar
+                displayName={nameText}
+                employeeNo={empNo}
+                onLogout={logout}
+                onDockToggle={toggleDock}
+                onHome={() => router.push('/dashboard')}
+              />
+              <PlanetDock open={dockOpen} onClose={closeDock} />
+              <main
                 className={cn(
-                  'w-full min-w-0',
-                  isFillViewportSubPage ? 'flex min-h-0 flex-1 flex-col gap-2' : 'space-y-4',
+                  'flex flex-1 min-h-0 flex-col px-3 py-3 sm:px-5',
+                  isFillViewportSubPage ? 'gap-2' : 'gap-4',
                 )}
               >
-                {children}
-                <AutoPageGuide />
-              </div>
-            </main>
+                <BusinessTopNav />
+                <DashboardSubNav />
+                <div
+                  className={cn(
+                    'w-full min-w-0',
+                    isFillViewportSubPage ? 'flex min-h-0 flex-1 flex-col gap-2' : 'space-y-4',
+                  )}
+                >
+                  {children}
+                  <AutoPageGuide />
+                </div>
+              </main>
+            </div>
           </div>
         </PageGuideProvider>
       </DashboardBulletinProvider>

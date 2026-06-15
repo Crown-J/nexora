@@ -10,6 +10,7 @@ import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
 import { PlanetDock } from '@/components/shell/PlanetDock';
 import { HomeView } from '@/features/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
+import { ParticleField } from '@/components/login/planet-orbit';
 
 export function HomeShell() {
   const router = useRouter();
@@ -48,18 +49,25 @@ export function HomeShell() {
   const empNo = me?.username ?? '';
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <UnifiedTopBar
-        displayName={nameText}
-        employeeNo={empNo}
-        onLogout={logout}
-        onDockToggle={toggleDock}
-        onHome={() => router.push('/dashboard')}
-      />
-      <PlanetDock open={dockOpen} onClose={closeDock} />
-      <main className="flex flex-1 min-h-0 flex-col">
-        <HomeView displayName={nameText} />
-      </main>
+    <div className="relative flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
+      {/* 跟登入畫面一致：滿屏星空 + 多層 + 頂部極光（z-0、不擋互動）*/}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <ParticleField className="w-full h-full" />
+      </div>
+      {/* 內容層 z-10 */}
+      <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+        <UnifiedTopBar
+          displayName={nameText}
+          employeeNo={empNo}
+          onLogout={logout}
+          onDockToggle={toggleDock}
+          onHome={() => router.push('/dashboard')}
+        />
+        <PlanetDock open={dockOpen} onClose={closeDock} />
+        <main className="flex flex-1 min-h-0 flex-col">
+          <HomeView displayName={nameText} />
+        </main>
+      </div>
     </div>
   );
 }

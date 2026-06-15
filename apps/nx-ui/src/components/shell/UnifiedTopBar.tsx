@@ -14,6 +14,7 @@ import {
   Megaphone, Moon, Settings, Sun, User,
 } from 'lucide-react';
 import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@/features/home/home-data';
+import { PlanetIcon } from '@/components/shell/PlanetIcon';
 
 type TopBarProps = {
   displayName: string;
@@ -94,7 +95,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
   return (
     <header className="sticky top-0 z-50 border-b border-border/40 bg-[color-mix(in_oklch,var(--card)_72%,transparent)] backdrop-blur-md backdrop-saturate-150">
       <div className="flex h-14 items-center gap-3 px-4">
-        {/* 小星球 Dock 觸發 */}
+        {/* 小星球 Dock 觸發（登入畫面同款大星球縮小 + hex 自轉 + reactor 呼吸 + halo 起伏 + ripple 動畫） */}
         <button
           type="button"
           onClick={onDockToggle}
@@ -102,29 +103,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
           title="導覽 · Alt+X"
           className="grid h-11 w-11 place-items-center rounded-xl hover:bg-foreground/[0.06] transition"
         >
-          <svg viewBox="0 0 40 40" className="h-10 w-10">
-            <defs>
-              <radialGradient id="tbLmetal" cx="38%" cy="32%" r="66%">
-                <stop offset="0" stopColor="#d6dbe3" />
-                <stop offset=".5" stopColor="#7c828d" />
-                <stop offset="1" stopColor="#2a3038" />
-              </radialGradient>
-              <radialGradient id="tbLcore" cx="50%" cy="50%" r="50%">
-                <stop offset="0" stopColor="#fff8e6" />
-                <stop offset=".4" stopColor="#ffd368" />
-                <stop offset=".8" stopColor="#f4a92a" />
-                <stop offset="1" stopColor="rgba(180,110,10,0)" />
-              </radialGradient>
-            </defs>
-            <circle cx="20" cy="20" r="16.5" fill="url(#tbLmetal)" />
-            <g stroke="#aeb4be" strokeWidth=".6" opacity=".4" fill="none">
-              <path d="M12 14h7M11 20h9M12 26h7" />
-            </g>
-            <circle cx="20" cy="20" r="15.5" fill="none" stroke="rgba(255,222,150,.4)" strokeWidth="1" />
-            <circle cx="20" cy="20" r="6.5" fill="url(#tbLcore)" />
-            <circle cx="20" cy="20" r="2.4" fill="#fff8e6" />
-            <circle cx="33" cy="13" r="1.7" fill="#f4c862" />
-          </svg>
+          <PlanetIcon size={42} />
         </button>
 
         {/* NEXORA GRID 品牌 → 點回首頁 */}
