@@ -1,88 +1,86 @@
-/**
- * File: apps/nx-ui/src/features/layout/ui/DashboardShell.tsx
- * Project: NEXORA (Monorepo)
- *
- * Purpose:
- * - Dashboard 版面殼：與 /home、/base 相同 Landing 外殼（頂欄星球模組選單、星空背景、HomeTopBar）
- * - 頂欄中央為主模組 Tabs；次功能為橫向 DashboardSubNav（取代舊版側欄）
- */
+// apps/nx-ui/src/features/layout/ui/DashboardShell.tsx
+// NX00 統一 Dashboard 外殼（2026-06-15 棒 #2 收斂）
+//
+// 設計：
+// - 一律 UnifiedTopBar + PlanetDock 為頂層外殼（取代 HomeTopBar）
+// - MasterShell bypass 子頁（鋼鐵星球範式自帶 MasterTopBar）：仍 bypass、不疊新 TopBar、Phase 2 退場 MasterTopBar
+// - 非 bypass 子頁：套 UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav + children
+// - 退場：HomeTopBar / MobileWorkstationDock / MobileFab 引用全清（三檔留檔、待引用清零後刪）
+// - 首頁 /dashboard：HomeShell 自帶外殼、本 layout 不額外包
 
 'use client';
 
-import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { HomeLandingChrome } from '@/components/home/home-landing-chrome';
-import { HomeTopBar } from '@/components/home/top-bar';
 import { DashboardBulletinProvider } from '@/features/sys-dashboard/context/DashboardBulletinContext';
 import { DashboardPaletteProvider } from '@/features/sys-dashboard/context/DashboardPaletteContext';
-import { DashboardHomePlanProvider } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
-import { TopBarPlanToggles } from '@/features/sys-dashboard/ui/TopBarPlanToggles';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { BusinessTopNav } from '@/features/layout/ui/BusinessTopNav';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
-import { MobileFab } from '@/features/layout/ui/MobileFab';
-import { MobileWorkstationDock } from '@/features/layout/ui/MobileWorkstationDock';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
-import { normalizePlanCode } from '@/features/base/config/master-cards';
+import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
+import { PlanetDock } from '@/components/shell/PlanetDock';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {
   children: ReactNode;
 };
 
-/**
- * @FUNCTION_CODE NX00-UI-SHELL-005-F01
- */
+const MASTER_SHELL_BYPASS_PATHS = new Set([
+  '/dashboard/base/users',
+  '/dashboard/base/currency',
+  '/dashboard/base/country',
+  '/dashboard/base/part-group',
+  '/dashboard/base/roles',
+  '/dashboard/base/drivetrain',
+  '/dashboard/base/model-type',
+  '/dashboard/base/car-brand',
+  '/dashboard/base/engine',
+  '/dashboard/base/transmission',
+  '/dashboard/base/model',
+  '/dashboard/base/part-brand',
+  '/dashboard/base/part-relation',
+  '/dashboard/base/part-model',
+  '/dashboard/base/warehouses',
+  '/dashboard/base/customer-grade',
+  '/dashboard/base/phonetic-dictionary',
+  '/dashboard/base/partners',
+  '/dashboard/base/partner-part',
+  '/dashboard/base/discount-code',
+  '/dashboard/base/site',
+  '/dashboard/base/location',
+  '/dashboard/base/parts',
+  '/dashboard/base/brand-code-rule',
+  '/dashboard/base/bulletins',
+  '/dashboard/base/role-view',
+  '/dashboard/base/user-role',
+  '/dashboard/base/user-warehouse',
+]);
+
 export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { me, displayName, tenantNameZh, tenantNameEn, tenantLogoUrl, planCode, logout, view } = useSessionMe();
+  const { me, displayName, logout, view } = useSessionMe();
+  const [dockOpen, setDockOpen] = useState(false);
+
   const isSysDashboardHome = pathname === '/dashboard';
-  // 業界改革 #22 v1.2：主檔子頁 fillViewport 模式（表格內部 scroll、horizontal scroll bar sticky 底部）
-  // 對齊 Crown 拍板「滾軸像試算表固定、右側滾輪在表格內而非整頁」
+  const isMasterShellBypass = pathname != null && MASTER_SHELL_BYPASS_PATHS.has(pathname);
   const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
-  // 鋼鐵星球範式 bypass（commit 58）：使用者主檔自帶完整 MasterShell，跳過 DashboardShell chrome 避免雙 shell 疊加。
-  // 對齊 Crown 拍板「lab 範式取代 DashboardShell」。
-  // 之後其他主檔陸續推進時可在此擴充判斷集合。
-  // 鋼鐵星球範式遷移清單（自帶完整外殼、bypass DashboardShell chrome）。
-  // 每遷移一個主檔到 EntityMasterPage / UserMasterPage 即在此加入路徑。
-  const isMasterShellBypass =
-    pathname != null &&
-    [
-      '/dashboard/base/users',
-      '/dashboard/base/currency',
-      '/dashboard/base/country',
-      '/dashboard/base/part-group',
-      '/dashboard/base/roles',
-      '/dashboard/base/drivetrain',
-      '/dashboard/base/model-type',
-      '/dashboard/base/car-brand',
-      '/dashboard/base/engine',
-      '/dashboard/base/transmission',
-      '/dashboard/base/model',
-      '/dashboard/base/part-brand',
-      '/dashboard/base/part-relation',
-      '/dashboard/base/part-model',
-      '/dashboard/base/warehouses',
-      '/dashboard/base/customer-grade',
-      '/dashboard/base/phonetic-dictionary',
-      '/dashboard/base/partners',
-      // T3 進貨對齊批次 2026-06-08：供應商供貨對應主檔
-      '/dashboard/base/partner-part',
-      // F1-A 銷貨優惠價子系統 2026-06-08：折扣代碼主檔
-      '/dashboard/base/discount-code',
-      '/dashboard/base/site',
-      '/dashboard/base/location',
-      '/dashboard/base/parts',
-      '/dashboard/base/brand-code-rule',
-      '/dashboard/base/bulletins',
-      '/dashboard/base/role-view',
-      '/dashboard/base/user-role',
-      '/dashboard/base/user-warehouse',
-    ].includes(pathname);
-  // 業界改革 #22 v1.1：TopBar plan chip 揭露當前訂閱方案（loading / 未登入時不渲染）
-  const normalizedPlan = planCode ? normalizePlanCode(planCode) : null;
+
+  const toggleDock = useCallback(() => setDockOpen((v) => !v), []);
+  const closeDock = useCallback(() => setDockOpen(false), []);
+
+  // Alt+X 全域 toggle dock
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.altKey && (e.key === 'x' || e.key === 'X')) {
+        e.preventDefault();
+        toggleDock();
+      }
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [toggleDock]);
 
   useEffect(() => {
     if (!view.loading && !me) router.replace('/login');
@@ -125,14 +123,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
   }
 
   const nameText = displayName || me?.username || '系統管理員';
+  const empNo = me?.username ?? '';
 
-  // MasterShell bypass：跳過 DashboardShell chrome、直接 render children（children 自帶 MasterShell）
-  // 首頁儀表板（/dashboard）改採鋼鐵星球範式（MasterTopBar）、與主檔頁視覺統一、
-  // SysDashboardPage 自帶 MasterTopBar 不靠 DashboardShell chrome
-  //
-  // 2026-06-04 客戶端拆匯入精靈軌：bypass 內補掛改剩 PageGuideProvider + AutoPageGuide
-  // （WizardLauncher 整體移除、首登不再自動跳匯入精靈、改密後直接進主畫面）
-  if (isMasterShellBypass || isSysDashboardHome) {
+  // 首頁：HomeShell 自帶外殼、本 layout 不包
+  if (isSysDashboardHome) {
     return (
       <PageGuideProvider>
         <AutoPageGuide />
@@ -141,67 +135,49 @@ export function DashboardShell({ children }: DashboardShellProps) {
     );
   }
 
+  // MasterShell bypass：子頁自帶 MasterTopBar（Phase 2 退場、本回合保留以免疊雙 topbar）
+  if (isMasterShellBypass) {
+    return (
+      <PageGuideProvider>
+        <AutoPageGuide />
+        {children}
+      </PageGuideProvider>
+    );
+  }
+
+  // 一般子頁：UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav + content
   return (
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
         <PageGuideProvider>
-        {isSysDashboardHome ? (
-          <DashboardHomePlanProvider>
-            <HomeLandingChrome
-              fillViewport
-              topBar={
-                <HomeTopBar
-                  displayName={nameText}
-                  roleLabel="使用者"
-                  onLogout={logout}
-                  onOpenDashboard={() => router.push('/dashboard')}
-                  tenantNameZh={tenantNameZh || null}
-                  tenantNameEn={tenantNameEn || null}
-                  tenantLogoUrl={tenantLogoUrl || null}
-                  planCode={normalizedPlan}
-                  centerContent={<TopBarPlanToggles />}
-                />
-              }
-            >
-              <div className="mx-auto flex h-full min-h-0 w-full max-w-none flex-1 flex-col px-1 text-foreground sm:px-2">
-                {children}
-              </div>
-            </HomeLandingChrome>
-          </DashboardHomePlanProvider>
-        ) : (
-          <HomeLandingChrome
-            fillViewport={isFillViewportSubPage}
-            topBar={
-              <HomeTopBar
-                displayName={nameText}
-                roleLabel="使用者"
-                onLogout={logout}
-                onOpenDashboard={() => router.push('/dashboard')}
-                tenantNameZh={tenantNameZh || null}
-                tenantNameEn={tenantNameEn || null}
-                tenantLogoUrl={tenantLogoUrl || null}
-                planCode={normalizedPlan}
-              />
-            }
-          >
-            <div
+          <div className="flex min-h-screen flex-col bg-background text-foreground">
+            <UnifiedTopBar
+              displayName={nameText}
+              employeeNo={empNo}
+              onLogout={logout}
+              onDockToggle={toggleDock}
+              onHome={() => router.push('/dashboard')}
+            />
+            <PlanetDock open={dockOpen} onClose={closeDock} />
+            <main
               className={cn(
-                'w-full min-w-0',
-                isFillViewportSubPage
-                  ? 'flex min-h-0 flex-1 flex-col gap-2'
-                  : 'space-y-4',
+                'flex flex-1 min-h-0 flex-col px-3 py-3 sm:px-5',
+                isFillViewportSubPage ? 'gap-2' : 'gap-4',
               )}
             >
               <BusinessTopNav />
               <DashboardSubNav />
-              {children}
-              <AutoPageGuide />
-            </div>
-          </HomeLandingChrome>
-        )}
-        {/* v1.2 §10：手機殼（5 工作站 dock + 浮動功能鍵）、lg:hidden、Q3=a 全 dashboard 顯示 */}
-        <MobileWorkstationDock />
-        <MobileFab />
+              <div
+                className={cn(
+                  'w-full min-w-0',
+                  isFillViewportSubPage ? 'flex min-h-0 flex-1 flex-col gap-2' : 'space-y-4',
+                )}
+              >
+                {children}
+                <AutoPageGuide />
+              </div>
+            </main>
+          </div>
         </PageGuideProvider>
       </DashboardBulletinProvider>
     </DashboardPaletteProvider>
