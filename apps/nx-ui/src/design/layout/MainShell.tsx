@@ -4,8 +4,8 @@
  */
 
 import type { ReactNode } from 'react';
-import { KpiBar } from '@/components/layout/KpiBar';
-import { TopBar, type TopBarProps } from '@/components/layout/TopBar';
+import { KpiBar } from '@design/layout/KpiBar';
+import { TopBar, type TopBarProps } from '@design/layout/TopBar';
 
 type MainShellProps = {
   topBarProps: TopBarProps;

@@ -6,13 +6,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
-import { PlanetDock } from '@/components/shell/PlanetDock';
+import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
+import { PlanetDock } from '@design/layout/PlanetDock';
 import { HomeView } from '@/features/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { ParticleField } from '@/components/login/planet-orbit';
-import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
-import { usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
+import { ParticleField } from '@design/login/planet-orbit';
+import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
+import { usePlanet } from '@design/home/SharedPlanetRoot';
 
 export function HomeShell() {
   const router = useRouter();

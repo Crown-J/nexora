@@ -33,7 +33,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
-import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
+import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@design/home/dock';
 import { cn } from '@/lib/utils';
 
 // ──────────────────────────────────────────────────────────────

@@ -9,7 +9,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { ParticleField } from '@/components/login/planet-orbit';
+import { ParticleField } from '@design/login/planet-orbit';
 import { HomeDashboardV2 } from '@/features/home-dashboard/HomeDashboardV2';
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
 

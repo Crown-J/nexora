@@ -8,8 +8,8 @@
  */
 
 import type { ReactNode } from 'react';
-import { MobileDock } from '@/components/home/dock';
-import { ParticleField } from '@/components/login/planet-orbit';
+import { MobileDock } from '@design/home/dock';
+import { ParticleField } from '@design/login/planet-orbit';
 import { cn } from '@/lib/utils';
 
 export type HomeLandingChromeProps = {

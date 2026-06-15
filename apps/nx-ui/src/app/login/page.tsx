@@ -18,10 +18,10 @@ import { useRouter } from 'next/navigation';
 import { callLoginApi } from '@data/endpoints/auth/api/login';
 import { isNexoraDemoMode } from '@data/auth/run-mode';
 import { setToken } from '@data/auth/token';
-import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
-import { ParticleField } from '@/components/login/planet-orbit';
-import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
-import { PlanetSlot, usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
+import { LoginForm, type LoginFormFields } from '@design/login/login-form';
+import { ParticleField } from '@design/login/planet-orbit';
+import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
+import { PlanetSlot, usePlanet } from '@design/home/SharedPlanetRoot';
 import { getVersionParts } from '@/lib/version';
 import { toNexoraClientError, type NexoraClientError } from '@data/errors/nexora-error';
 

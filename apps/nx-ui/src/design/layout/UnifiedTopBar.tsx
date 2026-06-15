@@ -14,7 +14,7 @@ import {
   Megaphone, Moon, Settings, Sun, User,
 } from 'lucide-react';
 import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@/features/home/home-data';
-import { PlanetSlot } from '@/features/shared-planet/SharedPlanetRoot';
+import { PlanetSlot } from '@design/home/SharedPlanetRoot';
 
 type TopBarProps = {
   displayName: string;

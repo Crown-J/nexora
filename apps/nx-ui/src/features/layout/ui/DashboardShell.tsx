@@ -18,11 +18,11 @@ import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { BusinessTopNav } from '@/features/layout/ui/BusinessTopNav';
 import { DashboardSubNav } from '@/features/layout/ui/DashboardSubNav';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
-import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
-import { PlanetDock } from '@/components/shell/PlanetDock';
-import { ParticleField } from '@/components/login/planet-orbit';
-import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
-import { usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
+import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
+import { PlanetDock } from '@design/layout/PlanetDock';
+import { ParticleField } from '@design/login/planet-orbit';
+import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
+import { usePlanet } from '@design/home/SharedPlanetRoot';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {

@@ -14,9 +14,9 @@
 
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { NxPaletteHydration } from '@/components/theme/NxPaletteHydration';
-import { PwaRegister } from '@/components/pwa-register';
-import { SharedPlanetRoot } from '@/features/shared-planet/SharedPlanetRoot';
+import { NxPaletteHydration } from '@design/theme/NxPaletteHydration';
+import { PwaRegister } from '@design/framework/pwa-register';
+import { SharedPlanetRoot } from '@design/home/SharedPlanetRoot';
 import './globals.css';
 
 const geistSans = Geist({
