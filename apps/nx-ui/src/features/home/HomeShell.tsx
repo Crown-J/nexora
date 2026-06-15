@@ -11,6 +11,7 @@ import { PlanetDock } from '@/components/shell/PlanetDock';
 import { HomeView } from '@/features/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { ParticleField } from '@/components/login/planet-orbit';
+import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
 
 export function HomeShell() {
   const router = useRouter();
@@ -49,8 +50,10 @@ export function HomeShell() {
   const empNo = me?.username ?? '';
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
-      {/* 跟登入畫面一致：滿屏星空 + 多層 + 頂部極光（z-0、不擋互動）*/}
+    <div className="relative flex min-h-screen flex-col text-foreground overflow-hidden">
+      {/* 兩主題底色 backdrop（深色黑+極光 / 淺色灰藍+光暈、即時切隨 html.light）*/}
+      <NxAppBackdrop />
+      {/* 跟登入畫面一致：滿屏星空粒子（z-0、不擋互動）*/}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <ParticleField className="w-full h-full" />
       </div>

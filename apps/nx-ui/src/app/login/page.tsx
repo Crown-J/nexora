@@ -20,6 +20,7 @@ import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
+import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
 import { getVersionParts } from '@/lib/version';
 import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
 
@@ -120,7 +121,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login-shell h-dvh bg-background relative overflow-hidden font-sans lg:h-auto lg:min-h-screen">
+    <main className="login-shell h-dvh relative overflow-hidden font-sans lg:h-auto lg:min-h-screen">
+      {/* 兩主題底色 backdrop（與全 app 一致、跨登入/dashboard 連續） */}
+      <NxAppBackdrop />
       <div className="login-stars absolute inset-0 z-0">
         <ParticleField className="w-full h-full" />
       </div>

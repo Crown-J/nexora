@@ -21,6 +21,7 @@ import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
 import { PlanetDock } from '@/components/shell/PlanetDock';
 import { ParticleField } from '@/components/login/planet-orbit';
+import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {
@@ -151,8 +152,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
         <PageGuideProvider>
-          <div className="relative flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
-            {/* 跟登入/首頁一致：滿屏星空 + 極光 */}
+          <div className="relative flex min-h-screen flex-col text-foreground overflow-hidden">
+            {/* 兩主題底色 backdrop + 滿屏星空粒子（與登入/首頁一致）*/}
+            <NxAppBackdrop />
             <div className="fixed inset-0 z-0 pointer-events-none">
               <ParticleField className="w-full h-full" />
             </div>
