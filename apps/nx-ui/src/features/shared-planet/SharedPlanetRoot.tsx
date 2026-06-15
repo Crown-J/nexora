@@ -27,7 +27,7 @@ const SATS: Sat[] = [
   { a: 4.0, sp: 0.62, rx: 0.66, ry: 0.30, tilt: (132 * Math.PI) / 180 },
 ];
 
-function Satellites({ active }: { active: boolean }) {
+function Satellites({ active, planetRef }: { active: boolean; planetRef: React.RefObject<HTMLDivElement | null> }) {
   const r0 = useRef<HTMLDivElement>(null);
   const r1 = useRef<HTMLDivElement>(null);
   const r2 = useRef<HTMLDivElement>(null);
@@ -42,34 +42,92 @@ function Satellites({ active }: { active: boolean }) {
     }
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const sats: Sat[] = SATS.map((s) => ({ ...s }));
+    // 衛星跨幀位置（unscaled planet 內座標、平滑跟隨）
+    const satPos = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
+    // 滑鼠狀態（viewport 座標）
+    let mX = -9999;
+    let mY = -9999;
+    let mActive = false;
+    const onPointerMove = (e: PointerEvent) => {
+      mX = e.clientX;
+      mY = e.clientY;
+      mActive = true;
+    };
+    const onPointerLeave = () => { mActive = false; };
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerleave', onPointerLeave);
+
     let last = performance.now();
     let raf = 0;
     const H = 220; // half BASE 440
+    const BASE_W = 440;
     const step = (t: number) => {
-      const dt = Math.min(0.1, (t - last) / 1000);
+      let dt = (t - last) / 1000;
       last = t;
+      if (dt < 0 || dt > 0.1) dt = 0.016;
+
+      // 滑鼠 → planet 內座標（除 planet scale 才能對齊 unscaled satdot translate）
+      const planetRect = planetRef.current?.getBoundingClientRect();
+      let dxm = 0;
+      let dym = 0;
+      let dm = 0;
+      let guarding = false;
+      if (planetRect && planetRect.width > 1 && mActive) {
+        const cx = planetRect.left + planetRect.width / 2;
+        const cy = planetRect.top + planetRect.height / 2;
+        const planetScale = planetRect.width / BASE_W;
+        dxm = (mX - cx) / planetScale;
+        dym = (mY - cy) / planetScale;
+        dm = Math.hypot(dxm, dym);
+        guarding = dm < BASE_W * 0.62;
+      }
+
       sats.forEach((s, i) => {
         if (!reduce) s.a += s.sp * dt;
+        // 基本軌道位置（unscaled、含 tilt 旋轉）
         const ox = Math.cos(s.a) * s.rx * H;
         const oy = Math.sin(s.a) * s.ry * H;
         const ct = Math.cos(s.tilt);
         const st = Math.sin(s.tilt);
-        const x = ox * ct - oy * st;
-        const y = ox * st + oy * ct;
+        const bx = ox * ct - oy * st;
+        const by = ox * st + oy * ct;
+
+        // 守護模式：聚到游標那一側
+        let tX: number;
+        let tY: number;
+        if (guarding) {
+          const ang = Math.atan2(dym, dxm) + (i - 1) * 0.46;
+          const gR = Math.max(H * 0.62, Math.min(dm * 0.66, H * 1.02));
+          tX = Math.cos(ang) * gR;
+          tY = Math.sin(ang) * gR;
+        } else {
+          tX = bx;
+          tY = by;
+        }
+
+        // 平滑跟隨（守護模式更快）
+        const k = guarding ? 0.16 : 0.085;
+        satPos[i].x += (tX - satPos[i].x) * k;
+        satPos[i].y += (tY - satPos[i].y) * k;
+
         const depth = Math.sin(s.a);
-        const sc = 0.8 + 0.32 * (depth * 0.5 + 0.5);
-        const op = 0.55 + 0.45 * (depth * 0.5 + 0.5);
+        const sc = guarding ? 1.16 : (0.8 + 0.32 * (depth * 0.5 + 0.5));
+        const op = guarding ? 1 : (0.55 + 0.45 * (depth * 0.5 + 0.5));
         const el = refs[i].current;
         if (el) {
-          el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(2)})`;
+          el.style.transform = `translate(${satPos[i].x.toFixed(1)}px, ${satPos[i].y.toFixed(1)}px) scale(${sc.toFixed(2)})`;
           el.style.opacity = op.toFixed(2);
-          el.style.zIndex = depth >= 0 ? '6' : '1';
+          el.style.zIndex = (guarding || depth >= 0) ? '6' : '1';
         }
       });
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerleave', onPointerLeave);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
 
@@ -378,13 +436,18 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           pointer-events: none;
           will-change: transform;
         }
+        /* 修正：原 inset:0 + translate(-50%,-50%) keyframe 撞、halo 被推到左上角。
+           改回 left/top 50% + width/height 62% 的 Hana .halo-outer 範式、translate 才會正確置中。
+           移除 blur(4px) + 降飽和 (.32 -> .22)、避免一坨過亮金暈淹掉 hex 紋理。 */
         .nx-sp-halo {
           position: absolute;
-          inset: 0;
+          left: 50%;
+          top: 50%;
+          width: 62%;
+          height: 62%;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(244,180,0,.32) 0%, rgba(244,180,0,.06) 36%, rgba(0,0,0,0) 62%);
+          background: radial-gradient(circle, rgba(244,170,40,.22), rgba(244,170,40,.06) 44%, transparent 68%);
           animation: nx-sp-breathe 5.6s ease-in-out infinite;
-          filter: blur(4px);
         }
         .nx-sp-sphere {
           position: absolute;
@@ -457,8 +520,8 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           <div className="nx-sp-spec" />
         </div>
         <div className="nx-sp-reactor" />
-        {/* 三顆守護衛星（只在 login slot 時顯示）*/}
-        <Satellites active={currentSlot === 'login'} />
+        {/* 三顆守護衛星（只在 login slot 時顯示、滑鼠靠近時聚到游標側）*/}
+        <Satellites active={currentSlot === 'login'} planetRef={planetRef} />
       </div>
       {children}
     </Ctx.Provider>
