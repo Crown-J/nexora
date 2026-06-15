@@ -82,6 +82,8 @@ function LoginVersionFooter() {
 export default function LoginPage() {
   const router = useRouter();
   const [view, setView] = useState<LoginViewState>({ isSubmitting: false, errorMsg: null });
+  // 轉場 leaving 旗：登入成功後 500ms fade-out 再 router.replace（對齊 Hana 登入飛入轉場、簡化版）
+  const [isLeaving, setIsLeaving] = useState(false);
 
   async function onSubmit(e: FormEvent, rawFields: LoginFormFields) {
     e.preventDefault();
@@ -112,7 +114,10 @@ export default function LoginPage() {
         }));
       }
       setToken(result.token);
-      router.replace('/dashboard');
+      // 觸發 leaving fade-out、500ms 後跳 dashboard（HomeShell mount 會 fade-in）
+      setIsLeaving(true);
+      setTimeout(() => router.replace('/dashboard'), 500);
+      return;
     } catch (e: unknown) {
       setView((prev) => ({ ...prev, errorMsg: getError(e) }));
     } finally {
@@ -121,7 +126,11 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="login-shell h-dvh relative overflow-hidden font-sans lg:h-auto lg:min-h-screen">
+    <main
+      className={`login-shell h-dvh relative overflow-hidden font-sans lg:h-auto lg:min-h-screen transition-all duration-500 ease-out ${
+        isLeaving ? 'opacity-0 scale-[0.96]' : 'opacity-100 scale-100'
+      }`}
+    >
       {/* 兩主題底色 backdrop（與全 app 一致、跨登入/dashboard 連續） */}
       <NxAppBackdrop />
       <div className="login-stars absolute inset-0 z-0">

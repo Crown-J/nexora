@@ -17,6 +17,13 @@ export function HomeShell() {
   const router = useRouter();
   const { me, displayName, logout, view } = useSessionMe();
   const [dockOpen, setDockOpen] = useState(false);
+  // 轉場 leaving 旗：登出時 fade-out 500ms 再真正 logout
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  const handleLogout = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => logout(), 500);
+  }, [logout]);
 
   const toggleDock = useCallback(() => setDockOpen((v) => !v), []);
   const closeDock = useCallback(() => setDockOpen(false), []);
@@ -57,12 +64,16 @@ export function HomeShell() {
       <div className="fixed inset-0 z-0 pointer-events-none">
         <ParticleField className="w-full h-full" />
       </div>
-      {/* 內容層 z-10 */}
-      <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+      {/* 內容層 z-10、mount 時 fade-in / logout 時 fade-out */}
+      <div
+        className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${
+          isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in zoom-in-95 duration-500'
+        }`}
+      >
         <UnifiedTopBar
           displayName={nameText}
           employeeNo={empNo}
-          onLogout={logout}
+          onLogout={handleLogout}
           onDockToggle={toggleDock}
           onHome={() => router.push('/dashboard')}
         />

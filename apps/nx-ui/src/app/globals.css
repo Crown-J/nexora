@@ -1005,3 +1005,12 @@ html.light .nx-topbar .nx-menu :where([class*="border-border"]) {
 html.light .nx-topbar .nx-menu button:hover {
   background: color-mix(in oklch, var(--foreground) 6%, transparent) !important;
 }
+
+/* ============================================================
+   NX00 強調色 token（對齊 Hana gold-bright 範式）
+   - 深色：金黃 #f5c842（amber bright）
+   - 淺色：橙紅 #c8550f（跟 TopBar 橙色 gradient 同色系）
+   首頁 highlight 文字（名字 / 月份 / 金額 chip / 待處理計數）統一吃這個 token
+============================================================ */
+:root { --nx-accent-strong: #f5c842; }
+html.light { --nx-accent-strong: #c8550f; }

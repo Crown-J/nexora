@@ -64,11 +64,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const pathname = usePathname();
   const { me, displayName, logout, view } = useSessionMe();
   const [dockOpen, setDockOpen] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const isSysDashboardHome = pathname === '/dashboard';
   const isMasterShellBypass = pathname != null && MASTER_SHELL_BYPASS_PATHS.has(pathname);
   const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
 
+  const handleLogout = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => logout(), 500);
+  }, [logout]);
   const toggleDock = useCallback(() => setDockOpen((v) => !v), []);
   const closeDock = useCallback(() => setDockOpen(false), []);
 
@@ -158,11 +163,15 @@ export function DashboardShell({ children }: DashboardShellProps) {
             <div className="fixed inset-0 z-0 pointer-events-none">
               <ParticleField className="w-full h-full" />
             </div>
-            <div className="relative z-10 flex flex-1 min-h-0 flex-col">
+            <div
+              className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${
+                isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in zoom-in-95 duration-500'
+              }`}
+            >
               <UnifiedTopBar
                 displayName={nameText}
                 employeeNo={empNo}
-                onLogout={logout}
+                onLogout={handleLogout}
                 onDockToggle={toggleDock}
                 onHome={() => router.push('/dashboard')}
               />

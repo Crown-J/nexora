@@ -264,7 +264,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 >
                   <span
                     className={`absolute top-[1.5px] h-3.5 w-3.5 rounded-full transition ${
-                      light ? 'left-[16px] bg-[var(--color-primary-light,#f5c842)]' : 'left-[1.5px] bg-muted-foreground'
+                      light ? 'left-[16px] bg-[var(--nx-accent-strong)]' : 'left-[1.5px] bg-muted-foreground'
                     }`}
                   />
                 </span>
@@ -304,7 +304,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
             }}
             className="flex items-center gap-2 rounded-xl border border-border/40 px-2 py-1 hover:bg-foreground/[0.06] transition"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-[color-mix(in_srgb,var(--warning)_22%,transparent)] text-[13px] font-semibold text-[var(--color-primary-light,#f5c842)]">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[color-mix(in_srgb,var(--warning)_22%,transparent)] text-[13px] font-semibold text-[var(--nx-accent-strong)]">
               {initial}
             </span>
             <span className="text-left leading-tight">

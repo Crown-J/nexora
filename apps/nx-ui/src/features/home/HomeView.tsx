@@ -159,7 +159,7 @@ function CalendarCoverflow({
                     }}
                     className={`rounded-lg border py-1.5 text-[12.5px] ${
                       on
-                        ? 'border-[var(--warning)] bg-[color-mix(in_srgb,var(--warning)_18%,transparent)] text-[var(--color-primary-light,#f5c842)] font-semibold'
+                        ? 'border-[var(--warning)] bg-[color-mix(in_srgb,var(--warning)_18%,transparent)] text-[var(--nx-accent-strong)] font-semibold'
                         : 'border-border/40 hover:bg-foreground/[0.04]'
                     }`}
                   >
@@ -206,7 +206,7 @@ function CalendarCoverflow({
               <span
                 className={`font-mono leading-none ${
                   isCenter
-                    ? 'text-[36px] font-semibold text-[var(--color-primary-light,#f5c842)]'
+                    ? 'text-[36px] font-semibold text-[var(--nx-accent-strong)]'
                     : 'text-[30px] font-semibold text-foreground'
                 }`}
               >
@@ -224,7 +224,7 @@ function CalendarCoverflow({
                 <span className="text-[10.5px] text-muted-foreground/50">無行程</span>
               )}
               {isToday && (
-                <span className="rounded-full border border-[color-mix(in_srgb,var(--warning)_50%,transparent)] px-1.5 py-px text-[9px] font-bold tracking-[0.1em] text-[var(--color-primary-light,#f5c842)]">
+                <span className="rounded-full border border-[color-mix(in_srgb,var(--warning)_50%,transparent)] px-1.5 py-px text-[9px] font-bold tracking-[0.1em] text-[var(--nx-accent-strong)]">
                   今天
                 </span>
               )}
@@ -315,7 +315,7 @@ function EventBookAndAttendance({ focusKey }: { focusKey: string }) {
             const s = ATTEND_STATUS[a.status];
             return (
               <div key={a.name} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-foreground/[0.04]">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-[color-mix(in_srgb,var(--warning)_18%,transparent)] text-[12px] font-semibold text-[var(--color-primary-light,#f5c842)]">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-[color-mix(in_srgb,var(--warning)_18%,transparent)] text-[12px] font-semibold text-[var(--nx-accent-strong)]">
                   {a.name.slice(0, 1)}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -372,7 +372,7 @@ function TasksPanel() {
   return (
     <section className="flex flex-col min-h-0 rounded-2xl border border-border/40 bg-card/60 backdrop-blur-md">
       <div className="flex items-center gap-2.5 border-b border-border/30 px-4 py-4">
-        <FileText className="h-4 w-4 text-[var(--color-primary-light,#f5c842)]" />
+        <FileText className="h-4 w-4 text-[var(--nx-accent-strong)]" />
         <span className="text-[14px] font-semibold">任務</span>
         <span className="ml-auto font-mono text-[11.5px] text-muted-foreground">{pending} 筆待處理</span>
       </div>
@@ -387,7 +387,7 @@ function TasksPanel() {
               onClick={() => setFilter(k)}
               className={`whitespace-nowrap rounded-full border px-3 py-1 text-[12px] transition ${
                 on
-                  ? 'border-[color-mix(in_srgb,var(--warning)_50%,transparent)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-[var(--color-primary-light,#f5c842)] font-medium'
+                  ? 'border-[color-mix(in_srgb,var(--warning)_50%,transparent)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)] text-[var(--nx-accent-strong)] font-medium'
                   : 'border-border/40 text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -454,7 +454,7 @@ function TasksPanel() {
                         className={`rounded px-1.5 py-0.5 ${
                           t.status === '草稿'
                             ? 'text-muted-foreground bg-foreground/[0.05]'
-                            : 'text-[var(--color-primary-light,#f5c842)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)]'
+                            : 'text-[var(--nx-accent-strong)] bg-[color-mix(in_srgb,var(--warning)_16%,transparent)]'
                         }`}
                       >
                         {t.status}
@@ -500,10 +500,10 @@ export function HomeView({ displayName }: { displayName: string }) {
     <div className="mx-auto w-full max-w-[1320px] flex flex-1 min-h-0 flex-col gap-3.5 p-4 lg:p-6">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <h1 className="text-[27px] font-semibold tracking-tight m-0">
-          {greet}，<span className="text-[var(--color-primary-light,#f5c842)]">{displayName}</span>
+          {greet}，<span className="text-[var(--nx-accent-strong)]">{displayName}</span>
         </h1>
         <div className="text-[14px] text-muted-foreground">
-          今天還有 <span className="font-semibold text-[var(--color-primary-light,#f5c842)]">{TASKS.filter((t) => !t.done && cmpKey(t.due, TODAY.key) <= 0).length}</span> 筆待處理單據
+          今天還有 <span className="font-semibold text-[var(--nx-accent-strong)]">{TASKS.filter((t) => !t.done && cmpKey(t.due, TODAY.key) <= 0).length}</span> 筆待處理單據
         </div>
       </div>
       <div className="grid flex-1 min-h-0 grid-cols-1 gap-4 lg:grid-cols-[1.72fr_1fr]">
