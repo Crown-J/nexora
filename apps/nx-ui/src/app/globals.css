@@ -951,3 +951,57 @@ html.light select {
     color: rgba(107, 114, 128, 0.66) !important;
   }
 }
+
+/* ============================================================
+   NX00 統一 TopBar 淺色主題（對齊 Hana html.light .topbar 範式）
+   - background：橙色 gradient #e8782a -> #db671a
+   - 內部 7 元件文字 / icon：白色（不含 nx-menu dropdown）
+   - dropdown menu（.nx-menu）：popover 原色反 override、確保可讀
+   - badge：白底橙字
+============================================================ */
+html.light .nx-topbar {
+  background: linear-gradient(180deg, #e8782a, #db671a) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.16) !important;
+  color: #fff;
+}
+html.light .nx-topbar > div {
+  color: #fff;
+}
+html.light .nx-topbar > div :where(.text-foreground, .text-muted-foreground, svg) {
+  color: #fff;
+}
+html.light .nx-topbar > div .text-muted-foreground {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+html.light .nx-topbar > div :where([class*="border-border"]) {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+html.light .nx-topbar > div > div > button:hover,
+html.light .nx-topbar > div > button:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+html.light .nx-topbar > div [class*="bg-[var(--color-danger"] {
+  background: #fff !important;
+  color: #c8550f !important;
+}
+html.light .nx-topbar > div [class*="bg-[color-mix(in_srgb,var(--warning)"] {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #fff !important;
+}
+
+/* dropdown 反 override：popover 標準色（深字、底亮、可讀）*/
+html.light .nx-topbar .nx-menu {
+  color: var(--popover-foreground);
+}
+html.light .nx-topbar .nx-menu :where(.text-foreground, svg) {
+  color: var(--popover-foreground);
+}
+html.light .nx-topbar .nx-menu .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+html.light .nx-topbar .nx-menu :where([class*="border-border"]) {
+  border-color: var(--border) !important;
+}
+html.light .nx-topbar .nx-menu button:hover {
+  background: color-mix(in oklch, var(--foreground) 6%, transparent) !important;
+}

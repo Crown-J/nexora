@@ -93,7 +93,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
     : '—';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/40 bg-[color-mix(in_oklch,var(--card)_72%,transparent)] backdrop-blur-md backdrop-saturate-150">
+    <header className="nx-topbar sticky top-0 z-50 border-b border-border/40 bg-[color-mix(in_oklch,var(--card)_72%,transparent)] backdrop-blur-md backdrop-saturate-150">
       <div className="flex h-14 items-center gap-3 px-4">
         {/* 小星球 Dock 觸發（登入畫面同款大星球縮小 + hex 自轉 + reactor 呼吸 + halo 起伏 + ripple 動畫） */}
         <button
@@ -149,7 +149,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
             )}
           </button>
           {open === 'bull' && (
-            <div className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
+            <div className="nx-menu absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
               <div className="flex items-center gap-2 border-b border-border/30 px-4 py-3 text-xs font-semibold">
                 公告通知
                 <span className="ml-auto font-mono text-[10px] text-[var(--warning)]">未讀 {unreadBull}</span>
@@ -197,7 +197,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
             )}
           </button>
           {open === 'noti' && (
-            <div className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
+            <div className="nx-menu absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
               <div className="flex items-center gap-2 border-b border-border/30 px-4 py-3 text-xs font-semibold">
                 通知 · 待我處理
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">{pendingNoti} 件待處理</span>
@@ -243,7 +243,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
             <Settings className="h-[18px] w-[18px]" />
           </button>
           {open === 'set' && (
-            <div className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
+            <div className="nx-menu absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
               <div className="border-b border-border/30 px-4 py-3 text-xs font-semibold">環境設定</div>
               <button
                 type="button"
@@ -314,7 +314,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
           {open === 'user' && (
-            <div className="absolute right-0 top-12 w-52 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_94%,transparent)] backdrop-blur-xl shadow-2xl p-1.5">
+            <div className="nx-menu absolute right-0 top-12 w-52 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_94%,transparent)] backdrop-blur-xl shadow-2xl p-1.5">
               <button
                 type="button"
                 onClick={() => {
