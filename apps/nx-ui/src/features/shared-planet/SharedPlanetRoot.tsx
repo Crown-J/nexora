@@ -17,6 +17,70 @@ import { usePathname } from 'next/navigation';
 // 支援同 id 多 element（LoginPage mobile + desktop 兩處都用 login slot、依 viewport 顯示一個）
 type SlotMap = Record<string, HTMLElement[]>;
 type PlanetMode = 'idle' | 'flight';
+type CurrentSlot = 'login' | 'topbar';
+
+// 三顆守護衛星（對齊 Hana 規格 §Planet 衛星段、Hana NEXORA 系統.html sats）
+type Sat = { a: number; sp: number; rx: number; ry: number; tilt: number };
+const SATS: Sat[] = [
+  { a: 0.0, sp: 0.55, rx: 0.66, ry: 0.30, tilt: (18 * Math.PI) / 180 },
+  { a: 2.1, sp: -0.46, rx: 0.66, ry: 0.30, tilt: (78 * Math.PI) / 180 },
+  { a: 4.0, sp: 0.62, rx: 0.66, ry: 0.30, tilt: (132 * Math.PI) / 180 },
+];
+
+function Satellites({ active }: { active: boolean }) {
+  const r0 = useRef<HTMLDivElement>(null);
+  const r1 = useRef<HTMLDivElement>(null);
+  const r2 = useRef<HTMLDivElement>(null);
+  const refs = [r0, r1, r2];
+
+  useEffect(() => {
+    if (!active || typeof window === 'undefined') {
+      refs.forEach((r) => {
+        if (r.current) r.current.style.opacity = '0';
+      });
+      return;
+    }
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const sats: Sat[] = SATS.map((s) => ({ ...s }));
+    let last = performance.now();
+    let raf = 0;
+    const H = 220; // half BASE 440
+    const step = (t: number) => {
+      const dt = Math.min(0.1, (t - last) / 1000);
+      last = t;
+      sats.forEach((s, i) => {
+        if (!reduce) s.a += s.sp * dt;
+        const ox = Math.cos(s.a) * s.rx * H;
+        const oy = Math.sin(s.a) * s.ry * H;
+        const ct = Math.cos(s.tilt);
+        const st = Math.sin(s.tilt);
+        const x = ox * ct - oy * st;
+        const y = ox * st + oy * ct;
+        const depth = Math.sin(s.a);
+        const sc = 0.8 + 0.32 * (depth * 0.5 + 0.5);
+        const op = 0.55 + 0.45 * (depth * 0.5 + 0.5);
+        const el = refs[i].current;
+        if (el) {
+          el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${sc.toFixed(2)})`;
+          el.style.opacity = op.toFixed(2);
+          el.style.zIndex = depth >= 0 ? '6' : '1';
+        }
+      });
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  return (
+    <>
+      <div ref={r0} className="nx-sp-satdot" style={{ opacity: 0 }} />
+      <div ref={r1} className="nx-sp-satdot" style={{ opacity: 0 }} />
+      <div ref={r2} className="nx-sp-satdot" style={{ opacity: 0 }} />
+    </>
+  );
+}
 
 type PlanetCtx = {
   registerSlot: (id: string, el: HTMLElement | null) => () => void;
@@ -188,6 +252,8 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
   const modeRef = useRef<PlanetMode>('idle');
   const [, forceRender] = useState(0);
   const tick = useCallback(() => forceRender((v) => v + 1), []);
+  // 當前目標 slot（衛星僅在 'login' 時顯示）
+  const currentSlot: CurrentSlot = pathname === '/login' ? 'login' : 'topbar';
 
   const registerSlot = useCallback((id: string, el: HTMLElement | null): (() => void) => {
     if (!el) return () => {};
@@ -365,6 +431,21 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           box-shadow: 0 0 22px 4px rgba(244,170,40,.6);
           animation: nx-sp-breathe-core 3.8s ease-in-out infinite;
         }
+        /* 三顆守護衛星樣式 */
+        .nx-sp-satdot {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 17px;
+          height: 17px;
+          margin: -8.5px 0 0 -8.5px;
+          border-radius: 50%;
+          pointer-events: none;
+          will-change: transform, opacity;
+          background: radial-gradient(circle at 38% 36%, #ffffff, #dfe4ec 46%, #9aa2af 100%);
+          box-shadow: 0 0 10px 2px rgba(222,232,246,.9), 0 0 22px 5px rgba(180,200,232,.42);
+          transition: opacity .4s ease;
+        }
         @media (prefers-reduced-motion: reduce) {
           .nx-sp-halo, .nx-sp-reactor { animation: none; }
         }
@@ -376,6 +457,8 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
           <div className="nx-sp-spec" />
         </div>
         <div className="nx-sp-reactor" />
+        {/* 三顆守護衛星（只在 login slot 時顯示）*/}
+        <Satellites active={currentSlot === 'login'} />
       </div>
       {children}
     </Ctx.Provider>

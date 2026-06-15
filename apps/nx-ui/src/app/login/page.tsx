@@ -186,8 +186,8 @@ export default function LoginPage() {
         </div>
 
         <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative flex-col items-center justify-center">
-          {/* Desktop：星球佔位 */}
-          <div className="relative z-10 w-80 h-80 xl:w-[420px] xl:h-[420px]">
+          {/* Desktop：星球佔位（對齊 Hana 截圖比例 ~25% viewport、縮小至 280-320px）*/}
+          <div className="relative z-10 w-72 h-72 xl:w-[320px] xl:h-[320px]">
             <PlanetSlot id="login" className="absolute inset-0" />
           </div>
 
