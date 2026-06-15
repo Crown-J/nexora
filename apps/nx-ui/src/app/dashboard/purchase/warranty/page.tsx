@@ -12,7 +12,7 @@ import {
   startReviewWarrantyClaim,
   submitWarrantyClaim,
   voidWarrantyClaim,
-} from '@/features/nx03/warranty-claim/api/warranty-claim';
+} from '@data/endpoints/nx03/warranty-claim/api/warranty-claim';
 import {
   CLAIM_RESULT_LABEL,
   CLAIM_STATUS_LABEL,
@@ -204,7 +204,7 @@ export default function WarrantyClaimListPage() {
     try {
       let cost = partCostCache[partId];
       if (cost == null) {
-        const { getPart } = await import('@/features/shared/master/part/api/part');
+        const { getPart } = await import('@data/endpoints/shared/master/part/api/part');
         const part = await getPart(partId);
         cost = Number(part.cost ?? 0);
         setPartCostCache((s) => ({ ...s, [partId]: cost }));

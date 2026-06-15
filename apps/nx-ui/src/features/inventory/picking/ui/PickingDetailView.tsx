@@ -19,7 +19,7 @@ import {
   patchPkItem,
   type PkDetail,
   type PkItem,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 const ITEM_STATUS_LABEL: Record<'P' | 'C' | 'M', string> = {
   P: '待撿',

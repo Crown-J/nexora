@@ -14,7 +14,7 @@ import {
   listEngine,
   softDeleteEngine,
   updateEngine,
-} from '../api/engine';
+} from '@data/endpoints/base/engine/api/engine';
 import {
   ASPIRATION_TYPE_OPTIONS,
   FUEL_TYPE_OPTIONS,

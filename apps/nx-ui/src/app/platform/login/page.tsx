@@ -13,9 +13,9 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
-import { setToken } from '@/features/auth/token';
-import { PlatformApiError } from '@/features/platform/api/client';
-import { platformLogin } from '@/features/platform/auth/api';
+import { setToken } from '@data/auth/token';
+import { PlatformApiError } from '@data/endpoints/platform/api/client';
+import { platformLogin } from '@data/endpoints/platform/auth/api';
 
 type LoginViewState = {
   isSubmitting: boolean;

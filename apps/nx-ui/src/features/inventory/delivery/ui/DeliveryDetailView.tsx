@@ -22,7 +22,7 @@ import {
   type ReturnPickup,
   type ReturnPickupStatus,
   type SignaturePayload,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 type DnKind = 'DELIVERY' | 'RETURN_PICKUP';
 

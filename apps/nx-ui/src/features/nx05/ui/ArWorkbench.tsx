@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Bell, Coins, History, Percent, RefreshCw, Search } from 'lucide-react';
 
-import { listAr, notifyArOverdue, type ArRow } from '@/features/nx05/api';
+import { listAr, notifyArOverdue, type ArRow } from '@data/endpoints/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 import { AllowanceCreateDialog } from './AllowanceCreateDialog';

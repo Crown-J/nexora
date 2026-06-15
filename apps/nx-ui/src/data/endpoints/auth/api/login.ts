@@ -3,13 +3,13 @@ import {
   NEXORA_DEMO_ACCESS_TOKEN,
   NEXORA_DEMO_LOGIN_PASSWORD,
   NEXORA_DEMO_LOGIN_USERNAME,
-} from '@/features/auth/constants';
+} from '@data/auth/constants';
 import {
   setDemoSessionTenantCode,
   setDemoSessionUsername,
-} from '@/features/auth/demo-session';
-import { isNexoraDemoMode } from '@/features/auth/run-mode';
-import type { LoginRequest, LoginResponse } from '@/features/auth/types';
+} from '@data/auth/demo-session';
+import { isNexoraDemoMode } from '@data/auth/run-mode';
+import type { LoginRequest, LoginResponse } from '@data/types/auth';
 
 /**
  * @CODE nxui_master_auth_login_callapi_004

@@ -10,7 +10,7 @@ import {
   listPartnerContacts,
   updatePartnerContact,
   type PartnerContactRow,
-} from './partner-contact-api';
+} from '@data/endpoints/shared/partner-contact/partner-contact-api';
 
 const btnPrimary =
   'rounded-md border border-[#22D88F]/40 bg-[#22D88F]/10 px-3 py-1.5 text-xs font-medium text-[#22D88F] hover:bg-[#22D88F]/20 disabled:opacity-50';

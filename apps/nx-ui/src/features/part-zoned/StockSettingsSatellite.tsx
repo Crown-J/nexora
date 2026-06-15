@@ -18,13 +18,13 @@ import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
 import { apiJson } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
-import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
 import {
   createPartStockSetting,
   listPartStockSettingByPart,
   updatePartStockSetting,
   type PartStockSettingDto,
-} from '@/features/base/api/partStockSetting';
+} from '@data/endpoints/base/api/partStockSetting';
 
 type LocationLite = {
   id: string;

@@ -15,7 +15,7 @@ import {
   deleteUserPhoto,
   uploadUserPhoto,
   userPhotoRawPath,
-} from './user-photo-api';
+} from '@data/endpoints/shared/user-photo/user-photo-api';
 
 const btnPrimary =
   'rounded-md border border-[#22D88F]/40 bg-[#22D88F]/10 px-3 py-1.5 text-xs font-medium text-[#22D88F] hover:bg-[#22D88F]/20 disabled:opacity-50';

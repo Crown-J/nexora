@@ -14,7 +14,7 @@ import {
   removeDisposalItem,
   updateDisposal,
   voidDisposal,
-} from '../api/disposal';
+} from '@data/endpoints/inventory/disposal/api/disposal';
 import {
   type CreateDisposalItemPayload,
   type Disposal,

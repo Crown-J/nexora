@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
-import { getPr, patchPrDisposition, postPr, voidPr } from '../../api/pr';
+import { getPr, patchPrDisposition, postPr, voidPr } from '@data/endpoints/nx02/api/pr';
 import type { PrDetailDto } from '@data/types/nx02';
 import { prStatusLabel } from '../../shared/nx01-labels';
 

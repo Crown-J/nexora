@@ -6,7 +6,7 @@
 // - 失敗時不做 demo mode 短路、直接拋錯
 // - 401 統一視為「平台 session 失效」、由上層 platform layout 統一處理
 
-import { getToken } from '@/features/auth/token';
+import { getToken } from '@data/auth/token';
 
 function getBaseUrl(): string {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;

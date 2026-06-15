@@ -17,7 +17,7 @@ import {
   patchStockTakeItems,
   postStockTake,
   voidStockTake,
-} from '../api/stock-take';
+} from '@data/endpoints/nx03/stock-take/api/stock-take';
 import type { StockTakeDetailDto, StockTakeItemDto } from '@data/types/nx03/stock-take';
 
 export type LineDraft = StockTakeItemDto & {

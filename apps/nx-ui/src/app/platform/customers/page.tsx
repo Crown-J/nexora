@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { listTenants, type ListTenantsResponse, type TenantSummary } from '@/features/platform/tenants/api';
+import { listTenants, type ListTenantsResponse, type TenantSummary } from '@data/endpoints/platform/tenants/api';
 
 export default function PlatformCustomersPage() {
   const [data, setData] = useState<ListTenantsResponse | null>(null);

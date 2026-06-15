@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createDisposal, listDisposal } from '../api/disposal';
+import { createDisposal, listDisposal } from '@data/endpoints/inventory/disposal/api/disposal';
 import {
   type CreateDisposalPayload,
   type Disposal,

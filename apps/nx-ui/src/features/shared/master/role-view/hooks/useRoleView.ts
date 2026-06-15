@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllPages } from '@data/api/fetchAllPages';
-import { listRole } from '@/features/shared/master/role/api/role';
+import { listRole } from '@data/endpoints/shared/master/role/api/role';
 import type { RoleDto } from '@data/types/shared/master/role';
 
 import {
@@ -22,7 +22,7 @@ import {
   listView,
   upsertRoleView,
   type UpsertRoleViewItem,
-} from '@/features/shared/master/role-view/api/role-view';
+} from '@data/endpoints/shared/master/role-view/api/role-view';
 import type {
   PermKey,
   Perms,

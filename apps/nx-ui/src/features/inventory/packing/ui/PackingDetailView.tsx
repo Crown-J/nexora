@@ -18,7 +18,7 @@ import {
   patchPl,
   type Parcel,
   type PlDetail,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 export function PackingDetailView({ id }: { id: string }) {
   const [doc, setDoc] = useState<PlDetail | null>(null);

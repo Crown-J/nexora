@@ -25,7 +25,7 @@ import {
   listInbounds,
   type Inbound,
   type InboundStatus,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 

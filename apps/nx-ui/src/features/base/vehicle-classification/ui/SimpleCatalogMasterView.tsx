@@ -14,7 +14,7 @@ import {
   softDeleteSimpleCatalog,
   updateSimpleCatalog,
   type SimpleCatalogVariant,
-} from '../api/simple-catalog';
+} from '@data/endpoints/base/vehicle-classification/api/simple-catalog';
 import type { SimpleCatalogDto } from '@data/types/base/vehicle-classification';
 
 type Draft = {

@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createStockTake, listStockTake } from '../api/stocktake';
+import { createStockTake, listStockTake } from '@data/endpoints/inventory/stocktake/api/stocktake';
 import type { CreateStockTakePayload, StockTake, StockTakeStatus } from '@data/types/inventory/stocktake';
 
 const STATUS_OPTIONS: { value: StockTakeStatus | ''; label: string }[] = [

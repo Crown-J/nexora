@@ -19,7 +19,7 @@ import {
   type DnStatus,
   type ReturnPickup,
   type ReturnPickupStatus,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 type DnKindFilter = 'DELIVERY' | 'RETURN_PICKUP';
 

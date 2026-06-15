@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createSo, listSo } from '../api/so';
+import { createSo, listSo } from '@data/endpoints/sale/so/api/so';
 import { SALES_METHOD_OPTIONS, type CreateSoPayload, type So, type SoStatus } from '@data/types/sale/so';
 import { SO_STATUSES, SO_STATUS_LABEL } from '@data/types/sale/so';
 import { SO_HEADER_STATUS_BADGE_CLASS } from '../utils';

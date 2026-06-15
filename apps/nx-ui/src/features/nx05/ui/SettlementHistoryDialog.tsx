@@ -14,7 +14,7 @@ import {
   listApSettlements,
   listArSettlements,
   type SettlementsResult,
-} from '@/features/nx05/api';
+} from '@data/endpoints/nx05/api';
 
 import { fmtDate, fmtMoney, StatCard, StatusBadge } from './common';
 

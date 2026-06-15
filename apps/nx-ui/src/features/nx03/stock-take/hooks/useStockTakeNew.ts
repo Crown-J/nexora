@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { createStockTake } from '../api/stock-take';
+import { createStockTake } from '@data/endpoints/nx03/stock-take/api/stock-take';
 
 function utcTodayYmd(): string {
   const n = new Date();

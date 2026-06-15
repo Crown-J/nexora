@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { ScopePicker } from '@/features/sale/promotion/ui/ScopePicker';
 
-import { getBundle, replaceBundleItems, updateBundle, voidBundle } from '../api/bundle';
+import { getBundle, replaceBundleItems, updateBundle, voidBundle } from '@data/endpoints/sale/bundle/api/bundle';
 import type { Bundle, CreateBundleItemPayload } from '@data/types/sale/bundle';
 
 export function BundleDetailView({ id }: { id: string }) {

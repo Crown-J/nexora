@@ -17,7 +17,7 @@ import {
   removeStockTakeItem,
   submitForApproval,
   updateStockTake,
-} from '../api/stocktake';
+} from '@data/endpoints/inventory/stocktake/api/stocktake';
 import type {
   StockTake,
   StockTakeItem,

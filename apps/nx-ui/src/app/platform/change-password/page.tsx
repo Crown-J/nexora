@@ -14,8 +14,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 
-import { PlatformApiError } from '@/features/platform/api/client';
-import { getPlatformMe, platformChangePassword } from '@/features/platform/auth/api';
+import { PlatformApiError } from '@data/endpoints/platform/api/client';
+import { getPlatformMe, platformChangePassword } from '@data/endpoints/platform/auth/api';
 
 type PageState = {
   mustChange: boolean | null; // null = 載入中

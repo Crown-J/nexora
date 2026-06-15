@@ -15,7 +15,7 @@ import {
   listAllowance,
   rejectAllowance,
   type AllowanceRow,
-} from '@/features/nx05/api';
+} from '@data/endpoints/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 import { AllowanceCreateDialog } from './AllowanceCreateDialog';

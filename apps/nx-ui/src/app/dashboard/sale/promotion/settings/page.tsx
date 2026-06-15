@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   getShelfLifeWarningDays,
   setShelfLifeWarningDays,
-} from '@/features/sale/promotion/api/promotion';
+} from '@data/endpoints/sale/promotion/api/promotion';
 
 export default function PromotionSettingsRoute() {
   const [days, setDays] = useState<number | null>(null);

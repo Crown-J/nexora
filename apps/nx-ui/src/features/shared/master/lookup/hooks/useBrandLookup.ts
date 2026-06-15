@@ -9,7 +9,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { listLookupBrand } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupBrand } from '@data/endpoints/shared/master/lookup/api/lookup';
 import { useLookupCache } from '@/features/shared/master/lookup/hooks/useLookupCache';
 import type { SelectOption } from '@data/types/shared/master/lookup';
 

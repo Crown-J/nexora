@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Coins, History, Percent, RefreshCw, Search } from 'lucide-react';
 
-import { getPayableView, type ApRow, type PayableViewRow } from '@/features/nx05/api';
+import { getPayableView, type ApRow, type PayableViewRow } from '@data/endpoints/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 import { AllowanceCreateDialog } from './AllowanceCreateDialog';

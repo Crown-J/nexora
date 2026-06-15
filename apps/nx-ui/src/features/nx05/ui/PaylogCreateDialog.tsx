@@ -17,8 +17,8 @@ import {
   listAr,
   type ApRow,
   type ArRow,
-} from '@/features/nx05/api';
-import { listPartner } from '@/features/shared/master/partner/api/partner';
+} from '@data/endpoints/nx05/api';
+import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import type { PartnerDto } from '@data/types/shared/master/partner';
 
 import { fmtMoney } from './common';

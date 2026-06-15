@@ -23,7 +23,7 @@ import {
   completeReceiving,
   getInbound,
   type InboundDetail,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 import { BarcodeScanner } from '../shared/BarcodeScanner';
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';

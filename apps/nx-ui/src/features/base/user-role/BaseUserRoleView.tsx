@@ -19,9 +19,9 @@ import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
-import { assignUserRole, listUserRoles, revokeUserRole } from '@/features/base/api/user-role';
-import { listRoles, type RoleDto } from '@/features/base/api/role';
-import { listUsers } from '@/features/base/api/user';
+import { assignUserRole, listUserRoles, revokeUserRole } from '@data/endpoints/base/api/user-role';
+import { listRoles, type RoleDto } from '@data/endpoints/base/api/role';
+import { listUsers } from '@data/endpoints/base/api/user';
 import type { BaseRoleMemberRow, BaseRoleRow } from '@/features/base/role/mock-data';
 
 function roleDtoToRow(r: RoleDto): BaseRoleRow {

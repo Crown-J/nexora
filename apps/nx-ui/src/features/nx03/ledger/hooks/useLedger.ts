@@ -16,9 +16,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { parsePositiveInt } from '@/shared/lib/parse';
 
-import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
 import type { WarehouseOption } from '@data/types/nx03/balance';
-import { listLedger } from '../api/ledger';
+import { listLedger } from '@data/endpoints/nx03/ledger/api/ledger';
 import type { LedgerRowDto } from '@data/types/nx03/ledger';
 
 const MAX_RANGE_DAYS = 92;

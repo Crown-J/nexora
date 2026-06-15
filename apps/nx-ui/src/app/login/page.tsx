@@ -15,9 +15,9 @@
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { callLoginApi } from '@/features/auth/api/login';
-import { isNexoraDemoMode } from '@/features/auth/run-mode';
-import { setToken } from '@/features/auth/token';
+import { callLoginApi } from '@data/endpoints/auth/api/login';
+import { isNexoraDemoMode } from '@data/auth/run-mode';
+import { setToken } from '@data/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
 import { ParticleField } from '@/components/login/planet-orbit';
 import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';

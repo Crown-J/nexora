@@ -16,7 +16,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { parsePositiveInt } from '@/shared/lib/parse';
 
-import { listInit } from '../api/init';
+import { listInit } from '@data/endpoints/nx03/init/api/init';
 import type { InitListRowDto } from '@data/types/nx03/init';
 
 /**

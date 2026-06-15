@@ -23,7 +23,7 @@ import {
   getBcgMatrix,
   getDeptPerf,
   getKpiGap,
-} from '@/features/nx08/api';
+} from '@data/endpoints/nx08/api';
 import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {

@@ -11,8 +11,8 @@
  * - 統一錯誤型別 ApiClientError
  */
 
-import { isNexoraDemoMode } from '@/features/auth/run-mode';
-import { getToken } from '@/features/auth/token';
+import { isNexoraDemoMode } from '@data/auth/run-mode';
+import { getToken } from '@data/auth/token';
 import { ApiClientError } from './errors';
 
 export type ApiClientOptions = Omit<RequestInit, 'headers'> & {

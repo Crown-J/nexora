@@ -4,14 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@data/types/shared/master/lookup';
 import { fetchAllPages } from '@data/api/fetchAllPages';
-import { listPartner } from '@/features/shared/master/partner/api/partner';
+import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import type { PartnerDto } from '@data/types/shared/master/partner';
-import { listPartnerAddresses, type PartnerAddressRow } from '@/features/shared/address/partner-address-api';
+import { listPartnerAddresses, type PartnerAddressRow } from '@data/endpoints/shared/address/partner-address-api';
 
-import { getPo, patchPo, patchPoItem, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
+import { getPo, patchPo, patchPoItem, patchPoStatus, poToRr, rejectPo, voidPo } from '@data/endpoints/nx02/api/po';
 import type { PoDetailDto } from '@data/types/nx02';
 import { poStatusLabel } from '../../shared/nx01-labels';
 

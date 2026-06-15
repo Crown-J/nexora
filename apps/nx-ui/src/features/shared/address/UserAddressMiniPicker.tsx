@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { listCities, listDistricts, type CityRow, type DistrictRow } from './address-catalog-api';
+import { listCities, listDistricts, type CityRow, type DistrictRow } from '@data/endpoints/shared/address/address-catalog-api';
 import { fetchCountries, findTaiwanId, isTaiwan, type CountryRow } from './country-helper';
 
 export type UserMiniAddressValue = {

@@ -43,13 +43,13 @@ import {
   setWarehouseActive,
   updateWarehouse,
   type WarehouseDto,
-} from '@/features/base/api/warehouse';
+} from '@data/endpoints/base/api/warehouse';
 import {
   createLocation,
   listLocation,
   setLocationActive,
   updateLocation,
-} from '@/features/shared/master/location/api/location';
+} from '@data/endpoints/shared/master/location/api/location';
 import type { LocationDto } from '@data/types/shared/master/location';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';

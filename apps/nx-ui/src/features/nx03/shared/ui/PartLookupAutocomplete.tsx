@@ -26,7 +26,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
-import { listLookupPart } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupPart } from '@data/endpoints/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@data/types/shared/master/lookup';
 import { cx } from '@/shared/lib/cx';
 

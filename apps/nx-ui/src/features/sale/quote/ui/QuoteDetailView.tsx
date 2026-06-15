@@ -16,7 +16,7 @@ import {
   removeQuoteItem,
   updateQuote,
   voidQuote,
-} from '../api/quote';
+} from '@data/endpoints/sale/quote/api/quote';
 import type {
   CreateQuoteItemPayload,
   Quote,

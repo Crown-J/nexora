@@ -17,7 +17,7 @@ import {
   type CreatePkPayload,
   type Pk,
   type PkStatus,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 const STATUS_OPTIONS: { value: PkStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

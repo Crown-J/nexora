@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { ignoreShortage, listShortage, shortageToRfq } from '../api/shortage';
+import { ignoreShortage, listShortage, shortageToRfq } from '@data/endpoints/nx03/shortage/api/shortage';
 import type { ShortageListResponse } from '@data/types/nx03/shortage';
 
 /**

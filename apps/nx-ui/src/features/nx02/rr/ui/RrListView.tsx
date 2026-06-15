@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
-import { listRr } from '../../api/rr';
+import { listRr } from '@data/endpoints/nx02/api/rr';
 import type { RrListRow } from '@data/types/nx02';
 import { rrStatusLabel } from '../../shared/nx01-labels';
 

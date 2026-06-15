@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { fetchAllPages } from '@data/api/fetchAllPages';
-import { listPartner } from '@/features/shared/master/partner/api/partner';
+import { listPartner } from '@data/endpoints/shared/master/partner/api/partner';
 import type { PartnerDto } from '@data/types/shared/master/partner';
-import { listLookupPart, listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupPart, listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@data/types/shared/master/lookup';
 
-import { createRfq } from '../../api/rfq';
+import { createRfq } from '@data/endpoints/nx02/api/rfq';
 
 type Line = {
   key: string;

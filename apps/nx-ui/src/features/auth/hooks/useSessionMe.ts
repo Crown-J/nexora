@@ -23,18 +23,18 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 
-import { NEXORA_DEMO_ACCESS_TOKEN } from '@/features/auth/constants';
-import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@/features/auth/demo-session';
-import { isNexoraDemoMode } from '@/features/auth/run-mode';
+import { NEXORA_DEMO_ACCESS_TOKEN } from '@data/auth/constants';
+import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@data/auth/demo-session';
+import { isNexoraDemoMode } from '@data/auth/run-mode';
 import {
   demoUserToMeDto,
   getDemoUser,
   isNextPublicDemoMode,
 } from '@data/hooks/useDemoSession';
-import type { MeDto } from '@/features/auth/types';
-import { clearToken, getToken } from '@/features/auth/token';
+import type { MeDto } from '@data/types/auth';
+import { clearToken, getToken } from '@data/auth/token';
 
-export type { MeDto } from '@/features/auth/types';
+export type { MeDto } from '@data/types/auth';
 
 /**
  * 合併 plan_code／planCode，避免 JWT 或閘道只回 camelCase 時前端誤判為非 PLUS。

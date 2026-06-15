@@ -7,8 +7,8 @@
  * 各自呈現對應版面。
  */
 
-import type { MeDto } from '@/features/auth/types';
-import { deriveDemoPlanCodeFromSession } from '@/features/auth/demo-session';
+import type { MeDto } from '@data/types/auth';
+import { deriveDemoPlanCodeFromSession } from '@data/auth/demo-session';
 
 export interface DemoUser {
   id: string;

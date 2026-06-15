@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { createOnboarding, uploadOnboardingLogo, logoStorageKeyToUrl } from '../api';
+import { createOnboarding, uploadOnboardingLogo, logoStorageKeyToUrl } from '@data/endpoints/sys-admin/onboarding/api';
 import type { CreateOnboardingPayload, OnboardingResponse } from '@data/types/sys-admin/onboarding';
 
 const PLAN_OPTIONS = [

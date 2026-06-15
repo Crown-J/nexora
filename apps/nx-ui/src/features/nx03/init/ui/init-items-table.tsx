@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 
-import { listLookupLocation } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupLocation } from '@data/endpoints/shared/master/lookup/api/lookup';
 import { normalizeDecimalStringInput } from '@/shared/lib/normalize-numeric-input';
 
 import type { DraftItem } from '../hooks/useInitDetail';

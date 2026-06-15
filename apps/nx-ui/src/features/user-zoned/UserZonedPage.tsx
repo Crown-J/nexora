@@ -34,8 +34,8 @@ import {
   setUserTeamLeader,
   setUserTeamPrimary,
   type UserTeamDto,
-} from '@/features/base/api/user-team';
-import { listTeams as listTeamsApi, type TeamDto } from '@/features/base/api/team';
+} from '@data/endpoints/base/api/user-team';
+import { listTeams as listTeamsApi, type TeamDto } from '@data/endpoints/base/api/team';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
@@ -61,24 +61,24 @@ import {
   setUserActive,
   updateUser,
   type UserDto,
-} from '@/features/base/api/user';
-import { listRoles, type RoleDto } from '@/features/base/api/role';
+} from '@data/endpoints/base/api/user';
+import { listRoles, type RoleDto } from '@data/endpoints/base/api/role';
 import {
   assignUserRole,
   listUserRoles,
   revokeUserRole,
   setUserRolePrimary,
   type UserRoleDto,
-} from '@/features/base/api/user-role';
+} from '@data/endpoints/base/api/user-role';
 import {
   assignUserWarehouse,
   listUserWarehouses,
   revokeUserWarehouse,
   type UserWarehouseDto,
-} from '@/features/base/api/user-warehouse';
-import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
+} from '@data/endpoints/base/api/user-warehouse';
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
 import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
-import { fetchSeatUsage, type SeatUsage } from '@/features/wizard/api';
+import { fetchSeatUsage, type SeatUsage } from '@data/endpoints/wizard/api';
 
 import { UserFormZoned } from './UserFormZoned';
 import {

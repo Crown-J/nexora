@@ -9,8 +9,8 @@
 
 import {
   NEXORA_DEMO_USERNAME_SESSION_KEY,
-} from '@/features/auth/constants';
-import type { MeDto } from '@/features/auth/types';
+} from '@data/auth/constants';
+import type { MeDto } from '@data/types/auth';
 
 /** 登入時暫存的 tenantCode（sessionStorage），僅供 demo mode 推導 plan code 使用 */
 const DEMO_TENANT_CODE_SESSION_KEY = 'nexora_demo_tenant_code';

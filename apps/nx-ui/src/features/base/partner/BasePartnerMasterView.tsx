@@ -44,8 +44,8 @@ import {
   updatePartner,
   type PartnerDto,
   type PartnerType,
-} from '@/features/base/api/partner';
-import { listCustomerGrades, type CustomerGradeDto } from '@/features/base/api/customer-grade';
+} from '@data/endpoints/base/api/partner';
+import { listCustomerGrades, type CustomerGradeDto } from '@data/endpoints/base/api/customer-grade';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
 import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';

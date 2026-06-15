@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 
 import { cn } from '@/lib/utils';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import type { MeDto } from '@/features/auth/types';
+import type { MeDto } from '@data/types/auth';
 
 import { METRIC_OPTIONS, type MetricOptionDef } from './metric-options.config';
 

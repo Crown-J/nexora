@@ -14,10 +14,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { getInit, patchInit, postInit, voidInit } from '../api/init';
+import { getInit, patchInit, postInit, voidInit } from '@data/endpoints/nx03/init/api/init';
 import type { InitDetailDto, InitItemDto } from '@data/types/nx03/init';
 
-import type { InitItemInput } from '../api/init';
+import type { InitItemInput } from '@data/endpoints/nx03/init/api/init';
 
 export type DraftItem = {
   tempKey: string;

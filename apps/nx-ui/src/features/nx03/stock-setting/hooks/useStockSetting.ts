@@ -19,7 +19,7 @@ import {
   listStockSetting,
   patchStockSetting,
   setStockSettingActive,
-} from '../api/stock-setting';
+} from '@data/endpoints/nx03/stock-setting/api/stock-setting';
 import type { StockSettingRowDto } from '@data/types/nx03/stock-setting';
 
 /**

@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createConversion, listConversion } from '../api/conversion';
+import { createConversion, listConversion } from '@data/endpoints/inventory/conversion/api/conversion';
 import type {
   Conversion,
   ConversionStatus,

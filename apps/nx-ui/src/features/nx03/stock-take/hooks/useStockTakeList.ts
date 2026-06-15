@@ -13,7 +13,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { parsePositiveInt } from '@/shared/lib/parse';
 
-import { listStockTake } from '../api/stock-take';
+import { listStockTake } from '@data/endpoints/nx03/stock-take/api/stock-take';
 import type { StockTakeListRowDto } from '@data/types/nx03/stock-take';
 
 /**

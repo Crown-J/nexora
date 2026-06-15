@@ -9,9 +9,9 @@ import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } 
 import { Label } from '@/components/ui/label';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { FlatMasterView, type FlatFieldDef } from '@/features/base/flat-master/FlatMasterView';
-import { listPart } from '@/features/shared/master/part/api/part';
+import { listPart } from '@data/endpoints/shared/master/part/api/part';
 import type { PartDto } from '@data/types/shared/master/part';
-import { listModel } from '@/features/base/model/api/model';
+import { listModel } from '@data/endpoints/base/model/api/model';
 import type { ModelDto } from '@data/types/base/model';
 
 // 規格 §3.3 Q3=B：fitLevel SmallInt（1=原廠 / 2=副廠等效 / 3=通用替代）

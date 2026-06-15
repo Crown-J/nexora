@@ -8,7 +8,7 @@ import {
   getRfqGreetingTemplate,
   updateRfqGreetingTemplate,
   type RfqGreetingTemplateDto,
-} from '@/features/nx03/rfq-greeting-template/api/rfq-greeting-template';
+} from '@data/endpoints/nx03/rfq-greeting-template/api/rfq-greeting-template';
 import {
   TieredField,
   TieredFormProvider,

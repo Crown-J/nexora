@@ -41,7 +41,7 @@ import {
   setWarehouseActive,
   updateWarehouse,
   type WarehouseDto,
-} from '@/features/base/api/warehouse';
+} from '@data/endpoints/base/api/warehouse';
 
 import { WarehouseFormZoned, type RefOption } from './WarehouseFormZoned';
 import {

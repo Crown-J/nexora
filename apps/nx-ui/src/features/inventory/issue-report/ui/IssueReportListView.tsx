@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createIssueReport, listIssueReport } from '../api/issue-report';
+import { createIssueReport, listIssueReport } from '@data/endpoints/inventory/issue-report/api/issue-report';
 import type {
   CreateIssueReportPayload,
   DispositionType,

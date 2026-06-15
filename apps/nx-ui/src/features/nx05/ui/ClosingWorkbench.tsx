@@ -15,7 +15,7 @@ import {
   previewPeriod401,
   type ClosingRow,
   type Period401Preview,
-} from '@/features/nx05/api';
+} from '@data/endpoints/nx05/api';
 
 import {
   DataTable,

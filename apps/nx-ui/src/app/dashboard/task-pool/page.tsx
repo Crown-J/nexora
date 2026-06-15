@@ -11,7 +11,7 @@ import {
   listTaskPool,
   releaseTask,
   voidTask,
-} from '@/features/nx98/task-pool/api/task-pool';
+} from '@data/endpoints/nx98/task-pool/api/task-pool';
 import {
   CATEGORY_LABEL,
   PRIORITY_LABEL,

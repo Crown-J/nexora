@@ -9,7 +9,7 @@ import { Pencil, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { listCustomerGrade, updateCustomerGrade } from '../api/customer-grade';
+import { listCustomerGrade, updateCustomerGrade } from '@data/endpoints/base/customer-grade/api/customer-grade';
 import type { CustomerGradeDto } from '@data/types/base/customer-grade';
 
 type Draft = {

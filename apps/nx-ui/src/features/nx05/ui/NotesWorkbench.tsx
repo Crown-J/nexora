@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, RefreshCw, Search } from 'lucide-react';
 
-import { listNotes, type NoteRow } from '@/features/nx05/api';
+import { listNotes, type NoteRow } from '@data/endpoints/nx05/api';
 
 import { DataTable, PageHeader, StatCard, StatusBadge, fmtDate, fmtMoney } from './common';
 import { PaylogCreateDialog } from './PaylogCreateDialog';

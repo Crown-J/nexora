@@ -23,7 +23,7 @@ import {
   type ForeignPo,
   type ForeignPoDetail,
   type PurchaseStage,
-} from './api';
+} from '@data/endpoints/purchase/foreign/api';
 
 const STAGES: ReadonlyArray<{
   no: PurchaseStage;

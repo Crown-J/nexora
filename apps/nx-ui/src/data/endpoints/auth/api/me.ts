@@ -12,7 +12,7 @@
  */
 
 import { apiJson } from '@data/api/client';
-import type { MeResponse } from '@/features/auth/types';
+import type { MeResponse } from '@data/types/auth';
 
 /**
  * @CODE nxui_master_auth_me_callapi_001

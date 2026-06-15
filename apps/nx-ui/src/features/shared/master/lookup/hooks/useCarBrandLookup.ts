@@ -6,7 +6,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { listLookupCarBrand } from '@/features/shared/master/lookup/api/lookup';
+import { listLookupCarBrand } from '@data/endpoints/shared/master/lookup/api/lookup';
 import { useLookupCache } from '@/features/shared/master/lookup/hooks/useLookupCache';
 import type { SelectOption } from '@data/types/shared/master/lookup';
 

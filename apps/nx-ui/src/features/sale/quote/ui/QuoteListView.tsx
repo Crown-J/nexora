@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createQuote, listQuote } from '../api/quote';
+import { createQuote, listQuote } from '@data/endpoints/sale/quote/api/quote';
 import type { CreateQuotePayload, Quote, QuoteStatus } from '@data/types/sale/quote';
 import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from '@data/types/sale/quote';
 

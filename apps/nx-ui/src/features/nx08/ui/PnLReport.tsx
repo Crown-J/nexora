@@ -15,7 +15,7 @@ import {
 } from 'recharts';
 
 import { cn } from '@/lib/utils';
-import { getPnL, type PnL } from '@/features/nx08/api';
+import { getPnL, type PnL } from '@data/endpoints/nx08/api';
 import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 
 import {

@@ -27,13 +27,13 @@ import { arrayMove } from '@/shared/lib/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
-import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@/features/base/api/warehouse';
+import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
 import {
   createLocation,
   listLocation,
   setLocationActive,
   updateLocation,
-} from '@/features/shared/master/location/api/location';
+} from '@data/endpoints/shared/master/location/api/location';
 import type { LocationDto } from '@data/types/shared/master/location';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
 

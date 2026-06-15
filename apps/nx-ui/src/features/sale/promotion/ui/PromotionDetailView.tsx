@@ -7,7 +7,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
-import { getPromotion, replacePromotionScopes, updatePromotion, voidPromotion } from '../api/promotion';
+import { getPromotion, replacePromotionScopes, updatePromotion, voidPromotion } from '@data/endpoints/sale/promotion/api/promotion';
 import {
   type CreatePromotionScopePayload,
   type Promotion,

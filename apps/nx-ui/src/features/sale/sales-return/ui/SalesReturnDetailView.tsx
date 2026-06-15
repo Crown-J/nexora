@@ -16,7 +16,7 @@ import {
   removeSrItem,
   updateSr,
   voidSr,
-} from '../api/sales-return';
+} from '@data/endpoints/sale/sales-return/api/sales-return';
 import type {
   CreateSrItemPayload,
   Sr,

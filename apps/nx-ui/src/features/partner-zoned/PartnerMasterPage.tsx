@@ -43,7 +43,7 @@ import {
   listPartner,
   setPartnerActive,
   updatePartner,
-} from '@/features/shared/master/partner/api/partner';
+} from '@data/endpoints/shared/master/partner/api/partner';
 import type { PartnerDto, PartnerType } from '@data/types/shared/master/partner';
 
 import { PartnerFormZoned, type RefOption } from './PartnerFormZoned';

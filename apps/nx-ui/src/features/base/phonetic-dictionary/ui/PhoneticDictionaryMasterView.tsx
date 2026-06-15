@@ -14,7 +14,7 @@ import {
   listPhoneticDictionary,
   softDeletePhoneticDictionary,
   updatePhoneticDictionary,
-} from '../api/phonetic-dictionary';
+} from '@data/endpoints/base/phonetic-dictionary/api/phonetic-dictionary';
 import type { PhoneticDictionaryDto } from '@data/types/base/phonetic-dictionary';
 
 type Draft = {

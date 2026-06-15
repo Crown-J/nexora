@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } 
 import { Label } from '@/components/ui/label';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { FlatMasterView, type FlatFieldDef } from '@/features/base/flat-master/FlatMasterView';
-import { listPart } from '@/features/shared/master/part/api/part';
+import { listPart } from '@data/endpoints/shared/master/part/api/part';
 import type { PartDto } from '@data/types/shared/master/part';
 import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';

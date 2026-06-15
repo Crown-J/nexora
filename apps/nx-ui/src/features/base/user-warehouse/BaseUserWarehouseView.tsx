@@ -19,9 +19,9 @@ import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
-import { assignUserWarehouse, listUserWarehouses, revokeUserWarehouse } from '@/features/base/api/user-warehouse';
-import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';
-import { listUsers } from '@/features/base/api/user';
+import { assignUserWarehouse, listUserWarehouses, revokeUserWarehouse } from '@data/endpoints/base/api/user-warehouse';
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
+import { listUsers } from '@data/endpoints/base/api/user';
 
 type WhMemberRow = { id: string; userId: string; userAccount: string | null; userDisplayName: string | null };
 

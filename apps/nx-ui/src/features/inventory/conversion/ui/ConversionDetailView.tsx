@@ -13,7 +13,7 @@ import {
   getConversion,
   softDeleteConversion,
   updateConversion,
-} from '../api/conversion';
+} from '@data/endpoints/inventory/conversion/api/conversion';
 import type { Conversion, ConversionInput, ConversionOutput } from '@data/types/inventory/conversion';
 import { CV_STATUS_LABEL, CV_TYPE_LABEL } from './ConversionListView';
 

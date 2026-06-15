@@ -13,7 +13,7 @@ import {
   listTransmission,
   softDeleteTransmission,
   updateTransmission,
-} from '../api/transmission';
+} from '@data/endpoints/base/vehicle-classification/api/transmission';
 import {
   TRANSMISSION_TYPE_OPTIONS,
   transmissionTypeLabel,

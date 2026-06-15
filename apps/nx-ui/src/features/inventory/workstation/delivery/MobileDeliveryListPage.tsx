@@ -22,7 +22,7 @@ import { Building2, RefreshCw, Truck } from 'lucide-react';
 
 import { cx } from '@/shared/lib/cx';
 
-import { listDns, patchDn, type Dn, type DnStatus } from '@/features/inventory/workstation/api';
+import { listDns, patchDn, type Dn, type DnStatus } from '@data/endpoints/inventory/workstation/api';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 

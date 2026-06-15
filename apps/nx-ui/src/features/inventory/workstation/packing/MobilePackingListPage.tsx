@@ -23,7 +23,7 @@ import {
   listPls,
   type Pl,
   type PlStatus,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 

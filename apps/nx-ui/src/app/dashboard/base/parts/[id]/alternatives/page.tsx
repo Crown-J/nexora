@@ -11,7 +11,7 @@ import Link from 'next/link';
 import {
   fetchPartAlternatives,
   type PartAlternativesResponse,
-} from '@/features/shared/part-compat/part-alternatives-api';
+} from '@data/endpoints/shared/part-compat/part-alternatives-api';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

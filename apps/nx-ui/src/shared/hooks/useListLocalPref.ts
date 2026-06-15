@@ -12,7 +12,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getToken } from '@/features/auth/token';
+import { getToken } from '@data/auth/token';
 import { decodeJwtSub } from '@data/utils/jwt';
 
 function getLS(key: string) {

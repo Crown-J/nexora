@@ -6,8 +6,8 @@
 import Link from 'next/link';
 import { use, useEffect, useState } from 'react';
 
-import { getTenant, type TenantDetail } from '@/features/platform/tenants/api';
-import { logoStorageKeyToUrl } from '@/features/sys-admin/onboarding/api';
+import { getTenant, type TenantDetail } from '@data/endpoints/platform/tenants/api';
+import { logoStorageKeyToUrl } from '@data/endpoints/sys-admin/onboarding/api';
 
 type PageProps = {
   params: Promise<{ id: string }>;

@@ -16,7 +16,7 @@ import {
   getIssueReport,
   reportIssueReport,
   updateIssueReport,
-} from '../api/issue-report';
+} from '@data/endpoints/inventory/issue-report/api/issue-report';
 import type {
   DispositionType,
   IssueReport,

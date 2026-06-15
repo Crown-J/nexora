@@ -10,7 +10,7 @@ import {
   listGradeHistory,
   rejectGradeChange,
   requestGradeChange,
-} from '../api/partner-grade-history';
+} from '@data/endpoints/sale/partner-grade-history/api/partner-grade-history';
 import type {
   CreateGradeChangeRequestPayload,
   PartnerGradeHistoryRow,

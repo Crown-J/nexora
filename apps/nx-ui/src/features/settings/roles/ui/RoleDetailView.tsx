@@ -12,7 +12,7 @@ import {
   listPermissionCatalog,
   setRolePermissions,
   updateRole,
-} from '../api';
+} from '@data/endpoints/settings/roles/api';
 import type { PermissionCatalogItem, Role, RolePermissionsResponse } from '@data/types/settings/roles';
 import { MODULE_LABEL, MODULE_ORDER } from '@data/types/settings/roles';
 

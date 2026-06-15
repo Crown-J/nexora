@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { ScopePicker } from '@/features/sale/promotion/ui/ScopePicker';
 
-import { createBundle, listBundle } from '../api/bundle';
+import { createBundle, listBundle } from '@data/endpoints/sale/bundle/api/bundle';
 import type { Bundle, CreateBundleItemPayload, CreateBundlePayload } from '@data/types/sale/bundle';
 
 function todayYmd(offsetDays = 0): string {

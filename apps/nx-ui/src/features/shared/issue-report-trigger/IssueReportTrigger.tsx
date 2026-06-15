@@ -14,7 +14,7 @@
 
 import { useState } from 'react';
 
-import { createIssueReport } from './api';
+import { createIssueReport } from '@data/endpoints/shared/issue-report-trigger/api';
 import type { CreateIssueReportPayload, IssueType, DispositionType, SourceDocType } from '@data/types/shared/issue-report-trigger';
 import {
   DISPOSITION_TYPE_LABEL,

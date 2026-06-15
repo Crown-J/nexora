@@ -19,7 +19,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { UserPlus, AlertCircle, KeyRound } from 'lucide-react';
-import { createUser, type UserDto } from '@/features/base/api/user';
+import { createUser, type UserDto } from '@data/endpoints/base/api/user';
 import { FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
 import { cn } from '@/lib/utils';
 

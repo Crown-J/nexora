@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createRole, deleteRole, listRoles, updateRole } from '../api';
+import { createRole, deleteRole, listRoles, updateRole } from '@data/endpoints/settings/roles/api';
 import type { CreateRolePayload, Role } from '@data/types/settings/roles';
 
 export function RolesListView() {

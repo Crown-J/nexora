@@ -39,7 +39,7 @@ import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
-import { createRole, getRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@/features/base/api/role';
+import { createRole, getRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@data/endpoints/base/api/role';
 import type { BaseRoleRow } from './mock-data';
 import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
 import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';

@@ -17,7 +17,7 @@ import {
   setPartPhotoSortNo,
   uploadPartPhoto,
   type PartPhotoRow,
-} from './part-photo-api';
+} from '@data/endpoints/shared/part-photo/part-photo-api';
 
 const MAX_PHOTOS = 5;
 

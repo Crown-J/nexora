@@ -15,9 +15,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { getPlatformMe, type PlatformMe } from '@/features/platform/auth/api';
-import { PlatformApiError } from '@/features/platform/api/client';
-import { clearToken } from '@/features/auth/token';
+import { getPlatformMe, type PlatformMe } from '@data/endpoints/platform/auth/api';
+import { PlatformApiError } from '@data/endpoints/platform/api/client';
+import { clearToken } from '@data/auth/token';
 
 const NAV_ITEMS: Array<{ href: string; label: string }> = [
   { href: '/platform', label: 'Hub' },

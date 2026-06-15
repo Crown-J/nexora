@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { listParts } from '@/features/base/api/part';
-import type { PartDto } from '@/features/base/api/part';
+import { listParts } from '@data/endpoints/base/api/part';
+import type { PartDto } from '@data/endpoints/base/api/part';
 
 import {
   addGroupMember,
@@ -20,7 +20,7 @@ import {
   updateGroupMember,
   type CompatMemberRow,
   type CompatRole,
-} from './part-compat-group-api';
+} from '@data/endpoints/shared/part-compat/part-compat-group-api';
 
 const btnPrimary =
   'rounded-md border border-[#22D88F]/40 bg-[#22D88F]/10 px-3 py-1.5 text-xs font-medium text-[#22D88F] hover:bg-[#22D88F]/20 disabled:opacity-50';

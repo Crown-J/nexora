@@ -14,7 +14,7 @@ import {
   listModel,
   softDeleteModel,
   updateModel,
-} from '../api/model';
+} from '@data/endpoints/base/model/api/model';
 import { formatYearRange, type ModelDto } from '@data/types/base/model';
 
 type Draft = {

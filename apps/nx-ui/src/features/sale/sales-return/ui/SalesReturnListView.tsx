@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createSr, listSr } from '../api/sales-return';
+import { createSr, listSr } from '@data/endpoints/sale/sales-return/api/sales-return';
 import type { CreateSrPayload, Sr, SrStatus } from '@data/types/sale/sales-return';
 import { SR_STATUS_BADGE_CLASS, SR_STATUS_LABEL, SR_STATUSES } from '@data/types/sale/sales-return';
 

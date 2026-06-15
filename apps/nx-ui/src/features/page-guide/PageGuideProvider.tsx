@@ -7,8 +7,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
-import { getToken } from '@/features/auth/token';
-import { getWizardStatus, markPageSeen, resetMyPageGuides } from '@/features/wizard/api';
+import { getToken } from '@data/auth/token';
+import { getWizardStatus, markPageSeen, resetMyPageGuides } from '@data/endpoints/wizard/api';
 
 interface Ctx {
   loading: boolean;

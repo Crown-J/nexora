@@ -16,7 +16,7 @@ import { METRIC_OPTIONS, EMPTY_METRICS, type MetricType, type MetricsPrefValue }
 import { MetricPickerModal } from './MetricPickerModal';
 import { MetricRenderer } from './MetricRenderer';
 import { useMetricValue } from './useMetricValue';
-import { fetchMetricsPref, saveMetricsPref } from './user-pref-api';
+import { fetchMetricsPref, saveMetricsPref } from '@data/endpoints/home-dashboard/user-pref-api';
 
 const SLOT_COUNT = 5;
 

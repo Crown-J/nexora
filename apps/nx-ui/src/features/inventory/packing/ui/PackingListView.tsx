@@ -16,7 +16,7 @@ import {
   type CreatePlPayload,
   type Pl,
   type PlStatus,
-} from '@/features/inventory/workstation/api';
+} from '@data/endpoints/inventory/workstation/api';
 
 const STATUS_OPTIONS: { value: PlStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

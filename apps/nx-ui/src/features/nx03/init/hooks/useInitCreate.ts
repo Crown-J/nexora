@@ -14,7 +14,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { createInit } from '../api/init';
+import { createInit } from '@data/endpoints/nx03/init/api/init';
 
 import type { DraftItem } from './useInitDetail';
 

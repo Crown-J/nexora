@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createPr } from '../../api/pr';
-import { getRr, listRr } from '../../api/rr';
+import { createPr } from '@data/endpoints/nx02/api/pr';
+import { getRr, listRr } from '@data/endpoints/nx02/api/rr';
 import type { RrDetailDto, RrListRow } from '@data/types/nx02';
 
 type Step = 1 | 2;

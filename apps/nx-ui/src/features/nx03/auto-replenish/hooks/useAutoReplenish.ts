@@ -19,7 +19,7 @@ import {
   listAutoReplenish,
   patchAutoReplenish,
   setAutoReplenishActive,
-} from '../api/auto-replenish';
+} from '@data/endpoints/nx03/auto-replenish/api/auto-replenish';
 import type { AutoReplenishDetail, AutoReplenishRow } from '@data/types/nx03/auto-replenish';
 
 export type AutoReplenishFormState = {

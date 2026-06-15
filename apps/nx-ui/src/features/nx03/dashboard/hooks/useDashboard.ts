@@ -13,8 +13,8 @@
 
 import { useEffect, useState } from 'react';
 
-import { getNx02Dashboard } from '../api/dashboard';
-import type { Nx02DashboardDto } from '../api/dashboard';
+import { getNx02Dashboard } from '@data/endpoints/nx03/dashboard/api/dashboard';
+import type { Nx02DashboardDto } from '@data/endpoints/nx03/dashboard/api/dashboard';
 
 export function useDashboard() {
   const [data, setData] = useState<Nx02DashboardDto | null>(null);

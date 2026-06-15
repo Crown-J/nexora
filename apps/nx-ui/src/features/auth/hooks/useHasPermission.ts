@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 
 import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
-import { getToken } from '@/features/auth/token';
+import { getToken } from '@data/auth/token';
 
 let cachedPermissions: string[] | null = null;
 let inFlight: Promise<string[]> | null = null;

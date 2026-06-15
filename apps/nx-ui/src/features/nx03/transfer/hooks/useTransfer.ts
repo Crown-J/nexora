@@ -21,8 +21,8 @@ import {
   patchTransfer,
   postTransfer,
   voidTransfer,
-} from '../api/transfer';
-import type { TransferItemInput } from '../api/transfer';
+} from '@data/endpoints/nx03/transfer/api/transfer';
+import type { TransferItemInput } from '@data/endpoints/nx03/transfer/api/transfer';
 import type { TransferDetailDto, TransferListResponse } from '@data/types/nx03/transfer';
 
 /**

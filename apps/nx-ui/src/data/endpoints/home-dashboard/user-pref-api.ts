@@ -3,7 +3,7 @@
 
 import { apiJson } from '@data/api/client';
 
-import { EMPTY_METRICS, METRICS_PREF_KEY, type MetricsPrefValue } from './metric-options.config';
+import { EMPTY_METRICS, METRICS_PREF_KEY, type MetricsPrefValue } from '@/features/home-dashboard/metric-options.config';
 
 type PrefRow<T = unknown> = {
   prefKey: string;

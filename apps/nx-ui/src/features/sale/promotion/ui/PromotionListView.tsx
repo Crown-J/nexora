@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { createPromotion, listPromotion } from '../api/promotion';
+import { createPromotion, listPromotion } from '@data/endpoints/sale/promotion/api/promotion';
 import {
   type CreatePromotionPayload,
   type CreatePromotionScopePayload,

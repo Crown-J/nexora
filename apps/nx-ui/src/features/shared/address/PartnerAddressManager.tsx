@@ -17,7 +17,7 @@ import {
   updatePartnerAddress,
   type PartnerAddressRow,
   type PartnerAddressWriteBody,
-} from './partner-address-api';
+} from '@data/endpoints/shared/address/partner-address-api';
 
 type EditingDraft = AddressValue & {
   id?: string;
