@@ -313,10 +313,23 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
   // 當前目標 slot（衛星僅在 'login' 時顯示）
   const currentSlot: CurrentSlot = pathname === '/login' ? 'login' : 'topbar';
 
+  // 用 ref 持有 placeAt 與當前 target、register 時可直接呼叫（避免 dep 循環）
+  const placeAtRef = useRef<((id: string, transition: string) => void) | null>(null);
+  const targetRef = useRef<CurrentSlot>('topbar');
+  targetRef.current = pathname === '/login' ? 'login' : 'topbar';
+
   const registerSlot = useCallback((id: string, el: HTMLElement | null): (() => void) => {
     if (!el) return () => {};
     slotsRef.current[id] = [...(slotsRef.current[id] ?? []), el];
     tick();
+    // 若當前 idle 且新 register 的就是 target slot、立刻補做歸位
+    // （修真兇：useLayoutEffect 先跑、PlanetSlot useEffect 後跑、原本第一次歸位常拿不到 slot）
+    if (modeRef.current === 'idle' && id === targetRef.current && placeAtRef.current) {
+      // 用 rAF 等一幀讓 layout 穩定再量 rect
+      requestAnimationFrame(() => {
+        placeAtRef.current?.(targetRef.current, 'none');
+      });
+    }
     return () => {
       slotsRef.current[id] = (slotsRef.current[id] ?? []).filter((x) => x !== el);
       tick();
@@ -342,7 +355,8 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
     const tryOnce = () => {
       const slot = findVisibleSlot(slotId);
       if (!slot) {
-        if (retry++ < 40) requestAnimationFrame(tryOnce);
+        // 加大 retry 上限（60 幀 ≈ 1s）+ rAF；slot register 用 useEffect 可能晚一輪
+        if (retry++ < 60) requestAnimationFrame(tryOnce);
         return;
       }
       const r = slot.getBoundingClientRect();
@@ -356,6 +370,9 @@ export function SharedPlanetRoot({ children }: { children: ReactNode }) {
     };
     tryOnce();
   }, [findVisibleSlot]);
+
+  // 把 placeAt 同步到 ref（給 registerSlot 立刻歸位用）
+  placeAtRef.current = placeAt;
 
   // 自動依 pathname 切預設位置（idle 時直跳、無轉場）
   useLayoutEffect(() => {
