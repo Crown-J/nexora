@@ -16,6 +16,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { NxPaletteHydration } from '@/components/theme/NxPaletteHydration';
 import { PwaRegister } from '@/components/pwa-register';
+import { SharedPlanetRoot } from '@/features/shared-planet/SharedPlanetRoot';
 import './globals.css';
 
 const geistSans = Geist({
@@ -82,7 +83,8 @@ export default function RootLayout({
       >
         <PwaRegister />
         <NxPaletteHydration />
-        {children}
+        {/* NX00 單一星球 + Provider：在 login 與 TopBar slot 之間飛行（對齊 Hana A/B 段轉場） */}
+        <SharedPlanetRoot>{children}</SharedPlanetRoot>
       </body>
     </html>
   );

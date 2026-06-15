@@ -498,7 +498,8 @@ export function HomeView({ displayName }: { displayName: string }) {
 
   return (
     <div className="mx-auto w-full max-w-[1320px] flex flex-1 min-h-0 flex-col gap-3.5 p-4 lg:p-6">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+      {/* D 段錯落 stagger 進場：greet 0.15s / card1 0.30s / task 0.38s / card2 0.46s */}
+      <div className="nx-stagger-greet flex items-end justify-between gap-4 flex-wrap">
         <h1 className="text-[27px] font-semibold tracking-tight m-0">
           {greet}，<span className="text-[var(--nx-accent-strong)]">{displayName}</span>
         </h1>
@@ -508,10 +509,16 @@ export function HomeView({ displayName }: { displayName: string }) {
       </div>
       <div className="grid flex-1 min-h-0 grid-cols-1 gap-4 lg:grid-cols-[1.72fr_1fr]">
         <div className="flex flex-col gap-3.5 min-h-0">
-          <CalendarCoverflow focus={focus} onFocusChange={setFocus} />
-          <EventBookAndAttendance focusKey={focusKey} />
+          <div className="nx-stagger-card-1">
+            <CalendarCoverflow focus={focus} onFocusChange={setFocus} />
+          </div>
+          <div className="nx-stagger-card-2 flex flex-col flex-1 min-h-0">
+            <EventBookAndAttendance focusKey={focusKey} />
+          </div>
         </div>
-        <TasksPanel />
+        <div className="nx-stagger-task flex flex-col min-h-0">
+          <TasksPanel />
+        </div>
       </div>
     </div>
   );

@@ -1014,3 +1014,23 @@ html.light .nx-topbar .nx-menu button:hover {
 ============================================================ */
 :root { --nx-accent-strong: #f5c842; }
 html.light { --nx-accent-strong: #c8550f; }
+
+/* ============================================================
+   NX00 儀表板進場 D 段錯落 stagger（對齊轉場與星球規格.html § D）
+   - 基底：opacity 0 + translateY(28px)
+   - 進場：.6s opacity ease + .7s transform cubic-bezier(.2,.75,.2,1)
+   - 各元素只差 animation-delay
+============================================================ */
+@keyframes nx-stagger-in {
+  0%   { opacity: 0; transform: translateY(28px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.nx-stagger-greet { animation: nx-stagger-in .7s cubic-bezier(.2,.75,.2,1) .15s both; }
+.nx-stagger-card-1 { animation: nx-stagger-in .7s cubic-bezier(.2,.75,.2,1) .30s both; }
+.nx-stagger-task { animation: nx-stagger-in .7s cubic-bezier(.2,.75,.2,1) .38s both; }
+.nx-stagger-card-2 { animation: nx-stagger-in .7s cubic-bezier(.2,.75,.2,1) .46s both; }
+@media (prefers-reduced-motion: reduce) {
+  .nx-stagger-greet, .nx-stagger-card-1, .nx-stagger-task, .nx-stagger-card-2 {
+    animation: none;
+  }
+}

@@ -22,6 +22,7 @@ import { UnifiedTopBar } from '@/components/shell/UnifiedTopBar';
 import { PlanetDock } from '@/components/shell/PlanetDock';
 import { ParticleField } from '@/components/login/planet-orbit';
 import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
+import { usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
 import { cn } from '@/lib/utils';
 
 type DashboardShellProps = {
@@ -65,6 +66,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const { me, displayName, logout, view } = useSessionMe();
   const [dockOpen, setDockOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const { flyToCenter, flyTo } = usePlanet();
 
   const isSysDashboardHome = pathname === '/dashboard';
   const isMasterShellBypass = pathname != null && MASTER_SHELL_BYPASS_PATHS.has(pathname);
@@ -72,8 +74,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   const handleLogout = useCallback(() => {
     setIsLeaving(true);
-    setTimeout(() => logout(), 500);
-  }, [logout]);
+    void (async () => {
+      await flyToCenter(800);
+      logout();
+      await new Promise((r) => setTimeout(r, 100));
+      await flyTo('login', 950);
+    })();
+  }, [flyToCenter, flyTo, logout]);
   const toggleDock = useCallback(() => setDockOpen((v) => !v), []);
   const closeDock = useCallback(() => setDockOpen(false), []);
 

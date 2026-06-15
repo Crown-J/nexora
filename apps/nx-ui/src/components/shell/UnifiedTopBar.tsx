@@ -14,7 +14,7 @@ import {
   Megaphone, Moon, Settings, Sun, User,
 } from 'lucide-react';
 import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@/features/home/home-data';
-import { PlanetIcon } from '@/components/shell/PlanetIcon';
+import { PlanetSlot } from '@/features/shared-planet/SharedPlanetRoot';
 
 type TopBarProps = {
   displayName: string;
@@ -95,15 +95,15 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
   return (
     <header className="nx-topbar sticky top-0 z-50 border-b border-border/40 bg-[color-mix(in_oklch,var(--card)_72%,transparent)] backdrop-blur-md backdrop-saturate-150">
       <div className="flex h-14 items-center gap-3 px-4">
-        {/* 小星球 Dock 觸發（登入畫面同款大星球縮小 + hex 自轉 + reactor 呼吸 + halo 起伏 + ripple 動畫） */}
+        {/* Dock 觸發按鈕：用 PlanetSlot 佔位（真實星球由 SharedPlanetRoot 飛到此位置停泊）*/}
         <button
           type="button"
           onClick={onDockToggle}
           aria-label="導覽選單，快捷鍵 Alt+X"
           title="導覽 · Alt+X"
-          className="grid h-11 w-11 place-items-center rounded-xl hover:bg-foreground/[0.06] transition"
+          className="relative grid h-11 w-11 place-items-center rounded-xl hover:bg-foreground/[0.06] transition"
         >
-          <PlanetIcon size={42} />
+          <PlanetSlot id="topbar" className="absolute inset-0.5 rounded-full" />
         </button>
 
         {/* NEXORA GRID 品牌 → 點回首頁 */}

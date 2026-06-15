@@ -12,18 +12,29 @@ import { HomeView } from '@/features/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { ParticleField } from '@/components/login/planet-orbit';
 import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
+import { usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
 
 export function HomeShell() {
   const router = useRouter();
   const { me, displayName, logout, view } = useSessionMe();
+  const { flyToCenter, flyTo } = usePlanet();
   const [dockOpen, setDockOpen] = useState(false);
-  // 轉場 leaving 旗：登出時 fade-out 500ms 再真正 logout
+  // 轉場 leaving 旗：登出時 fade-out + 星球反向飛回登入大圖位置（對齊 Hana B 段）
   const [isLeaving, setIsLeaving] = useState(false);
 
   const handleLogout = useCallback(() => {
     setIsLeaving(true);
-    setTimeout(() => logout(), 500);
-  }, [logout]);
+    void (async () => {
+      // 第一段：星球從 TopBar 脫離飛中央 0.8s
+      await flyToCenter(800);
+      // 切到 /login（login 頁 mount + login slot 註冊）
+      logout();
+      // 等 login 頁 mount + slot 註冊好
+      await new Promise((r) => setTimeout(r, 100));
+      // 第二段：飛回 login slot 大圖位置 0.95s
+      await flyTo('login', 950);
+    })();
+  }, [flyToCenter, flyTo, logout]);
 
   const toggleDock = useCallback(() => setDockOpen((v) => !v), []);
   const closeDock = useCallback(() => setDockOpen(false), []);

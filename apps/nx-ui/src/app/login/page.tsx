@@ -19,8 +19,9 @@ import { callLoginApi } from '@/features/auth/api/login';
 import { isNexoraDemoMode } from '@/features/auth/run-mode';
 import { setToken } from '@/features/auth/token';
 import { LoginForm, type LoginFormFields } from '@/components/login/login-form';
-import { PlanetOrbit, ParticleField } from '@/components/login/planet-orbit';
+import { ParticleField } from '@/components/login/planet-orbit';
 import { NxAppBackdrop } from '@/components/shell/NxAppBackdrop';
+import { PlanetSlot, usePlanet } from '@/features/shared-planet/SharedPlanetRoot';
 import { getVersionParts } from '@/lib/version';
 import { toNexoraClientError, type NexoraClientError } from '@/shared/errors/nexora-error';
 
@@ -81,8 +82,9 @@ function LoginVersionFooter() {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { flyToCenter, flyTo } = usePlanet();
   const [view, setView] = useState<LoginViewState>({ isSubmitting: false, errorMsg: null });
-  // 轉場 leaving 旗：登入成功後 500ms fade-out 再 router.replace（對齊 Hana 登入飛入轉場、簡化版）
+  // 轉場 leaving 旗：登入成功後表單 fade-out、星球同時飛 0.8s+0.95s → router.replace
   const [isLeaving, setIsLeaving] = useState(false);
 
   async function onSubmit(e: FormEvent, rawFields: LoginFormFields) {
@@ -114,9 +116,13 @@ export default function LoginPage() {
         }));
       }
       setToken(result.token);
-      // 觸發 leaving fade-out、500ms 後跳 dashboard（HomeShell mount 會 fade-in）
+      // 對齊 Hana A 段主轉場：表單同步 fade-out、星球先飛中央放大 0.8s、再進 TopBar 0.95s、共 ~1.8s
       setIsLeaving(true);
-      setTimeout(() => router.replace('/dashboard'), 500);
+      void (async () => {
+        await flyToCenter(800);
+        await flyTo('topbar', 950);
+        router.replace('/dashboard');
+      })();
       return;
     } catch (e: unknown) {
       setView((prev) => ({ ...prev, errorMsg: getError(e) }));
@@ -172,15 +178,17 @@ export default function LoginPage() {
             - 父加 overflow-hidden 防極端情況下星球溢出
             - mobile portrait 普遍：vp 700-900px、40dvh = 280-360px、clamp 後 = 280px 上限
         */}
+        {/* Mobile：星球佔位（SharedPlanet 飛到此 slot rect、登入時放大顯示）*/}
         <div className="lg:hidden flex-1 min-h-0 flex items-center justify-center px-6 overflow-hidden">
           <div className="relative aspect-square w-[clamp(180px,40dvh,280px)] max-w-full">
-            <PlanetOrbit className="w-full h-full" />
+            <PlanetSlot id="login" className="absolute inset-0" />
           </div>
         </div>
 
         <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative flex-col items-center justify-center">
+          {/* Desktop：星球佔位 */}
           <div className="relative z-10 w-80 h-80 xl:w-[420px] xl:h-[420px]">
-            <PlanetOrbit className="w-full h-full" />
+            <PlanetSlot id="login" className="absolute inset-0" />
           </div>
 
           {/* 對齊 Hana .lg-brand desktop：寬字距 NEXORA + GRID 第二行 + tagline */}
