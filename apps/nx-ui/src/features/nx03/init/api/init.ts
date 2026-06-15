@@ -6,9 +6,9 @@
  * - NX02-INIT-UI-API-001：開帳存 REST
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
-import { buildQueryString } from '@/shared/api/query';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
+import { buildQueryString } from '@data/api/query';
 
 import type { InitDetailDto, InitListResponse } from '../types';
 

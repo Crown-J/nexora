@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/shared/address/address-catalog-api.ts
 // 02 對齊第二批前端收尾軌 2026-06-07：地址型錄 API client（read-only）
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
-import { buildQueryString } from '@/shared/api/query';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
+import { buildQueryString } from '@data/api/query';
 
 export type CityRow = {
   id: string;

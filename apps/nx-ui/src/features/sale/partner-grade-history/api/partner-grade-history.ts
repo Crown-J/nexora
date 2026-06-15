@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/sale/partner-grade-history/api/partner-grade-history.ts
 // NX04-M3 C5：客戶等級變更核可 API client（對應 apps/nx-api/src/nx04/partner-grade-history/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreateGradeChangeRequestPayload,

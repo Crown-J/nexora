@@ -6,9 +6,9 @@
 //   - 車型字典 picker：listBrands({ isCar: true })
 //   - 主檔頁：listBrands() 全列
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 

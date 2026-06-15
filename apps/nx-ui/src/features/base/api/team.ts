@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/base/api/team.ts
 // 05 批 T2/T3 2026-06-07：組主檔 API client
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 

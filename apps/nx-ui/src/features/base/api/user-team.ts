@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/base/api/user-team.ts
 // 05 批 T3 2026-06-07：UserTeam 衛星 API client（範式對齊 user-role.ts）
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 

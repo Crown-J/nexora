@@ -5,8 +5,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type BrandCodeRuleOption = { value: string; label: string };
 

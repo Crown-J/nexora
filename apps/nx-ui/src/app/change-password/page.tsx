@@ -8,7 +8,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 export default function ChangePasswordPage() {
   const router = useRouter();

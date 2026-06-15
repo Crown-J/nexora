@@ -10,8 +10,8 @@ import { useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { apiJson } from '@/shared/api/client';
-import { ApiClientError } from '@/shared/api/errors';
+import { apiJson } from '@data/api/client';
+import { ApiClientError } from '@data/api/errors';
 
 import { HomeSectionHeader } from './HomeSectionHeader';
 

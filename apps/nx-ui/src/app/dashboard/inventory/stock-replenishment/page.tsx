@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { getWarehouseSingle } from '@/features/shared/master/warehouse/api/warehouse';
 import { listLocation } from '@/features/shared/master/location/api/location';

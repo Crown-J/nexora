@@ -20,8 +20,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 import { NEXORA_DEMO_ACCESS_TOKEN } from '@/features/auth/constants';
 import { buildDemoMeFromStorage, clearDemoSessionUsername } from '@/features/auth/demo-session';

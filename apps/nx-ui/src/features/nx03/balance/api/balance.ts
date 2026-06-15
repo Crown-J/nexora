@@ -6,9 +6,9 @@
  * - NX02-BAL-UI-API-001：庫存餘額 / 摘要（倉庫下拉見 shared listLookupWarehouse）
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
-import { buildQueryString } from '@/shared/api/query';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
+import { buildQueryString } from '@data/api/query';
 
 import type { BalanceListResponse, BalanceSummaryResponse } from '../types';
 

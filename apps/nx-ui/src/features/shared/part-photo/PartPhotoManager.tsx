@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { apiFetch } from '@/shared/api/client';
+import { apiFetch } from '@data/api/client';
 import {
   deletePartPhoto,
   listPartPhotos,

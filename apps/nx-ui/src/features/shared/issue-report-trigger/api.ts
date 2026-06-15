@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/shared/issue-report-trigger/api.ts
 // NX04-M3 C6：問題回報 API client（POST /nx04/issue-report）
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 import type { CreateIssueReportPayload } from './types';
 

@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/inventory/workstation/api/index.ts
 // v1.2 階段 G P2/P3：手機工作站共用 API client（nx03/pk + pl + parcel）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 // ────────────────────────────────────────────────────────────
 // 型別（對齊後端 PK_SEL / PK_ITEM_SEL / PL_SEL / PARCEL_SEL）

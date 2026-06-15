@@ -32,7 +32,7 @@ import {
   type MasterHubMinPlan,
 } from '@/features/base/config/master-cards';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 const MASTER_HREF = '/dashboard/base';
 const MASTER_MODULE_IDX = HOME_DOCK_ITEMS.findIndex((m) => m.href === MASTER_HREF);

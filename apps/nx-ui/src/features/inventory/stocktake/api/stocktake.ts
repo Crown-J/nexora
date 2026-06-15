@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/inventory/stocktake/api/stocktake.ts
 // NX03-STOCK-LITE M3-1：盤點 API client（對應 apps/nx-api/src/nx03/stocktake/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreateStockTakeItemPayload,

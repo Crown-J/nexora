@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
-import { fetchAllPages } from '@/shared/api/fetchAllPages';
+import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
 import type { PartnerDto } from '@/features/shared/master/partner/types';
 import {

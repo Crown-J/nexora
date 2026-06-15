@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/inventory/conversion/api/conversion.ts
 // NX03-STOCK-LITE M3-3b：重組 / 分解 API client（對應 apps/nx-api/src/nx03/conversion/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   Conversion,

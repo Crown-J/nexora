@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/sale/so/api/so.ts
 // NX04-M3 C2：SO 銷貨單 API client（對應 apps/nx-api/src/nx04/so/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreateSoItemPayload,

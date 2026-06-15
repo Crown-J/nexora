@@ -5,9 +5,9 @@
  * T1-fix-b 2026-06-07：加 canApprove 第 6 欄（核准權限、與後端 RoleView.canApprove 對應）。
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import type { PagedResult } from './types';
 
 export type ViewDto = {

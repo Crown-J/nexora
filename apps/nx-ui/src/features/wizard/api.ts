@@ -8,7 +8,7 @@
 //           + 席次用（fetchSeatUsage / SeatUsage、給主檔 UserZonedPage 段 4 徽章）
 //   - features/wizard/ 命名空間本軌只刪、不重命名（命名債日後另開軌清）
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 import type { WizardStatus } from './types';
 

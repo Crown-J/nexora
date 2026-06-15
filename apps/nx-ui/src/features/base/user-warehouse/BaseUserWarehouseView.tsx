@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { cn } from '@/lib/utils';
-import { fetchAllPages } from '@/shared/api/fetchAllPages';
+import { fetchAllPages } from '@data/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
 import { assignUserWarehouse, listUserWarehouses, revokeUserWarehouse } from '@/features/base/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@/features/base/api/warehouse';

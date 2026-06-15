@@ -11,7 +11,7 @@
  * - 401：不在此自動清 token（交由呼叫端決定）
  */
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 import type { MeResponse } from '@/features/auth/types';
 
 /**

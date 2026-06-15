@@ -10,9 +10,9 @@
  *  · onHandQty 可能為負值（庫存赤字、業務語意需提示）
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
-import { buildQueryString } from '@/shared/api/query';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
+import { buildQueryString } from '@data/api/query';
 
 export type StockBalanceLookup = {
   onHandQty: number;

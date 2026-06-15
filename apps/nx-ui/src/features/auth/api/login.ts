@@ -1,4 +1,4 @@
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 import {
   NEXORA_DEMO_ACCESS_TOKEN,
   NEXORA_DEMO_LOGIN_PASSWORD,

@@ -2,7 +2,7 @@
 // 02 真正完工軌 2026-06-07：國家清單共用 helper
 //
 // 動態抓 nx01_country、判斷「是否台灣」用 country.code='TWN'（不依賴 hard-code id）
-import { apiFetch } from '@/shared/api/client';
+import { apiFetch } from '@data/api/client';
 
 export type CountryRow = { id: string; code: string; name: string; isActive?: boolean };
 

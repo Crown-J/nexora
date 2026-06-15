@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/shared/address/partner-address-api.ts
 // 02 對齊第二批前端收尾軌 FE-CP2 2026-06-07：partner_address CRUD client
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type PartnerAddressRow = {
   id: string;

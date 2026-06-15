@@ -7,8 +7,8 @@
 //   - PATCH /nx02/po/:id/stage       6 階段流轉
 //   - GET /nx03/parcel               提貨包裹列表（後續軌）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 export type PoStatus = string; // DRAFT/APPROVED/SUBMITTED/CONFIRMED/PARTIAL_RECEIVED/RECEIVED/CLOSED/CANCELLED
 export type PurchaseType = 'D' | 'I' | 'B';

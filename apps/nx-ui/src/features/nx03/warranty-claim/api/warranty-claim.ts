@@ -1,9 +1,9 @@
 // apps/nx-ui/src/features/nx02/warranty-claim/api/warranty-claim.ts
 // LITE 階段 1 M3：保固申請單 API client
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import type {
   CreateWarrantyClaimBody,
   RegisterResultBody,

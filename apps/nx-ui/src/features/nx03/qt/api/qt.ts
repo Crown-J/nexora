@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/nx02/qt/api/qt.ts
 // M3-redo-3b：詢價回報（Qt）API client
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type QtRow = {
   id: string;

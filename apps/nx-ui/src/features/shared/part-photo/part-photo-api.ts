@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/shared/part-photo/part-photo-api.ts
 // 02 第三批 T4 2026-06-07：零件照片 CRUD client（base64 範式、同 bulletin 附件）
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type PartPhotoRow = {
   id: string;

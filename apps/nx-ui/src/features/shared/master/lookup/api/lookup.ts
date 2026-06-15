@@ -9,9 +9,9 @@
  * - 回傳建議為 array：LookupRow[] / PartStatusRow[]
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import type { LookupRow, PartStatusRow } from '@/features/shared/master/lookup/types';
 
 export type ListLookupsParams = {

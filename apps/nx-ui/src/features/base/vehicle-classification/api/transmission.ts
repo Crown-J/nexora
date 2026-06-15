@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/nx01/vehicle-classification/api/transmission.ts
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 
 import type { Paged, TransmissionDto } from '../types';
 

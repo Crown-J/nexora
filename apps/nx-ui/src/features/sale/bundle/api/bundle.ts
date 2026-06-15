@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/sale/bundle/api/bundle.ts
 // F2 組合套餐 2026-06-09：API client
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   ApplyBundleToSoResult,

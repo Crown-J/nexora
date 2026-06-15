@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/nx02/rfq-greeting-template/api/rfq-greeting-template.ts
 // LITE 階段 1 M3：詢價客套話設定 API client（每租戶 1:1）
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 const BASE = '/nx02/rfq-greeting-template';
 

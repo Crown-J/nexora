@@ -8,9 +8,9 @@
  * - 加 patchPrDisposition：階段 I P2 走保固自動建保固單入口
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 
 import type { Nx01Paged, PrDetailDto, PrListRow } from '../types';
 

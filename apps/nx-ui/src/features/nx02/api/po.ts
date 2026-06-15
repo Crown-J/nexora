@@ -9,9 +9,9 @@
  * - poToRr 後端新增 POST /:id/to-rr wrapper（內部走 RR.create 帶 poId）
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 
 import type { Nx01Paged, PoDetailDto, PoListRow } from '../types';
 

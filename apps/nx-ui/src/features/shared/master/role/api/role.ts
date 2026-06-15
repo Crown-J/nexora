@@ -10,9 +10,9 @@
  * - 型別一律引用 features/shared/master/role/types.ts（SSOT）
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreateRoleBody, PagedResult, RoleDto, UpdateRoleBody } from '@/features/shared/master/role/types';
 

@@ -6,9 +6,9 @@
  * - NX02-XFER-UI-API-001：調撥單 REST
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
-import { buildQueryString } from '@/shared/api/query';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
+import { buildQueryString } from '@data/api/query';
 
 import type { TransferDetailDto, TransferListResponse } from '../types';
 

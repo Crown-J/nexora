@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 import { CalendarPanel } from './CalendarPanel';
 import { EventBookPanel } from './EventBookPanel';

@@ -3,9 +3,9 @@
  * W6-切換軌 2026-06-06：BASE 改 `/nx01/brands`、list/默認 isPart=true 過濾
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { BrandDto, CreateBrandBody, PagedResult, UpdateBrandBody } from '@/features/shared/master/brand/types';
 

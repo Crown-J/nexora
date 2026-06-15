@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/nx01/phonetic-dictionary/api/phonetic-dictionary.ts
 // 對應後端：apps/nx-api/src/nx01/phonetic-dictionary/phonetic-dictionary.controller.ts
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 
 import type {
   CreatePhoneticDictionaryBody,

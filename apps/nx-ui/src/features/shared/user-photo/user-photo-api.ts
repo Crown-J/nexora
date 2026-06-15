@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/shared/user-photo/user-photo-api.ts
 // 02 第四批 軌 1 2026-06-07：使用者大頭貼 client（base64 範式、單張、scalar 掛 nx01_user）
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type UserPhotoUploadResult = { ok: boolean; hasPhoto: boolean };
 

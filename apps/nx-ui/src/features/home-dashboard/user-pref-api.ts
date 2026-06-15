@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/home-dashboard/user-pref-api.ts
 // 使用者偏好設定 API client
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 import { EMPTY_METRICS, METRICS_PREF_KEY, type MetricsPrefValue } from './metric-options.config';
 

@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type { ScopeType } from '../types';
 

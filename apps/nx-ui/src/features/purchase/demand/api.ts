@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/purchase/demand/api.ts
 // v1.2 階段 I P3：採購需求 API client（手動新增 + list + ignore）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 export type DemandType = 'S' | 'O';
 export type DemandStatus = 'O' | 'P' | 'C' | 'I';

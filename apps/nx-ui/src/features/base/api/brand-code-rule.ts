@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/base/api/brand-code-rule.ts
 // 廠牌料號規則 API client（下半場 A 軸翻轉後）：供零件主檔讀規則 SEG 設定 + 分隔符。
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { PagedResult } from './types';
 

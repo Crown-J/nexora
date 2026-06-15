@@ -20,14 +20,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { fetchAllPages } from "@/shared/api/fetchAllPages"
-import type { CalendarEventDto } from "@/shared/api/calendar-event"
+import { fetchAllPages } from "@data/api/fetchAllPages"
+import type { CalendarEventDto } from "@data/api/calendar-event"
 import {
   createCalendarEvent,
   listCalendarEvents,
   setCalendarEventActive,
   updateCalendarEvent,
-} from "@/shared/api/calendar-event"
+} from "@data/api/calendar-event"
 
 export interface HomeCalendarEvent {
   id: string

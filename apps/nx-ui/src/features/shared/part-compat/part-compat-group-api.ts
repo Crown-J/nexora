@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/shared/part-compat/part-compat-group-api.ts
 // 02 對齊第二批前端收尾軌 FE-CP5 2026-06-07：通用件群組 + member CRUD client
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type CompatRole = 1 | 2; // 1=PRIMARY 主件 / 2=ALT 替代品
 

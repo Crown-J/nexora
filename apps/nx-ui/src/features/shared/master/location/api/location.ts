@@ -6,9 +6,9 @@
  * - NX00-UI-NX00-LOCATION-API-001：Location API Client（list/get/create/update/setActive）
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreateLocationBody, LocationDto, PagedResult, UpdateLocationBody } from '@/features/shared/master/location/types';
 

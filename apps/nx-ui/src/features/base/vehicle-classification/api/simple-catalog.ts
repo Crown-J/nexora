@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/nx01/vehicle-classification/api/simple-catalog.ts
 // drivetrain + model_type 共用 simple catalog API（6 業務欄位、無 carBrandId）
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 
 import type { Paged, SimpleCatalogDto } from '../types';
 

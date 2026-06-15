@@ -6,7 +6,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 interface SystemParam {
   id: string;

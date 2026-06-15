@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/sale/quote/api/quote.ts
 // NX04-M3 C1：QT 報價單 API client（對應 apps/nx-api/src/nx04/quote/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreateQuoteItemPayload,

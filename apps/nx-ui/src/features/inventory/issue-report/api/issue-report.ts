@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/inventory/issue-report/api/issue-report.ts
 // NX03-STOCK-LITE M3-3a：異常回報 API client（對應 apps/nx-api/src/nx03/issue-report/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CloseIssueReportPayload,

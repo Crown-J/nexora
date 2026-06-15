@@ -6,8 +6,8 @@
  * - NX02-AURE-UI-API-001：自動補貨設定 REST
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 import type { AutoReplenishDetail, AutoReplenishListResponse } from '../types';
 

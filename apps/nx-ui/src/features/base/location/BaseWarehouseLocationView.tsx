@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
-import { fetchAllPages } from '@/shared/api/fetchAllPages';
+import { fetchAllPages } from '@data/api/fetchAllPages';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@/features/base/api/warehouse';

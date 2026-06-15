@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/inventory/disposal/api/disposal.ts
 // F2 報廢 UI 2026-06-08：對應 apps/nx-api/src/nx03/disposal/
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreateDisposalItemPayload,

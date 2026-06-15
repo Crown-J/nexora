@@ -1,9 +1,9 @@
 // apps/nx-ui/src/features/nx98/task-pool/api/task-pool.ts
 // LITE 階段 1 M4：共享待辦池 API client
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import type { CreateTaskPoolBody, TaskPoolDto, TaskScope, TaskStatus } from '../types';
 
 const BASE = '/nx98/task-pool';

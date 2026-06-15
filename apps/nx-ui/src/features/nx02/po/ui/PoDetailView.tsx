@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 import type { LookupRow } from '@/features/shared/master/lookup/types';
-import { fetchAllPages } from '@/shared/api/fetchAllPages';
+import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
 import type { PartnerDto } from '@/features/shared/master/partner/types';
 import { listPartnerAddresses, type PartnerAddressRow } from '@/features/shared/address/partner-address-api';

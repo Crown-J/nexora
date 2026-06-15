@@ -6,8 +6,8 @@
  * - NX02-DSH-UI-API-001：庫存首頁統計
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 export type Nx02DashboardDto = {
   balance: { inStock: number; zero: number; negative: number };

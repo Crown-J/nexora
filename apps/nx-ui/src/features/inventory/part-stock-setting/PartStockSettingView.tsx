@@ -9,8 +9,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 interface Setting {
   id: string;

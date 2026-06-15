@@ -2,9 +2,9 @@
  * Partner API Client — 路徑與型別對齊 `features/base/api/partner`（nx01/partners）
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { CreatePartnerBody, PagedResult, PartnerDto, UpdatePartnerBody } from '@/features/shared/master/partner/types';
 

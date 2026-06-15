@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { apiJson } from '@/shared/api/client';
+import { apiJson } from '@data/api/client';
 
 type AnyListResponse = {
   total?: number;

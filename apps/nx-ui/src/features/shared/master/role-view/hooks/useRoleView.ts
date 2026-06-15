@@ -13,7 +13,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { fetchAllPages } from '@/shared/api/fetchAllPages';
+import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listRole } from '@/features/shared/master/role/api/role';
 import type { RoleDto } from '@/features/shared/master/role/types';
 

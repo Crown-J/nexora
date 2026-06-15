@@ -12,9 +12,9 @@
  * 取代舊「彈窗範式」BaseModalCodeMasterView。
  */
 
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import type { PagedResult } from '@/features/base/api/types';
 
 // T3 進貨對齊批次 2026-06-07：加 'date' 支援 PartnerPart 主檔的 validFrom / validTo

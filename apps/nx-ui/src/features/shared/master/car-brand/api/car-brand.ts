@@ -2,9 +2,9 @@
 // 對應後端：apps/nx-api/src/nx01/car-brand/car-brand.controller.ts
 // Crown 拍 Q2=A：NX00-CLEANUP 已清、route 改新範式 /nx01/car-brands、PUT → PATCH
 // （shared/master 已遷、A059 後續軌統一遷移到 features/shared/master/car-brand）
-import { apiFetch } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
+import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@/shared/lib/nx01Pagination';
 import type { BrandDto, CreateBrandBody, PagedResult, UpdateBrandBody } from '@/features/shared/master/brand/types';
 

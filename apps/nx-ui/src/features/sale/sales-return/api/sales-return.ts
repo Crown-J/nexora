@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/sale/sales-return/api/sales-return.ts
 // NX04-M3 C4：SR 銷退單 API client（對應 apps/nx-api/src/nx04/sales-return/）
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreateSrItemPayload,

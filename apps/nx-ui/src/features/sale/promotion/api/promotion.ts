@@ -1,8 +1,8 @@
 // apps/nx-ui/src/features/sale/promotion/api/promotion.ts
 // F1-D 銷貨優惠價子系統 2026-06-08：促銷規則 API client
 
-import { apiJson } from '@/shared/api/client';
-import { buildQueryString } from '@/shared/api/query';
+import { apiJson } from '@data/api/client';
+import { buildQueryString } from '@data/api/query';
 
 import type {
   CreatePromotionPayload,

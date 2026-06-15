@@ -6,8 +6,8 @@ import { LookupAutocomplete } from '@/shared/ui/lookup/LookupAutocomplete';
 import { FlatMasterView, type FlatFieldDef } from '@/features/base/flat-master/FlatMasterView';
 import { listPart } from '@/features/shared/master/part/api/part';
 import type { PartDto } from '@/features/shared/master/part/types';
-import { apiFetch } from '@/shared/api/client';
-import { assertOk } from '@/shared/api/http';
+import { apiFetch } from '@data/api/client';
+import { assertOk } from '@data/api/http';
 
 /** 規格 §2.2.3 + Crown Q2=C：R 同款 modal handler（TASK-NX01-17-MODAL-IMPL）*/
 const RELATION_TYPE_SAME = 2;
