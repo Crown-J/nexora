@@ -11,7 +11,7 @@ import { CalendarDays, ChevronDown, Clock, FileText, MapPin, Plus } from 'lucide
 import {
   ATTENDANCE, ATTEND_STATUS, CALENDAR_EVENTS, DOC_TYPES, EVENT_TYPES, TASKS, TODAY,
   type DocType, type Task,
-} from '@/features/home/home-data';
+} from '@data/home/home-data';
 
 const WD = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 const dkey = (y: number, m: number, d: number) => `${y}-${m}-${d}`;

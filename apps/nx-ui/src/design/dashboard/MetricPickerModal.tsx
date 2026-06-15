@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import type { MeDto } from '@data/types/auth';
 
-import { METRIC_OPTIONS, type MetricOptionDef } from './metric-options.config';
+import { METRIC_OPTIONS, type MetricOptionDef } from '@data/config/metric-options.config';
 
 type MetricPickerModalProps = {
   slotIndex: number | null;

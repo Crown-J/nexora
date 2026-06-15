@@ -13,7 +13,7 @@ import {
   ArrowLeft, BarChart3, ChevronRight, Database, DollarSign, Home,
   Package, ShoppingCart, TrendingUp, User,
 } from 'lucide-react';
-import { DOCK_NAV, type DockItem } from '@/features/home/home-data';
+import { DOCK_NAV, type DockItem } from '@data/home/home-data';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   home: Home,

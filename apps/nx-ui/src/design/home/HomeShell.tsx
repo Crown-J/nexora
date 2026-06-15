@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
-import { HomeView } from '@/features/home/HomeView';
+import { HomeView } from '@design/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { ParticleField } from '@design/login/planet-orbit';
 import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';

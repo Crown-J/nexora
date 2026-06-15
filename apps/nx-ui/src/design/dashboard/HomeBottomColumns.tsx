@@ -13,7 +13,7 @@ import { apiJson } from '@data/api/client';
 import { CalendarPanel } from './CalendarPanel';
 import { EventBookPanel } from './EventBookPanel';
 import { TaskListPanel } from './TaskListPanel';
-import type { CalendarEvent } from './event-types';
+import type { CalendarEvent } from '@data/types/home-dashboard/event-types';
 
 function ymd(d: Date): string {
   const y = d.getFullYear();

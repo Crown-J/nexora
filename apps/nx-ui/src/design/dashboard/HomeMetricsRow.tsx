@@ -12,10 +12,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { HomeSectionHeader } from './HomeSectionHeader';
-import { METRIC_OPTIONS, EMPTY_METRICS, type MetricType, type MetricsPrefValue } from './metric-options.config';
+import { METRIC_OPTIONS, EMPTY_METRICS, type MetricType, type MetricsPrefValue } from '@data/config/metric-options.config';
 import { MetricPickerModal } from './MetricPickerModal';
 import { MetricRenderer } from './MetricRenderer';
-import { useMetricValue } from './useMetricValue';
+import { useMetricValue } from '@data/hooks/useMetricValue';
 import { fetchMetricsPref, saveMetricsPref } from '@data/endpoints/home-dashboard/user-pref-api';
 
 const SLOT_COUNT = 5;

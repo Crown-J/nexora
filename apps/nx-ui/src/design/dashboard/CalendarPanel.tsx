@@ -11,7 +11,7 @@ import { useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 import { HomeSectionHeader } from './HomeSectionHeader';
-import type { CalendarEvent } from './event-types';
+import type { CalendarEvent } from '@data/types/home-dashboard/event-types';
 
 const WEEK_HEAD = ['日', '一', '二', '三', '四', '五', '六'];
 

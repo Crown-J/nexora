@@ -5,7 +5,7 @@
 
 import { Lock } from 'lucide-react';
 
-import type { MetricType } from './metric-options.config';
+import type { MetricType } from '@data/config/metric-options.config';
 
 type MetricRendererProps = {
   metricType: MetricType;

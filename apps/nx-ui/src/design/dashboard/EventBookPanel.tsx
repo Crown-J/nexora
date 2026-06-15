@@ -8,7 +8,7 @@
 import { FileText } from 'lucide-react';
 
 import { HomeSectionHeader } from './HomeSectionHeader';
-import type { CalendarEvent } from './event-types';
+import type { CalendarEvent } from '@data/types/home-dashboard/event-types';
 
 type EventBookPanelProps = {
   events: CalendarEvent[];

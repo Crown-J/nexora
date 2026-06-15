@@ -13,7 +13,7 @@ import {
   Bell, Building2, ChevronDown, LayoutGrid, LogOut, Lock,
   Megaphone, Moon, Settings, Sun, User,
 } from 'lucide-react';
-import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@/features/home/home-data';
+import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@data/home/home-data';
 import { PlanetSlot } from '@design/home/SharedPlanetRoot';
 
 type TopBarProps = {
