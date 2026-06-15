@@ -1,0 +1,382 @@
+// apps/nx-ui/src/components/shell/UnifiedTopBar.tsx
+// NX00 統一 TopBar（取代 HomeTopBar / MasterTopBar）
+// 對齊 Hana 成品 NEXORA 系統.html .topbar 段：
+// 左：dock 觸發（小星球）+ NEXORA GRID 品牌 + 租戶名
+// 右：時鐘 + 公告 + 通知 + 環境設定 + 用戶選單
+// 主題切換：localStorage 持久、即時 toggle html.light
+
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Bell, Building2, ChevronDown, LayoutGrid, LogOut, Lock,
+  Megaphone, Moon, Settings, Sun, User,
+} from 'lucide-react';
+import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@/features/home/home-data';
+
+type TopBarProps = {
+  displayName: string;
+  employeeNo: string;
+  onLogout: () => void;
+  onDockToggle: () => void;
+  onHome: () => void;
+};
+
+function useTheme() {
+  // SSR 時無 window、lazy initializer 跑在 client 第一次 render、避免後續 setState-in-effect
+  const [light, setLight] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('nx-theme') === 'light';
+  });
+  // useEffect 只負責同步 DOM、不 setState（保留 hydration 第一輪後 toggle）
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', light);
+  }, [light]);
+  const toggle = () => {
+    setLight((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem('nx-theme', next ? 'light' : 'dark');
+      } catch {}
+      return next;
+    });
+  };
+  return { light, toggle };
+}
+
+function useClock() {
+  // SSR 用 null 顯示 "—"、client mount 後 useEffect 啟 interval（setState-in-effect 用 disable、為 client-only setTimer 範式）
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only 時鐘初始化、必須在 effect 啟動
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return now;
+}
+
+function useOutsideClose(refs: React.RefObject<HTMLElement | null>[], onClose: () => void) {
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (refs.some((r) => r.current && r.current.contains(e.target as Node))) return;
+      onClose();
+    };
+    document.addEventListener('click', h);
+    return () => document.removeEventListener('click', h);
+  }, [refs, onClose]);
+}
+
+export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle, onHome }: TopBarProps) {
+  const router = useRouter();
+  const { light, toggle: toggleTheme } = useTheme();
+  const now = useClock();
+
+  const [open, setOpen] = useState<null | 'bull' | 'noti' | 'set' | 'user'>(null);
+  const bullRef = useRef<HTMLDivElement>(null);
+  const notiRef = useRef<HTMLDivElement>(null);
+  const setRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
+  useOutsideClose([bullRef, notiRef, setRef, userRef], () => setOpen(null));
+
+  const unreadBull = BULLETINS.filter((b) => b.unread).length;
+  const pendingNoti = NOTIFICATIONS.length;
+  const initial = displayName.charAt(0);
+
+  const dStr = now
+    ? now.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'short' })
+    : '—';
+  const tStr = now
+    ? now.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+    : '—';
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-border/40 bg-[color-mix(in_oklch,var(--card)_72%,transparent)] backdrop-blur-md backdrop-saturate-150">
+      <div className="flex h-14 items-center gap-3 px-4">
+        {/* 小星球 Dock 觸發 */}
+        <button
+          type="button"
+          onClick={onDockToggle}
+          aria-label="導覽選單，快捷鍵 Alt+X"
+          title="導覽 · Alt+X"
+          className="grid h-11 w-11 place-items-center rounded-xl hover:bg-foreground/[0.06] transition"
+        >
+          <svg viewBox="0 0 40 40" className="h-10 w-10">
+            <defs>
+              <radialGradient id="tbLmetal" cx="38%" cy="32%" r="66%">
+                <stop offset="0" stopColor="#d6dbe3" />
+                <stop offset=".5" stopColor="#7c828d" />
+                <stop offset="1" stopColor="#2a3038" />
+              </radialGradient>
+              <radialGradient id="tbLcore" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stopColor="#fff8e6" />
+                <stop offset=".4" stopColor="#ffd368" />
+                <stop offset=".8" stopColor="#f4a92a" />
+                <stop offset="1" stopColor="rgba(180,110,10,0)" />
+              </radialGradient>
+            </defs>
+            <circle cx="20" cy="20" r="16.5" fill="url(#tbLmetal)" />
+            <g stroke="#aeb4be" strokeWidth=".6" opacity=".4" fill="none">
+              <path d="M12 14h7M11 20h9M12 26h7" />
+            </g>
+            <circle cx="20" cy="20" r="15.5" fill="none" stroke="rgba(255,222,150,.4)" strokeWidth="1" />
+            <circle cx="20" cy="20" r="6.5" fill="url(#tbLcore)" />
+            <circle cx="20" cy="20" r="2.4" fill="#fff8e6" />
+            <circle cx="33" cy="13" r="1.7" fill="#f4c862" />
+          </svg>
+        </button>
+
+        {/* NEXORA GRID 品牌 → 點回首頁 */}
+        <button
+          type="button"
+          onClick={onHome}
+          title="回首頁"
+          className="whitespace-nowrap text-[15px] font-bold tracking-wide text-foreground hover:opacity-80"
+        >
+          NEXORA <span className="text-[var(--warning)]">GRID</span>
+        </button>
+
+        {/* 租戶名 */}
+        <span className="ml-1 flex items-center gap-1.5 border-l border-border/50 pl-3 text-xs text-muted-foreground whitespace-nowrap">
+          <Building2 className="h-3.5 w-3.5 opacity-70" />
+          {TENANT_NAME}
+        </span>
+
+        <div className="flex-1" />
+
+        {/* 時鐘 */}
+        <div className="mr-1 hidden text-right leading-tight md:block">
+          <div className="text-[11px] tracking-wide text-muted-foreground">{dStr}</div>
+          <div className="font-mono text-[13px] tabular-nums tracking-wide text-foreground">{tStr}</div>
+        </div>
+
+        {/* 公告 */}
+        <div ref={bullRef} className="relative">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(open === 'bull' ? null : 'bull');
+            }}
+            aria-label="公告"
+            className="relative grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground transition"
+          >
+            <Megaphone className="h-[18px] w-[18px]" />
+            {unreadBull > 0 && (
+              <span className="absolute right-1 top-1 grid min-w-[15px] h-[15px] px-1 place-items-center rounded-full bg-[var(--color-danger,#e24b4a)] text-[9px] font-bold text-white">
+                {unreadBull}
+              </span>
+            )}
+          </button>
+          {open === 'bull' && (
+            <div className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
+              <div className="flex items-center gap-2 border-b border-border/30 px-4 py-3 text-xs font-semibold">
+                公告通知
+                <span className="ml-auto font-mono text-[10px] text-[var(--warning)]">未讀 {unreadBull}</span>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {BULLETINS.map((b, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-2.5 border-b border-border/20 px-4 py-3 last:border-b-0 hover:bg-foreground/[0.04] cursor-pointer"
+                  >
+                    <span
+                      className="h-fit whitespace-nowrap rounded px-1.5 py-0.5 font-mono text-[9.5px] font-bold tracking-wide"
+                      style={{ color: b.color, background: `color-mix(in srgb, ${b.color} 16%, transparent)` }}
+                    >
+                      {b.type}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[12.5px] leading-snug">{b.title}</div>
+                      <div className="mt-1 font-mono text-[10.5px] text-muted-foreground">{b.date}</div>
+                    </div>
+                    {b.unread && <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-[var(--color-danger,#e24b4a)]" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 通知 */}
+        <div ref={notiRef} className="relative">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(open === 'noti' ? null : 'noti');
+            }}
+            aria-label="通知"
+            className="relative grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground transition"
+          >
+            <Bell className="h-[18px] w-[18px]" />
+            {pendingNoti > 0 && (
+              <span className="absolute right-1 top-1 grid min-w-[15px] h-[15px] px-1 place-items-center rounded-full bg-[var(--color-danger,#e24b4a)] text-[9px] font-bold text-white">
+                {pendingNoti}
+              </span>
+            )}
+          </button>
+          {open === 'noti' && (
+            <div className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
+              <div className="flex items-center gap-2 border-b border-border/30 px-4 py-3 text-xs font-semibold">
+                通知 · 待我處理
+                <span className="ml-auto font-mono text-[10px] text-muted-foreground">{pendingNoti} 件待處理</span>
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {NOTIFICATIONS.length ? (
+                  NOTIFICATIONS.map((n, i) => (
+                    <div
+                      key={i}
+                      className="flex gap-2.5 border-b border-border/20 px-4 py-3 last:border-b-0 hover:bg-foreground/[0.04] cursor-pointer"
+                    >
+                      <span
+                        className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full"
+                        style={{ background: n.urgent ? 'var(--color-danger, #e24b4a)' : 'var(--muted-foreground)' }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[12.5px] leading-snug">{n.text}</div>
+                        <div className="mt-1 font-mono text-[10.5px] text-muted-foreground">
+                          {n.code} · {n.when}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-xs text-muted-foreground">目前沒有待處理事項</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 環境設定 */}
+        <div ref={setRef} className="relative">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(open === 'set' ? null : 'set');
+            }}
+            aria-label="環境設定"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground transition"
+          >
+            <Settings className="h-[18px] w-[18px]" />
+          </button>
+          {open === 'set' && (
+            <div className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_92%,transparent)] backdrop-blur-xl shadow-2xl">
+              <div className="border-b border-border/30 px-4 py-3 text-xs font-semibold">環境設定</div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleTheme();
+                }}
+                className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.04]"
+              >
+                <span className="flex-1 flex items-center gap-2">
+                  {light ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  深淺主題
+                </span>
+                <span
+                  className={`relative h-5 w-9 rounded-full border ${
+                    light ? 'border-[var(--warning)] bg-[color-mix(in_srgb,var(--warning)_55%,transparent)]' : 'border-border/60 bg-foreground/10'
+                  } transition`}
+                >
+                  <span
+                    className={`absolute top-[1.5px] h-3.5 w-3.5 rounded-full transition ${
+                      light ? 'left-[16px] bg-[var(--color-primary-light,#f5c842)]' : 'left-[1.5px] bg-muted-foreground'
+                    }`}
+                  />
+                </span>
+              </button>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
+                <span className="flex-1">雙重驗證 2FA</span>
+                <span className="font-mono text-[11px]">後端接入後啟用</span>
+              </div>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
+                <span className="flex-1">語言</span>
+                <span className="font-mono text-[11px]">繁體中文</span>
+              </div>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
+                <span className="flex-1">字級密度</span>
+                <span className="font-mono text-[11px]">標準</span>
+              </div>
+              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
+                <span className="flex-1">快捷鍵</span>
+                <span className="font-mono text-[11px]">Alt+X / Alt+A</span>
+              </div>
+              <div className="h-px bg-border/30" />
+              <div className="flex items-center gap-2.5 px-4 py-2.5 text-[12.5px] text-muted-foreground">
+                <span className="flex-1">版本</span>
+                <span className="font-mono text-[11px]">v1.5.1 beta</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 用戶 */}
+        <div ref={userRef} className="relative">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(open === 'user' ? null : 'user');
+            }}
+            className="flex items-center gap-2 rounded-xl border border-border/40 px-2 py-1 hover:bg-foreground/[0.06] transition"
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-[color-mix(in_srgb,var(--warning)_22%,transparent)] text-[13px] font-semibold text-[var(--color-primary-light,#f5c842)]">
+              {initial}
+            </span>
+            <span className="text-left leading-tight">
+              <span className="block text-[12.5px] font-medium">{displayName}</span>
+              <span className="block text-[10px] text-muted-foreground">{employeeNo}</span>
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+          {open === 'user' && (
+            <div className="absolute right-0 top-12 w-52 overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_94%,transparent)] backdrop-blur-xl shadow-2xl p-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(null);
+                  router.push('/dashboard/me');
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.06]"
+              >
+                <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                個人儀表板（待開放）
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(null);
+                  router.push('/dashboard/me/change-password');
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.06]"
+              >
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                修改密碼
+              </button>
+              <div className="my-1 h-px bg-border/30" />
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(null);
+                  onLogout();
+                }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] text-[var(--color-danger,#e24b4a)] hover:bg-foreground/[0.06]"
+              >
+                <LogOut className="h-4 w-4" />
+                登出
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// 補避免 unused-import 警告（User icon 保留以備個人選單擴充）
+void User;
