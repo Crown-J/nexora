@@ -10,7 +10,7 @@
 // - 進貨成本：採購區（銷售頁不放）
 // - 主檔中心：顯示全部 zones（誰能進主檔中心由 OWNER 自訂角色控制）
 
-import type { FieldDef, ZoneDef } from './types';
+import type { FieldDef, ZoneDef } from '@data/types/master-zones';
 
 export type PartZone = 'basic' | 'sales' | 'purchase' | 'inventory';
 

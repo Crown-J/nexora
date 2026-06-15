@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { createPr } from '../../api/pr';
 import { getRr, listRr } from '../../api/rr';
-import type { RrDetailDto, RrListRow } from '../../types';
+import type { RrDetailDto, RrListRow } from '@data/types/nx02';
 
 type Step = 1 | 2;
 

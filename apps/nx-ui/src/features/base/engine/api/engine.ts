@@ -10,7 +10,7 @@ import type {
   ListEngineParams,
   PagedEngine,
   UpdateEngineBody,
-} from '../types';
+} from '@data/types/base/engine';
 
 const BASE = '/nx01/engines';
 

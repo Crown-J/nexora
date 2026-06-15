@@ -22,13 +22,13 @@ import type {
   Sr,
   SrItem,
   SrStatus,
-} from '../types';
+} from '@data/types/sale/sales-return';
 import {
   DISPOSITION_LABEL,
   RETURN_ACTION_LABEL,
   SR_STATUS_BADGE_CLASS,
   SR_STATUS_LABEL,
-} from '../types';
+} from '@data/types/sale/sales-return';
 
 export function SalesReturnDetailView({ id }: { id: string }) {
   return (

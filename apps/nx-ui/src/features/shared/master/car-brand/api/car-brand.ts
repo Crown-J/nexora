@@ -6,7 +6,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
-import type { BrandDto, CreateBrandBody, PagedResult, UpdateBrandBody } from '@/features/shared/master/brand/types';
+import type { BrandDto, CreateBrandBody, PagedResult, UpdateBrandBody } from '@data/types/shared/master/brand';
 
 const BASE = '/nx01/car-brands';
 

@@ -17,7 +17,7 @@ import {
   type Disposal,
   type DisposalStatus,
   DISPOSAL_STATUS_LABEL,
-} from '../types';
+} from '@data/types/inventory/disposal';
 
 const STATUS_OPTIONS: { value: DisposalStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

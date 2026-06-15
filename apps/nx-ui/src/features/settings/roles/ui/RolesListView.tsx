@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createRole, deleteRole, listRoles, updateRole } from '../api';
-import type { CreateRolePayload, Role } from '../types';
+import type { CreateRolePayload, Role } from '@data/types/settings/roles';
 
 export function RolesListView() {
   const router = useRouter();

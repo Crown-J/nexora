@@ -17,7 +17,7 @@ import {
   type Promotion,
   type ScopeType,
   SCOPE_TYPE_LABEL,
-} from '../types';
+} from '@data/types/sale/promotion';
 import { ScopePicker } from './ScopePicker';
 
 function todayYmd(offsetDays = 0): string {

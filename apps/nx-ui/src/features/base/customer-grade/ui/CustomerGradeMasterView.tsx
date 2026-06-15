@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { listCustomerGrade, updateCustomerGrade } from '../api/customer-grade';
-import type { CustomerGradeDto } from '../types';
+import type { CustomerGradeDto } from '@data/types/base/customer-grade';
 
 type Draft = {
   name: string;

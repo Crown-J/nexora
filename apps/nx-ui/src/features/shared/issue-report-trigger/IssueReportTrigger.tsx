@@ -15,13 +15,13 @@
 import { useState } from 'react';
 
 import { createIssueReport } from './api';
-import type { CreateIssueReportPayload, IssueType, DispositionType, SourceDocType } from './types';
+import type { CreateIssueReportPayload, IssueType, DispositionType, SourceDocType } from '@data/types/shared/issue-report-trigger';
 import {
   DISPOSITION_TYPE_LABEL,
   DISPOSITION_TYPES,
   ISSUE_TYPE_LABEL,
   ISSUE_TYPES,
-} from './types';
+} from '@data/types/shared/issue-report-trigger';
 
 interface Props {
   sourceDocType: SourceDocType;

@@ -6,9 +6,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
-import type { PartnerDto } from '@/features/shared/master/partner/types';
+import type { PartnerDto } from '@data/types/shared/master/partner';
 import { listLookupPart, listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
-import type { LookupRow } from '@/features/shared/master/lookup/types';
+import type { LookupRow } from '@data/types/shared/master/lookup';
 
 import { createRfq } from '../../api/rfq';
 

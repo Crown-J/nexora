@@ -40,7 +40,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Check, Search, type LucideIcon } from 'lucide-react';
-import type { PagedResult } from '@/features/base/api/types';
+import type { PagedResult } from '@data/types/base/api';
 import { cn } from '@/lib/utils';
 
 export type EntityPickerDialogProps<T> = {

@@ -10,7 +10,7 @@ import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
-import type { BalanceListResponse, BalanceSummaryResponse } from '../types';
+import type { BalanceListResponse, BalanceSummaryResponse } from '@data/types/nx03/balance';
 
 export type ListBalanceParams = {
   q?: string;

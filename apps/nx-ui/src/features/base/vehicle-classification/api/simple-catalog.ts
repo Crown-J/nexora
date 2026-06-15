@@ -4,7 +4,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 
-import type { Paged, SimpleCatalogDto } from '../types';
+import type { Paged, SimpleCatalogDto } from '@data/types/base/vehicle-classification';
 
 export type SimpleCatalogParams = {
   page?: number;

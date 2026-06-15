@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listRole } from '@/features/shared/master/role/api/role';
-import type { RoleDto } from '@/features/shared/master/role/types';
+import type { RoleDto } from '@data/types/shared/master/role';
 
 import {
   getRoleViewByRoleId,
@@ -29,7 +29,7 @@ import type {
   RoleViewDraftRow,
   RoleViewDto,
   ViewDto,
-} from '@/features/shared/master/role-view/types';
+} from '@data/types/shared/master/role-view';
 
 const PERM_KEYS: PermKey[] = ['canRead', 'canCreate', 'canUpdate', 'canToggleActive', 'canExport'];
 

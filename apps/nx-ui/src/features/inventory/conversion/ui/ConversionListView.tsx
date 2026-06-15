@@ -20,7 +20,7 @@ import type {
   CreateConversionInputPayload,
   CreateConversionOutputPayload,
   CreateConversionPayload,
-} from '../types';
+} from '@data/types/inventory/conversion';
 
 const STATUS_OPTIONS: { value: ConversionStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

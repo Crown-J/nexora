@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 import { listLookupCarBrand } from '@/features/shared/master/lookup/api/lookup';
 import { useLookupCache } from '@/features/shared/master/lookup/hooks/useLookupCache';
-import type { SelectOption } from '@/features/shared/master/lookup/types';
+import type { SelectOption } from '@data/types/shared/master/lookup';
 
 function toLabel(code: string, name: string) {
   const c = (code ?? '').trim();

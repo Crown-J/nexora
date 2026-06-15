@@ -13,7 +13,7 @@ import type {
   IssueReportListResponse,
   IssueType,
   UpdateIssueReportPayload,
-} from '../types';
+} from '@data/types/inventory/issue-report';
 
 export interface ListIssueReportParams {
   page?: number;

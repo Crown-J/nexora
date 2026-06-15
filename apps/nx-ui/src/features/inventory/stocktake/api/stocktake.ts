@@ -14,7 +14,7 @@ import type {
   StockTakeListResponse,
   SubmitForApprovalResponse,
   UpdateStockTakePayload,
-} from '../types';
+} from '@data/types/inventory/stocktake';
 
 export interface ListStockTakeParams {
   page?: number;

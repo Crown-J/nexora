@@ -11,7 +11,7 @@ import type {
   DisposalListResponse,
   DisposalStatus,
   UpdateDisposalPayload,
-} from '../types';
+} from '@data/types/inventory/disposal';
 
 export interface ListDisposalParams {
   page?: number;

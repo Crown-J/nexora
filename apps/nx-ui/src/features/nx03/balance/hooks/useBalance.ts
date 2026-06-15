@@ -19,7 +19,7 @@ import { parsePositiveInt } from '@/shared/lib/parse';
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
 
 import { getBalanceSummary, listBalance } from '../api/balance';
-import type { BalanceRowDto, BalanceSummaryResponse, WarehouseOption } from '../types';
+import type { BalanceRowDto, BalanceSummaryResponse, WarehouseOption } from '@data/types/nx03/balance';
 
 const DEBOUNCE_MS = 300;
 

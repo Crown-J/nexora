@@ -9,7 +9,7 @@ import type {
   Role,
   RolePermissionsResponse,
   UpdateRolePayload,
-} from './types';
+} from '@data/types/settings/roles';
 
 /// 列出系統權限目錄
 export function listPermissionCatalog(): Promise<PermissionCatalogItem[]> {

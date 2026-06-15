@@ -2,7 +2,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
-import type { PagedResult } from './types';
+import type { PagedResult } from '@data/types/base/api';
 
 export type RoleDto = {
   id: string;

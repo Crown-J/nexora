@@ -4,7 +4,7 @@
 'use client';
 
 import { useTieredForm } from './TieredFormProvider';
-import { MODE_LABEL_ZH, type TieredDisplayMode } from './types';
+import { MODE_LABEL_ZH, type TieredDisplayMode } from '@data/types/shared/tiered-form';
 
 const MODES: TieredDisplayMode[] = ['lite', 'expanded', 'all'];
 

@@ -6,4 +6,4 @@ export type {
   CreateBrandBody as CreateCarBrandBody,
   PagedResult,
   UpdateBrandBody as UpdateCarBrandBody,
-} from '@/features/shared/master/brand/types';
+} from '@data/types/shared/master/brand';

@@ -13,4 +13,4 @@ export {
   MODE_LABEL_ZH,
   type FieldTier,
   type TieredDisplayMode,
-} from './types';
+} from '@data/types/shared/tiered-form';

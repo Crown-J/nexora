@@ -20,7 +20,7 @@ import {
   patchAutoReplenish,
   setAutoReplenishActive,
 } from '../api/auto-replenish';
-import type { AutoReplenishDetail, AutoReplenishRow } from '../types';
+import type { AutoReplenishDetail, AutoReplenishRow } from '@data/types/nx03/auto-replenish';
 
 export type AutoReplenishFormState = {
   fromWarehouseId: string;

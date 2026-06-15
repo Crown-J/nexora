@@ -14,7 +14,7 @@ import {
   softDeleteConversion,
   updateConversion,
 } from '../api/conversion';
-import type { Conversion, ConversionInput, ConversionOutput } from '../types';
+import type { Conversion, ConversionInput, ConversionOutput } from '@data/types/inventory/conversion';
 import { CV_STATUS_LABEL, CV_TYPE_LABEL } from './ConversionListView';
 
 export function ConversionDetailView({ id }: { id: string }) {

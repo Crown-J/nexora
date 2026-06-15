@@ -14,7 +14,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
-import type { PagedResult, RoleViewDto, ViewDto, Perms } from '@/features/shared/master/role-view/types';
+import type { PagedResult, RoleViewDto, ViewDto, Perms } from '@data/types/shared/master/role-view';
 
 export type ListRoleViewParams = {
     roleId?: string;

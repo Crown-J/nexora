@@ -5,7 +5,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { TieredDisplayMode } from './types';
+import type { TieredDisplayMode } from '@data/types/shared/tiered-form';
 
 export type TieredFormContextValue = {
   mode: TieredDisplayMode;

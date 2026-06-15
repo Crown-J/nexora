@@ -23,7 +23,7 @@ import {
   voidTransfer,
 } from '../api/transfer';
 import type { TransferItemInput } from '../api/transfer';
-import type { TransferDetailDto, TransferListResponse } from '../types';
+import type { TransferDetailDto, TransferListResponse } from '@data/types/nx03/transfer';
 
 /**
  * @FUNCTION_CODE NX02-XFER-UI-HOOK-001-F01

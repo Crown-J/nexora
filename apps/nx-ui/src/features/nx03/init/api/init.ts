@@ -10,7 +10,7 @@ import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
-import type { InitDetailDto, InitListResponse } from '../types';
+import type { InitDetailDto, InitListResponse } from '@data/types/nx03/init';
 
 export type InitItemInput = {
   partId: string;

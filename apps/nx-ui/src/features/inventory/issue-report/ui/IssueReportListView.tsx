@@ -18,7 +18,7 @@ import type {
   IssueReport,
   IssueStatus,
   IssueType,
-} from '../types';
+} from '@data/types/inventory/issue-report';
 
 const STATUS_OPTIONS: { value: IssueStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

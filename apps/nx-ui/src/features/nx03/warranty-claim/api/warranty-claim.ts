@@ -10,7 +10,7 @@ import type {
   UpdateWarrantyClaimBody,
   WarrantyClaimAttachmentDto,
   WarrantyClaimDto,
-} from '../types';
+} from '@data/types/nx03/warranty-claim';
 
 const BASE = '/nx02/warranty-claims';
 

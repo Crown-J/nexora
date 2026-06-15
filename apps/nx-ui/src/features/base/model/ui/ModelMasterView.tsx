@@ -15,7 +15,7 @@ import {
   softDeleteModel,
   updateModel,
 } from '../api/model';
-import { formatYearRange, type ModelDto } from '../types';
+import { formatYearRange, type ModelDto } from '@data/types/base/model';
 
 type Draft = {
   code: string;

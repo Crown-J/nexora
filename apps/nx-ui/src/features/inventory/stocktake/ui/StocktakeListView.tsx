@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createStockTake, listStockTake } from '../api/stocktake';
-import type { CreateStockTakePayload, StockTake, StockTakeStatus } from '../types';
+import type { CreateStockTakePayload, StockTake, StockTakeStatus } from '@data/types/inventory/stocktake';
 
 const STATUS_OPTIONS: { value: StockTakeStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

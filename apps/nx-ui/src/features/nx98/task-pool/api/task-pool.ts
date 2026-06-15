@@ -4,7 +4,7 @@
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import type { CreateTaskPoolBody, TaskPoolDto, TaskScope, TaskStatus } from '../types';
+import type { CreateTaskPoolBody, TaskPoolDto, TaskScope, TaskStatus } from '@data/types/nx98/task-pool';
 
 const BASE = '/nx98/task-pool';
 

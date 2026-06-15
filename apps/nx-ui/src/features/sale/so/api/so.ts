@@ -16,7 +16,7 @@ import type {
   SoItem,
   SoListResponse,
   UpdateSoPayload,
-} from '../types';
+} from '@data/types/sale/so';
 
 export interface ListSoParams {
   page?: number;

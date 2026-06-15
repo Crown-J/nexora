@@ -18,7 +18,7 @@ import {
   TRANSMISSION_TYPE_OPTIONS,
   transmissionTypeLabel,
   type TransmissionDto,
-} from '../types';
+} from '@data/types/base/vehicle-classification';
 
 type Draft = {
   code: string;

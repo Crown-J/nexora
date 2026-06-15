@@ -6,7 +6,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
-import type { CreatePartnerBody, PagedResult, PartnerDto, UpdatePartnerBody } from '@/features/shared/master/partner/types';
+import type { CreatePartnerBody, PagedResult, PartnerDto, UpdatePartnerBody } from '@data/types/shared/master/partner';
 
 const BASE = '/nx01/partners';
 

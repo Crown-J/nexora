@@ -3,7 +3,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 
-import type { Paged, TransmissionDto } from '../types';
+import type { Paged, TransmissionDto } from '@data/types/base/vehicle-classification';
 
 const BASE = '/nx01/transmissions';
 

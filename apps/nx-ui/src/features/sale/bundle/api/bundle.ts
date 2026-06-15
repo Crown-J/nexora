@@ -11,7 +11,7 @@ import type {
   CreateBundleItemPayload,
   CreateBundlePayload,
   UpdateBundlePayload,
-} from '../types';
+} from '@data/types/sale/bundle';
 
 export interface ListBundleParams {
   page?: number;

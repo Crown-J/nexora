@@ -8,10 +8,10 @@ import { getWarehouseSingle } from '@/features/shared/master/warehouse/api/wareh
 import { listLocation } from '@/features/shared/master/location/api/location';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
 import { listPart } from '@/features/shared/master/part/api/part';
-import type { LocationDto } from '@/features/shared/master/location/types';
-import type { PartnerDto } from '@/features/shared/master/partner/types';
-import type { PartDto } from '@/features/shared/master/part/types';
-import type { WarehouseDto } from '@/features/shared/master/warehouse/types';
+import type { LocationDto } from '@data/types/shared/master/location';
+import type { PartnerDto } from '@data/types/shared/master/partner';
+import type { PartDto } from '@data/types/shared/master/part';
+import type { WarehouseDto } from '@data/types/shared/master/warehouse';
 
 type StockRfqItem = {
   partId: string | null;

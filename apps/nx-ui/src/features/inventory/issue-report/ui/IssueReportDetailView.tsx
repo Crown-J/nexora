@@ -22,7 +22,7 @@ import type {
   IssueReport,
   IssueType,
   UpdateIssueReportPayload,
-} from '../types';
+} from '@data/types/inventory/issue-report';
 import {
   DISPOSITION_LABEL,
   ISSUE_LABEL,

@@ -49,7 +49,7 @@ import {
   setPartActive,
   updatePart,
 } from '@/features/shared/master/part/api/part';
-import type { PartDto, PartOemCodeItem } from '@/features/shared/master/part/types';
+import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
 import { previewPartCode } from '@/features/base/api/part';
 import {
   listBrandCodeRules,

@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { cx } from '@/shared/lib/cx';
-import type { QuoteSnapshot } from '@/features/sale/workflow/types';
+import type { QuoteSnapshot } from '@data/types/sale/workflow';
 import { SalesDocumentsBrowse } from '@/features/sale/workflow/ui/SalesDocumentsBrowse';
 import { SalesOperationWorkspace } from '@/features/sale/workflow/ui/SalesOperationWorkspace';
 import { SalesOrderWorkspace } from '@/features/sale/workflow/ui/SalesOrderWorkspace';

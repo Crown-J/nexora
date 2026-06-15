@@ -6,21 +6,21 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
-import type { PartnerDto } from '@/features/shared/master/partner/types';
+import type { PartnerDto } from '@data/types/shared/master/partner';
 import {
   listLookupLocation,
   listLookupPart,
   listLookupWarehouse,
   type LookupLocationRow,
 } from '@/features/shared/master/lookup/api/lookup';
-import type { LookupRow } from '@/features/shared/master/lookup/types';
+import type { LookupRow } from '@data/types/shared/master/lookup';
 
 import { lookupStockBalance } from '@/features/inventory/stock-balance/api/lookup';
 
 import { getRfq, listRfq } from '../../api/rfq';
 import { getPo, listPo } from '../../api/po';
 import { createRr } from '../../api/rr';
-import type { RfqListRow, PoListRow } from '../../types';
+import type { RfqListRow, PoListRow } from '@data/types/nx02';
 
 type Source = 'direct' | 'rfq' | 'po';
 

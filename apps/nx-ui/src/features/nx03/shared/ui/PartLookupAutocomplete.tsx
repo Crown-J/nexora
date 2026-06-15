@@ -27,7 +27,7 @@ import {
 import { createPortal } from 'react-dom';
 
 import { listLookupPart } from '@/features/shared/master/lookup/api/lookup';
-import type { LookupRow } from '@/features/shared/master/lookup/types';
+import type { LookupRow } from '@data/types/shared/master/lookup';
 import { cx } from '@/shared/lib/cx';
 
 const DEBOUNCE_MS = 250;

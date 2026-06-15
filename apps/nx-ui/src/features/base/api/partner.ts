@@ -2,7 +2,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 import { clampNx01ListPageSize } from '@data/utils/nx01Pagination';
-import type { PagedResult } from './types';
+import type { PagedResult } from '@data/types/base/api';
 
 // partner 改制七分類：W4 [3-5] 2026-06-06 加 L=散客
 export type PartnerType = 'C' | 'O' | 'S' | 'T' | 'V' | 'B' | 'L';

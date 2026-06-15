@@ -10,7 +10,7 @@ import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
-import type { TransferDetailDto, TransferListResponse } from '../types';
+import type { TransferDetailDto, TransferListResponse } from '@data/types/nx03/transfer';
 
 export type TransferItemInput = {
   partId: string;

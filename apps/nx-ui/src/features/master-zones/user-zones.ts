@@ -9,7 +9,7 @@
 // ⚠️ 對齊 v1.1：本檔不寫死任何角色名（OWNER 等是系統內建角色 code、非客戶自訂角色）
 //    isTenantOwner 是 flag、不是角色名
 
-import type { FieldDef, ZoneDef } from './types';
+import type { FieldDef, ZoneDef } from '@data/types/master-zones';
 
 export type UserZone = 'basic' | 'permission' | 'security' | 'hr';
 

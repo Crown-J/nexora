@@ -15,7 +15,7 @@ import {
   updateSimpleCatalog,
   type SimpleCatalogVariant,
 } from '../api/simple-catalog';
-import type { SimpleCatalogDto } from '../types';
+import type { SimpleCatalogDto } from '@data/types/base/vehicle-classification';
 
 type Draft = {
   code: string;

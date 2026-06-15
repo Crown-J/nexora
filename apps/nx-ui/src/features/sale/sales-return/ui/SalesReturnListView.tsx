@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createSr, listSr } from '../api/sales-return';
-import type { CreateSrPayload, Sr, SrStatus } from '../types';
-import { SR_STATUS_BADGE_CLASS, SR_STATUS_LABEL, SR_STATUSES } from '../types';
+import type { CreateSrPayload, Sr, SrStatus } from '@data/types/sale/sales-return';
+import { SR_STATUS_BADGE_CLASS, SR_STATUS_LABEL, SR_STATUSES } from '@data/types/sale/sales-return';
 
 const STATUS_OPTIONS: { value: SrStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

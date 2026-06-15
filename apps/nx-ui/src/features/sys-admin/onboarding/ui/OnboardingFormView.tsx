@@ -12,7 +12,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { createOnboarding, uploadOnboardingLogo, logoStorageKeyToUrl } from '../api';
-import type { CreateOnboardingPayload, OnboardingResponse } from '../types';
+import type { CreateOnboardingPayload, OnboardingResponse } from '@data/types/sys-admin/onboarding';
 
 const PLAN_OPTIONS = [
   { value: 'LITE', label: 'LITE（基礎版）', desc: '進貨 / 銷貨 / 庫存 / 財務 / 報表' },

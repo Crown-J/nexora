@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiJson } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 
-import type { ScopeType } from '../types';
+import type { ScopeType } from '@data/types/sale/promotion';
 
 interface ScopeEntity {
   id: string;

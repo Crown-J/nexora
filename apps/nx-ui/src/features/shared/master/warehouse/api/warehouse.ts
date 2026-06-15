@@ -20,8 +20,8 @@ import type {
     CreateWarehouseBody,
     UpdateWarehouseBody,
     WarehouseDto,
-} from '@/features/shared/master/warehouse/types';
-import type { PagedResult } from '@/shared/types/pagination';
+} from '@data/types/shared/master/warehouse';
+import type { PagedResult } from '@data/types/pagination';
 
 const BASE = '/warehouse';
 

@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { ignoreShortage, listShortage, shortageToRfq } from '../api/shortage';
-import type { ShortageListResponse } from '../types';
+import type { ShortageListResponse } from '@data/types/nx03/shortage';
 
 /**
  * @FUNCTION_CODE NX02-SHOR-UI-HOOK-001-F01

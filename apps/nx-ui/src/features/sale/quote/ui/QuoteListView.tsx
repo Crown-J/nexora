@@ -11,8 +11,8 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { createQuote, listQuote } from '../api/quote';
-import type { CreateQuotePayload, Quote, QuoteStatus } from '../types';
-import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from '../types';
+import type { CreateQuotePayload, Quote, QuoteStatus } from '@data/types/sale/quote';
+import { QUOTE_STATUSES, QUOTE_STATUS_LABEL } from '@data/types/sale/quote';
 
 const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
   { value: '', label: '全部' },

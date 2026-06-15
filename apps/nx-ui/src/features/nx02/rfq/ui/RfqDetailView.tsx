@@ -5,9 +5,9 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
-import type { PartnerDto } from '@/features/shared/master/partner/types';
+import type { PartnerDto } from '@data/types/shared/master/partner';
 import { listLookupPart } from '@/features/shared/master/lookup/api/lookup';
-import type { LookupRow } from '@/features/shared/master/lookup/types';
+import type { LookupRow } from '@data/types/shared/master/lookup';
 
 import {
   getRfq,
@@ -23,7 +23,7 @@ import {
   listQuotesByRfq,
   type QtRow,
 } from '@/features/nx03/qt/api/qt';
-import type { RfqDetailDto } from '../../types';
+import type { RfqDetailDto } from '@data/types/nx02';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 
 function isSupplier(p: PartnerDto): boolean {

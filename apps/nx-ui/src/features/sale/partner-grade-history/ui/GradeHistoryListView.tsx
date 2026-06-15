@@ -15,8 +15,8 @@ import type {
   CreateGradeChangeRequestPayload,
   PartnerGradeHistoryRow,
   PghStatus,
-} from '../types';
-import { PGH_STATUS_BADGE_CLASS, PGH_STATUS_LABEL, PGH_STATUSES } from '../types';
+} from '@data/types/sale/partner-grade-history';
+import { PGH_STATUS_BADGE_CLASS, PGH_STATUS_LABEL, PGH_STATUSES } from '@data/types/sale/partner-grade-history';
 
 interface Props {
   /// 若傳入 partnerId、清單預設過濾該客戶；否則全部變更歷史

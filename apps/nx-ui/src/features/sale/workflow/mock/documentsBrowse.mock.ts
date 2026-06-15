@@ -9,7 +9,7 @@
  * - 報價：沒庫存找零件、有庫存已報價客戶考慮中；銷貨：撿貨／待配送／配送中
  */
 
-import type { DocCard, WorkflowStep } from '@/features/sale/workflow/types';
+import type { DocCard, WorkflowStep } from '@data/types/sale/workflow';
 
 /** 簡化流程三步驟（不依路徑 A/C） */
 export const browseSteps: WorkflowStep[] = [

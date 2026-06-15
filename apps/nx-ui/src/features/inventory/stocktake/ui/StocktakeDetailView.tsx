@@ -23,7 +23,7 @@ import type {
   StockTakeItem,
   StockTakeStatus,
   VarianceReasonCode,
-} from '../types';
+} from '@data/types/inventory/stocktake';
 
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: '草稿',

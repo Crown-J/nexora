@@ -10,7 +10,7 @@ import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
-import type { LedgerListResponse } from '../types';
+import type { LedgerListResponse } from '@data/types/nx03/ledger';
 
 export type ListLedgerParams = {
   q?: string;

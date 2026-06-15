@@ -23,8 +23,8 @@ import type {
   QuoteHistoricalPrice,
   QuoteItem,
   QuoteStatus,
-} from '../types';
-import { QUOTE_STATUS_LABEL } from '../types';
+} from '@data/types/sale/quote';
+import { QUOTE_STATUS_LABEL } from '@data/types/sale/quote';
 
 export function QuoteDetailView({ id }: { id: string }) {
   return (

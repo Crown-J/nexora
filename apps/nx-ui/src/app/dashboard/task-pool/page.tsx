@@ -19,7 +19,7 @@ import {
   type TaskPoolDto,
   type TaskPriority,
   type TaskScope,
-} from '@/features/nx98/task-pool/types';
+} from '@data/types/nx98/task-pool';
 import {
   TieredField,
   TieredFormProvider,

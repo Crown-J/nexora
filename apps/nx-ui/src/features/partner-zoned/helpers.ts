@@ -12,7 +12,7 @@ import type {
   PartnerDto,
   PartnerType,
   UpdatePartnerBody,
-} from '@/features/shared/master/partner/types';
+} from '@data/types/shared/master/partner';
 
 export type PartnerDraft = Record<string, string | boolean>;
 

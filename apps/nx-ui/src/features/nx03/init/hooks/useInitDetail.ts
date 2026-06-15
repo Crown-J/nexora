@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { getInit, patchInit, postInit, voidInit } from '../api/init';
-import type { InitDetailDto, InitItemDto } from '../types';
+import type { InitDetailDto, InitItemDto } from '@data/types/nx03/init';
 
 import type { InitItemInput } from '../api/init';
 

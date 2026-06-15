@@ -8,7 +8,7 @@ import type {
   ListCustomerGradeParams,
   PagedCustomerGrade,
   UpdateCustomerGradeBody,
-} from '../types';
+} from '@data/types/base/customer-grade';
 
 const BASE = '/nx01/customer-grades';
 

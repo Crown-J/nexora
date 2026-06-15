@@ -22,7 +22,7 @@ import {
   DISPOSAL_REASONS,
   DISPOSAL_REASON_LABEL,
   DISPOSAL_STATUS_LABEL,
-} from '../types';
+} from '@data/types/inventory/disposal';
 
 export function DisposalDetailView({ id }: { id: string }) {
   const [doc, setDoc] = useState<Disposal | null>(null);

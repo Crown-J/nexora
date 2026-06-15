@@ -10,7 +10,7 @@ import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
-import type { StockSettingListResponse, StockSettingRowDto } from '../types';
+import type { StockSettingListResponse, StockSettingRowDto } from '@data/types/nx03/stock-setting';
 
 /**
  * @FUNCTION_CODE NX02-STKG-UI-API-001-F01

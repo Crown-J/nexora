@@ -12,7 +12,7 @@
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import type { LookupRow, PartStatusRow } from '@/features/shared/master/lookup/types';
+import type { LookupRow, PartStatusRow } from '@data/types/shared/master/lookup';
 
 export type ListLookupsParams = {
     isActive?: boolean;

@@ -20,7 +20,7 @@ import {
   type ClaimResult,
   type ClaimType,
   type WarrantyClaimDto,
-} from '@/features/nx03/warranty-claim/types';
+} from '@data/types/nx03/warranty-claim';
 import {
   TieredField,
   TieredFormProvider,

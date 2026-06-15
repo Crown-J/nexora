@@ -9,7 +9,7 @@ import {
   PART_FIELDS,
   type PartZone,
 } from '@/features/master-zones';
-import type { PartDto, UpdatePartBody } from '@/features/shared/master/part/types';
+import type { PartDto, UpdatePartBody } from '@data/types/shared/master/part';
 
 export type PartDraft = Record<string, string | boolean>;
 

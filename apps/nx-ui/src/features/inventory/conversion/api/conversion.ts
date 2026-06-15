@@ -9,7 +9,7 @@ import type {
   ConversionListResponse,
   CreateConversionPayload,
   UpdateConversionPayload,
-} from '../types';
+} from '@data/types/inventory/conversion';
 
 export interface ListConversionParams {
   page?: number;

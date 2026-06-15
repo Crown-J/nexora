@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { getRr, patchRr, postRr, voidRr } from '../../api/rr';
-import type { RrDetailDto } from '../../types';
+import type { RrDetailDto } from '@data/types/nx02';
 import { rrStatusLabel } from '../../shared/nx01-labels';
 
 // T2-c 進貨對齊批次 2026-06-07：瑕疵類型代碼對應顯示文字

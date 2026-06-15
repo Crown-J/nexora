@@ -39,7 +39,7 @@ import { useListLocalPref } from '@/shared/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import { createBrand, listBrand, setBrandActive, updateBrand } from '@/features/shared/master/brand/api/brand';
 import { createCarBrand, listCarBrand, setCarBrandActive, updateCarBrand } from '@/features/shared/master/car-brand/api/car-brand';
-import type { BrandDto } from '@/features/shared/master/brand/types';
+import type { BrandDto } from '@data/types/shared/master/brand';
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';

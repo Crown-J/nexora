@@ -6,13 +6,13 @@ export type {
   PlanTier,
   ZoneDef,
   ZoneRenderContext,
-} from './types';
+} from '@data/types/master-zones';
 export {
   fieldsInZone,
   fieldsInZones,
   isFieldVisibleAtPlan,
   normalizePlanTier,
-} from './types';
+} from '@data/types/master-zones';
 
 export type { PartnerZone } from './partner-zones';
 export {

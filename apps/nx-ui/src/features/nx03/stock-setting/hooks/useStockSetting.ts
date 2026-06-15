@@ -20,7 +20,7 @@ import {
   patchStockSetting,
   setStockSettingActive,
 } from '../api/stock-setting';
-import type { StockSettingRowDto } from '../types';
+import type { StockSettingRowDto } from '@data/types/nx03/stock-setting';
 
 /**
  * @FUNCTION_CODE NX02-STKG-UI-HOOK-001-F01

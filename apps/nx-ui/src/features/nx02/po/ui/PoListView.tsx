@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { listPo } from '../../api/po';
-import type { PoListRow } from '../../types';
+import type { PoListRow } from '@data/types/nx02';
 import { poStatusLabel } from '../../shared/nx01-labels';
 
 export function PoListView() {

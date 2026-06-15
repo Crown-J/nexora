@@ -29,7 +29,7 @@ import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
 import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/satellite/SatelliteSection';
 import { StockSettingsSatellite } from './StockSettingsSatellite';
-import type { PartDto, PartOemCodeItem } from '@/features/shared/master/part/types';
+import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
 import type { BrandCodeRuleDto } from '@/features/base/api/brand-code-rule';
 import { Calculator, Plus, X } from 'lucide-react';
 

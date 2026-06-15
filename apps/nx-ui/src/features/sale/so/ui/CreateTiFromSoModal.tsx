@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { createTiFromSo, listPendingTransferLines } from '../api/so';
-import type { CreateTiFromSoResponse, SoItem } from '../types';
+import type { CreateTiFromSoResponse, SoItem } from '@data/types/sale/so';
 
 export function CreateTiFromSoModal({
   soId,

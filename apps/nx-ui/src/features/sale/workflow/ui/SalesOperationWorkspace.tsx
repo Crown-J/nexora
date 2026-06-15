@@ -34,7 +34,7 @@ import {
   type WorkbenchComparisonRow,
   type WorkbenchDerived,
 } from '@/features/sale/workflow/mock/workbench.mock';
-import type { QuoteSnapshot } from '@/features/sale/workflow/types';
+import type { QuoteSnapshot } from '@data/types/sale/workflow';
 
 const BLOCK_IDS = ['nx03-wb-block-1', 'nx03-wb-block-2', 'nx03-wb-block-3', 'nx03-wb-block-4'] as const;
 

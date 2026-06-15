@@ -21,7 +21,7 @@ import {
   aspirationTypeLabel,
   fuelTypeLabel,
   type EngineDto,
-} from '../types';
+} from '@data/types/base/engine';
 
 type Draft = {
   code: string;

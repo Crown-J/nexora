@@ -13,7 +13,7 @@ import type {
   QuoteItem,
   QuoteListResponse,
   UpdateQuotePayload,
-} from '../types';
+} from '@data/types/sale/quote';
 
 export interface ListQuoteParams {
   page?: number;

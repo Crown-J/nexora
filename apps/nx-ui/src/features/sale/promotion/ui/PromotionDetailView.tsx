@@ -13,7 +13,7 @@ import {
   type Promotion,
   type ScopeType,
   SCOPE_TYPE_LABEL,
-} from '../types';
+} from '@data/types/sale/promotion';
 import { ScopePicker } from './ScopePicker';
 
 export function PromotionDetailView({ id }: { id: string }) {

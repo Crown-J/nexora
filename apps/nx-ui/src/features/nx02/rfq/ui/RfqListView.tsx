@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { listRfq } from '../../api/rfq';
-import type { RfqListRow } from '../../types';
+import type { RfqListRow } from '@data/types/nx02';
 import { rfqStatusLabel } from '../../shared/nx01-labels';
 
 export function RfqListView() {

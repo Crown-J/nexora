@@ -28,9 +28,9 @@ import { assertOk } from '@data/api/http';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
 import { listBrand, createBrand, updateBrand } from '@/features/shared/master/brand/api/brand';
-import type { BrandDto } from '@/features/shared/master/brand/types';
+import type { BrandDto } from '@data/types/shared/master/brand';
 import { listCarBrand, createCarBrand, updateCarBrand } from '@/features/shared/master/car-brand/api/car-brand';
-import type { CarBrandDto } from '@/features/shared/master/car-brand/types';
+import type { CarBrandDto } from '@data/types/shared/master/car-brand';
 
 const PAGE_SIZE = 10;
 const LIST_COL_PREF_KEY = 'base.brand.listcols';

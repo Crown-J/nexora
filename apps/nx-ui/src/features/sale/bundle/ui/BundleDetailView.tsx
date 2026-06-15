@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ScopePicker } from '@/features/sale/promotion/ui/ScopePicker';
 
 import { getBundle, replaceBundleItems, updateBundle, voidBundle } from '../api/bundle';
-import type { Bundle, CreateBundleItemPayload } from '../types';
+import type { Bundle, CreateBundleItemPayload } from '@data/types/sale/bundle';
 
 export function BundleDetailView({ id }: { id: string }) {
   const [doc, setDoc] = useState<Bundle | null>(null);

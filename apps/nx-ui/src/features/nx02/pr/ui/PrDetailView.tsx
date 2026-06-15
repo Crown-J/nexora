@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getPr, patchPrDisposition, postPr, voidPr } from '../../api/pr';
-import type { PrDetailDto } from '../../types';
+import type { PrDetailDto } from '@data/types/nx02';
 import { prStatusLabel } from '../../shared/nx01-labels';
 
 const DISPOSITION_LABEL: Record<'G' | 'B' | 'W', string> = {

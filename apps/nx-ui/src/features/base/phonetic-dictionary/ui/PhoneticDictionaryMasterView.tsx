@@ -15,7 +15,7 @@ import {
   softDeletePhoneticDictionary,
   updatePhoneticDictionary,
 } from '../api/phonetic-dictionary';
-import type { PhoneticDictionaryDto } from '../types';
+import type { PhoneticDictionaryDto } from '@data/types/base/phonetic-dictionary';
 
 type Draft = {
   character: string;

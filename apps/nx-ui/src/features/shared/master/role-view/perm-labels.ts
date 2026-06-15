@@ -2,7 +2,7 @@
  * Role⇄View 矩陣欄位標籤（與 nx01_role_view 五欄對應）。
  * canToggleActive：啟用／停用（PATCH active 等），非資料列硬刪。
  */
-import type { PermKey } from './types';
+import type { PermKey } from '@data/types/shared/master/role-view';
 
 export const PERM_MATRIX_COLS: { key: PermKey; label: string; hint?: string }[] = [
   { key: 'canRead', label: '瀏覽', hint: '進入畫面、查看列表與明細' },

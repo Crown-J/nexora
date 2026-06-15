@@ -12,7 +12,7 @@ import type {
   SrItem,
   SrListResponse,
   UpdateSrPayload,
-} from '../types';
+} from '@data/types/sale/sales-return';
 
 export interface ListSrParams {
   page?: number;

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { listPr } from '../../api/pr';
-import type { PrListRow } from '../../types';
+import type { PrListRow } from '@data/types/nx02';
 import { prStatusLabel } from '../../shared/nx01-labels';
 
 export function PrListView() {

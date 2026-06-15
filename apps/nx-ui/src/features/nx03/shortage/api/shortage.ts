@@ -10,7 +10,7 @@ import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 import { buildQueryString } from '@data/api/query';
 
-import type { ShortageListResponse } from '../types';
+import type { ShortageListResponse } from '@data/types/nx03/shortage';
 
 /**
  * @FUNCTION_CODE NX02-SHOR-UI-API-001-F01

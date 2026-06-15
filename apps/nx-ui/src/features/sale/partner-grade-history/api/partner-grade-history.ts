@@ -8,7 +8,7 @@ import type {
   CreateGradeChangeRequestPayload,
   PartnerGradeHistoryRow,
   RejectGradeChangePayload,
-} from '../types';
+} from '@data/types/sale/partner-grade-history';
 
 export interface ListGradeHistoryParams {
   partnerId?: string;

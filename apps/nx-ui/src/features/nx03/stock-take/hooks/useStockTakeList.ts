@@ -14,7 +14,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { parsePositiveInt } from '@/shared/lib/parse';
 
 import { listStockTake } from '../api/stock-take';
-import type { StockTakeListRowDto } from '../types';
+import type { StockTakeListRowDto } from '@data/types/nx03/stock-take';
 
 /**
  * @FUNCTION_CODE NX02-STTK-UI-HOOK-001-F01

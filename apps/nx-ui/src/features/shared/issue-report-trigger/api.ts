@@ -3,7 +3,7 @@
 
 import { apiJson } from '@data/api/client';
 
-import type { CreateIssueReportPayload } from './types';
+import type { CreateIssueReportPayload } from '@data/types/shared/issue-report-trigger';
 
 export function createIssueReport(payload: CreateIssueReportPayload): Promise<{ id: string }> {
   return apiJson(`/nx04/issue-report`, {

@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTieredFormSafe } from './TieredFormProvider';
-import { TIER_ICON, TIER_LABEL_ZH, type FieldTier } from './types';
+import { TIER_ICON, TIER_LABEL_ZH, type FieldTier } from '@data/types/shared/tiered-form';
 
 export type TieredFieldProps = {
   tier: FieldTier;

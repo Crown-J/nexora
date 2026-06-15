@@ -11,7 +11,7 @@
 //   · V 一般廠商 → basic + finance
 // - 主檔中心不受身分限制、顯示全部 zone
 
-import type { FieldDef, ZoneDef } from './types';
+import type { FieldDef, ZoneDef } from '@data/types/master-zones';
 
 export type PartnerZone = 'basic' | 'sales' | 'delivery' | 'finance';
 

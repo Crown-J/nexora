@@ -9,7 +9,7 @@
 import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 
-import type { AutoReplenishDetail, AutoReplenishListResponse } from '../types';
+import type { AutoReplenishDetail, AutoReplenishListResponse } from '@data/types/nx03/auto-replenish';
 
 /**
  * @FUNCTION_CODE NX02-AURE-UI-API-001-F01

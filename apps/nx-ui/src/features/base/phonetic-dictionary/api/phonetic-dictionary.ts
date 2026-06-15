@@ -10,7 +10,7 @@ import type {
   PagedPhoneticDictionary,
   PhoneticDictionaryDto,
   UpdatePhoneticDictionaryBody,
-} from '../types';
+} from '@data/types/base/phonetic-dictionary';
 
 const BASE = '/nx01/phonetic-dictionary';
 

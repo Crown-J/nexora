@@ -11,7 +11,7 @@
 import type { ReactNode } from 'react';
 import { cx } from '@/shared/lib/cx';
 import { PERM_MATRIX_COLS } from '@/features/shared/master/role-view/perm-labels';
-import type { PermKey, RoleViewDraftRow } from '@/features/shared/master/role-view/types';
+import type { PermKey, RoleViewDraftRow } from '@data/types/shared/master/role-view';
 
 export type RoleViewMatrixProps = {
   title: string;

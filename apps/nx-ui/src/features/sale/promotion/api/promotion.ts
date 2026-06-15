@@ -10,7 +10,7 @@ import type {
   Promotion,
   PromotionListResponse,
   UpdatePromotionPayload,
-} from '../types';
+} from '@data/types/sale/promotion';
 
 export interface ListPromotionParams {
   page?: number;

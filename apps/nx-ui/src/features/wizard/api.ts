@@ -10,7 +10,7 @@
 
 import { apiJson } from '@data/api/client';
 
-import type { WizardStatus } from './types';
+import type { WizardStatus } from '@data/types/wizard';
 
 /** 頁面引導：拉 user 狀態（含 seenPages、importWizardCompleted 仍存在但客戶端不再消費）*/
 export function getWizardStatus(): Promise<WizardStatus> {

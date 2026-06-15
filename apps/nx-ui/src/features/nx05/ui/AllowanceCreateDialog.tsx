@@ -21,7 +21,7 @@ import {
   type ArRow,
 } from '@/features/nx05/api';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
-import type { PartnerDto } from '@/features/shared/master/partner/types';
+import type { PartnerDto } from '@data/types/shared/master/partner';
 
 import { fmtMoney } from './common';
 

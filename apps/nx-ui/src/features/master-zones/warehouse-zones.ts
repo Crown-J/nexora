@@ -9,7 +9,7 @@
 //    視角不同：basic 看「倉庫在哪裡」、delivery 看「司機送貨怎麼到」
 //    UI 可選擇 zone='delivery' 時只 render 跟送貨相關的欄位（含地圖連結、聯絡電話等）
 
-import type { FieldDef, ZoneDef } from './types';
+import type { FieldDef, ZoneDef } from '@data/types/master-zones';
 
 export type WarehouseZone = 'basic' | 'inventory' | 'delivery';
 

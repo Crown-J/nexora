@@ -1,7 +1,7 @@
-﻿/**
+﻿﻿/**
  * File: apps/nx-ui/src/features/base/user-master/mock-users.ts
  */
-import type { MockUser } from '@/features/base/user-master/types';
+import type { MockUser } from '@data/types/base/user-master';
 
 export const MOCK_JOB_TITLES = ['系統管理員', '倉管', '採購', '業務', '財務', '客服'] as const;
 

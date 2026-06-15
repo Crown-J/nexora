@@ -6,7 +6,7 @@
 import { apiFetch } from '@data/api/client';
 import { assertOk } from '@data/api/http';
 
-import type { Nx01DashboardStats } from '../types';
+import type { Nx01DashboardStats } from '@data/types/nx02';
 
 export async function getNx01Dashboard(): Promise<Nx01DashboardStats> {
   const res = await apiFetch('/nx01/dashboard', { method: 'GET' });

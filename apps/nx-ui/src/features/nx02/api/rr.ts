@@ -11,7 +11,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 
-import type { Nx01Paged, RrDetailDto, RrListRow } from '../types';
+import type { Nx01Paged, RrDetailDto, RrListRow } from '@data/types/nx02';
 
 export type ListRrParams = {
   page: number;

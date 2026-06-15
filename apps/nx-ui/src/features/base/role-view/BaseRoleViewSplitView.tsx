@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useRoleView } from '@/features/shared/master/role-view/hooks/useRoleView';
 import { RoleViewMatrix } from '@/features/shared/master/role-view/ui/RoleViewMatrix';
-import type { RoleDto } from '@/features/shared/master/role/types';
+import type { RoleDto } from '@data/types/shared/master/role';
 
 export function BaseRoleViewSplitView() {
   const vm = useRoleView();

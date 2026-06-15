@@ -7,4 +7,4 @@ export type {
   DispositionType,
   IssueType,
   SourceDocType,
-} from './types';
+} from '@data/types/shared/issue-report-trigger';

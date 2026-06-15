@@ -3,7 +3,7 @@ import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
 
-import type { ListModelParams, ModelBody, ModelDto, PagedModel } from '../types';
+import type { ListModelParams, ModelBody, ModelDto, PagedModel } from '@data/types/base/model';
 
 const BASE = '/nx01/models';
 

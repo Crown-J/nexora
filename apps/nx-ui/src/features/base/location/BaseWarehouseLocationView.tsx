@@ -34,7 +34,7 @@ import {
   setLocationActive,
   updateLocation,
 } from '@/features/shared/master/location/api/location';
-import type { LocationDto } from '@/features/shared/master/location/types';
+import type { LocationDto } from '@data/types/shared/master/location';
 import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
 
 const PAGE_SIZE = 10;

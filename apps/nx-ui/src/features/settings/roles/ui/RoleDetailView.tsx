@@ -13,8 +13,8 @@ import {
   setRolePermissions,
   updateRole,
 } from '../api';
-import type { PermissionCatalogItem, Role, RolePermissionsResponse } from '../types';
-import { MODULE_LABEL, MODULE_ORDER } from '../types';
+import type { PermissionCatalogItem, Role, RolePermissionsResponse } from '@data/types/settings/roles';
+import { MODULE_LABEL, MODULE_ORDER } from '@data/types/settings/roles';
 
 export function RoleDetailView({ roleId }: { roleId: string }) {
   const [role, setRole] = useState<Role | null>(null);

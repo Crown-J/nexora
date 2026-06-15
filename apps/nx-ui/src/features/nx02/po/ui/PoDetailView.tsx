@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { listLookupWarehouse } from '@/features/shared/master/lookup/api/lookup';
-import type { LookupRow } from '@/features/shared/master/lookup/types';
+import type { LookupRow } from '@data/types/shared/master/lookup';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { listPartner } from '@/features/shared/master/partner/api/partner';
-import type { PartnerDto } from '@/features/shared/master/partner/types';
+import type { PartnerDto } from '@data/types/shared/master/partner';
 import { listPartnerAddresses, type PartnerAddressRow } from '@/features/shared/address/partner-address-api';
 
 import { getPo, patchPo, patchPoItem, patchPoStatus, poToRr, rejectPo, voidPo } from '../../api/po';
-import type { PoDetailDto } from '../../types';
+import type { PoDetailDto } from '@data/types/nx02';
 import { poStatusLabel } from '../../shared/nx01-labels';
 
 // T6 進貨對齊批次 2026-06-08：付款里程碑顯示對照

@@ -1,7 +1,7 @@
 // apps/nx-ui/src/features/sys-admin/onboarding/api.ts
 import { apiJson, apiFetch } from '@data/api/client';
 
-import type { CreateOnboardingPayload, OnboardingResponse } from './types';
+import type { CreateOnboardingPayload, OnboardingResponse } from '@data/types/sys-admin/onboarding';
 
 export function createOnboarding(payload: CreateOnboardingPayload): Promise<OnboardingResponse> {
   return apiJson('/sys-admin/onboarding/create-tenant', {

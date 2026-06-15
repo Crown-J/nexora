@@ -29,13 +29,13 @@ import type {
   So,
   SoItem,
   SoStatus,
-} from '../types';
+} from '@data/types/sale/so';
 import {
   FULFILL_STATUS_LABEL,
   SO_STATUS_LABEL,
   TRANSFER_SOURCE_LABEL,
   TRANSFER_STATUS_LABEL,
-} from '../types';
+} from '@data/types/sale/so';
 import { combinedStatusLabel, SO_HEADER_STATUS_BADGE_CLASS } from '../utils';
 import { CreateTiFromSoModal } from './CreateTiFromSoModal';
 
