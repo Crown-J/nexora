@@ -145,7 +145,7 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
         type="submit"
         disabled={!canSubmit || isSubmitting}
         style={{
-          background: 'linear-gradient(180deg, var(--nx-amber-bright), var(--nx-amber))',
+          background: 'linear-gradient(180deg, var(--color-primary-light), var(--warning))',
           boxShadow: '0 6px 18px -7px rgba(232, 160, 32, 0.55)',
           color: '#1a1a1f',
         }}

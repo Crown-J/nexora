@@ -125,18 +125,19 @@ export default function LoginPage() {
         <ParticleField className="w-full h-full" />
       </div>
 
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-background via-transparent to-background" />
-      <div className="absolute inset-0 z-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
+      {/* 原頂底/左右兩道 from-background 漸層蓋層已移除 — 它們跟 ParticleField 同 z-0、
+          DOM 後渲染、會用深色 background 把 canvas 頂部的極光蓋掉。
+          星空與極光已自帶頂底亮度層次、不需要這兩道蓋層做漸入。 */}
 
       <div className="relative z-10 h-full flex flex-col lg:min-h-screen lg:flex-row">
         {/* 對齊 Hana .lg-brand：寬字距 NEXORA + GRID 第二行 + amber kicker 線條 */}
         <div className="lg:hidden shrink-0 flex flex-col items-center pt-4 pb-1 px-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="h-px w-8 bg-gradient-to-r from-transparent to-[var(--nx-amber)]" />
-            <span className="text-[10px] tracking-[0.42em] text-[var(--nx-amber)] font-mono">
+            <div className="h-px w-8 bg-gradient-to-r from-transparent to-[var(--warning)]" />
+            <span className="text-[10px] tracking-[0.42em] text-[var(--warning)] font-mono">
               ERP PLATFORM
             </span>
-            <div className="h-px w-8 bg-gradient-to-l from-transparent to-[var(--nx-amber)]" />
+            <div className="h-px w-8 bg-gradient-to-l from-transparent to-[var(--warning)]" />
           </div>
           <h1 className="text-3xl font-bold tracking-[0.04em] leading-[0.95] text-foreground">
             NEXORA
@@ -173,11 +174,11 @@ export default function LoginPage() {
           {/* 對齊 Hana .lg-brand desktop：寬字距 NEXORA + GRID 第二行 + tagline */}
           <div className="relative z-10 mt-8 text-center px-8">
             <div className="flex items-center justify-center gap-3 mb-5">
-              <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--nx-amber)]" />
-              <span className="text-[11px] tracking-[0.42em] text-[var(--nx-amber)] font-mono font-medium">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--warning)]" />
+              <span className="text-[11px] tracking-[0.42em] text-[var(--warning)] font-mono font-medium">
                 ENTERPRISE RESOURCE PLANNING
               </span>
-              <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--nx-amber)]" />
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--warning)]" />
             </div>
             <h1 className="text-5xl xl:text-6xl font-bold tracking-[0.04em] leading-[0.95] text-foreground">
               NEXORA
@@ -197,11 +198,11 @@ export default function LoginPage() {
               <div className="space-y-1 text-center lg:space-y-2">
                 {/* 對齊 Hana .lg-welcome：amber 漸層短線條 + 寬字距 WELCOME */}
                 <div className="hidden lg:flex items-center gap-3 justify-center">
-                  <div className="h-px w-9 bg-gradient-to-r from-transparent to-[var(--nx-amber)]" />
-                  <span className="text-[11px] tracking-[0.4em] text-[var(--nx-amber)] font-mono font-medium">
+                  <div className="h-px w-9 bg-gradient-to-r from-transparent to-[var(--warning)]" />
+                  <span className="text-[11px] tracking-[0.4em] text-[var(--warning)] font-mono font-medium">
                     WELCOME
                   </span>
-                  <div className="h-px w-9 bg-gradient-to-l from-transparent to-[var(--nx-amber)]" />
+                  <div className="h-px w-9 bg-gradient-to-l from-transparent to-[var(--warning)]" />
                 </div>
                 <h2 className="text-base font-semibold tracking-tight text-foreground lg:text-2xl">
                   系統登入
