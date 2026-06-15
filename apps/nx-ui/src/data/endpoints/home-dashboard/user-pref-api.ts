@@ -3,6 +3,9 @@
 
 import { apiJson } from '@data/api/client';
 
+// ⚠️ TODO 階段二（design 拆分軌）：metric-options.config 屬「業務常數定義」、應一併搬 data/。
+// 本階段為避免擴大範圍、暫保留跨界 import + eslint-disable。
+// eslint-disable-next-line no-restricted-imports
 import { EMPTY_METRICS, METRICS_PREF_KEY, type MetricsPrefValue } from '@/features/home-dashboard/metric-options.config';
 
 type PrefRow<T = unknown> = {
