@@ -8,8 +8,8 @@
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@design/primitives/dialog';
 import { cx } from '@/shared/lib/cx';
 
 export type DocItemColKind = 'index' | 'text' | 'number' | 'select' | 'checkbox' | 'readonly' | 'actions';

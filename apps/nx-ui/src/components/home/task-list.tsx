@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { ClipboardList, Circle, CheckCircle2, AlertTriangle, Truck, ReceiptText, FileClock } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent, CardHeader, CardTitle } from "@design/primitives/card"
+import { Badge } from "@design/primitives/badge"
+import { ScrollArea } from "@design/primitives/scroll-area"
 import { cn } from "@/lib/utils"
 
 interface Task {

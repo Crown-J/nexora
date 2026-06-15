@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@design/primitives/button';
 
 type Props = {
   hasSelection: boolean;

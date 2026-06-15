@@ -31,7 +31,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@design/primitives/dialog';
 import { cn } from '@/lib/utils';
 
 const PAGE_KICKER = 'SALES / NX03';

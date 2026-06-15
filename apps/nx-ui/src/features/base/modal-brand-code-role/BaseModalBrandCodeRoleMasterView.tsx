@@ -19,7 +19,7 @@ import {
   Pencil,
   RefreshCw,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@design/primitives/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,9 +27,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@design/primitives/dropdown-menu';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';

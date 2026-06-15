@@ -53,7 +53,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@design/primitives/dropdown-menu';
 import { cn } from '@/lib/utils';
 
 import type { ExportFormat } from '@/features/master-shell/hooks/useExportTable';

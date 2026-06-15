@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { StickyNote, Plus, Trash2 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent, CardHeader, CardTitle, CardAction } from "@design/primitives/card"
+import { Button } from "@design/primitives/button"
+import { ScrollArea } from "@design/primitives/scroll-area"
 
 interface Memo {
   id: string

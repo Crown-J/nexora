@@ -17,11 +17,11 @@ import {
   Columns3,
   Pencil,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@design/primitives/tabs';
+import { Textarea } from '@design/primitives/textarea';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';

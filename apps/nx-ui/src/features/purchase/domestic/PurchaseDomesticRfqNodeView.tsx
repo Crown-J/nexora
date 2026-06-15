@@ -7,8 +7,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUpDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
 import { cx } from '@/shared/lib/cx';
 import type { MockDemand, MockRfqListRow, MockRfqStatusCode } from './mock-data';
 import { MOCK_RFQS_INITIAL } from './mock-data';

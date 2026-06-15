@@ -10,7 +10,7 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@design/primitives/button';
 import { cn } from '@/lib/utils';
 
 export function useMasterSlideDetailEffects(

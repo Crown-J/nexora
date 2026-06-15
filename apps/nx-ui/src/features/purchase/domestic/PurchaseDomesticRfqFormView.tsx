@@ -7,9 +7,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@design/primitives/dialog';
 import { cx } from '@/shared/lib/cx';
 import type { MockDemand, MockRfqListRow, MockVendor } from './mock-data';
 import {

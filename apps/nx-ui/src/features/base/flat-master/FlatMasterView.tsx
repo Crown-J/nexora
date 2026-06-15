@@ -16,9 +16,9 @@ import {
 } from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, ChevronRight, Columns3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
 import { cn } from '@/lib/utils';
 import { arrayMove } from '@/shared/lib/arrayMove';
 import { useListLocalPref } from '@/shared/hooks/useListLocalPref';

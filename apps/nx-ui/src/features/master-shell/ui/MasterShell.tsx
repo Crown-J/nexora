@@ -32,7 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@design/primitives/dropdown-menu';
 import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@/components/home/dock';
 import { cn } from '@/lib/utils';
 

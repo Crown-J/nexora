@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@design/primitives/dropdown-menu';
 import { hubCardShellBaseClass } from '@/shared/lib/hubCardDimensions';
 import { cn } from '@/lib/utils';
 

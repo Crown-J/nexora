@@ -15,7 +15,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@design/primitives/dialog';
 import { cx } from '@/shared/lib/cx';
 import type { QuoteSnapshot } from '@data/types/sale/workflow';
 

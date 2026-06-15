@@ -6,7 +6,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@design/primitives/button';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@design/primitives/dialog';
 import { cx } from '@/shared/lib/cx';
 
 export type DocViewMode = 'list' | 'detail';

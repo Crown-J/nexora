@@ -7,7 +7,7 @@
 
 import type { RefObject, ReactNode } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@design/primitives/button';
 import { cn } from '@/lib/utils';
 
 export type BaseMasterModalFrameProps = {

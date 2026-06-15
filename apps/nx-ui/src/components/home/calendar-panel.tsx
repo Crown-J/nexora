@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { zhTW } from "date-fns/locale"
 import { DayPicker, DayButtonProps } from "react-day-picker"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@design/primitives/card"
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
 import { format, addMonths, subMonths, isSameDay } from "date-fns"
 

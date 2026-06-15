@@ -15,7 +15,7 @@ import {
   Monitor,
   Megaphone,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@design/primitives/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,8 +23,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
+} from '@design/primitives/dropdown-menu';
+import { Badge } from '@design/primitives/badge';
 import {
   Dialog,
   DialogContent,
@@ -32,13 +32,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@design/primitives/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@design/primitives/tabs';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
 import { useNxThemeMode } from '@/hooks/useNxThemeMode';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@design/primitives/scroll-area';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavPlanetMenu } from '@/components/home/dock';

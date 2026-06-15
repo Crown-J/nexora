@@ -6,9 +6,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pencil, RefreshCw } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
 import { listCustomerGrade, updateCustomerGrade } from '@data/endpoints/base/customer-grade/api/customer-grade';
 import type { CustomerGradeDto } from '@data/types/base/customer-grade';
 

@@ -5,7 +5,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@design/primitives/button';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@design/primitives/dialog';
 import { cn } from '@/lib/utils';
 
 export type MasterSaveConfirmDialogProps = {

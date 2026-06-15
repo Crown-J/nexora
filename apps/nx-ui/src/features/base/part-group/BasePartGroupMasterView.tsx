@@ -7,9 +7,9 @@
 import { useMemo, useState } from 'react';
 import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
 import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
+import { Label } from '@design/primitives/label';
 import { cn } from '@/lib/utils';
 import { MOCK_CURRENT_OPERATOR_NAME } from '@/features/base/users/mock-data';
 import {

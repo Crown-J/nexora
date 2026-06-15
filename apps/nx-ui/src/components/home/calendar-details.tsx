@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { addHours, endOfDay, endOfMonth, format, parseISO, startOfDay, startOfMonth } from "date-fns"
 import { zhTW } from "date-fns/locale"
 import { Calendar, CalendarDays, Clock, MapPin, Plus } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent, CardHeader, CardTitle } from "@design/primitives/card"
+import { Badge } from "@design/primitives/badge"
+import { ScrollArea } from "@design/primitives/scroll-area"
 import {
   Dialog,
   DialogContent,
@@ -14,11 +14,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from "@design/primitives/dialog"
+import { Button } from "@design/primitives/button"
+import { Input } from "@design/primitives/input"
+import { Label } from "@design/primitives/label"
+import { Textarea } from "@design/primitives/textarea"
 import { cn } from "@/lib/utils"
 import { fetchAllPages } from "@data/api/fetchAllPages"
 import type { CalendarEventDto } from "@data/api/calendar-event"

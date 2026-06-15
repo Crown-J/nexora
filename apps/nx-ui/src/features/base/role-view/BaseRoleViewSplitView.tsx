@@ -8,9 +8,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@design/primitives/button';
+import { Input } from '@design/primitives/input';
+import { ScrollArea } from '@design/primitives/scroll-area';
 import { cn } from '@/lib/utils';
 import { useRoleView } from '@/features/shared/master/role-view/hooks/useRoleView';
 import { RoleViewMatrix } from '@/features/shared/master/role-view/ui/RoleViewMatrix';
