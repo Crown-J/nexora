@@ -13,8 +13,9 @@ export async function applyBrandCodeRule(
 ): Promise<void> {
   const { tenantId, actorUserId } = params;
 
-  const brands = await prisma.nx01PartBrand.findMany({
-    where: { tenantId },
+  // 2026-06-15 W6 品牌合表後對齊：零件品牌改查 nx01Brand 含 isPart=true
+  const brands = await prisma.nx01Brand.findMany({
+    where: { tenantId, isPart: true },
     select: { id: true, code: true },
   });
 
@@ -22,10 +23,10 @@ export async function applyBrandCodeRule(
   for (const b of brands) {
     const name = `${b.code} 標準料號`;
     await prisma.nx01BrandCodeRule.upsert({
-      where: { tenantId_partBrandId_name: { tenantId, partBrandId: b.id, name } },
+      where: { tenantId_brandId_name: { tenantId, brandId: b.id, name } },
       create: {
         tenantId,
-        partBrandId: b.id,
+        brandId: b.id,
         name,
         description: `${b.code} 預設料號分段規則（可調整）`,
         seg1Length: 3,

@@ -11,7 +11,10 @@
 //   = 過去 muscle memory 錯誤（業務真相：這 5 個皆 DEU 德國品牌、TWN 應為總代理進口、非原產國）
 //   本軌 cleanup：每 tenant apply 時刪舊 5 個 code、upsert 新 4 個
 //
-// upsert by tenantId_code（migration 20260421132744_fix_tenant_scoped_unique 後）
+// 2026-06-15 W6 品牌合表後對齊：Nx01CarBrand 已合進 Nx01Brand（isCar/isPart 雙旗標）
+//   - 車品牌 = Nx01Brand with isCar=true、零件品牌 = Nx01Brand with isPart=true
+//   - 同 code 可雙開（VAG 同時是車品牌與零件品牌時、單筆 row 兩旗標都 true）
+//   - upsert by tenantId_code（兩種 brand 共用 unique）
 
 import type { PrismaClient } from '../../../generated/prisma';
 import type { ApplyTemplateParams } from './index';
@@ -36,29 +39,35 @@ export async function applyCarBrand(
     { code: 'BEN', name: '賓士',      nameEn: 'Mercedes-Benz',   sortNo: 4 },
   ];
 
-  // Cleanup：刪舊 5 個 VAG 子品牌（歷史 fact 校正、限該 tenant、僅刪未被引用的 row）
-  // 對齊規格 §3.5「真刪品牌：未被引用 → 可真刪」
-  const legacyRows = await prisma.nx01CarBrand.findMany({
-    where: { tenantId, code: { in: LEGACY_CODES } },
-    select: { id: true, code: true },
+  // Cleanup：舊 5 個 VAG 子品牌（歷史 fact 校正、限該 tenant 之車品牌、且不誤刪兼用零件品牌）
+  // 對齊規格 §3.5「真刪品牌：未被引用 → 可真刪」、合表後加判斷「isPart=true 則只收 isCar 不真刪」
+  const legacyRows = await prisma.nx01Brand.findMany({
+    where: { tenantId, code: { in: LEGACY_CODES }, isCar: true },
+    select: { id: true, code: true, isPart: true },
   });
   for (const lr of legacyRows) {
-    // NX01-11 軸翻轉後 BrandCodeRule.carBrandId 已不存在（改 partBrandId、跟 carBrand 脫鉤）
-    // 既有 referenced 檢查邏輯失效、改 try/delete + catch/停用 等價範式
-    try {
-      await prisma.nx01CarBrand.delete({ where: { id: lr.id } });
-    } catch {
-      // FK 撞到（被其他表引用）→ 改為停用、保留資料供業務人員手動處理
-      await prisma.nx01CarBrand.update({
+    if (lr.isPart) {
+      // 同時是零件品牌 → 不刪、只收 isCar 旗標
+      await prisma.nx01Brand.update({
         where: { id: lr.id },
-        data: { isActive: false, updatedBy: actorUserId },
+        data: { isCar: false, updatedBy: actorUserId },
       });
+    } else {
+      // 純車品牌、try delete、撞 FK（model / engine / transmission / vin_lookup 等）就停用
+      try {
+        await prisma.nx01Brand.delete({ where: { id: lr.id } });
+      } catch {
+        await prisma.nx01Brand.update({
+          where: { id: lr.id },
+          data: { isActive: false, updatedBy: actorUserId },
+        });
+      }
     }
   }
 
   // Upsert 4 主流品牌
   for (const r of rows) {
-    await prisma.nx01CarBrand.upsert({
+    await prisma.nx01Brand.upsert({
       where: { tenantId_code: { tenantId, code: r.code } },
       create: {
         tenantId,
@@ -66,6 +75,8 @@ export async function applyCarBrand(
         name: r.name,
         nameEn: r.nameEn,
         countryId: deu.id,
+        isCar: true,
+        isPart: false,
         sortNo: r.sortNo,
         isActive: true,
         createdBy: actorUserId,
@@ -74,15 +85,15 @@ export async function applyCarBrand(
       // tenant 可改 name / nameEn / sortNo / isActive、code 鎖（規格 §2.2）
       // 此處不覆蓋 tenant 已調整的 name / nameEn / sortNo（避免 seed re-run 蓋掉客制）
       update: {
-        // 僅 ensure countryId = DEU（業界真相、不該被誤改 TWN）
-        countryId: deu.id,
+        isCar: true,            // 確保標記、即使前次只當零件品牌
+        countryId: deu.id,      // ensure countryId = DEU（業界真相、不該被誤改 TWN）
         updatedBy: actorUserId,
       },
     });
   }
 
   await prisma.$executeRawUnsafe(
-    `SELECT setval('seq_nx01_car_brand_id', GREATEST(COALESCE((SELECT MAX(SUBSTRING(id FROM 9)::int) FROM nx01_car_brand), 0), 1), true)`,
+    `SELECT setval('seq_nx01_brand_id', GREATEST(COALESCE((SELECT MAX(SUBSTRING(id FROM 9)::int) FROM nx01_brand), 0), 1), true)`,
   );
 
   console.log(

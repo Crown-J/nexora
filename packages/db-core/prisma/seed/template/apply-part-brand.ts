@@ -1,7 +1,11 @@
 // packages/db-core/prisma/seed/template/apply-part-brand.ts
 // @FUNCTION_CODE SYS-TMPL-SVC-004-F01
 // 範本：零件品牌（ALL，10 個 VAG/Bosch/Hella 等）。
-// schema 原本就是 @@unique([tenantId, code])，無需 migration 調整。
+//
+// 2026-06-15 W6 品牌合表後對齊：Nx01PartBrand 已合進 Nx01Brand（isCar/isPart 雙旗標）
+//   - 零件品牌 = Nx01Brand with isPart=true、車品牌 = Nx01Brand with isCar=true
+//   - 同 code 可雙開（VAG 同時是車品牌與零件品牌時、單筆 row 兩旗標都 true）
+//   - upsert by tenantId_code（兩種 brand 共用 unique）
 
 import type { PrismaClient } from '../../../generated/prisma';
 import type { ApplyTemplateParams } from './index';
@@ -27,19 +31,22 @@ export async function applyPartBrand(
   ];
 
   for (const r of rows) {
-    await prisma.nx01PartBrand.upsert({
+    await prisma.nx01Brand.upsert({
       where: { tenantId_code: { tenantId, code: r.code } },
       create: {
         tenantId,
         code: r.code,
         name: r.name,
         countryId: r.countryId,
+        isCar: false,
+        isPart: true,
         sortNo: r.sortNo,
         isActive: true,
         createdBy: actorUserId,
         updatedBy: actorUserId,
       },
       update: {
+        isPart: true,           // 確保標記、不覆蓋 isCar（避免 partBrand seed 把已建的車品牌 isCar 抹掉）
         name: r.name,
         countryId: r.countryId,
         sortNo: r.sortNo,
@@ -50,7 +57,7 @@ export async function applyPartBrand(
   }
 
   await prisma.$executeRawUnsafe(
-    `SELECT setval('seq_nx01_part_brand_id', GREATEST(COALESCE((SELECT MAX(SUBSTRING(id FROM 9)::int) FROM nx01_part_brand), 0), 1), true)`,
+    `SELECT setval('seq_nx01_brand_id', GREATEST(COALESCE((SELECT MAX(SUBSTRING(id FROM 9)::int) FROM nx01_brand), 0), 1), true)`,
   );
 
   console.log(`✅ [TEMPLATE] applyPartBrand: ${rows.length} 筆 (tenant=${tenantId})`);

@@ -31,7 +31,8 @@ export async function applyTransmission(
         nameEn: r.nameEn,
         transmissionType: r.transmissionType,
         gearCount: r.gearCount,
-        carBrandId: null,
+        // 2026-06-15 W6 品牌合表後對齊：carBrandId -> brandId（取代舊欄位）
+        brandId: null,
         sortNo: r.sortNo,
         isActive: true,
         createdBy: actorUserId,
