@@ -9,10 +9,10 @@
  * - 路由 v2.0：語意化路由，不使用模組代碼
  */
 
-import { type SideMenuGroup } from '@/features/layout/config/menu.base';
-import { getNx06SideMenu } from '@/features/layout/config/menu.nx06';
-import { getNx07SideMenu } from '@/features/layout/config/menu.nx07';
-import { getNx09SideMenu } from '@/features/layout/config/menu.nx09';
+import { type SideMenuGroup } from '@design/layout/config/menu.base';
+import { getNx06SideMenu } from '@design/layout/config/menu.nx06';
+import { getNx07SideMenu } from '@design/layout/config/menu.nx07';
+import { getNx09SideMenu } from '@design/layout/config/menu.nx09';
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-004-F01

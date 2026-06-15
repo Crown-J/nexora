@@ -20,7 +20,7 @@ import {
   CenterHubCardWrap,
   CenterHubFlowCard,
   CenterHubGroupHeading,
-} from '@/features/layout/ui/CenterHubFlowCard';
+} from '@design/layout/CenterHubFlowCard';
 
 const BADGE_GOLD = '#E8A020';
 const STEP_BADGE_BG = '#E8A020';

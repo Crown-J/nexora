@@ -15,7 +15,7 @@ import {
   Warehouse,
 } from 'lucide-react';
 
-import { HubLinkCard, ModuleHubSection } from '@/features/layout/ui/module-hub/hub-primitives';
+import { HubLinkCard, ModuleHubSection } from '@design/layout/module-hub/hub-primitives';
 
 export default function ReportHubPage() {
   return (

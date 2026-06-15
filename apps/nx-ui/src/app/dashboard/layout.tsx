@@ -16,7 +16,7 @@
 
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
-import { DashboardShell } from '@/features/layout/ui/DashboardShell';
+import { DashboardShell } from '@design/layout/DashboardShell';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (

@@ -14,7 +14,7 @@
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cx } from '@design/utils/cx';
-import { resolveSideMenuGroups } from '@/features/layout/config/side-menu';
+import { resolveSideMenuGroups } from '@design/layout/config/side-menu';
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-004-F02

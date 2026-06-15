@@ -1,5 +1,5 @@
 // apps/nx-ui/src/app/dashboard/report/sales-rep/product-sales/page.tsx
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX08-SALESREP-PRODUCT-UI-001-F01
 export default function Page() {

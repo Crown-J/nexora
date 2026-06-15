@@ -21,7 +21,7 @@ import { FileText, LayoutDashboard, MapPin, Wrench } from 'lucide-react';
 import {
   MobileHubSectionTabs,
   type MobileHubSectionTabDef,
-} from '@/features/layout/ui/module-hub/MobileHubSectionTabs';
+} from '@design/layout/module-hub/MobileHubSectionTabs';
 import { DocumentsSection } from './sections/DocumentsSection';
 import { StatusSection } from './sections/StatusSection';
 import { WarehouseSection } from './sections/WarehouseSection';

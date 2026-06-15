@@ -12,7 +12,7 @@
  * - 3 業界改革標 ⭐⭐⭐：handover-stats / ar-recall-hit-rate / bcg-matrix
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.base';
+import type { SideMenuGroup } from '@design/layout/config/menu.base';
 
 export function getNx08SideMenu(): SideMenuGroup[] {
   return [

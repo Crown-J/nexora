@@ -12,7 +12,7 @@
  * - 4 ⭐ 業界改革標：manual（業界 ERP 標配）+ search（FTS 業界中小罕見）+ vin-lookup ⭐⭐⭐ + repair-sop ⭐⭐⭐
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.base';
+import type { SideMenuGroup } from '@design/layout/config/menu.base';
 
 export function getNx09SideMenu(): SideMenuGroup[] {
   return [

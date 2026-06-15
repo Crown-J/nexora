@@ -1,5 +1,5 @@
 // apps/nx-ui/src/app/dashboard/delivery/driver/map/page.tsx
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX06-DRIVER-MAP-UI-001-F01
 export default function Nx06DriverMapPage() {

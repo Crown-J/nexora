@@ -9,7 +9,7 @@
  * - TASK-0420 v2：NX02 採購工作台 → /dashboard/purchase/*
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.base';
+import type { SideMenuGroup } from '@design/layout/config/menu.base';
 
 export function getNx01SideMenu(): SideMenuGroup[] {
   return [

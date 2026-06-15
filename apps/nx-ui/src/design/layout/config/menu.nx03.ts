@@ -6,7 +6,7 @@
  * - 舊銷售管理側邊選單（F1-B 銷貨路徑收斂 2026-06-08：URL 改 /dashboard/sale/* 不露 nx 代碼）
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.base';
+import type { SideMenuGroup } from '@design/layout/config/menu.base';
 
 export function getNx03SideMenu(): SideMenuGroup[] {
   return [

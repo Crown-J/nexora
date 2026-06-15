@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
-import { resolveSideMenuGroups } from '@/features/layout/config/side-menu';
+import { resolveSideMenuGroups } from '@design/layout/config/side-menu';
 import { cn } from '@/lib/utils';
 
 function isPathActive(pathname: string, href: string): boolean {

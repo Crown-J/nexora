@@ -1,5 +1,5 @@
 // apps/nx-ui/src/app/dashboard/report/warehouse-lead/handover-stats/page.tsx
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX08-WHLEAD-HANDOVER-UI-001-F01
 export default function Page() {

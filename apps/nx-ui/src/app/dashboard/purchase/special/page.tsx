@@ -1,4 +1,4 @@
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX02-SP-UI-001-F01
 // 路由：/dashboard/purchase/special

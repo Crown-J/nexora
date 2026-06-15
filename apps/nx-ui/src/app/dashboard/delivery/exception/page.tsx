@@ -1,5 +1,5 @@
 // apps/nx-ui/src/app/dashboard/delivery/exception/page.tsx
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX06-EXCEPTION-UI-001-F01
 // 路由：/dashboard/delivery/exception

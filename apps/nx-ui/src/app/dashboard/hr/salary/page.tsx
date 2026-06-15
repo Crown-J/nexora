@@ -1,5 +1,5 @@
 // apps/nx-ui/src/app/dashboard/hr/salary/page.tsx
-import { NxWorkspacePlaceholder } from '@/features/layout/ui/NxWorkspacePlaceholder';
+import { NxWorkspacePlaceholder } from '@design/layout/NxWorkspacePlaceholder';
 
 // @FUNCTION_CODE NX07-SALARY-UI-001-F01
 export default function Page() {

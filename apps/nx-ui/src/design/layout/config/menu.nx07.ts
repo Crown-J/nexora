@@ -11,7 +11,7 @@
  * - 對齊 menu.nx05 / nx06 / nx08 範式
  */
 
-import type { SideMenuGroup } from '@/features/layout/config/menu.base';
+import type { SideMenuGroup } from '@design/layout/config/menu.base';
 
 export function getNx07SideMenu(): SideMenuGroup[] {
   return [
