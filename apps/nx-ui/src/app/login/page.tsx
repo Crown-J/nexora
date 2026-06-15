@@ -129,23 +129,21 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-0 bg-gradient-to-r from-background/50 via-transparent to-background/50" />
 
       <div className="relative z-10 h-full flex flex-col lg:min-h-screen lg:flex-row">
+        {/* 對齊 Hana .lg-brand：寬字距 NEXORA + GRID 第二行 + amber kicker 線條 */}
         <div className="lg:hidden shrink-0 flex flex-col items-center pt-4 pb-1 px-6">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="h-px w-6 bg-gradient-to-r from-transparent to-accent/50" />
-            <span className="text-[10px] tracking-[0.25em] text-accent font-mono">ERP PLATFORM</span>
-            <div className="h-px w-6 bg-gradient-to-l from-transparent to-accent/50" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            NEX
-            <span className="relative inline-block">
-              O
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-              </span>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px w-8 bg-gradient-to-r from-transparent to-[var(--nx-amber)]" />
+            <span className="text-[10px] tracking-[0.42em] text-[var(--nx-amber)] font-mono">
+              ERP PLATFORM
             </span>
-            RA
+            <div className="h-px w-8 bg-gradient-to-l from-transparent to-[var(--nx-amber)]" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-[0.04em] leading-[0.95] text-foreground">
+            NEXORA
           </h1>
-          <p className="text-base font-light tracking-[0.15em] text-foreground/80">GRID</p>
+          <p className="mt-2 text-sm font-normal tracking-[0.5em] text-muted-foreground/85 ml-[0.5em]">
+            GRID
+          </p>
         </div>
 
         {/*
@@ -172,28 +170,22 @@ export default function LoginPage() {
             <PlanetOrbit className="w-full h-full" />
           </div>
 
+          {/* 對齊 Hana .lg-brand desktop：寬字距 NEXORA + GRID 第二行 + tagline */}
           <div className="relative z-10 mt-8 text-center px-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="h-px w-16 bg-gradient-to-r from-transparent to-accent/50" />
-              <span className="text-xs tracking-[0.3em] text-accent font-mono">
+            <div className="flex items-center justify-center gap-3 mb-5">
+              <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--nx-amber)]" />
+              <span className="text-[11px] tracking-[0.42em] text-[var(--nx-amber)] font-mono font-medium">
                 ENTERPRISE RESOURCE PLANNING
               </span>
-              <div className="h-px w-16 bg-gradient-to-l from-transparent to-accent/50" />
+              <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--nx-amber)]" />
             </div>
-            <h1 className="text-5xl xl:text-6xl font-bold tracking-tight text-foreground">
-              NEX
-              <span className="relative inline-block">
-                O
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
-                </span>
-              </span>
-              RA
+            <h1 className="text-5xl xl:text-6xl font-bold tracking-[0.04em] leading-[0.95] text-foreground">
+              NEXORA
             </h1>
-            <p className="text-2xl xl:text-3xl font-light tracking-[0.15em] text-foreground/80 mt-1">
+            <p className="mt-3 text-xl xl:text-2xl font-normal tracking-[0.5em] text-muted-foreground/85 ml-[0.5em]">
               GRID
             </p>
-            <p className="mt-4 text-sm text-muted-foreground tracking-wide">
+            <p className="mt-5 text-sm text-muted-foreground tracking-[0.08em]">
               汽車零件零售 ERP 企業管理平台
             </p>
           </div>
@@ -203,10 +195,13 @@ export default function LoginPage() {
           <div className="flex items-start justify-center lg:flex-1 lg:items-center lg:p-12">
             <div className="w-full max-w-md space-y-3 lg:space-y-6">
               <div className="space-y-1 text-center lg:space-y-2">
+                {/* 對齊 Hana .lg-welcome：amber 漸層短線條 + 寬字距 WELCOME */}
                 <div className="hidden lg:flex items-center gap-3 justify-center">
-                  <div className="h-px flex-1 max-w-16 bg-gradient-to-r from-border to-transparent" />
-                  <span className="text-xs tracking-[0.2em] text-accent font-mono">WELCOME</span>
-                  <div className="h-px flex-1 max-w-16 bg-gradient-to-l from-border to-transparent" />
+                  <div className="h-px w-9 bg-gradient-to-r from-transparent to-[var(--nx-amber)]" />
+                  <span className="text-[11px] tracking-[0.4em] text-[var(--nx-amber)] font-mono font-medium">
+                    WELCOME
+                  </span>
+                  <div className="h-px w-9 bg-gradient-to-l from-transparent to-[var(--nx-amber)]" />
                 </div>
                 <h2 className="text-base font-semibold tracking-tight text-foreground lg:text-2xl">
                   系統登入
@@ -225,7 +220,8 @@ export default function LoginPage() {
                 ) : null}
               </div>
 
-              <div className="login-card bg-card/60 backdrop-blur-md border border-border/40 rounded-2xl p-4 lg:p-8 relative overflow-hidden">
+              {/* 對齊 Hana .lg-card：18px 圓角 + 半透明漸層內襯 + 兩角金光暈、用 foreground token 自動切深淺主題 */}
+              <div className="login-card relative overflow-hidden rounded-[18px] border border-foreground/[0.085] bg-gradient-to-b from-foreground/[0.045] to-foreground/[0.015] p-4 backdrop-blur-md lg:p-8">
                 <div className="absolute -top-20 -right-20 w-40 h-40 bg-accent/10 rounded-full blur-3xl" />
                 <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl" />
 

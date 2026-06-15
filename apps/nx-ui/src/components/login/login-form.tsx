@@ -139,17 +139,18 @@ export function LoginForm({ onSubmit, errorMsg, isSubmitting }: LoginFormProps) 
         </button>
       </div>
 
+      {/* 對齊 Hana .lg-submit：amber gradient 金色按鈕 + 寬字距 + 金黃光暈陰影 */}
       <button
         type="submit"
         disabled={!canSubmit || isSubmitting}
-        className="w-full h-12 bg-foreground text-background rounded-lg text-sm font-medium tracking-wider uppercase hover:bg-foreground/90 transition-all duration-300 relative overflow-hidden group flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+        className="group relative flex w-full h-[50px] items-center justify-center gap-2 overflow-hidden rounded-[10px] bg-gradient-to-b from-[var(--nx-amber-bright)] to-[var(--nx-amber)] text-[14.5px] font-semibold tracking-[0.12em] text-[#1a1a1f] shadow-[0_6px_18px_-7px_rgba(232,160,32,0.55)] transition-all duration-200 hover:brightness-[1.04] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? (
-          <div className="h-5 w-5 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-black/20 border-t-black" />
         ) : (
           <>
             <span>登入系統</span>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </>
         )}
       </button>
