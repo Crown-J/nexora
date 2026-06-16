@@ -3,7 +3,7 @@
 // 舊 DEMO mock 視圖已清除（總經理要當第一個真客戶實測、不能出現假資料）
 'use client';
 
-import { PartZonedPage } from '@/features/part-zoned';
+import { PartZonedPage } from '@/features/nx01/product/part-zoned';
 
 const EDITABLE_ZONES = new Set(['basic', 'purchase', 'inventory'] as const);
 

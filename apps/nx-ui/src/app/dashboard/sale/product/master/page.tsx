@@ -4,7 +4,7 @@
 // Alex 2026-05-30 拍板補 sale.product.* 6 個權限、本頁為對應入口
 'use client';
 
-import { PartZonedPage } from '@/features/part-zoned';
+import { PartZonedPage } from '@/features/nx01/product/part-zoned';
 
 const EDITABLE_ZONES = new Set(['basic', 'sales'] as const);
 

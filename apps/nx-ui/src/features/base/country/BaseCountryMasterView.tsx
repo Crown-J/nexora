@@ -1,3 +1,3 @@
 'use client';
 
-export { BaseCountryModalMasterView as BaseCountryMasterView } from '@/features/base/modal-code-master/BaseModalCodeMasterView';
+export { BaseCountryModalMasterView as BaseCountryMasterView } from '@/features/nx01/product/modal-code-master/BaseModalCodeMasterView';

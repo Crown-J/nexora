@@ -3,7 +3,7 @@
 // 對齊總經理 STOP-1 拍板 A：新版補完 4 客戶自助功能（編碼規則預覽 / 分段 SEG / 正廠子表 inline / 依成本重算）+ 修毛利率技術債後、砍舊版
 'use client';
 
-import { PartZonedPage } from '@/features/part-zoned';
+import { PartZonedPage } from '@/features/nx01/product/part-zoned';
 
 export default function Page() {
   return (

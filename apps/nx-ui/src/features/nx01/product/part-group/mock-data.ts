@@ -5,7 +5,7 @@
  * - carBrandId：FK → nx01_car_brand（mock 取自汽車廠牌）
  */
 
-import { MOCK_BASE_BRANDS, type BaseBrandRow } from '@/features/base/brand/mock-data';
+import { MOCK_BASE_BRANDS, type BaseBrandRow } from '@/features/nx01/product/brand/mock-data';
 
 export type BasePartGroupRow = {
   id: string;
