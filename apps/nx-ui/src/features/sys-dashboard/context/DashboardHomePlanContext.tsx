@@ -1,6 +1,7 @@
+// apps/nx-ui/src/features/sys-dashboard/context/DashboardHomePlanContext.tsx
 /**
  * @FUNCTION_CODE NX99-SYS-DASH-CTX-002-F01
- * 首頁 Mock 方案切換（LITE / PLUS / PRO）：供 TopBar 與 SysDashboardPage 共用
+ * 首頁 Mock 方案切換（LITE / PLUS / PRO）：供 TopBar 等共用
  */
 
 'use client';

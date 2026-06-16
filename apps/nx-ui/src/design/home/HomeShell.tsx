@@ -1,6 +1,5 @@
-// apps/nx-ui/src/features/home/HomeShell.tsx
+// apps/nx-ui/src/design/home/HomeShell.tsx
 // NX00 首頁外殼：UnifiedTopBar + PlanetDock + HomeView 三層組合
-// 取代 SysDashboardPage（舊版用 MasterTopBar）作為 /dashboard 落地頁
 
 'use client';
 
