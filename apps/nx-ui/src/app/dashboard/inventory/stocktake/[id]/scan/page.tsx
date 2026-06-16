@@ -4,7 +4,7 @@
 
 import { use } from 'react';
 
-import { MobileStocktakeScanPage } from '@/features/inventory/workstation/stocktake/MobileStocktakeScanPage';
+import { MobileStocktakeScanPage } from '@/features/nx03/workstation/stocktake/MobileStocktakeScanPage';
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

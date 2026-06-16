@@ -2,7 +2,7 @@
 // 撿包送 LITE-OP-UI 軌 3 2026-06-09：配送單詳細路由
 // query kind=DELIVERY|RETURN_PICKUP 決定走哪個 endpoint
 
-import { DeliveryDetailView } from '@/features/inventory/delivery/ui/DeliveryDetailView';
+import { DeliveryDetailView } from '@/features/nx03/delivery/ui/DeliveryDetailView';
 
 export default async function DeliveryDetailRoute({
   params,

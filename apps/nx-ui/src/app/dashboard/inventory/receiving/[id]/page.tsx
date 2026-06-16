@@ -4,7 +4,7 @@
 
 import { use } from 'react';
 
-import { MobileReceivingDetailPage } from '@/features/inventory/workstation/receiving/MobileReceivingDetailPage';
+import { MobileReceivingDetailPage } from '@/features/nx03/workstation/receiving/MobileReceivingDetailPage';
 
 export default function InventoryReceivingDetailRoute({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

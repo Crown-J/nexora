@@ -3,7 +3,7 @@
 
 'use client';
 
-import { DisposalListView } from '@/features/inventory/disposal/ui/DisposalListView';
+import { DisposalListView } from '@/features/nx03/disposal/ui/DisposalListView';
 
 export default function InventoryDisposalListRoute() {
   return <DisposalListView />;

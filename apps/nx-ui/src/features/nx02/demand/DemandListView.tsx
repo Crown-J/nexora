@@ -21,7 +21,7 @@ import {
   type Demand,
   type DemandStatus,
   type DemandType,
-} from '@data/endpoints/purchase/demand/api';
+} from '@data/endpoints/nx02/demand/api';
 
 const TYPE_LABEL: Record<DemandType, string> = {
   S: '補貨自動',

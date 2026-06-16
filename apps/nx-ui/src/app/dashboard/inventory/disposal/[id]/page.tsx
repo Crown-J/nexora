@@ -5,7 +5,7 @@
 
 import { useParams } from 'next/navigation';
 
-import { DisposalDetailView } from '@/features/inventory/disposal/ui/DisposalDetailView';
+import { DisposalDetailView } from '@/features/nx03/disposal/ui/DisposalDetailView';
 
 export default function InventoryDisposalDetailRoute() {
   const params = useParams();

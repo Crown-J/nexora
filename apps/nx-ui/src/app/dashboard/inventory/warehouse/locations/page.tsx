@@ -4,7 +4,7 @@
 // 桌面版改走真實 /nx01/locations API。
 // 既有 Mobile 版（MobileLocationListPage）暫保留為 FU、本軌不動。
 
-import { LocationsView } from '@/features/inventory/locations/LocationsView';
+import { LocationsView } from '@/features/nx03/locations/LocationsView';
 
 export default function InventoryLocationsRoute() {
   return <LocationsView />;
