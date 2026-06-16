@@ -15,7 +15,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
-import { mockBulletins, type MockBulletin } from '@/mocks/dashboard';
+import { mockBulletins, type MockBulletin } from '@data/mocks/dashboard';
 
 export type DashboardBulletinContextValue = {
   bulletins: MockBulletin[];

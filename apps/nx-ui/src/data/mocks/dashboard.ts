@@ -1,3 +1,4 @@
+// apps/nx-ui/src/data/mocks/dashboard.ts
 /**
  * @FUNCTION_CODE NX99-SYS-DASH-MOCK-001-F01
  * Phase 1 Mock Data for SYS_DASHBOARD（集中於此，日後串接 API 時替換）

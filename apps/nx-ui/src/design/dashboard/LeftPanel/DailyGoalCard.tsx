@@ -5,7 +5,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { mockDailyGoals } from '@/mocks/dashboard';
+import { mockDailyGoals } from '@data/mocks/dashboard';
 import { cx } from '@design/utils/cx';
 
 type Goal = (typeof mockDailyGoals)[number] & { done: boolean };

@@ -1,3 +1,4 @@
+// apps/nx-ui/src/data/mocks/report-hub.ts
 /**
  * 報表中心首頁 Mock（待串接 API）
  */

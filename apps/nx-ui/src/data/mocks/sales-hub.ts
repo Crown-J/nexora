@@ -1,3 +1,4 @@
+// apps/nx-ui/src/data/mocks/sales-hub.ts
 /**
  * @FUNCTION_CODE NX04-DASH-MOCK-001-F01
  * 銷貨中心首頁 Mock（待串接 API）

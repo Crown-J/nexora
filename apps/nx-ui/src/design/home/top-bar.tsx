@@ -43,7 +43,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavPlanetMenu } from '@design/home/dock';
 import { useDashboardBulletinOptional } from '@/features/sys-dashboard/context/DashboardBulletinContext';
-import type { MockBulletin } from '@/mocks/dashboard';
+import type { MockBulletin } from '@data/mocks/dashboard';
 import { PlanChip, type PlanChipPlan } from '@design/components/PlanChip';
 
 function bulletinTypeLabel(t: MockBulletin['type']) {

@@ -8,7 +8,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cx } from '@design/utils/cx';
-import type { PlanCode } from '@/mocks/dashboard';
+import type { PlanCode } from '@data/mocks/dashboard';
 
 type ModuleMenuOverlayProps = {
   open: boolean;

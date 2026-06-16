@@ -5,7 +5,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { MockAttendanceUser } from '@/mocks/dashboard';
+import type { MockAttendanceUser } from '@data/mocks/dashboard';
 import { cx } from '@design/utils/cx';
 
 type Props = { people: MockAttendanceUser[] };

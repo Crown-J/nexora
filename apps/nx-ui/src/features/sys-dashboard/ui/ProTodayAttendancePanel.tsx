@@ -5,8 +5,8 @@
 
 'use client';
 
-import { mockProAttendance } from '@/mocks/dashboard';
-import type { MockProAttendancePerson, MockProAttendanceStatus } from '@/mocks/dashboard';
+import { mockProAttendance } from '@data/mocks/dashboard';
+import type { MockProAttendancePerson, MockProAttendanceStatus } from '@data/mocks/dashboard';
 import { cx } from '@design/utils/cx';
 
 const statusDot: Record<MockProAttendanceStatus, string> = {

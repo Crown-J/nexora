@@ -9,7 +9,7 @@ import { useEffect, useState, type RefObject } from 'react';
 import { ChevronDown, Moon, Sun, ChevronRight } from 'lucide-react';
 import { useNxThemeMode } from '@design/hooks/useNxThemeMode';
 import { cx } from '@design/utils/cx';
-import type { MockBulletin, PlanCode } from '@/mocks/dashboard';
+import type { MockBulletin, PlanCode } from '@data/mocks/dashboard';
 
 const NOTIF_MOCK = [
   { id: 1, title: '新訂單通知', time: '5 分鐘前' },

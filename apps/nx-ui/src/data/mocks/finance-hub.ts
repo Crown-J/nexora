@@ -1,3 +1,4 @@
+// apps/nx-ui/src/data/mocks/finance-hub.ts
 /**
  * 財務中心首頁 Mock（待串接 API）
  */

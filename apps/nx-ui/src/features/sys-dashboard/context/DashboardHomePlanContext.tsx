@@ -14,7 +14,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from 'react';
-import { mockCurrentUser, type PlanCode } from '@/mocks/dashboard';
+import { mockCurrentUser, type PlanCode } from '@data/mocks/dashboard';
 import { useDemoSession } from '@data/hooks/useDemoSession';
 
 export type DashboardHomePlanContextValue = {

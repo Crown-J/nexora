@@ -9,7 +9,7 @@
 'use client';
 
 import { cn } from '@design/utils/cn';
-import type { PlanCode } from '@/mocks/dashboard';
+import type { PlanCode } from '@data/mocks/dashboard';
 import { useDashboardHomePlan } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 
 export function TopBarPlanToggles() {

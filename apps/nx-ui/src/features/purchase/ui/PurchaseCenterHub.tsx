@@ -15,7 +15,7 @@ import {
   RotateCcw,
   Shield,
 } from 'lucide-react';
-import { mockPurchaseCounts } from '@/mocks/purchase-hub';
+import { mockPurchaseCounts } from '@data/mocks/purchase-hub';
 import {
   CenterHubCardWrap,
   CenterHubFlowCard,
