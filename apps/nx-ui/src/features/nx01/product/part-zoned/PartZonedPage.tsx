@@ -50,13 +50,13 @@ import {
   updatePart,
 } from '@data/endpoints/shared/master/part/api/part';
 import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
-import { previewPartCode } from '@data/endpoints/base/api/part';
+import { previewPartCode } from '@data/endpoints/nx01/api/part';
 import {
   listBrandCodeRules,
   ruleSegLengths,
   type BrandCodeRuleDto,
-} from '@data/endpoints/base/api/brand-code-rule';
-import { listCustomerGrades, type CustomerGradeDto } from '@data/endpoints/base/api/customer-grade';
+} from '@data/endpoints/nx01/api/brand-code-rule';
+import { listCustomerGrades, type CustomerGradeDto } from '@data/endpoints/nx01/api/customer-grade';
 
 import { PartFormZoned, type RefOption } from './PartFormZoned';
 import {

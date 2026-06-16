@@ -15,7 +15,7 @@
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import type { PagedResult } from '@data/types/base/api';
+import type { PagedResult } from '@data/types/nx01/api';
 
 // T3 進貨對齊批次 2026-06-07：加 'date' 支援 PartnerPart 主檔的 validFrom / validTo
 // 等通用 date 欄位（HTML5 input type="date"、後端接 ISO 'YYYY-MM-DD'）。

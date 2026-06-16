@@ -14,14 +14,14 @@ import {
   listEngine,
   softDeleteEngine,
   updateEngine,
-} from '@data/endpoints/base/engine/api/engine';
+} from '@data/endpoints/nx01/engine/api/engine';
 import {
   ASPIRATION_TYPE_OPTIONS,
   FUEL_TYPE_OPTIONS,
   aspirationTypeLabel,
   fuelTypeLabel,
   type EngineDto,
-} from '@data/types/base/engine';
+} from '@data/types/nx01/engine';
 
 type Draft = {
   code: string;

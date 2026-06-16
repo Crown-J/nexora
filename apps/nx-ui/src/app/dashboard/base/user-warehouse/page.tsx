@@ -3,8 +3,8 @@
 'use client';
 
 import { ReverseAssignPage, type ReverseAssignConfig } from '@/features/nx01/shell/reverse-assign/ReverseAssignPage';
-import { listWarehouses } from '@data/endpoints/base/api/warehouse';
-import { listUserWarehouses, assignUserWarehouse, revokeUserWarehouse } from '@data/endpoints/base/api/user-warehouse';
+import { listWarehouses } from '@data/endpoints/nx01/api/warehouse';
+import { listUserWarehouses, assignUserWarehouse, revokeUserWarehouse } from '@data/endpoints/nx01/api/user-warehouse';
 
 const CONFIG: ReverseAssignConfig = {
   category: '帳號與權限',

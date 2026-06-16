@@ -3,8 +3,8 @@
 'use client';
 
 import { ReverseAssignPage, type ReverseAssignConfig } from '@/features/nx01/shell/reverse-assign/ReverseAssignPage';
-import { listRoles } from '@data/endpoints/base/api/role';
-import { listUserRoles, assignUserRole, revokeUserRole } from '@data/endpoints/base/api/user-role';
+import { listRoles } from '@data/endpoints/nx01/api/role';
+import { listUserRoles, assignUserRole, revokeUserRole } from '@data/endpoints/nx01/api/user-role';
 
 const CONFIG: ReverseAssignConfig = {
   category: '帳號與權限',

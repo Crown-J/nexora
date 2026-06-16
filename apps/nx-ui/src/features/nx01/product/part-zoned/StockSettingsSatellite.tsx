@@ -18,13 +18,13 @@ import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSecti
 import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import { apiJson } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
-import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import {
   createPartStockSetting,
   listPartStockSettingByPart,
   updatePartStockSetting,
   type PartStockSettingDto,
-} from '@data/endpoints/base/api/partStockSetting';
+} from '@data/endpoints/nx01/api/partStockSetting';
 
 type LocationLite = {
   id: string;

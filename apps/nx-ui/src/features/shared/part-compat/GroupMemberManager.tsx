@@ -10,8 +10,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { listParts } from '@data/endpoints/base/api/part';
-import type { PartDto } from '@data/endpoints/base/api/part';
+import { listParts } from '@data/endpoints/nx01/api/part';
+import type { PartDto } from '@data/endpoints/nx01/api/part';
 
 import {
   addGroupMember,

@@ -43,7 +43,7 @@ import {
   setWarehouseActive,
   updateWarehouse,
   type WarehouseDto,
-} from '@data/endpoints/base/api/warehouse';
+} from '@data/endpoints/nx01/api/warehouse';
 import {
   createLocation,
   listLocation,

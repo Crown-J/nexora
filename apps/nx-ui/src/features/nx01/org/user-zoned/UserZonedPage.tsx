@@ -34,8 +34,8 @@ import {
   setUserTeamLeader,
   setUserTeamPrimary,
   type UserTeamDto,
-} from '@data/endpoints/base/api/user-team';
-import { listTeams as listTeamsApi, type TeamDto } from '@data/endpoints/base/api/team';
+} from '@data/endpoints/nx01/api/user-team';
+import { listTeams as listTeamsApi, type TeamDto } from '@data/endpoints/nx01/api/team';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/nx01/shell/ui/EntityPickerDialog';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
@@ -61,22 +61,22 @@ import {
   setUserActive,
   updateUser,
   type UserDto,
-} from '@data/endpoints/base/api/user';
-import { listRoles, type RoleDto } from '@data/endpoints/base/api/role';
+} from '@data/endpoints/nx01/api/user';
+import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
   assignUserRole,
   listUserRoles,
   revokeUserRole,
   setUserRolePrimary,
   type UserRoleDto,
-} from '@data/endpoints/base/api/user-role';
+} from '@data/endpoints/nx01/api/user-role';
 import {
   assignUserWarehouse,
   listUserWarehouses,
   revokeUserWarehouse,
   type UserWarehouseDto,
-} from '@data/endpoints/base/api/user-warehouse';
-import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
+} from '@data/endpoints/nx01/api/user-warehouse';
+import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import { CreateUserDialog } from '@/features/nx01/org/users/CreateUserDialog';
 import { fetchSeatUsage, type SeatUsage } from '@data/endpoints/wizard/api';
 

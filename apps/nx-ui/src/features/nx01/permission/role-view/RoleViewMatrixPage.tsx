@@ -15,7 +15,7 @@ import { CheckCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@design/utils/cn';
 import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
-import { listRoles, type RoleDto } from '@data/endpoints/base/api/role';
+import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
   listViews,
   listRoleViews,
@@ -24,7 +24,7 @@ import {
   deleteRoleView,
   type ViewDto,
   type RoleViewPerms,
-} from '@data/endpoints/base/api/role-view';
+} from '@data/endpoints/nx01/api/role-view';
 
 // T1-fix-b 進貨對齊批次 2026-06-07：加第 6 欄「核准」（canApprove、schema 已預埋）
 // 業務語意：核准權限只對有審核流程的畫面有意義（採購單 NX02_PO / 保固 NX02_WARRANTY / 盤點 NX03_STOCK_TAKE 等）；

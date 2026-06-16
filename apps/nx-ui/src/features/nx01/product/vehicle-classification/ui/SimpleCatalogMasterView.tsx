@@ -14,8 +14,8 @@ import {
   softDeleteSimpleCatalog,
   updateSimpleCatalog,
   type SimpleCatalogVariant,
-} from '@data/endpoints/base/vehicle-classification/api/simple-catalog';
-import type { SimpleCatalogDto } from '@data/types/base/vehicle-classification';
+} from '@data/endpoints/nx01/vehicle-classification/api/simple-catalog';
+import type { SimpleCatalogDto } from '@data/types/nx01/vehicle-classification';
 
 type Draft = {
   code: string;

@@ -27,7 +27,7 @@ import { arrayMove } from '@design/utils/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
 import { MasterSaveConfirmDialog } from '@/features/nx01/shell/keyboard/MasterSaveConfirmDialog';
-import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
+import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 import {
   createLocation,
   listLocation,

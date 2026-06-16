@@ -11,8 +11,8 @@ import { LookupAutocomplete } from '@design/components/lookup/LookupAutocomplete
 import { FlatMasterView, type FlatFieldDef } from '@/features/nx01/shell/flat-master/FlatMasterView';
 import { listPart } from '@data/endpoints/shared/master/part/api/part';
 import type { PartDto } from '@data/types/shared/master/part';
-import { listModel } from '@data/endpoints/base/model/api/model';
-import type { ModelDto } from '@data/types/base/model';
+import { listModel } from '@data/endpoints/nx01/model/api/model';
+import type { ModelDto } from '@data/types/nx01/model';
 
 // 規格 §3.3 Q3=B：fitLevel SmallInt（1=原廠 / 2=副廠等效 / 3=通用替代）
 const FIT_LEVEL_OPTS = [

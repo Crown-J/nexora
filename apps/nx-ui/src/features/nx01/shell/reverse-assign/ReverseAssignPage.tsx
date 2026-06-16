@@ -17,7 +17,7 @@ import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/nx01/shell/ui/EntityPickerDialog';
-import { listUsers, type UserDto } from '@data/endpoints/base/api/user';
+import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
 
 export type ReverseEntity = { id: string; code: string; name: string };
 export type ReverseMember = { recordId: string; userId: string; label: string; sub: string };

@@ -30,7 +30,7 @@ import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
 import { StockSettingsSatellite } from './StockSettingsSatellite';
 import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
-import type { BrandCodeRuleDto } from '@data/endpoints/base/api/brand-code-rule';
+import type { BrandCodeRuleDto } from '@data/endpoints/nx01/api/brand-code-rule';
 import { Calculator, Plus, X } from 'lucide-react';
 
 import {

@@ -21,12 +21,12 @@ import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
 import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import { fetchRefOptions, type SelectOption } from '@/features/nx01/shell/entity-master/config';
-import { type RoleDto } from '@data/endpoints/base/api/role';
-import { type UserRoleDto } from '@data/endpoints/base/api/user-role';
-import { type UserWarehouseDto } from '@data/endpoints/base/api/user-warehouse';
-import { type WarehouseDto } from '@data/endpoints/base/api/warehouse';
+import { type RoleDto } from '@data/endpoints/nx01/api/role';
+import { type UserRoleDto } from '@data/endpoints/nx01/api/user-role';
+import { type UserWarehouseDto } from '@data/endpoints/nx01/api/user-warehouse';
+import { type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
 // 05 批 T3 2026-06-07：teams 即時範式 inline 渲染
-import { type UserTeamDto } from '@data/endpoints/base/api/user-team';
+import { type UserTeamDto } from '@data/endpoints/nx01/api/user-team';
 import Link from 'next/link';
 import { ImageIcon } from 'lucide-react';
 

@@ -13,12 +13,12 @@ import {
   listTransmission,
   softDeleteTransmission,
   updateTransmission,
-} from '@data/endpoints/base/vehicle-classification/api/transmission';
+} from '@data/endpoints/nx01/vehicle-classification/api/transmission';
 import {
   TRANSMISSION_TYPE_OPTIONS,
   transmissionTypeLabel,
   type TransmissionDto,
-} from '@data/types/base/vehicle-classification';
+} from '@data/types/nx01/vehicle-classification';
 
 type Draft = {
   code: string;

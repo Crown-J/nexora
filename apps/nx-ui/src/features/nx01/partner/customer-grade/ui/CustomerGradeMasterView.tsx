@@ -9,8 +9,8 @@ import { Pencil, RefreshCw } from 'lucide-react';
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
-import { listCustomerGrade, updateCustomerGrade } from '@data/endpoints/base/customer-grade/api/customer-grade';
-import type { CustomerGradeDto } from '@data/types/base/customer-grade';
+import { listCustomerGrade, updateCustomerGrade } from '@data/endpoints/nx01/customer-grade/api/customer-grade';
+import type { CustomerGradeDto } from '@data/types/nx01/customer-grade';
 
 type Draft = {
   name: string;

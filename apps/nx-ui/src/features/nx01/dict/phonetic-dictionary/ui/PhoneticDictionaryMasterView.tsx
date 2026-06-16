@@ -14,8 +14,8 @@ import {
   listPhoneticDictionary,
   softDeletePhoneticDictionary,
   updatePhoneticDictionary,
-} from '@data/endpoints/base/phonetic-dictionary/api/phonetic-dictionary';
-import type { PhoneticDictionaryDto } from '@data/types/base/phonetic-dictionary';
+} from '@data/endpoints/nx01/phonetic-dictionary/api/phonetic-dictionary';
+import type { PhoneticDictionaryDto } from '@data/types/nx01/phonetic-dictionary';
 
 type Draft = {
   character: string;
