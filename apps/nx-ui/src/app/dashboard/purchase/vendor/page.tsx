@@ -3,7 +3,7 @@
 // 舊 DEMO mock 視圖（1099 行）已清除（總經理要當第一個真客戶實測、不能出現假資料）
 'use client';
 
-import { PartnerMasterPage } from '@/features/partner-zoned';
+import { PartnerMasterPage } from '@/features/nx01/partner/partner-zoned';
 
 const EDITABLE_ZONES = new Set(['basic', 'finance'] as const);
 

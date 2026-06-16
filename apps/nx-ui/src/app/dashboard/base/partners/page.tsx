@@ -2,7 +2,7 @@
 // 往來對象主檔（v1.2 階段 E P2：分區編輯範式、依 partnerType 動態顯示 zones）
 'use client';
 
-import { PartnerMasterPage } from '@/features/partner-zoned';
+import { PartnerMasterPage } from '@/features/nx01/partner/partner-zoned';
 
 export default function Page() {
   return (

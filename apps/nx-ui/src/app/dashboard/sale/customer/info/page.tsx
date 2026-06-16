@@ -3,7 +3,7 @@
 // 對齊決策 3.1 + v1.1 §1：列表只顯示 C/O、編輯只動 basic + sales 區
 'use client';
 
-import { PartnerMasterPage } from '@/features/partner-zoned';
+import { PartnerMasterPage } from '@/features/nx01/partner/partner-zoned';
 
 const EDITABLE_ZONES = new Set(['basic', 'sales'] as const);
 

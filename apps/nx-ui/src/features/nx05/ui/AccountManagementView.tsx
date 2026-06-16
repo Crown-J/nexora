@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Building2, Landmark } from 'lucide-react';
 
-import { PartnerMasterPage } from '@/features/partner-zoned';
+import { PartnerMasterPage } from '@/features/nx01/partner/partner-zoned';
 
 type Tab = 'partner' | 'bank';
 
