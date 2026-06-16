@@ -19,7 +19,7 @@ import { Button } from "@design/primitives/button"
 import { Input } from "@design/primitives/input"
 import { Label } from "@design/primitives/label"
 import { Textarea } from "@design/primitives/textarea"
-import { cn } from "@/lib/utils"
+import { cn } from "@design/utils/cn"
 import { fetchAllPages } from "@data/api/fetchAllPages"
 import type { CalendarEventDto } from "@data/api/calendar-event"
 import {

@@ -5,7 +5,7 @@ import { ClipboardList, Circle, CheckCircle2, AlertTriangle, Truck, ReceiptText,
 import { Card, CardContent, CardHeader, CardTitle } from "@design/primitives/card"
 import { Badge } from "@design/primitives/badge"
 import { ScrollArea } from "@design/primitives/scroll-area"
-import { cn } from "@/lib/utils"
+import { cn } from "@design/utils/cn"
 
 interface Task {
   id: string

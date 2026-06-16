@@ -17,7 +17,7 @@ import {
 import { Input } from "@design/primitives/input"
 import { Label } from "@design/primitives/label"
 import { Textarea } from "@design/primitives/textarea"
-import { cn } from "@/lib/utils"
+import { cn } from "@design/utils/cn"
 import type { BulletinDto } from "@data/api/bulletin"
 import {
   createBulletin,
