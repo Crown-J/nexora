@@ -7,7 +7,7 @@
 
 import { useEffect, useState, type RefObject } from 'react';
 import { ChevronDown, Moon, Sun, ChevronRight } from 'lucide-react';
-import { useNxThemeMode } from '@/hooks/useNxThemeMode';
+import { useNxThemeMode } from '@design/hooks/useNxThemeMode';
 import { cx } from '@design/utils/cx';
 import type { MockBulletin, PlanCode } from '@/mocks/dashboard';
 

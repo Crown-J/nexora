@@ -36,7 +36,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@design/primitives/tabs';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
-import { useNxThemeMode } from '@/hooks/useNxThemeMode';
+import { useNxThemeMode } from '@design/hooks/useNxThemeMode';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@design/primitives/scroll-area';
 import Link from 'next/link';
