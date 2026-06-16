@@ -5,7 +5,7 @@
  * 薄殼，實際畫面在 MobilePurchaseSopPage。
  */
 
-import { MobilePurchaseSopPage } from '@/features/purchase/ui/sop-workspace/MobilePurchaseSopPage';
+import { MobilePurchaseSopPage } from '@/features/nx02/ui/sop-workspace/MobilePurchaseSopPage';
 
 export default function PurchaseSopDemoPage() {
   return <MobilePurchaseSopPage />;

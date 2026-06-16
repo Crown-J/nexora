@@ -3,7 +3,7 @@
  * 國內採購工作台（三欄流程；需求節點 mock）
  */
 
-import { PurchaseDomesticWorkbenchView } from '@/features/purchase/domestic/PurchaseDomesticWorkbenchView';
+import { PurchaseDomesticWorkbenchView } from '@/features/nx02/domestic/PurchaseDomesticWorkbenchView';
 
 export default function PurchaseDomesticPage() {
   return (
