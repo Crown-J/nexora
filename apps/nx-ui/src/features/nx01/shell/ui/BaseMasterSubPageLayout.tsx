@@ -11,8 +11,8 @@ import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { HomeTopBar } from '@design/home/top-bar';
-import { HomeLandingChrome } from '@design/home/home-landing-chrome';
+import { HomeTopBar } from '@design/home/HomeTopBar';
+import { HomeLandingChrome } from '@design/home/HomeLandingChrome';
 import { BaseMasterPageHeader } from '@/features/nx01/shell/ui/BaseMasterPageHeader';
 import { normalizePlanCode } from '@/features/nx01/shell/config/master-cards';
 

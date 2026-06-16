@@ -22,7 +22,7 @@ import { Bell, ChevronDown, ChevronRight, ClipboardList, LogOut, Megaphone, Sear
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
-import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@design/home/dock';
+import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@design/home/Dock';
 import {
   MASTER_HUB_CARDS,
   MASTER_HUB_SECTION_ORDER,

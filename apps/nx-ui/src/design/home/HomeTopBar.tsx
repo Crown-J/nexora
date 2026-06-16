@@ -41,7 +41,7 @@ import { cn } from '@design/utils/cn';
 import { ScrollArea } from '@design/primitives/scroll-area';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { NavPlanetMenu } from '@design/home/dock';
+import { NavPlanetMenu } from '@design/home/Dock';
 import { useDashboardBulletinOptional } from '@/features/nx00/context/DashboardBulletinContext';
 import type { MockBulletin } from '@data/mocks/dashboard';
 import { PlanChip, type PlanChipPlan } from '@design/components/PlanChip';

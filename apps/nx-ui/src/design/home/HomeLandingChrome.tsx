@@ -8,7 +8,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { MobileDock } from '@design/home/dock';
+import { MobileDock } from '@design/home/Dock';
 import { ParticleField } from '@design/login/planet-orbit';
 import { cn } from '@design/utils/cn';
 
