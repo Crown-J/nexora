@@ -25,10 +25,10 @@ export function DashboardSubNav() {
 
   if (!groups.length) return null;
 
-  // R4-B：主檔子頁（/dashboard/base/* 但非 /dashboard/base 本身）手機版隱藏次選單，
+  // R4-B：主檔子頁（/dashboard/master/* 但非 /dashboard/master 本身）手機版隱藏次選單，
   // 避免上方一整列群組 icon 擠壓內容；桌面版維持顯示。
   const isBaseSubPage =
-    pathname.startsWith('/dashboard/base/') && pathname !== '/dashboard/base';
+    pathname.startsWith('/dashboard/master/') && pathname !== '/dashboard/master';
 
   return (
     <nav

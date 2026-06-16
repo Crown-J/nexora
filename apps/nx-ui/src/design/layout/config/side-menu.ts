@@ -24,7 +24,7 @@ import { getNx09SideMenu } from '@design/layout/config/menu.nx09';
  */
 export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   // 業務頁面自帶導覽（卡片 Hub 或橫向導覽）、不使用 SubNav
-  if (pathname.startsWith('/dashboard/base')) return [];
+  if (pathname.startsWith('/dashboard/master')) return [];
   if (pathname.startsWith('/dashboard/purchase')) return [];
   if (pathname.startsWith('/dashboard/sale')) return [];
   if (pathname.startsWith('/dashboard/inventory')) return [];

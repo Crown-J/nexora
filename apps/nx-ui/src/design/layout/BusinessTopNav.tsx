@@ -93,7 +93,7 @@ const SECONDARY_NAV: NavEntry[] = [
   {
     key: 'master',
     label: '主檔中心',
-    href: '/dashboard/base',
+    href: '/dashboard/master',
     permissions: [
       'master.customer.list',
       'master.supplier.list',

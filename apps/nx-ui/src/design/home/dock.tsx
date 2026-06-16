@@ -45,7 +45,7 @@ export type DockNavItem = {
 /** 與 demo/home 一致；連結對應 NEXORA 實際路由（v2.0 語意化） */
 export const HOME_DOCK_ITEMS: DockNavItem[] = [
   { icon: Home,         label: '首頁', href: '/dashboard' },
-  { icon: Layers3,      label: '主檔', href: '/dashboard/base' },
+  { icon: Layers3,      label: '主檔', href: '/dashboard/master' },
   { icon: ShoppingCart, label: '採購', href: '/dashboard/purchase' },
   { icon: Package,      label: '銷貨', href: '/dashboard/sale' },
   { icon: Warehouse,    label: '庫存', href: '/dashboard/inventory' },
@@ -56,7 +56,7 @@ export const HOME_DOCK_ITEMS: DockNavItem[] = [
 /** Alt+X 開啟後，單鍵：H 首頁／B 主檔／P 採購／S 銷貨／W 庫存／M 財務／R 報表 */
 const DOCK_LETTER_TO_HREF: Record<string, string> = {
   h: '/dashboard',
-  b: '/dashboard/base',
+  b: '/dashboard/master',
   p: '/dashboard/purchase',
   s: '/dashboard/sale',
   w: '/dashboard/inventory',
@@ -70,8 +70,8 @@ export function isDockActive(pathname: string, href: string): boolean {
   if (href === '/dashboard') {
     return pathname === '/dashboard';
   }
-  if (href === '/dashboard/base') {
-    return pathname.startsWith('/dashboard/base');
+  if (href === '/dashboard/master') {
+    return pathname.startsWith('/dashboard/master');
   }
   if (href === '/dashboard/purchase') {
     return pathname.startsWith('/dashboard/purchase');
@@ -233,7 +233,7 @@ function SaleCenterSub({ pathname }: { pathname: string }) {
         <DropdownMenuSeparator className="bg-border/60" />
         <DropdownMenuLabel className="px-2 py-1 text-[10px] font-normal tracking-widest text-muted-foreground">主檔</DropdownMenuLabel>
         {/* F1-B 銷貨路徑收斂 2026-06-08：客戶主檔走六分類共用入口、URL 不露 nx 代碼 */}
-        <DockSubLink href="/dashboard/base/partners" label="客戶管理" kbd="—" />
+        <DockSubLink href="/dashboard/master/partners" label="客戶管理" kbd="—" />
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );
@@ -339,7 +339,7 @@ export function NavPlanetMenu() {
   }, [menuLevel]);
 
   // 業界改革 #26 v1：開啟時依 pathname 決定 initial level
-  // - 在主檔頁面（/dashboard/base 或 /dashboard/base/*）→ base level（直接顯示 25 主檔）
+  // - 在主檔頁面（/dashboard/master 或 /dashboard/master/*）→ base level（直接顯示 25 主檔）
   // - 其他頁面 → root level（6 模組）
   // 關閉時 reset root（下次他頁開啟回模組層）
   useEffect(() => {
@@ -347,7 +347,7 @@ export function NavPlanetMenu() {
       setMenuLevel('root');
       return;
     }
-    const isBaseContext = pathname === '/dashboard/base' || pathname.startsWith('/dashboard/base/');
+    const isBaseContext = pathname === '/dashboard/master' || pathname.startsWith('/dashboard/master/');
     setMenuLevel(isBaseContext ? 'base' : 'root');
   }, [open, pathname]);
 
@@ -603,7 +603,7 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
 
 /**
  * 前綴匹配（含子頁全部隱藏）：
- * - /dashboard/base 及所有 /dashboard/base/* 子頁，避免上方 icon 列 + 底部 DOCK 雙擠壓
+ * - /dashboard/master 及所有 /dashboard/master/* 子頁，避免上方 icon 列 + 底部 DOCK 雙擠壓
  *
  * 完全匹配（只中心首頁隱藏、子頁保留 DOCK 方便跨模組跳轉）：
  * - /dashboard/purchase / /dashboard/inventory
@@ -613,7 +613,7 @@ function isShortcutDockActive(pathname: string, href: string): boolean {
  *   SectionTabs 以 offsetBottom=74 坐在 DOCK 上方，不需要再隱藏 DOCK
  */
 const HIDE_MOBILE_DOCK_PREFIXES = [
-  '/dashboard/base',
+  '/dashboard/master',
   // R5：SOP 精品示範有自己的固定底部操作列，避免與全站 DOCK 雙 bar 衝突
   '/dashboard/purchase/sop-demo',
   // R6：國內銷貨 SOP 精品示範同理
@@ -642,7 +642,7 @@ export function MobileDock() {
   const isDashboardHome = pathname === '/dashboard';
 
   // [2-1 polish] 手機 dock「主檔」按鈕：依使用者方案 filter 25 主檔、做 contextual dropdown
-  // （比照桌面 NavPlanetMenu base level 範式、不再導向已 redirect 的 /dashboard/base hub）
+  // （比照桌面 NavPlanetMenu base level 範式、不再導向已 redirect 的 /dashboard/master hub）
   const { planCode } = useSessionMe();
   const baseCardsForUser = useMemo(() => {
     const userPlan = normalizePlanCode(planCode);
@@ -684,7 +684,7 @@ export function MobileDock() {
         );
 
         // 「主檔」項：改成 dropdown contextual trigger（不導航 hub、列 25 主檔依方案 filter）
-        if (item.href === '/dashboard/base') {
+        if (item.href === '/dashboard/master') {
           return (
             <DropdownMenu key={item.href}>
               <DropdownMenuTrigger asChild>

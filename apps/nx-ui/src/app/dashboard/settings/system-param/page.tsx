@@ -168,7 +168,7 @@ export default function SystemParamPage() {
           屬主檔範圍、請到「主檔中心 → 客戶等級」管理。
         </p>
         <Link
-          href="/dashboard/base/customer-grade"
+          href="/dashboard/master/customer-grade"
           className="inline-block rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground"
         >
           前往客戶等級主檔 →

@@ -21,9 +21,12 @@ const nextConfig: NextConfig = {
       { source: "/sale/qt", destination: "/dashboard/sale/qt", permanent: false },
       { source: "/sale/so", destination: "/dashboard/sale/so", permanent: false },
 
-      { source: "/base", destination: "/dashboard/base", permanent: true },
-      { source: "/base/:path*", destination: "/dashboard/base/:path*", permanent: true },
-      { source: "/user", destination: "/dashboard/base/users", permanent: true },
+      // 主檔 base/ → master/ URL 業務名重命名（P6-2、2026-06-16）
+      { source: "/dashboard/base", destination: "/dashboard/master", permanent: true },
+      { source: "/dashboard/base/:path*", destination: "/dashboard/master/:path*", permanent: true },
+      { source: "/base", destination: "/dashboard/master", permanent: true },
+      { source: "/base/:path*", destination: "/dashboard/master/:path*", permanent: true },
+      { source: "/user", destination: "/dashboard/master/users", permanent: true },
 
       // 段 4 移除：inventory/* → nx03/* 過時、inventory 已是真實 hub + workspace 子頁
 
@@ -38,7 +41,7 @@ const nextConfig: NextConfig = {
       // 段 4 移除：nx03/{workbench,customer-sales} → nx04/* 過時、nx03 路徑已轉 inventory + sale
 
       { source: "/dashboard/sales/export", destination: "/dashboard/sale/return", permanent: true },
-      { source: "/dashboard/sales/customer", destination: "/dashboard/base/partners", permanent: true },
+      { source: "/dashboard/sales/customer", destination: "/dashboard/master/partners", permanent: true },
     ];
   },
 };

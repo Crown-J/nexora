@@ -395,7 +395,7 @@ export function UserFormZoned({
             </div>
           </div>
           <Link
-            href={`/dashboard/base/users/${selectedUserId}/photo`}
+            href={`/dashboard/master/users/${selectedUserId}/photo`}
             className="rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-3 py-1.5 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/20"
           >
             {selectedHasPhoto ? '管理大頭貼' : '新增大頭貼'}

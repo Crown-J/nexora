@@ -34,7 +34,7 @@ import {
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { apiJson } from '@data/api/client';
 
-const MASTER_HREF = '/dashboard/base';
+const MASTER_HREF = '/dashboard/master';
 const MASTER_MODULE_IDX = HOME_DOCK_ITEMS.findIndex((m) => m.href === MASTER_HREF);
 
 type NavLink = { label: string; href: string };
@@ -450,7 +450,7 @@ export function MasterTopBar({
               type="button"
               onClick={() => {
                 announceMenu.setOpen(false);
-                requestNavigate('/dashboard/base/bulletins');
+                requestNavigate('/dashboard/master/bulletins');
               }}
               className="mt-2 w-full rounded-md border border-[#E8A020]/30 bg-[#E8A020]/10 px-3 py-1.5 text-xs font-medium text-[#E8A020] transition-colors hover:bg-[#E8A020]/20"
             >

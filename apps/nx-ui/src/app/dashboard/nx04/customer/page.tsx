@@ -5,5 +5,5 @@
 import { redirect } from 'next/navigation';
 
 export default function Nx04CustomerWorkspaceRedirect(): never {
-  redirect('/dashboard/base/partners');
+  redirect('/dashboard/master/partners');
 }

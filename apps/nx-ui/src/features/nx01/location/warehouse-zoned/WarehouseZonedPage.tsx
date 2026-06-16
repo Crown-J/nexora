@@ -2,8 +2,8 @@
 // v1.2 對齊軌 階段 E P4：warehouse 分區編輯 list+detail 容器
 //
 // 對齊鋼鐵星球範式 + v1.1 §1（PATCH 只送本頁可編欄）
-// P4 階段：本元件僅供「主檔中心 zoned demo」/dashboard/base/warehouses/zoned 用、
-// 既有 /dashboard/base/warehouses（EntityMasterPage + WAREHOUSE_MASTER config）保留、
+// P4 階段：本元件僅供「主檔中心 zoned demo」/dashboard/master/warehouses/zoned 用、
+// 既有 /dashboard/master/warehouses（EntityMasterPage + WAREHOUSE_MASTER config）保留、
 // 範式統一決定留 P6 closure STOP-1 由總經理裁定。
 'use client';
 

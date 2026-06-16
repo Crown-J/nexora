@@ -194,7 +194,7 @@ type ToolbarAction = {
 };
 
 const TOOLBAR_ACTIONS: ToolbarAction[] = [
-  { key: 'customer', label: '客戶／往來搜尋', href: '/dashboard/base/partners', icon: Search },
+  { key: 'customer', label: '客戶／往來搜尋', href: '/dashboard/master/partners', icon: Search },
   { key: 'api-flow', label: '客戶銷貨流程（API）', href: '/dashboard/inventory/customer-sales', icon: ClipboardList },
   { key: 'export', label: '報表匯出', icon: Download, disabled: true },
   { key: 'history', label: '歷史紀錄', icon: Clock, disabled: true },

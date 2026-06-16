@@ -19,8 +19,8 @@ export interface WorkflowQuickActionsProps {
 }
 
 const ITEMS: Array<{ key: string; label: string; path: string; Icon: typeof Search }> = [
-  { key: 'partner', label: '客戶/供應商', path: '/dashboard/base/partners', Icon: Search },
-  { key: 'part', label: '料號查詢', path: '/dashboard/base/parts', Icon: Package },
+  { key: 'partner', label: '客戶/供應商', path: '/dashboard/master/partners', Icon: Search },
+  { key: 'part', label: '料號查詢', path: '/dashboard/master/parts', Icon: Package },
   { key: 'import', label: '批次匯入', path: '/dashboard/inventory/import', Icon: ClipboardList },
   { key: 'export', label: '報表匯出', path: '/dashboard/inventory/reports', Icon: Download },
   { key: 'history', label: '歷史紀錄', path: '/dashboard/inventory/history', Icon: Clock },

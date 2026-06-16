@@ -30,34 +30,34 @@ type DashboardShellProps = {
 };
 
 const MASTER_SHELL_BYPASS_PATHS = new Set([
-  '/dashboard/base/users',
-  '/dashboard/base/currency',
-  '/dashboard/base/country',
-  '/dashboard/base/part-group',
-  '/dashboard/base/roles',
-  '/dashboard/base/drivetrain',
-  '/dashboard/base/model-type',
-  '/dashboard/base/car-brand',
-  '/dashboard/base/engine',
-  '/dashboard/base/transmission',
-  '/dashboard/base/model',
-  '/dashboard/base/part-brand',
-  '/dashboard/base/part-relation',
-  '/dashboard/base/part-model',
-  '/dashboard/base/warehouses',
-  '/dashboard/base/customer-grade',
-  '/dashboard/base/phonetic-dictionary',
-  '/dashboard/base/partners',
-  '/dashboard/base/partner-part',
-  '/dashboard/base/discount-code',
-  '/dashboard/base/site',
-  '/dashboard/base/location',
-  '/dashboard/base/parts',
-  '/dashboard/base/brand-code-rule',
-  '/dashboard/base/bulletins',
-  '/dashboard/base/role-view',
-  '/dashboard/base/user-role',
-  '/dashboard/base/user-warehouse',
+  '/dashboard/master/users',
+  '/dashboard/master/currency',
+  '/dashboard/master/country',
+  '/dashboard/master/part-group',
+  '/dashboard/master/roles',
+  '/dashboard/master/drivetrain',
+  '/dashboard/master/model-type',
+  '/dashboard/master/car-brand',
+  '/dashboard/master/engine',
+  '/dashboard/master/transmission',
+  '/dashboard/master/model',
+  '/dashboard/master/part-brand',
+  '/dashboard/master/part-relation',
+  '/dashboard/master/part-model',
+  '/dashboard/master/warehouses',
+  '/dashboard/master/customer-grade',
+  '/dashboard/master/phonetic-dictionary',
+  '/dashboard/master/partners',
+  '/dashboard/master/partner-part',
+  '/dashboard/master/discount-code',
+  '/dashboard/master/site',
+  '/dashboard/master/location',
+  '/dashboard/master/parts',
+  '/dashboard/master/brand-code-rule',
+  '/dashboard/master/bulletins',
+  '/dashboard/master/role-view',
+  '/dashboard/master/user-role',
+  '/dashboard/master/user-warehouse',
 ]);
 
 export function DashboardShell({ children }: DashboardShellProps) {
@@ -70,7 +70,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   const isSysDashboardHome = pathname === '/dashboard';
   const isMasterShellBypass = pathname != null && MASTER_SHELL_BYPASS_PATHS.has(pathname);
-  const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/base/');
+  const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/master/');
 
   const handleLogout = useCallback(() => {
     setIsLeaving(true);

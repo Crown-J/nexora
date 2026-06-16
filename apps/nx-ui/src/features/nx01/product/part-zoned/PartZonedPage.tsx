@@ -3,7 +3,7 @@
 //
 // 對齊鋼鐵星球範式 + 階段 E v1.1 §1（PATCH 只送本頁可編欄位）+ 決策 3.2 屏障 1。
 // 用於 4 個頁面：
-//   · 主檔中心 part（/dashboard/base/parts、全 4 zone）— P6 closure A4 替換舊版 660 行
+//   · 主檔中心 part（/dashboard/master/parts、全 4 zone）— P6 closure A4 替換舊版 660 行
 //   · 採購→產品（basic + purchase + inventory）
 //   · 銷貨→產品（basic + sales、含 A3 依成本重算）
 //   · 庫存→產品維護（basic + inventory）
@@ -699,7 +699,7 @@ export function PartZonedPage({
         minWidthClass: 'min-w-[50px]',
         render: (row) => (
           <a
-            href={`/dashboard/base/parts/${row.id}/photos`}
+            href={`/dashboard/master/parts/${row.id}/photos`}
             className="text-xs text-[#22D88F] hover:underline"
             onClick={(e) => e.stopPropagation()}
             title="照片管理"

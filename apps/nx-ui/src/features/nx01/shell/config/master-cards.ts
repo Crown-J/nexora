@@ -139,7 +139,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Users,
     statLabel: '啟用帳號',
     statValue: '42 筆',
-    href: '/dashboard/base/users',
+    href: '/dashboard/master/users',
   },
   {
     id: 'role',
@@ -149,7 +149,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Briefcase,
     statLabel: '職務項目',
     statValue: '—',
-    href: '/dashboard/base/roles',
+    href: '/dashboard/master/roles',
   },
   // 05 批 T1 2026-06-07：部門主檔揭露（從 nx07 placeholder 升級到主檔中心）
   {
@@ -160,7 +160,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Building2,
     statLabel: '部門',
     statValue: '—',
-    href: '/dashboard/base/department',
+    href: '/dashboard/master/department',
   },
   // 05 批 T2 2026-06-07：組主檔揭露（揭露既有 Nx01Team、隸屬部門 + 自我 ref 子組）
   {
@@ -171,7 +171,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: UsersRound,
     statLabel: '組',
     statValue: '—',
-    href: '/dashboard/base/team',
+    href: '/dashboard/master/team',
   },
   // 軌 A commit A1（業界改革 #22 v1.2 累積調整）：
   // user-role / user-warehouse 兩主檔卡片降階為「批次工具」入口。
@@ -187,7 +187,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '關聯筆數',
     statValue: '—',
     // 02 第四批 軌 2 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本、只差人數」）
-    href: '/dashboard/base/user-role',
+    href: '/dashboard/master/user-role',
   },
   {
     id: 'user-warehouse',
@@ -198,7 +198,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     statLabel: '關聯筆數',
     statValue: '—',
     // 02 第四批 軌 2 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本、只差人數」）
-    href: '/dashboard/base/user-warehouse',
+    href: '/dashboard/master/user-warehouse',
   },
   {
     id: 'role-view',
@@ -208,7 +208,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Shield,
     statLabel: '已套用規則',
     statValue: '—',
-    href: '/dashboard/base/role-view',
+    href: '/dashboard/master/role-view',
   },
   {
     id: 'bulletin',
@@ -218,7 +218,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Megaphone,
     statLabel: '公告',
     statValue: '—',
-    href: '/dashboard/base/bulletins',
+    href: '/dashboard/master/bulletins',
   },
   {
     id: 'part',
@@ -228,7 +228,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Package,
     statLabel: '零件筆數',
     statValue: '—',
-    href: '/dashboard/base/parts',
+    href: '/dashboard/master/parts',
   },
   // W6 [3-8] 2026-06-06 品牌合併：car-brand + part-brand → 單一 brand 卡
   // 舊 car-brand / part-brand 路由保留向後相容（後續軌可改 redirect）
@@ -240,7 +240,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Tags,
     statLabel: '品牌',
     statValue: '—',
-    href: '/dashboard/base/brand',
+    href: '/dashboard/master/brand',
   },
   {
     id: 'part-group',
@@ -250,7 +250,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Layers,
     statLabel: '族群',
     statValue: '—',
-    href: '/dashboard/base/part-group',
+    href: '/dashboard/master/part-group',
   },
   {
     id: 'brand-code-rule',
@@ -261,7 +261,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: SlidersHorizontal,
     statLabel: '規則',
     statValue: '—',
-    href: '/dashboard/base/brand-code-rule',
+    href: '/dashboard/master/brand-code-rule',
   },
   {
     id: 'part-relation',
@@ -272,7 +272,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Link2,
     statLabel: '關聯',
     statValue: '—',
-    href: '/dashboard/base/part-relation',
+    href: '/dashboard/master/part-relation',
   },
   // 02 對齊第二批 C 軌 CP2-c：通用件群組（多 part 互為替代品、各自售價、雙向）
   {
@@ -283,7 +283,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Link2,
     statLabel: '群組',
     statValue: '—',
-    href: '/dashboard/base/part-compat-group',
+    href: '/dashboard/master/part-compat-group',
   },
   {
     id: 'part-model',
@@ -294,7 +294,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Link2,
     statLabel: '適配',
     statValue: '—',
-    href: '/dashboard/base/part-model',
+    href: '/dashboard/master/part-model',
   },
   {
     id: 'country',
@@ -304,7 +304,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Globe,
     statLabel: '國家',
     statValue: '—',
-    href: '/dashboard/base/country',
+    href: '/dashboard/master/country',
   },
   {
     id: 'currency',
@@ -314,7 +314,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: CircleDollarSign,
     statLabel: '幣別',
     statValue: '—',
-    href: '/dashboard/base/currency',
+    href: '/dashboard/master/currency',
   },
   {
     id: 'warehouse',
@@ -324,7 +324,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Warehouse,
     statLabel: '倉庫',
     statValue: '—',
-    href: '/dashboard/base/warehouses',
+    href: '/dashboard/master/warehouses',
   },
   {
     id: 'site',
@@ -334,7 +334,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Building2,
     statLabel: '據點',
     statValue: '—',
-    href: '/dashboard/base/site',
+    href: '/dashboard/master/site',
   },
   {
     id: 'location',
@@ -344,7 +344,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: MapPin,
     statLabel: '庫位',
     statValue: '—',
-    href: '/dashboard/base/location',
+    href: '/dashboard/master/location',
   },
   {
     id: 'partner',
@@ -354,7 +354,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Handshake,
     statLabel: '交易對象',
     statValue: '—',
-    href: '/dashboard/base/partners',
+    href: '/dashboard/master/partners',
   },
   // ─── 車型字典（NX01-16 業界改革 #22、PLUS 起開放）─────────────────
   {
@@ -366,7 +366,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Cog,
     statLabel: '引擎',
     statValue: '—',
-    href: '/dashboard/base/engine',
+    href: '/dashboard/master/engine',
   },
   {
     id: 'model',
@@ -377,7 +377,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Car,
     statLabel: '車型',
     statValue: '—',
-    href: '/dashboard/base/model',
+    href: '/dashboard/master/model',
   },
   {
     id: 'transmission',
@@ -388,7 +388,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Settings2,
     statLabel: '變速箱',
     statValue: '—',
-    href: '/dashboard/base/transmission',
+    href: '/dashboard/master/transmission',
   },
   {
     id: 'drivetrain',
@@ -399,7 +399,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Wrench,
     statLabel: '傳動',
     statValue: '—',
-    href: '/dashboard/base/drivetrain',
+    href: '/dashboard/master/drivetrain',
   },
   {
     id: 'model-type',
@@ -410,7 +410,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: LayoutGrid,
     statLabel: '類型',
     statValue: '—',
-    href: '/dashboard/base/model-type',
+    href: '/dashboard/master/model-type',
   },
   // ─── 交易對象延伸（客戶等級）────────────────────────────────
   // [4-1] 2026-06-05：手冊 §11.4 揭露「LITE 全版本開放」、移除 minPlan: 'PLUS' 鎖
@@ -422,7 +422,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Award,
     statLabel: '等級',
     statValue: '—',
-    href: '/dashboard/base/customer-grade',
+    href: '/dashboard/master/customer-grade',
   },
   // 05 批 T4 2026-06-07：供應商分級半開放（A/B/C/D 內建鎖 + 客戶可加自訂 VIP / 列管）
   {
@@ -433,7 +433,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: Award,
     statLabel: '等級',
     statValue: '—',
-    href: '/dashboard/base/supplier-grade',
+    href: '/dashboard/master/supplier-grade',
   },
   // 02 對齊第二批 C 軌 CP1：地區小型主檔（不入 partner code 編號）
   {
@@ -444,7 +444,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: MapPin,
     statLabel: '地區',
     statValue: '—',
-    href: '/dashboard/base/region',
+    href: '/dashboard/master/region',
   },
   // ─── 系統設定延伸（注音字典）────────────────────────────────────
   // 02 結案 2026-06-07：解除 PRO 限制（總經理拍板「功能不綁版本」、注音快搜屬核心、對齊手冊 LITE）。
@@ -456,7 +456,7 @@ export const MASTER_HUB_CARDS: MasterHubCard[] = [
     icon: BookOpen,
     statLabel: '字典條目',
     statValue: '—',
-    href: '/dashboard/base/phonetic-dictionary',
+    href: '/dashboard/master/phonetic-dictionary',
   },
 ];
 

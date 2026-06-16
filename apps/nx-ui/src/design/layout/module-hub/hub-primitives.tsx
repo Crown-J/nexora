@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX00-UI-MODULE-HUB-001-F01
- * 五大中心 Hub 卡片共用元件（版型對齊主檔中心 `/dashboard/base`）
+ * 五大中心 Hub 卡片共用元件（版型對齊主檔中心 `/dashboard/master`）
  */
 
 'use client';

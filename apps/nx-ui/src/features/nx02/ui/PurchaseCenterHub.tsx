@@ -46,8 +46,8 @@ const managementCards: PurchaseCardConfig[] = [
     countKind: 'total',
     countKey: 'product',
     subItems: [
-      { label: '新增料號', href: '/dashboard/base/parts' },
-      { label: '料號列表', href: '/dashboard/base/parts' },
+      { label: '新增料號', href: '/dashboard/master/parts' },
+      { label: '料號列表', href: '/dashboard/master/parts' },
       { label: '定價管理', href: '/dashboard/purchase/product' },
       { label: '安全量設定', href: '/dashboard/purchase/product' },
     ],
@@ -60,8 +60,8 @@ const managementCards: PurchaseCardConfig[] = [
     countKind: 'total',
     countKey: 'vendor',
     subItems: [
-      { label: '新增廠商', href: '/dashboard/base/partners' },
-      { label: '廠商列表', href: '/dashboard/base/partners' },
+      { label: '新增廠商', href: '/dashboard/master/partners' },
+      { label: '廠商列表', href: '/dashboard/master/partners' },
       { label: '季度評鑑', href: '/dashboard/purchase/vendor' },
     ],
   },

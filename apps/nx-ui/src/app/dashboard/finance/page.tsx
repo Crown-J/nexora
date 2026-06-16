@@ -1,6 +1,6 @@
 /**
  * @FUNCTION_CODE NX05-HUB-UI-001-F01
- * 財務中心 Hub（版型對齊 `/dashboard/base`、v1.2 階段 F P4 接 href）
+ * 財務中心 Hub（版型對齊 `/dashboard/master`、v1.2 階段 F P4 接 href）
  */
 
 'use client';

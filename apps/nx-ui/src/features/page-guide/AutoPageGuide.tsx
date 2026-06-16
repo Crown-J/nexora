@@ -40,10 +40,10 @@ const PATH_TO_PAGE_KEY: { pathPrefix: string; pageKey: string }[] = [
   { pathPrefix: '/dashboard/purchase/return', pageKey: 'purchase.pr' },
 
   // 主檔（4 個核心）
-  { pathPrefix: '/dashboard/base/partners', pageKey: 'master.partners' },
-  { pathPrefix: '/dashboard/base/parts', pageKey: 'master.parts' },
-  { pathPrefix: '/dashboard/base/warehouses', pageKey: 'master.warehouses' },
-  { pathPrefix: '/dashboard/base/users', pageKey: 'master.users' },
+  { pathPrefix: '/dashboard/master/partners', pageKey: 'master.partners' },
+  { pathPrefix: '/dashboard/master/parts', pageKey: 'master.parts' },
+  { pathPrefix: '/dashboard/master/warehouses', pageKey: 'master.warehouses' },
+  { pathPrefix: '/dashboard/master/users', pageKey: 'master.users' },
 
   // 設定（3）
   { pathPrefix: '/dashboard/settings/roles', pageKey: 'settings.roles' },
