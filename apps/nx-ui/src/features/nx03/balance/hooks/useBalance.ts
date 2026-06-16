@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { parsePositiveInt } from '@/shared/lib/parse';
+import { parsePositiveInt } from '@data/utils/parse';
 
 import { listLookupWarehouse } from '@data/endpoints/shared/master/lookup/api/lookup';
 

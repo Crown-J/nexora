@@ -1,5 +1,5 @@
 /**
- * File: apps/nx-ui/src/shared/lib/parse.ts
+ * File: apps/nx-ui/src/data/utils/parse.ts
  * Project: NEXORA (Monorepo)
  *
  * Purpose:
