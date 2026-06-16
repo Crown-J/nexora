@@ -18,9 +18,8 @@ import { getNx09SideMenu } from '@design/layout/config/menu.nx09';
  * @FUNCTION_CODE NX00-UI-SHELL-004-F01
  * 說明：
  * - 依 pathname 推斷當前模組（語意化路由 v2.0）、回傳該模組的 SideMenuGroup[]
- * - 線路重整段 5（2026-06-10）：舊 nx0X URL 全 server redirect 到業務名、
- *   usePathname 已取不到 /dashboard/nx0X、過渡判斷拆除。
- *   nx10 暫擱（橫向遊戲化機制、非獨立頁面）、唯一保留 nx 代碼判斷。
+ * - 舊 nx0X URL 全在 next.config.ts redirects() 308 到業務名、本層只看業務路徑、
+ *   nx10 橫向遊戲化機制、非獨立頁面。
  */
 export function resolveSideMenuGroups(pathname: string): SideMenuGroup[] {
   // 業務頁面自帶導覽（卡片 Hub 或橫向導覽）、不使用 SubNav

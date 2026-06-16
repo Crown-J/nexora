@@ -1,5 +1,5 @@
 // apps/nx-ui/src/app/dashboard/master/department/page.tsx
-// 05 批 T1 2026-06-07：部門主檔（從 /dashboard/nx07/department placeholder 升級成通用 EntityMasterPage）
+// 部門主檔（通用 EntityMasterPage 範式）
 'use client';
 
 import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
