@@ -7,7 +7,7 @@
 import {
   PARTNER_FIELDS,
   type PartnerZone,
-} from '@/features/master-zones';
+} from '@/features/nx01/shell/zones';
 import type {
   PartnerDto,
   PartnerType,

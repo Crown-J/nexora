@@ -8,7 +8,7 @@
 import {
   PART_FIELDS,
   type PartZone,
-} from '@/features/master-zones';
+} from '@/features/nx01/shell/zones';
 import type { PartDto, UpdatePartBody } from '@data/types/shared/master/part';
 
 export type PartDraft = Record<string, string | boolean>;

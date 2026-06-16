@@ -8,9 +8,9 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { BaseMasterSubPageLayout } from '@/features/base/shell/BaseMasterSubPageLayout';
-import { BaseMasterPlaceholderSection } from '@/features/base/shell/BaseMasterPlaceholderSection';
-import { getBaseSegmentTitle, isValidBaseSegment } from '@/features/base/config/master-cards';
+import { BaseMasterSubPageLayout } from '@/features/nx01/shell/ui/BaseMasterSubPageLayout';
+import { BaseMasterPlaceholderSection } from '@/features/nx01/shell/ui/BaseMasterPlaceholderSection';
+import { getBaseSegmentTitle, isValidBaseSegment } from '@/features/nx01/shell/config/master-cards';
 
 export default function BaseDashboardSegmentPage() {
   const params = useParams();

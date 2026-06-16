@@ -25,11 +25,11 @@ import { useListLocalPref } from '@design/hooks/useListLocalPref';
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
-import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
-import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
-import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
-import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
+import { MasterSaveConfirmDialog } from '@/features/nx01/shell/keyboard/MasterSaveConfirmDialog';
+import { BaseMasterModalFrame } from '@/features/nx01/shell/ui/BaseMasterModalFrame';
+import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/nx01/shell/ui/BaseMasterSlideAside';
+import { MasterListScrollRegion } from '@/features/nx01/shell/ui/MasterListScrollRegion';
+import { MasterActiveListCell } from '@/features/nx01/shell/ui/MasterActiveListCell';
 
 const AUDIT_KEYS = ['createdAt', 'createdBy', 'createdByName', 'updatedAt', 'updatedBy', 'updatedByName'] as const;
 

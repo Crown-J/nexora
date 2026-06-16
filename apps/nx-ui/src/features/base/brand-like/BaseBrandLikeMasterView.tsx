@@ -43,12 +43,12 @@ import type { BrandDto } from '@data/types/shared/master/brand';
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';
-import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
-import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
-import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
-import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
-import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
-import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
+import { BaseMasterModalFrame } from '@/features/nx01/shell/ui/BaseMasterModalFrame';
+import { MasterActiveListCell } from '@/features/nx01/shell/ui/MasterActiveListCell';
+import { MasterListScrollRegion } from '@/features/nx01/shell/ui/MasterListScrollRegion';
+import { MasterToolbarAddOrBulkActive } from '@/features/nx01/shell/ui/MasterToolbarAddOrBulkActive';
+import { isMasterListKeyboardBlocked } from '@/features/nx01/shell/ui/baseMasterListKeyboard';
+import { useMasterListRowSelection } from '@/features/nx01/shell/ui/useMasterListRowSelection';
 
 export type BrandLikeVariant = 'car' | 'part';
 

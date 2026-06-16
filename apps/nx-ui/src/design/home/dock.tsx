@@ -34,7 +34,7 @@ import {
   canAccessMasterCard,
   getMasterHubSections,
   normalizePlanCode,
-} from '@/features/base/config/master-cards';
+} from '@/features/nx01/shell/config/master-cards';
 
 export type DockNavItem = {
   icon: LucideIcon;

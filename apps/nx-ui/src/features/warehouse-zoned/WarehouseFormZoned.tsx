@@ -17,10 +17,10 @@ import {
   WAREHOUSE_FIELDS,
   WAREHOUSE_ZONES,
   type WarehouseZone,
-} from '@/features/master-zones';
-import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
-import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
-import { SatelliteSection } from '@/features/satellite/SatelliteSection';
+} from '@/features/nx01/shell/zones';
+import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
+import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
+import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
 
 import type { WarehouseDraft } from './helpers';
 

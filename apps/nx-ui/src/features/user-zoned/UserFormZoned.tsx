@@ -16,11 +16,11 @@ import {
   USER_FIELDS,
   USER_ZONES,
   type UserZone,
-} from '@/features/master-zones';
-import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
-import { SatelliteSection } from '@/features/satellite/SatelliteSection';
-import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
-import { fetchRefOptions, type SelectOption } from '@/features/master-shell/entity-master/config';
+} from '@/features/nx01/shell/zones';
+import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
+import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
+import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
+import { fetchRefOptions, type SelectOption } from '@/features/nx01/shell/entity-master/config';
 import { type RoleDto } from '@data/endpoints/base/api/role';
 import { type UserRoleDto } from '@data/endpoints/base/api/user-role';
 import { type UserWarehouseDto } from '@data/endpoints/base/api/user-warehouse';

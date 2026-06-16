@@ -13,8 +13,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@design/utils/cn';
-import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
-import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
+import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
+import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { listRoles, type RoleDto } from '@data/endpoints/base/api/role';
 import {
   listViews,

@@ -30,7 +30,7 @@ import {
   canAccessMasterCard,
   normalizePlanCode,
   type MasterHubMinPlan,
-} from '@/features/base/config/master-cards';
+} from '@/features/nx01/shell/config/master-cards';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { apiJson } from '@data/api/client';
 

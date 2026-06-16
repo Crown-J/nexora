@@ -14,8 +14,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { SatelliteSection } from '@/features/satellite/SatelliteSection';
-import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
+import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
+import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import { apiJson } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';

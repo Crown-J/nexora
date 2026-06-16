@@ -56,7 +56,7 @@ import {
 } from '@design/primitives/dropdown-menu';
 import { cn } from '@design/utils/cn';
 
-import type { ExportFormat } from '@/features/master-shell/hooks/useExportTable';
+import type { ExportFormat } from '@/features/nx01/shell/hooks/useExportTable';
 
 export type ErpMode = 'browse' | 'edit';
 

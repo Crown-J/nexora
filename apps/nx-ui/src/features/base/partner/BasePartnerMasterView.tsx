@@ -46,12 +46,12 @@ import {
   type PartnerType,
 } from '@data/endpoints/base/api/partner';
 import { listCustomerGrades, type CustomerGradeDto } from '@data/endpoints/base/api/customer-grade';
-import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
-import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
-import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
-import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
-import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
-import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
+import { BaseMasterModalFrame } from '@/features/nx01/shell/ui/BaseMasterModalFrame';
+import { MasterActiveListCell } from '@/features/nx01/shell/ui/MasterActiveListCell';
+import { MasterListScrollRegion } from '@/features/nx01/shell/ui/MasterListScrollRegion';
+import { MasterToolbarAddOrBulkActive } from '@/features/nx01/shell/ui/MasterToolbarAddOrBulkActive';
+import { isMasterListKeyboardBlocked } from '@/features/nx01/shell/ui/baseMasterListKeyboard';
+import { useMasterListRowSelection } from '@/features/nx01/shell/ui/useMasterListRowSelection';
 
 // partner 改制七分類（W4 [3-5] 2026-06-06 加 L 散客）
 const PARTNER_TYPE_LABEL: Record<string, string> = {

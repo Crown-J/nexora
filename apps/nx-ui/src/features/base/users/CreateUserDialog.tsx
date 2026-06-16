@@ -20,7 +20,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { UserPlus, AlertCircle, KeyRound } from 'lucide-react';
 import { createUser, type UserDto } from '@data/endpoints/base/api/user';
-import { FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
+import { FormInput, FormSelect } from '@/features/nx01/shell/ui/FormField';
 import { cn } from '@design/utils/cn';
 
 /**

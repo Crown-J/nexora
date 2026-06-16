@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation';
 import { Briefcase, UsersRound, Warehouse as WarehouseIcon } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
-import { USER_FIELDS, type UserZone } from '@/features/master-zones';
+import { USER_FIELDS, type UserZone } from '@/features/nx01/shell/zones';
 // 02 第四批 軌 1 2026-06-07：員工列表姓名前小圓頭像
 import { UserAvatarSmall } from '@/features/shared/user-photo/UserPhotoManager';
 // 05 批 T3 2026-06-07：UserTeam 衛星 API（員工隸屬組 m-n、主組旗標、isLeader、自動帶 hrDepartmentId）
@@ -36,26 +36,26 @@ import {
   type UserTeamDto,
 } from '@data/endpoints/base/api/user-team';
 import { listTeams as listTeamsApi, type TeamDto } from '@data/endpoints/base/api/team';
-import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
-import { EntityPickerDialog } from '@/features/master-shell/ui/EntityPickerDialog';
-import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
+import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
+import { EntityPickerDialog } from '@/features/nx01/shell/ui/EntityPickerDialog';
+import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import {
   ErpToolbar,
   type ErpMode,
   type ExportFormat,
-} from '@/features/master-shell/ui/ErpToolbar';
-import { exportTable } from '@/features/master-shell/hooks/useExportTable';
-import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
+} from '@/features/nx01/shell/ui/ErpToolbar';
+import { exportTable } from '@/features/nx01/shell/hooks/useExportTable';
+import { SearchPanel } from '@/features/nx01/shell/ui/SearchPanel';
 import {
   MasterTable,
   MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
-} from '@/features/master-shell/ui/MasterTable';
-import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/master-shell/ui/MasterDetail';
-import { FormField } from '@/features/master-shell/ui/FormField';
-import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
-import { MasterTabs } from '@/features/master-shell/entity-master/MasterTabs';
-import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
+} from '@/features/nx01/shell/ui/MasterTable';
+import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/nx01/shell/ui/MasterDetail';
+import { FormField } from '@/features/nx01/shell/ui/FormField';
+import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
+import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
+import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import {
   listUsers,
   setUserActive,

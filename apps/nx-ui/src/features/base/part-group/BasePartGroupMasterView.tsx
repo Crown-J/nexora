@@ -5,8 +5,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
-import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/base/keyboard/masterFieldNav';
+import { MasterSaveConfirmDialog } from '@/features/nx01/shell/keyboard/MasterSaveConfirmDialog';
+import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/nx01/shell/keyboard/masterFieldNav';
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';

@@ -8,7 +8,7 @@
  * code 大寫規則對齊舊範式：僅國家代碼轉大寫（其餘維持輸入）。
  */
 
-import type { EntityMasterConfig } from '@/features/master-shell/entity-master/config';
+import type { EntityMasterConfig } from '@/features/nx01/shell/entity-master/config';
 
 export const CURRENCY_MASTER: EntityMasterConfig = {
   basePath: 'nx01/currencies',

@@ -2,7 +2,7 @@
 /** 使用者職務設定 — 雙欄版（左職務 / 右成員）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { ReverseAssignPage, type ReverseAssignConfig } from '@/features/base/reverse-assign/ReverseAssignPage';
+import { ReverseAssignPage, type ReverseAssignConfig } from '@/features/nx01/shell/reverse-assign/ReverseAssignPage';
 import { listRoles } from '@data/endpoints/base/api/role';
 import { listUserRoles, assignUserRole, revokeUserRole } from '@data/endpoints/base/api/user-role';
 

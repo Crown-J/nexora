@@ -2,7 +2,7 @@
 /** 使用者據點設定 — 雙欄版（左據點 / 右成員）；DashboardShell 已加 bypass。 */
 'use client';
 
-import { ReverseAssignPage, type ReverseAssignConfig } from '@/features/base/reverse-assign/ReverseAssignPage';
+import { ReverseAssignPage, type ReverseAssignConfig } from '@/features/nx01/shell/reverse-assign/ReverseAssignPage';
 import { listWarehouses } from '@data/endpoints/base/api/warehouse';
 import { listUserWarehouses, assignUserWarehouse, revokeUserWarehouse } from '@data/endpoints/base/api/user-warehouse';
 

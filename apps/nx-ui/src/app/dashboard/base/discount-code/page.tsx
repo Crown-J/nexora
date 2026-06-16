@@ -4,8 +4,8 @@
  *  EntityMasterPage 範式、後端 /nx01/discount-codes（5 endpoint 完備）、DashboardShell 已加 bypass。 */
 'use client';
 
-import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
-import { DISCOUNT_CODE_MASTER } from '@/features/base/master-config/catalog-masters';
+import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
+import { DISCOUNT_CODE_MASTER } from '@/features/nx01/shell/master-config/catalog-masters';
 
 export default function Page() {
   return <EntityMasterPage config={DISCOUNT_CODE_MASTER} />;

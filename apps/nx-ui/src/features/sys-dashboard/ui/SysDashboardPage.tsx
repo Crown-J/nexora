@@ -11,7 +11,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { ParticleField } from '@design/login/planet-orbit';
 import { HomeDashboardV2 } from '@design/dashboard/HomeDashboardV2';
-import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
+import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
 
 export function SysDashboardPage() {
   const pathname = usePathname();

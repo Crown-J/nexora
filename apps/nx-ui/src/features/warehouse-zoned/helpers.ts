@@ -8,7 +8,7 @@
 import {
   WAREHOUSE_FIELDS,
   type WarehouseZone,
-} from '@/features/master-zones';
+} from '@/features/nx01/shell/zones';
 
 export type WarehouseDraft = Record<string, string | boolean>;
 

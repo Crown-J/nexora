@@ -23,11 +23,11 @@ import {
   isFieldVisibleAtPlan,
   normalizePlanTier,
   type PartZone,
-} from '@/features/master-zones';
+} from '@/features/nx01/shell/zones';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
-import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
-import { SatelliteSection } from '@/features/satellite/SatelliteSection';
+import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
+import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
+import { SatelliteSection } from '@/features/nx01/shell/satellite/SatelliteSection';
 import { StockSettingsSatellite } from './StockSettingsSatellite';
 import type { PartDto, PartOemCodeItem } from '@data/types/shared/master/part';
 import type { BrandCodeRuleDto } from '@data/endpoints/base/api/brand-code-rule';

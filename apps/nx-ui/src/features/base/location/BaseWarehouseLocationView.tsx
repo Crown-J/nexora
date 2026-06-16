@@ -26,7 +26,7 @@ import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
-import { MasterSaveConfirmDialog } from '@/features/base/keyboard/MasterSaveConfirmDialog';
+import { MasterSaveConfirmDialog } from '@/features/nx01/shell/keyboard/MasterSaveConfirmDialog';
 import { createWarehouse, listWarehouses, updateWarehouse, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
 import {
   createLocation,
@@ -35,7 +35,7 @@ import {
   updateLocation,
 } from '@data/endpoints/shared/master/location/api/location';
 import type { LocationDto } from '@data/types/shared/master/location';
-import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/base/shell/BaseMasterSlideAside';
+import { BaseMasterSlideAside, useMasterSlideDetailEffects } from '@/features/nx01/shell/ui/BaseMasterSlideAside';
 
 const PAGE_SIZE = 10;
 

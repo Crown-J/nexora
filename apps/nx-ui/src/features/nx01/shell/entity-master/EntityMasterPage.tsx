@@ -24,26 +24,26 @@ import { formatDateTimeZh } from './format';
 import {
   ErpToolbar,
   type ErpMode,
-} from '@/features/master-shell/ui/ErpToolbar';
-import { exportTable, type ExportFormat } from '@/features/master-shell/hooks/useExportTable';
-import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
+} from '@/features/nx01/shell/ui/ErpToolbar';
+import { exportTable, type ExportFormat } from '@/features/nx01/shell/hooks/useExportTable';
+import { SearchPanel } from '@/features/nx01/shell/ui/SearchPanel';
 import {
   MasterTable,
   MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
-} from '@/features/master-shell/ui/MasterTable';
-import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
-import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
-import { MasterDetailScroll, SectionHeader, EmptyDetail } from '@/features/master-shell/ui/MasterDetail';
-import { FormField, FormInput } from '@/features/master-shell/ui/FormField';
-import { KeyboardSelect } from '@/features/master-shell/ui/KeyboardSelect';
+} from '@/features/nx01/shell/ui/MasterTable';
+import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
+import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
+import { MasterDetailScroll, SectionHeader, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
+import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
+import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import {
   MasterColumnsPanel,
   MasterFilterPanel,
   rowMatchesFilters,
   type FilterCond,
   type FilterFieldDef,
-} from '@/features/master-shell/ui/MasterTableTools';
+} from '@/features/nx01/shell/ui/MasterTableTools';
 
 import {
   type EntityMasterConfig,

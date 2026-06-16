@@ -9,7 +9,7 @@
  *    零件 / 車型等資料量大者，未來應升級為搜尋式 picker。
  */
 
-import type { EntityMasterConfig } from '@/features/master-shell/entity-master/config';
+import type { EntityMasterConfig } from '@/features/nx01/shell/entity-master/config';
 
 const SOFT = 'soft-delete-rest' as const;
 

@@ -41,12 +41,12 @@ import { useListLocalPref } from '@design/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
 import { createRole, getRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@data/endpoints/base/api/role';
 import type { BaseRoleRow } from './mock-data';
-import { BaseMasterModalFrame } from '@/features/base/shell/BaseMasterModalFrame';
-import { MasterActiveListCell } from '@/features/base/shell/MasterActiveListCell';
-import { MasterListScrollRegion } from '@/features/base/shell/MasterListScrollRegion';
-import { MasterToolbarAddOrBulkActive } from '@/features/base/shell/MasterToolbarAddOrBulkActive';
-import { isMasterListKeyboardBlocked } from '@/features/base/shell/baseMasterListKeyboard';
-import { useMasterListRowSelection } from '@/features/base/shell/useMasterListRowSelection';
+import { BaseMasterModalFrame } from '@/features/nx01/shell/ui/BaseMasterModalFrame';
+import { MasterActiveListCell } from '@/features/nx01/shell/ui/MasterActiveListCell';
+import { MasterListScrollRegion } from '@/features/nx01/shell/ui/MasterListScrollRegion';
+import { MasterToolbarAddOrBulkActive } from '@/features/nx01/shell/ui/MasterToolbarAddOrBulkActive';
+import { isMasterListKeyboardBlocked } from '@/features/nx01/shell/ui/baseMasterListKeyboard';
+import { useMasterListRowSelection } from '@/features/nx01/shell/ui/useMasterListRowSelection';
 
 type ListColKey =
   | 'code'

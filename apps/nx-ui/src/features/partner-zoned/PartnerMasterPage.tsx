@@ -17,27 +17,27 @@ import {
   PARTNER_FIELDS,
   PARTNER_ZONES,
   type PartnerZone,
-} from '@/features/master-zones';
-import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';
-import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
+} from '@/features/nx01/shell/zones';
+import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
+import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import {
   ErpToolbar,
   type ErpMode,
   type ExportFormat,
-} from '@/features/master-shell/ui/ErpToolbar';
-import { exportTable } from '@/features/master-shell/hooks/useExportTable';
-import { SearchPanel } from '@/features/master-shell/ui/SearchPanel';
+} from '@/features/nx01/shell/ui/ErpToolbar';
+import { exportTable } from '@/features/nx01/shell/hooks/useExportTable';
+import { SearchPanel } from '@/features/nx01/shell/ui/SearchPanel';
 import {
   MasterTable,
   MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
-} from '@/features/master-shell/ui/MasterTable';
-import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/master-shell/ui/MasterDetail';
-import { FormField } from '@/features/master-shell/ui/FormField';
-import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
-import { MasterTabs } from '@/features/master-shell/entity-master/MasterTabs';
-import { formatDateTimeZh } from '@/features/master-shell/entity-master/format';
-import { fetchRefOptions } from '@/features/master-shell/entity-master/config';
+} from '@/features/nx01/shell/ui/MasterTable';
+import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/nx01/shell/ui/MasterDetail';
+import { FormField } from '@/features/nx01/shell/ui/FormField';
+import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
+import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
+import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
+import { fetchRefOptions } from '@/features/nx01/shell/entity-master/config';
 import {
   createPartner,
   listPartner,

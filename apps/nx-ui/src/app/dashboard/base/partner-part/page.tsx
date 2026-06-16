@@ -4,8 +4,8 @@
  *  撐起工作流第 2 步「查可跟誰詢價」、三版本一致（LITE-CORE）。 */
 'use client';
 
-import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
-import { PARTNER_PART_MASTER } from '@/features/base/master-config/catalog-masters';
+import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
+import { PARTNER_PART_MASTER } from '@/features/nx01/shell/master-config/catalog-masters';
 
 export default function Page() {
   return <EntityMasterPage config={PARTNER_PART_MASTER} />;

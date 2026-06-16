@@ -11,7 +11,7 @@
 import {
   USER_FIELDS,
   type UserZone,
-} from '@/features/master-zones';
+} from '@/features/nx01/shell/zones';
 
 export type UserDraft = Record<string, string | boolean>;
 

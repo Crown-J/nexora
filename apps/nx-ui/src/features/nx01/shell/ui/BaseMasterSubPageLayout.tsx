@@ -13,8 +13,8 @@ import { useRouter } from 'next/navigation';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { HomeTopBar } from '@design/home/top-bar';
 import { HomeLandingChrome } from '@design/home/home-landing-chrome';
-import { BaseMasterPageHeader } from '@/features/base/shell/BaseMasterPageHeader';
-import { normalizePlanCode } from '@/features/base/config/master-cards';
+import { BaseMasterPageHeader } from '@/features/nx01/shell/ui/BaseMasterPageHeader';
+import { normalizePlanCode } from '@/features/nx01/shell/config/master-cards';
 
 export type BaseMasterSubPageLayoutProps = {
   title: string;

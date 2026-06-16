@@ -5,8 +5,8 @@
  */
 'use client';
 
-import { EntityMasterPage } from '@/features/master-shell/entity-master/EntityMasterPage';
-import { PART_GROUP_MASTER } from '@/features/base/master-config/simple-masters';
+import { EntityMasterPage } from '@/features/nx01/shell/entity-master/EntityMasterPage';
+import { PART_GROUP_MASTER } from '@/features/nx01/shell/master-config/simple-masters';
 
 export default function BasePartGroupDashboardPage() {
   return <EntityMasterPage config={PART_GROUP_MASTER} />;
