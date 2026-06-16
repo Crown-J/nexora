@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import { UserPlus, AlertCircle, KeyRound } from 'lucide-react';
 import { createUser, type UserDto } from '@data/endpoints/base/api/user';
 import { FormInput, FormSelect } from '@/features/master-shell/ui/FormField';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 /**
  * 預設密碼：所有新建使用者一律以此建立，首次登入時系統會強制要求修改。

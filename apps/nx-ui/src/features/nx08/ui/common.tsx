@@ -9,7 +9,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { Calendar } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 // ────────────────────────────────────────────────────────────
 // useIsMobile：< 640px (Tailwind sm 斷點)

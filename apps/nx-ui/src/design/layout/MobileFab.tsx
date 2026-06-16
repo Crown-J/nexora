@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { LineChart, type LucideIcon, Plus, ShoppingCart, TrendingUp, Warehouse, X } from 'lucide-react';
 
 import { usePermissions } from '@/features/auth/hooks/useHasPermission';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 interface CategoryEntry {
   key: string;

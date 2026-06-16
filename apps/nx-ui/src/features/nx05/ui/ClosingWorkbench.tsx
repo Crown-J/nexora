@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CalendarCheck, Download, FileCheck, FilePlus, RefreshCw } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import {
   createClosing,
   export401Txt,

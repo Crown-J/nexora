@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2, Plane, RefreshCw, Ship } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 import {
   getForeignPo,

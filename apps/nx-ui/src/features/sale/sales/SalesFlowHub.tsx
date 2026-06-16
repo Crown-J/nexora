@@ -32,7 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@design/primitives/dialog';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 const PAGE_KICKER = 'SALES / NX03';
 const PAGE_TITLE = '銷貨與成交作業';

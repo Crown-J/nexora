@@ -31,7 +31,7 @@ import { isNexoraDemoMode } from '@data/auth/run-mode';
 import { setToken } from '@data/auth/token';
 import { LoginPageView, type LoginFields } from '@design/login/LoginPageView';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
-import { getVersionParts } from '@/lib/version';
+import { getVersionParts } from '@data/config/version';
 import { toNexoraClientError, type NexoraClientError } from '@data/errors/nexora-error';
 
 type LoginViewState = {

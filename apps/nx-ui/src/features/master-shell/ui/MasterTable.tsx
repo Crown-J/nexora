@@ -23,7 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export const MASTER_TABLE_PAGE_SIZES = [10, 20, 50, 100] as const;
 

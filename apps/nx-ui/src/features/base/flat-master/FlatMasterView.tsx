@@ -19,7 +19,7 @@ import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, ChevronRight, Columns3 } fr
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
 import { apiFetch } from '@data/api/client';

@@ -11,7 +11,7 @@ import { useMemo } from 'react';
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { ScrollArea } from '@design/primitives/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { useRoleView } from '@/features/shared/master/role-view/hooks/useRoleView';
 import { RoleViewMatrix } from '@/features/shared/master/role-view/ui/RoleViewMatrix';
 import type { RoleDto } from '@data/types/shared/master/role';

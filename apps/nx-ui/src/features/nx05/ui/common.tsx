@@ -2,7 +2,7 @@
 // v1.2 階段 F P4：5 頁面共用 layout / format helper
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 /** 金額顯示（千分位、保留 2 位小數） */
 export function fmtMoney(v: string | number | null | undefined): string {

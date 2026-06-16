@@ -8,7 +8,7 @@
 import { AlertCircle, ClipboardList } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { apiJson } from '@data/api/client';
 import { ApiClientError } from '@data/api/errors';

@@ -10,7 +10,7 @@ import { getFieldIdFromEventTarget, handleMasterFieldKeyDown } from '@/features/
 import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { MOCK_CURRENT_OPERATOR_NAME } from '@/features/base/users/mock-data';
 import {
   getMockCarBrandsForPartGroup,

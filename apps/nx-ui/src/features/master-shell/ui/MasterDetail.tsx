@@ -17,7 +17,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export function MasterDetailScroll({
   scrollKey,

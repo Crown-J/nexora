@@ -9,7 +9,7 @@
 
 import { List, FileText } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type MasterTab = 'list' | 'detail';
 

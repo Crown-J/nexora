@@ -41,7 +41,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Check, Search, type LucideIcon } from 'lucide-react';
 import type { PagedResult } from '@data/types/base/api';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type EntityPickerDialogProps<T> = {
   open: boolean;

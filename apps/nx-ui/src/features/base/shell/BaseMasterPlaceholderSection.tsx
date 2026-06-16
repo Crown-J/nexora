@@ -5,7 +5,7 @@
  * - 主檔占位內文區（glass-card，與其他主檔頁視覺一致）
  */
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export function BaseMasterPlaceholderSection({
   className,

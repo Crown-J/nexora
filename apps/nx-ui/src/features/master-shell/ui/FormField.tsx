@@ -12,7 +12,7 @@
  */
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export function FormField({
   label,

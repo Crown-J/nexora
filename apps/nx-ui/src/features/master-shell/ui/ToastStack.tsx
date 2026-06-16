@@ -16,7 +16,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { CheckCircle2, Info, XCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type ToastVariant = 'info' | 'success' | 'danger';
 

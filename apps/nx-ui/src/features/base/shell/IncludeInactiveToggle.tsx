@@ -25,7 +25,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type IncludeInactiveToggleProps = {
   value: boolean;

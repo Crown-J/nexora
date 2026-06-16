@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type KeyboardSelectOption = { value: string; label: string };
 

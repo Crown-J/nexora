@@ -6,7 +6,7 @@
 'use client';
 
 import type { RefObject, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export const NX_MASTER_LIST_SCROLL_CLASS =
   'nx-master-scroll min-h-0 min-w-0 flex-1 overflow-auto overscroll-x-contain rounded-md pr-2 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40';

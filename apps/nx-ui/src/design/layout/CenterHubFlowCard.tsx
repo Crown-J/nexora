@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
 import { hubCardShellBaseClass } from '@design/utils/hubCardDimensions';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type HubFlowSubLink = { label: string; href: string };
 

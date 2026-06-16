@@ -10,7 +10,7 @@
  *   * PlanChip = 揭露用戶目前方案（中性）
  */
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type PlanChipPlan = 'LITE' | 'PLUS' | 'PRO';
 

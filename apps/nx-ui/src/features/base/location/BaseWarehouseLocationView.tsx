@@ -22,7 +22,7 @@ import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@design/primitives/tabs';
 import { Textarea } from '@design/primitives/textarea';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';

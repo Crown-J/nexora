@@ -23,7 +23,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type DockItem = {
   id: string;

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 // T1-fix-c 進貨對齊批次 2026-06-07：移除 showPlus 版本守、審核節點對所有版本顯示。
 // 註：KPI BAR（isPro）屬 NX10 遊戲化付費差異、不在進貨範圍、保留。
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 
 // ─── Types ───────────────────────────────────────────────────────────────────

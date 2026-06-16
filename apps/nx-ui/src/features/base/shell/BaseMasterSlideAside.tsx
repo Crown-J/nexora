@@ -11,7 +11,7 @@ import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from 'lucide-react';
 import { Button } from '@design/primitives/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export function useMasterSlideDetailEffects(
   panelOpen: boolean,

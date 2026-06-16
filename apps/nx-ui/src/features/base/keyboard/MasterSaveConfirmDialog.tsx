@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@design/primitives/dialog';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 export type MasterSaveConfirmDialogProps = {
   open: boolean;

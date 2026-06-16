@@ -9,7 +9,7 @@
 import { LayoutDashboard, Plus, Settings2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 import { HomeSectionHeader } from './HomeSectionHeader';
 import { METRIC_OPTIONS, EMPTY_METRICS, type MetricType, type MetricsPrefValue } from '@data/config/metric-options.config';

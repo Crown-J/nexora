@@ -14,7 +14,7 @@ import {
   YAxis,
 } from 'recharts';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { getPoStats, getPriceCompare, getSupplierGrade } from '@data/endpoints/nx08/api';
 import { useExportExcel } from '@/features/nx08/hooks/useExportExcel';
 

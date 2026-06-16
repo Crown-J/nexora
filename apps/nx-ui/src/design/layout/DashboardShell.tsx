@@ -23,7 +23,7 @@ import { PlanetDock } from '@design/layout/PlanetDock';
 import { ParticleField } from '@design/login/planet-orbit';
 import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 type DashboardShellProps = {
   children: ReactNode;

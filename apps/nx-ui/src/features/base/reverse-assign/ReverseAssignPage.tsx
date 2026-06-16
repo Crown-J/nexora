@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { MasterTopBar } from '@/features/master-shell/entity-master/MasterTopBar';
 import { ToastStack, useToast } from '@/features/master-shell/ui/ToastStack';
 import { ConfirmDialog, type ConfirmState } from '@/features/master-shell/ui/ConfirmDialog';

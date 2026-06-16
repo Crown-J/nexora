@@ -54,7 +54,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 import type { ExportFormat } from '@/features/master-shell/hooks/useExportTable';
 

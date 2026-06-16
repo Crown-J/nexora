@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { resolveSideMenuGroups } from '@design/layout/config/side-menu';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 function isPathActive(pathname: string, href: string): boolean {
   if (pathname === href) return true;

@@ -17,7 +17,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { MasterTopBar } from './MasterTopBar';
 import { MasterTabs } from './MasterTabs';
 import { formatDateTimeZh } from './format';

@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import {
   USER_FIELDS,
   USER_ZONES,

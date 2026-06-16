@@ -26,7 +26,7 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, Filter, X } from 'lucide-react';
 
 import { Button } from '@design/primitives/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 import {
   defaultOperatorsForType,

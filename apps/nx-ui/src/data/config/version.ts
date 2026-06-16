@@ -1,4 +1,4 @@
-// apps/nx-ui/src/lib/version.ts
+// apps/nx-ui/src/data/config/version.ts
 // NEXORA 版本號集中管理（蘋果範式：v{x.y.z} / v{x.y.z} beta）
 //
 // 對齊：docs/_team/nexora-error-code-spec.md v1.3 §13

@@ -22,7 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Briefcase, UsersRound, Warehouse as WarehouseIcon } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { USER_FIELDS, type UserZone } from '@/features/master-zones';
 // 02 第四批 軌 1 2026-06-07：員工列表姓名前小圓頭像
 import { UserAvatarSmall } from '@/features/shared/user-photo/UserPhotoManager';

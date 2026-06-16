@@ -16,7 +16,7 @@ import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { ScrollArea } from '@design/primitives/scroll-area';
 import { LookupAutocomplete } from '@design/components/lookup/LookupAutocomplete';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
 import { assignUserRole, listUserRoles, revokeUserRole } from '@data/endpoints/base/api/user-role';

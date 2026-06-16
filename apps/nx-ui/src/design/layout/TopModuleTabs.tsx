@@ -11,7 +11,7 @@
 import { useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getModuleTabs } from '@design/layout/config/modules';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 /**
  * @FUNCTION_CODE NX00-UI-SHELL-003-F01

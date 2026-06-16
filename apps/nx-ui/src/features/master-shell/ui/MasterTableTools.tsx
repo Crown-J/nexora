@@ -14,7 +14,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Columns3, Eye, Filter, Plus, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 
 // ──────────────────────────────────────────────────────────────
 // 篩選型別 + 比對邏輯

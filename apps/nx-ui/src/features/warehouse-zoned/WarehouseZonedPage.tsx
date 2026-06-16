@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import {
   WAREHOUSE_FIELDS,
   type WarehouseZone,

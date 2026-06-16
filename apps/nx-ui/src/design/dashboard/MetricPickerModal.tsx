@@ -8,7 +8,7 @@
 import { Lock, X } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import type { MeDto } from '@data/types/auth';
 

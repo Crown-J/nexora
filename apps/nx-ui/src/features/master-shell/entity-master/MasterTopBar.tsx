@@ -21,7 +21,7 @@ import { usePathname } from 'next/navigation';
 import { Bell, ChevronDown, ChevronRight, ClipboardList, LogOut, Megaphone, Search, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { HOME_DOCK_ITEMS, PlanetOrbTrigger } from '@design/home/dock';
 import {
   MASTER_HUB_CARDS,

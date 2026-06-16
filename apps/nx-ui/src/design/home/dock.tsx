@@ -26,7 +26,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@design/primitives/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 // QWERTY 快捷格已移除（鋼鐵星球範式不再需要）
 import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';

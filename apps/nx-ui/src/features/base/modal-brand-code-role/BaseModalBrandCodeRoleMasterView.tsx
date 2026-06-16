@@ -30,7 +30,7 @@ import {
 } from '@design/primitives/dropdown-menu';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
-import { cn } from '@/lib/utils';
+import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
 import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
