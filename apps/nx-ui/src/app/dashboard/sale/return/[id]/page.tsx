@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/return/[id]/page.tsx
 // NX04-M3 C4：SR 銷退單 - detail route
 
-import { SalesReturnDetailView } from '@/features/sale/sales-return/ui/SalesReturnDetailView';
+import { SalesReturnDetailView } from '@/features/nx04/sales-return/ui/SalesReturnDetailView';
 
 interface PageProps {
   params: Promise<{ id: string }>;

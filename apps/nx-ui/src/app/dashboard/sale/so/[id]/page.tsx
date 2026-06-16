@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/sale/so/[id]/page.tsx
 // NX04-M3 C2：SO 銷貨單 - detail route
 
-import { SoDetailView } from '@/features/sale/so/ui/SoDetailView';
+import { SoDetailView } from '@/features/nx04/so/ui/SoDetailView';
 
 interface PageProps {
   params: Promise<{ id: string }>;

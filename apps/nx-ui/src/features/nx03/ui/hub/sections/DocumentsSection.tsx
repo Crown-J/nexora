@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 
 import { cx } from '@design/utils/cx';
-import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
+import { useSalesStore } from '@/features/nx04/ui/fulfillment/store';
 
 interface DocumentItemDef {
   id: string;

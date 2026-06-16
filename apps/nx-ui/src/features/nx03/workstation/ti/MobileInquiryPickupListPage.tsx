@@ -25,12 +25,12 @@ import { Handshake } from 'lucide-react';
 
 import { cx } from '@design/utils/cx';
 
-import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
+import { useSalesStore } from '@/features/nx04/ui/fulfillment/store';
 import {
   TI_STATUS_LABEL,
   type TI,
   type TIStatus,
-} from '@/features/sale/ui/fulfillment/types';
+} from '@/features/nx04/ui/fulfillment/types';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 

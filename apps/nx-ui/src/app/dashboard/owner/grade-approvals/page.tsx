@@ -1,7 +1,7 @@
 // apps/nx-ui/src/app/dashboard/owner/grade-approvals/page.tsx
 // NX04-M3 C5：全域客戶等級變更待核可清單頁（OWNER 角色）
 
-import { GradeHistoryListView } from '@/features/sale/partner-grade-history/ui/GradeHistoryListView';
+import { GradeHistoryListView } from '@/features/nx04/partner-grade-history/ui/GradeHistoryListView';
 
 export default function GradeApprovalsPage() {
   return (

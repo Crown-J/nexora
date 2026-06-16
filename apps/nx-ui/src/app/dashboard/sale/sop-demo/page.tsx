@@ -5,7 +5,7 @@
  * 薄殼，實際畫面在 MobileSaleSopPage。
  */
 
-import { MobileSaleSopPage } from '@/features/sale/ui/sop-workspace/MobileSaleSopPage';
+import { MobileSaleSopPage } from '@/features/nx04/ui/sop-workspace/MobileSaleSopPage';
 
 export default function SaleSopDemoPage() {
   return <MobileSaleSopPage />;

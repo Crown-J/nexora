@@ -21,7 +21,7 @@ import { useMemo } from 'react';
 import { ClipboardList } from 'lucide-react';
 
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
+import { useSalesStore } from '@/features/nx04/ui/fulfillment/store';
 import {
   BX_STATUS_LABEL,
   DN_STATUS_LABEL,
@@ -30,10 +30,10 @@ import {
   type DN,
   type PK,
   type SO,
-} from '@/features/sale/ui/fulfillment/types';
+} from '@/features/nx04/ui/fulfillment/types';
 
-import { TodoGroup } from '@/features/sale/ui/hub/components/TodoGroup';
-import type { TodoItem } from '@/features/sale/ui/hub/mock-data/scenario';
+import { TodoGroup } from '@/features/nx04/ui/hub/components/TodoGroup';
+import type { TodoItem } from '@/features/nx04/ui/hub/mock-data/scenario';
 
 import { InventoryProKPICard } from '../components/InventoryProKPICard';
 import {

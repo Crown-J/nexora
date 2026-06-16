@@ -21,13 +21,13 @@ import { ArrowLeftRight, CheckCircle2 } from 'lucide-react';
 
 import { cx } from '@design/utils/cx';
 
-import { useSalesStore } from '@/features/sale/ui/fulfillment/store';
+import { useSalesStore } from '@/features/nx04/ui/fulfillment/store';
 import {
   IT_STATUS_LABEL,
   type IT,
   type ITStatus,
   type WarehouseKey,
-} from '@/features/sale/ui/fulfillment/types';
+} from '@/features/nx04/ui/fulfillment/types';
 
 import { DocStatusBadge, type DocStatusTone } from '../shared/DocStatusBadge';
 
