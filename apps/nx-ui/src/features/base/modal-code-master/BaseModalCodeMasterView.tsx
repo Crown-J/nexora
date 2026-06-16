@@ -33,7 +33,7 @@ import { Label } from '@design/primitives/label';
 import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
-import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
+import { formatAuditPersonLabel } from '@/features/nx01/org/users/mock-data';
 import { apiFetch } from '@data/api/client';
 import { buildQueryString } from '@data/api/query';
 import { assertOk } from '@data/api/http';

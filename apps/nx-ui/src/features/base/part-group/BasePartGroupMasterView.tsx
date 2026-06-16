@@ -11,7 +11,7 @@ import { Button } from '@design/primitives/button';
 import { Input } from '@design/primitives/input';
 import { Label } from '@design/primitives/label';
 import { cn } from '@design/utils/cn';
-import { MOCK_CURRENT_OPERATOR_NAME } from '@/features/base/users/mock-data';
+import { MOCK_CURRENT_OPERATOR_NAME } from '@/features/nx01/org/users/mock-data';
 import {
   getMockCarBrandsForPartGroup,
   MOCK_BASE_PART_GROUPS,

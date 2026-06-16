@@ -3,7 +3,7 @@
 // 對齊總經理 STOP-1 拍板 A：新版補完 5 客戶自助功能（建帳號 / 指派角色 / 指派倉庫 / 撤銷 / 主要切換）+ 清 admin UI 後、砍舊版
 'use client';
 
-import { UserZonedPage } from '@/features/user-zoned';
+import { UserZonedPage } from '@/features/nx01/org/user-zoned';
 
 export default function BaseUsersPage() {
   return (

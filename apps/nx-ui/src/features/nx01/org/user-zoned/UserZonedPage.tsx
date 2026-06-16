@@ -77,7 +77,7 @@ import {
   type UserWarehouseDto,
 } from '@data/endpoints/base/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
-import { CreateUserDialog } from '@/features/base/users/CreateUserDialog';
+import { CreateUserDialog } from '@/features/nx01/org/users/CreateUserDialog';
 import { fetchSeatUsage, type SeatUsage } from '@data/endpoints/wizard/api';
 
 import { UserFormZoned } from './UserFormZoned';

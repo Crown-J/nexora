@@ -35,7 +35,7 @@ import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { fetchAllPages } from '@data/api/fetchAllPages';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
-import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
+import { formatAuditPersonLabel } from '@/features/nx01/org/users/mock-data';
 import {
   createPartner,
   listPartners,

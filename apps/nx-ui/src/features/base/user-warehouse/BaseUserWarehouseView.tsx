@@ -18,7 +18,7 @@ import { ScrollArea } from '@design/primitives/scroll-area';
 import { LookupAutocomplete } from '@design/components/lookup/LookupAutocomplete';
 import { cn } from '@design/utils/cn';
 import { fetchAllPages } from '@data/api/fetchAllPages';
-import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/base/users/mock-data';
+import { formatAuditPersonLabel, formatWarehouseLabel, type BaseUserRow } from '@/features/nx01/org/users/mock-data';
 import { assignUserWarehouse, listUserWarehouses, revokeUserWarehouse } from '@data/endpoints/base/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/base/api/warehouse';
 import { listUsers } from '@data/endpoints/base/api/user';

@@ -38,7 +38,7 @@ import { Textarea } from '@design/primitives/textarea';
 import { cn } from '@design/utils/cn';
 import { arrayMove } from '@design/utils/arrayMove';
 import { useListLocalPref } from '@design/hooks/useListLocalPref';
-import { formatAuditPersonLabel } from '@/features/base/users/mock-data';
+import { formatAuditPersonLabel } from '@/features/nx01/org/users/mock-data';
 import { createRole, getRole, listRoles, setRoleActive, updateRole, type RoleDto } from '@data/endpoints/base/api/role';
 import type { BaseRoleRow } from './mock-data';
 import { BaseMasterModalFrame } from '@/features/nx01/shell/ui/BaseMasterModalFrame';
