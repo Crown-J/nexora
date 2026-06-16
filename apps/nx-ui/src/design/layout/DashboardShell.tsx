@@ -12,8 +12,8 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { DashboardBulletinProvider } from '@/features/sys-dashboard/context/DashboardBulletinContext';
-import { DashboardPaletteProvider } from '@/features/sys-dashboard/context/DashboardPaletteContext';
+import { DashboardBulletinProvider } from '@/features/nx00/context/DashboardBulletinContext';
+import { DashboardPaletteProvider } from '@/features/nx00/context/DashboardPaletteContext';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { BusinessTopNav } from '@design/layout/BusinessTopNav';
 import { DashboardSubNav } from '@design/layout/DashboardSubNav';

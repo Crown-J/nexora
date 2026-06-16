@@ -28,7 +28,7 @@ import {
 } from '@design/primitives/dropdown-menu';
 import { cn } from '@design/utils/cn';
 // QWERTY 快捷格已移除（鋼鐵星球範式不再需要）
-import { useDashboardHomePlanOptional } from '@/features/sys-dashboard/context/DashboardHomePlanContext';
+import { useDashboardHomePlanOptional } from '@/features/nx00/context/DashboardHomePlanContext';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import {
   canAccessMasterCard,

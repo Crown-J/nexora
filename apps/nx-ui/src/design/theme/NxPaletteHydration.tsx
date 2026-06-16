@@ -8,7 +8,7 @@ import { useLayoutEffect } from 'react';
 import {
   NX_DASHBOARD_PALETTE_STORAGE_KEY,
   type DashboardPalette,
-} from '@/features/sys-dashboard/context/DashboardPaletteContext';
+} from '@/features/nx00/context/DashboardPaletteContext';
 
 const VALID = new Set(['classic', 'steel']);
 
