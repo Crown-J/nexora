@@ -4,7 +4,7 @@
 // 既有 /zoned 子路徑已清、避免雙路徑
 'use client';
 
-import { WarehouseZonedPage } from '@/features/warehouse-zoned';
+import { WarehouseZonedPage } from '@/features/nx01/location/warehouse-zoned';
 
 export default function Page() {
   return (
