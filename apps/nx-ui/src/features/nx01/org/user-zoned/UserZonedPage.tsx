@@ -941,7 +941,7 @@ export function UserZonedPage({
   const countText = `${total} 筆${entityNoun}`;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
       <PageHeader category={pageCategory} title={pageTitle} count={countText} />
       <MasterTabs tab={tab} onChange={attemptTabChange} />
       <div className="overflow-x-auto">

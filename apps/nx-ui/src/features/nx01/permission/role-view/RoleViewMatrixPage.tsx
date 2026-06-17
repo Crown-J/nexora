@@ -312,7 +312,7 @@ export function RoleViewMatrixPage() {
   const selectedRole = roles.find((r) => r.id === roleId);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
       <PageHeader category="帳號與權限" title="職務權限設定" count={`${views.length} 個畫面`} />
 
       {/* 工具列：職務下拉 + 存檔 */}

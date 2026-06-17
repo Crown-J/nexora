@@ -133,7 +133,7 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
   }, [col, entities, members, memberIdx, selectedEntity, pickerOpen, confirm, handleRevoke, router]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
       <PageHeader category={config.category} title={config.title} count={`${entities.length} 個${config.entityNoun}`} />
 
       <div className="flex min-h-0 flex-1">

@@ -613,7 +613,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   const countText = `${total} 筆${config.entityNoun}`;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
       {/* Phase 2 退場 MasterTopBar、改用 PageHeader（模組選單/公告/通知/使用者已由 UnifiedTopBar 提供）*/}
       <PageHeader category={config.category} title={config.title} count={countText} />
 
