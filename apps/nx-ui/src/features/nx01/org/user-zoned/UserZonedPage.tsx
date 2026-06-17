@@ -53,6 +53,7 @@ import {
 import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField } from '@/features/nx01/shell/ui/FormField';
 import { PageHeader } from '@design/components/page-header/PageHeader';
+import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import {
@@ -748,7 +749,32 @@ export function UserZonedPage({
 
   // [1-2] 2026-06-05：handleExit / Alt+Q 已移除（離開主檔改走星球選單 Alt+X）
 
-  // Phase 2 退場 MasterTopBar 後、requestNavigate dirty 攔截失效（待全域 router 攔截器整合）
+  // Phase 2 後續軌:全域 dirty 攔截、編輯模式跨頁跳轉前跳 3-way confirm
+  useDirtyGuard(
+    () => mode === 'edit' && isDirty,
+    useCallback(
+      (proceed) => {
+        setConfirm({
+          title: '尚有未儲存的變更',
+          message: '離開此頁要先存檔、還是丟棄變更？',
+          confirmLabel: '存檔後離開',
+          onConfirm: () => {
+            void performSave();
+            proceed();
+          },
+          secondaryAction: {
+            label: '丟棄變更',
+            variant: 'danger',
+            onClick: () => {
+              performCancel();
+              proceed();
+            },
+          },
+        });
+      },
+      [performSave, performCancel],
+    ),
+  );
 
   const handleExport = useCallback(
     (format: ExportFormat) => {

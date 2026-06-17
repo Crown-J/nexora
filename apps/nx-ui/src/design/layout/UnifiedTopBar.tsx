@@ -9,6 +9,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import {
   Bell, Building2, ChevronDown, LayoutGrid, LogOut, Lock,
   Megaphone, Moon, Settings, Sun, User,
@@ -319,7 +320,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 type="button"
                 onClick={() => {
                   setOpen(null);
-                  router.push('/dashboard/me');
+                  tryNavigate(() => router.push('/dashboard/me'));
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.06]"
               >
@@ -330,7 +331,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 type="button"
                 onClick={() => {
                   setOpen(null);
-                  router.push('/dashboard/me/change-password');
+                  tryNavigate(() => router.push('/dashboard/me/change-password'));
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.06]"
               >

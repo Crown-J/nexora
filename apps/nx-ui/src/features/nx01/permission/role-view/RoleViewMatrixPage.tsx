@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
+import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
@@ -248,7 +249,13 @@ export function RoleViewMatrixPage() {
     })();
   }, [roleId, views, cells, original, showToast]);
 
-  // Phase 2 退場 MasterTopBar 後、requestNavigate dirty 攔截失效（待全域 router 攔截器整合）
+  // Phase 2 後續軌:全域 dirty 攔截、跨頁跳轉前用 window.confirm 詢問（本頁無 3-way、純 yes/no）
+  useDirtyGuard(
+    () => isDirty,
+    useCallback((proceed) => {
+      if (window.confirm('有未存檔的權限變更、確定離開？')) proceed();
+    }, []),
+  );
 
   // 鍵盤：↑↓ 換列、←→ 換欄、空白 勾選、Alt+S 存檔（離開改走星球選單 Alt+X、[1-2] 2026-06-05 Alt+Q 移除）
   useEffect(() => {

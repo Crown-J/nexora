@@ -20,6 +20,7 @@ import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
+import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { cn } from '@design/utils/cn';
 
 type DashboardShellProps = {
@@ -132,7 +133,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 employeeNo={empNo}
                 onLogout={handleLogout}
                 onDockToggle={toggleDock}
-                onHome={() => router.push('/dashboard')}
+                onHome={() => tryNavigate(() => router.push('/dashboard'))}
               />
               <PlanetDock open={dockOpen} onClose={closeDock} />
               <main
