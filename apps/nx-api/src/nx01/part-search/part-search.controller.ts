@@ -27,6 +27,12 @@ import { PartSearchService } from './part-search.service';
 export class PartSearchController {
   constructor(private readonly svc: PartSearchService) {}
 
+  /** 廠牌 / 族群主檔下拉（全公司可用、不走既有 /nx01/brands 的 SYSADMIN/OWNER 限制）*/
+  @Get('master-options')
+  getMasterOptions(@CurrentUser() user: RequestUser) {
+    return this.svc.getMasterOptions(user);
+  }
+
   @Get()
   search(@CurrentUser() user: RequestUser, @Query() q: PartSearchQueryDto) {
     return this.svc.search(user, q);

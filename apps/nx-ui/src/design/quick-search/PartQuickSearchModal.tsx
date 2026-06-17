@@ -31,9 +31,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Loader2, PackageSearch, Search, X } from 'lucide-react';
 
-import { apiFetch } from '@data/api/client';
-import { listBrands } from '@data/endpoints/nx01/api/brand';
-import { quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
+import {
+  getPartSearchMasterOptions,
+  quickSearchParts,
+} from '@data/endpoints/nx01/part-search/api/part-search';
 import type { PartSearchQuery, PartSearchResult, PartSearchRow } from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
 
@@ -105,12 +106,9 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     if (brands.length > 0 && partGroups.length > 0) return;
     void (async () => {
       try {
-        const [brandRes, partGroupRes] = await Promise.all([
-          listBrands({ isPart: true, isActive: true, pageSize: 100 }),
-          fetchPartGroupsList(),
-        ]);
-        setBrands(brandRes.items.map((b) => ({ id: b.id, code: b.code, name: b.name })));
-        setPartGroups(partGroupRes);
+        const opts = await getPartSearchMasterOptions();
+        setBrands(opts.brands);
+        setPartGroups(opts.partGroups);
       } catch {
         // 失敗不擋、聯想下拉就空、Crown 仍能用文字搜
       }
@@ -538,14 +536,3 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   );
 }
 
-/** 撈零件族群清單（一次性 cache、ScopePicker 範式 raw fetch）*/
-async function fetchPartGroupsList(): Promise<PartGroupOpt[]> {
-  try {
-    const res = await apiFetch('/nx01/part-groups?isActive=true&pageSize=100', { method: 'GET' });
-    if (!res.ok) return [];
-    const json = (await res.json()) as { rows?: Array<{ id: string; code: string; name: string }> };
-    return (json.rows ?? []).map((g) => ({ id: g.id, code: g.code, name: g.name }));
-  } catch {
-    return [];
-  }
-}

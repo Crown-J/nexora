@@ -17,6 +17,19 @@ import type {
 
 const BASE = '/nx01/part-search';
 
+export type PartSearchMasterOption = { id: string; code: string; name: string };
+export type PartSearchMasterOptions = {
+  brands: PartSearchMasterOption[];
+  partGroups: PartSearchMasterOption[];
+};
+
+/** 廠牌+族群主檔（F2 Combobox 聯想下拉用、全公司可用）*/
+export async function getPartSearchMasterOptions(): Promise<PartSearchMasterOptions> {
+  const res = await apiFetch(`${BASE}/master-options`, { method: 'GET' });
+  await assertOk(res, 'nxui_part_quick_search_master_options');
+  return (await res.json()) as PartSearchMasterOptions;
+}
+
 export async function quickSearchParts(q: PartSearchQuery): Promise<PartSearchResult> {
   const qs = buildQueryString({
     brandId: q.brandId?.trim() || undefined,

@@ -25,6 +25,31 @@ const HARD_RESULT_LIMIT = 500;
 export class PartSearchService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * F2 廠牌 / 族群主檔下拉（全公司可用）。
+   * 既有 /nx01/brands / /nx01/part-groups 限 SYSADMIN/OWNER、業務員撈不到、
+   * 本 endpoint 走 JwtAuthGuard 只讀回 id/code/name 三欄、不洩漏其他敏感欄位。
+   * 執行長 2026-06-17 第四次回饋:F2 全公司用、不該因主檔權限載不到而失效。
+   */
+  async getMasterOptions(user: RequestUser) {
+    const tenantId = requireTenantId(user);
+    const [brands, partGroups] = await Promise.all([
+      this.prisma.nx01Brand.findMany({
+        where: { tenantId, isPart: true, isActive: true },
+        orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
+        select: { id: true, code: true, name: true },
+        take: 200,
+      }),
+      this.prisma.nx01PartGroup.findMany({
+        where: { tenantId, isActive: true },
+        orderBy: [{ sortNo: 'asc' }, { code: 'asc' }],
+        select: { id: true, code: true, name: true },
+        take: 200,
+      }),
+    ]);
+    return { brands, partGroups };
+  }
+
   /** F2 主搜尋：四欄篩選 + 公司總庫存帶出。四欄全空拒收。*/
   async search(user: RequestUser, q: PartSearchQueryDto) {
     const tenantId = requireTenantId(user);
