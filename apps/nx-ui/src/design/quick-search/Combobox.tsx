@@ -58,9 +58,15 @@ export function Combobox<T>({
   const [focusedIdx, setFocusedIdx] = useState(-1);
   const reqIdRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  // 選定聯想項後 set true、下次 value 變化的 useEffect 跳過 fetch（避免下拉重新打開）
+  const justSelectedRef = useRef(false);
 
   // debounce fetch suggestions（清空 state 統一在 handleChange 內處理、effect 不直接 setState）
   useEffect(() => {
+    if (justSelectedRef.current) {
+      justSelectedRef.current = false;
+      return;
+    }
     const q = value.trim();
     if (!q) return;
     const myReqId = ++reqIdRef.current;
@@ -95,6 +101,19 @@ export function Combobox<T>({
     [onChange],
   );
 
+  // 選定聯想項共用 helper（鍵盤 Enter 與 click 都走這）
+  const handleSelect = useCallback(
+    (item: T) => {
+      justSelectedRef.current = true;
+      setOpen(false);
+      setSuggestions([]);
+      setFocusedIdx(-1);
+      onSelect(item);
+      onSubmit();
+    },
+    [onSelect, onSubmit],
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.nativeEvent.isComposing) return; // IME 中不處理
@@ -116,12 +135,9 @@ export function Combobox<T>({
       }
       if (e.key === 'Enter') {
         e.preventDefault();
-        // 有下拉開且有 focused suggestion → 選定
+        // 有下拉開且有 focused suggestion → 選定（走 handleSelect 含 justSelectedRef 保護）
         if (open && focusedIdx >= 0 && suggestions[focusedIdx]) {
-          const item = suggestions[focusedIdx];
-          setOpen(false);
-          onSelect(item);
-          onSubmit();
+          handleSelect(suggestions[focusedIdx]);
         } else {
           // 沒選下拉、直接用輸入文字
           setOpen(false);
@@ -144,7 +160,7 @@ export function Combobox<T>({
         return;
       }
     },
-    [open, suggestions, focusedIdx, onSelect, onSubmit],
+    [open, suggestions, focusedIdx, handleSelect, onSubmit],
   );
 
   // 點外面關下拉
@@ -198,11 +214,7 @@ export function Combobox<T>({
                     // 防 input blur 比點擊先發生（會讓下拉關掉而錯過 click）
                     e.preventDefault();
                   }}
-                  onClick={() => {
-                    setOpen(false);
-                    onSelect(item);
-                    onSubmit();
-                  }}
+                  onClick={() => handleSelect(item)}
                   className={cn(
                     'flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left text-xs',
                     i === focusedIdx

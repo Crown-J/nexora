@@ -283,14 +283,8 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   const selected = rows[focusedIndex];
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80"
-      onClick={onClose}
-    >
-      <div
-        className="flex max-h-[92vh] w-[min(1180px,96vw)] flex-col rounded-2xl border border-[#2A2A30] bg-[#0F0F12] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80">
+      <div className="flex max-h-[92vh] w-[min(1180px,96vw)] flex-col rounded-2xl border border-[#2A2A30] bg-[#0F0F12] shadow-[0_30px_80px_rgba(0,0,0,0.6)]">
         {/* Header */}
         <div className="flex items-center gap-2.5 border-b border-[#2A2A30] px-5 py-3">
           <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
