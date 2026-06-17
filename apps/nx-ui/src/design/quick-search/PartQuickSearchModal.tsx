@@ -34,7 +34,11 @@ import { AlertCircle, Image as ImageIcon, Loader2, PackageSearch, Search, X } fr
 import {
   buildPartSearchPhotoUrl,
   getPartDetail,
+  getPartPurchaseHistory,
+  getPartRelated,
+  getPartSalesHistory,
   getPartSearchMasterOptions,
+  getPartStockHistory,
   getPartStockSummary,
   listPartSearchPhotos,
   quickSearchParts,
@@ -42,9 +46,13 @@ import {
 } from '@data/endpoints/nx01/part-search/api/part-search';
 import type {
   PartDetailDto,
+  PartPurchaseHistoryRow,
+  PartRelatedRow,
+  PartSalesHistoryDto,
   PartSearchQuery,
   PartSearchResult,
   PartSearchRow,
+  PartStockHistoryRow,
   PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
@@ -692,13 +700,412 @@ function DetailPane({
           )}
         </section>
 
-        {/* 後續階段提示（進貨/銷貨/庫存歷史 / 相關零件）*/}
-        <div className="rounded-lg border border-dashed border-border/40 p-3 text-center text-[10px] text-muted-foreground/70">
-          進貨明細 / 銷貨報價 / 出入庫紀錄 / 相關零件 ─ 階段 5+ 接入
-        </div>
+        {/* 進貨 / 銷貨 / 庫存 / 相關零件 四 tab */}
+        <TabSection selected={selected} detail={detail} />
       </div>
     </div>
   );
+}
+
+type TabKey = 'purchase' | 'sales' | 'stock' | 'related';
+
+function TabSection({
+  selected,
+  detail,
+}: {
+  selected: PartSearchRow | undefined;
+  detail: PartDetailDto | null;
+}) {
+  const [activeTab, setActiveTab] = useState<TabKey>('purchase');
+  const [purchase, setPurchase] = useState<PartPurchaseHistoryRow[]>([]);
+  const [sales, setSales] = useState<PartSalesHistoryDto | null>(null);
+  const [stockHist, setStockHist] = useState<PartStockHistoryRow[]>([]);
+  const [related, setRelated] = useState<PartRelatedRow[]>([]);
+  const [tabLoading, setTabLoading] = useState(false);
+  const reqIdRef = useRef(0);
+
+  // 選新 row 時 reset 所有 tab 資料（避免顯示舊資料）
+  const [prevId, setPrevId] = useState<string | undefined>(selected?.id);
+  if (prevId !== selected?.id) {
+    setPrevId(selected?.id);
+    setPurchase([]);
+    setSales(null);
+    setStockHist([]);
+    setRelated([]);
+  }
+
+  // 切 tab 或選新 row 時 lazy fetch 對應資料
+  useEffect(() => {
+    if (!selected) return;
+    const partId = selected.id;
+    const tab = activeTab;
+    const myReqId = ++reqIdRef.current;
+    setTabLoading(true);
+    void (async () => {
+      try {
+        if (tab === 'purchase') {
+          const r = await getPartPurchaseHistory(partId);
+          if (reqIdRef.current === myReqId) setPurchase(r.rows);
+        } else if (tab === 'sales') {
+          const r = await getPartSalesHistory(partId);
+          if (reqIdRef.current === myReqId) setSales(r);
+        } else if (tab === 'stock') {
+          const r = await getPartStockHistory(partId);
+          if (reqIdRef.current === myReqId) setStockHist(r.rows);
+        } else if (tab === 'related') {
+          const r = await getPartRelated(partId);
+          if (reqIdRef.current === myReqId) setRelated(r.rows);
+        }
+      } catch {
+        // 失敗保留舊資料、不爆 UI
+      } finally {
+        if (reqIdRef.current === myReqId) setTabLoading(false);
+      }
+    })();
+  }, [selected, activeTab]);
+
+  const tabs: Array<{ key: TabKey; label: string }> = [
+    { key: 'purchase', label: '進貨' },
+    { key: 'sales', label: '銷貨' },
+    { key: 'stock', label: '庫存' },
+    { key: 'related', label: '相關零件' },
+  ];
+
+  return (
+    <section className="rounded-lg border border-border/40 bg-card/60 p-3">
+      {/* Tab 按鈕列 */}
+      <div className="mb-2 flex items-center gap-1 border-b border-border/40">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setActiveTab(t.key)}
+            className={cn(
+              '-mb-px border-b-2 px-3 py-1.5 text-xs transition-colors',
+              activeTab === t.key
+                ? 'border-[#E8A020] text-[#E8A020]'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+        {tabLoading ? <Loader2 className="ml-auto size-3 animate-spin text-muted-foreground/70" /> : null}
+      </div>
+
+      {/* Tab 內容 */}
+      <div className="min-h-[180px]">
+        {!selected ? (
+          <EmptyTab text="選一筆結果以查看明細" />
+        ) : activeTab === 'purchase' ? (
+          <PurchasePanel rows={purchase} detail={detail} />
+        ) : activeTab === 'sales' ? (
+          <SalesPanel sales={sales} />
+        ) : activeTab === 'stock' ? (
+          <StockHistoryPanel rows={stockHist} detail={detail} />
+        ) : (
+          <RelatedPanel rows={related} />
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EmptyTab({ text }: { text: string }) {
+  return (
+    <div className="flex h-full min-h-[160px] items-center justify-center text-[11px] text-muted-foreground/70">
+      {text}
+    </div>
+  );
+}
+
+/** 進貨 tab：進貨紀錄 table + ABCD 公司定價（執行長原始需求 4）*/
+function PurchasePanel({
+  rows,
+  detail,
+}: {
+  rows: PartPurchaseHistoryRow[];
+  detail: PartDetailDto | null;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-5 gap-1 rounded border border-border/40 bg-background/40 p-2 text-[10px]">
+        <PriceCell label="成本" value={detail?.cost} />
+        <PriceCell label="A 價" value={detail?.priceA} accent />
+        <PriceCell label="B 價" value={detail?.priceB} accent />
+        <PriceCell label="C 價" value={detail?.priceC} accent />
+        <PriceCell label="D 價" value={detail?.priceD} accent />
+      </div>
+      {rows.length === 0 ? (
+        <EmptyTab text="無進貨紀錄" />
+      ) : (
+        <div className="overflow-auto">
+          <table className="w-full border-collapse text-[11px]">
+            <thead>
+              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                <th className="py-1.5 pr-2 text-left font-medium">日期</th>
+                <th className="py-1.5 px-1 text-left font-medium">單號</th>
+                <th className="py-1.5 px-1 text-left font-medium">廠商</th>
+                <th className="py-1.5 px-1 text-right font-medium">數量</th>
+                <th className="py-1.5 px-1 text-right font-medium">單價</th>
+                <th className="py-1.5 pl-1 text-right font-medium">實際成本</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.rrItemId} className="border-b border-border/30">
+                  <td className="py-1 pr-2 text-foreground">{formatDate(r.rrDate)}</td>
+                  <td className="py-1 px-1 font-mono text-foreground">{r.docNo}</td>
+                  <td className="py-1 px-1 text-foreground">{r.supplierName}</td>
+                  <td className="py-1 px-1 text-right font-mono text-foreground">
+                    {Number(r.qty).toFixed(0)}
+                  </td>
+                  <td className="py-1 px-1 text-right font-mono text-foreground">
+                    {Number(r.unitCost).toFixed(2)}
+                  </td>
+                  <td className="py-1 pl-1 text-right font-mono text-[#22D88F]">
+                    {Number(r.actualUnitCost).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 銷貨 tab:銷售紀錄 + 報價（含未成交） + ABCD 建議報價（執行長原始需求 5）*/
+function SalesPanel({ sales }: { sales: PartSalesHistoryDto | null }) {
+  if (!sales) return <EmptyTab text="載入中…" />;
+  return (
+    <div className="space-y-3">
+      {/* 建議報價 */}
+      <div className="grid grid-cols-5 gap-1 rounded border border-border/40 bg-background/40 p-2 text-[10px]">
+        <PriceCell label="成本" value={sales.suggestedPrices.cost} />
+        <PriceCell label="A 價" value={sales.suggestedPrices.priceA} accent />
+        <PriceCell label="B 價" value={sales.suggestedPrices.priceB} accent />
+        <PriceCell label="C 價" value={sales.suggestedPrices.priceC} accent />
+        <PriceCell label="D 價" value={sales.suggestedPrices.priceD} accent />
+      </div>
+
+      {/* 銷售紀錄 */}
+      <div>
+        <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          銷售紀錄
+        </div>
+        {sales.sales.length === 0 ? (
+          <div className="text-[11px] text-muted-foreground/70">無銷售紀錄</div>
+        ) : (
+          <table className="w-full border-collapse text-[11px]">
+            <thead>
+              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                <th className="py-1.5 pr-2 text-left font-medium">日期</th>
+                <th className="py-1.5 px-1 text-left font-medium">單號</th>
+                <th className="py-1.5 px-1 text-left font-medium">客戶</th>
+                <th className="py-1.5 px-1 text-right font-medium">數量</th>
+                <th className="py-1.5 pl-1 text-right font-medium">單價</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.sales.map((r) => (
+                <tr key={r.soItemId} className="border-b border-border/30">
+                  <td className="py-1 pr-2 text-foreground">{formatDate(r.soDate)}</td>
+                  <td className="py-1 px-1 font-mono text-foreground">{r.docNo}</td>
+                  <td className="py-1 px-1 text-foreground">{r.customerName}</td>
+                  <td className="py-1 px-1 text-right font-mono text-foreground">
+                    {Number(r.qty).toFixed(0)}
+                  </td>
+                  <td className="py-1 pl-1 text-right font-mono text-[#22D88F]">
+                    {Number(r.unitPrice).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* 報價紀錄（含未成交）*/}
+      <div>
+        <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          報價紀錄（含未成交）
+        </div>
+        {sales.quotes.length === 0 ? (
+          <div className="text-[11px] text-muted-foreground/70">無報價紀錄</div>
+        ) : (
+          <table className="w-full border-collapse text-[11px]">
+            <thead>
+              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                <th className="py-1.5 pr-2 text-left font-medium">日期</th>
+                <th className="py-1.5 px-1 text-left font-medium">單號</th>
+                <th className="py-1.5 px-1 text-left font-medium">客戶</th>
+                <th className="py-1.5 px-1 text-right font-medium">單價</th>
+                <th className="py-1.5 px-1 text-right font-medium">底價</th>
+                <th className="py-1.5 pl-1 text-center font-medium">成交</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.quotes.map((r) => (
+                <tr key={r.quoteItemId} className="border-b border-border/30">
+                  <td className="py-1 pr-2 text-foreground">{formatDate(r.quoteDate)}</td>
+                  <td className="py-1 px-1 font-mono text-foreground">{r.docNo}</td>
+                  <td className="py-1 px-1 text-foreground">{r.customerName}</td>
+                  <td className="py-1 px-1 text-right font-mono text-foreground">
+                    {Number(r.unitPrice).toFixed(2)}
+                  </td>
+                  <td className="py-1 px-1 text-right font-mono text-muted-foreground/70">
+                    {r.minPrice ? Number(r.minPrice).toFixed(2) : '—'}
+                  </td>
+                  <td className="py-1 pl-1 text-center">
+                    {r.isSelected ? (
+                      <span className="text-[#22D88F]">✓</span>
+                    ) : (
+                      <span className="text-muted-foreground/40">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** 庫存 tab:出入庫紀錄 + 最後進/出貨時間（執行長原始需求 6）*/
+function StockHistoryPanel({
+  rows,
+  detail,
+}: {
+  rows: PartStockHistoryRow[];
+  detail: PartDetailDto | null;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2 rounded border border-border/40 bg-background/40 p-2 text-[11px]">
+        <div>
+          <span className="text-muted-foreground/70">最後進貨：</span>{' '}
+          <span className="font-mono text-foreground">{formatDate(detail?.lastPurchaseAt) || '—'}</span>
+        </div>
+        <div>
+          <span className="text-muted-foreground/70">最後出貨：</span>{' '}
+          <span className="font-mono text-foreground">{formatDate(detail?.lastSaleAt) || '—'}</span>
+        </div>
+      </div>
+      {rows.length === 0 ? (
+        <EmptyTab text="無出入庫紀錄" />
+      ) : (
+        <div className="overflow-auto">
+          <table className="w-full border-collapse text-[11px]">
+            <thead>
+              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                <th className="py-1.5 pr-2 text-left font-medium">時間</th>
+                <th className="py-1.5 px-1 text-left font-medium">類型</th>
+                <th className="py-1.5 px-1 text-left font-medium">倉位</th>
+                <th className="py-1.5 px-1 text-right font-medium">入</th>
+                <th className="py-1.5 pl-1 text-right font-medium">出</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-b border-border/30">
+                  <td className="py-1 pr-2 text-foreground">{formatDateTime(r.movementDate)}</td>
+                  <td className="py-1 px-1 text-foreground">{movementTypeLabel(r)}</td>
+                  <td className="py-1 px-1 text-foreground">
+                    {r.warehouseCode}
+                    <span className="ml-1 text-[10px] text-muted-foreground/70">{r.locationCode}</span>
+                  </td>
+                  <td className="py-1 px-1 text-right font-mono text-[#22D88F]">
+                    {Number(r.qtyIn) > 0 ? Number(r.qtyIn).toFixed(0) : ''}
+                  </td>
+                  <td className="py-1 pl-1 text-right font-mono text-[#E26060]">
+                    {Number(r.qtyOut) > 0 ? Number(r.qtyOut).toFixed(0) : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 相關零件 tab（執行長 Q3=A 不分子類型）*/
+function RelatedPanel({ rows }: { rows: PartRelatedRow[] }) {
+  if (rows.length === 0) return <EmptyTab text="無相關零件" />;
+  return (
+    <ul className="divide-y divide-border/30">
+      {rows.map((r) => (
+        <li key={r.relationId} className={cn('flex items-center gap-2 py-1.5', !r.isActive && 'opacity-60')}>
+          <span className="w-[150px] shrink-0 truncate font-mono text-xs text-[#E8A020]">
+            {r.code}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[11px] text-foreground">{r.name}</span>
+          <span className="w-[80px] shrink-0 truncate text-[10px] text-muted-foreground/70">
+            {r.brandCode ?? '—'}
+          </span>
+          <span className="w-[80px] shrink-0 text-right font-mono text-[11px]">
+            <span className="text-[#22D88F]">{Number(r.onHandTotal).toFixed(0)}</span>
+            <span className="text-muted-foreground/70"> / </span>
+            <span className="text-muted-foreground">{Number(r.availableTotal).toFixed(0)}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function PriceCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string | null | undefined;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70">{label}</span>
+      <span
+        className={cn(
+          'font-mono text-xs',
+          accent ? 'text-[#E8A020]' : 'text-foreground',
+        )}
+      >
+        {value ? Number(value).toFixed(0) : '—'}
+      </span>
+    </div>
+  );
+}
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '';
+  return iso.slice(0, 10);
+}
+
+function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return '';
+  return iso.slice(0, 16).replace('T', ' ');
+}
+
+/** 出入庫類型顯示（依 movementType + sourceDocType 對照業務語意）*/
+function movementTypeLabel(r: PartStockHistoryRow): string {
+  // movementType: I=IN / O=OUT / A=ADJUST
+  // sourceDocType: P=進貨 / S=銷貨 / T=盤點 / I=開帳 / X=調撥 / R=退貨
+  const docMap: Record<string, string> = {
+    P: '進貨',
+    S: '銷貨',
+    T: '盤點',
+    I: '開帳',
+    X: '調撥',
+    R: '退貨',
+  };
+  return docMap[r.sourceDocType] ?? r.movementType;
 }
 
 function DataRow({
