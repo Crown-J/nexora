@@ -58,9 +58,19 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   const [brands, setBrands] = useState<BrandOpt[]>([]);
   const [partGroups, setPartGroups] = useState<PartGroupOpt[]>([]);
 
+  // 焦點流程：篩選四欄 ref（順序 廠牌 → 品名 → 族群 → 料號 → 結果列表）
+  const brandSelectRef = useRef<HTMLSelectElement>(null);
   const keywordInputRef = useRef<HTMLInputElement>(null);
+  const partGroupSelectRef = useRef<HTMLSelectElement>(null);
+  const partNoInputRef = useRef<HTMLInputElement>(null);
+  // 觸發「搜尋完成後焦點跳結果第一筆」的旗標
+  const focusResultAfterSearchRef = useRef(false);
 
-  // Modal 開啟 reset + focus 品名輸入
+  const focusFirstFilter = useCallback(() => {
+    setTimeout(() => brandSelectRef.current?.focus(), 0);
+  }, []);
+
+  // Modal 開啟 reset + focus 第一個欄位（廠牌、執行長 2026-06-17 拍板）
   useEffect(() => {
     if (!open) return;
     setBrandId('');
@@ -72,8 +82,9 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     setResult(null);
     setError(null);
     setFocusedIndex(0);
-    setTimeout(() => keywordInputRef.current?.focus(), 50);
-  }, [open]);
+    focusResultAfterSearchRef.current = false;
+    focusFirstFilter();
+  }, [open, focusFirstFilter]);
 
   // 開啟時 lazy load 廠牌 + 族群（只撈一次）
   useEffect(() => {
@@ -144,7 +155,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     return () => clearTimeout(t);
   }, [open, hasAnyFilter, brandId, partGroupId, keyword, partNo, includeInactive, runSearch]);
 
-  // 全鍵盤：Esc 關、↑↓ 切結果、Enter 立即搜
+  // 全域熱鍵：Esc 關 / ↑↓ 切結果 / Alt+F 回第一個欄位（執行長 2026-06-17 拍板）
   useEffect(() => {
     if (!open) return;
     const h = (e: KeyboardEvent) => {
@@ -154,31 +165,78 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         onClose();
         return;
       }
-      if (e.key === 'ArrowDown') {
-        if (rows.length === 0) return;
+      // Alt+F：回到第一個欄位、清焦點開始下一輪搜尋
+      if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        e.stopPropagation();
+        focusFirstFilter();
+        return;
+      }
+      // ↑↓ 切結果（不論焦點在哪都生效；只在已有結果時擋）
+      if (e.key === 'ArrowDown' && rows.length > 0) {
         e.preventDefault();
         setFocusedIndex((i) => Math.min(rows.length - 1, i + 1));
-      } else if (e.key === 'ArrowUp') {
-        if (rows.length === 0) return;
+      } else if (e.key === 'ArrowUp' && rows.length > 0) {
         e.preventDefault();
         setFocusedIndex((i) => Math.max(0, i - 1));
-      } else if (e.key === 'Enter') {
-        const tag = (document.activeElement?.tagName ?? '').toLowerCase();
-        // 在 input 內按 Enter：立即送出（取代 debounce）
-        if (tag === 'input' || tag === 'select') {
-          e.preventDefault();
-          void runSearch();
-        }
       }
     };
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [open, rows.length, runSearch, onClose]);
+  }, [open, rows.length, onClose, focusFirstFilter]);
 
-  // 切到 focused row 時 scroll into view
+  // 篩選欄 Enter / Tab 跳下一欄；最後一欄 Enter → 立即搜尋 + 焦點跳結果第一筆
+  const FILTER_ORDER: Array<React.RefObject<HTMLElement>> = useMemo(
+    () => [
+      brandSelectRef as unknown as React.RefObject<HTMLElement>,
+      keywordInputRef as unknown as React.RefObject<HTMLElement>,
+      partGroupSelectRef as unknown as React.RefObject<HTMLElement>,
+      partNoInputRef as unknown as React.RefObject<HTMLElement>,
+    ],
+    [],
+  );
+
+  const handleFilterKeyDown = useCallback(
+    (idx: number) => (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+      // Enter：非最後欄位跳下一欄、最後欄位立即送出 + 焦點跳結果
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (idx < FILTER_ORDER.length - 1) {
+          FILTER_ORDER[idx + 1]?.current?.focus();
+          return;
+        }
+        // 最後一欄：立即搜（取代 debounce）、搜完 useEffect 會 focus 結果第一筆
+        focusResultAfterSearchRef.current = true;
+        void runSearch();
+        return;
+      }
+      // Tab：交給 native（DOM 順序就是 tab 順序）、不攔
+    },
+    [FILTER_ORDER, runSearch],
+  );
+
+  // 搜尋完成後焦點跳結果第一筆（搭 focusResultAfterSearchRef 旗標）
   useEffect(() => {
     if (!open) return;
-    document.querySelector(`[data-pqs-row="${focusedIndex}"]`)?.scrollIntoView({ block: 'nearest' });
+    if (!focusResultAfterSearchRef.current) return;
+    if (rows.length === 0) return;
+    focusResultAfterSearchRef.current = false;
+    setFocusedIndex(0);
+    setTimeout(() => {
+      (document.querySelector('[data-pqs-row="0"]') as HTMLElement | null)?.focus();
+    }, 0);
+  }, [rows, open]);
+
+  // 切到 focused row 時 scroll into view + 同步 DOM focus（上下鍵切時 button focus 跟著走）
+  useEffect(() => {
+    if (!open) return;
+    const el = document.querySelector(`[data-pqs-row="${focusedIndex}"]`) as HTMLElement | null;
+    el?.scrollIntoView({ block: 'nearest' });
+    // 若當前焦點本來就在某個 result row、繼續跟著移動（不搶走篩選欄焦點）
+    const active = document.activeElement;
+    const activeIsResultRow =
+      active instanceof HTMLElement && active.hasAttribute('data-pqs-row');
+    if (activeIsResultRow) el?.focus();
   }, [focusedIndex, open]);
 
   if (!open) return null;
@@ -223,32 +281,39 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
           </button>
         </div>
 
-        {/* 篩選列 */}
+        {/* 篩選列（焦點順序:廠牌 → 品名 → 族群 → 料號 → 結果列表）*/}
         <div className="grid grid-cols-1 gap-2 border-b border-[#2A2A30] bg-[#13131A] px-5 py-3 sm:grid-cols-4">
           <FilterSelect
             label="廠牌"
             value={brandId}
             onChange={setBrandId}
             options={brands.map((b) => ({ value: b.id, label: `${b.code} · ${b.name}` }))}
+            selectRef={brandSelectRef}
+            onKeyDown={handleFilterKeyDown(0)}
           />
           <FilterInput
             label="品名 / 注音聲母"
             value={keyword}
             onChange={setKeyword}
-            placeholder="例：火星塞、ㄏㄒㄙ"
+            placeholder="例:火星塞、ㄏㄒㄙ"
             inputRef={keywordInputRef}
+            onKeyDown={handleFilterKeyDown(1)}
           />
           <FilterSelect
             label="零件族群"
             value={partGroupId}
             onChange={setPartGroupId}
             options={partGroups.map((g) => ({ value: g.id, label: `${g.code} · ${g.name}` }))}
+            selectRef={partGroupSelectRef}
+            onKeyDown={handleFilterKeyDown(2)}
           />
           <FilterInput
             label="使用料號"
             value={partNo}
             onChange={setPartNo}
-            placeholder="例：03L-100-091 / 03L 100 091"
+            placeholder="例:03L-100-091 / 03L 100 091"
+            inputRef={partNoInputRef}
+            onKeyDown={handleFilterKeyDown(3)}
           />
         </div>
 
@@ -391,7 +456,10 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-5 py-2 text-[10px] text-[#5A5A60]">
-          <span>F2 開關 · ↑↓ 切換 · Enter 立即搜 · Esc 關閉</span>
+          <span>
+            F2 開關 · Tab/Enter 跳下一欄 · 最後一欄 Enter 送出 · ↑↓ 切結果 · Alt+F 回第一欄 ·
+            Esc 關閉
+          </span>
           <span className="font-mono text-[#3A3A42]">NEXORA · Part Quick Search</span>
         </div>
       </div>
@@ -399,24 +467,30 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   );
 }
 
-/** 篩選欄共用：label + dropdown */
+/** 篩選欄共用:label + dropdown */
 function FilterSelect({
   label,
   value,
   onChange,
   options,
+  selectRef,
+  onKeyDown,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  selectRef?: React.Ref<HTMLSelectElement>;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLSelectElement>) => void;
 }) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">{label}</span>
       <select
+        ref={selectRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         className="h-8 rounded-md border border-[#2A2A30] bg-[#0F0F12] px-2 text-xs text-[#E8E8EB] outline-none transition focus:border-[#E8A020]/60"
       >
         <option value="">ALL（不篩選）</option>
@@ -430,19 +504,21 @@ function FilterSelect({
   );
 }
 
-/** 篩選欄共用：label + input */
+/** 篩選欄共用:label + input */
 function FilterInput({
   label,
   value,
   onChange,
   placeholder,
   inputRef,
+  onKeyDown,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   inputRef?: React.Ref<HTMLInputElement>;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }) {
   return (
     <label className="flex flex-col gap-1">
@@ -452,6 +528,7 @@ function FilterInput({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className="h-8 rounded-md border border-[#2A2A30] bg-[#0F0F12] px-2 text-xs text-[#E8E8EB] outline-none placeholder:text-[#5A5A60] transition focus:border-[#E8A020]/60"
       />
