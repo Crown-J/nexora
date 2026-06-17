@@ -1,0 +1,225 @@
+// apps/nx-ui/src/design/quick-search/Combobox.tsx
+// 通用 Combobox：input + 聯想下拉浮層（執行長 2026-06-17 拍板）
+//
+// 行為：
+//   - 輸入 → debounce 200ms → fetchSuggestions(query) → 下拉開
+//   - ↑↓：切下拉選中項（焦點留在 input、視覺高亮）
+//   - Enter：
+//       · 下拉有選中項 → onSelect(item) + 下拉關 + 觸發 onSubmit（跳下一欄）
+//       · 下拉沒選中 → onSubmit（用輸入文字、跳下一欄/搜尋）
+//   - Esc：下拉開著就只關下拉（不關 Modal）；下拉關著時冒泡讓外層處理
+//   - IME composition 中所有 keydown 不處理
+//   - blur：100ms 延遲關下拉（給 mousedown 選項的機會）
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { cn } from '@design/utils/cn';
+
+export type ComboboxProps<T> = {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  inputRef?: React.Ref<HTMLInputElement>;
+
+  /** 抓聯想項；回空陣列 = 不顯示下拉 */
+  fetchSuggestions: (query: string) => Promise<T[]>;
+  getKey: (item: T) => string;
+  getLabel: (item: T) => string;
+  getDescription?: (item: T) => string | undefined;
+
+  /** 選了一個聯想項（onChange 已被 caller 內部呼叫填入 input） */
+  onSelect: (item: T) => void;
+
+  /** Enter 在沒選聯想項時觸發（parent 通常會 focusNext or runSearch）*/
+  onSubmit: () => void;
+
+  /** debounce ms、預設 200 */
+  debounceMs?: number;
+};
+
+export function Combobox<T>({
+  label,
+  value,
+  onChange,
+  placeholder,
+  inputRef,
+  fetchSuggestions,
+  getKey,
+  getLabel,
+  getDescription,
+  onSelect,
+  onSubmit,
+  debounceMs = 200,
+}: ComboboxProps<T>) {
+  const [open, setOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<T[]>([]);
+  const [focusedIdx, setFocusedIdx] = useState(-1);
+  const reqIdRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // debounce fetch suggestions（清空 state 統一在 handleChange 內處理、effect 不直接 setState）
+  useEffect(() => {
+    const q = value.trim();
+    if (!q) return;
+    const myReqId = ++reqIdRef.current;
+    const t = setTimeout(() => {
+      void (async () => {
+        try {
+          const items = await fetchSuggestions(q);
+          if (reqIdRef.current !== myReqId) return; // 過期請求丟掉
+          setSuggestions(items);
+          setFocusedIdx(items.length > 0 ? 0 : -1);
+          setOpen(items.length > 0);
+        } catch {
+          if (reqIdRef.current !== myReqId) return;
+          setSuggestions([]);
+          setOpen(false);
+        }
+      })();
+    }, debounceMs);
+    return () => clearTimeout(t);
+  }, [value, fetchSuggestions, debounceMs]);
+
+  // value 清空時同步關下拉（包進 handler 避免 effect 內 setState 警告）
+  const handleChange = useCallback(
+    (next: string) => {
+      onChange(next);
+      if (!next.trim()) {
+        setSuggestions([]);
+        setOpen(false);
+        setFocusedIdx(-1);
+      }
+    },
+    [onChange],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.nativeEvent.isComposing) return; // IME 中不處理
+
+      if (e.key === 'ArrowDown') {
+        if (suggestions.length === 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setOpen(true);
+        setFocusedIdx((i) => Math.min(suggestions.length - 1, i + 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        if (suggestions.length === 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setFocusedIdx((i) => Math.max(0, i - 1));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        // 有下拉開且有 focused suggestion → 選定
+        if (open && focusedIdx >= 0 && suggestions[focusedIdx]) {
+          const item = suggestions[focusedIdx];
+          setOpen(false);
+          onSelect(item);
+          onSubmit();
+        } else {
+          // 沒選下拉、直接用輸入文字
+          setOpen(false);
+          onSubmit();
+        }
+        return;
+      }
+      if (e.key === 'Escape') {
+        // 下拉開著就只關下拉、不冒泡讓 Modal 關閉
+        if (open) {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(false);
+        }
+        return;
+      }
+      if (e.key === 'Tab') {
+        setOpen(false);
+        // 不 preventDefault、讓 native tab 跳下一欄
+        return;
+      }
+    },
+    [open, suggestions, focusedIdx, onSelect, onSubmit],
+  );
+
+  // 點外面關下拉
+  useEffect(() => {
+    if (!open) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [open]);
+
+  // 切焦點時 scroll into view
+  useEffect(() => {
+    if (focusedIdx < 0) return;
+    containerRef.current
+      ?.querySelector(`[data-cbo-idx="${focusedIdx}"]`)
+      ?.scrollIntoView({ block: 'nearest' });
+  }, [focusedIdx]);
+
+  return (
+    <div ref={containerRef} className="relative flex flex-col gap-1">
+      <span className="text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">{label}</span>
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onFocus={() => {
+          if (suggestions.length > 0) setOpen(true);
+        }}
+        placeholder={placeholder}
+        autoComplete="off"
+        className="h-8 rounded-md border border-[#2A2A30] bg-[#0F0F12] px-2 text-xs text-[#E8E8EB] outline-none placeholder:text-[#5A5A60] focus:border-[#E8A020]/60"
+      />
+
+      {open && suggestions.length > 0 ? (
+        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#2A2A30] bg-[#13131A] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+          {suggestions.map((item, i) => {
+            const desc = getDescription?.(item);
+            return (
+              <li key={getKey(item)}>
+                <button
+                  type="button"
+                  data-cbo-idx={i}
+                  onMouseEnter={() => setFocusedIdx(i)}
+                  onMouseDown={(e) => {
+                    // 防 input blur 比點擊先發生（會讓下拉關掉而錯過 click）
+                    e.preventDefault();
+                  }}
+                  onClick={() => {
+                    setOpen(false);
+                    onSelect(item);
+                    onSubmit();
+                  }}
+                  className={cn(
+                    'flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left text-xs',
+                    i === focusedIdx
+                      ? 'bg-[#E8A020]/15 text-[#E8A020]'
+                      : 'text-[#E8E8EB] hover:bg-[#1A1A22]',
+                  )}
+                >
+                  <span className="truncate font-mono">{getLabel(item)}</span>
+                  {desc ? (
+                    <span className="truncate text-[10px] text-[#5A5A60]">{desc}</span>
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}

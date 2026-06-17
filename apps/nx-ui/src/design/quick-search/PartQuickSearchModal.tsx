@@ -1,68 +1,91 @@
 // apps/nx-ui/src/design/quick-search/PartQuickSearchModal.tsx
-// F2 料號即時搜尋 Modal（執行長 2026-06-17 拍板）
+// F2 料號即時搜尋 Modal（執行長 2026-06-17 拍板、第三版實作）
 //
 // 排版（鋼鐵風 #E8A020 主色）：
-// ┌─────────────────────────────────────────────────────────┐
-// │ Header: 🔍 料號即時搜尋   [☐含停用]    [F2·QUICK]  [✕] │
-// ├─────────────────────────────────────────────────────────┤
-// │ 篩選列：廠牌 ▾ ALL | 品名/注音 ___ | 族群 ▾ ALL | 料號 │
-// ├─────────────────────────────────────────────────────────┤
-// │ 主結果區（virtual scroll、上下鍵切換、選中高亮）        │
-// │   ✓ 料號  品名         廠牌    族群    庫存:onHand/可出│
-// ├─────────────────────────────────────────────────────────┤
-// │ 明細區（階段 3-4 接：基本資料 + 庫存概況 + 三 tab）     │
-// ├─────────────────────────────────────────────────────────┤
-// │ Footer: F2 開關 · ↑↓ 切換 · Esc 關閉                    │
-// └─────────────────────────────────────────────────────────┘
+// ┌─────────────────────────────────────────────────────────────┐
+// │ Header: 🔍 料號即時搜尋 [☐含停用]  [F2·QUICK]   [搜尋][✕] │
+// ├─────────────────────────────────────────────────────────────┤
+// │ 篩選列（4 個 Combobox 並排）                                │
+// │   廠牌 ___▾  品名/注音 ___▾  族群 ___▾  料號 ___▾          │
+// │   ↓（每欄輸入即出聯想下拉、↑↓選 + Enter 確認 + 跳下一欄）  │
+// ├─────────────────────────────────────────────────────────────┤
+// │ 主結果區（手動觸發、移除自動 debounce 搜避免閃跳）           │
+// │   ✓ 料號  品名  廠牌  族群  庫存:onHand/可出               │
+// ├─────────────────────────────────────────────────────────────┤
+// │ 明細區（階段 4 接：基本+庫存+三 tab）                       │
+// ├─────────────────────────────────────────────────────────────┤
+// │ Footer: F2 開關 · ↑↓ 切聯想/結果 · Enter 確認/跳欄 · Esc   │
+// └─────────────────────────────────────────────────────────────┘
 //
-// 已實作（階段 2）：F2 hotkey、Esc 關、Enter 送出、↑↓ 切結果、debounce 350ms 自動搜尋
-// 待後續階段：廠牌/族群 dropdown 改成聯想 picker、明細區、相關零件、注音 F4 候選、歷史紀錄
+// 行為（執行長 2026-06-17 第三次回饋實作）：
+//   - 四欄各自為 Combobox：輸入時 debounce 200ms 出聯想下拉
+//   - 上下鍵在下拉內切聯想項；Enter 選定聯想項 + 跳下一欄
+//   - 不選聯想直接 Enter → 用輸入文字當該欄條件、跳下一欄
+//   - 最後一欄（料號）Enter → 觸發主搜尋 + 焦點跳結果列表
+//   - 主結果區只在「Enter 觸發搜尋」或「按搜尋按鈕」更新、不自動 debounce
+//   - 結果列表上下鍵切、選中 row 在右側明細區顯示
+//   - Alt+F 回第一欄；Esc 關下拉（若開）或關 Modal
+//   - 移除 backdrop-blur（CSS blur 是閃跳元兇之一）
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Loader2, PackageSearch, Search, X } from 'lucide-react';
 
+import { apiFetch } from '@data/api/client';
+import { listBrands } from '@data/endpoints/nx01/api/brand';
 import { quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
 import type { PartSearchQuery, PartSearchResult, PartSearchRow } from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
+
+import { Combobox } from './Combobox';
 
 type Props = {
   open: boolean;
   onClose: () => void;
 };
 
+type BrandOpt = { id: string; code: string; name: string };
+type PartGroupOpt = { id: string; code: string; name: string };
+
 const PAGE_SIZE = 100;
 const HARD_LIMIT = 500;
-const DEBOUNCE_MS = 450;
+const SUGGESTION_LIMIT = 8;
 
 export function PartQuickSearchModal({ open, onClose }: Props) {
-  // 篩選四欄全部 input（執行長 2026-06-17 拍板第二次回饋：四欄統一可輸入文字）
+  // 四欄篩選文字（執行長 2026-06-17 拍板第三次回饋:每欄都 Combobox 聯想）
   const [brandQuery, setBrandQuery] = useState('');
   const [keyword, setKeyword] = useState('');
   const [partGroupQuery, setPartGroupQuery] = useState('');
   const [partNo, setPartNo] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
 
-  // 結果區
+  // 主結果區
   const [rows, setRows] = useState<PartSearchRow[]>([]);
   const [result, setResult] = useState<PartSearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  // 焦點流程：篩選四欄 ref（順序 廠牌 → 品名 → 族群 → 料號 → 結果列表）
+  // 廠牌 / 族群主檔（開啟時一次撈、cache 給聯想 filter 用）
+  const [brands, setBrands] = useState<BrandOpt[]>([]);
+  const [partGroups, setPartGroups] = useState<PartGroupOpt[]>([]);
+
+  // 焦點流程 ref（順序 廠牌 → 品名 → 族群 → 料號 → 結果列表）
   const brandInputRef = useRef<HTMLInputElement>(null);
   const keywordInputRef = useRef<HTMLInputElement>(null);
   const partGroupInputRef = useRef<HTMLInputElement>(null);
   const partNoInputRef = useRef<HTMLInputElement>(null);
-  // 觸發「搜尋完成後焦點跳結果第一筆」的旗標
-  const focusResultAfterSearchRef = useRef(false);
+
+  const FILTER_ORDER: Array<React.RefObject<HTMLInputElement | null>> = useMemo(
+    () => [brandInputRef, keywordInputRef, partGroupInputRef, partNoInputRef],
+    [],
+  );
 
   const focusFirstFilter = useCallback(() => {
     setTimeout(() => brandInputRef.current?.focus(), 0);
   }, []);
 
-  // Modal 開啟 reset + focus 第一個欄位（廠牌、執行長 2026-06-17 拍板）
+  // 開 Modal: reset + focus 第一欄 + lazy load 主檔
   useEffect(() => {
     if (!open) return;
     setBrandQuery('');
@@ -74,65 +97,147 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     setResult(null);
     setError(null);
     setFocusedIndex(0);
-    focusResultAfterSearchRef.current = false;
     focusFirstFilter();
   }, [open, focusFirstFilter]);
 
-  const hasAnyFilter = useMemo(
-    () => Boolean(brandQuery.trim() || partGroupQuery.trim() || keyword.trim() || partNo.trim()),
-    [brandQuery, partGroupQuery, keyword, partNo],
-  );
-
-  const runSearch = useCallback(async () => {
-    if (!hasAnyFilter) {
-      setError('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const q: PartSearchQuery = {
-        brandQuery: brandQuery || undefined,
-        partGroupQuery: partGroupQuery || undefined,
-        keyword: keyword || undefined,
-        partNo: partNo || undefined,
-        includeInactive,
-        page: 1,
-        pageSize: PAGE_SIZE,
-      };
-      const res = await quickSearchParts(q);
-      setResult(res);
-      setRows(res.rows);
-      setFocusedIndex(0);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '搜尋失敗');
-      // 失敗不清空 rows、保留上次結果避免畫面閃跳
-    } finally {
-      setLoading(false);
-    }
-  }, [hasAnyFilter, brandQuery, partGroupQuery, keyword, partNo, includeInactive]);
-
-  // debounce 自動搜（執行長 2026-06-17 回饋:閃跳 → 加長到 450ms + 失敗時不清空舊 rows）
   useEffect(() => {
     if (!open) return;
-    if (!hasAnyFilter) {
-      // 四欄全空：清空結果、reset 視覺
-      setRows([]);
-      setResult(null);
-      setError(null);
-      return;
-    }
-    const t = setTimeout(() => {
-      void runSearch();
-    }, DEBOUNCE_MS);
-    return () => clearTimeout(t);
-  }, [open, hasAnyFilter, brandQuery, partGroupQuery, keyword, partNo, includeInactive, runSearch]);
+    if (brands.length > 0 && partGroups.length > 0) return;
+    void (async () => {
+      try {
+        const [brandRes, partGroupRes] = await Promise.all([
+          listBrands({ isPart: true, isActive: true, pageSize: 100 }),
+          fetchPartGroupsList(),
+        ]);
+        setBrands(brandRes.items.map((b) => ({ id: b.id, code: b.code, name: b.name })));
+        setPartGroups(partGroupRes);
+      } catch {
+        // 失敗不擋、聯想下拉就空、Crown 仍能用文字搜
+      }
+    })();
+  }, [open, brands.length, partGroups.length]);
 
-  // 全域熱鍵：Esc 關 / ↑↓ 切結果 / Alt+F 回第一個欄位（執行長 2026-06-17 拍板）
+  // 四欄 fetchSuggestions（client filter / API search）
+  const fetchBrandSuggestions = useCallback(
+    async (q: string): Promise<BrandOpt[]> => {
+      const lower = q.toLowerCase();
+      return brands
+        .filter(
+          (b) => b.code.toLowerCase().includes(lower) || b.name.toLowerCase().includes(lower),
+        )
+        .slice(0, SUGGESTION_LIMIT);
+    },
+    [brands],
+  );
+
+  const fetchPartGroupSuggestions = useCallback(
+    async (q: string): Promise<PartGroupOpt[]> => {
+      const lower = q.toLowerCase();
+      return partGroups
+        .filter(
+          (g) => g.code.toLowerCase().includes(lower) || g.name.toLowerCase().includes(lower),
+        )
+        .slice(0, SUGGESTION_LIMIT);
+    },
+    [partGroups],
+  );
+
+  const fetchKeywordSuggestions = useCallback(async (q: string): Promise<PartSearchRow[]> => {
+    try {
+      const res = await quickSearchParts({
+        keyword: q,
+        includeInactive: true,
+        page: 1,
+        pageSize: SUGGESTION_LIMIT,
+      });
+      return res.rows;
+    } catch {
+      return [];
+    }
+  }, []);
+
+  const fetchPartNoSuggestions = useCallback(async (q: string): Promise<PartSearchRow[]> => {
+    try {
+      const res = await quickSearchParts({
+        partNo: q,
+        includeInactive: true,
+        page: 1,
+        pageSize: SUGGESTION_LIMIT,
+      });
+      return res.rows;
+    } catch {
+      return [];
+    }
+  }, []);
+
+  // 主搜尋（只在「最後一欄 Enter」或「搜尋按鈕」觸發、不再自動 debounce）
+  const runSearch = useCallback(
+    async (focusResultAfter: boolean) => {
+      const hasAny = Boolean(
+        brandQuery.trim() || partGroupQuery.trim() || keyword.trim() || partNo.trim(),
+      );
+      if (!hasAny) {
+        setError('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const q: PartSearchQuery = {
+          brandQuery: brandQuery.trim() || undefined,
+          partGroupQuery: partGroupQuery.trim() || undefined,
+          keyword: keyword.trim() || undefined,
+          partNo: partNo.trim() || undefined,
+          includeInactive,
+          page: 1,
+          pageSize: PAGE_SIZE,
+        };
+        const res = await quickSearchParts(q);
+        setResult(res);
+        setRows(res.rows);
+        setFocusedIndex(0);
+        if (focusResultAfter && res.rows.length > 0) {
+          setTimeout(() => {
+            (document.querySelector('[data-pqs-row="0"]') as HTMLElement | null)?.focus();
+          }, 0);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '搜尋失敗');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [brandQuery, partGroupQuery, keyword, partNo, includeInactive],
+  );
+
+  // 跳下一欄（select + focus）
+  const focusNext = useCallback(
+    (currentIdx: number) => {
+      const next = FILTER_ORDER[currentIdx + 1]?.current;
+      if (next) {
+        next.focus();
+        next.select();
+      }
+    },
+    [FILTER_ORDER],
+  );
+
+  // 各欄 onSubmit（Combobox Enter 不選聯想時觸發）
+  const submitFromBrand = useCallback(() => focusNext(0), [focusNext]);
+  const submitFromKeyword = useCallback(() => focusNext(1), [focusNext]);
+  const submitFromPartGroup = useCallback(() => focusNext(2), [focusNext]);
+  const submitFromPartNo = useCallback(() => void runSearch(true), [runSearch]);
+
+  // 各欄 onSelect（選聯想項時填入 input 值）
+  const selectBrand = useCallback((b: BrandOpt) => setBrandQuery(b.code), []);
+  const selectPartGroup = useCallback((g: PartGroupOpt) => setPartGroupQuery(g.code), []);
+  const selectKeyword = useCallback((r: PartSearchRow) => setKeyword(r.name), []);
+  const selectPartNo = useCallback((r: PartSearchRow) => setPartNo(r.code), []);
+
+  // 全域熱鍵：Esc 關 Modal / ↑↓ 切主結果 / Alt+F 回第一欄
   useEffect(() => {
     if (!open) return;
     const h = (e: KeyboardEvent) => {
-      // IME composition 中（中文輸入未確認）一律不處理、避免確認字觸發跳欄/切結果
       if (e.isComposing) return;
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -140,14 +245,18 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         onClose();
         return;
       }
-      // Alt+F：回到第一個欄位、清焦點開始下一輪搜尋
       if (e.altKey && (e.key === 'f' || e.key === 'F')) {
         e.preventDefault();
         e.stopPropagation();
         focusFirstFilter();
         return;
       }
-      // ↑↓ 切結果（不論焦點在哪都生效；只在已有結果時擋）
+      // ↑↓ 切主結果（如果焦點不在 input 篩選欄、就讓給 main result）
+      const active = document.activeElement;
+      const isInFilter =
+        active instanceof HTMLInputElement &&
+        FILTER_ORDER.some((ref) => ref.current === active);
+      if (isInFilter) return; // 篩選欄 input 的 ↑↓ 已由 Combobox 內部處理
       if (e.key === 'ArrowDown' && rows.length > 0) {
         e.preventDefault();
         setFocusedIndex((i) => Math.min(rows.length - 1, i + 1));
@@ -158,54 +267,13 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     };
     window.addEventListener('keydown', h, true);
     return () => window.removeEventListener('keydown', h, true);
-  }, [open, rows.length, onClose, focusFirstFilter]);
+  }, [open, rows.length, onClose, focusFirstFilter, FILTER_ORDER]);
 
-  // 篩選欄 Enter / Tab 跳下一欄；最後一欄 Enter → 立即搜尋 + 焦點跳結果第一筆
-  const FILTER_ORDER: Array<React.RefObject<HTMLInputElement | null>> = useMemo(
-    () => [brandInputRef, keywordInputRef, partGroupInputRef, partNoInputRef],
-    [],
-  );
-
-  const handleFilterKeyDown = useCallback(
-    (idx: number) => (e: React.KeyboardEvent<HTMLInputElement>) => {
-      // IME composition 中（中文輸入未確認）不處理 Enter、交給 IME 確認字
-      if (e.nativeEvent.isComposing) return;
-      // Enter：非最後欄位跳下一欄、最後欄位立即送出 + 焦點跳結果
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (idx < FILTER_ORDER.length - 1) {
-          FILTER_ORDER[idx + 1]?.current?.focus();
-          FILTER_ORDER[idx + 1]?.current?.select();
-          return;
-        }
-        // 最後一欄：立即搜（取代 debounce）、搜完 useEffect 會 focus 結果第一筆
-        focusResultAfterSearchRef.current = true;
-        void runSearch();
-        return;
-      }
-      // Tab：交給 native（DOM 順序就是 tab 順序）、不攔
-    },
-    [FILTER_ORDER, runSearch],
-  );
-
-  // 搜尋完成後焦點跳結果第一筆（搭 focusResultAfterSearchRef 旗標）
-  useEffect(() => {
-    if (!open) return;
-    if (!focusResultAfterSearchRef.current) return;
-    if (rows.length === 0) return;
-    focusResultAfterSearchRef.current = false;
-    setFocusedIndex(0);
-    setTimeout(() => {
-      (document.querySelector('[data-pqs-row="0"]') as HTMLElement | null)?.focus();
-    }, 0);
-  }, [rows, open]);
-
-  // 切到 focused row 時 scroll into view + 同步 DOM focus（上下鍵切時 button focus 跟著走）
+  // 切到 focused row 時 scroll into view + DOM focus
   useEffect(() => {
     if (!open) return;
     const el = document.querySelector(`[data-pqs-row="${focusedIndex}"]`) as HTMLElement | null;
     el?.scrollIntoView({ block: 'nearest' });
-    // 若當前焦點本來就在某個 result row、繼續跟著移動（不搶走篩選欄焦點）
     const active = document.activeElement;
     const activeIsResultRow =
       active instanceof HTMLElement && active.hasAttribute('data-pqs-row');
@@ -218,7 +286,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80"
       onClick={onClose}
     >
       <div
@@ -246,47 +314,73 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
           </span>
           <button
             type="button"
+            onClick={() => void runSearch(true)}
+            className="ml-2 inline-flex h-7 items-center gap-1.5 rounded-md border border-[#E8A020]/40 bg-[#E8A020]/15 px-3 text-xs font-medium text-[#E8A020] hover:bg-[#E8A020]/25"
+          >
+            <Search className="size-3.5" />
+            搜尋
+          </button>
+          <button
+            type="button"
             onClick={onClose}
-            className="ml-2 rounded-md border border-[#2A2A30] bg-[#1A1A1F] p-1 text-[#888892] transition hover:bg-[#22222A] hover:text-[#E8E8EB]"
+            className="ml-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] p-1 text-[#888892] hover:bg-[#22222A] hover:text-[#E8E8EB]"
             aria-label="關閉"
           >
             <X className="size-3.5" />
           </button>
         </div>
 
-        {/* 篩選列（焦點順序:廠牌 → 品名 → 族群 → 料號 → 結果列表、四欄統一 input）*/}
+        {/* 篩選列（四個 Combobox 並排）*/}
         <div className="grid grid-cols-1 gap-2 border-b border-[#2A2A30] bg-[#13131A] px-5 py-3 sm:grid-cols-4">
-          <FilterInput
+          <Combobox<BrandOpt>
             label="廠牌"
             value={brandQuery}
             onChange={setBrandQuery}
             placeholder="例:BOSCH / NGK / VAG"
             inputRef={brandInputRef}
-            onKeyDown={handleFilterKeyDown(0)}
+            fetchSuggestions={fetchBrandSuggestions}
+            getKey={(b) => b.id}
+            getLabel={(b) => `${b.code} · ${b.name}`}
+            onSelect={selectBrand}
+            onSubmit={submitFromBrand}
           />
-          <FilterInput
+          <Combobox<PartSearchRow>
             label="品名 / 注音聲母"
             value={keyword}
             onChange={setKeyword}
             placeholder="例:火星塞、ㄏㄒㄙ"
             inputRef={keywordInputRef}
-            onKeyDown={handleFilterKeyDown(1)}
+            fetchSuggestions={fetchKeywordSuggestions}
+            getKey={(r) => r.id}
+            getLabel={(r) => r.name}
+            getDescription={(r) => `${r.code}${r.brandCode ? ` · ${r.brandCode}` : ''}`}
+            onSelect={selectKeyword}
+            onSubmit={submitFromKeyword}
           />
-          <FilterInput
+          <Combobox<PartGroupOpt>
             label="零件族群"
             value={partGroupQuery}
             onChange={setPartGroupQuery}
             placeholder="例:ENGINE / 引擎 / BRAKE"
             inputRef={partGroupInputRef}
-            onKeyDown={handleFilterKeyDown(2)}
+            fetchSuggestions={fetchPartGroupSuggestions}
+            getKey={(g) => g.id}
+            getLabel={(g) => `${g.code} · ${g.name}`}
+            onSelect={selectPartGroup}
+            onSubmit={submitFromPartGroup}
           />
-          <FilterInput
+          <Combobox<PartSearchRow>
             label="使用料號"
             value={partNo}
             onChange={setPartNo}
-            placeholder="例:DEMO-ATE / VAG-03H / 03L 100 091"
+            placeholder="例:DEMO-ATE / VAG-03H"
             inputRef={partNoInputRef}
-            onKeyDown={handleFilterKeyDown(3)}
+            fetchSuggestions={fetchPartNoSuggestions}
+            getKey={(r) => r.id}
+            getLabel={(r) => r.code}
+            getDescription={(r) => r.name}
+            onSelect={selectPartNo}
+            onSubmit={submitFromPartNo}
           />
         </div>
 
@@ -303,9 +397,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                 ) : result ? (
                   <>
                     主結果{' '}
-                    <span className="font-mono text-[#E8A020]">
-                      {result.total.toLocaleString()}
-                    </span>{' '}
+                    <span className="font-mono text-[#E8A020]">{result.total.toLocaleString()}</span>{' '}
                     筆
                     {result.limitReached ? (
                       <span className="ml-1 text-[#E26060]">
@@ -314,10 +406,10 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                     ) : null}
                   </>
                 ) : (
-                  '輸入任一篩選條件開始搜尋'
+                  '輸入條件後按 Enter（最後一欄）或按右上「搜尋」'
                 )}
               </span>
-              <span className="font-mono text-[10px] text-[#5A5A60]">↑↓ 切換</span>
+              <span className="font-mono text-[10px] text-[#5A5A60]">↑↓ 切結果</span>
             </div>
 
             {error ? (
@@ -332,7 +424,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                 <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-[#5A5A60]">
                   <div>
                     <Search className="mx-auto mb-2 size-6 text-[#3A3A42]" />
-                    輸入廠牌 / 品名 / 族群 / 料號任一條件即可開始搜尋
+                    輸入條件、按 Enter 或「搜尋」按鈕
                   </div>
                 </div>
               ) : (
@@ -344,7 +436,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                         data-pqs-row={idx}
                         onClick={() => setFocusedIndex(idx)}
                         className={cn(
-                          'flex w-full items-center gap-3 px-4 py-2 text-left transition-colors',
+                          'flex w-full items-center gap-3 px-4 py-2 text-left',
                           idx === focusedIndex
                             ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/50'
                             : 'hover:bg-[#1A1A22]',
@@ -379,7 +471,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
             </div>
           </div>
 
-          {/* 右：明細區（階段 3-4 接基本+庫存+三 tab）*/}
+          {/* 右：明細區（階段 4 接基本+庫存+三 tab）*/}
           <div className="flex min-h-0 flex-col overflow-auto p-4">
             {selected ? (
               <div className="space-y-3">
@@ -413,7 +505,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
 
                 <div className="rounded-lg border border-dashed border-[#2A2A30] p-4 text-center text-[11px] text-[#5A5A60]">
                   基本資料 / 庫存概況 / 進貨銷貨庫存歷史 / 相關零件
-                  <div className="mt-1 text-[10px] text-[#3A3A42]">階段 3-5 接入</div>
+                  <div className="mt-1 text-[10px] text-[#3A3A42]">階段 4-5 接入</div>
                 </div>
               </div>
             ) : (
@@ -430,8 +522,8 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-5 py-2 text-[10px] text-[#5A5A60]">
           <span>
-            F2 開關 · Tab/Enter 跳下一欄 · 最後一欄 Enter 送出 · ↑↓ 切結果 · Alt+F 回第一欄 ·
-            Esc 關閉
+            F2 開關 · 各欄輸入出聯想 · ↑↓ 選聯想 · Enter 確認+跳下一欄 · 料號欄 Enter 搜尋 ·
+            Alt+F 回第一欄 · Esc 關
           </span>
           <span className="font-mono text-[#3A3A42]">NEXORA · Part Quick Search</span>
         </div>
@@ -440,35 +532,14 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   );
 }
 
-/** 篩選欄共用:label + input */
-function FilterInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-  inputRef,
-  onKeyDown,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  inputRef?: React.Ref<HTMLInputElement>;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">{label}</span>
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={onKeyDown}
-        placeholder={placeholder}
-        className="h-8 rounded-md border border-[#2A2A30] bg-[#0F0F12] px-2 text-xs text-[#E8E8EB] outline-none placeholder:text-[#5A5A60] transition focus:border-[#E8A020]/60"
-      />
-    </label>
-  );
+/** 撈零件族群清單（一次性 cache、ScopePicker 範式 raw fetch）*/
+async function fetchPartGroupsList(): Promise<PartGroupOpt[]> {
+  try {
+    const res = await apiFetch('/nx01/part-groups?isActive=true&pageSize=100', { method: 'GET' });
+    if (!res.ok) return [];
+    const json = (await res.json()) as { rows?: Array<{ id: string; code: string; name: string }> };
+    return (json.rows ?? []).map((g) => ({ id: g.id, code: g.code, name: g.name }));
+  } catch {
+    return [];
+  }
 }
-
