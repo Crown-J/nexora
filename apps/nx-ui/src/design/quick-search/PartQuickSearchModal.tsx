@@ -39,6 +39,7 @@ import type { PartSearchQuery, PartSearchResult, PartSearchRow } from '@data/typ
 import { cn } from '@design/utils/cn';
 
 import { Combobox } from './Combobox';
+import { PhoneticPicker } from './PhoneticPicker';
 
 type Props = {
   open: boolean;
@@ -140,20 +141,6 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     [partGroups],
   );
 
-  const fetchKeywordSuggestions = useCallback(async (q: string): Promise<PartSearchRow[]> => {
-    try {
-      const res = await quickSearchParts({
-        keyword: q,
-        includeInactive: true,
-        page: 1,
-        pageSize: SUGGESTION_LIMIT,
-      });
-      return res.rows;
-    } catch {
-      return [];
-    }
-  }, []);
-
   const fetchPartNoSuggestions = useCallback(async (q: string): Promise<PartSearchRow[]> => {
     try {
       const res = await quickSearchParts({
@@ -226,11 +213,11 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   const submitFromPartGroup = useCallback(() => focusNext(2), [focusNext]);
   const submitFromPartNo = useCallback(() => void runSearch(true), [runSearch]);
 
-  // 各欄 onSelect（選聯想項時填入 input 值）
-  const selectBrand = useCallback((b: BrandOpt) => setBrandQuery(b.code), []);
-  const selectPartGroup = useCallback((g: PartGroupOpt) => setPartGroupQuery(g.code), []);
-  const selectKeyword = useCallback((r: PartSearchRow) => setKeyword(r.name), []);
+  // 各欄 onSelect（選聯想項時填入 input 值；廠牌/族群帶 name、料號帶 code、品名走 PhoneticPicker）
+  const selectBrand = useCallback((b: BrandOpt) => setBrandQuery(b.name), []);
+  const selectPartGroup = useCallback((g: PartGroupOpt) => setPartGroupQuery(g.name), []);
   const selectPartNo = useCallback((r: PartSearchRow) => setPartNo(r.code), []);
+  const selectKeywordName = useCallback((name: string) => setKeyword(name), []);
 
   // 全域熱鍵：Esc 關 Modal / ↑↓ 切主結果 / Alt+F 回第一欄
   useEffect(() => {
@@ -336,17 +323,13 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
             onSelect={selectBrand}
             onSubmit={submitFromBrand}
           />
-          <Combobox<PartSearchRow>
-            label="品名 / 注音聲母"
+          <PhoneticPicker
+            label="品名"
             value={keyword}
             onChange={setKeyword}
-            placeholder="例:火星塞、ㄏㄒㄙ"
+            placeholder="直接打中文 / 注音鍵盤碼+F4 (CVN→火星塞)"
             inputRef={keywordInputRef}
-            fetchSuggestions={fetchKeywordSuggestions}
-            getKey={(r) => r.id}
-            getLabel={(r) => r.name}
-            getDescription={(r) => `${r.code}${r.brandCode ? ` · ${r.brandCode}` : ''}`}
-            onSelect={selectKeyword}
+            onSelectName={selectKeywordName}
             onSubmit={submitFromKeyword}
           />
           <Combobox<PartGroupOpt>
@@ -520,8 +503,8 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-[#2A2A30] bg-[#0A0A0C]/40 px-5 py-2 text-[10px] text-[#5A5A60]">
           <span>
-            F2 開關 · 各欄輸入出聯想 · ↑↓ 選聯想 · Enter 確認+跳下一欄 · 料號欄 Enter 搜尋 ·
-            Alt+F 回第一欄 · Esc 關
+            F2 開關 · 廠牌/族群/料號輸入出聯想 · 品名按 F4 注音查詢 · ↑↓ 選 · Enter 確認 ·
+            料號欄 Enter 搜尋 · Alt+F 回第一欄 · Esc 關
           </span>
           <span className="font-mono text-[#3A3A42]">NEXORA · Part Quick Search</span>
         </div>
