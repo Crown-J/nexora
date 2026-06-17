@@ -22,14 +22,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Loader2, PackageSearch, Search, X } from 'lucide-react';
 
-import { apiFetch } from '@data/api/client';
 import { quickSearchParts } from '@data/endpoints/nx01/part-search/api/part-search';
-import { listBrands } from '@data/endpoints/nx01/api/brand';
 import type { PartSearchQuery, PartSearchResult, PartSearchRow } from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
-
-type BrandOpt = { id: string; code: string; name: string };
-type PartGroupOpt = { id: string; code: string; name: string };
 
 type Props = {
   open: boolean;
@@ -38,12 +33,13 @@ type Props = {
 
 const PAGE_SIZE = 100;
 const HARD_LIMIT = 500;
+const DEBOUNCE_MS = 450;
 
 export function PartQuickSearchModal({ open, onClose }: Props) {
-  // 篩選四欄
-  const [brandId, setBrandId] = useState('');
-  const [partGroupId, setPartGroupId] = useState('');
+  // 篩選四欄全部 input（執行長 2026-06-17 拍板第二次回饋：四欄統一可輸入文字）
+  const [brandQuery, setBrandQuery] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [partGroupQuery, setPartGroupQuery] = useState('');
   const [partNo, setPartNo] = useState('');
   const [includeInactive, setIncludeInactive] = useState(false);
 
@@ -54,28 +50,24 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  // 主檔下拉
-  const [brands, setBrands] = useState<BrandOpt[]>([]);
-  const [partGroups, setPartGroups] = useState<PartGroupOpt[]>([]);
-
   // 焦點流程：篩選四欄 ref（順序 廠牌 → 品名 → 族群 → 料號 → 結果列表）
-  const brandSelectRef = useRef<HTMLSelectElement>(null);
+  const brandInputRef = useRef<HTMLInputElement>(null);
   const keywordInputRef = useRef<HTMLInputElement>(null);
-  const partGroupSelectRef = useRef<HTMLSelectElement>(null);
+  const partGroupInputRef = useRef<HTMLInputElement>(null);
   const partNoInputRef = useRef<HTMLInputElement>(null);
   // 觸發「搜尋完成後焦點跳結果第一筆」的旗標
   const focusResultAfterSearchRef = useRef(false);
 
   const focusFirstFilter = useCallback(() => {
-    setTimeout(() => brandSelectRef.current?.focus(), 0);
+    setTimeout(() => brandInputRef.current?.focus(), 0);
   }, []);
 
   // Modal 開啟 reset + focus 第一個欄位（廠牌、執行長 2026-06-17 拍板）
   useEffect(() => {
     if (!open) return;
-    setBrandId('');
-    setPartGroupId('');
+    setBrandQuery('');
     setKeyword('');
+    setPartGroupQuery('');
     setPartNo('');
     setIncludeInactive(false);
     setRows([]);
@@ -86,41 +78,22 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     focusFirstFilter();
   }, [open, focusFirstFilter]);
 
-  // 開啟時 lazy load 廠牌 + 族群（只撈一次）
-  useEffect(() => {
-    if (!open || brands.length > 0) return;
-    void (async () => {
-      try {
-        const [brandRes, partGroupRes] = await Promise.all([
-          listBrands({ isPart: true, isActive: true, pageSize: 100 }),
-          fetchPartGroups(),
-        ]);
-        setBrands(brandRes.items.map((b) => ({ id: b.id, code: b.code, name: b.name })));
-        setPartGroups(partGroupRes);
-      } catch {
-        // 失敗不擋 modal 開啟、UI 顯示空 dropdown
-      }
-    })();
-  }, [open, brands.length]);
-
   const hasAnyFilter = useMemo(
-    () => Boolean(brandId.trim() || partGroupId.trim() || keyword.trim() || partNo.trim()),
-    [brandId, partGroupId, keyword, partNo],
+    () => Boolean(brandQuery.trim() || partGroupQuery.trim() || keyword.trim() || partNo.trim()),
+    [brandQuery, partGroupQuery, keyword, partNo],
   );
 
   const runSearch = useCallback(async () => {
     if (!hasAnyFilter) {
       setError('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
-      setRows([]);
-      setResult(null);
       return;
     }
     setLoading(true);
     setError(null);
     try {
       const q: PartSearchQuery = {
-        brandId: brandId || undefined,
-        partGroupId: partGroupId || undefined,
+        brandQuery: brandQuery || undefined,
+        partGroupQuery: partGroupQuery || undefined,
         keyword: keyword || undefined,
         partNo: partNo || undefined,
         includeInactive,
@@ -133,17 +106,17 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
       setFocusedIndex(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : '搜尋失敗');
-      setRows([]);
-      setResult(null);
+      // 失敗不清空 rows、保留上次結果避免畫面閃跳
     } finally {
       setLoading(false);
     }
-  }, [hasAnyFilter, brandId, partGroupId, keyword, partNo, includeInactive]);
+  }, [hasAnyFilter, brandQuery, partGroupQuery, keyword, partNo, includeInactive]);
 
-  // debounce 350ms 自動搜
+  // debounce 自動搜（執行長 2026-06-17 回饋:閃跳 → 加長到 450ms + 失敗時不清空舊 rows）
   useEffect(() => {
     if (!open) return;
     if (!hasAnyFilter) {
+      // 四欄全空：清空結果、reset 視覺
       setRows([]);
       setResult(null);
       setError(null);
@@ -151,14 +124,16 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     }
     const t = setTimeout(() => {
       void runSearch();
-    }, 350);
+    }, DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [open, hasAnyFilter, brandId, partGroupId, keyword, partNo, includeInactive, runSearch]);
+  }, [open, hasAnyFilter, brandQuery, partGroupQuery, keyword, partNo, includeInactive, runSearch]);
 
   // 全域熱鍵：Esc 關 / ↑↓ 切結果 / Alt+F 回第一個欄位（執行長 2026-06-17 拍板）
   useEffect(() => {
     if (!open) return;
     const h = (e: KeyboardEvent) => {
+      // IME composition 中（中文輸入未確認）一律不處理、避免確認字觸發跳欄/切結果
+      if (e.isComposing) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
@@ -186,23 +161,21 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   }, [open, rows.length, onClose, focusFirstFilter]);
 
   // 篩選欄 Enter / Tab 跳下一欄；最後一欄 Enter → 立即搜尋 + 焦點跳結果第一筆
-  const FILTER_ORDER: Array<React.RefObject<HTMLElement>> = useMemo(
-    () => [
-      brandSelectRef as unknown as React.RefObject<HTMLElement>,
-      keywordInputRef as unknown as React.RefObject<HTMLElement>,
-      partGroupSelectRef as unknown as React.RefObject<HTMLElement>,
-      partNoInputRef as unknown as React.RefObject<HTMLElement>,
-    ],
+  const FILTER_ORDER: Array<React.RefObject<HTMLInputElement | null>> = useMemo(
+    () => [brandInputRef, keywordInputRef, partGroupInputRef, partNoInputRef],
     [],
   );
 
   const handleFilterKeyDown = useCallback(
-    (idx: number) => (e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (idx: number) => (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // IME composition 中（中文輸入未確認）不處理 Enter、交給 IME 確認字
+      if (e.nativeEvent.isComposing) return;
       // Enter：非最後欄位跳下一欄、最後欄位立即送出 + 焦點跳結果
       if (e.key === 'Enter') {
         e.preventDefault();
         if (idx < FILTER_ORDER.length - 1) {
           FILTER_ORDER[idx + 1]?.current?.focus();
+          FILTER_ORDER[idx + 1]?.current?.select();
           return;
         }
         // 最後一欄：立即搜（取代 debounce）、搜完 useEffect 會 focus 結果第一筆
@@ -281,14 +254,14 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
           </button>
         </div>
 
-        {/* 篩選列（焦點順序:廠牌 → 品名 → 族群 → 料號 → 結果列表）*/}
+        {/* 篩選列（焦點順序:廠牌 → 品名 → 族群 → 料號 → 結果列表、四欄統一 input）*/}
         <div className="grid grid-cols-1 gap-2 border-b border-[#2A2A30] bg-[#13131A] px-5 py-3 sm:grid-cols-4">
-          <FilterSelect
+          <FilterInput
             label="廠牌"
-            value={brandId}
-            onChange={setBrandId}
-            options={brands.map((b) => ({ value: b.id, label: `${b.code} · ${b.name}` }))}
-            selectRef={brandSelectRef}
+            value={brandQuery}
+            onChange={setBrandQuery}
+            placeholder="例:BOSCH / NGK / VAG"
+            inputRef={brandInputRef}
             onKeyDown={handleFilterKeyDown(0)}
           />
           <FilterInput
@@ -299,19 +272,19 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
             inputRef={keywordInputRef}
             onKeyDown={handleFilterKeyDown(1)}
           />
-          <FilterSelect
+          <FilterInput
             label="零件族群"
-            value={partGroupId}
-            onChange={setPartGroupId}
-            options={partGroups.map((g) => ({ value: g.id, label: `${g.code} · ${g.name}` }))}
-            selectRef={partGroupSelectRef}
+            value={partGroupQuery}
+            onChange={setPartGroupQuery}
+            placeholder="例:ENGINE / 引擎 / BRAKE"
+            inputRef={partGroupInputRef}
             onKeyDown={handleFilterKeyDown(2)}
           />
           <FilterInput
             label="使用料號"
             value={partNo}
             onChange={setPartNo}
-            placeholder="例:03L-100-091 / 03L 100 091"
+            placeholder="例:DEMO-ATE / VAG-03H / 03L 100 091"
             inputRef={partNoInputRef}
             onKeyDown={handleFilterKeyDown(3)}
           />
@@ -467,43 +440,6 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   );
 }
 
-/** 篩選欄共用:label + dropdown */
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-  selectRef,
-  onKeyDown,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-  selectRef?: React.Ref<HTMLSelectElement>;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLSelectElement>) => void;
-}) {
-  return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">{label}</span>
-      <select
-        ref={selectRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={onKeyDown}
-        className="h-8 rounded-md border border-[#2A2A30] bg-[#0F0F12] px-2 text-xs text-[#E8E8EB] outline-none transition focus:border-[#E8A020]/60"
-      >
-        <option value="">ALL（不篩選）</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
 /** 篩選欄共用:label + input */
 function FilterInput({
   label,
@@ -536,17 +472,3 @@ function FilterInput({
   );
 }
 
-/**
- * 撈零件族群清單（一次性 cache）。
- * 既有 /nx01/part-groups endpoint 沒專屬 client、用 apiFetch 直接撈。
- */
-async function fetchPartGroups(): Promise<PartGroupOpt[]> {
-  try {
-    const res = await apiFetch('/nx01/part-groups?isActive=true&pageSize=100', { method: 'GET' });
-    if (!res.ok) return [];
-    const json = (await res.json()) as { rows?: Array<{ id: string; code: string; name: string }> };
-    return (json.rows ?? []).map((g) => ({ id: g.id, code: g.code, name: g.name }));
-  } catch {
-    return [];
-  }
-}

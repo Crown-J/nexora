@@ -33,11 +33,13 @@ export class PartSearchService {
     const skip = (page - 1) * pageSize;
 
     const brandId = q.brandId?.trim();
+    const brandQuery = q.brandQuery?.trim();
     const partGroupId = q.partGroupId?.trim();
+    const partGroupQuery = q.partGroupQuery?.trim();
     const keyword = q.keyword?.trim();
     const partNo = q.partNo?.trim();
 
-    if (!brandId && !partGroupId && !keyword && !partNo) {
+    if (!brandId && !brandQuery && !partGroupId && !partGroupQuery && !keyword && !partNo) {
       throw new BadRequestException('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
     }
 
@@ -45,6 +47,45 @@ export class PartSearchService {
     if (!q.includeInactive) where.isActive = true;
     if (brandId) where.brandId = brandId;
     if (partGroupId) where.partGroupId = partGroupId;
+
+    // 廠牌關鍵字（執行長 2026-06-17 拍板四欄都 input）：brand.code/name contains
+    if (brandQuery) {
+      const brands = await this.prisma.nx01Brand.findMany({
+        where: {
+          tenantId,
+          isPart: true,
+          OR: [
+            { code: { contains: brandQuery, mode: 'insensitive' } },
+            { name: { contains: brandQuery, mode: 'insensitive' } },
+          ],
+        },
+        select: { id: true },
+        take: 100,
+      });
+      if (brands.length === 0) {
+        return { page, pageSize, total: 0, rawTotal: 0, limitReached: false, rows: [] };
+      }
+      where.brandId = { in: brands.map((b) => b.id) };
+    }
+
+    // 族群關鍵字：part_group.code/name contains
+    if (partGroupQuery) {
+      const pgs = await this.prisma.nx01PartGroup.findMany({
+        where: {
+          tenantId,
+          OR: [
+            { code: { contains: partGroupQuery, mode: 'insensitive' } },
+            { name: { contains: partGroupQuery, mode: 'insensitive' } },
+          ],
+        },
+        select: { id: true },
+        take: 100,
+      });
+      if (pgs.length === 0) {
+        return { page, pageSize, total: 0, rawTotal: 0, limitReached: false, rows: [] };
+      }
+      where.partGroupId = { in: pgs.map((g) => g.id) };
+    }
 
     const ANDs: Prisma.Nx01PartWhereInput[] = [];
 

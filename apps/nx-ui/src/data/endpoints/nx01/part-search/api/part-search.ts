@@ -20,7 +20,9 @@ const BASE = '/nx01/part-search';
 export async function quickSearchParts(q: PartSearchQuery): Promise<PartSearchResult> {
   const qs = buildQueryString({
     brandId: q.brandId?.trim() || undefined,
+    brandQuery: q.brandQuery?.trim() || undefined,
     partGroupId: q.partGroupId?.trim() || undefined,
+    partGroupQuery: q.partGroupQuery?.trim() || undefined,
     keyword: q.keyword?.trim() || undefined,
     partNo: q.partNo?.trim() || undefined,
     includeInactive: q.includeInactive ? 'true' : undefined,

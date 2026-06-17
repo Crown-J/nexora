@@ -18,11 +18,17 @@ function toOptionalBool(value: unknown): boolean | undefined {
 }
 
 export class PartSearchQueryDto {
-  /** 廠牌 ID（refOptions value）*/
+  /** 廠牌 ID（保留、若有就走 ID 精準篩；前端 v2 改用 brandQuery）*/
   @IsOptional() @IsString() @MaxLength(15) brandId?: string;
 
-  /** 零件族群 ID */
+  /** 廠牌關鍵字（brand.code 或 brand.name 含此字、執行長 2026-06-17 拍板四欄都 input）*/
+  @IsOptional() @IsString() @MaxLength(100) brandQuery?: string;
+
+  /** 零件族群 ID（保留、若有就走 ID 精準篩；前端 v2 改用 partGroupQuery）*/
   @IsOptional() @IsString() @MaxLength(15) partGroupId?: string;
+
+  /** 零件族群關鍵字（part_group.code 或 name 含此字）*/
+  @IsOptional() @IsString() @MaxLength(100) partGroupQuery?: string;
 
   /**
    * 品名關鍵字（同時打：name contains + 注音聲母碼 contains）。

@@ -28,7 +28,9 @@ export type PartSearchResult = {
 
 export type PartSearchQuery = {
   brandId?: string;
+  brandQuery?: string;
   partGroupId?: string;
+  partGroupQuery?: string;
   keyword?: string;
   partNo?: string;
   includeInactive?: boolean;
