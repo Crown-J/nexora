@@ -363,16 +363,37 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         <div className="grid min-h-[480px] flex-1 grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
           {/* 左：主結果列表 */}
           <div className="relative flex min-h-0 flex-col border-b border-[#2A2A30] lg:border-b-0 lg:border-r">
-            <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#0A0A0C]/60 px-4 py-1.5 text-[11px] text-[#888892]">
-              <span>
+            <div className="flex items-center justify-between gap-2 border-b border-[#2A2A30] bg-[#0A0A0C]/60 px-4 py-1.5 text-[11px] text-[#888892]">
+              <span className="min-w-0 flex-1 truncate">
                 {result ? (
                   <>
                     主結果{' '}
-                    <span className="font-mono text-[#E8A020]">{result.total.toLocaleString()}</span>{' '}
+                    <span
+                      className={cn(
+                        'font-mono',
+                        result.total === 0 ? 'text-[#E26060]' : 'text-[#E8A020]',
+                      )}
+                    >
+                      {result.total.toLocaleString()}
+                    </span>{' '}
                     筆
                     {result.limitReached ? (
                       <span className="ml-1 text-[#E26060]">
                         （已達上限 {HARD_LIMIT}、請加條件再縮小）
+                      </span>
+                    ) : null}
+                    {result.total === 0 ? (
+                      <span className="ml-2 text-[#E26060]">
+                        條件「
+                        {[
+                          brandQuery && `廠牌=${brandQuery}`,
+                          keyword && `品名=${keyword}`,
+                          partGroupQuery && `族群=${partGroupQuery}`,
+                          partNo && `料號=${partNo}`,
+                        ]
+                          .filter(Boolean)
+                          .join(' / ') || '空'}
+                        」無對應料號（檢查 demo seed 是否已跑）
                       </span>
                     ) : null}
                   </>
@@ -380,7 +401,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                   '輸入條件後按 Enter（料號欄）或右上「搜尋」'
                 )}
               </span>
-              <span className="font-mono text-[10px] text-[#5A5A60]">↑↓ 切結果</span>
+              <span className="shrink-0 font-mono text-[10px] text-[#5A5A60]">↑↓ 切結果</span>
             </div>
 
             {error ? (

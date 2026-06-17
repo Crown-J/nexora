@@ -188,11 +188,16 @@ export function PhoneticPicker({
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-1">
-      <span className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">
-        {label}
-        <span className="rounded border border-[#2A2A30] bg-[#1A1A22] px-1 font-mono text-[9px] text-[#888892]">
-          F4 注音
-        </span>
+      <span className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">
+        <span>{label}</span>
+        <button
+          type="button"
+          onClick={() => void triggerPhoneticLookup()}
+          className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-px font-mono text-[9px] tracking-normal text-[#E8A020] hover:bg-[#E8A020]/20"
+          title="把輸入視為注音鍵盤碼（如 CVN→ㄏㄒㄙ）查料號"
+        >
+          F4 注音查
+        </button>
       </span>
       <input
         ref={inputRef}
