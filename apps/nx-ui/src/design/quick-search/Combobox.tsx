@@ -56,6 +56,7 @@ export function Combobox<T>({
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<T[]>([]);
   const [focusedIdx, setFocusedIdx] = useState(-1);
+  const [searchedEmpty, setSearchedEmpty] = useState(false);
   const reqIdRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   // 選定聯想項後 set true、下次 value 變化的 useEffect 跳過 fetch（避免下拉重新打開）
@@ -77,11 +78,13 @@ export function Combobox<T>({
           if (reqIdRef.current !== myReqId) return; // 過期請求丟掉
           setSuggestions(items);
           setFocusedIdx(items.length > 0 ? 0 : -1);
-          setOpen(items.length > 0);
+          setSearchedEmpty(items.length === 0);
+          setOpen(true); // 永遠開（有結果就顯示項目；無結果顯示「無聯想項」提示）
         } catch {
           if (reqIdRef.current !== myReqId) return;
           setSuggestions([]);
-          setOpen(false);
+          setSearchedEmpty(true);
+          setOpen(true);
         }
       })();
     }, debounceMs);
@@ -96,6 +99,7 @@ export function Combobox<T>({
         setSuggestions([]);
         setOpen(false);
         setFocusedIdx(-1);
+        setSearchedEmpty(false);
       }
     },
     [onChange],
@@ -108,6 +112,7 @@ export function Combobox<T>({
       setOpen(false);
       setSuggestions([]);
       setFocusedIdx(-1);
+      setSearchedEmpty(false);
       onSelect(item);
       onSubmit();
     },
@@ -231,6 +236,10 @@ export function Combobox<T>({
             );
           })}
         </ul>
+      ) : open && searchedEmpty ? (
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A2A30] bg-[#13131A] px-3 py-2 text-[11px] text-[#5A5A60] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+          無聯想項（按 Enter 用輸入文字搜尋、或檢查是否已 seed 測試資料）
+        </div>
       ) : null}
     </div>
   );
