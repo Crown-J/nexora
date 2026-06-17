@@ -10,6 +10,7 @@ import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantId } from '../../shared/nx01/require-tenant';
 import { searchPhoneticSourceIds } from '../../shared/nx01/sync-phonetic-index';
+import { PartPhotoService } from '../part-photo/part-photo.service';
 
 import type { PartSearchQueryDto } from './dto/part-search.dto';
 
@@ -23,7 +24,20 @@ const HARD_RESULT_LIMIT = 500;
 
 @Injectable()
 export class PartSearchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly partPhotoSvc: PartPhotoService,
+  ) {}
+
+  /** 產品圖片 list（proxy 既有 PartPhotoService、放寬給 F2 全公司可用）*/
+  async listPhotos(user: RequestUser, partId: string) {
+    return this.partPhotoSvc.list(user, partId);
+  }
+
+  /** 產品圖片 binary（proxy 既有 PartPhotoService）*/
+  async downloadPhoto(user: RequestUser, partId: string, photoId: string) {
+    return this.partPhotoSvc.download(user, partId, photoId);
+  }
 
   /**
    * F2 廠牌 / 族群主檔下拉（全公司可用）。

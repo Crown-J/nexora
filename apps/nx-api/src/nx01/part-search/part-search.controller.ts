@@ -13,7 +13,8 @@
 //   GET    /nx01/part-search/:id/sales-history     — 銷貨+報價（成交+未成交）+ ABCD 建議報價
 //   GET    /nx01/part-search/:id/stock-history     — 庫存出入/調撥/盤點（近 100 筆）
 //   GET    /nx01/part-search/:id/related           — 相關零件（PartRelation 雙向、Q3=A 不分子類型）
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator';
@@ -66,5 +67,25 @@ export class PartSearchController {
   @Get(':id/related')
   getRelatedParts(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getRelatedParts(user, id);
+  }
+
+  /** 產品圖片 list（執行長 2026-06-17 拍板：明細區要顯示圖片）*/
+  @Get(':id/photos')
+  listPhotos(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.listPhotos(user, id);
+  }
+
+  /** 產品圖片 binary（前端 <img src="...raw"> 直接用）*/
+  @Get(':id/photos/:photoId/raw')
+  async downloadPhoto(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Param('photoId') photoId: string,
+    @Res() res: Response,
+  ) {
+    const { buffer, mimeType } = await this.svc.downloadPhoto(user, id, photoId);
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Cache-Control', 'private, max-age=600');
+    res.send(buffer);
   }
 }

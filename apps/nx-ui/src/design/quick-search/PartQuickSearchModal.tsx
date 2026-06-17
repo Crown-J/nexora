@@ -29,13 +29,24 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Loader2, PackageSearch, Search, X } from 'lucide-react';
+import { AlertCircle, Image as ImageIcon, Loader2, PackageSearch, Search, X } from 'lucide-react';
 
 import {
+  buildPartSearchPhotoUrl,
+  getPartDetail,
   getPartSearchMasterOptions,
+  getPartStockSummary,
+  listPartSearchPhotos,
   quickSearchParts,
+  type PartPhotoMeta,
 } from '@data/endpoints/nx01/part-search/api/part-search';
-import type { PartSearchQuery, PartSearchResult, PartSearchRow } from '@data/types/nx01/part-search';
+import type {
+  PartDetailDto,
+  PartSearchQuery,
+  PartSearchResult,
+  PartSearchRow,
+  PartStockSummaryDto,
+} from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
 
 import { Combobox } from './Combobox';
@@ -67,6 +78,13 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focusedIndex, setFocusedIndex] = useState(0);
+
+  // 明細區（隨選中料號變動）
+  const [detail, setDetail] = useState<PartDetailDto | null>(null);
+  const [stockSummary, setStockSummary] = useState<PartStockSummaryDto | null>(null);
+  const [photos, setPhotos] = useState<PartPhotoMeta[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const detailReqIdRef = useRef(0);
 
   // 廠牌 / 族群主檔（開啟時一次撈、cache 給聯想 filter 用）
   const [brands, setBrands] = useState<BrandOpt[]>([]);
@@ -265,9 +283,41 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     if (activeIsResultRow) el?.focus();
   }, [focusedIndex, open]);
 
-  if (!open) return null;
-
+  // 選中 row 變化 → 並行 fetch detail + stockSummary + photos
   const selected = rows[focusedIndex];
+  useEffect(() => {
+    if (!open || !selected) {
+      setDetail(null);
+      setStockSummary(null);
+      setPhotos([]);
+      return;
+    }
+    const partId = selected.id;
+    const myReqId = ++detailReqIdRef.current;
+    setDetailLoading(true);
+    void (async () => {
+      try {
+        const [d, s, p] = await Promise.all([
+          getPartDetail(partId),
+          getPartStockSummary(partId),
+          listPartSearchPhotos(partId).catch(() => ({ rows: [] as PartPhotoMeta[] })),
+        ]);
+        if (detailReqIdRef.current !== myReqId) return;
+        setDetail(d);
+        setStockSummary(s);
+        setPhotos(p.rows);
+      } catch {
+        if (detailReqIdRef.current !== myReqId) return;
+        setDetail(null);
+        setStockSummary(null);
+        setPhotos([]);
+      } finally {
+        if (detailReqIdRef.current === myReqId) setDetailLoading(false);
+      }
+    })();
+  }, [open, selected]);
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80">
@@ -359,8 +409,8 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
           />
         </div>
 
-        {/* 主結果區 + 明細區 split（固定高度 + loading overlay 防搜尋瞬間 layout 跳）*/}
-        <div className="grid min-h-[480px] flex-1 grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
+        {/* 主結果區（窄）+ 明細區（寬）split（執行長 2026-06-17:右側要更寬顯示更多資訊）*/}
+        <div className="grid min-h-[520px] flex-1 grid-cols-1 lg:grid-cols-[0.85fr_1.15fr]">
           {/* 左：主結果列表 */}
           <div className="relative flex min-h-0 flex-col border-b border-[#2A2A30] lg:border-b-0 lg:border-r">
             <div className="flex items-center justify-between gap-2 border-b border-[#2A2A30] bg-[#0A0A0C]/60 px-4 py-1.5 text-[11px] text-[#888892]">
@@ -428,29 +478,18 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                         data-pqs-row={idx}
                         onClick={() => setFocusedIndex(idx)}
                         className={cn(
-                          'flex w-full items-center gap-3 px-4 py-2 text-left',
+                          'flex w-full items-center gap-2 px-3 py-2 text-left',
                           idx === focusedIndex
                             ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/50'
                             : 'hover:bg-[#1A1A22]',
                           !r.isActive && 'opacity-60',
                         )}
                       >
-                        <span className="w-[160px] shrink-0 truncate font-mono text-xs text-[#E8A020]">
+                        {/* 執行長 2026-06-17:列表只顯示基準料號 + 庫存簡列 */}
+                        <span className="min-w-0 flex-1 truncate font-mono text-xs text-[#E8A020]">
                           {r.code}
                         </span>
-                        <span className="min-w-0 flex-1 truncate text-sm text-[#E8E8EB]">
-                          {r.name}
-                          {r.spec ? (
-                            <span className="ml-1.5 text-[10px] text-[#5A5A60]">· {r.spec}</span>
-                          ) : null}
-                        </span>
-                        <span className="w-[100px] shrink-0 truncate text-[11px] text-[#888892]">
-                          {r.brandCode ?? '—'}
-                        </span>
-                        <span className="w-[80px] shrink-0 truncate text-[11px] text-[#888892]">
-                          {r.partGroupCode ?? '—'}
-                        </span>
-                        <span className="w-[100px] shrink-0 text-right font-mono text-xs">
+                        <span className="shrink-0 text-right font-mono text-[11px]">
                           <span className="text-[#22D88F]">{Number(r.onHandTotal).toFixed(0)}</span>
                           <span className="text-[#5A5A60]"> / </span>
                           <span className="text-[#888892]">{Number(r.availableTotal).toFixed(0)}</span>
@@ -473,52 +512,14 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
             ) : null}
           </div>
 
-          {/* 右：明細區（階段 4 接基本+庫存+三 tab）*/}
-          <div className="flex min-h-0 flex-col overflow-auto p-4">
-            {selected ? (
-              <div className="space-y-3">
-                <div className="rounded-lg border border-[#2A2A30] bg-[#1A1A22] p-3">
-                  <div className="text-[10px] uppercase tracking-[0.28em] text-[#5A5A60]">
-                    Selected
-                  </div>
-                  <div className="mt-1 font-mono text-sm text-[#E8A020]">{selected.code}</div>
-                  <div className="mt-0.5 text-sm text-[#E8E8EB]">{selected.name}</div>
-                  <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-[#888892]">
-                    <div>廠牌：{selected.brandName ?? '—'}</div>
-                    <div>族群：{selected.partGroupName ?? '—'}</div>
-                    <div>副廠料號：{selected.secCode ?? '—'}</div>
-                    <div>狀態：{selected.isActive ? '啟用' : '停用'}</div>
-                  </div>
-                  <div className="mt-2 flex gap-3 border-t border-[#2A2A30] pt-2 text-[11px]">
-                    <div>
-                      <span className="text-[#5A5A60]">公司庫存</span>{' '}
-                      <span className="font-mono text-[#22D88F]">
-                        {Number(selected.onHandTotal).toFixed(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[#5A5A60]">可出量</span>{' '}
-                      <span className="font-mono text-[#E8E8EB]">
-                        {Number(selected.availableTotal).toFixed(0)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-dashed border-[#2A2A30] p-4 text-center text-[11px] text-[#5A5A60]">
-                  基本資料 / 庫存概況 / 進貨銷貨庫存歷史 / 相關零件
-                  <div className="mt-1 text-[10px] text-[#3A3A42]">階段 4-5 接入</div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex h-full items-center justify-center text-center text-[11px] text-[#5A5A60]">
-                <div>
-                  <PackageSearch className="mx-auto mb-2 size-6 text-[#3A3A42]" />
-                  選一筆結果以查看完整資料
-                </div>
-              </div>
-            )}
-          </div>
+          {/* 右：明細區（基本資料 + 庫存概況 + 產品圖片；進貨/銷貨/庫存歷史留後續階段）*/}
+          <DetailPane
+            selected={selected}
+            detail={detail}
+            stockSummary={stockSummary}
+            photos={photos}
+            detailLoading={detailLoading}
+          />
         </div>
 
         {/* Footer */}
@@ -531,6 +532,278 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** 右側明細區：基本資料 + 庫存概況 + 產品圖片（執行長 2026-06-17 拍板）*/
+function DetailPane({
+  selected,
+  detail,
+  stockSummary,
+  photos,
+  detailLoading,
+}: {
+  selected: PartSearchRow | undefined;
+  detail: PartDetailDto | null;
+  stockSummary: PartStockSummaryDto | null;
+  photos: PartPhotoMeta[];
+  detailLoading: boolean;
+}) {
+  if (!selected) {
+    return (
+      <div className="flex min-h-0 flex-col items-center justify-center p-6 text-center text-[11px] text-[#5A5A60]">
+        <PackageSearch className="mb-2 size-8 text-[#3A3A42]" />
+        選一筆結果以查看完整資料
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-col overflow-auto p-4">
+      <div className="space-y-3">
+        {/* 產品圖片區（主圖大、其他縮圖小）*/}
+        <PhotoCard partId={selected.id} photos={photos} loading={detailLoading} />
+
+        {/* 基本資料 */}
+        <section className="rounded-lg border border-[#2A2A30] bg-[#13131A] p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#888892]">
+              基本資料
+            </h3>
+            {detailLoading ? <Loader2 className="size-3 animate-spin text-[#5A5A60]" /> : null}
+          </div>
+          <div className="space-y-1.5">
+            <DataRow label="基準料號" value={detail?.code ?? selected.code} mono accent />
+            <DataRow label="品名" value={detail?.name ?? selected.name} />
+            <DataRow label="副廠料號" value={detail?.secCode ?? selected.secCode ?? '—'} mono />
+            <DataRow label="舊料號" value={detail?.oldCode ?? '—'} mono />
+            <DataRow
+              label="廠牌"
+              value={
+                detail?.brand
+                  ? `${detail.brand.code} · ${detail.brand.name}`
+                  : (selected.brandName ?? '—')
+              }
+            />
+            <DataRow
+              label="族群"
+              value={
+                detail?.partGroup
+                  ? `${detail.partGroup.code} · ${detail.partGroup.name}`
+                  : (selected.partGroupName ?? '—')
+              }
+            />
+            <DataRow label="備註 (規格)" value={detail?.spec ?? selected.spec ?? '—'} />
+            <DataRow label="狀態" value={selected.isActive ? '啟用' : '停用'} />
+          </div>
+        </section>
+
+        {/* 庫存概況 */}
+        <section className="rounded-lg border border-[#2A2A30] bg-[#13131A] p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#888892]">
+              庫存概況
+            </h3>
+            {detailLoading ? <Loader2 className="size-3 animate-spin text-[#5A5A60]" /> : null}
+          </div>
+
+          {/* 公司總 */}
+          <div className="mb-2 grid grid-cols-4 gap-2">
+            <StatPill
+              label="公司庫存"
+              value={stockSummary?.company.onHand ?? '0'}
+              color="#22D88F"
+            />
+            <StatPill
+              label="可出量"
+              value={stockSummary?.company.available ?? '0'}
+              color="#E8E8EB"
+            />
+            <StatPill
+              label="不可出"
+              value={String(
+                Number(stockSummary?.company.reserved ?? '0') +
+                  Number(stockSummary?.company.inTransit ?? '0'),
+              )}
+              color="#E26060"
+            />
+            <StatPill
+              label="在途"
+              value={stockSummary?.company.inTransit ?? '0'}
+              color="#888892"
+            />
+          </div>
+
+          {/* 各倉位明細 */}
+          {stockSummary && stockSummary.warehouses.length > 0 ? (
+            <table className="w-full border-collapse text-[11px]">
+              <thead>
+                <tr className="border-b border-[#2A2A30] text-[10px] uppercase tracking-wider text-[#5A5A60]">
+                  <th className="py-1.5 pr-2 text-left font-medium">倉位</th>
+                  <th className="py-1.5 px-1 text-right font-medium">庫存</th>
+                  <th className="py-1.5 px-1 text-right font-medium">可出</th>
+                  <th className="py-1.5 px-1 text-right font-medium">不可出</th>
+                  <th className="py-1.5 pl-1 text-right font-medium">在途</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockSummary.warehouses.map((w) => (
+                  <tr key={w.warehouseId} className="border-b border-[#1A1A1F]">
+                    <td className="py-1.5 pr-2 font-mono text-[#E8E8EB]">
+                      {w.warehouseCode}
+                      <span className="ml-1 text-[10px] text-[#5A5A60]">· {w.warehouseName}</span>
+                    </td>
+                    <td className="py-1.5 px-1 text-right font-mono text-[#22D88F]">
+                      {Number(w.onHand).toFixed(0)}
+                    </td>
+                    <td className="py-1.5 px-1 text-right font-mono text-[#E8E8EB]">
+                      {Number(w.available).toFixed(0)}
+                    </td>
+                    <td className="py-1.5 px-1 text-right font-mono text-[#E26060]">
+                      {Number(w.reserved).toFixed(0)}
+                    </td>
+                    <td className="py-1.5 pl-1 text-right font-mono text-[#888892]">
+                      {Number(w.inTransit).toFixed(0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="rounded border border-dashed border-[#2A2A30] px-3 py-2 text-center text-[10px] text-[#5A5A60]">
+              無倉位庫存資料
+            </div>
+          )}
+        </section>
+
+        {/* 後續階段提示（進貨/銷貨/庫存歷史 / 相關零件）*/}
+        <div className="rounded-lg border border-dashed border-[#2A2A30] p-3 text-center text-[10px] text-[#5A5A60]">
+          進貨明細 / 銷貨報價 / 出入庫紀錄 / 相關零件 ─ 階段 5+ 接入
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DataRow({
+  label,
+  value,
+  mono,
+  accent,
+}: {
+  label: string;
+  value: string | null | undefined;
+  mono?: boolean;
+  accent?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline gap-3 border-b border-[#1A1A1F]/60 pb-1 text-[11px] last:border-b-0 last:pb-0">
+      <span className="w-[78px] shrink-0 text-[#5A5A60]">{label}</span>
+      <span
+        className={cn(
+          'min-w-0 flex-1 truncate',
+          mono && 'font-mono',
+          accent ? 'text-[#E8A020]' : 'text-[#E8E8EB]',
+        )}
+      >
+        {value || '—'}
+      </span>
+    </div>
+  );
+}
+
+function StatPill({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div className="flex flex-col items-center rounded-md border border-[#2A2A30] bg-[#0A0A0C]/60 px-2 py-1.5">
+      <span className="text-[9px] uppercase tracking-wider text-[#5A5A60]">{label}</span>
+      <span className="font-mono text-sm" style={{ color }}>
+        {Number(value).toFixed(0)}
+      </span>
+    </div>
+  );
+}
+
+/** 產品圖片區：主圖大顯示、縮圖 strip、無圖時 placeholder */
+function PhotoCard({
+  partId,
+  photos,
+  loading,
+}: {
+  partId: string;
+  photos: PartPhotoMeta[];
+  loading: boolean;
+}) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  // partId 變化時 reset 主圖 index（用 derived 不用 effect）
+  const [prevPartId, setPrevPartId] = useState(partId);
+  if (prevPartId !== partId) {
+    setPrevPartId(partId);
+    setActiveIdx(0);
+  }
+
+  const active = photos[activeIdx];
+
+  if (photos.length === 0) {
+    return (
+      <section className="rounded-lg border border-[#2A2A30] bg-[#13131A] p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#888892]">
+            <ImageIcon className="size-3" />
+            產品圖片
+          </h3>
+          {loading ? <Loader2 className="size-3 animate-spin text-[#5A5A60]" /> : null}
+        </div>
+        <div className="flex h-32 items-center justify-center rounded border border-dashed border-[#2A2A30] bg-[#0A0A0C]/40 text-[10px] text-[#5A5A60]">
+          <div className="text-center">
+            <ImageIcon className="mx-auto mb-1 size-6 text-[#3A3A42]" />
+            暫無產品圖片（料號編輯頁可上傳）
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-lg border border-[#2A2A30] bg-[#13131A] p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#888892]">
+          <ImageIcon className="size-3" />
+          產品圖片 ({photos.length})
+        </h3>
+      </div>
+      <div className="flex h-40 items-center justify-center overflow-hidden rounded border border-[#2A2A30] bg-[#0A0A0C]/60">
+        {active ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={buildPartSearchPhotoUrl(partId, active.id)}
+            alt={active.origFilename ?? '產品圖片'}
+            className="max-h-full max-w-full object-contain"
+          />
+        ) : null}
+      </div>
+      {photos.length > 1 ? (
+        <div className="mt-2 flex gap-1 overflow-x-auto">
+          {photos.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setActiveIdx(i)}
+              className={cn(
+                'size-10 shrink-0 overflow-hidden rounded border bg-[#0A0A0C]',
+                i === activeIdx ? 'border-[#E8A020]' : 'border-[#2A2A30] hover:border-[#3A3A42]',
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={buildPartSearchPhotoUrl(partId, p.id)}
+                alt=""
+                className="size-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
 

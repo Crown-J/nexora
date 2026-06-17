@@ -86,3 +86,22 @@ export async function getPartRelated(id: string): Promise<{ rows: PartRelatedRow
   await assertOk(res, 'nxui_part_quick_search_related');
   return (await res.json()) as { rows: PartRelatedRow[] };
 }
+
+export type PartPhotoMeta = {
+  id: string;
+  mimeType: string;
+  sortNo: number;
+  origFilename: string | null;
+  fileSize: number;
+};
+
+export async function listPartSearchPhotos(id: string): Promise<{ rows: PartPhotoMeta[] }> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/photos`, { method: 'GET' });
+  await assertOk(res, 'nxui_part_quick_search_photos');
+  return (await res.json()) as { rows: PartPhotoMeta[] };
+}
+
+/** 圖片 binary URL（給 <img src> 用）*/
+export function buildPartSearchPhotoUrl(partId: string, photoId: string): string {
+  return `${BASE}/${encodeURIComponent(partId)}/photos/${encodeURIComponent(photoId)}/raw`;
+}
