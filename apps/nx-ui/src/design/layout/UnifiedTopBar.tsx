@@ -96,15 +96,15 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
   return (
     <header className="nx-topbar sticky top-0 z-50 border-b border-border/40 bg-[color-mix(in_oklch,var(--card)_72%,transparent)] backdrop-blur-md backdrop-saturate-150">
       <div className="flex h-14 items-center gap-3 px-4">
-        {/* Dock 觸發按鈕：用 PlanetSlot 佔位（真實星球由 SharedPlanetRoot 飛到此位置停泊）*/}
+        {/* Dock 觸發按鈕（對齊 Hana demo .dock-trigger 規格 46×46、星球填滿）*/}
         <button
           type="button"
           onClick={onDockToggle}
           aria-label="導覽選單，快捷鍵 Alt+X"
           title="導覽 · Alt+X"
-          className="relative grid h-11 w-11 place-items-center rounded-xl hover:bg-foreground/[0.06] transition"
+          className="relative grid h-[46px] w-[46px] shrink-0 place-items-center rounded-xl hover:bg-foreground/[0.06] transition"
         >
-          <PlanetSlot id="topbar" className="absolute inset-0.5 rounded-full" />
+          <PlanetSlot id="topbar" className="absolute inset-0 rounded-full" />
         </button>
 
         {/* NEXORA GRID 品牌 → 點回首頁 */}
