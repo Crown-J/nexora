@@ -59,6 +59,9 @@ import { PartVersionController } from './part-version/part-version.controller';
 import { PartVersionService } from './part-version/part-version.service';
 import { PartController } from './part/part.controller';
 import { PartService } from './part/part.service';
+// F2 料號即時搜尋（執行長 2026-06-17 拍板、全公司可用、read-only 七支查詢）
+import { PartSearchController } from './part-search/part-search.controller';
+import { PartSearchService } from './part-search/part-search.service';
 import { PartnerController } from './partner/partner.controller';
 import { PartnerService } from './partner/partner.service';
 import { PermissionController } from './permission/permission.controller';
@@ -105,6 +108,7 @@ import { UserTeamService } from './user-team/user-team.service';
     WarehouseController,
     WarehouseTypeController,
     PartController,
+    PartSearchController,
     PartnerController,
     CustomerGradeController,
     SupplierGradeController,
@@ -150,6 +154,7 @@ import { UserTeamService } from './user-team/user-team.service';
     WarehouseService,
     WarehouseTypeService,
     PartService,
+    PartSearchService,
     PartnerService,
     CustomerGradeService,
     SupplierGradeService,
