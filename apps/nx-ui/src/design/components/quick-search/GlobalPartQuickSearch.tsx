@@ -1,4 +1,4 @@
-// apps/nx-ui/src/design/quick-search/GlobalPartQuickSearch.tsx
+// apps/nx-ui/src/design/components/quick-search/GlobalPartQuickSearch.tsx
 // F2 全域 hotkey + Modal 掛載點（執行長 2026-06-17 拍板）
 //
 // 範式：掛在 dashboard/layout.tsx 一次、所有 dashboard 子頁共享。

@@ -1,4 +1,4 @@
-// apps/nx-ui/src/design/quick-search/PhoneticPicker.tsx
+// apps/nx-ui/src/design/components/quick-search/PhoneticPicker.tsx
 // 品名欄特殊輸入元件:支援注音鍵盤碼 + F4 觸發候選詞下拉（執行長 2026-06-17 拍板）
 //
 // 使用情境：

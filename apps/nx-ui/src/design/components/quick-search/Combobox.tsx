@@ -1,4 +1,4 @@
-// apps/nx-ui/src/design/quick-search/Combobox.tsx
+// apps/nx-ui/src/design/components/quick-search/Combobox.tsx
 // 通用 Combobox：input + 聯想下拉浮層（執行長 2026-06-17 拍板）
 //
 // 行為：

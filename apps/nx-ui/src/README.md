@@ -102,7 +102,7 @@ app/
 ```
 design/
 ├── primitives/    shadcn 基本元件（button / input / dialog / card / ...）
-├── components/    跨業務 widget（PageHeader / PlanChip / filter-bar / form / lookup / ...）
+├── components/    跨業務 widget（PageHeader / PlanChip / filter-bar / form / lookup / quick-search / ...）
 ├── layout/        外殼（DashboardShell / UnifiedTopBar / PlanetDock / BusinessTopNav / ...）
 ├── home/          首頁殼 + 共享星球（HomeShell / HomeView / SharedPlanetRoot / Dock / HomeTopBar / HomeLandingChrome）
 ├── document/      單據雙視圖（DocLayout / DocHeader / DocItemTable / ...）
@@ -194,6 +194,7 @@ session / auth gating、跨路由共用邏輯。
 | 改什麼 | 去哪 |
 |---|---|
 | 改主檔的 partner 畫面 | `design/components/`（共用元件）+ `features/nx01/partner/`（業務）+ `data/endpoints/nx01/api/partner.ts`（API）|
+| 改 F2 料號即時搜尋（全域元件）| `design/components/quick-search/`（Modal/Combobox/PhoneticPicker/GlobalPartQuickSearch、掛在 `app/dashboard/layout.tsx`）+ `data/endpoints/nx01/part-search/`（API）|
 | 改報價單 | `features/nx04/quote/`（業務）+ `data/endpoints/nx04/quote/`（API）+ `app/dashboard/sale/qt/`（網址）|
 | 改首頁版面 | `design/home/HomeView.tsx`（內容）+ `design/home/HomeShell.tsx`（殼）|
 | 改共享星球轉場 | `design/home/SharedPlanetRoot.tsx` |

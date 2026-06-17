@@ -1,4 +1,4 @@
-// apps/nx-ui/src/design/quick-search/PartQuickSearchModal.tsx
+// apps/nx-ui/src/design/components/quick-search/PartQuickSearchModal.tsx
 // F2 料號即時搜尋 Modal（執行長 2026-06-17 拍板、第三版實作）
 //
 // 排版（鋼鐵風 #E8A020 主色）：

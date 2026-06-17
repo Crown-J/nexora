@@ -17,7 +17,7 @@
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 import { DashboardShell } from '@design/layout/DashboardShell';
-import { GlobalPartQuickSearch } from '@design/quick-search/GlobalPartQuickSearch';
+import { GlobalPartQuickSearch } from '@design/components/quick-search/GlobalPartQuickSearch';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
