@@ -44,39 +44,46 @@
 
 @layer utilities {
   /**
-   * 主檔橫向／直向列表捲動：細軌道 + 拇指，Firefox scrollbar-color + WebKit
+   * 主檔捲動（軌 B3 2026-06-18 對齊 Hana demo nx-master.css 末段玻璃捲軸）:
+   * - thin、預設 thumb 中性灰（fg 16%）、track 透明
+   * - hover thumb gold 50%（強調互動）
+   * - 11px 寬、3px transparent border 製造 padding-box 玻璃感
    */
   .nx-master-scroll {
     scrollbar-width: thin;
-    scrollbar-color: var(--nx-scroll-thumb) var(--nx-scroll-track);
+    scrollbar-color: color-mix(in srgb, var(--foreground, #d8d8dc) 16%, transparent) transparent;
     scrollbar-gutter: stable;
   }
 
   .nx-master-scroll::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 11px;
+    height: 11px;
   }
 
   .nx-master-scroll::-webkit-scrollbar-track {
-    background: var(--nx-scroll-track);
-    border-radius: 999px;
+    background: transparent;
   }
 
   .nx-master-scroll::-webkit-scrollbar-thumb {
-    background: var(--nx-scroll-thumb);
-    border-radius: 999px;
-    border: 2px solid transparent;
+    background: color-mix(in srgb, var(--foreground, #d8d8dc) 16%, transparent);
+    border: 3px solid transparent;
     background-clip: padding-box;
+    border-radius: 999px;
   }
 
   .nx-master-scroll::-webkit-scrollbar-thumb:hover {
-    background: var(--nx-scroll-thumb-hover);
-    border: 2px solid transparent;
+    background: color-mix(in srgb, #e8a020 50%, transparent);
     background-clip: padding-box;
   }
 
   .nx-master-scroll::-webkit-scrollbar-corner {
-    background: var(--nx-scroll-track);
+    background: transparent;
+  }
+
+  /* light theme:對應 demo html.light scrollbar-thumb（深藍灰 18%、不再透 gold）*/
+  html.light .nx-master-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, #1a2230 18%, transparent);
+    background-clip: padding-box;
   }
 
   /** 置中明細內文直向捲動（較窄） */
@@ -523,10 +530,20 @@
    - dropdown menu（.nx-menu）：popover 原色反 override、確保可讀
    - badge：白底橙字
 ============================================================ */
+/* 半透明橘 gradient 取代 solid、留空讓 backdrop-blur 能模糊背景、產生玻璃感
+   alpha 0.78 在橘條看起來仍夠飽和、但底下背景透出來會有半透明玻璃的層次 */
 html.light .nx-topbar {
-  background: linear-gradient(180deg, #e8782a, #db671a) !important;
-  border-bottom-color: rgba(0, 0, 0, 0.16) !important;
+  background: linear-gradient(180deg, rgba(217, 98, 24, 0.82), rgba(184, 82, 14, 0.82)) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.22) !important;
   color: #fff;
+  /* 玻璃感：跟深色版一致的 backdrop blur + 飽和度補償 */
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+}
+/* GRID 等 warning 字色預設 #b88600 太深、淹在深橘底裡看不見、改鐵灰
+   鐵灰跟深橘有冷暖對比、又比白色 / 黃色更穩重專業 */
+html.light .nx-topbar > div [class*="text-[var(--warning)"] {
+  color: #2f3a47 !important;
 }
 html.light .nx-topbar > div {
   color: #fff;
@@ -543,6 +560,10 @@ html.light .nx-topbar > div :where([class*="border-border"]) {
 html.light .nx-topbar > div > div > button:hover,
 html.light .nx-topbar > div > button:hover {
   background: rgba(255, 255, 255, 0.16) !important;
+}
+/* 品牌按鈕（含 hover:opacity-80）排除白底 hover、跟深色版一致只用 opacity 淡 */
+html.light .nx-topbar > div > button[class*="hover:opacity-80"]:hover {
+  background: transparent !important;
 }
 html.light .nx-topbar > div [class*="bg-[var(--color-danger"] {
   background: #fff !important;
