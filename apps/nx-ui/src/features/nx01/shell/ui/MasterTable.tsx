@@ -1,18 +1,18 @@
-// apps/nx-ui/src/features/master-shell/ui/MasterTable.tsx
+// apps/nx-ui/src/features/nx01/shell/ui/MasterTable.tsx
 /**
  * NEXORA Master Shell — MasterTable（泛型主檔列表）
  *
- * 抽自 lab/users（commit 41-48）UsersTable，泛型化以套用所有主檔。
+ * 軌 B2 2026-06-18 對齊 Hana demo .nx-table 樣式:
+ * - 全 hex 改 semantic tokens（自動 light/dark theme）
+ * - thead sticky + 半透明背景 + backdrop-blur
+ * - selected row gold tint 12% + 3px 左 gold bar（shadow inset）
+ * - footer 對齊 .nx-tfoot
  *
- * 設計：
- * - 泛型欄位配置（MasterTableColumn<T>）：每個 column 自訂 render(row, index)
- * - 第一欄自動處理：瀏覽模式 → 序號（0001/0002 4 位零填）；選取模式 → checkbox
- * - zebra 條紋（偶數列 #101015 微亮階）+ hover #1A1A22
- * - 選列琥珀漸層 + 3px 左條 + inset ring
- * - 鍵盤導航（focus row 後 ↑↓ 切列、Enter 進編輯 = onOpenDetail）
- * - placeholder rows 填滿 pageSize（預設 20），條紋連續
- * - sticky thead（金屬 gradient + inset top highlight）+ 排序按鈕
- * - footer：count + hint + 每頁筆數
+ * 行為不變:
+ * - 泛型欄位配置（MasterTableColumn<T>）：每個 column 自訂 render
+ * - 第一欄自動：瀏覽 → 序號 / 選取 → checkbox
+ * - 鍵盤導航（focus row、↑↓ 切列、Enter 進編輯）
+ * - placeholder rows 填滿 pageSize
  */
 'use client';
 
@@ -124,24 +124,16 @@ export function MasterTable<T>({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
-        <table className="w-full border-collapse text-sm">
-          <thead
-            className="sticky top-0 z-10 backdrop-blur-xl"
-            style={{
-              backgroundImage:
-                'linear-gradient(180deg, rgba(20,20,26,0.95) 0%, rgba(16,16,20,0.95) 100%)',
-              boxShadow:
-                'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
-            }}
-          >
-            <tr className="border-b border-[#2A2A30] text-left text-[11px] font-bold uppercase tracking-[0.16em] text-[#C8C8D0]">
-              <th className="w-12 px-2 py-2.5">
+        <table className="w-full border-collapse text-[13px]">
+          <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/80 backdrop-blur-md">
+            <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
+              <th className="w-12 px-3 py-[9px]">
                 {selectionMode ? (
                   <input
                     type="checkbox"
                     checked={checked.size === rows.length && rows.length > 0}
                     onChange={toggleAll}
-                    className="size-3.5 rounded border-[#3A3A42] bg-[#1A1A1F] accent-[#E8A020]"
+                    className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
                     aria-label="全選"
                   />
                 ) : (
@@ -151,16 +143,18 @@ export function MasterTable<T>({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={cn('whitespace-nowrap px-2 py-2.5', col.minWidthClass)}
+                  className={cn('whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
                 >
                   {col.sortable && onSortKeyChange ? (
                     <button
                       type="button"
                       onClick={() => onSortKeyChange(col.key)}
-                      className="inline-flex items-center gap-1 transition-colors hover:text-[#F0F0F3]"
+                      className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
                     >
                       {col.label}
-                      <ChevronDown className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')} />
+                      <ChevronDown
+                        className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')}
+                      />
                     </button>
                   ) : (
                     col.label
@@ -182,42 +176,33 @@ export function MasterTable<T>({
                   tabIndex={0}
                   onClick={() => onSelect(id)}
                   onDoubleClick={() => onOpenDetail(id)}
-                  style={
-                    isSelected
-                      ? {
-                          backgroundImage:
-                            'linear-gradient(90deg, rgba(232,160,32,0.18) 0%, rgba(232,160,32,0.08) 100%)',
-                          boxShadow:
-                            'inset 0 0 0 1px rgba(232,160,32,0.45), inset 3px 0 0 0 #E8A020',
-                        }
-                      : undefined
-                  }
                   className={cn(
-                    'cursor-pointer border-b border-[#1A1A1F]/70 transition-all outline-none',
+                    'cursor-pointer border-b border-border/20 outline-none transition-colors',
                     'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
-                    !isSelected &&
-                      (selectionMode && isChecked
-                        ? 'bg-[#E8A020]/6'
-                        : cn(isEvenRow ? 'bg-[#101015]' : 'bg-transparent', 'hover:bg-[#1A1A22]')),
+                    isSelected
+                      ? 'bg-[#E8A020]/12 shadow-[inset_3px_0_0_#E8A020] hover:bg-[#E8A020]/16'
+                      : selectionMode && isChecked
+                        ? 'bg-[#E8A020]/8'
+                        : cn(isEvenRow && 'bg-foreground/[0.025]', 'hover:bg-accent/10'),
                   )}
                 >
-                  <td className="px-2 py-2.5" onClick={(e) => selectionMode && e.stopPropagation()}>
+                  <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
                     {selectionMode ? (
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleRow(id)}
-                        className="size-3.5 rounded border-[#3A3A42] bg-[#1A1A1F] accent-[#E8A020]"
+                        className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
                         aria-label={`選取 ${id}`}
                       />
                     ) : (
-                      <span className="font-mono text-[11px] tabular-nums text-[#5A5A60]">
+                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
                         {String(i + 1).padStart(4, '0')}
                       </span>
                     )}
                   </td>
                   {columns.map((col) => (
-                    <td key={col.key} className="px-2 py-2.5">
+                    <td key={col.key} className="px-3 py-[10px] text-foreground">
                       {col.render(row, i)}
                     </td>
                   ))}
@@ -232,13 +217,13 @@ export function MasterTable<T>({
                   key={`__placeholder_${i}`}
                   aria-hidden
                   className={cn(
-                    'pointer-events-none select-none border-b border-[#1A1A1F]/40',
-                    isEvenRow && 'bg-[#101015]',
+                    'pointer-events-none select-none border-b border-border/10',
+                    isEvenRow && 'bg-foreground/[0.025]',
                   )}
                 >
-                  <td className="px-2 py-2.5">&nbsp;</td>
+                  <td className="px-3 py-[10px]">&nbsp;</td>
                   {columns.map((col) => (
-                    <td key={col.key} className="px-2 py-2.5">&nbsp;</td>
+                    <td key={col.key} className="px-3 py-[10px]">&nbsp;</td>
                   ))}
                 </tr>
               );
@@ -247,21 +232,19 @@ export function MasterTable<T>({
         </table>
       </div>
 
-      <div
-        className="flex items-center justify-between border-t border-[#2A2A30] px-6 py-2 text-[11px] text-[#888892]"
-        style={{
-          backgroundImage: 'linear-gradient(180deg, #101014 0%, #0A0A0C 100%)',
-          boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.03)',
-        }}
-      >
-        <span>
-          共 {total} 筆 · 顯示 {rows.length} 筆{footerHint ? ` · ${footerHint}` : ''}
+      {/* footer 對齊 demo .nx-tfoot */}
+      <div className="flex items-center gap-[14px] border-t border-border/40 bg-background/40 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
+        <span className="font-variant-numeric tabular-nums">
+          共 <span className="text-foreground">{total}</span> 筆 · 顯示 {rows.length} 筆
+          {footerHint ? ` · ${footerHint}` : ''}
         </span>
-        {onPageSizeChange ? (
-          <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
-        ) : (
-          <span className="text-[#5A5A60]">每頁 {pageSize} 筆</span>
-        )}
+        <div className="ml-auto">
+          {onPageSizeChange ? (
+            <PageSizeSelector value={pageSize} onChange={onPageSizeChange} />
+          ) : (
+            <span className="text-muted-foreground/70">每頁 {pageSize} 筆</span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -281,7 +264,7 @@ function PageSizeSelector({
           type="button"
           title="調整每頁筆數"
           className={cn(
-            'inline-flex h-6 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 text-[11px] font-medium text-[#B8B8C0] transition-all hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
+            'inline-flex h-[30px] items-center gap-1 rounded-md border border-border/40 bg-background/60 px-2 text-[12px] font-medium text-foreground transition-all hover:border-border/60 hover:bg-background',
             'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
           )}
         >
@@ -292,7 +275,7 @@ function PageSizeSelector({
       <DropdownMenuContent
         align="end"
         sideOffset={6}
-        className="min-w-[7rem] border-[#2A2A30] bg-[#131316]/95 p-1 shadow-2xl backdrop-blur-xl"
+        className="min-w-[7rem] border-border/40 bg-popover/95 p-1 shadow-2xl backdrop-blur-xl"
       >
         {MASTER_TABLE_PAGE_SIZES.map((n) => (
           <DropdownMenuItem
@@ -300,7 +283,7 @@ function PageSizeSelector({
             onClick={() => onChange(n)}
             className={cn(
               'cursor-pointer rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]',
-              n === value ? 'text-[#E8A020]' : 'text-[#E8E8EB]',
+              n === value ? 'text-[#E8A020]' : 'text-foreground',
             )}
           >
             <span className="font-mono tabular-nums">{n.toString().padStart(3, ' ')}</span>

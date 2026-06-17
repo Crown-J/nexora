@@ -136,7 +136,7 @@ export function ErpToolbar({
       <div className="flex items-center gap-1 border-b border-[#E8A020]/30 bg-gradient-to-r from-[#E8A020]/6 to-[#E8A020]/3 px-3 py-1.5">
         <ToolbarButton icon={Check} label="完成選取" enabled onClick={onToggleSelection} accent />
         <ToolbarSeparator />
-        <span className="px-1 text-[11px] text-[#888892]">
+        <span className="px-1 text-[11px] text-muted-foreground">
           已選 <span className="font-mono text-[#E8A020]">{selectedCount}</span> 筆
         </span>
         <div className="flex-1" />
@@ -168,7 +168,7 @@ export function ErpToolbar({
         <ToolbarButton icon={Save} letter="S" label="存檔" enabled onClick={onSave} accent />
         <ToolbarButton icon={X} letter="C" label="取消" enabled onClick={onCancel} />
         <div className="flex-1" />
-        <span className="px-1 text-[11px] text-[#888892]">
+        <span className="px-1 text-[11px] text-muted-foreground">
           編輯模式 · Alt+S 存檔 / Alt+C 取消
         </span>
       </div>
@@ -177,7 +177,7 @@ export function ErpToolbar({
 
   return (
     <div
-      className="flex items-center gap-1 border-b border-[#2A2A30] px-3 py-2"
+      className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
       style={{
         backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)',
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
@@ -185,7 +185,7 @@ export function ErpToolbar({
     >
       <PaginationButton icon={ChevronsLeft} disabled={page <= 1} onClick={() => onPageChange(1)} title="第一頁" />
       <PaginationButton icon={ChevronLeft} disabled={page <= 1} onClick={() => onPageChange(page - 1)} title="上一頁" />
-      <span className="min-w-[2.5rem] px-1 text-center font-mono text-[11px] tabular-nums text-[#888892]">
+      <span className="min-w-[2.5rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
         {page}/{totalPages}
       </span>
       <PaginationButton icon={ChevronRight} disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} title="下一頁" />
@@ -266,8 +266,8 @@ export function PaginationButton({
       className={cn(
         'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all',
         disabled
-          ? 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]'
-          : 'border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
+          ? 'cursor-not-allowed border-border/40/60 bg-popover text-muted-foreground/70'
+          : 'border-border/40 bg-card/60 text-foreground/80 hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground',
       )}
     >
       <Icon className="size-3.5" />
@@ -312,8 +312,8 @@ export function ToolbarButton({
             ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
             : isAmberActive
               ? 'border-[#E8A020]/40 bg-[#E8A020]/12 text-[#E8A020] hover:bg-[#E8A020]/20'
-              : 'border-[#2A2A30] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]'
-          : 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]',
+              : 'border-border/40 bg-card/60 text-foreground/80 hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground'
+          : 'cursor-not-allowed border-border/40/60 bg-popover text-muted-foreground/70',
       )}
     >
       <Icon className="size-3" />
@@ -335,7 +335,7 @@ export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat
           type="button"
           title="匯出（P）"
           className={cn(
-            'inline-flex h-7 items-center gap-1 rounded-md border border-[#2A2A30] bg-[#1A1A1F] px-2 text-[11px] font-medium text-[#B8B8C0] transition-all hover:border-[#3A3A42] hover:bg-[#22222A] hover:text-[#E8E8EB]',
+            'inline-flex h-7 items-center gap-1 rounded-md border border-border/40 bg-card/60 px-2 text-[11px] font-medium text-foreground/80 transition-all hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground',
             'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
           )}
         >
@@ -349,25 +349,25 @@ export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat
       <DropdownMenuContent
         align="end"
         sideOffset={6}
-        className="min-w-[10rem] border-[#2A2A30] bg-[#131316]/95 p-1 shadow-2xl backdrop-blur-xl"
+        className="min-w-[10rem] border-border/40 bg-popover/95 p-1 shadow-2xl backdrop-blur-xl"
       >
         <DropdownMenuItem
           onClick={() => onSelect('csv')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
         >
           <FileSpreadsheet className="mr-2 size-3.5" />
           匯出 CSV
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('pdf')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
         >
           <FileText className="mr-2 size-3.5" />
           匯出 PDF
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('print')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-[#E8E8EB] focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
         >
           <Printer className="mr-2 size-3.5" />
           列印
