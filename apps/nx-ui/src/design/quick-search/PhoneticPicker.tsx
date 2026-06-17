@@ -207,11 +207,11 @@ export function PhoneticPicker({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-8 rounded-md border border-[#2A2A30] bg-[#0F0F12] px-2 text-xs text-[#E8E8EB] outline-none placeholder:text-[#5A5A60] focus:border-[#E8A020]/60"
+        className="h-8 rounded-md border border-[#2A3A32] bg-[#0F1A14] px-2 text-xs text-[#D8D8DC] outline-none placeholder:text-[#5A5A60] focus:border-[#E8A020]/60"
       />
 
       {open && candidates.length > 0 ? (
-        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#2A2A30] bg-[#13131A] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#2A3A32] bg-[#1A2A22] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           {candidates.map((name, i) => (
             <li key={name}>
               <button
@@ -223,7 +223,7 @@ export function PhoneticPicker({
                   'flex w-full items-center px-3 py-1.5 text-left text-xs',
                   i === focusedIdx
                     ? 'bg-[#E8A020]/15 text-[#E8A020]'
-                    : 'text-[#E8E8EB] hover:bg-[#1A1A22]',
+                    : 'text-[#D8D8DC] hover:bg-[#1A2A22]',
                 )}
               >
                 {name}
@@ -232,11 +232,11 @@ export function PhoneticPicker({
           ))}
         </ul>
       ) : open && searched && !loading ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A2A30] bg-[#13131A] px-3 py-2 text-[11px] text-[#5A5A60] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A3A32] bg-[#1A2A22] px-3 py-2 text-[11px] text-[#5A5A60] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           注音「{keyboardToBopomofo(value.trim())}」無對應料號（檢查 phonetic_index 是否已建）
         </div>
       ) : open && loading ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A2A30] bg-[#13131A] px-3 py-2 text-[11px] text-[#E8A020] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A3A32] bg-[#1A2A22] px-3 py-2 text-[11px] text-[#E8A020] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           注音查詢中:「{keyboardToBopomofo(value.trim())}」…
         </div>
       ) : null}
