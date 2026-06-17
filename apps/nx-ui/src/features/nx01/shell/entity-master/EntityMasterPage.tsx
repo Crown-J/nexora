@@ -16,9 +16,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { cn } from '@design/utils/cn';
-import { MasterTopBar } from './MasterTopBar';
+import { PageHeader } from '@design/components/page-header/PageHeader';
 import { MasterTabs } from './MasterTabs';
 import { formatDateTimeZh } from './format';
 import {
@@ -96,7 +95,6 @@ function listFields(cfg: EntityMasterConfig): EntityFieldDef[] {
 }
 
 export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
-  const router = useRouter();
   const { toasts, showToast } = useToast();
 
   // 資料 / 分頁 / 篩選
@@ -431,33 +429,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
 
   // [1-2] 2026-06-05：handleExit / Alt+Q 已移除（離開主檔改走星球選單 Alt+X）
 
-  // 模組選單 / 公告等跳轉：編輯中且 dirty 先 3-way confirm（Next client 導航不觸發 beforeunload）
-  const requestNavigate = useCallback(
-    (href: string) => {
-      if (mode === 'edit' && isDirty) {
-        setConfirm({
-          title: '尚有未儲存的變更',
-          message: '離開此頁要先存檔，還是丟棄變更？',
-          confirmLabel: '存檔後離開',
-          onConfirm: () => {
-            void performSave();
-            router.push(href);
-          },
-          secondaryAction: {
-            label: '丟棄變更',
-            variant: 'danger',
-            onClick: () => {
-              performCancel();
-              router.push(href);
-            },
-          },
-        });
-        return;
-      }
-      router.push(href);
-    },
-    [mode, isDirty, performSave, performCancel, router],
-  );
+  // Phase 2 退場 MasterTopBar 後、requestNavigate dirty 攔截失效（待全域 router 攔截器整合）
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
@@ -615,20 +587,9 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   const countText = `${total} 筆${config.entityNoun}`;
 
   return (
-    <div
-      className="flex h-dvh flex-col text-[#E8E8EB]"
-      style={{
-        backgroundImage:
-          'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
-      }}
-    >
-      {/* 置頂列：返回 · 模組選單 · 標題 · 計數 · 公告 · 通知 · 使用者 */}
-      <MasterTopBar
-        category={config.category}
-        title={config.title}
-        count={countText}
-        requestNavigate={requestNavigate}
-      />
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+      {/* Phase 2 退場 MasterTopBar、改用 PageHeader（模組選單/公告/通知/使用者已由 UnifiedTopBar 提供）*/}
+      <PageHeader category={config.category} title={config.title} count={countText} />
 
       {/* Tab 切換（共用 MasterTabs、與使用者主檔頁一致） */}
       <MasterTabs tab={tab} onChange={attemptTabChange} />

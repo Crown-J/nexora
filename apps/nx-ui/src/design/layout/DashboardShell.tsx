@@ -1,11 +1,10 @@
 // apps/nx-ui/src/features/layout/ui/DashboardShell.tsx
-// NX00 統一 Dashboard 外殼（2026-06-15 棒 #2 收斂）
+// NX00 統一 Dashboard 外殼（Phase 2 收斂、2026-06-17）
 //
 // 設計：
-// - 一律 UnifiedTopBar + PlanetDock 為頂層外殼（取代 HomeTopBar）
-// - MasterShell bypass 子頁（鋼鐵星球範式自帶 MasterTopBar）：仍 bypass、不疊新 TopBar、Phase 2 退場 MasterTopBar
-// - 非 bypass 子頁：套 UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav + children
-// - 退場：HomeTopBar / MobileWorkstationDock / MobileFab 引用全清（三檔留檔、待引用清零後刪）
+// - 一律 UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav 為頂層外殼
+// - 主檔頁（/dashboard/master/*）改為標準範式、不再 bypass、不再自帶 MasterTopBar
+// - 退場：MasterTopBar（取代為 PageHeader 顯示分類/標題/計數）/ HomeTopBar / MobileWorkstationDock
 // - 首頁 /dashboard：HomeShell 自帶外殼、本 layout 不額外包
 
 'use client';
@@ -20,45 +19,12 @@ import { DashboardSubNav } from '@design/layout/DashboardSubNav';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
-import { ParticleField } from '@design/login/planet-orbit';
-import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
 import { cn } from '@design/utils/cn';
 
 type DashboardShellProps = {
   children: ReactNode;
 };
-
-const MASTER_SHELL_BYPASS_PATHS = new Set([
-  '/dashboard/master/users',
-  '/dashboard/master/currency',
-  '/dashboard/master/country',
-  '/dashboard/master/part-group',
-  '/dashboard/master/roles',
-  '/dashboard/master/drivetrain',
-  '/dashboard/master/model-type',
-  '/dashboard/master/car-brand',
-  '/dashboard/master/engine',
-  '/dashboard/master/transmission',
-  '/dashboard/master/model',
-  '/dashboard/master/part-brand',
-  '/dashboard/master/part-relation',
-  '/dashboard/master/part-model',
-  '/dashboard/master/warehouses',
-  '/dashboard/master/customer-grade',
-  '/dashboard/master/phonetic-dictionary',
-  '/dashboard/master/partners',
-  '/dashboard/master/partner-part',
-  '/dashboard/master/discount-code',
-  '/dashboard/master/site',
-  '/dashboard/master/location',
-  '/dashboard/master/parts',
-  '/dashboard/master/brand-code-rule',
-  '/dashboard/master/bulletins',
-  '/dashboard/master/role-view',
-  '/dashboard/master/user-role',
-  '/dashboard/master/user-warehouse',
-]);
 
 export function DashboardShell({ children }: DashboardShellProps) {
   const router = useRouter();
@@ -69,7 +35,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
   const { flyToCenter, flyTo } = usePlanet();
 
   const isSysDashboardHome = pathname === '/dashboard';
-  const isMasterShellBypass = pathname != null && MASTER_SHELL_BYPASS_PATHS.has(pathname);
   const isFillViewportSubPage = pathname != null && pathname.startsWith('/dashboard/master/');
 
   const handleLogout = useCallback(() => {
@@ -150,30 +115,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
     );
   }
 
-  // MasterShell bypass：子頁自帶 MasterTopBar（Phase 2 退場、本回合保留以免疊雙 topbar）
-  if (isMasterShellBypass) {
-    return (
-      <PageGuideProvider>
-        <AutoPageGuide />
-        {children}
-      </PageGuideProvider>
-    );
-  }
-
-  // 一般子頁：UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav + content
+  // 一般子頁（含主檔頁）：UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav + content
   return (
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
         <PageGuideProvider>
           <div className="relative flex min-h-screen flex-col text-foreground overflow-hidden">
-            {/* 兩主題底色 backdrop + 滿屏星空粒子（與登入/首頁一致）*/}
-            <NxAppBackdrop />
-            <div className="fixed inset-0 z-0 pointer-events-none">
-              <ParticleField className="w-full h-full" />
-            </div>
+            {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
             <div
               className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${
-                isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in zoom-in-95 duration-500'
+                isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in duration-500'
               }`}
             >
               <UnifiedTopBar

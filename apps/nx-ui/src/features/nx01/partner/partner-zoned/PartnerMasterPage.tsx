@@ -10,7 +10,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { cn } from '@design/utils/cn';
 import {
@@ -34,7 +33,7 @@ import {
 } from '@/features/nx01/shell/ui/MasterTable';
 import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField } from '@/features/nx01/shell/ui/FormField';
-import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
+import { PageHeader } from '@design/components/page-header/PageHeader';
 import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import { fetchRefOptions } from '@/features/nx01/shell/entity-master/config';
@@ -78,7 +77,6 @@ export function PartnerMasterPage({
   createDefaultPartnerType = 'C',
   entityNoun,
 }: PartnerMasterPageProps) {
-  const router = useRouter();
   const { toasts, showToast } = useToast();
 
   // ── 資料 / 分頁 / 篩選 ──
@@ -380,32 +378,7 @@ export function PartnerMasterPage({
 
   // [1-2] 2026-06-05：handleExit / Alt+Q 已移除（離開主檔改走星球選單 Alt+X）
 
-  const requestNavigate = useCallback(
-    (href: string) => {
-      if (mode === 'edit' && isDirty) {
-        setConfirm({
-          title: '尚有未儲存的變更',
-          message: '離開此頁要先存檔，還是丟棄變更？',
-          confirmLabel: '存檔後離開',
-          onConfirm: () => {
-            void performSave();
-            router.push(href);
-          },
-          secondaryAction: {
-            label: '丟棄變更',
-            variant: 'danger',
-            onClick: () => {
-              performCancel();
-              router.push(href);
-            },
-          },
-        });
-        return;
-      }
-      router.push(href);
-    },
-    [mode, isDirty, performSave, performCancel, router],
-  );
+  // Phase 2 退場 MasterTopBar 後、requestNavigate dirty 攔截失效（待全域 router 攔截器整合）
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
@@ -579,18 +552,8 @@ export function PartnerMasterPage({
   const countText = `${total} 筆${entityNoun}`;
 
   return (
-    <div
-      className="flex h-dvh flex-col text-[#E8E8EB]"
-      style={{
-        backgroundImage: 'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)',
-      }}
-    >
-      <MasterTopBar
-        category={pageCategory}
-        title={pageTitle}
-        count={countText}
-        requestNavigate={requestNavigate}
-      />
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+      <PageHeader category={pageCategory} title={pageTitle} count={countText} />
 
       <MasterTabs tab={tab} onChange={attemptTabChange} />
 

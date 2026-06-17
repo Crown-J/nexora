@@ -10,10 +10,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { CheckCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@design/utils/cn';
-import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
+import { PageHeader } from '@design/components/page-header/PageHeader';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { listRoles, type RoleDto } from '@data/endpoints/nx01/api/role';
 import {
@@ -66,7 +65,6 @@ type NavRow =
   | { type: 'view'; view: ViewDto };
 
 export function RoleViewMatrixPage() {
-  const router = useRouter();
   const { toasts, showToast } = useToast();
 
   const [roles, setRoles] = useState<RoleDto[]>([]);
@@ -250,13 +248,7 @@ export function RoleViewMatrixPage() {
     })();
   }, [roleId, views, cells, original, showToast]);
 
-  const requestNavigate = useCallback(
-    (href: string) => {
-      if (isDirty && !window.confirm('有未存檔的權限變更，確定離開？')) return;
-      router.push(href);
-    },
-    [isDirty, router],
-  );
+  // Phase 2 退場 MasterTopBar 後、requestNavigate dirty 攔截失效（待全域 router 攔截器整合）
 
   // 鍵盤：↑↓ 換列、←→ 換欄、空白 勾選、Alt+S 存檔（離開改走星球選單 Alt+X、[1-2] 2026-06-05 Alt+Q 移除）
   useEffect(() => {
@@ -303,7 +295,7 @@ export function RoleViewMatrixPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [navRows, focus, roles, roleId, toggle, toggleViewAll, toggleCollapse, handleSave, requestNavigate]);
+  }, [navRows, focus, roles, roleId, toggle, toggleViewAll, toggleCollapse, handleSave]);
 
   // 焦點列捲入視野
   useEffect(() => {
@@ -313,13 +305,8 @@ export function RoleViewMatrixPage() {
   const selectedRole = roles.find((r) => r.id === roleId);
 
   return (
-    <div className="flex h-dvh flex-col text-[#E8E8EB]" style={{ backgroundImage: 'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)' }}>
-      <MasterTopBar
-        category="帳號與權限"
-        title="職務權限設定"
-        count={`${views.length} 個畫面`}
-        requestNavigate={requestNavigate}
-      />
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+      <PageHeader category="帳號與權限" title="職務權限設定" count={`${views.length} 個畫面`} />
 
       {/* 工具列：職務下拉 + 存檔 */}
       <div className="flex flex-wrap items-center gap-3 border-b border-[#2A2A30] bg-[#0E0E12] px-4 py-2.5">

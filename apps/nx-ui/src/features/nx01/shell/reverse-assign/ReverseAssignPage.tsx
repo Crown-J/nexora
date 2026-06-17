@@ -5,7 +5,7 @@
  *
  * 全鍵盤：↑↓ 切左欄實體 / → 進右欄 / ← 回左欄 / 右欄 ↑↓ 選成員 /
  *   Alt+A 指派成員 / Delete 撤銷選中成員（離開改走星球選單 Alt+X、[1-2] 2026-06-05 Alt+Q 移除）。
- * 鋼鐵星球視覺 + MasterTopBar 統一置頂列。
+ * 鋼鐵星球視覺 + PageHeader 顯示分類/標題/計數（Phase 2 退場 MasterTopBar、統一外殼由 DashboardShell 提供）。
  */
 'use client';
 
@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@design/utils/cn';
-import { MasterTopBar } from '@/features/nx01/shell/entity-master/MasterTopBar';
+import { PageHeader } from '@design/components/page-header/PageHeader';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { EntityPickerDialog } from '@/features/nx01/shell/ui/EntityPickerDialog';
@@ -60,6 +60,7 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
 
   useEffect(() => {
     if (!selectedEntity) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- selectedEntity 變空時 derived members 必須清空、無外部 source
       setMembers([]);
       return;
     }
@@ -73,7 +74,7 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
     })();
   }, [selectedEntity, config, showToast, reloadTick]);
 
-  const requestNavigate = useCallback((href: string) => router.push(href), [router]);
+  // Phase 2 退場 MasterTopBar 後、requestNavigate 不再需要（router 直接 push 即可）
 
   const handleRevoke = useCallback(
     (m: ReverseMember) => {
@@ -132,8 +133,8 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
   }, [col, entities, members, memberIdx, selectedEntity, pickerOpen, confirm, handleRevoke, router]);
 
   return (
-    <div className="flex h-dvh flex-col text-[#E8E8EB]" style={{ backgroundImage: 'radial-gradient(ellipse at top, #11111A 0%, #0A0A0C 35%, #06060A 100%)' }}>
-      <MasterTopBar category={config.category} title={config.title} count={`${entities.length} 個${config.entityNoun}`} requestNavigate={requestNavigate} />
+    <div className="flex min-h-0 flex-1 flex-col text-foreground">
+      <PageHeader category={config.category} title={config.title} count={`${entities.length} 個${config.entityNoun}`} />
 
       <div className="flex min-h-0 flex-1">
         {/* 左：實體列表 */}
