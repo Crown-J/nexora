@@ -17,11 +17,14 @@
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 import { DashboardShell } from '@design/layout/DashboardShell';
+import { GlobalPartQuickSearch } from '@design/quick-search/GlobalPartQuickSearch';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <DashboardShell>
       <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">載入中...</div>}>{children}</Suspense>
+      {/* F2 全域料號即時搜尋（執行長 2026-06-17 拍板、純查詢、所有登入使用者可用）*/}
+      <GlobalPartQuickSearch />
     </DashboardShell>
   );
 }
