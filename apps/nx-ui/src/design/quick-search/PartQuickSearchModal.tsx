@@ -384,17 +384,13 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
           />
         </div>
 
-        {/* 主結果區 + 明細區 split */}
-        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
+        {/* 主結果區 + 明細區 split（固定高度 + loading overlay 防搜尋瞬間 layout 跳）*/}
+        <div className="grid min-h-[480px] flex-1 grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
           {/* 左：主結果列表 */}
-          <div className="flex min-h-0 flex-col border-b border-[#2A2A30] lg:border-b-0 lg:border-r">
+          <div className="relative flex min-h-0 flex-col border-b border-[#2A2A30] lg:border-b-0 lg:border-r">
             <div className="flex items-center justify-between border-b border-[#2A2A30] bg-[#0A0A0C]/60 px-4 py-1.5 text-[11px] text-[#888892]">
               <span>
-                {loading ? (
-                  <span className="inline-flex items-center gap-1.5 text-[#E8A020]">
-                    <Loader2 className="size-3 animate-spin" /> 搜尋中…
-                  </span>
-                ) : result ? (
+                {result ? (
                   <>
                     主結果{' '}
                     <span className="font-mono text-[#E8A020]">{result.total.toLocaleString()}</span>{' '}
@@ -406,7 +402,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                     ) : null}
                   </>
                 ) : (
-                  '輸入條件後按 Enter（最後一欄）或按右上「搜尋」'
+                  '輸入條件後按 Enter（料號欄）或右上「搜尋」'
                 )}
               </span>
               <span className="font-mono text-[10px] text-[#5A5A60]">↑↓ 切結果</span>
@@ -420,7 +416,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
             ) : null}
 
             <div className="min-h-0 flex-1 overflow-auto">
-              {rows.length === 0 && !loading && !error ? (
+              {rows.length === 0 && !error ? (
                 <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-[#5A5A60]">
                   <div>
                     <Search className="mx-auto mb-2 size-6 text-[#3A3A42]" />
@@ -469,6 +465,16 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                 </ul>
               )}
             </div>
+
+            {/* 搜尋中 overlay（不替換內容、避免 layout 重排造成的閃跳）*/}
+            {loading ? (
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-[#0F0F12]/60">
+                <div className="flex items-center gap-2 rounded-md border border-[#E8A020]/40 bg-[#0F0F12] px-3 py-1.5 text-xs text-[#E8A020] shadow-lg">
+                  <Loader2 className="size-3.5 animate-spin" />
+                  搜尋中…
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {/* 右：明細區（階段 4 接基本+庫存+三 tab）*/}
