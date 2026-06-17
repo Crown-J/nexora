@@ -39,6 +39,7 @@ import {
   getPartSalesHistory,
   getPartSearchMasterOptions,
   getPartStockHistory,
+  getPartStockSettings,
   getPartStockSummary,
   listPartSearchPhotos,
   quickSearchParts,
@@ -53,6 +54,7 @@ import type {
   PartSearchResult,
   PartSearchRow,
   PartStockHistoryRow,
+  PartStockSettingRow,
   PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 import { cn } from '@design/utils/cn';
@@ -93,9 +95,17 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
   // 明細區（隨選中料號變動）
   const [detail, setDetail] = useState<PartDetailDto | null>(null);
   const [stockSummary, setStockSummary] = useState<PartStockSummaryDto | null>(null);
+  const [stockSettings, setStockSettings] = useState<PartStockSettingRow[]>([]);
   const [photos, setPhotos] = useState<PartPhotoMeta[]>([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const detailReqIdRef = useRef(0);
+
+  // F2 歷史紀錄（最近 10 筆、localStorage）
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  // 載入 history（mount 時讀 localStorage）
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
 
   // 廠牌 / 族群主檔（開啟時一次撈、cache 給聯想 filter 用）
   const [brands, setBrands] = useState<BrandOpt[]>([]);
@@ -186,10 +196,19 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
 
   // 主搜尋（只在「最後一欄 Enter」或「搜尋按鈕」觸發、不再自動 debounce）
   const runSearch = useCallback(
-    async (focusResultAfter: boolean) => {
-      const hasAny = Boolean(
-        brandQuery.trim() || partGroupQuery.trim() || keyword.trim() || partNo.trim(),
-      );
+    async (focusResultAfter: boolean, override?: Partial<PartSearchQuery>) => {
+      // override 可強制改寫某幾欄（給 history click 用、不受 state 異步影響）
+      const q: PartSearchQuery = {
+        brandQuery: brandQuery.trim() || undefined,
+        partGroupQuery: partGroupQuery.trim() || undefined,
+        keyword: keyword.trim() || undefined,
+        partNo: partNo.trim() || undefined,
+        ...override,
+        includeInactive,
+        page: 1,
+        pageSize: PAGE_SIZE,
+      };
+      const hasAny = Boolean(q.brandQuery || q.partGroupQuery || q.keyword || q.partNo);
       if (!hasAny) {
         setError('至少需提供一個篩選條件（廠牌 / 品名 / 族群 / 料號）');
         return;
@@ -197,15 +216,6 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
       setLoading(true);
       setError(null);
       try {
-        const q: PartSearchQuery = {
-          brandQuery: brandQuery.trim() || undefined,
-          partGroupQuery: partGroupQuery.trim() || undefined,
-          keyword: keyword.trim() || undefined,
-          partNo: partNo.trim() || undefined,
-          includeInactive,
-          page: 1,
-          pageSize: PAGE_SIZE,
-        };
         const res = await quickSearchParts(q);
         setResult(res);
         setRows(res.rows);
@@ -222,6 +232,23 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
       }
     },
     [brandQuery, partGroupQuery, keyword, partNo, includeInactive],
+  );
+
+  // 從歷史紀錄選一筆 → 清其他欄位 + 用料號搜
+  const selectHistory = useCallback(
+    (entry: HistoryEntry) => {
+      setBrandQuery('');
+      setKeyword('');
+      setPartGroupQuery('');
+      setPartNo(entry.code);
+      void runSearch(true, {
+        brandQuery: undefined,
+        keyword: undefined,
+        partGroupQuery: undefined,
+        partNo: entry.code,
+      });
+    },
+    [runSearch],
   );
 
   // 跳下一欄（select + focus）
@@ -300,6 +327,7 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     if (!open || !selected) {
       setDetail(null);
       setStockSummary(null);
+      setStockSettings([]);
       setPhotos([]);
       return;
     }
@@ -308,19 +336,30 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
     setDetailLoading(true);
     void (async () => {
       try {
-        const [d, s, p] = await Promise.all([
+        const [d, s, set, p] = await Promise.all([
           getPartDetail(partId),
           getPartStockSummary(partId),
+          getPartStockSettings(partId).catch(() => ({ rows: [] as PartStockSettingRow[] })),
           listPartSearchPhotos(partId).catch(() => ({ rows: [] as PartPhotoMeta[] })),
         ]);
         if (detailReqIdRef.current !== myReqId) return;
         setDetail(d);
         setStockSummary(s);
+        setStockSettings(set.rows);
         setPhotos(p.rows);
+        // 推 history（執行長階段 6 拍板:選一筆就記）
+        const entry: HistoryEntry = {
+          id: partId,
+          code: selected.code,
+          name: selected.name,
+          ts: Date.now(),
+        };
+        setHistory((prev) => pushHistory(prev, entry));
       } catch {
         if (detailReqIdRef.current !== myReqId) return;
         setDetail(null);
         setStockSummary(null);
+        setStockSettings([]);
         setPhotos([]);
       } finally {
         if (detailReqIdRef.current === myReqId) setDetailLoading(false);
@@ -493,12 +532,16 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
 
             <div className="min-h-0 flex-1 overflow-auto">
               {rows.length === 0 && !error ? (
-                <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-muted-foreground/70">
-                  <div>
-                    <Search className="mx-auto mb-2 size-6 text-muted-foreground/40" />
-                    輸入條件、按 Enter 或「搜尋」按鈕
+                history.length === 0 ? (
+                  <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-muted-foreground/70">
+                    <div>
+                      <Search className="mx-auto mb-2 size-6 text-muted-foreground/40" />
+                      輸入條件、按 Enter 或「搜尋」按鈕
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <HistoryView entries={history} onSelect={selectHistory} />
+                )
               ) : (
                 <ul className="divide-y divide-border/30">
                   {rows.map((r, idx) => (
@@ -537,11 +580,12 @@ export function PartQuickSearchModal({ closing = false, onClose }: Props) {
             ) : null}
           </div>
 
-          {/* 右：明細區（基本資料 + 庫存概況 + 產品圖片；進貨/銷貨/庫存歷史留後續階段）*/}
+          {/* 右：明細區（基本資料 + 庫存概況 + 產品圖片 + 四 tab）*/}
           <DetailPane
             selected={selected}
             detail={detail}
             stockSummary={stockSummary}
+            stockSettings={stockSettings}
             photos={photos}
             detailLoading={detailLoading}
           />
@@ -565,12 +609,14 @@ function DetailPane({
   selected,
   detail,
   stockSummary,
+  stockSettings,
   photos,
   detailLoading,
 }: {
   selected: PartSearchRow | undefined;
   detail: PartDetailDto | null;
   stockSummary: PartStockSummaryDto | null;
+  stockSettings: PartStockSettingRow[];
   photos: PartPhotoMeta[];
   detailLoading: boolean;
 }) {
@@ -701,7 +747,7 @@ function DetailPane({
         </section>
 
         {/* 進貨 / 銷貨 / 庫存 / 相關零件 四 tab */}
-        <TabSection selected={selected} detail={detail} />
+        <TabSection selected={selected} detail={detail} stockSettings={stockSettings} />
       </div>
     </div>
   );
@@ -712,9 +758,11 @@ type TabKey = 'purchase' | 'sales' | 'stock' | 'related';
 function TabSection({
   selected,
   detail,
+  stockSettings,
 }: {
   selected: PartSearchRow | undefined;
   detail: PartDetailDto | null;
+  stockSettings: PartStockSettingRow[];
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>('purchase');
   const [purchase, setPurchase] = useState<PartPurchaseHistoryRow[]>([]);
@@ -798,7 +846,7 @@ function TabSection({
         {!selected ? (
           <EmptyTab text="選一筆結果以查看明細" />
         ) : activeTab === 'purchase' ? (
-          <PurchasePanel rows={purchase} detail={detail} />
+          <PurchasePanel rows={purchase} detail={detail} stockSettings={stockSettings} />
         ) : activeTab === 'sales' ? (
           <SalesPanel sales={sales} />
         ) : activeTab === 'stock' ? (
@@ -819,13 +867,15 @@ function EmptyTab({ text }: { text: string }) {
   );
 }
 
-/** 進貨 tab：進貨紀錄 table + ABCD 公司定價（執行長原始需求 4）*/
+/** 進貨 tab：進貨紀錄 table + ABCD 公司定價 + 安全量/最高量（執行長原始需求 4）*/
 function PurchasePanel({
   rows,
   detail,
+  stockSettings,
 }: {
   rows: PartPurchaseHistoryRow[];
   detail: PartDetailDto | null;
+  stockSettings: PartStockSettingRow[];
 }) {
   return (
     <div className="space-y-2">
@@ -835,6 +885,48 @@ function PurchasePanel({
         <PriceCell label="B 價" value={detail?.priceB} accent />
         <PriceCell label="C 價" value={detail?.priceC} accent />
         <PriceCell label="D 價" value={detail?.priceD} accent />
+      </div>
+
+      {/* 安全量 / 最高量 / 建議補貨（per 倉位）*/}
+      <div>
+        <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          安全量 / 最高量
+        </div>
+        {stockSettings.length === 0 ? (
+          <div className="text-[11px] text-muted-foreground/70">尚未設定</div>
+        ) : (
+          <table className="w-full border-collapse text-[11px]">
+            <thead>
+              <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                <th className="py-1.5 pr-2 text-left font-medium">倉位</th>
+                <th className="py-1.5 px-1 text-right font-medium">安全量</th>
+                <th className="py-1.5 px-1 text-right font-medium">最高量</th>
+                <th className="py-1.5 pl-1 text-right font-medium">建議補貨</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stockSettings.map((s) => (
+                <tr key={s.warehouseId} className="border-b border-border/30">
+                  <td className="py-1 pr-2 font-mono text-foreground">
+                    {s.warehouseCode}
+                    <span className="ml-1 text-[10px] text-muted-foreground/70">
+                      · {s.warehouseName}
+                    </span>
+                  </td>
+                  <td className="py-1 px-1 text-right font-mono text-[#E26060]">
+                    {Number(s.minQty).toFixed(0)}
+                  </td>
+                  <td className="py-1 px-1 text-right font-mono text-foreground">
+                    {Number(s.maxQty).toFixed(0)}
+                  </td>
+                  <td className="py-1 pl-1 text-right font-mono text-[#E8A020]">
+                    {Number(s.reorderQty).toFixed(0)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
       {rows.length === 0 ? (
         <EmptyTab text="無進貨紀錄" />
@@ -1106,6 +1198,81 @@ function movementTypeLabel(r: PartStockHistoryRow): string {
     R: '退貨',
   };
   return docMap[r.sourceDocType] ?? r.movementType;
+}
+
+/** 歷史紀錄（localStorage 最近 10 筆、執行長階段 6 拍板）*/
+type HistoryEntry = {
+  id: string;
+  code: string;
+  name: string;
+  ts: number;
+};
+
+const HISTORY_KEY = 'nx-pqs-history';
+const HISTORY_MAX = 10;
+
+function loadHistory(): HistoryEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw) as unknown;
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(
+      (e): e is HistoryEntry =>
+        typeof e === 'object' &&
+        e !== null &&
+        typeof (e as HistoryEntry).id === 'string' &&
+        typeof (e as HistoryEntry).code === 'string',
+    );
+  } catch {
+    return [];
+  }
+}
+
+function pushHistory(prev: HistoryEntry[], entry: HistoryEntry): HistoryEntry[] {
+  const filtered = prev.filter((e) => e.id !== entry.id);
+  const next = [entry, ...filtered].slice(0, HISTORY_MAX);
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    } catch {
+      // localStorage 滿 / 失敗 → 忽略、不擋 UI
+    }
+  }
+  return next;
+}
+
+/** 歷史紀錄顯示（空 result 時取代 placeholder）*/
+function HistoryView({
+  entries,
+  onSelect,
+}: {
+  entries: HistoryEntry[];
+  onSelect: (e: HistoryEntry) => void;
+}) {
+  return (
+    <div className="px-3 py-3">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+        <Search className="size-3" />
+        最近查詢（{entries.length}）
+      </div>
+      <ul className="space-y-1">
+        {entries.map((e) => (
+          <li key={e.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(e)}
+              className="flex w-full flex-col items-start gap-0.5 rounded border border-border/40 bg-background/40 px-2 py-1.5 text-left hover:border-[#E8A020]/40 hover:bg-card/60"
+            >
+              <span className="truncate font-mono text-xs text-[#E8A020]">{e.code}</span>
+              <span className="truncate text-[10px] text-muted-foreground/70">{e.name}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function DataRow({

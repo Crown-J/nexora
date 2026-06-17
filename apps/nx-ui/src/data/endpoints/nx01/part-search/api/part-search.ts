@@ -12,6 +12,7 @@ import type {
   PartSearchQuery,
   PartSearchResult,
   PartStockHistoryRow,
+  PartStockSettingRow,
   PartStockSummaryDto,
 } from '@data/types/nx01/part-search';
 
@@ -79,6 +80,14 @@ export async function getPartStockHistory(id: string): Promise<{ rows: PartStock
   const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/stock-history`, { method: 'GET' });
   await assertOk(res, 'nxui_part_quick_search_stock_history');
   return (await res.json()) as { rows: PartStockHistoryRow[] };
+}
+
+export async function getPartStockSettings(
+  id: string,
+): Promise<{ rows: PartStockSettingRow[] }> {
+  const res = await apiFetch(`${BASE}/${encodeURIComponent(id)}/stock-settings`, { method: 'GET' });
+  await assertOk(res, 'nxui_part_quick_search_stock_settings');
+  return (await res.json()) as { rows: PartStockSettingRow[] };
 }
 
 export async function getPartRelated(id: string): Promise<{ rows: PartRelatedRow[] }> {

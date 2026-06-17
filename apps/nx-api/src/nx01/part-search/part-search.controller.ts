@@ -64,6 +64,11 @@ export class PartSearchController {
     return this.svc.getStockHistory(user, id);
   }
 
+  @Get(':id/stock-settings')
+  getStockSettings(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.svc.getStockSettings(user, id);
+  }
+
   @Get(':id/related')
   getRelatedParts(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.svc.getRelatedParts(user, id);

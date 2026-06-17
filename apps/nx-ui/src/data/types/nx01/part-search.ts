@@ -165,6 +165,16 @@ export type PartStockHistoryRow = {
   locationCode: string;
 };
 
+export type PartStockSettingRow = {
+  warehouseId: string;
+  warehouseCode: string;
+  warehouseName: string;
+  minQty: string;
+  maxQty: string;
+  reorderQty: string;
+  remark: string | null;
+};
+
 export type PartRelatedRow = {
   relationId: string;
   relationType: number;

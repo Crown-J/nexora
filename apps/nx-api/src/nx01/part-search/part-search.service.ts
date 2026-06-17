@@ -64,6 +64,36 @@ export class PartSearchService {
     return { brands, partGroups };
   }
 
+  /**
+   * 安全量 / 最高量 / 建議補貨量 (per 倉位)
+   * 對應 Nx03PartStockSetting，執行長原始需求 4 進貨專用「安全量與最高量」。
+   */
+  async getStockSettings(user: RequestUser, partId: string) {
+    const tenantId = requireTenantId(user);
+    const rows = await this.prisma.nx03PartStockSetting.findMany({
+      where: { tenantId, partId, isActive: true },
+      orderBy: { warehouse: { sortNo: 'asc' } },
+      select: {
+        minQty: true,
+        maxQty: true,
+        reorderQty: true,
+        remark: true,
+        warehouse: { select: { id: true, code: true, name: true } },
+      },
+    });
+    return {
+      rows: rows.map((r) => ({
+        warehouseId: r.warehouse.id,
+        warehouseCode: r.warehouse.code,
+        warehouseName: r.warehouse.name,
+        minQty: r.minQty.toString(),
+        maxQty: r.maxQty.toString(),
+        reorderQty: r.reorderQty.toString(),
+        remark: r.remark,
+      })),
+    };
+  }
+
   /** F2 主搜尋：四欄篩選 + 公司總庫存帶出。四欄全空拒收。*/
   async search(user: RequestUser, q: PartSearchQueryDto) {
     const tenantId = requireTenantId(user);
