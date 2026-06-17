@@ -188,7 +188,7 @@ export function PhoneticPicker({
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-1">
-      <span className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">
+      <span className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
         <span>{label}</span>
         <button
           type="button"
@@ -207,11 +207,11 @@ export function PhoneticPicker({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-8 rounded-md border border-[#2A3A32] bg-[#0F1A14] px-2 text-xs text-[#D8D8DC] outline-none placeholder:text-[#5A5A60] focus:border-[#E8A020]/60"
+        className="h-8 rounded-md border border-border/40 bg-background/60 px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
       />
 
       {open && candidates.length > 0 ? (
-        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#2A3A32] bg-[#1A2A22] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border/40 bg-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           {candidates.map((name, i) => (
             <li key={name}>
               <button
@@ -223,7 +223,7 @@ export function PhoneticPicker({
                   'flex w-full items-center px-3 py-1.5 text-left text-xs',
                   i === focusedIdx
                     ? 'bg-[#E8A020]/15 text-[#E8A020]'
-                    : 'text-[#D8D8DC] hover:bg-[#1A2A22]',
+                    : 'text-foreground hover:bg-card/60',
                 )}
               >
                 {name}
@@ -232,11 +232,11 @@ export function PhoneticPicker({
           ))}
         </ul>
       ) : open && searched && !loading ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A3A32] bg-[#1A2A22] px-3 py-2 text-[11px] text-[#5A5A60] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border/40 bg-card/60 px-3 py-2 text-[11px] text-muted-foreground/70 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           注音「{keyboardToBopomofo(value.trim())}」無對應料號（檢查 phonetic_index 是否已建）
         </div>
       ) : open && loading ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A3A32] bg-[#1A2A22] px-3 py-2 text-[11px] text-[#E8A020] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border/40 bg-card/60 px-3 py-2 text-[11px] text-[#E8A020] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           注音查詢中:「{keyboardToBopomofo(value.trim())}」…
         </div>
       ) : null}

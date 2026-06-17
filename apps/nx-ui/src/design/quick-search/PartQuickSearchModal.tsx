@@ -53,7 +53,8 @@ import { Combobox } from './Combobox';
 import { PhoneticPicker } from './PhoneticPicker';
 
 type Props = {
-  open: boolean;
+  /** 由 GlobalPartQuickSearch 控制；true 時播 zoom-out 動畫 */
+  closing?: boolean;
   onClose: () => void;
 };
 
@@ -64,7 +65,9 @@ const PAGE_SIZE = 100;
 const HARD_LIMIT = 500;
 const SUGGESTION_LIMIT = 8;
 
-export function PartQuickSearchModal({ open, onClose }: Props) {
+export function PartQuickSearchModal({ closing = false, onClose }: Props) {
+  // GlobalPartQuickSearch 已負責 mount/unmount、本元件 mount 期間 open 永遠 true
+  const open = true;
   // 四欄篩選文字（執行長 2026-06-17 拍板第三次回饋:每欄都 Combobox 聯想）
   const [brandQuery, setBrandQuery] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -317,12 +320,24 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
     })();
   }, [open, selected]);
 
-  if (!open) return null;
+  // mount 即顯示、移除 if(!open) early return（由 GlobalPartQuickSearch 控制 mount）
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80">
+    <div
+      className={cn(
+        'fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm',
+        closing ? 'animate-out fade-out duration-200' : 'animate-in fade-in duration-200',
+      )}
+    >
       <div
-        className="flex flex-col rounded-2xl border border-[#2A3A32] bg-[#0F1A14] shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+        className={cn(
+          // 玻璃感:半透明 card + backdrop-blur 讓底下星空透出（執行長 2026-06-17 拍板）
+          'flex flex-col rounded-2xl border border-border/40 bg-card/70 text-foreground shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl',
+          // zoom 動畫
+          closing
+            ? 'animate-out fade-out zoom-out-95 duration-200'
+            : 'animate-in fade-in zoom-in-95 duration-200',
+        )}
         style={{
           // 執行長 2026-06-17:固定 modal 大小、不隨內容變動
           width: 'min(1200px, 96vw)',
@@ -330,12 +345,12 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         }}
       >
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-[#2A3A32] px-5 py-3">
+        <div className="flex items-center gap-2.5 border-b border-border/40 px-5 py-3">
           <span className="size-2 rounded-full bg-[#E8A020] shadow-[0_0_10px_#E8A020]" />
           <PackageSearch className="size-4 text-[#E8A020]" />
-          <h2 className="text-sm font-bold tracking-wide text-[#E8E8EB]">料號即時搜尋</h2>
+          <h2 className="text-sm font-bold tracking-wide text-foreground">料號即時搜尋</h2>
 
-          <label className="ml-4 flex cursor-pointer items-center gap-1.5 text-[11px] text-[#888892] hover:text-[#D8D8DC]">
+          <label className="ml-4 flex cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground">
             <input
               type="checkbox"
               checked={includeInactive}
@@ -345,7 +360,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
             含停用品
           </label>
 
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-[#5A5A60]">
+          <span className="ml-auto text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground/70">
             F2 · QUICK SEARCH
           </span>
           <button
@@ -359,7 +374,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="ml-1 rounded-md border border-[#2A3A32] bg-[#1F2D26] p-1 text-[#888892] hover:bg-[#22222A] hover:text-[#D8D8DC]"
+            className="ml-1 rounded-md border border-border/40 bg-[#1F2D26] p-1 text-muted-foreground hover:bg-[#22222A] hover:text-foreground"
             aria-label="關閉"
           >
             <X className="size-3.5" />
@@ -367,7 +382,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         </div>
 
         {/* 篩選列（四個 Combobox 並排）*/}
-        <div className="grid grid-cols-1 gap-2 border-b border-[#2A3A32] bg-[#1A2A22] px-5 py-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2 border-b border-border/40 bg-card/60 px-5 py-3 sm:grid-cols-4">
           <Combobox<BrandOpt>
             label="廠牌"
             value={brandQuery}
@@ -419,8 +434,8 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         {/* 主結果區（窄）+ 明細區（寬）split（執行長 2026-06-17:左側更窄、右側永遠全顯示）*/}
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[260px_1fr]">
           {/* 左：主結果列表 */}
-          <div className="relative flex min-h-0 flex-col border-b border-[#2A3A32] lg:border-b-0 lg:border-r">
-            <div className="flex items-center justify-between gap-2 border-b border-[#2A3A32] bg-[#0A1410]/60 px-4 py-1.5 text-[11px] text-[#888892]">
+          <div className="relative flex min-h-0 flex-col border-b border-border/40 lg:border-b-0 lg:border-r">
+            <div className="flex items-center justify-between gap-2 border-b border-border/40 bg-background/40/60 px-4 py-1.5 text-[11px] text-muted-foreground">
               <span className="min-w-0 flex-1 truncate">
                 {result ? (
                   <>
@@ -458,7 +473,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                   '輸入條件後按 Enter（料號欄）或右上「搜尋」'
                 )}
               </span>
-              <span className="shrink-0 font-mono text-[10px] text-[#5A5A60]">↑↓ 切結果</span>
+              <span className="shrink-0 font-mono text-[10px] text-muted-foreground/70">↑↓ 切結果</span>
             </div>
 
             {error ? (
@@ -470,14 +485,14 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
 
             <div className="min-h-0 flex-1 overflow-auto">
               {rows.length === 0 && !error ? (
-                <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-[#5A5A60]">
+                <div className="flex h-full items-center justify-center px-6 py-10 text-center text-xs text-muted-foreground/70">
                   <div>
-                    <Search className="mx-auto mb-2 size-6 text-[#3A4A42]" />
+                    <Search className="mx-auto mb-2 size-6 text-muted-foreground/40" />
                     輸入條件、按 Enter 或「搜尋」按鈕
                   </div>
                 </div>
               ) : (
-                <ul className="divide-y divide-[#1F2D26]">
+                <ul className="divide-y divide-border/30">
                   {rows.map((r, idx) => (
                     <li key={r.id}>
                       <button
@@ -488,7 +503,7 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
                           'flex w-full px-3 py-2 text-left',
                           idx === focusedIndex
                             ? 'bg-[#E8A020]/12 ring-1 ring-inset ring-[#E8A020]/50'
-                            : 'hover:bg-[#1A2A22]',
+                            : 'hover:bg-card/60',
                           !r.isActive && 'opacity-60',
                         )}
                       >
@@ -505,8 +520,8 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
 
             {/* 搜尋中 overlay（不替換內容、避免 layout 重排造成的閃跳）*/}
             {loading ? (
-              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-[#0F1A14]/60">
-                <div className="flex items-center gap-2 rounded-md border border-[#E8A020]/40 bg-[#0F1A14] px-3 py-1.5 text-xs text-[#E8A020] shadow-lg">
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background/40/60">
+                <div className="flex items-center gap-2 rounded-md border border-[#E8A020]/40 bg-background/40 px-3 py-1.5 text-xs text-[#E8A020] shadow-lg">
                   <Loader2 className="size-3.5 animate-spin" />
                   搜尋中…
                 </div>
@@ -525,12 +540,12 @@ export function PartQuickSearchModal({ open, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-[#2A3A32] bg-[#0A1410]/40 px-5 py-2 text-[10px] text-[#5A5A60]">
+        <div className="flex items-center justify-between border-t border-border/40 bg-background/40/40 px-5 py-2 text-[10px] text-muted-foreground/70">
           <span>
             F2 開關 · 廠牌/族群/料號輸入出聯想 · 品名按 F4 注音查詢 · ↑↓ 選 · Enter 確認 ·
             料號欄 Enter 搜尋 · Alt+F 回第一欄 · Esc 關
           </span>
-          <span className="font-mono text-[#3A4A42]">NEXORA · Part Quick Search</span>
+          <span className="font-mono text-muted-foreground/40">NEXORA · Part Quick Search</span>
         </div>
       </div>
     </div>
@@ -574,12 +589,12 @@ function DetailPane({
     <div className="flex min-h-0 flex-col overflow-auto p-4">
       <div className="space-y-3">
         {/* 基本資料（內嵌正方形圖片在左側）*/}
-        <section className="rounded-lg border border-[#2A3A32] bg-[#1A2A22] p-3">
+        <section className="rounded-lg border border-border/40 bg-card/60 p-3">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#888892]">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
               基本資料
             </h3>
-            {detailLoading ? <Loader2 className="size-3 animate-spin text-[#5A5A60]" /> : null}
+            {detailLoading ? <Loader2 className="size-3 animate-spin text-muted-foreground/70" /> : null}
           </div>
           <div className="flex gap-3">
             {/* 正方形產品圖片（執行長 2026-06-17:嵌在基本資料內）*/}
@@ -600,12 +615,12 @@ function DetailPane({
         </section>
 
         {/* 庫存概況 */}
-        <section className="rounded-lg border border-[#2A3A32] bg-[#1A2A22] p-3">
+        <section className="rounded-lg border border-border/40 bg-card/60 p-3">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#888892]">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
               庫存概況
             </h3>
-            {detailLoading ? <Loader2 className="size-3 animate-spin text-[#5A5A60]" /> : null}
+            {detailLoading ? <Loader2 className="size-3 animate-spin text-muted-foreground/70" /> : null}
           </div>
 
           {/* 公司總 */}
@@ -639,7 +654,7 @@ function DetailPane({
           {stockSummary && stockSummary.warehouses.length > 0 ? (
             <table className="w-full border-collapse text-[11px]">
               <thead>
-                <tr className="border-b border-[#2A3A32] text-[10px] uppercase tracking-wider text-[#5A5A60]">
+                <tr className="border-b border-border/40 text-[10px] uppercase tracking-wider text-muted-foreground/70">
                   <th className="py-1.5 pr-2 text-left font-medium">倉位</th>
                   <th className="py-1.5 px-1 text-right font-medium">庫存</th>
                   <th className="py-1.5 px-1 text-right font-medium">可出</th>
@@ -650,20 +665,20 @@ function DetailPane({
               <tbody>
                 {stockSummary.warehouses.map((w) => (
                   <tr key={w.warehouseId} className="border-b border-[#1F2D26]">
-                    <td className="py-1.5 pr-2 font-mono text-[#D8D8DC]">
+                    <td className="py-1.5 pr-2 font-mono text-foreground">
                       {w.warehouseCode}
-                      <span className="ml-1 text-[10px] text-[#5A5A60]">· {w.warehouseName}</span>
+                      <span className="ml-1 text-[10px] text-muted-foreground/70">· {w.warehouseName}</span>
                     </td>
                     <td className="py-1.5 px-1 text-right font-mono text-[#22D88F]">
                       {Number(w.onHand).toFixed(0)}
                     </td>
-                    <td className="py-1.5 px-1 text-right font-mono text-[#D8D8DC]">
+                    <td className="py-1.5 px-1 text-right font-mono text-foreground">
                       {Number(w.available).toFixed(0)}
                     </td>
                     <td className="py-1.5 px-1 text-right font-mono text-[#E26060]">
                       {Number(w.reserved).toFixed(0)}
                     </td>
-                    <td className="py-1.5 pl-1 text-right font-mono text-[#888892]">
+                    <td className="py-1.5 pl-1 text-right font-mono text-muted-foreground">
                       {Number(w.inTransit).toFixed(0)}
                     </td>
                   </tr>
@@ -671,14 +686,14 @@ function DetailPane({
               </tbody>
             </table>
           ) : (
-            <div className="rounded border border-dashed border-[#2A3A32] px-3 py-2 text-center text-[10px] text-[#5A5A60]">
+            <div className="rounded border border-dashed border-border/40 px-3 py-2 text-center text-[10px] text-muted-foreground/70">
               無倉位庫存資料
             </div>
           )}
         </section>
 
         {/* 後續階段提示（進貨/銷貨/庫存歷史 / 相關零件）*/}
-        <div className="rounded-lg border border-dashed border-[#2A3A32] p-3 text-center text-[10px] text-[#5A5A60]">
+        <div className="rounded-lg border border-dashed border-border/40 p-3 text-center text-[10px] text-muted-foreground/70">
           進貨明細 / 銷貨報價 / 出入庫紀錄 / 相關零件 ─ 階段 5+ 接入
         </div>
       </div>
@@ -699,12 +714,12 @@ function DataRow({
 }) {
   return (
     <div className="flex items-baseline gap-3 border-b border-[#1F2D26]/60 pb-1 text-[11px] last:border-b-0 last:pb-0">
-      <span className="w-[78px] shrink-0 text-[#5A5A60]">{label}</span>
+      <span className="w-[78px] shrink-0 text-muted-foreground/70">{label}</span>
       <span
         className={cn(
           'min-w-0 flex-1 truncate',
           mono && 'font-mono',
-          accent ? 'text-[#E8A020]' : 'text-[#D8D8DC]',
+          accent ? 'text-[#E8A020]' : 'text-foreground',
         )}
       >
         {value || '—'}
@@ -715,8 +730,8 @@ function DataRow({
 
 function StatPill({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="flex flex-col items-center rounded-md border border-[#2A3A32] bg-[#0A1410]/60 px-2 py-1.5">
-      <span className="text-[9px] uppercase tracking-wider text-[#5A5A60]">{label}</span>
+    <div className="flex flex-col items-center rounded-md border border-border/40 bg-background/40/60 px-2 py-1.5">
+      <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70">{label}</span>
       <span className="font-mono text-sm" style={{ color }}>
         {Number(value).toFixed(0)}
       </span>
@@ -729,14 +744,14 @@ function SquarePhoto({ partId, photos }: { partId: string | undefined; photos: P
   const main = photos[0];
   if (!partId || !main) {
     return (
-      <div className="flex size-[120px] shrink-0 flex-col items-center justify-center rounded border border-dashed border-[#2A3A32] bg-[#0A1410]/40 text-center text-[9px] text-[#5A5A60]">
-        <ImageIcon className="mb-1 size-5 text-[#3A4A42]" />
+      <div className="flex size-[120px] shrink-0 flex-col items-center justify-center rounded border border-dashed border-border/40 bg-background/40/40 text-center text-[9px] text-muted-foreground/70">
+        <ImageIcon className="mb-1 size-5 text-muted-foreground/40" />
         無產品圖
       </div>
     );
   }
   return (
-    <div className="size-[120px] shrink-0 overflow-hidden rounded border border-[#2A3A32] bg-[#0A1410]">
+    <div className="size-[120px] shrink-0 overflow-hidden rounded border border-border/40 bg-background/40">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={buildPartSearchPhotoUrl(partId, main.id)}

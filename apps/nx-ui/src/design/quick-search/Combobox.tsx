@@ -190,7 +190,7 @@ export function Combobox<T>({
 
   return (
     <div ref={containerRef} className="relative flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-[#5A5A60]">{label}</span>
+      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">{label}</span>
       <input
         ref={inputRef}
         type="text"
@@ -202,11 +202,11 @@ export function Combobox<T>({
         }}
         placeholder={placeholder}
         autoComplete="off"
-        className="h-8 rounded-md border border-[#2A3A32] bg-[#0F1A14] px-2 text-xs text-[#D8D8DC] outline-none placeholder:text-[#5A5A60] focus:border-[#E8A020]/60"
+        className="h-8 rounded-md border border-border/40 bg-background/60 px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground/70 focus:border-[#E8A020]/60"
       />
 
       {open && suggestions.length > 0 ? (
-        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-[#2A3A32] bg-[#1A2A22] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <ul className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-auto rounded-md border border-border/40 bg-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           {suggestions.map((item, i) => {
             const desc = getDescription?.(item);
             return (
@@ -224,12 +224,12 @@ export function Combobox<T>({
                     'flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left text-xs',
                     i === focusedIdx
                       ? 'bg-[#E8A020]/15 text-[#E8A020]'
-                      : 'text-[#D8D8DC] hover:bg-[#1A2A22]',
+                      : 'text-foreground hover:bg-card/60',
                   )}
                 >
                   <span className="truncate font-mono">{getLabel(item)}</span>
                   {desc ? (
-                    <span className="truncate text-[10px] text-[#5A5A60]">{desc}</span>
+                    <span className="truncate text-[10px] text-muted-foreground/70">{desc}</span>
                   ) : null}
                 </button>
               </li>
@@ -237,7 +237,7 @@ export function Combobox<T>({
           })}
         </ul>
       ) : open && searchedEmpty ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-[#2A3A32] bg-[#1A2A22] px-3 py-2 text-[11px] text-[#5A5A60] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border/40 bg-card/60 px-3 py-2 text-[11px] text-muted-foreground/70 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
           無聯想項（按 Enter 用輸入文字搜尋、或檢查是否已 seed 測試資料）
         </div>
       ) : null}
