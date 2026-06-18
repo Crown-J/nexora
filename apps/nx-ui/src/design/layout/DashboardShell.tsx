@@ -121,7 +121,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
         <PageGuideProvider>
-          <div className="relative flex min-h-screen flex-col text-foreground overflow-hidden">
+          <div className="relative flex h-dvh flex-col text-foreground overflow-hidden">
             {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
             <div
               className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${

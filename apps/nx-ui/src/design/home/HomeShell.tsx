@@ -9,8 +9,6 @@ import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
 import { HomeView } from '@design/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { ParticleField } from '@design/login/planet-orbit';
-import { NxAppBackdrop } from '@design/layout/NxAppBackdrop';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
 
 export function HomeShell() {
@@ -66,17 +64,12 @@ export function HomeShell() {
   const empNo = me?.username ?? '';
 
   return (
-    <div className="relative flex min-h-screen flex-col text-foreground overflow-hidden">
-      {/* 兩主題底色 backdrop（深色黑+極光 / 淺色灰藍+光暈、即時切隨 html.light）*/}
-      <NxAppBackdrop />
-      {/* 跟登入畫面一致：滿屏星空粒子（z-0、不擋互動）*/}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <ParticleField className="w-full h-full" />
-      </div>
+    <div className="relative flex h-dvh flex-col text-foreground overflow-hidden">
+      {/* 底色 backdrop + 互動層（深色粒子 / 淺色六角凸出）由 root layout 統一掛、本層不重 mount */}
       {/* 內容層 z-10、mount 時 fade-in / logout 時 fade-out */}
       <div
         className={`relative z-10 flex flex-1 min-h-0 flex-col transition-all duration-500 ease-out ${
-          isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in zoom-in-95 duration-500'
+          isLeaving ? 'opacity-0 scale-[0.96]' : 'animate-in fade-in duration-500'
         }`}
       >
         <UnifiedTopBar
