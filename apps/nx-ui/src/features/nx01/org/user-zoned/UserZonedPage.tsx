@@ -50,11 +50,11 @@ import {
   MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
 } from '@/features/nx01/shell/ui/MasterTable';
-import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/nx01/shell/ui/MasterDetail';
+import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField } from '@/features/nx01/shell/ui/FormField';
 import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
-import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
+import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import {
   createUser,
@@ -976,7 +976,15 @@ export function UserZonedPage({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
       <PageHeader category={pageCategory} title={pageTitle} count={countText} />
-      <MasterTabs tab={tab} onChange={attemptTabChange} />
+      <MasterPageHead
+        tab={tab}
+        onTabChange={attemptTabChange}
+        currentPageId="emp"
+        detailTitle={
+          creating ? `新增${entityNoun}` : selected?.displayName ?? undefined
+        }
+        detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+      />
       <div className="overflow-x-auto">
         <ErpToolbar
           mode={mode}
@@ -1163,6 +1171,7 @@ function DetailPane({
   activeZone,
   setActiveZone,
   editableZones,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   entityNoun,
   selectedUserRoles,
   selectedUserWarehouses,
@@ -1247,11 +1256,8 @@ function DetailPane({
   return (
     <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
       <div className="px-4 py-4 sm:px-6">
-        <SectionHeader
-          title={creating ? `新增${entityNoun}` : selected?.displayName ?? entityNoun}
-          subtitle={editing ? '編輯中' : '瀏覽'}
-        />
-        <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="mt-4">
+        {/* 2026-06-18 SectionHeader 已搬到 MasterPageHead tabs 同排 */}
+        <div ref={formRef} data-master-form onKeyDown={handleFormKey}>
           <UserFormZoned
             mode={mode}
             creating={creating}
