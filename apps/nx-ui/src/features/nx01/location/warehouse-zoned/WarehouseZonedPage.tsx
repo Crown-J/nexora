@@ -28,11 +28,16 @@ import {
   MASTER_TABLE_PAGE_SIZES,
   type MasterTableColumn,
 } from '@/features/nx01/shell/ui/MasterTable';
-import { MasterDetailScroll, EmptyDetail, SectionHeader } from '@/features/nx01/shell/ui/MasterDetail';
+import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField } from '@/features/nx01/shell/ui/FormField';
 import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
-import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
+import { MasterPageHead } from '@/features/nx01/shell/master-nav';
+import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
+import {
+  type SortableOption,
+  type SortOrder,
+} from '@/features/nx01/shell/ui/sort-config/SortMenuButton';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import { fetchRefOptions } from '@/features/nx01/shell/entity-master/config';
 import {
@@ -89,6 +94,33 @@ export function WarehouseZonedPage({
   const [original, setOriginal] = useState<WarehouseDraft>({});
 
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+
+  // 2026-06-18 套員工新範式:M 排序 / O 匯出 / 表頭拖拉 / focus 第一筆
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const COLUMN_ALL_KEYS = useMemo(
+    () => ['code', 'name', 'siteName', 'isMain', 'warehouseTypeName', 'isActive'],
+    [],
+  );
+  const {
+    visibleKeys: columnsOrder,
+    setVisibleKeys: setColumnsOrder,
+  } = useColumnsPref('master-warehouses:columns:v1', COLUMN_ALL_KEYS, COLUMN_ALL_KEYS);
+  const SORT_OPTIONS: SortableOption[] = useMemo(
+    () => [
+      { key: 'code', label: '代碼' },
+      { key: 'name', label: '名稱' },
+      { key: 'siteName', label: '據點' },
+      { key: 'isMain', label: '主倉' },
+      { key: 'warehouseTypeName', label: '倉別' },
+      { key: 'isActive', label: '狀態' },
+    ],
+    [],
+  );
+  const pendingSelectRef = useRef<'first' | 'last' | null>(null);
+  const focusFirstRowRef = useRef<boolean>(true);
 
   const [refOptions, setRefOptions] = useState<{
     siteId?: RefOption[];
@@ -177,6 +209,83 @@ export function WarehouseZonedPage({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  // 2026-06-18 前端排序（type-aware:boolean/string）
+  const displayRows = useMemo(() => {
+    if (!sortKey) return rows;
+    const dir = sortOrder === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      const av = (a as unknown as Record<string, unknown>)[sortKey];
+      const bv = (b as unknown as Record<string, unknown>)[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (typeof av === 'boolean') return ((av ? 1 : 0) - (bv ? 1 : 0)) * dir;
+      return String(av).localeCompare(String(bv), 'zh-Hant') * dir;
+    });
+  }, [rows, sortKey, sortOrder]);
+
+  // item-level navigation
+  const localIdx = displayRows.findIndex((r) => r.id === selectedId);
+  const itemIndex = localIdx >= 0 ? (page - 1) * pageSize + localIdx + 1 : 0;
+  const itemTotal = total;
+
+  // 跨頁 pending + focus 第一筆 useEffect
+  useEffect(() => {
+    if (displayRows.length === 0) return;
+    if (pendingSelectRef.current) {
+      const targetId =
+        pendingSelectRef.current === 'first'
+          ? displayRows[0].id
+          : displayRows[displayRows.length - 1].id;
+      setSelectedId(targetId);
+      pendingSelectRef.current = null;
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-row-id="${targetId}"]`)?.focus();
+      });
+      return;
+    }
+    if (focusFirstRowRef.current) {
+      const firstId = displayRows[0].id;
+      setSelectedId(firstId);
+      focusFirstRowRef.current = false;
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-row-id="${firstId}"]`)?.focus();
+      });
+    }
+  }, [displayRows]);
+
+  const handleJumpFirstItem = useCallback(() => {
+    if (total === 0) return;
+    pendingSelectRef.current = 'first';
+    setPage(1);
+    if (page === 1 && displayRows.length > 0) setSelectedId(displayRows[0].id);
+  }, [total, page, displayRows]);
+  const handleJumpLastItem = useCallback(() => {
+    if (total === 0) return;
+    pendingSelectRef.current = 'last';
+    setPage(totalPages);
+    if (page === totalPages && displayRows.length > 0) {
+      setSelectedId(displayRows[displayRows.length - 1].id);
+    }
+  }, [total, totalPages, page, displayRows]);
+  const handlePrevItem = useCallback(() => {
+    if (localIdx > 0) setSelectedId(displayRows[localIdx - 1].id);
+    else if (page > 1) {
+      pendingSelectRef.current = 'last';
+      setPage(page - 1);
+    }
+  }, [localIdx, displayRows, page]);
+  const handleNextItem = useCallback(() => {
+    if (localIdx >= 0 && localIdx < displayRows.length - 1) {
+      setSelectedId(displayRows[localIdx + 1].id);
+    } else if (page < totalPages) {
+      pendingSelectRef.current = 'first';
+      setPage(page + 1);
+    } else if (localIdx < 0 && displayRows.length > 0) {
+      setSelectedId(displayRows[0].id);
+    }
+  }, [localIdx, displayRows, page, totalPages]);
+
   const isDirty = useMemo(() => {
     if (mode !== 'edit') return false;
     return Object.keys({ ...draft, ...original }).some(
@@ -190,7 +299,17 @@ export function WarehouseZonedPage({
     setDraft({});
     setOriginal({});
     setActiveZone('basic');
-  }, []);
+    setTab('list');
+    focusFirstRowRef.current = true;
+    if (displayRows.length > 0) {
+      const firstId = displayRows[0].id;
+      setSelectedId(firstId);
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-row-id="${firstId}"]`)?.focus();
+      });
+      focusFirstRowRef.current = false;
+    }
+  }, [displayRows]);
 
   const handleCreate = useCallback(() => {
     const d = emptyWarehouseDraft();
@@ -397,7 +516,13 @@ export function WarehouseZonedPage({
             e: () => selected && handleEdit(),
             f: toggleSearch,
             d: () => selected && handleDelete(),
-            r: () => setReloadTick((t) => t + 1),
+            r: () => {
+              setReloadTick((t) => t + 1);
+              showToast('已重新整理', 'success');
+            },
+            p: () => handleExport('print'),
+            o: () => setExportMenuOpen(true),
+            m: () => setSortMenuOpen(true),
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -418,33 +543,12 @@ export function WarehouseZonedPage({
         }
         return;
       }
-      const focusTag = (document.activeElement?.tagName ?? '').toLowerCase();
-      const inFormEl = focusTag === 'input' || focusTag === 'select' || focusTag === 'textarea';
-      if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        if (inFormEl) return;
-        if (rows.length === 0) return;
-        e.preventDefault();
-        const idx = rows.findIndex((r) => r.id === selectedId);
-        const cur = idx < 0 ? 0 : idx;
-        const nextIdx =
-          e.key === 'ArrowDown' ? Math.min(rows.length - 1, cur + 1) : Math.max(0, cur - 1);
-        setSelectedId(rows[nextIdx].id);
-      }
-      if (mode === 'browse' && tab === 'list' && e.key === 'Enter') {
-        if (inFormEl) return;
-        if (!selected) return;
-        e.preventDefault();
-        attemptTabChange('detail');
-      }
+      // 2026-06-18 ↑↓/Enter 由 MasterTable.handleTableKey 處理（避雙重觸發）
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [
     mode,
-    tab,
-    rows,
-    selectedId,
-    selected,
     searchOpen,
     attemptTabChange,
     handleCreate,
@@ -452,7 +556,10 @@ export function WarehouseZonedPage({
     handleDelete,
     handleSave,
     handleCancel,
+    handleExport,
+    showToast,
     toggleSearch,
+    selected,
   ]);
 
   useEffect(() => {
@@ -489,7 +596,7 @@ export function WarehouseZonedPage({
         key: 'isMain',
         label: '主倉',
         minWidthClass: 'min-w-[60px]',
-        render: (row) => (row.isMain ? <span className="text-[#E8A020]">★</span> : <span className="text-[#5A5A60]">—</span>),
+        render: (row) => (row.isMain ? <span className="text-primary">★</span> : <span className="text-muted-foreground">—</span>),
       },
       {
         key: 'warehouseTypeName',
@@ -521,12 +628,23 @@ export function WarehouseZonedPage({
     [],
   );
 
+  const visibleColumns = useMemo(() => {
+    const map = new Map(columns.map((c) => [c.key, c]));
+    return columnsOrder.map((k) => map.get(k)).filter((c): c is typeof columns[number] => !!c);
+  }, [columns, columnsOrder]);
+
   const countText = `${total} 筆${entityNoun}`;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden text-foreground">
       <PageHeader category={pageCategory} title={pageTitle} count={countText} />
-      <MasterTabs tab={tab} onChange={attemptTabChange} />
+      <MasterPageHead
+        tab={tab}
+        onTabChange={attemptTabChange}
+        currentPageId="warehouse"
+        detailTitle={creating ? `新增${entityNoun}` : selected?.name ?? undefined}
+        detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+      />
       <div className="overflow-x-auto">
         <ErpToolbar
           mode={mode}
@@ -536,15 +654,52 @@ export function WarehouseZonedPage({
           selectionMode={false}
           onToggleSelection={() => {}}
           selectedCount={0}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={(p) => setPage(Math.min(Math.max(1, p), totalPages))}
+          itemIndex={itemIndex}
+          itemTotal={itemTotal}
+          onJumpFirstItem={handleJumpFirstItem}
+          onPrevItem={handlePrevItem}
+          onNextItem={handleNextItem}
+          onJumpLastItem={handleJumpLastItem}
           onCreate={handleCreate}
           onEdit={handleEdit}
           onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
-          onRefresh={() => setReloadTick((t) => t + 1)}
+          exportMenuOpen={exportMenuOpen}
+          onExportMenuOpenChange={setExportMenuOpen}
+          onExportMenuCloseAutoFocus={(e) => {
+            if (!selectedId) return;
+            const rowEl = document.querySelector<HTMLElement>(`[data-row-id="${selectedId}"]`);
+            if (rowEl) {
+              e.preventDefault();
+              rowEl.focus();
+            }
+          }}
+          onRefresh={() => {
+            setReloadTick((t) => t + 1);
+            showToast('已重新整理', 'success');
+          }}
+          sortOptions={SORT_OPTIONS}
+          sortKey={sortKey}
+          sortOrder={sortOrder}
+          onSortChange={(k, o) => {
+            setSortKey(k);
+            setSortOrder(o);
+          }}
+          onSortReset={() => {
+            setSortKey(null);
+            setSortOrder('asc');
+          }}
+          sortMenuOpen={sortMenuOpen}
+          onSortMenuOpenChange={setSortMenuOpen}
+          onSortMenuCloseAutoFocus={(e) => {
+            if (!selectedId) return;
+            const rowEl = document.querySelector<HTMLElement>(`[data-row-id="${selectedId}"]`);
+            if (rowEl) {
+              e.preventDefault();
+              rowEl.focus();
+            }
+          }}
           onSave={handleSave}
           onCancel={handleCancel}
           showInactive={showInactive}
@@ -566,8 +721,9 @@ export function WarehouseZonedPage({
       <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
           <MasterTable<WarehouseDto>
-            columns={columns}
-            rows={rows}
+            onColumnOrderChange={setColumnsOrder}
+            columns={visibleColumns}
+            rows={displayRows}
             getRowId={(r) => r.id}
             selectedId={selectedId}
             onSelect={setSelectedId}
@@ -672,11 +828,8 @@ function DetailPane({
   return (
     <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
       <div className="px-4 py-4 sm:px-6">
-        <SectionHeader
-          title={creating ? `新增${entityNoun}` : selected?.name ?? entityNoun}
-          subtitle={editing ? '編輯中' : '瀏覽'}
-        />
-        <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="mt-4">
+        {/* 2026-06-18 SectionHeader 已搬到 MasterPageHead tabs 同排 */}
+        <div ref={formRef} data-master-form onKeyDown={handleFormKey}>
           <WarehouseFormZoned
             mode={mode}
             creating={creating}
