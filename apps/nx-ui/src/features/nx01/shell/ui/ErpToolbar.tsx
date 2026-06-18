@@ -26,6 +26,7 @@
 'use client';
 
 import {
+  ArrowUpDown,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -88,6 +89,8 @@ export function ErpToolbar({
   onExport,
   onPrint,
   onRefresh,
+  onOpenSort,
+  sortCount = 0,
   onSave,
   onCancel,
   showInactive,
@@ -134,6 +137,10 @@ export function ErpToolbar({
   /** P 純列印（執行長範式：P=列印 / O=匯出 dropdown）；未提供時走 onExport('print') */
   onPrint?: () => void;
   onRefresh: () => void;
+  /** M 排序設定（執行長 2026-06-18 範式）；未提供時 disabled */
+  onOpenSort?: () => void;
+  /** 已套用排序欄位數（>0 時按鈕高亮 + badge） */
+  sortCount?: number;
   onSave: () => void;
   onCancel: () => void;
   showInactive?: boolean;
@@ -255,6 +262,14 @@ export function ErpToolbar({
       />
       <ToolbarSeparator />
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
+      <ToolbarButton
+        icon={ArrowUpDown}
+        letter="M"
+        label={sortCount > 0 ? `排序·${sortCount}` : '排序'}
+        enabled={!!onOpenSort}
+        onClick={onOpenSort}
+        pressed={sortCount > 0}
+      />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
       <ToolbarSeparator />
       <ToolbarButton
