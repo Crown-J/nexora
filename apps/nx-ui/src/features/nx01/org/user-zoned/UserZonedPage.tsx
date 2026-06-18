@@ -1068,7 +1068,10 @@ export function UserZonedPage({
           onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
-          onRefresh={() => setReloadTick((t) => t + 1)}
+          onRefresh={() => {
+            setReloadTick((t) => t + 1);
+            showToast('已重新整理', 'success');
+          }}
           onSave={handleSave}
           onCancel={handleCancel}
           showInactive={showInactive}

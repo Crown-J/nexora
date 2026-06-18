@@ -98,6 +98,36 @@ function openPrintPreview<T>(opts: ExportTableOptions<T>): void {
     padding: 16px;
     background: #fff;
   }
+  /* 2026-06-18 執行長範式:user 自己按列印（不自動印）→ 加頂部工具列 */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #fafafa;
+    border-bottom: 1px solid #ddd;
+    padding: 10px 16px;
+    margin: -16px -16px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .title { flex: 1; font-size: 13px; color: #333; font-weight: 600; }
+  .toolbar button {
+    font: inherit;
+    font-size: 12px;
+    padding: 6px 14px;
+    border: 1px solid #888;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .toolbar button.primary {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+  }
+  .toolbar button.primary:hover { background: #1e4fc5; }
+  .toolbar button:not(.primary):hover { background: #f0f0f0; }
   h1 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
   .meta { color: #666; font-size: 11px; margin-bottom: 10px; }
   table { width: 100%; border-collapse: collapse; }
@@ -114,21 +144,22 @@ function openPrintPreview<T>(opts: ExportTableOptions<T>): void {
   td.empty { text-align: center; color: #888; padding: 16px; }
   @media print {
     body { padding: 0; }
+    .toolbar { display: none; }
   }
 </style>
 </head>
 <body>
+<div class="toolbar">
+  <span class="title">列印預覽 — ${escapeHtml(opts.title)}（${opts.rows.length} 筆）</span>
+  <button type="button" onclick="window.close()">取消</button>
+  <button type="button" class="primary" onclick="window.print()">列印</button>
+</div>
 <h1>${escapeHtml(opts.title)}</h1>
 <div class="meta">列印時間：${nowText()}　|　共 ${opts.rows.length} 筆</div>
 <table>
   <thead><tr>${headHtml}</tr></thead>
   <tbody>${bodyHtml}</tbody>
 </table>
-<script>
-  window.addEventListener('load', function () {
-    setTimeout(function () { window.print(); }, 100);
-  });
-</script>
 </body>
 </html>`;
 

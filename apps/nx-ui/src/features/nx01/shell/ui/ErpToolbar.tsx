@@ -409,7 +409,7 @@ export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          title="匯出（P）"
+          title="匯出（O）"
           className={cn(
             'inline-flex h-7 items-center gap-1 rounded-md border border-border/40 bg-card/60 px-2 text-[11px] font-medium text-foreground/80 transition-all hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground',
             'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
@@ -417,7 +417,7 @@ export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat
         >
           <Download className="size-3" />
           <span className="hidden sm:inline">
-            <span className="mr-0.5 font-mono text-[#E8A020]">P</span>
+            <span className="mr-0.5 font-mono text-[#E8A020]">O</span>
             匯出
           </span>
         </button>
@@ -427,6 +427,7 @@ export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat
         sideOffset={6}
         className="min-w-[10rem] border-border/40 bg-popover/95 p-1 shadow-2xl backdrop-blur-xl"
       >
+        {/* 2026-06-18 執行長範式:O 匯出只 CSV / PDF、列印走獨立 P 按鈕 */}
         <DropdownMenuItem
           onClick={() => onSelect('csv')}
           className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
@@ -440,13 +441,6 @@ export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat
         >
           <FileText className="mr-2 size-3.5" />
           匯出 PDF
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => onSelect('print')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
-        >
-          <Printer className="mr-2 size-3.5" />
-          列印
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
