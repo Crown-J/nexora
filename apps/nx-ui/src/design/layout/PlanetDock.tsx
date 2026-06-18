@@ -108,6 +108,7 @@ export function PlanetDock({ open, onClose }: Props) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   // 開關生命週期：open=true → 立刻 mount、下幀切 visible（觸發 transition）；open=false → 先 transition 結束才 unmount
+  /* eslint-disable react-hooks/set-state-in-effect -- mount transition pattern、setTimeout 內 setState 非同步、非 cascade */
   useEffect(() => {
     if (open) {
       setStack([{ items: DOCK_NAV, idx: 0, title: '導覽' }]);
@@ -117,6 +118,7 @@ export function PlanetDock({ open, onClose }: Props) {
       return () => clearTimeout(t);
     }
   }, [open, mounted]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const navigateLeaf = useCallback(
     (leaf: DockItem) => {
@@ -152,6 +154,21 @@ export function PlanetDock({ open, onClose }: Props) {
   const pop = useCallback(() => {
     setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
   }, []);
+
+  // 2026-06-18 open 時偷 focus 給 root tabIndex=-1
+  //   → 避免表格 row 殘留 focus、↑↓/Enter 雙重觸發 dock + MasterTable
+  //   → close 時把 focus 還給 document.body（不還給原 row、避免 dock 內 click 之後焦點亂跑）
+  useEffect(() => {
+    if (!open) return;
+    const root = rootRef.current;
+    requestAnimationFrame(() => root?.focus({ preventScroll: true }));
+    return () => {
+      // dock 關閉時若 focus 仍在 dock 內、blur 給 body（避免殘留）
+      if (root && root.contains(document.activeElement)) {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
+    };
+  }, [open]);
 
   // 鍵盤導航（open 期間）
   useEffect(() => {
@@ -222,9 +239,10 @@ export function PlanetDock({ open, onClose }: Props) {
   return (
     <div
       ref={rootRef}
+      tabIndex={-1}
       onClick={(e) => e.stopPropagation()}
       data-open={open}
-      className="fixed left-3.5 top-[68px] z-[120] w-[260px] overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_94%,transparent)] backdrop-blur-xl shadow-2xl
+      className="fixed left-3.5 top-[68px] z-[120] w-[260px] overflow-hidden rounded-2xl border border-border/40 bg-[color-mix(in_oklch,var(--popover)_94%,transparent)] backdrop-blur-xl shadow-2xl outline-none
         origin-top-left transition-[opacity,transform] duration-200 ease-out
         data-[open=false]:opacity-0 data-[open=false]:-translate-y-2 data-[open=false]:scale-[0.97] data-[open=false]:pointer-events-none
         data-[open=true]:opacity-100 data-[open=true]:translate-y-0 data-[open=true]:scale-100"
