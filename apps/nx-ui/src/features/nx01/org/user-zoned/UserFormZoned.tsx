@@ -154,7 +154,7 @@ export function UserFormZoned({
   return (
     <div className="flex flex-col gap-4">
       {/* Zone Tabs */}
-      <div className="flex flex-wrap items-center gap-1 border-b border-[#2A2A30] pb-px">
+      <div className="flex gap-[2px] overflow-x-auto border-b border-border/40 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {visibleZoneList.map((z) => {
           const active = z.zone === safeActiveZone;
           const isPlaceholderZone = z.zone === 'security' || z.zone === 'hr';
@@ -164,15 +164,12 @@ export function UserFormZoned({
               type="button"
               onClick={() => setActiveZone(z.zone)}
               className={cn(
-                'relative px-3 py-2 text-xs font-semibold tracking-[0.1em] uppercase transition-colors',
-                active ? 'text-[#E8A020]' : 'text-[#888892] hover:text-[#E8E8EB]',
-                isPlaceholderZone && !active && 'text-[#5A5A60]',
+                '-mb-px whitespace-nowrap border-b-2 border-transparent px-[14px] py-[11px] text-[13px] font-semibold transition-colors',
+                active ? 'border-[#E8A020] text-[#E8A020]' : 'text-muted-foreground hover:text-foreground',
+                isPlaceholderZone && !active && 'text-muted-foreground/70',
               )}
             >
               {z.label}
-              {active ? (
-                <span className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-[#E8A020]" />
-              ) : null}
             </button>
           );
         })}

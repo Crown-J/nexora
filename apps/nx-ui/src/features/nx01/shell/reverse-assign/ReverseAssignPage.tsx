@@ -138,8 +138,8 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
 
       <div className="flex min-h-0 flex-1">
         {/* 左：實體列表 */}
-        <div className={cn('flex w-60 shrink-0 flex-col border-r border-[#2A2A30] bg-[#0C0C10] overflow-auto nx-master-scroll', col === 'entity' && 'ring-1 ring-inset ring-[#E8A020]/30')}>
-          <div className="sticky top-0 border-b border-[#2A2A30] bg-[#0E0E12] px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#5A5A60]">
+        <div className={cn('flex w-[300px] shrink-0 flex-col overflow-auto border-r border-border/40 bg-background/30 nx-master-scroll', col === 'entity' && 'ring-1 ring-inset ring-[#E8A020]/30')}>
+          <div className="sticky top-0 border-b border-border/40 bg-background/40 px-[14px] py-[12px] text-[13px] font-semibold text-foreground">
             {config.entityNoun}（↑↓ 選 · → 進成員）
           </div>
           {entities.map((en, i) => {
@@ -150,13 +150,13 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
                 type="button"
                 onClick={() => { setEntityIdx(i); setCol('entity'); }}
                 className={cn(
-                  'flex flex-col gap-0.5 border-b border-[#1A1A1F]/60 px-3 py-2 text-left transition-colors',
-                  on ? 'bg-[#E8A020]/12 text-[#E8A020]' : 'text-[#E8E8EB] hover:bg-[#1A1A22]',
+                  'flex flex-col gap-0.5 rounded-[9px] border border-transparent px-[11px] py-[9px] text-left transition-colors',
+                  on ? 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020]' : 'text-foreground hover:bg-accent/10',
                   on && col === 'entity' && 'ring-1 ring-inset ring-[#E8A020]/60',
                 )}
               >
                 <span className="text-sm font-medium">{en.name}</span>
-                <span className="font-mono text-[10px] text-[#5A5A60]">{en.code}</span>
+                <span className="font-mono text-[11px] text-muted-foreground/70">{en.code}</span>
               </button>
             );
           })}
@@ -164,11 +164,11 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
 
         {/* 右：成員清單 */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-3 border-b border-[#2A2A30] bg-[#0E0E12] px-4 py-2">
-            <span className="text-sm font-semibold text-[#F0F0F3]">
+          <div className="flex items-center gap-3 border-b border-border/40 bg-background/40 px-[16px] py-[12px]">
+            <span className="text-[14px] font-semibold text-foreground">
               {selectedEntity ? `「${selectedEntity.name}」的${config.memberNoun}` : config.memberNoun}
             </span>
-            <span className="rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-2 py-0.5 text-[11px] font-mono text-[#B8B8C0]">{members.length}</span>
+            <span className="rounded-md border border-border/40 bg-background/40 px-2 py-0.5 text-[11px] font-mono text-foreground/80">{members.length}</span>
             <div className="flex-1" />
             <button
               type="button"
@@ -181,7 +181,7 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
           </div>
           <div className={cn('min-h-0 flex-1 overflow-auto nx-master-scroll', col === 'member' && 'ring-1 ring-inset ring-[#E8A020]/30')}>
             {members.length === 0 ? (
-              <div className="flex h-40 items-center justify-center text-sm text-[#5A5A60]">{selectedEntity ? `尚無${config.memberNoun}` : `請先在左側選一個${config.entityNoun}`}</div>
+              <div className="flex h-40 items-center justify-center text-sm text-muted-foreground/70">{selectedEntity ? `尚無${config.memberNoun}` : `請先在左側選一個${config.entityNoun}`}</div>
             ) : (
               members.map((m, i) => {
                 const on = i === memberIdx;
@@ -190,18 +190,18 @@ export function ReverseAssignPage({ config }: { config: ReverseAssignConfig }) {
                     key={m.recordId}
                     onMouseEnter={() => { setCol('member'); setMemberIdx(i); }}
                     className={cn(
-                      'flex items-center gap-3 border-b border-[#1A1A1F]/60 px-4 py-2.5',
-                      on && col === 'member' ? 'bg-[#E8A020]/8 ring-1 ring-inset ring-[#E8A020]/50' : 'hover:bg-[#1A1A22]',
+                      'flex items-center gap-3 border-b border-border/20 px-4 py-2.5',
+                      on && col === 'member' ? 'bg-[#E8A020]/8 ring-1 ring-inset ring-[#E8A020]/50' : 'hover:bg-accent/10',
                     )}
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm text-[#E8E8EB]">{m.label}</div>
-                      <div className="truncate font-mono text-[10px] text-[#5A5A60]">{m.sub}</div>
+                      <div className="truncate text-sm text-foreground">{m.label}</div>
+                      <div className="truncate font-mono text-[11px] text-muted-foreground/70">{m.sub}</div>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleRevoke(m)}
-                      className="inline-flex h-6 items-center gap-1 rounded border border-[#5A2A2A] bg-[#1F1212] px-2 text-[10px] font-medium text-[#C84A4A] transition-colors hover:bg-[#2A1818] hover:text-[#E26060]"
+                      className="inline-flex h-6 items-center gap-1 rounded border border-destructive/30 bg-destructive/10 px-2 text-[10px] font-medium text-destructive transition-colors hover:bg-destructive/20"
                     >
                       <X className="size-3" /> 撤銷
                     </button>

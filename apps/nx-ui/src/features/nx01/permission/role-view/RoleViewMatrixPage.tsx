@@ -316,19 +316,19 @@ export function RoleViewMatrixPage() {
       <PageHeader category="帳號與權限" title="職務權限設定" count={`${views.length} 個畫面`} />
 
       {/* 工具列：職務下拉 + 存檔 */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-[#2A2A30] bg-[#0E0E12] px-4 py-2.5">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">職務</span>
+      <div className="flex flex-wrap items-center gap-3 border-b border-border/40 bg-background/40 px-4 py-2.5">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">職務</span>
         <select
           value={roleId}
           onChange={(e) => setRoleId(e.target.value)}
-          className="cursor-pointer rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+          className="cursor-pointer rounded-md border border-[#E8A020]/30 bg-background/40 px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
         >
           {roles.length === 0 ? <option value="">（無可設定職務）</option> : null}
           {roles.map((r) => (
-            <option key={r.id} value={r.id} className="bg-[#131316]">{r.name}</option>
+            <option key={r.id} value={r.id} className="bg-popover">{r.name}</option>
           ))}
         </select>
-        {selectedRole ? <span className="text-xs text-[#5A5A60]">為「{selectedRole.name}」設定各畫面權限</span> : null}
+        {selectedRole ? <span className="text-xs text-muted-foreground/70">為「{selectedRole.name}」設定各畫面權限</span> : null}
         <div className="flex-1" />
         {isDirty ? <span className="text-[11px] text-[#E8A020]">● 有未存檔變更</span> : null}
         <button
@@ -339,7 +339,7 @@ export function RoleViewMatrixPage() {
             'inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors',
             isDirty
               ? 'border-[#E8A020]/40 bg-[#E8A020]/15 text-[#E8A020] hover:bg-[#E8A020]/25'
-              : 'cursor-not-allowed border-[#2A2A30] text-[#5A5A60]',
+              : 'cursor-not-allowed border-border/40 text-muted-foreground/70',
           )}
         >
           存檔 (Alt+S)
@@ -349,7 +349,7 @@ export function RoleViewMatrixPage() {
       {/* 矩陣 */}
       <div ref={panelRef} className="min-h-0 flex-1 overflow-auto nx-master-scroll">
         {views.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center gap-1 text-center text-sm text-[#888892]">
+          <div className="flex h-40 flex-col items-center justify-center gap-1 text-center text-sm text-muted-foreground">
             {loading ? '載入中…' : '尚無畫面字典（需先 seed nx01_view 畫面清單，矩陣才有畫面可設權限）'}
           </div>
         ) : (
@@ -361,7 +361,7 @@ export function RoleViewMatrixPage() {
               ))}
             </colgroup>
             <thead className="sticky top-0 z-10" style={{ backgroundImage: 'linear-gradient(180deg, rgba(20,20,26,0.97) 0%, rgba(16,16,20,0.97) 100%)' }}>
-              <tr className="border-b border-[#2A2A30] text-[11px] font-bold uppercase tracking-[0.14em] text-[#C8C8D0]">
+              <tr className="border-b border-border/40 text-[11px] font-bold uppercase tracking-[0.14em] text-foreground/90">
                 <th className="px-4 py-2.5 text-left">畫面</th>
                 {PERM_KEYS.map((k) => (
                   <th key={k} className="px-2 py-2.5 text-center">{PERM_LABELS[k]}</th>
@@ -380,7 +380,7 @@ export function RoleViewMatrixPage() {
                     <tr key={`h_${nr.module}`} data-navrow={idx} className="scroll-mt-10">
                       <td
                         colSpan={PERM_KEYS.length + 1}
-                        className={cn('bg-[#0E0E12] px-4 py-2', headerFocused && 'ring-1 ring-inset ring-[#E8A020]/50')}
+                        className={cn('bg-background/40 px-4 py-2', headerFocused && 'ring-1 ring-inset ring-[#E8A020]/50')}
                       >
                         <div className="flex items-center gap-3">
                           <button
@@ -388,11 +388,11 @@ export function RoleViewMatrixPage() {
                             onClick={() => toggleCollapse(nr.module)}
                             onMouseEnter={() => setFocus({ row: idx, col: 0 })}
                             title={isCollapsed ? '展開（→ / Enter）' : '收合（← / Enter）'}
-                            className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-[#C8C8D0] transition-colors hover:text-[#E8A020]"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wide text-foreground/90 transition-colors hover:text-[#E8A020]"
                           >
                             {isCollapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
                             {moduleLabel(nr.module)}
-                            <span className="text-[10px] font-normal text-[#5A5A60]">（{nr.viewIds.length}）</span>
+                            <span className="text-[10px] font-normal text-muted-foreground/70">（{nr.viewIds.length}）</span>
                           </button>
                           <button
                             type="button"
@@ -418,7 +418,7 @@ export function RoleViewMatrixPage() {
                 const viewAllOn = PERM_KEYS.every((k) => c[k]);
                 return (
                   <tr key={view.id} data-navrow={idx} className="scroll-mt-10 border-b border-[#1A1A1F]/70">
-                    <td className="px-4 py-2 text-[#E8E8EB]">
+                    <td className="px-4 py-2 text-foreground">
                       <div className="flex items-center justify-between gap-2 pl-5">
                         <span className="truncate">{view.name}</span>
                         <button
@@ -429,7 +429,7 @@ export function RoleViewMatrixPage() {
                             'inline-flex h-6 shrink-0 items-center gap-1 rounded-md border px-2 text-[10px] font-semibold transition-colors',
                             viewAllOn
                               ? 'border-[#E8A020]/55 bg-[#E8A020]/18 text-[#E8A020] hover:bg-[#E8A020]/28'
-                              : 'border-[#3A3A42] bg-[#1A1A1F] text-[#B8B8C0] hover:border-[#E8A020]/45 hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
+                              : 'border-[#3A3A42] bg-card/60 text-foreground/80 hover:border-[#E8A020]/45 hover:bg-[#E8A020]/12 hover:text-[#E8A020]',
                           )}
                         >
                           <CheckCheck className="size-3" />
@@ -452,7 +452,7 @@ export function RoleViewMatrixPage() {
                             aria-label={`${view.name} ${PERM_LABELS[k]}`}
                             className={cn(
                               'inline-flex size-6 items-center justify-center rounded border transition-colors',
-                              on ? 'border-[#E8A020]/60 bg-[#E8A020]/15 text-[#E8A020]' : 'border-[#3A3A42] bg-[#1A1A1F] text-transparent',
+                              on ? 'border-[#E8A020]/60 bg-[#E8A020]/15 text-[#E8A020]' : 'border-[#3A3A42] bg-card/60 text-transparent',
                               focused && 'ring-2 ring-[#E8A020]/70',
                             )}
                           >
