@@ -7,12 +7,14 @@
 
 'use client';
 
-import { HelpCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { PAGE_GUIDES } from './content';
 import { usePageGuideContext } from './PageGuideProvider';
 import { TutorialOverlay } from './TutorialOverlay';
+
+/** 2026-06-18 跨元件事件名:TopBar 問號按鈕 dispatch、PageGuideHost listen 開 overlay */
+export const PAGE_GUIDE_OPEN_EVENT = 'nx:page-guide-open';
 
 interface Props {
   pageKey: string;
@@ -23,10 +25,17 @@ export function PageGuideHost({ pageKey }: Props) {
   const content = PAGE_GUIDES[pageKey];
   const [forceOpen, setForceOpen] = useState(false);
 
+  // 2026-06-18 TopBar 問號按鈕觸發:listen CustomEvent → setForceOpen(true)
+  useEffect(() => {
+    const onOpen = () => setForceOpen(true);
+    window.addEventListener(PAGE_GUIDE_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(PAGE_GUIDE_OPEN_EVENT, onOpen);
+  }, []);
+
   const autoOpen = !ctx.loading && !ctx.seenSet.has(pageKey);
   const open = autoOpen || forceOpen;
 
-  // 不存在的 pageKey 不渲染（避免錯字導致 silent failure 沒 ? 按鈕也沒 overlay）
+  // 不存在的 pageKey 不渲染（避免錯字導致 silent failure 沒 overlay）
   if (!content) return null;
 
   const handleDismiss = () => {
@@ -38,21 +47,6 @@ export function PageGuideHost({ pageKey }: Props) {
     }
   };
 
-  const handleReopen = () => {
-    setForceOpen(true);
-  };
-
-  return (
-    <>
-      <button
-        onClick={handleReopen}
-        title={`重看「${content.title}」引導`}
-        className="fixed bottom-20 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border bg-background shadow-lg hover:bg-muted"
-        aria-label="重看頁面引導"
-      >
-        <HelpCircle className="h-5 w-5" />
-      </button>
-      {open ? <TutorialOverlay content={content} onDismiss={handleDismiss} /> : null}
-    </>
-  );
+  // 2026-06-18 右下浮動「?」按鈕移除、改走 TopBar 問號按鈕統一觸發
+  return open ? <TutorialOverlay content={content} onDismiss={handleDismiss} /> : null;
 }

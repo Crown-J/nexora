@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import {
-  Bell, Building2, ChevronDown, LayoutGrid, LogOut, Lock,
+  Bell, Building2, ChevronDown, HelpCircle, LayoutGrid, LogOut, Lock,
   Megaphone, Moon, Settings, Sun, User,
 } from 'lucide-react';
 import { BULLETINS, NOTIFICATIONS, TENANT_NAME } from '@data/home/home-data';
@@ -229,6 +229,19 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
             </div>
           )}
         </div>
+
+        {/* 2026-06-18 頁面引導:dispatch CustomEvent → PageGuideHost 接 → 開 overlay */}
+        <button
+          type="button"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('nx:page-guide-open'));
+          }}
+          aria-label="頁面引導"
+          title="頁面引導"
+          className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground transition"
+        >
+          <HelpCircle className="h-[18px] w-[18px]" />
+        </button>
 
         {/* 環境設定 */}
         <div ref={setRef} className="relative">
