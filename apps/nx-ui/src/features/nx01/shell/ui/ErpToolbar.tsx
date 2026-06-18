@@ -88,6 +88,8 @@ export function ErpToolbar({
   onDelete,
   onExport,
   onPrint,
+  exportMenuOpen,
+  onExportMenuOpenChange,
   onRefresh,
   onOpenSort,
   sortCount = 0,
@@ -136,6 +138,9 @@ export function ErpToolbar({
   onExport: (format: ExportFormat) => void;
   /** P 純列印（執行長範式：P=列印 / O=匯出 dropdown）；未提供時走 onExport('print') */
   onPrint?: () => void;
+  /** O 匯出 dropdown 受控 open 狀態（Alt+O 用：父層 setOpen(true) 即可程式打開）*/
+  exportMenuOpen?: boolean;
+  onExportMenuOpenChange?: (open: boolean) => void;
   onRefresh: () => void;
   /** M 排序設定（執行長 2026-06-18 範式）；未提供時 disabled */
   onOpenSort?: () => void;
@@ -279,7 +284,11 @@ export function ErpToolbar({
         enabled
         onClick={() => (onPrint ? onPrint() : onExport('print'))}
       />
-      <ExportMenuButton onSelect={onExport} />
+      <ExportMenuButton
+        onSelect={onExport}
+        open={exportMenuOpen}
+        onOpenChange={onExportMenuOpenChange}
+      />
       <ToolbarSeparator />
       <ToolbarButton
         icon={Columns3}
@@ -403,9 +412,18 @@ export function ToolbarButton({
   );
 }
 
-export function ExportMenuButton({ onSelect }: { onSelect: (format: ExportFormat) => void }) {
+export function ExportMenuButton({
+  onSelect,
+  open,
+  onOpenChange,
+}: {
+  onSelect: (format: ExportFormat) => void;
+  /** 受控 open（Alt+O 程式觸發） */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"

@@ -138,6 +138,9 @@ export function UserZonedPage({
 
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
+  // 2026-06-18 Alt+O 觸發 O 匯出 dropdown（受控）
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+
   // ── B2~B5：staged ops + picker dialogs + 載入的 user_role / user_warehouse ──
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
   const [selectedUserWarehouses, setSelectedUserWarehouses] = useState<UserWarehouseDto[]>([]);
@@ -906,7 +909,12 @@ export function UserZonedPage({
             e: () => selected && handleEdit(),
             f: toggleSearch,
             d: () => selected && handleDelete(),
-            r: () => setReloadTick((t) => t + 1),
+            r: () => {
+              setReloadTick((t) => t + 1);
+              showToast('已重新整理', 'success');
+            },
+            p: () => handleExport('print'),
+            o: () => setExportMenuOpen(true),
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -961,6 +969,8 @@ export function UserZonedPage({
     handleDelete,
     handleSave,
     handleCancel,
+    handleExport,
+    showToast,
     toggleSearch,
   ]);
 
@@ -1068,6 +1078,8 @@ export function UserZonedPage({
           onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
+          exportMenuOpen={exportMenuOpen}
+          onExportMenuOpenChange={setExportMenuOpen}
           onRefresh={() => {
             setReloadTick((t) => t + 1);
             showToast('已重新整理', 'success');
