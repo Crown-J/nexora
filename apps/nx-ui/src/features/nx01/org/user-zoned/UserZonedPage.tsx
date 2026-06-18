@@ -78,8 +78,6 @@ import {
   type UserWarehouseDto,
 } from '@data/endpoints/nx01/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
-import { fetchSeatUsage, type SeatUsage } from '@data/endpoints/wizard/api';
-
 /** 預設密碼（與 CreateUserDialog 同步）：新建員工首次登入後系統強制改密 */
 const DEFAULT_PASSWORD = 'changeme';
 
@@ -140,9 +138,6 @@ export function UserZonedPage({
 
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
-  // 席次徽章（員工主檔專用、顯示「X / Y 席」）
-  const [seatUsage, setSeatUsage] = useState<SeatUsage | null>(null);
-
   // ── B2~B5：staged ops + picker dialogs + 載入的 user_role / user_warehouse ──
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
   const [selectedUserWarehouses, setSelectedUserWarehouses] = useState<UserWarehouseDto[]>([]);
@@ -165,21 +160,6 @@ export function UserZonedPage({
     const t = setTimeout(() => setDebouncedKw(keyword), 300);
     return () => clearTimeout(t);
   }, [keyword]);
-
-  // 席次：mount 拉一次、reloadTick 變化（任何 CRUD 後）也重拉、保持同步
-  useEffect(() => {
-    let cancelled = false;
-    fetchSeatUsage()
-      .then((u) => {
-        if (!cancelled) setSeatUsage(u);
-      })
-      .catch(() => {
-        if (!cancelled) setSeatUsage(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [reloadTick]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1011,18 +991,6 @@ export function UserZonedPage({
           onBatchDisable={() => {}}
         />
       </div>
-      {seatUsage ? (
-        <div className="flex items-center justify-end gap-2 px-3 pb-1 text-xs">
-          <span className="text-muted-foreground">席次</span>
-          <span className="inline-flex items-center rounded-md border border-border/70 bg-secondary/40 px-2 py-0.5 font-mono tabular-nums text-foreground">
-            <span className="text-primary">{seatUsage.used}</span>
-            <span className="mx-0.5 text-muted-foreground">/</span>
-            <span>{seatUsage.total}</span>
-            <span className="ml-1 text-muted-foreground">席</span>
-          </span>
-          <span className="text-muted-foreground">（已啟用含負責人）</span>
-        </div>
-      ) : null}
       <SearchPanel
         open={searchOpen}
         value={keyword}
