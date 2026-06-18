@@ -205,44 +205,36 @@ export function MasterTable<T>({
     onColumnOrderChange(next);
   };
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70">
-      <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
-        <table className="w-full border-collapse text-[13px]">
-          <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
-            <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
-              <th className="w-12 px-3 py-[9px]">
-                {selectionMode ? (
-                  <input
-                    type="checkbox"
-                    checked={checked.size === rows.length && rows.length > 0}
-                    onChange={toggleAll}
-                    className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
-                    aria-label="全選"
-                  />
-                ) : (
-                  <span className="font-medium">序號</span>
-                )}
-              </th>
-              {onColumnOrderChange ? (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleColumnDragEnd}
-                >
-                  <SortableContext items={columnKeys} strategy={horizontalListSortingStrategy}>
-                    {columns.map((col) => (
-                      <DraggableTh
-                        key={col.key}
-                        col={col}
-                        sortKey={sortKey}
-                        onSortKeyChange={onSortKeyChange}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
+  // 2026-06-18 hydration fix:DndContext 內部 render screen-reader div、
+  //   不能塞 <tr> 子層（HTML 規範違反）。改包整個 <table> 外、Sortable items 仍能找到 DraggableTh。
+  const tableBody = (
+    <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
+      <table className="w-full border-collapse text-[13px]">
+        <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
+          <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
+            <th className="w-12 px-3 py-[9px]">
+              {selectionMode ? (
+                <input
+                  type="checkbox"
+                  checked={checked.size === rows.length && rows.length > 0}
+                  onChange={toggleAll}
+                  className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
+                  aria-label="全選"
+                />
               ) : (
-                columns.map((col) => (
+                <span className="font-medium">序號</span>
+              )}
+            </th>
+            {onColumnOrderChange
+              ? columns.map((col) => (
+                  <DraggableTh
+                    key={col.key}
+                    col={col}
+                    sortKey={sortKey}
+                    onSortKeyChange={onSortKeyChange}
+                  />
+                ))
+              : columns.map((col) => (
                   <th
                     key={col.key}
                     className={cn('whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
@@ -262,78 +254,93 @@ export function MasterTable<T>({
                       col.label
                     )}
                   </th>
-                ))
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, i) => {
-              const id = getRowId(row);
-              const isChecked = checked.has(id);
-              const isSelected = selectedId === id;
-              const isEvenRow = i % 2 === 1;
-              return (
-                <tr
-                  key={id}
-                  data-row-id={id}
-                  tabIndex={0}
-                  onClick={() => onSelect(id)}
-                  onDoubleClick={() => onOpenDetail(id)}
-                  className={cn(
-                    'cursor-pointer border-b border-border/20 outline-none transition-colors',
-                    'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
-                    isSelected
-                      ? 'bg-[#E8A020]/12 shadow-[inset_3px_0_0_#E8A020] hover:bg-[#E8A020]/16'
-                      : selectionMode && isChecked
-                        ? 'bg-[#E8A020]/8'
-                        : cn(isEvenRow && 'bg-foreground/[0.05]', 'hover:bg-accent/10'),
+                ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => {
+            const id = getRowId(row);
+            const isChecked = checked.has(id);
+            const isSelected = selectedId === id;
+            const isEvenRow = i % 2 === 1;
+            return (
+              <tr
+                key={id}
+                data-row-id={id}
+                tabIndex={0}
+                onClick={() => onSelect(id)}
+                onDoubleClick={() => onOpenDetail(id)}
+                className={cn(
+                  'cursor-pointer border-b border-border/20 outline-none transition-colors',
+                  'focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#E8A020]/60',
+                  isSelected
+                    ? 'bg-[#E8A020]/12 shadow-[inset_3px_0_0_#E8A020] hover:bg-[#E8A020]/16'
+                    : selectionMode && isChecked
+                      ? 'bg-[#E8A020]/8'
+                      : cn(isEvenRow && 'bg-foreground/[0.05]', 'hover:bg-accent/10'),
+                )}
+              >
+                <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
+                  {selectionMode ? (
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggleRow(id)}
+                      className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
+                      aria-label={`選取 ${id}`}
+                    />
+                  ) : (
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
+                      {String(i + 1).padStart(4, '0')}
+                    </span>
                   )}
-                >
-                  <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
-                    {selectionMode ? (
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleRow(id)}
-                        className="size-3.5 rounded border-border/60 bg-card accent-[#E8A020]"
-                        aria-label={`選取 ${id}`}
-                      />
-                    ) : (
-                      <span className="font-mono text-[11px] tabular-nums text-muted-foreground/70">
-                        {String(i + 1).padStart(4, '0')}
-                      </span>
-                    )}
+                </td>
+                {columns.map((col) => (
+                  <td key={col.key} className="px-3 py-[10px] text-foreground">
+                    {col.render(row, i)}
                   </td>
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-3 py-[10px] text-foreground">
-                      {col.render(row, i)}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
-            {Array.from({ length: placeholders }).map((_, i) => {
-              const visualIdx = rows.length + i;
-              const isEvenRow = visualIdx % 2 === 1;
-              return (
-                <tr
-                  key={`__placeholder_${i}`}
-                  aria-hidden
-                  className={cn(
-                    'pointer-events-none select-none border-b border-border/10',
-                    isEvenRow && 'bg-foreground/[0.05]',
-                  )}
-                >
-                  <td className="px-3 py-[10px]">&nbsp;</td>
-                  {columns.map((col) => (
-                    <td key={col.key} className="px-3 py-[10px]">&nbsp;</td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                ))}
+              </tr>
+            );
+          })}
+          {Array.from({ length: placeholders }).map((_, i) => {
+            const visualIdx = rows.length + i;
+            const isEvenRow = visualIdx % 2 === 1;
+            return (
+              <tr
+                key={`__placeholder_${i}`}
+                aria-hidden
+                className={cn(
+                  'pointer-events-none select-none border-b border-border/10',
+                  isEvenRow && 'bg-foreground/[0.05]',
+                )}
+              >
+                <td className="px-3 py-[10px]">&nbsp;</td>
+                {columns.map((col) => (
+                  <td key={col.key} className="px-3 py-[10px]">&nbsp;</td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  // dnd 啟用時、外包 DndContext + SortableContext（context 純 React tree、不渲染 DOM 到 tr 內）
+  const tableWithDnd = onColumnOrderChange ? (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleColumnDragEnd}>
+      <SortableContext items={columnKeys} strategy={horizontalListSortingStrategy}>
+        {tableBody}
+      </SortableContext>
+    </DndContext>
+  ) : (
+    tableBody
+  );
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70">
+      {tableWithDnd}
 
       {/* footer 對齊 demo .nx-tfoot */}
       <div className="flex items-center gap-[14px] border-t border-border/40 bg-card/80 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
