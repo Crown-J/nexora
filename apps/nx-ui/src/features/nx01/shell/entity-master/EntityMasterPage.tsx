@@ -626,6 +626,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
           mode={mode}
           hasActiveRow={!!selected}
           selectedRowActive={selected?.isActive ?? true}
+          selectedRowBuiltin={(selected as { isBuiltin?: boolean } | null)?.isBuiltin ?? false}
           selectionMode={selectionMode}
           onToggleSelection={() => {
             setSelectionMode((s) => !s);

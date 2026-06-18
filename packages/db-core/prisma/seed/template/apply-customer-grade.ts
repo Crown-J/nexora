@@ -32,6 +32,7 @@ export async function applyCustomerGrade(
           marginPct: r.marginPct,
           sortNo: r.sortNo,
           isActive: true,
+          isBuiltin: true, // 執行長 2026-06-18 拍板 B:A~D 為系統內建、UI 可改名但不允許停用/刪
           updatedBy: actorUserId,
         },
       });
@@ -44,6 +45,7 @@ export async function applyCustomerGrade(
           marginPct: r.marginPct,
           sortNo: r.sortNo,
           isActive: true,
+          isBuiltin: true, // 執行長 2026-06-18 拍板 B
           createdBy: actorUserId,
           updatedBy: actorUserId,
         },

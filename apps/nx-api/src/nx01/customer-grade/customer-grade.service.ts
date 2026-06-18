@@ -1,7 +1,8 @@
 // apps/nx-api/src/nx01/customer-grade/customer-grade.service.ts
 // 對應規格：docs/nx01/spec/intent/nx01-07-base-catalog.md v1.0
 // Crown 拍 Q1=A：OWNER 可改 marginPct + name + sortNo + isActive、code 鎖
-import { Injectable, NotFoundException } from '@nestjs/common';
+// 執行長 2026-06-18 拍板 B:isBuiltin=true 不允許停用（避免誤刪導致報價系統壞）
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from 'db-core';
 
 import type { RequestUser } from '../../auth/strategies/jwt.strategy';
@@ -22,6 +23,7 @@ const SEL = {
   marginPct: true,
   sortNo: true,
   isActive: true,
+  isBuiltin: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -100,6 +102,12 @@ export class CustomerGradeService {
       select: SEL,
     });
     if (!existing) throw new NotFoundException('Customer grade not found');
+    // 執行長 2026-06-18 B:內建分級不允許停用（可改名/marginPct/sortNo）
+    if (existing.isBuiltin && dto.isActive === false) {
+      throw new BadRequestException(
+        `客戶分級「${existing.code}」為系統內建、不允許停用（保報價系統依賴）`,
+      );
+    }
     const row = await this.prisma.nx01CustomerGrade.update({
       where: { id },
       data: {

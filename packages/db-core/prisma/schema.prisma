@@ -445,13 +445,15 @@ model Nx01CustomerGrade {
   sortNo                                 Int                       @map("sort_no")
   /// 是否啟用。；啟用最低需求版本：LITE-CORE
   isActive                               Boolean                   @default(true) @map("is_active")
+  /// 系統內建旗標（執行長 2026-06-18 拍板 B:true=系統內建、UI 可改名但不允許停用/刪、避免誤刪導致報價系統壞）。；啟用最低需求版本：LITE-CORE
+  isBuiltin                              Boolean                   @default(false) @map("is_builtin")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
   createdAt                              DateTime                  @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  /// 建立人（必填；系統操作帶入使用者 ID;DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   createdBy                              String                    @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
   updatedAt                              DateTime                  @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  /// 更新人（必填；系統操作帶入使用者 ID;DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy                              String                    @map("updated_by") @db.VarChar(15)
   tenant                                 Nx99Tenant                @relation("R_Nx01CustomerGrade_tenantId", fields: [tenantId], references: [id])
   rev_Nx01Partner_customerGradeId        Nx01Partner[]             @relation("R_Nx01Partner_customerGradeId")
@@ -8265,13 +8267,15 @@ model Nx01SupplierGrade {
   sortNo                          Int           @map("sort_no")
   /// 是否啟用。；啟用最低需求版本：LITE-CORE
   isActive                        Boolean       @default(true) @map("is_active")
+  /// 系統內建旗標（執行長 2026-06-18 拍板 B:true=系統內建、UI 可改名但不允許停用/刪）。；啟用最低需求版本：LITE-CORE
+  isBuiltin                       Boolean       @default(false) @map("is_builtin")
   /// 建立時間。；啟用最低需求版本：LITE-CORE
   createdAt                       DateTime      @default(now()) @map("created_at")
-  /// 建立人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  /// 建立人（必填；系統操作帶入使用者 ID;DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   createdBy                       String        @map("created_by") @db.VarChar(15)
   /// 更新時間。；啟用最低需求版本：LITE-CORE
   updatedAt                       DateTime      @updatedAt @map("updated_at")
-  /// 更新人（必填；系統操作帶入使用者 ID；DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
+  /// 更新人（必填；系統操作帶入使用者 ID;DB 匯入填系統管理員 ID）；啟用最低需求版本：LITE-CORE
   updatedBy                       String        @map("updated_by") @db.VarChar(15)
   tenant                          Nx99Tenant    @relation("R_Nx01SupplierGrade_tenantId", fields: [tenantId], references: [id])
   rev_Nx01Partner_supplierGradeId Nx01Partner[] @relation("R_Nx01Partner_supplierGradeId")

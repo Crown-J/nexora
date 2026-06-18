@@ -31,6 +31,7 @@ const SEL = {
   description: true,
   sortNo: true,
   isActive: true,
+  isBuiltin: true, // 執行長 2026-06-18 拍板:改用 schema 欄、不再用 code 白名單
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -40,9 +41,9 @@ const SEL = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type Row = Prisma.Nx01SupplierGradeGetPayload<{ select: typeof SEL }>;
 
-/** 對外 row：加 isBuiltin 旗標、前端用來鎖刪除按鈕 */
-function withIsBuiltin<T extends { code: string }>(row: T): T & { isBuiltin: boolean } {
-  return { ...row, isBuiltin: isBuiltinSupplierGradeCode(row.code) };
+/** 對外 row（schema isBuiltin 已含、本 helper 留兼容、無實際 transform）*/
+function withIsBuiltin<T>(row: T): T {
+  return row;
 }
 
 @Injectable()
@@ -149,9 +150,10 @@ export class SupplierGradeService {
       select: SEL,
     });
     if (!existing) throw new NotFoundException('Supplier grade not found');
-    if (isBuiltinSupplierGradeCode(existing.code)) {
+    // 執行長 2026-06-18 B:內建分級不允許停用（schema isBuiltin 欄為主）
+    if (existing.isBuiltin) {
       throw new ForbiddenException(
-        `供應商分級「${existing.code}」為內建等級、不可刪除（保自動分級規則）；如要隱藏可改 isActive=false`,
+        `供應商分級「${existing.code}」為系統內建、不允許停用（保自動分級規則 partner.recalcSupplierGradeByPaymentTerm 依賴）`,
       );
     }
     const row = await this.prisma.nx01SupplierGrade.update({

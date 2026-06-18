@@ -67,6 +67,7 @@ export function ErpToolbar({
   mode,
   hasActiveRow,
   selectedRowActive,
+  selectedRowBuiltin,
   selectionMode,
   onToggleSelection,
   selectedCount,
@@ -95,6 +96,8 @@ export function ErpToolbar({
   /** 當前選列的 isActive 狀態。true → D 按鈕為「停用」（danger）；false → 「啟用」（default）。未指定時預設為 true。
    *  NEXORA 軟刪除設計：選中已停用列時 D 改成「啟用」，方便重新啟用。 */
   selectedRowActive?: boolean;
+  /** 當前選列的 isBuiltin 狀態。true → D 按鈕鎖、tooltip 提示內建不可停用（執行長 2026-06-18 拍板 B）。*/
+  selectedRowBuiltin?: boolean;
   selectionMode: boolean;
   onToggleSelection: () => void;
   selectedCount: number;
@@ -198,9 +201,9 @@ export function ErpToolbar({
       <ToolbarButton
         icon={DisableButtonIcon}
         letter="D"
-        label={disableButtonLabel}
-        enabled={hasActiveRow}
-        variant={disableButtonVariant}
+        label={selectedRowBuiltin ? '內建鎖定' : disableButtonLabel}
+        enabled={hasActiveRow && !selectedRowBuiltin}
+        variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
         onClick={onDelete}
       />
       <ExportMenuButton onSelect={onExport} />

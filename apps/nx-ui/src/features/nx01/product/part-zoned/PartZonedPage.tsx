@@ -724,6 +724,7 @@ export function PartZonedPage({
           mode={mode}
           hasActiveRow={!!selected}
           selectedRowActive={selected?.isActive ?? true}
+          selectedRowBuiltin={(selected as { isBuiltin?: boolean } | null)?.isBuiltin ?? false}
           selectionMode={false}
           onToggleSelection={() => {}}
           selectedCount={0}
