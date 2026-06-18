@@ -19,7 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
 import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
-import { MasterTabs } from './MasterTabs';
+import { MasterPageHead } from '@/features/nx01/shell/master-nav';
 import { formatDateTimeZh } from './format';
 import {
   ErpToolbar,
@@ -34,7 +34,7 @@ import {
 } from '@/features/nx01/shell/ui/MasterTable';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
-import { MasterDetailScroll, SectionHeader, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
+import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
 import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
 import {
@@ -617,8 +617,18 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       {/* Phase 2 退場 MasterTopBar、改用 PageHeader（模組選單/公告/通知/使用者已由 UnifiedTopBar 提供）*/}
       <PageHeader category={config.category} title={config.title} count={countText} />
 
-      {/* Tab 切換（共用 MasterTabs、與使用者主檔頁一致） */}
-      <MasterTabs tab={tab} onChange={attemptTabChange} />
+      {/* 2026-06-18 套員工範式:MasterPageHead 含 tabs + detail 標題 + 主檔快速入口 */}
+      <MasterPageHead
+        tab={tab}
+        onTabChange={attemptTabChange}
+        currentPageId={config.pageId ?? null}
+        detailTitle={
+          creating
+            ? `新增${config.entityNoun}`
+            : (selected?.[config.fields[0].key] as string | undefined) ?? undefined
+        }
+        detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
+      />
 
       {/* Toolbar（手機橫向 scroll） */}
       <div className="overflow-x-auto">
@@ -783,11 +793,8 @@ function DetailPane({
   return (
     <MasterDetailScroll scrollKey={selected?.id ?? (creating ? '__new__' : null)}>
       <div className="px-4 py-4 sm:px-6">
-        <SectionHeader
-          title={creating ? `新增${config.entityNoun}` : (selected?.[config.fields[0].key] as string) ?? config.entityNoun}
-          subtitle={editing ? '編輯中' : '瀏覽'}
-        />
-        <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {/* 2026-06-18 SectionHeader 已搬到 MasterPageHead tabs 同排 */}
+        <div ref={formRef} data-master-form onKeyDown={handleFormKey} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {config.fields.map((f) => {
             // 計算欄位（唯讀即時預覽，如料號分段預覽）：編輯時讀 draft、瀏覽時讀 row
             if (f.type === 'computed') {
@@ -806,7 +813,7 @@ function DetailPane({
                 : [{ value: '', label: f.placeholder ?? '（無）' }, ...baseOpts];
               return (
                 <div key={f.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
                     {f.label + (f.required ? ' *' : '')}
                   </span>
                   <KeyboardSelect
@@ -823,7 +830,7 @@ function DetailPane({
             if (editing && !lockedNow && (f.type === 'textarea' || f.type === 'json')) {
               return (
                 <div key={f.key} className="flex flex-col gap-1 sm:col-span-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
                     {f.label + (f.required ? ' *' : '') + (f.type === 'json' ? '（JSON 陣列）' : '')}
                   </span>
                   <textarea
@@ -832,7 +839,7 @@ function DetailPane({
                     rows={f.type === 'json' ? 8 : 4}
                     placeholder={f.placeholder}
                     className={cn(
-                      'rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors placeholder:text-[#5A5A60] focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40',
+                      'rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40',
                       f.type === 'json' && 'font-mono text-xs',
                     )}
                   />
@@ -843,14 +850,14 @@ function DetailPane({
             if (editing && !lockedNow && f.type === 'date') {
               return (
                 <div key={f.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
                     {f.label + (f.required ? ' *' : '')}
                   </span>
                   <input
                     type="date"
                     value={String(draft[f.key] ?? '')}
                     onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
-                    className="rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 py-1.5 text-sm text-[#E8E8EB] outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                    className="rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 py-1.5 text-sm text-foreground outline-none transition-colors focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
                   />
                 </div>
               );
@@ -873,7 +880,7 @@ function DetailPane({
               const on = Boolean(draft[f.key]);
               return (
                 <div key={f.key} className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">{f.label}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">{f.label}</span>
                   <button
                     type="button"
                     onClick={() => setDraft({ ...draft, [f.key]: !on })}
@@ -913,7 +920,7 @@ function DetailPane({
 
         {/* audit（瀏覽既有資料時） */}
         {!creating && selected ? (
-          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-[#2A2A30] pt-4 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border/60 pt-4 sm:grid-cols-2">
             <FormField label="建立時間" value={formatDt(selected.createdAt)} mono dim />
             <FormField label="建立人員" value={auditPerson(selected.createdByUsername, selected.createdByName)} dim />
             <FormField label="修改時間" value={formatDt(selected.updatedAt)} mono dim />

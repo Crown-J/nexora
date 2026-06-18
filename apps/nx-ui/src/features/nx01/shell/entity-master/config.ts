@@ -84,6 +84,10 @@ export type EntityMasterConfig = {
   title: string;
   /** 實體名詞（toast / 確認框用），e.g. '幣別' */
   entityNoun: string;
+  /** 2026-06-18 對應 master-pages.ts 的 page id（給 MasterPageHead 快速入口標亮 + sort 白名單 key） */
+  pageId?: string;
+  /** 2026-06-18 可排序欄位白名單（後端 sortBy 接受值）；提供時工具列顯 M 排序 dropdown */
+  sortableFields?: { key: string; label: string }[];
   /** 欄位定義（編輯表單 + 列表共用） */
   fields: EntityFieldDef[];
   /** 觀測用 error code 前綴，e.g. 'nxui_base_currency' */

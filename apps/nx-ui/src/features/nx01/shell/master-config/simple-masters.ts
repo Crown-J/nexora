@@ -15,6 +15,7 @@ export const CURRENCY_MASTER: EntityMasterConfig = {
   category: '系統設定',
   title: '幣別基本資料',
   entityNoun: '幣別',
+  pageId: 'currency',
   errorCodePrefix: 'nxui_base_currency',
   deleteMode: 'soft-delete-rest',
   fields: [
@@ -31,6 +32,7 @@ export const COUNTRY_MASTER: EntityMasterConfig = {
   category: '系統設定',
   title: '國家基本資料',
   entityNoun: '國家',
+  pageId: 'country',
   errorCodePrefix: 'nxui_base_country',
   deleteMode: 'soft-delete-rest',
   fields: [
@@ -45,6 +47,7 @@ export const PART_GROUP_MASTER: EntityMasterConfig = {
   category: '產品料號',
   title: '零件群組基本資料',
   entityNoun: '零件群組',
+  pageId: 'partgroup',
   errorCodePrefix: 'nxui_base_part_group',
   deleteMode: 'soft-delete-rest',
   fields: [
