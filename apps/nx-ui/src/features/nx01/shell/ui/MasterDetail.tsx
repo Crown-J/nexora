@@ -38,7 +38,7 @@ export function MasterDetailScroll({
   return (
     <div
       ref={scrollRef}
-      className="nx-master-scroll flex min-h-0 flex-1 flex-col overflow-auto bg-background/40"
+      className="nx-master-scroll flex min-h-0 flex-1 flex-col overflow-auto rounded-lg border border-border/40 bg-card/70"
     >
       {children}
     </div>
