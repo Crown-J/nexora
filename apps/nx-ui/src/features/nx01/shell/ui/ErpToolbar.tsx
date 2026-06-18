@@ -27,26 +27,23 @@
 
 import {
   Check,
-  CheckSquare,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   Columns3,
   Download,
-  Eye,
-  EyeOff,
   FileSpreadsheet,
   FileText,
   Filter,
   Pencil,
   Plus,
   Power,
-  PowerOff,
   Printer,
   RefreshCcw,
   Save,
   Search,
+  Trash2,
   X,
 } from 'lucide-react';
 
@@ -150,10 +147,12 @@ export function ErpToolbar({
   columnsHiddenCount?: number;
   filterCount?: number;
 }) {
-  // 選中啟用列 → 按鈕為「停用」(danger / PowerOff)；選中停用列 → 「啟用」(default / Power)
+  // 2026-06-18 執行長範式:D 按鈕 label 改「刪除」（實際軟刪除 isActive=false）/ 「啟用」
+  //   選中啟用列 → 「刪除」（danger / Trash2）
+  //   選中停用列 → 「啟用」（default / Power）
   const rowIsActive = selectedRowActive ?? true;
-  const disableButtonLabel = rowIsActive ? '停用' : '啟用';
-  const DisableButtonIcon = rowIsActive ? PowerOff : Power;
+  const disableButtonLabel = rowIsActive ? '刪除' : '啟用';
+  const DisableButtonIcon = rowIsActive ? Trash2 : Power;
   const disableButtonVariant: 'default' | 'danger' = rowIsActive ? 'danger' : 'default';
   if (selectionMode) {
     const hasChecked = selectedCount > 0;
@@ -172,8 +171,8 @@ export function ErpToolbar({
           onClick={onBatchEnable}
         />
         <ToolbarButton
-          icon={PowerOff}
-          label="批次停用"
+          icon={Trash2}
+          label="批次刪除"
           enabled={hasChecked && !!onBatchDisable}
           variant="danger"
           onClick={onBatchDisable}
@@ -266,21 +265,29 @@ export function ErpToolbar({
         onClick={() => (onPrint ? onPrint() : onExport('print'))}
       />
       <ExportMenuButton onSelect={onExport} />
-      {onOpenColumns || onOpenFilter ? <ToolbarSeparator /> : null}
-      {onOpenColumns ? (
+      <ToolbarSeparator />
+      <ToolbarButton
+        icon={Columns3}
+        letter="I"
+        label={columnsHiddenCount > 0 ? `欄位·隱${columnsHiddenCount}` : '欄位'}
+        enabled={!!onOpenColumns}
+        onClick={onOpenColumns}
+        pressed={columnsHiddenCount > 0}
+      />
+      {/* 2026-06-18 執行長範式:I 欄位右側「T 垃圾桶」= 顯示已停用列、給 user 再啟用 */}
+      {onShowInactiveChange ? (
         <ToolbarButton
-          icon={Columns3}
-          letter="I"
-          label={columnsHiddenCount > 0 ? `欄位·隱${columnsHiddenCount}` : '欄位'}
+          icon={Trash2}
+          letter="T"
+          label="垃圾桶"
           enabled
-          onClick={onOpenColumns}
-          pressed={columnsHiddenCount > 0}
+          onClick={() => onShowInactiveChange(!showInactive)}
+          pressed={showInactive}
         />
       ) : null}
       {onOpenFilter ? (
         <ToolbarButton
           icon={Filter}
-          letter="T"
           label={filterCount > 0 ? `篩選·${filterCount}` : '篩選'}
           enabled
           onClick={onOpenFilter}
@@ -288,16 +295,6 @@ export function ErpToolbar({
         />
       ) : null}
       <div className="flex-1" />
-      {onShowInactiveChange ? (
-        <ToolbarButton
-          icon={showInactive ? Eye : EyeOff}
-          label="顯示停用"
-          enabled
-          onClick={() => onShowInactiveChange(!showInactive)}
-          pressed={showInactive}
-        />
-      ) : null}
-      <ToolbarButton icon={CheckSquare} label="選取" enabled onClick={onToggleSelection} />
     </div>
   );
 }
