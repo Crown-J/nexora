@@ -280,7 +280,8 @@ export const DOCK_NAV: DockItem[] = [
         icon: 'boxes',
         sub: [
           { key: 'parts', label: '零件', icon: 'box', href: '/dashboard/master/parts' },
-          { key: 'brand', label: '廠牌', icon: 'tag', href: '/dashboard/master/car-brand' },
+          // 2026-06-18 廠牌合併:car-brand + part-brand 合 nx01/brands、用 isCar/isPart 雙開關
+          { key: 'brand', label: '廠牌', icon: 'tag', href: '/dashboard/master/brand' },
           { key: 'part-group', label: '零件群組', icon: 'layers', href: '/dashboard/master/part-group' },
           // 2026-06-18:加通用件群組（取代原供貨對應位置）
           { key: 'univ-group', label: '通用件群組', icon: 'combine', href: '/dashboard/master/part-compat-group' },

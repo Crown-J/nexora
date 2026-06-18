@@ -78,7 +78,8 @@ export const MASTER_PAGES: MasterPageMeta[] = [
   { id: 'supplymap', label: '供應商供貨對應', href: '/dashboard/master/partner-part', category: 'partner', icon: GitMerge },
   // product 產品與廠牌
   { id: 'part', label: '零件', href: '/dashboard/master/parts', category: 'product', icon: Package },
-  { id: 'brand', label: '廠牌', href: '/dashboard/master/part-brand', category: 'product', icon: Tag },
+  // 2026-06-18 廠牌合併:零件品牌 + 汽車品牌合表（後端 nx01/brands、isCar/isPart 雙開關）
+  { id: 'brand', label: '廠牌', href: '/dashboard/master/brand', category: 'product', icon: Tag },
   { id: 'partgroup', label: '零件群組', href: '/dashboard/master/part-group', category: 'product', icon: Layers },
   { id: 'univgroup', label: '通用件群組', href: '/dashboard/master/part-compat-group', category: 'product', icon: Combine },
   // dict 字典主檔

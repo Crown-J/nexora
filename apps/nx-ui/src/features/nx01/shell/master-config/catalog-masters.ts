@@ -198,6 +198,7 @@ export const BRAND_MASTER: EntityMasterConfig = {
   category: '產品料號',
   title: '品牌基本資料',
   entityNoun: '品牌',
+  pageId: 'brand',
   errorCodePrefix: 'nxui_base_brand',
   deleteMode: SOFT,
   fields: [
@@ -250,12 +251,16 @@ export const REGION_MASTER: EntityMasterConfig = {
 };
 
 // ── 產品料號 ────────────────────────────────────────────
+/**
+ * @deprecated 2026-06-18:已被 BRAND_MASTER 合併（nx01/brands + isPart=true）。
+ * 保留 export 暫不刪、避免 part-brand/page.tsx 對應 page 編譯失敗。
+ * pageId 移除（dock 不標亮）；page.tsx 應加 redirect 到 /dashboard/master/brand。
+ */
 export const PART_BRAND_MASTER: EntityMasterConfig = {
   basePath: 'nx01/part-brands',
   category: '產品料號',
   title: '零件廠牌基本資料',
   entityNoun: '零件廠牌',
-  pageId: 'brand',
   errorCodePrefix: 'nxui_base_part_brand',
   deleteMode: SOFT,
   fields: [
