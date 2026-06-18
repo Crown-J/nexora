@@ -2,22 +2,24 @@
 /**
  * NEXORA Master Shell — ErpToolbar 家族
  *
- * 舊 ERP 工具列範式（鋼鐵星球視覺 + Alt 快捷鍵）。
+ * 跨主檔 / 單據 / 模組共用工作列（執行長範式、未來會被單據頁大量重用）。
  *
- * 三分支：
- *  - browse（瀏覽）：分頁鈕 + A 新增 / E 更正 / F 查詢 / D 停用 / 匯出 P / R 重新整理 / 選取
- *  - edit（編輯）：S 存檔 / C 取消
+ * 三分支（依模式切換按鈕集）：
+ *  - browse（瀏覽）執行長範式 v2 2026-06-18:
+ *    ⏮ ◀ {N/M 項目數字} ▶ ⏭ | A 新增 E 編輯 D 刪除 | F 查詢 R 重整 | P 列印 O 匯出 | I 欄位
+ *  - edit（編輯/新增）：S 儲存 / C 取消
  *  - selection（選取批次）：完成選取 / 批次啟用 / 批次停用
  *
- * 註：[1-2] 2026-06-05 起移除「Q 結束」按鈕與 Alt+Q：導覽改走星球選單（Alt+X）、
- *     離開主檔只需切到別頁、不再需要返回左側 nav 的「結束」概念。
+ * 項目級導航 vs 頁級導航：
+ *   舊範式（page/totalPages/onPageChange）= 頁切換
+ *   新範式（itemIndex/itemTotal/onJump*Item/onPrevItem/onNextItem）= 詳細頁項目切換
+ *   兩套並存（向後相容）、優先新範式、未提供新 props 才用舊 page-level
  *
- * NEXORA 系統設計：不能刪除資料（防止破壞已串接的關聯資料），「停用」為軟刪除（isActive=false）。
- * onDelete prop / handleDelete 內部名稱保留 delete 為通用慣例，UI label 為「停用」。
+ * NEXORA 軟刪除：onDelete 內部名稱保留、UI label = 停用（isActive=false）。
  *
  * 子元件：
  *  - ToolbarButton（letter chip + icon + label + 三變體 default/danger/accent）
- *  - PaginationButton（icon-only 方形）
+ *  - NavButton（icon-only 方形、項目級/頁級導航共用）
  *  - ExportMenuButton（dropdown：CSV / PDF / 列印）
  *  - ToolbarSeparator（垂直分隔線）
  */
@@ -71,14 +73,23 @@ export function ErpToolbar({
   selectionMode,
   onToggleSelection,
   selectedCount,
+  // 舊 page-level nav（向後相容、其他 7 主檔頁仍用）
   page,
   totalPages,
   onPageChange,
+  // 新 item-level nav（執行長範式 2026-06-18、優先用）
+  itemIndex,
+  itemTotal,
+  onJumpFirstItem,
+  onPrevItem,
+  onNextItem,
+  onJumpLastItem,
   onCreate,
   onEdit,
   onSearch,
   onDelete,
   onExport,
+  onPrint,
   onRefresh,
   onSave,
   onCancel,
@@ -93,39 +104,50 @@ export function ErpToolbar({
 }: {
   mode: ErpMode;
   hasActiveRow: boolean;
-  /** 當前選列的 isActive 狀態。true → D 按鈕為「停用」（danger）；false → 「啟用」（default）。未指定時預設為 true。
-   *  NEXORA 軟刪除設計：選中已停用列時 D 改成「啟用」，方便重新啟用。 */
+  /** 當前選列的 isActive 狀態。true → D 按鈕為「停用」（danger）；false → 「啟用」（default）。 */
   selectedRowActive?: boolean;
-  /** 當前選列的 isBuiltin 狀態。true → D 按鈕鎖、tooltip 提示內建不可停用（執行長 2026-06-18 拍板 B）。*/
+  /** 當前選列 isBuiltin → D 按鈕鎖、不可停用。 */
   selectedRowBuiltin?: boolean;
   selectionMode: boolean;
   onToggleSelection: () => void;
   selectedCount: number;
-  page: number;
-  totalPages: number;
-  onPageChange: (next: number) => void;
+  // ── 舊 page-level navigation（向後相容、未提供 item-level 時 fallback）──
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (next: number) => void;
+  // ── 新 item-level navigation（執行長 2026-06-18 範式、優先用）──
+  /** 當前項目 1-based index（0 = 未選） */
+  itemIndex?: number;
+  /** 全部項目總數 */
+  itemTotal?: number;
+  /** ⏮ 跳到第一項 */
+  onJumpFirstItem?: () => void;
+  /** ◀ 上一項 */
+  onPrevItem?: () => void;
+  /** ▶ 下一項 */
+  onNextItem?: () => void;
+  /** ⏭ 跳到最後一項 */
+  onJumpLastItem?: () => void;
   onCreate: () => void;
   onEdit: () => void;
   onSearch: () => void;
   onDelete: () => void;
+  /** O 匯出 dropdown（CSV/PDF/列印）*/
   onExport: (format: ExportFormat) => void;
+  /** P 純列印（執行長範式：P=列印 / O=匯出 dropdown）；未提供時走 onExport('print') */
+  onPrint?: () => void;
   onRefresh: () => void;
   onSave: () => void;
   onCancel: () => void;
-  /** 列表 filter：是否含已停用列。提供時顯示「顯示停用」toggle 按鈕（位於選取按鈕前）；未提供則隱藏。 */
   showInactive?: boolean;
   onShowInactiveChange?: (next: boolean) => void;
-  /** selectionMode 批次啟用 callback；未提供時按鈕仍顯示但永遠 disabled */
   onBatchEnable?: () => void;
-  /** selectionMode 批次停用 callback；同上 */
   onBatchDisable?: () => void;
-  /** 欄位設定（Alt+L）；提供時顯示「欄位」按鈕（瀏覽模式） */
+  /** 欄位設定（Alt+I）；提供時顯示「欄位」按鈕 */
   onOpenColumns?: () => void;
-  /** 篩選（Alt+T）；提供時顯示「篩選」按鈕（瀏覽模式） */
+  /** 篩選（Alt+T）；提供時顯示「篩選」按鈕 */
   onOpenFilter?: () => void;
-  /** 已隱藏欄位數（>0 時欄位按鈕高亮 + badge） */
   columnsHiddenCount?: number;
-  /** 已套用篩選條件數（>0 時篩選按鈕高亮 + badge） */
   filterCount?: number;
 }) {
   // 選中啟用列 → 按鈕為「停用」(danger / PowerOff)；選中停用列 → 「啟用」(default / Power)
@@ -178,6 +200,34 @@ export function ErpToolbar({
     );
   }
 
+  // 決定導航範式：優先 item-level（執行長 2026-06-18 範式）、fallback 舊 page-level
+  const useItemNav = itemTotal !== undefined && itemIndex !== undefined;
+  const navIndex = useItemNav ? itemIndex! : (page ?? 0);
+  const navTotal = useItemNav ? itemTotal! : (totalPages ?? 0);
+  const navFirstDisabled = useItemNav ? navIndex <= 1 : navIndex <= 1;
+  const navLastDisabled = useItemNav ? navIndex >= navTotal || navTotal === 0 : navIndex >= navTotal;
+  const handleFirst = useItemNav
+    ? onJumpFirstItem
+    : page !== undefined && onPageChange
+      ? () => onPageChange(1)
+      : undefined;
+  const handlePrev = useItemNav
+    ? onPrevItem
+    : page !== undefined && onPageChange
+      ? () => onPageChange(page - 1)
+      : undefined;
+  const handleNext = useItemNav
+    ? onNextItem
+    : page !== undefined && onPageChange
+      ? () => onPageChange(page + 1)
+      : undefined;
+  const handleLast = useItemNav
+    ? onJumpLastItem
+    : page !== undefined && onPageChange && totalPages !== undefined
+      ? () => onPageChange(totalPages)
+      : undefined;
+  const navLabel = useItemNav ? '項目' : '頁';
+
   return (
     <div
       className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
@@ -186,18 +236,16 @@ export function ErpToolbar({
         boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
       }}
     >
-      <PaginationButton icon={ChevronsLeft} disabled={page <= 1} onClick={() => onPageChange(1)} title="第一頁" />
-      <PaginationButton icon={ChevronLeft} disabled={page <= 1} onClick={() => onPageChange(page - 1)} title="上一頁" />
-      <span className="min-w-[2.5rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
-        {page}/{totalPages}
+      <NavButton icon={ChevronsLeft} disabled={navFirstDisabled} onClick={handleFirst} title={`第一${navLabel}`} />
+      <NavButton icon={ChevronLeft} disabled={navFirstDisabled} onClick={handlePrev} title={`上一${navLabel}`} />
+      <span className="min-w-[3rem] px-1 text-center font-mono text-[11px] tabular-nums text-muted-foreground">
+        {navIndex} / {navTotal}
       </span>
-      <PaginationButton icon={ChevronRight} disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} title="下一頁" />
-      <PaginationButton icon={ChevronsRight} disabled={page >= totalPages} onClick={() => onPageChange(totalPages)} title="最末頁" />
+      <NavButton icon={ChevronRight} disabled={navLastDisabled} onClick={handleNext} title={`下一${navLabel}`} />
+      <NavButton icon={ChevronsRight} disabled={navLastDisabled} onClick={handleLast} title={`最末${navLabel}`} />
       <ToolbarSeparator />
       <ToolbarButton icon={Plus} letter="A" label="新增" enabled onClick={onCreate} />
-      <ToolbarButton icon={Pencil} letter="E" label="更正" enabled={hasActiveRow} onClick={onEdit} />
-      <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
-      <ToolbarSeparator />
+      <ToolbarButton icon={Pencil} letter="E" label="編輯" enabled={hasActiveRow} onClick={onEdit} />
       <ToolbarButton
         icon={DisableButtonIcon}
         letter="D"
@@ -206,13 +254,23 @@ export function ErpToolbar({
         variant={selectedRowBuiltin ? 'default' : disableButtonVariant}
         onClick={onDelete}
       />
-      <ExportMenuButton onSelect={onExport} />
+      <ToolbarSeparator />
+      <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
+      <ToolbarSeparator />
+      <ToolbarButton
+        icon={Printer}
+        letter="P"
+        label="列印"
+        enabled
+        onClick={() => (onPrint ? onPrint() : onExport('print'))}
+      />
+      <ExportMenuButton onSelect={onExport} />
       {onOpenColumns || onOpenFilter ? <ToolbarSeparator /> : null}
       {onOpenColumns ? (
         <ToolbarButton
           icon={Columns3}
-          letter="L"
+          letter="I"
           label={columnsHiddenCount > 0 ? `欄位·隱${columnsHiddenCount}` : '欄位'}
           enabled
           onClick={onOpenColumns}
@@ -248,7 +306,10 @@ export function ToolbarSeparator() {
   return <div className="mx-1 h-5 w-px bg-[#2A2A30]" aria-hidden />;
 }
 
-export function PaginationButton({
+/** alias 保留向後相容（其他檔可能 import PaginationButton） */
+export const PaginationButton = NavButton;
+
+export function NavButton({
   icon: Icon,
   disabled,
   onClick,

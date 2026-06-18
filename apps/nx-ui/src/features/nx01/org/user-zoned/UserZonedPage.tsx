@@ -200,6 +200,49 @@ export function UserZonedPage({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  // 2026-06-18 執行長範式：項目級導航（itemIndex / itemTotal）
+  const localIdx = rows.findIndex((r) => r.id === selectedId);
+  const itemIndex = localIdx >= 0 ? (page - 1) * pageSize + localIdx + 1 : 0;
+  const itemTotal = total;
+  // 跨頁切換時、reload 後選首/末筆的 pending 標記
+  const pendingSelectRef = useRef<'first' | 'last' | null>(null);
+  useEffect(() => {
+    if (!pendingSelectRef.current || rows.length === 0) return;
+    if (pendingSelectRef.current === 'first') setSelectedId(rows[0].id);
+    else setSelectedId(rows[rows.length - 1].id);
+    pendingSelectRef.current = null;
+  }, [rows]);
+  const handleJumpFirstItem = useCallback(() => {
+    if (total === 0) return;
+    pendingSelectRef.current = 'first';
+    setPage(1);
+    if (page === 1 && rows.length > 0) setSelectedId(rows[0].id);
+  }, [total, page, rows]);
+  const handleJumpLastItem = useCallback(() => {
+    if (total === 0) return;
+    pendingSelectRef.current = 'last';
+    setPage(totalPages);
+    if (page === totalPages && rows.length > 0) setSelectedId(rows[rows.length - 1].id);
+  }, [total, totalPages, page, rows]);
+  const handlePrevItem = useCallback(() => {
+    if (localIdx > 0) {
+      setSelectedId(rows[localIdx - 1].id);
+    } else if (page > 1) {
+      pendingSelectRef.current = 'last';
+      setPage(page - 1);
+    }
+  }, [localIdx, rows, page]);
+  const handleNextItem = useCallback(() => {
+    if (localIdx >= 0 && localIdx < rows.length - 1) {
+      setSelectedId(rows[localIdx + 1].id);
+    } else if (page < totalPages) {
+      pendingSelectRef.current = 'first';
+      setPage(page + 1);
+    } else if (localIdx < 0 && rows.length > 0) {
+      setSelectedId(rows[0].id);
+    }
+  }, [localIdx, rows, page, totalPages]);
+
   // B2~B5：load roles + warehouses when entering detail
   useEffect(() => {
     if (!selectedId || tab !== 'detail') {
@@ -974,9 +1017,12 @@ export function UserZonedPage({
           selectionMode={false}
           onToggleSelection={() => {}}
           selectedCount={0}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={(p) => setPage(Math.min(Math.max(1, p), totalPages))}
+          itemIndex={itemIndex}
+          itemTotal={itemTotal}
+          onJumpFirstItem={handleJumpFirstItem}
+          onPrevItem={handlePrevItem}
+          onNextItem={handleNextItem}
+          onJumpLastItem={handleJumpLastItem}
           onCreate={handleCreate}
           onEdit={handleEdit}
           onSearch={toggleSearch}
