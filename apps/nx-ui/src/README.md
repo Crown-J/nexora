@@ -103,7 +103,7 @@ app/
 design/
 ├── primitives/    shadcn 基本元件（button / input / dialog / card / ...）
 ├── components/    跨業務 widget（PageHeader / PlanChip / filter-bar / form / lookup / quick-search / ...）
-├── layout/        外殼（DashboardShell / UnifiedTopBar / PlanetDock / BusinessTopNav / ...）
+├── layout/        外殼（DashboardShell / UnifiedTopBar / PlanetDock / DashboardSubNav / ...）
 ├── home/          首頁殼 + 共享星球（HomeShell / HomeView / SharedPlanetRoot / Dock / HomeTopBar / HomeLandingChrome）
 ├── document/      單據雙視圖（DocLayout / DocHeader / DocItemTable / ...）
 ├── login/         登入頁 View（LoginPageView / planet-orbit）

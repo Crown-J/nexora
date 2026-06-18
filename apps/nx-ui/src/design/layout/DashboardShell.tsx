@@ -2,7 +2,8 @@
 // NX00 統一 Dashboard 外殼（Phase 2 收斂、2026-06-17）
 //
 // 設計：
-// - 一律 UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav 為頂層外殼
+// - 一律 UnifiedTopBar + PlanetDock + DashboardSubNav 為頂層外殼
+// - 2026-06-18 移除 BusinessTopNav（v1.2 §4.2 舊範式、被 PlanetDock + MasterQuickNav 取代）
 // - 主檔頁（/dashboard/master/*）改為標準範式、不再 bypass、不再自帶 MasterTopBar
 // - 退場：MasterTopBar（取代為 PageHeader 顯示分類/標題/計數）/ HomeTopBar / MobileWorkstationDock
 // - 首頁 /dashboard：HomeShell 自帶外殼、本 layout 不額外包
@@ -14,7 +15,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { DashboardBulletinProvider } from '@/features/nx00/context/DashboardBulletinContext';
 import { DashboardPaletteProvider } from '@/features/nx00/context/DashboardPaletteContext';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
-import { BusinessTopNav } from '@design/layout/BusinessTopNav';
 import { DashboardSubNav } from '@design/layout/DashboardSubNav';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
@@ -116,7 +116,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     );
   }
 
-  // 一般子頁（含主檔頁）：UnifiedTopBar + PlanetDock + BusinessTopNav + DashboardSubNav + content
+  // 一般子頁（含主檔頁）：UnifiedTopBar + PlanetDock + DashboardSubNav + content
   return (
     <DashboardPaletteProvider>
       <DashboardBulletinProvider>
@@ -142,7 +142,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
                   isFillViewportSubPage ? 'gap-2' : 'gap-4',
                 )}
               >
-                <BusinessTopNav />
                 <DashboardSubNav />
                 <div
                   className={cn(
