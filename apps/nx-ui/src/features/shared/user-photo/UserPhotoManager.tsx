@@ -232,7 +232,7 @@ export function UserAvatarSmall({
   const initials = displayName.slice(0, 1).toUpperCase() || '?';
   return (
     <div
-      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#2A2A30] bg-[#0E0E12] text-[10px] font-semibold text-[#888892]"
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-muted text-[10px] font-semibold text-muted-foreground"
       style={{ width: size, height: size }}
     >
       {url ? (
