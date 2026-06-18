@@ -989,26 +989,8 @@ export function UserZonedPage({
         }
         return;
       }
-      // 2026-06-18 匯出/排序 dropdown 開啟中 → 不攔 ↑↓/Enter（讓 Radix DropdownMenu 自己處理選項導航）
-      if (exportMenuOpen || sortMenuOpen) return;
-      const focusTag = (document.activeElement?.tagName ?? '').toLowerCase();
-      const inFormEl = focusTag === 'input' || focusTag === 'select' || focusTag === 'textarea';
-      if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        if (inFormEl) return;
-        if (rows.length === 0) return;
-        e.preventDefault();
-        const idx = rows.findIndex((r) => r.id === selectedId);
-        const cur = idx < 0 ? 0 : idx;
-        const nextIdx =
-          e.key === 'ArrowDown' ? Math.min(rows.length - 1, cur + 1) : Math.max(0, cur - 1);
-        setSelectedId(rows[nextIdx].id);
-      }
-      if (mode === 'browse' && tab === 'list' && e.key === 'Enter') {
-        if (inFormEl) return;
-        if (!selected) return;
-        e.preventDefault();
-        attemptTabChange('detail');
-      }
+      // 2026-06-18 ↑↓/Enter 切 row + 進詳細 全由 MasterTable.handleTableKey 處理（避免 window+div 雙重觸發
+      //   → 修「上下格都有黃框」focus-visible 殘留問題）。Alt 系列鍵保留在 window 級。
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
