@@ -122,10 +122,10 @@ export function MasterTable<T>({
   const placeholders = Math.max(0, pageSize - rows.length);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70">
       <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
         <table className="w-full border-collapse text-[13px]">
-          <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/80 backdrop-blur-md">
+          <thead className="sticky top-0 z-10 border-b border-border/40 bg-card/95 backdrop-blur-md">
             <tr className="text-left text-[11.5px] font-semibold uppercase tracking-[0.02em] text-muted-foreground">
               <th className="w-12 px-3 py-[9px]">
                 {selectionMode ? (
@@ -183,7 +183,7 @@ export function MasterTable<T>({
                       ? 'bg-[#E8A020]/12 shadow-[inset_3px_0_0_#E8A020] hover:bg-[#E8A020]/16'
                       : selectionMode && isChecked
                         ? 'bg-[#E8A020]/8'
-                        : cn(isEvenRow && 'bg-foreground/[0.025]', 'hover:bg-accent/10'),
+                        : cn(isEvenRow && 'bg-foreground/[0.05]', 'hover:bg-accent/10'),
                   )}
                 >
                   <td className="px-3 py-[10px]" onClick={(e) => selectionMode && e.stopPropagation()}>
@@ -218,7 +218,7 @@ export function MasterTable<T>({
                   aria-hidden
                   className={cn(
                     'pointer-events-none select-none border-b border-border/10',
-                    isEvenRow && 'bg-foreground/[0.025]',
+                    isEvenRow && 'bg-foreground/[0.05]',
                   )}
                 >
                   <td className="px-3 py-[10px]">&nbsp;</td>
@@ -233,7 +233,7 @@ export function MasterTable<T>({
       </div>
 
       {/* footer 對齊 demo .nx-tfoot */}
-      <div className="flex items-center gap-[14px] border-t border-border/40 bg-background/40 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
+      <div className="flex items-center gap-[14px] border-t border-border/40 bg-card/80 px-[14px] py-[10px] text-[12.5px] text-muted-foreground">
         <span className="font-variant-numeric tabular-nums">
           共 <span className="text-foreground">{total}</span> 筆 · 顯示 {rows.length} 筆
           {footerHint ? ` · ${footerHint}` : ''}
