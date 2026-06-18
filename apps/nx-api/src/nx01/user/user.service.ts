@@ -27,6 +27,7 @@ const SEL = {
   employeeId: true,
   userAccount: true,
   userName: true,
+  userNameEn: true,
   email: true,
   phone: true,
   isActive: true,
@@ -64,6 +65,7 @@ const SEL = {
   photoFileSize: true,
   photoOrigFilename: true,
   legacyCode: true,
+  twoFaEnabled: true,
   createdAt: true,
   createdBy: true,
   updatedAt: true,
@@ -409,6 +411,8 @@ export class UserService {
         leftAt: dto.leftAt ? new Date(dto.leftAt) : null,
         // W3 [3-2] legacyCode
         legacyCode: dto.legacyCode?.trim() || null,
+        userNameEn: dto.userNameEn?.trim() || null,
+        twoFaEnabled: dto.twoFaEnabled ?? false,
         createdBy: user.sub,
         updatedBy: user.sub,
       },
@@ -453,6 +457,7 @@ export class UserService {
       updatedBy: user.sub,
       ...(nextUserAccount !== undefined ? { userAccount: nextUserAccount } : {}),
       ...(dto.userName !== undefined ? { userName: dto.userName.trim() } : {}),
+      ...(dto.userNameEn !== undefined ? { userNameEn: dto.userNameEn?.trim() || null } : {}),
       ...(dto.email !== undefined ? { email: dto.email } : {}),
       ...(dto.phone !== undefined ? { phone: dto.phone } : {}),
       ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
@@ -494,6 +499,7 @@ export class UserService {
         : {}),
       // W3 [3-2] legacyCode
       ...(dto.legacyCode !== undefined ? { legacyCode: dto.legacyCode } : {}),
+      ...(dto.twoFaEnabled !== undefined ? { twoFaEnabled: dto.twoFaEnabled } : {}),
     };
     if (dto.password) {
       data.passwordHash = await bcrypt.hash(dto.password, 10);

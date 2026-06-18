@@ -25,6 +25,8 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   // W3 [3-1] 員工編號 = 登入帳號（Crown 拍板）；新增時未填→系統自動產 Y0001、可手動覆寫
   { key: 'userAccount', label: '員工編號', zone: 'basic', notes: '= 登入帳號、未填系統自動產 Y+4 碼、可手動覆寫' },
   { key: 'userName', label: '姓名', zone: 'basic', required: true },
+  // 2026-06-18 補 Hana demo 欄位:英文姓名（外籍員工或顯示用）
+  { key: 'userNameEn', label: '英文姓名', zone: 'basic', notes: '選填、外籍員工或顯示用' },
   { key: 'email', label: '聯絡信箱', zone: 'basic', notes: '通知 / 重設密碼用、非登入帳號' },
   { key: 'phone', label: '電話', zone: 'basic' },
   // W3 [3-3] basic zone 補 7 欄位（NX-MANUAL-02 v2.0 §4.1）
@@ -72,6 +74,8 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
 
   // ─── security 安全區（負責人 admin 看）───
   { key: 'mustChangePassword', label: '強制改密', zone: 'security', notes: '首次登入 true' },
+  // 2026-06-18 補 Hana demo 欄位:兩階段驗證開關（OTP 實作待安全 zone 開發時補）
+  { key: 'twoFaEnabled', label: '兩階段驗證', zone: 'security', notes: '開啟登入需 OTP' },
   { key: 'failedLoginCount', label: '登入失敗次數', zone: 'security' },
   { key: 'lockedUntil', label: '鎖定至', zone: 'security' },
   { key: 'lastLoginAt', label: '最後登入時間', zone: 'security' },

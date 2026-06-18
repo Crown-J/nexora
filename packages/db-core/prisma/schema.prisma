@@ -1371,6 +1371,8 @@ model Nx01User {
   passwordHash                             String                        @map("password_hash") @db.VarChar(255)
   /// 顯示名稱（姓名/暱稱）；啟用最低需求版本：LITE
   userName                                 String                        @map("user_name") @db.VarChar(50)
+  /// 英文姓名（選填、Hana demo 對齊、外籍員工或顯示用）；2026-06-18 補欄
+  userNameEn                               String?                       @map("user_name_en") @db.VarChar(100)
   /// Email（可選填；未來可用於通知/重設密碼）；啟用最低需求版本：LITE
   email                                    String?                       @db.VarChar(100)
   /// 電話（可選填）；啟用最低需求版本：LITE
@@ -1443,6 +1445,8 @@ model Nx01User {
   lockedUntil                              DateTime?                     @map("locked_until")
   /// 首次登入強制改密碼（v1.2 §3.1）
   mustChangePassword                       Boolean                       @default(false) @map("must_change_password")
+  /// 兩階段驗證開關（Hana demo 對齊、true=登入要過 OTP、實作待 security zone 開發時補）；2026-06-18 補欄
+  twoFaEnabled                             Boolean                       @default(false) @map("two_fa_enabled")
   /// 是否租戶負責人（v1.2 §2.1 開戶時建立、自動 OWNER 角色 + 全權限）
   isTenantOwner                            Boolean                       @default(false) @map("is_tenant_owner")
   /// 建立時間。；啟用最低需求版本：LITE

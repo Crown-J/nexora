@@ -69,6 +69,9 @@ export class CreateUserDto {
   @MaxLength(50)
   userName!: string;
 
+  // 2026-06-18 補 Hana demo 欄位:英文姓名（外籍員工或顯示用）
+  @IsOptional() @IsString() @MaxLength(100) userNameEn?: string;
+
   @IsOptional()
   @IsString()
   @MaxLength(100)
@@ -120,6 +123,9 @@ export class CreateUserDto {
 
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string;
+
+  // 2026-06-18 補 Hana demo 欄位:兩階段驗證開關（security zone）
+  @IsOptional() @Type(() => Boolean) @IsBoolean() twoFaEnabled?: boolean;
 }
 
 /**
@@ -160,6 +166,9 @@ export class UpdateUserDto {
   @MinLength(1)
   @MaxLength(50)
   userName?: string;
+
+  // 2026-06-18 補 Hana demo 欄位:英文姓名
+  @IsOptional() @IsString() @MaxLength(100) userNameEn?: string | null;
 
   @IsOptional()
   @IsString()
@@ -212,4 +221,7 @@ export class UpdateUserDto {
 
   // ── W3 [3-2] 舊系統員工編號（純對照）──────────────────────
   @IsOptional() @IsString() @MaxLength(50) legacyCode?: string | null;
+
+  // 2026-06-18 補 Hana demo 欄位:兩階段驗證開關（security zone 整合時實作 OTP）
+  @IsOptional() @Type(() => Boolean) @IsBoolean() twoFaEnabled?: boolean;
 }

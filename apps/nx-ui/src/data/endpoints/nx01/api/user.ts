@@ -18,6 +18,9 @@ export type UserDto = {
   warehouseCode?: string | null;
   warehouseName?: string | null;
   // W3 [3-3] basic zone 7 欄位 + 02 對齊第二批 B 軌 5 欄位 + [3-2] legacyCode
+  // 2026-06-18 補 Hana demo 欄位:英文姓名 + 兩階段驗證
+  userNameEn?: string | null;
+  twoFaEnabled?: boolean;
   gender?: string | null;
   birthday?: string | null;
   nationalId?: string | null;
@@ -107,6 +110,9 @@ export async function getUser(id: string): Promise<UserDto> {
  *  W3 [3-1] 2026-06-06：username 改 optional（未填系統自動產 Y+4 碼）；
  *  W3 [3-2][3-3]：新增 7 basic 欄位 + legacyCode 透傳。 */
 export type UserBasicWritable = {
+  // 2026-06-18 補 Hana demo 欄位
+  userNameEn?: string | null;
+  twoFaEnabled?: boolean;
   gender?: string | null;
   birthday?: string | null;
   nationalId?: string | null;
@@ -137,6 +143,9 @@ export type UserBasicWritable = {
 };
 
 function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBasicWritable>): void {
+  // 2026-06-18 補 Hana demo 欄位
+  if (body.userNameEn !== undefined) apiBody.userNameEn = body.userNameEn;
+  if (body.twoFaEnabled !== undefined) apiBody.twoFaEnabled = body.twoFaEnabled;
   if (body.gender !== undefined) apiBody.gender = body.gender;
   if (body.birthday !== undefined) apiBody.birthday = body.birthday;
   if (body.nationalId !== undefined) apiBody.nationalId = body.nationalId;
