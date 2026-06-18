@@ -51,6 +51,8 @@ const SEL = {
   hireDate: true,
   emergencyContact: true,
   emergencyPhone: true,
+  // 2026-06-18 補 Hana demo 欄位:緊急聯絡人關係
+  emergencyRelation: true,
   // 02 對齊第二批 B 軌：basic zone 補 5 欄位（學歷/學校/兵役/體檢日/體檢結果）
   highestEducation: true,
   graduateSchool: true,
@@ -123,6 +125,7 @@ export type Nx01UserPublicDto = {
   hireDate: string | null;
   emergencyContact: string | null;
   emergencyPhone: string | null;
+  emergencyRelation: string | null;
   // 02 對齊第二批 B 軌：basic zone 補 5 欄位
   highestEducation: string | null;
   graduateSchool: string | null;
@@ -232,6 +235,7 @@ export class UserService {
       hireDate: row.hireDate ? row.hireDate.toISOString().slice(0, 10) : null,
       emergencyContact: row.emergencyContact ?? null,
       emergencyPhone: row.emergencyPhone ?? null,
+      emergencyRelation: row.emergencyRelation ?? null,
       highestEducation: row.highestEducation ?? null,
       graduateSchool: row.graduateSchool ?? null,
       militaryService: row.militaryService ?? null,
@@ -400,6 +404,7 @@ export class UserService {
         hireDate: dto.hireDate ? new Date(dto.hireDate) : null,
         emergencyContact: dto.emergencyContact?.trim() || null,
         emergencyPhone: dto.emergencyPhone?.trim() || null,
+        emergencyRelation: dto.emergencyRelation?.trim() || null,
         // 02 對齊第二批 B 軌：basic zone 補 5 欄位
         highestEducation: dto.highestEducation?.trim() || null,
         graduateSchool: dto.graduateSchool?.trim() || null,
@@ -484,6 +489,7 @@ export class UserService {
         : {}),
       ...(dto.emergencyContact !== undefined ? { emergencyContact: dto.emergencyContact } : {}),
       ...(dto.emergencyPhone !== undefined ? { emergencyPhone: dto.emergencyPhone } : {}),
+      ...(dto.emergencyRelation !== undefined ? { emergencyRelation: dto.emergencyRelation } : {}),
       // 02 對齊第二批 B 軌：basic zone 補 5 欄位
       ...(dto.highestEducation !== undefined ? { highestEducation: dto.highestEducation } : {}),
       ...(dto.graduateSchool !== undefined ? { graduateSchool: dto.graduateSchool } : {}),

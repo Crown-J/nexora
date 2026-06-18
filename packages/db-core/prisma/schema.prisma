@@ -1407,6 +1407,8 @@ model Nx01User {
   emergencyContact                         String?                       @map("emergency_contact") @db.VarChar(50)
   /// 緊急聯絡電話；W3 [3-3] 2026-06-06 新增
   emergencyPhone                           String?                       @map("emergency_phone") @db.VarChar(30)
+  /// 緊急聯絡人關係（父/母/配偶/兄弟姊妹/朋友 等、純文字）；2026-06-18 補 Hana demo 欄位
+  emergencyRelation                        String?                       @map("emergency_relation") @db.VarChar(20)
   /// 最高學歷（高中/專科/大學/碩士/博士 等、basic zone）；02 對齊第二批 B 軌 2026-06-06 新增
   highestEducation                         String?                       @map("highest_education") @db.VarChar(20)
   /// 畢業學校；02 對齊第二批 B 軌 2026-06-06 新增

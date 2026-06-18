@@ -37,6 +37,8 @@ export type UserDto = {
   hireDate?: string | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
+  // 2026-06-18 補 Hana demo 欄位:緊急聯絡人關係
+  emergencyRelation?: string | null;
   highestEducation?: string | null;
   graduateSchool?: string | null;
   militaryService?: string | null;
@@ -129,6 +131,8 @@ export type UserBasicWritable = {
   hireDate?: string | null;
   emergencyContact?: string | null;
   emergencyPhone?: string | null;
+  // 2026-06-18 補 Hana demo 欄位:緊急聯絡人關係
+  emergencyRelation?: string | null;
   highestEducation?: string | null;
   graduateSchool?: string | null;
   militaryService?: string | null;
@@ -162,6 +166,8 @@ function writeBasicToApi(apiBody: Record<string, unknown>, body: Partial<UserBas
   if (body.hireDate !== undefined) apiBody.hireDate = body.hireDate;
   if (body.emergencyContact !== undefined) apiBody.emergencyContact = body.emergencyContact;
   if (body.emergencyPhone !== undefined) apiBody.emergencyPhone = body.emergencyPhone;
+  // 2026-06-18 補 Hana demo 欄位
+  if (body.emergencyRelation !== undefined) apiBody.emergencyRelation = body.emergencyRelation;
   if (body.highestEducation !== undefined) apiBody.highestEducation = body.highestEducation;
   if (body.graduateSchool !== undefined) apiBody.graduateSchool = body.graduateSchool;
   if (body.militaryService !== undefined) apiBody.militaryService = body.militaryService;

@@ -104,6 +104,8 @@ export class CreateUserDto {
   @IsOptional() @IsDateString() hireDate?: string;
   @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string;
   @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string;
+  // 2026-06-18 補 Hana demo 欄位:緊急聯絡人關係（父/母/配偶 等）
+  @IsOptional() @IsString() @MaxLength(20) emergencyRelation?: string;
 
   // ── 02 對齊第二批 B 軌：basic zone 補 5 欄位 ──────────────────
   @IsOptional() @IsString() @MaxLength(20) highestEducation?: string;
@@ -202,6 +204,8 @@ export class UpdateUserDto {
   @IsOptional() @IsDateString() hireDate?: string | null;
   @IsOptional() @IsString() @MaxLength(50) emergencyContact?: string | null;
   @IsOptional() @IsString() @MaxLength(30) emergencyPhone?: string | null;
+  // 2026-06-18 補 Hana demo 欄位:緊急聯絡人關係
+  @IsOptional() @IsString() @MaxLength(20) emergencyRelation?: string | null;
 
   // ── 02 對齊第二批 B 軌：basic zone 補 5 欄位 ──────────────────
   @IsOptional() @IsString() @MaxLength(20) highestEducation?: string | null;

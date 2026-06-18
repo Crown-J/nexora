@@ -47,6 +47,7 @@ export const USER_FIELDS: FieldDef<UserZone>[] = [
   // 02 第四批 軌 1 2026-06-07：離職日期（留空=在職、不刪資料）
   { key: 'leftAt', label: '離職日期', zone: 'basic', notes: '留空=在職、有值=已離職、資料保留' },
   { key: 'emergencyContact', label: '緊急聯絡人', zone: 'basic' },
+  { key: 'emergencyRelation', label: '緊急聯絡關係', zone: 'basic', notes: '父/母/配偶/兄弟姊妹/朋友 等' },
   { key: 'emergencyPhone', label: '緊急聯絡電話', zone: 'basic' },
   // 02 對齊第二批 B 軌：basic zone 補 5 欄位
   { key: 'highestEducation', label: '最高學歷', zone: 'basic', notes: '高中 / 專科 / 大學 / 碩士 / 博士 等' },
