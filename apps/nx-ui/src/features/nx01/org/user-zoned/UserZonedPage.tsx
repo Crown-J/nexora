@@ -83,6 +83,11 @@ import {
   type ColumnsConfigOption,
 } from '@/features/nx01/shell/ui/columns-config/ColumnsConfigDialog';
 import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
+import {
+  SortConfigDialog,
+  type SortableOption,
+  type SortOrder,
+} from '@/features/nx01/shell/ui/sort-config/SortConfigDialog';
 
 /** 預設密碼（與 CreateUserDialog 同步）：新建員工首次登入後系統強制改密 */
 const DEFAULT_PASSWORD = 'changeme';
@@ -168,6 +173,25 @@ export function UserZonedPage({
     hiddenCount: columnsHiddenCount,
   } = useColumnsPref('master-users:columns:v1', COLUMN_DEFAULT_KEYS, COLUMN_ALL_KEYS);
 
+  // 2026-06-18 M 排序 dialog
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const SORT_OPTIONS: SortableOption[] = useMemo(
+    () => [
+      { key: 'userAccount', label: '員工編號' },
+      { key: 'userName', label: '姓名' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: '電話' },
+      { key: 'isActive', label: '狀態' },
+      { key: 'hireDate', label: '到職日' },
+      { key: 'leftAt', label: '離職日' },
+      { key: 'lastLoginAt', label: '最近登入時間' },
+      { key: 'createdAt', label: '建立時間' },
+    ],
+    [],
+  );
+
   // ── B2~B5：staged ops + picker dialogs + 載入的 user_role / user_warehouse ──
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
   const [selectedUserWarehouses, setSelectedUserWarehouses] = useState<UserWarehouseDto[]>([]);
@@ -199,6 +223,8 @@ export function UserZonedPage({
         pageSize,
         q: debouncedKw,
         isActive: showInactive ? undefined : true,
+        sortBy: sortKey ?? undefined,
+        sortOrder: sortKey ? sortOrder : undefined,
       });
       setRows(res.items);
       setTotal(res.total);
@@ -208,7 +234,7 @@ export function UserZonedPage({
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedKw, page, pageSize, showInactive, reloadTick]);
+  }, [debouncedKw, page, pageSize, showInactive, reloadTick, sortKey, sortOrder]);
 
   useEffect(() => {
     void load();
@@ -943,6 +969,7 @@ export function UserZonedPage({
             p: () => handleExport('print'),
             o: () => setExportMenuOpen(true),
             i: () => setColumnsDialogOpen(true),
+            m: () => setSortDialogOpen(true),
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -1115,6 +1142,8 @@ export function UserZonedPage({
           onExport={handleExport}
           onOpenColumns={() => setColumnsDialogOpen(true)}
           columnsHiddenCount={columnsHiddenCount}
+          onOpenSort={() => setSortDialogOpen(true)}
+          sortCount={sortKey ? 1 : 0}
           exportMenuOpen={exportMenuOpen}
           onExportMenuOpenChange={setExportMenuOpen}
           // 2026-06-18 Radix DropdownMenu 預設關閉時 focus 還給 trigger（O 按鈕）
@@ -1219,6 +1248,22 @@ export function UserZonedPage({
         visibleKeys={columnsVisibleKeys}
         onChange={setColumnsVisibleKeys}
         onReset={resetColumnsPref}
+      />
+      {/* 2026-06-18 M 排序 dialog（Alt+M 或工具列 M 按鈕） */}
+      <SortConfigDialog
+        open={sortDialogOpen}
+        onClose={() => setSortDialogOpen(false)}
+        options={SORT_OPTIONS}
+        sortKey={sortKey}
+        sortOrder={sortOrder}
+        onChange={(k, o) => {
+          setSortKey(k);
+          setSortOrder(o);
+        }}
+        onReset={() => {
+          setSortKey(null);
+          setSortOrder('asc');
+        }}
       />
       {/* B2~B5：role / warehouse pickers */}
       <EntityPickerDialog<RoleDto>

@@ -82,6 +82,9 @@ export async function listUsers(params: {
   isActive?: boolean;
   /** 依 nx01_user_role（已生效指派）篩選：使用者須擁有其中任一角色 */
   primaryRoleIds?: string[];
+  /** 2026-06-18 M 排序：欄位 + 方向（後端白名單守、非法欄位 400） */
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }): Promise<PagedResult<UserDto>> {
   const pageSize = clampNx01ListPageSize(params.pageSize, 20);
   const pr =
@@ -94,6 +97,8 @@ export async function listUsers(params: {
     pageSize: String(pageSize),
     isActive: params.isActive === undefined ? undefined : String(params.isActive),
     primaryRoleIds: pr,
+    sortBy: params.sortBy,
+    sortOrder: params.sortOrder,
   });
   const res = await apiFetch(`${BASE}${qs}`, { method: 'GET' });
   await assertOk(res, 'nxui_base_user_list');

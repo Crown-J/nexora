@@ -32,7 +32,21 @@ function csvToIdList(value: unknown): string[] | undefined {
     .slice(0, 50);
 }
 
-/** 列表查詢：繼承共用分頁／search／isActive，並支援依「已指派角色」篩選（OR，nx01_user_role） */
+// 2026-06-18 M 排序 dialog 支援的欄位白名單
+const USER_SORTABLE_FIELDS = [
+  'userAccount',
+  'userName',
+  'email',
+  'phone',
+  'isActive',
+  'createdAt',
+  'hireDate',
+  'leftAt',
+  'lastLoginAt',
+] as const;
+export type UserSortField = (typeof USER_SORTABLE_FIELDS)[number];
+
+/** 列表查詢：繼承共用分頁／search／isActive，並支援依「已指派角色」篩選（OR，nx01_user_role）+ M 排序 */
 export class ListUserQueryDto extends Nx01ListQueryDto {
   @IsOptional()
   @Transform(({ value }) => csvToIdList(value))
@@ -41,6 +55,18 @@ export class ListUserQueryDto extends Nx01ListQueryDto {
   @IsString({ each: true })
   @MaxLength(15, { each: true })
   primaryRoleIds?: string[];
+
+  /** 排序欄位（白名單）；未提供 fallback userAccount */
+  @IsOptional()
+  @IsString()
+  @IsIn(USER_SORTABLE_FIELDS as unknown as string[])
+  sortBy?: UserSortField;
+
+  /** 排序方向 asc / desc；未提供 fallback asc */
+  @IsOptional()
+  @IsString()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 }
 
 /**

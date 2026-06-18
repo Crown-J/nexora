@@ -322,11 +322,15 @@ export class UserService {
         },
       };
     }
+    // 2026-06-18 M 排序:依 q.sortBy / q.sortOrder 動態組 orderBy（白名單由 DTO 守、不會拿到非法欄位）
+    const sortField = q.sortBy ?? 'userAccount';
+    const sortDir: 'asc' | 'desc' = q.sortOrder ?? 'asc';
+    const orderBy = { [sortField]: sortDir } as Prisma.Nx01UserOrderByWithRelationInput;
     const [total, rows] = await Promise.all([
       this.prisma.nx01User.count({ where }),
       this.prisma.nx01User.findMany({
         where,
-        orderBy: { userAccount: 'asc' },
+        orderBy,
         skip,
         take: pageSize,
         select: LIST_SELECT,
