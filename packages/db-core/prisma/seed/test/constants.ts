@@ -22,5 +22,11 @@ export const TEST_PLUS_ADMIN_USER_ID = 'NX01USER9900002';
 export const TEST_PRO_TENANT_ID = 'NX99TANT9900003';
 export const TEST_PRO_ADMIN_USER_ID = 'NX01USER9900003';
 
+/** admin 的 OWNER 角色掛載 id（2026-06-18 新增、修 admin 沒掛 OWNER 導致 user list 403）
+ *  每個測試租戶 admin 都掛 OWNER + isPrimary=true、過 RolesGuard 全通行 */
+export const TEST_LITE_ADMIN_OWNER_UR_ID = 'NX01UR9900001';
+export const TEST_PLUS_ADMIN_OWNER_UR_ID = 'NX01UR9900002';
+export const TEST_PRO_ADMIN_OWNER_UR_ID = 'NX01UR9900003';
+
 /** bcrypt hash of "Nexoragrid2026"（re-export 自 system 層，避免兩處不一致）*/
 export { DEFAULT_PASSWORD_HASH as TEST_ADMIN_PASSWORD_HASH } from '../system/constants';

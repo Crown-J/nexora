@@ -6,6 +6,7 @@ import type { PrismaClient } from '../../../../generated/prisma';
 import { SYSADMIN_USER_ID } from '../../system/constants';
 import {
   TEST_ADMIN_PASSWORD_HASH,
+  TEST_PLUS_ADMIN_OWNER_UR_ID,
   TEST_PLUS_ADMIN_USER_ID,
   TEST_PLUS_TENANT_ID,
 } from '../constants';
@@ -71,7 +72,7 @@ export async function seedPlusTenant(prisma: PrismaClient): Promise<void> {
     },
   });
 
-  // 3. 建立 admin 使用者
+  // 3. 建立 admin 使用者（isTenantOwner=true、租戶負責人旗標）
   await prisma.nx01User.upsert({
     where: { id: TEST_PLUS_ADMIN_USER_ID },
     create: {
@@ -81,6 +82,7 @@ export async function seedPlusTenant(prisma: PrismaClient): Promise<void> {
       passwordHash: TEST_ADMIN_PASSWORD_HASH,
       userName: '測試租戶管理員（PLUS）',
       isActive: true,
+      isTenantOwner: true,
       createdBy: SYSADMIN_USER_ID,
       updatedBy: SYSADMIN_USER_ID,
     },
@@ -90,9 +92,36 @@ export async function seedPlusTenant(prisma: PrismaClient): Promise<void> {
       passwordHash: TEST_ADMIN_PASSWORD_HASH,
       userName: '測試租戶管理員（PLUS）',
       isActive: true,
+      isTenantOwner: true,
       updatedBy: SYSADMIN_USER_ID,
     },
   });
 
-  console.log(`✅ [TEST/PLUS] tenant=${TEST_PLUS_TENANT_ID} admin=${TEST_PLUS_ADMIN_USER_ID}`);
+  // 4. 掛 OWNER 角色（2026-06-18 修：admin 沒掛 OWNER role 會被 RolesGuard 擋 403）
+  const ownerRole = await prisma.nx01Role.findFirst({
+    where: { tenantId: TEST_PLUS_TENANT_ID, code: 'OWNER' },
+  });
+  if (ownerRole) {
+    await prisma.nx01UserRole.upsert({
+      where: { id: TEST_PLUS_ADMIN_OWNER_UR_ID },
+      create: {
+        id: TEST_PLUS_ADMIN_OWNER_UR_ID,
+        tenantId: TEST_PLUS_TENANT_ID,
+        userId: TEST_PLUS_ADMIN_USER_ID,
+        roleId: ownerRole.id,
+        isPrimary: true,
+        isActive: true,
+        assignedAt: new Date(),
+        assignedBy: SYSADMIN_USER_ID,
+      },
+      update: {
+        roleId: ownerRole.id,
+        isPrimary: true,
+        isActive: true,
+        revokedAt: null,
+      },
+    });
+  }
+
+  console.log(`✅ [TEST/PLUS] tenant=${TEST_PLUS_TENANT_ID} admin=${TEST_PLUS_ADMIN_USER_ID} (OWNER)`);
 }
