@@ -19,6 +19,7 @@ import { DashboardSubNav } from '@design/layout/DashboardSubNav';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
+import { PageTransition } from '@design/layout/PageTransition';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { cn } from '@design/utils/cn';
@@ -143,15 +144,17 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 )}
               >
                 <DashboardSubNav />
-                <div
-                  className={cn(
-                    'w-full min-w-0',
-                    isFillViewportSubPage ? 'flex min-h-0 flex-1 flex-col gap-2' : 'space-y-4',
-                  )}
-                >
-                  {children}
-                  <AutoPageGuide />
-                </div>
+                <PageTransition>
+                  <div
+                    className={cn(
+                      'w-full min-w-0',
+                      isFillViewportSubPage ? 'flex min-h-0 flex-1 flex-col gap-2' : 'space-y-4',
+                    )}
+                  >
+                    {children}
+                    <AutoPageGuide />
+                  </div>
+                </PageTransition>
               </main>
             </div>
           </div>
