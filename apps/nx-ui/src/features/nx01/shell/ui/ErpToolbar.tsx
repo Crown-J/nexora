@@ -90,6 +90,7 @@ export function ErpToolbar({
   onPrint,
   exportMenuOpen,
   onExportMenuOpenChange,
+  onExportMenuCloseAutoFocus,
   onRefresh,
   onOpenSort,
   sortCount = 0,
@@ -141,6 +142,9 @@ export function ErpToolbar({
   /** O 匯出 dropdown 受控 open 狀態（Alt+O 用：父層 setOpen(true) 即可程式打開）*/
   exportMenuOpen?: boolean;
   onExportMenuOpenChange?: (open: boolean) => void;
+  /** dropdown 關閉時的 focus restore：Radix 預設還給 trigger（O 按鈕）、
+   *  caller 提供時可 preventDefault 並手動 focus 別處（例：回 row）*/
+  onExportMenuCloseAutoFocus?: (e: Event) => void;
   onRefresh: () => void;
   /** M 排序設定（執行長 2026-06-18 範式）；未提供時 disabled */
   onOpenSort?: () => void;
@@ -288,6 +292,7 @@ export function ErpToolbar({
         onSelect={onExport}
         open={exportMenuOpen}
         onOpenChange={onExportMenuOpenChange}
+        onCloseAutoFocus={onExportMenuCloseAutoFocus}
       />
       <ToolbarSeparator />
       <ToolbarButton
@@ -416,11 +421,14 @@ export function ExportMenuButton({
   onSelect,
   open,
   onOpenChange,
+  onCloseAutoFocus,
 }: {
   onSelect: (format: ExportFormat) => void;
   /** 受控 open（Alt+O 程式觸發） */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Radix 關閉時 focus restore hook、未提供時走預設（focus 回 trigger） */
+  onCloseAutoFocus?: (e: Event) => void;
 }) {
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
@@ -443,6 +451,7 @@ export function ExportMenuButton({
       <DropdownMenuContent
         align="end"
         sideOffset={6}
+        onCloseAutoFocus={onCloseAutoFocus}
         className="min-w-[10rem] border-border/40 bg-popover/95 p-1 shadow-2xl backdrop-blur-xl"
       >
         {/* 2026-06-18 執行長範式:O 匯出只 CSV / PDF、列印走獨立 P 按鈕 */}

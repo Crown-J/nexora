@@ -1082,15 +1082,17 @@ export function UserZonedPage({
           onDelete={handleDelete}
           onExport={handleExport}
           exportMenuOpen={exportMenuOpen}
-          onExportMenuOpenChange={(open) => {
-            setExportMenuOpen(open);
-            // 2026-06-18 關閉時 focus 回剛剛停的 row（user 體驗:回到原本停留位置）
-            if (!open && selectedId) {
-              requestAnimationFrame(() => {
-                document
-                  .querySelector<HTMLElement>(`[data-row-id="${selectedId}"]`)
-                  ?.focus();
-              });
+          onExportMenuOpenChange={setExportMenuOpen}
+          // 2026-06-18 Radix DropdownMenu 預設關閉時 focus 還給 trigger（O 按鈕）
+          //   → 攔截後 preventDefault + 手動 focus 回 row、避免再按 ↑↓ 又打開 dropdown
+          onExportMenuCloseAutoFocus={(e) => {
+            if (!selectedId) return;
+            const rowEl = document.querySelector<HTMLElement>(
+              `[data-row-id="${selectedId}"]`,
+            );
+            if (rowEl) {
+              e.preventDefault();
+              rowEl.focus();
             }
           }}
           onRefresh={() => {
