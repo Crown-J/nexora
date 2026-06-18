@@ -57,6 +57,7 @@ import { useDirtyGuard } from '@design/hooks/useDirtyGuard';
 import { MasterTabs } from '@/features/nx01/shell/entity-master/MasterTabs';
 import { formatDateTimeZh } from '@/features/nx01/shell/entity-master/format';
 import {
+  createUser,
   listUsers,
   setUserActive,
   updateUser,
@@ -77,8 +78,10 @@ import {
   type UserWarehouseDto,
 } from '@data/endpoints/nx01/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
-import { CreateUserDialog } from '@/features/nx01/org/users/CreateUserDialog';
 import { fetchSeatUsage, type SeatUsage } from '@data/endpoints/wizard/api';
+
+/** 預設密碼（與 CreateUserDialog 同步）：新建員工首次登入後系統強制改密 */
+const DEFAULT_PASSWORD = 'changeme';
 
 import { UserFormZoned } from './UserFormZoned';
 import {
@@ -139,9 +142,6 @@ export function UserZonedPage({
 
   // 席次徽章（員工主檔專用、顯示「X / Y 席」）
   const [seatUsage, setSeatUsage] = useState<SeatUsage | null>(null);
-
-  // ── B1：新增使用者 dialog ──
-  const [createOpen, setCreateOpen] = useState(false);
 
   // ── B2~B5：staged ops + picker dialogs + 載入的 user_role / user_warehouse ──
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
@@ -339,9 +339,20 @@ export function UserZonedPage({
     setActiveZone('basic');
   }, []);
 
-  // B1：新增使用者（CreateUserDialog 帶預設密碼、客戶老闆建員工帳號）
+  // 2026-06-18 對齊 Hana demo：新增不再走 modal、直接切右側詳細頁 + creating 模式
+  // 客戶老闆按 A → 右側 form 空白、basic zone、輸入姓名按 S 存檔
+  // 密碼用 DEFAULT_PASSWORD（系統自動）、員編留空時後端 SeqCounterService 自動產 Y+4 碼
   const handleCreate = useCallback(() => {
-    setCreateOpen(true);
+    const empty = emptyUserDraft();
+    setCreating(true);
+    setSelectedId(null);
+    setDraft(empty);
+    setOriginal(empty);
+    setMode('edit');
+    setTab('detail');
+    setActiveZone('basic');
+    setPendingRoleOps([]);
+    setPendingWarehouseOps([]);
   }, []);
 
   // B2~B5：picker handlers + staged ops（從舊版 UserMasterPage 移植）
@@ -615,22 +626,42 @@ export function UserZonedPage({
         return;
       }
     }
-    const body = userDraftToBody(draft, editableZones, { isCreate: false });
-    if (!selectedId) return;
+    const body = userDraftToBody(draft, editableZones, { isCreate: creating });
+
+    // 2026-06-18 對齊 demo：creating → createUser；非 creating → updateUser
+    let effectiveUserId = selectedId;
     let mainOk = false;
-    try {
-      await updateUser(selectedId, body);
-      mainOk = true;
-    } catch (e) {
-      showToast(`主檔存檔失敗：${(e as Error)?.message ?? '未知錯誤'}`, 'danger');
-      return;
+    if (creating) {
+      try {
+        const created = await createUser({
+          ...(body as Record<string, unknown>),
+          password: DEFAULT_PASSWORD,
+          displayName: String(draft.userName ?? '').trim(),
+          username: String(draft.userAccount ?? '').trim() || undefined,
+        } as Parameters<typeof createUser>[0]);
+        effectiveUserId = created.id;
+        mainOk = true;
+        showToast(`已建立員工：${created.displayName}（初始密碼 ${DEFAULT_PASSWORD}）`, 'success');
+      } catch (e) {
+        showToast(`建立失敗：${(e as Error)?.message ?? '未知錯誤'}`, 'danger');
+        return;
+      }
+    } else {
+      if (!selectedId) return;
+      try {
+        await updateUser(selectedId, body);
+        mainOk = true;
+      } catch (e) {
+        showToast(`主檔存檔失敗：${(e as Error)?.message ?? '未知錯誤'}`, 'danger');
+        return;
+      }
     }
     // B2~B5：apply staged ops（roles + warehouses）
     let roleOk = 0;
     let roleFail = 0;
     for (const op of pendingRoleOps) {
       try {
-        if (op.kind === 'add') await assignUserRole({ userId: selectedId, roleId: op.role.id });
+        if (op.kind === 'add') await assignUserRole({ userId: effectiveUserId!, roleId: op.role.id });
         else if (op.kind === 'remove') await revokeUserRole(op.userRoleId);
         else if (op.kind === 'setPrimary') await setUserRolePrimary(op.userRoleId, true);
         roleOk++;
@@ -643,7 +674,7 @@ export function UserZonedPage({
     for (const op of pendingWarehouseOps) {
       try {
         if (op.kind === 'add')
-          await assignUserWarehouse({ userId: selectedId, warehouseId: op.warehouse.id });
+          await assignUserWarehouse({ userId: effectiveUserId!, warehouseId: op.warehouse.id });
         else if (op.kind === 'remove') await revokeUserWarehouse(op.userWarehouseId);
         whOk++;
       } catch {
@@ -665,16 +696,18 @@ export function UserZonedPage({
     setRolesReloadTick((t) => t + 1);
     setWarehousesReloadTick((t) => t + 1);
     performCancel();
-  }, [draft, editableZones, selectedId, pendingRoleOps, pendingWarehouseOps, performCancel, showToast]);
+  }, [creating, draft, editableZones, selectedId, pendingRoleOps, pendingWarehouseOps, performCancel, showToast]);
 
   const handleSave = useCallback(() => {
     setConfirm({
-      title: '存檔變更',
-      message: `確定儲存對「${selected?.displayName ?? ''}」的變更？`,
-      confirmLabel: '存檔',
+      title: creating ? '建立新員工' : '存檔變更',
+      message: creating
+        ? `確定建立員工「${String(draft.userName ?? '')}」？（初始密碼 ${DEFAULT_PASSWORD}、首次登入須改）`
+        : `確定儲存對「${selected?.displayName ?? ''}」的變更？`,
+      confirmLabel: creating ? '建立' : '存檔',
       onConfirm: () => void performSave(),
     });
-  }, [selected, performSave]);
+  }, [creating, draft, selected, performSave]);
 
   const handleCancel = useCallback(() => {
     if (!isDirty) {
@@ -1051,16 +1084,7 @@ export function UserZonedPage({
       </div>
       <ToastStack toasts={toasts} />
       <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />
-      {/* B1：新增使用者 dialog */}
-      <CreateUserDialog
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onSuccess={(created) => {
-          setCreateOpen(false);
-          showToast(`已建立使用者：${created.username}`, 'success');
-          setReloadTick((t) => t + 1);
-        }}
-      />
+      {/* 2026-06-18 對齊 demo：新增改走右側詳細頁 creating 模式，CreateUserDialog 已退役 */}
       {/* B2~B5：role / warehouse pickers */}
       <EntityPickerDialog<RoleDto>
         open={rolePickerOpen}
