@@ -78,6 +78,12 @@ import {
   type UserWarehouseDto,
 } from '@data/endpoints/nx01/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
+import {
+  ColumnsConfigDialog,
+  type ColumnsConfigOption,
+} from '@/features/nx01/shell/ui/columns-config/ColumnsConfigDialog';
+import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
+
 /** 預設密碼（與 CreateUserDialog 同步）：新建員工首次登入後系統強制改密 */
 const DEFAULT_PASSWORD = 'changeme';
 
@@ -140,6 +146,27 @@ export function UserZonedPage({
 
   // 2026-06-18 Alt+O 觸發 O 匯出 dropdown（受控）
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+
+  // 2026-06-18 I 欄位設定 dialog + localStorage 記憶
+  const [columnsDialogOpen, setColumnsDialogOpen] = useState(false);
+  const COLUMN_OPTIONS: ColumnsConfigOption[] = useMemo(
+    () => [
+      { key: 'username', label: '員工編號' },
+      { key: 'displayName', label: '姓名' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: '電話' },
+      { key: 'isActive', label: '狀態' },
+    ],
+    [],
+  );
+  const COLUMN_ALL_KEYS = useMemo(() => COLUMN_OPTIONS.map((c) => c.key), [COLUMN_OPTIONS]);
+  const COLUMN_DEFAULT_KEYS = COLUMN_ALL_KEYS;
+  const {
+    visibleKeys: columnsVisibleKeys,
+    setVisibleKeys: setColumnsVisibleKeys,
+    resetToDefault: resetColumnsPref,
+    hiddenCount: columnsHiddenCount,
+  } = useColumnsPref('master-users:columns:v1', COLUMN_DEFAULT_KEYS, COLUMN_ALL_KEYS);
 
   // ── B2~B5：staged ops + picker dialogs + 載入的 user_role / user_warehouse ──
   const [selectedUserRoles, setSelectedUserRoles] = useState<UserRoleDto[]>([]);
@@ -915,6 +942,7 @@ export function UserZonedPage({
             },
             p: () => handleExport('print'),
             o: () => setExportMenuOpen(true),
+            i: () => setColumnsDialogOpen(true),
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -987,19 +1015,19 @@ export function UserZonedPage({
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
-  const columns: MasterTableColumn<UserDto>[] = useMemo(
-    () => [
-      {
+  // 全欄位定義（依 user 偏好 visibleKeys 過濾 + 排序）
+  const ALL_COLUMN_MAP: Record<string, MasterTableColumn<UserDto>> = useMemo(
+    () => ({
+      username: {
         key: 'username',
         label: '員工編號',
         minWidthClass: 'min-w-[120px]',
         render: (row) => <span className="font-mono text-xs">{row.username}</span>,
       },
-      {
+      displayName: {
         key: 'displayName',
         label: '姓名',
         minWidthClass: 'min-w-[140px]',
-        // 02 第四批 軌 1 2026-06-07：姓名前小圓頭像（無大頭貼則顯示姓名首字）
         render: (row) => (
           <span className="flex items-center gap-2">
             <UserAvatarSmall
@@ -1011,19 +1039,19 @@ export function UserZonedPage({
           </span>
         ),
       },
-      {
+      email: {
         key: 'email',
         label: 'Email',
         minWidthClass: 'min-w-[180px]',
         render: (row) => <span className="text-xs">{row.email ?? '—'}</span>,
       },
-      {
+      phone: {
         key: 'phone',
         label: '電話',
         minWidthClass: 'min-w-[110px]',
         render: (row) => <span>{row.phone ?? '—'}</span>,
       },
-      {
+      isActive: {
         key: 'isActive',
         label: '狀態',
         minWidthClass: 'min-w-[80px]',
@@ -1043,8 +1071,12 @@ export function UserZonedPage({
           </span>
         ),
       },
-    ],
+    }),
     [],
+  );
+  const columns: MasterTableColumn<UserDto>[] = useMemo(
+    () => columnsVisibleKeys.map((k) => ALL_COLUMN_MAP[k]).filter(Boolean),
+    [columnsVisibleKeys, ALL_COLUMN_MAP],
   );
 
   const countText = `${total} 筆${entityNoun}`;
@@ -1081,6 +1113,8 @@ export function UserZonedPage({
           onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
+          onOpenColumns={() => setColumnsDialogOpen(true)}
+          columnsHiddenCount={columnsHiddenCount}
           exportMenuOpen={exportMenuOpen}
           onExportMenuOpenChange={setExportMenuOpen}
           // 2026-06-18 Radix DropdownMenu 預設關閉時 focus 還給 trigger（O 按鈕）
@@ -1177,6 +1211,15 @@ export function UserZonedPage({
       <ToastStack toasts={toasts} />
       <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />
       {/* 2026-06-18 對齊 demo：新增改走右側詳細頁 creating 模式，CreateUserDialog 已退役 */}
+      {/* 2026-06-18 I 欄位設定 dialog（Alt+I 或工具列 I 按鈕） */}
+      <ColumnsConfigDialog
+        open={columnsDialogOpen}
+        onClose={() => setColumnsDialogOpen(false)}
+        allColumns={COLUMN_OPTIONS}
+        visibleKeys={columnsVisibleKeys}
+        onChange={setColumnsVisibleKeys}
+        onReset={resetColumnsPref}
+      />
       {/* B2~B5：role / warehouse pickers */}
       <EntityPickerDialog<RoleDto>
         open={rolePickerOpen}
