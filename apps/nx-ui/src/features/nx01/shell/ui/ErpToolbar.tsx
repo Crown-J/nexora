@@ -267,8 +267,10 @@ export function ErpToolbar({
     <div
       className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
       style={{
-        backgroundImage: 'linear-gradient(180deg, #16161B 0%, #101014 100%)',
-        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 #000000',
+        // 2026-06-18 token 化:dark 用 #16161B→#101014、light 用深橘 #c8550f→#a8430a
+        backgroundImage:
+          'linear-gradient(180deg, var(--nx-surface-toolbar-from) 0%, var(--nx-surface-toolbar-to) 100%)',
+        boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,0.04), 0 1px 0 0 rgba(0,0,0,0.5)',
       }}
     >
       <NavButton icon={ChevronsLeft} disabled={navFirstDisabled} onClick={handleFirst} title={`第一${navLabel}`} />

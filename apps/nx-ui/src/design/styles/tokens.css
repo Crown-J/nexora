@@ -342,3 +342,28 @@ html.light select {
 ============================================================ */
 :root { --nx-accent-strong: #f5c842; }
 html.light { --nx-accent-strong: #c8550f; }
+
+/* ============================================================
+   主檔表面色 token（執行長 2026-06-18 範式）
+   - 深色:固定深黑 hex（不變、保留鋼鐵星球觀感）
+   - 淺色:深橘色系（取代深黑、與 light theme 暖調統一）
+   涵蓋:FormField/FormInput/FormSelect 底 + 邊 + 文字 / ErpToolbar 漸層
+============================================================ */
+:root {
+  --nx-surface-input: #0A0A0C;
+  --nx-surface-input-border: #2A2A30;
+  --nx-surface-input-fg: #E8E8EB;
+  --nx-surface-input-muted: #5A5A60;
+  --nx-surface-input-label: #B8B8C0;
+  --nx-surface-toolbar-from: #16161B;
+  --nx-surface-toolbar-to: #101014;
+}
+html.light {
+  --nx-surface-input: #c8550f;             /* 深橘底 */
+  --nx-surface-input-border: #8a3a08;      /* 深褐橘邊 */
+  --nx-surface-input-fg: #fff5e8;          /* 暖白字 */
+  --nx-surface-input-muted: #f5d2a8;       /* 淡橘灰 muted */
+  --nx-surface-input-label: #fff0d8;       /* label 字 */
+  --nx-surface-toolbar-from: #c8550f;      /* 漸層深橘起始 */
+  --nx-surface-toolbar-to: #a8430a;        /* 漸層更深橘結束 */
+}
