@@ -359,11 +359,12 @@ html.light { --nx-accent-strong: #c8550f; }
   --nx-surface-toolbar-to: #101014;
 }
 html.light {
-  --nx-surface-input: #c8550f;             /* 深橘底 */
-  --nx-surface-input-border: #8a3a08;      /* 深褐橘邊 */
-  --nx-surface-input-fg: #fff5e8;          /* 暖白字 */
-  --nx-surface-input-muted: #f5d2a8;       /* 淡橘灰 muted */
-  --nx-surface-input-label: #fff0d8;       /* label 字 */
-  --nx-surface-toolbar-from: #c8550f;      /* 漸層深橘起始 */
-  --nx-surface-toolbar-to: #a8430a;        /* 漸層更深橘結束 */
+  /* 2026-06-18 執行長:深橘飽和度太高、改暖米白 + 淺金邊（高雅）*/
+  --nx-surface-input: oklch(0.965 0.012 75);          /* 暖米白底 */
+  --nx-surface-input-border: oklch(0.78 0.05 75);     /* 淺金邊 */
+  --nx-surface-input-fg: oklch(0.25 0.015 60);        /* 深褐字 */
+  --nx-surface-input-muted: oklch(0.55 0.025 60);     /* 灰褐 muted */
+  --nx-surface-input-label: oklch(0.40 0.03 60);      /* label 深灰褐 */
+  --nx-surface-toolbar-from: oklch(0.945 0.018 75);   /* 工具列淺米黃漸層起 */
+  --nx-surface-toolbar-to: oklch(0.905 0.022 75);     /* 漸層略深米 */
 }

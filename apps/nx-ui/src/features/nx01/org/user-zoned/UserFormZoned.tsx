@@ -271,8 +271,8 @@ export function UserFormZoned({
               // 唯讀（顯示主組部門 + 來源徽章）
               return (
                 <FieldShell key={f.key} label={f.label}>
-                  <div className="flex items-center gap-2 rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40 px-2.5 py-1.5">
-                    <span className="text-sm text-[#E8E8EB]">{primaryTeam.departmentName ?? labelText}</span>
+                  <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5">
+                    <span className="text-sm text-foreground">{primaryTeam.departmentName ?? labelText}</span>
                     <span className="ml-auto rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-[#E8A020]">
                       自動帶（主組）
                     </span>
@@ -285,18 +285,18 @@ export function UserFormZoned({
               return (
                 <FieldShell key={f.key} label={f.label}>
                   <select
-                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 text-sm text-[#E8E8EB] outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
                     value={draftValue}
                     onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
                   >
                     <option value="">（未指定）</option>
                     {departmentOptions.map((opt) => (
-                      <option key={String(opt.value)} value={String(opt.value)} className="bg-[#131316]">
+                      <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
                         {opt.label}
                       </option>
                     ))}
                   </select>
-                  <span className="text-[10px] text-[#5A5A60]">無主組 fallback、行政員工手動設</span>
+                  <span className="text-[10px] text-muted-foreground">無主組 fallback、行政員工手動設</span>
                 </FieldShell>
               );
             }
@@ -310,13 +310,13 @@ export function UserFormZoned({
               return (
                 <FieldShell key={f.key} label={f.label}>
                   <select
-                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[#0A0A0C] px-2.5 text-sm text-[#E8E8EB] outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
+                    className="h-9 w-full rounded-md border border-[#E8A020]/30 bg-[var(--nx-surface-input)] px-2.5 text-sm text-foreground outline-none focus:border-[#E8A020]/60 focus:ring-1 focus:ring-[#E8A020]/40"
                     value={value}
                     onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
                   >
                     <option value="">（未指定）</option>
                     {siteOptions.map((opt) => (
-                      <option key={String(opt.value)} value={String(opt.value)} className="bg-[#131316]">
+                      <option key={String(opt.value)} value={String(opt.value)} className="bg-popover">
                         {opt.label}
                       </option>
                     ))}
@@ -405,12 +405,12 @@ export function UserFormZoned({
 
       {/* 02 第四批 軌 1 2026-06-07：basic zone 大頭貼進入連結（編輯 / 瀏覽既有員工才顯示、新增中不顯示） */}
       {safeActiveZone === 'basic' && !creating && selectedUserId ? (
-        <div className="mt-4 flex items-center justify-between rounded-lg border border-[#2A2A30] bg-[#0E0E12] px-4 py-3">
+        <div className="mt-4 flex items-center justify-between rounded-lg border border-border/60 bg-card px-4 py-3">
           <div className="flex items-center gap-3">
-            <ImageIcon className="size-4 text-[#888892]" />
+            <ImageIcon className="size-4 text-muted-foreground" />
             <div>
-              <div className="text-xs font-medium text-[#E8E8EC]">大頭貼</div>
-              <div className="text-[10px] text-[#5A5A60]">
+              <div className="text-xs font-medium text-foreground">大頭貼</div>
+              <div className="text-[10px] text-muted-foreground">
                 {selectedHasPhoto ? '已上傳、點右方按鈕管理（取代 / 刪除）' : '尚未上傳、點右方按鈕新增'}
               </div>
             </div>
@@ -457,18 +457,18 @@ function UserAddressSection({
     void fetchCountries().then(setCountries);
   }, []);
   return (
-    <div className="mt-4 space-y-4 rounded-lg border border-[#2A2A30] bg-[#0E0E12] p-4">
+    <div className="mt-4 space-y-4 rounded-lg border border-border/60 bg-card p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-[#888892]">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           地址（戶籍 + 通訊）
         </h3>
-        <span className="text-[10px] text-[#5A5A60]">空白國別 = 台灣（走字典）；其他國家 = 國外自由填</span>
+        <span className="text-[10px] text-muted-foreground">空白國別 = 台灣（走字典）；其他國家 = 國外自由填</span>
       </div>
       <div>
-        <label className="mb-1 block text-[10px] uppercase tracking-wider text-[#888892]">國別</label>
+        <label className="mb-1 block text-[10px] uppercase tracking-wider text-muted-foreground">國別</label>
         {/* 02 真正完工軌 2026-06-07：國別改 select dropdown、不用純 input 填 ID */}
         <select
-          className="h-9 w-full rounded-md border border-[#2A2A30] bg-[#0A0A0C] px-3 text-sm text-[#E8E8EC] disabled:opacity-50"
+          className="h-9 w-full rounded-md border border-border/60 bg-[var(--nx-surface-input)] px-3 text-sm text-foreground disabled:opacity-50"
           value={countryId ?? ''}
           onChange={(e) => setDraft({ ...draft, countryId: e.target.value || '' })}
           disabled={!editing}
@@ -485,7 +485,7 @@ function UserAddressSection({
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <div className="mb-2 text-[11px] font-medium text-[#E8E8EC]">戶籍地址</div>
+          <div className="mb-2 text-[11px] font-medium text-foreground">戶籍地址</div>
           <UserAddressMiniPicker
             value={{
               cityId: (draft.householdCityId as string | undefined) ?? null,
@@ -507,7 +507,7 @@ function UserAddressSection({
           />
         </div>
         <div>
-          <div className="mb-2 text-[11px] font-medium text-[#E8E8EC]">通訊地址</div>
+          <div className="mb-2 text-[11px] font-medium text-foreground">通訊地址</div>
           <UserAddressMiniPicker
             value={{
               cityId: (draft.mailingCityId as string | undefined) ?? null,
@@ -563,13 +563,13 @@ function RolesInlineSection({
   const totalActive = visibleItems.length + stagedAdded.length;
 
   return (
-    <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40">
-      <div className="flex items-center justify-between border-b border-[#2A2A30] px-3 py-2">
+    <div className="rounded-md border border-border/60 bg-muted/30">
+      <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#E8E8EB]">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
             擔任職務
           </span>
-          <span className="ml-2 rounded bg-[#2A2A30] px-1.5 py-0.5 text-[10px] text-[#B8B8C0]">
+          <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] text-foreground/80">
             {totalActive} 筆
           </span>
         </div>
@@ -586,11 +586,11 @@ function RolesInlineSection({
       </div>
       <div className="px-3 py-2.5">
         {totalActive === 0 ? (
-          <div className="text-xs text-[#5A5A60]">尚未指派職務</div>
+          <div className="text-xs text-muted-foreground">尚未指派職務</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-[#5A5A60]">
+              <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
                 <th className="py-1.5 pr-3">職務代碼</th>
                 <th className="py-1.5 pr-3">職務名稱</th>
                 <th className="py-1.5 pr-3">主要</th>
@@ -602,8 +602,8 @@ function RolesInlineSection({
               {visibleItems.map((ur) => {
                 const isPrimary = ur.id === effectivePrimaryId;
                 return (
-                  <tr key={ur.id} className="border-t border-[#2A2A30]/60">
-                    <td className="py-1.5 pr-3 font-mono text-[#888892]">{ur.roleCode ?? '—'}</td>
+                  <tr key={ur.id} className="border-t border-border/40">
+                    <td className="py-1.5 pr-3 font-mono text-muted-foreground">{ur.roleCode ?? '—'}</td>
                     <td className="py-1.5 pr-3">{ur.roleName ?? '—'}</td>
                     <td className="py-1.5 pr-3">
                       {isPrimary ? (
@@ -611,10 +611,10 @@ function RolesInlineSection({
                           主要
                         </span>
                       ) : (
-                        <span className="text-[#5A5A60]">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="py-1.5 pr-3 text-[#888892]">
+                    <td className="py-1.5 pr-3 text-muted-foreground">
                       {ur.assignedAt ? formatDateTimeZh(ur.assignedAt) : '—'}
                     </td>
                     {editing ? (
@@ -629,7 +629,7 @@ function RolesInlineSection({
                               'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
                               isPrimary
                                 ? 'cursor-not-allowed border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]/60'
-                                : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+                                : 'border-border/60 bg-[var(--nx-surface-input)] text-foreground/80 hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
                             )}
                           >
                             {isPrimary ? '主要' : '設為主要'}
@@ -642,7 +642,7 @@ function RolesInlineSection({
                             className={cn(
                               'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
                               isPrimary
-                                ? 'cursor-not-allowed border-[#2A2A30]/60 bg-[#131316] text-[#5A5A60]'
+                                ? 'cursor-not-allowed border-border/40 bg-popover text-muted-foreground'
                                 : 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]',
                             )}
                           >
@@ -659,8 +659,8 @@ function RolesInlineSection({
                 <tr key={`staged-${r.id}`} className="border-t border-[#E8A020]/20 bg-[#E8A020]/5">
                   <td className="py-1.5 pr-3 font-mono text-[#E8A020]">{r.code}</td>
                   <td className="py-1.5 pr-3 text-[#E8A020]">{r.name}</td>
-                  <td className="py-1.5 pr-3 text-[#5A5A60]">—</td>
-                  <td className="py-1.5 pr-3 text-[#5A5A60]">（待存檔）</td>
+                  <td className="py-1.5 pr-3 text-muted-foreground">—</td>
+                  <td className="py-1.5 pr-3 text-muted-foreground">（待存檔）</td>
                   {editing ? (
                     <td className="py-1.5 text-[10px] text-[#E8A020]">staged 新增</td>
                   ) : null}
@@ -693,13 +693,13 @@ function WarehousesInlineSection({
   const totalActive = visibleItems.length + stagedAdded.length;
 
   return (
-    <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40">
-      <div className="flex items-center justify-between border-b border-[#2A2A30] px-3 py-2">
+    <div className="rounded-md border border-border/60 bg-muted/30">
+      <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#E8E8EB]">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
             隸屬倉庫
           </span>
-          <span className="ml-2 rounded bg-[#2A2A30] px-1.5 py-0.5 text-[10px] text-[#B8B8C0]">
+          <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] text-foreground/80">
             {totalActive} 筆
           </span>
         </div>
@@ -716,11 +716,11 @@ function WarehousesInlineSection({
       </div>
       <div className="px-3 py-2.5">
         {totalActive === 0 ? (
-          <div className="text-xs text-[#5A5A60]">尚未指派倉庫據點</div>
+          <div className="text-xs text-muted-foreground">尚未指派倉庫據點</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-[#5A5A60]">
+              <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
                 <th className="py-1.5 pr-3">倉庫代碼</th>
                 <th className="py-1.5 pr-3">倉庫名稱</th>
                 <th className="py-1.5 pr-3">指派時間</th>
@@ -729,10 +729,10 @@ function WarehousesInlineSection({
             </thead>
             <tbody>
               {visibleItems.map((uw) => (
-                <tr key={uw.id} className="border-t border-[#2A2A30]/60">
-                  <td className="py-1.5 pr-3 font-mono text-[#888892]">{uw.warehouseCode ?? '—'}</td>
+                <tr key={uw.id} className="border-t border-border/40">
+                  <td className="py-1.5 pr-3 font-mono text-muted-foreground">{uw.warehouseCode ?? '—'}</td>
                   <td className="py-1.5 pr-3">{uw.warehouseName ?? '—'}</td>
-                  <td className="py-1.5 pr-3 text-[#888892]">
+                  <td className="py-1.5 pr-3 text-muted-foreground">
                     {uw.assignedAt ? formatDateTimeZh(uw.assignedAt) : '—'}
                   </td>
                   {editing ? (
@@ -753,7 +753,7 @@ function WarehousesInlineSection({
                 <tr key={`staged-${w.id}`} className="border-t border-[#E8A020]/20 bg-[#E8A020]/5">
                   <td className="py-1.5 pr-3 font-mono text-[#E8A020]">{w.code}</td>
                   <td className="py-1.5 pr-3 text-[#E8A020]">{w.name}</td>
-                  <td className="py-1.5 pr-3 text-[#5A5A60]">（待存檔）</td>
+                  <td className="py-1.5 pr-3 text-muted-foreground">（待存檔）</td>
                   {editing ? (
                     <td className="py-1.5 text-[10px] text-[#E8A020]">staged 新增</td>
                   ) : null}
@@ -778,7 +778,7 @@ function FieldShell({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B8B8C0]">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
         {label + (required ? ' *' : '')}
       </span>
       {children}
@@ -805,17 +805,17 @@ function TeamsInlineSection({
 }) {
   const primary = items.find((ut) => ut.isPrimary);
   return (
-    <div className="rounded-md border border-[#2A2A30] bg-[#0A0A0C]/40">
-      <div className="flex items-center justify-between border-b border-[#2A2A30] px-3 py-2">
+    <div className="rounded-md border border-border/60 bg-muted/30">
+      <div className="flex items-center justify-between border-b border-border/60 px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#E8E8EB]">
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">
             隸屬組
           </span>
-          <span className="rounded bg-[#2A2A30] px-1.5 py-0.5 text-[10px] text-[#B8B8C0]">
+          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-foreground/80">
             {items.length} 筆
           </span>
           {primary?.departmentName ? (
-            <span className="ml-1 text-[10px] text-[#5A5A60]">
+            <span className="ml-1 text-[10px] text-muted-foreground">
               主組決定員工部門：{primary.departmentName}
             </span>
           ) : null}
@@ -833,13 +833,13 @@ function TeamsInlineSection({
       </div>
       <div className="px-3 py-2.5">
         {items.length === 0 ? (
-          <div className="text-xs text-[#5A5A60]">
+          <div className="text-xs text-muted-foreground">
             尚未指派組（員工部門可由「基本資料 → 部門」手動設定 fallback）
           </div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-[#5A5A60]">
+              <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
                 <th className="py-1.5 pr-3">組代碼</th>
                 <th className="py-1.5 pr-3">組名</th>
                 <th className="py-1.5 pr-3">隸屬部門</th>
@@ -851,17 +851,17 @@ function TeamsInlineSection({
             </thead>
             <tbody>
               {items.map((ut) => (
-                <tr key={ut.id} className="border-t border-[#2A2A30]/60">
-                  <td className="py-1.5 pr-3 font-mono text-[#888892]">{ut.teamCode ?? '—'}</td>
+                <tr key={ut.id} className="border-t border-border/40">
+                  <td className="py-1.5 pr-3 font-mono text-muted-foreground">{ut.teamCode ?? '—'}</td>
                   <td className="py-1.5 pr-3">{ut.teamName ?? '—'}</td>
-                  <td className="py-1.5 pr-3 text-[#888892]">{ut.departmentName ?? '—'}</td>
+                  <td className="py-1.5 pr-3 text-muted-foreground">{ut.departmentName ?? '—'}</td>
                   <td className="py-1.5 pr-3">
                     {ut.isPrimary ? (
                       <span className="rounded border border-[#E8A020]/40 bg-[#E8A020]/10 px-1.5 py-0.5 text-[10px] text-[#E8A020]">
                         主組
                       </span>
                     ) : (
-                      <span className="text-[#5A5A60]">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="py-1.5 pr-3">
@@ -870,10 +870,10 @@ function TeamsInlineSection({
                         組長
                       </span>
                     ) : (
-                      <span className="text-[#5A5A60]">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="py-1.5 pr-3 text-[#888892]">
+                  <td className="py-1.5 pr-3 text-muted-foreground">
                     {ut.assignedAt ? formatDateTimeZh(ut.assignedAt) : '—'}
                   </td>
                   {editing ? (
@@ -888,7 +888,7 @@ function TeamsInlineSection({
                             'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
                             ut.isPrimary
                               ? 'cursor-not-allowed border-[#E8A020]/30 bg-[#E8A020]/8 text-[#E8A020]/60'
-                              : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+                              : 'border-border/60 bg-[var(--nx-surface-input)] text-foreground/80 hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
                           )}
                         >
                           {ut.isPrimary ? '主組' : '設為主組'}
@@ -901,7 +901,7 @@ function TeamsInlineSection({
                             'inline-flex h-6 items-center rounded-md border px-2 text-[10px] font-medium transition-colors',
                             ut.isLeader
                               ? 'border-[#22D88F]/40 bg-[#22D88F]/12 text-[#22D88F] hover:bg-[#22D88F]/20'
-                              : 'border-[#2A2A30] bg-[#0A0A0C] text-[#B8B8C0] hover:border-[#22D88F]/40 hover:bg-[#22D88F]/10 hover:text-[#22D88F]',
+                              : 'border-border/60 bg-[var(--nx-surface-input)] text-foreground/80 hover:border-[#22D88F]/40 hover:bg-[#22D88F]/10 hover:text-[#22D88F]',
                           )}
                         >
                           {ut.isLeader ? '組長' : '設組長'}
