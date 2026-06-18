@@ -206,11 +206,37 @@ export function UserZonedPage({
   const itemTotal = total;
   // 跨頁切換時、reload 後選首/末筆的 pending 標記
   const pendingSelectRef = useRef<'first' | 'last' | null>(null);
+  // 2026-06-18 全鍵盤範式:進主檔 / 存檔 / 取消後自動 focus 第一 row（user 可直接用 ↑↓ 切換）
+  const focusFirstRowRef = useRef<boolean>(true); // mount 時預設 true
   useEffect(() => {
-    if (!pendingSelectRef.current || rows.length === 0) return;
-    if (pendingSelectRef.current === 'first') setSelectedId(rows[0].id);
-    else setSelectedId(rows[rows.length - 1].id);
-    pendingSelectRef.current = null;
+    if (rows.length === 0) return;
+    // 1. 跨頁邊界 pending（onPrev/Next/Jump*Item 觸發）
+    if (pendingSelectRef.current) {
+      const targetId =
+        pendingSelectRef.current === 'first'
+          ? rows[0].id
+          : rows[rows.length - 1].id;
+      setSelectedId(targetId);
+      pendingSelectRef.current = null;
+      // 同步 focus DOM
+      requestAnimationFrame(() => {
+        document
+          .querySelector<HTMLElement>(`[data-row-id="${targetId}"]`)
+          ?.focus();
+      });
+      return;
+    }
+    // 2. 全鍵盤 focus 第一筆（mount / cancel / save 後）
+    if (focusFirstRowRef.current) {
+      const firstId = rows[0].id;
+      setSelectedId(firstId);
+      focusFirstRowRef.current = false;
+      requestAnimationFrame(() => {
+        document
+          .querySelector<HTMLElement>(`[data-row-id="${firstId}"]`)
+          ?.focus();
+      });
+    }
   }, [rows]);
   const handleJumpFirstItem = useCallback(() => {
     if (total === 0) return;
@@ -360,7 +386,21 @@ export function UserZonedPage({
     setDraft({});
     setOriginal({});
     setActiveZone('basic');
-  }, []);
+    setTab('list');
+    // 2026-06-18 全鍵盤範式:cancel 後回 list tab + 自動 focus 第一 row
+    focusFirstRowRef.current = true;
+    // 若 rows 已在記憶體（沒 reload）也立即 focus
+    if (rows.length > 0) {
+      const firstId = rows[0].id;
+      setSelectedId(firstId);
+      requestAnimationFrame(() => {
+        document
+          .querySelector<HTMLElement>(`[data-row-id="${firstId}"]`)
+          ?.focus();
+      });
+      focusFirstRowRef.current = false;
+    }
+  }, [rows]);
 
   // 2026-06-18 對齊 Hana demo：新增不再走 modal、直接切右側詳細頁 + creating 模式
   // 客戶老闆按 A → 右側 form 空白、basic zone、輸入姓名按 S 存檔
