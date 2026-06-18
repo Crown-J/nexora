@@ -1,12 +1,9 @@
-// apps/nx-ui/src/features/user-zoned/UserFormZoned.tsx
-// v1.2 對齊軌 階段 E P4：user 分區編輯共用 form
-//
-// 對齊 v1.1 §2.3：4 zone basic / permission / security / hr(PRO)
-// P4 階段簡化：
-// - basic：4 欄完整可編
-// - permission：isActive 可編；roles 衛星 + isTenantOwner 暫 placeholder（DTO 不支援、P5/PRO 補）
-// - security：全 placeholder（mustChangePassword/failedLoginCount/lockedUntil/lastLoginAt）
-// - hr：全 placeholder（PRO 才啟用）
+// apps/nx-ui/src/features/nx01/org/user-zoned/UserFormZoned.tsx
+// 2026-06-18 對齊 Hana demo CFG.emp 4 tabs：basic / education / orgPosition / account
+//   + hr (PRO) 保留
+// inline 衛星:
+//   - orgPosition zone：roles / teams（即時 PATCH）
+//   - orgPosition zone 末尾：WarehousesInlineSection（隸屬倉庫）
 'use client';
 
 import { useMemo } from 'react';
@@ -14,6 +11,7 @@ import { useMemo } from 'react';
 import { cn } from '@design/utils/cn';
 import {
   USER_FIELDS,
+  USER_FIELD_SECTIONS,
   USER_ZONES,
   type UserZone,
 } from '@/features/nx01/shell/zones';
@@ -32,7 +30,7 @@ import { ImageIcon } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 
-import { BASIC_WRITABLE, PERMISSION_WRITABLE, type UserDraft } from './helpers';
+import { FIELD_WRITABLE, type UserDraft } from './helpers';
 import { UserAddressMiniPicker } from '@/features/shared/address/UserAddressMiniPicker';
 import { fetchCountries, type CountryRow } from '@/features/shared/address/country-helper';
 
@@ -151,13 +149,27 @@ export function UserFormZoned({
     [safeActiveZone],
   );
 
+  // 2026-06-18 對齊 demo CFG.emp section 分組：把 virtual section header 插入欄位序列前
+  type RenderItem =
+    | { kind: 'header'; label: string; key: string }
+    | { kind: 'field'; field: (typeof fieldsForZone)[number] };
+  const renderItems = useMemo<RenderItem[]>(() => {
+    const items: RenderItem[] = [];
+    for (const f of fieldsForZone) {
+      const sectionLabel = USER_FIELD_SECTIONS[f.key];
+      if (sectionLabel) items.push({ kind: 'header', label: sectionLabel, key: `sec-${f.key}` });
+      items.push({ kind: 'field', field: f });
+    }
+    return items;
+  }, [fieldsForZone]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Zone Tabs */}
       <div className="flex gap-[2px] overflow-x-auto border-b border-border/40 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {visibleZoneList.map((z) => {
           const active = z.zone === safeActiveZone;
-          const isPlaceholderZone = z.zone === 'security' || z.zone === 'hr';
+          const isPlaceholderZone = z.zone === 'hr';
           return (
             <button
               key={z.zone}
@@ -177,7 +189,18 @@ export function UserFormZoned({
 
       {/* fields */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {fieldsForZone.map((f) => {
+        {renderItems.map((item) => {
+          // 2026-06-18 對齊 demo：section header 分組（編號 / 姓名 / 個資 / 聯絡 / 緊急聯絡 等）
+          if (item.kind === 'header') {
+            return (
+              <div key={item.key} className="sm:col-span-2 mt-1 first:mt-0 border-b border-border/30 pb-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+                  {item.label}
+                </span>
+              </div>
+            );
+          }
+          const f = item.field;
           // 02 對齊第二批前端收尾軌 FE-CP3：地址 9 keys 統一由 UserAddressSection 渲染
           if (ADDRESS_KEYS_HANDLED_BY_SECTION.has(f.key)) return null;
           // 衛星表
@@ -227,8 +250,8 @@ export function UserFormZoned({
             );
           }
 
-          // 本軌可編 = basic 4 欄 + permission.isActive；其餘 DTO 不支援、顯示 placeholder
-          const isWritable = BASIC_WRITABLE.has(f.key) || PERMISSION_WRITABLE.has(f.key);
+          // 跨 zone 統一可編判斷（DTO 已支援的欄位）；其餘顯示 placeholder（hr 加購 / 其他 service 自動寫）
+          const isWritable = FIELD_WRITABLE.has(f.key);
           const zoneEditable = editableZones ? editableZones.has(f.zone) : true;
           // 員工編號制改造（2026-06-02）：員編可改（內碼 id 不變、FK 不斷）
           //   舊規格曾鎖 userAccount（lockedNow = editing && !creating && f.key === 'userAccount'）、
@@ -307,7 +330,7 @@ export function UserFormZoned({
             );
           }
 
-          // isActive toggle（permission 區）
+          // isActive toggle（account 區）
           if (f.key === 'isActive' && fieldEditable) {
             const on = Boolean(draft[f.key]);
             return (
@@ -340,11 +363,12 @@ export function UserFormZoned({
             );
           }
 
-          // 非本軌支援欄位 → placeholder（security / hr / isTenantOwner / 角色衛星）
+          // 非本軌支援欄位 → placeholder（hr / mustChangePassword / failedLoginCount 等 service 自動寫）
           if (!isWritable) {
             const placeholderHint =
               f.zone === 'hr' ? 'PRO 啟用' :
-              f.zone === 'security' ? 'P5 啟用（安全設定 service 自動寫、後台檢視）' :
+              f.zone === 'account' ? '安全設定 service 自動寫、後台檢視' :
+              f.zone === 'orgPosition' && f.key === 'isTenantOwner' ? '系統內建旗標、開戶時拍板' :
               '本軌不可編';
             return (
               <FormField
@@ -400,8 +424,8 @@ export function UserFormZoned({
         </div>
       ) : null}
 
-      {/* B3：permission zone 末尾插入「隸屬倉庫」inline 編輯區（warehouse 不在 USER_FIELDS） */}
-      {safeActiveZone === 'permission' ? (
+      {/* 2026-06-18：orgPosition zone 末尾插入「隸屬倉庫」inline 編輯區（warehouse 不在 USER_FIELDS） */}
+      {safeActiveZone === 'orgPosition' ? (
         <WarehousesInlineSection
           editing={editing}
           items={selectedUserWarehouses ?? []}

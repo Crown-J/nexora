@@ -32,4 +32,4 @@ export {
 } from './warehouse-zones';
 
 export type { UserZone } from './user-zones';
-export { USER_FIELDS, USER_ZONES } from './user-zones';
+export { USER_FIELDS, USER_FIELD_SECTIONS, USER_ZONES } from './user-zones';

@@ -1,12 +1,8 @@
-// apps/nx-ui/src/features/user-zoned/helpers.ts
-// v1.2 對齊軌 階段 E P4：user 共用 helper
+// apps/nx-ui/src/features/nx01/org/user-zoned/helpers.ts
+// 2026-06-18 對齊 Hana demo CFG.emp 4 tabs：basic / education / orgPosition / account
+//   + hr (PRO) 保留
 //
-// 對齊 v1.1 §2.3：4 zone basic / permission / security / hr(PRO)
-// P4 階段策略（簡化版）：
-// - basic 完整可編（userAccount/userName/email/phone）
-// - permission：roles 衛星 P5、isActive 可編（即「停用帳號」）
-// - security：mustChangePassword/failedLoginCount/lockedUntil 全 placeholder（DTO 尚不支援）
-// - hr：全 placeholder（PRO 才啟用）
+// 可編欄位策略：合併成單一 FIELD_WRITABLE Set、跨 zone 統一判斷
 
 import {
   USER_FIELDS,
@@ -57,17 +53,19 @@ function readUserRowField(row: UserRow, zoneKey: string): unknown {
   return r[mapped];
 }
 
-/** 本軌可編欄位（DTO 已支援）的 keys。W3 [3-2][3-3]：加 7 個 basic 欄位 + legacyCode */
-export const BASIC_WRITABLE = new Set([
+/** 跨 5 zone 統一的可編欄位 Set（DTO 已支援的 keys）
+ *  2026-06-18 重整：原 BASIC_WRITABLE + PERMISSION_WRITABLE 合併、
+ *  欄位 zone 已依 demo 重分布（學歷 → education、到職/離職/啟用 → account、部門/據點 → orgPosition） */
+export const FIELD_WRITABLE = new Set([
+  // basic 基本資料
   'userAccount',
   'userName',
+  'userNameEn',
   'email',
   'phone',
-  // W3 [3-3] basic zone 7 欄位
   'gender',
   'birthday',
   'nationalId',
-  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組（戶籍+通訊）+ countryId
   'countryId',
   'householdCityId',
   'householdDistrictId',
@@ -77,24 +75,25 @@ export const BASIC_WRITABLE = new Set([
   'mailingDistrictId',
   'mailingPostalCode',
   'mailingDetail',
-  'hireDate',
   'emergencyContact',
+  'emergencyRelation',
   'emergencyPhone',
-  // 02 對齊第二批 B 軌：basic zone 補 5 欄位
+  'legacyCode',
+  // education 教育程度
   'highestEducation',
   'graduateSchool',
   'militaryService',
   'healthCheckDate',
   'healthCheckResult',
-  // 02 第三批 T1 2026-06-07：隸屬部門（解綁 PRO → LITE）
+  // orgPosition 職務部門
   'departmentId',
-  // 02 第四批 軌 1 2026-06-07：離職日期（basic zone）
+  'primarySiteId',
+  // account 帳號狀況
+  'hireDate',
   'leftAt',
-  // W3 [3-2] 舊代號
-  'legacyCode',
+  'twoFaEnabled',
+  'isActive',
 ]);
-// 02 第四批 軌 1 2026-06-07：primarySiteId（permission zone、單值 ref、A 拍板）
-export const PERMISSION_WRITABLE = new Set(['isActive', 'primarySiteId']);
 
 /** 後端 row → 編輯 draft（自動 mapping userAccount↔username / userName↔displayName） */
 export function userRowToDraft(row: UserRow): UserDraft {
@@ -105,7 +104,8 @@ export function userRowToDraft(row: UserRow): UserDraft {
     if (
       f.key === 'isActive' ||
       f.key === 'isTenantOwner' ||
-      f.key === 'mustChangePassword'
+      f.key === 'mustChangePassword' ||
+      f.key === 'twoFaEnabled'
     ) {
       draft[f.key] = Boolean(v);
     } else draft[f.key] = v == null ? '' : String(v);
@@ -119,7 +119,11 @@ export function emptyUserDraft(): UserDraft {
   for (const f of USER_FIELDS) {
     if (f.isSatellite) continue;
     if (f.key === 'isActive') draft[f.key] = true;
-    else if (f.key === 'isTenantOwner' || f.key === 'mustChangePassword') draft[f.key] = false;
+    else if (
+      f.key === 'isTenantOwner' ||
+      f.key === 'mustChangePassword' ||
+      f.key === 'twoFaEnabled'
+    ) draft[f.key] = false;
     else draft[f.key] = '';
   }
   return draft;
@@ -134,14 +138,13 @@ export function emptyUserDraft(): UserDraft {
 const DTO_SUPPORTED = new Set([
   'userAccount',
   'userName',
+  'userNameEn',
   'email',
   'phone',
   'isActive',
-  // W3 [3-2][3-3]：basic zone 7 欄位 + legacyCode（CreateUserDto / UpdateUserDto 已支援）
   'gender',
   'birthday',
   'nationalId',
-  // 02 對齊第二批 A 軌 CP2 2026-06-06：純文字 address DROP、改結構化兩組（戶籍+通訊）+ countryId
   'countryId',
   'householdCityId',
   'householdDistrictId',
@@ -153,19 +156,18 @@ const DTO_SUPPORTED = new Set([
   'mailingDetail',
   'hireDate',
   'emergencyContact',
+  'emergencyRelation',
   'emergencyPhone',
-  // 02 對齊第二批 B 軌：basic zone 補 5 欄位
   'highestEducation',
   'graduateSchool',
   'militaryService',
   'healthCheckDate',
   'healthCheckResult',
-  // 02 第三批 T1 2026-06-07：隸屬部門
   'departmentId',
-  // 02 第四批 軌 1 2026-06-07：主要據點 / 離職日期
   'primarySiteId',
   'leftAt',
   'legacyCode',
+  'twoFaEnabled',
 ]);
 
 export function userDraftToBody(
@@ -180,7 +182,7 @@ export function userDraftToBody(
     if (!DTO_SUPPORTED.has(f.key)) continue; // security/hr 暫不送
     if (editableZones && !editableZones.has(f.zone)) continue;
     const v = draft[f.key];
-    if (f.key === 'isActive') {
+    if (f.key === 'isActive' || f.key === 'twoFaEnabled') {
       body[f.key] = Boolean(v);
       continue;
     }
