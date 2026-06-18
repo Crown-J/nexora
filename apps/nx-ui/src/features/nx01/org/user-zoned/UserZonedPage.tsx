@@ -935,6 +935,8 @@ export function UserZonedPage({
         }
         return;
       }
+      // 2026-06-18 匯出 dropdown 開啟中 → 不攔 ↑↓/Enter（讓 Radix DropdownMenu 自己處理選項導航）
+      if (exportMenuOpen) return;
       const focusTag = (document.activeElement?.tagName ?? '').toLowerCase();
       const inFormEl = focusTag === 'input' || focusTag === 'select' || focusTag === 'textarea';
       if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
@@ -972,6 +974,7 @@ export function UserZonedPage({
     handleExport,
     showToast,
     toggleSearch,
+    exportMenuOpen,
   ]);
 
   useEffect(() => {
@@ -1079,7 +1082,17 @@ export function UserZonedPage({
           onDelete={handleDelete}
           onExport={handleExport}
           exportMenuOpen={exportMenuOpen}
-          onExportMenuOpenChange={setExportMenuOpen}
+          onExportMenuOpenChange={(open) => {
+            setExportMenuOpen(open);
+            // 2026-06-18 關閉時 focus 回剛剛停的 row（user 體驗:回到原本停留位置）
+            if (!open && selectedId) {
+              requestAnimationFrame(() => {
+                document
+                  .querySelector<HTMLElement>(`[data-row-id="${selectedId}"]`)
+                  ?.focus();
+              });
+            }
+          }}
           onRefresh={() => {
             setReloadTick((t) => t + 1);
             showToast('已重新整理', 'success');
