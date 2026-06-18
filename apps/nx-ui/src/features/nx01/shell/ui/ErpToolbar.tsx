@@ -26,7 +26,6 @@
 'use client';
 
 import {
-  ArrowUpDown,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -47,6 +46,12 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
+
+import {
+  SortMenuButton,
+  type SortableOption,
+  type SortOrder,
+} from '@/features/nx01/shell/ui/sort-config/SortMenuButton';
 
 import {
   DropdownMenu,
@@ -92,8 +97,15 @@ export function ErpToolbar({
   onExportMenuOpenChange,
   onExportMenuCloseAutoFocus,
   onRefresh,
-  onOpenSort,
-  sortCount = 0,
+  // M 排序 dropdown:options + 受控狀態 + change/reset
+  sortOptions,
+  sortKey,
+  sortOrder = 'asc',
+  onSortChange,
+  onSortReset,
+  sortMenuOpen,
+  onSortMenuOpenChange,
+  onSortMenuCloseAutoFocus,
   onSave,
   onCancel,
   showInactive,
@@ -146,10 +158,18 @@ export function ErpToolbar({
    *  caller 提供時可 preventDefault 並手動 focus 別處（例：回 row）*/
   onExportMenuCloseAutoFocus?: (e: Event) => void;
   onRefresh: () => void;
-  /** M 排序設定（執行長 2026-06-18 範式）；未提供時 disabled */
-  onOpenSort?: () => void;
-  /** 已套用排序欄位數（>0 時按鈕高亮 + badge） */
-  sortCount?: number;
+  // ── M 排序 dropdown menu（2026-06-18 執行長範式、取代 dialog）──
+  /** 可排序欄位 metadata；未提供時整個 M 按鈕不渲染 */
+  sortOptions?: SortableOption[];
+  sortKey?: string | null;
+  sortOrder?: SortOrder;
+  onSortChange?: (key: string | null, order: SortOrder) => void;
+  onSortReset?: () => void;
+  /** 受控 open（Alt+M 程式觸發） */
+  sortMenuOpen?: boolean;
+  onSortMenuOpenChange?: (open: boolean) => void;
+  /** Radix 關閉時 focus restore hook（preventDefault + 手動 focus row）*/
+  onSortMenuCloseAutoFocus?: (e: Event) => void;
   onSave: () => void;
   onCancel: () => void;
   showInactive?: boolean;
@@ -271,14 +291,18 @@ export function ErpToolbar({
       />
       <ToolbarSeparator />
       <ToolbarButton icon={Search} letter="F" label="查詢" enabled onClick={onSearch} />
-      <ToolbarButton
-        icon={ArrowUpDown}
-        letter="M"
-        label={sortCount > 0 ? `排序·${sortCount}` : '排序'}
-        enabled={!!onOpenSort}
-        onClick={onOpenSort}
-        pressed={sortCount > 0}
-      />
+      {sortOptions && onSortChange && onSortReset ? (
+        <SortMenuButton
+          options={sortOptions}
+          sortKey={sortKey ?? null}
+          sortOrder={sortOrder}
+          onChange={onSortChange}
+          onReset={onSortReset}
+          open={sortMenuOpen}
+          onOpenChange={onSortMenuOpenChange}
+          onCloseAutoFocus={onSortMenuCloseAutoFocus}
+        />
+      ) : null}
       <ToolbarButton icon={RefreshCcw} letter="R" label="重新整理" enabled onClick={onRefresh} />
       <ToolbarSeparator />
       <ToolbarButton

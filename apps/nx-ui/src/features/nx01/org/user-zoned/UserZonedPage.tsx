@@ -84,10 +84,9 @@ import {
 } from '@/features/nx01/shell/ui/columns-config/ColumnsConfigDialog';
 import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
 import {
-  SortConfigDialog,
   type SortableOption,
   type SortOrder,
-} from '@/features/nx01/shell/ui/sort-config/SortConfigDialog';
+} from '@/features/nx01/shell/ui/sort-config/SortMenuButton';
 
 /** 預設密碼（與 CreateUserDialog 同步）：新建員工首次登入後系統強制改密 */
 const DEFAULT_PASSWORD = 'changeme';
@@ -173,8 +172,8 @@ export function UserZonedPage({
     hiddenCount: columnsHiddenCount,
   } = useColumnsPref('master-users:columns:v1', COLUMN_DEFAULT_KEYS, COLUMN_ALL_KEYS);
 
-  // 2026-06-18 M 排序 dialog
-  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  // 2026-06-18 M 排序 dropdown menu（受控、Alt+M 程式打開）
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const SORT_OPTIONS: SortableOption[] = useMemo(
@@ -969,7 +968,7 @@ export function UserZonedPage({
             p: () => handleExport('print'),
             o: () => setExportMenuOpen(true),
             i: () => setColumnsDialogOpen(true),
-            m: () => setSortDialogOpen(true),
+            m: () => setSortMenuOpen(true),
           });
         } else {
           Object.assign(map, { s: handleSave, c: handleCancel });
@@ -990,8 +989,8 @@ export function UserZonedPage({
         }
         return;
       }
-      // 2026-06-18 匯出 dropdown 開啟中 → 不攔 ↑↓/Enter（讓 Radix DropdownMenu 自己處理選項導航）
-      if (exportMenuOpen) return;
+      // 2026-06-18 匯出/排序 dropdown 開啟中 → 不攔 ↑↓/Enter（讓 Radix DropdownMenu 自己處理選項導航）
+      if (exportMenuOpen || sortMenuOpen) return;
       const focusTag = (document.activeElement?.tagName ?? '').toLowerCase();
       const inFormEl = focusTag === 'input' || focusTag === 'select' || focusTag === 'textarea';
       if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
@@ -1030,6 +1029,7 @@ export function UserZonedPage({
     showToast,
     toggleSearch,
     exportMenuOpen,
+    sortMenuOpen,
   ]);
 
   useEffect(() => {
@@ -1142,8 +1142,29 @@ export function UserZonedPage({
           onExport={handleExport}
           onOpenColumns={() => setColumnsDialogOpen(true)}
           columnsHiddenCount={columnsHiddenCount}
-          onOpenSort={() => setSortDialogOpen(true)}
-          sortCount={sortKey ? 1 : 0}
+          sortOptions={SORT_OPTIONS}
+          sortKey={sortKey}
+          sortOrder={sortOrder}
+          onSortChange={(k, o) => {
+            setSortKey(k);
+            setSortOrder(o);
+          }}
+          onSortReset={() => {
+            setSortKey(null);
+            setSortOrder('asc');
+          }}
+          sortMenuOpen={sortMenuOpen}
+          onSortMenuOpenChange={setSortMenuOpen}
+          onSortMenuCloseAutoFocus={(e) => {
+            if (!selectedId) return;
+            const rowEl = document.querySelector<HTMLElement>(
+              `[data-row-id="${selectedId}"]`,
+            );
+            if (rowEl) {
+              e.preventDefault();
+              rowEl.focus();
+            }
+          }}
           exportMenuOpen={exportMenuOpen}
           onExportMenuOpenChange={setExportMenuOpen}
           // 2026-06-18 Radix DropdownMenu 預設關閉時 focus 還給 trigger（O 按鈕）
@@ -1249,22 +1270,7 @@ export function UserZonedPage({
         onChange={setColumnsVisibleKeys}
         onReset={resetColumnsPref}
       />
-      {/* 2026-06-18 M 排序 dialog（Alt+M 或工具列 M 按鈕） */}
-      <SortConfigDialog
-        open={sortDialogOpen}
-        onClose={() => setSortDialogOpen(false)}
-        options={SORT_OPTIONS}
-        sortKey={sortKey}
-        sortOrder={sortOrder}
-        onChange={(k, o) => {
-          setSortKey(k);
-          setSortOrder(o);
-        }}
-        onReset={() => {
-          setSortKey(null);
-          setSortOrder('asc');
-        }}
-      />
+      {/* 2026-06-18 M 排序 dropdown menu 直接掛在 ErpToolbar 內、不需獨立 mount */}
       {/* B2~B5：role / warehouse pickers */}
       <EntityPickerDialog<RoleDto>
         open={rolePickerOpen}
