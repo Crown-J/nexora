@@ -1,35 +1,31 @@
 // apps/nx-ui/src/design/components/page-header/PageHeader.tsx
-// 頁面標題列（對齊 Hana demo .nx-page-head）
-// - 麵包屑（最後一段 gold 高亮、可點跳前段）
-// - 標題 h1 23px 粗體
-// - kind 小 tag chip（gold border）
-// - desc 一行描述（13px muted、max 760px）
-// - count 右上 chip
-//
-// 麵包屑點擊用 tryNavigate 帶 dirty 攔截、不用 next/link（避免繞過 dirty 守門）
+// 頁面標題列
+// 2026-06-18 執行長範式：純麵包屑（不可點）+ count chip
+//   - auto-gen crumbs:[主檔, category, title] 三段
+//   - 最後一段 = title、gold 高亮
+//   - 全段純文字不可點（因為「主檔」/「組織架構」沒獨立頁、無連結意義）
+//   - 拔掉大標題 h1（麵包屑最後一段已經是標題）
+//   - count chip 移到麵包屑同行最右
+//   - desc 保留下方一行
 'use client';
 
 import { Fragment } from 'react';
-import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 
-import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { cn } from '@design/utils/cn';
 
-export type Crumb = { label: string; href?: string };
+export type Crumb = { label: string };
 
 export type PageHeaderProps = {
-  /** 麵包屑列；若無傳、且有 category、自動生成 [{主檔}, {category}] */
+  /** 麵包屑列；若無傳、且有 category + title、自動生成 [{主檔}, {category}, {title}] */
   crumbs?: Crumb[];
-  /** Backward compat:7 個既有 page 用 category。對應 crumbs auto-gen 第二段 */
+  /** 自動麵包屑第二段：例如「組織架構」 */
   category?: string;
-  /** 主標題 */
+  /** 自動麵包屑最後一段 = 頁面標題 */
   title: string;
-  /** 小分類 chip（gold border、optional）*/
-  kind?: string;
-  /** 一行描述、max 760px */
+  /** 一行描述、max 760px（optional） */
   desc?: string;
-  /** 右上計數 chip（如「24 筆」）*/
+  /** 右側計數 chip（如「24 筆」）*/
   count?: string;
   className?: string;
 };
@@ -38,60 +34,45 @@ export function PageHeader({
   crumbs,
   category,
   title,
-  kind,
   desc,
   count,
   className,
 }: PageHeaderProps) {
-  const router = useRouter();
-  const effective =
+  const effective: Crumb[] =
     crumbs ??
-    (category
-      ? [{ label: '主檔', href: '/dashboard/master' }, { label: category }]
-      : []);
+    [
+      { label: '主檔' },
+      ...(category ? [{ label: category }] : []),
+      { label: title },
+    ];
 
   return (
-    <div className={cn('flex flex-col gap-[7px] px-4 py-3', className)}>
-      {effective.length > 0 ? (
-        <nav className="flex items-center gap-[7px] text-xs text-muted-foreground">
+    <div className={cn('flex flex-col gap-[6px] px-4 py-3', className)}>
+      <div className="flex items-center gap-[8px]">
+        <nav className="flex min-w-0 flex-1 items-center gap-[7px] text-xs">
           {effective.map((c, i) => {
             const isLast = i === effective.length - 1;
             return (
               <Fragment key={`${c.label}-${i}`}>
                 {i > 0 ? (
-                  <ChevronRight className="size-3 text-muted-foreground/50" />
+                  <ChevronRight className="size-3 shrink-0 text-muted-foreground/50" />
                 ) : null}
-                {c.href && !isLast ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const href = c.href!;
-                      tryNavigate(() => router.push(href));
-                    }}
-                    className="hover:text-foreground"
-                  >
-                    {c.label}
-                  </button>
-                ) : (
-                  <span className={isLast ? 'font-semibold text-[#E8A020]' : ''}>
-                    {c.label}
-                  </span>
-                )}
+                <span
+                  className={cn(
+                    'truncate',
+                    isLast
+                      ? 'font-semibold text-[#E8A020]'
+                      : 'text-muted-foreground',
+                  )}
+                >
+                  {c.label}
+                </span>
               </Fragment>
             );
           })}
         </nav>
-      ) : null}
-
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-[23px] font-bold tracking-tight text-foreground">{title}</h1>
-        {kind ? (
-          <span className="rounded border border-[#E8A020]/40 px-2 py-[2px] text-[11px] font-semibold text-[#E8A020]">
-            {kind}
-          </span>
-        ) : null}
         {count ? (
-          <span className="ml-auto shrink-0 rounded-md border border-border/40 bg-background/40 px-2 py-1 text-[11px] font-mono tabular-nums text-muted-foreground">
+          <span className="shrink-0 rounded-md border border-border/40 bg-background/40 px-2 py-1 text-[11px] font-mono tabular-nums text-muted-foreground">
             {count}
           </span>
         ) : null}
