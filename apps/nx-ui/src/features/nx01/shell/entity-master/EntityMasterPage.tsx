@@ -37,8 +37,12 @@ import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { MasterDetailScroll, EmptyDetail } from '@/features/nx01/shell/ui/MasterDetail';
 import { FormField, FormInput } from '@/features/nx01/shell/ui/FormField';
 import { KeyboardSelect } from '@/features/nx01/shell/ui/KeyboardSelect';
+import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
 import {
-  MasterColumnsPanel,
+  type SortableOption,
+  type SortOrder,
+} from '@/features/nx01/shell/ui/sort-config/SortMenuButton';
+import {
   MasterFilterPanel,
   rowMatchesFilters,
   type FilterCond,
@@ -130,11 +134,40 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   // 外鍵下拉選項（ref 欄位）
   const [refOptions, setRefOptions] = useState<Record<string, SelectOption[]>>({});
 
-  // 欄位設定（Alt+L）/ 篩選（Alt+T）
-  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
-  const [columnsOpen, setColumnsOpen] = useState(false);
+  // 2026-06-18 套員工範式:篩選保留（Alt+T）、欄位改表頭拖拉（dnd-kit、Alt+L 退役）
   const [filters, setFilters] = useState<FilterCond[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
+
+  // 2026-06-18 M 排序 dropdown menu（前端 sort、單欄位三態循環）
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  // 2026-06-18 O 匯出受控 dropdown
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+
+  // 2026-06-18 表頭拖拉重排欄位順序 + localStorage 記憶
+  const COLUMN_ALL_KEYS = useMemo(
+    () => [...listFields(config).map((f) => f.key), 'isActive'],
+    [config],
+  );
+  const {
+    visibleKeys: columnsOrder,
+    setVisibleKeys: setColumnsOrder,
+  } = useColumnsPref(`master-entity:${config.basePath}:columns:v1`, COLUMN_ALL_KEYS, COLUMN_ALL_KEYS);
+
+  // 2026-06-18 自動 focus 第一筆 + 跨頁邊界 pending（同員工範式）
+  const pendingSelectRef = useRef<'first' | 'last' | null>(null);
+  const focusFirstRowRef = useRef<boolean>(true);
+
+  // M 排序欄位選項:自動從 list fields 推（不含 isActive、不含 textarea/json/computed）
+  const SORT_OPTIONS: SortableOption[] = useMemo(
+    () =>
+      listFields(config)
+        .filter((f) => f.type !== 'textarea' && f.type !== 'json' && f.type !== 'computed')
+        .map((f) => ({ key: f.key, label: f.label })),
+    [config],
+  );
 
   const sidebarRef = useRef<HTMLElement>(null);
 
@@ -158,13 +191,35 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   );
 
   // 前端篩選：就目前載入的資料列套用（pagination 仍為後端）
-  const displayRows = useMemo(
+  const filteredRows = useMemo(
     () =>
       filters.length === 0
         ? rows
         : rows.filter((r) => rowMatchesFilters(filters, (k) => getCellText(r, k))),
     [rows, filters, getCellText],
   );
+
+  // 2026-06-18 前端排序（單欄位、type-aware:number / date / string）
+  const displayRows = useMemo(() => {
+    if (!sortKey) return filteredRows;
+    const field = config.fields.find((f) => f.key === sortKey);
+    const dir = sortOrder === 'asc' ? 1 : -1;
+    const sorted = [...filteredRows].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (field?.type === 'number' || typeof av === 'number') {
+        return (Number(av) - Number(bv)) * dir;
+      }
+      if (field?.type === 'toggle' || typeof av === 'boolean') {
+        return ((av ? 1 : 0) - (bv ? 1 : 0)) * dir;
+      }
+      return String(av).localeCompare(String(bv), 'zh-Hant') * dir;
+    });
+    return sorted;
+  }, [filteredRows, sortKey, sortOrder, config.fields]);
 
   const selected = useMemo(
     () => displayRows.find((r) => r.id === selectedId) ?? null,
@@ -222,15 +277,76 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     void load();
   }, [load]);
 
-  // 瀏覽模式自動鎖定第一列（進頁面不需點選即可 ↑↓；詳細頁也不再跳「請先選擇」）
+  // 2026-06-18 套員工範式:跨頁邊界 pending + 全鍵盤 focus 第一筆
   useEffect(() => {
     if (displayRows.length === 0) {
       if (selectedId !== null) setSelectedId(null);
       return;
     }
+    // 1. 跨頁 pending（onPrev/Next 邊界觸發）
+    if (pendingSelectRef.current) {
+      const targetId =
+        pendingSelectRef.current === 'first'
+          ? displayRows[0].id
+          : displayRows[displayRows.length - 1].id;
+      setSelectedId(targetId);
+      pendingSelectRef.current = null;
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-row-id="${targetId}"]`)?.focus();
+      });
+      return;
+    }
+    // 2. mount / cancel / save 後 focus 第一筆（focusFirstRowRef）
+    if (focusFirstRowRef.current) {
+      const firstId = displayRows[0].id;
+      setSelectedId(firstId);
+      focusFirstRowRef.current = false;
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-row-id="${firstId}"]`)?.focus();
+      });
+      return;
+    }
+    // 3. 既有選中項目不在當前頁、預設選第一筆
     if (!displayRows.some((r) => r.id === selectedId)) setSelectedId(displayRows[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayRows]);
+
+  // 2026-06-18 item-level navigation handlers（同員工範式）
+  const localIdx = displayRows.findIndex((r) => r.id === selectedId);
+  const itemIndex = localIdx >= 0 ? (page - 1) * pageSize + localIdx + 1 : 0;
+  const itemTotal = total;
+  const handleJumpFirstItem = useCallback(() => {
+    if (total === 0) return;
+    pendingSelectRef.current = 'first';
+    setPage(1);
+    if (page === 1 && displayRows.length > 0) setSelectedId(displayRows[0].id);
+  }, [total, page, displayRows]);
+  const handleJumpLastItem = useCallback(() => {
+    if (total === 0) return;
+    pendingSelectRef.current = 'last';
+    setPage(totalPages);
+    if (page === totalPages && displayRows.length > 0) {
+      setSelectedId(displayRows[displayRows.length - 1].id);
+    }
+  }, [total, totalPages, page, displayRows]);
+  const handlePrevItem = useCallback(() => {
+    if (localIdx > 0) {
+      setSelectedId(displayRows[localIdx - 1].id);
+    } else if (page > 1) {
+      pendingSelectRef.current = 'last';
+      setPage(page - 1);
+    }
+  }, [localIdx, displayRows, page]);
+  const handleNextItem = useCallback(() => {
+    if (localIdx >= 0 && localIdx < displayRows.length - 1) {
+      setSelectedId(displayRows[localIdx + 1].id);
+    } else if (page < totalPages) {
+      pendingSelectRef.current = 'first';
+      setPage(page + 1);
+    } else if (localIdx < 0 && displayRows.length > 0) {
+      setSelectedId(displayRows[0].id);
+    }
+  }, [localIdx, displayRows, page, totalPages]);
 
   // 選中列捲入視野（鍵盤 ↑↓ 切列時）
   useEffect(() => {
@@ -251,7 +367,18 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
     setCreating(false);
     setDraft({});
     setOriginal({});
-  }, []);
+    setTab('list');
+    // 2026-06-18 套員工範式:cancel 後 focus 第一 row
+    focusFirstRowRef.current = true;
+    if (displayRows.length > 0) {
+      const firstId = displayRows[0].id;
+      setSelectedId(firstId);
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLElement>(`[data-row-id="${firstId}"]`)?.focus();
+      });
+      focusFirstRowRef.current = false;
+    }
+  }, [displayRows]);
 
   const handleCreate = useCallback(() => {
     if (config.readOnly || config.canCreate === false) {
@@ -459,9 +586,11 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
-      // [2-1] 匯出三模式（CSV / PDF / 列印）「所見即所得」：只匯出可見欄位 + 篩選後資料列
-      const cols = listFields(config)
-        .filter((c) => !hiddenCols.has(c.key))
+      // 2026-06-18 匯出走目前 columnsOrder（拖拉後的順序、所見即所得）
+      const colMap = new Map(listFields(config).map((f) => [f.key, f]));
+      const cols = columnsOrder
+        .map((k) => colMap.get(k))
+        .filter((f): f is EntityFieldDef => !!f)
         .map((c) => ({ label: c.label, get: (r: EntityRow) => getCellText(r, c.key) }));
       exportTable(format, {
         title: config.title ?? config.basePath.replace(/\//g, ''),
@@ -469,24 +598,17 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         rows: displayRows,
       });
     },
-    [config, displayRows, hiddenCols, getCellText],
+    [config, displayRows, columnsOrder, getCellText],
   );
 
-  // 三個工具列下方面板互斥開關（搜尋 / 欄位 / 篩選只開一個）
+  // 2026-06-18 兩面板互斥（搜尋 / 篩選）
   const toggleSearch = useCallback(() => {
     setSearchOpen((s) => !s);
-    setColumnsOpen(false);
-    setFilterOpen(false);
-  }, []);
-  const toggleColumns = useCallback(() => {
-    setColumnsOpen((o) => !o);
-    setSearchOpen(false);
     setFilterOpen(false);
   }, []);
   const toggleFilter = useCallback(() => {
     setFilterOpen((o) => !o);
     setSearchOpen(false);
-    setColumnsOpen(false);
   }, []);
 
   // ── 全鍵盤 ────────────────────────────────────────────
@@ -505,8 +627,13 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
             e: () => selected && handleEdit(),
             f: toggleSearch,
             d: () => selected && handleDelete(),
-            r: () => setReloadTick((t) => t + 1),
-            l: toggleColumns,
+            r: () => {
+              setReloadTick((t) => t + 1);
+              showToast('已重新整理', 'success');
+            },
+            p: () => handleExport('print'),
+            o: () => setExportMenuOpen(true),
+            m: () => setSortMenuOpen(true),
             t: toggleFilter,
           });
         } else {
@@ -528,30 +655,12 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         }
         return;
       }
-      const focusTag = (document.activeElement?.tagName ?? '').toLowerCase();
-      const inFormEl = focusTag === 'input' || focusTag === 'select' || focusTag === 'textarea';
-      // 瀏覽模式 ↑↓ 切列（焦點不在搜尋框 / 下拉等表單元素時）
-      if (mode === 'browse' && tab === 'list' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        if (inFormEl) return;
-        if (displayRows.length === 0) return;
-        e.preventDefault();
-        const idx = displayRows.findIndex((r) => r.id === selectedId);
-        const cur = idx < 0 ? 0 : idx;
-        const nextIdx =
-          e.key === 'ArrowDown' ? Math.min(displayRows.length - 1, cur + 1) : Math.max(0, cur - 1);
-        setSelectedId(displayRows[nextIdx].id);
-      }
-      // 瀏覽模式：選中列按 Enter → 進詳細資料（瀏覽），對齊 ERP muscle memory
-      if (mode === 'browse' && tab === 'list' && e.key === 'Enter') {
-        if (inFormEl) return;
-        if (!selected) return;
-        e.preventDefault();
-        attemptTabChange('detail');
-      }
+      // 2026-06-18 ↑↓/Enter 切 row + 進詳細 改由 MasterTable.handleTableKey 處理（避免雙重觸發）
+      // dropdown 開啟中也不攔（給 Radix DropdownMenu 自己處理選項導航）
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [mode, tab, displayRows, selectedId, selected, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleSave, handleCancel, toggleSearch, toggleColumns, toggleFilter]);
+  }, [mode, searchOpen, attemptTabChange, handleCreate, handleEdit, handleDelete, handleSave, handleCancel, handleExport, showToast, toggleSearch, toggleFilter, selected]);
 
   // beforeunload（dirty 攔截）
   useEffect(() => {
@@ -604,10 +713,11 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
   }, [config, refOptions]);
 
   // 套用「欄位設定」隱藏欄
-  const visibleColumns = useMemo(
-    () => columns.filter((c) => !hiddenCols.has(c.key)),
-    [columns, hiddenCols],
-  );
+  // 2026-06-18 套員工範式:依拖拉後的 columnsOrder 重排（取代隱藏邏輯）
+  const visibleColumns = useMemo(() => {
+    const map = new Map(columns.map((c) => [c.key, c]));
+    return columnsOrder.map((k) => map.get(k)).filter((c): c is typeof columns[number] => !!c);
+  }, [columns, columnsOrder]);
 
   // ── render ────────────────────────────────────────────
   const countText = `${total} 筆${config.entityNoun}`;
@@ -630,7 +740,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         detailSubtitle={mode === 'edit' ? (creating ? '新增中' : '編輯中') : '瀏覽'}
       />
 
-      {/* Toolbar（手機橫向 scroll） */}
+      {/* 2026-06-18 套員工範式 toolbar:item-level nav + sort menu + 受控 dropdown */}
       <div className="overflow-x-auto">
         <ErpToolbar
           mode={mode}
@@ -643,24 +753,63 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
             setChecked(new Set());
           }}
           selectedCount={checked.size}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={(p) => setPage(Math.min(Math.max(1, p), totalPages))}
+          itemIndex={itemIndex}
+          itemTotal={itemTotal}
+          onJumpFirstItem={handleJumpFirstItem}
+          onPrevItem={handlePrevItem}
+          onNextItem={handleNextItem}
+          onJumpLastItem={handleJumpLastItem}
           onCreate={handleCreate}
           onEdit={handleEdit}
           onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
-          onRefresh={() => setReloadTick((t) => t + 1)}
+          exportMenuOpen={exportMenuOpen}
+          onExportMenuOpenChange={setExportMenuOpen}
+          onExportMenuCloseAutoFocus={(e) => {
+            if (!selectedId) return;
+            const rowEl = document.querySelector<HTMLElement>(
+              `[data-row-id="${selectedId}"]`,
+            );
+            if (rowEl) {
+              e.preventDefault();
+              rowEl.focus();
+            }
+          }}
+          onRefresh={() => {
+            setReloadTick((t) => t + 1);
+            showToast('已重新整理', 'success');
+          }}
+          sortOptions={SORT_OPTIONS}
+          sortKey={sortKey}
+          sortOrder={sortOrder}
+          onSortChange={(k, o) => {
+            setSortKey(k);
+            setSortOrder(o);
+          }}
+          onSortReset={() => {
+            setSortKey(null);
+            setSortOrder('asc');
+          }}
+          sortMenuOpen={sortMenuOpen}
+          onSortMenuOpenChange={setSortMenuOpen}
+          onSortMenuCloseAutoFocus={(e) => {
+            if (!selectedId) return;
+            const rowEl = document.querySelector<HTMLElement>(
+              `[data-row-id="${selectedId}"]`,
+            );
+            if (rowEl) {
+              e.preventDefault();
+              rowEl.focus();
+            }
+          }}
           onSave={handleSave}
           onCancel={handleCancel}
           showInactive={showInactive}
           onShowInactiveChange={mode === 'browse' && tab === 'list' ? (v) => setShowInactive(v) : undefined}
           onBatchEnable={() => handleBatchSetActive(true)}
           onBatchDisable={() => handleBatchSetActive(false)}
-          onOpenColumns={mode === 'browse' && tab === 'list' ? toggleColumns : undefined}
           onOpenFilter={mode === 'browse' && tab === 'list' ? toggleFilter : undefined}
-          columnsHiddenCount={hiddenCols.size}
           filterCount={filters.length}
         />
       </div>
@@ -676,13 +825,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
         placeholder={`搜尋${config.entityNoun}代碼 / 名稱...`}
       />
 
-      <MasterColumnsPanel
-        open={columnsOpen}
-        onClose={() => setColumnsOpen(false)}
-        columns={toolFields}
-        hidden={hiddenCols}
-        onChange={setHiddenCols}
-      />
+      {/* 2026-06-18 MasterColumnsPanel 退役（改表頭拖拉、I 按鈕拿掉） */}
       <MasterFilterPanel
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
@@ -695,6 +838,7 @@ export function EntityMasterPage({ config }: { config: EntityMasterConfig }) {
       <div className="flex min-h-0 flex-1 flex-col">
         {tab === 'list' ? (
           <MasterTable<EntityRow>
+            onColumnOrderChange={setColumnsOrder}
             columns={visibleColumns}
             rows={displayRows}
             getRowId={(r) => r.id}
