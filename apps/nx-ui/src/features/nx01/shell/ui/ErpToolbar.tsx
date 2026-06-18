@@ -358,7 +358,7 @@ export function ErpToolbar({
 }
 
 export function ToolbarSeparator() {
-  return <div className="mx-1 h-5 w-px bg-[#2A2A30]" aria-hidden />;
+  return <div className="mx-1 h-5 w-px bg-border/60" aria-hidden />;
 }
 
 /** alias 保留向後相容（其他檔可能 import PaginationButton） */
@@ -385,8 +385,8 @@ export function NavButton({
       className={cn(
         'inline-flex h-7 w-7 items-center justify-center rounded-md border transition-all',
         disabled
-          ? 'cursor-not-allowed border-border/40/60 bg-popover text-muted-foreground/70'
-          : 'border-border/40 bg-card/60 text-foreground/80 hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground',
+          ? 'cursor-not-allowed border-border/30 bg-muted/30 text-muted-foreground/50'
+          : 'border-border/50 bg-card text-foreground/80 hover:border-border hover:bg-accent/15 hover:text-foreground',
       )}
     >
       <Icon className="size-3.5" />
@@ -415,7 +415,7 @@ export function ToolbarButton({
   /** toggle 已開啟（如顯示停用）— 琥珀邊框 + 琥珀字 + 微淡底（與 accent 視覺接近但語意是 on/off 狀態）*/
   pressed?: boolean;
 }) {
-  // pressed 與 accent 視覺接近（皆琥珀調），語意上 pressed = toggle on
+  // pressed 與 accent 視覺接近（皆 primary amber/orange 調）、語意上 pressed = toggle on
   const isAmberActive = enabled && (accent || pressed);
   return (
     <button
@@ -428,17 +428,24 @@ export function ToolbarButton({
         'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
         enabled
           ? variant === 'danger'
-            ? 'border-[#5A2A2A] bg-[#1F1212] text-[#C84A4A] hover:border-[#7A3A3A] hover:bg-[#2A1818] hover:text-[#E26060]'
+            ? 'border-destructive/40 bg-destructive/10 text-destructive hover:border-destructive/60 hover:bg-destructive/20'
             : isAmberActive
-              ? 'border-[#E8A020]/40 bg-[#E8A020]/12 text-[#E8A020] hover:bg-[#E8A020]/20'
-              : 'border-border/40 bg-card/60 text-foreground/80 hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground'
-          : 'cursor-not-allowed border-border/40/60 bg-popover text-muted-foreground/70',
+              ? 'border-primary/50 bg-primary/15 text-primary hover:bg-primary/25'
+              : 'border-border/50 bg-card text-foreground/80 hover:border-border hover:bg-accent/15 hover:text-foreground'
+          : 'cursor-not-allowed border-border/30 bg-muted/30 text-muted-foreground/50',
       )}
     >
       <Icon className="size-3" />
       <span className="hidden sm:inline">
         {letter ? (
-          <span className={cn('mr-0.5 font-mono', enabled && variant !== 'danger' && !isAmberActive && 'text-[#E8A020]')}>{letter}</span>
+          <span
+            className={cn(
+              'mr-0.5 font-mono',
+              enabled && variant !== 'danger' && !isAmberActive && 'text-primary',
+            )}
+          >
+            {letter}
+          </span>
         ) : null}
         {label}
       </span>
@@ -466,13 +473,13 @@ export function ExportMenuButton({
           type="button"
           title="匯出（O）"
           className={cn(
-            'inline-flex h-7 items-center gap-1 rounded-md border border-border/40 bg-card/60 px-2 text-[11px] font-medium text-foreground/80 transition-all hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground',
-            'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
+            'inline-flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card px-2 text-[11px] font-medium text-foreground/80 transition-all hover:border-border hover:bg-accent/15 hover:text-foreground',
+            'data-[state=open]:border-primary/50 data-[state=open]:bg-primary/15 data-[state=open]:text-primary',
           )}
         >
           <Download className="size-3" />
           <span className="hidden sm:inline">
-            <span className="mr-0.5 font-mono text-[#E8A020]">O</span>
+            <span className="mr-0.5 font-mono text-primary">O</span>
             匯出
           </span>
         </button>
@@ -486,14 +493,14 @@ export function ExportMenuButton({
         {/* 2026-06-18 執行長範式:O 匯出只 CSV / PDF、列印走獨立 P 按鈕 */}
         <DropdownMenuItem
           onClick={() => onSelect('csv')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
           <FileSpreadsheet className="mr-2 size-3.5" />
           匯出 CSV
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onSelect('pdf')}
-          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
+          className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
           <FileText className="mr-2 size-3.5" />
           匯出 PDF

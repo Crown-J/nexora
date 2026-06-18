@@ -71,21 +71,14 @@ export function SortMenuButton({
           className={cn(
             'inline-flex h-7 items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-all',
             sortKey
-              ? 'border-[#E8A020]/40 bg-[#E8A020]/12 text-[#E8A020] hover:bg-[#E8A020]/20'
-              : 'border-border/40 bg-card/60 text-foreground/80 hover:border-[#3A3A42] hover:bg-card/80 hover:text-foreground',
-            'data-[state=open]:border-[#E8A020]/40 data-[state=open]:bg-[#E8A020]/10 data-[state=open]:text-[#E8A020]',
+              ? 'border-primary/50 bg-primary/15 text-primary hover:bg-primary/25'
+              : 'border-border/50 bg-card text-foreground/80 hover:border-border hover:bg-accent/15 hover:text-foreground',
+            'data-[state=open]:border-primary/50 data-[state=open]:bg-primary/15 data-[state=open]:text-primary',
           )}
         >
           <ArrowUpDown className="size-3" />
           <span className="hidden sm:inline">
-            <span
-              className={cn(
-                'mr-0.5 font-mono',
-                sortKey ? '' : 'text-[#E8A020]',
-              )}
-            >
-              M
-            </span>
+            <span className={cn('mr-0.5 font-mono', sortKey ? '' : 'text-primary')}>M</span>
             {sortKey ? '排序·1' : '排序'}
           </span>
         </button>
@@ -108,8 +101,8 @@ export function SortMenuButton({
                 cycleSort(opt.key);
               }}
               className={cn(
-                'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]',
-                active ? 'text-[#E8A020]' : 'text-foreground',
+                'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary',
+                active ? 'text-primary' : 'text-foreground',
               )}
             >
               <span className="flex-1">{opt.label}</span>
@@ -130,7 +123,7 @@ export function SortMenuButton({
             e.preventDefault();
             onReset();
           }}
-          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground focus:bg-[#E8A020]/12 focus:text-[#E8A020] data-[highlighted]:bg-[#E8A020]/12 data-[highlighted]:text-[#E8A020]"
+          className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground focus:bg-primary/15 focus:text-primary data-[highlighted]:bg-primary/15 data-[highlighted]:text-primary"
         >
           <RotateCcw className="size-3" />
           還原預設（序號 A-Z）

@@ -37,7 +37,7 @@ export function MasterPageHead({
       <MasterTabs tab={tab} onChange={onTabChange} />
       {showDetailTitle ? (
         <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-          <span className="size-1.5 shrink-0 rounded-full bg-[#E8A020] shadow-[0_0_8px_#E8A020]" />
+          <span className="size-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_8px_var(--color-primary)]" />
           <h2 className="truncate text-[13px] font-bold tracking-wide text-foreground">
             {detailTitle}
           </h2>

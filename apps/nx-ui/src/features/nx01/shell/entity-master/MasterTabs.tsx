@@ -40,7 +40,7 @@ function TabBtn({
       className={cn(
         'inline-flex h-[34px] items-center gap-2 rounded-lg px-[15px] text-[13px] font-semibold transition',
         active
-          ? 'bg-[#E8A020]/15 text-[#E8A020]'
+          ? 'bg-primary/15 text-primary'
           : 'text-muted-foreground hover:text-foreground',
       )}
     >

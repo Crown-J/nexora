@@ -139,10 +139,10 @@ function PageIconButton({ page, active }: { page: MasterPageMeta; active: boolea
   const className = cn(
     'group relative inline-flex shrink-0 items-center justify-center rounded-md border transition-colors',
     page.disabled
-      ? 'cursor-not-allowed border-border/30 bg-background/30 text-muted-foreground/40'
+      ? 'cursor-not-allowed border-border/30 bg-muted/20 text-muted-foreground/40'
       : active
-        ? 'border-[#E8A020]/60 bg-[#E8A020]/15 text-[#E8A020] shadow-[0_0_8px_rgba(232,160,32,0.25)]'
-        : 'border-border/40 bg-background/40 text-muted-foreground hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+        ? 'border-primary/60 bg-primary/15 text-primary shadow-[0_0_8px_color-mix(in_srgb,var(--color-primary)_30%,transparent)]'
+        : 'border-border/50 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary',
   );
   const sizeStyle = { width: SLOT_SIZE, height: SLOT_SIZE };
 
@@ -200,8 +200,8 @@ function ArrowButton({
       className={cn(
         'inline-flex shrink-0 items-center justify-center rounded-md border transition-colors',
         disabled
-          ? 'cursor-not-allowed border-border/20 bg-background/20 text-muted-foreground/30'
-          : 'border-border/40 bg-background/40 text-muted-foreground hover:border-[#E8A020]/40 hover:bg-[#E8A020]/10 hover:text-[#E8A020]',
+          ? 'cursor-not-allowed border-border/30 bg-muted/20 text-muted-foreground/30'
+          : 'border-border/50 bg-card text-muted-foreground hover:border-primary/40 hover:bg-primary/10 hover:text-primary',
       )}
       style={{ width: SLOT_SIZE, height: SLOT_SIZE }}
     >
