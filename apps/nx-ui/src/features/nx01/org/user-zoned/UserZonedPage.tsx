@@ -78,10 +78,6 @@ import {
   type UserWarehouseDto,
 } from '@data/endpoints/nx01/api/user-warehouse';
 import { listWarehouses, type WarehouseDto } from '@data/endpoints/nx01/api/warehouse';
-import {
-  ColumnsConfigDialog,
-  type ColumnsConfigOption,
-} from '@/features/nx01/shell/ui/columns-config/ColumnsConfigDialog';
 import { useColumnsPref } from '@/features/nx01/shell/ui/columns-config/useColumnsPref';
 import {
   type SortableOption,
@@ -151,26 +147,16 @@ export function UserZonedPage({
   // 2026-06-18 Alt+O 觸發 O 匯出 dropdown（受控）
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
-  // 2026-06-18 I 欄位設定 dialog + localStorage 記憶
-  const [columnsDialogOpen, setColumnsDialogOpen] = useState(false);
-  const COLUMN_OPTIONS: ColumnsConfigOption[] = useMemo(
-    () => [
-      { key: 'username', label: '員工編號' },
-      { key: 'displayName', label: '姓名' },
-      { key: 'email', label: 'Email' },
-      { key: 'phone', label: '電話' },
-      { key: 'isActive', label: '狀態' },
-    ],
+  // 2026-06-18 表頭拖拉重排欄位順序 + localStorage 記憶（B 方案、Excel-like）
+  //   I 欄位 dialog/按鈕已退役、user 直接拖表頭即可
+  const COLUMN_ALL_KEYS = useMemo(
+    () => ['username', 'displayName', 'email', 'phone', 'isActive'],
     [],
   );
-  const COLUMN_ALL_KEYS = useMemo(() => COLUMN_OPTIONS.map((c) => c.key), [COLUMN_OPTIONS]);
-  const COLUMN_DEFAULT_KEYS = COLUMN_ALL_KEYS;
   const {
-    visibleKeys: columnsVisibleKeys,
-    setVisibleKeys: setColumnsVisibleKeys,
-    resetToDefault: resetColumnsPref,
-    hiddenCount: columnsHiddenCount,
-  } = useColumnsPref('master-users:columns:v1', COLUMN_DEFAULT_KEYS, COLUMN_ALL_KEYS);
+    visibleKeys: columnsOrder,
+    setVisibleKeys: setColumnsOrder,
+  } = useColumnsPref('master-users:columns:v1', COLUMN_ALL_KEYS, COLUMN_ALL_KEYS);
 
   // 2026-06-18 M 排序 dropdown menu（受控、Alt+M 程式打開）
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
@@ -967,7 +953,6 @@ export function UserZonedPage({
             },
             p: () => handleExport('print'),
             o: () => setExportMenuOpen(true),
-            i: () => setColumnsDialogOpen(true),
             m: () => setSortMenuOpen(true),
           });
         } else {
@@ -1084,8 +1069,8 @@ export function UserZonedPage({
     [],
   );
   const columns: MasterTableColumn<UserDto>[] = useMemo(
-    () => columnsVisibleKeys.map((k) => ALL_COLUMN_MAP[k]).filter(Boolean),
-    [columnsVisibleKeys, ALL_COLUMN_MAP],
+    () => columnsOrder.map((k) => ALL_COLUMN_MAP[k]).filter(Boolean),
+    [columnsOrder, ALL_COLUMN_MAP],
   );
 
   const countText = `${total} 筆${entityNoun}`;
@@ -1122,8 +1107,6 @@ export function UserZonedPage({
           onSearch={toggleSearch}
           onDelete={handleDelete}
           onExport={handleExport}
-          onOpenColumns={() => setColumnsDialogOpen(true)}
-          columnsHiddenCount={columnsHiddenCount}
           sortOptions={SORT_OPTIONS}
           sortKey={sortKey}
           sortOrder={sortOrder}
@@ -1203,6 +1186,7 @@ export function UserZonedPage({
               setPageSize(n);
               setPage(1);
             }}
+            onColumnOrderChange={setColumnsOrder}
             footerHint={loading ? '載入中...' : undefined}
             totalCount={total}
           />
@@ -1243,15 +1227,7 @@ export function UserZonedPage({
       <ToastStack toasts={toasts} />
       <ConfirmDialog state={confirm} onClose={() => setConfirm(null)} />
       {/* 2026-06-18 對齊 demo：新增改走右側詳細頁 creating 模式，CreateUserDialog 已退役 */}
-      {/* 2026-06-18 I 欄位設定 dialog（Alt+I 或工具列 I 按鈕） */}
-      <ColumnsConfigDialog
-        open={columnsDialogOpen}
-        onClose={() => setColumnsDialogOpen(false)}
-        allColumns={COLUMN_OPTIONS}
-        visibleKeys={columnsVisibleKeys}
-        onChange={setColumnsVisibleKeys}
-        onReset={resetColumnsPref}
-      />
+      {/* 2026-06-18 表頭拖拉重排（dnd-kit）取代 I 欄位 dialog、ColumnsConfigDialog 已退役 */}
       {/* 2026-06-18 M 排序 dropdown menu 直接掛在 ErpToolbar 內、不需獨立 mount */}
       {/* B2~B5：role / warehouse pickers */}
       <EntityPickerDialog<RoleDto>

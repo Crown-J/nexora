@@ -318,15 +318,18 @@ export function ErpToolbar({
         onOpenChange={onExportMenuOpenChange}
         onCloseAutoFocus={onExportMenuCloseAutoFocus}
       />
-      <ToolbarSeparator />
-      <ToolbarButton
-        icon={Columns3}
-        letter="I"
-        label={columnsHiddenCount > 0 ? `欄位·隱${columnsHiddenCount}` : '欄位'}
-        enabled={!!onOpenColumns}
-        onClick={onOpenColumns}
-        pressed={columnsHiddenCount > 0}
-      />
+      {onOpenColumns ? <ToolbarSeparator /> : null}
+      {/* 2026-06-18 執行長 B 方案:表頭可拖、I 欄位 dialog 退役、只在 caller 提供 onOpenColumns 時才渲染 I 按鈕 */}
+      {onOpenColumns ? (
+        <ToolbarButton
+          icon={Columns3}
+          letter="I"
+          label={columnsHiddenCount > 0 ? `欄位·隱${columnsHiddenCount}` : '欄位'}
+          enabled
+          onClick={onOpenColumns}
+          pressed={columnsHiddenCount > 0}
+        />
+      ) : null}
       {/* 2026-06-18 執行長範式:I 欄位右側「T 垃圾桶」= 顯示已停用列、給 user 再啟用 */}
       {onShowInactiveChange ? (
         <ToolbarButton

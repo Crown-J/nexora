@@ -18,6 +18,20 @@
 
 import { ChevronDown } from 'lucide-react';
 import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,6 +40,55 @@ import {
 import { cn } from '@design/utils/cn';
 
 export const MASTER_TABLE_PAGE_SIZES = [10, 20, 50, 100] as const;
+
+/** 2026-06-18 表頭拖拉子元件（dnd-kit useSortable）*/
+function DraggableTh<T>({
+  col,
+  sortKey,
+  onSortKeyChange,
+}: {
+  col: MasterTableColumn<T>;
+  sortKey?: string;
+  onSortKeyChange?: (key: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: col.key,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    cursor: 'grab',
+    touchAction: 'none',
+  };
+  return (
+    <th
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        'whitespace-nowrap select-none px-3 py-[9px]',
+        col.minWidthClass,
+        isDragging && 'bg-[#E8A020]/10',
+      )}
+      title="拖動以重新排列欄位順序"
+    >
+      {col.sortable && onSortKeyChange ? (
+        <button
+          type="button"
+          onClick={() => onSortKeyChange(col.key)}
+          className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+        >
+          {col.label}
+          <ChevronDown className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')} />
+        </button>
+      ) : (
+        col.label
+      )}
+    </th>
+  );
+}
 
 export type MasterTableColumn<T> = {
   /** 對齊排序時的 sortKey；亦用於 React key */
@@ -53,6 +116,7 @@ export function MasterTable<T>({
   onPageSizeChange,
   sortKey,
   onSortKeyChange,
+  onColumnOrderChange,
   footerHint,
   totalCount,
 }: {
@@ -70,6 +134,9 @@ export function MasterTable<T>({
   onPageSizeChange?: (next: number) => void;
   sortKey?: string;
   onSortKeyChange?: (key: string) => void;
+  /** 2026-06-18 表頭拖拉重排欄位順序回 callback；提供時 thead 啟用 dnd
+   *  next 是新的 column key 順序、caller 應持久化（localStorage 等） */
+  onColumnOrderChange?: (next: string[]) => void;
   footerHint?: string;
   totalCount?: number;
 }) {
@@ -121,6 +188,23 @@ export function MasterTable<T>({
 
   const placeholders = Math.max(0, pageSize - rows.length);
 
+  // 2026-06-18 表頭拖拉重排（dnd-kit）—— onColumnOrderChange 提供時啟用
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+  );
+  const columnKeys = columns.map((c) => c.key);
+  const handleColumnDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id || !onColumnOrderChange) return;
+    const oldIdx = columnKeys.indexOf(String(active.id));
+    const newIdx = columnKeys.indexOf(String(over.id));
+    if (oldIdx < 0 || newIdx < 0) return;
+    const next = [...columnKeys];
+    const [moved] = next.splice(oldIdx, 1);
+    next.splice(newIdx, 0, moved);
+    onColumnOrderChange(next);
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70">
       <div className="flex-1 overflow-auto nx-master-scroll" onKeyDown={handleTableKey}>
@@ -140,27 +224,46 @@ export function MasterTable<T>({
                   <span className="font-medium">序號</span>
                 )}
               </th>
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={cn('whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
+              {onColumnOrderChange ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleColumnDragEnd}
                 >
-                  {col.sortable && onSortKeyChange ? (
-                    <button
-                      type="button"
-                      onClick={() => onSortKeyChange(col.key)}
-                      className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-                    >
-                      {col.label}
-                      <ChevronDown
-                        className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')}
+                  <SortableContext items={columnKeys} strategy={horizontalListSortingStrategy}>
+                    {columns.map((col) => (
+                      <DraggableTh
+                        key={col.key}
+                        col={col}
+                        sortKey={sortKey}
+                        onSortKeyChange={onSortKeyChange}
                       />
-                    </button>
-                  ) : (
-                    col.label
-                  )}
-                </th>
-              ))}
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              ) : (
+                columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={cn('whitespace-nowrap px-3 py-[9px]', col.minWidthClass)}
+                  >
+                    {col.sortable && onSortKeyChange ? (
+                      <button
+                        type="button"
+                        onClick={() => onSortKeyChange(col.key)}
+                        className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                      >
+                        {col.label}
+                        <ChevronDown
+                          className={cn('size-3', sortKey === col.key && 'text-[#E8A020]')}
+                        />
+                      </button>
+                    ) : (
+                      col.label
+                    )}
+                  </th>
+                ))
+              )}
             </tr>
           </thead>
           <tbody>
