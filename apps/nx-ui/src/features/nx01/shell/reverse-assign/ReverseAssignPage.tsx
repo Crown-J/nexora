@@ -16,7 +16,7 @@ import { cn } from '@design/utils/cn';
 import { PageHeader } from '@design/components/page-header/PageHeader';
 import { ToastStack, useToast } from '@/features/nx01/shell/ui/ToastStack';
 import { ConfirmDialog, type ConfirmState } from '@/features/nx01/shell/ui/ConfirmDialog';
-import { EntityPickerDialog } from '@/features/nx01/shell/ui/EntityPickerDialog';
+import { EntityPickerDialog } from '@design/components/multi-select-modal/EntityPickerDialog';
 import { listUsers, type UserDto } from '@data/endpoints/nx01/api/user';
 
 export type ReverseEntity = { id: string; code: string; name: string };

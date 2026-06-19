@@ -1,4 +1,4 @@
-// apps/nx-ui/src/features/master-shell/ui/EntityPickerDialog.tsx
+// apps/nx-ui/src/design/components/multi-select-modal/EntityPickerDialog.tsx
 /**
  * NEXORA Master Shell — EntityPickerDialog<T>（泛型實體選擇器對話框）
  *
