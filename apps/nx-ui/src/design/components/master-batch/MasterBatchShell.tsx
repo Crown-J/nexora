@@ -10,10 +10,13 @@
 //   <ToastStack />
 //
 // 狀態：query / selectedSubjectId / focusZone / leftFocusIdx / rightFocusIdx
+//       + tree mode：expandedIds
 // 鍵盤：
-//   左欄：↑↓ 走、Enter/Space 選定（zone→right）、→ 跳右欄
+//   左欄 flat：↑↓ 走、Enter/Space 選定（zone→right）、→ 跳右欄
+//   左欄 tree：↑↓ 走 visibleRows、→ 葉子跳右欄 / 非葉子展開、← 折疊、
+//              Enter on leaf 選定、Enter on non-leaf 切換展開
 //   右欄：↑↓ 走成員、Enter 開加入、Delete 移除、Esc/← 回左欄
-//   全域：Alt+A 開加入（需有 selected subject）
+//   全域：Alt+A 開加入（需有 selectedSubject）
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -33,6 +36,69 @@ export type MasterBatchShellProps<S, M> = {
   className?: string;
 };
 
+/** tree mode 攤平輸出（內部 + 對外 view-model） */
+type TreeRow<S> = {
+  node: S;
+  id: string;
+  level: number;
+  hasChildren: boolean;
+  expanded: boolean;
+  isLeaf: boolean;
+};
+
+function flattenTree<S>(
+  roots: S[],
+  childrenOf: (n: S) => S[],
+  isLeafOf: ((n: S) => boolean) | undefined,
+  idOf: (n: S) => string,
+  expandedIds: Set<string>,
+  level = 0,
+): TreeRow<S>[] {
+  const out: TreeRow<S>[] = [];
+  for (const node of roots) {
+    const id = idOf(node);
+    const children = childrenOf(node);
+    const hasChildren = children.length > 0;
+    const expanded = hasChildren && expandedIds.has(id);
+    const isLeaf = isLeafOf ? isLeafOf(node) : !hasChildren;
+    out.push({ node, id, level, hasChildren, expanded, isLeaf });
+    if (expanded) {
+      out.push(...flattenTree(children, childrenOf, isLeafOf, idOf, expandedIds, level + 1));
+    }
+  }
+  return out;
+}
+
+function countLeaves<S>(
+  roots: S[],
+  childrenOf: (n: S) => S[],
+  isLeafOf?: (n: S) => boolean,
+): number {
+  let n = 0;
+  function dfs(node: S) {
+    const children = childrenOf(node);
+    const isLeaf = isLeafOf ? isLeafOf(node) : children.length === 0;
+    if (isLeaf) n++;
+    children.forEach(dfs);
+  }
+  roots.forEach(dfs);
+  return n;
+}
+
+function findInTree<S>(
+  roots: S[],
+  childrenOf: (n: S) => S[],
+  idOf: (n: S) => string,
+  id: string,
+): S | null {
+  for (const node of roots) {
+    if (idOf(node) === id) return node;
+    const found = findInTree(childrenOf(node), childrenOf, idOf, id);
+    if (found) return found;
+  }
+  return null;
+}
+
 export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellProps<S, M>) {
   const { toasts, showToast } = useToast();
   const ctx = useMemo<BatchCtx>(() => ({ showToast }), [showToast]);
@@ -43,6 +109,10 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
   const [leftFocusIdx, setLeftFocusIdx] = useState(0);
   const [rightFocusIdx, setRightFocusIdx] = useState(0);
   const [loadingMembers, setLoadingMembers] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    if (config.leftMode !== 'tree') return new Set();
+    return new Set(config.defaultExpandedIds?.() ?? []);
+  });
 
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -52,32 +122,51 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
     [],
   );
 
-  // ---------- flat 模式：左欄資料 ----------
+  const subjectIdOf = useCallback((s: S) => config.subjectId?.(s) ?? '', [config]);
+  const treeChildrenOf = useCallback(
+    (n: S) => config.treeChildren?.(n) ?? [],
+    [config],
+  );
+
+  // ---------- flat 模式 ----------
   const flatSubjects = useMemo<S[]>(() => {
     if (config.leftMode !== 'flat') return [];
     return config.subjects?.() ?? [];
   }, [config]);
 
-  const subjectIdOf = useCallback(
-    (s: S) => config.subjectId?.(s) ?? '',
-    [config],
-  );
-
-  const filteredSubjects = useMemo<S[]>(() => {
+  const filteredFlat = useMemo<S[]>(() => {
     if (config.leftMode !== 'flat') return [];
     const q = query.trim().toLowerCase();
-    if (!q) return flatSubjects;
-    if (!config.subjectSearch) return flatSubjects;
+    if (!q || !config.subjectSearch) return flatSubjects;
     return flatSubjects.filter((s) => config.subjectSearch!(s, q));
   }, [config, flatSubjects, query]);
 
+  // ---------- tree 模式 ----------
+  const treeRoots = useMemo<S[]>(() => {
+    if (config.leftMode !== 'tree') return [];
+    return config.treeRoots?.() ?? [];
+  }, [config]);
+
+  const treeRows = useMemo<TreeRow<S>[]>(() => {
+    if (config.leftMode !== 'tree') return [];
+    return flattenTree(treeRoots, treeChildrenOf, config.isLeaf, subjectIdOf, expandedIds);
+  }, [config.leftMode, config.isLeaf, expandedIds, subjectIdOf, treeChildrenOf, treeRoots]);
+
+  const treeLeafCount = useMemo<number>(() => {
+    if (config.leftMode !== 'tree') return 0;
+    return countLeaves(treeRoots, treeChildrenOf, config.isLeaf);
+  }, [config.isLeaf, config.leftMode, treeChildrenOf, treeRoots]);
+
+  // ---------- selectedSubject 解析（flat: list 找、tree: 整棵樹找） ----------
   const selectedSubject = useMemo<S | null>(() => {
     if (!selectedId) return null;
-    if (config.leftMode !== 'flat') return null;
-    return flatSubjects.find((s) => subjectIdOf(s) === selectedId) ?? null;
-  }, [config.leftMode, flatSubjects, selectedId, subjectIdOf]);
+    if (config.leftMode === 'flat') {
+      return flatSubjects.find((s) => subjectIdOf(s) === selectedId) ?? null;
+    }
+    return findInTree(treeRoots, treeChildrenOf, subjectIdOf, selectedId);
+  }, [config.leftMode, flatSubjects, selectedId, subjectIdOf, treeChildrenOf, treeRoots]);
 
-  // ---------- 選定主體（含 320ms 載入態） ----------
+  // ---------- 選定（含 320ms 載入態） ----------
   const selectSubject = useCallback(
     (id: string, force?: boolean) => {
       if (selectedId === id && !force) return;
@@ -90,6 +179,15 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
     [selectedId],
   );
 
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   // ---------- 鍵盤導覽 ----------
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -99,8 +197,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
         if (e.key === 'Escape') (t as HTMLElement).blur();
         return;
       }
-
-      // 全域 Alt+A：開加入（需有 selectedSubject）
+      // 全域 Alt+A：開加入
       if (e.altKey && (e.key === 'a' || e.key === 'A')) {
         if (selectedSubject) {
           e.preventDefault();
@@ -110,29 +207,8 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
       }
 
       if (focusZone === 'left') {
-        const list = filteredSubjects;
-        if (!list.length) return;
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          setLeftFocusIdx((i) => (i + 1) % list.length);
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setLeftFocusIdx((i) => (i - 1 + list.length) % list.length);
-        } else if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          const s = list[leftFocusIdx];
-          if (s) {
-            selectSubject(subjectIdOf(s), true);
-            setFocusZone('right');
-          }
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          const s = list[leftFocusIdx];
-          if (s) {
-            if (subjectIdOf(s) !== selectedId) selectSubject(subjectIdOf(s), true);
-            setFocusZone('right');
-          }
-        }
+        if (config.leftMode === 'flat') handleFlatKey(e);
+        else handleTreeKey(e);
       } else {
         const members = selectedSubject ? config.members(selectedSubject) : [];
         if (e.key === 'ArrowLeft' || e.key === 'Escape') {
@@ -161,12 +237,78 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
         }
       }
     }
+
+    function handleFlatKey(e: KeyboardEvent) {
+      const list = filteredFlat;
+      if (!list.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setLeftFocusIdx((i) => (i + 1) % list.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setLeftFocusIdx((i) => (i - 1 + list.length) % list.length);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const s = list[leftFocusIdx];
+        if (s) {
+          selectSubject(subjectIdOf(s), true);
+          setFocusZone('right');
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const s = list[leftFocusIdx];
+        if (s) {
+          if (subjectIdOf(s) !== selectedId) selectSubject(subjectIdOf(s), true);
+          setFocusZone('right');
+        }
+      }
+    }
+
+    function handleTreeKey(e: KeyboardEvent) {
+      const rows = treeRows;
+      if (!rows.length) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setLeftFocusIdx((i) => (i + 1) % rows.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setLeftFocusIdx((i) => (i - 1 + rows.length) % rows.length);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const row = rows[leftFocusIdx];
+        if (!row) return;
+        if (row.isLeaf) {
+          selectSubject(row.id, true);
+          setFocusZone('right');
+        } else if (row.hasChildren && !row.expanded) {
+          toggleExpand(row.id);
+        } else {
+          setLeftFocusIdx((i) => (i + 1) % rows.length);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const row = rows[leftFocusIdx];
+        if (!row) return;
+        if (!row.isLeaf && row.expanded) toggleExpand(row.id);
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const row = rows[leftFocusIdx];
+        if (!row) return;
+        if (row.isLeaf) {
+          selectSubject(row.id, true);
+          setFocusZone('right');
+        } else if (row.hasChildren) {
+          toggleExpand(row.id);
+        }
+      }
+    }
+
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [
     config,
     ctx,
-    filteredSubjects,
+    filteredFlat,
     focusZone,
     leftFocusIdx,
     rightFocusIdx,
@@ -174,13 +316,30 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
     selectedId,
     selectedSubject,
     subjectIdOf,
+    toggleExpand,
+    treeRows,
   ]);
 
-  // ---------- 標題列計數 ----------
+  // ---------- 計數 chip ----------
   const totalCount =
     config.leftMode === 'flat'
       ? `${flatSubjects.length} 項`
-      : undefined;
+      : `${treeLeafCount} 項`;
+
+  // ---------- tree row VM（不暴露 S 給 SubjectPanel） ----------
+  const treeRowVMs = useMemo(
+    () =>
+      treeRows.map((r) => ({
+        id: r.id,
+        level: r.level,
+        hasChildren: r.hasChildren,
+        expanded: r.expanded,
+        isLeaf: r.isLeaf,
+        title: config.subjectTitle?.(r.node) ?? r.id,
+        count: config.subjectCount?.(r.node),
+      })),
+    [config, treeRows],
+  );
 
   return (
     <div data-nx-frame className={cn('flex h-full flex-col gap-3', className)}>
@@ -200,9 +359,9 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           searchPlaceholder={config.searchPlaceholder}
           query={query}
           onQueryChange={setQuery}
+          totalCount={config.leftMode === 'flat' ? flatSubjects.length : treeLeafCount}
           // flat
-          totalCount={config.leftMode === 'flat' ? flatSubjects.length : 0}
-          subjects={filteredSubjects}
+          subjects={filteredFlat}
           subjectIdOf={subjectIdOf}
           subjectTitleOf={config.subjectTitle}
           subjectCountOf={config.subjectCount}
@@ -213,6 +372,9 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
             setFocusZone('right');
             selectSubject(id, true);
           }}
+          // tree
+          treeRows={treeRowVMs}
+          onToggleExpand={toggleExpand}
           // create
           leftCreatable={config.leftCreatable}
           createLabel={config.createLabel}
@@ -223,9 +385,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           mode={config.rightMode}
           subjectIcon={config.subjectIcon}
           subjectTitle={
-            selectedSubject && config.subjectTitle
-              ? config.subjectTitle(selectedSubject)
-              : null
+            selectedSubject && config.subjectTitle ? config.subjectTitle(selectedSubject) : null
           }
           subjectNoun={config.subjectNoun}
           memberNoun={config.memberNoun}
@@ -248,9 +408,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           }
           onAdd={selectedSubject ? () => config.onAdd(selectedSubject, ctx) : undefined}
           emptyText={
-            selectedSubject && config.emptyText
-              ? config.emptyText(selectedSubject)
-              : undefined
+            selectedSubject && config.emptyText ? config.emptyText(selectedSubject) : undefined
           }
           waitingSubjectText={`請先從左欄選一個${config.subjectNoun}`}
         />

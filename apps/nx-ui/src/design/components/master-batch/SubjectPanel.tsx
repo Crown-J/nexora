@@ -1,16 +1,28 @@
 // apps/nx-ui/src/design/components/master-batch/SubjectPanel.tsx
 // 主檔群組模板 — 左欄面板（搜尋 + 主體列表）
 //
-// flat 模式：渲染 button list、選中加金色左 3px 邊條 + gradient
-// tree 模式：Step 3/4（組織/據點架構圖）才實作；目前留 stub
+// flat 模式：FlatRow（金色左 3px 邊條 + gradient 表選中）
+// tree 模式：TreeRow（縮排 level*16px + chevron 展開折疊；葉子可選）
+//
+// tree mode 暫不支援搜尋（input 隱藏）；後續軌可補「過濾葉子 + 自動展開 ancestor」
 'use client';
 
-import { Plus, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
 
 import type { LeftMode } from './types';
+
+export type TreeRowVM = {
+  id: string;
+  level: number;
+  hasChildren: boolean;
+  expanded: boolean;
+  isLeaf: boolean;
+  title: string;
+  count?: number;
+};
 
 export type SubjectPanelProps<S> = {
   mode: LeftMode;
@@ -19,9 +31,9 @@ export type SubjectPanelProps<S> = {
   searchPlaceholder?: string;
   query: string;
   onQueryChange: (q: string) => void;
+  totalCount: number;
 
   // flat
-  totalCount: number;
   subjects: S[];
   subjectIdOf: (s: S) => string;
   subjectTitleOf?: (s: S) => string;
@@ -29,6 +41,10 @@ export type SubjectPanelProps<S> = {
   selectedId: string | null;
   focusedIdx: number;
   onSelect: (id: string, index: number) => void;
+
+  // tree
+  treeRows?: TreeRowVM[];
+  onToggleExpand?: (id: string) => void;
 
   // create
   leftCreatable?: boolean;
@@ -52,6 +68,8 @@ export function SubjectPanel<S>(props: SubjectPanelProps<S>) {
     selectedId,
     focusedIdx,
     onSelect,
+    treeRows,
+    onToggleExpand,
     leftCreatable,
     createLabel = '新增',
     onCreate,
@@ -87,28 +105,44 @@ export function SubjectPanel<S>(props: SubjectPanelProps<S>) {
         </span>
       </div>
 
-      {/* 搜尋 */}
-      <div className="relative flex-none border-b border-border/60 px-3 py-2.5">
-        <Search className="pointer-events-none absolute left-[18px] top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          placeholder={searchPlaceholder ?? `搜尋${subjectNoun}…`}
-          className={cn(
-            'h-8 w-full rounded-md border border-border bg-background/60 pl-9 pr-3 text-sm text-foreground',
-            'outline-none transition-colors placeholder:text-muted-foreground',
-            'focus:border-[#E8A020]/55 focus:shadow-[0_0_0_3px_rgba(232,160,32,0.13)]',
-          )}
-        />
-      </div>
+      {/* 搜尋 — tree mode 暫不支援、不渲染 */}
+      {mode === 'flat' ? (
+        <div className="relative flex-none border-b border-border/60 px-3 py-2.5">
+          <Search className="pointer-events-none absolute left-[18px] top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            placeholder={searchPlaceholder ?? `搜尋${subjectNoun}…`}
+            className={cn(
+              'h-8 w-full rounded-md border border-border bg-background/60 pl-9 pr-3 text-sm text-foreground',
+              'outline-none transition-colors placeholder:text-muted-foreground',
+              'focus:border-[#E8A020]/55 focus:shadow-[0_0_0_3px_rgba(232,160,32,0.13)]',
+            )}
+          />
+        </div>
+      ) : null}
 
       {/* 列表 */}
       <div className="min-h-0 flex-1 overflow-y-auto p-1.5">
         {mode === 'tree' ? (
-          <div className="px-4 py-8 text-center text-xs text-muted-foreground">
-            Tree mode TODO（Step 3/4 補：組織架構 / 據點架構）
-          </div>
+          treeRows && treeRows.length > 0 ? (
+            treeRows.map((row, i) => (
+              <TreeRow
+                key={row.id}
+                row={row}
+                icon={SubjectIcon}
+                isSelected={row.id === selectedId}
+                isFocused={i === focusedIdx}
+                onLeafSelect={() => onSelect(row.id, i)}
+                onToggle={() => onToggleExpand?.(row.id)}
+              />
+            ))
+          ) : (
+            <div className="px-4 py-8 text-center text-xs text-muted-foreground">
+              尚無{subjectNoun}
+            </div>
+          )
         ) : subjects.length === 0 ? (
           <div className="px-4 py-8 text-center text-xs text-muted-foreground">
             {query ? `查無符合「${query}」的${subjectNoun}` : `尚無${subjectNoun}`}
@@ -116,51 +150,144 @@ export function SubjectPanel<S>(props: SubjectPanelProps<S>) {
         ) : (
           subjects.map((s, i) => {
             const id = subjectIdOf(s);
-            const isSelected = id === selectedId;
-            const isFocused = i === focusedIdx;
-            const title = subjectTitleOf?.(s) ?? id;
-            const count = subjectCountOf?.(s);
             return (
-              <button
+              <FlatRow
                 key={id}
-                type="button"
+                icon={SubjectIcon}
+                title={subjectTitleOf?.(s) ?? id}
+                count={subjectCountOf?.(s)}
+                isSelected={id === selectedId}
+                isFocused={i === focusedIdx}
                 onClick={() => onSelect(id, i)}
-                className={cn(
-                  'mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-colors',
-                  isSelected
-                    ? 'bg-gradient-to-r from-[#E8A020]/15 to-[#E8A020]/5 shadow-[inset_3px_0_0_#E8A020,inset_0_0_0_1px_rgba(232,160,32,0.28)]'
-                    : 'hover:bg-accent/30',
-                  isFocused && !isSelected && 'ring-1 ring-inset ring-[#E8A020]/45',
-                )}
-              >
-                <span
-                  className={cn(
-                    'grid size-8 flex-none place-items-center rounded-lg',
-                    isSelected
-                      ? 'bg-[#E8A020]/26 text-[#E8A020]'
-                      : 'bg-[#E8A020]/14 text-[#E8A020]',
-                  )}
-                >
-                  {SubjectIcon ? <SubjectIcon className="size-4" /> : null}
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
-                  {title}
-                </span>
-                {count !== undefined ? (
-                  <span
-                    className={cn(
-                      'flex-none font-mono text-[11px] tabular-nums',
-                      isSelected ? 'text-[#E8A020]' : 'text-muted-foreground',
-                    )}
-                  >
-                    {count}
-                  </span>
-                ) : null}
-              </button>
+              />
             );
           })
         )}
       </div>
     </div>
+  );
+}
+
+/* ============ Flat row ============ */
+function FlatRow({
+  icon: Icon,
+  title,
+  count,
+  isSelected,
+  isFocused,
+  onClick,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  count?: number;
+  isSelected: boolean;
+  isFocused: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'mb-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-colors',
+        isSelected
+          ? 'bg-gradient-to-r from-[#E8A020]/15 to-[#E8A020]/5 shadow-[inset_3px_0_0_#E8A020,inset_0_0_0_1px_rgba(232,160,32,0.28)]'
+          : 'hover:bg-accent/30',
+        isFocused && !isSelected && 'ring-1 ring-inset ring-[#E8A020]/45',
+      )}
+    >
+      <span
+        className={cn(
+          'grid size-8 flex-none place-items-center rounded-lg',
+          isSelected ? 'bg-[#E8A020]/26 text-[#E8A020]' : 'bg-[#E8A020]/14 text-[#E8A020]',
+        )}
+      >
+        {Icon ? <Icon className="size-4" /> : null}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm text-foreground">{title}</span>
+      {count !== undefined ? (
+        <span
+          className={cn(
+            'flex-none font-mono text-[11px] tabular-nums',
+            isSelected ? 'text-[#E8A020]' : 'text-muted-foreground',
+          )}
+        >
+          {count}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+/* ============ Tree row ============ */
+function TreeRow({
+  row,
+  icon: Icon,
+  isSelected,
+  isFocused,
+  onLeafSelect,
+  onToggle,
+}: {
+  row: TreeRowVM;
+  icon?: LucideIcon;
+  isSelected: boolean;
+  isFocused: boolean;
+  onLeafSelect: () => void;
+  onToggle: () => void;
+}) {
+  const indent = row.level * 16;
+  const handleClick = row.isLeaf ? onLeafSelect : onToggle;
+  const isLeafSelected = row.isLeaf && isSelected;
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className={cn(
+        'mb-0.5 flex w-full items-center gap-2 rounded-lg py-2 pr-2 text-left transition-colors',
+        isLeafSelected
+          ? 'bg-gradient-to-r from-[#E8A020]/15 to-[#E8A020]/5 shadow-[inset_3px_0_0_#E8A020,inset_0_0_0_1px_rgba(232,160,32,0.28)]'
+          : 'hover:bg-accent/30',
+        isFocused && !isLeafSelected && 'ring-1 ring-inset ring-[#E8A020]/45',
+      )}
+      style={{ paddingLeft: 8 + indent }}
+    >
+      {row.hasChildren ? (
+        row.expanded ? (
+          <ChevronDown className="size-3.5 flex-none text-muted-foreground" />
+        ) : (
+          <ChevronRight className="size-3.5 flex-none text-muted-foreground" />
+        )
+      ) : (
+        <span className="size-3.5 flex-none" />
+      )}
+      {Icon ? (
+        <span
+          className={cn(
+            'grid size-7 flex-none place-items-center rounded-md',
+            isLeafSelected ? 'bg-[#E8A020]/26 text-[#E8A020]' : 'bg-[#E8A020]/12 text-[#E8A020]',
+          )}
+        >
+          <Icon className="size-3.5" />
+        </span>
+      ) : null}
+      <span
+        className={cn(
+          'min-w-0 flex-1 truncate text-sm',
+          row.isLeaf ? 'text-foreground' : 'font-medium text-foreground/90',
+        )}
+      >
+        {row.title}
+      </span>
+      {row.count !== undefined ? (
+        <span
+          className={cn(
+            'flex-none font-mono text-[11px] tabular-nums',
+            isLeafSelected ? 'text-[#E8A020]' : 'text-muted-foreground',
+          )}
+        >
+          {row.count}
+        </span>
+      ) : null}
+    </button>
   );
 }

@@ -93,9 +93,13 @@ export type MasterBatchConfig<S, M> = {
   subjectSearch?: (s: S, q: string) => boolean;
   subjectCount?: (s: S) => number;
 
-  // tree 模式（Step 3/4 補實作）
-  treeRoots?: () => TreeNode[];
-  treeChildren?: (n: TreeNode) => TreeNode[];
+  // tree 模式（節點型別 = S；payload 由 case 自定）
+  treeRoots?: () => S[];
+  treeChildren?: (n: S) => S[];
+  /** 葉子節點判定：葉子可選且顯示右欄成員；非葉子僅展開折疊 */
+  isLeaf?: (n: S) => boolean;
+  /** tree mode 初始展開的節點 ids（其餘預設折疊） */
+  defaultExpandedIds?: () => string[];
 
   /** 左欄是否可新建主體（僅通用件群組） */
   leftCreatable?: boolean;
