@@ -210,19 +210,7 @@ export function OrgStructurePage() {
 
   return (
     <>
-      {/* DIAGNOSTIC：強制 opacity/transform/visibility 還原、紅框定位容器位置 */}
-      <div
-        className="flex min-h-0 flex-1 flex-col"
-        style={{
-          opacity: 1,
-          transform: 'none',
-          visibility: 'visible',
-          outline: '3px solid red',
-          outlineOffset: '-3px',
-        }}
-      >
-        <MasterBatchShell config={config} />
-      </div>
+      <MasterBatchShell config={config} />
 
       <EntityPickerDialog<EmployeeMock>
         open={pickerSubject !== null}
