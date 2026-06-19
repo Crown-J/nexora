@@ -212,6 +212,21 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
         if (config.leftMode === 'flat') handleFlatKey(e);
         else handleTreeKey(e);
       } else {
+        // grouped 模式：暫不支援 ↑↓ Delete 鍵盤（後續軌可補 flatten 鍵盤導覽）
+        if (config.rightMode === 'grouped') {
+          if (e.key === 'ArrowLeft' || e.key === 'Escape') {
+            e.preventDefault();
+            setFocusZone('left');
+            return;
+          }
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedSubject && (config.isAddEnabled?.(selectedSubject) ?? true)) {
+              config.onAdd(selectedSubject, ctx);
+            }
+          }
+          return;
+        }
         const members = selectedSubject ? config.members(selectedSubject) : [];
         if (e.key === 'ArrowLeft' || e.key === 'Escape') {
           e.preventDefault();
@@ -326,6 +341,12 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
   const totalCount =
     config.leftMode === 'flat' ? `${flatSubjects.length} 項` : `${treeSelectableCount} 項`;
 
+  // ---------- grouped 模式：右欄分組（給 MemberPanel）----------
+  const memberGroupsForPanel = useMemo(() => {
+    if (config.rightMode !== 'grouped' || !selectedSubject || !config.memberGroups) return [];
+    return config.memberGroups(selectedSubject);
+  }, [config, selectedSubject]);
+
   // ---------- tree row VM（不暴露 S 給 SubjectPanel） ----------
   const treeRowVMs = useMemo(
     () =>
@@ -394,6 +415,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
           addIcon={config.addIcon}
           loading={loadingMembers}
           members={selectedSubject ? config.members(selectedSubject) : []}
+          memberGroups={memberGroupsForPanel}
           memberIdOf={config.memberId}
           renderMember={(m, i, focused) =>
             selectedSubject ? config.renderMember(m, i, focused, selectedSubject) : null

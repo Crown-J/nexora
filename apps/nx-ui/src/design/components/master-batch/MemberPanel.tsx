@@ -5,19 +5,22 @@
 // list-with-extra 模式：上半 list + 下半 extra（50/50 split、各自獨立滾動）
 //   - 若 extraContent 為 null/undefined、上半佔滿
 //   - extra 由 case 自行渲染（含獨立 modal / 互動）
-// grouped 模式：Step 6（供應商供貨）補
+// grouped 模式：accordion 分組（每組 label + meta + actions + 內部 members）
+//   - 各 group 內部 useState 管展開狀態（初始展開）
+//   - case 提供 memberGroups()；shell 內部不再呼叫 members()
+//   - grouped 模式右欄鍵盤暫不支援 ↑↓ Delete（由 shell 控制）
 //
 // 對齊 demo cmb-engine.js 範式：320ms 載入 skeleton、空狀態三段式 + CTA、
 // 鍵盤 focused row 顯示 ring。
 'use client';
 
-import { type ReactNode } from 'react';
-import { ArrowRight, Inbox, Plus, X } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { ArrowRight, ChevronDown, ChevronRight, Inbox, Plus, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@design/utils/cn';
 
-import type { RightMode } from './types';
+import type { MemberGroup, RightMode } from './types';
 
 const SKELETON_ROWS = 5;
 
@@ -34,6 +37,8 @@ export type MemberPanelProps<M> = {
 
   loading: boolean;
   members: M[];
+  /** grouped 模式：分組成員（shell 已 compute、case 自管 memberGroups()） */
+  memberGroups?: MemberGroup<M>[];
   memberIdOf: (m: M) => string;
   renderMember: (m: M, index: number, focused: boolean) => ReactNode;
   /** list-with-extra：副區內容；undefined/null = 上半佔滿 */
@@ -58,6 +63,7 @@ export function MemberPanel<M>(props: MemberPanelProps<M>) {
     addIcon: AddIcon = Plus,
     loading,
     members,
+    memberGroups,
     memberIdOf,
     renderMember,
     extraContent,
@@ -70,6 +76,11 @@ export function MemberPanel<M>(props: MemberPanelProps<M>) {
   } = props;
 
   const hasSubject = subjectTitle !== null;
+
+  // grouped 模式：總成員計數（標頭計數用、不依賴 members prop）
+  const groupedTotal = memberGroups?.reduce((sum, g) => sum + g.members.length, 0) ?? 0;
+  const headerCount =
+    mode === 'grouped' && hasSubject ? groupedTotal : members.length;
 
   return (
     <div
@@ -86,7 +97,7 @@ export function MemberPanel<M>(props: MemberPanelProps<M>) {
         </span>
         {hasSubject && !loading ? (
           <span className="rounded-full border border-border px-2 py-0.5 text-[11px] font-mono tabular-nums text-muted-foreground">
-            {members.length} {memberUnit}
+            {headerCount} {memberUnit}
           </span>
         ) : null}
         <span className="flex-1" />
@@ -120,8 +131,25 @@ export function MemberPanel<M>(props: MemberPanelProps<M>) {
             <SkeletonRows />
           </div>
         ) : mode === 'grouped' ? (
-          <div className="px-4 py-8 text-center text-xs text-muted-foreground">
-            grouped TODO（Step 6 補：供應商供貨按品牌分組）
+          <div className="h-full overflow-y-auto p-2">
+            {memberGroups && memberGroups.length > 0 ? (
+              memberGroups.map((g) => (
+                <GroupAccordion
+                  key={g.key}
+                  group={g}
+                  memberIdOf={memberIdOf}
+                  renderMember={renderMember}
+                  onRemove={onRemove}
+                />
+              ))
+            ) : (
+              <EmptyState
+                icon={<Inbox className="size-6" />}
+                title={emptyText?.title ?? `這個${subjectNoun}還沒有${memberNoun}`}
+                desc={emptyText?.desc ?? `點右上「${addLabel}」加入。`}
+                cta={onAdd ? { label: addLabel, onClick: onAdd } : undefined}
+              />
+            )}
           </div>
         ) : mode === 'list-with-extra' ? (
           <div className="flex h-full flex-col">
@@ -245,6 +273,81 @@ function MemberListBody<M>({
         );
       })}
     </>
+  );
+}
+
+/* ============ Group accordion（grouped 模式單一群組） ============ */
+function GroupAccordion<M>({
+  group,
+  memberIdOf,
+  renderMember,
+  onRemove,
+}: {
+  group: MemberGroup<M>;
+  memberIdOf: (m: M) => string;
+  renderMember: (m: M, index: number, focused: boolean) => ReactNode;
+  onRemove?: (memberId: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  return (
+    <div className="mb-2 overflow-hidden rounded-lg border border-border">
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-border/60 bg-accent/15 px-2.5 py-1.5">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="grid size-6 flex-none place-items-center rounded text-muted-foreground hover:bg-accent/40"
+          aria-label={expanded ? '折疊' : '展開'}
+        >
+          {expanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+        </button>
+        <span className="truncate text-sm font-semibold text-foreground">{group.label}</span>
+        {group.meta ? (
+          <span className="flex-none text-[11px] text-muted-foreground">{group.meta}</span>
+        ) : null}
+        <span className="flex-1" />
+        {group.actions ? <div className="flex flex-none items-center gap-1.5">{group.actions}</div> : null}
+      </div>
+
+      {/* Members */}
+      {expanded ? (
+        group.members.length === 0 ? (
+          <div className="px-4 py-4 text-center text-xs text-muted-foreground">無項目</div>
+        ) : (
+          <div className="p-1.5">
+            {group.members.map((m, i) => {
+              const id = memberIdOf(m);
+              return (
+                <div
+                  key={id}
+                  className={cn(
+                    'group/row mb-0.5 flex items-center gap-3 rounded-md p-2 transition-colors',
+                    'hover:bg-accent/25',
+                  )}
+                >
+                  <div className="min-w-0 flex-1">{renderMember(m, i, false)}</div>
+                  {onRemove ? (
+                    <button
+                      type="button"
+                      onClick={() => onRemove(id)}
+                      title="移除"
+                      aria-label="移除"
+                      className={cn(
+                        'grid size-7 flex-none place-items-center rounded-md border border-transparent text-muted-foreground/60',
+                        'opacity-0 transition-opacity hover:border-destructive/40 hover:bg-destructive/15 hover:text-destructive',
+                        'group-hover/row:opacity-100',
+                      )}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )
+      ) : null}
+    </div>
   );
 }
 
