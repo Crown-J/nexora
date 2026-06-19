@@ -21,56 +21,35 @@ import { usePathname } from 'next/navigation';
 import { registerScatterNavigate } from '@design/hooks/useDirtyGuard';
 
 const SELECTOR = '[data-nx-frame]';
-const PUSH = 110;                            // 推力略減、視覺更柔
-const SCATTER_MS = 360;                      // 出場拉長、不再倉促
-const GATHER_MS = 580;                       // 進場慢工出細活、絲滑感最強
-// exponential 系列曲線（質感最佳:前段緩、尾段順）
-const EASE_OUT_EXPO = 'cubic-bezier(.16, 1, .3, 1)';
-const EASE_IN_EXPO = 'cubic-bezier(.7, 0, .84, 0)';
-// 元件間 stagger 波浪、視覺更高級（出場由外往內、進場由內往外）
-const STAGGER_MS = 28;
-
-/** 把元件依「距 host 中心距離」排序、回傳 [元素, 向量, 距離] tuple */
-function computeFrameOffsets(host: HTMLElement, frames: HTMLElement[]) {
-  const hostRect = host.getBoundingClientRect();
-  const cx = hostRect.left + hostRect.width / 2;
-  const cy = hostRect.top + hostRect.height / 2;
-  return frames.map((elm) => {
-    const r = elm.getBoundingClientRect();
-    const dx = r.left + r.width / 2 - cx;
-    const dy = r.top + r.height / 2 - cy;
-    const m = Math.hypot(dx, dy) || 1;
-    return { elm, dx, dy, m };
-  });
-}
+// 對齊 demo system-integrate.js:PUSH 120 / duration .44s / cubic-bezier(.34,.05,.2,1)
+const PUSH = 120;
+const TRANSFORM_MS = 440;                    // 散開 / 合攏動畫主時長（同 demo）
+const OPACITY_MS = 400;                      // 同 demo opacity .4s
+const SWAP_DELAY_MS = 300;                   // demo 範式:不等散開完成、300ms 就 swap
+const EASING = 'cubic-bezier(.34, .05, .2, 1)';
 
 function applyScatter(
   host: HTMLElement,
   frames: HTMLElement[],
-  durationMs: number,
-  easing: string,
   instant: boolean,
-  stagger: { order: 'outerFirst' | 'innerFirst' | 'none' } = { order: 'none' },
 ) {
-  const offsets = computeFrameOffsets(host, frames);
-  // 按距離排:outerFirst = 距遠的先動（出場直覺）/ innerFirst = 距近的先動（進場直覺）
-  const ordered = [...offsets];
-  if (stagger.order === 'outerFirst') ordered.sort((a, b) => b.m - a.m);
-  else if (stagger.order === 'innerFirst') ordered.sort((a, b) => a.m - b.m);
-  ordered.forEach(({ elm, dx, dy, m }, i) => {
-    const delay = instant || stagger.order === 'none' ? 0 : i * STAGGER_MS;
+  const hostRect = host.getBoundingClientRect();
+  const cx = hostRect.left + hostRect.width / 2;
+  const cy = hostRect.top + hostRect.height / 2;
+  frames.forEach((elm) => {
+    const r = elm.getBoundingClientRect();
+    const dx = r.left + r.width / 2 - cx;
+    const dy = r.top + r.height / 2 - cy;
+    const m = Math.hypot(dx, dy) || 1;
     elm.style.transition = instant
       ? 'none'
-      : `transform ${durationMs}ms ${easing} ${delay}ms, opacity ${Math.round(
-          durationMs * 0.62,
-        )}ms ease-in ${delay}ms`;
+      : `transform ${TRANSFORM_MS}ms ${EASING}, opacity ${OPACITY_MS}ms ease`;
     elm.style.transform = `translate(${((dx / m) * PUSH).toFixed(1)}px, ${(
       (dy / m) *
       PUSH
-    ).toFixed(1)}px) scale(.92)`;
+    ).toFixed(1)}px) scale(.9)`;
     elm.style.opacity = '0';
     elm.style.willChange = 'transform, opacity';
-    // GPU layer 提示（補 backface 鎖、避免淺色模式 1px 抖）
     elm.style.backfaceVisibility = 'hidden';
   });
 }
@@ -112,17 +91,14 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
         return;
       }
       isScatteringRef.current = true;
-      // exit:由外往內依序飛走（外圍元件先離場、視覺像「先邊緣後中心」溶解）
-      applyScatter(host, frames, SCATTER_MS, EASE_IN_EXPO, false, {
-        order: 'outerFirst',
-      });
-      // 等最後一個 stagger 完成才 navigate
-      const totalScatter = SCATTER_MS + STAGGER_MS * Math.max(0, frames.length - 1);
+      // demo 範式:套 transition、所有元件同時散開、不 stagger（保留「同一頁面散開」感）
+      applyScatter(host, frames, false);
+      // demo 範式:不等散開完成（440ms）、300ms 就 navigate
+      // 此時元件 opacity 已淡到接近 0、user 看到的是「持續飛離中內容換了」、非「跨頁切換」
       scatterTimerRef.current = window.setTimeout(() => {
         scatterTimerRef.current = null;
         navigateFn();
-        // isScatteringRef 在 pathname 變化（新頁 mount）的 useLayoutEffect reset
-      }, totalScatter);
+      }, SWAP_DELAY_MS);
     });
 
     return () => {
@@ -145,32 +121,24 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
     if (frames.length === 0) return;
 
     // 1. 瞬間套散開狀態（無 transition、user 不會看到 flash 原位）
-    applyScatter(host, frames, 0, EASE_OUT_EXPO, true);
+    applyScatter(host, frames, true);
 
     // 2. 強制 reflow、確保散開被瀏覽器記入
     void host.offsetWidth;
 
-    // 3. 依「距 host 中心」由內往外排序 stagger:中心元件先就位、外圍依序綻放
-    const offsets = computeFrameOffsets(host, frames);
-    const ordered = [...offsets].sort((a, b) => a.m - b.m);
-
-    // 4. 下一幀觸發合攏（gather）+ 個別 stagger
+    // 3. 下一幀觸發合攏（gather）—— demo 範式:同時動、不 stagger
     const rafId = requestAnimationFrame(() => {
-      ordered.forEach(({ elm }, i) => {
-        const delay = i * STAGGER_MS;
-        elm.style.transition = `transform ${GATHER_MS}ms ${EASE_OUT_EXPO} ${delay}ms, opacity ${Math.round(
-          GATHER_MS * 1.05,
-        )}ms ease-out ${delay}ms`;
+      frames.forEach((elm) => {
+        elm.style.transition = `transform ${TRANSFORM_MS}ms ${EASING}, opacity ${OPACITY_MS}ms ease`;
         elm.style.transform = '';
         elm.style.opacity = '';
       });
     });
 
-    // 5. cleanup 清 inline style（含最後一個 stagger 完成）
-    const totalGather = GATHER_MS + STAGGER_MS * Math.max(0, frames.length - 1) + 80;
+    // 4. cleanup 清 inline style
     const cleanupId = window.setTimeout(() => {
       clearScatter(frames);
-    }, totalGather);
+    }, TRANSFORM_MS + 80);
 
     return () => {
       cancelAnimationFrame(rafId);
