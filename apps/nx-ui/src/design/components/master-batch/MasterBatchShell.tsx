@@ -201,7 +201,7 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
       }
       // 全域 Alt+A
       if (e.altKey && (e.key === 'a' || e.key === 'A')) {
-        if (selectedSubject) {
+        if (selectedSubject && (config.isAddEnabled?.(selectedSubject) ?? true)) {
           e.preventDefault();
           config.onAdd(selectedSubject, ctx);
         }
@@ -409,7 +409,11 @@ export function MasterBatchShell<S, M>({ config, className }: MasterBatchShellPr
               ? (memberId) => config.onRemoveMember!(selectedSubject, memberId, ctx)
               : undefined
           }
-          onAdd={selectedSubject ? () => config.onAdd(selectedSubject, ctx) : undefined}
+          onAdd={
+            selectedSubject && (config.isAddEnabled?.(selectedSubject) ?? true)
+              ? () => config.onAdd(selectedSubject, ctx)
+              : undefined
+          }
           emptyText={
             selectedSubject && config.emptyText ? config.emptyText(selectedSubject) : undefined
           }

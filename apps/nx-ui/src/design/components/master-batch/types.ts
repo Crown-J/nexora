@@ -130,6 +130,10 @@ export type MasterBatchConfig<S, M> = {
   // ---------- 互動 ----------
   /** 點加入鈕（case 自管多選 modal state） */
   onAdd: (s: S, ctx: BatchCtx) => void;
+  /** 加入鈕啟用判定（基於當前選中主體）；undefined = always enabled。
+   *  用於 tree mode 某些節點層級不該觸發加入動作（例：據點架構圖只在 site 層才指派員工）。
+   */
+  isAddEnabled?: (s: S) => boolean;
   /** 移除成員（Delete 鍵 / ✕ 鈕） */
   onRemoveMember?: (s: S, memberId: string, ctx: BatchCtx) => void;
 
