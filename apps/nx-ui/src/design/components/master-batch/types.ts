@@ -97,8 +97,11 @@ export type MasterBatchConfig<S, M> = {
   // tree 模式（節點型別 = S；payload 由 case 自定）
   treeRoots?: () => S[];
   treeChildren?: (n: S) => S[];
-  /** 葉子節點判定：葉子可選且顯示右欄成員；非葉子僅展開折疊 */
-  isLeaf?: (n: S) => boolean;
+  /** 可選節點判定：true 表該節點可被選定（右欄顯示成員）；
+   *  false 表純容器（只能展開折疊）。預設 = 無 children 即可選。
+   *  允許「可選 + 有 children」並存（例：據點本身可選，且下有倉庫子節點）。
+   */
+  isSelectable?: (n: S) => boolean;
   /** tree mode 初始展開的節點 ids（其餘預設折疊） */
   defaultExpandedIds?: () => string[];
 

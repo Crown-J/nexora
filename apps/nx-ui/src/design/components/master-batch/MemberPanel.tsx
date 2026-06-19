@@ -2,7 +2,9 @@
 // 主檔群組模板 — 右欄面板（標頭 + 成員 + 空狀態 / skeleton）
 //
 // list 模式：成員 list、ren by config.renderMember
-// list-with-extra 模式：Step 4（據點架構）補
+// list-with-extra 模式：上半 list + 下半 extra（50/50 split、各自獨立滾動）
+//   - 若 extraContent 為 null/undefined、上半佔滿
+//   - extra 由 case 自行渲染（含獨立 modal / 互動）
 // grouped 模式：Step 6（供應商供貨）補
 //
 // 對齊 demo cmb-engine.js 範式：320ms 載入 skeleton、空狀態三段式 + CTA、
@@ -34,6 +36,8 @@ export type MemberPanelProps<M> = {
   members: M[];
   memberIdOf: (m: M) => string;
   renderMember: (m: M, index: number, focused: boolean) => ReactNode;
+  /** list-with-extra：副區內容；undefined/null = 上半佔滿 */
+  extraContent?: ReactNode;
   focusedIdx: number;
   onRowFocus: (idx: number) => void;
   onRemove?: (memberId: string) => void;
@@ -56,6 +60,7 @@ export function MemberPanel<M>(props: MemberPanelProps<M>) {
     members,
     memberIdOf,
     renderMember,
+    extraContent,
     focusedIdx,
     onRowFocus,
     onRemove,
@@ -101,71 +106,145 @@ export function MemberPanel<M>(props: MemberPanelProps<M>) {
       </div>
 
       {/* 內容 */}
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1">
         {!hasSubject ? (
-          <EmptyState
-            icon={<ArrowRight className="size-6" />}
-            title={waitingSubjectText}
-            desc={`選定後，這裡會載入該${subjectNoun}目前的${memberNoun}清單。`}
-          />
+          <div className="h-full overflow-y-auto p-2">
+            <EmptyState
+              icon={<ArrowRight className="size-6" />}
+              title={waitingSubjectText}
+              desc={`選定後，這裡會載入該${subjectNoun}目前的${memberNoun}清單。`}
+            />
+          </div>
         ) : loading ? (
-          <SkeletonRows />
-        ) : mode === 'list-with-extra' ? (
-          <div className="px-4 py-8 text-center text-xs text-muted-foreground">
-            list-with-extra TODO（Step 4 補：據點架構員工歸屬副區）
+          <div className="h-full overflow-y-auto p-2">
+            <SkeletonRows />
           </div>
         ) : mode === 'grouped' ? (
           <div className="px-4 py-8 text-center text-xs text-muted-foreground">
             grouped TODO（Step 6 補：供應商供貨按品牌分組）
           </div>
-        ) : members.length === 0 ? (
-          <EmptyState
-            icon={<Inbox className="size-6" />}
-            title={emptyText?.title ?? `這個${subjectNoun}還沒有${memberNoun}`}
-            desc={emptyText?.desc ?? `點右上「${addLabel}」加入。`}
-            cta={
-              onAdd
-                ? { label: addLabel, onClick: onAdd }
-                : undefined
-            }
-          />
-        ) : (
-          members.map((m, i) => {
-            const id = memberIdOf(m);
-            const focused = i === focusedIdx;
-            return (
-              <div
-                key={id}
-                onMouseEnter={() => onRowFocus(i)}
-                className={cn(
-                  'group relative mb-0.5 flex items-center gap-3 rounded-lg p-2.5 transition-colors',
-                  'hover:bg-accent/30',
-                  focused && 'ring-1 ring-inset ring-[#E8A020]/45',
-                )}
-              >
-                <div className="min-w-0 flex-1">{renderMember(m, i, focused)}</div>
-                {onRemove ? (
-                  <button
-                    type="button"
-                    onClick={() => onRemove(id)}
-                    title="移除"
-                    aria-label="移除"
-                    className={cn(
-                      'grid size-8 flex-none place-items-center rounded-md border border-transparent text-muted-foreground/60',
-                      'opacity-0 transition-opacity hover:border-destructive/40 hover:bg-destructive/15 hover:text-destructive',
-                      'group-hover:opacity-100',
-                      focused && 'opacity-100',
-                    )}
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                ) : null}
+        ) : mode === 'list-with-extra' ? (
+          <div className="flex h-full flex-col">
+            <div
+              className={cn(
+                'min-h-0 overflow-y-auto p-2',
+                extraContent ? 'flex-1' : 'h-full',
+              )}
+            >
+              <MemberListBody
+                members={members}
+                memberIdOf={memberIdOf}
+                renderMember={renderMember}
+                focusedIdx={focusedIdx}
+                onRowFocus={onRowFocus}
+                onRemove={onRemove}
+                emptyText={emptyText}
+                subjectNoun={subjectNoun}
+                memberNoun={memberNoun}
+                addLabel={addLabel}
+                onAdd={onAdd}
+              />
+            </div>
+            {extraContent ? (
+              <div className="min-h-0 flex-1 overflow-y-auto border-t border-border/60 p-2">
+                {extraContent}
               </div>
-            );
-          })
+            ) : null}
+          </div>
+        ) : (
+          <div className="h-full overflow-y-auto p-2">
+            <MemberListBody
+              members={members}
+              memberIdOf={memberIdOf}
+              renderMember={renderMember}
+              focusedIdx={focusedIdx}
+              onRowFocus={onRowFocus}
+              onRemove={onRemove}
+              emptyText={emptyText}
+              subjectNoun={subjectNoun}
+              memberNoun={memberNoun}
+              addLabel={addLabel}
+              onAdd={onAdd}
+            />
+          </div>
         )}
       </div>
     </div>
+  );
+}
+
+/* ============ 共用的 list body（list / list-with-extra 上半都用） ============ */
+function MemberListBody<M>({
+  members,
+  memberIdOf,
+  renderMember,
+  focusedIdx,
+  onRowFocus,
+  onRemove,
+  emptyText,
+  subjectNoun,
+  memberNoun,
+  addLabel,
+  onAdd,
+}: {
+  members: M[];
+  memberIdOf: (m: M) => string;
+  renderMember: (m: M, index: number, focused: boolean) => ReactNode;
+  focusedIdx: number;
+  onRowFocus: (idx: number) => void;
+  onRemove?: (memberId: string) => void;
+  emptyText?: { title: string; desc: string };
+  subjectNoun: string;
+  memberNoun: string;
+  addLabel: string;
+  onAdd?: () => void;
+}) {
+  if (members.length === 0) {
+    return (
+      <EmptyState
+        icon={<Inbox className="size-6" />}
+        title={emptyText?.title ?? `這個${subjectNoun}還沒有${memberNoun}`}
+        desc={emptyText?.desc ?? `點右上「${addLabel}」加入。`}
+        cta={onAdd ? { label: addLabel, onClick: onAdd } : undefined}
+      />
+    );
+  }
+  return (
+    <>
+      {members.map((m, i) => {
+        const id = memberIdOf(m);
+        const focused = i === focusedIdx;
+        return (
+          <div
+            key={id}
+            onMouseEnter={() => onRowFocus(i)}
+            className={cn(
+              'group relative mb-0.5 flex items-center gap-3 rounded-lg p-2.5 transition-colors',
+              'hover:bg-accent/30',
+              focused && 'ring-1 ring-inset ring-[#E8A020]/45',
+            )}
+          >
+            <div className="min-w-0 flex-1">{renderMember(m, i, focused)}</div>
+            {onRemove ? (
+              <button
+                type="button"
+                onClick={() => onRemove(id)}
+                title="移除"
+                aria-label="移除"
+                className={cn(
+                  'grid size-8 flex-none place-items-center rounded-md border border-transparent text-muted-foreground/60',
+                  'opacity-0 transition-opacity hover:border-destructive/40 hover:bg-destructive/15 hover:text-destructive',
+                  'group-hover:opacity-100',
+                  focused && 'opacity-100',
+                )}
+              >
+                <X className="size-3.5" />
+              </button>
+            ) : null}
+          </div>
+        );
+      })}
+    </>
   );
 }
 

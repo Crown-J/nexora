@@ -112,7 +112,7 @@ export function OrgStructurePage() {
       leftMode: 'tree',
       treeRoots,
       treeChildren,
-      isLeaf: (n) => n.type === 'team' || n.type === 'role',
+      isSelectable: (n) => n.type === 'team' || n.type === 'role',
       defaultExpandedIds: () =>
         DEPARTMENTS.flatMap((d) => [
           `dept:${d.id}`,

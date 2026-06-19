@@ -2,7 +2,9 @@
 // 主檔群組模板 — 左欄面板（搜尋 + 主體列表）
 //
 // flat 模式：FlatRow（金色左 3px 邊條 + gradient 表選中）
-// tree 模式：TreeRow（縮排 level*16px + chevron 展開折疊；葉子可選）
+// tree 模式：TreeRow（縮排 level*16px + chevron 獨立按鈕）
+//   - chevron 點擊：toggle expand（stopPropagation 不觸發 select）
+//   - row body 點擊：isSelectable → select；否則 → toggle expand
 //
 // tree mode 暫不支援搜尋（input 隱藏）；後續軌可補「過濾葉子 + 自動展開 ancestor」
 'use client';
@@ -19,7 +21,7 @@ export type TreeRowVM = {
   level: number;
   hasChildren: boolean;
   expanded: boolean;
-  isLeaf: boolean;
+  isSelectable: boolean;
   title: string;
   count?: number;
 };
@@ -134,8 +136,11 @@ export function SubjectPanel<S>(props: SubjectPanelProps<S>) {
                 icon={SubjectIcon}
                 isSelected={row.id === selectedId}
                 isFocused={i === focusedIdx}
-                onLeafSelect={() => onSelect(row.id, i)}
-                onToggle={() => onToggleExpand?.(row.id)}
+                onBodyClick={() => {
+                  if (row.isSelectable) onSelect(row.id, i);
+                  else if (row.hasChildren) onToggleExpand?.(row.id);
+                }}
+                onChevronClick={() => onToggleExpand?.(row.id)}
               />
             ))
           ) : (
@@ -219,75 +224,85 @@ function FlatRow({
   );
 }
 
-/* ============ Tree row ============ */
+/* ============ Tree row（chevron + body 兩個獨立按鈕） ============ */
 function TreeRow({
   row,
   icon: Icon,
   isSelected,
   isFocused,
-  onLeafSelect,
-  onToggle,
+  onBodyClick,
+  onChevronClick,
 }: {
   row: TreeRowVM;
   icon?: LucideIcon;
   isSelected: boolean;
   isFocused: boolean;
-  onLeafSelect: () => void;
-  onToggle: () => void;
+  onBodyClick: () => void;
+  onChevronClick: () => void;
 }) {
   const indent = row.level * 16;
-  const handleClick = row.isLeaf ? onLeafSelect : onToggle;
-  const isLeafSelected = row.isLeaf && isSelected;
+  const showSelectedStyle = row.isSelectable && isSelected;
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <div
       className={cn(
-        'mb-0.5 flex w-full items-center gap-2 rounded-lg py-2 pr-2 text-left transition-colors',
-        isLeafSelected
+        'mb-0.5 flex w-full items-center gap-1 rounded-lg transition-colors',
+        showSelectedStyle
           ? 'bg-gradient-to-r from-[#E8A020]/15 to-[#E8A020]/5 shadow-[inset_3px_0_0_#E8A020,inset_0_0_0_1px_rgba(232,160,32,0.28)]'
           : 'hover:bg-accent/30',
-        isFocused && !isLeafSelected && 'ring-1 ring-inset ring-[#E8A020]/45',
+        isFocused && !showSelectedStyle && 'ring-1 ring-inset ring-[#E8A020]/45',
       )}
-      style={{ paddingLeft: 8 + indent }}
+      style={{ paddingLeft: indent }}
     >
       {row.hasChildren ? (
-        row.expanded ? (
-          <ChevronDown className="size-3.5 flex-none text-muted-foreground" />
-        ) : (
-          <ChevronRight className="size-3.5 flex-none text-muted-foreground" />
-        )
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onChevronClick();
+          }}
+          className="grid size-6 flex-none place-items-center rounded text-muted-foreground hover:bg-accent/40"
+          title={row.expanded ? '折疊' : '展開'}
+          aria-label={row.expanded ? '折疊' : '展開'}
+        >
+          {row.expanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+        </button>
       ) : (
-        <span className="size-3.5 flex-none" />
+        <span className="size-6 flex-none" />
       )}
-      {Icon ? (
-        <span
-          className={cn(
-            'grid size-7 flex-none place-items-center rounded-md',
-            isLeafSelected ? 'bg-[#E8A020]/26 text-[#E8A020]' : 'bg-[#E8A020]/12 text-[#E8A020]',
-          )}
-        >
-          <Icon className="size-3.5" />
-        </span>
-      ) : null}
-      <span
-        className={cn(
-          'min-w-0 flex-1 truncate text-sm',
-          row.isLeaf ? 'text-foreground' : 'font-medium text-foreground/90',
-        )}
+      <button
+        type="button"
+        onClick={onBodyClick}
+        className="flex min-w-0 flex-1 items-center gap-2 py-2 pr-2 text-left"
       >
-        {row.title}
-      </span>
-      {row.count !== undefined ? (
+        {Icon ? (
+          <span
+            className={cn(
+              'grid size-7 flex-none place-items-center rounded-md',
+              showSelectedStyle ? 'bg-[#E8A020]/26 text-[#E8A020]' : 'bg-[#E8A020]/12 text-[#E8A020]',
+            )}
+          >
+            <Icon className="size-3.5" />
+          </span>
+        ) : null}
         <span
           className={cn(
-            'flex-none font-mono text-[11px] tabular-nums',
-            isLeafSelected ? 'text-[#E8A020]' : 'text-muted-foreground',
+            'min-w-0 flex-1 truncate text-sm',
+            row.isSelectable ? 'text-foreground' : 'font-medium text-foreground/90',
           )}
         >
-          {row.count}
+          {row.title}
         </span>
-      ) : null}
-    </button>
+        {row.count !== undefined ? (
+          <span
+            className={cn(
+              'flex-none font-mono text-[11px] tabular-nums',
+              showSelectedStyle ? 'text-[#E8A020]' : 'text-muted-foreground',
+            )}
+          >
+            {row.count}
+          </span>
+        ) : null}
+      </button>
+    </div>
   );
 }
