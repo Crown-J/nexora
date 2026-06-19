@@ -82,14 +82,43 @@ export function useDirtyGuard(
 /**
  * 跳轉前檢查 dirty:
  *  - 若 dirty 觸發 confirmAndProceed（由 page 提供自訂 prompt 如 3-way confirm）
- *  - 否則直接執行 navigate
+ *  - 否則執行 navigateWithScatter（散開動畫完成才實際 router.push）
  *
  * Usage: tryNavigate(() => router.push('/dashboard/xxx'))
  */
 export function tryNavigate(navigate: () => void): void {
+  const wrapped = () => navigateWithScatter(navigate);
   const g = guardRef.current;
   if (g && g.isDirty()) {
-    g.confirmAndProceed(navigate);
+    g.confirmAndProceed(wrapped);
+  } else {
+    wrapped();
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// 2026-06-19 階段 2:ScatterPageGate 註冊 scatter exit 動畫
+//   tryNavigate 跑完 dirty check 後、會先跑 scatter（散開）完成才 navigate
+//   未註冊（如 layout 還沒 mount）時 fallback 直接 navigate（不影響功能）
+// ──────────────────────────────────────────────────────────────
+
+type ScatterNavigate = (navigate: () => void) => void;
+let scatterImpl: ScatterNavigate | null = null;
+
+/**
+ * 由 ScatterPageGate mount 時呼叫、註冊全域 scatter exit 動畫實作。
+ * 回傳 unregister 函式（unmount 時 cleanup）。
+ */
+export function registerScatterNavigate(impl: ScatterNavigate): () => void {
+  scatterImpl = impl;
+  return () => {
+    if (scatterImpl === impl) scatterImpl = null;
+  };
+}
+
+function navigateWithScatter(navigate: () => void): void {
+  if (scatterImpl) {
+    scatterImpl(navigate);
   } else {
     navigate();
   }
