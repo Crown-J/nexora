@@ -64,10 +64,10 @@ export const MASTER_PAGES: MasterPageMeta[] = [
   { id: 'dept', label: '部門', href: '/dashboard/master/department', category: 'org', icon: Building2 },
   { id: 'group', label: '組別', href: '/dashboard/master/team', category: 'org', icon: UsersRound },
   // perm 權限管理
-  { id: 'orgchart', label: '組織架構圖', href: '#', category: 'perm', icon: Network, disabled: true },
+  { id: 'orgchart', label: '組織架構圖', href: '/dashboard/master/org-structure', category: 'perm', icon: Network },
   { id: 'permmatrix', label: '職務權限', href: '/dashboard/master/role-view', category: 'perm', icon: ShieldCheck },
   // site 據點倉庫
-  { id: 'sitechart', label: '據點架構圖', href: '#', category: 'site', icon: GitBranch, disabled: true },
+  { id: 'sitechart', label: '據點架構圖', href: '/dashboard/master/location-structure', category: 'site', icon: GitBranch },
   { id: 'sitebase', label: '據點', href: '/dashboard/master/site', category: 'site', icon: MapPin },
   { id: 'warehouse', label: '倉庫', href: '/dashboard/master/warehouses', category: 'site', icon: WarehouseIcon },
   { id: 'bin', label: '庫位', href: '/dashboard/master/location', category: 'site', icon: Boxes },
@@ -75,13 +75,13 @@ export const MASTER_PAGES: MasterPageMeta[] = [
   { id: 'partner', label: '往來對象', href: '/dashboard/master/partners', category: 'partner', icon: Handshake },
   { id: 'custgrade', label: '客戶分級', href: '/dashboard/master/customer-grade', category: 'partner', icon: Star },
   { id: 'suppgrade', label: '供應商分級', href: '/dashboard/master/supplier-grade', category: 'partner', icon: Award },
-  { id: 'supplymap', label: '供應商供貨對應', href: '/dashboard/master/partner-part', category: 'partner', icon: GitMerge },
+  { id: 'supplymap', label: '供應商供貨對應', href: '/dashboard/master/supplier-supply', category: 'partner', icon: GitMerge },
   // product 產品與廠牌
   { id: 'part', label: '零件', href: '/dashboard/master/parts', category: 'product', icon: Package },
   // 2026-06-18 廠牌合併:零件品牌 + 汽車品牌合表（後端 nx01/brands、isCar/isPart 雙開關）
   { id: 'brand', label: '廠牌', href: '/dashboard/master/brand', category: 'product', icon: Tag },
   { id: 'partgroup', label: '零件群組', href: '/dashboard/master/part-group', category: 'product', icon: Layers },
-  { id: 'univgroup', label: '通用件群組', href: '/dashboard/master/part-compat-group', category: 'product', icon: Combine },
+  { id: 'univgroup', label: '通用件群組', href: '/dashboard/master/universal-group', category: 'product', icon: Combine },
   // dict 字典主檔
   { id: 'region', label: '地區', href: '/dashboard/master/region', category: 'dict', icon: Map },
   { id: 'country', label: '國家', href: '/dashboard/master/country', category: 'dict', icon: Globe },
