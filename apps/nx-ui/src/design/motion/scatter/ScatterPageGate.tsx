@@ -70,6 +70,11 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
   const reducedMotionRef = useRef<boolean>(false);
   const isScatteringRef = useRef<boolean>(false);
   const scatterTimerRef = useRef<number | null>(null);
+  // 2026-06-19 fail-safe：scatter exit 後 navigate 沒成功（pathname 沒變），
+  // pathname effect 不 fire、isScatteringRef 永遠 true、scatter inline style
+  // 永遠不清、整個 dashboard 凍住。fail-safe timer 在 1500ms 後強制 reset。
+  const failSafeTimerRef = useRef<number | null>(null);
+  const failSafeFramesRef = useRef<HTMLElement[]>([]);
 
   // mount:偵測 prefers-reduced-motion + 註冊 scatter exit 給 tryNavigate
   useLayoutEffect(() => {
@@ -99,11 +104,31 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
         scatterTimerRef.current = null;
         navigateFn();
       }, SWAP_DELAY_MS);
+
+      // fail-safe：navigate 後預期 pathname 變化、useLayoutEffect 會 reset
+      // isScatteringRef。如果 1500ms 內仍卡在 scattering（navigate 失敗、
+      // 例：dock entry href 設錯到 '#' 或不存在的 path）、強制 reset。
+      failSafeFramesRef.current = frames;
+      if (failSafeTimerRef.current) clearTimeout(failSafeTimerRef.current);
+      failSafeTimerRef.current = window.setTimeout(() => {
+        failSafeTimerRef.current = null;
+        if (isScatteringRef.current) {
+          isScatteringRef.current = false;
+          clearScatter(failSafeFramesRef.current);
+          failSafeFramesRef.current = [];
+          if (typeof console !== 'undefined') {
+            console.warn(
+              '[ScatterPageGate] fail-safe triggered: navigate did not complete in 1500ms, force reset scatter state',
+            );
+          }
+        }
+      }, 1500);
     });
 
     return () => {
       unregister();
       if (scatterTimerRef.current) clearTimeout(scatterTimerRef.current);
+      if (failSafeTimerRef.current) clearTimeout(failSafeTimerRef.current);
     };
   }, []);
 
@@ -113,6 +138,12 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
     if (scatterTimerRef.current) {
       clearTimeout(scatterTimerRef.current);
       scatterTimerRef.current = null;
+    }
+    // navigate 成功，fail-safe 不需要 trigger
+    if (failSafeTimerRef.current) {
+      clearTimeout(failSafeTimerRef.current);
+      failSafeTimerRef.current = null;
+      failSafeFramesRef.current = [];
     }
     if (reducedMotionRef.current) return;
     const host = hostRef.current;
