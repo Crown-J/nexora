@@ -19,7 +19,7 @@ import { DashboardSubNav } from '@design/layout/DashboardSubNav';
 import { AutoPageGuide, PageGuideProvider } from '@/features/page-guide';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
-import { PageTransition } from '@design/layout/PageTransition';
+import { ScatterPageGate } from '@design/motion/scatter/ScatterPageGate';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
 import { tryNavigate } from '@design/hooks/useDirtyGuard';
 import { cn } from '@design/utils/cn';
@@ -144,7 +144,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 )}
               >
                 <DashboardSubNav />
-                <PageTransition>
+                <ScatterPageGate>
                   <div
                     className={cn(
                       'w-full min-w-0',
@@ -154,7 +154,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                     {children}
                     <AutoPageGuide />
                   </div>
-                </PageTransition>
+                </ScatterPageGate>
               </main>
             </div>
           </div>

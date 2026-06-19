@@ -33,7 +33,7 @@ export function MasterPageHead({
 }: MasterPageHeadProps) {
   const showDetailTitle = tab === 'detail' && (detailTitle || detailSubtitle);
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <div data-nx-frame className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <MasterTabs tab={tab} onChange={onTabChange} />
       {showDetailTitle ? (
         <div className="flex min-w-0 flex-1 items-center gap-2 truncate">

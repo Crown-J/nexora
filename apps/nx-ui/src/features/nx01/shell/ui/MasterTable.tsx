@@ -339,7 +339,10 @@ export function MasterTable<T>({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70">
+    <div
+      data-nx-frame
+      className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/40 bg-card/70"
+    >
       {tableWithDnd}
 
       {/* footer 對齊 demo .nx-tfoot */}

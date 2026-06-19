@@ -265,6 +265,7 @@ export function ErpToolbar({
 
   return (
     <div
+      data-nx-frame
       className="flex items-center gap-1 border-b border-border/40 px-3 py-2"
       style={{
         // 2026-06-18 token 化:dark 用 #16161B→#101014、light 用深橘 #c8550f→#a8430a

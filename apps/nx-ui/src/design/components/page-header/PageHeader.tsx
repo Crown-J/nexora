@@ -47,7 +47,7 @@ export function PageHeader({
     ];
 
   return (
-    <div className={cn('flex flex-col gap-[6px] px-4 py-3', className)}>
+    <div data-nx-frame className={cn('flex flex-col gap-[6px] px-4 py-3', className)}>
       <div className="flex items-center gap-[8px]">
         <nav className="flex min-w-0 flex-1 items-center gap-[7px] text-xs">
           {effective.map((c, i) => {
