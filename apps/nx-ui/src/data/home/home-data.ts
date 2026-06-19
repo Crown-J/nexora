@@ -245,8 +245,8 @@ export const DOCK_NAV: DockItem[] = [
         label: '權限管理',
         icon: 'shield-check',
         sub: [
-          // 2026-06-18 對齊 master-pages.ts:組織架構圖待實作（disabled href='#'）
-          { key: 'orgchart', label: '組織架構圖', icon: 'network', href: '#' },
+          // 2026-06-20 主檔群組模板交付（接到我新做的 OrgStructurePage）
+          { key: 'orgchart', label: '組織架構圖', icon: 'network', href: '/dashboard/master/org-structure' },
           { key: 'permmatrix', label: '職務權限設定', icon: 'shield-check', href: '/dashboard/master/role-view' },
         ],
       },
@@ -255,8 +255,8 @@ export const DOCK_NAV: DockItem[] = [
         label: '據點倉庫',
         icon: 'warehouse',
         sub: [
-          // 2026-06-18:據點架構圖待實作
-          { key: 'sitechart', label: '據點架構圖', icon: 'network', href: '#' },
+          // 2026-06-20 主檔群組模板交付（接到我新做的 LocationStructurePage）
+          { key: 'sitechart', label: '據點架構圖', icon: 'network', href: '/dashboard/master/location-structure' },
           { key: 'sites', label: '據點', icon: 'map-pin', href: '/dashboard/master/site' },
           { key: 'warehouses', label: '倉庫', icon: 'warehouse', href: '/dashboard/master/warehouses' },
           { key: 'location', label: '庫位', icon: 'package-open', href: '/dashboard/master/location' },
@@ -270,8 +270,8 @@ export const DOCK_NAV: DockItem[] = [
           { key: 'partners', label: '往來對象', icon: 'handshake', href: '/dashboard/master/partners' },
           { key: 'cust-grade', label: '客戶分級', icon: 'crown', href: '/dashboard/master/customer-grade' },
           { key: 'supp-grade', label: '供應商分級', icon: 'award', href: '/dashboard/master/supplier-grade' },
-          // 2026-06-18:供貨對應從產品與廠牌搬到往來對象（對齊 master-pages.ts）
-          { key: 'partner-part', label: '供應商供貨對應', icon: 'link', href: '/dashboard/master/partner-part' },
+          // 2026-06-20 主檔群組模板交付（從舊 partner-part 改指 SupplierSupplyPage）
+          { key: 'partner-part', label: '供應商供貨對應', icon: 'link', href: '/dashboard/master/supplier-supply' },
         ],
       },
       {
@@ -283,8 +283,8 @@ export const DOCK_NAV: DockItem[] = [
           // 2026-06-18 廠牌合併:car-brand + part-brand 合 nx01/brands、用 isCar/isPart 雙開關
           { key: 'brand', label: '廠牌', icon: 'tag', href: '/dashboard/master/brand' },
           { key: 'part-group', label: '零件群組', icon: 'layers', href: '/dashboard/master/part-group' },
-          // 2026-06-18:加通用件群組（取代原供貨對應位置）
-          { key: 'univ-group', label: '通用件群組', icon: 'combine', href: '/dashboard/master/part-compat-group' },
+          // 2026-06-20 主檔群組模板交付（從舊 part-compat-group 改指 UniversalGroupPage）
+          { key: 'univ-group', label: '通用件群組', icon: 'combine', href: '/dashboard/master/universal-group' },
         ],
       },
       {
