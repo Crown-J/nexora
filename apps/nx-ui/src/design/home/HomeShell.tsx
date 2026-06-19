@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnifiedTopBar } from '@design/layout/UnifiedTopBar';
 import { PlanetDock } from '@design/layout/PlanetDock';
+import { ScatterPageGate } from '@design/motion/scatter/ScatterPageGate';
 import { HomeView } from '@design/home/HomeView';
 import { useSessionMe } from '@/features/auth/hooks/useSessionMe';
 import { usePlanet } from '@design/home/SharedPlanetRoot';
@@ -81,7 +82,9 @@ export function HomeShell() {
         />
         <PlanetDock open={dockOpen} onClose={closeDock} />
         <main className="flex flex-1 min-h-0 flex-col">
-          <HomeView displayName={nameText} />
+          <ScatterPageGate>
+            <HomeView displayName={nameText} />
+          </ScatterPageGate>
         </main>
       </div>
     </div>
