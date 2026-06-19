@@ -134,7 +134,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 employeeNo={empNo}
                 onLogout={handleLogout}
                 onDockToggle={toggleDock}
-                onHome={() => tryNavigate(() => router.push('/dashboard'))}
+                onHome={() => tryNavigate(() => router.push('/dashboard'), 'topbar: 首頁 → /dashboard')}
               />
               <PlanetDock open={dockOpen} onClose={closeDock} />
               <main

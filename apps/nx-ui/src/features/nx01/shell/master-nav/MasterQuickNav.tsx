@@ -167,7 +167,7 @@ function PageIconButton({ page, active }: { page: MasterPageMeta; active: boolea
           return;
         }
         e.preventDefault();
-        tryNavigate(() => router.push(page.href));
+        tryNavigate(() => router.push(page.href), `master-nav: ${page.label} → ${page.href}`);
       }}
     >
       <Icon className="size-[17px]" />

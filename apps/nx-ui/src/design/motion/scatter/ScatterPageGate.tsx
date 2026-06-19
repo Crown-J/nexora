@@ -75,6 +75,8 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
   // 永遠不清、整個 dashboard 凍住。fail-safe timer 在 1500ms 後強制 reset。
   const failSafeTimerRef = useRef<number | null>(null);
   const failSafeFramesRef = useRef<HTMLElement[]>([]);
+  // last navigate target label：fail-safe 觸發時用、給 user 知道哪個 entry 設錯
+  const lastTargetRef = useRef<string>('(unknown)');
 
   // mount:偵測 prefers-reduced-motion + 註冊 scatter exit 給 tryNavigate
   useLayoutEffect(() => {
@@ -82,19 +84,27 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
       '(prefers-reduced-motion: reduce)',
     ).matches;
 
-    const unregister = registerScatterNavigate((navigateFn) => {
+    const unregister = registerScatterNavigate((navigateFn, label) => {
+      const target = label ?? '(unknown)';
+      lastTargetRef.current = target;
       // 連點防護:scatter 中重複呼叫 ignore
-      if (isScatteringRef.current) return;
+      if (isScatteringRef.current) {
+        console.debug('[NX-NAV] scatter 中、ignore', target);
+        return;
+      }
       const host = hostRef.current;
       if (!host || reducedMotionRef.current) {
+        console.debug('[NX-NAV] no host / reduced-motion、direct navigate', target);
         navigateFn();
         return;
       }
       const frames = Array.from(host.querySelectorAll<HTMLElement>(SELECTOR));
       if (frames.length === 0) {
+        console.debug('[NX-NAV] 0 frames、direct navigate', target);
         navigateFn();
         return;
       }
+      console.debug(`[NX-NAV] scatter exit (${frames.length} frames)`, target);
       isScatteringRef.current = true;
       // demo 範式:套 transition、所有元件同時散開、不 stagger（保留「同一頁面散開」感）
       applyScatter(host, frames, false);
@@ -118,7 +128,7 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
           failSafeFramesRef.current = [];
           if (typeof console !== 'undefined') {
             console.warn(
-              '[ScatterPageGate] fail-safe triggered: navigate did not complete in 1500ms, force reset scatter state',
+              `[ScatterPageGate] fail-safe triggered (target='${lastTargetRef.current}'): navigate did not complete in 1500ms, force reset scatter state`,
             );
           }
         }
@@ -134,6 +144,7 @@ export function ScatterPageGate({ children }: { children: ReactNode }) {
 
   // pathname 變化 → 新頁 enter gather + reset isScattering
   useLayoutEffect(() => {
+    console.debug('[NX-NAV] pathname effect →', pathname);
     isScatteringRef.current = false;
     if (scatterTimerRef.current) {
       clearTimeout(scatterTimerRef.current);

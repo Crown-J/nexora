@@ -333,7 +333,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 type="button"
                 onClick={() => {
                   setOpen(null);
-                  tryNavigate(() => router.push('/dashboard/me'));
+                  tryNavigate(() => router.push('/dashboard/me'), 'topbar: 個人儀表板 → /dashboard/me');
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.06]"
               >
@@ -344,7 +344,7 @@ export function UnifiedTopBar({ displayName, employeeNo, onLogout, onDockToggle,
                 type="button"
                 onClick={() => {
                   setOpen(null);
-                  tryNavigate(() => router.push('/dashboard/me/change-password'));
+                  tryNavigate(() => router.push('/dashboard/me/change-password'), 'topbar: 修改密碼 → /dashboard/me/change-password');
                 }}
                 className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-[12.5px] hover:bg-foreground/[0.06]"
               >

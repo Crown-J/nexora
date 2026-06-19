@@ -86,10 +86,12 @@ export function useDirtyGuard(
  *
  * Usage: tryNavigate(() => router.push('/dashboard/xxx'))
  */
-export function tryNavigate(navigate: () => void): void {
-  const wrapped = () => navigateWithScatter(navigate);
+export function tryNavigate(navigate: () => void, label?: string): void {
+  console.debug('[NX-NAV] tryNavigate', label ?? '(no label)');
+  const wrapped = () => navigateWithScatter(navigate, label);
   const g = guardRef.current;
   if (g && g.isDirty()) {
+    console.debug('[NX-NAV] dirty guard：confirmAndProceed', label);
     g.confirmAndProceed(wrapped);
   } else {
     wrapped();
@@ -102,7 +104,7 @@ export function tryNavigate(navigate: () => void): void {
 //   未註冊（如 layout 還沒 mount）時 fallback 直接 navigate（不影響功能）
 // ──────────────────────────────────────────────────────────────
 
-type ScatterNavigate = (navigate: () => void) => void;
+type ScatterNavigate = (navigate: () => void, label?: string) => void;
 let scatterImpl: ScatterNavigate | null = null;
 
 /**
@@ -116,10 +118,11 @@ export function registerScatterNavigate(impl: ScatterNavigate): () => void {
   };
 }
 
-function navigateWithScatter(navigate: () => void): void {
+function navigateWithScatter(navigate: () => void, label?: string): void {
   if (scatterImpl) {
-    scatterImpl(navigate);
+    scatterImpl(navigate, label);
   } else {
+    console.debug('[NX-NAV] no scatter impl, direct navigate', label);
     navigate();
   }
 }

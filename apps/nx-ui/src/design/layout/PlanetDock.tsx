@@ -124,7 +124,7 @@ export function PlanetDock({ open, onClose }: Props) {
     (leaf: DockItem) => {
       if (leaf.href) {
         const href = leaf.href;
-        tryNavigate(() => router.push(href));
+        tryNavigate(() => router.push(href), `dock: ${leaf.label} → ${href}`);
       }
       onClose();
     },
